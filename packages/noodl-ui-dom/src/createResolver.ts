@@ -6,9 +6,10 @@ import findWindow from './utils/findWindow'
 import findWindowDocument from './utils/findWindowDocument'
 import NOODLDOM from './noodl-ui-dom'
 import NUIDOMInternal from './Internal'
+import { transaction } from './constants'
 import * as T from './types'
 
-const createResolver = function createResolver(ndom: NOODLDOM) {
+const createResolver = function _createResolver(ndom: NOODLDOM) {
   const _internal: {
     objs: T.Resolve.Config[]
     ndom: NOODLDOM
@@ -50,11 +51,12 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
           ...util.actionsContext(),
           editStyle: createStyleEditor(args[1]),
           original: args[1].original,
+          global: ndom.global,
           ndom: ndom,
           page: ndom.page,
           draw: ndom.draw.bind(ndom),
           redraw: ndom.redraw.bind(ndom),
-        } as T.Resolve.Options
+        }
 
         if (Identify.component.page(args[1])) {
           options.page = ndom.findPage(args[1].get('page')) || options.page
@@ -98,7 +100,19 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
     )
   }
 
+  function _get(key: 'createElement'): T.UseObject['createElement']
+  function _get(): typeof _internal.objs
+  function _get<K extends 'createElement'>(key?: K) {
+    if (key === 'createElement') {
+      return ndom.transactions.get(transaction.CREATE_ELEMENT)
+    }
+    return _internal.objs
+  }
+
   const o = {
+    get utils() {
+      return util
+    },
     register(obj: T.Resolve.Config) {
       !_internal.objs.includes(obj) && _internal.objs.push(obj)
       return o
@@ -117,9 +131,7 @@ const createResolver = function createResolver(ndom: NOODLDOM) {
       _internal.objs.length = 0
       return o
     },
-    get() {
-      return _internal.objs
-    },
+    get: _get,
     use(value: T.Resolve.Config | typeof NUI | NUIDOMInternal) {
       if (value instanceof NUIDOMInternal) {
         ndom = value as NOODLDOM

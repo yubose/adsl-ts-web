@@ -34,6 +34,7 @@ import {
 import { groupedActionTypes, nuiEmitType } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
+import { LiteralUnion } from 'type-fest'
 
 enableES5()
 setUseProxies(false)
@@ -488,6 +489,39 @@ const NUI = (function _NUI() {
             options: T.ConsumerOptions,
           ) {
             return async function executeActionChain(event?: Event) {
+              const { calls } =
+                cache.actions.state[action.actionType as T.NUIActionType]
+                  .executor || {}
+
+              if (calls) {
+                const timestamp = {
+                  id: ++calls.count,
+                  timestamp: new Date().toISOString(),
+                }
+
+                console.log(
+                  `%c${(opts?.page?.page && `[${opts.page.page}] `) || ''}(${
+                    action.actionType
+                  }) New call: ${JSON.stringify(timestamp)}`,
+                  `color:#c4a901;`,
+                  { calls, actionObject: action.original },
+                )
+
+                calls.timestamps.push(timestamp)
+
+                if (calls.timestamps.length > 6) {
+                  while (calls.timestamps.length > 6) {
+                    calls.timestamps.shift()
+                  }
+                }
+              } else {
+                console.log(
+                  `%c[${action.actionType}] Could not find "calls" in the ActionsCache state`,
+                  `color:#ec0000;`,
+                  cache.actions.state,
+                )
+              }
+
               let results = [] as (Error | any)[]
               if (fns.length) {
                 const callbacks = fns.map(
@@ -740,14 +774,17 @@ const NUI = (function _NUI() {
               | T.Register.Object[]
               | Record<string, T.Register.Object['fn']>
             transaction?: Partial<
-              Record<T.TransactionId, T.Transaction[T.TransactionId]['fn']>
+              Record<
+                LiteralUnion<T.TransactionId, string>,
+                T.Transaction[keyof T.Transaction]['fn']
+              >
             >
           } & Partial<
               Record<
                 T.NUIActionGroupedType,
                 T.Store.ActionObject['fn'] | T.Store.ActionObject['fn'][]
               > & {
-                builtIn: Map<
+                builtIn: Record<
                   string,
                   T.Store.BuiltInObject['fn'] | T.Store.BuiltInObject['fn'][]
                 >
@@ -870,10 +907,10 @@ const NUI = (function _NUI() {
 
         if ('transaction' in args) {
           u.entries(args.transaction).forEach(([tid, fn]) => {
-            o.getTransactions().set(tid as T.TransactionId, {
-              ...o.getTransactions().get(tid as T.TransactionId),
-              fn,
-            })
+            const opts = {} as any
+            if (u.isFnc(fn)) opts.fn = fn
+            else if (u.isObj(fn)) u.assign(opts, fn)
+            o.getTransactions().set(tid as T.TransactionId, opts)
           })
         }
 

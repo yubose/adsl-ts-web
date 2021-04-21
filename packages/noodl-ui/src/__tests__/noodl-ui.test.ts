@@ -328,13 +328,13 @@ describe(italic(`emit`), () => {
 })
 
 describe(italic(`getActions`), () => {
-  it(`should return the map of actions`, () => {
+  it(`should return the map of non-builtIn actions`, () => {
     expect(NUI.getActions()).to.eq(NUI.cache.actions)
   })
 })
 
 describe(italic(`getBuiltIns`), () => {
-  it(`should return the map of actions`, () => {
+  it(`should return the map of builtIn actions`, () => {
     const spy1 = sinon.spy()
     const spy2 = sinon.spy()
     const spy3 = sinon.spy()
@@ -346,8 +346,8 @@ describe(italic(`getBuiltIns`), () => {
     NUI.use({ builtIn })
     const builtIns = NUI.getBuiltIns()
     u.entries(builtIn).forEach(([funcName, fn]) => {
-      expect(builtIns).to.have.property(funcName).to.be.an('array')
-      expect(builtIns[funcName]).to.satisfy((arr) =>
+      expect(builtIns.has(funcName)).to.be.true
+      expect(builtIns.get(funcName)).to.satisfy((arr) =>
         arr.some((obj) => obj.fn === fn),
       )
     })
@@ -435,10 +435,8 @@ describe(italic(`use`), () => {
       u.array(fn).forEach((f) => {
         it(`should take { [${funcName}]: <function>[] }`, () => {
           NUI.use({ builtIn: builtIns })
-          expect(NUI.cache.actions.builtIn)
-            .to.have.property(funcName)
-            .to.be.an('array')
-          expect(NUI.cache.actions.builtIn[funcName]).to.satisfy((arr) =>
+          expect(NUI.cache.actions.builtIn.has(funcName)).to.be.true
+          expect(NUI.cache.actions.builtIn.get(funcName)).to.satisfy((arr) =>
             arr.some((obj) => obj.fn === f),
           )
         })

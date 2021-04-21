@@ -24,6 +24,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
   function _getDisconnectFns(room: Meeting['room']) {
     function _disconnect() {
       room?.disconnect?.()
+      app.meeting.calledOnConnected = false
     }
     return {
       disconnect: _disconnect,
@@ -32,6 +33,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         room.localParticipant.videoTracks.forEach(_unpublishTracks)
         room.localParticipant.audioTracks.forEach(_unpublishTracks)
         // Clean up listeners
+        room.removeAllListeners()
         removeEventListener('beforeunload', _disconnect)
         if (isMobile()) removeEventListener('pagehide', _disconnect)
       },

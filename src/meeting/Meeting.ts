@@ -28,6 +28,7 @@ const log = Logger.create('Meeting.ts')
 const createMeetingFns = function _createMeetingFns(app: App) {
   let _room = new EventEmitter() as Room
   let _streams = new Streams()
+  let _calledOnConnected = false
 
   async function _createRoom(token: string) {
     return connect(token, {
@@ -60,19 +61,35 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       console.error(err)
       toast(errMsg, { type: 'error' })
     }
-    try {
-      _room.localParticipant.publishTrack(await createLocalAudioTrack())
-    } catch (error) {
-      handleTrackErr('audio', error)
-    }
-    try {
-      _room.localParticipant.publishTrack(await createLocalVideoTrack())
-    } catch (error) {
-      handleTrackErr('video', error)
+    if (_streams?.selfStream?.hasElement?.()) {
+      try {
+        _streams.selfStream.reloadTracks()
+        console.log(_streams.selfStream)
+      } catch (error) {
+        console.error(error)
+        toast(error.message, { type: 'error' })
+      }
+    } else {
+      try {
+        _room.localParticipant.publishTrack(await createLocalAudioTrack())
+      } catch (error) {
+        handleTrackErr('audio', error)
+      }
+      try {
+        _room.localParticipant.publishTrack(await createLocalVideoTrack())
+      } catch (error) {
+        handleTrackErr('video', error)
+      }
     }
   }
 
   const o = {
+    get calledOnConnected() {
+      return !!_calledOnConnected
+    },
+    set calledOnConnected(called: boolean) {
+      _calledOnConnected = called
+    },
     get localParticipant() {
       return _room?.localParticipant
     },
@@ -91,7 +108,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      */
     async join(token: string) {
       try {
-        if (!_room) {
+        if (_room && _room.state !== 'connected') {
           _room = await _createRoom(token)
         } else {
           _room.state === 'disconnected' && o.leave()
@@ -99,6 +116,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         }
         await _startTracks()
         setTimeout(() => app.meeting.onConnected?.(_room), 2000)
+        o.calledOnConnected = true
         return _room
       } catch (error) {
         console.error(error)
@@ -106,11 +124,9 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       }
     },
     async rejoin() {
-      if (_room) {
-        await _startTracks()
-        setTimeout(() => app.meeting.onConnected?.(_room), 2000)
-      }
-
+      await _startTracks()
+      setTimeout(() => app.meeting.onConnected?.(_room), 2000)
+      o.calledOnConnected = true
       return _room
     },
     hideWaitingOthersMessage() {
@@ -136,6 +152,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         _room?.localParticipant?.audioTracks.forEach(unpublishTracks)
         _room?.localParticipant?.videoTracks.forEach(unpublishTracks)
         _room?.disconnect?.()
+        _calledOnConnected = false
       }
       return this
     },

@@ -1,7 +1,11 @@
 import { LiteralUnion } from 'type-fest'
 import { ICache, NUIActionType, NUITrigger, Store } from '../types'
 import { inspect, isFnc } from '../utils/internal'
-import { groupedActionTypes, triggers } from '../constants'
+import {
+  actionTypes as allActionTypes,
+  groupedActionTypes,
+  triggers,
+} from '../constants'
 
 type OtherActionTypes = Exclude<
   LiteralUnion<NUIActionType, string>,
@@ -24,7 +28,28 @@ type ActionsStore<AType extends string, StoreObj = any> = Map<
 class ActionsCache implements ICache {
   #actions: ActionsStore<OtherActionTypes, Store.ActionObject>
   #builtIns: ActionsStore<'builtIn', Store.BuiltInObject>
-  #emits: ActionsStore<LiteralUnion<NUITrigger, string>, Store.ActionObject[]>;
+  #emits: ActionsStore<LiteralUnion<NUITrigger, string>, Store.ActionObject[]>
+  state = allActionTypes.reduce(
+    (acc, type) => {
+      acc[type] = {
+        executor: {
+          calls: { count: 0, timestamps: [] },
+        },
+      }
+      return acc
+    },
+    {} as Record<
+      NUIActionType,
+      {
+        executor: {
+          calls: {
+            count: number
+            timestamps: { id: number; timestamp: string }[]
+          }
+        }
+      }
+    >,
+  );
 
   [Symbol.iterator]() {
     const items = [

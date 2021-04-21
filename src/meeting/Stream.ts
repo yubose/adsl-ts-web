@@ -45,8 +45,17 @@ class MeetingStream {
     return (this.#node || getByDataUX(this.#uxTag)) as NOODLDOMElement | null
   }
 
-  getVideoElem() {
+  getAudioElement() {
+    return this.getElement()?.querySelector?.('audio') || null
+  }
+
+  getVideoElement() {
     return this.getElement()?.querySelector?.('video') || null
+  }
+
+  /** Returns the participant that is bound to this stream */
+  getParticipant() {
+    return this.#participant
   }
 
   /**
@@ -109,17 +118,20 @@ class MeetingStream {
     return !!this.#participant
   }
 
-  /** Returns the participant that is bound to this stream */
-  getParticipant() {
-    return this.#participant
-  }
-
   /**
    * Returns true if at least one participant has previously been bound
    * on this stream
    */
   hasParticipant() {
     return 'sid' in (this.#participant || {})
+  }
+
+  hasAudioElement() {
+    return !!this.getElement()?.querySelector?.('audio')
+  }
+
+  hasVideoElement() {
+    return !!this.getElement()?.querySelector?.('video')
   }
 
   /**
@@ -188,58 +200,51 @@ class MeetingStream {
    * Re-queries for the currrent participant's tracks and assigns them to the
    * currently set node if they aren't set
    */
-  // NOTE -- hold off on this
-  reloadTracks() {
+  reloadTracks(only?: 'audio' | 'video') {
+    log.func('reloadTracks')
+
+    const getNotAvailableMsg = (missingType: 'node' | 'participant') =>
+      `Tried to reload one or more tracks but the ${missingType} set on this instance is ` +
+      `not available`
+
     if (!this.#node) {
-      log.func('reloadTracks')
-      log.red(
-        `Tried to reload tracks but the node set on this instance is ` +
-          `not available`,
-        this.snapshot(),
-      )
-      return
+      return log.red(getNotAvailableMsg('node'), this.snapshot())
     }
-
     if (!this.#participant) {
-      log.func('reloadTracks')
-      log.red(
-        `Tried to reload tracks but the participant set on this instance is ` +
-          `not available`,
-        this.snapshot(),
-      )
-      return
+      return log.red(getNotAvailableMsg('participant'), this.snapshot())
     }
-
     if (this.#node.dataset.sid !== this.#participant.sid) {
-      this.#node.dataset['sid'] = this.#participant.sid
+      this.#node.dataset.sid = this.#participant.sid
     }
 
     this.#participant.tracks?.forEach?.(
       (publication: RoomParticipantTrackPublication) => {
         const track = publication?.track
-        if (track?.kind === 'audio') {
-          const audioElem = this.#node?.querySelector('audio')
-          if (audioElem) {
-            log.func('reloadTracks')
-            log.grey('Removing previous audio element', audioElem)
-            audioElem.remove()
-          }
+        if (track) {
+          if (track.kind === 'audio' && only !== 'video') {
+            let audioElem = this.#node?.querySelector('audio')
 
-          this.#node?.appendChild(track.attach())
-          log.func('reloadTracks')
-          log.green(`Loaded participant's audio track`, {
-            node: this.#node,
-            participant: this.#participant,
-            track,
-          })
-        } else if (track?.kind === 'video') {
-          if (this.#node) {
-            attachVideoTrack(this.#node, track)
-            log.func('reloadTracks')
-            log.green(`Loaded participant's video track`, {
-              ...this.snapshot(),
-              track,
-            })
+            if (audioElem) {
+              log.grey('Removing previous audio element', audioElem)
+              audioElem.remove()
+              audioElem = null
+            }
+
+            this.#node?.appendChild(track.attach())
+            log.green(`Loaded participant's audio track`, this.snapshot())
+          } else if (track.kind === 'video' && only !== 'audio') {
+            let videoElem = this.getVideoElement()
+
+            if (videoElem) {
+              log.grey('Removing previous video element', videoElem)
+              videoElem.remove()
+              videoElem = null
+            }
+
+            if (this.#node) {
+              attachVideoTrack(this.#node, track)
+              log.green(`Loaded participant's video track`, this.snapshot())
+            }
           }
         }
       },
@@ -257,9 +262,9 @@ class MeetingStream {
     return {
       hasElement: this.hasElement(),
       hasParticipant: this.hasParticipant(),
-      hasVideoElement: !!this.getElement()?.querySelector?.('video'),
-      hasAudioElement: !!this.getElement()?.querySelector?.('audio'),
-      previousParticipant: this.previous.sid,
+      hasVideoElement: this.hasVideoElement(),
+      hasAudioElement: this.hasAudioElement(),
+      previousParticipantSid: this.previous.sid,
       sid: this.getParticipant()?.sid || '',
       streamType: this.type,
       tracks: this.getParticipant()?.tracks,

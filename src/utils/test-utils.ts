@@ -11,8 +11,10 @@ import NOODLDOM, {
   Transaction,
 } from 'noodl-ui-dom'
 import {
+  actionTypes as nuiActionTypes,
   nuiEmitTransaction,
   NUI,
+  NUIActionType,
   NUIComponent,
   Viewport,
   Store,
@@ -211,14 +213,16 @@ export async function initializeApp(
       participants?: Record<string, any> | Map<string, any>
     }
     transaction?: Partial<Transaction>
-  },
+    // use?: typeof NUI.use
+  } & Partial<Record<NUIActionType, Store.ActionObject | Store.BuiltInObject>>,
 ) {
+  let _noodl = (opts?.noodl || noodl) as CADL
+
   _app =
     opts?.app ||
     new App({
       getStatus: noodl.getStatus.bind(noodl) as any,
-      // meeting: createMeetingFns,
-      noodl: (opts?.noodl || noodl || new MockNoodl()) as CADL,
+      noodl: _noodl,
       nui,
       ndom,
       viewport,
@@ -229,23 +233,55 @@ export async function initializeApp(
     firebaseSupported: false,
   })
 
-  if (opts?.pageObject) {
-    opts.pageName && (_app.mainPage.page = opts.pageName)
-    _app.mainPage.components = (opts.components ||
-      opts.pageObject.components ||
-      []) as ComponentObject[]
-    _app.mainPage.getNuiPage().object().components = _app.mainPage.components
-  }
+  let pageName = opts?.pageName || ''
+
+  u.entries(opts).forEach(([key, value]) => {
+    if (nuiActionTypes.includes(key as NUIActionType)) {
+      if (key === 'builtIn') {
+        _app.nui.use({ builtIn: value })
+      } else if (key === 'emit') {
+        _app.nui.use({ emit: value })
+      } else {
+        _app.nui.use({ [key]: value })
+      }
+    } else if (key === 'pageName') {
+      pageName = value
+      _app.mainPage.page = pageName
+    } else if (key === 'pageObject') {
+      _app.mainPage.components = opts?.components || value.components || []
+      _app.mainPage.getNuiPage().object().components = _app.mainPage.components
+    } else if (key === 'room') {
+      _app.meeting.room = getMockRoom(value)
+      let { participants } = _app.meeting.room
+      if (participants) {
+        if (participants instanceof Map) {
+          _app.meeting.room.participants = participants
+          if (participants.size) {
+            for (const participant of participants.values()) {
+              participants.set(participant.sid, participant)
+              _app.meeting.addRemoteParticipant(participant)
+            }
+          }
+        } else {
+          participants = new Map()
+          _app.meeting.room.participants = participants
+          u.entries(participants).forEach(([sid, participant]) => {
+            participants.set(sid, participant)
+            _app.meeting.addRemoteParticipant(participant)
+          })
+        }
+      }
+    }
+  })
 
   const _test = {
     addParticipant(participant: any) {
-      if (!(_app.meeting.room.participants instanceof Map)) {
-        _app.meeting.room.participants = new Map()
-      }
-      participant.sid = participant.sid || u.getRandomKey()
-      _app.meeting.room.participants.set(participant.sid, participant)
+      const room = _app.meeting.room
+      !(room.participants instanceof Map) && (room.participants = new Map())
+      !participant.sid && (participant.sid = u.getRandomKey())
+      room.participants.set(participant.sid, participant)
       // TODO - the emit call here is actually not emitting the event
-      _app.meeting.room.emit('participantConnected', participant)
+      room.emit('participantConnected', participant)
       _app.meeting.addRemoteParticipant(participant)
     },
     clear() {
@@ -257,40 +293,6 @@ export async function initializeApp(
   }
 
   Object.defineProperty(_app, '_test', { value: _test })
-
-  if (opts?.room) {
-    let room = getMockRoom(opts.room)
-    _app.meeting.join = async () => room
-    Object.defineProperty(_app.meeting, 'room', {
-      configurable: true,
-      enumerable: true,
-      get() {
-        return room
-      },
-      set(_room) {
-        room = _room
-      },
-    })
-
-    // room.state && (_app.meeting.room.state = room.state)
-    if (room.participants) {
-      if (room.participants instanceof Map) {
-        _app.meeting.room.participants = room.participants
-        if (_app.meeting.room.participants.size) {
-          for (const participant of _app.meeting.room.participants.values()) {
-            _app.meeting.room.participants.set(participant.sid, participant)
-            _app.meeting.addRemoteParticipant(participant)
-          }
-        }
-      } else {
-        _app.meeting.room.participants = new Map()
-        u.entries(room.participants).forEach(([sid, participant]) => {
-          _app.meeting.room?.participants?.set(sid, participant)
-          _app.meeting.addRemoteParticipant(participant)
-        })
-      }
-    }
-  }
 
   _app.meeting.streams.mainStream.reset()
   _app.meeting.streams.selfStream.reset()

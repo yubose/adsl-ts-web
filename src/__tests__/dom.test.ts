@@ -1,12 +1,57 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
+import { prettyDOM } from '@testing-library/dom'
 import { expect } from 'chai'
 import { screen, waitFor } from '@testing-library/dom'
-import { getFirstByElementId } from 'noodl-ui-dom'
+import {
+  findByViewTag,
+  getFirstByElementId,
+  getFirstByViewTag,
+} from 'noodl-ui-dom'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { assetsUrl, createRender } from '../utils/test-utils'
+import { assetsUrl, createRender, initializeApp } from '../utils/test-utils'
+import getMockParticipant from './helpers/getMockParticipant'
+import getVideoChatPageObject from './helpers/getVideoChatPage'
+
+const getApp = async ({
+  room,
+  navigate = true,
+  pageName = 'VideoChat',
+  participants = [],
+}: Partial<Parameters<typeof initializeApp>[0]> & {
+  navigate?: boolean
+  participants?: any[]
+} = {}) => {
+  const app = await initializeApp({
+    pageName,
+    pageObject: getVideoChatPageObject({ participants }),
+    room: { state: 'connected', ...room },
+  })
+  if (navigate) await app.navigate(pageName)
+  return app
+}
 
 describe(coolGold('DOM'), () => {
+  describe(`when navigating to VideoChat (the first time)`, () => {
+    xit(``, () => {
+      //
+    })
+  })
+
+  describe(`when navigating back to VideoChat`, () => {
+    describe(`when ${italic(`reload: false`)} is used`, () => {
+      xit(``, () => {
+        //
+      })
+    })
+  })
+
+  describe(`when navigating away from VideoChat`, () => {
+    xit(``, () => {
+      //
+    })
+  })
+
   xit(`should display the resolved data-value for a dataValue emit`, async () => {
     const email = 'abc@gmail.com'
     const value = 'myval123'

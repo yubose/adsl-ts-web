@@ -2,7 +2,6 @@ import Logger from 'logsnap'
 import set from 'lodash/set'
 import has from 'lodash/has'
 import { Identify } from 'noodl-types'
-import { Draft } from 'immer'
 import {
   getFirstByElementId,
   isTextFieldLike,
@@ -121,17 +120,52 @@ const createExtendedDOMResolvers = function (app: App) {
   }
 
   const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
+    '[App] popUp': {
+      cond: (n, c) => c.has('global'),
+      resolve(node) {
+        const onMutation: MutationCallback = function onMutation(mutations) {
+          log.func('<popUp> onMutation')
+          log.grey('', mutations)
+        }
+
+        const observer = new MutationObserver(onMutation)
+        observer.observe(node, { childList: true })
+      },
+    },
+    '[App] MutationObserver': {
+      cond: 'listItem',
+      resolve(node) {
+        // const onMutation: MutationCallback = function _onMutation(
+        //   mutations,
+        //   observer,
+        // ) {
+        //   console.log({ mutations, observer })
+        //   mutations.forEach((mutation) => {
+        //     console.log(`%c[${mutation.type}]`, 'color:cyan', mutation)
+        //   })
+        // }
+        // const observeOptions: MutationObserverInit = {
+        // attributes: true,
+        // attributeOldValue: true,
+        // characterData: true,
+        // childList: true,
+        // subtree: true,
+        // }
+        // const observer = new MutationObserver(onMutation)
+        // observer.observe(node, observeOptions)
+      },
+    },
     '[App] selfStream': {
       cond: (node, component) => component?.blueprint?.viewTag === 'selfStream',
       resolve(node) {
-        if (app.meeting.streams.selfStream.tempChildren) {
-          app.meeting.streams.selfStream.tempChildren.forEach(
-            (childNode: HTMLElement) => {
-              node.appendChild(childNode)
-            },
-          )
-          app.meeting.streams.selfStream.tempChildren = null
-        }
+        // if (app.meeting.streams.selfStream.tempChildren) {
+        //   app.meeting.streams.selfStream.tempChildren.forEach(
+        //     (childNode: HTMLElement) => {
+        //       node.appendChild(childNode)
+        //     },
+        //   )
+        //   app.meeting.streams.selfStream.tempChildren = null
+        // }
       },
     },
     '[App] data-value': {

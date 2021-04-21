@@ -1,4 +1,7 @@
-import { dataAttributes as noodluiDataAttributes } from 'noodl-ui'
+import {
+  dataAttributes as noodluiDataAttributes,
+  nuiEmitTransaction,
+} from 'noodl-ui'
 
 export const dataAttributes = [
   ...noodluiDataAttributes,
@@ -39,6 +42,9 @@ export const eventId = {
   },
 } as const
 
-export const transaction = {} as const
+export const transaction = {
+  ...nuiEmitTransaction,
+  CREATE_ELEMENT: 'create-element',
+} as const
 
 export const CREATE_GLOBAL_ID = 'CREATE_GLOBAL_ID'

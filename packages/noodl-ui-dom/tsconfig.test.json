@@ -5,7 +5,6 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "commonjs",
-    "strict": false,
     "target": "es2019"
   },
   "extends": "./tsconfig.json",

@@ -325,4 +325,4 @@ export interface Transaction {
   }
 }
 
-export type TransactionId = keyof Transaction
+export type TransactionId = LiteralUnion<keyof Transaction, string>

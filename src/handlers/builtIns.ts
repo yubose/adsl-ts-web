@@ -14,12 +14,13 @@ import {
   isListConsumer,
 } from 'noodl-ui'
 import {
+  eventId as ndomEventId,
   findByViewTag,
   findByUX,
   findWindow,
   getByDataUX,
-  isPageConsumer,
   getFirstByElementId,
+  isPageConsumer,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, Identify } from 'noodl-types'
 import {
@@ -61,6 +62,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('disconnectMeeting')
     log.grey('', { action, room: app.meeting.room })
     app.meeting.room.disconnect()
+    app.meeting.calledOnConnected = false
   }
 
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {
@@ -345,8 +347,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('<builtIn> goto]')
     log.red('', action)
 
-    debugger
-
     let destinationParam = ''
     let reload: boolean | undefined
     let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
@@ -412,8 +412,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       pageReload,
     })
 
-    debugger
-
     if (id) {
       const isInsidePageComponent = isPageConsumer(options.component)
       const node = findByViewTag(id) || getFirstByElementId(id)
@@ -451,7 +449,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (isSamePage) {
           scroll()
         } else {
-          app.mainPage.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+          app.mainPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
         }
       } else {
         log.red(`Could not search for a DOM node with an identity of "${id}"`, {
@@ -491,7 +489,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
 
         window.location.href = urlToGoToInstead
-      } else await app.navigate(destination)
+      } else {
+        await app.navigate(destination)
+      }
 
       if (!destination) {
         log.func('builtIn')
@@ -644,6 +644,7 @@ export function createVideoChatBuiltIn(app: App) {
 
       log.func('onVideoChat')
       // Reuse the existing room
+      console.log(app.meeting.room)
       if (app.meeting.room?.state === 'connected') {
         newRoom = await app.meeting.rejoin()
         log.green(
@@ -651,7 +652,7 @@ export function createVideoChatBuiltIn(app: App) {
           newRoom,
         )
       } else {
-        if (action?.roomId) log.grey(`Connecting to room ide: ${action.roomId}`)
+        log.grey(`Connecting to room id: ${action?.roomId}`)
         newRoom = (await app.meeting.join(action.accessToken)) as Room
         newRoom && log.green(`Connected to room: ${newRoom.name}`, newRoom)
       }

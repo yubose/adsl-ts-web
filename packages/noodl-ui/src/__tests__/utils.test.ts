@@ -3,8 +3,8 @@ import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'
 import * as mock from 'noodl-ui-test-utils'
 import * as n from '../utils/noodl'
-import NUI from '../noodl-ui'
 import { createDataKeyReference } from '../utils/test-utils'
+import NUI from '../noodl-ui'
 
 /** REMINDER: Total components created should be 9 for this func */
 const getResolvedListComponentPreset = () =>

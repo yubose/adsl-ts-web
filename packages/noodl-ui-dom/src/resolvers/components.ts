@@ -52,7 +52,7 @@ const domComponentsResolver: Resolve.Config = {
           node && ((node as HTMLImageElement).src = result)
         })
         if (component.get('data-src')) {
-          node.src = component.get('data-src')
+          ;(node as HTMLImageElement).src = component.get('data-src')
         }
       }
       // LABEL
