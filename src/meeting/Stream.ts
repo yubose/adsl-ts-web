@@ -5,7 +5,6 @@ import {
   LocalTrack,
   RemoteTrack,
 } from 'twilio-video'
-import { NOODLDOMElement } from 'noodl-ui-dom'
 import Logger from 'logsnap'
 import { toast } from '../utils/dom'
 import {
@@ -14,15 +13,12 @@ import {
   RoomTrack,
   StreamType,
 } from '../app/types'
-import { attachAudioTrack, attachVideoTrack } from '../utils/twilio'
 
 const log = Logger.create('Streams.ts')
 
 class MeetingStream {
-  #node: NOODLDOMElement | null = null
+  #node: HTMLElement | null = null
   #participant: RoomParticipant | null = null
-  #uxTag: string = ''
-  tempChildren: any
   previous: { sid?: string; identity?: string } = {}
   type: StreamType | null = null
   events = new Map<string, ((...args: any[]) => any)[]>();
@@ -31,86 +27,50 @@ class MeetingStream {
     return this.snapshot()
   }
 
-  constructor(
-    type: StreamType,
-    { node, uxTag }: { node?: NOODLDOMElement; uxTag?: string } = {},
-  ) {
+  constructor(type: StreamType, { node }: { node?: HTMLElement } = {}) {
     if (node) this.#node = node
-    if (uxTag) this.#uxTag = uxTag
     this.type = type
-    if (!type) console.log({ this: this, node, uxTag })
+    if (!type) console.log({ this: this, node })
   }
 
-  isActivelyStreaming() {
-    // const vid = document.createElement('video')
+  getElement() {
+    return this.#node
   }
 
   hasElement() {
     return this.#node !== null && this.#node instanceof HTMLElement
   }
 
-  getElement() {
-    return this.#node as NOODLDOMElement | null
-  }
-
-  getAudioElement() {
-    return this.getElement()?.querySelector?.('audio') || null
-  }
-
-  getVideoElement() {
-    return this.getElement()?.querySelector?.('video') || null
-  }
-
-  /** Returns the participant that is bound to this stream */
-  getParticipant() {
-    return this.#participant
-  }
-
   /**
    * Sets the node to this instance
-   * @param { NOODLDOMElement | null } node
+   * @param { HTMLElement | null } node
    */
-  setElement(node: NOODLDOMElement | null, { uxTag }: { uxTag?: string } = {}) {
+  setElement(node: HTMLElement | null) {
     this.#node = node
     log.func('setElement')
     log.grey('New element has been set on this stream', {
       snapshot: this.snapshot(),
     })
-    if (uxTag) this.#uxTag = uxTag
     return this
-  }
-
-  /**
-   * Returns true if the node is already set on this instance
-   * @param { NOODLDOMElement } node
-   */
-  isSameElement(node: NOODLDOMElement) {
-    return (
-      !!node &&
-      !!this.#node &&
-      (this.#node === node || this.#node?.id === node.id)
-    )
   }
 
   /** Removes the DOM node for this stream from the DOM */
   removeElement() {
     log.func('removeElement')
-    if (this.#node && this.#node instanceof HTMLElement) {
+    if (this.hasElement()) {
       try {
-        if (this.#node) {
-          if (this.#node.parentNode) {
-            this.#node.parentNode.removeChild(this.#node)
-            log.grey(
-              'Removed node from this stream by removeChild()',
-              this.snapshot(),
-            )
-          } else {
-            this.#node.remove()
-            log.grey(
-              'Removed node from this instance by remove()',
-              this.snapshot(),
-            )
-          }
+        if (this.#node?.parentNode) {
+          this.#node.parentNode.removeChild(this.getElement() as HTMLElement)
+          log.grey(
+            'Removed node from this stream by removeChild()',
+            this.snapshot(),
+          )
+        } else {
+          this.getElement()?.remove()
+          log.grey(
+            'Removed node from this instance by remove()',
+            this.snapshot(),
+          )
         }
       } catch (error) {
         console.error(error)
@@ -120,38 +80,59 @@ class MeetingStream {
   }
 
   /**
-   * Returns true if at least one participant has previously been bound
-   * on this stream
+   * Returns true if the node is already set on this instance
+   * @param { HTMLElement } node
    */
-  hasParticipant() {
-    return 'sid' in (this.#participant || {})
+  isSameElement(node: HTMLElement) {
+    return (
+      !!node &&
+      this.hasElement() &&
+      (this.#node === node || this.#node?.id === node.id)
+    )
+  }
+
+  getAudioElement() {
+    return this.getElement()?.querySelector?.('audio') || null
   }
 
   hasAudioElement() {
-    return !!this.getElement()?.querySelector?.('audio')
+    return !!this.getAudioElement()
+  }
+
+  getVideoElement() {
+    return this.getElement()?.querySelector?.('video') || null
   }
 
   hasVideoElement() {
-    return !!this.getElement()?.querySelector?.('video')
+    return !!this.getVideoElement()
+  }
+
+  getParticipant() {
+    return this.#participant
+  }
+
+  hasParticipant() {
+    return !!this.#participant?.sid
+  }
+
+  /**
+   * Returns true if the node is already set on this instance
+   * @param { RoomParticipant } participant
+   */
+  isParticipant(participant: RoomParticipant) {
+    return !!(participant && this.#participant === participant)
   }
 
   /**
    * Updates the previous sid/identity properties and binds the new
    * participant to this stream
+   * @param { RoomParticipant } participant
    */
   #replaceParticipant = (participant: RoomParticipant) => {
     this.previous.sid = participant.sid
     this.previous.identity = participant.identity
     this.#participant = participant
     return this
-  }
-
-  /**
-   * Returns true if the node is already set on this instance
-   * @param { NOODLDOMElement } node
-   */
-  isParticipant(participant: RoomParticipant) {
-    return !!participant && this.#participant === participant
   }
 
   /**
@@ -250,7 +231,11 @@ class MeetingStream {
             log.grey(`Started the audio element`)
           } else if (track.kind === 'video' && only !== counterLabel) {
             if (this.#node) {
-              attachVideoTrack(this.#node, track)
+              const videoElem = track.attach()
+              videoElem.style.width = '100%'
+              videoElem.style.height = '100%'
+              videoElem.style.objectFit = 'cover'
+              this.#node.appendChild(videoElem)
               log.grey(`Started the video element`)
             }
           }
@@ -312,7 +297,6 @@ class MeetingStream {
   /**
    * Handle tracks published as well as tracks that are going to be published
    * by the participant later
-   * @param { LocalParticipant | RemoteParticipant } participant
    */
   #handlePublishTracks = () => {
     this.#participant?.tracks?.forEach?.(this.#handleAttachTracks)
@@ -322,7 +306,6 @@ class MeetingStream {
   /**
    * Attach the published track to the DOM once it is subscribed
    * @param { RoomParticipantTrackPublication } publication - Track publication
-   * @param { RoomParticipant } participant
    */
   #handleAttachTracks = (publication: RoomParticipantTrackPublication) => {
     // If the TrackPublication is already subscribed to, then attach the Track to the DOM.
@@ -353,14 +336,18 @@ class MeetingStream {
     const node = this.getElement()
     if (node) {
       if (track.kind === 'audio') {
-        attachAudioTrack(node, track)
+        node.appendChild(track.attach())
         log.func('attachTrack (audio)')
         log.green(`Loaded the participant's audio track`, {
           ...this.snapshot(),
           track,
         })
       } else if (track.kind === 'video') {
-        attachVideoTrack(node, track)
+        const videoElem = track.attach()
+        videoElem.style.width = '100%'
+        videoElem.style.height = '100%'
+        videoElem.style.objectFit = 'cover'
+        node.appendChild(videoElem)
         log.func('attachTrack (video)')
         log.green(`Loaded the participant's video track`, {
           ...this.snapshot(),

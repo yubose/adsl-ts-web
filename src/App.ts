@@ -974,7 +974,7 @@ class App {
         if (/mainStream/i.test(String(component.blueprint.viewTag))) {
           const mainStream = this.streams.mainStream
           if (!mainStream.isSameElement(node)) {
-            mainStream.setElement(node, { uxTag: 'mainStream' })
+            mainStream.setElement(node)
             log.func('onCreateNode')
             log.green('Bound an element to mainStream', { mainStream, node })
           }
@@ -983,7 +983,7 @@ class App {
         else if (/selfStream/i.test(String(component.blueprint.viewTag))) {
           const selfStream = this.streams.selfStream
           if (!selfStream.isSameElement(node)) {
-            selfStream.setElement(node, { uxTag: 'selfStream' })
+            selfStream.setElement(node)
             log.func('onCreateNode')
             log.green('Bound an element to selfStream', { selfStream, node })
           }

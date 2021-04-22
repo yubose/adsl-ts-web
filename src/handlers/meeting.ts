@@ -11,7 +11,6 @@ import {
   RemoteParticipant,
 } from 'twilio-video'
 import Stream from '../meeting/Stream'
-import { forEachParticipant } from '../utils/twilio'
 import { array, isMobile } from '../utils/common'
 import { hide, show } from '../utils/dom'
 import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from '../constants'
@@ -138,7 +137,9 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.func('onConnected')
       log.grey(`Bound local participant to selfStream`, selfStream)
     }
-    forEachParticipant(room.participants, app.meeting.addRemoteParticipant)
+    for (const participant of room.participants.values()) {
+      app.meeting.addRemoteParticipant(participant)
+    }
   }
 
   /**
