@@ -4,10 +4,8 @@ import {
   createLocalVideoTrack,
   LocalTrack,
   RemoteTrack,
-  LocalParticipant,
-  RemoteParticipant,
 } from 'twilio-video'
-import { getByDataUX, NOODLDOMElement } from 'noodl-ui-dom'
+import { NOODLDOMElement } from 'noodl-ui-dom'
 import Logger from 'logsnap'
 import { toast } from '../utils/dom'
 import {
@@ -26,7 +24,8 @@ class MeetingStream {
   #uxTag: string = ''
   tempChildren: any
   previous: { sid?: string; identity?: string } = {}
-  type: StreamType | null = null;
+  type: StreamType | null = null
+  events = new Map<string, ((...args: any[]) => any)[]>();
 
   [inspect.custom]() {
     return this.snapshot()
@@ -118,13 +117,6 @@ class MeetingStream {
       }
     }
     return this
-  }
-
-  /**
-   * TODO - deprecate in favor of hasParticipant
-   * */
-  isAnyParticipantSet() {
-    return !!this.#participant
   }
 
   /**
@@ -341,11 +333,13 @@ class MeetingStream {
       log.func('event -- subscribed')
       log.green('"subscribed" handler is executing', this.snapshot())
       this.#attachTrack(track)
+      publication.off('subscribed', onSubscribe)
     }
     const onUnsubscribe = (track: RoomTrack) => {
       log.func('event -- unsubscribed')
       log.green('"unsubscribed" handler is executing', this.snapshot())
       this.#detachTrack(track)
+      publication.off('unsubscribed', onUnsubscribe)
     }
     publication.on('subscribed', onSubscribe)
     publication.on('unsubscribed', onUnsubscribe)
