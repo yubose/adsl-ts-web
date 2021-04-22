@@ -157,14 +157,6 @@ class App {
           `Rendered ${components.length} components on ${_pageRequesting}`,
           components,
         )
-
-        log.gold('ROOM EVENTS COUNTER', {
-          disconnected: this.meeting.room['_events']?.disconnected?.length,
-          participantConnected: this.meeting.room['_events']
-            ?.participantConnected?.length,
-          participantDisconnected: this.meeting.room['_events']
-            ?.participantDisconnected?.length,
-        })
         window.pcomponents = components
       }
     } catch (error) {

@@ -37,10 +37,6 @@ class MeetingStreams {
     return this.#subStreams
   }
 
-  isMainStreaming(participant: RoomParticipant) {
-    return this.#mainStream.isParticipant(participant)
-  }
-
   getSubStreamsContainer() {
     return this.#subStreams
   }
