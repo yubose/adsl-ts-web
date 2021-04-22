@@ -207,8 +207,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
             if (!o.subStreams?.participantExists(participant)) {
               const subStream = o.subStreams?.findByParticipant(participant)
               if (subStream) {
-                subStream?.unpublish()
-                subStream?.removeElement()
+                subStream.unpublish()
+                subStream.removeElement()
                 o.subStreams?.removeSubStream(subStream)
               }
             }
@@ -296,7 +296,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           // In the NOODL the mainStream is part of the page. For subStreams,
           // since we create them customly and are not included in the NOODL, we
           // would call subStream.removeElement() for those
-          mainStream?.unpublish().detachParticipant()
+          mainStream.unpublish()
           app.meeting.onRemoveRemoteParticipant?.(
             participant as RemoteParticipant,
             mainStream,
@@ -316,7 +316,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               // to the mainStream
               nextMainParticipant = subStream.getParticipant()
               if (nextMainParticipant) {
-                subStream?.unpublish().detachParticipant().removeElement()
+                subStream?.unpublish().removeElement()
                 mainStream.setParticipant(nextMainParticipant)
                 log.func('removeRemoteParticipant')
                 log.green(
@@ -332,7 +332,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           log.orange('This remote participant was substreaming')
           subStream = subStreams?.findByParticipant(participant)
           if (subStream) {
-            subStream.unpublish().detachParticipant().removeElement()
+            subStream.unpublish().removeElement()
             subStreams?.removeSubStream(subStream)
             app.meeting.onRemoveRemoteParticipant?.(
               participant as RemoteParticipant,

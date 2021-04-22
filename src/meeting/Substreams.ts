@@ -162,7 +162,7 @@ class MeetingSubstreams {
       this.#subStreams = this.#subStreams.filter(fn)
       try {
         stream.removeElement()
-        stream.unpublish(stream.getParticipant())
+        stream.unpublish()
       } catch (error) {
         console.error(error.message)
       }

@@ -99,6 +99,15 @@ class MeetingStream {
     return !!this.getAudioElement()
   }
 
+  removeAudioElement() {
+    if (
+      this.hasAudioElement() &&
+      this.getElement()?.contains?.(this.getAudioElement())
+    ) {
+      this.getElement()?.removeChild(this.getAudioElement() as HTMLAudioElement)
+    }
+  }
+
   getVideoElement() {
     return this.getElement()?.querySelector?.('video') || null
   }
@@ -107,12 +116,25 @@ class MeetingStream {
     return !!this.getVideoElement()
   }
 
+  removeVideoElement() {
+    if (
+      this.hasVideoElement() &&
+      this.getElement()?.contains?.(this.getVideoElement())
+    ) {
+      this.getElement()?.removeChild(this.getVideoElement() as HTMLVideoElement)
+    }
+  }
+
   getParticipant() {
     return this.#participant
   }
 
   hasParticipant() {
-    return !!this.#participant?.sid
+    return !!(
+      this.#participant &&
+      'sid' in this.#participant &&
+      !!this.#participant.sid
+    )
   }
 
   /**
@@ -120,19 +142,11 @@ class MeetingStream {
    * @param { RoomParticipant } participant
    */
   isParticipant(participant: RoomParticipant) {
-    return !!(participant && this.#participant === participant)
-  }
-
-  /**
-   * Updates the previous sid/identity properties and binds the new
-   * participant to this stream
-   * @param { RoomParticipant } participant
-   */
-  #replaceParticipant = (participant: RoomParticipant) => {
-    this.previous.sid = participant.sid
-    this.previous.identity = participant.identity
-    this.#participant = participant
-    return this
+    return !!(
+      this.hasParticipant() &&
+      participant &&
+      this.#participant === participant
+    )
   }
 
   /**
@@ -145,7 +159,9 @@ class MeetingStream {
     if (participant) {
       const node = this.getElement()
       // Bind this participant to this instance's properties
-      this.#replaceParticipant(participant)
+      this.previous.sid = participant.sid
+      this.previous.identity = participant.identity
+      this.#participant = participant
       if (node) {
         // Attaches the data-sid attribute
         node.dataset['sid'] = participant.sid
@@ -170,11 +186,16 @@ class MeetingStream {
   }
 
   /** Removes the participant's video/audio tracks from the DOM */
-  unpublish(participant: RoomParticipant | null = this.#participant) {
-    participant?.tracks?.forEach(
-      ({ track }: RoomParticipantTrackPublication) =>
-        track && this.#detachTrack(track),
-    )
+  unpublish() {
+    if (this.hasParticipant()) {
+      this.#participant?.tracks?.forEach(
+        ({ track }: RoomParticipantTrackPublication) =>
+          track && this.#detachTrack(track),
+      )
+      this.#participant = null
+    }
+    this.removeAudioElement()
+    this.removeVideoElement()
     return this
   }
 
@@ -249,12 +270,6 @@ class MeetingStream {
     }
   }
 
-  /** Removes the participant from the instance */
-  detachParticipant() {
-    this.#participant = null
-    return this
-  }
-
   /** Returns a JS representation of the current state of this stream */
   snapshot(otherArgs?: any) {
     return {
@@ -284,11 +299,11 @@ class MeetingStream {
       this.#node?.parentElement?.removeChild?.(this.#node)
       this.#node?.remove?.()
       this.#node = null
-      this.unpublish(this.#participant)
+      this.unpublish()
     } catch (error) {
       console.error(error)
     }
-    this.#participant = null
+    this.#participant && (this.#participant = null)
     this.previous = {}
     this.type = null
     return this
