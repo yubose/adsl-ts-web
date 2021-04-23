@@ -12,6 +12,7 @@ import NOODLDOM, {
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
+import findIndex from 'lodash/findIndex'
 import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import {
   NUIComponent,
