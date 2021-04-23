@@ -140,7 +140,6 @@ const createTransactions = function _createTransactions(app: App) {
                       log.grey(`TODO - Create + start audio stream`, {
                         previousSnapshot,
                       })
-                      // app.meeting.room.localParticipant
                     }
                   }
                 } else {

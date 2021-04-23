@@ -33,7 +33,7 @@
     "lib:build": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel build",
     "lib:start": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start",
     "pub": "node scripts/publish.js -p",
-    "updatelib": "node scripts/update.js -u lib -d",
+    "updatelib": "node scripts/update.js -d",
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "dependencies": {
