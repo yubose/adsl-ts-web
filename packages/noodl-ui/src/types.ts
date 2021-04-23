@@ -222,7 +222,6 @@ export interface IComponent<
     styleKey?: keyof StyleObject,
   ): Record<K, C[K]>
   get(key: keyof C, styleKey?: keyof StyleObject): any
-  getStyle<K extends keyof StyleObject>(styleKey: K): StyleObject[K]
   has(key: keyof C, styleKey?: keyof StyleObject): boolean
   on<Evt extends NUIComponent.HookEvent>(
     evt: Evt,
@@ -233,11 +232,9 @@ export interface IComponent<
   parent: NUIComponent.Instance | null
   props: { id: string } & ComponentObject
   remove(key: keyof C, styleKey?: keyof StyleObject): this
-  removeStyle<K extends keyof StyleObject>(styleKey: K): this
   set<K extends keyof C>(key: K, value?: any, styleChanges?: any): this
   set<O extends C>(key: O, value?: any, styleChanges?: any): this
   setParent(parent: NUIComponent.Instance): this
-  setStyle<K extends keyof StyleObject>(styleKey: K, value: any): this
   snapshot(): ReturnType<IComponent['toJSON']> & {
     _cache: any
   }

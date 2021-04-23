@@ -4,30 +4,40 @@ import { prettyDOM, waitFor } from '@testing-library/dom'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { expect } from 'chai'
 import { asHtmlElement, findByGlobalId } from 'noodl-ui-dom'
-import { initializeApp } from '../../utils/test-utils'
+import { getApp as _getApp } from '../../utils/test-utils'
 import Stream from '../../meeting/Stream'
 import getMockParticipant from '../helpers/getMockParticipant'
-import getVideoChatPageObject from '../../__tests__/helpers/getVideoChatPage'
 import * as u from '../../utils/common'
 import * as dom from '../../utils/dom'
 
-const getApp = async ({
-  room,
-  navigate,
-}: Partial<Parameters<typeof initializeApp>[0]> & {
-  navigate?: boolean
-} = {}) => {
-  const app = await initializeApp({
-    pageName: 'VideoChat',
-    pageObject: getVideoChatPageObject({ participants: [] }),
-    room: { state: 'connected', ...room },
-  })
-  if (navigate) await app.navigate('VideoChat')
-  return app
+const getApp: typeof _getApp = async (args) => {
+  return _getApp({ ...args, preset: 'meeting' })
 }
 
 describe(coolGold(`Meeting`), () => {
-  describe('when adding participants', () => {
+  describe(`when connecting to a room`, () => {
+    describe(`when there are participants in the room`, () => {
+      it(`should call the ${magenta(
+        `twilioOnPeopleJoin`,
+      )} register event`, async () => {
+        const participant = getMockParticipant()
+        const app = await getApp({
+          room: {
+            participants: { [participant.sid]: participant },
+          },
+        })
+        const spy = sinon.spy(
+          app.nui.cache.register.get('_global', 'twilioOnPeopleJoin'),
+          'fn',
+        )
+        await app.navigate('VideoChat')
+        spy.restore()
+        expect(spy).to.be.calledOnce
+      })
+    })
+  })
+
+  describe(italic(`when adding participants`), () => {
     it(`should find at least 1 "Waiting for others to join" element`, async () => {
       const app = await getApp({ navigate: true })
       expect(
@@ -35,19 +45,18 @@ describe(coolGold(`Meeting`), () => {
       ).to.have.length.greaterThan(0)
     })
 
-    it('should hide the "Waiting for others to join" message when there are participants', async () => {
-      const participant = getMockParticipant()
-      const app = await getApp({
-        navigate: true,
-        room: { participants: { [participant.sid]: participant } },
-      })
+    it.only('should hide the "Waiting for others to join" message when there are participants', async () => {
+      const app = await getApp({ navigate: true })
       app.meeting
         .getWaitingMessageElements()
         .forEach((elem) => expect(dom.isVisible(elem)).to.be.true)
-      app.meeting
-        .addRemoteParticipant(getMockParticipant())
-        .getWaitingMessageElements()
-        .forEach((elem) => expect(dom.isVisible(elem)).to.be.false)
+      app.meeting.addRemoteParticipant(getMockParticipant())
+      app.meeting.addRemoteParticipant(getMockParticipant())
+      await waitFor(() => {
+        app.meeting
+          .getWaitingMessageElements()
+          .forEach((elem) => expect(dom.isVisible(elem)).to.be.false)
+      })
     })
 
     it('should show the "Waiting for others to join" message when there are no participants', async () => {
@@ -152,7 +161,7 @@ describe(coolGold(`Meeting`), () => {
         // NOTE: dont forget to check that the video/audio nodes were removed
         expect(spy.called).to.be.false
         expect(mainStream.getParticipant()).to.equal(mainStreamParticipant)
-        mainStream?.unpublish().detachParticipant()
+        mainStream?.unpublish()
         expect(spy.called).to.be.true
         spy.restore()
       })
@@ -283,15 +292,15 @@ describe(coolGold(`Meeting`), () => {
     })
   })
 
-  describe.only(`when using global popUp in a meeting`, () => {
+  describe(`when using global popUp in a meeting`, () => {
     describe(`when navigating away`, () => {
       it(`should not have disconnected from the room`, async () => {
         const app = await getApp()
-        const spy = sinon.spy(app.meeting.room, 'disconnect')
+        console.info(app.meeting.room._isMock)
         await app.meeting.join('token')
-        expect(spy).not.to.be.called
+        expect(app.meeting.room.state).to.eq('connected')
         await app.navigate('VideoChat')
-        expect(spy).to.be.calledOnce
+        expect(app.meeting.room.state).to.eq('connected')
       })
 
       xit(`should still have tracks on`, () => {

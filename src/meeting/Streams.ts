@@ -37,10 +37,6 @@ class MeetingStreams {
     return this.#subStreams
   }
 
-  getSubStreamsContainer() {
-    return this.#subStreams
-  }
-
   createSubStreamsContainer(
     container: NOODLDOMElement,
     opts?: {
@@ -54,6 +50,12 @@ class MeetingStreams {
 
   isSubStreaming(participant: RoomParticipant) {
     return this.#subStreams?.participantExists(participant)
+  }
+
+  reset() {
+    this.mainStream.reset()
+    this.selfStream.reset()
+    this.subStreams?.reset()
   }
 
   snapshot() {

@@ -1,13 +1,34 @@
 import * as mock from 'noodl-ui-test-utils'
+import omit from 'lodash/omit'
 import { ComponentObject } from 'noodl-types'
 
 function getVideoChatPageObject({
   participants = [],
-}: { participants?: any[] } = {}) {
+  viewTag,
+}: {
+  participants?: any[]
+  viewTag?: {
+    minimizeVideoChat?: {
+      component?: Partial<
+        ComponentObject & {
+          global?: boolean
+          float?: boolean
+          audioStream?: boolean
+          videoStream?: boolean
+        }
+      >
+    }
+    videoTimer?: {
+      component?: Partial<ComponentObject> & {
+        'text=func'?: (...args: any[]) => any
+      }
+    }
+  }
+} = {}) {
   return {
     pageNumber: '190',
-    cameraOn: 'true',
-    micOn: 'true',
+    cameraOn: true,
+    micOn: true,
     miuAutoMicOffTimespan: '3',
     miuAutoMicOffThresdhold: '3',
     emptyId: '',
@@ -114,7 +135,7 @@ function getVideoChatPageObject({
                 ],
               }),
               mock.getViewComponent({
-                style: { top: '0.9', height: '0.1' },
+                style: { top: '0.9', height: '0.1', position: 'fixed' },
                 children: [
                   mock.getImageComponent({
                     viewTag: 'camera',
@@ -191,7 +212,6 @@ function getVideoChatPageObject({
                   mock.getImageComponent({
                     path: 'hangUp.png',
                     onClick: [
-                      mock.getBuiltInAction({ funcName: 'disconnectMeeting' }),
                       mock.getEvalObjectAction(),
                       mock.getSaveObjectAction({
                         object: [['roomInfo.response.name', null]],
@@ -214,7 +234,8 @@ function getVideoChatPageObject({
                     contentType: 'timer',
                     dataKey: 'Global.timer',
                     viewTag: 'videoTimer',
-                  }),
+                    ...viewTag?.videoTimer?.component,
+                  } as ComponentObject),
                 ],
               }),
             ],
@@ -231,7 +252,18 @@ function getVideoChatPageObject({
           mock.getEvalObjectAction(),
           mock.getPopUpDismissAction({ popUpView: 'minimizeVideoChat' }),
         ],
-        style: { top: '0', left: '0', float: true },
+        style: {
+          top: '0',
+          left: '0',
+          float:
+            typeof viewTag?.minimizeVideoChat?.component?.style?.float ===
+            'boolean'
+              ? viewTag.minimizeVideoChat.component.style.float
+              : true,
+        },
+        ...(viewTag?.minimizeVideoChat?.component
+          ? omit(viewTag.minimizeVideoChat.component, 'float')
+          : undefined),
       }),
       mock.getPopUpComponent({
         popUpView: 'confirmView',

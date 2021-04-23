@@ -219,3 +219,6 @@ NUI.emit({
     console.error(err)
   })
 ```
+
+// Correctly clears the console (tested on MAC)
+process.stdout.write('\x1Bc')

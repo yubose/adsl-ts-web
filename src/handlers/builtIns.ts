@@ -33,13 +33,44 @@ import {
 import { parse } from 'noodl-utils'
 import Logger from 'logsnap'
 import { isVisible, toast, hide, show, scrollToElem } from '../utils/dom'
-import { pageEvent } from '../constants'
 import App from '../App'
 import * as u from '../utils/common'
 
 const log = Logger.create('builtIns.ts')
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
+  function _toggleMeetingDevice(kind: 'audio' | 'video') {
+    log.func(`(${kind}) toggleDevice`)
+    log.grey(`Toggling ${kind}`)
+    let devicePath = `VideoChat.${kind === 'audio' ? 'micOn' : 'cameraOn'}`
+    let localParticipant = app.meeting.localParticipant
+    let localTrack: LocalAudioTrack | LocalVideoTrack | undefined
+    if (localParticipant) {
+      for (const publication of localParticipant.tracks.values()) {
+        if (publication.track.kind === kind) localTrack = publication.track
+      }
+      app.updateRoot((draft) => {
+        if (localTrack) {
+          if (localTrack.isEnabled) {
+            localTrack.disable()
+            set(draft, devicePath, false)
+            log.grey(`Toggled ${kind} off`, localParticipant)
+          } else {
+            localTrack.enable()
+            set(draft, devicePath, true)
+            log.grey(`Toggled ${kind} on`, localParticipant)
+          }
+        } else {
+          log.red(
+            `Tried to toggle ${kind} track on/off for LocalParticipant but a ${kind} ` +
+              `track was not available`,
+            app.meeting.localParticipant,
+          )
+        }
+      })
+    }
+  }
+
   const checkField: Store.BuiltInObject['fn'] = async function onCheckField(
     action,
   ) {
@@ -114,71 +145,18 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const toggleCameraOnOff: Store.BuiltInObject['fn'] = async function onToggleCameraOnOff(
     action,
-    options,
   ) {
     log.func('toggleCameraOnOff')
     log.green('', action)
-
-    let path = 'VideoChat.cameraOn'
-    let localParticipant = app.meeting.localParticipant
-    let videoTrack: LocalVideoTrack | undefined
-
-    if (localParticipant) {
-      videoTrack = Array.from(localParticipant.tracks.values()).find(
-        (trackPublication) => trackPublication.kind === 'video',
-      )?.track as LocalVideoTrack
-
-      app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
-        if (videoTrack) {
-          if (videoTrack.isEnabled) {
-            videoTrack.disable()
-            set(draft, path, false)
-            log.grey(`Toggled video off `, localParticipant)
-          } else {
-            videoTrack.enable()
-            set(draft, path, true)
-            log.grey(`Toggled video on`, localParticipant)
-          }
-        } else {
-          log.red(
-            `Tried to toggle video track on/off for LocalParticipant but a video track was not available`,
-            { localParticipant, room: app.meeting.room },
-          )
-        }
-      })
-    }
+    _toggleMeetingDevice('video')
   }
 
   const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] = async function onToggleMicrophoneOnOff(
     action,
-    options,
   ) {
     log.func('toggleMicrophoneOnOff')
     log.green('', action)
-
-    let path = 'VideoChat.micOn'
-    let localParticipant = app.meeting.localParticipant
-    let audioTrack: LocalAudioTrack | undefined
-
-    if (localParticipant) {
-      audioTrack = Array.from(localParticipant.tracks.values()).find(
-        (trackPublication) => trackPublication.kind === 'audio',
-      )?.track as LocalAudioTrack
-
-      app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
-        if (audioTrack) {
-          if (audioTrack.isEnabled) {
-            audioTrack.disable()
-            set(draft, path, false)
-            log.grey(`Toggled audio off`, localParticipant)
-          } else {
-            log.grey(`Toggled audio on`, localParticipant)
-            audioTrack.enable()
-            set(draft, path, true)
-          }
-        }
-      })
-    }
+    _toggleMeetingDevice('audio')
   }
 
   const toggleFlag: Store.BuiltInObject['fn'] = async function onToggleFlag(

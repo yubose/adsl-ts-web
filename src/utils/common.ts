@@ -1,3 +1,5 @@
+import util from 'util'
+
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
 export const assign = (
@@ -34,6 +36,8 @@ export function isMobile() {
     ? /Mobile/.test(navigator.userAgent)
     : false
 }
+
+export const inspect = util.inspect.custom
 
 export function isDev() {
   return process.env.NODE_ENV === 'test'

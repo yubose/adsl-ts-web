@@ -2,6 +2,8 @@ import jsdom from 'jsdom-global'
 jsdom(undefined, {
   url: 'http://localhost',
 })
+// @ts-expect-error
+import MutationObserver from 'mutation-observer'
 import chaiAsPromised from 'chai-as-promised'
 import noop from 'lodash/noop'
 import chai from 'chai'
@@ -16,10 +18,12 @@ let logStub: sinon.SinonStub
 let invariantStub: sinon.SinonStub<any>
 
 before(function () {
-  console.clear()
+  // Correctly clears the console (tested on MAC)
+  process.stdout.write('\x1Bc')
+  global.MutationObserver = MutationObserver
   global.localStorage = window.localStorage
   logStub = sinon.stub(global.console, 'log').callsFake(() => noop)
-  invariantStub = sinon.stub(global.console, 'error').callsFake(() => () => {})
+  // invariantStub = sinon.stub(global.console, 'error').callsFake(() => () => {})
 })
 
 afterEach(() => {
@@ -33,5 +37,5 @@ afterEach(() => {
 
 after(() => {
   logStub.restore()
-  invariantStub.restore()
+  // invariantStub.restore()
 })

@@ -1,4 +1,4 @@
-console.clear()
+process.stdout.write('\x1Bc')
 const path = require('path')
 const chalk = require('chalk')
 const webpack = require('webpack')

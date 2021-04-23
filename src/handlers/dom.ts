@@ -1,4 +1,7 @@
 import Logger from 'logsnap'
+import add from 'date-fns/add'
+import startOfDay from 'date-fns/startOfDay'
+import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
 import { Identify } from 'noodl-types'
@@ -83,10 +86,8 @@ const createExtendedDOMResolvers = function (app: App) {
               if (node.dataset?.name === 'code') {
                 const pathToTage = 'verificationCode.response.edge.tage'
                 if (has(app.noodl.root?.[app.mainPage.page], pathToTage)) {
-                  app.noodl.editDraft((draft: any) => {
-                    set(draft?.[app.mainPage.page], pathToTage, value)
-                    console.log(`Updated: SettingsUpdate.${pathToTage}`)
-                  })
+                  app.updateRoot(`${app.mainPage.page}.${pathToTage}`, value)
+                  console.log(`Updated: SettingsUpdate.${pathToTage}`)
                 }
               }
             }
@@ -120,52 +121,17 @@ const createExtendedDOMResolvers = function (app: App) {
   }
 
   const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
-    '[App] popUp': {
-      cond: (n, c) => c.has('global'),
-      resolve(node) {
-        const onMutation: MutationCallback = function onMutation(mutations) {
-          log.func('<popUp> onMutation')
-          log.grey('', mutations)
+    '[App] chart': {
+      cond: 'chart',
+      resolve(node, component) {
+        const dataValue = component.get('data-value') || '' || 'dataKey'
+        if (node) {
+          node.style.width = component.style.width as string
+          node.style.height = component.style.height as string
+          const myChart = echarts.init(node)
+          const option = dataValue
+          option && myChart.setOption(option)
         }
-
-        const observer = new MutationObserver(onMutation)
-        observer.observe(node, { childList: true })
-      },
-    },
-    '[App] MutationObserver': {
-      cond: 'listItem',
-      resolve(node) {
-        // const onMutation: MutationCallback = function _onMutation(
-        //   mutations,
-        //   observer,
-        // ) {
-        //   console.log({ mutations, observer })
-        //   mutations.forEach((mutation) => {
-        //     console.log(`%c[${mutation.type}]`, 'color:cyan', mutation)
-        //   })
-        // }
-        // const observeOptions: MutationObserverInit = {
-        // attributes: true,
-        // attributeOldValue: true,
-        // characterData: true,
-        // childList: true,
-        // subtree: true,
-        // }
-        // const observer = new MutationObserver(onMutation)
-        // observer.observe(node, observeOptions)
-      },
-    },
-    '[App] selfStream': {
-      cond: (node, component) => component?.blueprint?.viewTag === 'selfStream',
-      resolve(node) {
-        // if (app.meeting.streams.selfStream.tempChildren) {
-        //   app.meeting.streams.selfStream.tempChildren.forEach(
-        //     (childNode: HTMLElement) => {
-        //       node.appendChild(childNode)
-        //     },
-        //   )
-        //   app.meeting.streams.selfStream.tempChildren = null
-        // }
       },
     },
     '[App] data-value': {
@@ -235,7 +201,333 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
-    '[App] textField (password)': {
+    '[App] Map': {
+      cond: 'map',
+      resolve(node, component) {
+        const dataValue = component.get('data-value') || '' || 'dataKey'
+        if (node) {
+          const parent = component.parent
+          mapboxgl.accessToken =
+            'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
+          let link = document.createElement('link')
+          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css'
+          link.rel = 'stylesheet'
+          document.head.appendChild(link)
+          if (dataValue.mapType == 1) {
+            dataValue.zoom = dataValue.zoom ? dataValue.zoom : 9
+            let flag = !dataValue.hasOwnProperty('data')
+              ? false
+              : dataValue.data.length == 0
+              ? false
+              : true
+            let initcenter = flag
+              ? dataValue.data[0].data
+              : [-117.9086, 33.8359]
+            let map = new mapboxgl.Map({
+              container: parent?.id,
+              style: 'mapbox://styles/mapbox/streets-v11',
+              center: initcenter,
+              zoom: dataValue.zoom,
+              trackResize: true,
+              dragPan: true,
+              boxZoom: false, // 加载地图使禁用拉框缩放
+              // attributionControl: false, // 隐藏地图控件链接
+              // logoPosition: 'bottom-right' // 设置mapboxLogo位置
+              // zoomControl: true,
+              // antialias: false, //抗锯齿，通过false关闭提升性能
+              // attributionControl: false,
+            })
+
+            map.addControl(new mapboxgl.NavigationControl()) //添加放大缩小控件
+            map.addControl(
+              //添加定位
+              new mapboxgl.GeolocateControl({
+                positionOptions: {
+                  enableHighAccuracy: true,
+                },
+                trackUserLocation: true,
+              }),
+            )
+            if (flag) {
+              let featuresData: any[] = []
+              dataValue.data.forEach((element: any) => {
+                let item = {
+                  type: 'Feature',
+                  properties: {
+                    Name: element.information.Name,
+                    Speciality: element.information.Speciality,
+                    Title: element.information.Title,
+                    address: element.information.address,
+                  },
+                  geometry: {
+                    type: 'Point',
+                    coordinates: element.data,
+                  },
+                }
+                featuresData.push(item)
+              })
+              console.log('test map2', featuresData)
+
+              map.on('load', function () {
+                // Add a new source from our GeoJSON data and
+                // set the 'cluster' option to true. GL-JS will
+                // add the point_count property to your source data.
+                map.addSource('earthquakes', {
+                  type: 'geojson',
+                  // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
+                  // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
+                  // data:'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson',
+                  data: {
+                    type: 'FeatureCollection',
+                    features: featuresData,
+                  },
+                  cluster: true,
+                  clusterMaxZoom: 14, // Max zoom to cluster points on
+                  clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
+                })
+
+                map.addLayer({
+                  id: 'clusters',
+                  type: 'circle',
+                  source: 'earthquakes',
+                  filter: ['has', 'point_count'],
+                  paint: {
+                    // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
+                    // with three steps to implement three types of circles:
+                    //   * Blue, 20px circles when point count is less than 100
+                    //   * Yellow, 30px circles when point count is between 100 and 750
+                    //   * Pink, 40px circles when point count is greater than or equal to 750
+                    'circle-color': [
+                      'step',
+                      ['get', 'point_count'],
+                      '#51bbd6',
+                      10,
+                      '#f1f075',
+                      50,
+                      '#f28cb1',
+                    ],
+                    'circle-radius': [
+                      'step',
+                      ['get', 'point_count'],
+                      20,
+                      100,
+                      30,
+                      750,
+                      40,
+                    ],
+                  },
+                })
+
+                map.addLayer({
+                  id: 'cluster-count',
+                  type: 'symbol',
+                  source: 'earthquakes',
+                  filter: ['has', 'point_count'],
+                  layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-font': [
+                      'DIN Offc Pro Medium',
+                      'Arial Unicode MS Bold',
+                    ],
+                    'text-size': 12,
+                  },
+                })
+
+                map.addLayer({
+                  id: 'unclustered-point',
+                  type: 'circle',
+                  source: 'earthquakes',
+                  filter: ['!', ['has', 'point_count']],
+                  paint: {
+                    'circle-color': '#11b4da',
+                    'circle-radius': 10,
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': '#fff',
+                  },
+                })
+
+                // inspect a cluster on click
+                map.on('click', 'clusters', function (e: any) {
+                  let features = map.queryRenderedFeatures(e.point, {
+                    layers: ['clusters'],
+                  })
+                  let clusterId = features[0].properties.cluster_id
+                  map
+                    .getSource('earthquakes')
+                    .getClusterExpansionZoom(
+                      clusterId,
+                      function (err: any, zoom: any) {
+                        if (err) return
+                        map.easeTo({
+                          center: features[0].geometry.coordinates,
+                          zoom: zoom,
+                        })
+                      },
+                    )
+                })
+
+                // When a click event occurs on a feature in
+                // the unclustered-point layer, open a popup at
+                // the location of the feature, with
+                // description HTML from its properties.
+                map.on('click', 'unclustered-point', function (e: any) {
+                  // 'Name': element.Name,
+                  // 'Speciality': element.Speciality,
+                  // 'Title': element.Title,
+                  // 'address'
+                  console.log('test map3', e)
+                  let coordinates = e.features[0].geometry.coordinates.slice()
+                  let Name = e.features[0].properties.Name
+                  let Speciality = e.features[0].properties.Speciality
+                  // let Title = e.features[0].properties.Title
+                  let address = e.features[0].properties.address
+                  new mapboxgl.Popup()
+                    .setLngLat(coordinates)
+                    .setHTML(Name + ' <br> ' + Speciality + '<br> ' + address)
+                    .addTo(map)
+                })
+
+                map.on('mouseenter', 'clusters', function () {
+                  console.log('test map12', 'mouse enter point')
+                  map.getCanvas().style.cursor = 'pointer'
+                })
+                map.on('mouseleave', 'clusters', function () {
+                  map.getCanvas().style.cursor = ''
+                })
+              })
+              // let canvasContainer:any = node.parentNode?.children[1]
+              let canvasContainer: any = document.querySelector(
+                '.mapboxgl-canvas-container',
+              )
+              console.log('test map show canvas', canvasContainer)
+              canvasContainer['style']['width'] = '100%'
+              canvasContainer['style']['height'] = '100%'
+
+              // parent.addEvent("click",function(){
+              // })
+              // let canvasContainer = document.getElementById("mapboxgl-canvas-container")
+              //end
+            }
+          } else if (dataValue.mapType == 2) {
+            dataValue.zoom = dataValue.zoom ? dataValue.zoom : 9
+            let flag = !dataValue.hasOwnProperty('data')
+              ? false
+              : dataValue.data.length == 0
+              ? false
+              : true
+            let initcenter = flag
+              ? dataValue.data[0].data
+              : [-117.9086, 33.8359]
+            let map = new mapboxgl.Map({
+              container: parent?.id,
+              style: 'mapbox://styles/mapbox/streets-v11',
+              center: initcenter,
+              zoom: dataValue.zoom,
+              trackResize: true,
+              dragPan: true,
+              boxZoom: false, // 加载地图使禁用拉框缩放
+              // attributionControl: false, // 隐藏地图控件链接
+              // logoPosition: 'bottom-right' // 设置mapboxLogo位置
+              // zoomControl: true,
+              // antialias: false, //抗锯齿，通过false关闭提升性能
+              // attributionControl: false,
+            })
+
+            map.addControl(new mapboxgl.NavigationControl()) //添加放大缩小控件
+            map.addControl(
+              //添加定位
+              new mapboxgl.GeolocateControl({
+                positionOptions: {
+                  enableHighAccuracy: true,
+                },
+                trackUserLocation: true,
+              }),
+            )
+            new mapboxgl.Marker().setLngLat(initcenter).addTo(map)
+            let canvasContainer: any = document.querySelector(
+              '.mapboxgl-canvas-container',
+            )
+            console.log('test map show canvas', canvasContainer)
+            canvasContainer['style']['width'] = '100%'
+            canvasContainer['style']['height'] = '100%'
+          }
+        }
+      },
+    },
+    '[App] Meeting': {
+      cond: (node, component) => !!(node && component),
+      resolve: function onMeetingComponent(node, component) {
+        const viewTag = component.blueprint?.viewTag || ''
+        // Dominant/main participant/speaker
+        if (/mainStream/i.test(viewTag)) {
+          if (!app.mainStream.isSameElement(node)) {
+            app.mainStream.setElement(node)
+            log.func('[App] Meeting.resolve')
+            log.green('Bound an element to mainStream', app.mainStream)
+          }
+        }
+        // Local participant
+        else if (/selfStream/i.test(viewTag)) {
+          if (!app.selfStream.isSameElement(node)) {
+            app.selfStream.setElement(node)
+            log.func('[App] Meeting.resolve')
+            log.green('Bound an element to selfStream', app.selfStream)
+          }
+        }
+        // Remote participants container
+        else if (/(videoSubStream)/i.test(component.contentType || '')) {
+          let subStreams = app.subStreams
+          if (!subStreams) {
+            subStreams = app.streams.createSubStreamsContainer(node, {
+              blueprint: component.blueprint?.children?.[0],
+              resolver: app.nui.resolveComponents.bind(app.nui),
+            })
+            log.func('[App] Meeting.resolve')
+            log.green('Initiated subStreams container', subStreams)
+          } else {
+            // If an existing subStreams container is already existent in memory, re-initiate
+            // the DOM node and blueprint since it was reset from a previous cleanup
+            subStreams.container = node
+            subStreams.blueprint = component.blueprint?.children?.[0]
+            subStreams.resolver = app.nui.resolveComponents.bind(app.nui)
+          }
+        }
+        // Individual remote participant video element container
+        else if (/subStream/i.test(viewTag)) {
+          if (app.subStreams) {
+            if (!app.subStreams.elementExists(node)) {
+            } else {
+              log.func('[App] Meeting.resolve')
+              log.red(
+                `Attempted to add an element to a subStream but it ` +
+                  `already exists in the subStreams container`,
+                { subStreams: app.subStreams, node, component },
+              )
+            }
+          } else {
+            log.func('[App] Meeting.resolve')
+            log.red(
+              `Attempted to create "subStreams" but a container (DOM element) ` +
+                `was not available`,
+              { node, component, ...app.streams.snapshot() },
+            )
+          }
+        }
+      },
+    },
+    '[App] popUp': {
+      cond: (n, c) => c.has('global'),
+      resolve(node) {
+        const onMutation: MutationCallback = function onMutation(mutations) {
+          log.func('<popUp> onMutation')
+          log.grey('', mutations)
+        }
+
+        const observer = new MutationObserver(onMutation)
+        observer.observe(node, { childList: true })
+      },
+    },
+    '[App] Password textField': {
       cond: 'textField',
       resolve(node, component) {
         // Password inputs
@@ -332,12 +624,101 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    '[App] VideoChat Timer': {
+      cond: (n, c) => u.isFnc(c.get('text=func')),
+      resolve: (node, component) => {
+        const dataKey = component.get('dataKey')
+
+        if (component.contentType === 'timer') {
+          component.on(
+            'initial.timer',
+            (setInitialTime: (date: Date) => void) => {
+              const initialTime = startOfDay(new Date())
+              // Initial SDK value is set in seconds
+              const initialSeconds = get(app.noodl.root, dataKey, 0) as number
+              // Sdk evaluates from start of day. So we must add onto the start of day
+              // the # of seconds of the initial value in the Global object
+              let initialValue = add(initialTime, { seconds: initialSeconds })
+              if (initialValue === null || initialValue === undefined) {
+                initialValue = new Date()
+              }
+              setInitialTime(initialValue)
+            },
+          )
+
+          // Look at the hard code implementation in noodl-ui-dom
+          // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
+          // the api declaration
+          component.on(
+            'timer.ref',
+            (ref: {
+              start(): void
+              current: Date
+              ref: NodeJS.Timeout
+              clear: () => void
+              increment(): void
+              set(value: any): void
+              onInterval?:
+                | ((args: {
+                    node: HTMLElement
+                    component: NUIComponent.Instance
+                    ref: typeof ref
+                  }) => void)
+                | null
+            }) => {
+              const textFunc = component.get('text=func') || ((x: any) => x)
+
+              component.on(
+                'interval',
+                ({
+                  node,
+                  component,
+                }: {
+                  node: HTMLElement
+                  component: NUIComponent.Instance
+                  ref: typeof ref
+                }) => {
+                  app.updateRoot((draft) => {
+                    const seconds = get(draft, dataKey, 0)
+                    set(draft, dataKey, seconds + 1)
+                    const updatedSecs = get(draft, dataKey)
+                    if (!u.isNil(updatedSecs) && u.isNum(updatedSecs)) {
+                      if (seconds === updatedSecs) {
+                        // Not updated
+                        log.func('text=func timer [ndom.register]')
+                        log.red(
+                          `Tried to update the value of ${dataKey} but the value remained the same`,
+                          {
+                            node,
+                            component,
+                            seconds,
+                            updatedSecs,
+                            ref,
+                          },
+                        )
+                      } else {
+                        // Updated
+                        ref.increment()
+                        node.textContent = textFunc(ref.current)
+                      }
+                    }
+                  })
+                },
+              )
+              ref.start()
+            },
+          )
+        }
+      },
+    },
   }
 
-  return Object.entries(domResolvers).reduce(
-    (acc, [name, obj]) => acc.concat({ ...obj, name }),
-    [] as Resolve.Config[],
-  )
+  return u
+    .entries(domResolvers)
+    .reduce(
+      (acc, [name, obj]) => acc.concat({ ...obj, name }),
+      [] as Resolve.Config[],
+    )
 }
 
 export default createExtendedDOMResolvers

@@ -237,47 +237,6 @@ class Component<C extends ComponentObject = ComponentObject>
     this.#propPath = path
   }
 
-  /* -------------------------------------------------------
-  ---- Syntax sugar for working with styles
--------------------------------------------------------- */
-
-  /**
-   * Retrieves a value from the style object using styleKey
-   * @param { string } styleKey
-   */
-  getStyle<K extends keyof StyleObject>(styleKey: K) {
-    return this.#component.style?.[styleKey]
-  }
-
-  /**
-   * Updates/creates a new key/value into the style object using the styleKey and value
-   * @param { string } styleKey
-   * @param { any } value - Value to set for the styleKey
-   */
-  setStyle(styleKey: string, value: any): this
-  setStyle<K extends keyof StyleObject>(styles: K): this
-  setStyle<K extends keyof StyleObject>(styleKey: string | K, value?: any) {
-    if (!this.#component.style) this.#component.style = {}
-    if (u.isStr(styleKey)) {
-      if (this.#component.style) {
-        this.#component.style[styleKey] = value
-      }
-    } else if (u.isStr(styleKey)) {
-      const style = this.#component.style as StyleObject
-      u.entries(styleKey).forEach(([key, value]) => (style[key] = value))
-    }
-    return this
-  }
-
-  /**
-   * Removes a property from the style object using the styleKey
-   * @param { string } styleKey
-   */
-  removeStyle<K extends keyof StyleObject>(styleKey: K) {
-    this.remove('style', styleKey)
-    return this
-  }
-
   /**
    * Returns the most recent
    * component object at the time of this call.

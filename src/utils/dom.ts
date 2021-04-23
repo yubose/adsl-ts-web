@@ -1,4 +1,3 @@
-import isPlainObject from 'lodash/isPlainObject'
 import { asHtmlElement, findByDataKey } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
 import { makeElemFn } from 'noodl-ui-dom'
@@ -201,32 +200,8 @@ export function scrollToElem(
   node && scrollTo(node.getBoundingClientRect().top, duration, { doc, win })
 }
 
-/**
- * Sets the style for an HTML DOM element. If key is an empty string it
- * will erase all styles
- * @param { HTMLElement } node
- * @param { string | Styles | undefined } key
- * @param { any | undefined } value
- */
-export function setStyle(node: HTMLElement, key?: string | any, value?: any) {
-  if (node) {
-    if (typeof key === 'string') {
-      // Normalize unsetting
-      if (key === '') {
-        key = 'cssText'
-        value = ''
-      }
-      node.style[key as any] = value
-    } else if (isPlainObject(key)) {
-      Object.entries(key).forEach(([k, v]: any) => {
-        node.style[k] = v
-      })
-    }
-  }
-}
-
 export function toast(message: string | number, options?: Toast['options']) {
-  return createToast(String(message), {
+  return createToast?.(String(message), {
     cancel: 'Close',
     timeout: 8000,
     ...options,

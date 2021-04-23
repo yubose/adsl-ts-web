@@ -323,25 +323,20 @@ const createActions = function createActions(app: App) {
           const pageName = app.mainPage?.page || ''
           const pathToTage = 'verificationCode.response.edge.tage'
           let vcode = get(app.noodl.root?.[pageName], pathToTage, '')
-
           if (!pageName) {
             log.red(
               `Could not determine the page to query the verification code for`,
             )
           }
-
           if (vcode) {
             if (!vcodeInput.value || vcodeInput.value == '0') {
               vcode = String(vcode)
               vcodeInput.value = vcode
               vcodeInput.dataset.value = vcode
-              app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
-                set(
-                  draft[pageName],
-                  vcodeInput.dataset.key || 'formData.code',
-                  vcode,
-                )
-              })
+              app.updateRoot(
+                `${pageName}.${vcodeInput.dataset.key || 'formData.code'}`,
+                vcode,
+              )
             }
           } else {
             log.orange(

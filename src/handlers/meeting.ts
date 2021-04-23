@@ -11,8 +11,7 @@ import {
   RemoteParticipant,
 } from 'twilio-video'
 import Stream from '../meeting/Stream'
-import { array, isMobile } from '../utils/common'
-import { hide, show } from '../utils/dom'
+import { isMobile } from '../utils/common'
 import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from '../constants'
 import { Meeting } from '../app/types'
 import App from '../App'
@@ -170,6 +169,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
        * to be an array if it's not already an array
        * @param { RemoteParticipant } participant
        */
+
       app.updateRoot(
         PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
         app.meeting.removeFalseParticipants([

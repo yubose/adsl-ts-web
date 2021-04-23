@@ -28,7 +28,7 @@ function createRegisters(app: App) {
         log.red('Unable to get permission to notify.', err)
       }
       try {
-        if (app.getEnabledServices().firebase) {
+        if (app.getFirebaseState().enabled) {
           app._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
             'firebase-messaging-sw.js',
           )
@@ -56,7 +56,7 @@ function createRegisters(app: App) {
           ...options,
         }
 
-        const token = app.getEnabledServices().firebase
+        const token = app.getFirebaseState().enabled
           ? (await app.messaging?.getToken(getTokenOptions)) || ''
           : ''
 

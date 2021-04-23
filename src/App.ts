@@ -1,26 +1,16 @@
-import startOfDay from 'date-fns/startOfDay'
-import add from 'date-fns/add'
 import Logger from 'logsnap'
 import { createToast } from 'vercel-toast'
 import NOODLDOM, {
   eventId,
   isPage as isNOODLDOMPage,
-  NOODLDOMElement,
   Page as NOODLDOMPage,
-  RegisterOptions,
 } from 'noodl-ui-dom'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { ComponentObject, Identify, PageObject } from 'noodl-types'
-import {
-  NUIComponent,
-  nuiEmitTransaction,
-  NUI,
-  publish,
-  Viewport as VP,
-} from 'noodl-ui'
-import { Draft, WritableDraft } from 'immer/dist/internal'
+import { ComponentObject, Identify } from 'noodl-types'
+import { NUI, publish, Viewport as VP } from 'noodl-ui'
+import { Draft } from 'immer/dist/internal'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import {
   AuthStatus,
@@ -35,7 +25,6 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
-import MeetingSubstreams from './meeting/Substreams'
 import * as u from './utils/common'
 import * as T from './app/types'
 
@@ -43,8 +32,12 @@ const log = Logger.create('App.ts')
 const stable = u.isStable()
 
 class App {
-  #enabled = {
-    firebase: true,
+  #state = {
+    authStatus: '' as AuthStatus | '',
+    initialized: false,
+    firebase: {
+      enabled: true,
+    },
   }
   #meeting: ReturnType<typeof createMeetingFns>
   #noodl: T.AppConstructorOptions['noodl']
@@ -63,10 +56,8 @@ class App {
       vapidKey: '',
     },
   }
-  authStatus: AuthStatus | '' = ''
   firebase = {} as FirebaseApp
   getStatus: T.AppConstructorOptions['getStatus']
-  initialized = false
   messaging = null as FirebaseMessaging | null
   mainPage: NOODLDOM['page']
 
@@ -91,6 +82,14 @@ class App {
     noodl && (this.#noodl = noodl)
   }
 
+  get authStatus() {
+    return this.#state.authStatus
+  }
+
+  get initialized() {
+    return this.#state.initialized
+  }
+
   get meeting() {
     return this.#meeting
   }
@@ -105,6 +104,18 @@ class App {
 
   get ndom() {
     return this.#ndom as NonNullable<T.AppConstructorOptions['ndom']>
+  }
+
+  get mainStream() {
+    return this.#meeting.mainStream
+  }
+
+  get selfStream() {
+    return this.#meeting.selfStream
+  }
+
+  get subStreams() {
+    return this.meeting.subStreams
   }
 
   get streams() {
@@ -172,7 +183,7 @@ class App {
     firebaseSupported?: boolean
   } = {}) {
     try {
-      !firebaseSupported && (this.#enabled.firebase = false)
+      !firebaseSupported && (this.#state.firebase.enabled = false)
       vapidKey && (this._store.messaging.vapidKey = vapidKey)
 
       !this.getStatus &&
@@ -181,7 +192,9 @@ class App {
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
       this.firebase = firebase as T.FirebaseApp
-      this.messaging = this.#enabled.firebase ? this.firebase.messaging() : null
+      this.messaging = this.#state.firebase.enabled
+        ? this.firebase.messaging()
+        : null
 
       await this.noodl.init()
 
@@ -201,13 +214,13 @@ class App {
       // Initialize the user's state before proceeding to decide on how to direct them
       if (storedStatus.code === 0) {
         this.noodl.setFromLocalStorage('user')
-        this.authStatus = 'logged.in'
+        this.#state.authStatus = 'logged.in'
       } else if (storedStatus.code === 1) {
-        this.authStatus = 'logged.out'
+        this.#state.authStatus = 'logged.out'
       } else if (storedStatus.code === 2) {
-        this.authStatus = 'new.device'
+        this.#state.authStatus = 'new.device'
       } else if (storedStatus.code === 3) {
-        this.authStatus = 'temporary'
+        this.#state.authStatus = 'temporary'
       }
 
       const config = this.noodl.getConfig()
@@ -246,7 +259,7 @@ class App {
       this.meeting.onRemoveRemoteParticipant =
         meetingfns.onRemoveRemoteParticipant
 
-      if (this.#enabled.firebase) {
+      if (this.#state.firebase.enabled) {
         this.messaging?.onMessage(
           (obs) => {
             log.func('onMessage')
@@ -262,8 +275,6 @@ class App {
           },
         )
       }
-
-      this.observeMeetings()
 
       /* -------------------------------------------------------
       ---- LOCAL STORAGE
@@ -323,7 +334,7 @@ class App {
         }
       }
 
-      this.initialized = true
+      this.#state.initialized = true
     } catch (error) {
       console.error(error)
       throw error
@@ -350,7 +361,7 @@ class App {
             })
             return token
           },
-          FCMOnTokenRefresh: this.#enabled.firebase
+          FCMOnTokenRefresh: this.#state.firebase.enabled
             ? this.messaging?.onTokenRefresh.bind(this.messaging)
             : undefined,
           checkField: self.ndom.builtIns.get('checkField')?.find(Boolean)?.fn,
@@ -399,8 +410,8 @@ class App {
     }
   }
 
-  getEnabledServices() {
-    return this.#enabled
+  getFirebaseState() {
+    return this.#state.firebase
   }
 
   observeViewport(viewport: VP) {
@@ -479,6 +490,24 @@ class App {
   }
 
   observePages(page: NOODLDOMPage) {
+    if (
+      !this.mainPage.hooks[eventId.page.on.ON_REDRAW_BEFORE_CLEANUP]?.length
+    ) {
+      this.ndom.page.on(
+        eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
+        (node, component) => {
+          console.log(
+            `Removed a ${component.type} component from cache: ${component.id}`,
+          )
+          NUI.cache.component.remove(component)
+          publish(component, (c) => {
+            console.log(`Removed a ${c.type} component from cache: ${c.id}`)
+            NUI.cache.component.remove(c)
+          })
+        },
+      )
+    }
+
     page
       .on(
         eventId.page.on.ON_NAVIGATE_START,
@@ -570,487 +599,16 @@ class App {
       })
   }
 
-  /**
-   * Callback invoked when Meeting.joinRoom receives the room instance.
-   * Initiates participant tracks as well as register listeners for state changes on
-   * the room instance.
-   * @param { Room } room - Room instance
-   */
-  observeMeetings() {
-    /* -------------------------------------------------------
-    ---- BINDS NODES/PARTICIPANTS TO STREAMS WHEN NODES ARE CREATED
-  -------------------------------------------------------- */
-
-    this.ndom.register({
-      name: 'chart',
-      cond: 'chart',
-      resolve(node: HTMLDivElement, component) {
-        const dataValue = component.get('data-value') || '' || 'dataKey'
-        if (node) {
-          node.style.width = component.getStyle('width') as string
-          node.style.height = component.getStyle('height') as string
-          const myChart = echarts.init(node)
-          const option = dataValue
-          option && myChart.setOption(option)
-        }
-      },
-    } as RegisterOptions)
-
-    this.ndom.register({
-      name: 'map',
-      cond: 'map',
-      resolve(node: HTMLDivElement, component) {
-        const dataValue = component.get('data-value') || '' || 'dataKey'
-        if (node) {
-          console.log('test map1', dataValue)
-          const parent = component.parent
-          mapboxgl.accessToken =
-            'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
-          let link = document.createElement('link')
-          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css'
-          link.rel = 'stylesheet'
-          document.head.appendChild(link)
-          if (dataValue.mapType == 1) {
-            dataValue.zoom = dataValue.zoom ? dataValue.zoom : 9
-            let flag = !dataValue.hasOwnProperty('data')
-              ? false
-              : dataValue.data.length == 0
-              ? false
-              : true
-            let initcenter = flag
-              ? dataValue.data[0].data
-              : [-117.9086, 33.8359]
-            let map = new mapboxgl.Map({
-              container: parent?.id,
-              style: 'mapbox://styles/mapbox/streets-v11',
-              center: initcenter,
-              zoom: dataValue.zoom,
-              trackResize: true,
-              dragPan: true,
-              boxZoom: false, // 加载地图使禁用拉框缩放
-              // attributionControl: false, // 隐藏地图控件链接
-              // logoPosition: 'bottom-right' // 设置mapboxLogo位置
-              // zoomControl: true,
-              // antialias: false, //抗锯齿，通过false关闭提升性能
-              // attributionControl: false,
-            })
-
-            map.addControl(new mapboxgl.NavigationControl()) //添加放大缩小控件
-            map.addControl(
-              //添加定位
-              new mapboxgl.GeolocateControl({
-                positionOptions: {
-                  enableHighAccuracy: true,
-                },
-                trackUserLocation: true,
-              }),
-            )
-            if (flag) {
-              let featuresData: any[] = []
-              dataValue.data.forEach((element: any) => {
-                let item = {
-                  type: 'Feature',
-                  properties: {
-                    Name: element.information.Name,
-                    Speciality: element.information.Speciality,
-                    Title: element.information.Title,
-                    address: element.information.address,
-                  },
-                  geometry: {
-                    type: 'Point',
-                    coordinates: element.data,
-                  },
-                }
-                featuresData.push(item)
-              })
-              console.log('test map2', featuresData)
-
-              //start
-              map.on('load', function () {
-                // Add a new source from our GeoJSON data and
-                // set the 'cluster' option to true. GL-JS will
-                // add the point_count property to your source data.
-                map.addSource('earthquakes', {
-                  type: 'geojson',
-                  // Point to GeoJSON data. This example visualizes all M1.0+ earthquakes
-                  // from 12/22/15 to 1/21/16 as logged by USGS' Earthquake hazards program.
-                  // data:'https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson',
-                  data: {
-                    type: 'FeatureCollection',
-                    features: featuresData,
-                  },
-                  cluster: true,
-                  clusterMaxZoom: 14, // Max zoom to cluster points on
-                  clusterRadius: 50, // Radius of each cluster when clustering points (defaults to 50)
-                })
-
-                map.addLayer({
-                  id: 'clusters',
-                  type: 'circle',
-                  source: 'earthquakes',
-                  filter: ['has', 'point_count'],
-                  paint: {
-                    // Use step expressions (https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-step)
-                    // with three steps to implement three types of circles:
-                    //   * Blue, 20px circles when point count is less than 100
-                    //   * Yellow, 30px circles when point count is between 100 and 750
-                    //   * Pink, 40px circles when point count is greater than or equal to 750
-                    'circle-color': [
-                      'step',
-                      ['get', 'point_count'],
-                      '#51bbd6',
-                      10,
-                      '#f1f075',
-                      50,
-                      '#f28cb1',
-                    ],
-                    'circle-radius': [
-                      'step',
-                      ['get', 'point_count'],
-                      20,
-                      100,
-                      30,
-                      750,
-                      40,
-                    ],
-                  },
-                })
-
-                map.addLayer({
-                  id: 'cluster-count',
-                  type: 'symbol',
-                  source: 'earthquakes',
-                  filter: ['has', 'point_count'],
-                  layout: {
-                    'text-field': '{point_count_abbreviated}',
-                    'text-font': [
-                      'DIN Offc Pro Medium',
-                      'Arial Unicode MS Bold',
-                    ],
-                    'text-size': 12,
-                  },
-                })
-
-                map.addLayer({
-                  id: 'unclustered-point',
-                  type: 'circle',
-                  source: 'earthquakes',
-                  filter: ['!', ['has', 'point_count']],
-                  paint: {
-                    'circle-color': '#11b4da',
-                    'circle-radius': 10,
-                    'circle-stroke-width': 1,
-                    'circle-stroke-color': '#fff',
-                  },
-                })
-
-                // inspect a cluster on click
-                map.on('click', 'clusters', function (e: any) {
-                  let features = map.queryRenderedFeatures(e.point, {
-                    layers: ['clusters'],
-                  })
-                  let clusterId = features[0].properties.cluster_id
-                  map
-                    .getSource('earthquakes')
-                    .getClusterExpansionZoom(
-                      clusterId,
-                      function (err: any, zoom: any) {
-                        if (err) return
-                        map.easeTo({
-                          center: features[0].geometry.coordinates,
-                          zoom: zoom,
-                        })
-                      },
-                    )
-                })
-
-                // When a click event occurs on a feature in
-                // the unclustered-point layer, open a popup at
-                // the location of the feature, with
-                // description HTML from its properties.
-                map.on('click', 'unclustered-point', function (e: any) {
-                  // 'Name': element.Name,
-                  // 'Speciality': element.Speciality,
-                  // 'Title': element.Title,
-                  // 'address'
-                  console.log('test map3', e)
-                  let coordinates = e.features[0].geometry.coordinates.slice()
-                  let Name = e.features[0].properties.Name
-                  let Speciality = e.features[0].properties.Speciality
-                  // let Title = e.features[0].properties.Title
-                  let address = e.features[0].properties.address
-                  new mapboxgl.Popup()
-                    .setLngLat(coordinates)
-                    .setHTML(Name + ' <br> ' + Speciality + '<br> ' + address)
-                    .addTo(map)
-                })
-
-                map.on('mouseenter', 'clusters', function () {
-                  console.log('test map12', 'mouse enter point')
-                  map.getCanvas().style.cursor = 'pointer'
-                })
-                map.on('mouseleave', 'clusters', function () {
-                  map.getCanvas().style.cursor = ''
-                })
-              })
-              // let canvasContainer:any = node.parentNode?.children[1]
-              let canvasContainer: any = document.querySelector(
-                '.mapboxgl-canvas-container',
-              )
-              console.log('test map show canvas', canvasContainer)
-              canvasContainer['style']['width'] = '100%'
-              canvasContainer['style']['height'] = '100%'
-
-              // parent.addEvent("click",function(){
-              // })
-              // let canvasContainer = document.getElementById("mapboxgl-canvas-container")
-              //end
-            }
-          } else if (dataValue.mapType == 2) {
-            dataValue.zoom = dataValue.zoom ? dataValue.zoom : 9
-            let flag = !dataValue.hasOwnProperty('data')
-              ? false
-              : dataValue.data.length == 0
-              ? false
-              : true
-            let initcenter = flag
-              ? dataValue.data[0].data
-              : [-117.9086, 33.8359]
-            let map = new mapboxgl.Map({
-              container: parent?.id,
-              style: 'mapbox://styles/mapbox/streets-v11',
-              center: initcenter,
-              zoom: dataValue.zoom,
-              trackResize: true,
-              dragPan: true,
-              boxZoom: false, // 加载地图使禁用拉框缩放
-              // attributionControl: false, // 隐藏地图控件链接
-              // logoPosition: 'bottom-right' // 设置mapboxLogo位置
-              // zoomControl: true,
-              // antialias: false, //抗锯齿，通过false关闭提升性能
-              // attributionControl: false,
-            })
-
-            map.addControl(new mapboxgl.NavigationControl()) //添加放大缩小控件
-            map.addControl(
-              //添加定位
-              new mapboxgl.GeolocateControl({
-                positionOptions: {
-                  enableHighAccuracy: true,
-                },
-                trackUserLocation: true,
-              }),
-            )
-            new mapboxgl.Marker().setLngLat(initcenter).addTo(map)
-            let canvasContainer: any = document.querySelector(
-              '.mapboxgl-canvas-container',
-            )
-            console.log('test map show canvas', canvasContainer)
-            canvasContainer['style']['width'] = '100%'
-            canvasContainer['style']['height'] = '100%'
-          }
-        }
-      },
-    } as RegisterOptions)
-
-    this.ndom.register({
-      name: 'videoChat.timer.updater',
-      cond: (n, c) => typeof c.get('text=func') === 'function',
-      resolve: (node, component) => {
-        const dataKey = component.get('dataKey')
-
-        if (component.contentType === 'timer') {
-          component.on(
-            'initial.timer',
-            (setInitialTime: (date: Date) => void) => {
-              const initialTime = startOfDay(new Date())
-              // Initial SDK value is set in seconds
-              const initialSeconds = get(this.noodl.root, dataKey, 0) as number
-              // Sdk evaluates from start of day. So we must add onto the start of day
-              // the # of seconds of the initial value in the Global object
-              let initialValue = add(initialTime, { seconds: initialSeconds })
-              if (initialValue === null || initialValue === undefined) {
-                initialValue = new Date()
-              }
-              setInitialTime(initialValue)
-            },
-          )
-
-          // Look at the hard code implementation in noodl-ui-dom
-          // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
-          // the api declaration
-          component.on(
-            'timer.ref',
-            (ref: {
-              start(): void
-              current: Date
-              ref: NodeJS.Timeout
-              clear: () => void
-              increment(): void
-              set(value: any): void
-              onInterval?:
-                | ((args: {
-                    node: NOODLDOMElement
-                    component: NUIComponent.Instance
-                    ref: typeof ref
-                  }) => void)
-                | null
-            }) => {
-              const textFunc = component.get('text=func') || ((x: any) => x)
-
-              component.on(
-                'interval',
-                ({
-                  node,
-                  component,
-                }: {
-                  node: NOODLDOMElement
-                  component: NUIComponent.Instance
-                  ref: typeof ref
-                }) => {
-                  this.noodl.editDraft(
-                    (draft: WritableDraft<{ [key: string]: any }>) => {
-                      const seconds = get(draft, dataKey, 0)
-                      set(draft, dataKey, seconds + 1)
-                      const updatedSecs = get(draft, dataKey)
-                      if (
-                        updatedSecs !== null &&
-                        typeof updatedSecs === 'number'
-                      ) {
-                        if (seconds === updatedSecs) {
-                          // Not updated
-                          log.func('text=func timer [ndom.register]')
-                          log.red(
-                            `Tried to update the value of ${dataKey} but the value remained the same`,
-                            {
-                              node,
-                              component,
-                              seconds,
-                              updatedSecs,
-                              ref,
-                            },
-                          )
-                        } else {
-                          // Updated
-                          ref.increment()
-                          node.textContent = textFunc(ref.current)
-                        }
-                      }
-                    },
-                  )
-                },
-              )
-
-              ref.start()
-            },
-          )
-        }
-      },
-    })
-
-    this.ndom.page.on(
-      eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
-      (node, component) => {
-        console.log(
-          `Removed a ${component.type} component from cache: ${component.id}`,
-        )
-        NUI.cache.component.remove(component)
-        publish(component, (c) => {
-          console.log(`Removed a ${c.type} component from cache: ${c.id}`)
-          NUI.cache.component.remove(c)
-        })
-      },
-    )
-
-    this.ndom.register({
-      name: 'meeting',
-      cond: (node: any, component: any) => !!(node && component),
-      resolve: function onMeetingComponent(
-        this: App,
-        node: any,
-        component: any,
-      ) {
-        // Dominant/main participant/speaker
-        if (/mainStream/i.test(String(component.blueprint.viewTag))) {
-          const mainStream = this.streams.mainStream
-          if (!mainStream.isSameElement(node)) {
-            mainStream.setElement(node)
-            log.func('onCreateNode')
-            log.green('Bound an element to mainStream', { mainStream, node })
-          }
-        }
-        // Local participant
-        else if (/selfStream/i.test(String(component.blueprint.viewTag))) {
-          const selfStream = this.streams.selfStream
-          if (!selfStream.isSameElement(node)) {
-            selfStream.setElement(node)
-            log.func('onCreateNode')
-            log.green('Bound an element to selfStream', { selfStream, node })
-          }
-        }
-        // Remote participants container
-        else if (
-          /(vidoeSubStream|videoSubStream)/i.test(component.contentType || '')
-        ) {
-          let subStreams = this.streams.subStreams
-          if (!subStreams) {
-            subStreams = this.streams.createSubStreamsContainer(node, {
-              blueprint: component.blueprint?.children?.[0],
-              resolver: NUI.resolveComponents.bind(NUI),
-            })
-            log.func('onCreateNode')
-            log.green('Initiated subStreams container', subStreams)
-          } else {
-            // If an existing subStreams container is already existent in memory, re-initiate
-            // the DOM node and blueprint since it was reset from a previous cleanup
-            subStreams.container = node
-            subStreams.blueprint = component.blueprint?.children?.[0]
-            subStreams.resolver = NUI.resolveComponents.bind(NUI)
-          }
-        }
-        // Individual remote participant video element container
-        else if (/subStream/i.test(String(component.blueprint.viewTag))) {
-          const subStreams = this.streams.subStreams as MeetingSubstreams
-          if (subStreams) {
-            if (!subStreams.elementExists(node)) {
-            } else {
-              log.func('onCreateNode')
-              log.red(
-                `Attempted to add an element to a subStream but it ` +
-                  `already exists in the subStreams container`,
-                { subStreams, node, component },
-              )
-            }
-          } else {
-            log.func('onCreateNode')
-            log.red(
-              `Attempted to create a subStream but a container was not available`,
-              {
-                node,
-                component,
-                mainStream: this.streams.mainStream,
-                selfStream: this.streams.selfStream,
-              },
-            )
-          }
-        }
-      }.bind(this),
-    })
-  }
-
   reset() {
-    // this.meeting.streams.mainStream.reset()
-    // this.meeting.streams.selfStream.reset()
-    // this.meeting.streams.subStreams?.reset()
-
-    if (this.#ndom) {
-      this.#ndom.reset()
-      this.mainPage = this.#ndom.createPage(
+    this.streams.reset()
+    if (this.ndom) {
+      this.ndom.reset()
+      this.mainPage = this.ndom.createPage(
         this.nui.cache.page.length
           ? this.nui.getRootPage()
           : this.nui.createPage({ viewport: this.viewport }),
       ) as NOODLDOMPage
-      this.#ndom.page = this.mainPage
+      this.ndom.page = this.mainPage
     }
 
     if (has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
@@ -1060,6 +618,15 @@ class App {
     }
   }
 
+  /**
+   * Update pattern #1:
+   *    app.updateRoot('SignIn.verificationCode.response', { edge: {...} }, function onUpdate() {...})
+   *
+   * Update pattern #2:
+   *    app.updateRoot((draft) => {
+   *      draft.SignIn.verificationCode.response = { edge: {...}}
+   *    }, function onUpdate() {...})
+   */
   updateRoot<P extends string>(
     path: P,
     value: any,
@@ -1088,12 +655,13 @@ class App {
     })
     cb?.(this.noodl.root)
   }
-
   /* -------------------------------------------------------
-  ---- LOCAL STORAGE HELPERS FOR CACHED PAGES
--------------------------------------------------------- */
-
-  /** Adds the current page name to the end in the list of cached pages */
+    ---- LOCAL STORAGE HELPERS FOR CACHED PAGES
+  -------------------------------------------------------- */
+  /**
+   * Adds the current page name to the end in the list of cached pages
+   * @param { string } name - Page name
+   */
   cachePage(name: string) {
     const cacheObj = { name } as CachedPageObject
     const prevCache = this.getCachedPages()
@@ -1101,7 +669,7 @@ class App {
     const cache = [cacheObj, ...prevCache]
     if (cache.length >= 12) cache.pop()
     cacheObj.timestamp = Date.now()
-    this.setCachedPages(cache)
+    window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
   }
 
   /** Retrieves a list of cached pages */
@@ -1116,12 +684,6 @@ class App {
       }
     }
     return result
-  }
-
-  /** Sets the list of cached pages */
-  setCachedPages(cache: CachedPageObject[]) {
-    window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
-    //
   }
 }
 

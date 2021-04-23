@@ -1,8 +1,9 @@
 import { EventEmitter } from 'events'
 import { Status } from '@aitmed/ecos-lvl2-sdk'
+import { LocalParticipant } from 'twilio-video'
 import CADL from '@aitmed/cadl'
 import noop from 'lodash/noop'
-import { Draft } from 'immer'
+import produce, { Draft } from 'immer'
 import { ComponentObject, PageObject } from 'noodl-types'
 import NOODLDOM, {
   defaultResolvers,
@@ -22,8 +23,12 @@ import {
 import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
-import getMockRoom from '../__tests__/helpers/getMockRoom'
-import getMockParticipant from '../__tests__/helpers/getMockParticipant'
+import getMockRoom, { MockRoom } from '../__tests__/helpers/getMockRoom'
+import getVideoChatPage from '../__tests__/helpers/getVideoChatPage'
+import getMockParticipant, {
+  MockParticipant,
+} from '../__tests__/helpers/getMockParticipant'
+import * as c from '../constants'
 import * as u from './common'
 
 export const deviceSize = {
@@ -166,17 +171,37 @@ export function createRender(opts: MockRenderOptions) {
 }
 
 export class MockNoodl extends EventEmitter {
+  #root: Record<string, any> = {}
+  _isMock: boolean
   aspectRatio = 1
   assetsUrl = assetsUrl
   baseUrl = baseUrl
   cadlBaseUrl = baseUrl
   cadlEndpoint = { page: [], preload: [], startPage: '' }
   emitCall = (arg: any) => Promise.resolve(arg)
-  root = root
-  viewWidthHeightRatio?: { min: number; max: number }
+  viewWidthHeightRatio?: { min: number; max: number };
+
+  [u.inspect]() {
+    return {
+      assetsUrl: this.assetsUrl,
+      baseUrl: this.baseUrl,
+      cadlBaseUrl: this.cadlBaseUrl,
+      cadlEndpoint: this.cadlEndpoint,
+      root: this.root,
+      viewWidthHeightRatio: this.viewWidthHeightRatio,
+    }
+  }
+
   constructor({ startPage }: { startPage?: string } = {}) {
     super()
+    this._isMock = true
     startPage && (this.cadlEndpoint.startPage = startPage)
+  }
+  get root() {
+    return this.#root
+  }
+  set root(root) {
+    this.#root = root
   }
   async init() {}
   async initPage(
@@ -184,7 +209,7 @@ export class MockNoodl extends EventEmitter {
     someArr?: string[],
     opts?: { builtIn?: {} },
   ) {}
-  editDraft(fn: (draft: Draft<typeof root>) => void) {
+  editDraft(fn: (draft: Draft<MockNoodl['root']>) => void) {
     fn(this.root)
   }
   getConfig() {
@@ -209,6 +234,7 @@ export async function initializeApp(
     pageName?: string
     pageObject?: PageObject
     room?: {
+      localParticipant?: MockParticipant | LocalParticipant
       state?: string
       participants?: Record<string, any> | Map<string, any>
     }
@@ -227,6 +253,19 @@ export async function initializeApp(
       ndom,
       viewport,
     })
+
+  _app.meeting.room = getMockRoom({
+    localParticipant: (opts?.room?.localParticipant ||
+      getMockParticipant()) as LocalParticipant,
+    participants: opts?.room?.participants,
+    state: opts?.room?.state as MockRoom['state'],
+  })
+
+  if (_app.meeting.room.participants.size) {
+    for (const participant of _app.meeting.room.participants.values()) {
+      _app.meeting.addRemoteParticipant(participant)
+    }
+  }
 
   await _app.initialize({
     firebase: { client: { messaging: noop } as any, vapidKey: 'mockVapidKey' },
@@ -250,29 +289,15 @@ export async function initializeApp(
     } else if (key === 'pageObject') {
       _app.mainPage.components = opts?.components || value.components || []
       _app.mainPage.getNuiPage().object().components = _app.mainPage.components
-    } else if (key === 'room') {
-      _app.meeting.room = getMockRoom(value)
-      let { participants } = _app.meeting.room
-      if (participants) {
-        if (participants instanceof Map) {
-          _app.meeting.room.participants = participants
-          if (participants.size) {
-            for (const participant of participants.values()) {
-              participants.set(participant.sid, participant)
-              _app.meeting.addRemoteParticipant(participant)
-            }
-          }
-        } else {
-          participants = new Map()
-          _app.meeting.room.participants = participants
-          u.entries(participants).forEach(([sid, participant]) => {
-            participants.set(sid, participant)
-            _app.meeting.addRemoteParticipant(participant)
-          })
-        }
-      }
     }
   })
+
+  if (
+    _app.meeting.room.state === 'connected' &&
+    _app.mainPage.page === 'VideoChat'
+  ) {
+    _app.meeting.onConnected(_app.meeting.room)
+  }
 
   const _test = {
     addParticipant(participant: any) {
@@ -285,20 +310,62 @@ export async function initializeApp(
       _app.meeting.addRemoteParticipant(participant)
     },
     clear() {
-      _app.streams.mainStream.reset()
-      _app.streams.selfStream.reset()
-      _app.streams.subStreams?.reset()
-      _app.meeting.reset()
+      _app.streams.reset()
+      // _app.meeting.reset()
     },
   }
 
   Object.defineProperty(_app, '_test', { value: _test })
 
-  _app.meeting.streams.mainStream.reset()
-  _app.meeting.streams.selfStream.reset()
-  _app.meeting.streams.subStreams?.reset()
+  _test.clear()
 
   return _app as App & { _test: typeof _test }
+}
+
+export async function getApp(
+  args: Partial<Parameters<typeof initializeApp>[0]> & {
+    navigate?: boolean
+    preset?: 'meeting'
+  } = {},
+) {
+  const { navigate, preset, room } = args
+
+  const _args = {
+    pageName: 'SignIn',
+    pageObject: { components: [] },
+    ...args,
+  } as typeof args
+
+  if (preset === 'meeting') {
+    const pageObject = getVideoChatPage({ participants: [] })
+    u.assign(_args, {
+      pageName: 'VideoChat',
+      pageObject,
+      room: { state: 'connected', ...room },
+    })
+  }
+
+  const app = await initializeApp(_args)
+  u.assign(app.noodl.root, { [_args.pageName as string]: _args.pageObject })
+
+  if (room?.participants) {
+    if (room.participants instanceof Map) {
+      for (const [sid, participant] of room.participants) {
+        app.meeting.room.participants.set(sid, participant)
+      }
+    } else {
+      u.entries(room.participants).forEach(([sid, participant]) => {
+        app.meeting.room.participants.set(sid, participant)
+      })
+    }
+    app.updateRoot(
+      c.PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+      Array.from(app.meeting.room.participants.values()),
+    )
+  }
+
+  navigate && (await app.navigate(_args.pageName as string))
+  return app
 }
 
 export function getActions(app: any = {}) {
