@@ -1,6 +1,7 @@
 // eslint-disable-next-line
 require('jsdom-global/register')
 const Mocha = require('mocha')
+const globby = require('globby')
 const fs = require('fs-extra')
 const chalk = require('chalk')
 const path = require('path')
@@ -10,6 +11,7 @@ const mocha = new Mocha({
   fullStackTrace: true,
   inlineDiffs: true,
   ui: 'bdd',
+  reporterOptions: {},
 })
 
 const filepath = path.resolve(path.join(process.cwd(), 'scripts/pos.js'))

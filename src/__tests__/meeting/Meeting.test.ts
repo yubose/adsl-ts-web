@@ -65,7 +65,7 @@ describe(coolGold(`Meeting`), () => {
         expect(mainStream.hasParticipant()).to.be.false
         app._test.addParticipant(mainStreamParticipant)
         expect(mainStream.hasParticipant()).to.be.true
-        expect(mainStream.isSameParticipant(mainStreamParticipant)).to.be.true
+        expect(mainStream.isParticipant(mainStreamParticipant)).to.be.true
       })
 
       it('should try to publish their tracks when the stream has a DOM node', async () => {
@@ -206,13 +206,10 @@ describe(coolGold(`Meeting`), () => {
             const subStream = subStreams?.findByParticipant(
               subStreamParticipant,
             ) as Stream
-            expect(mainStream.isSameParticipant(mainStreamParticipant)).to.be
-              .true
-            expect(subStream?.isSameParticipant(subStreamParticipant)).to.be
-              .true
+            expect(mainStream.isParticipant(mainStreamParticipant)).to.be.true
+            expect(subStream?.isParticipant(subStreamParticipant)).to.be.true
             app.meeting.removeRemoteParticipant(mainStreamParticipant)
-            expect(subStream?.isSameParticipant(subStreamParticipant)).to.be
-              .false
+            expect(subStream?.isParticipant(subStreamParticipant)).to.be.false
             expect(subStream.hasParticipant()).to.be.false
             expect(subStreams?.participantExists(subStreamParticipant)).to.be
               .false

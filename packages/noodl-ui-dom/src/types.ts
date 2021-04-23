@@ -1,7 +1,9 @@
 import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
 import {
   Component,
+  NUIComponent,
   nuiEmitTransaction,
+  Page as NUIPage,
   Transaction as NUITransaction,
   Use,
   UseObject as NUIUseObject,
@@ -9,7 +11,12 @@ import {
 import MiddlewareUtils from './MiddlewareUtils'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
-import { eventId, dataAttributes } from './constants'
+import createResolver from './createResolver'
+import {
+  eventId,
+  dataAttributes,
+  transaction as ndomTransaction,
+} from './constants'
 
 export type DOMNodeInput =
   | NodeListOf<any>
@@ -52,6 +59,11 @@ export type NOODLDOMElements = Pick<
 
 export type NOODLDOMElementTypes = keyof NOODLDOMElements
 
+export type ElementBinding = Map<
+  'audioStream' | 'videoStream',
+  (component: NUIComponent.Instance) => HTMLElement | null
+>
+
 /**
  * Type utility/factory to construct node resolver func types. Node resolver
  * funcs in noodl-ui-dom are any functions that take a DOM node as the first
@@ -78,7 +90,7 @@ export namespace Resolve {
   }
 
   export interface Func<RT = any, N extends HTMLElement | null = HTMLElement> {
-    (node: N, component: Component): RT
+    (node: N, component: Component, options: Resolve.Options): RT
   }
 
   export interface LifeCycle {
@@ -88,17 +100,10 @@ export namespace Resolve {
   }
 
   export type LifeCycleEvent = 'before' | 'resolve' | 'after'
-  export interface Options {
-    editStyle(
-      styles: Record<string, any> | undefined,
-      args?: { remove?: string | string[] | false },
-    ): void
-    ndom: NOODLDOM
-    original: ComponentObject
-    draw: Parse
-    page: NOODLDOMPage
-    redraw: Redraw
-  }
+
+  export type Options = ReturnType<
+    ReturnType<typeof createResolver>['utils']['options']
+  >
 }
 
 export namespace Middleware {
@@ -122,16 +127,17 @@ export namespace Page {
 
   export type Hook = {
     [eventId.page.on.ON_STATUS_CHANGE](status: Page.Status): void
-    [eventId.page.on.ON_NAVIGATE_START](snapshot: Snapshot): void
+    [eventId.page.on.ON_NAVIGATE_START](page: NOODLDOMPage): void
     [eventId.page.on.ON_NAVIGATE_ABORT](snapshot: Snapshot): void
     [eventId.page.on.ON_NAVIGATE_ERROR](
       snapshot: Snapshot & { error: Error },
     ): void
     [eventId.page.on.ON_OUTBOUND_REDIRECT](snapshot: Snapshot): void
     [eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE](rootNode: HTMLElement): void
-    [eventId.page.on.ON_DOM_CLEANUP](
-      rootNode: NOODLDOM['page']['rootNode'],
-    ): void
+    [eventId.page.on.ON_DOM_CLEANUP](args: {
+      global: NOODLDOM['global']
+      rootNode: NOODLDOM['page']['rootNode']
+    }): void
     [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
       snapshot: Snapshot,
     ): Promise<
@@ -140,9 +146,7 @@ export namespace Page {
       | void
       | undefined
     >
-    [eventId.page.on.ON_COMPONENTS_RENDERED](
-      snapshot: Snapshot & { components: Component[] },
-    ): void
+    [eventId.page.on.ON_COMPONENTS_RENDERED](page: NOODLDOMPage): void
     [eventId.page.on.ON_APPEND_NODE](args: {
       page: NOODLDOMPage
       parentNode: HTMLElement
@@ -186,19 +190,30 @@ export namespace Page {
   }
 }
 
-export interface Transaction
-  extends Omit<NUITransaction, typeof nuiEmitTransaction.REQUEST_PAGE_OBJECT> {
-  [nuiEmitTransaction.REQUEST_PAGE_OBJECT](
-    page: NOODLDOMPage,
-  ): Promise<PageObject>
-}
+export type NDOMTransaction =
+  | {
+      transaction: typeof ndomTransaction.REQUEST_PAGE_OBJECT
+      page: NOODLDOMPage
+    }
+  | {
+      transaction: typeof ndomTransaction.CREATE_ELEMENT
+      component: NUIComponent.Instance
+    }
+
+export type NDOMTransactionId = keyof NDOMTransaction
 
 export interface UseObject extends Omit<Use, 'transaction'>, Use.Action {
   createGlobalComponentId?: Middleware.Utils['createGlobalComponentId']
+
   resolver?: Resolve.Config
-  transaction?: Transaction &
+  transaction?: NDOMTransaction &
     Omit<
       NUIUseObject['transaction'],
-      typeof nuiEmitTransaction.REQUEST_PAGE_OBJECT
-    >
+      typeof ndomTransaction.REQUEST_PAGE_OBJECT
+    > & {
+      createElement?: {
+        cond(component: NUIComponent.Instance): boolean
+        resolve(component: NUIComponent.Instance): HTMLElement | null
+      }
+    }
 }

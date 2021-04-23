@@ -71,8 +71,10 @@ describe(coolGold(`App`), () => {
           funcName,
         )}" to the store`, async () => {
           const app = await initializeApp()
-          expect(app.nui.cache.actions.builtIn).to.have.property(funcName)
-          expect(app.nui.cache.actions.builtIn[funcName]).to.have.lengthOf(1)
+          expect(app.nui.cache.actions.builtIn.has(funcName)).to.be.true
+          expect(app.nui.cache.actions.builtIn.get(funcName)).to.have.lengthOf(
+            1,
+          )
         })
       })
     })

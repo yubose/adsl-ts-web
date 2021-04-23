@@ -6,6 +6,7 @@ import get from 'lodash/get'
 import { Draft } from 'immer'
 import {
   asHtmlElement,
+  eventId as ndomEventId,
   findByUX,
   findWindow,
   findByElementId,
@@ -95,6 +96,7 @@ const createActions = function createActions(app: App) {
   ) {
     log.func('evalObject')
     log.grey('', action)
+
     try {
       if (u.isFnc(action?.original?.object)) {
         const result = await action.original.object?.()
@@ -224,7 +226,8 @@ const createActions = function createActions(app: App) {
           }
         }
         if (isSamePage) scroll()
-        else app.mainPage.once(pageEvent.ON_COMPONENTS_RENDERED, scroll)
+        else
+          app.mainPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
       } else {
         log.red(`Could not search for a DOM node with an identity of "${id}"`, {
           id,

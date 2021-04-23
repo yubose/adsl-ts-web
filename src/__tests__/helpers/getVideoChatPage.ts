@@ -225,10 +225,13 @@ function getVideoChatPageObject({
         viewTag: 'minimizeVideoChat',
         global: true,
         image: 'chat.png',
+        audioStream: true,
+        videoStream: true,
         onClick: [
           mock.getEvalObjectAction(),
           mock.getPopUpDismissAction({ popUpView: 'minimizeVideoChat' }),
         ],
+        style: { top: '0', left: '0', float: true },
       }),
       mock.getPopUpComponent({
         popUpView: 'confirmView',

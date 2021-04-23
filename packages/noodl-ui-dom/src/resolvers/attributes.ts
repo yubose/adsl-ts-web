@@ -1,7 +1,7 @@
 import { Identify, userEvent } from 'noodl-types'
 import { dataAttributes } from 'noodl-ui'
 import { isActionChain } from 'noodl-action-chain'
-import { Resolve } from '../types'
+import { Resolve, UseObject } from '../types'
 import { isTextFieldLike, normalizeEventName } from '../utils'
 import * as u from '../utils/internal'
 
@@ -11,13 +11,56 @@ import * as u from '../utils/internal'
 
 const resolveAttributes: Resolve.Config = {
   name: `[noodl-ui-dom] Default Common Resolvers`,
-  resolve(node, component) {
+  resolve(node, component, { ndom }) {
     const original = component?.blueprint || {}
 
     const { contentType, text, placeholder, path } = original
 
     if (component && node && !u.isFnc(node)) {
       node.id = component.id
+      /* -------------------------------------------------------
+        ---- ELEMENT TO ELEMENT BINDINGS
+      -------------------------------------------------------- */
+      if (component.has('videoStream')) {
+        if (Identify.isBooleanTrue(component.get('videoStream'))) {
+          const resolve = ndom
+            .resolvers()
+            .find((obj) =>
+              /videoStream/i.test(obj.name || ''),
+            ) as UseObject['element']['videoStream']
+
+          if (u.isFnc(resolve)) {
+            const childNode = resolve(component)
+            if (childNode) {
+              node.appendChild(childNode)
+              console.log(`%cBound videoStream to a node`, `color:#95a5a6;`, {
+                node,
+                boundNode: childNode,
+              })
+            }
+          }
+        }
+      }
+      if (component.has('audioStream')) {
+        if (Identify.isBooleanTrue(component.get('audioStream'))) {
+          const resolve = ndom
+            .resolvers()
+            .find((obj) =>
+              /audioStream/i.test(obj.name || ''),
+            ) as UseObject['element']['audioStream']
+
+          if (u.isFnc(resolve)) {
+            const childNode = resolve(component)
+            if (childNode) {
+              node.appendChild(childNode)
+              console.log(`%cBound audioStream to a node`, `color:#95a5a6;`, {
+                node,
+                boundNode: childNode,
+              })
+            }
+          }
+        }
+      }
       /* -------------------------------------------------------
         ---- DATA ATTRIBUTES
       -------------------------------------------------------- */

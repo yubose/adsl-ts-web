@@ -2,11 +2,9 @@ export const CACHED_PAGES = 'CACHED_PAGES'
 
 /** Ordered by occurrence */
 export const pageEvent = {
-  ON_NAVIGATE_START: 'on:navigate.start',
   ON_NAVIGATE_ABORT: 'on:navigate.abort',
   ON_OUTBOUND_REDIRECT: 'on:outbound.redirect',
   ON_BEFORE_RENDER_COMPONENTS: 'on:before.render.components',
-  ON_COMPONENTS_RENDERED: 'on:components.rendered',
   ON_NAVIGATE_ERROR: 'on:navigate.error',
   ON_MODAL_STATE_CHANGE: 'on:modal.state.change',
 } as const

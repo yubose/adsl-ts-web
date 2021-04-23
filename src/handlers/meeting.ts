@@ -11,7 +11,6 @@ import {
   RemoteParticipant,
 } from 'twilio-video'
 import Stream from '../meeting/Stream'
-import { forEachParticipant } from '../utils/twilio'
 import { array, isMobile } from '../utils/common'
 import { hide, show } from '../utils/dom'
 import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from '../constants'
@@ -24,6 +23,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
   function _getDisconnectFns(room: Meeting['room']) {
     function _disconnect() {
       room?.disconnect?.()
+      app.meeting.calledOnConnected = false
     }
     return {
       disconnect: _disconnect,
@@ -31,7 +31,6 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         // Unpublish local tracks
         room.localParticipant.videoTracks.forEach(_unpublishTracks)
         room.localParticipant.audioTracks.forEach(_unpublishTracks)
-        // Clean up listeners
         removeEventListener('beforeunload', _disconnect)
         if (isMobile()) removeEventListener('pagehide', _disconnect)
       },
@@ -82,7 +81,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
           }
           duplicatedParticipants.push(duplicatedParticipant)
           app.meeting.addRemoteParticipant(duplicatedParticipant as any, {
-            force: '',
+            force: true,
           })
           log.func('duplicateRemoteParticipant')
           log.grey(`Forcefully added remote participant`)
@@ -133,12 +132,14 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       ---- INITIATING MEDIA TRACKS / STREAMS 
     -------------------------------------------------------- */
     const selfStream = app.meeting.streams.selfStream
-    if (!selfStream.isSameParticipant(room.localParticipant)) {
+    if (!selfStream.isParticipant(room.localParticipant)) {
       selfStream.setParticipant(room.localParticipant)
       log.func('onConnected')
       log.grey(`Bound local participant to selfStream`, selfStream)
     }
-    forEachParticipant(room.participants, app.meeting.addRemoteParticipant)
+    for (const participant of room.participants.values()) {
+      app.meeting.addRemoteParticipant(participant)
+    }
   }
 
   /**
@@ -171,7 +172,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
        */
       app.updateRoot(
         PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-        app.meeting.removeFalseyParticipants([
+        app.meeting.removeFalseParticipants([
           ...get(app.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, []),
           participant,
         ]),
@@ -206,7 +207,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
      */
     app.updateRoot(
       PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-      app.meeting.removeFalseyParticipants(
+      app.meeting.removeFalseParticipants(
         get(app.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT),
       ),
       () => {

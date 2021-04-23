@@ -32,25 +32,6 @@ export default {
       component.style.marginTop = '0px'
     }
 
-    // for (const evt of userEvent) {
-    //   if (component.has(evt)) {
-    //     const ac = component.get(evt)
-    //     if (isActionChain(ac)) {
-    //       const numActions = ac.actions.length
-    //       for (let index = 0; index < numActions; index++) {
-    //         const obj = ac.actions[index]
-    //         if (Identify.action.builtIn(obj)) {
-    //           if (obj.funcName === 'show') {
-    //             // if (node.style.position)
-    //             console.log(`A node has a "show" action`)
-    //             break
-    //           }
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-
     /* -------------------------------------------------------
       ---- TEMP - Experimenting CSS
     -------------------------------------------------------- */

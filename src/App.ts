@@ -22,11 +22,7 @@ import {
   Viewport as VP,
 } from 'noodl-ui'
 import { Draft, WritableDraft } from 'immer/dist/internal'
-import {
-  CACHED_PAGES,
-  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-  pageStatus,
-} from './constants'
+import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import {
   AuthStatus,
   CachedPageObject,
@@ -39,6 +35,7 @@ import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
+import createTransactions from './handlers/transactions'
 import MeetingSubstreams from './meeting/Substreams'
 import * as u from './utils/common'
 import * as T from './app/types'
@@ -54,7 +51,6 @@ class App {
   #noodl: T.AppConstructorOptions['noodl']
   #nui: T.AppConstructorOptions['nui']
   #ndom: T.AppConstructorOptions['ndom']
-  #preparePage = {} as (page: NOODLDOMPage) => Promise<PageObject | undefined>
   _store: {
     messaging: {
       serviceRegistration: ServiceWorkerRegistration
@@ -196,16 +192,6 @@ class App {
       log.func('initialize')
       stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
 
-      this.ndom.use({
-        transaction: {
-          [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: (p: NOODLDOMPage) => {
-            return this.#preparePage(p).then(
-              (pageObject) => (window.pageObject = pageObject),
-            )
-          },
-        },
-      })
-
       let storedStatus = {} as { code: number }
 
       if (process.env.NODE_ENV === 'test') {
@@ -246,13 +232,15 @@ class App {
       const actions = createActions(this)
       const builtIns = createBuiltIns(this)
       const registers = createRegisters(this)
-      const domResolvers = createExtendedDOMResolvers(this)
+      const doms = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
+      const transactions = createTransactions(this)
 
       this.ndom.use(actions)
       this.ndom.use({ builtIn: builtIns })
+      this.ndom.use({ transaction: transactions })
       registers.forEach((obj) => this.ndom.use({ register: obj }))
-      domResolvers.forEach((obj) => this.ndom.use({ resolver: obj }))
+      doms.forEach((obj) => this.ndom.use({ resolver: obj }))
 
       this.meeting.onConnected = meetingfns.onConnected
       this.meeting.onAddRemoteParticipant = meetingfns.onAddRemoteParticipant
@@ -275,82 +263,6 @@ class App {
           },
         )
       }
-
-      this.#preparePage = async function preparePage(
-        this: App,
-        page: NOODLDOMPage,
-      ) {
-        try {
-          log.func('#preparePage')
-          const pageRequesting = page.requesting
-          log.grey(
-            `Running noodl.initPage for page "${pageRequesting}"`,
-            page.snapshot(),
-          )
-
-          let self = this
-          await this.noodl?.initPage(pageRequesting, [], {
-            ...page.modifiers[pageRequesting],
-            builtIn: {
-              FCMOnTokenReceive: async (options?: any) => {
-                const token = await NUI.emit({
-                  type: 'register',
-                  args: { name: 'FCMOnTokenReceive', params: options },
-                })
-                return token
-              },
-              FCMOnTokenRefresh: this.#enabled.firebase
-                ? this.messaging?.onTokenRefresh.bind(this.messaging)
-                : undefined,
-              get checkField() {
-                return self.ndom.builtIns.get('checkField')?.find(Boolean)?.fn
-              },
-              get goto() {
-                return self.ndom.builtIns.get('goto')?.find(Boolean)?.fn
-              },
-              videoChat: createVideoChatBuiltIn(this),
-            },
-          })
-          log.func('createPreparePage')
-          log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
-            pageRequesting,
-            pageModifiers: page.modifiers,
-            pageObject: this.noodl?.root[pageRequesting],
-            snapshot: page.snapshot(),
-          })
-          if (this.noodl?.root?.Global?.globalRegister) {
-            const { Global } = this.noodl.root
-            if (Array.isArray(Global.globalRegister)) {
-              if (Global.globalRegister.length) {
-                log.grey(
-                  `Scanning ${Global.globalRegister.length} items found in Global.globalRegister`,
-                  Global.globalRegister,
-                )
-                Global.globalRegister.forEach((value: any) => {
-                  if (u.isObj(value)) {
-                    if (Identify.component.register(value)) {
-                      log.grey(
-                        `Found and attached a "register" component to the register store`,
-                        value,
-                      )
-                      NUI.use({
-                        register: {
-                          name: value.onEvent as string,
-                          component: value,
-                        },
-                      })
-                    }
-                  }
-                })
-              }
-            }
-          }
-          return this.noodl.root[pageRequesting]
-        } catch (error) {
-          console.error(error)
-          createToast(error.message, { type: 'error' })
-        }
-      }.bind(this)
 
       this.observeMeetings()
 
@@ -416,6 +328,75 @@ class App {
     } catch (error) {
       console.error(error)
       throw error
+    }
+  }
+
+  async getPageObject(page: NOODLDOMPage) {
+    try {
+      log.func('getPageObject')
+      const pageRequesting = page.requesting
+      log.grey(
+        `Running noodl.initPage for page "${pageRequesting}"`,
+        page.snapshot(),
+      )
+
+      let self = this
+      await this.noodl?.initPage(pageRequesting, [], {
+        ...page.modifiers[pageRequesting],
+        builtIn: {
+          FCMOnTokenReceive: async (options?: any) => {
+            const token = await NUI.emit({
+              type: 'register',
+              args: { name: 'FCMOnTokenReceive', params: options },
+            })
+            return token
+          },
+          FCMOnTokenRefresh: this.#enabled.firebase
+            ? this.messaging?.onTokenRefresh.bind(this.messaging)
+            : undefined,
+          checkField: self.ndom.builtIns.get('checkField')?.find(Boolean)?.fn,
+          goto: self.ndom.builtIns.get('goto')?.find(Boolean)?.fn,
+          videoChat: createVideoChatBuiltIn(this),
+        },
+      })
+      log.func('createPreparePage')
+      log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
+        pageRequesting,
+        pageModifiers: page.modifiers,
+        pageObject: this.noodl?.root[pageRequesting],
+        snapshot: page.snapshot(),
+      })
+      if (this.noodl?.root?.Global?.globalRegister) {
+        const { Global } = this.noodl.root
+        if (Array.isArray(Global.globalRegister)) {
+          if (Global.globalRegister.length) {
+            log.grey(
+              `Scanning ${Global.globalRegister.length} items found in Global.globalRegister`,
+              Global.globalRegister,
+            )
+            Global.globalRegister.forEach((value: any) => {
+              if (u.isObj(value)) {
+                if (Identify.component.register(value)) {
+                  log.grey(
+                    `Found and attached a "register" component to the register store`,
+                    value,
+                  )
+                  NUI.use({
+                    register: {
+                      name: value.onEvent as string,
+                      component: value,
+                    },
+                  })
+                }
+              }
+            })
+          }
+        }
+      }
+      return this.noodl.root[pageRequesting]
+    } catch (error) {
+      console.error(error)
+      createToast(error.message, { type: 'error' })
     }
   }
 
@@ -501,9 +482,20 @@ class App {
   observePages(page: NOODLDOMPage) {
     page
       .on(
+        eventId.page.on.ON_NAVIGATE_START,
+        function onNavigateStart(this: App) {
+          if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
+            log.func('onNavigateStart')
+            log.grey(`Removing room listeners...`)
+            this.meeting.room?.removeAllListeners?.()
+          }
+        }.bind(this),
+      )
+      .on(
         eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE,
         function onBeforeClearRootNode(this: App) {
           if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
+            this.meeting.calledOnConnected = false
             // Empty the current participants list since we manage the list of
             // participants ourselves
             let participants = get(
@@ -522,6 +514,7 @@ class App {
               })
               participantsBefore = null
             }
+
             if (this.streams.mainStream.hasElement()) {
               const before = this.streams.mainStream.snapshot()
               this.streams.mainStream.reset()
@@ -530,14 +523,15 @@ class App {
                 after: this.streams.mainStream.snapshot(),
               })
             }
-            if (this.streams.selfStream.hasElement()) {
-              const before = this.streams.selfStream.snapshot()
-              this.streams.selfStream.reset()
-              log.grey('Wiping selfStream state', {
-                before,
-                after: this.streams.selfStream.snapshot(),
-              })
-            }
+            // if (this.streams.selfStream.hasElement()) {
+            //   const before = this.streams.selfStream.snapshot()
+            //   this.streams.selfStream.reset()
+            //   log.grey('Wiping selfStream state', {
+            //     before,
+            //     after: this.streams.selfStream.snapshot(),
+            //   })
+            // }
+
             if (this.streams.subStreams?.length) {
               const before = this.streams.subStreams
                 .getSubstreamsCollection()
@@ -555,18 +549,26 @@ class App {
           }
         }.bind(this),
       )
-      .on(
-        eventId.page.on.ON_COMPONENTS_RENDERED,
-        async ({ requesting: pageName, components }) => {
-          log.func('onComponentsRendered')
-          log.grey(`Done rendering DOM nodes for ${pageName}`, components)
+      .on(eventId.page.on.ON_COMPONENTS_RENDERED, async (page) => {
+        log.func(eventId.page.on.ON_COMPONENTS_RENDERED)
+        log.grey(`Done rendering DOM nodes for ${page.page}`, page)
 
-          // Cache to rehydrate if they disconnect
-          // TODO
-          this.cachePage(pageName)
-          log.grey(`Cached page: "${pageName}"`)
-        },
-      )
+        if (page.page === 'VideoChat') {
+          if (
+            this.meeting.room?.state === 'connected' &&
+            !this.meeting.calledOnConnected
+          ) {
+            this.meeting.onConnected(this.meeting.room)
+            this.meeting.calledOnConnected = true
+            log.grey(`Invoked meeting.onConnected for republishing tracks`)
+          }
+        }
+
+        // Cache to rehydrate if they disconnect
+        // TODO
+        // this.cachePage(pageName)
+        // log.grey(`Cached page: "${page.page}"`)
+      })
   }
 
   /**
@@ -1053,7 +1055,7 @@ class App {
         if (/mainStream/i.test(String(component.blueprint.viewTag))) {
           const mainStream = this.streams.mainStream
           if (!mainStream.isSameElement(node)) {
-            mainStream.setElement(node, { uxTag: 'mainStream' })
+            mainStream.setElement(node)
             log.func('onCreateNode')
             log.green('Bound an element to mainStream', { mainStream, node })
           }
@@ -1062,7 +1064,7 @@ class App {
         else if (/selfStream/i.test(String(component.blueprint.viewTag))) {
           const selfStream = this.streams.selfStream
           if (!selfStream.isSameElement(node)) {
-            selfStream.setElement(node, { uxTag: 'selfStream' })
+            selfStream.setElement(node)
             log.func('onCreateNode')
             log.green('Bound an element to selfStream', { selfStream, node })
           }
@@ -1118,9 +1120,9 @@ class App {
   }
 
   reset() {
-    this.meeting.streams.mainStream.reset()
-    this.meeting.streams.selfStream.reset()
-    this.meeting.streams.subStreams?.reset()
+    // this.meeting.streams.mainStream.reset()
+    // this.meeting.streams.selfStream.reset()
+    // this.meeting.streams.subStreams?.reset()
 
     if (this.#ndom) {
       this.#ndom.reset()
