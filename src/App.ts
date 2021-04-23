@@ -543,33 +543,33 @@ class App {
               participantsBefore = null
             }
 
-            if (this.streams.mainStream.hasElement()) {
-              const before = this.streams.mainStream.snapshot()
-              this.streams.mainStream.reset()
+            if (this.mainStream.hasElement()) {
+              const before = this.mainStream.snapshot()
+              this.mainStream.reset()
               log.grey('Wiping mainStream state', {
                 before,
-                after: this.streams.mainStream.snapshot(),
+                after: this.mainStream.snapshot(),
               })
             }
-            // if (this.streams.selfStream.hasElement()) {
-            //   const before = this.streams.selfStream.snapshot()
-            //   this.streams.selfStream.reset()
-            //   log.grey('Wiping selfStream state', {
-            //     before,
-            //     after: this.streams.selfStream.snapshot(),
-            //   })
-            // }
+            if (this.streams.selfStream.hasElement()) {
+              const before = this.streams.selfStream.snapshot()
+              this.streams.selfStream.reset()
+              log.grey('Wiping selfStream state', {
+                before,
+                after: this.streams.selfStream.snapshot(),
+              })
+            }
 
-            if (this.streams.subStreams?.length) {
-              const before = this.streams.subStreams
+            if (this.subStreams?.length) {
+              const before = this.subStreams
                 .getSubstreamsCollection()
                 ?.map((stream) => stream?.snapshot?.())
 
-              this.streams.subStreams.reset()
+              this.subStreams.reset()
 
               log.grey('Wiping subStreams state', {
                 before,
-                after: this.streams.subStreams
+                after: this.subStreams
                   .getSubstreamsCollection()
                   ?.map((stream) => stream?.snapshot?.()),
               })

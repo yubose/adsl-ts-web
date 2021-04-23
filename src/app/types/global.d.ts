@@ -13,6 +13,7 @@ import { App } from '../../app'
 
 declare global {
   const echarts: echarts
+  const gridjs: any
   const mapboxgl: any
 
   interface Window {

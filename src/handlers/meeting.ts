@@ -19,6 +19,73 @@ import App from '../App'
 const log = Logger.create('builtIns.ts')
 
 const createMeetingHandlers = function _createMeetingHandlers(app: App) {
+  const getRoom = () => app.meeting.room
+
+  const _attachWindowUtils = (function () {
+    const duplicatedParticipants = [] as any[]
+
+    Object.defineProperties(window, {
+      l: {
+        get: () => app.meeting.localParticipant,
+      },
+      duplicateRemoteParticipant: {
+        get: () => (participant?: RemoteParticipant) => {
+          if (!participant) {
+            const participants = Array.from(
+              app.meeting.room?.participants || [],
+            )
+            participants.length && (participant = participants[0]?.[1])
+          }
+          // We spread the participant to duplicate the reference since we have
+          // a guard somewhere in the code to detect duplicate references
+          try {
+            if (participant || app.meeting.localParticipant) {
+              app.nui
+                .createActionChain('onChange', [
+                  {
+                    actionType: 'builtIn',
+                    funcName: 'hide',
+                    viewTag: 'waitForOtherTag',
+                  },
+                ])
+                .execute()
+            }
+            const duplicatedParticipant =
+              participant || app.meeting.localParticipant
+            duplicatedParticipants.push(duplicatedParticipant)
+            app.meeting.addRemoteParticipant(duplicatedParticipant, {
+              force: true,
+            })
+          } catch (error) {}
+        },
+      },
+      removeDuplicatedRemoteParticipant: {
+        get: () => (participant?: RemoteParticipant) => {
+          if (!participant) {
+            if (duplicatedParticipants.length) {
+              participant =
+                duplicatedParticipants[duplicatedParticipants.length - 1]
+            }
+          }
+          app.meeting.removeRemoteParticipant(participant as RemoteParticipant)
+          if (duplicatedParticipants.includes(participant)) {
+            duplicatedParticipants.splice(
+              duplicatedParticipants.indexOf(participant),
+              1,
+            )
+          }
+        },
+      },
+    })
+
+    /**
+     * Forcefully adds a participant to the screen to test the UI
+     * @param { RemoteParticipant | undefined } participant
+     */
+
+    return {}
+  })()
+
   function _getDisconnectFns(room: Meeting['room']) {
     function _disconnect() {
       room?.disconnect?.()
@@ -37,84 +104,10 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
   }
 
   function _unpublishTracks(
-    trackPublication: LocalVideoTrackPublication | LocalAudioTrackPublication,
+    publication: LocalVideoTrackPublication | LocalAudioTrackPublication,
   ) {
-    trackPublication?.track?.stop?.()
-    trackPublication?.unpublish?.()
-  }
-
-  function _attachDebugUtilsToWindow(room: Meeting['room']) {
-    const duplicatedParticipants = [] as any[]
-    // @ts-expect-error
-    window.l = room.localParticipant
-    /**
-     * Forcefully adds a participant to the screen to test the UI
-     * @param { RemoteParticipant | undefined } participant
-     */
-    // @ts-expect-error
-    window.duplicateRemoteParticipant = function duplicateRemoteParticipant(
-      participant?: RemoteParticipant,
-    ) {
-      if (!participant) {
-        const participants = Array.from(room?.participants || [])
-        if (participants.length) {
-          participant = participants[0]?.[1]
-        }
-      }
-      // We spread the participant to duplicate the reference since we have
-      // a guard somewhere in the code to detect duplicate references
-      if (room) {
-        try {
-          if (participant || room.localParticipant) {
-            const ac = NUI.createActionChain('onChange', [
-              {
-                actionType: 'builtIn',
-                funcName: 'hide',
-                viewTag: 'waitForOtherTag',
-              },
-            ]) as ActionChain
-            ac.execute()
-          }
-          const duplicatedParticipant = {
-            ...(participant || room.localParticipant),
-          }
-          duplicatedParticipants.push(duplicatedParticipant)
-          app.meeting.addRemoteParticipant(duplicatedParticipant as any, {
-            force: true,
-          })
-          log.func('duplicateRemoteParticipant')
-          log.grey(`Forcefully added remote participant`)
-        } catch (error) {}
-      }
-    }
-
-    // @ts-expect-error
-    window.removeDuplicatedRemoteParticipant = function _removeDuplicatedRemoteParticipant(
-      participant?: RemoteParticipant,
-    ) {
-      if (!participant) {
-        if (duplicatedParticipants.length) {
-          participant =
-            duplicatedParticipants[duplicatedParticipants.length - 1]
-        }
-      }
-      app.meeting.removeRemoteParticipant(participant as RemoteParticipant)
-      if (duplicatedParticipants.includes(participant)) {
-        duplicatedParticipants.splice(
-          duplicatedParticipants.indexOf(participant),
-          1,
-        )
-      }
-    }
-
-    return {
-      participantConnected() {
-        Array.from(room.participants || {}).forEach?.(
-          // @ts-expect-error
-          (p, index) => (window[`p${index}`] = p),
-        )
-      },
-    }
+    publication?.track?.stop?.()
+    publication?.unpublish?.()
   }
 
   function onConnected(room: Meeting['room']) {
@@ -122,8 +115,6 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       ---- LISTEN FOR INCOMING MEDIA PUBLISH/SUBSCRIBE EVENTS
     -------------------------------------------------------- */
     const { disconnected } = _getDisconnectFns(room)
-    const { participantConnected } = _attachDebugUtilsToWindow(room)
-    room.on('participantConnected', participantConnected)
     room.on('participantConnected', app.meeting.addRemoteParticipant)
     room.on('participantDisconnected', app.meeting.removeRemoteParticipant)
     room.once('disconnected', disconnected)
