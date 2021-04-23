@@ -622,7 +622,7 @@ const createExtendedDOMResolvers = function (app: App) {
         // Password inputs
         if (component.contentType === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
-            import('../app/noodl-ui').then(() => {
+            setTimeout(() => {
               const assetsUrl = app.nui.getAssetsUrl() || ''
               const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
               const eyeClosed = assetsUrl + 'makePasswordInvisible.png'

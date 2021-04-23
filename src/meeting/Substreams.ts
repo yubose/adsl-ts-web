@@ -20,14 +20,7 @@ class MeetingSubstreams {
   resolver: typeof NUI.resolveComponents = (c: any) => c;
 
   [inspect.custom]() {
-    return {
-      collection: this.getSubstreamsCollection(),
-      container: this.container,
-      hasBlueprint: isObj(this.blueprint) && 'type' in this.blueprint,
-      hasResolver: isFnc(this.resolver),
-      length: this.length,
-      type: 'subStreams',
-    }
+    return this.snapshot()
   }
 
   constructor(
@@ -192,6 +185,19 @@ class MeetingSubstreams {
     this.container?.remove?.()
     this.container = null
     return this
+  }
+
+  snapshot() {
+    return {
+      children: this.getSubstreamsCollection().map((stream) =>
+        stream.snapshot(),
+      ),
+      container: this.container,
+      hasBlueprint: isObj(this.blueprint) && 'type' in this.blueprint,
+      hasResolver: isFnc(this.resolver),
+      length: this.length,
+      type: 'subStreams',
+    }
   }
 }
 

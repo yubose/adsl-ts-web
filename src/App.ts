@@ -9,7 +9,7 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { ComponentObject, Identify } from 'noodl-types'
-import { NUI, publish, Viewport as VP } from 'noodl-ui'
+import { NUI, NUIComponent, publish, Viewport as VP } from 'noodl-ui'
 import { Draft } from 'immer/dist/internal'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import {
@@ -27,6 +27,7 @@ import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
 import * as u from './utils/common'
 import * as T from './app/types'
+import { RemoteParticipant } from 'twilio-video'
 
 const log = Logger.create('App.ts')
 const stable = u.isStable()
@@ -86,6 +87,10 @@ class App {
     return this.#state.authStatus
   }
 
+  get cache() {
+    return this.ndom.cache
+  }
+
   get initialized() {
     return this.#state.initialized
   }
@@ -120,6 +125,10 @@ class App {
 
   get streams() {
     return this.meeting.streams
+  }
+
+  get root() {
+    return this.noodl.root
   }
 
   get viewport() {
@@ -414,6 +423,19 @@ class App {
     return this.#state.firebase
   }
 
+  getRoomParticipants() {
+    return this.meeting.room.participants
+  }
+
+  getSdkParticipants(root = this.noodl.root): RemoteParticipant[] {
+    return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)
+  }
+
+  setSdkParticipants(participants: any[]) {
+    this.updateRoot(PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, participants)
+    return this.getSdkParticipants()
+  }
+
   observeViewport(viewport: VP) {
     let aspectRatio = VP.getAspectRatio(innerWidth, innerHeight)
     let min: number | undefined
@@ -493,110 +515,94 @@ class App {
     if (
       !this.mainPage.hooks[eventId.page.on.ON_REDRAW_BEFORE_CLEANUP]?.length
     ) {
-      this.ndom.page.on(
+      const onRedrawBeforeCleanup = (
+        node: HTMLElement,
+        component: NUIComponent.Instance,
+      ) => {
+        console.log(
+          `Removed a ${component.type} component from cache: ${component.id}`,
+        )
+        this.cache.component.remove(component)
+        publish(component, (c) => {
+          console.log(`Removed a ${c.type} component from cache: ${c.id}`)
+          this.cache.component.remove(c)
+        })
+      }
+      this.mainPage.on(
         eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
-        (node, component) => {
-          console.log(
-            `Removed a ${component.type} component from cache: ${component.id}`,
-          )
-          NUI.cache.component.remove(component)
-          publish(component, (c) => {
-            console.log(`Removed a ${c.type} component from cache: ${c.id}`)
-            NUI.cache.component.remove(c)
-          })
-        },
+        onRedrawBeforeCleanup,
       )
     }
 
-    page
-      .on(
-        eventId.page.on.ON_NAVIGATE_START,
-        function onNavigateStart(this: App) {
-          if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
-            log.func('onNavigateStart')
-            log.grey(`Removing room listeners...`)
-            this.meeting.room?.removeAllListeners?.()
-          }
-        }.bind(this),
-      )
-      .on(
-        eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE,
-        function onBeforeClearRootNode(this: App) {
-          if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
-            this.meeting.calledOnConnected = false
-            // Empty the current participants list since we manage the list of
-            // participants ourselves
-            let participants = get(
-              this.noodl.root,
-              PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-            )
-            if (participants?.length) {
-              let participantsBefore = participants.slice()
-              participants.length = 0
-              log.grey('Removed participants from SDK', {
-                before: participantsBefore,
-                after: get(
-                  this.noodl.root,
-                  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-                ),
-              })
-              participantsBefore = null
-            }
+    const onNavigateStart = () => {
+      if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
+        log.func('onNavigateStart')
+        log.grey(`Removing room listeners...`)
+        this.meeting.room?.removeAllListeners?.()
+      }
+    }
 
-            if (this.mainStream.hasElement()) {
-              const before = this.mainStream.snapshot()
-              this.mainStream.reset()
-              log.grey('Wiping mainStream state', {
-                before,
-                after: this.mainStream.snapshot(),
-              })
-            }
-            if (this.streams.selfStream.hasElement()) {
-              const before = this.streams.selfStream.snapshot()
-              this.streams.selfStream.reset()
-              log.grey('Wiping selfStream state', {
-                before,
-                after: this.streams.selfStream.snapshot(),
-              })
-            }
-
-            if (this.subStreams?.length) {
-              const before = this.subStreams
-                .getSubstreamsCollection()
-                ?.map((stream) => stream?.snapshot?.())
-
-              this.subStreams.reset()
-
-              log.grey('Wiping subStreams state', {
-                before,
-                after: this.subStreams
-                  .getSubstreamsCollection()
-                  ?.map((stream) => stream?.snapshot?.()),
-              })
-            }
-          }
-        }.bind(this),
-      )
-      .on(eventId.page.on.ON_COMPONENTS_RENDERED, async (page) => {
-        log.func(eventId.page.on.ON_COMPONENTS_RENDERED)
-        log.grey(`Done rendering DOM nodes for ${page.page}`, page)
-
-        if (page.page === 'VideoChat') {
-          if (
-            this.meeting.room?.state === 'connected' &&
-            !this.meeting.calledOnConnected
-          ) {
-            this.meeting.onConnected(this.meeting.room)
-            this.meeting.calledOnConnected = true
-            log.grey(`Invoked meeting.onConnected for republishing tracks`)
-          }
+    const onBeforeClearRootNode = () => {
+      if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
+        log.func('onBeforeClearRootNode')
+        this.meeting.calledOnConnected = false
+        // Empty the current participants list since we manage the list of
+        // participants ourselves
+        const participants = this.getSdkParticipants()
+        if (participants?.length) {
+          const participantsBefore = [...participants]
+          this.setSdkParticipants([])
+          log.grey('Removed participants from SDK', {
+            before: participantsBefore,
+            after: this.getSdkParticipants(),
+          })
         }
+        if (this.mainStream.hasElement()) {
+          const before = this.mainStream.snapshot()
+          this.mainStream.reset() &&
+            log.grey('Wiping mainStream state', {
+              before,
+              after: this.mainStream.snapshot(),
+            })
+        }
+        if (this.selfStream.hasElement()) {
+          const before = this.selfStream.snapshot()
+          this.selfStream.reset() &&
+            log.grey('Wiping selfStream state', {
+              before,
+              after: this.selfStream.snapshot(),
+            })
+        }
+        if (this.subStreams?.length) {
+          const before = this.subStreams.snapshot()
+          this.subStreams.reset() &&
+            log.grey('Wiped subStreams state', {
+              before,
+              after: this.subStreams.snapshot(),
+            })
+        }
+      }
+    }
 
-        // Cache to rehydrate if they disconnect
-        // TODO
-        // this.cachePage(pageName)
-        // log.grey(`Cached page: "${page.page}"`)
-      })
+    const onComponentsRendered = (page: NOODLDOMPage) => {
+      log.func('onComponentsRendered')
+      log.grey(`Done rendering DOM nodes for ${page.page}`, page)
+      if (page.page === 'VideoChat') {
+        if (
+          this.meeting.room?.state === 'connected' &&
+          !this.meeting.calledOnConnected
+        ) {
+          this.meeting.onConnected(this.meeting.room)
+          this.meeting.calledOnConnected = true
+          log.grey(`Invoked meeting.onConnected for republishing tracks`)
+        }
+      }
+    }
+
+    page
+      .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
+      .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearRootNode)
+      .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 
   reset() {

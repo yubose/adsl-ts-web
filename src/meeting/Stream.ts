@@ -3,7 +3,9 @@ import {
   createLocalAudioTrack,
   createLocalVideoTrack,
   LocalTrack,
+  LocalVideoTrackPublication,
   RemoteTrack,
+  RemoteVideoTrackPublication,
 } from 'twilio-video'
 import Logger from 'logsnap'
 import { toast } from '../utils/dom'
@@ -33,50 +35,39 @@ class MeetingStream {
     if (!type) console.log({ this: this, node })
   }
 
+  #log = (name: string, s?: string, o?: Record<string, any>) => {
+    s ? log.func(name) : (s = name)
+    console.log(s, this.snapshot(o))
+  }
+
   getElement() {
     return this.#node
   }
 
   hasElement() {
-    return this.#node !== null && this.#node instanceof HTMLElement
+    return this.#node !== null
   }
 
-  /**
-   * Sets the node to this instance
-   * @param { HTMLElement | null } node
-   */
   setElement(node: HTMLElement | null) {
     this.#node = node
-    log.func('setElement')
-    log.grey('New element has been set on this stream', {
-      snapshot: this.snapshot(),
-    })
-    return this
+    this.#log(
+      'setElement',
+      node
+        ? 'New element has been set on this stream'
+        : 'Removed/reset the element on this stream',
+    )
   }
 
-  /** Removes the DOM node for this stream from the DOM */
   removeElement() {
-    log.func('removeElement')
-    if (this.hasElement()) {
+    if (this.#node) {
       try {
-        if (this.#node?.parentNode) {
-          this.#node.parentNode.removeChild(this.getElement() as HTMLElement)
-          log.grey(
-            'Removed node from this stream by removeChild()',
-            this.snapshot(),
-          )
-        } else {
-          this.getElement()?.remove()
-          log.grey(
-            'Removed node from this instance by remove()',
-            this.snapshot(),
-          )
-        }
+        this.#node.parentElement?.removeChild(this.#node)
+        this.#node.remove()
       } catch (error) {
         console.error(error)
       }
+      this.#log('removeElement', `Removed element on a "${this.type} Stream"`)
     }
-    return this
   }
 
   /**
@@ -168,16 +159,15 @@ class MeetingStream {
         // Turn on their audio/video tracks and place them into the DOM
         this.#handlePublishTracks()
       } else {
-        log.func('setParticipant')
-        log.orange(
+        this.#log(
+          'setParticipant',
           `A participant was set on a stream but the node was not currently ` +
             `available. The publishing of the participant's tracks was skipped`,
-          this.snapshot(),
         )
       }
     } else {
-      log.func(`[${this.type}] setParticipant`)
-      log.red(
+      this.#log(
+        `[${this.type}] setParticipant`,
         `Tried to set participant on this stream but its the node is not available`,
         { type: this.type, participant },
       )
@@ -189,8 +179,9 @@ class MeetingStream {
   unpublish() {
     if (this.hasParticipant()) {
       this.#participant?.tracks?.forEach(
-        ({ track }: RoomParticipantTrackPublication) =>
-          track && this.#detachTrack(track),
+        (publication: RoomParticipantTrackPublication) => {
+          publication.track && this.#detachTrack(publication.track)
+        },
       )
       this.#participant = null
     }
@@ -204,25 +195,23 @@ class MeetingStream {
    * currently set node if they aren't set
    */
   reloadTracks(only?: 'audio' | 'video') {
-    log.func('reloadTracks')
-    log.grey(`[${this.type || 'Stream'}] Loading tracks...`, { args: { only } })
+    this.#log('reloadTracks', `[${this.type || 'Stream'}] Loading tracks...`, {
+      args: { only },
+    })
 
     const getErrMsg = (missingType: 'node' | 'participant') =>
       `Tried to reload one or more tracks but the ${missingType} set on this instance is ` +
       `not available`
 
-    !this.hasElement() && log.red(getErrMsg('node'), this.snapshot())
-    !this.hasParticipant() && log.red(getErrMsg('participant'), this.snapshot())
+    !this.hasElement() && this.#log(getErrMsg('node'))
+    !this.hasParticipant() && this.#log(getErrMsg('participant'))
 
-    let node = this.getElement() as HTMLElement
-    let participant = this.getParticipant() as RoomParticipant
-
-    if (node.dataset.sid !== participant.sid) {
-      node.dataset.sid = participant.sid
-      log.grey(`Attached participant SID in the element's dataset`)
+    if (this.#node && this.#node?.dataset.sid !== this.#participant?.sid) {
+      this.#node.dataset.sid = this.#participant?.sid
+      this.#log(`Attached participant SID in the element's dataset`)
     }
 
-    if (!participant.tracks?.size) {
+    if (!this.#participant?.tracks?.size) {
       const createTrack = async (kind: 'audio' | 'video') => {
         const fn =
           kind === 'audio' ? createLocalAudioTrack : createLocalVideoTrack
@@ -232,10 +221,10 @@ class MeetingStream {
           console.error(`[${kind}]: ${err.message}`)
           toast(err.message, { type: 'error' })
         } finally {
-          log.grey(`Created ${kind} track`)
+          this.#log(`Created ${kind} track`)
         }
       }
-      log.grey(`Participant is missing both tracks. Creating them now...`)
+      this.#log(`Participant is missing both tracks. Creating them now...`)
       createTrack('audio')
       createTrack('video')
     } else {
@@ -244,12 +233,14 @@ class MeetingStream {
           const label = track.kind === 'audio' ? 'audio' : 'video'
           const counterLabel = label === 'audio' ? 'video' : 'audio'
           let elem = this.#node?.querySelector?.(label)
-          log.grey(`Removing previous ${label} element`, elem)
+          this.#log('handleTrack', `Removing previous ${label} element`, {
+            elem,
+          })
           elem?.remove?.()
           elem = null
           if (track.kind === 'audio' && only !== counterLabel) {
             this.#node?.appendChild?.(track.attach())
-            log.grey(`Started the audio element`)
+            this.#log(`Started the audio element`)
           } else if (track.kind === 'video' && only !== counterLabel) {
             if (this.#node) {
               const videoElem = track.attach()
@@ -257,12 +248,12 @@ class MeetingStream {
               videoElem.style.height = '100%'
               videoElem.style.objectFit = 'cover'
               this.#node.appendChild(videoElem)
-              log.grey(`Started the video element`)
+              this.#log(`Started the video element`)
             }
           }
         }
       }
-      participant.tracks?.forEach?.(
+      this.#participant.tracks?.forEach?.(
         (publication: RoomParticipantTrackPublication) => {
           publication?.track && handleTrack(publication.track)
         },
@@ -323,24 +314,9 @@ class MeetingStream {
    * @param { RoomParticipantTrackPublication } publication - Track publication
    */
   #handleAttachTracks = (publication: RoomParticipantTrackPublication) => {
-    // If the TrackPublication is already subscribed to, then attach the Track to the DOM.
-    if (publication.track) {
-      this.#attachTrack(publication.track)
-    }
-    const onSubscribe = (track: RoomTrack) => {
-      log.func('event -- subscribed')
-      log.green('"subscribed" handler is executing', this.snapshot())
-      this.#attachTrack(track)
-      publication.off('subscribed', onSubscribe)
-    }
-    const onUnsubscribe = (track: RoomTrack) => {
-      log.func('event -- unsubscribed')
-      log.green('"unsubscribed" handler is executing', this.snapshot())
-      this.#detachTrack(track)
-      publication.off('unsubscribed', onUnsubscribe)
-    }
-    publication.on('subscribed', onSubscribe)
-    publication.on('unsubscribed', onUnsubscribe)
+    if (publication.track) this.#attachTrack(publication.track)
+    else publication.on('subscribed', this.#attachTrack)
+    publication.on('unsubscribed', this.#detachTrack)
   }
 
   /**
@@ -348,29 +324,33 @@ class MeetingStream {
    * @param { RoomTrack } track - Track from the room instance
    */
   #attachTrack = (track: RoomTrack) => {
-    const node = this.getElement()
-    if (node) {
+    if (this.#node) {
+      let attachee: HTMLAudioElement | HTMLVideoElement | undefined
       if (track.kind === 'audio') {
-        node.appendChild(track.attach())
-        log.func('attachTrack (audio)')
-        log.green(`Loaded the participant's audio track`, {
-          ...this.snapshot(),
-          track,
-        })
+        attachee = track.attach()
+        if (this.hasAudioElement()) {
+          this.removeAudioElement()
+          this.#log(`attachTrack (audio)`, `Removed previous audio element`)
+        }
       } else if (track.kind === 'video') {
-        const videoElem = track.attach()
-        videoElem.style.width = '100%'
-        videoElem.style.height = '100%'
-        videoElem.style.objectFit = 'cover'
-        node.appendChild(videoElem)
-        log.func('attachTrack (video)')
-        log.green(`Loaded the participant's video track`, {
-          ...this.snapshot(),
-          track,
-        })
+        attachee = track.attach()
+        attachee.style.width = '100%'
+        attachee.style.height = '100%'
+        attachee.style.objectFit = 'cover'
+        if (this.hasVideoElement()) {
+          this.removeVideoElement()
+          this.#log(`attachTrack (video)`, `Removed previous video element`)
+        }
+      }
+      if (attachee) {
+        this.#node.appendChild(attachee)
+        this.#log(
+          `#attachTrack (${track.kind})`,
+          `Loaded the participant's ${track.kind} track`,
+          { track },
+        )
       }
     }
-    return this
   }
 
   /**

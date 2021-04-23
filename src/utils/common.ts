@@ -39,7 +39,7 @@ export function isMobile() {
 
 export const inspect = util.inspect.custom
 
-export function isDev() {
+export function isUnitTestEnv() {
   return process.env.NODE_ENV === 'test'
 }
 

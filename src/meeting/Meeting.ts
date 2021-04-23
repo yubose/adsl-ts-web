@@ -12,7 +12,7 @@ import {
 } from 'twilio-video'
 import Logger from 'logsnap'
 import { getFirstByViewTag, findByUX } from 'noodl-ui-dom'
-import { array, isMobile } from '../utils/common'
+import { array, isMobile, isUnitTestEnv } from '../utils/common'
 import { hide, show, toast } from '../utils/dom'
 import App from '../App'
 import Stream from '../meeting/Stream'
@@ -134,7 +134,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      */
     async join(token: string) {
       try {
-        if (process.env.NODE_ENV === 'test' && !_room._isMock) {
+        if (isUnitTestEnv() && !_room._isMock) {
           throw new Error(`Meeting room should be mocked when testing`)
         }
         if (_room && _room.state !== 'connected') {
@@ -150,11 +150,11 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       } catch (error) {
         console.error(error)
         toast(error.message, { type: 'error' })
-        if (process.env.NODE_ENV === 'test') throw error
+        if (isUnitTestEnv()) throw error
       }
     },
     async rejoin() {
-      if (process.env.NODE_ENV === 'test' && !_room._isMock) {
+      if (isUnitTestEnv() && !_room._isMock) {
         throw new Error(`Meeting room should be mocked when testing`)
       }
       log.func('rejoin')
@@ -165,10 +165,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       return _room
     },
     hideWaitingOthersMessage() {
-      app.meeting.getWaitingMessageElements().forEach(unary(hide))
+      o.getWaitingMessageElements().forEach(unary(hide))
     },
     showWaitingOthersMessage() {
-      app.meeting.getWaitingMessageElements().forEach(unary(show))
+      o.getWaitingMessageElements().forEach(unary(show))
     },
     /** Disconnects from the room */
     leave() {

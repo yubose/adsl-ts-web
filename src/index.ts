@@ -1,14 +1,55 @@
 import Logger from 'logsnap'
-import { NUI } from 'noodl-ui'
-import { asHtmlElement, findByViewTag } from 'noodl-ui-dom'
-import App from './App'
-import { copyToClipboard } from './utils/dom'
+import pick from 'lodash/pick'
+import * as lib from 'noodl-ui'
+import {
+  asHtmlElement,
+  findByDataAttrib,
+  findByDataKey,
+  findByElementId,
+  findByGlobalId,
+  findByPlaceholder,
+  findBySelector,
+  findBySrc,
+  findByViewTag,
+  findByUX,
+  findWindow,
+  findWindowDocument,
+} from 'noodl-ui-dom'
+import { findReferences } from 'noodl-utils'
+import { copyToClipboard, getVcodeElem, toast } from './utils/dom'
 import { isStable } from './utils/common'
+import App from './App'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
 
 const log = Logger.create('App.ts')
 const stable = isStable()
+
+/**
+ * Just a helper to return the utilities that are meant to be attached
+ * to the global window object
+ */
+export function getWindowHelpers() {
+  return Object.assign(
+    {
+      findByDataAttrib,
+      findByDataKey,
+      findByElementId,
+      findByGlobalId,
+      findByPlaceholder,
+      findBySelector,
+      findBySrc,
+      findByViewTag,
+      findByUX,
+      findReferences,
+      findWindow,
+      findWindowDocument,
+      getVcodeElem,
+      toast,
+    },
+    pick(lib, ['getDataValues', 'publish']),
+  )
+}
 
 window.addEventListener('load', async (e) => {
   try {
@@ -19,7 +60,6 @@ window.addEventListener('load', async (e) => {
       isSupported: firebaseSupported,
     } = await import('./app/firebase')
     const { default: noodl } = await import('./app/noodl')
-    const { getWindowHelpers } = await import('./app/noodl-ui')
 
     const app = new App({
       noodl,
@@ -47,30 +87,43 @@ window.addEventListener('load', async (e) => {
       cp: copyToClipboard,
       meeting: app.meeting,
       noodl,
-      nui: NUI,
+      nui: app.nui,
       page: app.mainPage,
     }
     window.build = process.env.BUILD
-    window.cache = NUI.cache
+    window.cache = app.nui.cache
     window.cp = copyToClipboard
 
-    Object.defineProperty(window, 'msg', {
-      get() {
-        return app.messaging
+    Object.defineProperties(window, {
+      l: { get: () => app.meeting.localParticipant },
+      noodl: { get: () => noodl },
+      nui: { get: () => app.nui },
+      ndom: { get: () => app.ndom },
+      FCMOnTokenReceive: {
+        get: () => (args: any) =>
+          noodl.root.builtIn
+            .FCMOnTokenReceive({ vapidKey: aitMessage.vapidKey, ...args })
+            .then(console.log)
+            .catch(console.error),
       },
+      grid: {
+        get: () => () => {
+          const grid = document.getElementById('gridlines')
+          if (grid) {
+            grid.remove()
+          } else {
+            showGridLines.call(app, {
+              width: app.mainPage.viewport.width,
+              height: app.mainPage.viewport.height,
+            })
+          }
+        },
+      },
+      ...Object.entries(getWindowHelpers()).reduce(
+        (acc, [key, fn]) => Object.assign(acc, { [key]: { get: () => fn } }),
+        {},
+      ),
     })
-
-    window.noodl = noodl
-    window.nui = NUI
-    window.ndom = app.ndom
-    window.FCMOnTokenReceive = (args: any) => {
-      noodl.root.builtIn
-        .FCMOnTokenReceive({ vapidKey: aitMessage.vapidKey, ...args })
-        .then(console.log)
-        .catch(console.error)
-    }
-
-    Object.assign(window, getWindowHelpers())
 
     try {
       stable && log.cyan('Initializing [App] instance')
@@ -78,18 +131,6 @@ window.addEventListener('load', async (e) => {
         firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
         firebaseSupported: firebaseSupported(),
       })
-      // @ts-expect-error
-      window.grid = () => {
-        const grid = document.getElementById('gridlines')
-        if (grid) {
-          grid.remove()
-        } else {
-          showGridLines.call(app, {
-            width: app.mainPage.viewport.width,
-            height: app.mainPage.viewport.height,
-          })
-        }
-      }
       stable && log.cyan('Initialized [App] instance')
     } catch (error) {
       console.error(error)
