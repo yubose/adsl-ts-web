@@ -26,7 +26,6 @@ import * as defaultResolvers from './resolvers'
 import * as c from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
-import { NUIComponent } from '../../noodl-ui/dist'
 
 const pageEvt = c.eventId.page
 

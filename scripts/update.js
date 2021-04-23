@@ -31,18 +31,20 @@ console.log(args)
         `git commit -m "Updated NOODL SDK package(s)"`,
         `git push`,
       )
-      if (args.deploy) {
-        cmds.push('s3Deploy.sh build "devtest.aitmed.com"')
-        console.log(
-          chalk.magenta(
-            `\nDeploy script will run after the changes are pushed to GitLab\n`,
-          ),
-        )
-      }
       break
     }
     default:
+      cmds.push(`git add .`, `git commit -m "Update"`, `git push`)
       break
+  }
+
+  if (args.deploy) {
+    cmds.push('s3Deploy.sh build "devtest.aitmed.com"')
+    console.log(
+      chalk.magenta(
+        `\nDeploy script will run after the changes are pushed to GitLab\n`,
+      ),
+    )
   }
 
   let shell = spawn(cmds.join(' && '), { shell: true })
