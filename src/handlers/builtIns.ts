@@ -2,6 +2,7 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { Draft, isDraft, original } from 'immer'
+import { LiteralUnion } from 'type-fest'
 import { isAction } from 'noodl-action-chain'
 import {
   findListDataObject,
@@ -22,7 +23,12 @@ import {
   getFirstByElementId,
   isPageConsumer,
 } from 'noodl-ui-dom'
-import { BuiltInActionObject, Identify } from 'noodl-types'
+import {
+  ActionObject,
+  BuiltInActionObject,
+  Identify,
+  UncommonActionObjectProps,
+} from 'noodl-types'
 import {
   LocalAudioTrack,
   LocalAudioTrackPublication,
@@ -37,14 +43,12 @@ import App from '../App'
 import * as u from '../utils/common'
 
 const log = Logger.create('builtIns.ts')
+const _pick = u.pickActionKey
+type BuiltInActionArg =
+  | Parameters<Store.BuiltInObject['fn']>[0]
+  | Record<string, any>
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
-  function _getViewTag(
-    action: Parameters<Store.BuiltInObject['fn']>[0] | Record<string, any>,
-  ): string {
-    return (isAction(action) ? action.original?.viewTag : action?.viewTag) || ''
-  }
-
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
     log.func(`(${kind}) toggleDevice`)
     log.grey(`Toggling ${kind}`)
@@ -82,11 +86,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('checkField')
     log.grey('', action)
-    const delay: number | boolean = action.original?.wait || action.wait || 0
+    const delay: number | boolean = u.pickActionKey(action, 'wait')
     const onCheckField = () => {
-      const node = findByUX(
-        action.original?.contentType || action?.contentType || '',
-      )
+      const node = findByUX(u.pickActionKey(action, 'contentType'))
       u.array(node).forEach((n) => n && show(n))
     }
     if (u.isNum(delay)) setTimeout(() => onCheckField(), delay as any)
@@ -97,20 +99,19 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
   ) {
     log.func('disconnectMeeting')
-    log.grey('', { action, room: app.meeting.room })
+    log.grey('', action)
     app.meeting.leave()
   }
 
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {
     log.func('goBack')
     log.grey('', action)
-    if (u.isBool(action.original?.reload)) {
+    const reload = u.pickActionKey(action, 'reload')
+    if (u.isBool(reload)) {
       app.mainPage.requesting = app.mainPage
-        .getPreviousPage(app.noodl.cadlEndpoint.startPage || '')
+        .getPreviousPage(app.startPage)
         .trim()
-      app.mainPage.setModifier(app.mainPage.requesting, {
-        reload: action.original?.reload,
-      })
+      app.mainPage.setModifier(app.mainPage.requesting, { reload })
     }
     window.history.back()
   }
@@ -118,7 +119,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
     log.func('hide')
     log.grey('', action)
-    const viewTag = _getViewTag(action)
+    const viewTag = u.pickActionKey(action, 'viewTag')
     let wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       if (VP.isNil(node.style.top, 'px')) {
@@ -145,7 +146,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('show')
     log.grey('', action)
-    const viewTag = _getViewTag(action)
+    const viewTag = u.pickActionKey(action, 'viewTag')
     let wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       const component = options.component
@@ -190,7 +191,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action)
     try {
       const { component, getAssetsUrl } = options
-      const { dataKey = '' } = action.original || {}
+      const dataKey = u.pickActionKey(action, 'dataKey') || ''
       const iteratorVar = findIteratorVar(component)
       const node = getFirstByElementId(component)
       const pageName = app.mainPage.page || ''
@@ -363,11 +364,13 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       } else if (u.isObj(gotoObj)) {
         if ('goto' in gotoObj) {
           if (u.isObj(gotoObj.goto)) {
-            destinationParam = gotoObj.goto.destination
-            'reload' in gotoObj.goto && (reload = gotoObj.goto.reload)
+            destinationParam = u.pickActionKey(gotoObj.goto, 'destination')
+            'reload' in gotoObj.goto &&
+              (reload = u.pickActionKey(gotoObj.goto, 'reload'))
             'pageReload' in gotoObj.goto &&
-              (pageReload = gotoObj.goto.pageReload)
-            'dataIn' in gotoObj.goto && (dataIn = gotoObj.goto.dataIn)
+              (pageReload = u.pickActionKey(gotoObj.goto, 'pageReload'))
+            'dataIn' in gotoObj.goto &&
+              (dataIn = u.pickActionKey(gotoObj.goto, 'dataIn'))
           } else if (u.isStr(gotoObj.goto)) {
             destinationParam = gotoObj.goto
           }
@@ -380,10 +383,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     } else if (u.isObj(action)) {
       if ('destination' in action) {
-        destinationParam = action.destination
-        'reload' in action && (reload = action.reload)
-        'pageReload' in action && (pageReload = action.pageReload)
-        'dataIn' in action && (dataIn = action.dataIn)
+        destinationParam = u.pickActionKey(action, 'destination')
+        'reload' in action && (reload = u.pickActionKey(action, 'reload'))
+        'pageReload' in action &&
+          (pageReload = u.pickActionKey(action, 'pageReload'))
+        'dataIn' in action && u.pickActionKey(action, 'dataIn')
       }
     }
     if (!u.isUnd(reload)) {
@@ -468,7 +472,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       app.mainPage.pageUrl = u.resolvePageUrl({
         destination,
         pageUrl: app.mainPage.pageUrl,
-        startPage: app.noodl.cadlEndpoint.startPage,
+        startPage: app.startPage,
       })
     } else {
       destination = destinationParam
@@ -509,8 +513,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('redraw')
     log.red('', { action, options })
-
-    const viewTag = action?.original?.viewTag || ''
+    const viewTag = u.pickActionKey(action, 'viewTag') || ''
     const components = [] as NUIComponent.Instance[]
     const { component } = options
 

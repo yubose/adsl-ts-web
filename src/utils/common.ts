@@ -1,3 +1,8 @@
+import get from 'lodash/get'
+import has from 'lodash/has'
+import { ActionObject, UncommonActionObjectProps } from 'noodl-types'
+import { Store } from 'noodl-ui'
+import { LiteralUnion } from 'type-fest'
 import util from 'util'
 
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
@@ -53,6 +58,34 @@ export function isTest() {
 
 export function isOutboundLink(s: string | undefined = '') {
   return /https?:\/\//.test(s)
+}
+
+type ActionObjectArg =
+  | Parameters<Store.BuiltInObject['fn']>[0]
+  | Parameters<Store.ActionObject['fn']>[0]
+  | Record<string, any>
+
+export function pickActionKey<
+  A extends ActionObjectArg = ActionObjectArg,
+  K extends keyof (ActionObject | UncommonActionObjectProps) = keyof (
+    | ActionObject
+    | UncommonActionObjectProps
+  )
+>(action: A, key: LiteralUnion<K, string>) {
+  if (!key) return
+  const result = get(action.original, key)
+  return isUnd(result) ? get(action, key) : result
+}
+
+export function pickHasActionKey<
+  A extends ActionObjectArg = ActionObjectArg,
+  K extends keyof (ActionObject | UncommonActionObjectProps) = keyof (
+    | ActionObject
+    | UncommonActionObjectProps
+  )
+>(action: A, key: LiteralUnion<K, string>) {
+  if (!key || !(isObj(action) || isFnc(action))) return false
+  return has(action, 'original') ? has(action.original, key) : has(action, key)
 }
 
 /**

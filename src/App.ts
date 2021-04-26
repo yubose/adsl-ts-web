@@ -127,6 +127,10 @@ class App {
     return this.meeting.streams
   }
 
+  get startPage(): string {
+    return this.noodl?.cadlEndpoint?.startPage || ''
+  }
+
   get root() {
     return this.noodl.root
   }
