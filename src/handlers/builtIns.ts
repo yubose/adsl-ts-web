@@ -119,7 +119,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('hide')
     log.grey('', action)
     const viewTag = _getViewTag(action)
-    const wait = action.original?.wait || action?.wait || 0
+    let wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       if (VP.isNil(node.style.top, 'px')) {
         node.style.display !== 'none' && (node.style.display = 'none')
@@ -128,10 +128,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
     let elemCount
-    if (u.isNum(wait)) {
+    if (!u.isUnd(wait)) {
       setTimeout(
         () => void (elemCount = hide(findByViewTag(viewTag), onElem)),
-        wait,
+        wait === true ? 0 : wait,
       )
     } else {
       elemCount = hide(findByViewTag(viewTag), onElem)
@@ -146,7 +146,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('show')
     log.grey('', action)
     const viewTag = _getViewTag(action)
-    const wait = action.original?.wait || action?.wait || 0
+    let wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       const component = options.component
       if (component && VP.isNil(node.style.top)) {
@@ -155,10 +155,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
     let elemCount
-    if (u.isNum(wait)) {
+    if (!u.isUnd(wait)) {
       setTimeout(
         () => void (elemCount = show(findByViewTag(viewTag), onElem)),
-        wait,
+        wait === true ? 0 : wait,
       )
     } else {
       elemCount = show(findByViewTag(viewTag), onElem)
