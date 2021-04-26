@@ -25,6 +25,10 @@ const SEARCH = getConfigEndpoint('search')
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : TESTPAGE
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
+
+// China Sever
+// const configUrl = `http://public.ahmucel.com/config/${document.domain.split('.')[0]}.yml?`
+
 const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
 
 const noodl = new NOODL({
