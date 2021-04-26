@@ -375,6 +375,8 @@ class App {
             : undefined,
           checkField: self.ndom.builtIns.get('checkField')?.find(Boolean)?.fn,
           goto: self.ndom.builtIns.get('goto')?.find(Boolean)?.fn,
+          hide: self.ndom.builtIns.get('hide')?.find(Boolean)?.fn,
+          show: self.ndom.builtIns.get('show')?.find(Boolean)?.fn,
           videoChat: createVideoChatBuiltIn(this),
         },
       })

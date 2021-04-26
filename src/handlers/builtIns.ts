@@ -39,6 +39,12 @@ import * as u from '../utils/common'
 const log = Logger.create('builtIns.ts')
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
+  function _getViewTag(
+    action: Parameters<Store.BuiltInObject['fn']>[0] | Record<string, any>,
+  ): string {
+    return (isAction(action) ? action.original?.viewTag : action?.viewTag) || ''
+  }
+
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
     log.func(`(${kind}) toggleDevice`)
     log.grey(`Toggling ${kind}`)
@@ -112,7 +118,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
     log.func('hide')
     log.grey('', action)
-    const viewTag = action.original?.viewTag || ''
+    const viewTag = _getViewTag(action)
     const onElem = (node: HTMLElement) => {
       if (VP.isNil(node.style.top, 'px')) {
         node.style.display !== 'none' && (node.style.display = 'none')
@@ -130,8 +136,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('show')
     log.grey('', action)
-
-    const viewTag = action.original?.viewTag || ''
+    const viewTag = _getViewTag(action)
     const onElem = (node: HTMLElement) => {
       const component = options.component
       if (component && VP.isNil(node.style.top)) {
