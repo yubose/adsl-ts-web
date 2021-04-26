@@ -89,7 +89,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       )
       u.array(node).forEach((n) => n && show(n))
     }
-    if (delay > 0) setTimeout(() => onCheckField(), delay as any)
+    if (u.isNum(delay)) setTimeout(() => onCheckField(), delay as any)
     else onCheckField()
   }
 
@@ -119,6 +119,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('hide')
     log.grey('', action)
     const viewTag = _getViewTag(action)
+    const wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       if (VP.isNil(node.style.top, 'px')) {
         node.style.display !== 'none' && (node.style.display = 'none')
@@ -126,7 +127,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         node.style.display === 'none' && (node.style.display = 'block')
       }
     }
-    const elemCount = hide(findByViewTag(viewTag), onElem)
+    let elemCount
+    if (u.isNum(wait)) {
+      setTimeout(
+        () => void (elemCount = hide(findByViewTag(viewTag), onElem)),
+        wait,
+      )
+    } else {
+      elemCount = hide(findByViewTag(viewTag), onElem)
+    }
     !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
   }
 
@@ -137,6 +146,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('show')
     log.grey('', action)
     const viewTag = _getViewTag(action)
+    const wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       const component = options.component
       if (component && VP.isNil(node.style.top)) {
@@ -144,7 +154,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         node.style.display === 'none' && (node.style.display = 'block')
       }
     }
-    const elemCount = show(findByViewTag(viewTag), onElem)
+    let elemCount
+    if (u.isNum(wait)) {
+      setTimeout(
+        () => void (elemCount = show(findByViewTag(viewTag), onElem)),
+        wait,
+      )
+    } else {
+      elemCount = show(findByViewTag(viewTag), onElem)
+    }
     !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
   }
 
