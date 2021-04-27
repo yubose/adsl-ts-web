@@ -25,11 +25,8 @@ type ActionsStore<AType extends string, StoreObj = any> = Map<
   StoreObj[]
 >
 
-class ActionsCache implements ICache {
-  #actions: ActionsStore<OtherActionTypes, Store.ActionObject>
-  #builtIns: ActionsStore<'builtIn', Store.BuiltInObject>
-  #emits: ActionsStore<LiteralUnion<NUITrigger, string>, Store.ActionObject[]>
-  state = allActionTypes.reduce(
+const getDefaultState = () =>
+  allActionTypes.reduce(
     (acc, type) => {
       acc[type] = {
         executor: {
@@ -49,7 +46,13 @@ class ActionsCache implements ICache {
         }
       }
     >,
-  );
+  )
+
+class ActionsCache implements ICache {
+  #actions: ActionsStore<OtherActionTypes, Store.ActionObject>
+  #builtIns: ActionsStore<'builtIn', Store.BuiltInObject>
+  #emits: ActionsStore<LiteralUnion<NUITrigger, string>, Store.ActionObject[]>
+  state = getDefaultState();
 
   [Symbol.iterator]() {
     const items = [
@@ -101,6 +104,7 @@ class ActionsCache implements ICache {
     this.#actions.clear()
     this.#builtIns.clear()
     this.#emits.clear()
+    this.state = getDefaultState()
   }
 
   exists(fn: Store.ActionObject['fn'] | Store.BuiltInObject['fn']) {

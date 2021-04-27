@@ -124,15 +124,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
     let elemCount
-    if (!u.isUnd(wait)) {
-      setTimeout(
-        () => void (elemCount = hide(findByViewTag(viewTag), onElem)),
-        wait === true ? 0 : wait,
-      )
-    } else {
+    const onHide = () => {
       elemCount = hide(findByViewTag(viewTag), onElem)
+      !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
     }
-    !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    if (!u.isUnd(wait)) {
+      setTimeout(onHide, wait === true ? 0 : wait)
+    } else {
+      onHide()
+    }
   }
 
   const showAction: Store.BuiltInObject['fn'] = async function onShow(

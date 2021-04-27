@@ -14,7 +14,12 @@ export { default as isPage } from './utils/isPage'
 export { default as NUI } from './noodl-ui'
 export { default as Page } from './Page'
 export { default as Viewport } from './Viewport'
-export { event, nuiEmitType, nuiEmitTransaction } from './constants'
+export {
+  event,
+  groupedActionTypes as nuiGroupedActionTypes,
+  nuiEmitType,
+  nuiEmitTransaction,
+} from './constants'
 export {
   findChild,
   findListDataObject,

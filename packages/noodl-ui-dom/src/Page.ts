@@ -268,6 +268,7 @@ class Page {
       if (slice === 'render') this.#state.render = getDefaultRenderState()
     } else {
       this.#state.render = getDefaultRenderState()
+      this.remove()
     }
   }
 }

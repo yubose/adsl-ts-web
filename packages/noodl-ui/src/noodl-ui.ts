@@ -713,6 +713,7 @@ const NUI = (function _NUI() {
             | 'components'
             | 'pages'
             | 'plugins'
+            | 'register'
             | 'resolvers'
             | 'transactions'
           )
@@ -722,6 +723,7 @@ const NUI = (function _NUI() {
             | 'components'
             | 'pages'
             | 'plugins'
+            | 'register'
             | 'resolvers'
             | 'transactions'
           )[],
@@ -738,6 +740,8 @@ const NUI = (function _NUI() {
             cache.page.clear()
           } else if (f === 'plugins') {
             cache.plugin.clear()
+          } else if (f === 'register') {
+            cache.register.clear()
           } else if (f === 'resolvers') {
             o.getResolvers().length = 0
           } else if (f === 'transactions') {

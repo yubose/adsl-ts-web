@@ -13,12 +13,16 @@ import NOODLDOM, {
 } from 'noodl-ui-dom'
 import {
   actionTypes as nuiActionTypes,
+  nuiGroupedActionTypes,
   nuiEmitTransaction,
   NUI,
   NUIActionType,
   NUIComponent,
   Viewport,
   Store,
+  NUITrigger,
+  NUIActionGroupedType,
+  Register,
 } from 'noodl-ui'
 import App from '../App'
 import createActions from '../handlers/actions'
@@ -30,6 +34,7 @@ import getMockParticipant, {
 } from '../__tests__/helpers/getMockParticipant'
 import * as c from '../constants'
 import * as u from './common'
+import { LiteralUnion } from 'type-fest'
 
 export const deviceSize = {
   galaxys5: { width: 360, height: 640, aspectRatio: 0.5621345029239766 },
@@ -239,8 +244,16 @@ export async function initializeApp(
       participants?: Record<string, any> | Map<string, any>
     }
     transaction?: Partial<Transaction>
-    // use?: typeof NUI.use
-  } & Partial<Record<NUIActionType, Store.ActionObject | Store.BuiltInObject>>,
+  } & {
+    builtIn?: Partial<Record<string, Store.BuiltInObject['fn']>>
+    emit?: Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn']>>
+    register?: Record<string, Register.Object['fn']>
+  } & Partial<
+      Record<
+        NUIActionGroupedType,
+        Store.ActionObject<NUIActionGroupedType>['fn']
+      >
+    >,
 ) {
   let _noodl = (opts?.noodl || noodl) as CADL
 
@@ -274,14 +287,40 @@ export async function initializeApp(
 
   let pageName = opts?.pageName || ''
 
+  // Handle custom provided fns to substitute
+  const handleAction = (
+    actionType: LiteralUnion<NUIActionGroupedType, string>,
+    fn: Store.ActionObject<NUIActionGroupedType>['fn'],
+  ) => {
+    const obj = _app.actions[actionType as NUIActionGroupedType]?.[0]
+    obj && (obj.fn = fn)
+  }
+  const handleBuiltIn = (funcName: string, fn: Store.BuiltInObject['fn']) => {
+    const obj = _app.builtIns.get(funcName)?.[0]
+    obj && (obj.fn = fn)
+  }
+  const handleEmit = (
+    trigger: LiteralUnion<NUITrigger, string>,
+    fn: Store.ActionObject<'emit'>['fn'],
+  ) => {
+    const obj = _app.actions.emit.get(trigger as NUITrigger)?.[0]
+    obj && (obj.fn = fn)
+  }
+  const handleRegister = (name: string, fn: Register.Object['fn']) => {
+    const obj = _app.actions.register?.[name]?.[0]
+    obj && (obj.fn = fn)
+  }
+
   u.entries(opts).forEach(([key, value]) => {
     if (nuiActionTypes.includes(key as NUIActionType)) {
       if (key === 'builtIn') {
-        _app.nui.use({ builtIn: value })
+        u.entries(value).forEach((args) => handleBuiltIn(...args))
       } else if (key === 'emit') {
-        _app.nui.use({ emit: value })
+        u.entries(value).forEach((args) => handleEmit(...args))
+      } else if (key === 'register') {
+        u.entries(value).forEach((args) => handleRegister(...args))
       } else {
-        _app.nui.use({ [key]: value })
+        u.entries(value).forEach((args) => handleAction(...args))
       }
     } else if (key === 'pageName') {
       pageName = value
@@ -328,16 +367,27 @@ export async function getApp(
     preset?: 'meeting'
   } = {},
 ) {
-  const { navigate, preset, room } = args
+  const {
+    navigate,
+    preset,
+    room,
+    components,
+    pageObject: pageObjectProp,
+  } = args
 
   const _args = {
-    pageName: 'SignIn',
-    pageObject: { components: [] },
     ...args,
+    pageName: 'SignIn',
+    pageObject: {
+      ...pageObjectProp,
+      components: components || pageObjectProp?.components,
+    },
   } as typeof args
 
   if (preset === 'meeting') {
+    let components = _args.pageObject?.components
     const pageObject = getVideoChatPage({ participants: [] })
+    pageObject.components = components || pageObject.components || []
     u.assign(_args, {
       pageName: 'VideoChat',
       pageObject,
@@ -346,6 +396,7 @@ export async function getApp(
   }
 
   const app = await initializeApp(_args)
+
   u.assign(app.noodl.root, { [_args.pageName as string]: _args.pageObject })
 
   if (room?.participants) {
@@ -373,21 +424,17 @@ export function getActions(app: any = {}) {
 }
 
 export function getBuiltIns<FuncName extends string = string>(
-  funcNames: FuncName | FuncName[],
-): Record<FuncName, Store.BuiltInObject>
-export function getBuiltIns(app?: any): Store.BuiltInObject[]
-export function getBuiltIns<FuncName extends string = string>(
   app: FuncName | FuncName[] | App | {},
 ) {
   if (u.isStr(app) || u.isArr(app)) {
     const _fns = createBuiltIns({} as any)
-    const _fnNames = u.array(app)
-    return _fns.reduce((acc, obj) => {
-      if (_fnNames.includes(obj.funcName as FuncName)) {
-        acc[obj.funcName as FuncName] = obj
+    const funcNames = u.array(app)
+    return u.entries(_fns).reduce((acc, [funcName, fn]) => {
+      if (funcNames.includes(funcName as FuncName)) {
+        acc[funcName as FuncName] = fn
       }
       return acc
-    }, {} as Record<FuncName, Store.BuiltInObject>)
+    }, {} as Record<FuncName, Store.BuiltInObject['fn']>)
   }
   return createBuiltIns(app || ({} as any))
 }

@@ -87,8 +87,16 @@ class App {
     return this.#state.authStatus
   }
 
+  get actions() {
+    return this.nui.cache.actions
+  }
+
+  get builtIns() {
+    return this.nui.cache.actions.builtIn
+  }
+
   get cache() {
-    return this.ndom.cache
+    return this.nui.cache
   }
 
   get initialized() {

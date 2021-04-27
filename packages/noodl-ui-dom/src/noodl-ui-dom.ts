@@ -624,10 +624,18 @@ class NOODLDOM extends NOODLDOMInternal {
     componentCache?: boolean
     global?: boolean
     pages?: boolean
+    register?: boolean
     resolvers?: boolean
     transactions?: boolean
   }): this
-  reset(key?: 'actions' | 'componentCache' | 'resolvers' | 'transactions'): this
+  reset(
+    key?:
+      | 'actions'
+      | 'componentCache'
+      | 'register'
+      | 'resolvers'
+      | 'transactions',
+  ): this
   reset(
     key?:
       | {
@@ -635,12 +643,14 @@ class NOODLDOM extends NOODLDOMInternal {
           componentCache?: boolean
           global?: boolean
           pages?: boolean
+          register?: boolean
           resolvers?: boolean
           transactions?: boolean
         }
       | 'actions'
       | 'componentCache'
       | 'events'
+      | 'register'
       | 'resolvers'
       | 'transactions',
   ) {
@@ -656,16 +666,21 @@ class NOODLDOM extends NOODLDOMInternal {
     }
     const resetPages = () => {
       this.page = undefined as any
-      u.keys(this.pages).forEach((k) => delete this.pages[k])
+      u.entries(this.pages).forEach(([pageName, page]: [string, Page]) => {
+        delete this.pages[pageName]
+        page?.reset?.()
+      })
       NOODLDOM._nui.cache.page.clear()
     }
+    const resetRegisters = () => NOODLDOM._nui.cache.register.clear()
     const resetResolvers = () => void (this.resolvers().length = 0)
     const resetGlobal = () => {
       resetEventCache()
       resetPages()
-      u.keys(this.global.components).forEach(
-        (k) => delete this.global.components[k],
-      )
+      u.keys(this.global.components).forEach((k) => {
+        this.global.components[k].node?.remove?.()
+        delete this.global.components[k]
+      })
     }
     const resetTransactions = () => {
       NOODLDOM._nui.cache.transactions.clear()
@@ -686,6 +701,8 @@ class NOODLDOM extends NOODLDOMInternal {
         resetEventCache()
       } else if (key === 'resolvers') {
         resetResolvers()
+      } else if (key === 'register') {
+        resetRegisters()
       } else if (key === 'transactions') {
         resetTransactions()
       }
@@ -697,9 +714,9 @@ class NOODLDOM extends NOODLDOMInternal {
     resetEventCache()
     resetGlobal()
     resetPages()
+    resetRegisters()
     resetResolvers()
     resetTransactions()
-
     return this
   }
 
