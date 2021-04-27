@@ -153,9 +153,37 @@ const createExtendedDOMResolvers = function (app: App) {
                   },
                   chartType: option.chartType,
                   data: [],
+                  columns: []
                 }
                 if (option.style) tableData.style = option.style
-                if (option.tableHeader) tableData.columns = option.tableHeader
+                /*if (option.tableHeader) tableData.columns = option.tableHeader */
+                // click each cell , return this data , and the index 
+                // 如果是对象就不变  如果是字符串就加一项
+                option.tableHeader.forEach(element => {
+                  if(typeof(element)=='string'){
+                    let emptyObject = {
+                      name: element,
+                      attributes: (cell, row, column)=>{
+                        if(cell || row || column){
+                          return {
+                            'data-cell-content': cell,
+                            'onclick':()=>{
+                              // 返回列点击的那一列
+                              option.response = {}
+                              option.response.cell = cell
+                              option.response.column = column.name
+                              
+                            },
+                            'style': 'cursor: pointer'
+                          }
+                        }
+                      }
+                    }
+                    tableData.columns.push(emptyObject)
+                  }else{
+                    tableData.columns.push(element)
+                  }
+                });
                 if (option.attribute) {
                   let attribute = option.attribute
                   if (attribute.search) {
@@ -192,7 +220,8 @@ const createExtendedDOMResolvers = function (app: App) {
                                 resArray[element] = dataArray[parseInt(key)]
                               }
                             }
-                            option.response = resArray
+                            option.response = {}
+                            option.response.row = resArray
                           },
                         },
                         option.allowOnclick.value,
