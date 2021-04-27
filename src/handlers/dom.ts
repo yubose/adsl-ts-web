@@ -168,11 +168,28 @@ const createExtendedDOMResolvers = function (app: App) {
                           return {
                             'data-cell-content': cell,
                             'onclick':()=>{
-                              // 返回列点击的那一列
                               option.response = {}
                               option.response.cell = cell
-                              option.response.column = column.name
-                              
+                              option.response.column = column.id
+                              let resData = row
+                              let dataArray: any[] = []
+                              let resArray: any[] = []
+                              resData._cells.pop()
+                              resData._cells.forEach((item: any) => {
+                                dataArray.push(item['data'])
+                              })
+                              for (const key in option.dataHeader) {
+                                if (
+                                  Object.prototype.hasOwnProperty.call(
+                                    option.dataHeader,
+                                    key,
+                                  )
+                                ) {
+                                  const element = option.dataHeader[key]
+                                  resArray[element] = dataArray[parseInt(key)]
+                                }
+                              }
+                              option.response.row = resArray
                             },
                             'style': 'cursor: pointer'
                           }
