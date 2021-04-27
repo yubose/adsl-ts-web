@@ -29,7 +29,7 @@ const SEARCH = getConfigEndpoint('search')
 // China Sever
 // const configUrl = `http://public.ahmucel.com/config/${document.domain.split('.')[0]}.yml?`
 
-const configUrl = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
+const configUrl = '../cadlcel/config/xuchen.yml'
 
 const noodl = new NOODL({
   aspectRatio:
