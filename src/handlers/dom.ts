@@ -162,13 +162,13 @@ const createExtendedDOMResolvers = function (app: App) {
                 if (option.style) tableData.style = option.style
                 /*if (option.tableHeader) tableData.columns = option.tableHeader */
                 // click each cell , return this data , and the index 
-                // 如果是对象就不变  如果是字符串就加一项
+
                 option.tableHeader.forEach(element => {
                   if(typeof(element)=='string'){
                     let emptyObject = {
                       name: element,
-                      attributes: (cell, row, column)=>{
-                        if(cell || row || column){
+                      attributes: (cell, row , column)=>{
+                        if(cell || row ){
                           return {
                             'data-cell-content': cell,
                             'onclick':()=>{
