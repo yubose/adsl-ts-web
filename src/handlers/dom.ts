@@ -140,7 +140,6 @@ const createExtendedDOMResolvers = function (app: App) {
               }
               case 'table': {
                 let option = dataValue
-                console.error(option)
                 let tableData: any = {
                   pagination: { limit: '' },
                   language: {
@@ -153,7 +152,12 @@ const createExtendedDOMResolvers = function (app: App) {
                   },
                   chartType: option.chartType,
                   data: [],
-                  columns: []
+                  columns: [],
+                  style:{
+                    table:{
+                      width: "100%"
+                    }
+                  }
                 }
                 if (option.style) tableData.style = option.style
                 /*if (option.tableHeader) tableData.columns = option.tableHeader */
@@ -256,7 +260,6 @@ const createExtendedDOMResolvers = function (app: App) {
                   })
                   tableData.data.push(dataArray)
                 })
-                console.error(tableData)
                 new gridjs.Grid(tableData).render(node)
               }
             }
