@@ -4,6 +4,7 @@ import { NUI, Viewport } from 'noodl-ui'
 import { EmitObject } from 'noodl-types'
 import NOODLDOM from 'noodl-ui-dom'
 import createMeetingFns from '../../meeting'
+export * from './domTypes'
 export * from './meetingTypes'
 
 export interface AppConstructorOptions {

@@ -29,7 +29,7 @@ import {
   getVcodeElem,
   hide,
   show,
-  onSelectFile,
+  selectFile,
   scrollToElem,
   toast,
 } from '../utils/dom'
@@ -464,7 +464,7 @@ const createActions = function createActions(app: App) {
 
     try {
       if (_pick(action, 'dataObject') === 'BLOB') {
-        const { files, status } = await onSelectFile()
+        const { files, status } = await selectFile()
         if (status === 'selected' && files?.[0]) {
           log.grey(`File selected`, files[0])
           file = files[0]

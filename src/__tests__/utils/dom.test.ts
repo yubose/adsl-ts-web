@@ -145,10 +145,10 @@ describe(coolGold(`dom (utils)`), () => {
     })
   })
 
-  describe(`${italic(`onSelectFile`)} (passing in an existing input)`, () => {
+  describe(`${italic(`selectFile`)} (passing in an existing input)`, () => {
     xit('should be able to receive the image file and status: selected', async () => {
       const input = document.createElement('input')
-      const result = await d.onSelectFile(input)
+      const result = await d.selectFile(input)
       const file = new File(['hello'], 'myFile.png', { type: 'image/png' })
       userEvent.upload(input, file)
       expect(input.files?.[0]).to.equal(file)

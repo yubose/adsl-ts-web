@@ -2,7 +2,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { ComponentObject, Identify } from 'noodl-types'
+import { ComponentObject, EcosDocument, Identify } from 'noodl-types'
 import { findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import createComponent from '../utils/createComponent'
@@ -42,6 +42,23 @@ componentResolver.setResolver((component, options, next) => {
   const { contentType, dataKey, path, text, textBoard } = original
   const iteratorVar =
     context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
+
+  /* -------------------------------------------------------
+    ---- ECOSDOC
+  -------------------------------------------------------- */
+
+  if (Identify.component.ecosDoc(component)) {
+    const ecosObj = component.get('ecosObj') as EcosDocument
+    if (u.isObj(ecosObj)) {
+      //
+    } else {
+      console.log(
+        `%cAn ecosDoc component did not have a valid "ecosObj" value`,
+        `color:#ec0000;`,
+        component,
+      )
+    }
+  }
 
   /* -------------------------------------------------------
     ---- LIST

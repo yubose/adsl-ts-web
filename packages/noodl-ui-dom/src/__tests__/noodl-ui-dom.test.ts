@@ -1,13 +1,9 @@
 import * as mock from 'noodl-ui-test-utils'
-import { prettyDOM, waitFor } from '@testing-library/dom'
+import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { flatten, NUI, NUIComponent, nuiEmitTransaction } from 'noodl-ui'
+import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
 import { coolGold, italic, magenta } from 'noodl-common'
-import {
-  findByGlobalId,
-  getFirstByElementId,
-  getFirstByGlobalId,
-} from '../utils'
+import { findByGlobalId, getFirstByGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'
 import { GlobalComponentRecord } from '../global'
 

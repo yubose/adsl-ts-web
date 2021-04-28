@@ -10,7 +10,6 @@ import {
   NUIComponent,
   publish,
   Store,
-  TransactionId as NUITransactionId,
 } from 'noodl-ui'
 import {
   createAsyncImageElement,
@@ -122,15 +121,6 @@ class NOODLDOM extends NOODLDOMInternal {
     } else {
       page = new Page(NOODLDOM._nui.createPage?.())
     }
-
-    // page.on(c.eventId.page.on.ON_DOM_CLEANUP, ({ global, rootNode }) => {
-    //   const clearAll = (n: HTMLElement | null) => {
-    //     if (n) {
-    //       n.nextElementSibling && clearAll(n.nextElementSibling as HTMLElement)
-    //     }
-    //   }
-    //   clearAll(rootNode)
-    // })
 
     this.global.pages[page.id] !== page && (this.global.pages[page.id] = page)
     !this.page && (this.page = page)

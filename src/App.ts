@@ -389,6 +389,7 @@ class App {
           goto: self.ndom.builtIns.get('goto')?.find(Boolean)?.fn,
           hide: self.ndom.builtIns.get('hide')?.find(Boolean)?.fn,
           show: self.ndom.builtIns.get('show')?.find(Boolean)?.fn,
+          redraw: self.ndom.builtIns.get('redraw')?.find(Boolean)?.fn,
           videoChat: createVideoChatBuiltIn(this),
         },
       })

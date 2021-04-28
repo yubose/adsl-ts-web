@@ -81,9 +81,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('checkField')
     log.grey('', action)
-    const delay: number | boolean = u.pickActionKey(action, 'wait')
+    const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
-      const node = findByUX(u.pickActionKey(action, 'contentType'))
+      const node = findByUX(_pick(action, 'contentType'))
       u.array(node).forEach((n) => n && show(n))
     }
     if (u.isNum(delay)) setTimeout(() => onCheckField(), delay as any)
@@ -101,7 +101,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {
     log.func('goBack')
     log.grey('', action)
-    const reload = u.pickActionKey(action, 'reload')
+    const reload = _pick(action, 'reload')
     if (u.isBool(reload)) {
       app.mainPage.requesting = app.mainPage
         .getPreviousPage(app.startPage)
@@ -114,7 +114,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
     log.func('hide')
     log.grey('', action)
-    const viewTag = u.pickActionKey(action, 'viewTag')
+    const viewTag = _pick(action, 'viewTag')
     let wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       if (VP.isNil(node.style.top, 'px')) {
@@ -141,7 +141,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('show')
     log.grey('', action)
-    const viewTag = u.pickActionKey(action, 'viewTag')
+    const viewTag = _pick(action, 'viewTag')
     let wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       const component = options.component
@@ -186,7 +186,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action)
     try {
       const { component, getAssetsUrl } = options
-      const dataKey = u.pickActionKey(action, 'dataKey') || ''
+      const dataKey = _pick(action, 'dataKey') || ''
       const iteratorVar = findIteratorVar(component)
       const node = getFirstByElementId(component)
       const pageName = app.mainPage.page || ''
@@ -359,13 +359,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       } else if (u.isObj(gotoObj)) {
         if ('goto' in gotoObj) {
           if (u.isObj(gotoObj.goto)) {
-            destinationParam = u.pickActionKey(gotoObj.goto, 'destination')
-            'reload' in gotoObj.goto &&
-              (reload = u.pickActionKey(gotoObj.goto, 'reload'))
+            destinationParam = _pick(gotoObj.goto, 'destination')
+            'reload' in gotoObj.goto && (reload = _pick(gotoObj.goto, 'reload'))
             'pageReload' in gotoObj.goto &&
-              (pageReload = u.pickActionKey(gotoObj.goto, 'pageReload'))
-            'dataIn' in gotoObj.goto &&
-              (dataIn = u.pickActionKey(gotoObj.goto, 'dataIn'))
+              (pageReload = _pick(gotoObj.goto, 'pageReload'))
+            'dataIn' in gotoObj.goto && (dataIn = _pick(gotoObj.goto, 'dataIn'))
           } else if (u.isStr(gotoObj.goto)) {
             destinationParam = gotoObj.goto
           }
@@ -378,11 +376,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     } else if (u.isObj(action)) {
       if ('destination' in action) {
-        destinationParam = u.pickActionKey(action, 'destination')
-        'reload' in action && (reload = u.pickActionKey(action, 'reload'))
-        'pageReload' in action &&
-          (pageReload = u.pickActionKey(action, 'pageReload'))
-        'dataIn' in action && u.pickActionKey(action, 'dataIn')
+        destinationParam = _pick(action, 'destination')
+        'reload' in action && (reload = _pick(action, 'reload'))
+        'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
+        'dataIn' in action && _pick(action, 'dataIn')
       }
     }
     if (!u.isUnd(reload)) {
@@ -502,65 +499,82 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
   }
 
+  // TODO
+  const openCamera: Store.BuiltInObject['fn'] = async function onOpenCamera(
+    action,
+    options,
+  ) {
+    log.func('openCamera')
+    log.red('', action)
+  }
+
+  // TODO
+  const openDocumentManager: Store.BuiltInObject['fn'] = async function onOpenDocumentManager(
+    action,
+    options,
+  ) {
+    log.func('openDocumentManager')
+    log.red('', action)
+  }
+
+  // TODO
+  const openPhotoLibrary: Store.BuiltInObject['fn'] = async function onOpenPhotoLibrary(
+    action,
+    options,
+  ) {
+    log.func('openPhotoLibrary')
+    log.red('', action)
+  }
+
   const redraw: Store.BuiltInObject['fn'] = async function onRedraw(
     action,
     options,
   ) {
     log.func('redraw')
-    log.red('', { action, options })
-    const viewTag = u.pickActionKey(action, 'viewTag') || ''
+    log.red('', action)
+    const component = options?.component as NUIComponent.Instance
+    const actionViewTag = _pick(action, 'viewTag') || ''
+    const compViewTag = component?.get('data-viewtag')
     const components = [] as NUIComponent.Instance[]
-    const { component } = options
+    let numComponents = 0
 
-    for (const c of NUI.cache.component.get().values()) {
-      c && c.get('viewTag') === viewTag && components.push(c)
+    for (const c of app.cache.component) {
+      c &&
+        c.get('data-viewtag') === actionViewTag &&
+        components.push(c) &&
+        numComponents++
     }
 
     try {
-      if (
-        viewTag &&
-        (component?.get('data-viewtag') === viewTag ||
-          component?.get('viewTag') === viewTag) &&
-        !components.includes(component as NUIComponent.Instance)
-      ) {
-        components.push(component as NUIComponent.Instance)
+      if (compViewTag === actionViewTag && !components.includes(component)) {
+        components.push(component) && numComponents++
       }
-
-      if (!components.length) {
-        log.red(`Could not find any components to redraw`, {
-          action,
-          ...options,
-          component,
-        })
+      if (!numComponents) {
+        log.red(`Could not find any components to redraw`, action)
       } else {
-        log.grey(`Redrawing ${components.length} components`, components)
+        log.grey(`Redrawing ${numComponents} components`, components)
       }
 
       let startCount = 0
 
-      while (startCount < components.length) {
-        const viewTagComponent = components[startCount]
-        const node = getFirstByElementId(viewTagComponent)
+      while (startCount < numComponents) {
+        const _component = components[startCount]
+        const _node = getFirstByElementId(_component)
         const ctx = {} as any
-        if (isListConsumer(viewTagComponent)) {
-          const dataObject = findListDataObject(viewTagComponent)
-          if (dataObject) ctx.dataObject = dataObject
+        if (isListConsumer(_component)) {
+          const dataObject = findListDataObject(_component)
+          dataObject && (ctx.dataObject = dataObject)
         }
-        const [newNode, newComponent] = app.ndom.redraw(
-          node as HTMLElement,
-          viewTagComponent,
-          app.mainPage,
-          { context: ctx },
-        )
-        NUI.cache.component.add(newComponent)
-        startCount++
+        const redrawed = app.ndom.redraw(_node, _component, app.mainPage, {
+          context: ctx,
+        })
+        app.cache.component.add(redrawed[1]) && startCount++
       }
     } catch (error) {
       console.error(error)
       toast(error.message, { type: 'error' })
-      throw error
     }
-    log.red(`COMPONENT CACHE SIZE: ${NUI.cache.component.length}`)
+    log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
 
   const builtIns = {
