@@ -532,6 +532,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('redraw')
     log.red('', action)
+
     const component = options?.component as NUIComponent.Instance
     const actionViewTag = _pick(action, 'viewTag') || ''
     const compViewTag = component?.get('data-viewtag')
