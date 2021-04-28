@@ -219,7 +219,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe.only(italic(`redraw`), () => {
+  describe(italic(`redraw`), () => {
     it(`should delete all components involved in the redraw from the component cache`, async () => {
       const rawComponents = [
         mock.getListComponent({
