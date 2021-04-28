@@ -1,7 +1,8 @@
 import { inspect } from 'util'
 import { Identify } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
-import { GlobalRecord } from './index'
+import { createGlobalComponentId } from '../utils/internal'
+import GlobalRecord from './GlobalRecord'
 import Page from '../Page'
 
 export interface GlobalComponentMapOptions {
@@ -25,16 +26,17 @@ class GlobalComponentRecord extends GlobalRecord<'component'> {
     super()
 
     if (!id) {
-      const suffix = Identify.component.popUp(component)
-        ? component.get('popUpView') || component.get('viewTag')
-        : ''
-      this.#id = `${page.page}:${suffix}`
+      // const suffix = Identify.component.popUp(component)
+      //   ? component.get('popUpView') || component.get('viewTag') || component.id
+      //   : ''
+      // this.#id = `${page.page}:${suffix}`
+      this.#id = createGlobalComponentId(component)
     } else {
       this.#id = id
     }
 
     this.componentId = component.id
-    this.nodeId = node?.id
+    this.nodeId = node?.id || component.id || ''
     this.pageId = page.id as string
   }
 

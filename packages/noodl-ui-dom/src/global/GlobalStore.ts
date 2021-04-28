@@ -1,3 +1,4 @@
+import { isComponent, NUIComponent } from 'noodl-ui'
 import * as T from '../types'
 
 interface ConstructorOptions {
@@ -21,6 +22,36 @@ class GlobalStore {
 
   get pages() {
     return this.#store.pages
+  }
+
+  has(component: NUIComponent.Instance): boolean
+  has(node: HTMLElement | null): boolean
+  has<NC extends NUIComponent.Instance | HTMLElement | null>(arg: NC) {
+    if (arg) {
+      if (isComponent(arg)) {
+        const globalId = arg.get('data-globalid')
+        if (globalId) {
+          if (this.#store.components.has(globalId)) return true
+          for (const record of this.#store.components.values()) {
+            if (record.componentId === arg.id) return true
+            else if (this.#store.components.has(globalId)) return true
+          }
+        }
+      } else if (arg instanceof HTMLElement) {
+        const globalId = arg.dataset.globalid || ''
+        if (globalId) {
+          if (this.#store.components.has(globalId)) return true
+          for (const record of this.#store.components.values()) {
+            if (record.nodeId === arg.id) {
+              return true
+            } else if (this.#store.components.has(globalId)) {
+              return true
+            }
+          }
+        }
+      }
+    }
+    return false
   }
 }
 

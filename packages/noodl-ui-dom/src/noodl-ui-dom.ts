@@ -142,6 +142,7 @@ class NOODLDOM extends NOODLDOMInternal {
       | {
           type: 'component'
           component: NUIComponent.Instance
+          id?: string
           node?: HTMLElement | null
           page: Page
         }
@@ -232,14 +233,6 @@ class NOODLDOM extends NOODLDOMInternal {
       } catch (error) {
         console.error(error)
       }
-      // const globalId = node.dataset.globalid
-      // if (globalId && this.global.components[globalId]) {
-      //   this.removeGlobal('component', globalId)
-      // }
-      // // Remove from component cache
-      // if (this.cache.component.has(node.id)) {
-      //   this.removeComponent(this.cache.component.get(node?.id))
-      // }
       // Remove parent references
       node?.parentNode?.removeChild?.(node)
       // Remove from DOM
@@ -397,20 +390,6 @@ class NOODLDOM extends NOODLDOMInternal {
     let page: Page = pageProp || this.page
 
     if (component) {
-      // if (component.has('global')) {
-      //   if (component.get('globalId')) {
-      //     if (getFirstByGlobalId(component.get('globalId'))) {
-      //       console.log(
-      //         `%cGlobal component with id "${component.get(
-      //           'globalId',
-      //         )} already in the DOM. The execution did not proceed`,
-      //         `color:#ec0000;`,
-      //       )
-      //       return
-      //     }
-      //   }
-      // }
-
       if (Identify.component.plugin(component)) {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem)
@@ -450,43 +429,26 @@ class NOODLDOM extends NOODLDOMInternal {
 
       if (component.has('global')) {
         let globalRecord: GlobalComponentRecord
+        let globalId = u.createGlobalComponentId(component)
 
-        if (!component.get('data-globalid')) {
+        if (this.global.components.has(globalId)) {
+          globalRecord = this.global.components.get(
+            globalId,
+          ) as GlobalComponentRecord
+        } else {
           globalRecord = this.createGlobalRecord({
             type: 'component',
+            id: globalId,
             component,
             node,
             page,
           }) as GlobalComponentRecord
-          attachOnClick(node, globalRecord.globalId)
-        } else {
-          if (this.global.components.has(component.get('data-globalid'))) {
-            globalRecord = this.global.components.get(
-              component.get('data-globalid'),
-            ) as GlobalComponentRecord
-          } else {
-            globalRecord = this.createGlobalRecord({
-              type: 'component',
-              component,
-              node,
-              page,
-            }) as GlobalComponentRecord
-            this.global.components.set(
-              component.get('data-globalid'),
-              globalRecord,
-            )
-            attachOnClick(node, globalRecord.globalId)
-          }
+          this.global.components.set(globalId, globalRecord)
+          attachOnClick(node, globalId)
         }
 
         if (globalRecord) {
-          component.edit({
-            'data-globalid': globalRecord.globalId,
-            globalId: globalRecord.globalId,
-          })
-
-          const recordComponentId = globalRecord.componentId
-          const recordNodeId = globalRecord.nodeId
+          component.edit({ 'data-globalid': globalId, globalId })
 
           // Check mismatchings and recover from them
 
@@ -504,34 +466,52 @@ class NOODLDOM extends NOODLDOMInternal {
             )
           }
 
-          if (recordComponentId !== component.id) {
+          if (globalRecord.componentId !== component.id) {
             publishMismatchMsg('component')
-            this.removeComponent(this.cache.component.get(recordComponentId))
+            this.removeComponent(
+              this.cache.component.get(globalRecord.componentId),
+            )
             globalRecord.componentId = component.id
           }
 
-          if (node && recordNodeId && recordNodeId !== node.id) {
-            publishMismatchMsg('node')
-            const _prevGlobalNode = document.getElementById(recordNodeId)
-            if (_prevGlobalNode) {
-              console.log(
-                `%cRemoving previous node using id "${recordNodeId}"`,
-                `color:#95a5a6;`,
-              )
-              this.removeNode(_prevGlobalNode)
+          if (node) {
+            if (!node.id) node.id = component.id
+            if (globalRecord.nodeId) {
+              if (globalRecord.nodeId !== node.id) {
+                console.log(
+                  `%cThe nodeId on the global component record does not match ` +
+                    `with the node that is being rendered. The old node will be ` +
+                    `replaced with the incoming node's id`,
+                  `color:#CCCD17;`,
+                  { record: globalRecord, node, component },
+                )
+                const _prevNode = document.getElementById(globalRecord.nodeId)
+                if (_prevNode) {
+                  console.log(
+                    `%cRemoving previous node using id "${globalRecord.nodeId}"`,
+                    `color:#95a5a6;`,
+                  )
+                  this.removeNode(_prevNode)
+                } else {
+                  console.log(
+                    `%cDid not remove previous node with id "${globalRecord.nodeId}" ` +
+                      `because it did not exist`,
+                    `color:#95a5a6;`,
+                  )
+                }
+                globalRecord.nodeId = node.id
+                node.dataset.globalid = globalId
+                console.log(
+                  `%cReplaced nodeId "${globalRecord.nodeId}" with "${node.id} on the global ` +
+                    `component record`,
+                  globalRecord,
+                )
+              }
             } else {
-              console.log(
-                `%cPrevious node with id "${recordNodeId}" did not exist`,
-                `color:#95a5a6;`,
-              )
+              globalRecord.nodeId = node.id
+              node.dataset.globalid = globalId
             }
-            globalRecord.nodeId = node.id
-            node.dataset.globalid = component.get('data-globalid')
-            console.log(
-              `%cReplaced nodeId "${recordNodeId}" with "${node.id} on the global ` +
-                `component record`,
-              globalRecord,
-            )
+            publishMismatchMsg('node')
           }
 
           if (globalRecord.pageId !== page.id) {
@@ -545,28 +525,22 @@ class NOODLDOM extends NOODLDOMInternal {
               globalRecord,
             )
           }
-
-          if (node) {
-            const parent = component.has('global')
-              ? document.body
-              : container || document.body
-
-            parent.appendChild(node)
-
-            this.#R.run(node, component)
-
-            component.children?.forEach?.((child: Component) => {
-              const childNode = this.draw(
-                child,
-                node,
-                page,
-                options,
-              ) as HTMLElement
-              node?.appendChild(childNode)
-            })
-          }
-        } else {
         }
+      }
+
+      if (node) {
+        const parent = component.has('global')
+          ? document.body
+          : container || document.body
+
+        parent.appendChild(node)
+
+        this.#R.run(node, component)
+
+        component.children?.forEach?.((child: Component) => {
+          const childNode = this.draw(child, node, page, options) as HTMLElement
+          node?.appendChild(childNode)
+        })
       }
     }
     return node || null

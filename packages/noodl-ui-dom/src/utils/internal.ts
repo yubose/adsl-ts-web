@@ -1,3 +1,5 @@
+import { isComponent, NUIComponent } from 'noodl-ui'
+
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
 export const assign = (
@@ -25,6 +27,17 @@ export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
     node.classList.add(className)
   }
+}
+
+export function createGlobalComponentId(
+  component: NUIComponent.Instance | string,
+) {
+  return isStr(component)
+    ? component
+    : component.get('popUpView') ||
+        component.get('viewTag') ||
+        component.id ||
+        ''
 }
 
 export const xKeys = ['width', 'left']

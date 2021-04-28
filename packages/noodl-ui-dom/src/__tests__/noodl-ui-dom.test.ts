@@ -3,7 +3,11 @@ import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { flatten, NUI, NUIComponent, nuiEmitTransaction } from 'noodl-ui'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { findByGlobalId, getFirstByGlobalId } from '../utils'
+import {
+  findByGlobalId,
+  getFirstByElementId,
+  getFirstByGlobalId,
+} from '../utils'
 import { ndom, createRender } from '../test-utils'
 import { GlobalComponentRecord } from '../global'
 
@@ -115,122 +119,150 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
 
     describe(`when drawing components with global: true`, () => {
-      const attachmentmentSuffixes = ['popUpView', 'viewTag']
+      it(
+        `should create a global component object to the global store if it ` +
+          `doesn't exist`,
+        async () => {
+          const pageName = 'Hello'
+          const popUpComponentObj = mock.getPopUpComponent({
+            popUpView: 'cerealView',
+            global: true,
+          })
+          const { page, ndom, render } = createRender({
+            pageName,
+            components: [popUpComponentObj],
+          })
+          const component = await render()
+          const globalId = component?.get('globalId')
+          const globalObj = ndom.global.components.get(globalId)
+          expect(globalId).to.exist
+          expect(globalObj).to.exist
+          expect(globalObj).to.have.property('globalId', globalId)
+          expect(globalObj).to.have.property('componentId', component.id)
+          expect(globalObj).to.have.property('pageId', page.id)
+          expect(globalObj).to.have.property(
+            'nodeId',
+            getFirstByGlobalId(globalId).id,
+          )
+        },
+      )
 
-      attachmentmentSuffixes.forEach((suffix) => {
-        it(`should create the globalId using the current page name and the ${magenta(
-          suffix,
-        )}`, async () => {
-          const { page, ndom } = createRender({
+      it(
+        `should replace the previous nodeId with the new one if the new ` +
+          `node is referencing the same global id`,
+        async () => {
+          const { ndom, render } = createRender({
             pageName: 'Abc',
             components: [
-              mock.getPopUpComponent({ popUpView: 'cerealView', global: true }),
-            ],
-          })
-          const req = await ndom.request(page)
-          req && req.render()
-          await waitFor(() => {
-            expect(getFirstByGlobalId(`Abc:cerealView`)).to.be.instanceOf(
-              HTMLElement,
-            )
-          })
-        })
-      })
-
-      it(`should create a global component object to the global store`, async () => {
-        const pageName = 'Hello'
-        const { page, ndom } = createRender({
-          pageName,
-          pageObject: {
-            components: [
-              mock.getPopUpComponent({ popUpView: 'cerealView', global: true }),
-            ],
-          },
-        })
-        const req = await ndom.request(page)
-        let component: NUIComponent.Instance | undefined
-        req && (component = req?.render()[0])
-        const globalId = component?.get('globalId')
-        const globalObj = ndom.global.components.get(globalId)
-        expect(globalId).to.exist
-        expect(globalObj).to.exist
-        // expect(globalObj).to.have.property('globalId', globalId)
-        // expect(globalObj).to.have.property('componentId', component?.id)
-        // expect(globalObj).to.have.property('pageId', page.id)
-        // expect(globalObj).to.have.property('node').instanceOf(HTMLElement)
-      })
-
-      describe(`when the globalId already exists in the global component store`, () => {
-        it(`should remove and replace the node with the new one`, async () => {
-          const { page, ndom } = createRender({
-            pageName: 'Abc',
-            components: [
-              mock.getPopUpComponent({ popUpView: 'cerealView', global: true }),
-            ],
-          })
-          let req = await ndom.request(page)
-          req && req.render()
-          const globalId = `Abc:cerealView`
-          console.info(prettyDOM())
-          let node = getFirstByGlobalId(globalId)
-          let nodeId = node.id
-          const globalObject = ndom.global.components[globalId]
-          console.info(globalObject)
-          expect(globalObject.node).to.eq(node)
-          expect(globalObject.node).to.have.property('dataset', globalId)
-          // page.requesting = 'Hello'
-          // req = await ndom.request(page)
-          // req && req.render()
-          // expect(globalObject.node).not.to.eq(node)
-          // expect(globalObject.node)
-        })
-
-        xit(`should remove the previous componentId with the new one`, async () => {
-          //
-        })
-      })
-
-      describe(
-        `when encountering an equivalent or structurally equivalent ` +
-          `component with global: true `,
-        () => {
-          it(
-            `should update existing values in the global object it if ` +
-              `this object was previously added but not replace the node`,
-            async () => {
-              const globalPopUpComponent = mock.getPopUpComponent({
+              mock.getPopUpComponent({
                 popUpView: 'cerealView',
                 global: true,
-              })
-              const pageName = 'Hello'
-              const { page, ndom } = createRender({
-                pageName,
-                pageObject: {
-                  components: [
-                    mock.getSelectComponent(),
-                    mock.getButtonComponent(),
-                    globalPopUpComponent,
-                  ],
-                },
-              })
-              let req = await ndom.request(page)
-              req?.render()
-              const nodes = document.getElementsByClassName('popup')
-              const node = nodes[0] as HTMLElement
-              expect(document.body.contains(node)).to.be.true
-              expect(document.getElementsByClassName('popup')).to.have.lengthOf(
-                1,
-              )
-              ndom.cache.component.get(node.id)
-              page.components = [{ ...globalPopUpComponent }]
-              req = await ndom.request(page, 'Cereal')
-              req?.render()
-              expect(document.body.contains(node)).to.be.true
-              expect(document.getElementsByClassName('popup')).to.have.lengthOf(
-                1,
-              )
+              }),
+            ],
+          })
+          let component = await render()
+          const globalId = component.get('data-globalid')
+          const prevNode = getFirstByGlobalId(globalId)
+          const globalObject = ndom.global.components.get(
+            globalId,
+          ) as GlobalComponentRecord
+          expect(globalObject.nodeId).to.eq(prevNode.id)
+          component = await render('Hello')
+          const newNode = getFirstByGlobalId(`cerealView`)
+          expect(globalObject.nodeId).not.to.eq(prevNode.id)
+          expect(globalObject.nodeId).to.eq(newNode.id)
+        },
+      )
+
+      describe(`when the globalId already exists in the global component store`, () => {
+        xit(
+          `should replace the previous componentId with the new one if the new ` +
+            `component is referencing the same global id`,
+          async () => {
+            //
+          },
+        )
+      })
+
+      it(
+        `should update the componentId and nodeId in the global object it if ` +
+          `drawing the same global component`,
+        async () => {
+          const globalPopUpComponent = mock.getPopUpComponent({
+            popUpView: 'cerealView',
+            global: true,
+          })
+          const pageName = 'Hello'
+          const { page, ndom, request, render } = createRender({
+            pageName,
+            pageObject: {
+              components: [
+                mock.getSelectComponent(),
+                mock.getButtonComponent(),
+                globalPopUpComponent,
+              ],
             },
-          )
+          })
+          const req = await request()
+          const [select, button, popUp] = req.render()
+          const globalPopUpNode = getFirstByGlobalId('cerealView')
+          const globalRecord = ndom.global.components.get('cerealView')
+          expect(document.body.contains(globalPopUpNode)).to.be.true
+          expect(globalRecord).to.have.property('componentId', popUp.id)
+          expect(globalRecord).to.have.property('nodeId', globalPopUpNode.id)
+          page.components = [
+            mock.getPopUpComponent({
+              popUpView: 'cerealView',
+              global: true,
+            }),
+          ]
+          const newPopUp = await render()
+          const newPopUpNode = getFirstByGlobalId('cerealView')
+          expect(globalRecord).to.have.property('componentId').not.eq(popUp.id)
+          expect(globalRecord)
+            .to.have.property('nodeId')
+            .not.eq(globalPopUpNode.id)
+          expect(globalRecord).to.have.property('componentId').eq(newPopUp.id)
+          expect(globalRecord).to.have.property('nodeId').eq(newPopUpNode.id)
+        },
+      )
+
+      it(
+        `should remove the old nodes/components from the DOM/cache and replace ` +
+          `them with the new one if encountering the same global component object`,
+        async () => {
+          const globalPopUpComponent = mock.getPopUpComponent({
+            popUpView: 'cerealView',
+            global: true,
+          })
+          const pageName = 'Hello'
+          const { page, ndom, request, render } = createRender({
+            pageName,
+            pageObject: {
+              components: [
+                mock.getSelectComponent(),
+                mock.getButtonComponent(),
+                globalPopUpComponent,
+              ],
+            },
+          })
+          const req = await request()
+          const [select, button, popUp] = req.render()
+          const globalPopUpNode = getFirstByGlobalId('cerealView')
+          expect(document.body.contains(globalPopUpNode)).to.be.true
+          expect(ndom.cache.component.has(popUp)).to.be.true
+          page.components = [
+            mock.getPopUpComponent({
+              popUpView: 'cerealView',
+              global: true,
+            }),
+          ]
+          const newPopUp = await render()
+          const newPopUpNode = getFirstByGlobalId('cerealView')
+          expect(document.body.contains(globalPopUpNode)).to.be.false
+          expect(ndom.cache.component.has(popUp)).to.be.false
+          expect(document.body.contains(newPopUpNode)).to.be.true
+          expect(ndom.cache.component.has(newPopUp)).to.be.true
         },
       )
     })
@@ -314,29 +346,24 @@ describe(coolGold(`noodl-ui-dom`), () => {
 
   describe(italic(`render`), () => {
     it(`should render noodl components to the DOM`, async () => {
-      const { page } = createRender({
-        pageObject: {
-          formData: { password: 'hello123' },
-          components: [
-            mock.getButtonComponent(),
-            mock.getTextFieldComponent(),
-            mock.getSelectComponent(),
-            mock.getVideoComponent(),
-          ],
-        },
+      const { render } = createRender({
+        components: [
+          mock.getButtonComponent(),
+          mock.getTextFieldComponent(),
+          mock.getSelectComponent(),
+          mock.getVideoComponent(),
+        ],
       })
-      await ndom.request(page)
       const elemTypes = ['input', 'button', 'select', 'video']
       elemTypes.forEach((t) => {
         expect(document.getElementsByTagName(t)[0]).not.to.exist
       })
-      ndom.render(page)
-      elemTypes.forEach((t) => {
-        expect(document.getElementsByTagName(t)[0]).to.exist
-      })
-      elemTypes.forEach((t) => {
-        expect(document.body.contains(document.getElementsByTagName(t)[0])).to
-          .exist
+      await render()
+      await waitFor(() => {
+        elemTypes.forEach((t) => {
+          expect(document.body.contains(document.getElementsByTagName(t)[0])).to
+            .be.true
+        })
       })
     })
 
