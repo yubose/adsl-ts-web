@@ -1,10 +1,11 @@
 import * as mock from 'noodl-ui-test-utils'
-import { prettyDOM } from '@testing-library/dom'
+import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
-import { coolGold, italic } from 'noodl-common'
-import { findByGlobalId } from '../utils'
+import { flatten, NUI, NUIComponent, nuiEmitTransaction } from 'noodl-ui'
+import { coolGold, italic, magenta } from 'noodl-common'
+import { findByGlobalId, getFirstByGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'
+import { GlobalComponentRecord } from '../global'
 
 describe(coolGold(`noodl-ui-dom`), () => {
   describe(italic(`Instantiating`), () => {
@@ -39,6 +40,20 @@ describe(coolGold(`noodl-ui-dom`), () => {
       // expect(page.rootNode.children).to.have.lengthOf(0)
       // expect(document.body.contains(node)).to.be.true
       // expect(document.body.children.length).to.eq(2)
+    })
+  })
+
+  describe(italic(`createGlobalRecord`), () => {
+    it(`should add the GlobalComponentRecord to the global store`, async () => {
+      const { render } = createRender({
+        components: [mock.getPopUpComponent({ global: true })],
+      })
+      const component = await render()
+      const globalId = component.get('data-globalid')
+      expect(ndom.global.components.has(globalId)).to.be.true
+      expect(ndom.global.components.get(globalId)).to.be.instanceOf(
+        GlobalComponentRecord,
+      )
     })
   })
 
@@ -100,34 +115,80 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
 
     describe(`when drawing components with global: true`, () => {
-      it(
-        `should create a global object to the middleware store ` +
-          `using globalId as the key`,
-        async () => {
-          const pageName = 'Hello'
+      const attachmentmentSuffixes = ['popUpView', 'viewTag']
+
+      attachmentmentSuffixes.forEach((suffix) => {
+        it(`should create the globalId using the current page name and the ${magenta(
+          suffix,
+        )}`, async () => {
           const { page, ndom } = createRender({
-            pageName,
-            pageObject: {
-              components: [
-                mock.getPopUpComponent({
-                  popUpView: 'cerealView',
-                  global: true,
-                }),
-              ],
-            },
+            pageName: 'Abc',
+            components: [
+              mock.getPopUpComponent({ popUpView: 'cerealView', global: true }),
+            ],
           })
           const req = await ndom.request(page)
-          const component = req?.render()[0]
-          const globalId = component?.get('globalId')
-          const globalItem = ndom.global.components[globalId]
-          expect(globalId).to.exist
-          expect(globalItem).to.exist
-          expect(globalItem).to.have.property('globalId', globalId)
-          expect(globalItem).to.have.property('componentId', component?.id)
-          expect(globalItem).to.have.property('pageId', page.id)
-          expect(globalItem).to.have.property('node').instanceOf(HTMLElement)
-        },
-      )
+          req && req.render()
+          await waitFor(() => {
+            expect(getFirstByGlobalId(`Abc:cerealView`)).to.be.instanceOf(
+              HTMLElement,
+            )
+          })
+        })
+      })
+
+      it(`should create a global component object to the global store`, async () => {
+        const pageName = 'Hello'
+        const { page, ndom } = createRender({
+          pageName,
+          pageObject: {
+            components: [
+              mock.getPopUpComponent({ popUpView: 'cerealView', global: true }),
+            ],
+          },
+        })
+        const req = await ndom.request(page)
+        let component: NUIComponent.Instance | undefined
+        req && (component = req?.render()[0])
+        const globalId = component?.get('globalId')
+        const globalObj = ndom.global.components.get(globalId)
+        expect(globalId).to.exist
+        expect(globalObj).to.exist
+        // expect(globalObj).to.have.property('globalId', globalId)
+        // expect(globalObj).to.have.property('componentId', component?.id)
+        // expect(globalObj).to.have.property('pageId', page.id)
+        // expect(globalObj).to.have.property('node').instanceOf(HTMLElement)
+      })
+
+      describe(`when the globalId already exists in the global component store`, () => {
+        it(`should remove and replace the node with the new one`, async () => {
+          const { page, ndom } = createRender({
+            pageName: 'Abc',
+            components: [
+              mock.getPopUpComponent({ popUpView: 'cerealView', global: true }),
+            ],
+          })
+          let req = await ndom.request(page)
+          req && req.render()
+          const globalId = `Abc:cerealView`
+          console.info(prettyDOM())
+          let node = getFirstByGlobalId(globalId)
+          let nodeId = node.id
+          const globalObject = ndom.global.components[globalId]
+          console.info(globalObject)
+          expect(globalObject.node).to.eq(node)
+          expect(globalObject.node).to.have.property('dataset', globalId)
+          // page.requesting = 'Hello'
+          // req = await ndom.request(page)
+          // req && req.render()
+          // expect(globalObject.node).not.to.eq(node)
+          // expect(globalObject.node)
+        })
+
+        xit(`should remove the previous componentId with the new one`, async () => {
+          //
+        })
+      })
 
       describe(
         `when encountering an equivalent or structurally equivalent ` +
@@ -219,7 +280,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe.only(italic(`redraw`), () => {
+  describe(italic(`redraw`), () => {
     it(`should delete all components involved in the redraw from the component cache`, async () => {
       const rawComponents = [
         mock.getListComponent({
@@ -313,10 +374,10 @@ describe(coolGold(`noodl-ui-dom`), () => {
             components,
           },
         })
-        const pageObject = await ndom.transact(
-          nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+        const pageObject = await ndom.transact({
+          transaction: nuiEmitTransaction.REQUEST_PAGE_OBJECT,
           page,
-        )
+        })
         expect(pageObject?.components).to.eq(components)
       },
     )
