@@ -1,3 +1,4 @@
+import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'
 import { createAction } from 'noodl-action-chain'
@@ -7,34 +8,159 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/dom'
 import * as mock from 'noodl-ui-test-utils'
-import createBuiltIns from '../handlers/builtIns'
+import {
+  findByViewTag,
+  getFirstByElementId,
+  getFirstByViewTag,
+} from 'noodl-ui-dom'
+import { NUIComponent } from 'noodl-ui'
 import { getApp } from '../utils/test-utils'
-import { findByViewTag, getFirstByViewTag } from 'noodl-ui-dom'
-import { NUIComponent, Store } from 'noodl-ui'
+import { isVisible } from '../utils/dom'
+
+const hideShowKey = ['hide', 'show'] as const
 
 describe(coolGold(`builtIn`), () => {
-  describe(`goto`, () => {
-    xit(`should still navigate normally when given plain objects`, () => {
-      //
+  describe(italic('goto'), () => {
+    const getActionObject = (destination: string) =>
+      mock.getBuiltInAction({ funcName: 'goto', dataIn: { destination } })
+    const getRoot = () => ({
+      Abc: {
+        components: [
+          mock.getButtonComponent({
+            id: 'hello',
+            onClick: [getActionObject('Hello')],
+          }),
+        ],
+      },
+      Hello: { components: [mock.getLabelComponent({ id: 'block' })] },
+    })
+
+    it(`should navigate to the destination`, async () => {
+      const app = await getApp({ pageName: 'Abc', root: getRoot() })
+      console.info(app.mainPage.getNuiPage().page)
+      console.info(app.mainPage.getNuiPage().object())
+      await app.navigate()
+      expect(getFirstByElementId('block')).not.to.exist
+      await waitFor(() => expect(getFirstByElementId('hello')).to.exist)
+      // await app.navigate('Abc')
+      // expect(getFirstByElementId('block')).not.to.exist
+      // expect(getFirstByElementId('hello')).to.exist
+    })
+
+    xit(`should still navigate normally when given plain objects`, async () => {
+      const app = await getApp({ pageName: 'Abc', root: getRoot() })
+      await app.navigate('Hello')
+      await app._test.triggerAction({
+        action: actionObject,
+        component: app._test.getComponent('block'),
+      })
+      expect(getFirstByElementId('block')).not.to.exist
+      await app.navigate('Hello')
+      expect(getFirstByElementId('block')).to.exist
+      expect(getFirstByElementId('hello')).not.to.exist
+      await app.navigate('Abc')
+      expect(getFirstByElementId('block')).not.to.exist
+      expect(getFirstByElementId('hello')).to.exist
     })
   })
 
-  describe(`hide`, () => {
-    xit(`should still hide when given plain objects`, () => {
-      //
-    })
-  })
+  hideShowKey.forEach((funcName) => {
+    describe(italic(funcName), () => {
+      it(`should ${funcName} the DOM node`, async () => {
+        const viewTag = 'helloTag'
+        const actionObject = mock.getBuiltInAction({ funcName, viewTag })
+        await getApp({
+          navigate: true,
+          components: [
+            mock.getViewComponent({ viewTag }),
+            mock.getButtonComponent({ id: 'hello', onClick: [actionObject] }),
+          ],
+        })
+        const node = getFirstByViewTag(viewTag)
+        const btn = getFirstByElementId('hello')
+        expect(isVisible(node)).to.be.true
+        btn.click()
+        await waitFor(
+          () =>
+            expect(isVisible(node)).to.be[
+              funcName === 'show' ? 'true' : 'false'
+            ],
+        )
+      })
 
-  describe(`show`, () => {
-    xit(`should still show when given plain objects`, () => {
-      //
+      it(`should still ${funcName} when given plain objects`, async () => {
+        const viewTag = 'helloTag'
+        const actionObject = mock.getBuiltInAction({ funcName, viewTag })
+        const app = await getApp({
+          navigate: true,
+          components: [
+            mock.getViewComponent({ id: 'hello', viewTag }),
+            mock.getButtonComponent({ id: 'abc', onClick: [actionObject] }),
+          ],
+        })
+        const node = getFirstByViewTag(viewTag)
+        const button = app._test.getComponent('abc')
+        expect(isVisible(node)).to.be.true
+        await app._test.triggerAction({
+          action: actionObject,
+          component: button,
+        })
+        await waitFor(
+          () =>
+            expect(isVisible(node)).to.be[
+              funcName === 'hide' ? 'false' : 'true'
+            ],
+        )
+      })
     })
   })
 
   describe(`redraw`, () => {
-    it.only(`should still redraw when given a plain object as the first arg`, async () => {
+    it(`should rerender the DOM nodes`, async () => {
       const viewTag = 'helloTag'
-      let view: NUIComponent.Instance | undefined
+      let redrawObject = mock.getBuiltInAction({
+        funcName: 'redraw',
+        viewTag,
+      })
+      await getApp({
+        navigate: true,
+        components: [
+          mock.getViewComponent({ viewTag }),
+          mock.getButtonComponent({
+            id: 'hello',
+            onClick: [redrawObject],
+          }),
+        ],
+      })
+      let node = getFirstByViewTag(viewTag)
+      let btn = getFirstByElementId('hello')
+      await waitFor(() => {
+        expect(node).to.exist
+        expect(document.body.contains(node)).to.be.true
+        expect(node.dataset).to.have.property('viewtag', viewTag)
+      })
+      expect(node).to.exist
+      expect(document.getElementById(node.id)).to.exist
+      btn.click()
+      let nextNode: HTMLElement | undefined
+      await waitFor(() => {
+        node = document.getElementById(node.id) as any
+        nextNode = getFirstByViewTag(viewTag)
+        expect(nextNode).to.exist
+        expect(nextNode).not.to.eq(node)
+        expect(document.getElementById(nextNode.id)).to.exist
+      })
+      const id = nextNode?.id || ''
+      expect(id).to.exist
+      expect(document.getElementById(id)).to.exist
+      getFirstByElementId('hello').click()
+      await waitFor(() => {
+        expect(document.getElementById(id)).not.to.exist
+      })
+    })
+
+    it(`should still rerender normally when given a plain object as the first arg`, async () => {
+      const viewTag = 'helloTag'
       let button: NUIComponent.Instance | undefined
       let redrawObject = mock.getBuiltInAction({
         funcName: 'redraw',
@@ -51,10 +177,7 @@ describe(coolGold(`builtIn`), () => {
       })
       for (const component of app.cache.component) {
         if (component?.type === 'button') button = component
-        else if (component?.type === 'view') view = component
       }
-      const redraw = app.builtIns.get('redraw')?.[0]
-        .fn as Store.BuiltInObject['fn']
       let node = getFirstByViewTag(viewTag)
       await waitFor(() => {
         expect(node).to.exist
@@ -63,24 +186,15 @@ describe(coolGold(`builtIn`), () => {
       })
       expect(node).to.exist
       expect(document.getElementById(node.id)).to.exist
-      await redraw(
-        app.nui.createActionChain('onClick', [redrawObject], {
-          component: button,
-          page: app.mainPage,
-          loadQueue: true,
-        }).queue[0],
-        app.nui.getConsumerOptions({
-          component: button,
-          page: app.mainPage.getNuiPage(),
-        }),
-      )
+      await app._test.triggerAction({ action: redrawObject, component: button })
       node = document.getElementById(node.id) as any
       let nextNode = getFirstByViewTag(viewTag)
+      let id = nextNode.id
       expect(nextNode).to.exist
       expect(nextNode).not.to.eq(node)
-      expect(document.getElementById(nextNode.id)).to.exist
-      await redraw({ viewTag })
-      expect(document.getElementById(nextNode.id)).not.to.exist
+      expect(document.getElementById(id)).to.exist
+      await app._test.triggerAction({ action: redrawObject, component: button })
+      expect(document.getElementById(id)).not.to.exist
     })
   })
 })

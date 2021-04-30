@@ -2,25 +2,34 @@ export type FileInputEvent = Event & {
   target: Event['target'] & { files: FileList }
 }
 
-export interface SelectFileBaseResult {
-  event: FileInputEvent | FocusEvent
+export interface FileSelectorBaseResult {
+  event: FileInputEvent | FocusEvent | null
   files: FileList | null
+  status: string
 }
 
-export interface SelectFileSelectedResult extends SelectFileBaseResult {
+export interface FileSelectorSelectedResult extends FileSelectorBaseResult {
+  event: FocusEvent
   status: 'selected'
 }
 
-export interface SelectFileCanceledResult extends SelectFileBaseResult {
+export interface FileSelectorCanceledResult extends FileSelectorBaseResult {
   event: FocusEvent
   files: null
   status: 'canceled'
 }
 
-export interface SelectFileErrorResult extends SelectFileBaseResult {
-  event: FileInputEvent
+export interface FileSelectorErrorResult extends FileSelectorBaseResult {
+  event: null
   lineNumber: number | undefined
   columnNumber: number | undefined
-  message: string | Error
-  source: number | undefined
+  error: Error
+  message: string | Event
+  source: string | undefined
+  status: 'error'
 }
+
+export type FileSelectorResult =
+  | FileSelectorSelectedResult
+  | FileSelectorCanceledResult
+  | FileSelectorErrorResult

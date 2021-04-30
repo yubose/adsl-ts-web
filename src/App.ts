@@ -155,7 +155,7 @@ class App {
    * @param { string | undefined } pageRequesting
    */
   async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
-  async navigate(pageRequesting: string): Promise<void>
+  async navigate(pageRequesting?: string): Promise<void>
   async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
     try {
       let _page: NOODLDOMPage

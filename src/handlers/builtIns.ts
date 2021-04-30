@@ -499,33 +499,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
   }
 
-  // TODO
-  const openCamera: Store.BuiltInObject['fn'] = async function onOpenCamera(
-    action,
-    options,
-  ) {
-    log.func('openCamera')
-    log.red('', action)
-  }
-
-  // TODO
-  const openDocumentManager: Store.BuiltInObject['fn'] = async function onOpenDocumentManager(
-    action,
-    options,
-  ) {
-    log.func('openDocumentManager')
-    log.red('', action)
-  }
-
-  // TODO
-  const openPhotoLibrary: Store.BuiltInObject['fn'] = async function onOpenPhotoLibrary(
-    action,
-    options,
-  ) {
-    log.func('openPhotoLibrary')
-    log.red('', action)
-  }
-
   const redraw: Store.BuiltInObject['fn'] = async function onRedraw(
     action,
     options,

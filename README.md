@@ -73,6 +73,7 @@ These variables are available globally:
   - type: `ecosDoc`
     - property: `ecosObj`
     - Page ref: `DocumentDetail`
+  - 1025 = Attachment (comment or note) to an existing doc object
 
 ## Lib Todos
 

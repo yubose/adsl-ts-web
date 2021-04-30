@@ -254,7 +254,10 @@ class NOODLDOM extends NOODLDOMInternal {
       })
       const action = async (cb: () => any | Promise<any>) => {
         try {
-          if (pageRequesting === page.requesting) {
+          if (
+            (!pageRequesting && page.requesting) ||
+            pageRequesting === page.requesting
+          ) {
             await cb()
           } else if (page.requesting) {
             console.log(
@@ -270,7 +273,7 @@ class NOODLDOM extends NOODLDOMInternal {
             // Remove the page modifiers so they don't propagate to subsequent navigates
             delete page.state.modifiers[pageRequesting]
             return console.error(
-              `A more recent request to ${page.requesting} was called`,
+              `A more recent request from "${pageRequesting}" to "${page.requesting}" was called`,
             )
           }
         } catch (error) {

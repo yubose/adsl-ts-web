@@ -12,16 +12,16 @@ DocumentDetail:
           dataIn:
             doc: =..docDetail.document
           dataOut: DocumentDetail.docDetail.document
-  ###    - if:
-  ###        - =.builtIn.EcosObj.Editable
-  ###            dataIn:
-  ###                ecosObj: ..docDtail.document
-  ###        - actionType: builtIn
-  ###          funcName: show
-  ###          viewTag: updateButton
-  ###        - actionType: builtIn
-  ###          funcName: hide
-  ###          viewTag: updateButton
+    - if:
+        - =.builtIn.EcosObj.Editable:
+            dataIn:
+              ecosObj: ..docDtail.document
+        - actionType: builtIn
+          funcName: show
+          viewTag: updateButton
+        - actionType: builtIn
+          funcName: hide
+          viewTag: updateButton
   save:
     - =.DocumentDetail.docDetail.docAPI.delete: ''
   docDetail:
@@ -40,12 +40,11 @@ DocumentDetail:
       viewTag: duplicate
     - .BaseHeader3:
     - .HeaderLeftButton:
-    # - .HeaderRightButton:
-    #   text: Edit
-    #   onClick:
-    #     - goto: EditMyDocument
-    #   #   - actionType: builtIn
-    #   #     funcName: goBack
+    - .HeaderRightButton:
+      text: Update
+      viewTag: updateButton
+      onClick:
+        - goto: EditMyDocument
     - type: view
       style:
         left: '0'
@@ -131,15 +130,10 @@ DocumentDetail:
                 backgroundColor: '0xefefef'
                 border:
                   style: '1'
-        ### - type: button
-        ###   text: Update
-        ###   style: ....
-        ###   viewTag: updateButton
-        - type: image
-          path: ..docDetail.document.name.data
-          ### - type: ecosDoc
-          ###  ecosObj: ..docDetail.document
-          ###
+        # - type: image
+        #   path: ..docDetail.document.name.data
+        - type: ecosDoc
+          ecosObj: ..docDetail.document
           style:
             left: '0.1'
             top: '0.19'

@@ -18,11 +18,13 @@ import {
   NUI,
   NUIActionType,
   NUIComponent,
+  Page as NUIPage,
   Viewport,
   Store,
   NUITrigger,
   NUIActionGroupedType,
   Register,
+  NUIActionObjectInput,
 } from 'noodl-ui'
 import App from '../App'
 import createActions from '../handlers/actions'
@@ -243,6 +245,7 @@ export async function initializeApp(
       state?: string
       participants?: Record<string, any> | Map<string, any>
     }
+    root?: Record<string, any>
     transaction?: Partial<Transaction>
   } & {
     builtIn?: Partial<Record<string, Store.BuiltInObject['fn']>>
@@ -256,9 +259,21 @@ export async function initializeApp(
     >,
 ) {
   let _noodl = (opts?.noodl || noodl) as CADL
+  let {
+    app: appProp,
+    components: componentsProp,
+    pageName = 'SignIn',
+    pageObject,
+    root,
+    ...rest
+  } = opts || {}
+
+  !root && (root = { ..._noodl.root })
+
+  opts?.root && (_noodl.root = { ..._noodl.root, ...opts.root })
 
   _app =
-    opts?.app ||
+    appProp ||
     new App({
       getStatus: noodl.getStatus.bind(noodl) as any,
       noodl: _noodl,
@@ -266,6 +281,13 @@ export async function initializeApp(
       ndom,
       viewport,
     })
+
+  pageName && (_app.mainPage.page = pageName)
+
+  if (pageObject) {
+    _app.mainPage.components = componentsProp || pageObject.components || []
+    _app.mainPage.getNuiPage().object().components = _app.mainPage.components
+  }
 
   _app.meeting.room = getMockRoom({
     localParticipant: (opts?.room?.localParticipant ||
@@ -322,13 +344,30 @@ export async function initializeApp(
       } else {
         u.entries(value).forEach((args) => handleAction(...args))
       }
-    } else if (key === 'pageName') {
-      pageName = value
-      _app.mainPage.page = pageName
-    } else if (key === 'pageObject') {
-      _app.mainPage.components = opts?.components || value.components || []
-      _app.mainPage.getNuiPage().object().components = _app.mainPage.components
+    } else if (key === 'room') {
+      if (value?.participants) {
+        if (value.participants instanceof Map) {
+          for (const [sid, participant] of value.participants) {
+            _app.meeting.room.participants.set(sid, participant)
+          }
+        } else {
+          u.entries(value.participants).forEach(([sid, participant]) => {
+            _app.meeting.room.participants.set(sid, participant)
+          })
+        }
+        _app.updateRoot(
+          c.PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+          Array.from(_app.meeting.room.participants.values()),
+        )
+      }
+    } else if (key === 'root') {
+      !_app.noodl.root && (_app.noodl.root = {})
+      _app.updateRoot(
+        (draft) => void u.assign(draft, { [pageName]: pageObject }),
+      )
+      u.assign(_app.noodl.root)
     }
+    u.assign(app.noodl.root, { [_args.pageName as string]: _args.pageObject })
   })
 
   if (
@@ -352,6 +391,35 @@ export async function initializeApp(
       _app.streams.reset()
       // _app.meeting.reset()
     },
+    getComponent(id: string) {
+      for (const component of _app.cache.component) {
+        if (component?.id === id) return component
+      }
+      return {} as NUIComponent.Instance
+    },
+    triggerAction({
+      action,
+      args,
+      component,
+      page,
+      trigger,
+    }: {
+      action: NUIActionObjectInput
+      args?: any
+      component: NUIComponent.Instance | undefined
+      page?: NUIPage
+      trigger?: NUITrigger
+    }) {
+      !page && (page = _app.mainPage.getNuiPage())
+      !trigger && (trigger = 'onClick')
+      return _app.nui
+        .createActionChain(trigger, [action], {
+          component,
+          page,
+          loadQueue: true,
+        })
+        .queue[0].execute(args)
+    },
   }
 
   Object.defineProperty(_app, '_test', { value: _test })
@@ -367,22 +435,19 @@ export async function getApp(
     preset?: 'meeting'
   } = {},
 ) {
-  const {
-    navigate,
-    preset,
-    room,
-    components,
-    pageObject: pageObjectProp,
-  } = args
+  const { navigate, preset, room } = args
 
-  const _args = {
-    ...args,
-    pageName: 'SignIn',
-    pageObject: {
-      ...pageObjectProp,
-      components: components || pageObjectProp?.components,
-    },
-  } as typeof args
+  const _args = { pageName: 'SignIn', ...args } as typeof args
+
+  // _args.pageObject = {
+  //   ..._args.root?.[_args.pageName as string],
+  //   ...pageObjectProp,
+  //   components:
+  //     components ||
+  //     pageObjectProp?.components ||
+  //     _args.root?.[_args.pageName as string] ||
+  //     [],
+  // }
 
   if (preset === 'meeting') {
     let components = _args.pageObject?.components
@@ -395,25 +460,7 @@ export async function getApp(
     })
   }
 
-  const app = await initializeApp(_args)
-
-  u.assign(app.noodl.root, { [_args.pageName as string]: _args.pageObject })
-
-  if (room?.participants) {
-    if (room.participants instanceof Map) {
-      for (const [sid, participant] of room.participants) {
-        app.meeting.room.participants.set(sid, participant)
-      }
-    } else {
-      u.entries(room.participants).forEach(([sid, participant]) => {
-        app.meeting.room.participants.set(sid, participant)
-      })
-    }
-    app.updateRoot(
-      c.PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-      Array.from(app.meeting.room.participants.values()),
-    )
-  }
+  const app = await initializeApp(args)
 
   navigate && (await app.navigate(_args.pageName as string))
   return app

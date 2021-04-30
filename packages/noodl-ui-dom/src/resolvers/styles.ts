@@ -38,6 +38,7 @@ export default {
       ---- TEMP - Experimenting CSS
     -------------------------------------------------------- */
 
+    is.component.ecosDoc(component) && addClassName('ecosDoc', node)
     is.component.page(component) && addClassName('page', node)
     is.component.popUp(component) && addClassName('popup', node)
     is.component.scrollView(component) && addClassName('scroll-view', node)

@@ -2,6 +2,7 @@ import Logger from 'logsnap'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
+import { MEDIA_TYPE_LIST } from '@aitmed/cadl/dist/types/common/DType'
 import {
   asHtmlElement,
   eventId as ndomEventId,
@@ -29,7 +30,7 @@ import {
   getVcodeElem,
   hide,
   show,
-  selectFile,
+  openFileSelector,
   scrollToElem,
   toast,
 } from '../utils/dom'
@@ -62,8 +63,9 @@ const createActions = function createActions(app: App) {
             } as T.EmitCallParams
 
             if (_has(_pick(action, 'emit'), 'dataKey')) {
-              emitParams.dataKey = _pick(action, 'dataKey')
-              if (_pick(action, 'dataKey') == undefined) {
+              const dataKeyValue = _pick(action, 'dataKey')
+              emitParams.dataKey = dataKeyValue
+              if (dataKeyValue == undefined) {
                 log.red(
                   `An undefined value was set for "dataKey" as arguments to emitCall`,
                   { action, emitParams },
@@ -84,7 +86,6 @@ const createActions = function createActions(app: App) {
               : [emitResult]
           } catch (error) {
             console.error(error)
-            // toast(error.message, { type: 'error' })
           }
         },
       }),
@@ -270,6 +271,47 @@ const createActions = function createActions(app: App) {
       }
     }
   }
+
+  const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
+    async function getInjectBlob(action, options) {
+      log.func(name)
+      log.gold('', action)
+      const result = await openFileSelector()
+      log.func(name)
+      switch (result.status) {
+        case 'selected':
+          const { files } = result
+          const ac = options?.ref
+          const comp = options?.component
+          const dataKey = _pick(action, 'dataKey')
+          if (ac && comp) {
+            ac.data.set(dataKey, files?.[0])
+            log.green(`Selected file for dataKey "${dataKey}"`, files?.[0])
+          } else {
+            log.red(
+              `%cBoth action and component is needed to inject a blob to the action chain`,
+              `color:#ec0000;`,
+              { action, actionChain: ac, component: comp, dataKey },
+            )
+          }
+          break
+        case 'canceled':
+          await options?.ref?.abort?.('File input window was closed')
+          return log.red(
+            `File was not selected for action "${name}" and the operation was aborted`,
+            action,
+          )
+        case 'error':
+          return void log.red(`An error occurred for action "${name}"`, {
+            action,
+            ...result,
+          })
+      }
+    }
+
+  const openCamera = _getInjectBlob('openCamera')
+  const openDocumentManager = _getInjectBlob('openDocumentManager')
+  const openPhotoLibrary = _getInjectBlob('openPhotoLibrary')
 
   const pageJump: Store.ActionObject['fn'] = (action) =>
     app.navigate(_pick(action, 'destination'))
@@ -464,14 +506,27 @@ const createActions = function createActions(app: App) {
 
     try {
       if (_pick(action, 'dataObject') === 'BLOB') {
-        const { files, status } = await selectFile()
-        if (status === 'selected' && files?.[0]) {
-          log.grey(`File selected`, files[0])
-          file = files[0]
-          // @ts-expect-error
-        } else if (status === 'canceled') {
-          log.red('File was not selected and the operation was aborted')
-          await ref?.abort?.('File input window was closed')
+        const dataKey = _pick(action, 'dataKey') || ''
+        if (ref) {
+          if (ref.data.has(dataKey)) {
+            file = ref.data.get(dataKey)
+          } else {
+            log.red(
+              `No blob was found for dataKey "${dataKey}" on the action chain. ` +
+                `Opening the file selector...`,
+            )
+            const { files, status } = await openFileSelector()
+            if (status === 'selected') {
+              file = files?.[0]
+              ref.data.set(dataKey, file)
+              log.green(`Selected file`, file)
+            }
+          }
+        } else {
+          log.red(
+            `Action chain does not exist. No blob will be available`,
+            action,
+          )
         }
       }
 
@@ -535,6 +590,9 @@ const createActions = function createActions(app: App) {
     emit,
     evalObject,
     goto,
+    // openCamera,
+    // openDocumentManager,
+    // openPhotoLibrary,
     pageJump,
     popUp,
     popUpDismiss,

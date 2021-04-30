@@ -1,4 +1,4 @@
-import { Page as NUIPage } from 'noodl-ui'
+import { Page as NUIPage, Viewport } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
 import { eventId } from './constants'
 import * as u from './utils/internal'
@@ -78,7 +78,7 @@ class Page {
   }
 
   get id() {
-    return this.#nuiPage.id
+    return this.#nuiPage.id as string
   }
 
   get modifiers() {
@@ -112,11 +112,11 @@ class Page {
   }
 
   get state() {
-    return this.#state
+    return this.#state as T.Page.State
   }
 
   get viewport() {
-    return this.#nuiPage.viewport
+    return this.#nuiPage.viewport as Viewport
   }
 
   set viewport(viewport) {
@@ -124,7 +124,7 @@ class Page {
   }
 
   getNuiPage() {
-    return this.#nuiPage
+    return this.#nuiPage as NUIPage
   }
 
   isEqual(val: NUIPage | Page) {
@@ -256,7 +256,9 @@ class Page {
         this.rootNode.remove?.()
       }
       this.#nuiPage.viewport = null as any
-      this.components.length = 0
+      u.isArr(this.components)
+        ? (this.components.length = 0)
+        : (this.components = [])
       u.values(this.#hooks).forEach((v) => v && (v.length = 0))
     } catch (error) {
       console.error(error)

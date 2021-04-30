@@ -1,8 +1,8 @@
 {
-  "id": "7VWUOp20SYt0Vr9IpHQ6kA==",
-  "ctime": 1619639284,
-  "mtime": 1619639284,
-  "atime": 1619639284,
+  "id": "wm10U9KdSVF0UnJcde9Opg==",
+  "ctime": 1619719659,
+  "mtime": 1619719659,
+  "atime": 1619719659,
   "atimes": 1,
   "tage": 0,
   "subtype": {
@@ -17,19 +17,18 @@
   },
   "type": 1025,
   "name": {
-    "title": "dawdaw",
-    "targetRoomName": "dsfsd",
+    "title": "text",
     "user": "Chris Tran",
     "type": "",
-    "data": "blob:https://meet4d.aitmed.io/07e35957-f4c5-4a20-b784-9d659f8fade6",
+    "data": "blob:http://127.0.0.1:3000/592e020c-9fe1-4baa-a52e-66e77b034cd9",
     "tags": []
   },
   "deat": null,
   "size": 7,
   "fid": "",
-  "eid": "yceDQsBVRDicvYsRuAOJyw==",
+  "eid": "PugoYpm8TLq2skvLQNsPSg==",
   "bsig": "KyRGNeLKTPscmfAfMyKktw==",
-  "esig": "yceDQsBVRDicvYsRuAOJyw==",
-  "created_at": 1619639284000,
-  "modified_at": 1619639284000
+  "esig": "PugoYpm8TLq2skvLQNsPSg==",
+  "created_at": 1619719659000,
+  "modified_at": 1619719659000
 }

@@ -48,9 +48,22 @@ componentResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.ecosDoc(component)) {
-    const ecosObj = component.get('ecosObj') as EcosDocument
+    const ecosObj = component.get('ecosObj') as EcosDocument<{ type: string }>
     if (u.isObj(ecosObj)) {
-      //
+      component.edit({
+        mediaType: ecosObj.subtype?.mediaType,
+        mimeType: ecosObj.name?.type,
+        nameField: ecosObj.name,
+      })
+      if (!u.isObj(ecosObj.name)) {
+        console.log(
+          `%cAn ecosObj was received with a "name" field that was not an object. ` +
+            `This will rely on the subtype to determine the type of document ` +
+            `to generate the metadata for`,
+          `color:#FF5722;`,
+          { component, ecosObj },
+        )
+      }
     } else {
       console.log(
         `%cAn ecosDoc component did not have a valid "ecosObj" value`,

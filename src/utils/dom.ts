@@ -2,13 +2,7 @@ import { asHtmlElement, findByDataKey } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
 import { makeElemFn } from 'noodl-ui-dom'
 import { array } from './common'
-import {
-  FileInputEvent,
-  SelectFileBaseResult,
-  SelectFileCanceledResult,
-  SelectFileErrorResult,
-  SelectFileSelectedResult,
-} from '../app/types'
+import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -45,31 +39,26 @@ export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
 }
 
+export function isVisible(node: HTMLElement | null) {
+  return node
+    ? node.style?.visibility === 'visible' ||
+        node.style?.visibility !== 'hidden'
+    : false
+}
+
 /**
  * Opens the file select window. The promise resolves when a file was
  * selected, which becomes the resolved value.
  * @param { HTMLInputElement? } inputNode - Optional existing input node to use
  */
-export function selectFile(
+export function openFileSelector(
   inputNode?: HTMLInputElement,
-): Promise<SelectFileSelectedResult>
-export function selectFile(
-  inputNode?: HTMLInputElement,
-): Promise<SelectFileCanceledResult>
-export function selectFile(
-  inputNode?: HTMLInputElement,
-): Promise<SelectFileErrorResult>
-export function selectFile(
-  inputNode?: HTMLInputElement,
-): Promise<
-  SelectFileSelectedResult | SelectFileCanceledResult | SelectFileErrorResult
-> {
+): Promise<FileSelectorResult> {
   // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const input = inputNode || document.createElement('input')
-    input.style.visibility = 'hidden'
+    hide(input)
     input.type = 'file'
-
     input.onclick = function onFileInputClick(event) {
       document.body.onfocus = () => {
         document.body.onfocus = null
@@ -79,11 +68,10 @@ export function selectFile(
             event,
             files: input.files?.length ? input.files : null,
             status: input.files?.length ? 'selected' : 'canceled',
-          } as SelectFileCanceledResult)
+          } as FileSelectorCanceledResult)
         }, 350)
       }
     }
-
     input.onerror = function onFileInputError(
       message,
       source,
@@ -92,34 +80,20 @@ export function selectFile(
       error,
     ) {
       document.body.onfocus = null
-      reject(
-        new Error(
-          JSON.stringify(
-            {
-              message,
-              source,
-              lineNumber,
-              columnNumber,
-              error,
-            },
-            null,
-            2,
-          ),
-        ),
-      )
+      resolve({
+        event: null,
+        message,
+        source,
+        lineNumber,
+        columnNumber,
+        error: error as Error,
+        status: 'error',
+        files: null,
+      })
     }
-
     document.body.appendChild(input)
-
     input.click()
   })
-}
-
-export function isVisible(node: HTMLElement | null) {
-  return node
-    ? node.style?.visibility === 'visible' ||
-        node.style?.visibility !== 'hidden'
-    : false
 }
 
 /**
