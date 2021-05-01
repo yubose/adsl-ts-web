@@ -11,13 +11,9 @@ import {
   publish,
   Store,
 } from 'noodl-ui'
-import {
-  createAsyncImageElement,
-  getFirstByGlobalId,
-  getElementTag,
-  openOutboundURL,
-} from './utils'
+import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
 import { GlobalComponentRecord } from './global'
+import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
 import MiddlewareUtils from './MiddlewareUtils'

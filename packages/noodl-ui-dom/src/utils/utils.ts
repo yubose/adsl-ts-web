@@ -6,7 +6,6 @@ import {
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
-import { Deat EcosDocument, NameFieldBase } from 'noodl-types'
 import { LiteralUnion } from 'type-fest'
 import NOODLDOMPage from '../Page'
 import findElement from './findElement'
@@ -33,96 +32,6 @@ export function asHtmlElement(nodes: DOMNodeInput) {
     return results
   }
   return nodes || null
-}
-
-/**
- * Creates an image element that loads asynchronously
- * @param { HTMLElement } container - Element to attach the image in
- * @param { object } options
- * @param { function | undefined } options.onLoad
- */
-export function createAsyncImageElement(
-  container: HTMLElement,
-  opts?: { onLoad?(event: Event): void },
-) {
-  let node = new Image()
-  node.onload = (event) => {
-    if (!container) container = document.body
-    container.insertBefore(node as HTMLImageElement, container.childNodes[0])
-    opts?.onLoad?.(event)
-  }
-  return node
-}
-
-export interface CreateEcosDocElementArgs<NameField extends NameFieldBase = NameFieldBase> {
-  ecosObj: EcosDocument<NameField>
-  width?: number
-  height?: number
-  onLoad?(args: {
-    event: Event
-    width: number
-    height: number
-    src: string
-    title?: string
-  }): void
-  onError?(args: {
-    error: Error | undefined
-    event: string | Event
-    lineNum: number | undefined
-    colNum: number | undefined
-    source: string | undefined
-  }): void
-}
-
-
-export function createEcosDocElement<NameField extends NameFieldBase = NameFieldBase>(): HTMLIFrameElement
-export function createEcosDocElement<NameField extends NameFieldBase = NameFieldBase,Args extends  CreateEcosDocElementArgs<NameField> = CreateEcosDocElementArgs<NameField>>(): HTMLIFrameElement
-export function createEcosDocElement<
-  NameField extends NameFieldBase & Record<string, any> = NameFieldBase
->(
-  container: HTMLElement,
-  opts:
-    | EcosDocument<NameField>
-    | CreateEcosDocElementArgs<NameField>,
-) {
-  const width = Number(container.style.width.replace(/[a-zA-Z]/i, ''))
-  const height = Number(container.style.height.replace(/[a-zA-Z]/i, ''))
-  const iframe = document.createElement('iframe')
-  const node = new Image(width, height)
-  
-  let ecosObj: EcosDocument<NameField> | undefined
-  let onLoad: CreateEcosDocElementArgs['onLoad'] | undefined
-  let onError: CreateEcosDocElementArgs['onError'] | undefined
-
-  if (u.isObj(opts)) {
-    if ('ecosObj' in opts) {
-      ecosObj = opts.ecosObj
-      onLoad = opts.onLoad
-      onError = opts.onError
-    } else {
-      ecosObj = opts
-    }
-  }
-  
-  node.src = ecosObj?.name?.data || ''
-  node.title = ecosObj?.name?.title || ''
-
-  iframe.onload = function onLoadEcosDocElement(event) {
-    onLoad?.({
-      event,
-      width,
-      height,
-      src: ecosObj?.name?.data || '',
-      title: ecosObj?.name?.title,
-    })
-  }
-
-  iframe.onerror = function onErrorEcosDocElement(...args) {
-    const [event, source, lineNum, colNum, error] = args
-    onError?.({ error, event, lineNum, colNum, source })
-  }
-
-  return iframe
 }
 
 /**

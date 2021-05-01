@@ -75,6 +75,39 @@ These variables are available globally:
     - Page ref: `DocumentDetail`
   - 1025 = Attachment (comment or note) to an existing doc object
 
+### `ecosDoc` component shapes
+
+#### Image
+
+```html
+<iframe class="ecosdoc">
+  <img class="ecosdoc-image" src="blob:....."></img>
+</iframe>
+```
+
+#### Pdf
+
+```html
+<iframe class="ecosdoc" src="blob:....."></iframe>
+```
+
+#### Text
+
+```html
+<iframe class="ecosdoc">
+  <div class="ecosdoc-text">
+    <div class="ecosdoc-text-title"></div>
+    <div class="ecosdoc-text-body"></div>
+  </div>
+</iframe>
+```
+
+#### Video
+
+```html
+TBH
+```
+
 ## Lib Todos
 
 - have the same path/resource resolve logic for "poster" prop

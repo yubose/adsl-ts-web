@@ -1,4 +1,5 @@
 import { Action, createActionChain } from 'noodl-action-chain'
+import { PartialDeep } from 'type-fest'
 import {
   BuiltInActionObject,
   ButtonComponentObject,
@@ -18,6 +19,7 @@ import {
   LabelComponentObject,
   ListComponentObject,
   ListItemComponentObject,
+  NameFieldBase,
   PageComponentObject,
   PageJumpActionObject,
   Path,
@@ -154,34 +156,72 @@ export function getUpdateObjectAction(props?: Partial<UpdateActionObject>) {
   }
 }
 
-export function getEcosDocObject<
-  NameField extends { type: string } = { type: string } & { [key: string]: any }
->(props?: Partial<EcosDocument>): EcosDocument<NameField> {
-  return {
+export function getEcosDocObject(
+  preset?: 'image' | 'pdf' | 'text' | 'video',
+): EcosDocument<NameFieldBase>
+export function getEcosDocObject<NameField extends NameFieldBase>(
+  propsProp?: PartialDeep<EcosDocument<NameField>>,
+): EcosDocument<NameField>
+export function getEcosDocObject<NameField extends NameFieldBase>(
+  propsProp?:
+    | 'audio'
+    | 'docx'
+    | 'image'
+    | 'message'
+    | 'pdf'
+    | 'text'
+    | 'video'
+    | PartialDeep<EcosDocument<NameField>>,
+): EcosDocument<NameField> {
+  const props = {
+    name: { data: `blob:http://a0242fasa141inmfakmf24242`, type: '' },
+  } as EcosDocument<NameFieldBase>
+
+  if (typeof propsProp === 'string') {
+    //
+  } else {
+    Object.assign(props, propsProp)
+  }
+
+  if (typeof propsProp === 'string') {
+    if (propsProp === 'audio') {
+      props.name = { ...props.name, type: 'audio/wav' }
+      props.subtype = { ...props.subtype, mediaType: 2 }
+    } else if (propsProp === 'docx') {
+      props.name = { ...props.name, type: 'application/vnl.' }
+      props.subtype = { ...props.subtype, mediaType: 1 }
+    } else if (propsProp === 'image') {
+      props.name = { ...props.name, type: 'image/png' }
+      props.subtype = { ...props.subtype, mediaType: 4 }
+    } else if (propsProp === 'message') {
+      // props.name = { ...props.name, type: '', }
+      props.subtype = { ...props.subtype, mediaType: 5 }
+    } else if (propsProp === 'pdf') {
+      props.name = { ...props.name, type: 'application/pdf' }
+      props.subtype = { ...props.subtype, mediaType: 1 }
+    } else if (propsProp === 'text') {
+      props.name = {
+        ...props.name,
+        title: `This is the title`,
+        content: `Sample content from a text document`,
+        type: 'text/plain',
+      }
+      props.subtype = { ...props.subtype, mediaType: 0 }
+      delete props.name?.data
+    } else if (propsProp === 'video') {
+      props.name = { ...props.name, type: 'video/mp4' }
+      props.subtype = { ...props.subtype, mediaType: 9 }
+    }
+  }
+
+  const ecosObj = {
     id: '2EUC92bOSjFIOVhlF5mtLQ==',
     ctime: 1619719574,
     mtime: 1619719574,
     atime: 1619719574,
     atimes: 1,
     tage: 0,
-    subtype: {
-      isOnServer: false,
-      isZipped: true,
-      isBinary: false,
-      isEncrypted: true,
-      isEditable: true,
-      applicationDataType: 0,
-      mediaType: 4,
-      size: 89937,
-    },
     type: 1025,
-    name: {
-      title: 'jpg',
-      tags: ['coffee', 'drink'],
-      type: 'image/jpeg',
-      user: 'Johnny Bravo',
-      data: 'blob:http://127.0.0.1:3000/660f7f76-c1d8-4103-825a-048b6adea785',
-    },
     deat: {
       url:
         'https://s3.us-east-2.amazonaws.com/ecos.aitmed.com/6Kz7B6XdVHCCHoF12YzDM8/8mYaanEkGyrsfWHh1BDGCq/9sg86udSxhwezsA4g93TQ8',
@@ -196,7 +236,27 @@ export function getEcosDocObject<
     created_at: 1619719574000,
     modified_at: 1619719574000,
     ...props,
-  }
+    name: {
+      title: 'jpg',
+      tags: ['coffee', 'drink'],
+      type: 'image/jpeg',
+      user: 'Johnny Bravo',
+      data: 'blob:http://127.0.0.1:3000/660f7f76-c1d8-4103-825a-048b6adea785',
+      ...props.name,
+    },
+    subtype: {
+      isOnServer: false,
+      isZipped: true,
+      isBinary: false,
+      isEncrypted: true,
+      isEditable: true,
+      applicationDataType: 0,
+      mediaType: 4,
+      size: 89937,
+      ...(props.subtype || undefined),
+    },
+  } as EcosDocument<NameField>
+  return ecosObj
 }
 
 export function getEmitObject({

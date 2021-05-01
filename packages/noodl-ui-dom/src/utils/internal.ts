@@ -1,19 +1,6 @@
 import get from 'lodash/get'
+import { ComponentObject, EcosDocument, NameFieldBase } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
-
-/**
- * A helper to grab a value from key from a component or action
- * @param { NUIComponent | ComponentObject | NUIAction | NUIActionObjectInput } obj
- * @param { string } key
- */
-export const _pick = (obj: any, key: string, defaultValue?: any) => {
-  if (!isObj(obj)) return obj
-  let result = obj?.get?.(key)
-  if (isUnd(result)) result = get(obj, key)
-  if (isUnd(result)) result = get(obj?.blueprint, key)
-  if (isUnd(result)) result = get(obj?.original, key)
-  return result || defaultValue
-}
 
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
@@ -55,25 +42,63 @@ export function createGlobalComponentId(
         ''
 }
 
+type CreateDocIdentifierArg =
+  | NUIComponent.Instance
+  | ComponentObject
+  | EcosDocument<NameFieldBase>
+  | null
+  | undefined
+
 function _createDocIdentifier(
   mediaType: number,
   regex: { value: string; flags?: string },
-): (component: NUIComponent.Instance) => boolean
+): (obj: CreateDocIdentifierArg) => boolean
 function _createDocIdentifier(
   mediaType: number,
   regex: string,
-): (component: NUIComponent.Instance) => boolean
+): (obj: CreateDocIdentifierArg) => boolean
 function _createDocIdentifier(
   mediaType: number,
   regexStr: string | { value: string; flags?: string },
 ) {
-  const identifyDoc = function _identifyDoc(component: NUIComponent.Instance) {
+  /**
+   * A helper to grab a value from key from a component or action
+   * @param { NUIComponent | ComponentObject | NUIAction | NUIActionObjectInput } obj
+   * @param { string } key
+   */
+  function _pick(obj: any, key: string, defaultValue?: any) {
+    if (!isObj(obj)) return obj
+    let result
+    if (key === 'name.type') {
+      if (obj?.name?.type) {
+        const val = get(obj, key)
+        if (val !== undefined && !val) return false
+      }
+    }
+    isFnc(obj.get) && (result = obj.get(key))
+    isUnd(result) && (result = get(obj, key))
+    isUnd(result) && (result = get(obj.blueprint, key))
+    isUnd(result) && (result = get(obj.original, key))
+    return result || defaultValue
+  }
+  // TODO - Docx files is being detected as PDF -- which prompts downloading
+  // TODO - Read possible feat. for viewing docx files https://stackoverflow.com/questions/27957766/how-do-i-render-a-word-document-doc-docx-in-the-browser-using-javascript
+  function identifyDoc(obj: CreateDocIdentifierArg) {
     const flags = isStr(regexStr) ? 'i' : regexStr.flags
     const regex = isStr(regexStr) ? new RegExp(regexStr, flags) : regexStr.value
-    return (
-      _pick(component, 'mediaType', '') == mediaType ||
-      _pick(component, 'mimeType', '').test?.(regex) ||
-      _pick(component, 'name.type', '').test?.(regex)
+
+    if (regexStr === '') {
+      _pick(obj, 'subtype.mediaType') === '' ||
+        _pick(obj, 'mediaType') === '' ||
+        _pick(obj, 'mimeType') === '' ||
+        _pick(obj, 'name.type') === ''
+    }
+
+    return !!(
+      _pick(obj, 'mimeType', '').test?.(regex) ||
+      _pick(obj, 'name.type', '').test?.(regex) ||
+      _pick(obj, 'mediaType', '') == mediaType ||
+      _pick(obj, 'subtype.mediaType', '') == mediaType
     )
   }
   return identifyDoc
@@ -82,8 +107,28 @@ function _createDocIdentifier(
 export const isImageDoc = _createDocIdentifier(4, 'image')
 export const isMarkdownDoc = _createDocIdentifier(8, 'markdown')
 export const isPdfDoc = _createDocIdentifier(1, 'pdf')
-export const isTextDoc = _createDocIdentifier(0, '')
-export const isWordDoc = _createDocIdentifier(1, '(office|wordprocessingml)')
+export const isTextDoc = (obj: Record<string, any>) => {
+  const isTxt = (s: string) => (isStr(s) && /text/i.test(s)) || s === ''
+  if (isFnc(obj?.get)) {
+    if (obj?.has?.('ecosObj')) {
+      const type = get(obj?.get?.('ecosObj'), 'name.type')
+      const mediaType = get(obj?.get?.('ecosObj'), 'subtype.mediaType')
+      if (isStr(type) && isTxt(type)) return true
+      if (isNum(mediaType) && mediaType === 8) return true
+    }
+  }
+  // Assume plain objects at this point
+  if (isTxt(get(obj, 'name.type'))) return true
+  return (
+    get(obj, 'subtype.mediaType') == 8 ||
+    get(obj, 'blueprint.subtype.mediaType') == 8 ||
+    get(obj, 'original.subtype.mediaType') == 8
+  )
+}
+export const isWordDoc = _createDocIdentifier(
+  1,
+  '(office|wordprocessingml|vnl.)',
+)
 // export const isVideoDoc = _createDocIdentifier(0, '')
 
 export const xKeys = ['width', 'left']

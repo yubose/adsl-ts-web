@@ -1,0 +1,72 @@
+.pluginHead,
+.pluginBodyTop,
+.pluginBodyTail {
+  position: absolute;
+  visibility: hidden;
+}
+
+iframe.ecosdoc {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.ecosdoc-image {
+  width: 100%;
+  height: 100%;
+}
+
+iframe.ecosdoc-text {
+}
+
+iframe.ecosdoc-text-title {
+}
+
+iframe.ecosdoc-text-body {
+}
+
+.global {
+  z-index: 1500 !important;
+}
+
+.page {
+}
+
+.popup {
+  /* visibility: hidden; */
+}
+
+.popup-global {
+  border: 1px solid magenta;
+  /* position: fixed; */
+  /* top: 10%;
+  padding: 40px 50px;
+  border-radius: 8px;
+  background-color: white; */
+  z-index: 1000;
+  /* width: 400px;
+  min-height: 100px; */
+  display: none;
+  /* left: 50%; */
+  /* margin-left: -200px; */
+  /* max-height: 80%; */
+  box-sizing: border-box;
+}
+
+.grid-lines {
+}
+
+/*
+  NOODL COMPONENTS (Currently experimenting)
+*/
+
+.scroll-view {
+  /* position: absolute !important; */
+  /* align-items: flex-start !important; */
+  overflow-y: auto !important;
+}
+
+.text-board {
+  /* display: block !important; */
+  overflow-y: auto;
+}

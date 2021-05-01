@@ -1,22 +1,16 @@
 import * as mock from 'noodl-ui-test-utils'
-import chalk from 'chalk'
 import sinon from 'sinon'
-import { ComponentObject, userEvent } from 'noodl-types'
 import {
   NUIComponent,
   createComponent,
   flatten,
   Viewport as VP,
 } from 'noodl-ui'
-import { prettyDOM, screen, waitFor } from '@testing-library/dom'
+import { screen, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { createRender, ndom, toDOM } from '../test-utils'
-import { eventId } from '../constants'
-import { DOMNodeInput } from '../types'
-import createElement from '../utils/createElement'
+import { createRender, ndom } from '../test-utils'
 import NOODLDOM from '../noodl-ui-dom'
-import * as resolvers from '../resolvers'
 import * as u from '../utils/internal'
 import * as n from '../utils'
 import * as c from '../constants'
@@ -110,40 +104,66 @@ describe(coolGold(`resolvers`), () => {
 })
 
 describe(italic(`ecosDoc`), () => {
-  it.only(
-    `should create an iframe as a direct child and attach the ` +
-      `children into the iframe's document body`,
-    async () => {
-      const imageComponentObject = mock.getEcosDocComponent({ id: 'hello' })
-      const { render } = createRender({
-        components: [imageComponentObject],
-      })
-      const component = await render()
-      const node = n.getFirstByElementId('hello')
-      const child = node.firstElementChild as HTMLIFrameElement
-      expect(node).to.have.property('tagName').not.to.eq('IFRAME')
-      expect(child).to.have.property('tagName', 'IFRAME')
-      await waitFor(() => {
-        const image = child?.contentDocument?.body.querySelector('img')
-        expect(image).to.exist
-        expect(image).to.have.property(
-          'src',
-          imageComponentObject.ecosObj.name.data,
-        )
-      })
-      console.info(prettyDOM(child.contentDocument?.body))
-    },
-  )
+  it(`should create an iframe as a direct child`, async () => {
+    const imageComponentObject = mock.getEcosDocComponent({ id: 'hello' })
+    const { render } = createRender({
+      components: [imageComponentObject],
+    })
+    const component = await render()
+    const node = n.getFirstByElementId('hello')
+    const child = node.firstElementChild as HTMLIFrameElement
+    expect(node).to.have.property('tagName').not.to.eq('IFRAME')
+    expect(child).to.have.property('tagName', 'IFRAME')
+    await waitFor(() => {
+      const image = child?.contentDocument?.body.querySelector('img')
+      expect(image).to.exist
+      expect(image).to.have.property(
+        'src',
+        imageComponentObject.ecosObj.name.data,
+      )
+    })
+  })
 
-  describe(`images`, () => {
-    xit(``, () => {
-      //
+  it(`should render ecosDoc image documents`, async () => {
+    const imageComponentObject = mock.getEcosDocComponent({
+      id: 'hello',
+      ecosObj: mock.getEcosDocObject('image'),
+    })
+    const { render } = createRender({
+      components: [imageComponentObject],
+    })
+    await render()
+    const node = n.getFirstByElementId('hello')
+    const iframe = node.firstElementChild as HTMLIFrameElement
+    await waitFor(() => {
+      const image = iframe?.contentDocument?.body.querySelector('img')
+      expect(image).to.exist
+      expect(image).to.have.property(
+        'src',
+        imageComponentObject.ecosObj.name.data,
+      )
+      // expect(image?.classList.contains(c.classes.ECOS_DOC_IMAGE)).to.be.true
     })
   })
 
   describe(`pdf`, () => {
-    xit(``, () => {
-      //
+    it(`should render pdf documents`, async () => {
+      const componentObject = mock.getEcosDocComponent({
+        id: 'hello',
+        ecosObj: mock.getEcosDocObject('pdf'),
+      })
+      const { render } = createRender({ components: [componentObject] })
+      const component = await render()
+      const node = n.getFirstByElementId(component.id)
+      const iframe = node.firstElementChild as HTMLIFrameElement
+      await waitFor(() => {
+        expect(iframe).to.exist
+        expect(iframe).to.have.property(
+          'src',
+          componentObject.ecosObj.name.data,
+        )
+        expect(iframe.classList.contains(c.classes.ECOS_DOC_PDF)).to.be.true
+      })
     })
   })
 
@@ -155,8 +175,29 @@ describe(italic(`ecosDoc`), () => {
     })
 
     describe(`plain`, () => {
-      xit(``, () => {
-        //
+      it(`should render plain text documents`, async () => {
+        const componentObject = mock.getEcosDocComponent({
+          id: 'hello',
+          ecosObj: mock.getEcosDocObject('text'),
+        })
+        const { render } = createRender({ components: [componentObject] })
+        const component = await render()
+        const node = n.getFirstByElementId(component.id)
+        const iframe = node.firstElementChild as HTMLIFrameElement
+        await waitFor(() => {
+          const text = iframe?.contentDocument?.body.getElementsByClassName(
+            c.classes.ECOS_DOC_TEXT,
+          )[0]
+          expect(text).to.exist
+          const textTitle = text?.getElementsByClassName(
+            c.classes.ECOS_DOC_TEXT_TITLE,
+          )[0]
+          const textContent = text?.getElementsByClassName(
+            c.classes.ECOS_DOC_TEXT_BODY,
+          )[0]
+          expect(textTitle).to.exist
+          expect(textContent).to.exist
+        })
       })
     })
   })

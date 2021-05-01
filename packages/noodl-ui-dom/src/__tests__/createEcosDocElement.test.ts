@@ -1,0 +1,151 @@
+import * as mock from 'noodl-ui-test-utils'
+import { prettyDOM, waitFor } from '@testing-library/dom'
+import { expect } from 'chai'
+import { coolGold, italic, magenta } from 'noodl-common'
+import {
+  EcosDocComponentObject,
+  EcosDocument,
+  NameFieldBase,
+} from 'noodl-types'
+import { classes } from '../constants'
+import NDOM from '../noodl-ui-dom'
+import createEcosDocElement from '../utils/createEcosDocElement'
+import * as u from '../utils/internal'
+import * as n from '../utils'
+
+describe(coolGold(`createEcosDocElement`), async () => {
+  function getEcosDocComponentRenderResults<
+    NameField extends NameFieldBase = NameFieldBase
+  >({
+    ecosObj = mock.getEcosDocObject() as EcosDocument<NameField>,
+    component: componentProp = mock.getEcosDocComponent({
+      id: 'hello',
+      ecosObj,
+    }),
+    node = document.createElement('div'),
+  }: {
+    component?: EcosDocComponentObject
+    ecosObj?: EcosDocument<NameField>
+    node?: HTMLElement
+  } = {}) {
+    const component = NDOM._nui.resolveComponents(componentProp)
+    node.id = component.id
+    const iframe = createEcosDocElement(node, ecosObj)
+    document.body.appendChild(node)
+    return {
+      componentObject: componentProp,
+      component,
+      ecosObj,
+      node,
+      iframe,
+    }
+  }
+
+  it(`should create an iframe element`, async () => {
+    const { iframe } = getEcosDocComponentRenderResults()
+    expect(iframe).to.have.property('tagName', 'IFRAME')
+  })
+
+  it(
+    `should not append the iframe to the node to let the parent decide ` +
+      `when to append to its children instead`,
+    async () => {
+      const { iframe, node } = getEcosDocComponentRenderResults()
+      expect(iframe.parentElement).not.to.exist
+      expect(node.contains(iframe)).to.be.false
+      node.appendChild(iframe)
+      expect(iframe.parentElement).to.exist
+      expect(node.contains(iframe)).not.to.be.false
+    },
+  )
+
+  describe(italic(`images`), () => {
+    it(`should render the image element into its body and set the src`, async () => {
+      const customEcosObj = mock.getEcosDocObject({
+        name: {
+          data: 'blob:https://www.google.com/abc.png',
+          type: 'image/png',
+        },
+        subtype: { mediaType: 4 },
+      })
+      const { iframe, node } = getEcosDocComponentRenderResults({
+        component: mock.getEcosDocComponent({ ecosObj: customEcosObj }),
+        ecosObj: customEcosObj,
+      })
+      node.appendChild(iframe)
+      await waitFor(() => {
+        const body = iframe.contentDocument?.body
+        const bodyContent = body?.getElementsByClassName(
+          classes.ECOS_DOC_IMAGE,
+        )[0]
+        expect(bodyContent).to.exist
+        expect(bodyContent).to.have.property('tagName', 'IMG')
+        expect(bodyContent).to.have.property('src', customEcosObj.name?.data)
+      })
+    })
+  })
+
+  describe(italic(`pdf`), () => {
+    it(`should render the pdf element into its body and set the src`, async () => {
+      const ecosObj = mock.getEcosDocObject('pdf')
+      const { iframe, node } = getEcosDocComponentRenderResults({
+        component: mock.getEcosDocComponent({ ecosObj }),
+        ecosObj,
+      })
+      node.appendChild(iframe)
+      await waitFor(() => {
+        expect(ecosObj.name?.data).to.exist
+        expect(iframe).to.have.property('src', ecosObj.name?.data)
+      })
+    })
+  })
+
+  describe(italic(`text`), () => {
+    describe(`markdown`, () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe(`plain`, async () => {
+      it(`should show the title and content`, async () => {
+        const customEcosObj = mock.getEcosDocObject({
+          name: {
+            type: 'text/plain',
+            title: 'my title',
+            content: 'hello123',
+          },
+          subtype: {
+            mediaType: 0,
+          },
+        })
+        const { iframe, node } = getEcosDocComponentRenderResults({
+          component: mock.getEcosDocComponent({ ecosObj: customEcosObj }),
+          ecosObj: customEcosObj,
+        })
+        node.appendChild(iframe)
+        await waitFor(() => {
+          const body = iframe.contentDocument?.body
+          const title = body?.getElementsByClassName(
+            classes.ECOS_DOC_TEXT_TITLE,
+          )[0]
+          const content = body?.getElementsByClassName(
+            classes.ECOS_DOC_TEXT_BODY,
+          )[0]
+          expect(title).to.exist
+          expect(content).to.exist
+          expect(body?.contains(title as HTMLElement)).to.be.true
+          expect(body?.contains(content as HTMLElement)).to.be.true
+          expect(title?.textContent).to.match(/my title/i)
+          expect(content?.textContent).to.match(/hello123/i)
+        })
+      })
+    })
+  })
+
+  describe(italic(`videos`), () => {
+    xit(``, () => {
+      //
+    })
+  })
+})

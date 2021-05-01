@@ -3,6 +3,24 @@ import {
   nuiEmitTransaction,
 } from 'noodl-ui'
 
+export const classes = {
+  ECOS_DOC: 'ecosdoc',
+  ECOS_DOC_IMAGE: 'ecosdoc-image',
+  ECOS_DOC_PDF: 'ecosdoc-pdf',
+  ECOS_DOC_TEXT: 'ecosdoc-text',
+  ECOS_DOC_TEXT_TITLE: 'ecosdoc-text-title',
+  ECOS_DOC_TEXT_BODY: 'ecosdoc-text-body',
+  GLOBAL: 'global',
+  PAGE: 'page',
+  PLUGIN_HEAD: 'pluginHead',
+  PLUGIN_BODY_TOP: 'pluginBodyTop',
+  PLUGIN_BODY_TAIL: 'pluginBodyTail',
+  POPUP: 'popup',
+  POPUP_GLOBAL: 'popup-global',
+  SCROLL_VIEW: 'scroll-view',
+  TEXT_BOARD: 'text-board',
+} as const
+
 export const dataAttributes = [
   ...noodluiDataAttributes,
   'data-globalid',

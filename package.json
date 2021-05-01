@@ -45,7 +45,7 @@
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
     "noodl-action-chain": "^0.0.62",
-    "noodl-types": "^1.0.63",
+    "noodl-types": "^1.0.64",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-utils": "file:packages/noodl-utils",

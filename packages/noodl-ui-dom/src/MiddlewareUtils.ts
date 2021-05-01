@@ -1,4 +1,3 @@
-import { Identify } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
 import { createGlobalComponentId } from './utils/internal'
 import NOODLDOMPage from './Page'

@@ -307,8 +307,6 @@ export async function initializeApp(
     firebaseSupported: false,
   })
 
-  let pageName = opts?.pageName || ''
-
   // Handle custom provided fns to substitute
   const handleAction = (
     actionType: LiteralUnion<NUIActionGroupedType, string>,
@@ -365,9 +363,8 @@ export async function initializeApp(
       _app.updateRoot(
         (draft) => void u.assign(draft, { [pageName]: pageObject }),
       )
-      u.assign(_app.noodl.root)
     }
-    u.assign(app.noodl.root, { [_args.pageName as string]: _args.pageObject })
+    u.assign(_app.noodl.root, { [pageName]: pageObject })
   })
 
   if (
