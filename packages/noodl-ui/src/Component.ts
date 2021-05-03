@@ -1,6 +1,7 @@
 import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original } from 'immer'
-import { ComponentObject, StyleObject } from 'noodl-types'
+import { componentTypes, ComponentObject, StyleObject } from 'noodl-types'
+import * as c from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
 
@@ -434,11 +435,18 @@ class Component<C extends ComponentObject = ComponentObject>
   toJSON() {
     const result = {} as ReturnType<T.IComponent['toJSON']>
     u.assign(result, this.props, {
+      id: this.id,
       parentId: this.parent?.id || null,
       children: this.children.map((child) => child?.toJSON?.()),
     })
     return result
   }
+
+  // snapshot() {
+  //   return {
+
+  //   }
+  // }
 }
 
 export default Component

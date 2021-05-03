@@ -1,6 +1,7 @@
 import * as mock from 'noodl-ui-test-utils'
 import omit from 'lodash/omit'
 import { ComponentObject } from 'noodl-types'
+// import { getMostRecentApp } from '../../utils/test-utils'
 
 function getVideoChatPageObject({
   participants = [],
@@ -25,7 +26,7 @@ function getVideoChatPageObject({
     }
   }
 } = {}) {
-  return {
+  const pageObject = {
     pageNumber: '190',
     cameraOn: true,
     micOn: true,
@@ -374,6 +375,8 @@ function getVideoChatPageObject({
       }),
     ] as ComponentObject[],
   }
+
+  return pageObject
 }
 
 export default getVideoChatPageObject

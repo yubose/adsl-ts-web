@@ -87,8 +87,16 @@ class App {
     return this.#state.authStatus
   }
 
+  get actions() {
+    return this.nui.cache.actions
+  }
+
+  get builtIns() {
+    return this.nui.cache.actions.builtIn
+  }
+
   get cache() {
-    return this.ndom.cache
+    return this.nui.cache
   }
 
   get initialized() {
@@ -127,6 +135,10 @@ class App {
     return this.meeting.streams
   }
 
+  get startPage(): string {
+    return this.noodl?.cadlEndpoint?.startPage || ''
+  }
+
   get root() {
     return this.noodl.root
   }
@@ -143,7 +155,7 @@ class App {
    * @param { string | undefined } pageRequesting
    */
   async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
-  async navigate(pageRequesting: string): Promise<void>
+  async navigate(pageRequesting?: string): Promise<void>
   async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
     try {
       let _page: NOODLDOMPage
@@ -375,6 +387,9 @@ class App {
             : undefined,
           checkField: self.ndom.builtIns.get('checkField')?.find(Boolean)?.fn,
           goto: self.ndom.builtIns.get('goto')?.find(Boolean)?.fn,
+          hide: self.ndom.builtIns.get('hide')?.find(Boolean)?.fn,
+          show: self.ndom.builtIns.get('show')?.find(Boolean)?.fn,
+          redraw: self.ndom.builtIns.get('redraw')?.find(Boolean)?.fn,
           videoChat: createVideoChatBuiltIn(this),
         },
       })

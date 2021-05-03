@@ -2,7 +2,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { ComponentObject, Identify } from 'noodl-types'
+import { ComponentObject, EcosDocument, Identify } from 'noodl-types'
 import { findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import createComponent from '../utils/createComponent'
@@ -42,6 +42,36 @@ componentResolver.setResolver((component, options, next) => {
   const { contentType, dataKey, path, text, textBoard } = original
   const iteratorVar =
     context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
+
+  /* -------------------------------------------------------
+    ---- ECOSDOC
+  -------------------------------------------------------- */
+
+  if (Identify.component.ecosDoc(component)) {
+    const ecosObj = component.get('ecosObj') as EcosDocument<{ type: string }>
+    if (u.isObj(ecosObj)) {
+      component.edit({
+        mediaType: ecosObj.subtype?.mediaType,
+        mimeType: ecosObj.name?.type,
+        nameField: ecosObj.name,
+      })
+      if (!u.isObj(ecosObj.name)) {
+        console.log(
+          `%cAn ecosObj was received with a "name" field that was not an object. ` +
+            `This will rely on the subtype to determine the type of document ` +
+            `to generate the metadata for`,
+          `color:#FF5722;`,
+          { component, ecosObj },
+        )
+      }
+    } else {
+      console.log(
+        `%cAn ecosDoc component did not have a valid "ecosObj" value`,
+        `color:#ec0000;`,
+        component,
+      )
+    }
+  }
 
   /* -------------------------------------------------------
     ---- LIST

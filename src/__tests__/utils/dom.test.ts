@@ -3,9 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { findByViewTag } from 'noodl-ui-dom'
-import { createRender, getActions, getBuiltIns } from '../../utils/test-utils'
-import { onSelectFile } from '../../utils/dom'
+import {
+  findByViewTag,
+  getFirstByElementId,
+  getFirstByViewTag,
+} from 'noodl-ui-dom'
+import { createRender, getApp, getBuiltIns } from '../../utils/test-utils'
+import * as d from '../../utils/dom'
 import * as u from '../../utils/common'
 
 describe(coolGold(`dom (utils)`), () => {
@@ -18,7 +22,25 @@ describe(coolGold(`dom (utils)`), () => {
       //
     })
 
-    xdescribe(`when the node to hide is relative (top is NiL)`, async () => {
+    it.only(`should set its visibility to "hidden"`, async () => {
+      await getApp({
+        navigate: true,
+        components: [
+          mock.getButtonComponent({
+            onClick: [mock.getBuiltInAction({ funcName: 'hide' })],
+            viewTag: 'hello',
+          }),
+        ],
+      })
+      const node = getFirstByViewTag('hello')
+      expect(node.style).to.have.property('visibility', '')
+      node.click()
+      await waitFor(() =>
+        expect(node.style).to.have.property('visibility', 'hidden'),
+      )
+    })
+
+    describe(`when the node to hide is relative (top is NiL)`, async () => {
       const hideKeyValues = {
         visibility: 'hidden',
         display: 'none',
@@ -68,20 +90,6 @@ describe(coolGold(`dom (utils)`), () => {
         })
       }
 
-      it(`should set its display to "none"`, async () => {
-        const { nui, ndom, render } = getRender()
-        const { hide, show } = getBuiltIns(['hide', 'show'])
-        const component = await render()
-        const vTagNode = findByViewTag(viewTag) as HTMLElement
-        const btnNode = findByViewTag(btnTag)
-        console.info(prettyDOM())
-        expect(vTagNode.style.display).not.to.eq('none')
-        btnNode?.click()
-        await waitFor(() => {
-          expect(vTagNode.style.display).to.eq('none')
-        })
-      })
-
       for (const [key, val] of u.entries(hideKeyValues)) {
         xit(`should set ${key} to "${val}"`, async () => {
           const { nui, ndom, render } = getRender()
@@ -119,15 +127,30 @@ describe(coolGold(`dom (utils)`), () => {
   })
 
   describe(italic(`show`), () => {
-    xit(``, () => {
-      //
+    it.only(`should set its visibility to "visible"`, async () => {
+      await getApp({
+        navigate: true,
+        components: [
+          mock.getButtonComponent({
+            onClick: [mock.getBuiltInAction({ funcName: 'show' })],
+            id: 'hello',
+          }),
+        ],
+      })
+      const node = document.createElement('div')
+      node.style.width = '200px'
+      node.style.height = '100px'
+      node.style.visibility = 'hidden'
+      expect(node.style).to.have.property('visibility').not.to.eq('visible')
     })
   })
 
-  describe(`${italic(`onSelectFile`)} (passing in an existing input)`, () => {
+  describe(`${italic(
+    `openFileSelector`,
+  )} (passing in an existing input)`, () => {
     xit('should be able to receive the image file and status: selected', async () => {
       const input = document.createElement('input')
-      const result = await onSelectFile(input)
+      const result = await d.openFileSelector(input)
       const file = new File(['hello'], 'myFile.png', { type: 'image/png' })
       userEvent.upload(input, file)
       expect(input.files?.[0]).to.equal(file)

@@ -5,9 +5,10 @@ import {
   ComponentObject,
   ComponentType,
   DividerComponentObject,
+  EcosDocComponentObject,
+  EcosDocument,
   EmitObject,
   EvalActionObject,
-  EventType,
   FooterComponentObject,
   GotoObject,
   HeaderComponentObject,
@@ -153,6 +154,51 @@ export function getUpdateObjectAction(props?: Partial<UpdateActionObject>) {
   }
 }
 
+export function getEcosDocObject<
+  NameField extends { type: string } = { type: string } & { [key: string]: any }
+>(props?: Partial<EcosDocument>): EcosDocument<NameField> {
+  return {
+    id: '2EUC92bOSjFIOVhlF5mtLQ==',
+    ctime: 1619719574,
+    mtime: 1619719574,
+    atime: 1619719574,
+    atimes: 1,
+    tage: 0,
+    subtype: {
+      isOnServer: false,
+      isZipped: true,
+      isBinary: false,
+      isEncrypted: true,
+      isEditable: true,
+      applicationDataType: 0,
+      mediaType: 4,
+      size: 89937,
+    },
+    type: 1025,
+    name: {
+      title: 'jpg',
+      tags: ['coffee', 'drink'],
+      type: 'image/jpeg',
+      user: 'Johnny Bravo',
+      data: 'blob:http://127.0.0.1:3000/660f7f76-c1d8-4103-825a-048b6adea785',
+    },
+    deat: {
+      url:
+        'https://s3.us-east-2.amazonaws.com/ecos.aitmed.com/6Kz7B6XdVHCCHoF12YzDM8/8mYaanEkGyrsfWHh1BDGCq/9sg86udSxhwezsA4g93TQ8',
+      sig: null,
+      exptime: null,
+    },
+    size: 89937,
+    fid: 'R9xoaHI8TEjWWH6FTFo0VQ==',
+    eid: 'PugoYpm8TLq2skvLQNsPSg==',
+    bsig: 'KyRGNeLKTPscmfAfMyKktw==',
+    esig: 'PugoYpm8TLq2skvLQNsPSg==',
+    created_at: 1619719574000,
+    modified_at: 1619719574000,
+    ...props,
+  }
+}
+
 export function getEmitObject({
   iteratorVar = 'itemObject',
   dataKey = { var1: iteratorVar },
@@ -187,6 +233,16 @@ export function getButtonComponent(
     ],
     text: 'Delete',
     ...props,
+  }
+}
+
+export function getEcosDocComponent(
+  props?: ComponentProps<EcosDocComponentObject>,
+): EcosDocComponentObject {
+  return {
+    type: 'ecosDoc',
+    ...props,
+    ecosObj: getEcosDocObject(props?.ecosObj),
   }
 }
 

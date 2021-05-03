@@ -10,14 +10,14 @@ import {
   NUIComponent,
   publish,
   Store,
-  TransactionId as NUITransactionId,
 } from 'noodl-ui'
 import {
   createAsyncImageElement,
+  getFirstByGlobalId,
   getElementTag,
   openOutboundURL,
 } from './utils'
-import EventsCache from './cache/EventsCache'
+import { GlobalComponentRecord } from './global'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
 import MiddlewareUtils from './MiddlewareUtils'
@@ -36,29 +36,14 @@ interface Middleware {
     | undefined
 }
 
-export interface GlobalStore {
-  pages: Record<string, Page>
-  components: Record<
-    string,
-    {
-      globalId: string
-      pageId: string
-      componentId: string
-      node: HTMLElement
-    }
-  >
-  evts: EventsCache
-}
-
 class NOODLDOM extends NOODLDOMInternal {
   #middleware: Middleware = {
     inst: new MiddlewareUtils(),
     createGlobalComponentId: undefined,
   }
   #R: ReturnType<typeof createResolver>
-  global: GlobalStore = {
-    components: {},
-    evts: new EventsCache(),
+  global: T.GlobalMap = {
+    components: new Map(),
     pages: {},
   }
   page: Page // This is the main (root) page. All other pages are stored in this.#pages
@@ -82,7 +67,7 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   get cache() {
-    return { ...NOODLDOM._nui.cache, events: this.global.evts }
+    return NOODLDOM._nui.cache
   }
 
   get length() {
@@ -137,23 +122,36 @@ class NOODLDOM extends NOODLDOMInternal {
       page = new Page(NOODLDOM._nui.createPage?.())
     }
 
-    page.on(c.eventId.page.on.ON_DOM_CLEANUP, ({ global, rootNode }) => {
-      const clearAll = (n: HTMLElement | null) => {
-        if (n) {
-          let child = n.firstElementChild as HTMLElement
-          while (child) {
-            global.evts.clear(child)
-            child = child.firstElementChild as HTMLElement
-          }
-          n.nextElementSibling && clearAll(n.nextElementSibling as HTMLElement)
-        }
-      }
-      clearAll(rootNode)
-    })
-
     this.global.pages[page.id] !== page && (this.global.pages[page.id] = page)
     !this.page && (this.page = page)
     return page as Page
+  }
+
+  createGlobalRecord(
+    args:
+      | {
+          type: 'component'
+          component: NUIComponent.Instance
+          id?: string
+          node?: HTMLElement | null
+          page: Page
+        }
+      | { type: 'page' },
+  ) {
+    switch (args.type) {
+      case 'component':
+        const { type, page, ...rest } = args
+        const record = new GlobalComponentRecord({
+          ...rest,
+          page: page || this.page,
+        })
+        this.global.components.set(record.globalId, record)
+        return record
+      case 'page':
+        break
+      default:
+        break
+    }
   }
 
   /** TODO - More cases */
@@ -176,39 +174,54 @@ class NOODLDOM extends NOODLDOMInternal {
 
   removeComponent(component: NUIComponent.Instance | undefined | null) {
     if (!component) return this
-    component.parent?.removeChild?.(component)
-    component.setParent(null)
-    publish(component, (c) => {
+    const remove = (c: NUIComponent.Instance) => {
       c.parent?.removeChild?.(c)
       c.setParent(null)
-      // Removes from cache store
+      c.has('global') && this.removeGlobal('component', c.get('globalId'))
       this.cache.component.remove(c)
-    })
-    this.cache.component.remove(component)
+    }
+    remove(component)
+    publish(component, remove)
     return this
   }
 
-  removeNode(node: T.NOODLDOMElement) {
-    if (node instanceof HTMLElement && node.id) {
-      // Remove from global store
-      if (
-        node.dataset.globalid &&
-        this.global.components[node.dataset.globalid]
-      ) {
-        let globalObj = this.global.components[node.dataset.globalid]
-        let componentId = globalObj.componentId
-        // Remove from DOM
-        globalObj.node && globalObj.node !== node && globalObj.node.remove()
-        // Remove parent/child references
-        componentId &&
-          this.cache.component.has(componentId) &&
-          this.removeComponent(this.cache.component.get(globalObj.componentId))
-        // Remove global object
-        delete this.global.components[globalObj.globalId]
+  removeGlobal(type: 'component', globalId: string | undefined) {
+    if (globalId) {
+      if (type === 'component') {
+        if (this.global.components.has(globalId)) {
+          const globalComponentObj = this.global.components.get(globalId)
+          const obj = globalComponentObj?.toJSON()
+          if (obj) {
+            const { componentId, nodeId } = obj
+            if (componentId) {
+              if (this.cache.component.has(componentId)) {
+                this.removeComponent(this.cache.component.get(componentId))
+              }
+            }
+            this.global.components.delete(globalId)
+            if (nodeId) {
+              const node = getFirstByGlobalId(globalId)
+              if (node) {
+                console.log(
+                  `%c[removeGlobal] Removing global DOM node with globalId "${globalId}"`,
+                  `color:#95a5a6;`,
+                )
+                this.removeNode(node)
+              }
+            }
+          }
+        }
       }
-      // Remove from component cache
-      if (this.cache.component.has(node?.id)) {
-        this.removeComponent(this.cache.component.get(node?.id))
+    }
+  }
+
+  removeNode(node: T.NOODLDOMElement) {
+    if (node?.id) {
+      try {
+        node.parentElement?.removeChild?.(node)
+        node.remove?.()
+      } catch (error) {
+        console.error(error)
       }
       // Remove parent references
       node?.parentNode?.removeChild?.(node)
@@ -241,7 +254,10 @@ class NOODLDOM extends NOODLDOMInternal {
       })
       const action = async (cb: () => any | Promise<any>) => {
         try {
-          if (pageRequesting === page.requesting) {
+          if (
+            (!pageRequesting && page.requesting) ||
+            pageRequesting === page.requesting
+          ) {
             await cb()
           } else if (page.requesting) {
             console.log(
@@ -257,7 +273,7 @@ class NOODLDOM extends NOODLDOMInternal {
             // Remove the page modifiers so they don't propagate to subsequent navigates
             delete page.state.modifiers[pageRequesting]
             return console.error(
-              `A more recent request to ${page.requesting} was called`,
+              `A more recent request from "${pageRequesting}" to "${page.requesting}" was called`,
             )
           }
         } catch (error) {
@@ -353,7 +369,7 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   /**
-   * Parses props and returns a DOM Node described by props. This also
+   * Parses props and returns a DOM node described by props. This also
    * resolves its children hieararchy until there are none left
    * @param { Component } props
    */
@@ -393,72 +409,115 @@ class NOODLDOM extends NOODLDOMInternal {
         }
       }
 
+      const attachOnClick = (n: HTMLElement | null, globalId: string) => {
+        if (n) {
+          const onClick = () => {
+            n.removeEventListener('click', onClick)
+            this.removeNode(n)
+            this.removeGlobal('component', globalId)
+          }
+          n.addEventListener('click', onClick)
+        }
+      }
+
       if (component.has('global')) {
-        let globalId = component.get('globalId') as string
+        let globalRecord: GlobalComponentRecord
+        let globalId = u.createGlobalComponentId(component)
 
-        if (!globalId || !(globalId in this.global.components)) {
-          globalId = (
-            this.#middleware.createGlobalComponentId ||
-            this.#middleware.inst.createGlobalComponentId
-          )?.(page, component)
-
-          // TODO - remove "globalId" key in favor of data-globalid
-          component.edit({ 'data-globalid': globalId, globalId })
-        } else {
-          console.log(`%cAvoided a duplicate global entry`, `color:#ec0000;`, {
-            component,
-            global: this.global,
-          })
-        }
-
-        if (!u.isObj(this.global.components[globalId])) {
-          this.global.components[globalId] = {
-            componentId: component.id,
+        if (this.global.components.has(globalId)) {
+          globalRecord = this.global.components.get(
             globalId,
-            pageId: page.id as string,
-            node: node as HTMLElement,
+          ) as GlobalComponentRecord
+        } else {
+          globalRecord = this.createGlobalRecord({
+            type: 'component',
+            id: globalId,
+            component,
+            node,
+            page,
+          }) as GlobalComponentRecord
+          this.global.components.set(globalId, globalRecord)
+          attachOnClick(node, globalId)
+        }
+
+        if (globalRecord) {
+          component.edit({ 'data-globalid': globalId, globalId })
+
+          // Check mismatchings and recover from them
+
+          const publishMismatchMsg = (type: 'node' | 'component') => {
+            const id =
+              type === 'node'
+                ? node?.id
+                : type === 'component'
+                ? component.id
+                : '<Missing ID>'
+            console.log(
+              `%cThe ${type} with id "${id} is different than the one in the global object"`,
+              `color:#CCCD17`,
+              globalRecord,
+            )
           }
-          const onClick = (e: Event) => {
-            node?.removeEventListener('click', onClick)
-            node?.remove()
-            delete this.global.components[globalId]
+
+          if (globalRecord.componentId !== component.id) {
+            publishMismatchMsg('component')
+            this.removeComponent(
+              this.cache.component.get(globalRecord.componentId),
+            )
+            globalRecord.componentId = component.id
           }
-          node?.addEventListener('click', onClick)
-        }
 
-        // Check if there are any missing information in its global object
-        let globalObj = this.global.components[globalId]
-
-        if (globalObj.componentId !== component.id) {
-          globalObj.componentId = component.id
-        }
-
-        if (globalObj.globalId !== globalId) {
-          globalObj.globalId = globalId
-        }
-
-        if (globalObj.pageId !== page.id) {
-          globalObj.pageId = page.id as string
-        }
-
-        if (node) {
-          // Don't replace the node but just copy the attributes/styles to it. This
-          // is to prevent disruptions in media streams like webcams
-          if (globalObj.node) {
-            if (globalObj.node !== node) {
-              // TODO - Copy existing styles/attributes to the existing node
-              // Remove parent/child references if any
-              node.parentNode?.removeChild?.(node)
-              node.remove?.()
-              node = globalObj.node
+          if (node) {
+            if (!node.id) node.id = component.id
+            if (globalRecord.nodeId) {
+              if (globalRecord.nodeId !== node.id) {
+                console.log(
+                  `%cThe nodeId on the global component record does not match ` +
+                    `with the node that is being rendered. The old node will be ` +
+                    `replaced with the incoming node's id`,
+                  `color:#CCCD17;`,
+                  { record: globalRecord, node, component },
+                )
+                const _prevNode = document.getElementById(globalRecord.nodeId)
+                if (_prevNode) {
+                  console.log(
+                    `%cRemoving previous node using id "${globalRecord.nodeId}"`,
+                    `color:#95a5a6;`,
+                  )
+                  this.removeNode(_prevNode)
+                } else {
+                  console.log(
+                    `%cDid not remove previous node with id "${globalRecord.nodeId}" ` +
+                      `because it did not exist`,
+                    `color:#95a5a6;`,
+                  )
+                }
+                globalRecord.nodeId = node.id
+                node.dataset.globalid = globalId
+                console.log(
+                  `%cReplaced nodeId "${globalRecord.nodeId}" with "${node.id} on the global ` +
+                    `component record`,
+                  globalRecord,
+                )
+              }
+            } else {
+              globalRecord.nodeId = node.id
+              node.dataset.globalid = globalId
             }
-          } else {
-            globalObj.node = node
+            publishMismatchMsg('node')
           }
-        }
 
-        if (node?.dataset.globalid !== globalId) {
-          node && (node.dataset.globalid = globalId)
+          if (globalRecord.pageId !== page.id) {
+            console.log(
+              `%cPage ID for global object with id "${component.get(
+                'data-globalid',
+              )}" does not match with the page that is drawing for component "${
+                component.id
+              }"`,
+              `color:#FF5722;`,
+              globalRecord,
+            )
+          }
         }
       }
 
@@ -624,10 +683,18 @@ class NOODLDOM extends NOODLDOMInternal {
     componentCache?: boolean
     global?: boolean
     pages?: boolean
+    register?: boolean
     resolvers?: boolean
     transactions?: boolean
   }): this
-  reset(key?: 'actions' | 'componentCache' | 'resolvers' | 'transactions'): this
+  reset(
+    key?:
+      | 'actions'
+      | 'componentCache'
+      | 'register'
+      | 'resolvers'
+      | 'transactions',
+  ): this
   reset(
     key?:
       | {
@@ -635,12 +702,13 @@ class NOODLDOM extends NOODLDOMInternal {
           componentCache?: boolean
           global?: boolean
           pages?: boolean
+          register?: boolean
           resolvers?: boolean
           transactions?: boolean
         }
       | 'actions'
       | 'componentCache'
-      | 'events'
+      | 'register'
       | 'resolvers'
       | 'transactions',
   ) {
@@ -651,21 +719,33 @@ class NOODLDOM extends NOODLDOMInternal {
     const resetComponentCache = () => {
       NOODLDOM._nui.cache.component.clear()
     }
-    const resetEventCache = () => {
-      this.global.evts.clear()
-    }
     const resetPages = () => {
       this.page = undefined as any
-      u.keys(this.pages).forEach((k) => delete this.pages[k])
+      u.entries(this.pages).forEach(([pageName, page]: [string, Page]) => {
+        delete this.pages[pageName]
+        page?.reset?.()
+      })
       NOODLDOM._nui.cache.page.clear()
     }
+    const resetRegisters = () => NOODLDOM._nui.cache.register.clear()
     const resetResolvers = () => void (this.resolvers().length = 0)
     const resetGlobal = () => {
-      resetEventCache()
       resetPages()
-      u.keys(this.global.components).forEach(
-        (k) => delete this.global.components[k],
-      )
+      u.keys(this.global).forEach((k) => {
+        if (k === 'component') {
+          const record = this.global.components.get(k)
+          if (record) {
+            if (record.nodeId) {
+              document.getElementById(record.nodeId)?.remove?.()
+            }
+            if (this.cache.component.has(record.componentId)) {
+              this.removeComponent(this.cache.component.get(record.componentId))
+            }
+          }
+          this.global.components.delete(record?.globalId as string)
+        } else if (k === 'page') {
+        }
+      })
     }
     const resetTransactions = () => {
       NOODLDOM._nui.cache.transactions.clear()
@@ -682,10 +762,10 @@ class NOODLDOM extends NOODLDOMInternal {
         resetActions()
       } else if (key === 'componentCache') {
         resetComponentCache()
-      } else if (key === 'events') {
-        resetEventCache()
       } else if (key === 'resolvers') {
         resetResolvers()
+      } else if (key === 'register') {
+        resetRegisters()
       } else if (key === 'transactions') {
         resetTransactions()
       }
@@ -694,12 +774,11 @@ class NOODLDOM extends NOODLDOMInternal {
     // The operations below is equivalent to a "full reset"
     resetActions()
     resetComponentCache()
-    resetEventCache()
     resetGlobal()
     resetPages()
+    resetRegisters()
     resetResolvers()
     resetTransactions()
-
     return this
   }
 

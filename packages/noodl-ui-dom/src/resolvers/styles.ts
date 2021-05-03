@@ -7,14 +7,16 @@ export default {
   name: '[noodl-dom] Styles',
   cond: (node, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
-  before(node, component) {
+  before(node, component, { ndom }) {
     if (component.has('global')) {
       component.on('image', (src) => {
-        console.log(
-          `%cReceived src for Global Component`,
-          `color:#00b406;`,
+        console.log(`%cReceived src for Global Component`, `color:#00b406;`, {
           src,
-        )
+          nodeId: node.id,
+          componentId: component.id,
+          globalId: component.get('globalId'),
+          globalObject: ndom.global.components[component.get('globalId')],
+        })
         node && (node.style.backgroundImage = `url("${src}")`)
       })
     }
@@ -36,6 +38,7 @@ export default {
       ---- TEMP - Experimenting CSS
     -------------------------------------------------------- */
 
+    is.component.ecosDoc(component) && addClassName('ecosDoc', node)
     is.component.page(component) && addClassName('page', node)
     is.component.popUp(component) && addClassName('popup', node)
     is.component.scrollView(component) && addClassName('scroll-view', node)

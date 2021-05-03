@@ -34,6 +34,12 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
           }
         }
       }
+    } else if (Identify.action.openCamera(obj)) {
+      //
+    } else if (Identify.action.openDocumentManager(obj)) {
+      //
+    } else if (Identify.action.openPhotoLibrary(obj)) {
+      //
     } else if (Identify.action.pageJump(obj)) {
       //
     } else if (Identify.action.popUp(obj)) {

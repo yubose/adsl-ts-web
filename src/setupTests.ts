@@ -4,11 +4,13 @@ jsdom(undefined, {
 })
 // @ts-expect-error
 import MutationObserver from 'mutation-observer'
+import { prettyDOM } from '@testing-library/dom'
 import chaiAsPromised from 'chai-as-promised'
 import noop from 'lodash/noop'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import sinon from 'sinon'
+import { defaultResolvers } from 'noodl-ui-dom'
 import { getMostRecentApp, ndom } from './utils/test-utils'
 
 chai.use(sinonChai)
@@ -27,12 +29,14 @@ before(function () {
 })
 
 afterEach(() => {
-  document.head.textContent = ''
-  document.body.textContent = ''
   let app = getMostRecentApp()
   if (app) {
     app.reset()
   } else ndom.reset()
+  document.head.textContent = ''
+  document.body.textContent = ''
+  // TODO - Put this in noodl-ui-dom's reset func
+  Object.values(defaultResolvers).forEach((r) => ndom.register(r))
 })
 
 after(() => {

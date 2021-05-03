@@ -11,7 +11,7 @@ let logStub: sinon.SinonStub
 let invariantStub: sinon.SinonStub<any>
 
 before(() => {
-  console.clear()
+  process.stdout.write('\x1Bc')
   invariantStub = sinon.stub(global.console, 'error').callsFake(() => {})
   logStub = sinon.stub(global.console, 'log').callsFake(() => () => {})
 })

@@ -1,9 +1,8 @@
 import Logger from 'logsnap'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
-import set from 'lodash/set'
 import get from 'lodash/get'
-import { Draft } from 'immer'
+import { MEDIA_TYPE_LIST } from '@aitmed/cadl/dist/types/common/DType'
 import {
   asHtmlElement,
   eventId as ndomEventId,
@@ -26,14 +25,22 @@ import {
   triggers,
 } from 'noodl-ui'
 import { evalIf, parse } from 'noodl-utils'
-import { IfObject, Identify } from 'noodl-types'
-import { pageEvent } from '../constants'
-import { getVcodeElem, onSelectFile, scrollToElem, toast } from '../utils/dom'
+import { IfObject, Identify, GotoObject } from 'noodl-types'
+import {
+  getVcodeElem,
+  hide,
+  show,
+  openFileSelector,
+  scrollToElem,
+  toast,
+} from '../utils/dom'
 import App from '../App'
 import * as T from '../app/types'
 import * as u from '../utils/common'
 
 const log = Logger.create('actions.ts')
+const _pick = u.pickActionKey
+const _has = u.pickHasActionKey
 
 const createActions = function createActions(app: App) {
   const emit = triggers.reduce(
@@ -51,13 +58,14 @@ const createActions = function createActions(app: App) {
             log.grey('', action)
 
             const emitParams = {
-              actions: action.actions,
+              actions: _pick(action, 'actions'),
               pageName: app.mainPage.page,
             } as T.EmitCallParams
 
-            if ('dataKey' in (action.original.emit || {})) {
-              emitParams.dataKey = action.dataKey
-              if (action.dataKey == undefined) {
+            if (_has(_pick(action, 'emit'), 'dataKey')) {
+              const dataKeyValue = _pick(action, 'dataKey')
+              emitParams.dataKey = dataKeyValue
+              if (dataKeyValue == undefined) {
                 log.red(
                   `An undefined value was set for "dataKey" as arguments to emitCall`,
                   { action, emitParams },
@@ -78,7 +86,6 @@ const createActions = function createActions(app: App) {
               : [emitResult]
           } catch (error) {
             console.error(error)
-            // toast(error.message, { type: 'error' })
           }
         },
       }),
@@ -98,8 +105,12 @@ const createActions = function createActions(app: App) {
     log.grey('', action)
 
     try {
-      if (u.isFnc(action?.original?.object)) {
-        const result = await action.original.object?.()
+      let object = _pick(action, 'object') as
+        | IfObject
+        | ((...args: any[]) => any)
+
+      if (u.isFnc(object)) {
+        const result = await object()
         if (result) {
           const { ref: actionChain } = options
           if (u.isObj(result)) {
@@ -117,11 +128,11 @@ const createActions = function createActions(app: App) {
             )
           }
         }
-      } else if ('if' in (action.original.object || {})) {
-        const ifObj = action.original.object as IfObject
+      } else if (_has(object, 'if')) {
+        const ifObj = object
         if (u.isArr(ifObj)) {
           const pageName = app.mainPage.page || ''
-          const object = evalIf((valEvaluating) => {
+          object = evalIf((valEvaluating) => {
             let value
             if (Identify.isBoolean(valEvaluating)) {
               return Identify.isBooleanTrue(valEvaluating)
@@ -134,9 +145,7 @@ const createActions = function createActions(app: App) {
                   value = get(app.noodl.root[pageName], valEvaluating)
                 }
               }
-              if (Identify.isBoolean(value)) {
-                return Identify.isBooleanTrue(value)
-              }
+              if (Identify.isBoolean(value)) Identify.isBooleanTrue(value)
             }
             return !!value
           }, ifObj)
@@ -163,37 +172,30 @@ const createActions = function createActions(app: App) {
     action,
     options,
   ) {
+    let goto = _pick(action, 'goto') || ''
+
     log.func('goto')
-    log.grey(action.original?.goto || action?.goto || 'goto', action)
+    log.grey(_pick(action, 'goto'), action)
 
-    let gotoObject = { goto: action.original.goto } as any
-    let pageModifiers = {} as any
-
-    const destinationParam =
-      (u.isStr(action.original.goto)
-        ? action.original.goto
-        : u.isObj(action.original.goto)
-        ? action.original.goto.destination ||
-          action.original.goto.dataIn?.destination ||
-          action.original.goto
+    let destinationParam =
+      (u.isStr(goto)
+        ? goto
+        : u.isObj(goto)
+        ? goto.destination || goto.dataIn?.destination || goto
         : '') || ''
-
     let { destination, id = '', isSamePage, duration } = parse.destination(
       destinationParam,
     )
+    let pageModifiers = {} as any
 
     if (destination === destinationParam) {
       app.mainPage.requesting = destination
     }
 
-    if (u.isObj(gotoObject.goto?.dataIn)) {
-      const dataIn = gotoObject.goto.dataIn
+    if (u.isObj(goto?.dataIn)) {
+      const dataIn = goto.dataIn
       'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
       'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
-    } else if (u.isObj(gotoObject)) {
-      'reload' in gotoObject && (pageModifiers.reload = gotoObject.reload)
-      'pageReload' in gotoObject &&
-        (pageModifiers.pageReload = gotoObject.pageReload)
     }
 
     if (id) {
@@ -243,7 +245,7 @@ const createActions = function createActions(app: App) {
       app.mainPage.pageUrl = u.resolvePageUrl({
         destination,
         pageUrl: app.mainPage.pageUrl,
-        startPage: app.noodl.cadlEndpoint.startPage,
+        startPage: app.startPage,
       })
       log.grey(`Page URL evaluates to: ${app.mainPage.pageUrl}`)
     } else {
@@ -251,7 +253,7 @@ const createActions = function createActions(app: App) {
     }
 
     log.grey(`Goto info`, {
-      gotoObject,
+      gotoObject: { goto },
       destinationParam,
       isSamePage,
       pageModifiers,
@@ -270,8 +272,49 @@ const createActions = function createActions(app: App) {
     }
   }
 
+  const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
+    async function getInjectBlob(action, options) {
+      log.func(name)
+      log.gold('', action)
+      const result = await openFileSelector()
+      log.func(name)
+      switch (result.status) {
+        case 'selected':
+          const { files } = result
+          const ac = options?.ref
+          const comp = options?.component
+          const dataKey = _pick(action, 'dataKey')
+          if (ac && comp) {
+            ac.data.set(dataKey, files?.[0])
+            log.green(`Selected file for dataKey "${dataKey}"`, files?.[0])
+          } else {
+            log.red(
+              `%cBoth action and component is needed to inject a blob to the action chain`,
+              `color:#ec0000;`,
+              { action, actionChain: ac, component: comp, dataKey },
+            )
+          }
+          break
+        case 'canceled':
+          await options?.ref?.abort?.('File input window was closed')
+          return log.red(
+            `File was not selected for action "${name}" and the operation was aborted`,
+            action,
+          )
+        case 'error':
+          return void log.red(`An error occurred for action "${name}"`, {
+            action,
+            ...result,
+          })
+      }
+    }
+
+  const openCamera = _getInjectBlob('openCamera')
+  const openDocumentManager = _getInjectBlob('openDocumentManager')
+  const openPhotoLibrary = _getInjectBlob('openPhotoLibrary')
+
   const pageJump: Store.ActionObject['fn'] = (action) =>
-    app.navigate(action.original?.destination || '')
+    app.navigate(_pick(action, 'destination'))
 
   const popUp: Store.ActionObject['fn'] = async function onPopUp(
     action,
@@ -280,25 +323,23 @@ const createActions = function createActions(app: App) {
     log.func('popUp')
     log.grey('', action)
     const { ref } = options
-    const elem = findByUX(action.original.popUpView) as HTMLElement
-    const popUpView = action.original.popUpView || ''
-    if (action.original.dismissOnTouchOutside) {
+    const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
+    const popUpView = _pick(action, 'popUpView')
+    const elem = findByUX(popUpView) as HTMLElement
+    if (dismissOnTouchOutside) {
       const onTouchOutside = function onTouchOutside(
         this: HTMLDivElement,
         e: Event,
       ) {
         e.preventDefault()
-        elem.style.visibility = 'hidden'
+        hide(elem)
         document.body.removeEventListener('click', onTouchOutside)
       }
       document.body.addEventListener('click', onTouchOutside)
     }
     if (elem?.style) {
-      if (action.actionType === 'popUp') {
-        elem.style.visibility = 'visible'
-      } else if (action.actionType === 'popUpDismiss') {
-        elem.style.visibility = 'hidden'
-      }
+      if (action.actionType === 'popUp') show(elem)
+      else if (action.actionType === 'popUpDismiss') hide(elem)
       // Some popup components render values using the dataKey. There is a bug
       // where an action returns a popUp action from an evalObject action. At
       // this moment the popup is not aware that it needs to read the dataKey if
@@ -314,12 +355,11 @@ const createActions = function createActions(app: App) {
         const phoneNumber = String(
           phoneInput?.value || phoneInput?.dataset?.value,
         )
-        if (
-          vcodeInput &&
-          (phoneNumber.startsWith('888') ||
-            phoneNumber.startsWith('+1888') ||
-            phoneNumber.startsWith('+1 888'))
-        ) {
+        const is888 =
+          phoneNumber.startsWith('888') ||
+          phoneNumber.startsWith('+1888') ||
+          phoneNumber.startsWith('+1 888')
+        if (vcodeInput && is888) {
           const pageName = app.mainPage?.page || ''
           const pathToTage = 'verificationCode.response.edge.tage'
           let vcode = get(app.noodl.root?.[pageName], pathToTage, '')
@@ -348,7 +388,7 @@ const createActions = function createActions(app: App) {
 
       // If popUp has wait: true, the action chain should pause until a response
       // is received from something (ex: waiting on user confirming their password)
-      if (Identify.isBooleanTrue(action.original.wait)) {
+      if (Identify.isBooleanTrue(_pick(action, 'wait'))) {
         log.grey(
           `Popup action for popUpView "${popUpView}" is ` +
             `waiting on a response. Aborting now...`,
@@ -380,10 +420,7 @@ const createActions = function createActions(app: App) {
     )
   }
 
-  const refresh: Store.ActionObject['fn'] = async function onRefresh(
-    action,
-    options,
-  ) {
+  const refresh: Store.ActionObject['fn'] = async function onRefresh(action) {
     log.func('refresh')
     log.grey('', action)
     window.location.reload()
@@ -397,7 +434,7 @@ const createActions = function createActions(app: App) {
     log.grey('', action)
 
     const { getRoot, ref } = options
-    const { object } = action.original || {}
+    const object = _pick(action, 'object')
     const pageName = app.mainPage?.page || ''
 
     try {
@@ -448,14 +485,11 @@ const createActions = function createActions(app: App) {
     }
   }
 
-  const toastAction: Store.ActionObject['fn'] = async function onToast(
-    action,
-    options,
-  ) {
+  const toastAction: Store.ActionObject['fn'] = async function onToast(action) {
     try {
       log.func('toast')
       log.gold('', action)
-      toast(action.original?.message || '')
+      toast(_pick(action, 'message') || '')
     } catch (error) {
       toast(error.message, { type: 'error' })
     }
@@ -471,15 +505,28 @@ const createActions = function createActions(app: App) {
     let file: File | undefined
 
     try {
-      if (action.original?.dataObject === 'BLOB') {
-        const { files, status } = await onSelectFile()
-        if (status === 'selected' && files?.[0]) {
-          log.grey(`File selected`, files[0])
-          file = files[0]
-          // @ts-expect-error
-        } else if (status === 'canceled') {
-          log.red('File was not selected and the operation was aborted')
-          await ref?.abort?.('File input window was closed')
+      if (_pick(action, 'dataObject') === 'BLOB') {
+        const dataKey = _pick(action, 'dataKey') || ''
+        if (ref) {
+          if (ref.data.has(dataKey)) {
+            file = ref.data.get(dataKey)
+          } else {
+            log.red(
+              `No blob was found for dataKey "${dataKey}" on the action chain. ` +
+                `Opening the file selector...`,
+            )
+            const { files, status } = await openFileSelector()
+            if (status === 'selected') {
+              file = files?.[0]
+              ref.data.set(dataKey, file)
+              log.green(`Selected file`, file)
+            }
+          }
+        } else {
+          log.red(
+            `Action chain does not exist. No blob will be available`,
+            action,
+          )
         }
       }
 
@@ -487,13 +534,13 @@ const createActions = function createActions(app: App) {
 
       // This is the more older version of the updateObject action object where it used
       // the "object" property
-      if (u.isObj(action.original) && 'object' in action.original) {
-        object = action.original.object
+      if (_has(action, 'object')) {
+        object = _pick(action, 'object')
       }
       // This is the more newer version that is more descriptive, utilizing the data key
       // action = { actionType: 'updateObject', dataKey, dataObject }
-      else if (action.original?.dataKey || action.original?.dataObject) {
-        object = omit(action.original, 'actionType')
+      else if (_pick(action, 'dataKey') || _pick(action, 'dataObject')) {
+        object = omit(action.original || action, 'actionType')
       }
 
       if (u.isFnc(object)) {
@@ -543,6 +590,9 @@ const createActions = function createActions(app: App) {
     emit,
     evalObject,
     goto,
+    // openCamera,
+    // openDocumentManager,
+    // openPhotoLibrary,
     pageJump,
     popUp,
     popUpDismiss,

@@ -33,6 +33,7 @@ const config = {
       browser: true,
       extensions,
       moduleDirectories: ['node_modules'],
+      preferBuiltins: false,
     }),
     typescript({
       rollupCommonJSResolveHack: true,

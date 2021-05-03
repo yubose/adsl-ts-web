@@ -40,8 +40,33 @@ describe(coolGold(`resolvers`), () => {
     expect(n.getFirstByElementId(await render()).textContent).to.eq(dataValue)
   })
 
+  describe(italic(`button`), () => {
+    it('should have a pointer cursor if it has an onClick', async () => {
+      const { render } = createRender({
+        components: {
+          type: 'button',
+          text: 'hello',
+          onClick: [mock.getEmitObject()],
+        },
+      })
+      expect(n.getFirstByElementId(await render()).style)
+        .to.have.property('cursor')
+        .eq('pointer')
+    })
+  })
+
   describe(italic(`Data attributes`), () => {
-    c.dataAttributes.forEach((attr) => {
+    const dataAttribsWithoutSelect = c.dataAttributes.filter(
+      (a) => !/options/i.test(a),
+    )
+
+    xit(`should be able to attach the ${magenta(
+      'data-options',
+    )} attribute to a DOM element`, () => {
+      //
+    })
+
+    dataAttribsWithoutSelect.forEach((attr) => {
       it(`should be able to attach the ${magenta(
         attr,
       )} attribute to a DOM element`, async () => {
@@ -62,6 +87,10 @@ describe(coolGold(`resolvers`), () => {
                     mock.getButtonComponent({ global: true }),
                     mock.getImageComponent({ path: '99.png' } as any),
                     mock.getTextFieldComponent({ placeholder: 'sun' } as any),
+                    mock.getSelectComponent({
+                      optionKey: `${iteratorVar}.value`,
+                      options: [],
+                    }),
                   ],
                 }),
               ],
@@ -78,19 +107,63 @@ describe(coolGold(`resolvers`), () => {
       })
     })
   })
+})
 
-  describe(italic(`button`), () => {
-    it('should have a pointer cursor if it has an onClick', async () => {
+describe(italic(`ecosDoc`), () => {
+  it.only(
+    `should create an iframe as a direct child and attach the ` +
+      `children into the iframe's document body`,
+    async () => {
+      const imageComponentObject = mock.getEcosDocComponent({ id: 'hello' })
       const { render } = createRender({
-        components: {
-          type: 'button',
-          text: 'hello',
-          onClick: [mock.getEmitObject()],
-        },
+        components: [imageComponentObject],
       })
-      expect(n.getFirstByElementId(await render()).style)
-        .to.have.property('cursor')
-        .eq('pointer')
+      const component = await render()
+      const node = n.getFirstByElementId('hello')
+      const child = node.firstElementChild as HTMLIFrameElement
+      expect(node).to.have.property('tagName').not.to.eq('IFRAME')
+      expect(child).to.have.property('tagName', 'IFRAME')
+      await waitFor(() => {
+        const image = child?.contentDocument?.body.querySelector('img')
+        expect(image).to.exist
+        expect(image).to.have.property(
+          'src',
+          imageComponentObject.ecosObj.name.data,
+        )
+      })
+      console.info(prettyDOM(child.contentDocument?.body))
+    },
+  )
+
+  describe(`images`, () => {
+    xit(``, () => {
+      //
+    })
+  })
+
+  describe(`pdf`, () => {
+    xit(``, () => {
+      //
+    })
+  })
+
+  describe(`text`, () => {
+    describe(`markdown`, () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe(`plain`, () => {
+      xit(``, () => {
+        //
+      })
+    })
+  })
+
+  describe(`videos`, () => {
+    xit(``, () => {
+      //
     })
   })
 })

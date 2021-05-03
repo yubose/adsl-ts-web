@@ -1,4 +1,4 @@
-import { Identify } from 'noodl-types'
+import { EcosDocument, Identify } from 'noodl-types'
 import {
   createComponent,
   formatColor,
@@ -38,6 +38,57 @@ const domComponentsResolver: Resolve.Config = {
           node.style.alignItems = 'center'
         }
         node.style.cursor = onClick ? 'pointer' : 'auto'
+      } else if (Identify.component.ecosDoc(component)) {
+        const mimeType = component.get('mimeType') as string
+        const nameField = component.get('nameField') as Record<string, any>
+
+        if (u.isImageDoc(component)) {
+          const dimensions = {
+            width: Number(node.style.width.replace(/[a-zA-Z]/i, '')),
+            height: Number(node.style.height.replace(/[a-zA-Z]/i, '')),
+          }
+          const childNode = document.createElement('iframe')
+          childNode.id = `${component.id}[${node.childElementCount - 1}]`
+          childNode.style.width = '100%'
+          childNode.style.height = '100%'
+          childNode.style.border = 'none'
+          const img = new Image(dimensions.width, dimensions.height)
+          img.id = childNode.name = `[${childNode.id}][${mimeType}]`
+          img.src = nameField?.data
+          img.title = nameField?.title
+          img.style.width = '100%'
+          img.style.height = '100%'
+          childNode.onload = () => {
+            childNode.contentDocument?.body.appendChild(img)
+          }
+          node.appendChild(childNode)
+        } else if (u.isPdfDoc(component)) {
+          //
+        } else if (u.isTextDoc(component)) {
+          const childNode = document.createElement('iframe')
+          childNode.id = `${component.id}[${node.childElementCount - 1}]`
+          childNode.style.width = '100%'
+          childNode.style.height = '100%'
+          childNode.style.border = 'none'
+          const div = document.createElement('div')
+          div.style.width = '100%'
+          div.style.height = '100%'
+          // div.innerHTML += String(nameField?.data)
+          childNode.onload = () => {
+            if (nameField?.title) {
+              const label = document.createElement('div')
+              label.innerHTML += String(nameField.title)
+              div.appendChild(label)
+            }
+            if (nameField?.content) {
+              const label = document.createElement('div')
+              label.innerHTML += String(nameField.content)
+              div.appendChild(label)
+            }
+            childNode.contentDocument?.body.appendChild(div)
+          }
+          node.appendChild(childNode)
+        }
       }
       // IMAGE
       else if (Identify.component.image(component)) {

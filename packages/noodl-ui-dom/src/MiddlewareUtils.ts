@@ -1,5 +1,6 @@
 import { Identify } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
+import { createGlobalComponentId } from './utils/internal'
 import NOODLDOMPage from './Page'
 
 class MiddlewareUtils {
@@ -13,11 +14,7 @@ class MiddlewareUtils {
     page: NOODLDOMPage,
     component: NUIComponent.Instance,
   ) {
-    let s = Identify.component.popUp(component)
-      ? component.get('popUpView') || component.get('viewTag')
-      : ''
-    let globalId = `${page.page}:${s}`
-    return globalId
+    return createGlobalComponentId(component)
   }
 }
 

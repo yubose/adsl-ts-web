@@ -1,0 +1,34 @@
+{
+  "id": "hl0QMIVGTHd/ds9b89Z7BA==",
+  "ctime": 1619717873,
+  "mtime": 1619717873,
+  "atime": 1619717873,
+  "atimes": 1,
+  "tage": 0,
+  "subtype": {
+    "isOnServer": true,
+    "isZipped": true,
+    "isBinary": false,
+    "isEncrypted": true,
+    "isEditable": true,
+    "applicationDataType": 0,
+    "mediaType": 4,
+    "size": 21295
+  },
+  "type": 1025,
+  "name": {
+    "title": "hello!",
+    "user": "Chris Tran",
+    "type": "image/png",
+    "data": "blob:http://127.0.0.1:3000/ee887bf5-9f4d-4090-a7a1-82641966f28d",
+    "tags": []
+  },
+  "deat": null,
+  "size": 21295,
+  "fid": "",
+  "eid": "PugoYpm8TLq2skvLQNsPSg==",
+  "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+  "esig": "PugoYpm8TLq2skvLQNsPSg==",
+  "created_at": 1619717873000,
+  "modified_at": 1619717873000
+}

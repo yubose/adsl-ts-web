@@ -280,7 +280,7 @@ class MeetingStream {
    * Wipes out the state entirely.
    * Useful for cleanup operations and avoids memory leaks
    */
-  reset() {
+  reset({ keepStreamType = true }: { keepStreamType?: boolean } = {}) {
     if (this.#node?.childNodes) {
       for (const child of this.#node.childNodes) {
         child?.remove?.()
@@ -296,7 +296,7 @@ class MeetingStream {
     }
     this.#participant && (this.#participant = null)
     this.previous = {}
-    this.type = null
+    !keepStreamType && (this.type = null)
     return this
   }
 

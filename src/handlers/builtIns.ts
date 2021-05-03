@@ -37,6 +37,11 @@ import App from '../App'
 import * as u from '../utils/common'
 
 const log = Logger.create('builtIns.ts')
+const _pick = u.pickActionKey
+
+type BuiltInActionArg =
+  | Parameters<Store.BuiltInObject['fn']>[0]
+  | Record<string, any>
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
@@ -76,14 +81,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('checkField')
     log.grey('', action)
-    const delay: number | boolean = action.original?.wait || action.wait || 0
+    const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
-      const node = findByUX(
-        action.original?.contentType || action?.contentType || '',
-      )
+      const node = findByUX(_pick(action, 'contentType'))
       u.array(node).forEach((n) => n && show(n))
     }
-    if (delay > 0) setTimeout(() => onCheckField(), delay as any)
+    if (u.isNum(delay)) setTimeout(() => onCheckField(), delay as any)
     else onCheckField()
   }
 
@@ -91,20 +94,19 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
   ) {
     log.func('disconnectMeeting')
-    log.grey('', { action, room: app.meeting.room })
+    log.grey('', action)
     app.meeting.leave()
   }
 
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {
     log.func('goBack')
     log.grey('', action)
-    if (u.isBool(action.original?.reload)) {
+    const reload = _pick(action, 'reload')
+    if (u.isBool(reload)) {
       app.mainPage.requesting = app.mainPage
-        .getPreviousPage(app.noodl.cadlEndpoint.startPage || '')
+        .getPreviousPage(app.startPage)
         .trim()
-      app.mainPage.setModifier(app.mainPage.requesting, {
-        reload: action.original?.reload,
-      })
+      app.mainPage.setModifier(app.mainPage.requesting, { reload })
     }
     window.history.back()
   }
@@ -112,7 +114,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
     log.func('hide')
     log.grey('', action)
-    const viewTag = action.original?.viewTag || ''
+    const viewTag = _pick(action, 'viewTag')
+    let wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       if (VP.isNil(node.style.top, 'px')) {
         node.style.display !== 'none' && (node.style.display = 'none')
@@ -120,8 +123,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         node.style.display === 'none' && (node.style.display = 'block')
       }
     }
-    const elemCount = hide(findByViewTag(viewTag), onElem)
-    !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    let elemCount
+    const onHide = () => {
+      elemCount = hide(findByViewTag(viewTag), onElem)
+      !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    }
+    if (!u.isUnd(wait)) {
+      setTimeout(onHide, wait === true ? 0 : wait)
+    } else {
+      onHide()
+    }
   }
 
   const showAction: Store.BuiltInObject['fn'] = async function onShow(
@@ -130,8 +141,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   ) {
     log.func('show')
     log.grey('', action)
-
-    const viewTag = action.original?.viewTag || ''
+    const viewTag = _pick(action, 'viewTag')
+    let wait = action.original?.wait || action?.wait || 0
     const onElem = (node: HTMLElement) => {
       const component = options.component
       if (component && VP.isNil(node.style.top)) {
@@ -139,7 +150,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         node.style.display === 'none' && (node.style.display = 'block')
       }
     }
-    const elemCount = show(findByViewTag(viewTag), onElem)
+    let elemCount
+    if (!u.isUnd(wait)) {
+      setTimeout(
+        () => void (elemCount = show(findByViewTag(viewTag), onElem)),
+        wait === true ? 0 : wait,
+      )
+    } else {
+      elemCount = show(findByViewTag(viewTag), onElem)
+    }
     !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
   }
 
@@ -167,7 +186,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action)
     try {
       const { component, getAssetsUrl } = options
-      const { dataKey = '' } = action.original || {}
+      const dataKey = _pick(action, 'dataKey') || ''
       const iteratorVar = findIteratorVar(component)
       const node = getFirstByElementId(component)
       const pageName = app.mainPage.page || ''
@@ -340,11 +359,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       } else if (u.isObj(gotoObj)) {
         if ('goto' in gotoObj) {
           if (u.isObj(gotoObj.goto)) {
-            destinationParam = gotoObj.goto.destination
-            'reload' in gotoObj.goto && (reload = gotoObj.goto.reload)
+            destinationParam = _pick(gotoObj.goto, 'destination')
+            'reload' in gotoObj.goto && (reload = _pick(gotoObj.goto, 'reload'))
             'pageReload' in gotoObj.goto &&
-              (pageReload = gotoObj.goto.pageReload)
-            'dataIn' in gotoObj.goto && (dataIn = gotoObj.goto.dataIn)
+              (pageReload = _pick(gotoObj.goto, 'pageReload'))
+            'dataIn' in gotoObj.goto && (dataIn = _pick(gotoObj.goto, 'dataIn'))
           } else if (u.isStr(gotoObj.goto)) {
             destinationParam = gotoObj.goto
           }
@@ -357,10 +376,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     } else if (u.isObj(action)) {
       if ('destination' in action) {
-        destinationParam = action.destination
-        'reload' in action && (reload = action.reload)
-        'pageReload' in action && (pageReload = action.pageReload)
-        'dataIn' in action && (dataIn = action.dataIn)
+        destinationParam = _pick(action, 'destination')
+        'reload' in action && (reload = _pick(action, 'reload'))
+        'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
+        'dataIn' in action && _pick(action, 'dataIn')
       }
     }
     if (!u.isUnd(reload)) {
@@ -445,7 +464,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       app.mainPage.pageUrl = u.resolvePageUrl({
         destination,
         pageUrl: app.mainPage.pageUrl,
-        startPage: app.noodl.cadlEndpoint.startPage,
+        startPage: app.startPage,
       })
     } else {
       destination = destinationParam
@@ -485,61 +504,51 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     log.func('redraw')
-    log.red('', { action, options })
+    log.red('', action)
 
-    const viewTag = action?.original?.viewTag || ''
+    const component = options?.component as NUIComponent.Instance
+    const actionViewTag = _pick(action, 'viewTag') || ''
+    const compViewTag = component?.get('data-viewtag')
     const components = [] as NUIComponent.Instance[]
-    const { component } = options
+    let numComponents = 0
 
-    for (const c of NUI.cache.component.get().values()) {
-      c && c.get('viewTag') === viewTag && components.push(c)
+    for (const c of app.cache.component) {
+      c &&
+        c.get('data-viewtag') === actionViewTag &&
+        components.push(c) &&
+        numComponents++
     }
 
     try {
-      if (
-        viewTag &&
-        (component?.get('data-viewtag') === viewTag ||
-          component?.get('viewTag') === viewTag) &&
-        !components.includes(component as NUIComponent.Instance)
-      ) {
-        components.push(component as NUIComponent.Instance)
+      if (compViewTag === actionViewTag && !components.includes(component)) {
+        components.push(component) && numComponents++
       }
-
-      if (!components.length) {
-        log.red(`Could not find any components to redraw`, {
-          action,
-          ...options,
-          component,
-        })
+      if (!numComponents) {
+        log.red(`Could not find any components to redraw`, action)
       } else {
-        log.grey(`Redrawing ${components.length} components`, components)
+        log.grey(`Redrawing ${numComponents} components`, components)
       }
 
       let startCount = 0
 
-      while (startCount < components.length) {
-        const viewTagComponent = components[startCount]
-        const node = getFirstByElementId(viewTagComponent)
+      while (startCount < numComponents) {
+        const _component = components[startCount]
+        const _node = getFirstByElementId(_component)
         const ctx = {} as any
-        if (isListConsumer(viewTagComponent)) {
-          const dataObject = findListDataObject(viewTagComponent)
-          if (dataObject) ctx.dataObject = dataObject
+        if (isListConsumer(_component)) {
+          const dataObject = findListDataObject(_component)
+          dataObject && (ctx.dataObject = dataObject)
         }
-        const [newNode, newComponent] = app.ndom.redraw(
-          node as HTMLElement,
-          viewTagComponent,
-          app.mainPage,
-          { context: ctx },
-        )
-        NUI.cache.component.add(newComponent)
-        startCount++
+        const redrawed = app.ndom.redraw(_node, _component, app.mainPage, {
+          context: ctx,
+        })
+        app.cache.component.add(redrawed[1]) && startCount++
       }
     } catch (error) {
       console.error(error)
       toast(error.message, { type: 'error' })
-      throw error
     }
-    log.red(`COMPONENT CACHE SIZE: ${NUI.cache.component.length}`)
+    log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
 
   const builtIns = {

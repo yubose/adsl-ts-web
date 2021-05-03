@@ -2,6 +2,7 @@ import { asHtmlElement, findByDataKey } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
 import { makeElemFn } from 'noodl-ui-dom'
 import { array } from './common'
+import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -38,31 +39,11 @@ export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
 }
 
-type FileInputEvent = Event & {
-  target: Event['target'] & { files: FileList }
-}
-
-interface OnSelectFileBaseResult {
-  event: FileInputEvent | FocusEvent
-  files: FileList | null
-}
-
-interface OnSelectFileSelectedResult extends OnSelectFileBaseResult {
-  status: 'selected'
-}
-
-interface OnSelectFileCanceledResult extends OnSelectFileBaseResult {
-  event: FocusEvent
-  files: null
-  status: 'canceled'
-}
-
-interface OnSelectFileErrorResult extends OnSelectFileBaseResult {
-  event: FileInputEvent
-  lineNumber: number | undefined
-  columnNumber: number | undefined
-  message: string | Error
-  source: number | undefined
+export function isVisible(node: HTMLElement | null) {
+  return node
+    ? node.style?.visibility === 'visible' ||
+        node.style?.visibility !== 'hidden'
+    : false
 }
 
 /**
@@ -70,29 +51,15 @@ interface OnSelectFileErrorResult extends OnSelectFileBaseResult {
  * selected, which becomes the resolved value.
  * @param { HTMLInputElement? } inputNode - Optional existing input node to use
  */
-export function onSelectFile(
+export function openFileSelector(
   inputNode?: HTMLInputElement,
-): Promise<OnSelectFileSelectedResult>
-export function onSelectFile(
-  inputNode?: HTMLInputElement,
-): Promise<OnSelectFileCanceledResult>
-export function onSelectFile(
-  inputNode?: HTMLInputElement,
-): Promise<OnSelectFileErrorResult>
-export function onSelectFile(
-  inputNode?: HTMLInputElement,
-): Promise<
-  | OnSelectFileSelectedResult
-  | OnSelectFileCanceledResult
-  | OnSelectFileErrorResult
-> {
+): Promise<FileSelectorResult> {
   // onSelect: (err: null | Error, args?: { e?: any; files?: FileList }) => void,
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const input = inputNode || document.createElement('input')
-    input.style.visibility = 'hidden'
+    hide(input)
     input.type = 'file'
-
-    input.onclick = function (event) {
+    input.onclick = function onFileInputClick(event) {
       document.body.onfocus = () => {
         document.body.onfocus = null
         setTimeout(() => {
@@ -101,11 +68,10 @@ export function onSelectFile(
             event,
             files: input.files?.length ? input.files : null,
             status: input.files?.length ? 'selected' : 'canceled',
-          } as OnSelectFileCanceledResult)
+          } as FileSelectorCanceledResult)
         }, 350)
       }
     }
-
     input.onerror = function onFileInputError(
       message,
       source,
@@ -114,34 +80,20 @@ export function onSelectFile(
       error,
     ) {
       document.body.onfocus = null
-      reject(
-        new Error(
-          JSON.stringify(
-            {
-              message,
-              source,
-              lineNumber,
-              columnNumber,
-              error,
-            },
-            null,
-            2,
-          ),
-        ),
-      )
+      resolve({
+        event: null,
+        message,
+        source,
+        lineNumber,
+        columnNumber,
+        error: error as Error,
+        status: 'error',
+        files: null,
+      })
     }
-
     document.body.appendChild(input)
-
     input.click()
   })
-}
-
-export function isVisible(node: HTMLElement | null) {
-  return node
-    ? node.style?.visibility === 'visible' ||
-        node.style?.visibility !== 'hidden'
-    : false
 }
 
 /**

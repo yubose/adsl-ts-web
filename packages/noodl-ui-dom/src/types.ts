@@ -1,10 +1,7 @@
-import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
+import { ComponentObject, ComponentType } from 'noodl-types'
 import {
   Component,
   NUIComponent,
-  nuiEmitTransaction,
-  Page as NUIPage,
-  Transaction as NUITransaction,
   Use,
   UseObject as NUIUseObject,
 } from 'noodl-ui'
@@ -12,11 +9,37 @@ import MiddlewareUtils from './MiddlewareUtils'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import createResolver from './createResolver'
+import GlobalComponentRecord from './global/GlobalComponentRecord'
 import {
   eventId,
   dataAttributes,
   transaction as ndomTransaction,
 } from './constants'
+
+export interface IGlobalObject<T extends string = string> {
+  type: T
+}
+
+export interface GlobalMap {
+  components: Map<string, GlobalComponentRecord>
+  pages: Record<string, NOODLDOMPage>
+}
+
+export interface GlobalComponentRecordObject {
+  type: 'component'
+  record: GlobalComponentRecord
+}
+
+export interface GlobalPageRecordObject {
+  type: 'page'
+  record: NOODLDOMPage
+}
+
+export type GlobalStoreRecordObject =
+  | GlobalComponentRecordObject
+  | GlobalPageRecordObject
+
+export type GlobalRecordType = GlobalStoreRecordObject['type']
 
 export type DOMNodeInput =
   | NodeListOf<any>

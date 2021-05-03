@@ -17,7 +17,19 @@ class ComponentCache {
     ComponentCacheHook[ComponentCacheHookEvent][]
   > = { add: [], clear: [], remove: [] }
 
-  static _inst: ComponentCache
+  static _inst: ComponentCache;
+
+  [Symbol.iterator]() {
+    const components = [...this.#cache.values()]
+    return {
+      next() {
+        return {
+          value: components.pop(),
+          done: !components.length,
+        }
+      },
+    }
+  }
 
   constructor() {
     if (ComponentCache._inst) return ComponentCache._inst
