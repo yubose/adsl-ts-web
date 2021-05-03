@@ -6,6 +6,7 @@ import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
 import { Identify } from 'noodl-types'
+import moment from 'moment'
 import {
   getFirstByElementId,
   isTextFieldLike,
@@ -153,25 +154,29 @@ const createExtendedDOMResolvers = function (app: App) {
                   chartType: option.chartType,
                   data: [],
                   columns: [],
-                  style:{
-                    table:{
-                      width: "100%"
-                    }
-                  }
+                  style: {
+                    table: {
+                      width: '100%',
+                    },
+                  },
                 }
                 if (option.style) tableData.style = option.style
                 /*if (option.tableHeader) tableData.columns = option.tableHeader */
-                // click each cell , return this data , and the index 
+                // click each cell , return this data , and the index
 
                 option.tableHeader.forEach((element: any) => {
-                  if(typeof(element)=='string'){
+                  if (typeof element == 'string') {
                     let emptyObject = {
                       name: element,
-                      attributes: (cell: any, row: any , column: { id: any })=>{
-                        if(cell || row ){
+                      attributes: (
+                        cell: any,
+                        row: any,
+                        column: { id: any },
+                      ) => {
+                        if (cell || row) {
                           return {
                             'data-cell-content': cell,
-                            'onclick':()=>{
+                            onclick: () => {
                               option.response = {}
                               option.response.cell = cell
                               option.response.column = column.id
@@ -195,16 +200,16 @@ const createExtendedDOMResolvers = function (app: App) {
                               }
                               option.response.row = resArray
                             },
-                            'style': 'cursor: pointer'
+                            style: 'cursor: pointer',
                           }
                         }
-                      }
+                      },
                     }
                     tableData.columns.push(emptyObject)
-                  }else{
+                  } else {
                     tableData.columns.push(element)
                   }
-                });
+                })
                 if (option.attribute) {
                   let attribute = option.attribute
                   if (attribute.search) {
@@ -262,212 +267,179 @@ const createExtendedDOMResolvers = function (app: App) {
                 })
                 new gridjs.Grid(tableData).render(node)
               }
-              case "timeTable":{
-                console.error(dataValue);
-                
+              case 'timeTable': {
                 // generateYaxis according to timeAxis
-                let generateYaxis = (start: string,end: string,timeSlot: number,split: number)=>{
-                    // convert time to minutes, then generate the time array
-                    let yAxis: any[] = []
-                    let [startH,startM] = (start.split(':'))
-                    let [endH,endM] = (end.split(':'))
-                    let startTime = parseInt(startH)*60 + parseInt(startM)
-                    let endTime = parseInt(endH)*60 + parseInt(endM)
-                    for (let index = startTime; index < endTime; index += timeSlot) {
-                      let item: any[] = []
-                      let timeName = {name: ""}
-                      let h = Math.floor(index/60)
-                      let m = index%60
-                      timeName.name = m<10?(h + ':0'+m):(h+':'+m)
-                      item.push(timeName,split)
-                      yAxis.push(item)
-                    }
-                    return yAxis
+                let generateYaxis = (
+                  start: string,
+                  end: string,
+                  timeSlot: number,
+                  split: number,
+                ) => {
+                  // convert time to minutes, then generate the time array
+                  let yAxis: any[] = []
+                  let [startH, startM] = start.split(':')
+                  let [endH, endM] = end.split(':')
+                  let startTime = parseInt(startH) * 60 + parseInt(startM)
+                  let endTime = parseInt(endH) * 60 + parseInt(endM)
+                  for (
+                    let index = startTime;
+                    index < endTime;
+                    index += timeSlot
+                  ) {
+                    let item: any[] = []
+                    let timeName = { name: '' }
+                    let h = Math.floor(index / 60)
+                    let m = index % 60
+                    timeName.name = m < 10 ? h + ':0' + m : h + ':' + m
+                    item.push(timeName, split)
+                    yAxis.push(item)
+                  }
+                  return yAxis
                 }
-                let generateData = (obj: { stime: string }[] | undefined,length: Number)=>{
+                // let generateData = (obj: { stime: string }[] | undefined,length: Number)=>{
+
+                //   let convertDataobj = dataObj.map((currentValue,index)=>{
+                //     currentValue.week = index
+                //     return currentValue
+                //   })
+                // console.error(convertDataobj);
+
+                // for (const i in dataObj) {
+                //   if (Object.prototype.hasOwnProperty.call(dataObj, i)) {
+                //     dataObj[i].list = []
+                //     dataObj[i].week = i
+                //   }
+                // }
+
+                // Divide the data according to the day of the week
+
+                let divideByWeek = (obj: any[]) => {
                   let dataObj = new Array(7).fill({})
-                  console.error(dataObj);
-                  // Divide the data according to the day of the week
-                  obj.forEach((element: { stime: string }) => {
-                    let date = new Date(parseInt(element.stime) * 1000)
-                    let getDay = date.getDay()
-                    // 把element变形然后push进数组
-                    console.error(getDay);
-                  });
+                  obj.forEach(
+                    (element: {
+                      stime: string
+                      etime: string
+                      visitReason: string
+                      name: string
+                    }) => {
+                      let startTimestamp = parseInt(element.stime) * 1000
+                      let endTimestamp = parseInt(element.etime) * 1000
+                      let date = new Date(startTimestamp)
+                      let nameObj = {
+                        name: '',
+                      }
+                      // 转换成周几然后 push进data数组
+                      let getDay = date.getDay()
+                      // 把element变形然后push进数组
+                      let startT = moment(startTimestamp).format('LT')
+                      let endT = moment(endTimestamp).format('LT')
+                      let itemValue = `${element.visitReason},${startT}-${endT}`
+                      element.name = itemValue
+                      // element.push()
+                      // 如果想占多个时间 ， 保持相邻的相同即可
+                      console.error(element)
+                    },
+                  )
                 }
                 let timeAxis = dataValue.timeAxis
-                let courseType = generateYaxis(timeAxis.start,timeAxis.end,timeAxis.timeSlot,timeAxis.split)
-                let dataLength = courseType.length*timeAxis.split
-                console.error(dataLength);
-                generateData(dataValue.chartData,dataLength)
+                // 生成纵坐标
+                let courseType = generateYaxis(
+                  timeAxis.start,
+                  timeAxis.end,
+                  timeAxis.timeSlot,
+                  timeAxis.split,
+                )
+                // 横坐标
+                let week = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+                // 生成坐标数据
+                let divideDate = [
+                  { week: '1', list: [] },
+                  { week: '2', list: [] },
+                  { week: '3', list: [] },
+                  { week: '4', list: [] },
+                  { week: '5', list: [] },
+                  { week: '6', list: [] },
+                  { week: '7', list: [] },
+                ]
+                let dataLength = courseType.length * timeAxis.split
+
+                // generateData(dataValue.chartData,dataLength)
                 // 根据stime， etime 生成date数据
-
-                let data = [
-                  {
-                      "list": [
-                          {
-                              "startTime":"2021-04-21 15:00:00",
-                              "endTime":"2021-04-21 15:15:00",
-                              "item":"Lisa",
-                          },
-                          {
-                              "colorNum":1,
-                              "startTime":"2021-04-21 9:15:00",
-                              "endTime":"2021-04-21 9:30:00",
-                              "item":"李信",
-                          },
-                          {
-                              "colorNum":2,
-                              "startTime":"2021-04-21 14:00:00",
-                              "endTime":"2021-04-21 14:15:00",
-                              "item":"黄珊",
-                          },
-                          {
-                              "colorNum":3,
-                              "startTime":"2021-04-21 17:00:00",
-                              "endTime":"2021-04-21 17:05:00",
-                              "item":"黄珊",
-                          }
-                      ],
-                      "week":'1'  //getDay()
-                  },
-                  {
-                      "list": [
-                          {
-                              'colorNum':0,
-                              "startTime": "2021-04-21 12:00:00",
-                              "endTime": "2021-04-21 12:15:00",
-                              'item':'Lisa',
-                          }
-                      ],
-                      'week':'2'
-                  },
-                  {
-                      "list": [
-                          {
-                              'colorNum':0,
-                              "startTime": "2021-04-21 13:00:00",
-                              "endTime": "2021-04-21 13:05:00",
-                              'item':'Lisa',
-                          },   
-                          {
-                            'colorNum':0,
-                            "startTime": "2021-04-21 13:15:00",
-                            "endTime": "2021-04-21 13:30:00",
-                            'item':'Lisa123',
-                        }
-                      ],
-                      'week':'3'
-                  },
-                  {
-                      "list": [
-                          {
-                              'colorNum':0,
-                              "startTime": "2021-04-21 19:00:00",
-                              "endTime": "2021-04-21 19:15:00",
-                              'item':'lisa',
-                          }
-                      ],
-                      'week':'4'
-                  },
-                  {
-                      "list": [
-                          {
-                              'colorNum':0,
-                              "startTime": "2021-04-21 10:00:00",
-                              "endTime": "2021-04-21 10:15:00",
-                              'item':'rose',
-                          }
-                      ],
-                      'week':'5'
-                  },
-                  {
-                      "list": [
-                          {
-                              'colorNum':0,
-                              "startTime": "2021-04-21 11:15:00",
-                              "endTime": "2021-04-21 11:30:00",
-                              'item':'Alix',
-                          }
-                      ],
-                      'week':'6'
-                  },
-                  {
-                      "list": [
-                          {
-                              'colorNum':0,
-                              "startTime": "2021-04-21 13:00:00",
-                              "endTime": "2021-04-21 13:15:00",
-                              'item':'李四',
-                          }
-                      ],
-                      'week':'7'
-                  },
-      
-              ];
-              let yAxis = []
-              function getzf(num: string | number) {
-                      if (parseInt(num) < 10) {  num = '0' + num; }  
-                              return num; 
-                      }
-        var ItemList=new Array();             //声明一维数组        
-        for(var x=0;x<7;x++){
-            ItemList[x]=new Array();        //声明二维数组
-            for(var y=0;y<courseType.length;y++){
-                 ItemList[x][y]="";          //数组初始化为0
-            }
-      }
-      // console.log(ItemList);
-          var all = [];
-          for(let i = 0;i<data.length;i++){
-              var Address = parseInt(data[i].week);
-              var Lists = data[i].list;
-              for(let j = 0;j<Lists.length;j++){
-                      var start = new Date(Lists[j].startTime).getHours()+":"+getzf(new Date(Lists[j].startTime).getMinutes());
-                      var end = new Date(Lists[j].endTime).getHours()+":"+getzf(new Date(Lists[j].endTime).getMinutes());
-                      var name = Lists[j].item;
-                      all.push({
-                          na:name,
-                          sta:start,
-                          en:end,
-                          ad:Address
-                      })
-                      var num = new Date((new Date(Lists[j].endTime))-(new Date(Lists[j].startTime)));
-                      console.log(getzf(num.getHours())+":"+num.getMinutes());
-                      console.log(start,end,name);
-              }
-              console.log();
-          }
-          for(let i = 0;i<all.length;i++){
-              var addr = all[i].ad;
-              var user_Name = all[i].na;
-              let starttime = all[i].sta;
-              let endtime = all[i].en;
-              for(let j=0;j<courseType.length;j++){
-                  // console.log(courseType[j][0].name);
-                  let Iname=courseType[j][0].name;
-                  if(all[i].sta==Iname||all[i].en==Iname){
-                      //Array.prototype.push.call(ItemList[addr-1],j,Iname);
-                      ItemList[addr-1][j] = user_Name+starttime+"-"+endtime;
-                      console.log("sta=",j);
+                divideByWeek(dataValue.chartData)
+                let data = []
+                let yAxis = []
+                function getzf(num: string | number) {
+                  if (parseInt(num) < 10) {
+                    num = '0' + num
                   }
-              }
-          }
-        var week = ['SUN','MON','TUE','WED','THU','FRI','SAT'] 
-        console.error(ItemList);
+                  return num
+                }
+                var ItemList = new Array() //声明一维数组
+                for (var x = 0; x < 7; x++) {
+                  ItemList[x] = new Array() //声明二维数组
+                  for (var y = 0; y < courseType.length; y++) {
+                    ItemList[x][y] = '' //数组初始化为0
+                  }
+                }
+                // console.log(ItemList);
+                var all = []
+                for (let i = 0; i < data.length; i++) {
+                  var Address = parseInt(data[i].week)
+                  var Lists = data[i].list
+                  for (let j = 0; j < Lists.length; j++) {
+                    var start =
+                      new Date(Lists[j].startTime).getHours() +
+                      ':' +
+                      getzf(new Date(Lists[j].startTime).getMinutes())
+                    var end =
+                      new Date(Lists[j].endTime).getHours() +
+                      ':' +
+                      getzf(new Date(Lists[j].endTime).getMinutes())
+                    var name = Lists[j].item
+                    all.push({
+                      na: name,
+                      sta: start,
+                      en: end,
+                      ad: Address,
+                    })
+                    var num = new Date(
+                      new Date(Lists[j].endTime) - new Date(Lists[j].startTime),
+                    )
+                    console.log(getzf(num.getHours()) + ':' + num.getMinutes())
+                    console.log(start, end, name)
+                  }
+                  console.log()
+                }
+                for (let i = 0; i < all.length; i++) {
+                  var addr = all[i].ad
+                  var user_Name = all[i].na
+                  let starttime = all[i].sta
+                  let endtime = all[i].en
+                  for (let j = 0; j < courseType.length; j++) {
+                    // console.log(courseType[j][0].name);
+                    let Iname = courseType[j][0].name
+                    if (all[i].sta == Iname || all[i].en == Iname) {
+                      //Array.prototype.push.call(ItemList[addr-1],j,Iname);
+                      ItemList[addr - 1][j] =
+                        user_Name + starttime + '-' + endtime
+                      console.log('sta=', j)
+                    }
+                  }
+                }
+                console.error(ItemList)
 
-        var Timetable = new Timetables({
-          el: `#${node.id}`,
-          timetables: ItemList,
-          week: week,
-          timetableType: courseType,
-          gridOnClick: function (item:any) {
-            console.log(item);
-          },
-          styles: {
-            Gheight: 35
-          }
-        });
+                var Timetable = new Timetables({
+                  el: `#${node.id}`,
+                  timetables: ItemList,
+                  week: week,
+                  timetableType: courseType,
+                  gridOnClick: function (item: any) {
+                    console.log(item)
+                  },
+                  styles: {
+                    Gheight: 35,
+                  },
+                })
               }
             }
           } else {
@@ -484,7 +456,6 @@ const createExtendedDOMResolvers = function (app: App) {
       before(node, component) {
         ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
-
         if (node.tagName === 'SELECT') {
           if ((node as HTMLSelectElement).length) {
             // Put the default value to the first option in the list
