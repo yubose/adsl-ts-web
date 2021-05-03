@@ -1,12 +1,12 @@
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
+import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
 import { Identify } from 'noodl-types'
-import moment from 'moment'
 import {
   getFirstByElementId,
   isTextFieldLike,
@@ -331,8 +331,8 @@ const createExtendedDOMResolvers = function (app: App) {
                       // 转换成周几然后 push进data数组
                       let getDay = date.getDay()
                       // 把element变形然后push进数组
-                      let startT = moment(startTimestamp).format('LT')
-                      let endT = moment(endTimestamp).format('LT')
+                      let startT = formatDate(startTimestamp, 'p')
+                      let endT = formatDate(endTimestamp,' p')
                       let itemValue = `${element.visitReason},${startT}-${endT}`
                       element.name = itemValue
                       // element.push()
