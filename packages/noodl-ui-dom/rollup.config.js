@@ -1,6 +1,7 @@
 import { DEFAULT_EXTENSIONS } from '@babel/core'
 import babel from '@rollup/plugin-babel'
-import typescript from 'rollup-plugin-typescript2'
+import esbuild from 'rollup-plugin-esbuild'
+// import typescript from 'rollup-plugin-typescript2'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
@@ -35,17 +36,31 @@ const config = {
       moduleDirectories: ['node_modules'],
       preferBuiltins: false,
     }),
-    typescript({
-      rollupCommonJSResolveHack: true,
-      check: false,
-      abortOnError: false,
-      clean: true,
-    }),
-    babel({
-      babelHelpers: 'runtime',
-      include: ['src/**/*'],
-      exclude: ['node_modules/**/*'],
-      extensions,
+    // typescript({
+    //   rollupCommonJSResolveHack: true,
+    //   check: false,
+    //   abortOnError: false,
+    //   clean: true,
+    // }),
+    // babel({
+    //   babelHelpers: 'runtime',
+    //   include: ['src/**/*'],
+    //   exclude: ['node_modules/**/*'],
+    //   extensions,
+    // }),
+    esbuild({
+      include: /\.[jt]s?$/,
+      exclude: /node_modules/,
+      sourceMap: true,
+      minify: process.env.NODE_ENV === 'production',
+      target: 'node10',
+      loaders: {
+        // Add .json files support
+        // require @rollup/plugin-commonjs
+        // '.json': 'json',
+        // Enable JSX in .js files too
+        // '.js': 'jsx',
+      },
     }),
     // Env var set by root lerna repo
     // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),

@@ -29,12 +29,13 @@ const getLibAliasMap = getConfig().contents.getIn(['op', 'alias'])
 
 const args = minimist(process.argv.slice(2), {
   alias: {
+    s: 'start',
     b: 'build',
     c: 'convert',
   },
 })
 
-const { build, convert } = args
+const { start, build, convert } = args
 const config = getConfig()
 
 /** @type { yaml.YAMLMap } */
@@ -46,7 +47,8 @@ const aliases = op.get('alias')
 /** @type { yaml.YAMLMap['items'] } */
 const libReg = aliases.items
 
-if (build) {
+if (start || build) {
+  let label = start ? 'start' : 'build'
   let cmd = ``
   let cmdArgs = []
   let lib = ``
@@ -54,13 +56,13 @@ if (build) {
     const obj = pair.value
     const regexStr = obj.get('regex')
     const regex = new RegExp(regexStr, 'i')
-    if (regex.test(build)) lib = pair.key.value
+    if (regex.test(args[label])) lib = pair.key.value
   }
   if (!lib) {
-    throw new Error(`Required lib name for ${chalk.magenta('build')} script`)
+    throw new Error(`Required lib name for ${chalk.magenta(label)} script`)
   }
   cmd += `lerna`
-  cmdArgs.push('exec', '--scope', lib, 'npm run build')
+  cmdArgs.push('exec', '--scope', lib, `\"npm run ${label}\"`)
   spawn(cmd, cmdArgs, { stdio: 'inherit', shell: true })
 }
 
