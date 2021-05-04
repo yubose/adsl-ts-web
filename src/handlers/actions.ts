@@ -353,9 +353,16 @@ const createActions = function createActions(app: App) {
         const phoneInput = u.array(
           asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
         )[0] as HTMLInputElement
-        const phoneNumber = String(
+        let phoneNumber = String(
           phoneInput?.value || phoneInput?.dataset?.value,
         )
+        if (!phoneNumber && phoneInput?.dataset?.key) {
+          const value = get(
+            app.noodl.root[app.mainPage.page],
+            phoneInput.dataset.key,
+          )
+          value && (phoneNumber = value)
+        }
         const is888 =
           phoneNumber.startsWith('888') ||
           phoneNumber.startsWith('+1888') ||
@@ -510,7 +517,7 @@ const createActions = function createActions(app: App) {
           if (ref.data.has(dataKey)) {
             file = ref.data.get(dataKey)
           } else {
-            log.red(
+            log.orange(
               `No blob was found for dataKey "${dataKey}" on the action chain. ` +
                 `Opening the file selector...`,
             )

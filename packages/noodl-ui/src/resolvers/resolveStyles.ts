@@ -206,20 +206,36 @@ resolveStyles.setResolver(
     ---- FONTS
   -------------------------------------------------------- */
 
-    // '10' --> '10px'
-    if (u.isStr(fontSize) && !com.hasLetter(fontSize)) {
-      edit({ fontSize: `${fontSize}px` })
-    }
-    // 10 --> '10px'
-    else if (u.isNum(fontSize)) {
-      edit({ fontSize: `${fontSize}px` })
-    }
-    if (u.isStr(fontFamily)) {
-      edit({ fontFamily })
-    }
-    // { fontStyle } --> { fontWeight }
-    if (fontStyle === 'bold') {
-      edit({ fontWeight: 'bold' }, { remove: 'fontStyle' })
+    if (!u.isUnd(fontSize)) {
+      // '10' --> '10px'
+      if (u.isStr(fontSize) && !com.hasLetter(fontSize)) {
+        edit({ fontSize: `${fontSize}px` })
+      }
+      // 10 --> '10px'
+      else if (u.isNum(fontSize)) {
+        edit({ fontSize: `${fontSize}px` })
+      }
+      if (u.isStr(fontFamily)) {
+        edit({ fontFamily })
+      }
+      // { fontStyle } --> { fontWeight }
+      if (fontStyle === 'bold') {
+        edit({ fontWeight: 'bold' }, { remove: 'fontStyle' })
+      }
+
+      // if ('fontSize' in (component.blueprint?.style || {})) {
+      //   const val = Number(component.blueprint.style?.fontSize)
+      //   if (u.isNum(val) && !Number.isNaN(val)) {
+      //     const result = util.handlePosition(
+      //       component.blueprint.style,
+      //       'fontSize',
+      //       viewport.width,
+      //     )
+      //     if (result) {
+      //       u.assign(component.style, result)
+      //     }
+      //   }
+      // }
     }
 
     /* -------------------------------------------------------

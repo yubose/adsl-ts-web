@@ -1,4 +1,4 @@
-import { Identify } from 'noodl-types'
+import { ComponentObject, Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isPlainObject from 'lodash/isPlainObject'
 import isComponent from './isComponent'
@@ -254,6 +254,23 @@ export function getDataValues<Fields, K extends keyof Fields>(
   }
 
   return result
+}
+
+export function getPluginLocation(
+  obj: NUIComponent.Instance | ComponentObject | string | undefined,
+) {
+  let type: string | undefined
+  if (typeof obj === 'string') type = obj
+  else type = obj.type
+  if (type) {
+    switch (type) {
+      case 'pluginBodyTop':
+        return 'body-top'
+      case 'pluginBodyTail':
+        return 'body-bottom'
+    }
+  }
+  return 'head'
 }
 
 export function getRootParent(component: NUIComponent.Instance) {

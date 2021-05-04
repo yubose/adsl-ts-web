@@ -1,5 +1,26 @@
 const chalk = require('chalk')
 const { spawn } = require('child_process')
+const {
+  captioning,
+  coolGold,
+  cyan,
+  italic,
+  magenta,
+  orange,
+  deepOrange,
+  yellow,
+  aquamarine,
+  brightGreen,
+  newline,
+  purple,
+  lightGold,
+  lightRed,
+  lightGreen,
+  red,
+  teal,
+  highlight,
+  white,
+} = require('noodl-common')
 const get = require('lodash/get')
 const set = require('lodash/set')
 const toPlainObject = require('lodash/toPlainObject')
@@ -8,6 +29,8 @@ const yaml = require('yaml')
 const globby = require('globby')
 const fs = require('fs-extra')
 const path = require('path')
+
+const label = (s) => aquamarine(`[${s}]`)
 
 /** @return yaml.Document */
 const getConfig = () => {
@@ -35,7 +58,9 @@ const args = minimist(process.argv.slice(2), {
   },
 })
 
-const { start, build, convert } = args
+const { start, build, config: configId, convert, sync } = args
+console.log(`\nArgs`, args)
+console.log('')
 const config = getConfig()
 
 /** @type { yaml.YAMLMap } */
@@ -101,4 +126,66 @@ if (args.convert) {
   console.log(docs)
 }
 
-console.log(args)
+if (sync) {
+  const syncDirName = sync
+  const baseDir = path.join(process.cwd(), '../cadl')
+  const configDir = path.join(baseDir, 'config')
+  const fromDir = path.join(baseDir, syncDirName)
+  const toDir = path.join(process.cwd(), './server')
+  const configFileName = `${configId}.yml`
+  console.log(`${label('Syncing')} from ${magenta(baseDir)}`)
+
+  if (!fs.existsSync(toDir)) {
+    fs.ensureDirSync(toDir)
+    console.log(
+      `${label(`New directory`)} Created a new directory at ${magenta(toDir)}`,
+    )
+  }
+
+  if (!configId) {
+    throw new Error(
+      red(
+        `Please choose a config to use (${cyan('ex:')} "${italic(
+          'meet4.yml',
+        )}" to use ${italic('meet4')} config)`,
+      ),
+    )
+  }
+
+  const start = async () => {
+    try {
+      console.log(
+        `${label('Copying')} ${yellow(configId)} config from ${magenta(
+          path.join(configDir, configFileName),
+        )} to ${magenta(path.join(toDir, configFileName))}`,
+      )
+      await fs.copyFile(
+        path.join(configDir, configFileName),
+        path.join(toDir, configFileName),
+      )
+      const files = await fs.readdir(fromDir)
+      console.log(
+        `${label(`Copying`)} ${yellow(`${files.length} files`)} from ${magenta(
+          fromDir,
+        )}`,
+      )
+      await fs.copy(fromDir, toDir, {
+        errorOnExist: false,
+        preserveTimestamps: false,
+        overwrite: true,
+        recursive: true,
+      })
+      console.log(
+        `${label(`Copied`)} ${yellow(`${files.length} files`)} to ${magenta(
+          toDir,
+        )}`,
+      )
+      console.log('')
+    } catch (err) {
+      console.log('')
+      throw new Error(err.message)
+    }
+  }
+
+  start()
+}

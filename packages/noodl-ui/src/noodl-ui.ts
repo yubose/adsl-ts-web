@@ -27,6 +27,7 @@ import { isPromise, promiseAllSafely } from './utils/common'
 import {
   findIteratorVar,
   findListDataObject,
+  getPluginLocation,
   isListConsumer,
   resolveAssetUrl,
 } from './utils/noodl'
@@ -719,7 +720,7 @@ const NUI = (function _NUI() {
           )[],
     ) {
       if (filter) {
-        u.array(filter).forEach((f: typeof filter) => {
+        u.arrayEach((f: typeof filter) => {
           if (f === 'actions') {
             o.cache.actions.clear()
           } else if (f === 'builtIns') {
@@ -737,7 +738,7 @@ const NUI = (function _NUI() {
           } else if (f === 'transactions') {
             cache.transactions.clear()
           }
-        })
+        }, filter)
       } else {
         o.getResolvers().length = 0
         cache.actions.clear()
@@ -807,23 +808,15 @@ const NUI = (function _NUI() {
       }
 
       if ('plugin' in args) {
-        u.array(args.plugin).forEach((plugin) => {
-          if (plugin) {
-            if (!o.cache.plugin.has(plugin.path)) {
-              o.cache.plugin.add(plugin.location as T.Plugin.Location, {
-                location: plugin.location,
-                path: plugin.path,
-                id: `[${location}][${plugin.path}]`,
-              })
-            }
-          }
-        })
+        u.arrayEach(
+          (plugin) => o.createPlugin(getPluginLocation(plugin), plugin),
+          args.plugin,
+        )
       }
 
       if ('register' in args) {
-        u.array(args.register).forEach((obj) => {
+        u.arrayEach((obj) => {
           const registerObj = { page: '_global' } as T.Register.Object
-
           if (obj) {
             if (obj.name) {
               registerObj.name = (obj as T.Register.Object).name || ''
@@ -847,15 +840,15 @@ const NUI = (function _NUI() {
             `Could not compute an identifier/name for this register object`,
             registerObj,
           )
-        })
+        }, args.register)
       }
 
       if ('resolver' in args && args.resolver) {
-        u.array(args.resolver).forEach((resolver) => {
+        u.arrayEach((resolver) => {
           if (o.getResolvers().every((r) => r.name !== resolver.name)) {
             o.getResolvers().push(resolver)
           }
-        })
+        }, args.resolver)
       }
 
       if ('transaction' in args) {

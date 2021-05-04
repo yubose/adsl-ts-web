@@ -1,11 +1,11 @@
 import Logger from 'logsnap'
 // import {MEDIA_TYPE_LIST} from '@aitmed/cadl/dist/types/common/DType'
-import { createToast } from 'vercel-toast'
 import NOODLDOM, {
   eventId,
   isPage as isNOODLDOMPage,
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
+import { RemoteParticipant } from 'twilio-video'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
@@ -27,9 +27,9 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
+import { toast } from './utils/dom'
 import * as u from './utils/common'
 import * as T from './app/types'
-import { RemoteParticipant } from 'twilio-video'
 
 const log = Logger.create('App.ts')
 const stable = u.isStable()
@@ -424,7 +424,7 @@ class App {
       return this.noodl.root[pageRequesting]
     } catch (error) {
       console.error(error)
-      createToast(error.message, { type: 'error' })
+      toast(error.message, { type: 'error' })
     }
   }
 
@@ -499,7 +499,7 @@ class App {
         args.width !== args.previousWidth ||
         args.height !== args.previousHeight
       ) {
-        console.log('VP changed', args)
+        console.log('VP changed', { ...args, viewport })
         if (this.mainPage.page === 'VideoChat') {
           log.func('onResize')
           return log.grey(
@@ -514,7 +514,7 @@ class App {
         this.mainPage.rootNode.style.width = `${args.width}px`
         this.mainPage.rootNode.style.height = `${args.height}px`
         this.mainPage.components =
-          this.noodl?.root?.[this.mainPage.page]?.components || []
+          this.root?.[this.mainPage.page]?.components || []
         this.ndom.render(this.mainPage)
       }
     }

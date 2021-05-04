@@ -1,4 +1,8 @@
 {
+  "arrayEach": {
+    "prefix": "arrayeach",
+    "body": "u.arrayEach(($1) => {$3}, $2)"
+  },
   "eachEntries": {
     "prefix": "eachentries",
     "body": "u.eachEntries(($1, $2) => {$4}, $3)"

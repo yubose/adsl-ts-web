@@ -14,7 +14,7 @@ export const textAlignStrings = [
 
 export function handlePosition(
   styleObj: any,
-  key: 'marginTop' | 'top' | 'height' | 'width' | 'left',
+  key: string, // 'marginTop' | 'top' | 'height' | 'width' | 'left' | 'fontSize'
   viewportSize: number,
 ) {
   const value = styleObj[key]

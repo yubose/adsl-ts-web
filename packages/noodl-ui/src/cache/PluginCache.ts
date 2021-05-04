@@ -34,7 +34,9 @@ class PluginCache implements ICache {
   add(location: Plugin.Location, obj: Plugin.Object) {
     invariant(
       _locations.includes(location),
-      `Invalid plugin location "${location}". Available options are: ${_locations}`,
+      `Invalid plugin location "${location}". Available options are: ${_locations.join(
+        ', ',
+      )}`,
     )
     const id = obj.id || ''
     if (location === 'head') this.#head.set(id, obj)

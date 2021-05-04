@@ -19,7 +19,6 @@ const configs = [
         exports: 'named',
         format: 'umd',
         name: 'noodlui',
-        sourcemap: true,
         globals: { 'noodl-utils': 'noodlutils' },
       },
     ],
@@ -31,7 +30,12 @@ const configs = [
       progress(),
       resolve({
         extensions,
-        moduleDirectories: ['node_modules'],
+        moduleDirectories: [
+          'node_modules',
+          '../noodl-utils',
+          '../../node_modules',
+        ],
+        dedupe: ['noodl-utils'],
       }),
       // typescript({
       //   rollupCommonJSResolveHack: true,
@@ -42,7 +46,7 @@ const configs = [
       esbuild({
         include: /\.[jt]s?$/,
         exclude: /node_modules/,
-        sourceMap: true,
+        sourceMap: 'inline',
         minify: process.env.NODE_ENV === 'production',
         target: 'node10',
         loaders: {

@@ -345,7 +345,7 @@ export interface UseArg
   getPages?: () => string[]
   getPreloadPages?: () => string[]
   getRoot?: () => Record<string, any>
-  plugin?: Plugin.Object | Plugin.Object[]
+  plugin?: ComponentObject
   register?:
     | Register.Object
     | Register.Object[]
