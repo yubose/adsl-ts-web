@@ -9,6 +9,7 @@ import {
   Page as NUIPage,
   NUIComponent,
   publish,
+  Resolver as NUIResolver,
   Store,
 } from 'noodl-ui'
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
@@ -549,6 +550,13 @@ class NOODLDOM extends NOODLDOMInternal {
       (Identify.component.page(component) && component.get('page')) ||
       this.page
 
+    if (!page) {
+      throw new Error(
+        `The "page" is not a valid noodl-ui-dom page. Check the ` +
+          `redraw function`,
+      )
+    }
+
     if (component) {
       if (Identify.component.listItem(component)) {
         const iteratorVar = findIteratorVar(component)
@@ -717,10 +725,10 @@ class NOODLDOM extends NOODLDOMInternal {
     }
     const resetPages = () => {
       this.page = undefined as any
-      u.entries(this.pages).forEach(([pageName, page]: [string, Page]) => {
+      u.eachEntries((pageName, page: Page) => {
         delete this.pages[pageName]
         page?.reset?.()
-      })
+      }, this.pages)
       NOODLDOM._nui.cache.page.clear()
     }
     const resetRegisters = () => NOODLDOM._nui.cache.register.clear()
@@ -805,11 +813,19 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   use(nuiPage: NUIPage): Page
-  use(opts: Partial<T.UseObject>): this
-  use(obj: NUIPage | Partial<T.UseObject>) {
+  use(opts: Partial<T.UseObject & Parameters<typeof NUI['use']>[0]>): this
+  use(
+    obj: NUIPage | (Partial<T.UseObject> | Parameters<typeof NUI['use']>[0]),
+  ) {
+    if (!obj) return
     if (isNUIPage(obj)) {
       return this.createPage(obj)
+    } else if ('setResolver' in obj) {
+      obj
     } else {
+      if (u.isObj(obj)) {
+        obj
+      }
       const { createGlobalComponentId, transaction, resolver, ...rest } = obj
 
       if (createGlobalComponentId) {
@@ -821,7 +837,7 @@ class NOODLDOM extends NOODLDOMInternal {
       }
 
       if (transaction) {
-        u.entries(transaction).forEach(([id, val]) => {
+        u.eachEntries((id, val) => {
           if (id === c.transaction.REQUEST_PAGE_OBJECT) {
             const getPageObject = transaction[c.transaction.REQUEST_PAGE_OBJECT]
             NOODLDOM._nui.use({
@@ -861,7 +877,7 @@ class NOODLDOM extends NOODLDOMInternal {
           } else {
             NOODLDOM._nui.use({ transaction: { [id]: val } })
           }
-        })
+        }, transaction)
       }
 
       NOODLDOM._nui.use(rest)

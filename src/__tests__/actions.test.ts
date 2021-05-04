@@ -1,14 +1,10 @@
 import * as mock from 'noodl-ui-test-utils'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import sinon from 'sinon'
-import CADL from '@aitmed/cadl'
 import { expect } from 'chai'
 import { coolGold, italic, blue, magenta } from 'noodl-common'
 import {
   actionTypes as nuiActionTypes,
-  nuiEmitTransaction,
-  NUI,
-  Viewport,
   Store,
   triggers,
   NUIActionType,
@@ -128,16 +124,16 @@ describe(coolGold(`Noodl actions`), () => {
 
       const app = await getApp({ ...opts, navigate: true })
 
-      if (actionType === 'evalObject') {
-        const component = Array.from(app.nui.cache.component.get())[0][1]
-        const spy2 = sinon.spy(component.get('onClick'), 'execute')
-        const node = document.querySelector('button')
-        node?.click()
-        await waitFor(() => {
-          expect(spy).to.be.calledOnce
-          expect(spy2).to.be.calledOnce
-        })
-      }
+      // if (actionType === 'evalObject') {
+      //   const component = Array.from(app.nui.cache.component.get())[0][1]
+      //   const spy2 = sinon.spy(component.get('onClick'), 'execute')
+      //   const node = document.querySelector('button')
+      //   node?.click()
+      //   await waitFor(() => {
+      //     expect(spy).to.be.calledOnce
+      //     expect(spy2).to.be.calledOnce
+      //   })
+      // }
     })
   })
 

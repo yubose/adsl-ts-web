@@ -2,7 +2,6 @@ import Logger from 'logsnap'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
-import { MEDIA_TYPE_LIST } from '@aitmed/cadl/dist/types/common/DType'
 import {
   asHtmlElement,
   eventId as ndomEventId,
@@ -25,7 +24,7 @@ import {
   triggers,
 } from 'noodl-ui'
 import { evalIf, parse } from 'noodl-utils'
-import { IfObject, Identify, GotoObject } from 'noodl-types'
+import { IfObject, Identify } from 'noodl-types'
 import {
   getVcodeElem,
   hide,
@@ -309,6 +308,8 @@ const createActions = function createActions(app: App) {
       }
     }
 
+  // These 3 funcs are only for android, so we can ignore these since this
+  // behavior is handled in updateObject
   const openCamera = _getInjectBlob('openCamera')
   const openDocumentManager = _getInjectBlob('openDocumentManager')
   const openPhotoLibrary = _getInjectBlob('openPhotoLibrary')
@@ -338,8 +339,8 @@ const createActions = function createActions(app: App) {
       document.body.addEventListener('click', onTouchOutside)
     }
     if (elem?.style) {
-      if (action.actionType === 'popUp') show(elem)
-      else if (action.actionType === 'popUpDismiss') hide(elem)
+      if (Identify.action.popUp(action)) show(elem)
+      else if (Identify.action.popUpDismiss(action)) hide(elem)
       // Some popup components render values using the dataKey. There is a bug
       // where an action returns a popUp action from an evalObject action. At
       // this moment the popup is not aware that it needs to read the dataKey if
@@ -413,11 +414,9 @@ const createActions = function createActions(app: App) {
   ) {
     log.func('popUpDismiss')
     log.grey('', action)
-    await Promise.all(
-      app.ndom.actions?.popUp?.map((obj: Store.ActionObject) =>
-        obj?.fn?.(action, options),
-      ),
-    )
+    for (const obj of app.actions.popUp) {
+      await (obj as Store.ActionObject)?.fn?.(action, options)
+    }
   }
 
   const refresh: Store.ActionObject['fn'] = async function onRefresh(action) {
@@ -534,9 +533,7 @@ const createActions = function createActions(app: App) {
 
       // This is the more older version of the updateObject action object where it used
       // the "object" property
-      if (_has(action, 'object')) {
-        object = _pick(action, 'object')
-      }
+      if (_has(action, 'object')) object = _pick(action, 'object')
       // This is the more newer version that is more descriptive, utilizing the data key
       // action = { actionType: 'updateObject', dataKey, dataObject }
       else if (_pick(action, 'dataKey') || _pick(action, 'dataObject')) {
@@ -574,7 +571,7 @@ const createActions = function createActions(app: App) {
           log.func('updateObject')
           log.grey(`Calling updateObject with:`, params)
           const result = await app.noodl.updateObject(params)
-          log.grey(`Called updateObject and received: `, result)
+          log.grey(`updateObject called`, result)
         } else {
           log.red(`Invalid/empty dataObject`, { action, dataObject })
         }

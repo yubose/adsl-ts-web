@@ -204,6 +204,16 @@ export class MockNoodl extends EventEmitter {
     this._isMock = true
     startPage && (this.cadlEndpoint.startPage = startPage)
   }
+  reset() {
+    this.#root = {}
+    this.aspectRatio = 1
+    this.assetsUrl = assetsUrl
+    this.baseUrl = baseUrl
+    this.cadlBaseUrl = baseUrl
+    this.cadlEndpoint = { page: [], preload: [], startPage: '' }
+    this.emitCall = (arg: any) => Promise.resolve(arg)
+    this.viewWidthHeightRatio = undefined
+  }
   get root() {
     return this.#root
   }
@@ -237,7 +247,6 @@ export async function initializeApp(
   opts?: Parameters<App['initialize']>[0] & {
     app?: App
     components?: ComponentObject | ComponentObject[]
-    noodl?: CADL | MockNoodl
     pageName?: string
     pageObject?: PageObject
     room?: {
@@ -258,42 +267,51 @@ export async function initializeApp(
       >
     >,
 ) {
-  let _noodl = (opts?.noodl || noodl) as CADL
   let {
-    app: appProp,
     components: componentsProp,
-    pageName = 'SignIn',
+    pageName,
     pageObject,
+    room,
     root,
     ...rest
   } = opts || {}
 
-  !root && (root = { ..._noodl.root })
+  const appOpts = {} as NonNullable<
+    ConstructorParameters<NonNullable<typeof App>>[0]
+  >
+  appOpts.getStatus = noodl.getStatus.bind(noodl) as any
+  appOpts.noodl = noodl as any
+  appOpts.ndom = ndom
+  appOpts.nui = NOODLDOM._nui
+  appOpts.viewport = viewport
 
-  opts?.root && (_noodl.root = { ..._noodl.root, ...opts.root })
-
-  _app =
-    appProp ||
-    new App({
-      getStatus: noodl.getStatus.bind(noodl) as any,
-      noodl: _noodl,
-      nui,
-      ndom,
-      viewport,
-    })
-
-  pageName && (_app.mainPage.page = pageName)
-
-  if (pageObject) {
-    _app.mainPage.components = componentsProp || pageObject.components || []
-    _app.mainPage.getNuiPage().object().components = _app.mainPage.components
+  if (root) u.assign(noodl.root, root)
+  if (!pageName) pageName = 'SignIn'
+  if (!pageObject) {
+    pageObject = {
+      components:
+        (componentsProp as any) || noodl.root[pageName]?.components || [],
+    }
   }
 
+  _app = new App(appOpts)
+
+  _app.updateRoot((draft) => {
+    draft[pageName as string] = {
+      ...noodl.root[pageName as string],
+      ...pageObject,
+    }
+  })
+
+  _app.mainPage.requesting = pageName
+  _app.mainPage.components = pageObject.components || []
+  _app.mainPage.getNuiPage().object().components = _app.mainPage.components
+
   _app.meeting.room = getMockRoom({
-    localParticipant: (opts?.room?.localParticipant ||
+    localParticipant: (room?.localParticipant ||
       getMockParticipant()) as LocalParticipant,
-    participants: opts?.room?.participants,
-    state: opts?.room?.state as MockRoom['state'],
+    participants: room?.participants,
+    state: room?.state as MockRoom['state'],
   })
 
   if (_app.meeting.room.participants.size) {
@@ -359,20 +377,19 @@ export async function initializeApp(
         )
       }
     } else if (key === 'root') {
-      !_app.noodl.root && (_app.noodl.root = {})
       _app.updateRoot(
-        (draft) => void u.assign(draft, { [pageName]: pageObject }),
+        (draft) =>
+          void u.assign(draft, { [_app.mainPage.requesting]: pageObject }),
       )
     }
-    u.assign(_app.noodl.root, { [pageName]: pageObject })
+    _app.updateRoot(
+      (draft) => void (draft[_app.mainPage.requesting] = pageObject),
+    )
   })
 
-  if (
-    _app.meeting.room.state === 'connected' &&
-    _app.mainPage.page === 'VideoChat'
-  ) {
+  _app.meeting.room.state === 'connected' &&
+    _app.mainPage.page === 'VideoChat' &&
     _app.meeting.onConnected(_app.meeting.room)
-  }
 
   const _test = {
     addParticipant(participant: any) {
@@ -386,7 +403,6 @@ export async function initializeApp(
     },
     clear() {
       _app.streams.reset()
-      // _app.meeting.reset()
     },
     getComponent(id: string) {
       for (const component of _app.cache.component) {

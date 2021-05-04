@@ -1,7 +1,7 @@
 import invariant from 'invariant'
 import merge from 'lodash/merge'
 import { setUseProxies, enableES5 } from 'immer'
-import { EmitObject, Identify, IfObject } from 'noodl-types'
+import { ComponentObject, EmitObject, Identify, IfObject } from 'noodl-types'
 import { createEmitDataKey, evalIf } from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
 import ComponentCache from './cache/ComponentCache'
@@ -18,7 +18,6 @@ import PageCache from './cache/PageCache'
 import PluginCache from './cache/PluginCache'
 import RegisterCache from './cache/RegisterCache'
 import TransactionCache from './cache/TransactionsCache'
-import Resolver from './Resolver'
 import VP from './Viewport'
 import resolveAsync from './resolvers/resolveAsync'
 import resolveComponents from './resolvers/resolveComponents'
@@ -34,7 +33,6 @@ import {
 import { groupedActionTypes, nuiEmitType } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
-import { LiteralUnion } from 'type-fest'
 
 enableES5()
 setUseProxies(false)
@@ -499,14 +497,6 @@ const NUI = (function _NUI() {
                   timestamp: new Date().toISOString(),
                 }
 
-                console.log(
-                  `%c${(opts?.page?.page && `[${opts.page.page}] `) || ''}(${
-                    action.actionType
-                  }) New call: ${JSON.stringify(timestamp)}`,
-                  `color:#c4a901;`,
-                  { calls, actionObject: action.original },
-                )
-
                 calls.timestamps.push(timestamp)
 
                 if (calls.timestamps.length > 6) {
@@ -591,7 +581,7 @@ const NUI = (function _NUI() {
             action.executor = __createExecutor(
               action,
               Identify.action.builtIn(obj)
-                ? o.cache.actions.builtIn.get(obj.funcName)
+                ? o.cache.actions.builtIn.get(obj.funcName as string)
                 : Identify.goto(obj)
                 ? o.cache.actions.goto
                 : Identify.toast(obj)
@@ -764,169 +754,126 @@ const NUI = (function _NUI() {
       o._defineGetter('getPreloadPages', () => [])
       o._defineGetter('getRoot', () => '')
     },
-    use(
-      args:
-        | ({
-            getAssetsUrl?: () => string
-            getBaseUrl?: () => string
-            getPages?: () => string[]
-            getPreloadPages?: () => string[]
-            getRoot?: () => Record<string, any>
-          } & {
-            register?:
-              | T.Register.Object
-              | T.Register.Object[]
-              | Record<string, T.Register.Object['fn']>
-            transaction?: Partial<
-              Record<
-                LiteralUnion<T.TransactionId, string>,
-                T.Transaction[keyof T.Transaction]['fn']
-              >
-            >
-          } & Partial<
-              Record<
-                T.NUIActionGroupedType,
-                T.Store.ActionObject['fn'] | T.Store.ActionObject['fn'][]
-              > & {
-                builtIn: Record<
-                  string,
-                  T.Store.BuiltInObject['fn'] | T.Store.BuiltInObject['fn'][]
-                >
-                emit: Partial<
-                  Record<
-                    T.NUITrigger,
-                    | T.Store.ActionObject<'emit'>['fn']
-                    | T.Store.ActionObject<'emit'>['fn'][]
-                  >
-                >
-              }
-            >)
-        | (T.Plugin.Object | Resolver),
-    ) {
-      if (args instanceof Resolver) {
-        if (
-          args.name &&
-          o.getResolvers().every((resolver) => resolver.name !== args.name)
-        ) {
-          o.getResolvers().push(args)
-        }
-      } else if ('location' in args) {
-        invariant(
-          ['head', 'body-top', 'body-bottom'].includes(
-            args.location as T.Plugin.Location,
-          ),
-          `Invalid plugin location "${args.location}". Available options are: ` +
-            `"head", "body-top", and "body-bottom"`,
-        )
-        if (!o.cache.plugin.has(args.path as string)) {
-          o.cache.plugin.add(args.location as T.Plugin.Location, args)
-        }
-      } else {
-        for (const actionType of groupedActionTypes) {
-          if (actionType in args) {
-            u.array(args[actionType]).forEach(
-              (fn: T.Store.ActionObject['fn'] | T.Store.ActionObject['fn']) => {
-                invariant(
-                  u.isFnc(fn),
-                  `fn is required for handling actionType "${actionType}"`,
-                )
-                cache.actions[actionType]?.push({ actionType, fn })
-              },
-            )
-          }
-        }
-
-        if ('builtIn' in args) {
-          if (args.builtIn) {
-            u.entries(args.builtIn).forEach(([funcName, fn]) => {
-              u.array(fn).forEach((f) => {
-                invariant(!!funcName, `"Missing funcName in a builtIn handler`)
-                invariant(
-                  u.isFnc(f),
-                  `fn is not a function for builtIn "${funcName}"`,
-                )
-                if (!cache.actions.builtIn.has(funcName)) {
-                  cache.actions.builtIn.set(funcName, [])
-                }
-                cache.actions.builtIn.get(funcName)?.push({
-                  actionType: 'builtIn',
-                  funcName,
-                  fn: f,
-                })
-              })
-            })
-          }
-        }
-
-        if ('emit' in args) {
-          for (const [trigger, func] of u.entries(args.emit)) {
-            u.array(func).forEach((fn) => {
+    use(args: T.UseArg) {
+      for (const actionType of groupedActionTypes) {
+        if (actionType in args) {
+          u.arrayEach(
+            (fn: T.Store.ActionObject['fn'] | T.Store.ActionObject['fn']) => {
               invariant(
                 u.isFnc(fn),
-                `fn is required for emit trigger "${trigger}"`,
+                `fn is required for handling actionType "${actionType}"`,
               )
-              o.cache.actions.emit.get(trigger as T.NUITrigger)?.push({
-                actionType: 'emit',
-                fn,
-                trigger: trigger as T.NUITrigger,
-              })
-            })
-          }
+              cache.actions[actionType]?.push({ actionType, fn })
+            },
+            args[actionType],
+          )
         }
+      }
 
-        if ('register' in args) {
-          u.array(args.register).forEach((obj) => {
-            const registerObj = { page: '_global' } as T.Register.Object
-
-            if (obj) {
-              if ('name' in obj) {
-                registerObj.name = (obj as T.Register.Object).name || ''
-                'fn' in obj && (registerObj.fn = obj.fn)
-              } else if (u.isObj(obj)) {
-                u.entries(obj).forEach(([_name, fn]) => {
-                  registerObj.name = _name
-                  registerObj.fn = fn
-                })
-              }
-              if (
-                !o.cache.register.has(
-                  registerObj.page as string,
-                  registerObj.name,
-                )
-              ) {
-                o.cache.register.set(
-                  registerObj.page as string,
-                  registerObj.name,
-                  registerObj,
-                )
-              }
-            }
+      if ('builtIn' in args) {
+        u.eachEntries((funcName, fn) => {
+          u.arrayEach((f) => {
+            invariant(!!funcName, `"Missing funcName in a builtIn handler`)
             invariant(
-              !!registerObj.name,
-              `Could not compute an identifier/name for this register object`,
-              registerObj,
+              u.isFnc(f),
+              `fn is not a function for builtIn "${funcName}"`,
             )
-          })
-        }
+            if (!cache.actions.builtIn.has(funcName)) {
+              cache.actions.builtIn.set(funcName, [])
+            }
+            cache.actions.builtIn.get(funcName)?.push({
+              actionType: 'builtIn',
+              funcName,
+              fn: f,
+            })
+          }, fn)
+        }, args.builtIn)
+      }
 
-        if ('transaction' in args) {
-          u.entries(args.transaction).forEach(([tid, fn]) => {
-            const opts = {} as any
-            if (u.isFnc(fn)) opts.fn = fn
-            else if (u.isObj(fn)) u.assign(opts, fn)
-            o.getTransactions().set(tid as T.TransactionId, opts)
-          })
-        }
+      if ('emit' in args) {
+        u.eachEntries((trigger, func: (...args: any[]) => any) => {
+          u.arrayEach((fn) => {
+            invariant(
+              u.isFnc(fn),
+              `fn is required for emit trigger "${trigger}"`,
+            )
+            o.cache.actions.emit.get(trigger as T.NUITrigger)?.push({
+              actionType: 'emit',
+              fn,
+              trigger: trigger as T.NUITrigger,
+            })
+          }, func)
+        }, args.emit)
+      }
 
-        for (const key of [
-          'getAssetsUrl',
-          'getBaseUrl',
-          'getPages',
-          'getPreloadPages',
-          'getRoot',
-        ]) {
-          key in args && o._defineGetter(key, args[key])
-        }
+      if ('plugin' in args) {
+        u.array(args.plugin).forEach((plugin) => {
+          if (plugin) {
+            if (!o.cache.plugin.has(plugin.path)) {
+              o.cache.plugin.add(plugin.location as T.Plugin.Location, {
+                location: plugin.location,
+                path: plugin.path,
+                id: `[${location}][${plugin.path}]`,
+              })
+            }
+          }
+        })
+      }
+
+      if ('register' in args) {
+        u.array(args.register).forEach((obj) => {
+          const registerObj = { page: '_global' } as T.Register.Object
+
+          if (obj) {
+            if (obj.name) {
+              registerObj.name = (obj as T.Register.Object).name || ''
+              obj.fn && (registerObj.fn = obj.fn)
+            } else if (u.isObj(obj)) {
+              u.eachEntries((_name, fn) => {
+                registerObj.name = _name
+                registerObj.fn = fn
+              }, obj)
+            }
+            if (!o.cache.register.has(registerObj.page, registerObj.name)) {
+              o.cache.register.set(
+                registerObj.page as string,
+                registerObj.name,
+                registerObj,
+              )
+            }
+          }
+          invariant(
+            !!registerObj.name,
+            `Could not compute an identifier/name for this register object`,
+            registerObj,
+          )
+        })
+      }
+
+      if ('resolver' in args && args.resolver) {
+        u.array(args.resolver).forEach((resolver) => {
+          if (o.getResolvers().every((r) => r.name !== resolver.name)) {
+            o.getResolvers().push(resolver)
+          }
+        })
+      }
+
+      if ('transaction' in args) {
+        u.eachEntries((tid, fn) => {
+          const opts = {} as any
+          u.isFnc(fn) ? (opts.fn = fn) : u.isObj(fn) && u.assign(opts, fn)
+          o.getTransactions().set(tid as T.TransactionId, opts)
+        }, args.transaction)
+      }
+
+      for (const key of [
+        'getAssetsUrl',
+        'getBaseUrl',
+        'getPages',
+        'getPreloadPages',
+        'getRoot',
+      ]) {
+        key in args && o._defineGetter(key, args[key])
       }
 
       return o

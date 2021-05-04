@@ -21,6 +21,7 @@ import {
 } from './app/types'
 import createActions from './handlers/actions'
 import createBuiltIns, { createVideoChatBuiltIn } from './handlers/builtIns'
+import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
 import createMeetingHandlers from './handlers/meeting'
@@ -245,16 +246,6 @@ class App {
         this.#state.authStatus = 'temporary'
       }
 
-      const config = this.noodl.getConfig()
-      const plugins = [] as ComponentObject[]
-
-      config.headPlugin &&
-        plugins.push({ type: 'pluginHead', path: config.headPlugin })
-      config.bodyTopPplugin &&
-        plugins.push({ type: 'pluginBodyTop', path: config.bodyTopPplugin })
-      config.bodyTailPplugin &&
-        plugins.push({ type: 'pluginBodyTail', path: config.bodyTailPplugin })
-
       NUI.use({
         getAssetsUrl: () => this.noodl.assetsUrl,
         getBaseUrl: () => this.noodl.cadlBaseUrl || '',
@@ -265,6 +256,7 @@ class App {
 
       const actions = createActions(this)
       const builtIns = createBuiltIns(this)
+      const plugins = createPlugins(this)
       const registers = createRegisters(this)
       const doms = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
@@ -272,6 +264,7 @@ class App {
 
       this.ndom.use(actions)
       this.ndom.use({ builtIn: builtIns })
+      this.ndom.use({ plugin: plugins })
       this.ndom.use({ transaction: transactions })
       registers.forEach((obj) => this.ndom.use({ register: obj }))
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))

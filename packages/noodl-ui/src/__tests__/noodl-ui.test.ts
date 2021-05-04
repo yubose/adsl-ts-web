@@ -345,12 +345,12 @@ describe(italic(`getBuiltIns`), () => {
     }
     NUI.use({ builtIn })
     const builtIns = NUI.getBuiltIns()
-    u.entries(builtIn).forEach(([funcName, fn]) => {
+    u.spreadEntries((funcName, fn) => {
       expect(builtIns.has(funcName)).to.be.true
       expect(builtIns.get(funcName)).to.satisfy((arr) =>
         arr.some((obj) => obj.fn === fn),
       )
-    })
+    }, builtIn)
   })
 })
 
@@ -587,7 +587,7 @@ describe(italic(`use`), () => {
       const spy = sinon.spy()
       const resolver = new Resolver('hello', spy)
       expect(nui.getResolvers()).not.to.include.members([resolver])
-      nui.use(resolver)
+      nui.use({ resolver })
       expect(nui.getResolvers()).to.include.members([resolver])
     })
   })

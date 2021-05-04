@@ -14,10 +14,40 @@ export const assign = (
   v: Record<string, any> = {},
   ...rest: (Record<string, any> | undefined)[]
 ) => Object.assign(v, ...rest)
+
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
+
+export const arrayEach = <O extends any[], P extends O[number]>(
+  fn: (o: P) => void,
+  obj: P | P[],
+) => {
+  array(obj).forEach(fn)
+}
+
 export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
+
 export const keys = (v: any) => Object.keys(v)
+
+export const mapEntries = <O extends Record<string, any> | Map<string, any>>(
+  fn: (key: string, value: any) => void,
+  obj: O | null | undefined,
+) => {
+  if (obj instanceof Map) return Array.from(obj)
+  return isObj(obj) ? entries(obj).map(([k, v]) => fn(k, v)) : obj
+}
+
+export const eachEntries = <O extends Record<string, any> | Map<string, any>>(
+  fn: (key: string, value: any) => void,
+  obj: O | null | undefined,
+) => {
+  if (obj instanceof Map) {
+    for (const [key, value] of obj) fn(key, value)
+  } else if (isObj(obj)) {
+    entries(obj).forEach(([k, v]) => fn(k, v))
+  }
+}
+
 export const values = <O extends Record<string, any>, K extends keyof O>(
   v: O,
 ): O[K][] => Object.values(v)

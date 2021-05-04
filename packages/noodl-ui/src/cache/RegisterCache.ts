@@ -36,8 +36,11 @@ class RegisterCache {
     return this.#cache
   }
 
-  has<P extends Register.Page>(page: P): boolean
-  has<N extends string>(page: Register.Page, name?: N): boolean
+  has<P extends Register.Page>(page: P | undefined): boolean
+  has<N extends string>(
+    page: Register.Page | undefined,
+    name?: N | undefined,
+  ): boolean
   has<P extends Register.Page, N extends string = string>(page: P, name?: N) {
     if (!name) return this.#cache.has(page)
     return !!this.#cache.get(page)?.[name]

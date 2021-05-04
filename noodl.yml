@@ -12,4 +12,14 @@ server:
   host: 127.0.0.1
   port: "3001"
   protocol: http
-  config: admin
+  config: meet4d
+op:
+  alias:
+    noodl-ui:
+      regex: (nui|noodl-ui)
+    noodl-ui-dom:
+      regex: (ndom|noodl-ui-dom)
+    noodl-utils:
+      regex: (nutil|noodl-utils)
+    noodl-ui-test-utils:
+      regex: (nuitu|ntu|nuitest|noodl-ui-test-utils)

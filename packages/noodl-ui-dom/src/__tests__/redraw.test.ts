@@ -1,58 +1,43 @@
 import sinon from 'sinon'
+import * as mock from 'noodl-ui-test-utils'
+import { coolGold, italic, magenta } from 'noodl-common'
+import { ActionChain } from 'noodl-action-chain'
 import { expect } from 'chai'
 import { ComponentObject } from 'noodl-types'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
-import {
-  ActionChain,
-  Component,
-  findChild,
-  List,
-  ListEventId,
-  ListItem,
-  ComponentInstance,
-  createComponent,
-} from 'noodl-ui'
-import { assetsUrl, noodlui, ndom, toDOM } from '../test-utils'
-
-const getListGender = () =>
-  noodlui.resolveComponents({
-    type: 'list',
-    iteratorVar: 'itemObject',
-    listObject: [
-      { key: 'gender', value: 'Male' },
-      { key: 'gender', value: 'Female' },
-      { key: 'gender', value: 'Other' },
-    ],
-    children: [
-      {
-        type: 'listItem',
-        children: [{ type: 'label', dataKey: 'itemObject.value' }],
-      },
-    ],
-  })
+import { Component, findChild, NUIComponent, createComponent } from 'noodl-ui'
+import NOODLDOM from '../noodl-ui-dom'
+import { assetsUrl, createRender, ndom, toDOM } from '../test-utils'
+import { getFirstByElementId } from '../utils'
 
 let view: Component
-let listGender: List
-let componentCache = noodlui.componentCache.bind(
-  noodlui,
-) as typeof noodlui.componentCache
+let listGender: NUIComponent.Instance
 
-describe('redraw', () => {
-  describe(`events`, () => {
-    it(`should convert the action chain arrays back to their function handlers`, async () => {
-      const [node, component] = toDOM({
-        type: 'label',
-        onClick: [{ emit: { dataKey: { var1: 'hey' }, actions: [] } }],
+describe(coolGold(`redraw`), () => {
+  describe(italic(`events`), () => {
+    it.only(`should still be executing the same action chains normally`, async () => {
+      const { ndom, render } = createRender({
+        components: mock.getLabelComponent({
+          onClick: [
+            mock.getEmitObject({
+              emit: { dataKey: { var1: 'hey' }, actions: [] },
+            }),
+          ],
+        }),
       })
-      const [newNode, newComponent] = ndom.redraw(node, component) as [
-        HTMLSelectElement,
-        ComponentInstance,
-      ]
-      expect(component.get('onClick')).to.be.a('function')
-      await waitFor(() => {
-        expect(newComponent.get('onClick')).to.be.a('function')
-      })
+      ndom.use()
+      const emitActions = ndom.cache.actions.emit.get('onClick')
+      // const component = await render()
+      // const node = getFirstByElementId(component.id)
+      // const [newNode, newComponent] = ndom.redraw(node, component) as [
+      //   HTMLSelectElement,
+      //   NUIComponent.Instance,
+      // ]
+      // expect(component.get('onClick')).to.be.a('function')
+      // await waitFor(() => {
+      //   expect(newComponent.get('onClick')).to.be.a('function')
+      // })
     })
   })
 
@@ -86,7 +71,7 @@ describe('redraw', () => {
       let otherOptions = ['00:20', '00:30']
       let [node, component] = toDOM({ type: 'select', options }) as [
         HTMLSelectElement,
-        ComponentInstance,
+        NUIComponent.Instance,
       ]
       let optionsNodes = Array.from(node.options)
       expect(node.options).to.have.lengthOf(2)
@@ -106,14 +91,14 @@ describe('redraw', () => {
     it('should re-attach the onchange handler', async () => {
       const spy = sinon.spy()
       const options = ['00:00', '00:10', '00:20']
-      noodlui.use({ actionType: 'emit', fn: spy, trigger: 'onChange' })
+      NOODLDOM._nui.use({ actionType: 'emit', fn: spy, trigger: 'onChange' })
       const [node, component] = ndom.redraw(
         ...toDOM({
           type: 'select',
           options,
           onChange: [{ emit: { dataKey: { var1: 'hey' }, actions: [] } }],
         }),
-      ) as [HTMLSelectElement, ComponentInstance]
+      ) as [HTMLSelectElement, NUIComponent.Instance]
       node.dispatchEvent(new Event('change'))
       expect(node).to.exist
       expect(component).to.exist
@@ -293,12 +278,12 @@ describe('redraw', () => {
         imgPath = 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
         return ['']
       })
-      noodlui.use({
+      NOODLDOM._nui.use({
         actionType: 'emit',
         fn: pathSpy,
         trigger: 'path',
       } as any)
-      noodlui.use({
+      NOODLDOM._nui.use({
         actionType: 'emit',
         fn: onClickSpy,
         trigger: 'onClick',
@@ -309,7 +294,7 @@ describe('redraw', () => {
           await c.get('onClick')(e)
         }
       })
-      const view = noodlui.resolveComponents({
+      const view = NOODLDOM._nui.resolveComponents({
         type: 'view',
         children: [
           {
@@ -331,7 +316,7 @@ describe('redraw', () => {
         // expect(pathSpy.called).to.be.true
         // expect(onClickSpy.called).to.be.true
         // expect(img?.getAttribute('src') || img?.src).to.eq(
-        //   noodlui.assetsUrl + imgPath,
+        //   NOODLDOM._nui.assetsUrl + imgPath,
         // )
       })
     })
@@ -345,17 +330,17 @@ describe('redraw', () => {
 
       const onClick = async (action, { component }) => {
         state.url = state.url === abc ? hello : abc
-        noodlui.use({ getRoot: () => ({ SignIn: { url: 'hehehehe' } }) })
+        NOODLDOM._nui.use({ getRoot: () => ({ SignIn: { url: 'hehehehe' } }) })
         ndom.redraw(document.getElementById(component.id), component)
       }
 
-      noodlui
-      noodlui
+      NOODLDOM._nui
+      NOODLDOM._nui
         .setPage('SignIn')
         .use({ actionType: 'emit', fn: async () => state.url, trigger: 'path' })
         .use({ actionType: 'emit', fn: onClick, trigger: 'onClick' })
 
-      // image = noodlui.resolveComponents({
+      // image = NOODLDOM._nui.resolveComponents({
       //   type: 'image',
       //   path: { emit: { dataKey: { var1: 'hello' }, actions: [] } },
       //   onClick: [{ emit: { dataKey: { var1: 'itemObject' }, actions: [] } }],
@@ -366,7 +351,7 @@ describe('redraw', () => {
         // ndom.redraw(n, c)
       })
 
-      const listItem = noodlui.resolveComponents({
+      const listItem = NOODLDOM._nui.resolveComponents({
         type: 'listItem',
         children: [
           {
@@ -384,7 +369,7 @@ describe('redraw', () => {
       await waitFor(() => {
         expect(document.querySelector('img')?.src).to.eq(assetsUrl + abc)
         ndom.redraw(document.querySelector('li'), listItem, {
-          resolver: (c: any) => noodlui.resolveComponents(c),
+          resolver: (c: any) => NOODLDOM._nui.resolveComponents(c),
         })
         // expect(document.querySelector('img')?.src).to.eq(assetsUrl + hello)
       })
@@ -409,7 +394,7 @@ describe('redraw', () => {
           state.pathValue = 'myotherimg.png'
           return ['']
         })
-        noodlui
+        NOODLDOM._nui
           .use([
             { actionType: 'emit', fn: pathSpy, trigger: 'path' },
             { actionType: 'emit', fn: onClickSpy, trigger: 'onClick' },
@@ -423,7 +408,7 @@ describe('redraw', () => {
                 component,
               ),
           })
-        const view = noodlui.resolveComponents({
+        const view = NOODLDOM._nui.resolveComponents({
           type: 'view',
           children: [
             {
@@ -459,16 +444,16 @@ describe('redraw', () => {
       const mockOnChangeEmit = async (action, { node, component }) => {
         node.setAttribute('placeholder', component.get('data-value'))
       }
-      noodlui
+      NOODLDOM._nui
         .use({ getRoot: () => ({ formData: { password: 'mypassword' } }) })
         .setPage('Abc')
-      noodlui.use({
+      NOODLDOM._nui.use({
         actionType: 'emit',
         fn: mockOnChangeEmit as any,
         trigger: 'onChange',
         context: {},
       })
-      const view = noodlui.resolveComponents({
+      const view = NOODLDOM._nui.resolveComponents({
         type: 'view',
         children: [{ type: 'textField', dataKey: 'formData.password' }],
       })
@@ -543,7 +528,7 @@ describe('redraw', () => {
           },
         ],
       }
-      const view = noodlui.resolveComponents(noodlView)
+      const view = NOODLDOM._nui.resolveComponents(noodlView)
       input.id = 'mocknodeid'
       const [textField, image, button] = view.children
 
@@ -565,12 +550,12 @@ describe('redraw', () => {
         return imgSrc === 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
       }
 
-      noodlui.use({
+      NOODLDOM._nui.use({
         actionType: 'emit',
         fn: mockOnChange,
         trigger: 'onChange',
       })
-      noodlui.use([
+      NOODLDOM._nui.use([
         { actionType: 'emit', fn: mockPathEmit, trigger: 'path' },
         { actionType: 'emit', fn: mockOnClick, trigger: 'onClick' },
       ])
@@ -588,7 +573,7 @@ describe('redraw', () => {
         document.getElementById(button.id),
         button,
         {
-          resolver: (c) => noodlui.resolveComponents(c),
+          resolver: (c) => NOODLDOM._nui.resolveComponents(c),
         },
       )
       expect(newComponent.action.onClick).to.eq(button?.action.onClick)
@@ -610,14 +595,14 @@ describe('redraw', () => {
       { fruit: 'apple', color: 'red' },
       { fruit: 'orange', color: 'blue' },
     ]
-    noodlui
+    NOODLDOM._nui
       .setPage('Abc')
       .use({
         getRoot: () => ({ Abc: { formData: { password: 'mypassword' } } }),
       })
       .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
       .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
-    const view = noodlui.resolveComponents({
+    const view = NOODLDOM._nui.resolveComponents({
       type: 'view',
       children: [
         {
@@ -674,14 +659,14 @@ describe('redraw', () => {
       { fruit: 'apple', color: 'red' },
       { fruit: 'orange', color: 'blue' },
     ]
-    noodlui
+    NOODLDOM._nui
       .setPage('Abc')
       .use({
         getRoot: () => ({ Abc: { formData: { password: 'mypassword' } } }),
       })
       .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
       .use({ actionType: 'emit', fn: onClickSpy, trigger: 'onClick' })
-    const view = noodlui.resolveComponents({
+    const view = NOODLDOM._nui.resolveComponents({
       type: 'view',
       children: [
         {
@@ -766,8 +751,10 @@ xdescribe('redraw(new)', () => {
       return (path = path === 'male.png' ? 'female.png' : 'male.png')
     })
     redrawSpy = sinon.spy(ndom, 'redraw')
-    noodlui.actionsContext = { noodl: { emitCall: async () => [''] } } as any
-    noodlui
+    NOODLDOM._nui.actionsContext = {
+      noodl: { emitCall: async () => [''] },
+    } as any
+    NOODLDOM._nui
       .removeCbs('emit')
       .setPage('SignIn')
       .use({ actionType: 'emit', fn: pathSpy, trigger: 'path' })
@@ -776,7 +763,7 @@ xdescribe('redraw(new)', () => {
         getAssetsUrl: () => assetsUrl,
         getRoot: () => ({ SignIn: pageObject }),
       })
-    view = noodlui.resolveComponents({
+    view = NOODLDOM._nui.resolveComponents({
       type: 'view',
       children: [
         {
@@ -874,11 +861,11 @@ xit('should target the viewTag component/node if available', async () => {
     { key: 'gender', value: 'Female' },
     { key: 'gender', value: 'Other' },
   ]
-  const redrawSpy = sinon.spy(noodlui.getCbs('builtIn').redraw[0])
-  noodlui.actionsContext = { noodl: {} } as any
-  noodlui.removeCbs('emit')
-  noodlui.getCbs('builtIn').redraw[0] = redrawSpy
-  noodlui
+  const redrawSpy = sinon.spy(NOODLDOM._nui.getCbs('builtIn').redraw[0])
+  NOODLDOM._nui.actionsContext = { noodl: {} } as any
+  NOODLDOM._nui.removeCbs('emit')
+  NOODLDOM._nui.getCbs('builtIn').redraw[0] = redrawSpy
+  NOODLDOM._nui
     .setPage('SignIn')
     .use({
       actionType: 'emit',
@@ -1012,8 +999,8 @@ xdescribe('redraw', () => {
   it('should be able to grab list consumer components with the viewTag', async () => {
     const emitCall = sinon.spy()
     const redrawSpy = sinon.spy(ndom, 'redraw')
-    noodlui.init({ actionsContext: { noodl: { emitCall }, ndom } })
-    // noodlui.getCbs('builtIn').redraw = [spy]
+    NOODLDOM._nui.init({ actionsContext: { noodl: { emitCall }, ndom } })
+    // NOODLDOM._nui.getCbs('builtIn').redraw = [spy]
     const view = page.render(noodlComponents).components[0]
     const select = findChild(
       view,
@@ -1037,9 +1024,9 @@ xdescribe('redraw', () => {
     const onChangeSpy = sinon.spy(async () => {
       timeSpanOptions.push(...['01:00', '01:30', '02:00'])
     })
-    const redrawFn = noodlui.getCbs('builtIn')?.redraw[0]
+    const redrawFn = NOODLDOM._nui.getCbs('builtIn')?.redraw[0]
     const spy = sinon.spy(redrawFn)
-    noodlui
+    NOODLDOM._nui
       .setPage(pageName)
       .use({ actionType: 'emit', fn: onChangeSpy, trigger: 'onChange' })
       .use({

@@ -69,11 +69,13 @@ class PluginCache implements ICache {
     }
   }
 
-  has(id: string) {
+  has(id: string | undefined) {
+    if (typeof id !== 'string') return false
     return this.#head.has(id) || this.#bodyTop.has(id) || this.#bodyTail.has(id)
   }
 
-  remove(id: string) {
+  remove(id: string | undefined) {
+    if (typeof id !== 'string') return null
     for (const plugins of [this.#head, this.#bodyTop, this.#bodyTail]) {
       if (plugins.has(id)) {
         const deletedPlugin = plugins.get(id)

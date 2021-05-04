@@ -83,15 +83,9 @@ function createRegisters(app: App) {
         app.meeting.showWaitingOthersMessage()
       }
     },
-  }
+  } as const
 
-  return u.entries(o).map(
-    ([name, fn]) => ({
-      name,
-      fn,
-    }),
-    [] as Register.Object[],
-  )
+  return u.mapEntries((name, fn) => ({ name, fn }), o)
 }
 
 export default createRegisters

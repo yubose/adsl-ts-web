@@ -212,14 +212,14 @@ const domComponentsResolver: Resolve.Config = {
           })
         }
 
-        clearOptions(node)
+        clearOptions(node as HTMLSelectElement)
 
         if (u.isArr(selectOptions)) {
-          setSelectOptions(node, selectOptions)
+          setSelectOptions(node as HTMLSelectElement, selectOptions)
         } else if (u.isStr(selectOptions)) {
           // Retrieved through reference
           component.on('options', (dataOptions: any[]) => {
-            setSelectOptions(node, dataOptions)
+            setSelectOptions(node as HTMLSelectElement, dataOptions)
           })
         }
         // Default to the first item if the user did not previously set their state

@@ -1,10 +1,5 @@
 import { ComponentObject, ComponentType } from 'noodl-types'
-import {
-  Component,
-  NUIComponent,
-  Use,
-  UseObject as NUIUseObject,
-} from 'noodl-ui'
+import { Component, NUIComponent, NUI } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
@@ -225,18 +220,13 @@ export type NDOMTransaction =
 
 export type NDOMTransactionId = keyof NDOMTransaction
 
-export interface UseObject extends Omit<Use, 'transaction'>, Use.Action {
+export interface UseObject {
   createGlobalComponentId?: Middleware.Utils['createGlobalComponentId']
-
   resolver?: Resolve.Config
-  transaction?: NDOMTransaction &
-    Omit<
-      NUIUseObject['transaction'],
-      typeof ndomTransaction.REQUEST_PAGE_OBJECT
-    > & {
-      createElement?: {
-        cond(component: NUIComponent.Instance): boolean
-        resolve(component: NUIComponent.Instance): HTMLElement | null
-      }
+  transaction?: NDOMTransaction & {
+    createElement?: {
+      cond(component: NUIComponent.Instance): boolean
+      resolve(component: NUIComponent.Instance): HTMLElement | null
     }
+  }
 }

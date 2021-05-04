@@ -1,4 +1,5 @@
 const chalk = require('chalk')
+const { spawn } = require('child_process')
 const get = require('lodash/get')
 const set = require('lodash/set')
 const toPlainObject = require('lodash/toPlainObject')
@@ -7,6 +8,13 @@ const yaml = require('yaml')
 const globby = require('globby')
 const fs = require('fs-extra')
 const path = require('path')
+
+/** @return yaml.Document */
+const getConfig = () => {
+  return yaml.parseDocument(fs.readFileSync('noodl.yml', 'utf8'))
+}
+/** @type { yaml.YAMLMap }; @return { yaml.YAMLMap } */
+const getLibAliasMap = getConfig().contents.getIn(['op', 'alias'])
 
 // globby
 //   .sync('./_data/type_ecosDoc/**/*.json', { objectMode: true })
@@ -19,7 +27,42 @@ const path = require('path')
 //     fs.writeJsonSync(filepath, json, { spaces: 2 })
 //   })
 
-const args = minimist(process.argv.slice(2))
+const args = minimist(process.argv.slice(2), {
+  alias: {
+    b: 'build',
+    c: 'convert',
+  },
+})
+
+const { build, convert } = args
+const config = getConfig()
+
+/** @type { yaml.YAMLMap } */
+const op = config.contents.get('op')
+
+/** @type { yaml.YAMLMap } */
+const aliases = op.get('alias')
+
+/** @type { yaml.YAMLMap['items'] } */
+const libReg = aliases.items
+
+if (build) {
+  let cmd = ``
+  let cmdArgs = []
+  let lib = ``
+  for (const pair of libReg) {
+    const obj = pair.value
+    const regexStr = obj.get('regex')
+    const regex = new RegExp(regexStr, 'i')
+    if (regex.test(build)) lib = pair.key.value
+  }
+  if (!lib) {
+    throw new Error(`Required lib name for ${chalk.magenta('build')} script`)
+  }
+  cmd += `lerna`
+  cmdArgs.push('exec', '--scope', lib, 'npm run build')
+  spawn(cmd, cmdArgs, { stdio: 'inherit', shell: true })
+}
 
 if (args.convert) {
   const extFrom = args.convert

@@ -96,9 +96,14 @@ export function getActionChain({
   return actionChain
 }
 
+export function getBuiltInAction(funcName?: string): BuiltInActionObject
 export function getBuiltInAction(
   props?: Partial<BuiltInActionObject>,
+): BuiltInActionObject
+export function getBuiltInAction(
+  props?: Partial<BuiltInActionObject> | string,
 ): BuiltInActionObject {
+  props = typeof props === 'string' ? { funcName: props } : props
   return {
     actionType: 'builtIn',
     funcName: 'hello',

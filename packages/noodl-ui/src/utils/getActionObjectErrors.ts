@@ -11,7 +11,9 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
   } else if (Identify.toast(obj)) {
     //
   } else if (Identify.action.any(obj)) {
-    if (Identify.action.builtIn(obj)) {
+    if (obj.actionType === 'anonymous') {
+      //
+    } else if (Identify.action.builtIn(obj)) {
       //
     } else if (Identify.action.evalObject(obj)) {
       if ('object' in obj) {

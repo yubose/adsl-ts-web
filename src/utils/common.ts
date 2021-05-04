@@ -3,10 +3,15 @@ import has from 'lodash/has'
 import { ActionObject, UncommonActionObjectProps } from 'noodl-types'
 import { Store } from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
+import { Entries, SetReturnType } from 'type-fest'
 import util from 'util'
 
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
+export const arrayEach = <O extends any[], P extends O[number]>(
+  fn: (o: P) => void,
+  obj: P | P[],
+) => void array(obj).forEach(fn)
 export const assign = (
   v: Record<string, any>,
   ...rest: (Record<string, any> | undefined)[]
@@ -24,6 +29,18 @@ export const isNil = (v: any): v is null | undefined => isNull(v) && isUnd(v)
 export const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
   typeof v === 'function'
 export const keys = (v: any) => Object.keys(v)
+export const eachEntries = <O extends Record<string, any> | Map<string, any>>(
+  fn: (key: string, value: any) => void,
+  obj: O | null | undefined,
+) => {
+  if (obj) {
+    if (obj instanceof Map) {
+      for (const [key, value] of obj) fn(key, value)
+    } else if (isObj(obj)) {
+      entries(obj).forEach(([k, v]) => fn(k, v))
+    }
+  }
+}
 export const values = <O extends Record<string, any>, K extends keyof O>(
   v: O,
 ): O[K][] => Object.values(v)
@@ -58,6 +75,14 @@ export function isTest() {
 
 export function isOutboundLink(s: string | undefined = '') {
   return /https?:\/\//.test(s)
+}
+
+export function mapEntries<
+  Obj extends Record<string, any>,
+  Key extends keyof Obj = keyof Obj,
+  RT = any
+>(fn: (key: Key, value: Obj[Key]) => RT, obj: Obj): RT[] {
+  return entries(obj).map(([k, v]) => fn(k as Key, v))
 }
 
 type ActionObjectArg =

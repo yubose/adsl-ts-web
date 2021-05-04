@@ -24,6 +24,7 @@ import {
 } from 'noodl-types'
 import { Action, ActionChain } from 'noodl-action-chain'
 import { LiteralUnion } from 'type-fest'
+import ComponentResolver from './Resolver'
 import ComponentBase from './Component'
 import _ComponentCache from './cache/ComponentCache'
 import _PluginCache from './cache/PluginCache'
@@ -323,3 +324,37 @@ export interface Transaction {
 }
 
 export type TransactionId = LiteralUnion<keyof Transaction, string>
+
+export interface UseArg
+  extends Record<
+    NUIActionGroupedType,
+    Store.ActionObject['fn'] | Store.ActionObject['fn'][]
+  > {
+  builtIn?: Record<
+    string,
+    Store.BuiltInObject['fn'] | Store.BuiltInObject['fn'][]
+  >
+  emit?: Partial<
+    Record<
+      NUITrigger,
+      Store.ActionObject<'emit'>['fn'] | Store.ActionObject<'emit'>['fn'][]
+    >
+  >
+  getAssetsUrl?: () => string
+  getBaseUrl?: () => string
+  getPages?: () => string[]
+  getPreloadPages?: () => string[]
+  getRoot?: () => Record<string, any>
+  plugin?: Plugin.Object | Plugin.Object[]
+  register?:
+    | Register.Object
+    | Register.Object[]
+    | Record<string, Register.Object['fn']>
+  resolver?: ComponentResolver | ComponentResolver[]
+  transaction?: Partial<
+    Record<
+      LiteralUnion<TransactionId, string>,
+      Transaction[keyof Transaction] | Transaction[keyof Transaction]['fn']
+    >
+  >
+}

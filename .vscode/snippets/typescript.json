@@ -1,4 +1,12 @@
 {
+  "eachEntries": {
+    "prefix": "eachentries",
+    "body": "u.eachEntries(($1, $2) => {$4}, $3)"
+  },
+  "mapEntries": {
+    "prefix": "mapentries",
+    "body": "u.mapEntries(($1, $2) => {$4}, $3)"
+  },
   "document.body.appendChild": {
     "prefix": "dbadd",
     "body": "document.body.appendChild($1)"

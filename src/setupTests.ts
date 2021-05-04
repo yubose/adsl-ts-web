@@ -1,6 +1,20 @@
 import jsdom from 'jsdom-global'
+import sinon from 'sinon'
 jsdom(undefined, {
   url: 'http://localhost',
+  runScripts: 'dangerously',
+  beforeParse(window) {
+    // Object.defineProperty(window.EventTarget, 'addEventListener', {
+    //   value: sinon.stub(),
+    // })
+    // Object.defineProperty(global.EventTarget, 'addEventListener', {
+    //   value: sinon.stub(),
+    // })
+    // Object.defineProperty(global.EventTarget, 'addEventListener', {
+    //   value: sinon.stub(),
+    // })
+    // window.EventTarget.prototype.removeEventListener = sinon.stub()
+  },
 })
 // @ts-expect-error
 import MutationObserver from 'mutation-observer'
@@ -9,7 +23,6 @@ import chaiAsPromised from 'chai-as-promised'
 import noop from 'lodash/noop'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
-import sinon from 'sinon'
 import { defaultResolvers } from 'noodl-ui-dom'
 import { getMostRecentApp, ndom } from './utils/test-utils'
 

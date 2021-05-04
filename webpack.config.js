@@ -72,14 +72,14 @@ module.exports = {
     compress: false,
     contentBase: [path.join(__dirname, 'public')],
     hot: false,
-    // host: '127.0.0.1',
+    host: '127.0.0.1',
     liveReload: true,
-    // port: 3000,
-    before: function (app, server, compiler) {
-      app.get('/debug', (req, res) => {
-        res.json({ hello: 'EH?' })
-      })
-    },
+    port: 3000,
+    // before: function (app, server, compiler) {
+    //   app.get('/debug', (req, res) => {
+    //     res.json({ hello: 'EH?' })
+    //   })
+    // },
   },
   devtool: 'source-map',
   watchOptions: {
@@ -94,24 +94,31 @@ module.exports = {
         exclude: /node_modules/,
         include: path.resolve(__dirname, 'src'),
         use: [
+          // {
+          //   loader: 'babel-loader',
+          //   options: {
+          //     presets: ['@babel/preset-env'],
+          //     plugins: [
+          //       'lodash',
+          //       '@babel/plugin-transform-runtime',
+          //       ['@babel/plugin-proposal-class-properties', { loose: true }],
+          //       ['@babel/plugin-proposal-private-methods', { loose: true }],
+          //     ],
+          //   },
+          // },
+          // {
+          //   loader: 'ts-loader',
+          //   options: {
+          //     silent: true,
+          //     transpileOnly: true,
+          //     allowTsInNodeModules: false,
+          //   },
+          // },
           {
-            loader: 'babel-loader',
+            loader: 'esbuild-loader',
             options: {
-              presets: ['@babel/preset-env'],
-              plugins: [
-                'lodash',
-                '@babel/plugin-transform-runtime',
-                ['@babel/plugin-proposal-class-properties', { loose: true }],
-                ['@babel/plugin-proposal-private-methods', { loose: true }],
-              ],
-            },
-          },
-          {
-            loader: 'ts-loader',
-            options: {
-              silent: true,
-              transpileOnly: true,
-              allowTsInNodeModules: false,
+              loader: 'ts', // Or 'ts' if you don't need tsx
+              target: 'es2015',
             },
           },
         ],

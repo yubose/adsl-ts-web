@@ -7,7 +7,6 @@ import {
   findListDataObject,
   findIteratorVar,
   getDataValues,
-  NUI,
   NUIComponent,
   Store,
   Viewport as VP,
@@ -38,10 +37,6 @@ import * as u from '../utils/common'
 
 const log = Logger.create('builtIns.ts')
 const _pick = u.pickActionKey
-
-type BuiltInActionArg =
-  | Parameters<Store.BuiltInObject['fn']>[0]
-  | Record<string, any>
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
@@ -83,11 +78,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action)
     const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
-      const node = findByUX(_pick(action, 'contentType'))
-      u.array(node).forEach((n) => n && show(n))
+      u.arrayEach((n) => n && show(n), findByUX(_pick(action, 'contentType')))
     }
-    if (u.isNum(delay)) setTimeout(() => onCheckField(), delay as any)
-    else onCheckField()
+    u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }
 
   const disconnectMeeting: Store.BuiltInObject['fn'] = async function onDisconnectMeeting(
@@ -215,18 +208,18 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         set(dataObject, parts, nextDataValue)
       } else {
         const onNextValue = (
-          previousValue: any,
+          prevValue: any,
           { updateDraft }: { updateDraft?: { path: string } } = {},
         ) => {
           let nextValue: any
-          if (Identify.isBoolean(previousValue)) {
-            nextValue = !Identify.isBooleanTrue(previousValue)
+          if (Identify.isBoolean(prevValue)) {
+            nextValue = !Identify.isBooleanTrue(prevValue)
           }
-          nextValue = !previousValue
+          nextValue = !prevValue
           if (updateDraft) {
-            app.noodl.editDraft((draft: Draft<Record<string, any>>) => {
-              set(draft, updateDraft.path, nextValue)
-            })
+            app.updateRoot(
+              (draft) => void set(draft, updateDraft.path, nextValue),
+            )
           }
           // Propagate the changes to to UI if there is a path "if" object that
           // references the value as well
@@ -251,12 +244,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
         dataObject = app.noodl.root
 
-        if (has(app.noodl.root, dataKey)) {
-          dataObject = app.noodl.root
+        if (has(dataObject, dataKey)) {
           previousDataValue = get(dataObject, dataKey)
           onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
-        } else if (has(app.noodl.root[pageName], dataKey)) {
-          dataObject = app.noodl.root[pageName]
+        } else if (has(dataObject[pageName], dataKey)) {
+          dataObject = dataObject[pageName]
           previousDataValue = get(dataObject, dataKey)
           onNextValue(previousDataValue, {
             updateDraft: {
@@ -269,22 +261,21 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               `Defaulting to attaching ${dataKey} as a path to the root object`,
             { dataObject, dataKey },
           )
-          dataObject = app.noodl.root
           previousDataValue = undefined
           nextDataValue = false
           onNextValue(previousDataValue, {
-            updateDraft: { path: `${dataKey}.${app.mainPage.page || ''}` },
+            updateDraft: { path: `${dataKey}.${pageName || ''}` },
           })
         }
       }
 
       if (/mic/i.test(dataKey)) {
-        await app.ndom.builtIns
+        await app.builtIns
           .get('toggleMicrophoneOnOff')
           ?.find(Boolean)
           ?.fn?.(action, options)
       } else if (/camera/i.test(dataKey)) {
-        await app.ndom.builtIns
+        await app.builtIns
           .get('toggleCameraOnOff')
           ?.find(Boolean)
           ?.fn?.(action, options)

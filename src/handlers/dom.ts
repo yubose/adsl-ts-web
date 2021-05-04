@@ -21,6 +21,7 @@ import {
   NUIComponent,
 } from 'noodl-ui'
 import App from '../App'
+import { hide } from '../utils/dom'
 import * as u from '../utils/common'
 
 const log = Logger.create('dom.ts')
@@ -40,7 +41,6 @@ const createExtendedDOMResolvers = function (app: App) {
     async function onChange(event: Event) {
       pageName !== app.mainPage.page && (pageName = app.mainPage.page)
 
-      const localRoot = app.noodl?.root?.[pageName]
       const value = (event.target as any)?.value || ''
 
       if (iteratorVar) {
@@ -64,31 +64,35 @@ const createExtendedDOMResolvers = function (app: App) {
       } else {
         if (dataKey) {
           app.updateRoot((draft) => {
-            if (!has(draft?.[app.mainPage.page], dataKey)) {
+            if (!has(draft?.[pageName], dataKey)) {
+              const paths = dataKey.split('.')
+              const property = paths.length ? paths[paths.length - 1] : ''
               log.orange(
-                `Warning: The dataKey path ${dataKey} does not exist in the local root object ` +
+                `Warning: The${
+                  property ? ` property "${property}" in the` : ''
+                } ` +
+                  `dataKey path "${dataKey}" did not exist in the local root object ` +
                   `If this is intended then ignore this message.`,
                 {
                   component,
                   dataKey,
-                  localRoot,
                   node,
-                  pageName: app.mainPage.page,
-                  pageObject: app.noodl.root[app.mainPage.page],
+                  pageName,
+                  pageObject: app.noodl.root[pageName],
                   value,
                 },
               )
             }
-            set(draft?.[app.mainPage.page], dataKey, value)
+            set(draft?.[pageName], dataKey, value)
             component.edit('data-value', value)
             node.dataset.value = value
 
             /** TEMP - Hardcoded for SettingsUpdate page to speed up development */
-            if (/settings/i.test(app.mainPage.page)) {
+            if (/settings/i.test(pageName)) {
               if (node.dataset?.name === 'code') {
                 const pathToTage = 'verificationCode.response.edge.tage'
-                if (has(app.noodl.root?.[app.mainPage.page], pathToTage)) {
-                  app.updateRoot(`${app.mainPage.page}.${pathToTage}`, value)
+                if (has(app.noodl.root?.[pageName], pathToTage)) {
+                  app.updateRoot(`${pageName}.${pathToTage}`, value)
                   console.log(`Updated: SettingsUpdate.${pathToTage}`)
                 }
               }
@@ -332,7 +336,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       let getDay = date.getDay()
                       // 把element变形然后push进数组
                       let startT = formatDate(startTimestamp, 'p')
-                      let endT = formatDate(endTimestamp,' p')
+                      let endT = formatDate(endTimestamp, ' p')
                       let itemValue = `${element.visitReason},${startT}-${endT}`
                       element.name = itemValue
                       // element.push()
@@ -366,10 +370,10 @@ const createExtendedDOMResolvers = function (app: App) {
                 // generateData(dataValue.chartData,dataLength)
                 // 根据stime， etime 生成date数据
                 divideByWeek(dataValue.chartData)
-                let data = []
+                let data = [] as any[]
                 let yAxis = []
                 function getzf(num: string | number) {
-                  if (parseInt(num) < 10) {
+                  if (parseInt(num as string) < 10) {
                     num = '0' + num
                   }
                   return num
@@ -466,7 +470,7 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve(node, component) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
-          component.get('data-key') || component.get('dataKey') || ''
+          component.get('data-key') || component.blueprint?.dataKey || ''
         if (dataKey) {
           node.addEventListener(
             'change',
@@ -499,21 +503,19 @@ const createExtendedDOMResolvers = function (app: App) {
       async resolve(node, component) {
         const img = node as HTMLImageElement
         const parent = component.parent
-        const pageObject = app.nui.getRoot()[app.mainPage?.page || ''] || {}
+        const pageObject = app.root[app.mainPage?.page || ''] || {}
         if (
-          img?.src === pageObject?.docDetail?.document?.name?.data &&
-          pageObject?.docDetail?.document?.name?.type == 'application/pdf'
+          img?.src === get(pageObject, 'docDetail.document.name.data') &&
+          get(pageObject, 'docDetail.document.name.type') === 'application/pdf'
         ) {
-          img?.style && (img.style.visibility = 'hidden')
-          const parentNode = parent && getFirstByElementId(parent)
+          img?.style && hide(img)
           const iframeEl = document.createElement('iframe')
           iframeEl.setAttribute('src', img.src)
-          if (u.isObj(component.style)) {
-            u.entries(component.style).forEach(
-              ([k, v]) => (iframeEl.style[k as any] = v),
-            )
-          }
-          parentNode?.appendChild(iframeEl)
+          u.eachEntries(
+            (k, v) => (iframeEl.style[k as any] = v),
+            component.style,
+          )
+          ;(parent && getFirstByElementId(parent))?.appendChild(iframeEl)
         }
       },
     },
@@ -943,7 +945,8 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] VideoChat Timer': {
       cond: (n, c) => u.isFnc(c.get('text=func')),
       resolve: (node, component) => {
-        const dataKey = component.get('dataKey')
+        const dataKey =
+          component.get('data-key') || component.blueprint?.dataKey || ''
 
         if (component.contentType === 'timer') {
           component.on(

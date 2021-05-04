@@ -92,6 +92,12 @@ describe(coolGold(`App`), () => {
       })
     })
 
+    describe(`noodl plugins`, () => {
+      xit(`should register the plugins from the config if available`, () => {
+        //
+      })
+    })
+
     describe(`noodl registers`, () => {
       createRegisters({} as any).forEach((obj) => {
         it(`should register the "${magenta(obj.name)}" object`, async () => {
