@@ -1,7 +1,7 @@
 import firebase from 'firebase'
 import CADL, { Account } from '@aitmed/cadl'
 import { NUI, Viewport } from 'noodl-ui'
-import { EmitObject } from 'noodl-types'
+import { EmitObject, PageObject } from 'noodl-types'
 import NOODLDOM from 'noodl-ui-dom'
 import createMeetingFns from '../../meeting'
 export * from './domTypes'
@@ -34,7 +34,17 @@ export interface EmitCallParams {
   pageName: string
 }
 
-export type FirebaseApp = firebase.app.App
-export type FirebaseMessaging = firebase.messaging.Messaging
+export type AppObservers<
+  Id extends keyof AppObserver = keyof AppObserver
+> = Map<Id, AppObserver[Id]['fn'][]>
+
+export interface AppObserver {
+  onInitPage: {
+    fn: (pageObject: PageObject) => void
+    params: PageObject
+  }
+}
 
 export type Meeting = ReturnType<typeof createMeetingFns>
+export type FirebaseApp = firebase.app.App
+export type FirebaseMessaging = firebase.messaging.Messaging

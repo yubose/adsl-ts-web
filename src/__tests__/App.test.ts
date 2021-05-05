@@ -6,6 +6,7 @@ import { coolGold, italic, magenta } from 'noodl-common'
 import { nuiEmitTransaction, NUI, Viewport, Store } from 'noodl-ui'
 import { Page as NOODLDOMPage } from 'noodl-ui-dom'
 import { initializeApp, ndom } from '../utils/test-utils'
+import getMockMeetingChat from './helpers/mockMeetingChat/getMockMeetingChat'
 import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
@@ -98,9 +99,28 @@ describe(coolGold(`App`), () => {
       })
     })
 
-    describe(`noodl registers`, () => {
+    describe.only(`noodl registers`, () => {
+      const onNewEcosDocObject = mock.getRegisterComponent({
+        onEvent: 'onNewEcosDoc',
+        emit: mock.getEmitObject({
+          dataKey: { var: 'ecosDocOj' },
+          actions: [],
+        }),
+      })
+
+      describe(`when working with ${magenta(
+        `noodl.root.Global.globalRegister`,
+      )}`, () => {
+        it(``, () => {
+          console.info(onNewEcosDocObject)
+          getMockMeetingChat()
+        })
+      })
+
       createRegisters({} as any).forEach((obj) => {
-        it(`should register the "${magenta(obj.name)}" object`, async () => {
+        it(`should register the "${magenta(
+          obj.name,
+        )}" object to the register store`, async () => {
           const app = await initializeApp()
           expect(app.ndom.cache.register.has(obj.name))
         })

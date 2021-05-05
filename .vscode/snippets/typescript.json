@@ -1,4 +1,8 @@
 {
+  "@aitmed/web-common-utils": {
+    "prefix": "aitutils",
+    "body": "import * as u from '@aitmed/web-common-utils'"
+  },
   "arrayEach": {
     "prefix": "arrayeach",
     "body": "u.arrayEach(($1) => {$3}, $2)"

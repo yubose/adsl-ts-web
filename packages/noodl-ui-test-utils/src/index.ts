@@ -1,10 +1,10 @@
 import { Action, createActionChain } from 'noodl-action-chain'
-import { PartialDeep } from 'type-fest'
+import { LiteralUnion, PartialDeep, SetOptional } from 'type-fest'
 import {
+  ActionObject,
   BuiltInActionObject,
   ButtonComponentObject,
   ComponentObject,
-  ComponentType,
   DividerComponentObject,
   EcosDocComponentObject,
   EcosDocument,
@@ -19,7 +19,7 @@ import {
   LabelComponentObject,
   ListComponentObject,
   ListItemComponentObject,
-  NameFieldBase,
+  NameField,
   PageComponentObject,
   PageJumpActionObject,
   Path,
@@ -43,15 +43,75 @@ import {
   ViewComponentObject,
 } from 'noodl-types'
 import {
-  createComponent,
   EmitAction,
   NUIAction,
   NUIActionObject,
   NUIActionObjectInput,
   NUITrigger,
-  NUIComponent,
 } from 'noodl-ui'
 import * as T from './types'
+
+type CreateWithKeyOrProps<
+  Obj extends Record<string, any> = Record<string, any>,
+  Key extends keyof Obj = keyof Obj
+> = {
+  //
+}
+
+const createEval = createActionWithKeyOrProps<NUIActionObject>(
+  {
+    actionType: '',
+    popUpView: 'agoawf.html',
+  },
+  '',
+)
+
+const evalObject = createEval('')
+
+function createObjWithKeyOrProps<Obj extends Record<string, any>>(
+  defaultProps: Partial<Obj>,
+) {
+  const create = <Key extends keyof Obj>(
+    key: Key | Obj[Key] | Partial<Obj>,
+    props?: CreateWithKeyOrProps<Obj, Key>,
+  ): Obj => {
+    const obj = { ...defaultProps } as any
+    if (typeof key === 'string') key === ''
+    else key
+    if (typeof props === 'string') obj[key] = props
+    else if (props) Object.assign(obj, props)
+    return obj as Obj
+  }
+  return create
+}
+
+function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
+  defaultProps: O,
+  key: keyof O,
+) {
+  const createObj = (props?: string | ActionProps<O>): O => {
+    const obj = { ...defaultProps } as NUIActionObjectInput
+    if (typeof key === 'string') obj[key] = props
+    else if (props) Object.assign(obj, props)
+    return obj as O
+  }
+  return createObj
+}
+
+function createComponentWithKeyOrProps<O extends ComponentObject>(
+  defaultProps: O,
+  key: string,
+) {
+  const createObj = (props?: string | ComponentProps<O>): O => {
+    const obj = { ...defaultProps } as ComponentObject
+    if (typeof key === 'string') obj[key] = props
+    else if (props) Object.assign(obj, props)
+    return obj as O
+  }
+  return createObj
+}
+
+type ActionProps<C extends Partial<ActionObject> = ActionObject> = Partial<C>
 
 type ComponentProps<
   C extends Partial<ComponentObject> = ComponentObject
@@ -96,20 +156,10 @@ export function getActionChain({
   return actionChain
 }
 
-export function getBuiltInAction(funcName?: string): BuiltInActionObject
-export function getBuiltInAction(
-  props?: Partial<BuiltInActionObject>,
-): BuiltInActionObject
-export function getBuiltInAction(
-  props?: Partial<BuiltInActionObject> | string,
-): BuiltInActionObject {
-  props = typeof props === 'string' ? { funcName: props } : props
-  return {
-    actionType: 'builtIn',
-    funcName: 'hello',
-    ...props,
-  }
-}
+export const getBuiltInAction = createActionWithKeyOrProps<BuiltInActionObject>(
+  { actionType: 'builtIn', funcName: 'hello' },
+  'funcName',
+)
 
 export function getEvalObjectAction(
   props?: Partial<EvalActionObject>,
@@ -124,15 +174,27 @@ export function getPageJumpAction(
 }
 
 export function getPopUpAction(
-  props?: Partial<PopupActionObject>,
+  props?: string | Partial<PopupActionObject>,
 ): PopupActionObject {
-  return { actionType: 'popUp', popUpView: 'genderView', ...props }
+  const obj = {
+    actionType: 'popUp',
+    popUpView: 'genderView',
+  } as PopupActionObject
+  if (typeof props === 'string') obj.popUpView = props
+  else if (props) Object.assign(obj, props)
+  return obj
 }
 
 export function getPopUpDismissAction(
-  props?: Partial<PopupDismissActionObject>,
+  props?: string | Partial<PopupDismissActionObject>,
 ): PopupDismissActionObject {
-  return { actionType: 'popUpDismiss', popUpView: 'warningView', ...props }
+  const obj = {
+    actionType: 'popUpDismiss',
+    popUpView: 'helloView',
+  } as PopupDismissActionObject
+  if (typeof props === 'string') obj.popUpView = props
+  else Object.assign(obj, props)
+  return obj
 }
 
 export function getRefreshAction(
@@ -163,11 +225,11 @@ export function getUpdateObjectAction(props?: Partial<UpdateActionObject>) {
 
 export function getEcosDocObject(
   preset?: 'image' | 'pdf' | 'text' | 'video',
-): EcosDocument<NameFieldBase>
-export function getEcosDocObject<NameField extends NameFieldBase>(
+): EcosDocument<NameField.Base>
+export function getEcosDocObject<NameField extends NameField.Base>(
   propsProp?: PartialDeep<EcosDocument<NameField>>,
 ): EcosDocument<NameField>
-export function getEcosDocObject<NameField extends NameFieldBase>(
+export function getEcosDocObject<NameField extends NameField.Base>(
   propsProp?:
     | 'audio'
     | 'docx'
@@ -180,7 +242,7 @@ export function getEcosDocObject<NameField extends NameFieldBase>(
 ): EcosDocument<NameField> {
   const props = {
     name: { data: `blob:http://a0242fasa141inmfakmf24242`, type: '' },
-  } as EcosDocument<NameFieldBase>
+  } as Partial<EcosDocument<NameField.Base>>
 
   if (typeof propsProp === 'string') {
     //
@@ -276,14 +338,19 @@ export function getEmitObject({
   }
 }
 
-export function getGotoObject(props?: Partial<GotoObject>): GotoObject {
-  return { goto: 'PatientDashboard', ...props }
+export function getGotoObject(
+  props?: string | Partial<GotoObject>,
+): GotoObject {
+  const obj = { goto: 'PatientDashboard' } as GotoObject
+  if (typeof props === 'string') obj.goto = props
+  else if (props) Object.assign(obj, props)
+  return obj
 }
 
 export function getButtonComponent(
-  props?: ComponentProps<ButtonComponentObject>,
+  props?: string | ComponentProps<ButtonComponentObject>,
 ): ButtonComponentObject {
-  return {
+  const obj = {
     type: 'button',
     onClick: [
       {
@@ -297,8 +364,10 @@ export function getButtonComponent(
       },
     ],
     text: 'Delete',
-    ...props,
-  }
+  } as ButtonComponentObject
+  if (typeof props === 'string') obj.text = props
+  else if (props) Object.assign(obj, props)
+  return obj
 }
 
 export function getEcosDocComponent(
@@ -329,15 +398,13 @@ export function getHeaderComponent(
   return { type: 'header', ...props }
 }
 
-export function getImageComponent({
-  path = 'abc.png' as any,
-  ...rest
-}: ComponentProps<ImageComponentObject> = {}): ImageComponentObject {
-  return {
-    type: 'image',
-    path,
-    ...rest,
-  }
+export function getImageComponent(
+  args: string | ComponentProps<ImageComponentObject> = {},
+): ImageComponentObject {
+  const obj = { type: 'image', path: 'abc.png' } as ImageComponentObject
+  if (typeof args === 'string') obj.path = args
+  else if (args) Object.assign(obj, args)
+  return obj
 }
 
 export function getLabelComponent(
@@ -432,32 +499,38 @@ export function getPluginHeadComponent(
   return { type: 'pluginHead', path: 'googleTM.js', ...props }
 }
 
-export function getPluginBodyTailComponent(
-  props?: ComponentProps<PluginBodyTailComponentObject> & { path?: string },
-): PluginBodyTailComponentObject {
-  return { type: 'pluginBodyTail', path: 'googleTM.js', ...props }
-}
+export const getPluginBodyTopComponent = createComponentWithKeyOrProps<PluginBodyTailComponentObject>(
+  { type: 'pluginBodyTop', path: 'googleTM.js' } as any,
+  'path',
+)
 
-export function getPopUpComponent(
-  props?: ComponentProps<PopUpComponentObject> & { popUpView?: string },
-): PopUpComponentObject {
-  return { type: 'popUp', popUpView: 'genderView', ...props }
-}
+export const getPluginBodyTail = createComponentWithKeyOrProps<PluginBodyTailComponentObject>(
+  { type: 'pluginBodyTail', path: 'googleTM.js' },
+  'path',
+)
 
-export function getRegisterComponent(
-  props?: ComponentProps<RegisterComponentObject> & { onEvent?: string },
-): RegisterComponentObject {
-  return {
-    type: 'register',
-    onEvent: props?.onEvent || 'ToggleCameraOn',
-    ...props,
-  }
-}
+export const getPopUpComponent = createComponentWithKeyOrProps<PopUpComponentObject>(
+  { type: 'popUp', popUpView: 'genderView' },
+  'popUpView',
+)
+
+export const getRegisterComponent = createComponentWithKeyOrProps<RegisterComponentObject>(
+  { type: 'register', onEvent: 'toggleCameraOn' },
+  'onEvent',
+)
 
 export function getSelectComponent(
-  props?: ComponentProps<SelectComponentObject> & { options?: string[] },
+  props?:
+    | Record<string, any>[]
+    | (ComponentProps<SelectComponentObject> & { options?: string[] }),
 ): SelectComponentObject {
-  return { type: 'select', options: ['apple', 'orange', 'banana'], ...props }
+  const obj = {
+    type: 'select',
+    options: ['apple', 'orange', 'banana'],
+  } as SelectComponentObject
+  if (Array.isArray(props)) obj.options = props
+  else if (props) Object.assign(obj, props)
+  return obj
 }
 
 export function getScrollViewComponent(
@@ -486,15 +559,10 @@ export function getTextViewComponent(
   return { type: 'textView', ...props }
 }
 
-export function getVideoComponent(
-  props?: ComponentProps<VideoComponentObject> & { videoFormat?: string },
-): VideoComponentObject {
-  return {
-    type: 'video',
-    videoFormat: props?.videoFormat || 'video/mp4',
-    ...props,
-  }
-}
+export const getVideoComponent = createComponentWithKeyOrProps<VideoComponentObject>(
+  { type: 'video', videoFormat: 'video/mp4' },
+  'path',
+)
 
 export function getViewComponent({
   addChildren = [],
@@ -534,17 +602,4 @@ export function getIfObject({ iteratorVar = 'itemObject' } = {}): IfObject {
       'selectOff.png',
     ],
   }
-}
-
-export function getComponentInstance({
-  component,
-}: {
-  component: ComponentObject | ComponentType
-}): NUIComponent.Instance {
-  const result =
-    typeof component === 'string'
-      ? createComponent({ type: component })
-      : createComponent(component)
-
-  return result
 }

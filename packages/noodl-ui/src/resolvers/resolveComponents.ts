@@ -103,7 +103,7 @@ componentResolver.setResolver((component, options, next) => {
 
     // Creates list items as new data objects are added
     component.on(
-      c.event.component.list.ADD_DATA_OBJECT,
+      c.nuiEvent.component.list.ADD_DATA_OBJECT,
       ({ index, dataObject }) => {
         const ctx = { index, iteratorVar, dataObject }
         let listItem = component.createChild(createComponent(listItemBlueprint))
@@ -130,7 +130,7 @@ componentResolver.setResolver((component, options, next) => {
 
     // Removes list items when their data object is removed
     component.on(
-      c.event.component.list.DELETE_DATA_OBJECT,
+      c.nuiEvent.component.list.DELETE_DATA_OBJECT,
       (args) => {
         const listItem = component?.children?.find(
           (child) => child.get(iteratorVar) === args.dataObject,
@@ -153,7 +153,7 @@ componentResolver.setResolver((component, options, next) => {
 
     // Updates list items with new updates to their data object
     component.on(
-      c.event.component.list.UPDATE_DATA_OBJECT,
+      c.nuiEvent.component.list.UPDATE_DATA_OBJECT,
       (args) => {
         component.children?.[args.index]?.edit?.({
           [iteratorVar]: args.dataObject,
@@ -167,7 +167,7 @@ componentResolver.setResolver((component, options, next) => {
 
     // Customly create the listItem children using a dataObject as the data source
     getListObject().forEach((dataObject: any, index: number) => {
-      component.emit(c.event.component.list.ADD_DATA_OBJECT, {
+      component.emit(c.nuiEvent.component.list.ADD_DATA_OBJECT, {
         index,
         dataObject,
       })
@@ -220,7 +220,7 @@ componentResolver.setResolver((component, options, next) => {
             })
           : []) as NUIComponent.Instance[]
         components?.forEach(component.createChild.bind(component))
-        component.emit(c.event.component.page.PAGE_COMPONENTS, components)
+        component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, components)
       })
       .catch((err: Error) => {
         throw new Error(

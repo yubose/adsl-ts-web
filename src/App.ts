@@ -9,7 +9,7 @@ import { RemoteParticipant } from 'twilio-video'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { ComponentObject, Identify } from 'noodl-types'
+import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import { NUI, NUIComponent, publish, Viewport as VP } from 'noodl-ui'
 import { Draft } from 'immer/dist/internal'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
@@ -46,6 +46,7 @@ class App {
   #noodl: T.AppConstructorOptions['noodl']
   #nui: T.AppConstructorOptions['nui']
   #ndom: T.AppConstructorOptions['ndom']
+  obs: T.AppObservers = new Map()
   _store: {
     messaging: {
       serviceRegistration: ServiceWorkerRegistration
@@ -394,33 +395,7 @@ class App {
         pageObject: this.noodl?.root[pageRequesting],
         snapshot: page.snapshot(),
       })
-      if (this.noodl?.root?.Global?.globalRegister) {
-        const { Global } = this.noodl.root
-        if (Array.isArray(Global.globalRegister)) {
-          if (Global.globalRegister.length) {
-            log.grey(
-              `Scanning ${Global.globalRegister.length} items found in Global.globalRegister`,
-              Global.globalRegister,
-            )
-            Global.globalRegister.forEach((value: any) => {
-              if (u.isObj(value)) {
-                if (Identify.component.register(value)) {
-                  log.grey(
-                    `Found and attached a "register" component to the register store`,
-                    value,
-                  )
-                  NUI.use({
-                    register: {
-                      name: value.onEvent as string,
-                      component: value,
-                    },
-                  })
-                }
-              }
-            })
-          }
-        }
-      }
+      this.emit('onInitPage', this.noodl.root[pageRequesting] as PageObject)
       return this.noodl.root[pageRequesting]
     } catch (error) {
       console.error(error)
@@ -670,6 +645,25 @@ class App {
     })
     cb?.(this.noodl.root)
   }
+
+  listen<Id extends keyof T.AppObserver, Fn extends T.AppObserver[Id]['fn']>(
+    id: Id,
+    fn: Fn,
+  ) {
+    const obsList = this.obs.get(id) || []
+    !this.obs.has(id) && this.obs.set(id, obsList)
+    !obsList.includes(fn) && obsList.push(fn)
+    return this
+  }
+
+  emit<
+    Id extends keyof T.AppObserver,
+    P extends T.AppObserver[Id]['params'] = T.AppObserver[Id]['params']
+  >(id: Id, params?: P) {
+    const fns = this.obs.has(id) && this.obs.get(id)
+    fns && fns.forEach((fn) => typeof fn === 'function' && fn(params as P))
+  }
+
   /* -------------------------------------------------------
     ---- LOCAL STORAGE HELPERS FOR CACHED PAGES
   -------------------------------------------------------- */

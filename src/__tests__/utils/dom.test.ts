@@ -22,7 +22,7 @@ describe(coolGold(`dom (utils)`), () => {
       //
     })
 
-    it.only(`should set its visibility to "hidden"`, async () => {
+    it(`should set its visibility to "hidden"`, async () => {
       await getApp({
         navigate: true,
         components: [
@@ -127,7 +127,7 @@ describe(coolGold(`dom (utils)`), () => {
   })
 
   describe(italic(`show`), () => {
-    it.only(`should set its visibility to "visible"`, async () => {
+    it(`should set its visibility to "visible"`, async () => {
       await getApp({
         navigate: true,
         components: [

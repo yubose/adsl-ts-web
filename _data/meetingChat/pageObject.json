@@ -1,0 +1,973 @@
+{
+  "pageNumber": "180",
+  "title": "Meeting Chat",
+  "init": [
+    {
+      "if": [
+        "=.Global.currentUser.vertex.sk",
+        "continue",
+        {
+          "goto": "SignIn"
+        }
+      ]
+    },
+    null,
+    {
+      "if": [
+        "=..docResponse.doc.0.id",
+        {
+          ".MeetingChat.newNote.document@": "=..docResponse.doc.0"
+        },
+        {
+          "actionType": "evalObject"
+        }
+      ]
+    },
+    {
+      "if": [
+        "=.MeetingChat.newNote.document.id",
+        "continue",
+        {
+          ".MeetingChat.newNote.document.id@": "=.MeetingChat.newNote.document.doc.id"
+        }
+      ]
+    },
+    {
+      ".Global.DocReference.document@": "=.MeetingChat.newNote.document"
+    },
+    {
+      ".MeetingChat.newNote.document.name.targetRoomName@": "=.Global.rootRoomInfo.edge.name.roomName"
+    },
+    null,
+    {
+      "..newestMsg@": "=..listData.chatList.doc.0"
+    }
+  ],
+  "save": [
+    {
+      ".MeetingChat.newChat.document.fid@": "=.MeetingChat.newNote.document.id"
+    },
+    {
+      "=.MeetingChat.newChat.docAPI.store": ""
+    },
+    {
+      ".Global.DocReference.document@": "=.MeetingChat.newNote.document"
+    }
+  ],
+  "listData": {
+    "chatList": {
+      "doc": [
+        {
+          "id": "McjxwbUISUl0ERaTicVpxQ==",
+          "ctime": 1620255871,
+          "mtime": 1620255871,
+          "atime": 1620255871,
+          "atimes": 1,
+          "tage": 0,
+          "subtype": {
+            "isOnServer": true,
+            "isZipped": false,
+            "isBinary": false,
+            "isEncrypted": false,
+            "isEditable": true,
+            "applicationDataType": 0,
+            "mediaType": 0,
+            "size": 17
+          },
+          "type": 1537,
+          "name": {
+            "title": "",
+            "user": "Abc123",
+            "type": "application/json",
+            "data": {
+              "note": "aasfas"
+            },
+            "tags": []
+          },
+          "deat": null,
+          "size": 17,
+          "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+          "eid": "MMMQrNlFTkaNrnU91MddFg==",
+          "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+          "esig": "MMMQrNlFTkaNrnU91MddFg==",
+          "created_at": 1620255871000,
+          "modified_at": 1620255871000
+        },
+        {
+          "id": "X8NJrQKqSvtmJwv1DT4FsA==",
+          "ctime": 1620237108,
+          "mtime": 1620237108,
+          "atime": 1620237108,
+          "atimes": 1,
+          "tage": 0,
+          "subtype": {
+            "isOnServer": true,
+            "isZipped": false,
+            "isBinary": false,
+            "isEncrypted": false,
+            "isEditable": true,
+            "applicationDataType": 0,
+            "mediaType": 0,
+            "size": 16
+          },
+          "type": 1537,
+          "name": {
+            "title": "",
+            "user": "Abc123",
+            "type": "application/json",
+            "data": {
+              "note": "hello"
+            },
+            "tags": []
+          },
+          "deat": null,
+          "size": 16,
+          "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+          "eid": "MMMQrNlFTkaNrnU91MddFg==",
+          "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+          "esig": "MMMQrNlFTkaNrnU91MddFg==",
+          "created_at": 1620237108000,
+          "modified_at": 1620237108000
+        },
+        {
+          "id": "+wyo92yXSeBSUjHgQj+1XA==",
+          "ctime": 1620237107,
+          "mtime": 1620237107,
+          "atime": 1620237107,
+          "atimes": 1,
+          "tage": 0,
+          "subtype": {
+            "isOnServer": true,
+            "isZipped": false,
+            "isBinary": false,
+            "isEncrypted": false,
+            "isEditable": true,
+            "applicationDataType": 0,
+            "mediaType": 0,
+            "size": 16
+          },
+          "type": 1537,
+          "name": {
+            "title": "",
+            "user": "Abc123",
+            "type": "application/json",
+            "data": {
+              "note": "hello"
+            },
+            "tags": []
+          },
+          "deat": null,
+          "size": 16,
+          "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+          "eid": "MMMQrNlFTkaNrnU91MddFg==",
+          "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+          "esig": "MMMQrNlFTkaNrnU91MddFg==",
+          "created_at": 1620237107000,
+          "modified_at": 1620237107000
+        },
+        {
+          "id": "WAmav3NiSV1sIIkLWF74sw==",
+          "ctime": 1620234508,
+          "mtime": 1620234508,
+          "atime": 1620234508,
+          "atimes": 1,
+          "tage": 0,
+          "subtype": {
+            "isOnServer": true,
+            "isZipped": false,
+            "isBinary": false,
+            "isEncrypted": false,
+            "isEditable": true,
+            "applicationDataType": 0,
+            "mediaType": 0,
+            "size": 33
+          },
+          "type": 1537,
+          "name": {
+            "title": "",
+            "user": "Abc123",
+            "type": "application/json",
+            "data": {
+              "note": "this is my new message"
+            },
+            "tags": []
+          },
+          "deat": null,
+          "size": 33,
+          "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+          "eid": "MMMQrNlFTkaNrnU91MddFg==",
+          "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+          "esig": "MMMQrNlFTkaNrnU91MddFg==",
+          "created_at": 1620234508000,
+          "modified_at": 1620234508000
+        },
+        {
+          "id": "ZdjS/TJJQdRVImCJFeLmAQ==",
+          "ctime": 1620234503,
+          "mtime": 1620234503,
+          "atime": 1620234503,
+          "atimes": 1,
+          "tage": 0,
+          "subtype": {
+            "isOnServer": true,
+            "isZipped": false,
+            "isBinary": false,
+            "isEncrypted": false,
+            "isEditable": true,
+            "applicationDataType": 0,
+            "mediaType": 0,
+            "size": 11
+          },
+          "type": 1537,
+          "name": {
+            "title": "",
+            "user": "Abc123",
+            "type": "application/json",
+            "data": {
+              "note": ""
+            },
+            "tags": []
+          },
+          "deat": null,
+          "size": 11,
+          "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+          "eid": "MMMQrNlFTkaNrnU91MddFg==",
+          "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+          "esig": "MMMQrNlFTkaNrnU91MddFg==",
+          "created_at": 1620234503000,
+          "modified_at": 1620234503000
+        }
+      ],
+      "error": "",
+      "jwt": "qz/kSO5RQ8ZPZ/n9DTiCdA==",
+      "code": 0
+    }
+  },
+  "listReGet": {
+    "chatList": {
+      "doc": {
+        "id": "=.Global.DocReference.document.id",
+        "xfname": "fid",
+        "type": "1537",
+        "obfname": "ctime",
+        "maxcount": "40",
+        "_nonce": "=.Global._nonce"
+      }
+    }
+  },
+  "newNote": {
+    "cdResponse": {
+      "jwt": "qz/kSO5RQ8ZPZ/n9DTiCdA==",
+      "error": "",
+      "doc": {
+        "id": "bDJ7v5TwR2pNVfZgrQeqAA==",
+        "ctime": 1620234498,
+        "mtime": 1620255870,
+        "atime": 1620255870,
+        "atimes": 6,
+        "tage": 0,
+        "subtype": {
+          "isOnServer": true,
+          "isZipped": false,
+          "isBinary": false,
+          "isEncrypted": false,
+          "isEditable": false,
+          "applicationDataType": 0,
+          "mediaType": 0,
+          "size": 11
+        },
+        "type": 1025,
+        "name": {
+          "title": "hello>??",
+          "targetRoomName": "fawf",
+          "user": "Chris Tran",
+          "type": "application/json",
+          "data": {
+            "note": ""
+          },
+          "tags": []
+        },
+        "deat": null,
+        "size": 11,
+        "fid": "",
+        "eid": "MMMQrNlFTkaNrnU91MddFg==",
+        "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+        "esig": "MMMQrNlFTkaNrnU91MddFg==",
+        "created_at": 1620234498000,
+        "modified_at": 1620255870000
+      },
+      "code": 0
+    },
+    "document": {
+      "id": "bDJ7v5TwR2pNVfZgrQeqAA==",
+      "name": {
+        "title": "hello>??",
+        "type": "application/json",
+        "data": {
+          "note": ""
+        },
+        "user": "Chris Tran",
+        "targetRoomName": "fawf",
+        "tags": []
+      },
+      "type": 1025,
+      "ctime": 1620234498,
+      "eid": "MMMQrNlFTkaNrnU91MddFg==",
+      "fid": "",
+      "subtype": {
+        "isOnServer": true,
+        "isZipped": false,
+        "isBinary": false,
+        "isEncryped": "0",
+        "isExtraKeyNeeded": "0",
+        "isEditable": false,
+        "isCached": "1",
+        "applicationDataType": 0,
+        "mediaType": 0,
+        "size": 11,
+        "isEncrypted": false
+      },
+      "mtime": 1620237108,
+      "atime": 1620237108,
+      "atimes": 5,
+      "tage": 0,
+      "size": 11,
+      "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+      "esig": "MMMQrNlFTkaNrnU91MddFg==",
+      "created_at": 1620234498000,
+      "modified_at": 1620237108000
+    },
+    "docAPI": {
+      "store": ["newNote.cdResponse.name", null]
+    }
+  },
+  "docResponse": {
+    "doc": [
+      {
+        "type": 1025,
+        "eid": "MMMQrNlFTkaNrnU91MddFg==",
+        "name": {
+          "title": "hello>??",
+          "targetRoomName": "fawf",
+          "user": "Chris Tran",
+          "type": "application/json",
+          "data": {
+            "note": ""
+          },
+          "tags": []
+        },
+        "id": "bDJ7v5TwR2pNVfZgrQeqAA==",
+        "ctime": 1620234498,
+        "mtime": 1620237108,
+        "atime": 1620237108,
+        "atimes": 5,
+        "tage": 0,
+        "subtype": {
+          "isOnServer": true,
+          "isZipped": false,
+          "isBinary": false,
+          "isEncrypted": false,
+          "isEditable": false,
+          "applicationDataType": 0,
+          "mediaType": 0,
+          "size": 11
+        },
+        "deat": null,
+        "size": 11,
+        "fid": "",
+        "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+        "esig": "MMMQrNlFTkaNrnU91MddFg==",
+        "created_at": 1620234498000,
+        "modified_at": 1620237108000
+      }
+    ],
+    "error": "",
+    "jwt": "qz/kSO5RQ8ZPZ/n9DTiCdA==",
+    "code": 0
+  },
+  "newChat": {
+    "document": {
+      "id": "",
+      "name": {
+        "title": "",
+        "type": "..newChat.docAPI.store.subtype.mediaType",
+        "data": {
+          "note": "aasfas"
+        },
+        "user": "Abc123"
+      },
+      "type": "1537",
+      "ctime": "0",
+      "eid": "MMMQrNlFTkaNrnU91MddFg==",
+      "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+      "subtype": {
+        "isOnServer": "1",
+        "isZipped": "auto",
+        "isBinary": "0",
+        "isEncryped": "0",
+        "isExtraKeyNeeded": "0",
+        "isEditable": "0",
+        "isCached": "1",
+        "applicationDataType": "0",
+        "mediaType": "text/plain",
+        "size": "auto"
+      }
+    },
+    "docAPI": {
+      "store": ["undefined.name", null]
+    }
+  },
+  "onNewMessageToDisplay": [
+    {
+      "actionType": "evalObject"
+    },
+    {
+      "actionType": "builtIn",
+      "funcName": "redraw",
+      "viewTag": "ChatList"
+    }
+  ],
+  "components": [
+    {
+      "type": "register",
+      "onEvent": "onNewMessageDisplay",
+      "emit": {
+        "dataKey": {
+          "var": "onNewMessageDisplay"
+        },
+        "actions": [
+          {
+            "actionType": "evalObject"
+          },
+          {
+            "actionType": "builtIn",
+            "funcName": "redraw",
+            "viewTag": "ChatList"
+          }
+        ]
+      }
+    },
+    {
+      "type": "popUp",
+      "viewTag": "noTitle",
+      "message": "Please input note title",
+      "style": {
+        "width": "0.88",
+        "height": "0.3",
+        "top": "0.3",
+        "left": "0.06",
+        "zIndex": "100",
+        "backgroundColor": "0xeaeaea",
+        "borderRadius": "7"
+      },
+      "children": [
+        {
+          "type": "label",
+          "text": "Please input note title",
+          "text2": "v",
+          "text3": "v",
+          "text4": "ok",
+          "style": {
+            "top": "0.08",
+            "left": "0",
+            "width": "0.89333",
+            "height": "0.05",
+            "fontSize": "19",
+            "textAlign": {
+              "x": "center",
+              "y": "center"
+            },
+            "color": "0x000000",
+            "borderWidth": "0",
+            "shadow": "false",
+            "display": "inline",
+            "fontFamily": "sans-serif"
+          }
+        },
+        {
+          "type": "button",
+          "text": "ok",
+          "style": {
+            "width": "0.2",
+            "left": "0.35",
+            "height": "0.05",
+            "top": "0.2",
+            "backgroundColor": "0x00000000",
+            "fontSize": "20",
+            "color": "0x000000",
+            "border": {
+              "style": "1",
+              "color": "0x000000"
+            },
+            "textAlign": "center"
+          },
+          "onClick": [
+            {
+              "actionType": "popUpDismiss",
+              "popUpView": "noTitle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "style": {
+        "left": "0",
+        "top": "0",
+        "width": "1",
+        "height": "0.1",
+        "backgroundColor": "0x388eccff"
+      },
+      "children": [
+        {
+          "type": "button",
+          "text": "Meeting Chat",
+          "style": {
+            "left": "0.25",
+            "width": "0.5",
+            "top": "0",
+            "fontWeight": 400,
+            "height": "0.1",
+            "fontSize": "19",
+            "color": "0xffffffff",
+            "backgroundColor": "0x388eccff",
+            "textAlign": {
+              "x": "center"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "button",
+      "onClick": [
+        {
+          "actionType": "evalObject"
+        },
+        {
+          "goto": {
+            "dataIn": {
+              "destination": "VideoChat",
+              "reload": false
+            }
+          }
+        }
+      ],
+      "style": {
+        "top": "0",
+        "left": "0.03",
+        "width": "0.18",
+        "height": "0.1",
+        "backgroundColor": "0x388eccff",
+        "zIndex": 100,
+        "textAlign": {
+          "y": "center"
+        }
+      },
+      "children": [
+        {
+          "type": "image",
+          "path": "backWhiteArrow.png",
+          "style": {
+            "left": "0.02",
+            "top": "0.04",
+            "height": "0.02",
+            "zIndex": 100
+          },
+          "textAlign": {
+            "y": "center"
+          }
+        },
+        {
+          "type": "label",
+          "text": "Back",
+          "style": {
+            "left": "0.08",
+            "top": "0",
+            "height": "0.1",
+            "width": "0.1",
+            "zIndex": 100,
+            "fontSize": "17",
+            "color": "0xffffffff",
+            "textAlign": {
+              "x": "left",
+              "y": "center"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "view",
+      "style": {
+        "top": "0.1",
+        "left": "0",
+        "width": "1",
+        "height": "0.9"
+      },
+      "children": [
+        {
+          "type": "textField",
+          "viewTag": "textInput",
+          "placeholder": "Title Here",
+          "dataKey": "newNote.document.name.title",
+          "style": {
+            "top": "0.01",
+            "left": "0.1",
+            "height": "0.04",
+            "width": "0.8",
+            "color": "0x000000ff",
+            "fontWeight": "200",
+            "fontSize": 13,
+            "borderWidth": "1",
+            "border": {
+              "style": "2"
+            },
+            "textAlign": {
+              "x": "center"
+            }
+          }
+        },
+        {
+          "type": "scrollView",
+          "style": {
+            "top": "0.06",
+            "left": "0.05",
+            "width": "1",
+            "height": "0.71",
+            "backgroundColor": "#ffffff",
+            "overflow": "scroll"
+          },
+          "children": [
+            {
+              "type": "list",
+              "viewTag": "ChatList",
+              "contentType": "listObject",
+              "listObject": [
+                {
+                  "id": "McjxwbUISUl0ERaTicVpxQ==",
+                  "ctime": 1620255871,
+                  "mtime": 1620255871,
+                  "atime": 1620255871,
+                  "atimes": 1,
+                  "tage": 0,
+                  "subtype": {
+                    "isOnServer": true,
+                    "isZipped": false,
+                    "isBinary": false,
+                    "isEncrypted": false,
+                    "isEditable": true,
+                    "applicationDataType": 0,
+                    "mediaType": 0,
+                    "size": 17
+                  },
+                  "type": 1537,
+                  "name": {
+                    "title": "",
+                    "user": "Abc123",
+                    "type": "application/json",
+                    "data": {
+                      "note": "aasfas"
+                    },
+                    "tags": []
+                  },
+                  "deat": null,
+                  "size": 17,
+                  "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+                  "eid": "MMMQrNlFTkaNrnU91MddFg==",
+                  "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+                  "esig": "MMMQrNlFTkaNrnU91MddFg==",
+                  "created_at": 1620255871000,
+                  "modified_at": 1620255871000
+                },
+                {
+                  "id": "X8NJrQKqSvtmJwv1DT4FsA==",
+                  "ctime": 1620237108,
+                  "mtime": 1620237108,
+                  "atime": 1620237108,
+                  "atimes": 1,
+                  "tage": 0,
+                  "subtype": {
+                    "isOnServer": true,
+                    "isZipped": false,
+                    "isBinary": false,
+                    "isEncrypted": false,
+                    "isEditable": true,
+                    "applicationDataType": 0,
+                    "mediaType": 0,
+                    "size": 16
+                  },
+                  "type": 1537,
+                  "name": {
+                    "title": "",
+                    "user": "Abc123",
+                    "type": "application/json",
+                    "data": {
+                      "note": "hello"
+                    },
+                    "tags": []
+                  },
+                  "deat": null,
+                  "size": 16,
+                  "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+                  "eid": "MMMQrNlFTkaNrnU91MddFg==",
+                  "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+                  "esig": "MMMQrNlFTkaNrnU91MddFg==",
+                  "created_at": 1620237108000,
+                  "modified_at": 1620237108000
+                },
+                {
+                  "id": "+wyo92yXSeBSUjHgQj+1XA==",
+                  "ctime": 1620237107,
+                  "mtime": 1620237107,
+                  "atime": 1620237107,
+                  "atimes": 1,
+                  "tage": 0,
+                  "subtype": {
+                    "isOnServer": true,
+                    "isZipped": false,
+                    "isBinary": false,
+                    "isEncrypted": false,
+                    "isEditable": true,
+                    "applicationDataType": 0,
+                    "mediaType": 0,
+                    "size": 16
+                  },
+                  "type": 1537,
+                  "name": {
+                    "title": "",
+                    "user": "Abc123",
+                    "type": "application/json",
+                    "data": {
+                      "note": "hello"
+                    },
+                    "tags": []
+                  },
+                  "deat": null,
+                  "size": 16,
+                  "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+                  "eid": "MMMQrNlFTkaNrnU91MddFg==",
+                  "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+                  "esig": "MMMQrNlFTkaNrnU91MddFg==",
+                  "created_at": 1620237107000,
+                  "modified_at": 1620237107000
+                },
+                {
+                  "id": "WAmav3NiSV1sIIkLWF74sw==",
+                  "ctime": 1620234508,
+                  "mtime": 1620234508,
+                  "atime": 1620234508,
+                  "atimes": 1,
+                  "tage": 0,
+                  "subtype": {
+                    "isOnServer": true,
+                    "isZipped": false,
+                    "isBinary": false,
+                    "isEncrypted": false,
+                    "isEditable": true,
+                    "applicationDataType": 0,
+                    "mediaType": 0,
+                    "size": 33
+                  },
+                  "type": 1537,
+                  "name": {
+                    "title": "",
+                    "user": "Abc123",
+                    "type": "application/json",
+                    "data": {
+                      "note": "this is my new message"
+                    },
+                    "tags": []
+                  },
+                  "deat": null,
+                  "size": 33,
+                  "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+                  "eid": "MMMQrNlFTkaNrnU91MddFg==",
+                  "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+                  "esig": "MMMQrNlFTkaNrnU91MddFg==",
+                  "created_at": 1620234508000,
+                  "modified_at": 1620234508000
+                },
+                {
+                  "id": "ZdjS/TJJQdRVImCJFeLmAQ==",
+                  "ctime": 1620234503,
+                  "mtime": 1620234503,
+                  "atime": 1620234503,
+                  "atimes": 1,
+                  "tage": 0,
+                  "subtype": {
+                    "isOnServer": true,
+                    "isZipped": false,
+                    "isBinary": false,
+                    "isEncrypted": false,
+                    "isEditable": true,
+                    "applicationDataType": 0,
+                    "mediaType": 0,
+                    "size": 11
+                  },
+                  "type": 1537,
+                  "name": {
+                    "title": "",
+                    "user": "Abc123",
+                    "type": "application/json",
+                    "data": {
+                      "note": ""
+                    },
+                    "tags": []
+                  },
+                  "deat": null,
+                  "size": 11,
+                  "fid": "bDJ7v5TwR2pNVfZgrQeqAA==",
+                  "eid": "MMMQrNlFTkaNrnU91MddFg==",
+                  "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+                  "esig": "MMMQrNlFTkaNrnU91MddFg==",
+                  "created_at": 1620234503000,
+                  "modified_at": 1620234503000
+                }
+              ],
+              "iteratorVar": "itemObject",
+              "style": {
+                "top": "0",
+                "width": "0.9",
+                "height": "0.7"
+              },
+              "children": [
+                {
+                  "type": "listItem",
+                  "itemObject": "",
+                  "style": {
+                    "left": "0",
+                    "width": "0.9",
+                    "height": "0.1",
+                    "border": {
+                      "style": "2"
+                    },
+                    "borderWidth": "0.8",
+                    "borderColor": "0x00000011",
+                    "textAlign": {
+                      "y": "center"
+                    }
+                  },
+                  "children": [
+                    {
+                      "type": "label",
+                      "dataKey": "itemObject.name.data.note",
+                      "style": {
+                        "left": "0.05",
+                        "top": "0.02",
+                        "width": "0.7",
+                        "height": "0.02",
+                        "fontSize": "13",
+                        "fontWeight": "500",
+                        "textAlign": {
+                          "y": "center"
+                        }
+                      }
+                    },
+                    {
+                      "type": "label",
+                      "text": "10.30am",
+                      "dataKey": "itemObject.ctime",
+                      "style": {
+                        "color": "0x808080",
+                        "left": "0.05",
+                        "top": "0.06",
+                        "width": "0.4",
+                        "height": "0.02",
+                        "fontSize": "12"
+                      }
+                    },
+                    {
+                      "type": "label",
+                      "dataKey": "itemObject.name.user",
+                      "style": {
+                        "color": "0x808080",
+                        "left": "0.7",
+                        "top": "0.05",
+                        "width": "0.3",
+                        "height": "0.02",
+                        "fontSize": "12",
+                        "textAlign": {
+                          "y": "center"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "textView",
+          "isEditable": "true",
+          "placeholder": "Text Here",
+          "dataKey": "newChat.document.name.data.note",
+          "style": {
+            "textAlign": {
+              "y": "top",
+              "x": "left"
+            },
+            "fontSize": "14",
+            "left": "0.05",
+            "top": "0.8",
+            "width": "0.6",
+            "height": "0.06",
+            "required": "true",
+            "fontFamily": "sans-serif",
+            "color": "0x000000ff",
+            "borderWidth": "1",
+            "border": {
+              "style": "6"
+            }
+          }
+        },
+        {
+          "type": "button",
+          "text": "Send",
+          "style": {
+            "left": "0.7",
+            "height": "0.07",
+            "top": "0.8",
+            "width": "0.3",
+            "backgroundColor": "0x388ecc",
+            "color": "0xffffff",
+            "borderRadius": 2,
+            "textAlign": {
+              "x": "center"
+            }
+          },
+          "onClick": [
+            {
+              "actionType": "evalObject"
+            },
+            {
+              "actionType": "evalObject"
+            },
+            {
+              "actionType": "evalObject"
+            },
+            {
+              "actionType": "evalObject"
+            },
+            {
+              "actionType": "evalObject"
+            },
+            {
+              "actionType": "builtIn",
+              "funcName": "redraw",
+              "viewTag": "ChatList"
+            },
+            {
+              "actionType": "builtIn",
+              "funcName": "clearText",
+              "viewTag": "textInput"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "newestMsg": "=..listData.chatList.doc.0"
+}

@@ -1,15 +1,24 @@
+import path from 'path'
+import { RollupOptions } from 'rollup'
+import { DEFAULT_EXTENSIONS } from '@babel/core'
+import alias from '@rollup/plugin-alias'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
-import esbuild from 'rollup-plugin-esbuild'
-// import typescript from 'rollup-plugin-typescript2'
-import resolve from '@rollup/plugin-node-resolve'
+// import esbuild from 'rollup-plugin-esbuild'
+import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
-// import { terser } from 'rollup-plugin-terser'
+import babel from '@rollup/plugin-babel'
+import typescript from 'rollup-plugin-typescript2'
 
-const extensions = ['.js', '.ts']
+const extensions = [...DEFAULT_EXTENSIONS, '.ts']
+const rootDir = path.join(process.cwd(), '../..')
+console.log(`[noodl-ui] ROOT DIR: ${rootDir}`)
 
+/**
+ * @typedef { RollupOptions[] }
+ */
 const configs = [
   {
     input: 'src/index.ts',
@@ -19,48 +28,81 @@ const configs = [
         exports: 'named',
         format: 'umd',
         name: 'noodlui',
-        globals: { 'noodl-utils': 'noodlutils' },
+        globals: {
+          'noodl-action-chain': 'nac',
+          'noodl-types': 'nt',
+          'noodl-utils': 'nutil',
+          'lodash/get': '_get',
+          'lodash/isPlainObject': '_isPlainObject',
+          'lodash/cloneDeep': '_cloneDeep',
+          'lodash/has': '_has',
+          'lodash/set': '_set',
+          'lodash/isNaN': '_isNaN',
+          'lodash/merge': '_merge',
+          invariant: 'invariant',
+        },
+        sourcemap: true,
       },
     ],
     plugins: [
       nodePolyfills(),
+      alias({
+        entries: [
+          {
+            find: 'noodl-utils',
+            replacement: path.join(
+              rootDir,
+              'packages/noodl-utils/dist/index.js',
+            ),
+          },
+        ],
+      }),
       external(),
       commonjs(),
       filesize(),
       progress(),
-      resolve({
+      nodeResolve({
+        browser: true,
         extensions,
-        moduleDirectories: [
-          'node_modules',
-          '../noodl-utils',
-          '../../node_modules',
-        ],
-        dedupe: ['noodl-utils'],
+        moduleDirectories: ['node_modules'],
+        preferBuiltins: false,
       }),
-      // typescript({
-      //   rollupCommonJSResolveHack: true,
-      //   check: false,
-      //   abortOnError: false,
-      //   clean: true,
+      typescript({
+        rollupCommonJSResolveHack: true,
+        check: false,
+        abortOnError: false,
+        clean: true,
+      }),
+      babel({
+        babelHelpers: 'runtime',
+        include: ['src/**/*'],
+        exclude: ['node_modules/**/*'],
+        extensions: ['.js'],
+      }),
+      // esbuild({
+      //   include: /\.[jt]s?$/,
+      //   exclude: /node_modules/,
+      //   minify: process.env.NODE_ENV === 'production',
+      //   target: 'es2015',
+      //   loaders: {
+      //     '.ts': 'ts',
+      //   },
+      //   sourceMap: true,
       // }),
-      esbuild({
-        include: /\.[jt]s?$/,
-        exclude: /node_modules/,
-        sourceMap: 'inline',
-        minify: process.env.NODE_ENV === 'production',
-        target: 'node10',
-        loaders: {
-          // Add .json files support
-          // require @rollup/plugin-commonjs
-          // '.json': 'json',
-          // Enable JSX in .js files too
-          // '.js': 'jsx',
-        },
-      }),
-      // Env var set by root lerna repo
-      // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),s,
     ],
   },
+  // {
+  //   input: './src/index.ts',
+  //   output: [
+  //     {
+  //       file: './dist/index.d.ts',
+  //       exports: 'named',
+  //       format: 'es',
+  //       sourcemap: true,
+  //     },
+  //   ],
+  //   plugins: [progress(), dts()],
+  // },
 ]
 
 export default configs

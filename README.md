@@ -62,18 +62,13 @@ These variables are available globally:
 
 ## Notes
 
-- redraw
-  - remove --> give a key --> removes the object
-- `${itemObject.key}`
-- register action
-  - config: message
-  - ref pages: ChatPage
-  - builtIn: funcName `hide` and `show`
-  - contentType: `hidden`
-  - type: `ecosDoc`
-    - property: `ecosObj`
-    - Page ref: `DocumentDetail`
-  - 1025 = Attachment (comment or note) to an existing doc object
+- MeetingChat notification
+  - A goes to ContactsList to select B
+  - A invites B
+  - A goes to MeetingChat
+  - B receives the invitation
+  - Server sends notification with payload of document id (`did`)
+  - A receives notification. Pass `did` to emit call
 
 ### `ecosDoc` component shapes
 

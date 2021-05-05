@@ -2,11 +2,7 @@ import * as mock from 'noodl-ui-test-utils'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
-import {
-  EcosDocComponentObject,
-  EcosDocument,
-  NameFieldBase,
-} from 'noodl-types'
+import { EcosDocComponentObject, EcosDocument, NameField } from 'noodl-types'
 import { classes } from '../constants'
 import NDOM from '../noodl-ui-dom'
 import createEcosDocElement from '../utils/createEcosDocElement'
@@ -15,7 +11,7 @@ import * as n from '../utils'
 
 describe(coolGold(`createEcosDocElement`), async () => {
   function getEcosDocComponentRenderResults<
-    NameField extends NameFieldBase = NameFieldBase
+    NameField extends NameField.Base = NameField.Base
   >({
     ecosObj = mock.getEcosDocObject() as EcosDocument<NameField>,
     component: componentProp = mock.getEcosDocComponent({

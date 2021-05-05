@@ -1,7 +1,6 @@
 import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original } from 'immer'
 import { componentTypes, ComponentObject, StyleObject } from 'noodl-types'
-import * as c from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
 

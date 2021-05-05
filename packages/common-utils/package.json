@@ -1,0 +1,26 @@
+{
+  "name": "@aitmed/web-common-utils",
+  "version": "1.0.0",
+  "description": "> TODO: description",
+  "author": "Christopher Tran <pfftdammitchris@gmail.com>",
+  "homepage": "",
+  "license": "ISC",
+  "main": "dist/common-utils.js",
+  "module": "dist/common-utils.js",
+  "types": "dist/common-utils.d.ts",
+  "directories": {
+    "dist": "dist"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc --watch",
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  }
+}

@@ -383,6 +383,7 @@ class NOODLDOM extends NOODLDOMInternal {
       if (Identify.component.plugin(component)) {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem)
+        // @ts-expect-error
         this.#R.run(getNode, component)
         return node
       } else if (Identify.component.image(component)) {
@@ -786,6 +787,7 @@ class NOODLDOM extends NOODLDOMInternal {
     return this
   }
 
+  // @ts-expect-error
   async transact(args: {
     transaction: typeof c.transaction.CREATE_ELEMENT
     component: NUIComponent.Instance
@@ -800,13 +802,18 @@ class NOODLDOM extends NOODLDOMInternal {
     page?: Page
   }) {
     switch (args.transaction) {
+      // @ts-expect-error
       case c.transaction.CREATE_ELEMENT:
         return this.#R.get('createElement').resolve(args.component)
+      // @ts-expect-error
       case c.transaction.REQUEST_PAGE_OBJECT:
-        return NOODLDOM._nui
-          .getTransactions()
-          .get(c.transaction.REQUEST_PAGE_OBJECT)
-          ?.fn?.(args.page)
+        return (
+          NOODLDOM._nui
+            .getTransactions()
+            .get(c.transaction.REQUEST_PAGE_OBJECT)
+            // @ts-expect-error
+            ?.fn?.(args.page)
+        )
       default:
         return null
     }
@@ -826,13 +833,16 @@ class NOODLDOM extends NOODLDOMInternal {
       if (u.isObj(obj)) {
         obj
       }
+      // @ts-expect-error
       const { createGlobalComponentId, transaction, resolver, ...rest } = obj
 
       if (createGlobalComponentId) {
+        // @ts-expect-error
         this.#middleware.createGlobalComponentId = obj.createGlobalComponentId
       }
 
       if (resolver) {
+        // @ts-expect-error
         this.register(resolver)
       }
 

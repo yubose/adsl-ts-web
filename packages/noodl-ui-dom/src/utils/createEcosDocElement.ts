@@ -1,10 +1,10 @@
-import { EcosDocument, NameFieldBase } from 'noodl-types'
+import { EcosDocument, NameField } from 'noodl-types'
 import { classes } from '../constants'
 import createAsyncImageElement from './createAsyncImageElement'
 import * as u from './internal'
 
 interface CreateEcosDocElementArgs<
-  NameField extends NameFieldBase = NameFieldBase
+  NameField extends NameField.Base = NameField.Base
 > {
   ecosObj: EcosDocument<NameField>
   width?: number
@@ -25,13 +25,15 @@ interface CreateEcosDocElementArgs<
   }): void
 }
 
-function createEcosDocElement<NameField extends NameFieldBase = NameFieldBase>(
+function createEcosDocElement<
+  NameField extends NameField.Base = NameField.Base
+>(
   container: HTMLElement,
-  ecosObj: EcosDocument<NameField>,
+  ecosObj: EcosDocument<NameField.Base>,
 ): HTMLIFrameElement
 
 function createEcosDocElement<
-  NameField extends NameFieldBase = NameFieldBase,
+  NameField extends NameField.Base = NameField.Base,
   Args extends CreateEcosDocElementArgs<NameField> = CreateEcosDocElementArgs<NameField>
 >(
   container: HTMLElement,
@@ -39,7 +41,7 @@ function createEcosDocElement<
 ): HTMLIFrameElement
 
 function createEcosDocElement<
-  NameField extends NameFieldBase & Record<string, any> = NameFieldBase
+  NameField extends NameField.Base & Record<string, any> = NameField.Base
 >(
   container: HTMLElement,
   opts: EcosDocument<NameField> | CreateEcosDocElementArgs<NameField>,

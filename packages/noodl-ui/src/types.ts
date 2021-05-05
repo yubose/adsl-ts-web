@@ -33,7 +33,7 @@ import NUI from './noodl-ui'
 import NUIPage from './Page'
 import Viewport from './Viewport'
 import {
-  event,
+  nuiEvent,
   groupedActionTypes,
   lib,
   nuiEmitType,
@@ -135,28 +135,28 @@ export namespace NUIComponent {
   export type HookEvent = keyof Hook
 
   export interface Hook {
-    [event.component.list.ADD_DATA_OBJECT](args: {
+    [nuiEvent.component.list.ADD_DATA_OBJECT](args: {
       dataObject: any
       index: number
     }): void
-    [event.component.list.DELETE_DATA_OBJECT](args: {
+    [nuiEvent.component.list.DELETE_DATA_OBJECT](args: {
       component: NUIComponent.Instance
       dataObject: any
       index: number
     }): void
-    [event.component.list.UPDATE_DATA_OBJECT](args: {
+    [nuiEvent.component.list.UPDATE_DATA_OBJECT](args: {
       dataObject: any
       index: number
     }): void
-    [event.component.page.PAGE_INSTANCE_CREATED](page: NUIPage): void
-    [event.component.page.PAGE_OBJECT](
+    [nuiEvent.component.page.PAGE_INSTANCE_CREATED](page: NUIPage): void
+    [nuiEvent.component.page.PAGE_OBJECT](
       component: NUIComponent.Instance,
       options: ConsumerOptions,
     ): Promise<void | PageObject>
-    [event.component.page.PAGE_COMPONENTS](
+    [nuiEvent.component.page.PAGE_COMPONENTS](
       components: NUIComponent.Instance[],
     ): void
-    [event.component.register.ONEVENT](): void
+    [nuiEvent.component.register.ONEVENT](): void
     content(pluginContent: string): void
     dataValue(dataValue: any): void
     'data-src'(src: string): void
@@ -323,12 +323,14 @@ export interface Transaction {
   }
 }
 
-export type TransactionId = LiteralUnion<keyof Transaction, string>
+export type TransactionId = keyof Transaction
 
 export interface UseArg
-  extends Record<
-    NUIActionGroupedType,
-    Store.ActionObject['fn'] | Store.ActionObject['fn'][]
+  extends Partial<
+    Record<
+      NUIActionGroupedType,
+      Store.ActionObject['fn'] | Store.ActionObject['fn'][]
+    >
   > {
   builtIn?: Record<
     string,
@@ -345,7 +347,7 @@ export interface UseArg
   getPages?: () => string[]
   getPreloadPages?: () => string[]
   getRoot?: () => Record<string, any>
-  plugin?: ComponentObject
+  plugin?: ComponentObject | ComponentObject[]
   register?:
     | Register.Object
     | Register.Object[]

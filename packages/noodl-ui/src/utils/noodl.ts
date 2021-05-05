@@ -260,8 +260,8 @@ export function getPluginLocation(
   obj: NUIComponent.Instance | ComponentObject | string | undefined,
 ) {
   let type: string | undefined
-  if (typeof obj === 'string') type = obj
-  else type = obj.type
+  // if (typeof obj === 'string') type = obj
+  // else type = obj.type
   if (type) {
     switch (type) {
       case 'pluginBodyTop':

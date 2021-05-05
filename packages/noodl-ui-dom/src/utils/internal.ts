@@ -1,13 +1,13 @@
 import get from 'lodash/get'
-import { ComponentObject, EcosDocument, NameFieldBase } from 'noodl-types'
+import { ComponentObject, EcosDocument, NameField } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
 
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
 export const arrayEach = <O extends any[], P extends O[number]>(
-  fn: (o: P) => void,
   obj: P | P[],
-) => array(obj).forEach(fn)
+  fn: (o: P) => void,
+) => void array(obj).forEach(fn)
 export const assign = (
   v: Record<string, any>,
   ...rest: (Record<string, any> | undefined)[]
@@ -66,7 +66,7 @@ export function createGlobalComponentId(
 type CreateDocIdentifierArg =
   | NUIComponent.Instance
   | ComponentObject
-  | EcosDocument<NameFieldBase>
+  | EcosDocument<NameField.Base>
   | null
   | undefined
 

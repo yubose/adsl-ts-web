@@ -3,6 +3,7 @@
 // are currently handled in App.ts
 
 import Logger from 'logsnap'
+import { Identify } from 'noodl-types'
 import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'
 import { copyToClipboard } from '../utils/dom'
@@ -84,6 +85,44 @@ function createRegisters(app: App) {
       }
     },
   } as const
+
+  if (u.isFnc(app.listen)) {
+    app.listen('onInitPage', function onInitPage(pageObject) {
+      if (app.noodl?.root?.Global?.globalRegister) {
+        const GlobalRoot = app.noodl.root.Global as Record<string, any>
+
+        if (u.isArr(GlobalRoot.globalRegister)) {
+          for (const obj of GlobalRoot.globalRegister) {
+            log.grey(
+              `Scanning ${GlobalRoot.globalRegister.length} items found in Global.globalRegister`,
+              GlobalRoot.globalRegister,
+            )
+            GlobalRoot.globalRegister.forEach((value: any) => {
+              if (u.isObj(value)) {
+                if (Identify.component.register(value)) {
+                  log.grey(
+                    `Found and attached a "register" component to the register store`,
+                    value,
+                  )
+                  app.nui.use({
+                    register: {
+                      name: value.onEvent as string,
+                      component: value,
+                    },
+                  })
+                }
+              }
+            })
+          }
+        }
+      }
+    })
+  } else {
+    console.info(
+      `%cThe "listen" method on App was skipped because it was undefined`,
+      'color:red;font-weight:bold',
+    )
+  }
 
   return u.mapEntries((name, fn) => ({ name, fn }), o)
 }

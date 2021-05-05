@@ -208,7 +208,6 @@ const NUI = (function _NUI() {
           `color:#ec0000;`,
           opts,
         )
-
         return fn?.(opts.params as string | NUIPage)
       }
     } catch (error) {
@@ -720,7 +719,7 @@ const NUI = (function _NUI() {
           )[],
     ) {
       if (filter) {
-        u.arrayEach((f: typeof filter) => {
+        u.arrayEach(filter, (f: typeof filter) => {
           if (f === 'actions') {
             o.cache.actions.clear()
           } else if (f === 'builtIns') {
@@ -738,7 +737,7 @@ const NUI = (function _NUI() {
           } else if (f === 'transactions') {
             cache.transactions.clear()
           }
-        }, filter)
+        })
       } else {
         o.getResolvers().length = 0
         cache.actions.clear()
@@ -759,6 +758,7 @@ const NUI = (function _NUI() {
       for (const actionType of groupedActionTypes) {
         if (actionType in args) {
           u.arrayEach(
+            args[actionType] as any,
             (fn: T.Store.ActionObject['fn'] | T.Store.ActionObject['fn']) => {
               invariant(
                 u.isFnc(fn),
@@ -766,14 +766,13 @@ const NUI = (function _NUI() {
               )
               cache.actions[actionType]?.push({ actionType, fn })
             },
-            args[actionType],
           )
         }
       }
 
       if ('builtIn' in args) {
-        u.eachEntries((funcName, fn) => {
-          u.arrayEach((f) => {
+        u.eachEntries(args.builtIn, (funcName, fn) => {
+          u.arrayEach(fn, (f) => {
             invariant(!!funcName, `"Missing funcName in a builtIn handler`)
             invariant(
               u.isFnc(f),
@@ -787,13 +786,13 @@ const NUI = (function _NUI() {
               funcName,
               fn: f,
             })
-          }, fn)
-        }, args.builtIn)
+          })
+        })
       }
 
       if ('emit' in args) {
         u.eachEntries((trigger, func: (...args: any[]) => any) => {
-          u.arrayEach((fn) => {
+          u.arrayEach(func, (fn) => {
             invariant(
               u.isFnc(fn),
               `fn is required for emit trigger "${trigger}"`,
@@ -803,19 +802,18 @@ const NUI = (function _NUI() {
               fn,
               trigger: trigger as T.NUITrigger,
             })
-          }, func)
+          })
         }, args.emit)
       }
 
       if ('plugin' in args) {
-        u.arrayEach(
-          (plugin) => o.createPlugin(getPluginLocation(plugin), plugin),
-          args.plugin,
+        u.arrayEach(args.plugin, (plugin) =>
+          o.createPlugin(getPluginLocation(plugin), plugin),
         )
       }
 
       if ('register' in args) {
-        u.arrayEach((obj) => {
+        u.arrayEach(args.register, (obj) => {
           const registerObj = { page: '_global' } as T.Register.Object
           if (obj) {
             if (obj.name) {
@@ -840,15 +838,16 @@ const NUI = (function _NUI() {
             `Could not compute an identifier/name for this register object`,
             registerObj,
           )
-        }, args.register)
+        })
       }
 
       if ('resolver' in args && args.resolver) {
-        u.arrayEach((resolver) => {
-          if (o.getResolvers().every((r) => r.name !== resolver.name)) {
-            o.getResolvers().push(resolver)
+        u.arrayEach(args.register, (resolver) => {
+          if (o.getResolvers().every((r) => r.name !== resolver?.name)) {
+            // @ts-expect-error
+            resolver && o.getResolvers().push(resolver)
           }
-        }, args.resolver)
+        })
       }
 
       if ('transaction' in args) {

@@ -1,20 +1,19 @@
-process.stdout.write('\x1Bc')
+// process.stdout.write('\x1Bc')
 const path = require('path')
 const chalk = require('chalk')
+const fs = require('fs-extra')
 const webpack = require('webpack')
 const singleLog = require('single-line-log')
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
-// const { BundleStatsWebpackPlugin } = require('bundle-stats-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const TerserPlugin = require('terser-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 const pkg = require('./package.json')
 const noodluiPkg = require('./packages/noodl-ui/package.json')
 const noodlutilsPkg = require('./packages/noodl-utils/package.json')
 const noodluidomPkg = require('./packages/noodl-ui-dom/package.json')
 
-const { blueBright, magenta, yellow } = chalk
+const { blueBright, magenta, yellow, italic } = chalk
 
 const noodlSdkVersion = pkg.devDependencies['@aitmed/cadl']
 const ecosSdkVersion = pkg.devDependencies['@aitmed/ecos-lvl2-sdk']
@@ -32,9 +31,11 @@ const title = 'AiTmed Noodl Web'
 const productionOptions = {}
 
 if (process.env.NODE_ENV === 'production') {
+  /**
+   * @type { webpack.Configuration['optimization'] }
+   */
   productionOptions.optimization = {
     // minimize: true,
-    minimizer: [new TerserPlugin({ parallel: 4 })],
     splitChunks: {
       chunks: 'async',
       minSize: 20000,
@@ -59,6 +60,18 @@ if (process.env.NODE_ENV === 'production') {
   }
 }
 
+/** @type { import('webpack-dev-server').Configuration } */
+const devServerOptions = {
+  clientLogLevel: 'info',
+  compress: false,
+  contentBase: [path.join(__dirname, 'public')],
+  host: '127.0.0.1',
+  liveReload: true,
+}
+
+/**
+ * @type { webpack.Configuration } webpackOptions
+ */
 module.exports = {
   entry: {
     main: './src/index.ts',
@@ -67,26 +80,9 @@ module.exports = {
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'build'),
   },
-  devServer: {
-    clientLogLevel: 'info',
-    compress: false,
-    contentBase: [path.join(__dirname, 'public')],
-    hot: false,
-    host: '127.0.0.1',
-    liveReload: true,
-    port: 3000,
-    // before: function (app, server, compiler) {
-    //   app.get('/debug', (req, res) => {
-    //     res.json({ hello: 'EH?' })
-    //   })
-    // },
-  },
-  devtool: 'source-map',
-  watchOptions: {
-    ignored: /node_modules/,
-  },
-  externals: [],
-  mode: 'development',
+  devServer: devServerOptions,
+  devtool: 'inline-source-map',
+  // externals: [],
   module: {
     rules: [
       {
@@ -94,49 +90,29 @@ module.exports = {
         exclude: /node_modules/,
         include: path.resolve(__dirname, 'src'),
         use: [
-          // {
-          //   loader: 'babel-loader',
-          //   options: {
-          //     presets: ['@babel/preset-env'],
-          //     plugins: [
-          //       'lodash',
-          //       '@babel/plugin-transform-runtime',
-          //       ['@babel/plugin-proposal-class-properties', { loose: true }],
-          //       ['@babel/plugin-proposal-private-methods', { loose: true }],
-          //     ],
-          //   },
-          // },
-          // {
-          //   loader: 'ts-loader',
-          //   options: {
-          //     silent: true,
-          //     transpileOnly: true,
-          //     allowTsInNodeModules: false,
-          //   },
-          // },
           {
             loader: 'esbuild-loader',
             options: {
               loader: 'ts', // Or 'ts' if you don't need tsx
-              target: 'es2015',
+              target: 'es2016',
             },
           },
         ],
       },
-      {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              importLoaders: 1,
-              modules: false,
-            },
-          },
-        ],
-        include: /\.module\.css$/,
-      },
+      // {
+      //   test: /\.css$/,
+      //   use: [
+      //     'style-loader',
+      //     {
+      //       loader: 'css-loader',
+      //       options: {
+      //         importLoaders: 1,
+      //         modules: false,
+      //       },
+      //     },
+      //   ],
+      //   include: /\.module\.css$/,
+      // },
       {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
@@ -145,14 +121,11 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.ts', '.js'],
-    modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+    extensions: ['.ts', '.js', '.mjs'],
+    modules: ['node_modules'],
   },
   plugins: [
     new webpack.ProvidePlugin({ process: 'process' }),
-    // new BundleStatsWebpackPlugin({
-    //   baseline: true,
-    // }),
     new CircularDependencyPlugin({
       exclude: /node_modules/,
       include: /src/,

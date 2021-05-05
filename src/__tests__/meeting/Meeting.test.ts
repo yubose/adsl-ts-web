@@ -45,7 +45,7 @@ describe(coolGold(`Meeting`), () => {
       ).to.have.length.greaterThan(0)
     })
 
-    it.only('should hide the "Waiting for others to join" message when there are participants', async () => {
+    it('should hide the "Waiting for others to join" message when there are participants', async () => {
       const app = await getApp({ navigate: true })
       app.meeting
         .getWaitingMessageElements()

@@ -39,8 +39,10 @@ function createActionChain(
   let ac: ActionChain
 
   if (typeof args === 'string') {
+    // @ts-expect-error
     ac = __createActionChain(args, actions as NUIActionObject[], loader)
   } else {
+    // @ts-expect-error
     ac = __createActionChain(args)
   }
 

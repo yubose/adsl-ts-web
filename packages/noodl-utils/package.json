@@ -12,8 +12,7 @@
     "npm": ">=6"
   },
   "scripts": {
-    "build": "rm -rf dist && tsc",
-    "prestart": "rm -rf dist",
+    "build": "tsc",
     "start": "tsc -w",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r jsdom-global/register --extensions ts --watch --watch-files src src/**/*.test.ts --verbose",
     "test:file": "NODE_ENV=test ts-mocha -r jsdom-global/register --extensions ts --watch --watch-files src"

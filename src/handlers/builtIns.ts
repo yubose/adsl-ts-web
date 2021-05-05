@@ -78,7 +78,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action)
     const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
-      u.arrayEach((n) => n && show(n), findByUX(_pick(action, 'contentType')))
+      u.arrayEach(findByUX(_pick(action, 'contentType')), (n) => n && show(n))
     }
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }
@@ -575,7 +575,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     if (!isValid) {
       console.log(`%cisValid ?`, 'color:#e74c3c;font-weight:bold;', isValid)
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'
-      else window.alert('Password is incorrect')
+      else {
+        toast('Password is incorrect', { type: 'error' })
+        debugger
+      }
       return 'abort'
     }
     if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
