@@ -5,8 +5,7 @@ import path from 'path'
 import { ComponentObject } from 'noodl-types'
 // import { getMostRecentApp } from '../../utils/test-utils'
 
-const pageObject = fs.readJsonSync(path.join(__dirname, './pageObject.json'))
-console.log(pageObject)
+// const pageObject = fs.readJsonSync(path.join(__dirname, './pageObject.json'))
 
 function getMockMeetingChat({
   participants = [],
@@ -466,9 +465,10 @@ function getMockMeetingChat({
                 dataIn: { destination: 'VideoChat', reload: false },
               }),
             ],
-            children: [mock.getImageComponent({
-              path: 
-            })]
+            children: [
+              mock.getImageComponent('backWhiteArrow.png'),
+              mock.getLabelComponent('Back'),
+            ],
           }),
         ],
       }),

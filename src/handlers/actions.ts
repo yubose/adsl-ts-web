@@ -138,10 +138,10 @@ const createActions = function createActions(app: App) {
             }
             if (u.isStr(valEvaluating)) {
               if (valEvaluating.includes('.')) {
-                if (has(app.noodl.root, valEvaluating)) {
-                  value = get(app.noodl.root, valEvaluating)
-                } else if (has(app.noodl.root[pageName], valEvaluating)) {
-                  value = get(app.noodl.root[pageName], valEvaluating)
+                if (has(app.root, valEvaluating)) {
+                  value = get(app.root, valEvaluating)
+                } else if (has(app.root[pageName], valEvaluating)) {
+                  value = get(app.root[pageName], valEvaluating)
                 }
               }
               if (Identify.isBoolean(value)) Identify.isBooleanTrue(value)
@@ -326,93 +326,99 @@ const createActions = function createActions(app: App) {
     const { ref } = options
     const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
     const popUpView = _pick(action, 'popUpView')
-    const elem = findByUX(popUpView) as HTMLElement
-    if (dismissOnTouchOutside) {
-      const onTouchOutside = function onTouchOutside(
-        this: HTMLDivElement,
-        e: Event,
-      ) {
-        e.preventDefault()
-        hide(elem)
-        document.body.removeEventListener('click', onTouchOutside)
-      }
-      document.body.addEventListener('click', onTouchOutside)
-    }
-    if (elem?.style) {
-      if (Identify.action.popUp(action)) show(elem)
-      else if (Identify.action.popUpDismiss(action)) hide(elem)
-      // Some popup components render values using the dataKey. There is a bug
-      // where an action returns a popUp action from an evalObject action. At
-      // this moment the popup is not aware that it needs to read the dataKey if
-      // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
-
-      // Auto prefills the verification code when ECOS_ENV === 'test'
-      // and when the entered phone number starts with 888
-      if (process.env.ECOS_ENV === 'test') {
-        const vcodeInput = getVcodeElem()
-        const phoneInput = u.array(
-          asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
-        )[0] as HTMLInputElement
-        let phoneNumber = String(
-          phoneInput?.value || phoneInput?.dataset?.value,
-        )
-        if (!phoneNumber && phoneInput?.dataset?.key) {
-          const value = get(
-            app.noodl.root[app.mainPage.page],
-            phoneInput.dataset.key,
-          )
-          value && (phoneNumber = value)
-        }
-        const is888 =
-          phoneNumber.startsWith('888') ||
-          phoneNumber.startsWith('+1888') ||
-          phoneNumber.startsWith('+1 888')
-        if (vcodeInput && is888) {
-          const pageName = app.mainPage?.page || ''
-          const pathToTage = 'verificationCode.response.edge.tage'
-          let vcode = get(app.noodl.root?.[pageName], pathToTage, '')
-          if (!pageName) {
-            log.red(
-              `Could not determine the page to query the verification code for`,
-            )
+    u.arrayEach(
+      (findByUX(popUpView) || findByViewTag(popUpView)) as HTMLElement,
+      async (elem) => {
+        if (dismissOnTouchOutside) {
+          const onTouchOutside = function onTouchOutside(
+            this: HTMLDivElement,
+            e: Event,
+          ) {
+            e.preventDefault()
+            hide(elem)
+            document.body.removeEventListener('click', onTouchOutside)
           }
-          if (vcode) {
-            if (!vcodeInput.value || vcodeInput.value == '0') {
-              vcode = String(vcode)
-              vcodeInput.value = vcode
-              vcodeInput.dataset.value = vcode
-              app.updateRoot(
-                `${pageName}.${vcodeInput.dataset.key || 'formData.code'}`,
-                vcode,
+          document.body.addEventListener('click', onTouchOutside)
+        }
+        if (elem?.style) {
+          if (Identify.action.popUp(action)) show(elem)
+          else if (Identify.action.popUpDismiss(action)) hide(elem)
+          // Some popup components render values using the dataKey. There is a bug
+          // where an action returns a popUp action from an evalObject action. At
+          // this moment the popup is not aware that it needs to read the dataKey if
+          // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
+
+          // Auto prefills the verification code when ECOS_ENV === 'test'
+          // and when the entered phone number starts with 888
+          if (process.env.ECOS_ENV === 'test') {
+            const vcodeInput = getVcodeElem()
+            const phoneInput = u.array(
+              asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
+            )[0] as HTMLInputElement
+            let phoneNumber = String(
+              phoneInput?.value || phoneInput?.dataset?.value,
+            )
+            if (!phoneNumber && phoneInput?.dataset?.key) {
+              const value = get(
+                app.root[app.mainPage.page],
+                phoneInput.dataset.key,
               )
+              value && (phoneNumber = value)
             }
-          } else {
-            log.orange(
-              `Could not find a verification code at path "${pathToTage}"`,
-            )
+            const is888 =
+              phoneNumber.startsWith('888') ||
+              phoneNumber.startsWith('+1888') ||
+              phoneNumber.startsWith('+1 888')
+            if (vcodeInput && is888) {
+              const pageName = app.mainPage?.page || ''
+              const pathToTage = 'verificationCode.response.edge.tage'
+              let vcode = get(app.root?.[pageName], pathToTage, '')
+              if (!pageName) {
+                log.red(
+                  `Could not determine the page to query the verification code for`,
+                )
+              }
+              if (vcode) {
+                if (!vcodeInput.value || vcodeInput.value == '0') {
+                  vcode = String(vcode)
+                  vcodeInput.value = vcode
+                  vcodeInput.dataset.value = vcode
+                  app.updateRoot(
+                    `${pageName}.${vcodeInput.dataset.key || 'formData.code'}`,
+                    vcode,
+                  )
+                }
+              } else {
+                log.orange(
+                  `Could not find a verification code at path "${pathToTage}"`,
+                )
+              }
+            }
           }
-        }
-      }
 
-      // If popUp has wait: true, the action chain should pause until a response
-      // is received from something (ex: waiting on user confirming their password)
-      if (Identify.isBooleanTrue(_pick(action, 'wait'))) {
-        log.grey(
-          `Popup action for popUpView "${popUpView}" is ` +
-            `waiting on a response. Aborting now...`,
-          action,
-        )
-        await ref?.abort?.()
-      }
-    } else {
-      let msg = `Tried to ${action.actionType === 'popUp' ? 'show' : 'hide'}`
-      log.func(action.actionType)
-      log.red(
-        `${msg} a ${action.actionType} element but the element ` +
-          `was null or undefined`,
-        { action, popUpView },
-      )
-    }
+          // If popUp has wait: true, the action chain should pause until a response
+          // is received from something (ex: waiting on user confirming their password)
+          if (Identify.isBooleanTrue(_pick(action, 'wait'))) {
+            log.grey(
+              `Popup action for popUpView "${popUpView}" is ` +
+                `waiting on a response. Aborting now...`,
+              action,
+            )
+            await ref?.abort?.()
+          }
+        } else {
+          let msg = `Tried to ${
+            action.actionType === 'popUp' ? 'show' : 'hide'
+          }`
+          log.func(action.actionType)
+          log.red(
+            `${msg} a ${action.actionType} element but the element ` +
+              `was null or undefined`,
+            { action, popUpView },
+          )
+        }
+      },
+    )
   }
 
   const popUpDismiss: Store.ActionObject['fn'] = async function onPopUpDismiss(

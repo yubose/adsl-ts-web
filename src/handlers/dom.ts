@@ -954,7 +954,7 @@ const createExtendedDOMResolvers = function (app: App) {
             (setInitialTime: (date: Date) => void) => {
               const initialTime = startOfDay(new Date())
               // Initial SDK value is set in seconds
-              const initialSeconds = get(app.noodl.root, dataKey, 0) as number
+              const initialSeconds = get(app.root, dataKey, 0) as number
               // Sdk evaluates from start of day. So we must add onto the start of day
               // the # of seconds of the initial value in the Global object
               let initialValue = add(initialTime, { seconds: initialSeconds })

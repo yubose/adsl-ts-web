@@ -1,5 +1,5 @@
 import { Action, createActionChain } from 'noodl-action-chain'
-import { LiteralUnion, PartialDeep, SetOptional } from 'type-fest'
+import { PartialDeep } from 'type-fest'
 import {
   ActionObject,
   BuiltInActionObject,
@@ -52,28 +52,17 @@ import {
 import * as T from './types'
 
 type CreateWithKeyOrProps<
-  Obj extends Record<string, any> = Record<string, any>,
-  Key extends keyof Obj = keyof Obj
+  Obj extends Record<string, any> = Record<string, any>
 > = {
   //
 }
-
-const createEval = createActionWithKeyOrProps<NUIActionObject>(
-  {
-    actionType: '',
-    popUpView: 'agoawf.html',
-  },
-  '',
-)
-
-const evalObject = createEval('')
 
 function createObjWithKeyOrProps<Obj extends Record<string, any>>(
   defaultProps: Partial<Obj>,
 ) {
   const create = <Key extends keyof Obj>(
     key: Key | Obj[Key] | Partial<Obj>,
-    props?: CreateWithKeyOrProps<Obj, Key>,
+    props?: CreateWithKeyOrProps<Obj>,
   ): Obj => {
     const obj = { ...defaultProps } as any
     if (typeof key === 'string') key === ''
@@ -90,8 +79,8 @@ function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
   key: keyof O,
 ) {
   const createObj = (props?: string | ActionProps<O>): O => {
-    const obj = { ...defaultProps } as NUIActionObjectInput
-    if (typeof key === 'string') obj[key] = props
+    const obj = { ...(defaultProps as object) } as NUIActionObjectInput
+    if (typeof key === 'string') obj[key as any] = props
     else if (props) Object.assign(obj, props)
     return obj as O
   }
@@ -223,13 +212,13 @@ export function getUpdateObjectAction(props?: Partial<UpdateActionObject>) {
   }
 }
 
-export function getEcosDocObject(
+export function getEcosDocObject<N extends NameField.Base>(
   preset?: 'image' | 'pdf' | 'text' | 'video',
-): EcosDocument<NameField.Base>
-export function getEcosDocObject<NameField extends NameField.Base>(
-  propsProp?: PartialDeep<EcosDocument<NameField>>,
-): EcosDocument<NameField>
-export function getEcosDocObject<NameField extends NameField.Base>(
+): EcosDocument<N>
+export function getEcosDocObject<N extends NameField.Base>(
+  propsProp?: PartialDeep<EcosDocument<N>>,
+): EcosDocument<N>
+export function getEcosDocObject<N extends NameField.Base>(
   propsProp?:
     | 'audio'
     | 'docx'
@@ -238,8 +227,8 @@ export function getEcosDocObject<NameField extends NameField.Base>(
     | 'pdf'
     | 'text'
     | 'video'
-    | PartialDeep<EcosDocument<NameField>>,
-): EcosDocument<NameField> {
+    | PartialDeep<EcosDocument<N>>,
+): EcosDocument<N> {
   const props = {
     name: { data: `blob:http://a0242fasa141inmfakmf24242`, type: '' },
   } as Partial<EcosDocument<NameField.Base>>
@@ -322,8 +311,8 @@ export function getEcosDocObject<NameField extends NameField.Base>(
       size: 89937,
       ...(props.subtype || undefined),
     },
-  } as EcosDocument<NameField>
-  return ecosObj
+  } as EcosDocument<NameField.Base>
+  return ecosObj as EcosDocument<N>
 }
 
 export function getEmitObject({
@@ -408,20 +397,24 @@ export function getImageComponent(
 }
 
 export function getLabelComponent(
-  props?: ComponentProps<LabelComponentObject> & {
-    dataKey?: string
-    placeholder?: string
-    text?: string
-    textBoard?: TextBoardObject
-  },
+  args?:
+    | string
+    | (ComponentProps<LabelComponentObject> & {
+        dataKey?: string
+        placeholder?: string
+        text?: string
+        textBoard?: TextBoardObject
+      }),
 ): LabelComponentObject {
-  return {
+  const obj = {
     type: 'label',
     text: 'J',
     dataKey: 'formData.firstName',
     style: { border: { style: '1' } },
-    ...props,
-  }
+  } as LabelComponentObject
+  if (typeof args === 'string') obj.path = args
+  else if (args) Object.assign(obj, args)
+  return obj
 }
 
 export function getListComponent({

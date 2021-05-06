@@ -231,8 +231,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               valEvaluating = nextValue
             } else {
               valEvaluating =
-                get(app.noodl.root, valEvaluating) ||
-                get(app.noodl.root[pageName], valEvaluating)
+                get(app.root, valEvaluating) ||
+                get(app.root[pageName], valEvaluating)
             }
             node.setAttribute(
               'src',
@@ -242,7 +242,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           return nextValue
         }
 
-        dataObject = app.noodl.root
+        dataObject = app.root
 
         if (has(dataObject, dataKey)) {
           previousDataValue = get(dataObject, dataKey)
@@ -399,6 +399,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       pageReload,
     })
 
+    if (destination.startsWith('http')) {
+      // This is for testing in mobile mode to prevent the auto-redirection to google play store
+      // return
+    }
+
     if (id) {
       const isInsidePageComponent = isPageConsumer(options.component)
       const node = findByViewTag(id) || getFirstByElementId(id)
@@ -474,7 +479,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         } else {
           urlToGoToInstead = 'index.html?' + destination
         }
-
         window.location.href = urlToGoToInstead
       } else {
         await app.navigate(destination)
@@ -639,7 +643,7 @@ export function createVideoChatBuiltIn(app: App) {
       if (newRoom) {
         // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
         // to initiate the default values for audio/video default enabled/disabled state
-        const { cameraOn, micOn } = app.noodl.root.VideoChat || {}
+        const { cameraOn, micOn } = app.root.VideoChat || {}
         const { localParticipant } = newRoom
 
         const toggle = (state: 'enable' | 'disable') => (

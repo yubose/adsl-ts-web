@@ -89,7 +89,7 @@ function createRegisters(app: App) {
   if (u.isFnc(app.listen)) {
     app.listen('onInitPage', function onInitPage(pageObject) {
       if (app.noodl?.root?.Global?.globalRegister) {
-        const GlobalRoot = app.noodl.root.Global as Record<string, any>
+        const GlobalRoot = app.root.Global as Record<string, any>
 
         if (u.isArr(GlobalRoot.globalRegister)) {
           for (const obj of GlobalRoot.globalRegister) {
