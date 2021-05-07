@@ -2,6 +2,7 @@ import Logger from 'logsnap'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
+import * as u from '@aitmed/web-common-utils'
 import {
   asHtmlElement,
   eventId as ndomEventId,
@@ -34,12 +35,12 @@ import {
   toast,
 } from '../utils/dom'
 import App from '../App'
+import { pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
-import * as u from '../utils/common'
 
 const log = Logger.create('actions.ts')
-const _pick = u.pickActionKey
-const _has = u.pickHasActionKey
+const _pick = pickActionKey
+const _has = pickHasActionKey
 
 const createActions = function createActions(app: App) {
   const emit = triggers.reduce(
@@ -58,7 +59,7 @@ const createActions = function createActions(app: App) {
 
             const emitParams = {
               actions: _pick(action, 'actions'),
-              pageName: app.mainPage.page,
+              pageName: app.currentPage,
             } as T.EmitCallParams
 
             if (_has(_pick(action, 'emit'), 'dataKey')) {
@@ -326,99 +327,92 @@ const createActions = function createActions(app: App) {
     const { ref } = options
     const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
     const popUpView = _pick(action, 'popUpView')
-    u.arrayEach(
-      (findByUX(popUpView) || findByViewTag(popUpView)) as HTMLElement,
-      async (elem) => {
-        if (dismissOnTouchOutside) {
-          const onTouchOutside = function onTouchOutside(
-            this: HTMLDivElement,
-            e: Event,
-          ) {
-            e.preventDefault()
-            hide(elem)
-            document.body.removeEventListener('click', onTouchOutside)
-          }
-          document.body.addEventListener('click', onTouchOutside)
+    u.arrayEach(findByViewTag(popUpView), async (elem) => {
+      if (dismissOnTouchOutside) {
+        const onTouchOutside = function onTouchOutside(
+          this: HTMLDivElement,
+          e: Event,
+        ) {
+          e.preventDefault()
+          hide(elem)
+          document.body.removeEventListener('click', onTouchOutside)
         }
-        if (elem?.style) {
-          if (Identify.action.popUp(action)) show(elem)
-          else if (Identify.action.popUpDismiss(action)) hide(elem)
-          // Some popup components render values using the dataKey. There is a bug
-          // where an action returns a popUp action from an evalObject action. At
-          // this moment the popup is not aware that it needs to read the dataKey if
-          // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
+        document.body.addEventListener('click', onTouchOutside)
+      }
+      if (elem?.style) {
+        if (Identify.action.popUp(action)) show(elem)
+        else if (Identify.action.popUpDismiss(action)) hide(elem)
+        // Some popup components render values using the dataKey. There is a bug
+        // where an action returns a popUp action from an evalObject action. At
+        // this moment the popup is not aware that it needs to read the dataKey if
+        // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
 
-          // Auto prefills the verification code when ECOS_ENV === 'test'
-          // and when the entered phone number starts with 888
-          if (process.env.ECOS_ENV === 'test') {
-            const vcodeInput = getVcodeElem()
-            const phoneInput = u.array(
-              asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
-            )[0] as HTMLInputElement
-            let phoneNumber = String(
-              phoneInput?.value || phoneInput?.dataset?.value,
-            )
-            if (!phoneNumber && phoneInput?.dataset?.key) {
-              const value = get(
-                app.root[app.mainPage.page],
-                phoneInput.dataset.key,
-              )
-              value && (phoneNumber = value)
-            }
-            const is888 =
-              phoneNumber.startsWith('888') ||
-              phoneNumber.startsWith('+1888') ||
-              phoneNumber.startsWith('+1 888')
-            if (vcodeInput && is888) {
-              const pageName = app.mainPage?.page || ''
-              const pathToTage = 'verificationCode.response.edge.tage'
-              let vcode = get(app.root?.[pageName], pathToTage, '')
-              if (!pageName) {
-                log.red(
-                  `Could not determine the page to query the verification code for`,
-                )
-              }
-              if (vcode) {
-                if (!vcodeInput.value || vcodeInput.value == '0') {
-                  vcode = String(vcode)
-                  vcodeInput.value = vcode
-                  vcodeInput.dataset.value = vcode
-                  app.updateRoot(
-                    `${pageName}.${vcodeInput.dataset.key || 'formData.code'}`,
-                    vcode,
-                  )
-                }
-              } else {
-                log.orange(
-                  `Could not find a verification code at path "${pathToTage}"`,
-                )
-              }
-            }
-          }
-
-          // If popUp has wait: true, the action chain should pause until a response
-          // is received from something (ex: waiting on user confirming their password)
-          if (Identify.isBooleanTrue(_pick(action, 'wait'))) {
-            log.grey(
-              `Popup action for popUpView "${popUpView}" is ` +
-                `waiting on a response. Aborting now...`,
-              action,
-            )
-            await ref?.abort?.()
-          }
-        } else {
-          let msg = `Tried to ${
-            action.actionType === 'popUp' ? 'show' : 'hide'
-          }`
-          log.func(action.actionType)
-          log.red(
-            `${msg} a ${action.actionType} element but the element ` +
-              `was null or undefined`,
-            { action, popUpView },
+        // Auto prefills the verification code when ECOS_ENV === 'test'
+        // and when the entered phone number starts with 888
+        if (process.env.ECOS_ENV === 'test') {
+          const vcodeInput = getVcodeElem()
+          const phoneInput = u.array(
+            asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
+          )[0] as HTMLInputElement
+          let phoneNumber = String(
+            phoneInput?.value || phoneInput?.dataset?.value,
           )
+          if (!phoneNumber && phoneInput?.dataset?.key) {
+            const value = get(app.root[app.currentPage], phoneInput.dataset.key)
+            value && (phoneNumber = value)
+          }
+          const is888 =
+            phoneNumber.startsWith('888') ||
+            phoneNumber.startsWith('+1888') ||
+            phoneNumber.startsWith('+1 888')
+          if (vcodeInput && is888) {
+            const pathToTage = 'verificationCode.response.edge.tage'
+            let vcode = get(app.root?.[app.currentPage], pathToTage, '')
+            if (!app.currentPage) {
+              log.red(
+                `Could not determine the page to query the verification code for`,
+              )
+            }
+            if (vcode) {
+              if (!vcodeInput.value || vcodeInput.value == '0') {
+                vcode = String(vcode)
+                vcodeInput.value = vcode
+                vcodeInput.dataset.value = vcode
+                app.updateRoot(
+                  `${app.currentPage}.${
+                    vcodeInput.dataset.key || 'formData.code'
+                  }`,
+                  vcode,
+                )
+              }
+            } else {
+              log.orange(
+                `Could not find a verification code at path "${pathToTage}"`,
+              )
+            }
+          }
         }
-      },
-    )
+
+        // If popUp has wait: true, the action chain should pause until a response
+        // is received from something (ex: waiting on user confirming their password)
+        if (Identify.isBooleanTrue(_pick(action, 'wait'))) {
+          log.grey(
+            `Popup action for popUpView "${popUpView}" is ` +
+              `waiting on a response. Aborting now...`,
+            action,
+          )
+          await ref?.abort?.()
+        }
+      } else {
+        let msg = `Tried to ${action.actionType === 'popUp' ? 'show' : 'hide'}`
+        log.func(action.actionType)
+        log.red(
+          `${msg} a ${action.actionType} element but the element ` +
+            `was null or undefined`,
+          { action, popUpView },
+        )
+      }
+    })
   }
 
   const popUpDismiss: Store.ActionObject['fn'] = async function onPopUpDismiss(
@@ -447,7 +441,6 @@ const createActions = function createActions(app: App) {
 
     const { getRoot, ref } = options
     const object = _pick(action, 'object')
-    const pageName = app.mainPage?.page || ''
 
     try {
       if (u.isFnc(object)) {
@@ -464,13 +457,13 @@ const createActions = function createActions(app: App) {
               if (u.isStr(nameFieldPath) && u.isFnc(save)) {
                 if (Identify.reference(nameFieldPath)) {
                   nameField = parseReference(nameFieldPath, {
-                    page: pageName,
+                    page: app.currentPage,
                     root: getRoot(),
                   })
                 } else {
                   nameField =
-                    get(app.noodl?.root, nameFieldPath, null) ||
-                    get(app.noodl?.root?.[pageName], nameFieldPath, {})
+                    get(app.root, nameFieldPath, null) ||
+                    get(app.root?.[app.currentPage], nameFieldPath, {})
                 }
 
                 const params = { ...nameField }

@@ -56,12 +56,25 @@ const args = minimist(process.argv.slice(2), {
     s: 'start',
     b: 'build',
     c: 'convert',
+    t: 'test',
+    tf: 'testfile',
   },
 })
 
-const { start, build, config: configId, convert, sync, split } = args
+const {
+  start,
+  build,
+  config: configId,
+  convert,
+  sync,
+  split,
+  test,
+  testfile,
+} = args
+
 console.log(`\nArgs`, args)
 console.log('')
+
 const config = getConfig()
 
 /** @type { yaml.YAMLMap } */
@@ -73,20 +86,23 @@ const aliases = op.get('alias')
 /** @type { yaml.YAMLMap['items'] } */
 const libReg = aliases.items
 
-if (start || build) {
-  let label = start ? 'start' : 'build'
+if (start || build || test || testfile) {
+  let label = start ? 'start' : build ? 'build' : test ? 'test' : 'test:file'
   let cmd = ``
   let cmdArgs = []
   let lib = ``
+
   for (const pair of libReg) {
     const obj = pair.value
     const regexStr = obj.get('regex')
     const regex = new RegExp(regexStr, 'i')
     if (regex.test(args[label])) lib = pair.key.value
   }
+
   if (!lib) {
     throw new Error(`Required lib name for ${chalk.magenta(label)} script`)
   }
+
   cmd += `lerna`
   cmdArgs.push('exec', '--scope', lib, `\"npm run ${label}\"`)
   spawn(cmd, cmdArgs, { stdio: 'inherit', shell: true })
@@ -96,17 +112,21 @@ if (args.convert) {
   const extFrom = args.convert
   const extTo = args.ext
   const [from, to] = args._
+
   console.log(
     `Converting ${chalk.yellow(extFrom)} files from "${chalk.cyan(
       from,
     )}" to "${chalk.yellow(extTo)}" placed in "${chalk.cyan(to)}"`,
   )
+
   fs.ensureDirSync(path.resolve(to))
+
   const files = globby.sync(path.resolve(from), {
     extglob: extFrom.replace('.', ''),
     expandDirectories: true,
     objectMode: true,
   })
+
   const docs = files.forEach((file) => {
     if (!file.name.endsWith(extFrom)) return
     const yml = yaml.stringify(fs.readJsonSync(path.resolve(file.path)), {

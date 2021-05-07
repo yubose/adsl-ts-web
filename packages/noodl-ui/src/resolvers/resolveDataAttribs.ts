@@ -207,10 +207,9 @@ dataAttribsResolver.setResolver((component, options, next) => {
     const dataObject = n.findListDataObject(component)
     if (dataObject) {
       const dataKey = excludeIteratorVar(selectOptions, iteratorVar)
-      const dataOptions =
-        (dataKey ? get(dataObject, dataKey) : dataObject) || []
-      component.set('data-options', dataOptions)
-      setTimeout(() => component.emit('options', dataOptions))
+      const dataOptions = dataKey ? get(dataObject, dataKey) : dataObject
+      component.set('data-options', dataOptions || [])
+      setTimeout(() => component.emit('options', component.get('data-options')))
     } else {
       console.log(
         `%cCould not find the list of options for a select component using the path "${selectOptions}"`,

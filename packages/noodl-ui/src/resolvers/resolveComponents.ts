@@ -365,24 +365,14 @@ componentResolver.setResolver((component, options, next) => {
         [() => getRoot(), () => getRoot()[page.page]],
         dataKey,
       )
-
-      if (u.isObj(dataObject)) {
-        dataValue = get(dataObject, dataKey)
-      } else {
-        dataValue = dataObject
-      }
+      dataValue = u.isObj(dataObject) ? get(dataObject, dataKey) : dataObject
     }
 
-    if (dataValue === undefined) {
+    if (u.isUnd(dataValue)) {
       console.log(
         `%cNo data object or value could be found.`,
         `color:#ec0000;`,
-        {
-          component,
-          dataKey,
-          dataObject,
-          dataValue,
-        },
+        { component, dataKey, dataObject, dataValue },
       )
     } else {
       set(dataObject, dataKey, dataValue)
@@ -403,7 +393,6 @@ componentResolver.setResolver((component, options, next) => {
     )
   }
   !cache.component.has(component) && cache.component.add(component)
-
   next?.()
 })
 

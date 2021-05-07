@@ -4,7 +4,6 @@
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationDir": "dist",
-    "esModuleInterop": true,
     "lib": ["esnext"],
     "inlineSourceMap": true,
     "module": "commonjs",
@@ -15,6 +14,6 @@
     "suppressImplicitAnyIndexErrors": true,
     "target": "es2015"
   },
-  "exclude": ["node_modules/**/*"],
-  "include": ["src/**/*"]
+  "exclude": ["node_modules", "esbuild.js", "src/**/*.test.ts"],
+  "include": ["src"]
 }

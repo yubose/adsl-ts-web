@@ -33,7 +33,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
       const req = await request('')
       const components = req?.render()
       const component = components?.[2]
-      const node = findByGlobalId(component?.get('globalId'))
+      const node = findByGlobalId(component?.get('data-globalid'))
       expect(document.body.contains(node as HTMLElement)).to.be.true
       // expect(page.rootNode.children).to.have.lengthOf(2)
       // page.clearRootNode()
@@ -129,7 +129,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
             components: [popUpComponentObj],
           })
           const component = await render()
-          const globalId = component?.get('globalId')
+          const globalId = component?.get('data-globalid')
           const globalObj = ndom.global.components.get(globalId)
           expect(globalId).to.exist
           expect(globalObj).to.exist

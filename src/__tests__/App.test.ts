@@ -1,6 +1,7 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import CADL from '@aitmed/cadl'
+import * as u from '@aitmed/web-common-utils'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { nuiEmitTransaction, NUI, Viewport, Store } from 'noodl-ui'
@@ -12,7 +13,6 @@ import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
 import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
-import * as u from '../utils/common'
 
 describe(coolGold(`App`), () => {
   describe(italic(`Instantiating`), () => {
@@ -99,7 +99,7 @@ describe(coolGold(`App`), () => {
       })
     })
 
-    describe.only(`noodl registers`, () => {
+    describe(`noodl registers`, () => {
       const onNewEcosDocObject = mock.getRegisterComponent({
         onEvent: 'onNewEcosDoc',
         emit: mock.getEmitObject({

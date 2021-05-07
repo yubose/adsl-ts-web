@@ -1,19 +1,9 @@
-import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'
 import { Identify } from 'noodl-types'
-import { createAction } from 'noodl-action-chain'
-import {
-  prettyDOM,
-  waitFor,
-  waitForElementToBeRemoved,
-} from '@testing-library/dom'
+import { prettyDOM, waitFor } from '@testing-library/dom'
 import * as mock from 'noodl-ui-test-utils'
-import {
-  findByViewTag,
-  getFirstByElementId,
-  getFirstByViewTag,
-} from 'noodl-ui-dom'
+import { getFirstByElementId, getFirstByViewTag } from 'noodl-ui-dom'
 import { NUIComponent } from 'noodl-ui'
 import { getApp } from '../utils/test-utils'
 import { isVisible } from '../utils/dom'

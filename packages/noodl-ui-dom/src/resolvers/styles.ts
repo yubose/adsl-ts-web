@@ -14,8 +14,8 @@ export default {
           src,
           nodeId: node.id,
           componentId: component.id,
-          globalId: component.get('globalId'),
-          globalObject: ndom.global.components[component.get('globalId')],
+          globalId: component.get('data-globalid'),
+          globalObject: ndom.global.components[component.get('data-globalid')],
         })
         node && (node.style.backgroundImage = `url("${src}")`)
       })

@@ -59,6 +59,8 @@ export function createGlobalComponentId(
     ? component
     : component.get('popUpView') ||
         component.get('viewTag') ||
+        component.get('data-viewtag') ||
+        component.get('data-ux') ||
         component.id ||
         ''
 }

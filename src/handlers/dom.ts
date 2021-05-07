@@ -6,8 +6,11 @@ import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
+import * as u from '@aitmed/web-common-utils'
 import { Identify } from 'noodl-types'
 import {
+  asHtmlElement,
+  findByDataKey,
   getFirstByElementId,
   isTextFieldLike,
   NOODLDOMDataValueElement,
@@ -22,7 +25,6 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
-import * as u from '../utils/common'
 
 const log = Logger.create('dom.ts')
 
@@ -36,10 +38,10 @@ const createExtendedDOMResolvers = function (app: App) {
   }) {
     let { component, dataKey, node, evtName, iteratorVar = '' } = args
     let actionChain = component.get(evtName) as NUIActionChain | undefined
-    let pageName = app.mainPage.page
+    let pageName = app.currentPage
 
     async function onChange(event: Event) {
-      pageName !== app.mainPage.page && (pageName = app.mainPage.page)
+      pageName !== app.currentPage && (pageName = app.currentPage)
 
       const value = (event.target as any)?.value || ''
 
@@ -78,7 +80,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   dataKey,
                   node,
                   pageName,
-                  pageObject: app.noodl.root[pageName],
+                  pageObject: app.root[pageName],
                   value,
                 },
               )
@@ -91,34 +93,26 @@ const createExtendedDOMResolvers = function (app: App) {
             if (/settings/i.test(pageName)) {
               if (node.dataset?.name === 'code') {
                 const pathToTage = 'verificationCode.response.edge.tage'
-                if (has(app.noodl.root?.[pageName], pathToTage)) {
+                if (has(app.root?.[pageName], pathToTage)) {
                   app.updateRoot(`${pageName}.${pathToTage}`, value)
                   console.log(`Updated: SettingsUpdate.${pathToTage}`)
                 }
               }
             }
-
             if (!iteratorVar) {
-              /**
-               * EXPERIMENTAL - When a data key from the local root is being updated
-               * by a node, update all other nodes that are referencing it.
-               * Note: This will not work for list items which is fine because they
-               * reference their own data objects
-               */
-              getAllByDataKey(dataKey)?.forEach((node) => {
-                // Since select elements have options as children, we should not
-                // edit by innerHTML or we would have to unnecessarily re-render the nodes
-                if (node.tagName === 'SELECT') {
-                } else if (isTextFieldLike(node)) {
-                  node.dataset.value = value
-                } else {
-                  node.innerHTML = `${value || ''}`
-                }
-              })
+              u.array(asHtmlElement(findByDataKey(dataKey)))?.forEach(
+                (node) => {
+                  // Since select elements have options as children, we should not
+                  // edit by innerHTML or we would have to unnecessarily re-render the nodes
+                  if (node && node.tagName !== 'SELECT') {
+                    if (isTextFieldLike(node)) node.dataset.value = value
+                    else node.innerHTML = `${value || ''}`
+                  }
+                },
+              )
             }
           })
         }
-
         await actionChain?.execute?.(event)
       }
     }
@@ -148,71 +142,54 @@ const createExtendedDOMResolvers = function (app: App) {
                 let tableData: any = {
                   pagination: { limit: '' },
                   language: {
-                    search: {
-                      placeholder: '',
-                    },
-                    pagination: {
-                      showing: '',
-                    },
+                    search: { placeholder: '' },
+                    pagination: { showing: '' },
                   },
                   chartType: option.chartType,
                   data: [],
                   columns: [],
-                  style: {
-                    table: {
-                      width: '100%',
-                    },
-                  },
+                  style: { table: { width: '100%' } },
                 }
                 if (option.style) tableData.style = option.style
                 /*if (option.tableHeader) tableData.columns = option.tableHeader */
                 // click each cell , return this data , and the index
-
                 option.tableHeader.forEach((element: any) => {
                   if (typeof element == 'string') {
                     let emptyObject = {
                       name: element,
                       attributes: (
-                        cell: any,
-                        row: any,
-                        column: { id: any },
+                        ...[cell, row, column]: [any, any, { id: any }]
                       ) => {
                         if (cell || row) {
+                          function onClick() {
+                            option.response = {}
+                            option.response.cell = cell
+                            option.response.column = column.id
+                            let resData = row
+                            let dataArray: any[] = []
+                            let resArray: any[] = []
+                            resData._cells.pop()
+                            resData._cells.forEach((item: any) =>
+                              dataArray.push(item['data']),
+                            )
+                            for (const key in option.dataHeader) {
+                              if (key in (option.dataHeader || {})) {
+                                const element = option.dataHeader[key]
+                                resArray[element] = dataArray[parseInt(key)]
+                              }
+                            }
+                            option.response.row = resArray
+                          }
                           return {
                             'data-cell-content': cell,
-                            onclick: () => {
-                              option.response = {}
-                              option.response.cell = cell
-                              option.response.column = column.id
-                              let resData = row
-                              let dataArray: any[] = []
-                              let resArray: any[] = []
-                              resData._cells.pop()
-                              resData._cells.forEach((item: any) => {
-                                dataArray.push(item['data'])
-                              })
-                              for (const key in option.dataHeader) {
-                                if (
-                                  Object.prototype.hasOwnProperty.call(
-                                    option.dataHeader,
-                                    key,
-                                  )
-                                ) {
-                                  const element = option.dataHeader[key]
-                                  resArray[element] = dataArray[parseInt(key)]
-                                }
-                              }
-                              option.response.row = resArray
-                            },
+                            onclick: onClick,
                             style: 'cursor: pointer',
                           }
                         }
                       },
                     }
                     tableData.columns.push(emptyObject)
-                  } else {
-                    tableData.columns.push(element)
-                  }
+                  } else tableData.columns.push(element)
                 })
                 if (option.attribute) {
                   let attribute = option.attribute
@@ -220,53 +197,44 @@ const createExtendedDOMResolvers = function (app: App) {
                     tableData.search = true
                     tableData.language.search.placeholder = attribute.search
                   }
-                  if (attribute.sort) tableData.sort = true
-                  if (attribute.pagination)
-                    tableData.pagination.limit = attribute.pagination
+                  attribute.sort && (tableData.sort = true)
+                  attribute.pagination &&
+                    (tableData.pagination.limit = attribute.pagination)
                 }
                 if (option.allowOnclick) {
-                  let onclickFunc = {
-                    name: 'Actions',
-                    formatter: (cell: any, row: any) => {
-                      return gridjs.h(
-                        'button',
-                        {
-                          onClick: () => {
-                            let resData = row
-                            let dataArray: any[] = []
-                            let resArray: any[] = []
-                            resData._cells.pop()
-                            resData._cells.forEach((item: any) => {
-                              dataArray.push(item['data'])
-                            })
-                            for (const key in option.dataHeader) {
-                              if (
-                                Object.prototype.hasOwnProperty.call(
-                                  option.dataHeader,
-                                  key,
-                                )
-                              ) {
-                                const element = option.dataHeader[key]
-                                resArray[element] = dataArray[parseInt(key)]
-                              }
-                            }
-                            option.response = {}
-                            option.response.row = resArray
-                          },
-                        },
-                        option.allowOnclick.value,
-                      )
-                    },
+                  function formatter(cell: any, row: any) {
+                    const options = {
+                      onClick() {
+                        let resData = row
+                        let dataArray: any[] = []
+                        let resArray: any[] = []
+                        let push = (item: any) => dataArray.push(item.data)
+                        resData._cells.pop()
+                        resData._cells.forEach(push)
+                        for (const key in option.dataHeader) {
+                          if (key in (option.dataHeader || {})) {
+                            const element = option.dataHeader[key]
+                            resArray[element] = dataArray[parseInt(key)]
+                          }
+                        }
+                        option.response = {}
+                        option.response.row = resArray
+                      },
+                    }
+                    return gridjs.h(
+                      'button',
+                      options,
+                      option.allowOnclick.value,
+                    )
                   }
                   if (findIndex(tableData.columns, ['name', 'Actions']) == -1) {
-                    tableData.columns.push(onclickFunc)
+                    tableData.columns.push({ name: 'Actions', formatter })
                   }
                 }
                 option.dataObject.forEach((item: any) => {
                   let dataArray: any = []
-                  option.dataHeader.forEach((key: any) => {
-                    dataArray.push(item[key])
-                  })
+                  let push = (key: string) => dataArray.push(item[key])
+                  option.dataHeader.forEach(push)
                   tableData.data.push(dataArray)
                 })
                 new gridjs.Grid(tableData).render(node)
@@ -373,9 +341,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 let data = [] as any[]
                 let yAxis = []
                 function getzf(num: string | number) {
-                  if (parseInt(num as string) < 10) {
-                    num = '0' + num
-                  }
+                  if (parseInt(num as string) < 10) num = '0' + num
                   return num
                 }
                 var ItemList = new Array() //声明一维数组
@@ -406,17 +372,16 @@ const createExtendedDOMResolvers = function (app: App) {
                       en: end,
                       ad: Address,
                     })
-                    var num = new Date(
+                    const num = new Date(
                       new Date(Lists[j].endTime) - new Date(Lists[j].startTime),
                     )
                     console.log(getzf(num.getHours()) + ':' + num.getMinutes())
                     console.log(start, end, name)
                   }
-                  console.log()
                 }
                 for (let i = 0; i < all.length; i++) {
-                  var addr = all[i].ad
-                  var user_Name = all[i].na
+                  let addr = all[i].ad
+                  let user_Name = all[i].na
                   let starttime = all[i].sta
                   let endtime = all[i].en
                   for (let j = 0; j < courseType.length; j++) {
@@ -431,8 +396,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                 }
                 console.error(ItemList)
-
-                var Timetable = new Timetables({
+                // @ts-expect-error
+                const Timetable = new Timetables({
                   el: `#${node.id}`,
                   timetables: ItemList,
                   week: week,
@@ -440,9 +405,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   gridOnClick: function (item: any) {
                     console.log(item)
                   },
-                  styles: {
-                    Gheight: 35,
-                  },
+                  styles: { Gheight: 35 },
                 })
               }
             }
@@ -503,19 +466,17 @@ const createExtendedDOMResolvers = function (app: App) {
       async resolve(node, component) {
         const img = node as HTMLImageElement
         const parent = component.parent
-        const pageObject = app.root[app.mainPage?.page || ''] || {}
+        const pageObject = app.root[app.currentPage || ''] || {}
         if (
           img?.src === get(pageObject, 'docDetail.document.name.data') &&
           get(pageObject, 'docDetail.document.name.type') === 'application/pdf'
         ) {
           img?.style && hide(img)
           const iframeEl = document.createElement('iframe')
+          const onEntry = (k: any, v: any) => (iframeEl.style[k] = v)
           iframeEl.setAttribute('src', img.src)
-          u.eachEntries(
-            (k, v) => (iframeEl.style[k as any] = v),
-            component.style,
-          )
-          ;(parent && getFirstByElementId(parent))?.appendChild(iframeEl)
+          u.eachEntries(component.style, onEntry)
+          parent && getFirstByElementId(parent)?.appendChild?.(iframeEl)
         }
       },
     },
@@ -560,9 +521,7 @@ const createExtendedDOMResolvers = function (app: App) {
             map.addControl(
               //添加定位
               new mapboxgl.GeolocateControl({
-                positionOptions: {
-                  enableHighAccuracy: true,
-                },
+                positionOptions: { enableHighAccuracy: true },
                 trackUserLocation: true,
               }),
             )
@@ -577,15 +536,11 @@ const createExtendedDOMResolvers = function (app: App) {
                     Title: element.information.Title,
                     address: element.information.address,
                   },
-                  geometry: {
-                    type: 'Point',
-                    coordinates: element.data,
-                  },
+                  geometry: { type: 'Point', coordinates: element.data },
                 }
                 featuresData.push(item)
               })
               console.log('test map2', featuresData)
-
               map.on('load', function () {
                 // Add a new source from our GeoJSON data and
                 // set the 'cluster' option to true. GL-JS will
@@ -776,23 +731,15 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: (node, component) => !!(node && component),
       resolve: function onMeetingComponent(node, component) {
         const viewTag = component.blueprint?.viewTag || ''
-        // Dominant/main participant/speaker
-        if (/mainStream/i.test(viewTag)) {
-          if (!app.mainStream.isSameElement(node)) {
-            app.mainStream.setElement(node)
-            log.func('[App] Meeting.resolve')
-            log.green('Bound an element to mainStream', app.mainStream)
+        const setImportantStream = (label: 'mainStream' | 'selfStream') => {
+          if (!app[label].isSameElement(node)) {
+            app[label].setElement(node)
+            log.func('[App] onMeetingComponent')
+            log.green(`Bound an element to ${label}`, app[label])
           }
         }
-        // Local participant
-        else if (/selfStream/i.test(viewTag)) {
-          if (!app.selfStream.isSameElement(node)) {
-            app.selfStream.setElement(node)
-            log.func('[App] Meeting.resolve')
-            log.green('Bound an element to selfStream', app.selfStream)
-          }
-        }
-        // Remote participants container
+        if (/mainStream/i.test(viewTag)) setImportantStream('mainStream')
+        else if (/selfStream/i.test(viewTag)) setImportantStream('selfStream')
         else if (/(videoSubStream)/i.test(component.contentType || '')) {
           let subStreams = app.subStreams
           if (!subStreams) {
@@ -800,7 +747,7 @@ const createExtendedDOMResolvers = function (app: App) {
               blueprint: component.blueprint?.children?.[0],
               resolver: app.nui.resolveComponents.bind(app.nui),
             })
-            log.func('[App] Meeting.resolve')
+            log.func('[App] onMeetingComponent')
             log.green('Initiated subStreams container', subStreams)
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
@@ -813,17 +760,16 @@ const createExtendedDOMResolvers = function (app: App) {
         // Individual remote participant video element container
         else if (/subStream/i.test(viewTag)) {
           if (app.subStreams) {
-            if (!app.subStreams.elementExists(node)) {
-            } else {
-              log.func('[App] Meeting.resolve')
+            if (app.subStreams.elementExists(node)) {
+              log.func('[App] onMeetingComponent')
               log.red(
                 `Attempted to add an element to a subStream but it ` +
                   `already exists in the subStreams container`,
-                { subStreams: app.subStreams, node, component },
+                app.subStreams,
               )
             }
           } else {
-            log.func('[App] Meeting.resolve')
+            log.func('[App] onMeetingComponent')
             log.red(
               `Attempted to create "subStreams" but a container (DOM element) ` +
                 `was not available`,
@@ -861,16 +807,8 @@ const createExtendedDOMResolvers = function (app: App) {
               const eyeIcon = document.createElement('img')
 
               // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
-              const dividedStyleKeys = [
-                'position',
-                'left',
-                'top',
-                'right',
-                'bottom',
-                'width',
-                'height',
-              ] as const
-
+              // prettier-ignore
+              const dividedStyleKeys = ['position', 'left', 'top', 'right', 'bottom', 'width', 'height'] as const
               // Transfer styles to the new parent to position our custom elements
               dividedStyleKeys.forEach((styleKey) => {
                 newParent.style[styleKey] = component.style?.[styleKey]
@@ -908,11 +846,9 @@ const createExtendedDOMResolvers = function (app: App) {
               // Restructing the node structure to match our custom effects with the
               // toggling of the eye iconsf
 
-              if (originalParent) {
-                if (originalParent.contains(node))
-                  originalParent.removeChild(node)
-                originalParent.appendChild(newParent)
-              }
+              originalParent?.contains?.(node) &&
+                originalParent.removeChild(node)
+              originalParent?.appendChild(newParent)
               eyeContainer.appendChild(eyeIcon)
               newParent.appendChild(node)
               newParent.appendChild(eyeContainer)
@@ -958,9 +894,7 @@ const createExtendedDOMResolvers = function (app: App) {
               // Sdk evaluates from start of day. So we must add onto the start of day
               // the # of seconds of the initial value in the Global object
               let initialValue = add(initialTime, { seconds: initialSeconds })
-              if (initialValue === null || initialValue === undefined) {
-                initialValue = new Date()
-              }
+              u.isNil(initialValue) && (initialValue = new Date())
               setInitialTime(initialValue)
             },
           )
@@ -1001,19 +935,13 @@ const createExtendedDOMResolvers = function (app: App) {
                     const seconds = get(draft, dataKey, 0)
                     set(draft, dataKey, seconds + 1)
                     const updatedSecs = get(draft, dataKey)
-                    if (!u.isNil(updatedSecs) && u.isNum(updatedSecs)) {
+                    if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
                       if (seconds === updatedSecs) {
                         // Not updated
                         log.func('text=func timer [ndom.register]')
                         log.red(
                           `Tried to update the value of ${dataKey} but the value remained the same`,
-                          {
-                            node,
-                            component,
-                            seconds,
-                            updatedSecs,
-                            ref,
-                          },
+                          { node, component, seconds, updatedSecs, ref },
                         )
                       } else {
                         // Updated

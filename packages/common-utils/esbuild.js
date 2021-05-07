@@ -10,10 +10,10 @@ const toFilePath = path.join(__dirname, 'dist/utils.js')
 const srcCode = fs.readFileSync(srcFilePath, 'utf8')
 
 const program = ts.createProgram({
-  rootNames: ['utils'],
+  rootNames: [],
   projectReferences: [{ path: 'tsconfig.json' }],
   options: {
-    allowJs: true,
+    allowJs: false,
     allowSyntheticDefaultImports: true,
     declaration: true,
     declarationDir: 'dist',

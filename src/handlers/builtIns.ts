@@ -1,7 +1,8 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { Draft, isDraft, original } from 'immer'
+import * as u from '@aitmed/web-common-utils'
+import { isDraft, original } from 'immer'
 import { isAction } from 'noodl-action-chain'
 import {
   findListDataObject,
@@ -32,11 +33,11 @@ import {
 import { parse } from 'noodl-utils'
 import Logger from 'logsnap'
 import { isVisible, toast, hide, show, scrollToElem } from '../utils/dom'
+import { pickActionKey } from '../utils/common'
 import App from '../App'
-import * as u from '../utils/common'
 
 const log = Logger.create('builtIns.ts')
-const _pick = u.pickActionKey
+const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
@@ -503,13 +504,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
     const component = options?.component as NUIComponent.Instance
     const actionViewTag = _pick(action, 'viewTag') || ''
-    const compViewTag = component?.get('data-viewtag')
+    const compViewTag =
+      component.blueprint?.viewTag || component?.get('data-viewtag')
     const components = [] as NUIComponent.Instance[]
     let numComponents = 0
 
     for (const c of app.cache.component) {
       c &&
-        c.get('data-viewtag') === actionViewTag &&
+        (c.blueprint?.viewTag || c.get('data-viewtag') === actionViewTag) &&
         components.push(c) &&
         numComponents++
     }

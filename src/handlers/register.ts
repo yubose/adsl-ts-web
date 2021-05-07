@@ -3,12 +3,12 @@
 // are currently handled in App.ts
 
 import Logger from 'logsnap'
+import * as u from '@aitmed/web-common-utils'
 import { Identify } from 'noodl-types'
 import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'
 import { copyToClipboard } from '../utils/dom'
 import App from '../App'
-import * as u from '../utils/common'
 
 const log = Logger.create('register.ts')
 

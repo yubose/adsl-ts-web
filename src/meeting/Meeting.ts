@@ -107,6 +107,9 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     set calledOnConnected(called: boolean) {
       _calledOnConnected = called
     },
+    get isConnected() {
+      return _room?.state === 'connected'
+    },
     get localParticipant() {
       return _room?.localParticipant
     },

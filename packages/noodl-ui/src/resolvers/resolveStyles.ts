@@ -98,9 +98,7 @@ resolveStyles.setResolver(
           if (textAlign.y === 'center' || textAlign.y === 'centerY') {
             edit(
               { display: 'flex', alignItems: 'center' },
-              {
-                remove: !textAlign.x && 'textAlign',
-              },
+              { remove: !textAlign.x && 'textAlign' },
             )
             textAlign.x === 'center' && edit({ justifyContent: 'center' })
           }
@@ -330,7 +328,7 @@ resolveStyles.setResolver(
     }
 
     // HANDLING ARTBITRARY STYLES
-    Object.entries(originalStyles).forEach(([styleKey, value]) => {
+    u.eachEntries(originalStyles, (styleKey, value) => {
       if (u.isStr(value)) {
         if (
           styleKey === 'textColor' ||

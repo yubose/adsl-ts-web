@@ -5,11 +5,12 @@ import NOODLDOM, {
   isPage as isNOODLDOMPage,
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
+import * as u from '@aitmed/web-common-utils'
 import { RemoteParticipant } from 'twilio-video'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { ComponentObject, Identify, PageObject } from 'noodl-types'
+import { PageObject } from 'noodl-types'
 import { NUI, NUIComponent, publish, Viewport as VP } from 'noodl-ui'
 import { Draft } from 'immer/dist/internal'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
@@ -28,7 +29,7 @@ import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
 import { toast } from './utils/dom'
-import * as u from './utils/common'
+import { isUnitTestEnv } from './utils/common'
 import * as T from './app/types'
 
 const log = Logger.create('App.ts')
@@ -86,6 +87,14 @@ class App {
     noodl && (this.#noodl = noodl)
   }
 
+  get aspectRatio() {
+    return this.noodl.aspectRatio
+  }
+
+  set aspectRatio(aspectRatio) {
+    this.noodl.aspectRatio = aspectRatio
+  }
+
   get authStatus() {
     return this.#state.authStatus
   }
@@ -98,8 +107,20 @@ class App {
     return this.nui.cache.actions.builtIn
   }
 
+  get config() {
+    return this.noodl.getConfig()
+  }
+
   get cache() {
     return this.nui.cache
+  }
+
+  get currentPage() {
+    return this.mainPage.page || ''
+  }
+
+  get previousPage() {
+    return this.mainPage.getPreviousPage(this.startPage)
   }
 
   get initialized() {
@@ -171,16 +192,13 @@ class App {
         _page = this.mainPage
         u.isStr(page) && (_pageRequesting = page)
       }
-
       if (_pageRequesting && _page.requesting !== _pageRequesting) {
         _page.requesting = _pageRequesting
       }
-
       if (u.isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
         return void (window.location.href = _pageRequesting)
       }
-
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside
       // our init() method. Page.components should also contain the components retrieved from
       // that page object
@@ -210,13 +228,14 @@ class App {
       !firebaseSupported && (this.#state.firebase.enabled = false)
       vapidKey && (this._store.messaging.vapidKey = vapidKey)
 
-      !this.getStatus &&
-        (this.getStatus = (await import('@aitmed/cadl')).Account.getStatus)
+      if (!this.getStatus) {
+        this.getStatus = (await import('@aitmed/cadl')).Account.getStatus
+      }
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
       this.firebase = firebase as T.FirebaseApp
-      this.messaging = this.#state.firebase.enabled
+      this.messaging = this.getFirebaseState().enabled
         ? this.firebase.messaging()
         : null
 
@@ -226,24 +245,18 @@ class App {
       this.observePages(this.mainPage)
 
       log.func('initialize')
-      stable && log.cyan(`Initialized @aitmed/cadl sdk instance`)
+      log.grey(`Initialized @aitmed/cadl sdk instance`)
 
-      let storedStatus = {} as { code: number }
-
-      if (process.env.NODE_ENV === 'test') {
-        storedStatus = { code: 0 }
-      } else {
-        storedStatus = await this.getStatus()
-      }
+      const storedCode = isUnitTestEnv() ? 0 : (await this.getStatus())?.code
       // Initialize the user's state before proceeding to decide on how to direct them
-      if (storedStatus.code === 0) {
+      if (storedCode === 0) {
         this.noodl.setFromLocalStorage('user')
         this.#state.authStatus = 'logged.in'
-      } else if (storedStatus.code === 1) {
+      } else if (storedCode === 1) {
         this.#state.authStatus = 'logged.out'
-      } else if (storedStatus.code === 2) {
+      } else if (storedCode === 2) {
         this.#state.authStatus = 'new.device'
-      } else if (storedStatus.code === 3) {
+      } else if (storedCode === 3) {
         this.#state.authStatus = 'temporary'
       }
 
@@ -275,7 +288,7 @@ class App {
       this.meeting.onRemoveRemoteParticipant =
         meetingfns.onRemoveRemoteParticipant
 
-      if (this.#state.firebase.enabled) {
+      if (this.getFirebaseState().enabled) {
         this.messaging?.onMessage(
           (obs) => {
             log.func('onMessage')
@@ -377,14 +390,14 @@ class App {
             })
             return token
           },
-          FCMOnTokenRefresh: this.#state.firebase.enabled
+          FCMOnTokenRefresh: this.getFirebaseState().enabled
             ? this.messaging?.onTokenRefresh.bind(this.messaging)
             : undefined,
-          checkField: self.ndom.builtIns.get('checkField')?.find(Boolean)?.fn,
-          goto: self.ndom.builtIns.get('goto')?.find(Boolean)?.fn,
-          hide: self.ndom.builtIns.get('hide')?.find(Boolean)?.fn,
-          show: self.ndom.builtIns.get('show')?.find(Boolean)?.fn,
-          redraw: self.ndom.builtIns.get('redraw')?.find(Boolean)?.fn,
+          checkField: self.builtIns.get('checkField')?.find(Boolean)?.fn,
+          goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
+          hide: self.builtIns.get('hide')?.find(Boolean)?.fn,
+          show: self.builtIns.get('show')?.find(Boolean)?.fn,
+          redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
           videoChat: createVideoChatBuiltIn(this),
         },
       })
@@ -392,11 +405,11 @@ class App {
       log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
         pageRequesting,
         pageModifiers: page.modifiers,
-        pageObject: this.noodl?.root[pageRequesting],
+        pageObject: this?.root[pageRequesting],
         snapshot: page.snapshot(),
       })
-      this.emit('onInitPage', this.noodl.root[pageRequesting] as PageObject)
-      return this.noodl.root[pageRequesting]
+      this.emit('onInitPage', this.root[pageRequesting] as PageObject)
+      return this.root[pageRequesting]
     } catch (error) {
       console.error(error)
       toast(error.message, { type: 'error' })
@@ -425,15 +438,13 @@ class App {
     let min: number | undefined
     let max: number | undefined
 
-    this.noodl.aspectRatio = u.isUnd(aspectRatio)
-      ? this.noodl.aspectRatio
-      : aspectRatio
+    !u.isUnd(aspectRatio) && (this.aspectRatio = aspectRatio)
 
     // REMINDER: The viewWidthHeightRatio in cadlEndpoint (app config) overwrites the viewWidthHeightRatio in root config
     const initMinMax = () => {
       const viewWidthHeightRatio =
         this.noodl.cadlEndpoint?.viewWidthHeightRatio ||
-        this.noodl.getConfig?.()?.viewWidthHeightRatio
+        this.config?.viewWidthHeightRatio
 
       if (viewWidthHeightRatio) {
         min = Number(viewWidthHeightRatio.min)
@@ -474,22 +485,15 @@ class App {
         args.width !== args.previousWidth ||
         args.height !== args.previousHeight
       ) {
-        console.log('VP changed', { ...args, viewport })
-        if (this.mainPage.page === 'VideoChat') {
-          log.func('onResize')
-          return log.grey(
-            `Skipping avoiding the page rerender on the VideoChat "onresize" event`,
-          )
-        }
-
-        this.noodl.aspectRatio = aspectRatio as number
+        if (this.currentPage === 'VideoChat') return
+        this.aspectRatio = aspectRatio
         refreshWidthAndHeight()
         document.body.style.width = `${args.width}px`
         document.body.style.height = `${args.height}px`
         this.mainPage.rootNode.style.width = `${args.width}px`
         this.mainPage.rootNode.style.height = `${args.height}px`
         this.mainPage.components =
-          this.root?.[this.mainPage.page]?.components || []
+          this.root?.[this.currentPage]?.components || []
         this.ndom.render(this.mainPage)
       }
     }
@@ -503,14 +507,15 @@ class App {
         node: HTMLElement,
         component: NUIComponent.Instance,
       ) => {
+        const onPublish = (c: NUIComponent.Instance) => {
+          console.log(`Removed a ${c.type} component from cache: ${c.id}`)
+          this.cache.component.remove(c)
+        }
+        this.cache.component.remove(component)
+        publish(component, onPublish)
         console.log(
           `Removed a ${component.type} component from cache: ${component.id}`,
         )
-        this.cache.component.remove(component)
-        publish(component, (c) => {
-          console.log(`Removed a ${c.type} component from cache: ${c.id}`)
-          this.cache.component.remove(c)
-        })
       }
       this.mainPage.on(
         eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
@@ -529,42 +534,17 @@ class App {
     const onBeforeClearRootNode = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
         log.func('onBeforeClearRootNode')
+        const _log = (label: 'selfStream' | 'mainStream' | 'subStreams') => {
+          const getSnapshot = () => this[label]?.snapshot()
+          const before = getSnapshot()
+          this[label]?.reset()
+          log.grey(`Wiping ${label} state`, { before, after: getSnapshot() })
+        }
         this.meeting.calledOnConnected = false
-        // Empty the current participants list since we manage the list of
-        // participants ourselves
-        const participants = this.getSdkParticipants()
-        if (participants?.length) {
-          const participantsBefore = [...participants]
-          this.setSdkParticipants([])
-          log.grey('Removed participants from SDK', {
-            before: participantsBefore,
-            after: this.getSdkParticipants(),
-          })
-        }
-        if (this.mainStream.hasElement()) {
-          const before = this.mainStream.snapshot()
-          this.mainStream.reset() &&
-            log.grey('Wiping mainStream state', {
-              before,
-              after: this.mainStream.snapshot(),
-            })
-        }
-        if (this.selfStream.hasElement()) {
-          const before = this.selfStream.snapshot()
-          this.selfStream.reset() &&
-            log.grey('Wiping selfStream state', {
-              before,
-              after: this.selfStream.snapshot(),
-            })
-        }
-        if (this.subStreams?.length) {
-          const before = this.subStreams.snapshot()
-          this.subStreams.reset() &&
-            log.grey('Wiped subStreams state', {
-              before,
-              after: this.subStreams.snapshot(),
-            })
-        }
+        this.getSdkParticipants()?.length && this.setSdkParticipants([])
+        this.mainStream.hasElement() && _log('mainStream')
+        this.selfStream.hasElement() && _log('selfStream')
+        this.subStreams?.length && _log('subStreams')
       }
     }
 
@@ -572,13 +552,10 @@ class App {
       log.func('onComponentsRendered')
       log.grey(`Done rendering DOM nodes for ${page.page}`, page)
       if (page.page === 'VideoChat') {
-        if (
-          this.meeting.room?.state === 'connected' &&
-          !this.meeting.calledOnConnected
-        ) {
+        if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
           this.meeting.onConnected(this.meeting.room)
           this.meeting.calledOnConnected = true
-          log.grey(`Invoked meeting.onConnected for republishing tracks`)
+          log.grey(`Republishing tracks with meeting.onConnected`)
         }
       }
     }
@@ -594,18 +571,17 @@ class App {
     if (this.ndom) {
       this.ndom.reset()
       this.mainPage = this.ndom.createPage(
-        this.nui.cache.page.length
+        this.cache.page.length
           ? this.nui.getRootPage()
           : this.nui.createPage({ viewport: this.viewport }),
       ) as NOODLDOMPage
       this.ndom.page = this.mainPage
     }
 
-    if (has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)) {
+    has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) &&
       this.updateRoot((draft) => {
         set(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, [])
       })
-    }
   }
 
   /**

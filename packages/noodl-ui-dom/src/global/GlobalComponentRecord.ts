@@ -1,4 +1,3 @@
-import { inspect } from 'util'
 import { Identify } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
 import { createGlobalComponentId } from '../utils/internal'
@@ -18,7 +17,7 @@ class GlobalComponentRecord extends GlobalRecord<'component'> {
   nodeId: string | undefined
   pageId: string;
 
-  [inspect.custom]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.toJSON()
   }
 

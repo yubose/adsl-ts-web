@@ -21,6 +21,7 @@
   "scripts": {
     "build": "tsc",
     "start": "tsc --watch",
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\"",
+    "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files \"src/**/*.ts\""
   }
 }

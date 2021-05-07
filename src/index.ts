@@ -80,25 +80,21 @@ window.addEventListener('load', async (e) => {
       }
     })
 
-    window.app = {
+    Object.assign(window, {
       Account,
-      app,
       build: process.env.BUILD,
       cp: copyToClipboard,
-      meeting: app.meeting,
-      noodl,
-      nui: app.nui,
-      page: app.mainPage,
-    }
-    window.build = process.env.BUILD
-    window.cache = app.nui.cache
-    window.cp = copyToClipboard
+    })
 
     Object.defineProperties(window, {
+      app: { get: () => app },
       l: { get: () => app.meeting.localParticipant },
+      cache: { get: () => app.cache },
+      meeting: { get: () => app.meeting },
       noodl: { get: () => noodl },
       nui: { get: () => app.nui },
       ndom: { get: () => app.ndom },
+      page: { get: () => app.mainPage },
       FCMOnTokenReceive: {
         get: () => (args: any) =>
           noodl.root.builtIn
@@ -137,10 +133,7 @@ window.addEventListener('load', async (e) => {
     }
 
     window.addEventListener('popstate', async (e) => {
-      const goBackPage = app.mainPage.getPreviousPage(
-        noodl.cadlEndpoint?.startPage,
-      )
-      stable && log.cyan(`Received the "goBack" page as ${goBackPage}`)
+      stable && log.cyan(`Received the "goBack" page as ${app.previousPage}`)
       const parts = app.mainPage.pageUrl.split('-')
       stable && log.cyan(`URL parts`, parts)
       if (parts.length > 1) {
@@ -170,7 +163,7 @@ window.addEventListener('load', async (e) => {
         app.mainPage.pageUrl = 'index.html?'
         stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
       }
-      await app.navigate(goBackPage)
+      await app.navigate(app.previousPage)
     })
   } catch (error) {
     console.error(error)

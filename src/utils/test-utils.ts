@@ -26,6 +26,7 @@ import {
   Register,
   NUIActionObjectInput,
 } from 'noodl-ui'
+import * as u from '@aitmed/web-common-utils'
 import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
@@ -35,7 +36,6 @@ import getMockParticipant, {
   MockParticipant,
 } from '../__tests__/helpers/getMockParticipant'
 import * as c from '../constants'
-import * as u from './common'
 import { LiteralUnion } from 'type-fest'
 
 export const deviceSize = {

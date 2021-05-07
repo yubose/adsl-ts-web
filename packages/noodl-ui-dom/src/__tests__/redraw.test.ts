@@ -14,9 +14,9 @@ import { getFirstByElementId } from '../utils'
 let view: Component
 let listGender: NUIComponent.Instance
 
-describe(coolGold(`redraw`), () => {
+describe.skip(coolGold(`redraw`), () => {
   describe(italic(`events`), () => {
-    it.only(`should still be executing the same action chains normally`, async () => {
+    it(`should still be executing the same action chains normally`, async () => {
       const { ndom, render } = createRender({
         components: mock.getLabelComponent({
           onClick: [

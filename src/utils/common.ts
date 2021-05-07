@@ -3,7 +3,6 @@ import has from 'lodash/has'
 import { ActionObject, UncommonActionObjectProps } from 'noodl-types'
 import { nuiGroupedActionTypes, Store } from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
-import util from 'util'
 
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
@@ -71,8 +70,6 @@ export function isMobile() {
     ? /Mobile/.test(navigator.userAgent)
     : false
 }
-
-export const inspect = util.inspect.custom
 
 export function isUnitTestEnv() {
   return process.env.NODE_ENV === 'test'

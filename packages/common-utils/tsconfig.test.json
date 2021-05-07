@@ -3,9 +3,8 @@
     "transpileOnly": true
   },
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
     "module": "commonjs",
-    "target": "es2017"
+    "target": "es2015"
   },
   "extends": "./tsconfig.json",
   "exclude": ["node_modules"],

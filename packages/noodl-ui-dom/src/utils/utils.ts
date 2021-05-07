@@ -127,9 +127,7 @@ export function findByDataAttrib(
   dataAttrib: LiteralUnion<NOODLDOMDataAttribute, string> | undefined,
   value?: string,
 ) {
-  return findBySelector(
-    value ? `[${dataAttrib}="${value}"]` : `[${dataAttrib}]`,
-  )
+  return findBySelector(value ? `[${dataAttrib}=${value}]` : `[${dataAttrib}]`)
 }
 export const findByDataKey = makeFindByAttr('data-key')
 export const findByGlobalId = makeFindByAttr('data-globalid')

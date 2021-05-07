@@ -2,7 +2,6 @@ import Logger from 'logsnap'
 import inRange from 'lodash/inRange'
 import last from 'lodash/last'
 import { ComponentObject } from 'noodl-types'
-import { inspect } from 'util'
 import { NUI } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RemoteParticipant } from 'twilio-video'
@@ -19,7 +18,7 @@ class MeetingSubstreams {
   container: NOODLDOMElement | null
   resolver: typeof NUI.resolveComponents = (c: any) => c;
 
-  [inspect.custom]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.snapshot()
   }
 

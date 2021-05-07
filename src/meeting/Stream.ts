@@ -1,11 +1,8 @@
-import { inspect } from 'util'
 import {
   createLocalAudioTrack,
   createLocalVideoTrack,
   LocalTrack,
-  LocalVideoTrackPublication,
   RemoteTrack,
-  RemoteVideoTrackPublication,
 } from 'twilio-video'
 import Logger from 'logsnap'
 import { toast } from '../utils/dom'
@@ -25,7 +22,7 @@ class MeetingStream {
   type: StreamType | null = null
   events = new Map<string, ((...args: any[]) => any)[]>();
 
-  [inspect.custom]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.snapshot()
   }
 

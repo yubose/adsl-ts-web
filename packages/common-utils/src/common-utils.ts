@@ -16,8 +16,30 @@ export function assign(
   return Object.assign(v, ...rest)
 }
 
-export function entries(v: any) {
-  return isObj(v) ? Object.entries(v) : []
+export function createMap<O extends [...[any, any][]]>(
+  defaultValue: O,
+): Map<O[O[number][number]], any>
+export function createMap<O extends Record<string, any>, K extends keyof O>(
+  defaultValue: O,
+): Map<K, O[K]>
+export function createMap<O extends Record<string, any> | [...[any, any][]]>(
+  defaultValue: O,
+) {
+  return new Map([...entries(defaultValue)])
+}
+
+export function entries<K extends string, O extends Record<K, any>>(v: O) {
+  return (isObj(v) ? Object.entries(v) : []) as [keyof O, O[keyof O]][]
+}
+
+export function eachEntries<O extends Record<string, any>, K extends keyof O>(
+  obj: O | null | undefined,
+  fn: (key: K, value: any) => void,
+) {
+  if (obj) {
+    if (obj instanceof Map) for (const [key, value] of obj) fn(key, value)
+    else if (isObj(obj)) entries(obj).forEach(([k, v]) => fn(k as K, v))
+  }
 }
 
 export function isArr(v: any): v is any[] {
@@ -60,19 +82,6 @@ export function keys(v: any) {
   return Object.keys(v)
 }
 
-export function eachEntries<O extends Record<string, any> | Map<string, any>>(
-  fn: (key: string, value: any) => void,
-  obj: O | null | undefined,
-) {
-  if (obj) {
-    if (obj instanceof Map) {
-      for (const [key, value] of obj) fn(key, value)
-    } else if (isObj(obj)) {
-      entries(obj).forEach(([k, v]) => fn(k, v))
-    }
-  }
-}
-
 export function values<O extends Record<string, any>, K extends keyof O>(
   v: O,
 ): O[K][] {
@@ -99,10 +108,10 @@ export function isOutboundLink(s: string | undefined = '') {
 
 export function mapEntries<
   Obj extends Record<string, any>,
-  Key extends keyof Obj = keyof Obj,
+  K extends keyof Obj = keyof Obj,
   RT = any
->(fn: (key: Key, value: Obj[Key]) => RT, obj: Obj): RT[] {
-  return entries(obj).map(([k, v]) => fn(k as Key, v))
+>(fn: (key: K, value: Obj[K]) => RT, obj: Obj): RT[] {
+  return entries(obj).map(([k, v]) => fn(k as K, v as any))
 }
 
 /**

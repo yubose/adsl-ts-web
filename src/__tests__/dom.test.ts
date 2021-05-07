@@ -3,11 +3,7 @@ import sinon from 'sinon'
 import { prettyDOM } from '@testing-library/dom'
 import { expect } from 'chai'
 import { screen, waitFor } from '@testing-library/dom'
-import {
-  findByViewTag,
-  getFirstByElementId,
-  getFirstByViewTag,
-} from 'noodl-ui-dom'
+import { getFirstByElementId } from 'noodl-ui-dom'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { assetsUrl, createRender, initializeApp } from '../utils/test-utils'
 import getMockParticipant from './helpers/getMockParticipant'
