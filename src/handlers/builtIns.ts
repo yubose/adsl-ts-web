@@ -509,32 +509,28 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       component,
       pickKeys: 'viewTag',
     })
+    const { viewTag } = metadata
 
-    const actionViewTag = _pick(action, 'viewTag') || ''
-    const compViewTag =
-      component.blueprint?.viewTag || component?.get('data-viewtag')
-    const components = [] as NUIComponent.Instance[]
+    let components = [] as NUIComponent.Instance[]
     let numComponents = 0
 
     for (const c of app.cache.component) {
       c &&
-        (c.blueprint?.viewTag || c.get('data-viewtag') === actionViewTag) &&
+        (c.blueprint?.viewTag || c.get('data-viewtag')) ===
+          viewTag.fromAction &&
         components.push(c) &&
         numComponents++
     }
 
-    if (compViewTag === actionViewTag && !components.includes(component)) {
+    if (
+      viewTag.fromComponent === viewTag.fromAction &&
+      !components.includes(component)
+    ) {
       components.push(component) && numComponents++
     }
 
     log.func('redraw')
-    log.red(
-      '',
-      getActionMetadata(action, {
-        pickKeys: 'viewTag',
-        numComponentsWithMatchingViewTag: components.length,
-      }),
-    )
+    log.red('', metadata)
 
     try {
       if (!numComponents) {

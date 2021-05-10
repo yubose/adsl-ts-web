@@ -1,8 +1,13 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
 import * as u from '@jsmanifest/utils'
-import { ActionObject, UncommonActionObjectProps } from 'noodl-types'
 import {
+  ActionObject,
+  ComponentObject,
+  UncommonActionObjectProps,
+} from 'noodl-types'
+import {
+  isComponent,
   NUIAction,
   NUIActionObjectInput,
   NUIComponent,
@@ -66,24 +71,22 @@ export const values = <O extends Record<string, any>, K extends keyof O>(
   v: O,
 ): O[K][] => Object.values(v)
 
-export function getActionMetadata<PKey extends string>(): ActionMetadata
-export function getActionMetadata<PKey extends string>(): ActionMetadata
 export function getActionMetadata<PKey extends string = string>(
   action: NUIAction | ActionObject | undefined,
   {
     component,
     pickKeys,
     ...other
-  }: { component?: NUIComponent.Instance; pickKeys?: PKey | PKey[] } & Record<
-    string,
-    any
-  > = {},
+  }: {
+    component?: NUIComponent.Instance | ComponentObject
+    pickKeys?: PKey | PKey[]
+  } & Partial<Record<string, any>> = {},
 ) {
   const metadata = {
     action: {} as any,
     trigger: pickActionKey(action as NUIAction, 'trigger'),
     ...other,
-  } as ActionMetadata
+  } as ActionMetadata<PKey>
   const isObject = isPlainAction(action)
   if (!action) return metadata
   if (isObject) {
@@ -94,21 +97,17 @@ export function getActionMetadata<PKey extends string = string>(
     metadata.action.object = action.original
   }
   pickKeys &&
-    u.array(pickKeys).forEach((key) => {
+    u.array(pickKeys).forEach((key: PKey) => {
       if (component) {
-        if (key in (component.blueprint || {})) {
-          metadata[key] = {
-            fromComponent: component.blueprint[key],
-          }
+        // @ts-expect-error
+        metadata[key] = {
+          fromAction: pickActionKey(action, key),
+          fromComponent: component.blueprint?.[key] || component.get(key),
         }
-      }
-      if (u.isObj(metadata[key]) && 'fromComponent' in metadata[key]) {
-        metadata[key].fromAction = pickActionKey(action, key)
       } else {
         metadata[key] = pickActionKey(action, key)
       }
     })
-
   return metadata
 }
 

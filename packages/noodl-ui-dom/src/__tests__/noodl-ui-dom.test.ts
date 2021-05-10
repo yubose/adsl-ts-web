@@ -14,35 +14,6 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`clearRootNode`), () => {
-    it(`should not remove nodes associated with global components`, async () => {
-      const globalPopUpComponent = mock.getPopUpComponent({
-        popUpView: 'cerealView',
-        global: true,
-      })
-      const { page, ndom, request } = createRender({
-        pageName: 'Hello',
-        pageObject: {
-          components: [
-            mock.getSelectComponent(),
-            mock.getButtonComponent(),
-            globalPopUpComponent,
-          ],
-        },
-      })
-      const req = await request('')
-      const components = req?.render()
-      const component = components?.[2]
-      const node = findByGlobalId(component?.get('data-globalid'))
-      expect(document.body.contains(node as HTMLElement)).to.be.true
-      // expect(page.rootNode.children).to.have.lengthOf(2)
-      // page.clearRootNode()
-      // expect(page.rootNode.children).to.have.lengthOf(0)
-      // expect(document.body.contains(node)).to.be.true
-      // expect(document.body.children.length).to.eq(2)
-    })
-  })
-
   describe(italic(`createGlobalRecord`), () => {
     it(`should add the GlobalComponentRecord to the global store`, async () => {
       const { render } = createRender({
