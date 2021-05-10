@@ -186,9 +186,12 @@ const createActions = function createActions(app: App) {
         : u.isObj(goto)
         ? goto.destination || goto.dataIn?.destination || goto
         : '') || ''
-    let { destination, id = '', isSamePage, duration } = parse.destination(
-      destinationParam,
-    )
+    let {
+      destination,
+      id = '',
+      isSamePage,
+      duration,
+    } = parse.destination(destinationParam)
     let pageModifiers = {} as any
 
     if (destination === destinationParam) {
@@ -213,9 +216,8 @@ const createActions = function createActions(app: App) {
         } else {
           win = findWindow((w) => {
             if (!w) return false
-            return ('contentDocument' in w
-              ? w['contentDocument']
-              : w.document
+            return (
+              'contentDocument' in w ? w['contentDocument'] : w.document
             )?.contains?.(node as HTMLElement)
           })
         }

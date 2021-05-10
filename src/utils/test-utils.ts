@@ -26,7 +26,7 @@ import {
   Register,
   NUIActionObjectInput,
 } from 'noodl-ui'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
@@ -233,7 +233,7 @@ export class MockNoodl extends EventEmitter {
     return {}
   }
   async getStatus() {
-    return ({ code: 0 } as any) as () => Promise<
+    return { code: 0 } as any as () => Promise<
       Status & { userId: string; phone_number: string }
     >
   }
