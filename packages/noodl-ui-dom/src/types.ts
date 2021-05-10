@@ -1,4 +1,4 @@
-import { ComponentObject, ComponentType } from 'noodl-types'
+import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
 import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
 import NOODLDOM from './noodl-ui-dom'
@@ -10,6 +10,7 @@ import {
   dataAttributes,
   transaction as ndomTransaction,
 } from './constants'
+import { LiteralUnion } from 'type-fest'
 
 export interface IGlobalObject<T extends string = string> {
   type: T
@@ -207,29 +208,35 @@ export namespace Page {
   }
 }
 
-export type NDOMTransaction =
-  | {
-      transaction: typeof ndomTransaction.REQUEST_PAGE_OBJECT
-      page: NOODLDOMPage
-    }
-  | {
-      transaction: typeof ndomTransaction.CREATE_ELEMENT
-      component: NUIComponent.Instance
-    }
+export namespace NDOMTransaction {
+  export type Id = typeof ndomTransaction[keyof typeof ndomTransaction]
+  export interface Base<T extends string = string> {
+    transaction: T
+    params?: any
+    args?: any[]
+  }
 
-export type NDOMTransactionId = typeof ndomTransaction[keyof typeof ndomTransaction]
+  export type Map<TName extends string = string, Arg = any> = {
+    [ndomTransaction.CREATE_ELEMENT]: (
+      component: NUIComponent.Instance,
+    ) => NUIComponent.Instance | void | null
+    [ndomTransaction.REQUEST_PAGE_OBJECT]: (
+      page: NOODLDOMPage,
+    ) => Promise<NOODLDOMPage>
+  } & Record<TName, <RT = any>(arg: Arg) => RT>
+}
 
-export interface UseObject extends Omit<Partial<NUIUseObject>, 'transaction'> {
+export interface UseObject<
+  TName extends LiteralUnion<NDOMTransaction.Id, string> = string
+> extends Omit<
+    NUIUseObject<NDOMTransaction.Base, NDOMTransaction.Id>,
+    'transaction'
+  > {
   createElementBinding?(
     component: NUIComponent.Instance,
   ): HTMLElement | null | void
   resolver?: Resolve.Config
-  transaction?: {
-    [ndomTransaction.CREATE_ELEMENT]?(
-      component: NUIComponent.Instance,
-    ): NUIComponent.Instance | void | null
-    [ndomTransaction.REQUEST_PAGE_OBJECT]?(
-      page: NOODLDOMPage,
-    ): Promise<NOODLDOMPage>
-  }
+  transaction?: Partial<Record<TName, NDOMTransaction.Map<TName>>>
 }
+
+const s: UseObject<'CREATE_ELEMENT'>['transaction']

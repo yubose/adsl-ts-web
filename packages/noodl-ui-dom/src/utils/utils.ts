@@ -6,7 +6,7 @@ import {
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import { LiteralUnion } from 'type-fest'
 import NOODLDOMPage from '../Page'
 import findElement from './findElement'

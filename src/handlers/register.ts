@@ -3,7 +3,7 @@
 // are currently handled in App.ts
 
 import Logger from 'logsnap'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import { Identify, PageObject } from 'noodl-types'
 import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'

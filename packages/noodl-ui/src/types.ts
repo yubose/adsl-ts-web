@@ -335,12 +335,15 @@ export interface Transaction {
     fn(page: NUIPage | NUIPage['page']): Promise<PageObject>
     callback(pageObject: PageObject): void
   }
+  [key: string]: any
 }
 
-export type TransactionId = keyof Transaction
+export type TransactionId = LiteralUnion<keyof Transaction, string>
 
-export interface UseArg
-  extends Partial<
+export interface UseArg<
+  TObj extends Record<string, any> = Record<string, any>,
+  TName extends TransactionId = TransactionId
+> extends Partial<
     Record<
       NUIActionGroupedType,
       Store.ActionObject['fn'] | Store.ActionObject['fn'][]
@@ -367,9 +370,6 @@ export interface UseArg
     | RegisterComponentObject
     | RegisterComponentObject[]
   transaction?: Partial<
-    Record<
-      LiteralUnion<TransactionId, string>,
-      Transaction[keyof Transaction] | Transaction[keyof Transaction]['fn']
-    >
+    Record<LiteralUnion<TName, string>, TObj[TName] | TObj[TName]['fn']>
   >
 }
