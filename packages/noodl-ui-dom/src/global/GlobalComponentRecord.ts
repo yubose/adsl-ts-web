@@ -1,6 +1,5 @@
 import { Identify } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
-import { createGlobalComponentId } from '../utils/internal'
 import GlobalRecord from './GlobalRecord'
 import Page from '../Page'
 
@@ -29,7 +28,7 @@ class GlobalComponentRecord extends GlobalRecord<'component'> {
       //   ? component.get('popUpView') || component.get('viewTag') || component.id
       //   : ''
       // this.#id = `${page.page}:${suffix}`
-      this.#id = createGlobalComponentId(component)
+      this.#id = component?.get?.('data-globalid')
     } else {
       this.#id = id
     }

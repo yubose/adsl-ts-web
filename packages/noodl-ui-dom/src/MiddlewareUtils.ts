@@ -1,5 +1,4 @@
 import { NUIComponent } from 'noodl-ui'
-import { createGlobalComponentId } from './utils/internal'
 import NOODLDOMPage from './Page'
 
 class MiddlewareUtils {
@@ -7,13 +6,6 @@ class MiddlewareUtils {
 
   constructor() {
     if (MiddlewareUtils._inst) return MiddlewareUtils._inst
-  }
-
-  createGlobalComponentId(
-    page: NOODLDOMPage,
-    component: NUIComponent.Instance,
-  ) {
-    return createGlobalComponentId(component)
   }
 }
 

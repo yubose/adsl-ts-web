@@ -1,6 +1,6 @@
 import invariant from 'invariant'
 import { Identify, PageObject } from 'noodl-types'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import {
   Component,
   createComponent,
@@ -17,27 +17,14 @@ import { GlobalComponentRecord } from './global'
 import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
-import MiddlewareUtils from './MiddlewareUtils'
 import Page from './Page'
-import { createGlobalComponentId } from './utils/internal'
 import * as defaultResolvers from './resolvers'
 import * as c from './constants'
 import * as T from './types'
 
 const pageEvt = c.eventId.page
 
-interface Middleware {
-  inst: MiddlewareUtils
-  createGlobalComponentId:
-    | MiddlewareUtils['createGlobalComponentId']
-    | undefined
-}
-
 class NOODLDOM extends NOODLDOMInternal {
-  #middleware: Middleware = {
-    inst: new MiddlewareUtils(),
-    createGlobalComponentId: undefined,
-  }
   #R: ReturnType<typeof createResolver>
   #createElementBinding = undefined as T.UseObject['createElementBinding']
   global: T.GlobalMap = {
@@ -419,7 +406,7 @@ class NOODLDOM extends NOODLDOMInternal {
 
       if (component.has('global')) {
         let globalRecord: GlobalComponentRecord
-        let globalId = createGlobalComponentId(component)
+        let globalId = component.get('data-globalid')
 
         if (this.global.components.has(globalId)) {
           globalRecord = this.global.components.get(
@@ -808,17 +795,7 @@ class NOODLDOM extends NOODLDOMInternal {
     if (!obj) return
     if (isNUIPage(obj)) return this.createPage(obj)
 
-    const {
-      createElementBinding,
-      createGlobalComponentId,
-      transaction,
-      resolver,
-      ...rest
-    } = obj
-
-    if (createGlobalComponentId) {
-      this.#middleware.createGlobalComponentId = obj.createGlobalComponentId
-    }
+    const { createElementBinding, transaction, resolver, ...rest } = obj
 
     createElementBinding && (this.#createElementBinding = createElementBinding)
     resolver && this.register(resolver)

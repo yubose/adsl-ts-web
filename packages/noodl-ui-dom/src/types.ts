@@ -223,7 +223,6 @@ export interface UseObject extends Omit<Partial<NUIUseObject>, 'transaction'> {
   createElementBinding?(
     component: NUIComponent.Instance,
   ): HTMLElement | null | void
-  createGlobalComponentId?: Middleware.Utils['createGlobalComponentId']
   resolver?: Resolve.Config
   transaction?: {
     [ndomTransaction.CREATE_ELEMENT]?(

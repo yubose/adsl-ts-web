@@ -1,7 +1,6 @@
 import { Action, createActionChain } from 'noodl-action-chain'
 import { PartialDeep } from 'type-fest'
 import {
-  ActionObject,
   BuiltInActionObject,
   ButtonComponentObject,
   ComponentObject,
@@ -42,69 +41,13 @@ import {
   VideoComponentObject,
   ViewComponentObject,
 } from 'noodl-types'
+import { EmitAction, NUIAction, NUIActionObject } from 'noodl-ui'
 import {
-  EmitAction,
-  NUIAction,
-  NUIActionObject,
-  NUIActionObjectInput,
-  NUITrigger,
-} from 'noodl-ui'
+  ComponentProps,
+  createActionWithKeyOrProps,
+  createComponentWithKeyOrProps,
+} from './utils'
 import * as T from './types'
-
-type CreateWithKeyOrProps<
-  Obj extends Record<string, any> = Record<string, any>
-> = {
-  //
-}
-
-function createObjWithKeyOrProps<Obj extends Record<string, any>>(
-  defaultProps: Partial<Obj>,
-) {
-  const create = <Key extends keyof Obj>(
-    key: Key | Obj[Key] | Partial<Obj>,
-    props?: CreateWithKeyOrProps<Obj>,
-  ): Obj => {
-    const obj = { ...defaultProps } as any
-    if (typeof key === 'string') key === ''
-    else key
-    if (typeof props === 'string') obj[key] = props
-    else if (props) Object.assign(obj, props)
-    return obj as Obj
-  }
-  return create
-}
-
-function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
-  defaultProps: O,
-  key: keyof O,
-) {
-  const createObj = (props?: string | ActionProps<O>): O => {
-    const obj = { ...(defaultProps as object) } as NUIActionObjectInput
-    if (typeof key === 'string') obj[key as any] = props
-    else if (props) Object.assign(obj, props)
-    return obj as O
-  }
-  return createObj
-}
-
-function createComponentWithKeyOrProps<O extends ComponentObject>(
-  defaultProps: O,
-  key: string,
-) {
-  const createObj = (props?: string | ComponentProps<O>): O => {
-    const obj = { ...defaultProps } as ComponentObject
-    if (typeof key === 'string') obj[key] = props
-    else if (props) Object.assign(obj, props)
-    return obj as O
-  }
-  return createObj
-}
-
-type ActionProps<C extends Partial<ActionObject> = ActionObject> = Partial<C>
-
-type ComponentProps<
-  C extends Partial<ComponentObject> = ComponentObject
-> = Partial<{ [K in NUITrigger]: NUIActionObjectInput[] } & C>
 
 export function getActionChain({
   actions,

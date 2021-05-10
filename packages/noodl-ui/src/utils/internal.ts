@@ -1,3 +1,5 @@
+import { NUIComponent } from '../types'
+
 export const isArr = (v: any): v is any[] => Array.isArray(v)
 export const isBool = (v: any): v is boolean => typeof v === 'boolean'
 export const isNum = (v: any): v is number => typeof v === 'number'
@@ -22,6 +24,21 @@ export const arrayEach = <O extends any[], P extends O[number]>(
   obj: P | P[],
   fn: (o: P) => void,
 ) => void (isFnc(fn) && array(obj).forEach(fn))
+
+export function createGlobalComponentId(
+  component: NUIComponent.Instance | string | undefined,
+) {
+  return !isUnd(component)
+    ? isStr(component)
+      ? component
+      : component.blueprint?.popUpView ||
+        component.blueprint?.viewTag ||
+        component.get('popUpView') ||
+        component.get('viewTag') ||
+        component.id ||
+        ''
+    : ''
+}
 
 export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
 

@@ -1,9 +1,13 @@
 import * as mock from 'noodl-ui-test-utils'
-import { waitFor } from '@testing-library/dom'
+import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { findByGlobalId, getFirstByGlobalId } from '../utils'
+import {
+  findByGlobalId,
+  getFirstByElementId,
+  getFirstByGlobalId,
+} from '../utils'
 import { ndom, createRender } from '../test-utils'
 import { GlobalComponentRecord } from '../global'
 
@@ -14,17 +18,20 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`createGlobalRecord`), () => {
+  describe.only(italic(`createGlobalRecord`), () => {
     it(`should add the GlobalComponentRecord to the global store`, async () => {
       const { render } = createRender({
         components: [mock.getPopUpComponent({ global: true })],
       })
       const component = await render()
       const globalId = component.get('data-globalid')
+      console.info(mock.getPopUpComponent({ global: true }))
+      console.info(mock.getPopUpComponent({ global: true }))
+      console.info(mock.getPopUpComponent({ global: true }))
       expect(ndom.global.components.has(globalId)).to.be.true
-      expect(ndom.global.components.get(globalId)).to.be.instanceOf(
-        GlobalComponentRecord,
-      )
+      // expect(ndom.global.components.get(globalId)).to.be.instanceOf(
+      //   GlobalComponentRecord,
+      // )
     })
   })
 

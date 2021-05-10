@@ -52,19 +52,6 @@ export function addClassName(className: string, node: HTMLElement) {
   }
 }
 
-export function createGlobalComponentId(
-  component: NUIComponent.Instance | string | undefined,
-) {
-  return !isUnd(component)
-    ? isStr(component)
-      ? component
-      : component.get('popUpView') ||
-        component.get('viewTag') ||
-        component.id ||
-        ''
-    : ''
-}
-
 type CreateDocIdentifierArg =
   | NUIComponent.Instance
   | ComponentObject

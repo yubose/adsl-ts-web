@@ -19,6 +19,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     dataKey,
     image,
     options: selectOptions,
+    popUpView,
     path,
     poster,
     resource,
@@ -50,7 +51,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
 -------------------------------------------------------- */
 
   if (component.has('global')) {
-    component.edit({ 'data-globalpage': page.page })
+    component.edit({ 'data-globalid': u.createGlobalComponentId(component) })
   }
 
   /* -------------------------------------------------------

@@ -74,9 +74,8 @@ describe(coolGold(`resolvers`), () => {
               children: [
                 mock.getListItemComponent({
                   children: [
-                    mock.getLabelComponent({
-                      dataKey: `${iteratorVar}.value`,
-                    } as any),
+                    // prettier-ignore
+                    mock.getLabelComponent({ dataKey: `${iteratorVar}.value`, } as any),
                     // prettier-ignore
                     mock.getPopUpComponent({ viewTag: 'bagTag', popUpView: 'color', }),
                     mock.getButtonComponent({ global: true }),

@@ -2,10 +2,14 @@
   "name": "noodl-ui-test-utils",
   "version": "0.0.9",
   "description": "Test utilities for the noodl-ui library",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "jsnext:main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "start": "tsc -w",
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\""
   },
   "keywords": [
     "noodl-ui",
@@ -18,10 +22,6 @@
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "homepage": "",
   "license": "ISC",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "jsnext:main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "directories": {
     "dist": "dist"
   },
