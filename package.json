@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@aitmed/web-common-utils": "file:packages/common-utils",
+    "@jsmanifest/utils": "^1.0.1",
     "date-fns": "^2.21.2",
     "firebase": "^8.5.0",
     "immer": "^9.0.2",
