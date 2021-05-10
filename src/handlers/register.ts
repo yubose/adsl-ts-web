@@ -3,7 +3,7 @@
 // are currently handled in App.ts
 
 import Logger from 'logsnap'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import { Identify } from 'noodl-types'
 import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'
@@ -30,9 +30,8 @@ function createRegisters(app: App) {
       }
       try {
         if (app.getFirebaseState().enabled) {
-          app._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
-            'firebase-messaging-sw.js',
-          )
+          app._store.messaging.serviceRegistration =
+            await navigator.serviceWorker.register('firebase-messaging-sw.js')
           log.grey(
             'Initialized service worker',
             app._store.messaging.serviceRegistration,

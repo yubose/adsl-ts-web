@@ -5,7 +5,7 @@ import NOODLDOM, {
   isPage as isNOODLDOMPage,
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import { RemoteParticipant } from 'twilio-video'
 import get from 'lodash/get'
 import has from 'lodash/has'
@@ -29,11 +29,11 @@ import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
 import { toast } from './utils/dom'
-import { isUnitTestEnv } from './utils/common'
+import { isStable, isUnitTestEnv, isOutboundLink } from './utils/common'
 import * as T from './app/types'
 
 const log = Logger.create('App.ts')
-const stable = u.isStable()
+const stable = isStable()
 
 class App {
   #state = {
@@ -195,7 +195,7 @@ class App {
       if (_pageRequesting && _page.requesting !== _pageRequesting) {
         _page.requesting = _pageRequesting
       }
-      if (u.isOutboundLink(_pageRequesting)) {
+      if (isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
         return void (window.location.href = _pageRequesting)
       }
@@ -634,7 +634,7 @@ class App {
 
   emit<
     Id extends keyof T.AppObserver,
-    P extends T.AppObserver[Id]['params'] = T.AppObserver[Id]['params']
+    P extends T.AppObserver[Id]['params'] = T.AppObserver[Id]['params'],
   >(id: Id, params?: P) {
     const fns = this.obs.has(id) && this.obs.get(id)
     fns && fns.forEach((fn) => typeof fn === 'function' && fn(params as P))

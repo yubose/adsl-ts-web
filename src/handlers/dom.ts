@@ -6,7 +6,7 @@ import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import { Identify } from 'noodl-types'
 import {
   asHtmlElement,

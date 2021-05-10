@@ -1,5 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import fs from 'fs-extra'
 import path from 'path'
 import { ComponentObject } from 'noodl-types'
