@@ -18,7 +18,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe.only(italic(`createGlobalRecord`), () => {
+  describe(italic(`createGlobalRecord`), () => {
     it(`should add the GlobalComponentRecord to the global store`, async () => {
       const { render } = createRender({
         components: [mock.getPopUpComponent({ global: true })],
@@ -29,9 +29,9 @@ describe(coolGold(`noodl-ui-dom`), () => {
       console.info(mock.getPopUpComponent({ global: true }))
       console.info(mock.getPopUpComponent({ global: true }))
       expect(ndom.global.components.has(globalId)).to.be.true
-      // expect(ndom.global.components.get(globalId)).to.be.instanceOf(
-      //   GlobalComponentRecord,
-      // )
+      expect(ndom.global.components.get(globalId)).to.be.instanceOf(
+        GlobalComponentRecord,
+      )
     })
   })
 
