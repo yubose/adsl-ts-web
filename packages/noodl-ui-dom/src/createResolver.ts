@@ -100,11 +100,11 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
     )
   }
 
-  function _get(key: 'createElement'): T.UseObject['createElement']
+  function _get(key: typeof transaction.CREATE_ELEMENT): T.Resolve.Config
   function _get(): typeof _internal.objs
-  function _get<K extends 'createElement'>(key?: K) {
-    if (key === 'createElement') {
-      return ndom.transactions.get(transaction.CREATE_ELEMENT)
+  function _get<K extends typeof transaction.CREATE_ELEMENT>(key?: K) {
+    if (key === transaction.CREATE_ELEMENT) {
+      return _internal.objs.find((obj) => obj.name === key)
     }
     return _internal.objs
   }

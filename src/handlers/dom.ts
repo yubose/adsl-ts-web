@@ -16,7 +16,7 @@ import {
   NOODLDOMDataValueElement,
   Resolve,
 } from 'noodl-ui-dom'
-import { excludeIteratorVar, getAllByDataKey } from 'noodl-utils'
+import { excludeIteratorVar } from 'noodl-utils'
 import {
   findIteratorVar,
   findListDataObject,
@@ -777,18 +777,6 @@ const createExtendedDOMResolvers = function (app: App) {
             )
           }
         }
-      },
-    },
-    '[App] popUp': {
-      cond: (n, c) => c.has('global'),
-      resolve(node) {
-        const onMutation: MutationCallback = function onMutation(mutations) {
-          log.func('<popUp> onMutation')
-          log.grey('', mutations)
-        }
-
-        const observer = new MutationObserver(onMutation)
-        observer.observe(node, { childList: true })
       },
     },
     '[App] Password textField': {

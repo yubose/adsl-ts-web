@@ -53,16 +53,16 @@ export function addClassName(className: string, node: HTMLElement) {
 }
 
 export function createGlobalComponentId(
-  component: NUIComponent.Instance | string,
+  component: NUIComponent.Instance | string | undefined,
 ) {
-  return isStr(component)
-    ? component
-    : component.get('popUpView') ||
+  return !isUnd(component)
+    ? isStr(component)
+      ? component
+      : component.get('popUpView') ||
         component.get('viewTag') ||
-        component.get('data-viewtag') ||
-        component.get('data-ux') ||
         component.id ||
         ''
+    : ''
 }
 
 type CreateDocIdentifierArg =

@@ -10,12 +10,12 @@ objects:
 server:
   dir: server
   host: 127.0.0.1
-  port: '3001'
+  port: "3001"
   protocol: http
   config: meet4d
 op:
   alias:
-    '@aitmed/web-common-utils':
+    "@aitmed/web-common-utils":
       regex: (common|util|cu)
     noodl-ui:
       regex: (nui|noodl-ui)

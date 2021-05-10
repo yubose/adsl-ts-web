@@ -18,7 +18,6 @@ class Page {
     modifiers: {} as {
       [pageName: string]: { reload?: boolean } & Record<string, any>
     },
-    reqQueue: [],
     status: eventId.page.status.IDLE as T.Page.Status,
     rootNode: false,
     render: getDefaultRenderState(),

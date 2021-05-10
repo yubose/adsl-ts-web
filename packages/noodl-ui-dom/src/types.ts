@@ -1,5 +1,5 @@
 import { ComponentObject, ComponentType } from 'noodl-types'
-import { Component, NUIComponent, NUI } from 'noodl-ui'
+import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
@@ -193,7 +193,6 @@ export namespace Page {
       }
     }
     render: {}
-    reqQueue: string[]
     status: Status
     rootNode: boolean
   }
@@ -218,15 +217,20 @@ export type NDOMTransaction =
       component: NUIComponent.Instance
     }
 
-export type NDOMTransactionId = keyof NDOMTransaction
+export type NDOMTransactionId = typeof ndomTransaction[keyof typeof ndomTransaction]
 
-export interface UseObject {
+export interface UseObject extends Omit<Partial<NUIUseObject>, 'transaction'> {
+  createElementBinding?(
+    component: NUIComponent.Instance,
+  ): HTMLElement | null | void
   createGlobalComponentId?: Middleware.Utils['createGlobalComponentId']
   resolver?: Resolve.Config
-  transaction?: NDOMTransaction & {
-    createElement?: {
-      cond(component: NUIComponent.Instance): boolean
-      resolve(component: NUIComponent.Instance): HTMLElement | null
-    }
+  transaction?: {
+    [ndomTransaction.CREATE_ELEMENT]?(
+      component: NUIComponent.Instance,
+    ): NUIComponent.Instance | void | null
+    [ndomTransaction.REQUEST_PAGE_OBJECT]?(
+      page: NOODLDOMPage,
+    ): Promise<NOODLDOMPage>
   }
 }

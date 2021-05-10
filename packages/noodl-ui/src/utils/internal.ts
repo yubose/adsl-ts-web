@@ -1,5 +1,3 @@
-import { LiteralUnion } from 'type-fest'
-
 export const isArr = (v: any): v is any[] => Array.isArray(v)
 export const isBool = (v: any): v is boolean => typeof v === 'boolean'
 export const isNum = (v: any): v is number => typeof v === 'number'

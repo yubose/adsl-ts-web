@@ -57,7 +57,7 @@ const args = minimist(process.argv.slice(2), {
     b: 'build',
     c: 'convert',
     t: 'test',
-    tf: 'testfile',
+    testfile: 'testfile',
   },
 })
 
@@ -99,12 +99,21 @@ if (start || build || test || testfile) {
     if (regex.test(args[label])) lib = pair.key.value
   }
 
+  if (!lib && testfile) {
+    // lib = testfile.join(' ')
+  }
+
   if (!lib) {
     throw new Error(`Required lib name for ${chalk.magenta(label)} script`)
   }
 
   cmd += `lerna`
-  cmdArgs.push('exec', '--scope', lib, `\"npm run ${label}\"`)
+  cmdArgs.push(
+    'exec',
+    '--scope',
+    lib,
+    `\"npm run ${label}${args._.join(' ')}\"`,
+  )
   spawn(cmd, cmdArgs, { stdio: 'inherit', shell: true })
 }
 

@@ -24,7 +24,6 @@ import {
 } from 'noodl-types'
 import { Action, ActionChain } from 'noodl-action-chain'
 import { LiteralUnion } from 'type-fest'
-import ComponentResolver from './Resolver'
 import ComponentBase from './Component'
 import _ComponentCache from './cache/ComponentCache'
 import _PluginCache from './cache/PluginCache'
@@ -62,7 +61,7 @@ export type NUIActionObjectInput =
 export namespace NUIEmit {
   export interface RegisterObject {
     type: typeof nuiEmitType.REGISTER
-    args: Required<Pick<Register.Object, 'name' | 'params'>>
+    args: Pick<Register.Object, 'name' | 'params'>
   }
 
   export interface TransactionObject<
@@ -262,17 +261,32 @@ export type ConsumerOptions = Omit<
 }
 
 export namespace Register {
-  export interface Object<P extends Register.Page = '_global', Params = any> {
-    name: string
-    component?: RegisterComponentObject | null
-    page?: P
-    params?: Params
-    fn?(obj: Register.Object, params?: Params): Promise<void>
+  export type Params<RT = any> = ParamsObject | ParamsGetter<RT>
+  export type ParamsObject<K extends string = string> = Record<
+    LiteralUnion<K, string>,
+    any
+  > & {
+    args?: any[]
+    data?: K | Record<K, any>
+  }
+  export type ParamsGetter<RT> = (obj: Register.Object) => RT | Promise<RT>
+
+  export interface Object<
+    P extends Register.Page = '_global',
+    N extends string = string,
+    RV = any
+  > {
+    name: N
+    object?: RegisterComponentObject
+    page: LiteralUnion<'_global' | Register.Page, string>
+    params?: ParamsObject
+    fn<K extends string = string>(
+      obj: Register.Object<P, N, RV>,
+      params?: ParamsObject<K>,
+    ): Promise<RV> | RV
   }
 
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
-
-  export type Storage = Map<Page, Record<string, Object>>
 }
 
 export namespace Store {
@@ -349,10 +363,9 @@ export interface UseArg
   getRoot?: () => Record<string, any>
   plugin?: ComponentObject | ComponentObject[]
   register?:
-    | Register.Object
-    | Register.Object[]
     | Record<string, Register.Object['fn']>
-  resolver?: ComponentResolver | ComponentResolver[]
+    | RegisterComponentObject
+    | RegisterComponentObject[]
   transaction?: Partial<
     Record<
       LiteralUnion<TransactionId, string>,

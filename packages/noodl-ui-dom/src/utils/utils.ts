@@ -6,12 +6,12 @@ import {
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
+import * as u from '@aitmed/web-common-utils'
 import { LiteralUnion } from 'type-fest'
 import NOODLDOMPage from '../Page'
 import findElement from './findElement'
 import { DOMNodeInput, NOODLDOMDataAttribute } from '../types'
 import { dataAttributes } from '../constants'
-import * as u from './internal'
 
 export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
@@ -120,14 +120,18 @@ export function makeFindByAttr(
 }
 
 export function findBySelector(selector: string | undefined) {
-  return selector ? findElement((doc) => doc?.querySelectorAll(selector)) : null
+  return selector
+    ? findElement((doc) => doc?.querySelectorAll?.(selector))
+    : null
 }
 
 export function findByDataAttrib(
   dataAttrib: LiteralUnion<NOODLDOMDataAttribute, string> | undefined,
   value?: string,
 ) {
-  return findBySelector(value ? `[${dataAttrib}=${value}]` : `[${dataAttrib}]`)
+  return findBySelector(
+    value ? `[${dataAttrib}="${value}"]` : `[${dataAttrib}]`,
+  )
 }
 export const findByDataKey = makeFindByAttr('data-key')
 export const findByGlobalId = makeFindByAttr('data-globalid')

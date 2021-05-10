@@ -631,7 +631,7 @@ export function createVideoChatBuiltIn(app: App) {
       log.func('onVideoChat')
       // Reuse the existing room
       console.log(app.meeting.room)
-      if (app.meeting.room?.state === 'connected') {
+      if (app.meeting.isConnected) {
         newRoom = await app.meeting.rejoin()
         log.green(
           `Reusing existent room that you are already connected to`,

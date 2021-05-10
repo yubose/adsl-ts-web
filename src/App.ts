@@ -25,6 +25,7 @@ import createBuiltIns, { createVideoChatBuiltIn } from './handlers/builtIns'
 import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
+import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
@@ -280,6 +281,7 @@ class App {
       this.ndom.use({ builtIn: builtIns })
       this.ndom.use({ plugin: plugins })
       this.ndom.use({ transaction: transactions })
+      this.ndom.use({ createElementBinding: createElementBinding(this) })
       registers.forEach((obj) => this.ndom.use({ register: obj }))
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
 

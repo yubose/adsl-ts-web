@@ -23,5 +23,6 @@
     "start": "tsc --watch",
     "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\"",
     "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files \"src/**/*.ts\""
-  }
+  },
+  "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc"
 }

@@ -62,7 +62,7 @@ export const eventId = {
 
 export const transaction = {
   ...nuiEmitTransaction,
-  CREATE_ELEMENT: 'create-element',
+  CREATE_ELEMENT: 'CREATE_ELEMENT',
 } as const
 
 export const CREATE_GLOBAL_ID = 'CREATE_GLOBAL_ID'

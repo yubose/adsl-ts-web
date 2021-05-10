@@ -4,7 +4,7 @@
 
 import Logger from 'logsnap'
 import * as u from '@aitmed/web-common-utils'
-import { Identify } from 'noodl-types'
+import { Identify, PageObject } from 'noodl-types'
 import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'
 import { copyToClipboard } from '../utils/dom'
@@ -13,6 +13,32 @@ import App from '../App'
 const log = Logger.create('register.ts')
 
 function createRegisters(app: App) {
+  function onInitPage(pageObject: PageObject) {
+    if (app?.root?.Global?.globalRegister) {
+      const GlobalRoot = app.root.Global as Record<string, any>
+      const globalRegister = GlobalRoot.globalRegister
+      if (u.isArr(globalRegister)) {
+        log.func('onInitPage')
+        for (const obj of globalRegister) {
+          log.grey(
+            `Scanning ${globalRegister.length} items found in globalRegister`,
+            globalRegister,
+          )
+          globalRegister.forEach((value: Record<string, any>) => {
+            if (Identify.component.register(value)) {
+              app.nui._experimental.createOnEventRegister(value, {
+                pageName: '_global',
+              })
+              // app.nui.use({
+              //   register: { name: value.onEvent as string, component: value },
+              // })
+            }
+          })
+        }
+      }
+    }
+  }
+
   const o = {
     async FCMOnTokenReceive(
       obj: Register.Object,
@@ -87,36 +113,7 @@ function createRegisters(app: App) {
   } as const
 
   if (u.isFnc(app.listen)) {
-    app.listen('onInitPage', function onInitPage(pageObject) {
-      if (app.noodl?.root?.Global?.globalRegister) {
-        const GlobalRoot = app.root.Global as Record<string, any>
-
-        if (u.isArr(GlobalRoot.globalRegister)) {
-          for (const obj of GlobalRoot.globalRegister) {
-            log.grey(
-              `Scanning ${GlobalRoot.globalRegister.length} items found in Global.globalRegister`,
-              GlobalRoot.globalRegister,
-            )
-            GlobalRoot.globalRegister.forEach((value: any) => {
-              if (u.isObj(value)) {
-                if (Identify.component.register(value)) {
-                  log.grey(
-                    `Found and attached a "register" component to the register store`,
-                    value,
-                  )
-                  app.nui.use({
-                    register: {
-                      name: value.onEvent as string,
-                      component: value,
-                    },
-                  })
-                }
-              }
-            })
-          }
-        }
-      }
-    })
+    app.listen('onInitPage', onInitPage)
   } else {
     console.info(
       `%cThe "listen" method on App was skipped because it was undefined`,

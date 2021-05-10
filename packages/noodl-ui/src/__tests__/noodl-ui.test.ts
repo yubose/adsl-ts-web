@@ -354,12 +354,6 @@ describe(italic(`getBuiltIns`), () => {
   })
 })
 
-describe(italic(`getResolvers`), () => {
-  it(`should return the transformers`, () => {
-    expect(NUI.getResolvers()).to.be.an('array')
-  })
-})
-
 describe(italic(`getTransactions`), () => {
   it(`should return the transactions`, () => {
     expect(NUI.getTransactions()).to.eq(NUI.cache.transactions)
@@ -546,19 +540,16 @@ describe(italic(`use`), () => {
     expect(nui.getRoot()).to.deep.eq(['apple'])
   })
 
-  describe(italic(`register`), () => {
+  describe.only(italic(`register`), () => {
     it(`should support { [name]: <function> }`, () => {
-      const spy = sinon.spy() as any
+      const spy = sinon.spy()
       expect(NUI.cache.register.has('hello')).to.be.false
       NUI.use({ register: { hello: spy } })
-      expect(NUI.cache.register.has('_global', 'hello')).to.be.true
-      expect(NUI.cache.register.get('_global', 'hello')).to.have.property(
-        'fn',
-        spy,
-      )
+      expect(NUI.cache.register.has('hello')).to.be.true
+      expect(NUI.cache.register.get('hello')).to.have.property('fn', spy)
     })
 
-    it(`should be able to register { name, fn }`, () => {
+    it(`should support being given the register store object or an array of them`, () => {
       const spy = sinon.spy()
       const obj = { name: 'hello', fn: spy }
       NUI.use({ register: obj })
@@ -569,26 +560,10 @@ describe(italic(`use`), () => {
       )
     })
 
-    it(`should add to the register store`, () => {
-      expect(nui.cache.register.has('_global', 'hello')).to.be.false
-      nui.use({ register: { name: 'hello', page: '_global' } })
-      expect(nui.cache.register.has('_global', 'hello')).to.be.true
-    })
-
     it(`should default the page to "_global" if it is not provided`, () => {
       expect(nui.cache.register.has('_global', 'hello')).to.be.false
       nui.use({ register: { name: 'hello' } as any })
       expect(nui.cache.register.has('_global', 'hello')).to.be.true
-    })
-  })
-
-  describe(italic(`resolver`), () => {
-    it(`should add the resolver`, () => {
-      const spy = sinon.spy()
-      const resolver = new Resolver('hello', spy)
-      expect(nui.getResolvers()).not.to.include.members([resolver])
-      nui.use({ resolver })
-      expect(nui.getResolvers()).to.include.members([resolver])
     })
   })
 
