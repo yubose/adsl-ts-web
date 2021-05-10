@@ -2,11 +2,10 @@ import Logger from 'logsnap'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import {
   asHtmlElement,
   eventId as ndomEventId,
-  findByUX,
   findWindow,
   findByElementId,
   findByViewTag,
@@ -35,7 +34,11 @@ import {
   toast,
 } from '../utils/dom'
 import App from '../App'
-import { pickActionKey, pickHasActionKey } from '../utils/common'
+import {
+  pickActionKey,
+  pickHasActionKey,
+  resolvePageUrl,
+} from '../utils/common'
 import * as T from '../app/types'
 
 const log = Logger.create('actions.ts')
@@ -242,7 +245,7 @@ const createActions = function createActions(app: App) {
     }
 
     if (!destinationParam.startsWith('http')) {
-      app.mainPage.pageUrl = u.resolvePageUrl({
+      app.mainPage.pageUrl = resolvePageUrl({
         destination,
         pageUrl: app.mainPage.pageUrl,
         startPage: app.startPage,

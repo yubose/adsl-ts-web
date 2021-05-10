@@ -1,7 +1,7 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import * as u from '@aitmed/web-common-utils'
+import * as u from '@jsmanifest/utils'
 import { isDraft, original } from 'immer'
 import { isAction } from 'noodl-action-chain'
 import {
@@ -33,7 +33,12 @@ import {
 import { parse } from 'noodl-utils'
 import Logger from 'logsnap'
 import { isVisible, toast, hide, show, scrollToElem } from '../utils/dom'
-import { pickActionKey } from '../utils/common'
+import {
+  getActionMetadata,
+  isPlainAction,
+  pickActionKey,
+  resolvePageUrl,
+} from '../utils/common'
 import App from '../App'
 
 const log = Logger.create('builtIns.ts')
@@ -109,7 +114,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('hide')
     log.grey('', action)
     const viewTag = _pick(action, 'viewTag')
-    let wait = action.original?.wait || action?.wait || 0
+    let wait = _pick(action, 'wait') || 0
     const onElem = (node: HTMLElement) => {
       if (VP.isNil(node.style.top, 'px')) {
         node.style.display !== 'none' && (node.style.display = 'none')
@@ -136,7 +141,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('show')
     log.grey('', action)
     const viewTag = _pick(action, 'viewTag')
-    let wait = action.original?.wait || action?.wait || 0
+    let wait = _pick(action, 'wait') || 0
     const onElem = (node: HTMLElement) => {
       const component = options.component
       if (component && VP.isNil(node.style.top)) {
@@ -458,7 +463,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
 
     if (!destinationParam.startsWith('http')) {
-      app.mainPage.pageUrl = u.resolvePageUrl({
+      app.mainPage.pageUrl = resolvePageUrl({
         destination,
         pageUrl: app.mainPage.pageUrl,
         startPage: app.startPage,
@@ -499,10 +504,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
     options,
   ) {
-    log.func('redraw')
-    log.red('', action)
-
     const component = options?.component as NUIComponent.Instance
+    const metadata = getActionMetadata(action, {
+      component,
+      pickKeys: 'viewTag',
+    })
+
     const actionViewTag = _pick(action, 'viewTag') || ''
     const compViewTag =
       component.blueprint?.viewTag || component?.get('data-viewtag')
@@ -516,10 +523,20 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         numComponents++
     }
 
+    if (compViewTag === actionViewTag && !components.includes(component)) {
+      components.push(component) && numComponents++
+    }
+
+    log.func('redraw')
+    log.red(
+      '',
+      getActionMetadata(action, {
+        pickKeys: 'viewTag',
+        numComponentsWithMatchingViewTag: components.length,
+      }),
+    )
+
     try {
-      if (compViewTag === actionViewTag && !components.includes(component)) {
-        components.push(component) && numComponents++
-      }
       if (!numComponents) {
         log.red(`Could not find any components to redraw`, action)
       } else {

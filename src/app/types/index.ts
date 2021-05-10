@@ -1,7 +1,7 @@
 import firebase from 'firebase'
 import CADL, { Account } from '@aitmed/cadl'
-import { NUI, Viewport } from 'noodl-ui'
-import { EmitObject, PageObject } from 'noodl-types'
+import { NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
+import { ActionObject, EmitObject, PageObject } from 'noodl-types'
 import NOODLDOM from 'noodl-ui-dom'
 import createMeetingFns from '../../meeting'
 export * from './domTypes'
@@ -44,6 +44,15 @@ export interface AppObserver {
     params: PageObject
   }
 }
+
+export type ActionMetadata<PKey extends string = string> = {
+  action: { instance: NUIAction | undefined; object: ActionObject }
+  trigger: NUITrigger
+} & Record<
+  PKey,
+  Record<string, any> | { fromAction?: any; fromComponent?: any }
+> &
+  Record<string, any>
 
 export type Meeting = ReturnType<typeof createMeetingFns>
 export type FirebaseApp = firebase.app.App

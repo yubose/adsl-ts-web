@@ -1,8 +1,17 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
+import * as u from '@jsmanifest/utils'
 import { ActionObject, UncommonActionObjectProps } from 'noodl-types'
-import { nuiGroupedActionTypes, Store } from 'noodl-ui'
+import {
+  NUIAction,
+  NUIActionObjectInput,
+  NUIComponent,
+  nuiGroupedActionTypes,
+  NUITrigger,
+  Store,
+} from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
+import { ActionMetadata } from '../app/types'
 
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
@@ -57,6 +66,52 @@ export const values = <O extends Record<string, any>, K extends keyof O>(
   v: O,
 ): O[K][] => Object.values(v)
 
+export function getActionMetadata<PKey extends string>(): ActionMetadata
+export function getActionMetadata<PKey extends string>(): ActionMetadata
+export function getActionMetadata<PKey extends string = string>(
+  action: NUIAction | ActionObject | undefined,
+  {
+    component,
+    pickKeys,
+    ...other
+  }: { component?: NUIComponent.Instance; pickKeys?: PKey | PKey[] } & Record<
+    string,
+    any
+  > = {},
+) {
+  const metadata = {
+    action: {} as any,
+    trigger: pickActionKey(action as NUIAction, 'trigger'),
+    ...other,
+  } as ActionMetadata
+  const isObject = isPlainAction(action)
+  if (!action) return metadata
+  if (isObject) {
+    metadata.action.instance = undefined
+    metadata.action.object = action
+  } else if (action) {
+    metadata.action.instance = action as NUIAction
+    metadata.action.object = action.original
+  }
+  pickKeys &&
+    u.array(pickKeys).forEach((key) => {
+      if (component) {
+        if (key in (component.blueprint || {})) {
+          metadata[key] = {
+            fromComponent: component.blueprint[key],
+          }
+        }
+      }
+      if (u.isObj(metadata[key]) && 'fromComponent' in metadata[key]) {
+        metadata[key].fromAction = pickActionKey(action, key)
+      } else {
+        metadata[key] = pickActionKey(action, key)
+      }
+    })
+
+  return metadata
+}
+
 export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
 }
@@ -85,6 +140,16 @@ export function isTest() {
 
 export function isOutboundLink(s: string | undefined = '') {
   return /https?:\/\//.test(s)
+}
+
+export function isPlainAction(
+  action: NUIAction | NUIActionObjectInput | undefined,
+): action is ActionObject {
+  return !!(
+    action &&
+    !('hasExecutor' in action || 'execute' in action) &&
+    u.isObj(action)
+  )
 }
 
 export function mapEntries<
