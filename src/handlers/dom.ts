@@ -237,7 +237,19 @@ const createExtendedDOMResolvers = function (app: App) {
                   option.dataHeader.forEach(push)
                   tableData.data.push(dataArray)
                 })
+                console.error(tableData);
+                // stopPropagation
+                
+                
                 new gridjs.Grid(tableData).render(node)
+                let gridPages = node.querySelector('.gridjs-pages')
+                let gridSearch = node.querySelector('.gridjs-search')
+                gridPages?.addEventListener('click',(e)=>{
+                  e.stopPropagation();
+                })
+                gridSearch?.addEventListener('click',(e)=>{
+                  e.stopPropagation();
+                })
               }
               case 'timeTable': {
                 // generateYaxis according to timeAxis
