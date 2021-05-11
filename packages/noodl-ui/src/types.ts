@@ -59,14 +59,13 @@ export type NUIActionObjectInput =
   | ToastObject
 
 export namespace NUIEmit {
-  export interface RegisterObject {
+  export interface EmitRegister<Evt extends string = string> {
     type: typeof nuiEmitType.REGISTER
-    args: Pick<Register.Object, 'name' | 'params'>
+    event: Evt
+    params?: Register.Params<any>
   }
 
-  export interface TransactionObject<
-    K extends keyof Transaction = keyof Transaction
-  > {
+  export interface EmitTransaction<K extends TransactionId = TransactionId> {
     type: typeof nuiEmitType.TRANSACTION
     transaction: K
     params?: Transaction[K]['params']
@@ -261,6 +260,30 @@ export type ConsumerOptions = Omit<
 }
 
 export namespace Register {
+  export interface Object<N extends string = string> {
+    name: N
+    callbacks: (
+      | (<RT>(
+          obj: Register.Object,
+          params: Register.Params | undefined,
+        ) => Promise<RT | void>)
+      | NUIActionChain
+    )[]
+    page: LiteralUnion<'_global' | Register.Page, string>
+    params?: Register.ParamsObject
+    handler?: {
+      callback?: <RT>(
+        obj: Register.Object,
+        params: Register.Params | undefined,
+      ) => Promise<RT | void>
+      useReturnValue?: boolean
+    }
+    fn:
+      | undefined
+      | ((obj: Register.Object<N>, params: Register.Params) => Promise<any[]>)
+    isComponent: boolean
+  }
+
   export type Params<RT = any> = ParamsObject | ParamsGetter<RT>
   export type ParamsObject<K extends string = string> = Record<
     LiteralUnion<K, string>,
@@ -270,21 +293,6 @@ export namespace Register {
     data?: K | Record<K, any>
   }
   export type ParamsGetter<RT> = (obj: Register.Object) => RT | Promise<RT>
-
-  export interface Object<
-    P extends Register.Page = '_global',
-    N extends string = string,
-    RV = any
-  > {
-    name: N
-    object?: RegisterComponentObject
-    page: LiteralUnion<'_global' | Register.Page, string>
-    params?: ParamsObject
-    fn<K extends string = string>(
-      obj: Register.Object<P, N, RV>,
-      params?: ParamsObject<K>,
-    ): Promise<RV> | RV
-  }
 
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
 }

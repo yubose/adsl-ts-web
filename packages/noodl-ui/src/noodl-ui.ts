@@ -40,6 +40,7 @@ import {
 import { groupedActionTypes, nuiEmitType } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
+import { isActionChain } from 'noodl-action-chain'
 
 enableES5()
 setUseProxies(false)
@@ -184,25 +185,83 @@ const NUI = (function _NUI() {
     }
   }
 
-  async function _emit<TType extends T.TransactionId = T.TransactionId>(
-    obj: T.NUIEmit.TransactionObject<TType>,
-  ): Promise<Parameters<T.Transaction[TType]['callback']>[0]>
-  async function _emit(opts: T.NUIEmit.RegisterObject): Promise<never>
-  async function _emit<TType extends T.TransactionId = T.TransactionId>(
-    opts: T.NUIEmit.TransactionObject<TType> | T.NUIEmit.RegisterObject,
-  ) {
+  async function _emit<Evt extends string = string>(
+    opts?: T.NUIEmit.EmitRegister<Evt>,
+  ): Promise<any[]>
+
+  async function _emit<Tid extends T.TransactionId = T.TransactionId>(
+    obj?: T.NUIEmit.EmitTransaction<Tid>,
+  ): Promise<Parameters<T.Transaction[Tid]['callback']>[0]>
+
+  async function _emit<
+    Evt extends string = string,
+    Tid extends T.TransactionId = T.TransactionId
+  >(opts: T.NUIEmit.EmitRegister<Evt> | T.NUIEmit.EmitTransaction<Tid>) {
     try {
       if (opts.type === nuiEmitType.REGISTER) {
-        const { args } = opts
-        if (cache.register.has('_global', args.name)) {
-          const obj = cache.register.get('_global', args.name)
-          // TODO - Refactor this awkward code
-          return obj.fn?.(obj, args.params)
+        const { event, params } = opts
+        if (cache.register.has(event)) {
+          console.log(
+            `%cThe register event "${event}" exists in the register cache`,
+            `color:#00b406;`,
+          )
+          const obj = cache.register.get(event)
+          if (obj.handler) {
+            console.log(
+              `%c"Handler" is an object. Attempting to use a "callback" in the handler object if it exists`,
+              `color:#95a5a6;`,
+            )
+            const callback = obj.handler.callback
+            if (u.isFnc(callback)) {
+              console.log(
+                `%cThe callback exists in the handler object. It will be invoked`,
+                `color:#95a5a6;`,
+              )
+              const result = await callback?.(obj, opts.params)
+              console.log(
+                `%cChecking if a "register" transaction was registered in from the client`,
+                `color:#95a5a6;`,
+              )
+              const transactionHandler = o.cache.transactions.getHandler(
+                'register',
+                event,
+              )
+              if (u.isFnc(transactionHandler)) {
+                console.log(
+                  `%cFound a transaction handler from the client. It will be invoked at the end and passed the return value of the callback from the handler object earlier`,
+                  `color:#95a5a6;`,
+                )
+                const _result = await transactionHandler(result)
+                console.log(
+                  `%cResult from transaction handler`,
+                  `color:#95a5a6;`,
+                  _result,
+                )
+              } else {
+                console.log(
+                  `%cA transaction handler was not found in the transaction cache. Only the callback in the handler object will be called`,
+                  `color:#CCCD17;`,
+                )
+              }
+            } else {
+              console.log(
+                `%cEntered a handler object that did not have a callback function. Nothing will happen`,
+                `color:#ec0000;`,
+              )
+            }
+          } else {
+            console.log(
+              `%cA handler object did not exist. A default function will be used that calls the functions in the callbacks list by default`,
+              `color:#95a5a6;`,
+            )
+            // TODO - Refactor this awkward code
+            return obj.fn?.(obj, params as T.Register.ParamsObject)
+          }
         } else {
           console.log(
             `%cWarning: Emitted a register object that was not in the store`,
             `color:#FF5722;`,
-            args,
+            opts,
           )
         }
       } else if (opts.type === nuiEmitType.TRANSACTION) {
@@ -380,50 +439,61 @@ const NUI = (function _NUI() {
      * TODO - Enable them to have the option to disable or override this with their own function
      * TODO - Turn this into a transaction
      */
-    async createOnEventRegister(
+    createOnEventRegister(
       obj: Partial<RegisterComponentObject>,
-      { pageName = '_global' }: { pageName?: T.Register.Object['page'] } = {},
+      {
+        pageName = '_global',
+        ...rest
+      }: {
+        pageName?: T.Register.Object['page']
+      } & Partial<T.Register.Object> = {},
     ) {
       try {
-        if (obj.onEvent) {
-          const onEvent = obj.onEvent
-          const id = `${pageName}_${onEvent}`
-          if (!cache.register.has(pageName, id)) {
-            console.log(
-              `%cAttaching global "${onEvent}" to the register store`,
-              `color:#95a5a6;`,
-              { id, pageName, registerObject: obj },
-            )
-            const cacheObject = {} as T.Register.Object
-            if (Identify.emit(obj)) {
-              const ac = o.createActionChain(
-                'register',
-                { emit: obj.emit, actionType: 'emit' },
-                { loadQueue: true },
+        if (obj.onEvent && !o.cache.register.has(obj.onEvent)) {
+          const id = obj.onEvent
+          const register = o.cache.register.get(id) || ({} as T.Register.Object)
+
+          console.log(
+            `%cRegistering a new register event "${id}" to the store`,
+            `color:#00b406;`,
+            { registerObject: obj, page: pageName, ...rest },
+          )
+
+          register.name !== id && (register.name = id)
+          register.page !== pageName && (register.page = pageName)
+          // !(register.isComponent !== true) && (register.isComponent = true)
+          !register.callbacks && (register.callbacks = [])
+
+          u.assign(register, rest)
+
+          if (!register.handler && !register.fn) {
+            register.fn = async (obj, params) => {
+              console.log(
+                `%cEntered the function call for "fn" on the "${register.name}" register event`,
+                `color:#00b406;`,
               )
-              cacheObject.name = obj.onEvent
-              cacheObject.page = pageName
-              cache.register.set(
-                cacheObject.page,
-                cacheObject.name,
-                cacheObject,
-              )
-              cacheObject.fn = async function _onStartOnEvent(obj, params) {
-                const result = await ac.execute()
-              }
-            }
-            return function onEventCall(params?: any) {
-              return Promise.resolve(
-                cacheObject.fn?.(
-                  cache.register.get(
-                    cacheObject.page as T.Register.Page,
-                    cacheObject.name,
-                  ),
-                  params,
-                ),
+              return Promise.all(
+                o.cache.register.get(id)?.callbacks?.map(async (cb) => {
+                  if (isActionChain(cb)) {
+                    return cb.execute.call(cb, obj, params)
+                  }
+                  return cb?.(obj, params)
+                }) || [],
               )
             }
           }
+
+          // TODO - Should we convert the component object to a NUI component instance?
+          if (Identify.emit(obj)) {
+            const ac = o.createActionChain(
+              'register',
+              { emit: obj.emit, actionType: 'emit' },
+              { loadQueue: true },
+            )
+            register.callbacks.push(ac)
+          }
+          cache.register.set(register.name, register)
+          return register
         }
       } catch (error) {
         console.error(`[${error.name}] ${error.message}`)
@@ -873,21 +943,31 @@ const NUI = (function _NUI() {
       }
 
       if ('register' in args) {
-        u.eachEntries(args.register, (name, fn: T.Register.Object['fn']) => {
-          if (u.isFnc(fn)) {
-            if (!cache.register.has(name)) {
-              cache.register.set(name, { name, fn, page: '_global' })
-            } else {
-              const obj = cache.register.get(name)
-              obj.fn = fn
-              cache.register.set(name, obj)
+        if (
+          Identify.component.register(args.register) ||
+          u.isArr(args.register)
+        ) {
+          u.array(args.register).forEach((component) => {
+            o._experimental.createOnEventRegister(component)
+          })
+        } else {
+          u.eachEntries(args.register, (name, fn: T.Register.Object['fn']) => {
+            if (u.isFnc(fn)) {
+              if (!cache.register.has(name)) {
+                cache.register.set(name, {
+                  name,
+                  handler: { callback: fn, useReturnValue: true },
+                })
+              } else {
+                const obj = cache.register.get(name)
+                if (obj.fn !== fn) {
+                  obj.fn = fn
+                  cache.register.set(name, obj)
+                }
+              }
             }
-          } else {
-            u.array(fn).forEach((obj: RegisterComponentObject) =>
-              o._experimental.createOnEventRegister(obj),
-            )
-          }
-        })
+          })
+        }
       }
 
       if ('transaction' in args) {
@@ -910,6 +990,34 @@ const NUI = (function _NUI() {
 
       return o
     },
+  }
+
+  /* -------------------------------------------------------
+    ---- INTERNAL LISTENERS / OBSERVERS
+  -------------------------------------------------------- */
+
+  function _handleGlobalRegister(root: Record<string, any> = {}) {
+    const globalRegister = root?.Global?.globalRegister
+
+    if (globalRegister) {
+      console.log(
+        `%cScanning ${
+          globalRegister?.length || '<empty or not an array>'
+        } items found in globalRegister`,
+        `color:#95a5a6;`,
+      )
+
+      u.array(globalRegister).forEach((obj) => {
+        if (Identify.component.register(obj)) {
+          o._experimental.createOnEventRegister(obj, {
+            pageName: '_global',
+          })
+          // app.nui.use({
+          //   register: { name: obj.onEvent as string, component: obj },
+          // })
+        }
+      })
+    }
   }
 
   return o

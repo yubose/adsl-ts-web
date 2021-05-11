@@ -2,9 +2,9 @@ import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import sample from 'lodash/sample'
 import { waitFor } from '@testing-library/dom'
-import { isActionChain } from 'noodl-action-chain'
+import { ActionChain, isActionChain } from 'noodl-action-chain'
 import { italic, magenta } from 'noodl-common'
-import { userEvent } from 'noodl-types'
+import { ComponentObject, EmitObject, userEvent } from 'noodl-types'
 import { expect } from 'chai'
 import { createDataKeyReference, nui } from '../utils/test-utils'
 import {
@@ -390,6 +390,55 @@ describe(italic(`getConsumerOptions`), () => {
   })
 })
 
+describe.only(`when handling register objects`, () => {
+  describe(`when emitting the register objects`, () => {
+    it(`should call all the callbacks and return those results`, async () => {
+      const spy = sinon.spy(() => Promise.resolve())
+      const component = mock.getRegisterComponent({
+        onEvent: 'helloEvent',
+        emit: mock.getEmitObject().emit as any,
+      })
+      nui.use({ register: component })
+      const obj = nui.cache.register.get(component.onEvent)
+      obj.callbacks = Array(4)
+        .fill(undefined)
+        .map(() => spy)
+      await nui.emit({ type: 'register', event: 'helloEvent' })
+      expect(spy).to.have.callCount(4)
+      expect(spy.lastCall.returnValue).to.have.length(4)
+    })
+  })
+
+  describe(`createOnEventRegister`, () => {
+    it(`should convert emit objects to action chains and add them to the list of callbacks`, async () => {
+      const component = mock.getRegisterComponent({
+        onEvent: 'helloEvent',
+        emit: mock.getEmitObject().emit as any,
+      })
+      nui.use({ register: component })
+      const obj = nui.cache.register.get(component.onEvent)
+      expect(obj.callbacks).to.have.length.greaterThan(0)
+      expect(isActionChain(obj.callbacks[0])).to.be.true
+    })
+
+    describe(`when handling register object's with onEvent: ${magenta(
+      'onNewEcosDoc',
+    )}`, () => {
+      it(`should pass the "${magenta(`did`)}" (${italic(
+        `ecos document id`,
+      )}) received from onNewEcosDoc to the executor handler`, async () => {
+        const event = 'helloAll'
+        const component = mock.getRegisterComponent({ onEvent: event })
+        nui.use({ register: component })
+        const obj = nui.cache.register.get(event)
+        const did = 'docId123'
+        await nui.emit({ type: 'register', event, params: did })
+        console.info(obj)
+      })
+    })
+  })
+})
+
 describe(italic(`resolveComponents`), () => {
   it(`should return component instances`, () => {
     const page = nui.createPage({ name: 'Hello' })
@@ -540,7 +589,19 @@ describe(italic(`use`), () => {
     expect(nui.getRoot()).to.deep.eq(['apple'])
   })
 
-  describe.only(italic(`register`), () => {
+  describe(italic(`globalRegister`), () => {
+    it(`should add register components to the store`, () => {
+      const component = mock.getRegisterComponent({ onEvent: 'helloEvent' })
+      nui._experimental.createOnEventRegister(component)
+      const storeObject = nui.cache.register.get(component.onEvent)
+      expect(storeObject).to.have.property('name', 'helloEvent')
+      expect(storeObject).to.have.property('isComponent', true)
+      expect(storeObject).to.have.property('fn').is.a('function')
+      expect(storeObject).to.have.property('page', '_global')
+    })
+  })
+
+  describe(italic(`register`), () => {
     it(`should support { [name]: <function> }`, () => {
       const spy = sinon.spy()
       expect(NUI.cache.register.has('hello')).to.be.false
@@ -553,11 +614,8 @@ describe(italic(`use`), () => {
       const spy = sinon.spy()
       const obj = { name: 'hello', fn: spy }
       NUI.use({ register: obj })
-      expect(NUI.cache.register.has('_global', 'hello')).to.be.true
-      expect(NUI.cache.register.get('_global', 'hello')).to.have.property(
-        'fn',
-        spy,
-      )
+      expect(NUI.cache.register.has('hello')).to.be.true
+      expect(NUI.cache.register.get('hello')).to.have.property('fn', spy)
     })
 
     it(`should default the page to "_global" if it is not provided`, () => {

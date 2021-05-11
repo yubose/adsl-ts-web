@@ -10,6 +10,7 @@ export const classes = {
   ECOS_DOC_TEXT: 'ecosdoc-text',
   ECOS_DOC_TEXT_TITLE: 'ecosdoc-text-title',
   ECOS_DOC_TEXT_BODY: 'ecosdoc-text-body',
+  ECOS_DOC_NOTE: 'ecosdoc-note',
   GLOBAL: 'global',
   PAGE: 'page',
   PLUGIN_HEAD: 'pluginHead',

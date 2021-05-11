@@ -39,7 +39,9 @@ const domComponentsResolver: Resolve.Config = {
           node.style.alignItems = 'center'
         }
         node.style.cursor = onClick ? 'pointer' : 'auto'
-      } else if (Identify.component.ecosDoc(component)) {
+      }
+      // ECOSDOC
+      else if (Identify.component.ecosDoc(component)) {
         const idLabel =
           (u.isImageDoc(component) && 'image') ||
           (u.isMarkdownDoc(component) && 'markdown') ||

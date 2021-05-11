@@ -15,6 +15,7 @@ const log = Logger.create('register.ts')
 function createRegisters(app: App) {
   function onInitPage(pageObject: PageObject) {
     if (app?.root?.Global?.globalRegister) {
+      return
       const GlobalRoot = app.root.Global as Record<string, any>
       const globalRegister = GlobalRoot.globalRegister
       if (u.isArr(globalRegister)) {
@@ -24,11 +25,49 @@ function createRegisters(app: App) {
             `Scanning ${globalRegister.length} items found in globalRegister`,
             globalRegister,
           )
-          globalRegister.forEach((value: Record<string, any>) => {
-            if (Identify.component.register(value)) {
-              app.nui._experimental.createOnEventRegister(value, {
-                pageName: '_global',
-              })
+          globalRegister.forEach((component: Record<string, any>) => {
+            if (Identify.component.register(component)) {
+              if (u.isFnc(component.onEvent)) {
+                // Already attached a function
+                return
+              }
+
+              if (!('onEvent' in component)) {
+                log.red(
+                  `The "onEvent" identifier was not found in the register component!`,
+                )
+              }
+
+              app.nui.use({ register: component })
+              const register = app.nui.cache.register.get(
+                component.onEvent as string,
+              )
+              if (register) {
+                log.green(
+                  `Received register object for event "${register.name}"`,
+                  { register, component },
+                )
+                if (u.isFnc(register.fn)) {
+                  log.green(
+                    `Attaching the default noodl-ui register function on the register component in the root object`,
+                    { register, component },
+                  )
+                  component.onEvent = register.fn.bind(register)
+                } else if (!register.handler) {
+                  log.red(
+                    `Alert! A register object was returned but the "fn" value was not a function and the "handler" object was empty!`,
+                    { register, component },
+                  )
+                }
+              } else {
+                log.red(
+                  `Alert! The register component of event "${component.onEvent}" was sent to noodl-ui but nothing was returned`,
+                  { register, component },
+                )
+              }
+              // app.nui._experimental.createOnEventRegister(value, {
+              //   pageName: '_global',
+              // })
               // app.nui.use({
               //   register: { name: value.onEvent as string, component: value },
               // })

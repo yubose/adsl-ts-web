@@ -774,7 +774,7 @@ class NOODLDOM extends NOODLDOMInternal {
     page: Page
   }): Promise<PageObject>
   async transact(args: {
-    transaction: T.NDOMTransactionId
+    transaction: T.NDOMTransaction.Id
     component?: NUIComponent.Instance
     page?: Page
   }) {
@@ -795,7 +795,13 @@ class NOODLDOM extends NOODLDOMInternal {
     if (!obj) return
     if (isNUIPage(obj)) return this.createPage(obj)
 
-    const { createElementBinding, transaction, resolver, ...rest } = obj
+    const {
+      createElementBinding,
+      register,
+      transaction,
+      resolver,
+      ...rest
+    } = obj
 
     createElementBinding && (this.#createElementBinding = createElementBinding)
     resolver && this.register(resolver)
@@ -806,7 +812,9 @@ class NOODLDOM extends NOODLDOMInternal {
           const getPageObject = transaction[c.transaction.REQUEST_PAGE_OBJECT]
           NOODLDOM._nui.use({
             transaction: {
-              [c.transaction.REQUEST_PAGE_OBJECT]: async (pageProp) => {
+              [c.transaction.REQUEST_PAGE_OBJECT]: async (
+                pageProp: NUIPage,
+              ) => {
                 invariant(
                   u.isFnc(getPageObject),
                   `Missing transaction: ${c.transaction.REQUEST_PAGE_OBJECT}`,
@@ -834,6 +842,7 @@ class NOODLDOM extends NOODLDOMInternal {
                 }
 
                 pageObject = await getPageObject?.(page)
+
                 return pageObject as PageObject
               },
             },

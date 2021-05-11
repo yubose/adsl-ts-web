@@ -22,9 +22,10 @@ import {
   PageComponentObject,
   PageJumpActionObject,
   Path,
-  PluginBodyTailComponentObject,
   PluginComponentObject,
+  PluginBodyTopComponentObject,
   PluginHeadComponentObject,
+  PluginBodyTailComponentObject,
   PopupActionObject,
   PopUpComponentObject,
   PopupDismissActionObject,
@@ -435,12 +436,12 @@ export function getPluginHeadComponent(
   return { type: 'pluginHead', path: 'googleTM.js', ...props }
 }
 
-export const getPluginBodyTopComponent = createComponentWithKeyOrProps<PluginBodyTailComponentObject>(
+export const getPluginBodyTopComponent = createComponentWithKeyOrProps<PluginBodyTopComponentObject>(
   { type: 'pluginBodyTop', path: 'googleTM.js' } as any,
   'path',
 )
 
-export const getPluginBodyTail = createComponentWithKeyOrProps<PluginBodyTailComponentObject>(
+export const getPluginBodyTailComponent = createComponentWithKeyOrProps<PluginBodyTailComponentObject>(
   { type: 'pluginBodyTail', path: 'googleTM.js' },
   'path',
 )
