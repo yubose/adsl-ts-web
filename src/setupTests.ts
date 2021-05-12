@@ -3,22 +3,9 @@ import sinon from 'sinon'
 jsdom(undefined, {
   url: 'http://localhost',
   runScripts: 'dangerously',
-  beforeParse(window) {
-    // Object.defineProperty(window.EventTarget, 'addEventListener', {
-    //   value: sinon.stub(),
-    // })
-    // Object.defineProperty(global.EventTarget, 'addEventListener', {
-    //   value: sinon.stub(),
-    // })
-    // Object.defineProperty(global.EventTarget, 'addEventListener', {
-    //   value: sinon.stub(),
-    // })
-    // window.EventTarget.prototype.removeEventListener = sinon.stub()
-  },
 })
 // @ts-expect-error
 import MutationObserver from 'mutation-observer'
-import { prettyDOM } from '@testing-library/dom'
 import chaiAsPromised from 'chai-as-promised'
 import noop from 'lodash/noop'
 import chai from 'chai'
@@ -34,7 +21,7 @@ let invariantStub: sinon.SinonStub<any>
 
 before(function () {
   // Correctly clears the console (tested on MAC)
-  process.stdout.write('\x1Bc')
+  // process.stdout.write('\x1Bc')
   global.MutationObserver = MutationObserver
   global.localStorage = window.localStorage
   logStub = sinon.stub(global.console, 'log').callsFake(() => noop)

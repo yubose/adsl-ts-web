@@ -640,7 +640,7 @@ class App {
     P extends T.AppObserver[Id]['params'] = T.AppObserver[Id]['params'],
   >(id: Id, params?: P) {
     const fns = this.obs.has(id) && this.obs.get(id)
-    fns && fns.forEach((fn) => typeof fn === 'function' && fn(params as P))
+    fns && fns.forEach((fn) => u.isFnc(fn) && fn(params as P))
   }
 
   /* -------------------------------------------------------

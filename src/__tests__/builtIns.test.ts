@@ -134,7 +134,7 @@ describe(coolGold(`builtIn`), () => {
       })
     })
 
-    it.only(`should rerender the DOM nodes`, async () => {
+    it(`should rerender the DOM nodes`, async () => {
       let viewTag = 'helloTag'
       let redrawObject = mock.getBuiltInAction({ funcName: 'redraw', viewTag })
       await getApp({

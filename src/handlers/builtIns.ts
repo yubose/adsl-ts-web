@@ -113,7 +113,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('hide')
     log.grey('', action)
     const viewTag = _pick(action, 'viewTag')
-    let wait = _pick(action, 'wait') || 0
+    let wait = _pick(action, 'wait')
     const onElem = (node: HTMLElement) => {
       if (VP.isNil(node.style.top, 'px')) {
         node.style.display !== 'none' && (node.style.display = 'none')
