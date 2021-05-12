@@ -6,7 +6,7 @@ export default {
     !!(
       n &&
       c &&
-      c.has('path') &&
+      c.has?.('path') &&
       n.tagName !== 'VIDEO' &&
       n.tagName !== 'IFRAME'
     ),

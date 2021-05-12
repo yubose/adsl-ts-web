@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import isNil from 'lodash/isNil'
 import sinon from 'sinon'
 import { ComponentObject, PageObject } from 'noodl-types'
@@ -16,7 +17,7 @@ import * as defaultResolvers from './resolvers'
 
 export const baseUrl = 'https://aitmed.com/'
 export const assetsUrl = baseUrl + 'assets/'
-export const ndom = new NOODLDOM(NUI)
+export let ndom = new NOODLDOM(NUI)
 export const viewport = new Viewport({ width: 375, height: 667 })
 
 const defaultResolversKeys = keys(
@@ -171,17 +172,22 @@ export function stubInvariant() {
 
 export function toDOM<
   N extends NOODLDOMElement = NOODLDOMElement,
-  C extends NUIComponent.Instance = NUIComponent.Instance
+  C extends NUIComponent.Instance = NUIComponent.Instance,
 >(props: any) {
   let node: N | null = null
   let component: C | undefined
+  let page = ndom.page
+  !ndom && (ndom = new NOODLDOM(NUI))
+  !page && (page = ndom.createPage())
   if (typeof props?.props === 'function') {
     node = ndom.draw(props as any) as N
     component = props as any
-  } else if (typeof props === 'object' && 'type' in props) {
-    component = NUI.resolveComponents(props) as any
-    // @ts-expect-error
-    node = ndom.draw(component) as N
+  } else if (u.isObj(props)) {
+    component = NOODLDOM._nui.resolveComponents({
+      components: [props as ComponentObject],
+      page: NOODLDOM._nui.getRootPage(),
+    }) as any
+    node = ndom.draw(component as C, ndom.page.rootNode) as N
   }
   if (node) document.body.appendChild(node as any)
   return [node, component] as [NonNullable<N>, C]

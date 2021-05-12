@@ -17,7 +17,7 @@ export default (function () {
 
   return {
     name: '[noodl-ui-dom] text=func',
-    cond: (n, c) => typeof c.get('text=func') === 'function',
+    cond: (n, c) => typeof c.get?.('text=func') === 'function',
     resolve: (node: NOODLDOMElement, component, { ndom }) => {
       if (component.contentType === 'timer') {
         setTimeout(() => {

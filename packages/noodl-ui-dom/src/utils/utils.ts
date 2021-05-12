@@ -50,7 +50,7 @@ export function getElementTag(
       'supported? (Defaulting to "div" instead)`,
       'color:#e74c3c;font-weight:bold;',
       {
-        component: u.isStr(component) ? componentType : component?.toJSON(),
+        component: u.isStr(component) ? componentType : component?.toJSON?.(),
         elementMap: getElementTag.prototype.elementMap,
       },
     )

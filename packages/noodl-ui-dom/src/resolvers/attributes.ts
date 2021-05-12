@@ -89,16 +89,15 @@ const resolveAttributes: Resolve.Config = {
       }
       // INPUT FIELDS DISPLAYABLE VALUES (ex: input, textarea, select, etc)
       if (component.get('data-placeholder')) {
-        if (Identify.emit(original.placeholder)) {
+        if (Identify.folds.emit(original.placeholder)) {
           component.on('placeholder', (src: string) => {
             setTimeout(
               () => node && ((node as HTMLInputElement).placeholder = src),
             )
           })
         } else {
-          ;(node as HTMLInputElement).placeholder = component.get(
-            'data-placeholder',
-          )
+          ;(node as HTMLInputElement).placeholder =
+            component.get('data-placeholder')
         }
       }
       // MEDIA (images / videos)
@@ -176,10 +175,9 @@ const resolveAttributes: Resolve.Config = {
   },
 }
 
-const createResolveAttributes: Resolve.Func = function _createResolverAttributes(
-  ndom,
-) {
-  return resolveAttributes
-}
+const createResolveAttributes: Resolve.Func =
+  function _createResolverAttributes(ndom) {
+    return resolveAttributes
+  }
 
 export default createResolveAttributes

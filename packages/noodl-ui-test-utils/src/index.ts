@@ -8,6 +8,7 @@ import {
   EcosDocComponentObject,
   EcosDocument,
   EmitObject,
+  EmitObjectFold,
   EvalActionObject,
   FooterComponentObject,
   GotoObject,
@@ -59,7 +60,7 @@ export function getActionChain({
   let isExtendedActions = 'fn' in actions[0] || 'action' in actions[0]
 
   const getInstance = (obj: NUIActionObject) => {
-    const action = Identify.emit(obj)
+    const action = Identify.folds.emit(obj)
       ? new EmitAction(trigger, obj)
       : new Action(trigger, obj)
 
@@ -142,9 +143,9 @@ export function getSaveObjectAction(
   return { actionType: 'saveObject', object: {}, ...props }
 }
 
-export function getToastObject(
-  props?: Partial<ToastObject>,
-): { toast: ToastObject } {
+export function getToastObject(props?: Partial<ToastObject>): {
+  toast: ToastObject
+} {
   return { toast: { message: 'hello!', style: {}, ...props } }
 }
 
@@ -223,8 +224,7 @@ export function getEcosDocObject<N extends NameField.Base>(
     tage: 0,
     type: 1025,
     deat: {
-      url:
-        'https://s3.us-east-2.amazonaws.com/ecos.aitmed.com/6Kz7B6XdVHCCHoF12YzDM8/8mYaanEkGyrsfWHh1BDGCq/9sg86udSxhwezsA4g93TQ8',
+      url: 'https://s3.us-east-2.amazonaws.com/ecos.aitmed.com/6Kz7B6XdVHCCHoF12YzDM8/8mYaanEkGyrsfWHh1BDGCq/9sg86udSxhwezsA4g93TQ8',
       sig: null,
       exptime: null,
     },
@@ -259,6 +259,12 @@ export function getEcosDocObject<N extends NameField.Base>(
   return ecosObj as EcosDocument<N>
 }
 
+export function getFoldedEmitObject(
+  ...args: Parameters<typeof getEmitObject>
+): EmitObjectFold {
+  return { emit: getEmitObject(...args) }
+}
+
 export function getEmitObject({
   iteratorVar = 'itemObject',
   dataKey = { var1: iteratorVar },
@@ -266,9 +272,7 @@ export function getEmitObject({
 }: {
   iteratorVar?: string
 } & Partial<EmitObject> = {}): EmitObject {
-  return {
-    emit: { dataKey, actions },
-  }
+  return { dataKey, actions }
 }
 
 export function getGotoObject(
@@ -436,25 +440,29 @@ export function getPluginHeadComponent(
   return { type: 'pluginHead', path: 'googleTM.js', ...props }
 }
 
-export const getPluginBodyTopComponent = createComponentWithKeyOrProps<PluginBodyTopComponentObject>(
-  { type: 'pluginBodyTop', path: 'googleTM.js' } as any,
-  'path',
-)
+export const getPluginBodyTopComponent =
+  createComponentWithKeyOrProps<PluginBodyTopComponentObject>(
+    { type: 'pluginBodyTop', path: 'googleTM.js' } as any,
+    'path',
+  )
 
-export const getPluginBodyTailComponent = createComponentWithKeyOrProps<PluginBodyTailComponentObject>(
-  { type: 'pluginBodyTail', path: 'googleTM.js' },
-  'path',
-)
+export const getPluginBodyTailComponent =
+  createComponentWithKeyOrProps<PluginBodyTailComponentObject>(
+    { type: 'pluginBodyTail', path: 'googleTM.js' },
+    'path',
+  )
 
-export const getPopUpComponent = createComponentWithKeyOrProps<PopUpComponentObject>(
-  { type: 'popUp', popUpView: 'genderView' },
-  'popUpView',
-)
+export const getPopUpComponent =
+  createComponentWithKeyOrProps<PopUpComponentObject>(
+    { type: 'popUp', popUpView: 'genderView' },
+    'popUpView',
+  )
 
-export const getRegisterComponent = createComponentWithKeyOrProps<RegisterComponentObject>(
-  { type: 'register', onEvent: 'toggleCameraOn' },
-  'onEvent',
-)
+export const getRegisterComponent =
+  createComponentWithKeyOrProps<RegisterComponentObject>(
+    { type: 'register', onEvent: 'toggleCameraOn' },
+    'onEvent',
+  )
 
 export function getSelectComponent(
   props?:
@@ -478,7 +486,7 @@ export function getScrollViewComponent(
 
 export function getTextFieldComponent(
   props?: ComponentProps<TextFieldComponentObject> & {
-    placeholder?: EmitObject | Path
+    placeholder?: EmitObjectFold | Path
     dataKey?: string
   },
 ): TextFieldComponentObject {
@@ -496,10 +504,11 @@ export function getTextViewComponent(
   return { type: 'textView', ...props }
 }
 
-export const getVideoComponent = createComponentWithKeyOrProps<VideoComponentObject>(
-  { type: 'video', videoFormat: 'video/mp4' },
-  'path',
-)
+export const getVideoComponent =
+  createComponentWithKeyOrProps<VideoComponentObject>(
+    { type: 'video', videoFormat: 'video/mp4' },
+    'path',
+  )
 
 export function getViewComponent({
   addChildren = [],

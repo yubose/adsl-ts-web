@@ -1,3 +1,4 @@
+import { AcceptArray } from '@jsmanifest/typefest'
 import {
   ActionObject,
   ActionType,
@@ -6,6 +7,7 @@ import {
   ComponentType,
   EventType,
   EmitObject,
+  EmitObjectFold,
   EvalActionObject,
   GotoObject,
   PageJumpActionObject,
@@ -54,7 +56,7 @@ export type NUIActionChain = ActionChain<NUIActionObject, NUITrigger>
 // Raw / non-ensured actionType
 export type NUIActionObjectInput =
   | NUIActionObject
-  | EmitObject
+  | EmitObjectFold
   | GotoObject
   | ToastObject
 
@@ -94,7 +96,7 @@ export interface AnonymousActionObject extends ActionObject {
   fn?(...args: any[]): any
 }
 
-export interface EmitActionObject extends ActionObject, EmitObject {
+export interface EmitActionObject extends ActionObject, EmitObjectFold {
   actionType: 'emit'
   [key: string]: any
 }
@@ -200,7 +202,7 @@ export namespace Plugin {
 
 export interface IComponent<
   C extends ComponentObject = ComponentObject,
-  Type extends keyof C = ComponentType
+  Type extends keyof C = ComponentType,
 > {
   id: string
   type: Type
@@ -262,26 +264,17 @@ export type ConsumerOptions = Omit<
 export namespace Register {
   export interface Object<N extends string = string> {
     name: N
-    callbacks: (
-      | (<RT>(
-          obj: Register.Object,
-          params: Register.Params | undefined,
-        ) => Promise<RT | void>)
-      | NUIActionChain
-    )[]
+    callbacks: (Register.Object['fn'] | NUIActionChain)[]
     page: LiteralUnion<'_global' | Register.Page, string>
     params?: Register.ParamsObject
     handler?: {
-      callback?: <RT>(
-        obj: Register.Object,
-        params: Register.Params | undefined,
-      ) => Promise<RT | void>
+      fn?: Register.Object['fn']
       useReturnValue?: boolean
     }
-    fn:
-      | undefined
-      | ((obj: Register.Object<N>, params: Register.Params) => Promise<any[]>)
-    isComponent: boolean
+    fn?: (
+      obj: Register.Object,
+      params: Register.Params | undefined,
+    ) => Promise<any>
   }
 
   export type Params<RT = any> = ParamsObject | ParamsGetter<RT>
@@ -300,7 +293,7 @@ export namespace Register {
 export namespace Store {
   export interface ActionObject<
     AType extends NUIActionType = NUIActionType,
-    ATrigger extends NUITrigger = NUITrigger
+    ATrigger extends NUITrigger = NUITrigger,
   > {
     actionType: AType
     fn(
@@ -312,7 +305,7 @@ export namespace Store {
 
   export interface BuiltInObject<
     FuncName extends string = string,
-    ATrigger extends NUITrigger = NUITrigger
+    ATrigger extends NUITrigger = NUITrigger,
   > {
     actionType: 'builtIn'
     fn(
@@ -350,7 +343,7 @@ export type TransactionId = LiteralUnion<keyof Transaction, string>
 
 export interface UseArg<
   TObj extends Record<string, any> = Record<string, any>,
-  TName extends TransactionId = TransactionId
+  TName extends TransactionId = TransactionId,
 > extends Partial<
     Record<
       NUIActionGroupedType,
@@ -375,8 +368,9 @@ export interface UseArg<
   plugin?: ComponentObject | ComponentObject[]
   register?:
     | Record<string, Register.Object['fn']>
-    | RegisterComponentObject
-    | RegisterComponentObject[]
+    | AcceptArray<
+        RegisterComponentObject & { handler?: Register.Object['handler'] }
+      >
   transaction?: Partial<
     Record<LiteralUnion<TName, string>, TObj[TName] | TObj[TName]['fn']>
   >

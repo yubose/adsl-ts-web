@@ -1,4 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
+import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'
 import { Identify } from 'noodl-types'
@@ -105,20 +106,42 @@ describe(coolGold(`builtIn`), () => {
   })
 
   describe(`redraw`, () => {
-    it.only(`should rerender the DOM nodes`, async () => {
+    it(`should be called`, async () => {
       const viewTag = 'helloTag'
-      let redrawObject = mock.getBuiltInAction({
-        funcName: 'redraw',
-        viewTag,
-      })
-      await getApp({
+      const app = await getApp({
         navigate: true,
         components: [
           mock.getViewComponent({ viewTag }),
           mock.getButtonComponent({
             id: 'hello',
-            onClick: [redrawObject],
+            onClick: [mock.getBuiltInAction('redraw')],
           }),
+        ],
+      })
+      const node = getFirstByElementId('hello')
+      const redraws = app.cache.actions.builtIn.get('redraw')
+      let spy: sinon.SinonSpy | undefined
+      if (redraws) {
+        redraws.length > 1 && (redraws.length = 1)
+        const redraw = redraws[0]
+        spy = sinon.spy(redraw, 'fn')
+      }
+      node.click()
+      await waitFor(() => {
+        expect(spy).to.be.calledOnce
+        expect(spy).not.to.be.calledTwice
+        expect(spy).not.to.be.calledThrice
+      })
+    })
+
+    it.only(`should rerender the DOM nodes`, async () => {
+      let viewTag = 'helloTag'
+      let redrawObject = mock.getBuiltInAction({ funcName: 'redraw', viewTag })
+      await getApp({
+        navigate: true,
+        components: [
+          mock.getViewComponent({ viewTag }),
+          mock.getButtonComponent({ id: 'hello', onClick: [redrawObject] }),
         ],
       })
       let node = getFirstByViewTag(viewTag)
@@ -128,15 +151,11 @@ describe(coolGold(`builtIn`), () => {
         expect(document.body.contains(node)).to.be.true
         expect(node.dataset).to.have.property('viewtag', viewTag)
       })
-      expect(node).to.exist
-      expect(document.getElementById(node.id)).to.exist
       btn.click()
-      let nextNode: HTMLElement | undefined
       await waitFor(() => {
-        node = document.getElementById(node.id) as any
-        nextNode = getFirstByViewTag(viewTag)
-        expect(nextNode).to.exist
-        expect(nextNode).not.to.eq(node)
+        node = getFirstByElementId(node.id) as any
+        expect(getFirstByViewTag(viewTag)).to.exist
+        expect(getFirstByViewTag(viewTag)).not.to.eq(node)
         // expect(document.getElementById(nextNode.id)).to.exist
       })
       // const id = nextNode?.id || ''

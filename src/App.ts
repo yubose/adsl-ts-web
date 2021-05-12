@@ -282,7 +282,7 @@ class App {
       this.ndom.use({ plugin: plugins })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
-      registers.forEach((obj) => this.ndom.use({ register: obj }))
+      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
 
       this.meeting.onConnected = meetingfns.onConnected
@@ -388,7 +388,8 @@ class App {
           FCMOnTokenReceive: async (options?: any) => {
             const token = await NUI.emit({
               type: 'register',
-              args: { name: 'FCMOnTokenReceive', params: options },
+              event: 'FCMOnTokenReceive',
+              params: options,
             })
             return token
           },
@@ -509,15 +510,15 @@ class App {
         node: HTMLElement,
         component: NUIComponent.Instance,
       ) => {
-        const onPublish = (c: NUIComponent.Instance) => {
-          console.log(`Removed a ${c.type} component from cache: ${c.id}`)
-          this.cache.component.remove(c)
-        }
-        this.cache.component.remove(component)
-        publish(component, onPublish)
-        console.log(
-          `Removed a ${component.type} component from cache: ${component.id}`,
-        )
+        // const onPublish = (c: NUIComponent.Instance) => {
+        //   console.log(`Removed a ${c.type} component from cache: ${c.id}`)
+        //   this.cache.component.remove(c)
+        // }
+        // this.cache.component.remove(component)
+        // publish(component, onPublish)
+        // console.log(
+        //   `Removed a ${component.type} component from cache: ${component.id}`,
+        // )
       }
       this.mainPage.on(
         eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
@@ -636,7 +637,7 @@ class App {
 
   emit<
     Id extends keyof T.AppObserver,
-    P extends T.AppObserver[Id]['params'] = T.AppObserver[Id]['params']
+    P extends T.AppObserver[Id]['params'] = T.AppObserver[Id]['params'],
   >(id: Id, params?: P) {
     const fns = this.obs.has(id) && this.obs.get(id)
     fns && fns.forEach((fn) => typeof fn === 'function' && fn(params as P))

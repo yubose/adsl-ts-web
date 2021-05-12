@@ -81,10 +81,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       }
       app.nui.emit({
         type: 'register',
-        args: {
-          name: 'twilioOnPeopleJoin',
-          params: { room: app.meeting.room },
-        },
+        event: 'twilioOnPeopleJoin',
+        params: { room: app.meeting.room },
       })
     }
   }
@@ -93,14 +91,12 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     app.setSdkParticipants(
       app.meeting.removeFalseParticipants(app.getSdkParticipants()),
     )
-    if (!app.getRoomParticipants().size) {
+    if (!app.getRoomParticipants().size || !app.getSdkParticipants()?.length) {
       app.meeting.showWaitingOthersMessage()
       app.nui.emit({
         type: 'register',
-        args: {
-          name: 'twilioOnNoParticipant',
-          params: { room: app.meeting.room },
-        },
+        event: 'twilioOnNoParticipant',
+        params: { room: app.meeting.room },
       })
     }
   }

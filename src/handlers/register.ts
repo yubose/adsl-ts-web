@@ -8,6 +8,7 @@ import { Identify, PageObject } from 'noodl-types'
 import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'
 import { copyToClipboard } from '../utils/dom'
+import { mapEntries } from '../utils/common'
 import App from '../App'
 
 const log = Logger.create('register.ts')
@@ -15,7 +16,6 @@ const log = Logger.create('register.ts')
 function createRegisters(app: App) {
   function onInitPage(pageObject: PageObject) {
     if (app?.root?.Global?.globalRegister) {
-      return
       const GlobalRoot = app.root.Global as Record<string, any>
       const globalRegister = GlobalRoot.globalRegister
       if (u.isArr(globalRegister)) {
@@ -27,17 +27,14 @@ function createRegisters(app: App) {
           )
           globalRegister.forEach((component: Record<string, any>) => {
             if (Identify.component.register(component)) {
-              if (u.isFnc(component.onEvent)) {
-                // Already attached a function
-                return
-              }
-
-              if (!('onEvent' in component)) {
-                log.red(
+              // Already attached a function
+              if (u.isFnc(component.onEvent)) return
+              if (!component.onEvent) {
+                return log.red(
                   `The "onEvent" identifier was not found in the register component!`,
+                  component,
                 )
               }
-
               app.nui.use({ register: component })
               const register = app.nui.cache.register.get(
                 component.onEvent as string,
@@ -52,7 +49,7 @@ function createRegisters(app: App) {
                     `Attaching the default noodl-ui register function on the register component in the root object`,
                     { register, component },
                   )
-                  component.onEvent = register.fn.bind(register)
+                  component.onEvent = register.fn.bind(register) as any
                 } else if (!register.handler) {
                   log.red(
                     `Alert! A register object was returned but the "fn" value was not a function and the "handler" object was empty!`,
@@ -65,12 +62,6 @@ function createRegisters(app: App) {
                   { register, component },
                 )
               }
-              // app.nui._experimental.createOnEventRegister(value, {
-              //   pageName: '_global',
-              // })
-              // app.nui.use({
-              //   register: { name: value.onEvent as string, component: value },
-              // })
             }
           })
         }
@@ -95,9 +86,8 @@ function createRegisters(app: App) {
       }
       try {
         if (app.getFirebaseState().enabled) {
-          app._store.messaging.serviceRegistration = await navigator.serviceWorker.register(
-            'firebase-messaging-sw.js',
-          )
+          app._store.messaging.serviceRegistration =
+            await navigator.serviceWorker.register('firebase-messaging-sw.js')
           log.grey(
             'Initialized service worker',
             app._store.messaging.serviceRegistration,
@@ -134,11 +124,12 @@ function createRegisters(app: App) {
         return error
       }
     },
-    twilioOnPeopleJoin(obj: Register.Object, { room }: { room?: Room } = {}) {
-      console.log(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, obj)
-      if (room?.participants.size) {
-        app.meeting.hideWaitingOthersMessage()
-      }
+    twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
+      console.log(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
+        register: obj,
+        params,
+      })
+      app.meeting.hideWaitingOthersMessage()
     },
     twilioOnNoParticipant(
       obj: Register.Object,
@@ -160,7 +151,7 @@ function createRegisters(app: App) {
     )
   }
 
-  return u.mapEntries((name, fn) => ({ name, fn }), o)
+  return u.entries(o)
 }
 
 export default createRegisters

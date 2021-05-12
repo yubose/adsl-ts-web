@@ -2,12 +2,11 @@ import { ActionObject, ComponentObject } from 'noodl-types'
 import { NUIActionObjectInput, NUITrigger } from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 
-export type ActionProps<
-  C extends Partial<ActionObject> = ActionObject
-> = Partial<C>
+export type ActionProps<C extends Partial<ActionObject> = ActionObject> =
+  Partial<C>
 
 export type ComponentProps<
-  C extends Partial<ComponentObject> = ComponentObject
+  C extends Partial<ComponentObject> = ComponentObject,
 > = Partial<{ [K in NUITrigger]: NUIActionObjectInput[] } & C>
 
 export function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
@@ -25,7 +24,7 @@ export function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
 
 export function createComponentWithKeyOrProps<O extends ComponentObject>(
   defaultProps: O,
-  key: string | Record<string, any>,
+  key: string | Partial<Record<string, any>>,
 ) {
   const createObj = (props?: string | ComponentProps<O>): O => {
     const obj = { ...defaultProps } as ComponentObject

@@ -8,7 +8,7 @@ export default {
   cond: (n, c) => !!(n && c),
   resolve: (node: NOODLDOMDataValueElement, component, { global }) => {
     userEvent.forEach((eventType: string) => {
-      if (isActionChain(component.get(eventType))) {
+      if (isActionChain(component.get?.(eventType))) {
         // Putting a setTimeout here helps to avoid the race condition in where
         // the emitted action handlers are being called before local root object
         // gets their data values updated.

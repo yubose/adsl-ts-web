@@ -1,4 +1,4 @@
-import { EmitObject, Identify } from 'noodl-types'
+import { EmitObjectFold, Identify } from 'noodl-types'
 import { Action, createAction as __createAction } from 'noodl-action-chain'
 import getActionType from './getActionType'
 import getActionObjectErrors from './getActionObjectErrors'
@@ -11,8 +11,8 @@ import {
 } from '../types'
 import EmitAction from '../actions/EmitAction'
 
-type EmitLikeObject = Extract<NUIActionObjectInput, EmitObject>
-type NonEmitLikeObject = Exclude<NUIActionObjectInput, EmitObject>
+type EmitLikeObject = Extract<NUIActionObjectInput, EmitObjectFold>
+type NonEmitLikeObject = Exclude<NUIActionObjectInput, EmitObjectFold>
 
 function createAction(args: {
   action: NonEmitLikeObject
@@ -34,7 +34,7 @@ function createAction(
   let action: NUIAction | undefined
 
   if (isStr(args)) {
-    if (Identify.emit(args2)) {
+    if (Identify.folds.emit(args2)) {
       action = new EmitAction(args, args2)
     } else if (args2) {
       if (isStr(args2)) {
@@ -45,7 +45,7 @@ function createAction(
       }
     }
   } else if ('action' in args) {
-    if (Identify.emit(args.action)) {
+    if (Identify.folds.emit(args.action)) {
       action = new EmitAction(args.trigger, args.action)
     } else {
       if (!('actionType' in args.action)) {

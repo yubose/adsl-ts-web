@@ -1,9 +1,12 @@
 import invariant from 'invariant'
 import merge from 'lodash/merge'
+import set from 'lodash/set'
+import * as u from '@jsmanifest/utils'
+import { isActionChain } from 'noodl-action-chain'
 import { setUseProxies, enableES5 } from 'immer'
 import {
   ComponentObject,
-  EmitObject,
+  EmitObjectFold,
   Identify,
   IfObject,
   RegisterComponentObject,
@@ -38,9 +41,7 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import { groupedActionTypes, nuiEmitType } from './constants'
-import * as u from './utils/internal'
 import * as T from './types'
-import { isActionChain } from 'noodl-action-chain'
 
 enableES5()
 setUseProxies(false)
@@ -68,7 +69,7 @@ const NUI = (function _NUI() {
     page: NUIPage
   }): Promise<string>
   function _createSrc(
-    path: EmitObject,
+    path: EmitObjectFold,
     opts?: {
       component: T.NUIComponent.Instance
       context?: Record<string, any>
@@ -78,7 +79,7 @@ const NUI = (function _NUI() {
   function _createSrc(path: string): string
   function _createSrc(
     args:
-      | EmitObject
+      | EmitObjectFold
       | IfObject
       | {
           context?: Record<string, any>
@@ -104,18 +105,17 @@ const NUI = (function _NUI() {
       }
       return resolveAssetUrl(args, o.getAssetsUrl())
     } else if (u.isObj(args)) {
-      if (Identify.emit(args)) {
+      if (Identify.folds.emit(args)) {
         component = opts?.component as T.NUIComponent.Instance
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = o.cache.actions.emit.get('path')?.[0]
         const iteratorVar =
           opts?.context?.iteratorVar || findIteratorVar(component)
         if (u.isFnc(obj?.fn)) {
-          const emitObj = { ...args, actionType: 'emit' }
-          const emitAction = new EmitAction('path', emitObj)
-          if ('dataKey' in (emitAction.original?.emit || {})) {
+          const emitAction = new EmitAction('path', args)
+          if ('dataKey' in args.emit) {
             emitAction.dataKey = createEmitDataKey(
-              emitObj.emit.dataKey as any,
+              args.emit.dataKey,
               _getQueryObjects({
                 component,
                 page,
@@ -195,15 +195,16 @@ const NUI = (function _NUI() {
 
   async function _emit<
     Evt extends string = string,
-    Tid extends T.TransactionId = T.TransactionId
+    Tid extends T.TransactionId = T.TransactionId,
   >(opts: T.NUIEmit.EmitRegister<Evt> | T.NUIEmit.EmitTransaction<Tid>) {
     try {
       if (opts.type === nuiEmitType.REGISTER) {
         const { event, params } = opts
         if (cache.register.has(event)) {
+          const results = [] as any[]
           console.log(
             `%cThe register event "${event}" exists in the register cache`,
-            `color:#00b406;`,
+            `color:#95a5a6;`,
           )
           const obj = cache.register.get(event)
           if (obj.handler) {
@@ -211,13 +212,14 @@ const NUI = (function _NUI() {
               `%c"Handler" is an object. Attempting to use a "callback" in the handler object if it exists`,
               `color:#95a5a6;`,
             )
-            const callback = obj.handler.callback
+            const callback = obj.handler.fn
             if (u.isFnc(callback)) {
               console.log(
                 `%cThe callback exists in the handler object. It will be invoked`,
                 `color:#95a5a6;`,
               )
               const result = await callback?.(obj, opts.params)
+              results.push(result)
               console.log(
                 `%cChecking if a "register" transaction was registered in from the client`,
                 `color:#95a5a6;`,
@@ -249,11 +251,13 @@ const NUI = (function _NUI() {
                 `color:#ec0000;`,
               )
             }
+            return results
           } else {
             console.log(
               `%cA handler object did not exist. A default function will be used that calls the functions in the callbacks list by default`,
               `color:#95a5a6;`,
             )
+            console.log(obj)
             // TODO - Refactor this awkward code
             return obj.fn?.(obj, params as T.Register.ParamsObject)
           }
@@ -439,62 +443,105 @@ const NUI = (function _NUI() {
      * TODO - Enable them to have the option to disable or override this with their own function
      * TODO - Turn this into a transaction
      */
-    createOnEventRegister(
-      obj: Partial<RegisterComponentObject>,
-      {
-        pageName = '_global',
-        ...rest
-      }: {
-        pageName?: T.Register.Object['page']
-      } & Partial<T.Register.Object> = {},
+    register(
+      obj: Partial<RegisterComponentObject> | string,
+      options: Partial<T.Register.Object> | T.Register.Object['fn'] = {},
     ) {
       try {
-        if (obj.onEvent && !o.cache.register.has(obj.onEvent)) {
-          const id = obj.onEvent
-          const register = o.cache.register.get(id) || ({} as T.Register.Object)
+        let event = ''
+        let register: T.Register.Object
 
-          console.log(
-            `%cRegistering a new register event "${id}" to the store`,
-            `color:#00b406;`,
-            { registerObject: obj, page: pageName, ...rest },
-          )
+        if (u.isStr(obj)) {
+          event = obj
+          register = (o.cache.register.get(event) || {}) as T.Register.Object
 
-          register.name !== id && (register.name = id)
-          register.page !== pageName && (register.page = pageName)
-          // !(register.isComponent !== true) && (register.isComponent = true)
+          if (u.isFnc(options)) {
+            set(register, 'handler.fn', options)
+          } else if (u.isObj(options)) {
+            u.eachEntries(options, (key, val) => {
+              if (key === 'handler') {
+                register.handler = { ...register.handler, ...options.handler }
+              } else {
+                register[key] = val
+              }
+            })
+            u.assign(register, options)
+          }
+
+          if (u.isFnc(register.handler?.fn) && u.isFnc(register.fn)) {
+            console.log(
+              `%cSetting register.fn to undefined because a custom handler fn was provided`,
+              `color:#95a5a6;`,
+              register,
+            )
+            register.fn = undefined
+          }
+          !register.page && (register.page = '_global')
           !register.callbacks && (register.callbacks = [])
+          !(register.name === event) && (register.name = event)
+        } else if (u.isObj(obj)) {
+          event = obj.onEvent as string
+          if (!o.cache.register.has(event)) {
+            register = o.cache.register.get(event) || {}
 
-          u.assign(register, rest)
+            console.log(
+              `%cRegistering a new register event "${event}" to the store`,
+              `color:#95a5a6;`,
+              { registerObject: register, ...options },
+            )
 
-          if (!register.handler && !register.fn) {
-            register.fn = async (obj, params) => {
-              console.log(
-                `%cEntered the function call for "fn" on the "${register.name}" register event`,
-                `color:#00b406;`,
+            u.assign(register, {
+              ...options,
+              name: event,
+              page: register.page || '_global',
+              callbacks: register.callbacks || [],
+            })
+
+            if (register.handler) {
+              if (u.isFnc(register.handler.fn)) {
+                if (u.isFnc(register.fn)) {
+                  register.fn = undefined
+                  console.log(
+                    `%cSetting register.fn to undefined because a custom handler fn was provided`,
+                    `color:#95a5a6;`,
+                    register,
+                  )
+                }
+              }
+            } else {
+              if (register.fn) {
+                //
+              } else {
+                register.fn = async function onRegisterFn(obj, params) {
+                  console.log(
+                    `%cEntered the function call for "fn" on the "${event}" register event`,
+                    `color:#95a5a6;`,
+                  )
+                  return Promise.all(
+                    o.cache.register.get(event)?.callbacks?.map(async (cb) => {
+                      if (isActionChain(cb)) {
+                        return cb?.execute?.call(cb, obj, params)
+                      }
+                      if (u.isObj(cb) && u.isFnc(cb['then'])) return cb
+                      return u.isFnc(cb) ? cb?.(obj, params) : cb
+                    }) || [],
+                  )
+                }
+              }
+            }
+            // TODO - Should we convert the component object to a NUI component instance?
+            if (Identify.folds.emit(obj)) {
+              const ac = o.createActionChain(
+                'register',
+                { emit: obj.emit, actionType: 'emit' },
+                { loadQueue: true },
               )
-              return Promise.all(
-                o.cache.register.get(id)?.callbacks?.map(async (cb) => {
-                  if (isActionChain(cb)) {
-                    return cb.execute.call(cb, obj, params)
-                  }
-                  return cb?.(obj, params)
-                }) || [],
-              )
+              register.callbacks.push(ac)
             }
           }
-
-          // TODO - Should we convert the component object to a NUI component instance?
-          if (Identify.emit(obj)) {
-            const ac = o.createActionChain(
-              'register',
-              { emit: obj.emit, actionType: 'emit' },
-              { loadQueue: true },
-            )
-            register.callbacks.push(ac)
-          }
-          cache.register.set(register.name, register)
-          return register
         }
+
+        return cache.register.set(event, register as T.Register.Object)
       } catch (error) {
         console.error(`[${error.name}] ${error.message}`)
       }
@@ -669,11 +716,11 @@ const NUI = (function _NUI() {
           }
 
           return objs.map((obj) => {
-            if (Identify.emit(obj)) {
+            if (Identify.folds.emit(obj)) {
               const action = createAction(
                 trigger,
                 // Filter out unwanted props (ex: a register component that has an emit)
-                'type' in obj ? { emit: obj.emit } : obj,
+                obj,
               )
               if (opts?.component) {
                 const iteratorVar =
@@ -681,7 +728,6 @@ const NUI = (function _NUI() {
                 const dataObject =
                   opts?.context?.dataObject ||
                   findListDataObject(opts.component)
-
                 if (obj.emit?.dataKey) {
                   action.dataKey = createEmitDataKey(
                     obj.emit.dataKey,
@@ -948,24 +994,11 @@ const NUI = (function _NUI() {
           u.isArr(args.register)
         ) {
           u.array(args.register).forEach((component) => {
-            o._experimental.createOnEventRegister(component)
+            o._experimental.register(component)
           })
         } else {
-          u.eachEntries(args.register, (name, fn: T.Register.Object['fn']) => {
-            if (u.isFnc(fn)) {
-              if (!cache.register.has(name)) {
-                cache.register.set(name, {
-                  name,
-                  handler: { callback: fn, useReturnValue: true },
-                })
-              } else {
-                const obj = cache.register.get(name)
-                if (obj.fn !== fn) {
-                  obj.fn = fn
-                  cache.register.set(name, obj)
-                }
-              }
-            }
+          u.eachEntries(args.register, (event, fn: T.Register.Object['fn']) => {
+            if (u.isFnc(fn)) o._experimental.register(event, fn)
           })
         }
       }
@@ -990,34 +1023,6 @@ const NUI = (function _NUI() {
 
       return o
     },
-  }
-
-  /* -------------------------------------------------------
-    ---- INTERNAL LISTENERS / OBSERVERS
-  -------------------------------------------------------- */
-
-  function _handleGlobalRegister(root: Record<string, any> = {}) {
-    const globalRegister = root?.Global?.globalRegister
-
-    if (globalRegister) {
-      console.log(
-        `%cScanning ${
-          globalRegister?.length || '<empty or not an array>'
-        } items found in globalRegister`,
-        `color:#95a5a6;`,
-      )
-
-      u.array(globalRegister).forEach((obj) => {
-        if (Identify.component.register(obj)) {
-          o._experimental.createOnEventRegister(obj, {
-            pageName: '_global',
-          })
-          // app.nui.use({
-          //   register: { name: obj.onEvent as string, component: obj },
-          // })
-        }
-      })
-    }
   }
 
   return o

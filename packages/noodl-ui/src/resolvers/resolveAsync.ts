@@ -19,7 +19,7 @@ async function resolveAsync(
 
     //
 
-    if (Identify.emit(dataValue)) {
+    if (Identify.folds.emit(dataValue)) {
       const ac = createActionChain('dataValue', [
         { emit: dataValue.emit, actionType: 'emit' },
       ])
@@ -33,7 +33,7 @@ async function resolveAsync(
       ---- PATH
     -------------------------------------------------------- */
 
-    if (Identify.emit(path)) {
+    if (Identify.folds.emit(path)) {
       const ac = createActionChain('path', [
         { emit: path.emit, actionType: 'emit' },
       ])
@@ -45,9 +45,9 @@ async function resolveAsync(
       component.emit('path', result)
     }
 
-    if (Identify.emit(placeholder)) {
+    if (Identify.folds.emit(placeholder)) {
       const ac = createActionChain('placeholder', [
-        { emit: placeholder?.emit, actionType: 'emit' },
+        { emit: placeholder.emit, actionType: 'emit' },
       ])
       const results = await ac.execute?.()
       const result = results?.find((v) => !!v.result)?.result

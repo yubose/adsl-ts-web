@@ -89,13 +89,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }
 
-  const disconnectMeeting: Store.BuiltInObject['fn'] = async function onDisconnectMeeting(
-    action,
-  ) {
-    log.func('disconnectMeeting')
-    log.grey('', action)
-    app.meeting.leave()
-  }
+  const disconnectMeeting: Store.BuiltInObject['fn'] =
+    async function onDisconnectMeeting(action) {
+      log.func('disconnectMeeting')
+      log.grey('', action)
+      app.meeting.leave()
+    }
 
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {
     log.func('goBack')
@@ -161,21 +160,19 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
   }
 
-  const toggleCameraOnOff: Store.BuiltInObject['fn'] = async function onToggleCameraOnOff(
-    action,
-  ) {
-    log.func('toggleCameraOnOff')
-    log.green('', action)
-    _toggleMeetingDevice('video')
-  }
+  const toggleCameraOnOff: Store.BuiltInObject['fn'] =
+    async function onToggleCameraOnOff(action) {
+      log.func('toggleCameraOnOff')
+      log.green('', action)
+      _toggleMeetingDevice('video')
+    }
 
-  const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] = async function onToggleMicrophoneOnOff(
-    action,
-  ) {
-    log.func('toggleMicrophoneOnOff')
-    log.green('', action)
-    _toggleMeetingDevice('audio')
-  }
+  const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] =
+    async function onToggleMicrophoneOnOff(action) {
+      log.func('toggleMicrophoneOnOff')
+      log.green('', action)
+      _toggleMeetingDevice('audio')
+    }
 
   const toggleFlag: Store.BuiltInObject['fn'] = async function onToggleFlag(
     action,
@@ -305,24 +302,20 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
   }
 
-  const lockApplication: Store.BuiltInObject['fn'] = async function onLockApplication(
-    action,
-    options,
-  ) {
-    const result = await _onLockLogout()
-    if (result === 'abort') options?.ref?.abort?.()
-    await (await import('@aitmed/cadl')).Account.logout(false)
-    window.location.reload()
-  }
+  const lockApplication: Store.BuiltInObject['fn'] =
+    async function onLockApplication(action, options) {
+      const result = await _onLockLogout()
+      if (result === 'abort') options?.ref?.abort?.()
+      await (await import('@aitmed/cadl')).Account.logout(false)
+      window.location.reload()
+    }
 
-  const logOutOfApplication: Store.BuiltInObject['fn'] = async function onLogOutOfApplication(
-    action,
-    options,
-  ) {
-    if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
-    await (await import('@aitmed/cadl')).Account.logout(true)
-    window.location.reload()
-  }
+  const logOutOfApplication: Store.BuiltInObject['fn'] =
+    async function onLogOutOfApplication(action, options) {
+      if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
+      await (await import('@aitmed/cadl')).Account.logout(true)
+      window.location.reload()
+    }
 
   const logout: Store.BuiltInObject['fn'] = async function onLogout(
     action,
@@ -388,9 +381,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     if (!u.isUnd(dataIn)) {
       app.mainPage.setModifier(destinationParam, { ...dataIn })
     }
-    let { destination, id = '', isSamePage, duration } = parse.destination(
-      destinationParam,
-    )
+    let {
+      destination,
+      id = '',
+      isSamePage,
+      duration,
+    } = parse.destination(destinationParam)
     if (destination === destinationParam) {
       app.mainPage.requesting = destination
     }
@@ -661,14 +657,16 @@ export function createVideoChatBuiltIn(app: App) {
         const { cameraOn, micOn } = app.root.VideoChat || {}
         const { localParticipant } = newRoom
 
-        const toggle = (state: 'enable' | 'disable') => (
-          tracks: Map<
-            string,
-            LocalVideoTrackPublication | LocalAudioTrackPublication
-          >,
-        ) => {
-          tracks.forEach((publication) => publication?.track?.[state]?.())
-        }
+        const toggle =
+          (state: 'enable' | 'disable') =>
+          (
+            tracks: Map<
+              string,
+              LocalVideoTrackPublication | LocalAudioTrackPublication
+            >,
+          ) => {
+            tracks.forEach((publication) => publication?.track?.[state]?.())
+          }
 
         const enable = toggle('enable')
         const disable = toggle('disable')
