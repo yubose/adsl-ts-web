@@ -15,7 +15,7 @@
     "build:deploy:stable": "npm run build:stable && npm run deploy:stable",
     "build:deploy:test": "npm run build:test && npm run deploy:test",
     "build:deploy:noodltest": "npm run build:test && npm run deploy:noodltest",
-    "build:deploy:chinaSever": "npm run build:test && bash chinaSever.sh",
+    "build:deploy:chinaServer": "npm run build:test && bash chinaServer.sh",
     "deploy:stable": "bash s3Deploy.sh build",
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "deploy:cadltest": "bash s3Deploy.sh build cadltest.aitmed.com",
