@@ -37,6 +37,7 @@ declare global {
     ndom: NOODLDOM
     redraw: any
     room: Room | null
+    spamToasts: any
     streams: any
     cp: Function
     // noodl-ui

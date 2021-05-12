@@ -1,6 +1,5 @@
-import { asHtmlElement, findByDataKey } from 'noodl-ui-dom'
+import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
-import { makeElemFn } from 'noodl-ui-dom'
 import { array } from './common'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 
@@ -153,11 +152,18 @@ export function scrollToElem(
 }
 
 export function toast(message: string | number, options?: Toast['options']) {
-  return createToast?.(String(message), {
-    cancel: 'Close',
-    timeout: 8000,
-    ...options,
-  })
+  if (message) {
+    const container = document.getElementsByClassName('toast-container')[0]
+    // This is a better version of destroyAllToasts from the lib
+    if (container?.childNodes?.length) {
+      for (const childNode of container.children) childNode.remove()
+    }
+    return createToast?.(String(message), {
+      cancel: 'Close',
+      timeout: 8000,
+      ...options,
+    })
+  }
 }
 
 /**
