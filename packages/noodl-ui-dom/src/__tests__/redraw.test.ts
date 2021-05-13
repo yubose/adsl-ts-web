@@ -3,12 +3,7 @@ import * as mock from 'noodl-ui-test-utils'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { ActionChain } from 'noodl-action-chain'
 import { expect } from 'chai'
-import {
-  ActionObject,
-  ComponentObject,
-  EmitObjectFold,
-  PageObject,
-} from 'noodl-types'
+import { ComponentObject, EmitObjectFold, PageObject } from 'noodl-types'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import {
@@ -20,13 +15,7 @@ import {
   NUIActionObjectInput,
 } from 'noodl-ui'
 import NOODLDOM from '../noodl-ui-dom'
-import {
-  assetsUrl,
-  createRender,
-  ndom,
-  toDOM,
-  createDataKeyReference,
-} from '../test-utils'
+import { assetsUrl, createRender, ndom, toDOM } from '../test-utils'
 import { getFirstByElementId } from '../utils'
 
 let view: Component
@@ -64,7 +53,7 @@ describe(coolGold(`redraw`), () => {
       })
       ndom.use({
         emit: {
-          onClick: async (action, { component }) => {
+          onClick: async () => {
             const node = getFirstByElementId(id)
             node.innerHTML = String(increment())
           },
@@ -727,7 +716,7 @@ describe(coolGold(`redraw`), () => {
     expect(getInputElems()).to.have.lengthOf(2)
     ndom.redraw(document.querySelector('listItem'), list.child())
     expect(getListElems()).to.have.lengthOf(1)
-    // expect(getListItemElems()).to.have.lengthOf(2)
+    expect(getListItemElems()).to.have.lengthOf(2)
     // expect(getImgElems()).to.have.lengthOf(2)
     // expect(getInputElems()).to.have.lengthOf(2)
   })

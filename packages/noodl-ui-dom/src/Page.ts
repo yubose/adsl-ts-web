@@ -3,7 +3,6 @@ import { ComponentObject } from 'noodl-types'
 import { eventId } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
-import { start } from 'repl'
 
 const getDefaultRenderState = (
   initialState?: Record<string, any>,
@@ -73,6 +72,7 @@ class Page {
     if (!document.body.contains(this.rootNode)) {
       document.body.appendChild(this.rootNode)
     }
+
     return this
   }
 
