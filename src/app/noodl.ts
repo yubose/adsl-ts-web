@@ -29,7 +29,8 @@ function getConfigEndpoint(name: string) {
 // const configUrl = `${BASE}/${document.domain.split('.')[0]}.yml?`
 
 const CONFIG_URL = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
-
+// China Sever
+// const CONFIG_URL = `https://public.ahmucel.com/config/${document.domain.split('.')[0]}.yml?`
 const noodl = new NOODL({
   aspectRatio:
     typeof window !== 'undefined'

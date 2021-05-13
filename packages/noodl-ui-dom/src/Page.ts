@@ -3,6 +3,7 @@ import { ComponentObject } from 'noodl-types'
 import { eventId } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
+import { start } from 'repl'
 
 const getDefaultRenderState = (
   initialState?: Record<string, any>,
@@ -149,21 +150,34 @@ class Page {
     startPage = startPage || this.previous
     let previousPage
     let parts = this.pageUrl.split('-')
-    if (parts.length > 1) {
-      parts.pop()
+    if(parts.length>1){
       while (parts[parts.length - 1]?.endsWith('MenuBar') && parts.length > 1) {
-        parts.pop()
-      }
-      if (parts.length > 1) {
-        previousPage = parts[parts.length - 1]
-      } else if (parts.length === 1) {
-        if (parts[0]?.endsWith('MenuBar')) previousPage = startPage
-        else previousPage = parts[0].split('?')[1]
-      }
-    } else {
+            parts.pop()
+          }
+      previousPage = parts.pop()
+    }else if(parts.length === 1){
+      previousPage = parts[0].split('?')[1]
+    }else{
       previousPage = startPage
     }
     return previousPage || ''
+    // index.html?Dashboard-Apponitment
+    // if (parts.length > 1) {
+    //   parts.pop()
+    //   while (parts[parts.length - 1]?.endsWith('MenuBar') && parts.length > 1) {
+    //     parts.pop()
+    //   }
+    //   if (parts.length > 1) {
+    //     previousPage = parts[parts.length - 1]
+    //   } else if (parts.length === 1) {
+    //     if (parts[0]?.endsWith('MenuBar')) previousPage = startPage
+    //     else previousPage = parts[0].split('?')[1]
+    //   }
+    // } else {
+    //   previousPage = startPage
+    // }
+    // console.error(`最终指向的文件${previousPage}`);
+    // return previousPage || ''
   }
 
   /**
