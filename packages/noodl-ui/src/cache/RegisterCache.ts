@@ -29,7 +29,7 @@ class RegisterCache {
 
   set<N extends string = string>(name: N, obj: Partial<Register.Object>) {
     this.#cache.set(name, obj as Register.Object)
-    return obj
+    return obj as Register.Object
   }
 
   remove<N extends string = any>(name: N): this {

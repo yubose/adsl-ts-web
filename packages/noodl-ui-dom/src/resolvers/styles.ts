@@ -8,7 +8,7 @@ export default {
   cond: (node, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
   before(node, component, { ndom }) {
-    if (component.has('global')) {
+    if (component.has?.('global')) {
       component.on('image', (src) => {
         console.log(`%cReceived src for Global Component`, `color:#00b406;`, {
           src,
@@ -30,7 +30,10 @@ export default {
       node.style[styleKey] = String(styleValue)
     })
 
-    if (VP.isNil(component.blueprint?.style?.marginTop)) {
+    if (
+      component.blueprint?.style &&
+      VP.isNil(component.blueprint?.style?.marginTop)
+    ) {
       component.style.marginTop = '0px'
     }
 
@@ -42,7 +45,7 @@ export default {
     is.component.page(component) && addClassName('page', node)
     is.component.popUp(component) && addClassName('popup', node)
     is.component.scrollView(component) && addClassName('scroll-view', node)
-    component.has('global') && addClassName('global', node)
-    component.has('textBoard') && addClassName('text-board', node)
+    component.has?.('global') && addClassName('global', node)
+    component.has?.('textBoard') && addClassName('text-board', node)
   },
 } as RegisterOptions

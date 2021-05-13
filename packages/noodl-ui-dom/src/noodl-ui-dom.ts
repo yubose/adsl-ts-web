@@ -160,13 +160,13 @@ class NOODLDOM extends NOODLDOMInternal {
   removeComponent(component: NUIComponent.Instance | undefined | null) {
     if (!component) return this
     const remove = (c: NUIComponent.Instance) => {
-      c.parent?.removeChild?.(c)
-      c.setParent(null)
-      c.has('global') && this.removeGlobal('component', c.get('data-globalid'))
       this.cache.component.remove(c)
+      c.has?.('global') &&
+        this.removeGlobal('component', c.get('data-globalid'))
+      c.children?.forEach?.(remove)
+      c.clear?.()
     }
     remove(component)
-    publish(component, remove)
     return this
   }
 
@@ -379,7 +379,7 @@ class NOODLDOM extends NOODLDOMInternal {
           node = this.#createElementBinding(component) as HTMLElement
         }
         if (!node) {
-          node = Identify.emit(component.get('path'))
+          node = Identify.folds.emit(component.get('path'))
             ? createAsyncImageElement(
                 (container || document.body) as HTMLElement,
                 {},
@@ -404,7 +404,7 @@ class NOODLDOM extends NOODLDOMInternal {
         }
       }
 
-      if (component.has('global')) {
+      if (component.has?.('global')) {
         let globalRecord: GlobalComponentRecord
         let globalId = component.get('data-globalid')
 
@@ -505,7 +505,7 @@ class NOODLDOM extends NOODLDOMInternal {
       }
 
       if (node) {
-        const parent = component.has('global')
+        const parent = component.has?.('global')
           ? document.body
           : container || document.body
 
@@ -554,11 +554,6 @@ class NOODLDOM extends NOODLDOMInternal {
         }
       }
       const parent = component.parent
-      // Clean up state from the component
-      component.clear('hooks')
-      // Remove the parent reference
-      component.setParent?.(null)
-
       page.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, node, component)
 
       // Deeply walk down the tree hierarchy
@@ -573,8 +568,6 @@ class NOODLDOM extends NOODLDOMInternal {
                 page,
               )
               this.removePage(page)
-
-              // page.rootNode = null as any
             } else {
               console.log(
                 `%cCould not find a NUIPage in redraw`,
@@ -582,26 +575,19 @@ class NOODLDOM extends NOODLDOMInternal {
               )
             }
           }
-          const cParent = c.parent
-          // Remove listeners
-          c.clear('hooks')
-          // Remove child component references
-          cParent?.removeChild?.(c)
-          // Remove the child's parent reference
-          c.setParent?.(null)
         }
       })
 
-      // Create the new component
       newComponent = createComponent(component.blueprint)
+
       if (parent && newComponent) {
         // Set the original parent on the new component
         newComponent.setParent(parent)
-        // Remove the child reference from the parent
-        parent?.removeChild?.(component)
         // Set the new component as a child on the pafrent
         parent.createChild(newComponent)
       }
+
+      this.removeComponent(component)
 
       newComponent =
         NOODLDOM._nui.resolveComponents?.({
@@ -774,7 +760,7 @@ class NOODLDOM extends NOODLDOMInternal {
     page: Page
   }): Promise<PageObject>
   async transact(args: {
-    transaction: T.NDOMTransactionId
+    transaction: T.NDOMTransaction.Id
     component?: NUIComponent.Instance
     page?: Page
   }) {
@@ -795,7 +781,8 @@ class NOODLDOM extends NOODLDOMInternal {
     if (!obj) return
     if (isNUIPage(obj)) return this.createPage(obj)
 
-    const { createElementBinding, transaction, resolver, ...rest } = obj
+    const { createElementBinding, register, transaction, resolver, ...rest } =
+      obj
 
     createElementBinding && (this.#createElementBinding = createElementBinding)
     resolver && this.register(resolver)
@@ -806,7 +793,9 @@ class NOODLDOM extends NOODLDOMInternal {
           const getPageObject = transaction[c.transaction.REQUEST_PAGE_OBJECT]
           NOODLDOM._nui.use({
             transaction: {
-              [c.transaction.REQUEST_PAGE_OBJECT]: async (pageProp) => {
+              [c.transaction.REQUEST_PAGE_OBJECT]: async (
+                pageProp: NUIPage,
+              ) => {
                 invariant(
                   u.isFnc(getPageObject),
                   `Missing transaction: ${c.transaction.REQUEST_PAGE_OBJECT}`,
@@ -834,6 +823,7 @@ class NOODLDOM extends NOODLDOMInternal {
                 }
 
                 pageObject = await getPageObject?.(page)
+
                 return pageObject as PageObject
               },
             },

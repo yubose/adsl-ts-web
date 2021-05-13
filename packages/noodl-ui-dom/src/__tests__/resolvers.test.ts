@@ -253,7 +253,7 @@ describe(italic(`list`), () => {
     },
   )
 
-  xit(`should remove removed li2st items from the component cache`, async () => {
+  xit(`should remove removed list items from the component cache`, async () => {
     const listObject = mock.getGenderListObject()
     const { ndom, render } = createRender({
       components: mock.getListComponent({ listObject }),

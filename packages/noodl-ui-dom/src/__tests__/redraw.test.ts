@@ -3,67 +3,160 @@ import * as mock from 'noodl-ui-test-utils'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { ActionChain } from 'noodl-action-chain'
 import { expect } from 'chai'
-import { ComponentObject } from 'noodl-types'
+import {
+  ActionObject,
+  ComponentObject,
+  EmitObjectFold,
+  PageObject,
+} from 'noodl-types'
 import { prettyDOM, screen, waitFor } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
-import { Component, findChild, NUIComponent, createComponent } from 'noodl-ui'
+import {
+  Component,
+  createComponent,
+  findChild,
+  flatten,
+  NUIComponent,
+  NUIActionObjectInput,
+} from 'noodl-ui'
 import NOODLDOM from '../noodl-ui-dom'
-import { assetsUrl, createRender, ndom, toDOM } from '../test-utils'
+import {
+  assetsUrl,
+  createRender,
+  ndom,
+  toDOM,
+  createDataKeyReference,
+} from '../test-utils'
 import { getFirstByElementId } from '../utils'
 
 let view: Component
 let listGender: NUIComponent.Instance
 
-describe.skip(coolGold(`redraw`), () => {
+describe(coolGold(`redraw`), () => {
   describe(italic(`events`), () => {
+    let id = 'hello'
+    let componentObject: ComponentObject | undefined
+    let currentCount = 0
+    let emitObject: EmitObjectFold
+    let increment = () => currentCount++
+    let onClick: NUIActionObjectInput[] = []
+    let pageName = 'Counter'
+    let pageObject = {} as PageObject
+
+    beforeEach(() => {
+      emitObject = mock.getEmitObject({
+        emit: { dataKey: { var1: 'hey' }, actions: [] },
+      })
+      onClick = [emitObject]
+      componentObject = mock.getLabelComponent({
+        id,
+        text: String(currentCount),
+        onClick: onClick as any,
+      })
+      pageObject = { components: [componentObject] }
+    })
+
     it(`should still be executing the same action chains normally`, async () => {
       const { ndom, render } = createRender({
-        components: mock.getLabelComponent({
-          onClick: [
-            mock.getEmitObject({
-              emit: { dataKey: { var1: 'hey' }, actions: [] },
-            }),
-          ],
-        }),
+        pageName,
+        pageObject,
+        components: pageObject.components,
       })
-      ndom.use()
-      const emitActions = ndom.cache.actions.emit.get('onClick')
-      // const component = await render()
-      // const node = getFirstByElementId(component.id)
-      // const [newNode, newComponent] = ndom.redraw(node, component) as [
-      //   HTMLSelectElement,
-      //   NUIComponent.Instance,
-      // ]
-      // expect(component.get('onClick')).to.be.a('function')
-      // await waitFor(() => {
-      //   expect(newComponent.get('onClick')).to.be.a('function')
-      // })
+      ndom.use({
+        emit: {
+          onClick: async (action, { component }) => {
+            const node = getFirstByElementId(id)
+            node.innerHTML = String(increment())
+          },
+        },
+      })
+      const component = await render()
+      const node = getFirstByElementId(id)
+      // TODO - fix this so that it works with only 1 click
+      node.click()
+      node.click()
+      await waitFor(() => {
+        expect(node.textContent).to.eq('1')
+      })
+      let [newNode, newComp] = ndom.redraw(node, component)
+      newNode?.click()
+      await waitFor(() => {
+        expect(newNode?.textContent).to.eq('2')
+      })
+      newNode?.click()
+      newNode?.click()
+      newNode?.click()
+      let pair = ndom.redraw(newNode, newComp)
+      newNode = pair[0]
+      newComp = pair[1]
+      await waitFor(() => {
+        expect(newNode?.textContent).to.eq('5')
+      })
     })
   })
 
-  it(`should remove the redrawing components from the component cache`, () => {
-    const list = getListGender()
-    const node = ndom.draw(list) as HTMLUListElement
-    const idsToBeRemoved = list.children.map(({ id }) => id)
-    expect(componentCache()).to.have.lengthOf(4)
-    list.children.forEach(
-      (child: any) => expect(componentCache().has(child)).to.be.true,
+  it(`should remove the redrawing components from the component cache`, async () => {
+    const { ndom, render } = createRender({
+      components: mock.getListComponent({
+        listObject: mock.getGenderListObject(),
+      }),
+    })
+    const component = await render()
+    const node = getFirstByElementId(component)
+    const idsToBeRemoved = flatten(component).map((c) => c.id)
+    expect(idsToBeRemoved).to.have.length.greaterThan(0)
+    expect(ndom.cache.component).to.have.lengthOf(idsToBeRemoved.length)
+    component.children.forEach(
+      (child) => expect(ndom.cache.component.has(child)).to.be.true,
     )
-    ndom.redraw(node, list)
+    ndom.redraw(node, component)
+    console.log(ndom.cache.component.length)
     idsToBeRemoved.forEach(
-      (id: string) => expect(componentCache().has(id)).to.be.false,
+      (id) => expect(ndom.cache.component.has(id)).to.be.false,
     )
   })
 
-  xit(`should add the redrawed components to the component cache`, () => {
-    //
+  it(`the amount of descendants should remain the same`, async () => {
+    const { ndom, render } = createRender({
+      components: [
+        mock.getListComponent({
+          listObject: mock.getGenderListObject(),
+        }),
+        mock.getLabelComponent(),
+      ],
+    })
+    const list = await render()
+    const node = getFirstByElementId(list)
+    const idsToBeRemoved = flatten(list).map((c) => c.id)
+    const idsToBeRemovedLengthBefore = idsToBeRemoved.length
+    const [_, newComp] = ndom.redraw(node, list)
+    expect(flatten(newComp).map((c) => c.id)).to.have.length(
+      idsToBeRemovedLengthBefore,
+    )
   })
 
-  describe(`page component consumers`, () => {
-    xit(`should be using their page component's resolveComponents when redrawing`, () => {
-      //
-    })
-  })
+  it(
+    `the size of the component cache should always remain the same no ` +
+      `matter how many times redraw is called`,
+    async () => {
+      const { ndom, render } = createRender({
+        components: [
+          mock.getListComponent({
+            listObject: mock.getGenderListObject(),
+          }),
+          mock.getLabelComponent(),
+        ],
+      })
+      const list = await render()
+      let componentCacheLengthBefore = ndom.cache.component.length
+      let pair = ndom.redraw(getFirstByElementId(list), list)
+      pair = ndom.redraw(pair[0], pair[1])
+      pair = ndom.redraw(pair[0], pair[1])
+      pair = ndom.redraw(pair[0], pair[1])
+      pair = ndom.redraw(pair[0], pair[1])
+      expect(componentCacheLengthBefore).to.eq(ndom.cache.component.length)
+    },
+  )
 
   describe('select component', () => {
     it('should render more option children if the data has more items', async () => {
@@ -88,23 +181,21 @@ describe.skip(coolGold(`redraw`), () => {
       }
     })
 
-    it('should re-attach the onchange handler', async () => {
+    it.only('should re-attach the onchange handler', async () => {
       const spy = sinon.spy()
       const options = ['00:00', '00:10', '00:20']
-      NOODLDOM._nui.use({ actionType: 'emit', fn: spy, trigger: 'onChange' })
+      NOODLDOM._nui.use({ emit: { onChange: spy } })
       const [node, component] = ndom.redraw(
         ...toDOM({
           type: 'select',
           options,
-          onChange: [{ emit: { dataKey: { var1: 'hey' }, actions: [] } }],
+          onChange: [mock.getEmitObject()],
         }),
       ) as [HTMLSelectElement, NUIComponent.Instance]
       node.dispatchEvent(new Event('change'))
       expect(node).to.exist
       expect(component).to.exist
-      await waitFor(() => {
-        expect(spy).to.have.been.called
-      })
+      await waitFor(() => expect(spy).to.have.been.called)
     })
   })
 
@@ -232,10 +323,10 @@ describe.skip(coolGold(`redraw`), () => {
 
   it('should use every component\'s "shape" as their redraw blueprint', () => {
     const list = getListGender()
-    const createIsEqual = (
-      noodlComponent: ComponentObject,
-      newInstance: Component,
-    ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
+    const createIsEqual =
+      (noodlComponent: ComponentObject, newInstance: Component) =>
+      (prop: string) =>
+        noodlComponent[prop] === newInstance.get(prop)
     const node = ndom.draw(list)
     const [newNode, newComponent] = ndom.redraw(node, list)
     const isEqual = createIsEqual(list.original, newComponent)
@@ -250,10 +341,10 @@ describe.skip(coolGold(`redraw`), () => {
 
   it('should accept a component resolver to redraw all of its children', () => {
     const list = getListGender()
-    const createIsEqual = (
-      noodlComponent: ComponentObject,
-      newInstance: Component,
-    ) => (prop: string) => noodlComponent[prop] === newInstance.get(prop)
+    const createIsEqual =
+      (noodlComponent: ComponentObject, newInstance: Component) =>
+      (prop: string) =>
+        noodlComponent[prop] === newInstance.get(prop)
     const node = ndom.draw(list)
     const [newNode, newComponent] = ndom.redraw(node, list)
     const isEqual = createIsEqual(list.original, newComponent)

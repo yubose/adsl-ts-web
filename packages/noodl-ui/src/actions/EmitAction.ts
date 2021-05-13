@@ -1,21 +1,22 @@
-import { EmitObject } from 'noodl-types'
+import { EmitObjectFold } from 'noodl-types'
 import { Action, IAction } from 'noodl-action-chain'
 import { EmitActionObject, NUITrigger } from '../types'
-import { isObj } from '../utils/internal'
 
 class EmitAction
   extends Action<'emit', NUITrigger | ''>
-  implements IAction<'emit', NUITrigger | ''> {
+  implements IAction<'emit', NUITrigger | ''>
+{
   actions: any[]
   dataKey: string | Record<string, any> | undefined
 
-  constructor(trigger: NUITrigger | '', obj: EmitObject | EmitActionObject) {
-    if (isObj(obj) && obj.actionType !== 'emit') {
-      obj = { ...obj, actionType: 'emit' }
-    }
+  constructor(
+    trigger: NUITrigger | '',
+    obj: EmitObjectFold | EmitActionObject,
+  ) {
+    obj = { ...obj, actionType: 'emit' }
     super(trigger, obj as EmitActionObject)
-    this.actions = obj.emit?.actions || []
-    this.dataKey = obj.emit?.dataKey
+    this.actions = obj?.emit?.actions || obj?.actions || []
+    this.dataKey = obj?.emit?.dataKey || obj?.dataKey
   }
 
   get executor() {

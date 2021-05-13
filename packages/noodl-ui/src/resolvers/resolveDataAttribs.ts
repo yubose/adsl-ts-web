@@ -76,7 +76,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
   if (u.isStr(dataKey)) {
     let result: any
-    if (!Identify.emit(dataKey)) {
+    if (!Identify.folds.emit(dataKey)) {
       if (iteratorVar) {
         if (iteratorVar === dataKey) {
           result = context?.dataObject

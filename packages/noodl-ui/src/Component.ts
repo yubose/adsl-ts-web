@@ -10,7 +10,8 @@ type Hooks = Record<
 >
 
 class Component<C extends ComponentObject = ComponentObject>
-  implements T.IComponent<C> {
+  implements T.IComponent<C>
+{
   #blueprint: ComponentObject
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
@@ -354,17 +355,30 @@ class Component<C extends ComponentObject = ComponentObject>
   }
 
   clear(filter?: 'children' | 'hooks' | ('children' | 'hooks')[]) {
-    const _clearChildren = () => (this.#children.length = 0)
+    const _clearChildren = (
+      children: T.NUIComponent.Instance[] | undefined,
+    ) => {
+      if (u.isArr(children)) {
+        children.forEach?.((child) => {
+          if (child) {
+            child.parent?.removeChild(child)
+            child.setParent(null)
+            _clearChildren(child.children)
+          }
+        })
+        children.length = 0
+      }
+    }
     const _clearHooks = () =>
       u.keys(this.#hooks).forEach((evt) => (this.#hooks[evt].length = 0))
     if (filter) {
       u.array(filter).forEach((s: typeof filter) => {
-        if (s === 'children') _clearChildren()
+        if (s === 'children') _clearChildren(this.#children)
         else if (s === 'hooks') _clearHooks()
       })
       return this
     }
-    _clearChildren()
+    _clearChildren(this.children)
     _clearHooks()
     return this
   }

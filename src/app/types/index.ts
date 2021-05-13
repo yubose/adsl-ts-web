@@ -1,7 +1,7 @@
 import firebase from 'firebase'
 import CADL, { Account } from '@aitmed/cadl'
 import { NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
-import { ActionObject, EmitObject, PageObject } from 'noodl-types'
+import { ActionObject, EmitObjectFold, PageObject } from 'noodl-types'
 import NOODLDOM from 'noodl-ui-dom'
 import createMeetingFns from '../../meeting'
 export * from './domTypes'
@@ -29,14 +29,13 @@ export interface CachedPageObject {
 }
 
 export interface EmitCallParams {
-  actions: EmitObject['emit']['actions']
-  dataKey: EmitObject['emit']['dataKey']
+  actions: EmitObjectFold['emit']['actions']
+  dataKey: EmitObjectFold['emit']['dataKey']
   pageName: string
 }
 
-export type AppObservers<
-  Id extends keyof AppObserver = keyof AppObserver
-> = Map<Id, AppObserver[Id]['fn'][]>
+export type AppObservers<Id extends keyof AppObserver = keyof AppObserver> =
+  Map<Id, AppObserver[Id]['fn'][]>
 
 export interface AppObserver {
   onInitPage: {

@@ -1,7 +1,8 @@
+import * as u from '@jsmanifest/utils'
 import { EcosDocument, NameField } from 'noodl-types'
 import { classes } from '../constants'
+import { isImageDoc, isPdfDoc, isTextDoc } from './internal'
 import createAsyncImageElement from './createAsyncImageElement'
-import * as u from './internal'
 
 interface CreateEcosDocElementArgs<
   NameField extends NameField.Base = NameField.Base
@@ -88,7 +89,7 @@ function createEcosDocElement<
   }
 
   // Image document
-  if (u.isImageDoc(ecosObj)) {
+  if (isImageDoc(ecosObj)) {
     iframeContent = createAsyncImageElement(iframe.contentDocument?.body as any)
     iframeContent.classList.add(classes.ECOS_DOC_IMAGE)
     iframeContent.src = ecosObj?.name?.data || ''
@@ -96,7 +97,7 @@ function createEcosDocElement<
     iframeContent.style.height = '100%'
   }
   // PDF Document
-  else if (u.isPdfDoc(ecosObj)) {
+  else if (isPdfDoc(ecosObj)) {
     iframe.classList.add(classes.ECOS_DOC_PDF)
     const url = ecosObj?.name?.data
     if (u.isStr(url)) {
@@ -128,7 +129,7 @@ function createEcosDocElement<
     }
   }
   // Text document (markdown, html, plain text, etc)
-  else if (u.isTextDoc(ecosObj as EcosDocument)) {
+  else if (isTextDoc(ecosObj as EcosDocument)) {
     iframeContent = document.createElement('div')
     iframeContent.style.width = '100%'
     iframeContent.style.height = '100%'
@@ -158,10 +159,23 @@ function createEcosDocElement<
     }
 
     const appendTextNode = function _appendTextNode(
-      label: 'title' | 'content',
+      label: 'title' | 'content' | 'note',
     ) {
+      let content = ecosObj?.name?.[label]
+      if (!u.isStr(content)) {
+        if (u.isObj(content)) {
+          console.log(
+            `%cAlert! Reached an ecosDoc's content as an object for a "${label}". Look into this`,
+            `color:#ec0000;`,
+            content,
+          )
+          u.eachEntries(content, (k, v) => {
+            u.isStr(v) && (content = v)
+          })
+        }
+      }
       iframeContent.appendChild(
-        createTextDocElement(ecosObj?.name?.[label] as string, {
+        createTextDocElement(content, {
           title: label === 'title' ? ecosObj?.name?.[label] : undefined,
           name: label,
           classList:
@@ -169,6 +183,8 @@ function createEcosDocElement<
               ? classes.ECOS_DOC_TEXT_TITLE
               : label === 'content'
               ? classes.ECOS_DOC_TEXT_BODY
+              : label === 'note'
+              ? classes.ECOS_DOC_NOTE
               : undefined,
         }),
       )
@@ -176,6 +192,7 @@ function createEcosDocElement<
 
     ecosObj?.name?.title && appendTextNode('title')
     ecosObj?.name?.content && appendTextNode('content')
+    ecosObj?.name?.note && appendTextNode('note')
   }
 
   return iframe

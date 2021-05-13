@@ -8,12 +8,11 @@ chai.use(sinonChai)
 chai.use(chaiAsPromised)
 
 let logStub: sinon.SinonStub
-let invariantStub: sinon.SinonStub<any>
+// let invariantStub: sinon.SinonStub<any>
 
 before(() => {
-  process.stdout.write('\x1Bc')
-  invariantStub = sinon.stub(global.console, 'error').callsFake(() => {})
-  logStub = sinon.stub(global.console, 'log').callsFake(() => () => {})
+  // invariantStub = sinon.stub(global.console, 'error').callsFake(() => {})
+  // logStub = sinon.stub(global.console, 'log').callsFake(() => () => {})
 })
 
 afterEach(() => {
@@ -23,6 +22,6 @@ afterEach(() => {
 })
 
 after(() => {
-  logStub.restore()
-  invariantStub.restore()
+  // logStub.restore()
+  // invariantStub.restore()
 })

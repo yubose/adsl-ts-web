@@ -2,9 +2,9 @@ import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import sample from 'lodash/sample'
 import { waitFor } from '@testing-library/dom'
-import { isActionChain } from 'noodl-action-chain'
-import { italic, magenta } from 'noodl-common'
-import { userEvent } from 'noodl-types'
+import { ActionChain, isActionChain } from 'noodl-action-chain'
+import { coolGold, italic, magenta } from 'noodl-common'
+import { ComponentObject, EmitObject, userEvent } from 'noodl-types'
 import { expect } from 'chai'
 import { createDataKeyReference, nui } from '../utils/test-utils'
 import {
@@ -65,7 +65,7 @@ describe(italic(`createActionChain`), () => {
       'onFocus',
       [
         mock.getPageJumpAction(),
-        mock.getEmitObject(),
+        mock.getFoldedEmitObject(),
         mock.getGotoObject(),
         mock.getBuiltInAction({ funcName: 'too' }),
         mock.getRefreshAction(),
@@ -139,7 +139,7 @@ describe(italic(`createActionChain`), () => {
         'onFocus',
         [
           mock.getPageJumpAction(),
-          mock.getEmitObject(),
+          mock.getFoldedEmitObject(),
           mock.getGotoObject(),
           mock.getBuiltInAction({ funcName: 'too' }),
           mock.getRefreshAction(),
@@ -157,9 +157,12 @@ describe(italic(`createActionChain`), () => {
         },
       )
       await ac.execute()
-      spies.forEach((s) => expect(s).to.be.calledOnce)
-      await ac.execute()
-      spies.forEach((s) => expect(s).to.be.calledTwice)
+      spies.forEach((s, i) => {
+        console.info(i)
+        expect(s).to.be.calledOnce
+      })
+      // await ac.execute()
+      // spies.forEach((s) => expect(s).to.be.calledTwice)
     },
   )
 })
@@ -288,24 +291,36 @@ describe(italic(`emit`), () => {
     it(`should pass the register object to the callback as args`, async () => {
       const spy = sinon.spy(() => Promise.resolve())
       const params = {}
-      nui.use({ register: { name: 'myRegister', page: '_global', fn: spy } })
-      await nui.emit({
-        type: 'register',
-        args: { name: 'myRegister', params },
+      nui.use({
+        register: { type: 'register', onEvent: 'myRegister' },
       })
-      expect(spy.args[0][0 as any]).to.have.property('fn', spy)
+      nui._experimental.register('myRegister', spy)
+      await nui.emit({ type: 'register', event: 'myRegister', params })
+      expect((spy.args[0][0 as any] as any)?.handler).to.have.property(
+        'fn',
+        spy,
+      )
     })
 
     it(`should return a result back if any`, async () => {
       const data = {} as any
       const spy = sinon.spy(() => Promise.resolve(data))
       const params = {}
-      NUI.use({ register: { name: 'myRegister', page: '_global', fn: spy } })
+      nui.use({
+        register: {
+          type: 'register',
+          onEvent: 'myRegister',
+        },
+      })
+      nui._experimental.register('myRegister', { handler: { fn: spy } })
       const result = await nui.emit({
         type: 'register',
-        args: { name: 'myRegister', params },
+        event: 'myRegister',
+        params,
       })
-      expect(result).to.eq(data)
+      expect(result).to.be.an('array')
+      expect(result).to.have.length.greaterThan(0)
+      expect(result[0]).to.eq(data)
     })
   })
 
@@ -345,12 +360,12 @@ describe(italic(`getBuiltIns`), () => {
     }
     NUI.use({ builtIn })
     const builtIns = NUI.getBuiltIns()
-    u.spreadEntries((funcName, fn) => {
+    u.eachEntries(builtIn, (funcName, fn) => {
       expect(builtIns.has(funcName)).to.be.true
       expect(builtIns.get(funcName)).to.satisfy((arr) =>
         arr.some((obj) => obj.fn === fn),
       )
-    }, builtIn)
+    })
   })
 })
 
@@ -387,6 +402,25 @@ describe(italic(`getConsumerOptions`), () => {
     expect(consumerOptions).to.have.property('page', page)
     expect(consumerOptions).to.have.property('resolveComponents')
     expect(consumerOptions).to.have.property('viewport', page.viewport)
+  })
+})
+
+describe(`when handling register objects`, () => {
+  describe(`when emitting the register objects`, () => {
+    it(`should call all the callbacks and return those results`, async () => {
+      const spy = sinon.spy(async () => 'abc') as any
+      const component = mock.getRegisterComponent({
+        onEvent: 'helloEvent',
+        emit: mock.getEmitObject().emit as any,
+      })
+      nui.use({ register: component })
+      const obj = nui.cache.register.get(component.onEvent)
+      obj.callbacks = Array(4).fill(undefined).map(spy) as any
+      const results = await nui.emit({ type: 'register', event: 'helloEvent' })
+      expect(spy).to.have.callCount(4)
+      expect(results).to.have.length(4)
+      results.forEach((res) => expect(res).to.eq('abc'))
+    })
   })
 })
 
@@ -540,30 +574,38 @@ describe(italic(`use`), () => {
     expect(nui.getRoot()).to.deep.eq(['apple'])
   })
 
-  describe.only(italic(`register`), () => {
-    it(`should support { [name]: <function> }`, () => {
+  describe(italic(`globalRegister`), () => {
+    it(`should add register components to the store`, () => {
+      const component = mock.getRegisterComponent({ onEvent: 'helloEvent' })
+      nui._experimental.register(component)
+      const storeObject = nui.cache.register.get(component.onEvent)
+      expect(storeObject).to.have.property('name', 'helloEvent')
+      expect(storeObject).to.have.property('fn').is.a('function')
+      expect(storeObject).to.have.property('page', '_global')
+    })
+  })
+
+  describe(italic(`register`), () => {
+    it(`should support args: [<register event>, <function>]`, () => {
       const spy = sinon.spy()
       expect(NUI.cache.register.has('hello')).to.be.false
       NUI.use({ register: { hello: spy } })
       expect(NUI.cache.register.has('hello')).to.be.true
-      expect(NUI.cache.register.get('hello')).to.have.property('fn', spy)
-    })
-
-    it(`should support being given the register store object or an array of them`, () => {
-      const spy = sinon.spy()
-      const obj = { name: 'hello', fn: spy }
-      NUI.use({ register: obj })
-      expect(NUI.cache.register.has('_global', 'hello')).to.be.true
-      expect(NUI.cache.register.get('_global', 'hello')).to.have.property(
+      expect(NUI.cache.register.get('hello').handler).to.have.property(
         'fn',
         spy,
       )
     })
 
     it(`should default the page to "_global" if it is not provided`, () => {
-      expect(nui.cache.register.has('_global', 'hello')).to.be.false
-      nui.use({ register: { name: 'hello' } as any })
-      expect(nui.cache.register.has('_global', 'hello')).to.be.true
+      expect(nui.cache.register.has('hello')).to.be.false
+      const componentObject = mock.getRegisterComponent('hello')
+      nui.use({ register: componentObject })
+      expect(nui.cache.register.has(componentObject.onEvent)).to.be.true
+      expect(nui.cache.register.get(componentObject.onEvent)).have.property(
+        'page',
+        '_global',
+      )
     })
   })
 
@@ -582,6 +624,99 @@ describe(italic(`use`), () => {
       expect(
         nui.getTransactions().get(nuiEmitTransaction.REQUEST_PAGE_OBJECT),
       ).to.have.property('fn', spy)
+    })
+  })
+
+  describe(italic(coolGold(`_experimental`)), () => {
+    describe(magenta(`register`), () => {
+      it(`should remove the default "fn" if a handler fn was provided`, () => {
+        const spy = sinon.spy()
+        nui.use({ register: mock.getRegisterComponent('hello') })
+        let register = nui.cache.register.get('hello')
+        expect(register).to.have.property('fn').to.be.a('function')
+        expect(register.handler).to.be.undefined
+        console.info(register)
+        nui._experimental.register('hello', spy)
+        expect(register).to.have.property('fn').to.be.undefined
+        expect(register.handler).not.to.be.undefined
+        expect(register.handler).to.have.property('fn').eq(spy)
+      })
+
+      it(
+        `should be able to process a register name and function as args ` +
+          `[<name>, <func>]`,
+        () => {
+          const spy = sinon.spy()
+          const register = nui._experimental.register('hello', spy)
+          expect(register.handler).to.have.property('fn', spy)
+        },
+      )
+
+      it(`should be able to process a register component object`, () => {
+        const register = nui._experimental.register(mock.getRegisterComponent())
+        expect(register).to.exist
+        expect(nui.cache.register.get(register.name)).to.eq(register)
+      })
+
+      it(`should create a "callbacks" property`, () => {
+        const spy = sinon.spy()
+        const register = nui._experimental.register('hello', spy)
+        expect(register).to.have.property('callbacks')
+      })
+
+      it(`should initiate a default "fn" function if "handler" is not provided`, () => {
+        const register = nui._experimental.register(mock.getRegisterComponent())
+        expect(register).to.have.property('fn').is.a('function')
+      })
+
+      it(`should not initiate a "fn" function if "handler" is provided`, () => {
+        const spy = sinon.spy()
+        const componentObject = mock.getRegisterComponent()
+        const register = nui._experimental.register(componentObject, {
+          handler: { fn: spy },
+        })
+        expect(register.fn).to.be.undefined
+        expect(register.handler).to.have.property('fn', spy)
+      })
+
+      it(`should convert emit objects to action chains`, async () => {
+        const component = mock.getRegisterComponent({
+          onEvent: 'helloEvent',
+          emit: mock.getEmitObject(),
+        })
+        const register = nui._experimental.register(component)
+        expect(register.callbacks).to.have.length.greaterThan(0)
+        expect(isActionChain(register.callbacks[0])).to.be.true
+      })
+
+      it(`should insert any created action chains to the callbacks list`, () => {
+        const spy = sinon.spy()
+        const component = mock.getRegisterComponent({
+          onEvent: 'helloEvent',
+          emit: mock.getEmitObject(),
+        })
+        const register = nui._experimental.register(component, {
+          handler: { fn: spy },
+        })
+        expect(register.callbacks).to.have.length.greaterThan(0)
+        expect(isActionChain(register.callbacks[0])).to.be.true
+      })
+
+      xdescribe(`when handling register object's with ${magenta(
+        'onNewEcosDoc',
+      )}`, () => {
+        it(`should pass the "${magenta(`did`)}" (${italic(
+          `ecos document id`,
+        )}) received from onNewEcosDoc to the executor handler`, async () => {
+          const event = 'helloAll'
+          const component = mock.getRegisterComponent({ onEvent: event })
+          nui.use({ register: component })
+          const obj = nui.cache.register.get(event)
+          const did = 'docId123'
+          await nui.emit({ type: 'register', event, params: did })
+          console.info(obj)
+        })
+      })
     })
   })
 })

@@ -59,6 +59,8 @@ These variables are available globally:
   - input focus issue on androids
 - contentType: timer
   - inc/dec value at `dataKey` every second
+- Bug with goBack
+  - UploadSharedDocuments should go back to the docs list (but goes back to dashboard)
 
 ## Notes
 
@@ -69,8 +71,6 @@ These variables are available globally:
   - B receives the invitation
   - Server sends notification with payload of document id (`did`)
   - A receives notification. Pass `did` to emit call
-
-### `ecosDoc` component shapes
 
 #### Image
 

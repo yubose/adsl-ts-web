@@ -209,7 +209,7 @@ export namespace Page {
 }
 
 export namespace NDOMTransaction {
-  export type Id = typeof ndomTransaction[keyof typeof ndomTransaction]
+  export type Id = keyof NDOMTransaction.Map
   export interface Base<T extends string = string> {
     transaction: T
     params?: any
@@ -227,7 +227,7 @@ export namespace NDOMTransaction {
 }
 
 export interface UseObject<
-  TName extends LiteralUnion<NDOMTransaction.Id, string> = string
+  TName extends NDOMTransaction.Id = NDOMTransaction.Id
 > extends Omit<
     NUIUseObject<NDOMTransaction.Base, NDOMTransaction.Id>,
     'transaction'
@@ -236,7 +236,7 @@ export interface UseObject<
     component: NUIComponent.Instance,
   ): HTMLElement | null | void
   resolver?: Resolve.Config
-  transaction?: Partial<Record<TName, NDOMTransaction.Map<TName>>>
+  transaction?: Partial<
+    Record<TName, NDOMTransaction.Map<LiteralUnion<TName, string>>[TName]>
+  >
 }
-
-const s: UseObject<'CREATE_ELEMENT'>['transaction']

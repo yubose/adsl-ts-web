@@ -21,9 +21,6 @@ import * as T from '../app/types/meetingTypes'
 
 const log = Logger.create('Meeting.ts')
 
-// import makePublications from './makePublications'
-// import makeTrack from './makeTrack'
-
 const createMeetingFns = function _createMeetingFns(app: App) {
   let _room = new EventEmitter() as Room & { _isMock?: boolean }
   let _streams = new Streams()

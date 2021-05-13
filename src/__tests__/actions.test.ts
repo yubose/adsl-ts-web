@@ -48,20 +48,27 @@ describe(coolGold(`Noodl actions`), () => {
         })
       })
 
-      it(`should change the value on the sdk to on`, async () => {
+      it.only(`should change the value on the sdk to on`, async () => {
+        const spy = sinon.spy()
         const { pageName, pageObject } = getPageObject()
         pageObject.micOn = false
-        await getApp({
-          emit: { onClick: async () => void (pageObject.micOn = true) },
+        const onClick = async () => {
+          spy()
+          app.updateRoot((d) => void (d.VideoChat.micOn = true))
+        }
+        const app = await getApp({
+          emit: { onClick },
           navigate: true,
           pageName,
           pageObject,
         })
         const node = getFirstByViewTag('microphone')
         expect(pageObject.micOn).to.be.false
+        expect(app.cache.actions.emit.get('onClick')[0].fn).to.eq(onClick)
         node.click()
         await waitFor(() => {
-          expect(pageObject.micOn).to.be.true
+          expect(spy).to.be.called
+          // expect(app.noodl.root.VideoChat.micOn).to.be.true
         })
       })
 

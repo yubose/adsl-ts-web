@@ -2,6 +2,9 @@ import { Transaction, TransactionId } from '../types'
 
 class TransactionCache {
   #cache = new Map<TransactionId, Transaction[TransactionId]>()
+  #transactions = {
+    register: new Map<string, (...args: any[]) => any>(),
+  }
 
   static _inst: TransactionCache
 
@@ -31,6 +34,20 @@ class TransactionCache {
     obj: Transaction[TransactionId],
   ) {
     this.#cache.set(transaction, obj)
+    return this
+  }
+
+  getHandler<Evt extends string>(type: string, event: Evt) {
+    if (type === 'register') return this.#transactions.register.get(event)
+  }
+
+  useHandler<Evt extends string>(
+    type: string,
+    opts: { event: Evt; fn: (...args: any[]) => Promise<any> },
+  ) {
+    if (type === 'register') {
+      this.#transactions.register.set(opts.event, opts.fn)
+    }
     return this
   }
 }

@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import has from 'lodash/has'
 import Logger from 'logsnap'
 import {
@@ -9,22 +10,84 @@ import Stream from '../meeting/Stream'
 import { isMobile } from '../utils/common'
 import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from '../constants'
 import { Meeting } from '../app/types'
+import { toast } from '../utils/dom'
 import App from '../App'
 
 const log = Logger.create('meeting(handlers).ts')
 
+type RemoteParticipantConnectionChangeEvent =
+  | 'participantConnected'
+  | 'participantDisconnected'
+  | 'participantReconnecting'
+  | 'participantReconnected'
+
 const createMeetingHandlers = function _createMeetingHandlers(app: App) {
+  function _attachOnRemoteParticipantConnectionChangeAlerter(
+    event: RemoteParticipantConnectionChangeEvent,
+  ) {
+    function onConnectionChange(participant: RemoteParticipant) {
+      log.func('onConnectionChange')
+      log.grey(`${event} "${participant.sid}",participant`)
+      if (event === 'participantConnected') {
+        toast(`A participant connected`, { type: 'default' })
+      } else if (event === 'participantDisconnected') {
+        toast(`A participant disconnected`, { type: 'error' })
+      } else if (event === 'participantReconnecting') {
+        toast(`A participant is reconnecting`, { type: 'default' })
+      } else if (event === 'participantReconnected') {
+        toast(`A participant reconnected`, { type: 'success' })
+      }
+    }
+    return onConnectionChange
+  }
+
+  window.spamToasts = () => {
+    _attachOnRemoteParticipantConnectionChangeAlerter('participantConnected')({
+      sid: 'abc',
+    } as any)
+    _attachOnRemoteParticipantConnectionChangeAlerter(
+      'participantDisconnected',
+    )({ sid: 'abc' } as any)
+    _attachOnRemoteParticipantConnectionChangeAlerter(
+      'participantReconnecting',
+    )({ sid: 'abc' } as any)
+    _attachOnRemoteParticipantConnectionChangeAlerter('participantReconnected')(
+      { sid: 'abc' } as any,
+    )
+  }
+
+  const onRoomEvent = {
+    participantConnected: u.callAll(
+      _attachOnRemoteParticipantConnectionChangeAlerter('participantConnected'),
+      app.meeting.addRemoteParticipant,
+    ),
+    participantDisconnected: u.callAll(
+      _attachOnRemoteParticipantConnectionChangeAlerter(
+        'participantDisconnected',
+      ),
+      app.meeting.removeRemoteParticipant,
+    ),
+    participantReconnecting: _attachOnRemoteParticipantConnectionChangeAlerter(
+      'participantReconnecting',
+    ),
+    participantReconnected: _attachOnRemoteParticipantConnectionChangeAlerter(
+      'participantReconnected',
+    ),
+  } as const
+
   function onConnected(room: Meeting['room']) {
-    room.on('participantConnected', app.meeting.addRemoteParticipant)
-    room.on('participantDisconnected', app.meeting.removeRemoteParticipant)
+    room.on('participantConnected', onRoomEvent.participantConnected)
+    room.on('participantDisconnected', onRoomEvent.participantDisconnected)
+    room.on('participantReconnecting', onRoomEvent.participantReconnecting)
+    room.on('participantReconnected', onRoomEvent.participantReconnected)
     room.once('disconnected', () => {
-      const disconnect = () => {
+      function disconnect() {
         room?.disconnect?.()
         app.meeting.calledOnConnected = false
       }
-      const unpublishTracks = (
+      function unpublishTracks(
         publication: LocalVideoTrackPublication | LocalAudioTrackPublication,
-      ) => {
+      ) {
         publication?.track?.stop?.()
         publication?.unpublish?.()
       }
@@ -32,15 +95,18 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       room.localParticipant.audioTracks.forEach(unpublishTracks)
       removeEventListener('beforeunload', disconnect)
       if (isMobile()) removeEventListener('pagehide', disconnect)
+      room.removeAllListeners('participantConnected')
+      room.removeAllListeners('participantDisconnected')
+      room.removeAllListeners('participantReconnecting')
+      room.removeAllListeners('participantReconnected')
     })
     /* -------------------------------------------------------
       ---- INITIATING REMOTE PARTICIPANT TRACKS / LOCAL selfStream
     -------------------------------------------------------- */
-    const selfStream = app.meeting.streams.selfStream
-    if (!selfStream.isParticipant(room.localParticipant)) {
-      selfStream.setParticipant(room.localParticipant)
+    if (!app.selfStream.isParticipant(room.localParticipant)) {
+      app.selfStream.setParticipant(room.localParticipant)
       log.func('onConnected')
-      log.grey(`Bound local participant to selfStream`, selfStream)
+      log.grey(`Bound local participant to selfStream`, app.selfStream)
     }
     for (const participant of room.participants.values()) {
       app.meeting.addRemoteParticipant(participant)
@@ -81,10 +147,8 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       }
       app.nui.emit({
         type: 'register',
-        args: {
-          name: 'twilioOnPeopleJoin',
-          params: { room: app.meeting.room },
-        },
+        event: 'twilioOnPeopleJoin',
+        params: { room: app.meeting.room },
       })
     }
   }
@@ -93,14 +157,12 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     app.setSdkParticipants(
       app.meeting.removeFalseParticipants(app.getSdkParticipants()),
     )
-    if (!app.getRoomParticipants().size) {
+    if (!app.getRoomParticipants().size || !app.getSdkParticipants()?.length) {
       app.meeting.showWaitingOthersMessage()
       app.nui.emit({
         type: 'register',
-        args: {
-          name: 'twilioOnNoParticipant',
-          params: { room: app.meeting.room },
-        },
+        event: 'twilioOnNoParticipant',
+        params: { room: app.meeting.room },
       })
     }
   }

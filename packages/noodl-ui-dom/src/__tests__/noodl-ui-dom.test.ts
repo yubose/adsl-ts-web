@@ -25,9 +25,6 @@ describe(coolGold(`noodl-ui-dom`), () => {
       })
       const component = await render()
       const globalId = component.get('data-globalid')
-      console.info(mock.getPopUpComponent({ global: true }))
-      console.info(mock.getPopUpComponent({ global: true }))
-      console.info(mock.getPopUpComponent({ global: true }))
       expect(ndom.global.components.has(globalId)).to.be.true
       expect(ndom.global.components.get(globalId)).to.be.instanceOf(
         GlobalComponentRecord,

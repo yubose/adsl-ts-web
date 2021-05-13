@@ -6,8 +6,8 @@ export default {
   cond: (node, component) => !!(node && component),
   resolve: (node, component) => {
     dataAttributes.forEach((key) => {
-      if (component.get(key) != undefined) {
-        node.dataset[key.replace('data-', '')] = component.get(key)
+      if (component.get?.(key) != undefined) {
+        node.dataset[key.replace('data-', '')] = component.get?.(key)
       }
     })
   },

@@ -60,7 +60,7 @@ const createExtendedDOMResolvers = function (app: App) {
         }
 
         // TODO - Come back to this to provide more robust functionality
-        if (Identify.emit(component.blueprint.dataValue)) {
+        if (Identify.folds.emit(component.blueprint.dataValue)) {
           await actionChain?.execute?.(event)
         }
       } else {
