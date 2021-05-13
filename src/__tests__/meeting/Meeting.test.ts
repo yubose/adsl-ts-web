@@ -38,6 +38,10 @@ describe(coolGold(`Meeting`), () => {
   })
 
   describe(italic(`when adding participants`), () => {
+    /*
+        TODO - See if testing using this is easier/betteer
+        nui.emit({ type: 'register', event: 'twilioOnPeopleJoin', params: { room: app.meeting.room }})
+    */
     it(`should find at least 1 "Waiting for others to join" element`, async () => {
       const app = await getApp({ navigate: true })
       expect(
