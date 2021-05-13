@@ -27,7 +27,7 @@ const resolveAttributes: Resolve.Config = {
             .resolvers()
             .find((obj) =>
               /videoStream/i.test(obj.name || ''),
-            ) as UseObject['element']['videoStream']
+            ) as UseObject['createElementBinding']
 
           if (u.isFnc(resolve)) {
             const childNode = resolve(component)
@@ -47,7 +47,7 @@ const resolveAttributes: Resolve.Config = {
             .resolvers()
             .find((obj) =>
               /audioStream/i.test(obj.name || ''),
-            ) as UseObject['element']['audioStream']
+            ) as UseObject['createElementBinding']
 
           if (u.isFnc(resolve)) {
             const childNode = resolve(component)
@@ -64,11 +64,11 @@ const resolveAttributes: Resolve.Config = {
       /* -------------------------------------------------------
         ---- DATA ATTRIBUTES
       -------------------------------------------------------- */
-      dataAttributes.forEach((key) => {
-        if (!u.isUnd(original[key])) {
-          node.dataset[key.replace('data-', '')] = original[key]
-        }
-      })
+      dataAttributes.forEach(
+        (key) =>
+          !u.isUnd(original[key]) &&
+          (node.dataset[key.replace('data-', '')] = original[key]),
+      )
       // NON-INPUT FIELDS DISPLAYABLE VALUES (ex: label, p, span, etc)
       if (!isTextFieldLike(node)) {
         if (text || placeholder || original['data-value']) {
@@ -78,14 +78,6 @@ const resolveAttributes: Resolve.Config = {
           if (!textVal) textVal = ''
           if (textVal && node) node.innerHTML = `${textVal}`
         }
-      } else {
-        // if (!node.innerHTML?.trim()) {
-        //   if (u.isDisplayable(original['data-value'])) {
-        //     node.innerHTML = `${original['data-value']}`
-        //   } else if (u.isDisplayable(text)) {
-        //     node.innerHTML = `${text}`
-        //   }
-        // }
       }
       // INPUT FIELDS DISPLAYABLE VALUES (ex: input, textarea, select, etc)
       if (component.get('data-placeholder')) {

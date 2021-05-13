@@ -5,7 +5,7 @@ import { isImageDoc, isPdfDoc, isTextDoc } from './internal'
 import createAsyncImageElement from './createAsyncImageElement'
 
 interface CreateEcosDocElementArgs<
-  NameField extends NameField.Base = NameField.Base
+  NameField extends NameField.Base = NameField.Base,
 > {
   ecosObj: EcosDocument<NameField>
   width?: number
@@ -27,7 +27,7 @@ interface CreateEcosDocElementArgs<
 }
 
 function createEcosDocElement<
-  NameField extends NameField.Base = NameField.Base
+  NameField extends NameField.Base = NameField.Base,
 >(
   container: HTMLElement,
   ecosObj: EcosDocument<NameField.Base>,
@@ -35,14 +35,14 @@ function createEcosDocElement<
 
 function createEcosDocElement<
   NameField extends NameField.Base = NameField.Base,
-  Args extends CreateEcosDocElementArgs<NameField> = CreateEcosDocElementArgs<NameField>
+  Args extends CreateEcosDocElementArgs<NameField> = CreateEcosDocElementArgs<NameField>,
 >(
   container: HTMLElement,
   opts: CreateEcosDocElementArgs<NameField>,
 ): HTMLIFrameElement
 
 function createEcosDocElement<
-  NameField extends NameField.Base & Record<string, any> = NameField.Base
+  NameField extends NameField.Base & Record<string, any> = NameField.Base,
 >(
   container: HTMLElement,
   opts: EcosDocument<NameField> | CreateEcosDocElementArgs<NameField>,

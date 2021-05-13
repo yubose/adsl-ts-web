@@ -1,4 +1,4 @@
-import { EcosDocument, Identify } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import {
   createComponent,
   formatColor,
@@ -15,7 +15,7 @@ const domComponentsResolver: Resolve.Config = {
   name: `[noodl-ui-dom] Default Component Resolvers`,
   cond: (n, c) => !!(n && c),
   resolve(node, component, { draw, ndom }) {
-    if (node && !u.isFnc(node)) {
+    if (!u.isFnc(node)) {
       const original = component.blueprint || {}
 
       const {
@@ -100,15 +100,13 @@ const domComponentsResolver: Resolve.Config = {
         component.on(
           noodluiEvent.component.page.PAGE_COMPONENTS,
           () => {
-            component.children?.forEach((child: NUIComponent.Instance) => {
-              const childNode = draw(
+            component.children?.forEach((child: NUIComponent.Instance) =>
+              draw(
                 child,
-                node.contentDocument?.body,
+                (node as HTMLIFrameElement).contentDocument?.body,
                 ndom.pages[component.id],
-              )
-              // redraw(childNode, child, options)
-              // ;(window as any).child = childNode
-            })
+              ),
+            )
           },
           `[noodl-ui-dom] ${noodluiEvent.component.page.PAGE_COMPONENTS}`,
         )

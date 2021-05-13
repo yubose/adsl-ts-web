@@ -11,7 +11,7 @@ import * as n from '../utils'
 
 describe(coolGold(`createEcosDocElement`), async () => {
   function getEcosDocComponentRenderResults<
-    NameField extends NameField.Base = NameField.Base
+    NameField extends NameField.Base = NameField.Base,
   >({
     ecosObj = mock.getEcosDocObject() as EcosDocument<NameField>,
     component: componentProp = mock.getEcosDocComponent({
@@ -37,9 +37,10 @@ describe(coolGold(`createEcosDocElement`), async () => {
     }
   }
 
-  it(`should create an iframe element`, async () => {
+  it(`should create an iframe element`, () => {
     const { iframe } = getEcosDocComponentRenderResults()
     expect(iframe).to.have.property('tagName', 'IFRAME')
+    expect(iframe).to.be.instanceOf(HTMLIFrameElement)
   })
 
   it(

@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import { hasDecimal, hasLetter } from './common'
 
 export const xKeys = ['width', 'left']
@@ -38,26 +39,18 @@ export function handlePosition(
  * @param { number } viewportSize
  */
 export function getSize(value: string | number, viewportSize: number) {
-  if (value == '0') {
-    return '0px'
-  }
-  if (value == '1') {
-    return `${viewportSize}px`
-  }
-  if (typeof value === 'string') {
+  if (value == '0') return '0px'
+  if (value == '1') return `${viewportSize}px`
+  if (u.isStr(value)) {
     if (!hasLetter(value)) {
-      if (hasDecimal(value)) {
-        return `${Number(value) * viewportSize}px`
-      }
+      if (hasDecimal(value)) return `${Number(value) * viewportSize}px`
       return `${value}px`
     }
     // Assuming it already has a 'px' appended
     return value
   }
   if (isFinite(value)) {
-    if (hasDecimal(value)) {
-      return `${value * viewportSize}px`
-    }
+    if (hasDecimal(value)) return `${value * viewportSize}px`
     return `${value}px`
   }
   return value

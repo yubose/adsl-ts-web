@@ -216,11 +216,6 @@ resolveStyles.setResolver(
       if (u.isStr(fontFamily)) {
         edit({ fontFamily })
       }
-      // { fontStyle } --> { fontWeight }
-      if (fontStyle === 'bold') {
-        edit({ fontWeight: 'bold' }, { remove: 'fontStyle' })
-      }
-
       // if ('fontSize' in (component.blueprint?.style || {})) {
       //   const val = Number(component.blueprint.style?.fontSize)
       //   if (u.isNum(val) && !Number.isNaN(val)) {
@@ -234,6 +229,11 @@ resolveStyles.setResolver(
       //     }
       //   }
       // }
+    }
+
+    // { fontStyle } --> { fontWeight }
+    if (fontStyle === 'bold') {
+      edit({ fontWeight: 'bold' }, { remove: 'fontStyle' })
     }
 
     /* -------------------------------------------------------
