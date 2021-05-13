@@ -66,6 +66,9 @@ class Page {
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
+    this.rootNode.style.display = 'flex'
+    this.rootNode.style.justifyContent = 'center'
+    this.rootNode.style.flexDirection = 'column'
 
     if (!document.body.contains(this.rootNode)) {
       document.body.appendChild(this.rootNode)
@@ -150,14 +153,14 @@ class Page {
     startPage = startPage || this.previous
     let previousPage
     let parts = this.pageUrl.split('-')
-    if(parts.length>1){
+    if (parts.length > 1) {
       while (parts[parts.length - 1]?.endsWith('MenuBar') && parts.length > 1) {
-            parts.pop()
-          }
+        parts.pop()
+      }
       previousPage = parts.pop()
-    }else if(parts.length === 1){
+    } else if (parts.length === 1) {
       previousPage = parts[0].split('?')[1]
-    }else{
+    } else {
       previousPage = startPage
     }
     return previousPage || ''

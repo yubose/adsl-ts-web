@@ -45,15 +45,18 @@ export function getElementTag(
   const tagName = getElementTag.prototype.elementMap[componentType]
 
   if (!tagName) {
-    console.log(
-      `%cNone of the node types matched with "${componentType}". Perhaps it needs to be ' +
-      'supported? (Defaulting to "div" instead)`,
-      'color:#e74c3c;font-weight:bold;',
-      {
-        component: u.isStr(component) ? componentType : component?.toJSON?.(),
-        elementMap: getElementTag.prototype.elementMap,
-      },
-    )
+    let msg = ``
+    if (!componentType) {
+      msg += `Received an empty component type. The element tag will default to a "div"`
+    } else {
+      msg += `None of the node types matched with "${componentType}". Perhaps it needs to be ' +
+      'supported? (Defaulting to "div" instead)`
+    }
+    console.log(`%c${msg}`, 'color:#e74c3c;font-weight:bold;', {
+      component,
+      componentType,
+      elementMap: getElementTag.prototype.elementMap,
+    })
     return 'div'
   }
 

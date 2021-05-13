@@ -31,8 +31,8 @@ export default {
     })
 
     if (
-      component.blueprint?.style &&
-      VP.isNil(component.blueprint?.style?.marginTop)
+      !('marginTop' in component.style) ||
+      !('marginTop' in (component.blueprint?.style || {}))
     ) {
       component.style.marginTop = '0px'
     }

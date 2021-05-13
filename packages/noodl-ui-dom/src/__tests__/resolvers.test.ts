@@ -452,9 +452,8 @@ describe(italic(`styles`), () => {
       )
 
       it(`should set marginTop to "0px" if it is missing`, async () => {
-        const { render } = createRender({
-          components: [mock.getListComponent()],
-        })
+        const componentObject = mock.getListComponent()
+        const { render } = createRender({ components: [componentObject] })
         const component = await render()
         expect(component.style).to.have.property('marginTop').to.to.eq('0px')
       })

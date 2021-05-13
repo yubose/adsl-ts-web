@@ -30,12 +30,12 @@ async function update(props) {
   const remotePkgs = []
   const localPkgs = []
 
-  let npmInstallStr = `npm i `
+  let npmInstallStr = `npm i`
   let addFilesStr = `git add `
 
   if (input[1] === 'sdk') {
     npmInstallStr = `${npmInstallStr}`
-    remotePkgs.push('@aitmed/cadl', '@aitmed/ecos-lvl2-sdk')
+    remotePkgs.push('@aitmed/cadl@latest', '@aitmed/ecos-lvl2-sdk@latest')
   } else {
     addFilesStr = `lerna exec ${addFilesStr}`
     // Local packages
@@ -56,7 +56,7 @@ async function update(props) {
   } else if (localPkgs.length) {
     for (const pkg of localPkgs) {
       if (localLibs.some((localLib) => localLib.endsWith(pkg))) {
-        addFilesStr += `packages/${pkg} `
+        addFilesStr += ` packages/${pkg} `
       } else {
         newline()
         throw new Error(
@@ -83,7 +83,7 @@ async function update(props) {
 
   for (const pkg of [...remotePkgs, ...localPkgs]) {
     console.log(`${tag(`Updating`)} ${magenta(pkg)}`)
-    npmInstallStr += `${pkg}@latest `
+    npmInstallStr += ` ${pkg}`
   }
 
   newline()
@@ -95,6 +95,7 @@ async function update(props) {
     addFilesStr,
     `git commit -m "Updated ${numPackagesUpdating} package(s)"`,
     `git push`,
+    `npm run build:test`,
   ]
 
   if (deploy !== false) {
@@ -112,12 +113,14 @@ async function update(props) {
     // )
   }
 
-  let shell = await execa(cmds.join(' && '), {
-    encoding: 'utf8',
-    stripFinalNewline: true,
+  let shell = execa.commandSync(cmds.join(' && '), {
+    shell: true,
+    stdio: 'inherit',
   })
 
   console.log('Is this done yet?')
+
+  return
 
   shell.stdout.on('data', (chunk) => {
     console.log(
