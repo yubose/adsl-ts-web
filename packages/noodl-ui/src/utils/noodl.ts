@@ -1,6 +1,6 @@
+import * as u from '@jsmanifest/utils'
 import { ComponentObject, Identify } from 'noodl-types'
 import get from 'lodash/get'
-import isPlainObject from 'lodash/isPlainObject'
 import isComponent from './isComponent'
 import { NUIComponent } from '../types'
 import { array, isNum } from './internal'
@@ -182,10 +182,9 @@ function getDataValue(node: string | null | Element): string | number | null {
         case 'HTMLInputElement':
         case 'HTMLSelectElement':
         case 'HTMLTextAreaElement':
-          return (node as
-            | HTMLInputElement
-            | HTMLSelectElement
-            | HTMLTextAreaElement).value
+          return (
+            node as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+          ).value
         case 'HTMLButtonElement':
           console.log(
             `%c[getDataValue] ` +
@@ -219,7 +218,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
     nodes.forEach(fn)
   }
   // Object of nodes where key is the data name and value is an HTMLElement
-  else if (isPlainObject(nodes)) {
+  else if (u.isObj(nodes)) {
     fn = (name: string) => (result[name] = getDataValue(nodes?.[name] || ''))
     Object.keys(nodes || {}).forEach(fn)
   }

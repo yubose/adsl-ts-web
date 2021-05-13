@@ -65,14 +65,10 @@ class Page {
     this.rootNode.style.position = 'absolute'
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
-    this.rootNode.style.display = 'flex'
-    this.rootNode.style.justifyContent = 'center'
-    this.rootNode.style.flexDirection = 'column'
 
     if (!document.body.contains(this.rootNode)) {
       document.body.appendChild(this.rootNode)
     }
-
     return this
   }
 

@@ -1,4 +1,4 @@
-import isPlainObject from 'lodash/isPlainObject'
+import * as u from '@jsmanifest/utils'
 import { ComponentObject } from 'noodl-types'
 import { NUIComponentType } from '../types'
 import isComponent from './isComponent'
@@ -45,7 +45,7 @@ function createComponent<K extends NUIComponentType = NUIComponentType>(
     childComponent = new Component({ type: value, ...props })
   } else if (isComponent(value)) {
     childComponent = value
-    if (props && isPlainObject(props)) value.edit(props)
+    if (props && u.isObj(props)) value.edit(props)
   } else {
     childComponent = new Component({ ...value, ...props })
   }

@@ -1,4 +1,3 @@
-import isNaN from 'lodash/isNaN'
 import { hasLetter, hasDecimal } from './utils/common'
 import { isStr, isNum, isNil, isUnd } from './utils/internal'
 
@@ -151,7 +150,7 @@ class NOODLViewport {
    * @param { unknown } value
    */
   static isNoodlUnit(v: unknown): v is string {
-    return isStr(v) && !/[a-zA-Z]/i.test(v) && !isNaN(Number(v))
+    return isStr(v) && !/[a-zA-Z]/i.test(v) && !Number.isNaN(Number(v))
   }
 
   /** https://tc39.es/ecma262/#sec-tonumber */

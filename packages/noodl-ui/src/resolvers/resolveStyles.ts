@@ -185,7 +185,7 @@ resolveStyles.setResolver(
     if (borderRadius) {
       const regex = /[a-zA-Z]+$/
       const radius = Number(`${borderRadius}`.replace(regex, ''))
-      if (!isNaN(radius)) {
+      if (!Number.isNaN(radius)) {
         edit({ borderRadius: `${radius}px` })
         if (
           !component.style.borderWidth ||

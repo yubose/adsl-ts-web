@@ -49,7 +49,7 @@ describe(coolGold(`resolvers`), () => {
     })
   })
 
-  describe(italic(`Data attributes`), () => {
+  describe(italic(`data- attributes`), () => {
     const dataAttribsWithoutSelect = c.dataAttributes.filter(
       (a) => !/options/i.test(a),
     )
@@ -207,10 +207,6 @@ describe(italic(`ecosDoc`), () => {
       //
     })
   })
-})
-
-describe(italic(`events`), () => {
-  //
 })
 
 describe(italic(`image`), () => {
