@@ -15,9 +15,6 @@ body {
 button {
   cursor: pointer;
 }
-.sroll::-webkit-scrollbar{
-  display: none;
-}
 
 button:hover {
   opacity: 0.8;
