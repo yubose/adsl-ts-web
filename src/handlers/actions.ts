@@ -122,15 +122,29 @@ const createActions = function createActions(app: App) {
             getActionObjectErrors(result).forEach((errMsg: string) =>
               log.red(errMsg, result),
             )
-            log.grey(
-              `An evalObject action is injecting a new object to the chain`,
-              {
-                actionChain,
-                instance: actionChain?.inject.call(actionChain, result as any),
-                object: result,
-                queue: actionChain?.queue.slice(),
-              },
-            )
+            if (result.abort) {
+              log.grey(
+                `An evalObject returned an object with abort: true. The action chain ` +
+                  `will no longer proceed`,
+                { actionChain, injectedObject: result },
+              )
+              await actionChain?.abort?.(
+                `An evalObject is requesting to abort using the "abort" key`,
+              )
+            } else {
+              log.grey(
+                `An evalObject action is injecting a new object to the chain`,
+                {
+                  actionChain,
+                  instance: actionChain?.inject.call(
+                    actionChain,
+                    result as any,
+                  ),
+                  object: result,
+                  queue: actionChain?.queue.slice(),
+                },
+              )
+            }
           }
         }
       } else if (_has(object, 'if')) {
