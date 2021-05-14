@@ -1,6 +1,6 @@
 import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original } from 'immer'
-import { componentTypes, ComponentObject, StyleObject } from 'noodl-types'
+import { ComponentObject, StyleObject } from 'noodl-types'
 import * as u from './utils/internal'
 import * as T from './types'
 
@@ -342,15 +342,7 @@ class Component<C extends ComponentObject = ComponentObject>
     eventName: Evt,
     ...args: Parameters<T.NUIComponent.Hook[Evt]>
   ) {
-    // console.log(
-    //   `%cEmitting from a ${this.type}: ${eventName}`,
-    //   `color:#95a5a6;`,
-    //   {
-    //     args: arguments,
-    //     component: this,
-    //   },
-    // )
-    this.#hooks[eventName]?.forEach((cb) => (cb as any)(...args))
+    this.#hooks[eventName]?.forEach((cb) => cb(...args))
     return this
   }
 
@@ -451,12 +443,6 @@ class Component<C extends ComponentObject = ComponentObject>
     })
     return result
   }
-
-  // snapshot() {
-  //   return {
-
-  //   }
-  // }
 }
 
 export default Component
