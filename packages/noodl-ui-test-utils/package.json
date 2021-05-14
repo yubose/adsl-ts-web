@@ -1,6 +1,6 @@
 {
   "name": "noodl-ui-test-utils",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Test utilities for the noodl-ui library",
   "main": "dist/index.js",
   "module": "dist/index.js",
