@@ -11,6 +11,7 @@ export const classes = {
   ECOS_DOC_TEXT_TITLE: 'ecosdoc-text-title',
   ECOS_DOC_TEXT_BODY: 'ecosdoc-text-body',
   ECOS_DOC_NOTE: 'ecosdoc-note',
+  ECOS_DOC_NOTE_DATA: 'ecosdoc-note-data',
   GLOBAL: 'global',
   PAGE: 'page',
   PLUGIN_HEAD: 'pluginHead',

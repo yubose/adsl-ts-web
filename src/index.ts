@@ -168,6 +168,28 @@ window.addEventListener('load', async (e) => {
   } catch (error) {
     console.error(error)
   }
+
+  // const ws = new WebSocket(`ws://127.0.0.1:3002`)
+
+  // ws.onopen = (event) => {
+  //   log.func('ws.onopen')
+  //   log.green(`Websocket client opened!`, event)
+  // }
+
+  // ws.onclose = (event) => {
+  //   log.func('ws.onclose')
+  //   log.grey(`Websocket client closed`, event)
+  // }
+
+  // ws.onerror = (event) => {
+  //   log.func('ws.onerror')
+  //   log.red(`Websocket client received an error!`, event)
+  // }
+
+  // ws.onmessage = (msg) => {
+  //   log.func('ws.onmessage')
+  //   log.green(`Websocket client received a message!`, msg)
+  // }
 })
 
 function showGridLines(

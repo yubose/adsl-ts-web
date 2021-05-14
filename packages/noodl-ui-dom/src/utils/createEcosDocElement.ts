@@ -159,7 +159,7 @@ function createEcosDocElement<
     }
 
     const appendTextNode = function _appendTextNode(
-      label: 'title' | 'content' | 'note',
+      label: 'title' | 'content' | 'note' | 'data',
     ) {
       let content = ecosObj?.name?.[label]
       if (!u.isStr(content)) {
@@ -185,6 +185,8 @@ function createEcosDocElement<
               ? classes.ECOS_DOC_TEXT_BODY
               : label === 'note'
               ? classes.ECOS_DOC_NOTE
+              : label === 'data'
+              ? classes.ECOS_DOC_NOTE_DATA
               : undefined,
         }),
       )
@@ -193,6 +195,7 @@ function createEcosDocElement<
     ecosObj?.name?.title && appendTextNode('title')
     ecosObj?.name?.content && appendTextNode('content')
     ecosObj?.name?.note && appendTextNode('note')
+    ecosObj?.name?.data && appendTextNode('data')
   }
 
   return iframe
