@@ -80,7 +80,10 @@ div.pluginBodyTail {
   /* align-items: flex-start !important; */
   overflow-y: auto !important;
 }
-
+.scroll-view::-webkit-scrollbar{
+  /* hide scrollBar for scrollView */
+  display: none;
+}
 .text-board {
   /* display: block !important; */
   overflow-y: auto;
