@@ -4,9 +4,6 @@
   "command": {
     "bootstrap": {
       "hoist": true
-    },
-    "publish": {
-      "ignore": ["@aitmed/web-common-utils"]
     }
   }
 }
