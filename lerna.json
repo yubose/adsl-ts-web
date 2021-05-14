@@ -1,6 +1,7 @@
 {
   "packages": ["packages/*"],
   "version": "independent",
+  "ignore": ["@aitmed/web-common-utils"],
   "command": {
     "bootstrap": {
       "hoist": true
