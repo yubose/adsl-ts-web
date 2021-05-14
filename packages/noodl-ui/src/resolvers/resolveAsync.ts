@@ -17,8 +17,6 @@ async function resolveAsync(
       ---- DATAVALUE
     -------------------------------------------------------- */
 
-    //
-
     if (Identify.folds.emit(dataValue)) {
       const ac = createActionChain('dataValue', [
         { emit: dataValue.emit, actionType: 'emit' },
