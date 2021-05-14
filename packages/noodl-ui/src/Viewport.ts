@@ -23,9 +23,7 @@ class NOODLViewport {
   static applyMinMax({
     width,
     height,
-    min,
-    max,
-    aspectRatio = NOODLViewport.getAspectRatio(Number(width), Number(height)),
+    ...rest
   }: {
     width: number
     height: number
@@ -37,11 +35,8 @@ class NOODLViewport {
       width = innerWidth
       height = innerHeight
     }
-    if (aspectRatio < min) {
-      width = min * height
-    } else if (aspectRatio > max) {
-      width = max * height
-    }
+    if (rest.aspectRatio < rest.min) width = rest.min * height
+    else if (rest.aspectRatio > rest.max) width = rest.max * height
     return { width, height }
   }
 
@@ -56,7 +51,6 @@ class NOODLViewport {
       width = innerWidth
       height = innerHeight
     }
-
     /**
      * The binary Great Common Divisor calculator
      * https://stackoverflow.com/questions/1186414/whats-the-algorithm-to-calculate-aspect-ratio
@@ -74,12 +68,10 @@ class NOODLViewport {
       if (u > v) return getGCD((u - v) >> 1, v)
       return getGCD((v - u) >> 1, u)
     }
-
     const gcd = getGCD(width, height)
     const newWidth = width / gcd
     const newHeight = height / gcd
     const aspectRatio = newWidth / newHeight
-
     return aspectRatio
   }
 
@@ -94,7 +86,6 @@ class NOODLViewport {
     { toFixed = 2, unit }: GetSizeOptions = {},
   ) {
     let result: any
-
     if (value == '0') {
       result = 0
     } else if (value == '1') {
@@ -115,9 +106,7 @@ class NOODLViewport {
         result = value * vpSize
       }
     }
-
     if (isNil(result)) return result
-
     switch (unit) {
       // NOODL
       case 'noodl':
@@ -210,15 +199,15 @@ class NOODLViewport {
     }
   }
 
-  getWidth(dec: string, opts?: Parameters<typeof NOODLViewport['getSize']>[2]) {
-    return NOODLViewport.getSize(dec, this.width, opts as any)
+  getWidth(dec: string, rest?: Parameters<typeof NOODLViewport['getSize']>[2]) {
+    return NOODLViewport.getSize(dec, this.width, rest as any)
   }
 
   getHeight(
     dec: string,
-    opts?: Parameters<typeof NOODLViewport['getSize']>[2],
+    rest?: Parameters<typeof NOODLViewport['getSize']>[2],
   ) {
-    return NOODLViewport.getSize(dec, this.height, opts as any)
+    return NOODLViewport.getSize(dec, this.height, rest as any)
   }
 }
 

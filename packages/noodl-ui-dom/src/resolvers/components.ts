@@ -223,12 +223,13 @@ const domComponentsResolver: Resolve.Config = {
           })
         }
         // Default to the first item if the user did not previously set their state
+        // @ts-expect-error
         if (node?.selectedIndex === -1) node.selectedIndex = 0
       } else if (Identify.textBoard(original)) {
         const { textBoard, text } = component.props
         if (u.isArr(component)) {
-          if (Array.isArray(textBoard)) {
-            if (typeof text === 'string') {
+          if (u.isArr(textBoard)) {
+            if (u.isStr(text)) {
               console.log(
                 `%cA component cannot have a "text" and "textBoard" property ` +
                   `because they both overlap. The "text" will take precedence.`,

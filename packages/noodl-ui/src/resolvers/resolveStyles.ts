@@ -210,25 +210,8 @@ resolveStyles.setResolver(
         edit({ fontSize: `${fontSize}px` })
       }
       // 10 --> '10px'
-      else if (u.isNum(fontSize)) {
-        edit({ fontSize: `${fontSize}px` })
-      }
-      if (u.isStr(fontFamily)) {
-        edit({ fontFamily })
-      }
-      // if ('fontSize' in (component.blueprint?.style || {})) {
-      //   const val = Number(component.blueprint.style?.fontSize)
-      //   if (u.isNum(val) && !Number.isNaN(val)) {
-      //     const result = util.handlePosition(
-      //       component.blueprint.style,
-      //       'fontSize',
-      //       viewport.width,
-      //     )
-      //     if (result) {
-      //       u.assign(component.style, result)
-      //     }
-      //   }
-      // }
+      else if (u.isNum(fontSize)) edit({ fontSize: `${fontSize}px` })
+      u.isStr(fontFamily) && edit({ fontFamily })
     }
 
     // { fontStyle } --> { fontWeight }
@@ -237,33 +220,30 @@ resolveStyles.setResolver(
     }
 
     /* -------------------------------------------------------
-    ---- POSITION
-  -------------------------------------------------------- */
+      ---- POSITION
+    -------------------------------------------------------- */
 
     {
-      util.posKeys.forEach((key) => {
-        if (!u.isNil(component.blueprint?.style?.[key])) {
-          const result = util.handlePosition(
+      util.posKeys.forEach((posKey) => {
+        if (!u.isNil(component.blueprint?.style?.[posKey])) {
+          const result = util.getPositionProps(
             component.blueprint.style,
-            key as any,
-            viewport[util.xKeys.includes(key) ? 'width' : 'height'],
+            posKey as any,
+            viewport[util.xKeys.includes(posKey) ? 'width' : 'height'],
           )
-          if (result) {
-            u.assign(component.style, result)
-          }
+          result && u.assign(component.style, result)
         }
       })
       // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
-      if (u.isObj(component.style?.textAlign)) {
-        delete component.style.textAlign
-      }
+      u.isObj(component.style?.textAlign) && delete component.style.textAlign
     }
 
     /* -------------------------------------------------------
-    ---- SIZES
-  -------------------------------------------------------- */
+      ---- SIZES
+    -------------------------------------------------------- */
 
     const { width, height } = originalStyles
+
     if (!u.isNil(width)) {
       edit({ width: String(util.getSize(width, viewport.width)) })
     }
@@ -289,7 +269,6 @@ resolveStyles.setResolver(
       edit({
         display: originalStyles?.axis === 'horizontal' ? 'flex' : 'block',
         listStyle: 'none',
-        // overflowX: 'hidden',
         padding: '0px',
       })
     } else if (Identify.component.listItem(component)) {

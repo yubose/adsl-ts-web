@@ -136,7 +136,7 @@ export function getDataFields(
       // Ensure that it is an array
       if (typeof dataKeys === 'string') dataKeys = [dataKeys]
 
-      return Array.isArray(dataKeys)
+      return u.isArr(dataKeys)
         ? dataKeys.reduce((acc, dataKey) => {
             acc[dataKey] = document.querySelector(`[data-key="${dataKey}"]`)
             return acc
@@ -213,7 +213,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
   let fn
 
   // Array of field keys
-  if (Array.isArray(nodes)) {
+  if (u.isArr(nodes)) {
     fn = (name: K) => (result[name as string] = getDataValue(name as string))
     nodes.forEach(fn)
   }

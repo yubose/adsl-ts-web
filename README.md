@@ -1,43 +1,24 @@
 # AiTmed NOODL Web
 
-#update to use latest aitmed/cadl sdk
+# Steps to update the @aitmed/cadl eCOS package to latest version
 
-# added by Austin Yu 10/23/2020
-
-npm install @aitmed/cadl@latest
-git add .
-git commit -a -m "update aitmed sdk"
-git push
-
-## All noodl-ui related packages are now merged into this repo and managed by [lerna](https://github.com/lerna/lerna)
-
-- `noodl-ui`
-- `noodl-ui-dom`
-- `noodl-utils`
-
-This allows for faster compilation, faster load times and quicker development flow by symlinking the dependencies
+- npm install @aitmed/cadl@latest
+- git add .
+- git commit -a -m "update aitmed sdk"
+- git push
 
 ## Globals
 
 These variables are available globally:
 
-| Variable  | Description                                                                                            |
-| --------- | ------------------------------------------------------------------------------------------------------ |
-| `echarts` | [Chart library](https://echarts.apache.org/examples/en/index.html) used for components of type `chart` |
+| Variable  | Description                                                                                           |
+| --------- | ----------------------------------------------------------------------------------------------------- |
+| `echarts` | [Chart library](https://echarts.apache.org/examples/en/index.html)used for components of type `chart` |
 
 ## References
 
 - [TypeScript DOM types](https://github.com/microsoft/TypeScript/blob/master/lib/lib.dom.d.ts)
 - [Merge requests](https://gitlab.aitmed.com/help/user/project/merge_requests/index.md#checkout-merge-requests-locally)
-
-## Configs
-
-- `meet.yml` --> test.aitmed.com (React)
-- `meet11.yml` / `cadltest.yml` --> devtest.aitmed.com
-  - aitcom_11
-- `meet2d.yml` --> cadltest.aitmed.io
-- `testpage.yml`
-- `message.yml`
 
 ## Todos
 
@@ -97,96 +78,12 @@ These variables are available globally:
 </iframe>
 ```
 
-#### Video
-
-```html
-TBH
-```
-
 ## Lib Todos
 
 - have the same path/resource resolve logic for "poster" prop
 - make output from resolved components as plain objs instead with some getInstance getter
 
-## Initialization (somewhat outdated)
-
-1. `noodl` client (sdk/api)
-2. `store`
-3. `Viewport`
-4. `App` (needs `store` and `Viewport`)
-   - Retrieves + sets auth state
-5. `Page` (needs `store`)
-   - Subscribes to store:
-     1. `state.page.previousPage` + `state.page.currentPage`
-     2. `state.page.modal.id` + `state.page.modal.opened`
-   - Register listeners:
-     1. `onBeforePageChange`
-        - Initializes `noodl-ui` client
-     2. `onBeforePageRender`
-        - Refreshes `noodl-ui` client (`root` + `page` object)
-6. `noodl-ui` client (ui)
-7. Register listener `viewport.onResize`
-8. Run `page.navigate`
-   1. Initializes page on `noodl` sdk
-   2. Refreshes `noodl-ui` client with `root` + `page`
-   3. Renders components
-   4. Returns snapshot of:
-      1. Page name
-      2. Page object
-      3. Page NOODL DOM components
-9. View tag scrolling
-   1. `goto: #genderTag` --> scroll to node with the `genderTag` viewTag
-   2. `pageName#genderTag` --> navigate to page then scroll to the `genderTag` viewTag
-10. emit return value as toast --> `{ toast: { message: '', style: {} } }`
-
-## Navigating pages
-
-- Dispatch `setPage`
-- `Page` is subscribed to `previousPage` + `currentPage`, so it will call `navigate` and `render` for the upcoming page
-
----
-
-## Modal
-
-### Toggling on/off
-
-- Dispatch `openModal`
-- Dispatch `closeModal`
-- `Page` is subscribed to `modal.id` + `modal.opened`, so it will respond with `modal.hide` or other modal methods to manage it
-
-## Debugging Meeting (unable to see remote participant)
-
-1. window .on event: `load`
-2. action: `evalObject`
-3. action: `goto`
-4. requesting page change
-   - current: `VideoChat`
-   - previous: `ManageMeeting`
-   - requesting: `MeetingDocumentsShared`
-5. (onStart) rendering DOM for `MeetingDocumentsShared`
-6. (onBeforePageRender) rendering components
-
-## Twilio SID mapping
-
-| sid | name |
-| --- | ---- |
-
-PA9211e55522d08dd12bff0cb845cd9d6f | 8882465555 (Laptop - main)
-PA66a90e64872904394caf2891b69880f0 | 8882468491 (Laptop - 2nd)
-PA15c1e191d9ad973fb473c12c471a3882 | 8882468491
-PA0e4bd0e3c2d8bc33b7c372f83320084c | 8882468491
-PAc1893f64325658d1acec25e99a158da7 | 8882462345 (Desktop)
-
-## Firebase
-
-1091
-
-Subtypes
--- | --
-1 | Android
-2 | Web
-
-## goto examples
+## Goto Examples
 
 ```yml
 - goto: AbcDashboard^redTag
@@ -197,32 +94,21 @@ Subtypes
 - goto: ^redTag;duration:15000 # slow scroll effect for 15 seconds
 ```
 
-## Tools
+## Positioning
 
-### Reference lifecycle results
+| When the component: | Value          |
+| ------------------- | -------------- |
+| Has `top`           | `absolute`     |
+| Missing `top`       | `relative`     |
+| Has `marginTop`     | _set to value_ |
+| Missing `marginTop` | `0px`          |
 
-1. yml
-2. sdk
-3. noodl-ui
+## Hide/Show
 
-compose = (...fns) --> (arg) --> fns.reduceRight
-(acc, fn) -->
-fn(stepFn)
-fn(stepFn)
-fn(stepFn)
-fn(stepFn)
-fn(stepFn)
--->
+- When a component is _hidden_ and has `position: relative`, _don't_ hold the space
+- When a component has `position: absolute`, _hold_ the space
 
-if (top) --> absolute
-if (no top) --> relative
-if marginTop --> marginTop
-
-for hide/show builtIn:
-if hide and relative, dont hold the space
-if absolute, hold the space
-
-## Register
+## Emitting register events
 
 ```js
 import { NUI } from 'noodl-ui'
@@ -252,5 +138,8 @@ NUI.emit({
   })
 ```
 
-// Correctly clears the console (tested on MAC)
+## Correctly clearing the console
+
+```bash
 process.stdout.write('\x1Bc')
+```

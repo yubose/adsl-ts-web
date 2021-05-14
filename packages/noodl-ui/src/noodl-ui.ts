@@ -797,7 +797,7 @@ const NUI = (function _NUI() {
         styles.position = 'absolute'
       }
 
-      if (u.isNil(originalStyle.height)) styles.height = 'auto'
+      u.isNil(originalStyle.height) && (styles.height = 'auto')
 
       return merge(
         {
