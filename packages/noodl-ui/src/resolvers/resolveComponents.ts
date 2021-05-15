@@ -314,11 +314,19 @@ componentResolver.setResolver((component, options, next) => {
             style: {
               display: 'inline-block',
               ...('color' in item
-                ? { color: formatColor(item.color || '') ,
-                    fontSize: item.fontSize.includes('px')?item.fontSize: `${item.fontSize}px`,
-                    fontWeight: item.fontWeight,
-                    paddingLeft: item.paddingLeft.includes('px')?item.paddingLeft: `${item.paddingLeft}px`
-                  }
+                ? { color: formatColor(item.color || '') }
+                : undefined),
+              ...('fontSize' in item
+                ? { fontSize: item.fontSize.includes('px')?item.fontSize: `${item.fontSize}px`,}
+                : undefined),
+              ...('fontWeight' in item
+                ? { fontWeight: item.fontWeight}
+                : undefined),
+              ...('left' in item
+                ? { marginLeft: item.left.includes('px')?item.left: `${item.left}px`,}
+                : undefined),
+              ...('top' in item
+                ? { marginTop: item.top.includes('px')?item.top: `${item.top}px`}
                 : undefined),
             },
             text: 'text' in item ? item.text : '',
