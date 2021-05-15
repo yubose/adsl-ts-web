@@ -316,7 +316,8 @@ componentResolver.setResolver((component, options, next) => {
               ...('color' in item
                 ? { color: formatColor(item.color || '') ,
                     fontSize: item.fontSize.includes('px')?item.fontSize: `${item.fontSize}px`,
-                    fontWeight: item.fontWeight
+                    fontWeight: item.fontWeight,
+                    paddingLeft: item.paddingLeft.includes('px')?item.paddingLeft: `${item.paddingLeft}px`
                   }
                 : undefined),
             },
