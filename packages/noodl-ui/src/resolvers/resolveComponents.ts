@@ -317,7 +317,7 @@ componentResolver.setResolver((component, options, next) => {
                 ? { color: formatColor(item.color || '') }
                 : undefined),
               ...('fontSize' in item
-                ? { fontSize: item.fontSize.includes('px')?item.fontSize: `${item.fontSize}px`,}
+                ? { fontSize: item.fontSize.search(/[a-z]/gi)!=-1 ? item.fontSize : item.fontSize+'px',}
                 : undefined),
               ...('fontWeight' in item
                 ? { fontWeight: item.fontWeight}
