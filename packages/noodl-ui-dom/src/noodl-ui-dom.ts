@@ -163,7 +163,11 @@ class NOODLDOM extends NOODLDOMInternal {
       this.cache.component.remove(c)
       c.has?.('global') &&
         this.removeGlobal('component', c.get('data-globalid'))
-      c.children?.forEach?.(remove)
+      c.children?.forEach?.((_c) => {
+        // c?.parent?.removeChild(c)
+        c?.setParent?.(null)
+        remove(_c)
+      })
       c.clear?.()
     }
     remove(component)
@@ -583,7 +587,7 @@ class NOODLDOM extends NOODLDOMInternal {
       if (parent && newComponent) {
         // Set the original parent on the new component
         newComponent.setParent(parent)
-        // Set the new component as a child on the pafrent
+        // Set the new component as a child on the parent
         parent.createChild(newComponent)
       }
 

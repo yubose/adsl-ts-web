@@ -83,13 +83,13 @@ window.addEventListener('load', async (e) => {
     Object.assign(window, {
       Account,
       build: process.env.BUILD,
-      cp: copyToClipboard,
     })
 
     Object.defineProperties(window, {
       app: { get: () => app },
       l: { get: () => app.meeting.localParticipant },
       cache: { get: () => app.cache },
+      cp: { get: () => copyToClipboard },
       meeting: { get: () => app.meeting },
       noodl: { get: () => noodl },
       nui: { get: () => app.nui },

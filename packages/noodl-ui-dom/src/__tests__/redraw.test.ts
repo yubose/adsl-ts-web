@@ -1,5 +1,6 @@
 import sinon from 'sinon'
 import * as mock from 'noodl-ui-test-utils'
+import * as u from '@jsmanifest/utils'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { ActionChain } from 'noodl-action-chain'
 import { expect } from 'chai'
@@ -16,7 +17,7 @@ import {
 } from 'noodl-ui'
 import NOODLDOM from '../noodl-ui-dom'
 import { assetsUrl, createRender, ndom, toDOM } from '../test-utils'
-import { getFirstByElementId } from '../utils'
+import { findBySelector, getFirstByElementId } from '../utils'
 
 let view: Component
 let listGender: NUIComponent.Instance
@@ -182,41 +183,17 @@ describe(coolGold(`redraw`), () => {
     })
   })
 
-  it("should clean up the component's listeners", () => {
-    const addSpy = sinon.spy()
-    const deleteSpy = sinon.spy()
-    const retrieveSpy = sinon.spy()
-    const updateSpy = sinon.spy()
-    const evts = {
-      'add.data.object': addSpy,
-      'delete.data.object': deleteSpy,
-      'retrieve.data.object': retrieveSpy,
-      'update.data.object': updateSpy,
-    } as const
-    const evtNames = Object.keys(evts)
-    const list = getListGender()
-    list.on('add.data.object', addSpy)
-    list.on('delete.data.object', deleteSpy)
-    list.on('retrieve.data.object', retrieveSpy)
-    list.on('update.data.object', updateSpy)
-    evtNames.forEach((evt) => {
-      expect(list.hasCb(evt as ListEventId, evts[evt])).to.be.true
-    })
+  it('should remove the parent reference', async () => {
+    const view = await createRender({
+      components: [
+        mock.getViewComponent({ children: [mock.getListComponent()] }),
+      ],
+    }).render()
+    const list = view.child()
+    expect(list.parent).to.eq(view)
     const node = ndom.draw(list)
     ndom.redraw(node, list)
-    evtNames.forEach((evt) => {
-      expect(list.hasCb(evt as ListEventId, evts[evt])).to.be.false
-    })
-  })
-
-  it('should remove the parent reference', () => {
-    const view = createComponent('view')
-    const list = getListGender()
-    list.setParent(view)
-    expect(list.parent()).to.eq(view)
-    const node = ndom.draw(list)
-    ndom.redraw(node, list)
-    expect(list.parent()).to.be.null
+    expect(list.parent?.child()).not.to.eq(list)
   })
 
   xit("should remove the component from the parent's children", () => {
@@ -241,71 +218,76 @@ describe(coolGold(`redraw`), () => {
     expect(!!findChild(newComponent, (c) => c === label)).to.be.false
   })
 
-  xit('should keep the original parent node after redraw', () => {
+  it('should set the original parent as the parent of the new redrawee component', async () => {
     const view = createComponent('view')
-    const list = getListGender()
-    list.setParent(view)
-    view.createChild(list)
-    const node = ndom.draw(view)
-    const listItem = list.child() as ListItem
-    const image = listItem?.child(1)
-    const imageNode = document.getElementById(image?.id)
-    const parentNode = imageNode?.parentNode
-    expect(!!parentNode?.contains(imageNode)).to.be.true
-    // ndom.redraw(imageNode, image)
-    // expect(!!parentNode?.contains(imageNode)).to.be.false
-  })
-
-  it('should set the original parent as the parent of the new redrawee component', () => {
-    const view = createComponent('view')
-    const list = getListGender()
+    const list = await createRender({
+      components: [
+        mock.getListComponent({ listObject: mock.getGenderListObject() }),
+      ],
+    }).render()
     view.createChild(list)
     list.setParent(view)
     ndom.draw(view)
     const listItem = list.child() as ListItem
     const liNode = document.getElementById(listItem?.id || '')
     const [newLiNode, newListItem] = ndom.redraw(liNode, listItem)
-    expect(newListItem?.parent()).to.eq(list)
+    expect(newListItem?.parent).to.eq(list)
   })
 
-  xit('should set the new component as a child on the original parent', () => {
+  it('should set the new component as a child on the original parent', async () => {
     const view = createComponent('view')
-    const list = getListGender()
+    const list = await createRender({
+      components: [
+        mock.getListComponent({ listObject: mock.getGenderListObject() }),
+      ],
+    }).render()
     view.createChild(list)
     list.setParent(view)
     ndom.draw(view)
-    const listItem = list.child() as ListItem
+    const listItem = list.child()
     const [empty, newListItem] = ndom.redraw(null, listItem)
-    expect(list.hasChild(newListItem)).to.be.true
+    expect(list.children.includes(newListItem)).to.be.true
   })
 
-  // it('the redrawing component + node should hold the same ID', () => {
-  //   ndom.draw(view)
-  //   const listItem = listGender.child() as ListItem
-  //   const liNode = document.getElementById(listItem?.id || '')
-  //   const [newLiNode, newListItem] = ndom.redraw(liNode, listItem)
-  //   expect(newLiNode).to.have.property('id').that.is.eq(newListItem.id)
-  //   ndom.off('component', onComponentAttachId)
-  // })
+  it('the redrawing component + node should hold the same ID', async () => {
+    ndom.draw(view)
+    const list = await createRender({
+      components: [
+        mock.getListComponent({ listObject: mock.getGenderListObject() }),
+      ],
+    }).render()
+    const listItem = list.child()
+    const liNode = document.getElementById(listItem?.id || '')
+    const [newLiNode, newListItem] = ndom.redraw(liNode, listItem)
+    expect(newLiNode).to.have.property('id').that.is.eq(newListItem.id)
+  })
 
-  it('should attach to the original parentNode as the new childNode', () => {
+  it('should attach to the original parentNode as the new childNode', async () => {
     const view = createComponent('view')
-    const list = getListGender()
+    const list = await createRender({
+      components: [
+        mock.getListComponent({ listObject: mock.getGenderListObject() }),
+      ],
+    }).render()
     view.createChild(list)
     list.setParent(view)
     ndom.draw(view)
-    const listItem = list.child() as ListItem
+    const listItem = list.child()
     const liNode = document.getElementById(listItem?.id || '')
-    const ulNode = liNode?.parentNode
+    const ulNode = liNode?.parentNode as HTMLUListElement
     expect(ulNode.contains(liNode)).to.be.true
     const [newNode] = ndom.redraw(liNode, listItem)
     expect(ulNode.contains(liNode)).to.be.false
     expect(ulNode.children).to.have.length.greaterThan(0)
-    expect(newNode.parentNode).to.eq(ulNode)
+    expect(newNode?.parentNode).to.eq(ulNode)
   })
 
-  it('should use every component\'s "shape" as their redraw blueprint', () => {
-    const list = getListGender()
+  it('should use every component\'s "shape" as their redraw blueprint', async () => {
+    const list = await createRender({
+      components: [
+        mock.getListComponent({ listObject: mock.getGenderListObject() }),
+      ],
+    }).render()
     const createIsEqual =
       (noodlComponent: ComponentObject, newInstance: Component) =>
       (prop: string) =>
@@ -313,17 +295,21 @@ describe(coolGold(`redraw`), () => {
     const node = ndom.draw(list)
     const [newNode, newComponent] = ndom.redraw(node, list)
     const isEqual = createIsEqual(list.original, newComponent)
-    Object.keys(list.original).forEach((prop) => {
+    u.keys(list.original).forEach((prop) => {
       if (prop === 'children') {
         expect(list.original?.children).to.deep.eq(list?.original?.children)
       } else {
-        expect(isEqual(prop)).to.be.true
+        expect(isEqual(prop as string)).to.be.true
       }
     })
   })
 
-  it('should accept a component resolver to redraw all of its children', () => {
-    const list = getListGender()
+  it('should accept a component resolver to redraw all of its children', async () => {
+    const listComponentObject = mock.getListComponent({
+      listObject: mock.getGenderListObject(),
+    })
+    const { render } = createRender({ components: [listComponentObject] })
+    const list = await render()
     const createIsEqual =
       (noodlComponent: ComponentObject, newInstance: Component) =>
       (prop: string) =>
@@ -331,13 +317,13 @@ describe(coolGold(`redraw`), () => {
     const node = ndom.draw(list)
     const [newNode, newComponent] = ndom.redraw(node, list)
     const isEqual = createIsEqual(list.original, newComponent)
-    Object.keys(list.original).forEach((prop) => {
+    u.keys(list.original).forEach((prop) => {
       if (prop === 'children') {
         expect(list.original.children).to.deep.eq(
           newComponent.original.children,
         )
       } else {
-        expect(isEqual(prop)).to.be.true
+        expect(isEqual(prop as string)).to.be.true
       }
     })
   })
@@ -659,11 +645,9 @@ describe(coolGold(`redraw`), () => {
     const [newNode, newComponent] = ndom.redraw(null, view)
   })
 
-  it.only('dom nodes should visually remain the same in the dom', async () => {
-    const pathEmitObj = { emit: { dataKey: { var3: 'abc' }, actions: [] } }
+  it('dom nodes should structurally remain the same in the dom', async () => {
     const pathSpy = sinon.spy(async () => 'food.png')
     const onClickSpy = sinon.spy(async () => [''])
-    const onClickEmitObj = { emit: { dataKey: { var3: 'abc' }, actions: [] } }
     const iteratorVar = 'hello'
     const listObject = [
       { fruit: 'apple', color: 'red' },
@@ -674,51 +658,46 @@ describe(coolGold(`redraw`), () => {
       pageObject: {
         formData: { password: 'mypassword' },
         components: [
-          {
-            type: 'view',
+          mock.getViewComponent({
             children: [
-              {
-                type: 'list',
-                contentType: 'listObject',
-                iteratorVar,
+              mock.getListComponent({
                 listObject,
                 children: [
-                  {
-                    type: 'listItem',
-                    [iteratorVar]: '',
+                  mock.getListItemComponent({
                     children: [
-                      { type: 'textField', dataKey: 'formData.password' },
-                      { type: 'label', dataKey: `${iteratorVar}.fruit` },
-                      {
-                        type: 'image',
-                        path: pathEmitObj,
-                        onClick: onClickEmitObj,
-                      },
+                      mock.getTextFieldComponent({
+                        dataKey: 'formData.password',
+                      }),
+                      mock.getLabelComponent({
+                        dataKey: `${iteratorVar}.fruit`,
+                      }),
+                      mock.getImageComponent({
+                        path: mock.getFoldedEmitObject(),
+                        onClick: mock.getFoldedEmitObject(),
+                      }),
                     ],
-                  },
+                  }),
                 ],
-              },
+              }),
             ],
-          },
+          }),
         ],
       },
     })
     ndom.use({ emit: { path: pathSpy as any, onClick: onClickSpy } })
-    const view = await render()
-    const list = view.child()
-    const getListElems = () => document.querySelectorAll('ul')
-    const getListItemElems = () => document.querySelectorAll('li')
-    const getImgElems = () => document.querySelectorAll('img')
-    const getInputElems = () => document.querySelectorAll('input')
-    expect(getListElems()).to.have.lengthOf(1)
-    expect(getListItemElems()).to.have.lengthOf(2)
-    expect(getImgElems()).to.have.lengthOf(2)
-    expect(getInputElems()).to.have.lengthOf(2)
-    ndom.redraw(document.querySelector('listItem'), list.child())
-    expect(getListElems()).to.have.lengthOf(1)
-    expect(getListItemElems()).to.have.lengthOf(2)
-    // expect(getImgElems()).to.have.lengthOf(2)
-    // expect(getInputElems()).to.have.lengthOf(2)
+    await render()
+    expect(findBySelector('ul')).to.be.instanceOf(HTMLUListElement)
+    expect(findBySelector('li')).to.have.lengthOf(2)
+    expect(findBySelector('img')).to.have.lengthOf(2)
+    expect(findBySelector('input')).to.have.lengthOf(2)
+    ndom.redraw(
+      u.array(findBySelector('li'))[0],
+      ndom.cache.component.get(u.array(findBySelector('li'))[0]?.id),
+    )
+    expect(u.array(findBySelector('ul'))).to.have.lengthOf(1)
+    expect(u.array(findBySelector('li'))).to.have.lengthOf(2)
+    expect(u.array(findBySelector('img'))).to.have.lengthOf(2)
+    expect(u.array(findBySelector('input'))).to.have.lengthOf(2)
   })
 
   xit('should look like it was originally before the redraw', () => {
@@ -914,202 +893,5 @@ xdescribe('redraw(new)', () => {
     })
     // expect(document.getElementById(id)).not.to.exist
     let listItem = list.child() as ListItem
-  })
-})
-
-function onComponentAttachId(node: any, component: any) {
-  node && (node.id = component.id)
-}
-
-xit('should target the viewTag component/node if available', async () => {
-  let currentPath = 'male.png'
-  const imagePathSpy = sinon.spy(async () => currentPath)
-  const viewTag = 'genderTag'
-  const iteratorVar = 'itemObject'
-  const listObject = [
-    { key: 'gender', value: 'Male' },
-    { key: 'gender', value: 'Female' },
-    { key: 'gender', value: 'Other' },
-  ]
-  const redrawSpy = sinon.spy(NOODLDOM._nui.getCbs('builtIn').redraw[0])
-  NOODLDOM._nui.actionsContext = { noodl: {} } as any
-  NOODLDOM._nui.removeCbs('emit')
-  NOODLDOM._nui.getCbs('builtIn').redraw[0] = redrawSpy
-  NOODLDOM._nui
-    .setPage('SignIn')
-    .use({
-      actionType: 'emit',
-      trigger: 'onClick',
-      fn: async () => {
-        currentPath = currentPath === 'male.png' ? 'female.png' : 'male.png'
-      },
-    })
-    .use({ actionType: 'emit', trigger: 'path', fn: imagePathSpy })
-    .use({ getAssetsUrl: () => assetsUrl, getRoot: () => ({ SignIn: {} }) })
-  const view = page.render({
-    type: 'view',
-    children: [
-      {
-        type: 'list',
-        iteratorVar,
-        listObject,
-        children: [
-          {
-            type: 'listItem',
-            viewTag,
-            children: [
-              {
-                type: 'image',
-                path: { emit: { dataKey: 'f', actions: [] } },
-                onClick: [
-                  { emit: { dataKey: '', actions: [] } },
-                  {
-                    actionType: 'builtIn',
-                    funcName: 'redraw',
-                    viewTag: 'genderTag',
-                  },
-                ],
-              },
-              { type: 'label', dataKey: 'gender.value' },
-            ],
-          },
-        ],
-      },
-    ],
-  } as any).components[0]
-  const list = view.child() as List
-  const listItem = list.child() as ListItem
-  const image = listItem.child() as Component
-  expect(image.get('src')).not.to.eq(assetsUrl + 'male.png')
-  document.getElementById(image.id)?.click()
-  await waitFor(() => {
-    expect(redrawSpy).to.have.been.called
-    expect(document.querySelector('img')?.getAttribute('src')).to.eq(
-      assetsUrl + 'female.png',
-    )
-  })
-})
-
-xdescribe('redraw', () => {
-  let iteratorVar = 'hello'
-  let listObject: { key: 'gender'; value: 'Male' | 'Female' | 'Other' }[]
-  let timeSpanOptions: string[]
-  let noodlComponents: any
-
-  beforeEach(() => {
-    timeSpanOptions = ['00:00', '00:30']
-    listObject = [
-      { key: 'gender', value: 'Male' },
-      { key: 'gender', value: 'Female' },
-      { key: 'gender', value: 'Other' },
-    ]
-    noodlComponents = {
-      type: 'view',
-      children: [
-        {
-          type: 'list',
-          iteratorVar,
-          listObject,
-          contentType: 'listObject',
-          children: [
-            {
-              type: 'listItem',
-              viewTag: 'fruit',
-              [iteratorVar]: '',
-              children: [{ type: 'label', dataKey: `${iteratorVar}.value` }],
-            },
-          ],
-        },
-        {
-          type: 'view',
-          children: [
-            {
-              type: 'select',
-              contentType: 'TimeCode',
-              dataKey: 'BookingSlotsSelect',
-              options: [10, 15, 30, 45, 60],
-              required: 'true',
-              onChange: [
-                { emit: { actions: [] } },
-                {
-                  actionType: 'builtIn',
-                  funcName: 'redraw',
-                  viewTag: 'AvailableTimeTag',
-                },
-              ],
-            },
-            { type: 'label', text: 'Available Time' },
-            {
-              type: 'view',
-              style: {},
-              children: [
-                {
-                  type: 'select',
-                  dataKey: 'AvailableTime.timeStart',
-                  viewTag: 'AvailableTimeTag',
-                  options: timeSpanOptions,
-                  required: 'true',
-                },
-                {
-                  type: 'select',
-                  viewTag: 'AvailableTimeTag',
-                  options: timeSpanOptions,
-                  required: 'true',
-                  dataKey: 'AvailableTime.timeEnd',
-                  style: { left: '0.45' },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    } as any
-  })
-
-  it('should be able to grab list consumer components with the viewTag', async () => {
-    const emitCall = sinon.spy()
-    const redrawSpy = sinon.spy(ndom, 'redraw')
-    NOODLDOM._nui.init({ actionsContext: { noodl: { emitCall }, ndom } })
-    // NOODLDOM._nui.getCbs('builtIn').redraw = [spy]
-    const view = page.render(noodlComponents).components[0]
-    const select = findChild(
-      view,
-      (c) => c.get('dataKey') === 'BookingSlotsSelect',
-    )
-    const node = document.getElementById(select.id) as HTMLSelectElement
-    await select?.action.onChange()
-    await waitFor(() => {
-      expect(redrawSpy.called).to.be.true
-    })
-    redrawSpy.restore()
-  })
-
-  xit('should be able to grab non list consumer components with the viewTag', async () => {
-    const pageName = 'SelectRedraw'
-    const pageObject = {
-      ScheduleSettingsTemp: {
-        TimeSpan: timeSpanOptions,
-      },
-    }
-    const onChangeSpy = sinon.spy(async () => {
-      timeSpanOptions.push(...['01:00', '01:30', '02:00'])
-    })
-    const redrawFn = NOODLDOM._nui.getCbs('builtIn')?.redraw[0]
-    const spy = sinon.spy(redrawFn)
-    NOODLDOM._nui
-      .setPage(pageName)
-      .use({ actionType: 'emit', fn: onChangeSpy, trigger: 'onChange' })
-      .use({
-        getRoot: () => ({ [pageName]: pageObject }),
-        getPageObject: () => pageObject,
-      } as any)
-    const view = page.render(noodlComponents)
-    await waitFor(() => {
-      expect(spy).to.have.been.called
-    })
-  })
-
-  xit('should pair the corresponding node with each grabbed component', () => {
-    //
   })
 })

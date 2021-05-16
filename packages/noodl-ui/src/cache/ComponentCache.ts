@@ -75,16 +75,19 @@ class ComponentCache {
     return this
   }
 
-  get(component: NUIComponent.Instance | string): NUIComponent.Instance
+  get(
+    component: NUIComponent.Instance | string | undefined,
+  ): NUIComponent.Instance
   get(): Map<string, NUIComponent.Instance>
-  get(component?: NUIComponent.Instance | string) {
+  get(component?: NUIComponent.Instance | string | undefined) {
     if (isComponent(component)) return this.#cache.get(component.id)
     if (isStr(component)) return this.#cache.get(component)
     return this.#cache
   }
 
-  has(component: NUIComponent.Instance | string) {
-    return this.#cache.has(isStr(component) ? component : component?.id || '')
+  has(component: NUIComponent.Instance | string | undefined) {
+    if (!component) return false
+    return this.#cache.has(isStr(component) ? component : component.id || '')
   }
 
   remove(component: NUIComponent.Instance | string) {

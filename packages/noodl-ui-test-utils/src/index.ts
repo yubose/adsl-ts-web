@@ -1,4 +1,5 @@
 import { Action, createActionChain } from 'noodl-action-chain'
+import * as u from '@jsmanifest/utils'
 import { PartialDeep } from 'type-fest'
 import {
   BuiltInActionObject,
@@ -42,6 +43,17 @@ import {
   UpdateActionObject,
   VideoComponentObject,
   ViewComponentObject,
+  MediaType,
+  OtherMediaType, // 0
+  DocMediaType, // 1
+  AudioMediaType, // 2
+  FontMediaType, // 3
+  ImageMediaType, // 4
+  MessageMediaType, // 5
+  ModelMediaType, // 6
+  MultipartMediaType, // 7
+  TextMediaType, // 8
+  VideoMediaType, // 9
 } from 'noodl-types'
 import { EmitAction, NUIAction, NUIActionObject } from 'noodl-ui'
 import {
@@ -49,6 +61,11 @@ import {
   createActionWithKeyOrProps,
   createComponentWithKeyOrProps,
 } from './utils'
+import ecosJpgDoc from './fixtures/jpg.json'
+import ecosNoteDoc from './fixtures/note.json'
+import ecosPdfDoc from './fixtures/pdf.json'
+import ecosPngDoc from './fixtures/png.json'
+import ecosTextDoc from './fixtures/text.json'
 import * as T from './types'
 
 export function getActionChain({
@@ -157,105 +174,67 @@ export function getUpdateObjectAction(props?: Partial<UpdateActionObject>) {
   }
 }
 
-export function getEcosDocObject<N extends NameField.Base>(
-  preset?: 'image' | 'pdf' | 'text' | 'video',
+type GetEcosDocObjectPreset =
+  | 'audio'
+  | 'docx'
+  | 'image'
+  | 'message'
+  | 'note'
+  | 'pdf'
+  | 'text'
+  | 'video'
+
+/**
+ * Generate an eCOS document object by preset
+ */
+export function getEcosDocObject<N extends NameField>(
+  preset?: GetEcosDocObjectPreset,
 ): EcosDocument<N>
-export function getEcosDocObject<N extends NameField.Base>(
+/**
+ * Generate an eCOS document object by component props
+ */
+export function getEcosDocObject<N extends NameField>(
   propsProp?: PartialDeep<EcosDocument<N>>,
 ): EcosDocument<N>
-export function getEcosDocObject<N extends NameField.Base>(
-  propsProp?:
-    | 'audio'
-    | 'docx'
-    | 'image'
-    | 'message'
-    | 'pdf'
-    | 'text'
-    | 'video'
-    | PartialDeep<EcosDocument<N>>,
+/**
+ * Generate an eCOS document object
+ * @param propsProp - eCOS document preset or component props
+ * @returns { EcosDocument }
+ */
+export function getEcosDocObject<N extends NameField>(
+  propsProp?: GetEcosDocObjectPreset | PartialDeep<EcosDocument<N>>,
 ): EcosDocument<N> {
-  const props = {
+  let ecosObj = {
     name: { data: `blob:http://a0242fasa141inmfakmf24242`, type: '' },
-  } as Partial<EcosDocument<NameField.Base>>
+  } as Partial<EcosDocument<NameField>>
 
-  if (typeof propsProp === 'string') {
-    //
-  } else {
-    Object.assign(props, propsProp)
-  }
-
-  if (typeof propsProp === 'string') {
+  if (u.isStr(propsProp)) {
     if (propsProp === 'audio') {
-      props.name = { ...props.name, type: 'audio/wav' }
-      props.subtype = { ...props.subtype, mediaType: 2 }
+      ecosObj.name = { ...ecosObj.name, type: 'audio/wav' }
+      ecosObj.subtype = { ...ecosObj.subtype, mediaType: 2 }
     } else if (propsProp === 'docx') {
-      props.name = { ...props.name, type: 'application/vnl.' }
-      props.subtype = { ...props.subtype, mediaType: 1 }
+      ecosObj.name = { ...ecosObj.name, type: 'application/vnl.' }
+      ecosObj.subtype = { ...ecosObj.subtype, mediaType: 1 }
     } else if (propsProp === 'image') {
-      props.name = { ...props.name, type: 'image/png' }
-      props.subtype = { ...props.subtype, mediaType: 4 }
+      ecosObj = (ecosPngDoc || ecosJpgDoc) as EcosDocument
     } else if (propsProp === 'message') {
-      // props.name = { ...props.name, type: '', }
-      props.subtype = { ...props.subtype, mediaType: 5 }
+      ecosObj.subtype = { ...ecosObj.subtype, mediaType: 5 }
+    } else if (propsProp === 'note') {
+      ecosObj = ecosNoteDoc as EcosDocument
     } else if (propsProp === 'pdf') {
-      props.name = { ...props.name, type: 'application/pdf' }
-      props.subtype = { ...props.subtype, mediaType: 1 }
+      ecosObj = ecosPdfDoc as EcosDocument
     } else if (propsProp === 'text') {
-      props.name = {
-        ...props.name,
-        title: `This is the title`,
-        content: `Sample content from a text document`,
-        type: 'text/plain',
-      }
-      props.subtype = { ...props.subtype, mediaType: 0 }
-      delete props.name?.data
+      ecosObj = ecosTextDoc as EcosDocument
     } else if (propsProp === 'video') {
-      props.name = { ...props.name, type: 'video/mp4' }
-      props.subtype = { ...props.subtype, mediaType: 9 }
+      ecosObj.name = { ...ecosObj.name, type: 'video/mp4' }
+      ecosObj.subtype = { ...ecosObj.subtype, mediaType: 9 }
     }
+  } else if (u.isObj(propsProp)) {
+    u.assign(ecosObj, propsProp)
+  } else {
+    ecosObj = ecosTextDoc as EcosDocument
   }
 
-  const ecosObj = {
-    id: '2EUC92bOSjFIOVhlF5mtLQ==',
-    ctime: 1619719574,
-    mtime: 1619719574,
-    atime: 1619719574,
-    atimes: 1,
-    tage: 0,
-    type: 1025,
-    deat: {
-      url: 'https://s3.us-east-2.amazonaws.com/ecos.aitmed.com/6Kz7B6XdVHCCHoF12YzDM8/8mYaanEkGyrsfWHh1BDGCq/9sg86udSxhwezsA4g93TQ8',
-      sig: null,
-      exptime: null,
-    },
-    size: 89937,
-    fid: 'R9xoaHI8TEjWWH6FTFo0VQ==',
-    eid: 'PugoYpm8TLq2skvLQNsPSg==',
-    bsig: 'KyRGNeLKTPscmfAfMyKktw==',
-    esig: 'PugoYpm8TLq2skvLQNsPSg==',
-    created_at: 1619719574000,
-    modified_at: 1619719574000,
-    ...props,
-    name: {
-      title: 'jpg',
-      tags: ['coffee', 'drink'],
-      type: 'image/jpeg',
-      user: 'Johnny Bravo',
-      data: 'blob:http://127.0.0.1:3000/660f7f76-c1d8-4103-825a-048b6adea785',
-      ...props.name,
-    },
-    subtype: {
-      isOnServer: false,
-      isZipped: true,
-      isBinary: false,
-      isEncrypted: true,
-      isEditable: true,
-      applicationDataType: 0,
-      mediaType: 4,
-      size: 89937,
-      ...(props.subtype || undefined),
-    },
-  } as EcosDocument<NameField.Base>
   return ecosObj as EcosDocument<N>
 }
 
@@ -302,19 +281,35 @@ export function getButtonComponent(
     ],
     text: 'Delete',
   } as ButtonComponentObject
-  if (typeof props === 'string') obj.text = props
-  else if (props) Object.assign(obj, props)
+  if (u.isStr(props)) obj.text = props
+  else if (props) u.assign(obj, props)
   return obj
 }
 
 export function getEcosDocComponent(
+  preset?: GetEcosDocObjectPreset,
+): EcosDocComponentObject
+export function getEcosDocComponent(
   props?: ComponentProps<EcosDocComponentObject>,
+): EcosDocComponentObject
+export function getEcosDocComponent(
+  props?: ComponentProps<EcosDocComponentObject> | GetEcosDocObjectPreset,
 ): EcosDocComponentObject {
-  return {
-    type: 'ecosDoc',
-    ...props,
-    ecosObj: getEcosDocObject(props?.ecosObj),
+  const obj = { type: 'ecosDoc' } as EcosDocComponentObject
+  if (u.isStr(props)) {
+    if (props === 'image') {
+      obj.ecosObj = ecosPngDoc || ecosJpgDoc
+    } else if (props === 'note') {
+      obj.ecosObj = ecosNoteDoc
+    } else if (props === 'pdf') {
+      obj.ecosObj = ecosPdfDoc
+    } else if (props === 'text') {
+      obj.ecosObj = ecosTextDoc
+    }
+  } else {
+    obj.ecosObj = getEcosDocObject(props as EcosDocument)
   }
+  return obj
 }
 
 export function getDividerComponent(
@@ -485,10 +480,12 @@ export function getScrollViewComponent(
 }
 
 export function getTextFieldComponent(
-  props?: ComponentProps<TextFieldComponentObject> & {
-    placeholder?: EmitObjectFold | Path
-    dataKey?: string
-  },
+  props?: ComponentProps<
+    TextFieldComponentObject & {
+      placeholder?: Path
+      dataKey?: string
+    }
+  >,
 ): TextFieldComponentObject {
   return {
     type: 'textField',

@@ -11,7 +11,7 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { PageObject } from 'noodl-types'
-import { NUI, NUIComponent, publish, Viewport as VP } from 'noodl-ui'
+import { NUI, NUIComponent, Page as NUIPage, Viewport as VP } from 'noodl-ui'
 import { Draft } from 'immer/dist/internal'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import {
@@ -29,7 +29,7 @@ import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
-import { toast } from './utils/dom'
+import { setDocumentScrollTop, toast } from './utils/dom'
 import { isStable, isUnitTestEnv, isOutboundLink } from './utils/common'
 import * as T from './app/types'
 
@@ -559,6 +559,19 @@ class App {
           this.meeting.onConnected(this.meeting.room)
           this.meeting.calledOnConnected = true
           log.grey(`Republishing tracks with meeting.onConnected`)
+        }
+      }
+      // Handle pages that have { viewPort: "top" }
+      const pageObjectViewPort = (page.getNuiPage() as NUIPage).object?.()
+        .viewPort
+
+      if (pageObjectViewPort) {
+        if (pageObjectViewPort === 'top') {
+          window.scrollY !== 0 && setDocumentScrollTop()
+        } else if (/(center|middle)/i.test(pageObjectViewPort)) {
+          setDocumentScrollTop('center')
+        } else if (pageObjectViewPort === 'bottom') {
+          setDocumentScrollTop('bottom')
         }
       }
     }

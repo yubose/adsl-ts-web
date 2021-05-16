@@ -12,7 +12,7 @@ server:
   host: 127.0.0.1
   port: "3001"
   protocol: http
-  config: meet4d
+  config: www
 op:
   alias:
     "@aitmed/web-common-utils":
