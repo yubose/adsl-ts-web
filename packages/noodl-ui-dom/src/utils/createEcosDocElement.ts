@@ -1,9 +1,11 @@
 import * as u from '@jsmanifest/utils'
-import { EcosDocument, NameField } from 'noodl-types'
+import { EcosDocument, Identify, NameField } from 'noodl-types'
 import { classes } from '../constants'
-import { isImageDoc, isNoteDoc, isPdfDoc, isTextDoc } from './internal'
+import { isImageDoc, isPdfDoc, isTextDoc } from './internal'
 import createAsyncImageElement from './createAsyncImageElement'
 import createTextNode from './createTextNode'
+
+const is = Identify.ecosObj
 
 interface CreateEcosDocElementArgs<N extends NameField = NameField> {
   ecosObj: EcosDocument<N>
@@ -93,13 +95,6 @@ function createEcosDocElement<
     iframeContent.style.width = '100%'
     iframeContent.style.height = '100%'
   }
-  // Note document
-  else if (isNoteDoc(ecosObj)) {
-    iframeContent = document.createElement('div')
-    iframeContent.classList.add(classes.ECOS_DOC_NOTE)
-    iframeContent.style.width = '100%'
-    iframeContent.style.height = '100%'
-  }
   // PDF Document
   else if (isPdfDoc(ecosObj)) {
     iframe.classList.add(classes.ECOS_DOC_PDF)
@@ -133,12 +128,12 @@ function createEcosDocElement<
     }
   }
   // Text document (markdown, html, plain text, etc)
-  else if (isNoteDoc(ecosObj) || isTextDoc(ecosObj as EcosDocument)) {
+  else if (is.note(ecosObj) || isTextDoc(ecosObj as EcosDocument)) {
     iframeContent = document.createElement('div')
     iframeContent.style.width = '100%'
     iframeContent.style.height = '100%'
 
-    if (isNoteDoc(ecosObj)) {
+    if (is.note(ecosObj)) {
       iframeContent.classList.add(classes.ECOS_DOC_NOTE)
     } else if (isTextDoc(ecosObj as EcosDocument)) {
       iframeContent.classList.add(classes.ECOS_DOC_TEXT)
@@ -177,7 +172,7 @@ function createEcosDocElement<
       )
     }
 
-    ecosObj?.name?.title && appendTextNode('title')
+    ecosObj?.name?.title && !is.note(ecosObj) && appendTextNode('title')
     ecosObj?.name?.content && appendTextNode('content')
     ecosObj?.name?.note && appendTextNode('note')
     ecosObj?.name?.data && appendTextNode('data')

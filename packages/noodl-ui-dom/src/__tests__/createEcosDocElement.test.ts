@@ -11,9 +11,7 @@ import { findBySelector, getFirstByElementId } from '../utils'
 import { createRender } from '../test-utils'
 import * as c from '../constants'
 
-function getEcosDocComponentRenderResults<
-  NameField extends NameField.Base = NameField.Base,
->({
+function getEcosDocComponentRenderResults<N extends NameField = NameField>({
   ecosObj = mock.getEcosDocObject() as EcosDocument<NameField>,
   component: componentProp = mock.getEcosDocComponent({
     id: 'hello',
@@ -22,7 +20,7 @@ function getEcosDocComponentRenderResults<
   node = document.createElement('div'),
 }: {
   component?: EcosDocComponentObject
-  ecosObj?: EcosDocument<NameField>
+  ecosObj?: EcosDocument<N>
   node?: HTMLElement
 } = {}) {
   const component = NDOM._nui.resolveComponents(componentProp)
@@ -140,35 +138,24 @@ describe(coolGold(`createEcosDocElement`), async () => {
     })
   })
 
-  describe.only(italic(`Displaying`), () => {
+  describe(italic(`Displaying`), () => {
     describe(white('note'), () => {
-      it.only(`should not display the title by default`, async () => {
+      it(`should only display the note's body content and not the title`, async () => {
         const component = await createRender({
           components: [mock.getEcosDocComponent('note')],
         }).render()
-        console.log(component.get('ecosObj'))
         const node = getFirstByElementId(component)
         const iframe = node.firstElementChild as HTMLIFrameElement
-        const body = iframe.contentDocument?.body as HTMLElement
-        console.info(prettyDOM(body))
-      })
-
-      xit(`should display the data contents of a note by default`, async () => {
-        const ecosComponentObject = mock.getEcosDocComponent('note')
-        const { render } = createRender({
-          components: [ecosComponentObject],
-        })
-        const component = await render()
-        const node = getFirstByElementId(component)
-        const iframe = node.firstElementChild as HTMLIFrameElement
-        // console.info(prettyDOM(node))
         await waitFor(() => {
-          const body = iframe.contentDocument?.body
-          console.info(prettyDOM(body))
-          expect(body)
-          // const noteNode = iframe.contentDocument?.getElementsByClassName(
-          //   c.classes.ECOS_DOC_NOTE,
-          // )
+          const body = iframe.contentDocument?.body as HTMLBodyElement
+          const titleNode = body.getElementsByClassName(
+            c.classes.ECOS_DOC_TEXT_TITLE,
+          )[0]
+          const descNode = body.getElementsByClassName(
+            c.classes.ECOS_DOC_NOTE_DATA,
+          )[0]
+          expect(titleNode).not.to.exist
+          expect(descNode).to.exist
         })
       })
     })

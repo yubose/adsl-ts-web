@@ -105,11 +105,14 @@ describe(coolGold(`resolvers`), () => {
 
 describe(italic(`ecosDoc`), () => {
   it(`should create an iframe as a direct child`, async () => {
-    const imageComponentObject = mock.getEcosDocComponent({ id: 'hello' })
+    const imageComponentObject = mock.getEcosDocComponent({
+      id: 'hello',
+      ecosObj: mock.getEcosDocObject('image'),
+    })
     const { render } = createRender({
       components: [imageComponentObject],
     })
-    const component = await render()
+    await render()
     const node = n.getFirstByElementId('hello')
     const child = node.firstElementChild as HTMLIFrameElement
     expect(node).to.have.property('tagName').not.to.eq('IFRAME')
@@ -184,6 +187,7 @@ describe(italic(`ecosDoc`), () => {
         const component = await render()
         const node = n.getFirstByElementId(component.id)
         const iframe = node.firstElementChild as HTMLIFrameElement
+        console.info(componentObject.ecosObj)
         await waitFor(() => {
           const text = iframe?.contentDocument?.body.getElementsByClassName(
             c.classes.ECOS_DOC_TEXT,
