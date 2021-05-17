@@ -1,13 +1,12 @@
 import * as u from '@jsmanifest/utils'
 import { EcosDocument, NameField } from 'noodl-types'
 import { classes } from '../constants'
-import { isImageDoc, isPdfDoc, isTextDoc } from './internal'
+import { isImageDoc, isNoteDoc, isPdfDoc, isTextDoc } from './internal'
 import createAsyncImageElement from './createAsyncImageElement'
+import createTextNode from './createTextNode'
 
-interface CreateEcosDocElementArgs<
-  NameField extends NameField.Base = NameField.Base,
-> {
-  ecosObj: EcosDocument<NameField>
+interface CreateEcosDocElementArgs<N extends NameField = NameField> {
+  ecosObj: EcosDocument<N>
   width?: number
   height?: number
   onLoad?(args: {
@@ -26,26 +25,24 @@ interface CreateEcosDocElementArgs<
   }): void
 }
 
-function createEcosDocElement<
-  NameField extends NameField.Base = NameField.Base,
->(
+function createEcosDocElement<N extends NameField = NameField>(
   container: HTMLElement,
-  ecosObj: EcosDocument<NameField.Base>,
+  ecosObj: EcosDocument<N>,
 ): HTMLIFrameElement
 
 function createEcosDocElement<
-  NameField extends NameField.Base = NameField.Base,
-  Args extends CreateEcosDocElementArgs<NameField> = CreateEcosDocElementArgs<NameField>,
+  N extends NameField = NameField,
+  Args extends CreateEcosDocElementArgs<N> = CreateEcosDocElementArgs<N>,
 >(
   container: HTMLElement,
   opts: CreateEcosDocElementArgs<NameField>,
 ): HTMLIFrameElement
 
 function createEcosDocElement<
-  NameField extends NameField.Base & Record<string, any> = NameField.Base,
+  N extends NameField & Record<string, any> = NameField,
 >(
   container: HTMLElement,
-  opts: EcosDocument<NameField> | CreateEcosDocElementArgs<NameField>,
+  opts: EcosDocument<N> | CreateEcosDocElementArgs<N>,
 ): HTMLIFrameElement {
   const width = Number(container.style.width.replace(/[a-zA-Z]/i, ''))
   const height = Number(container.style.height.replace(/[a-zA-Z]/i, ''))
@@ -54,7 +51,7 @@ function createEcosDocElement<
 
   let onLoad: CreateEcosDocElementArgs['onLoad'] | undefined
   let onError: CreateEcosDocElementArgs['onError'] | undefined
-  let ecosObj: EcosDocument<NameField> | undefined
+  let ecosObj: EcosDocument<N> | undefined
 
   if (u.isObj(opts)) {
     if ('ecosObj' in opts) {
@@ -96,6 +93,13 @@ function createEcosDocElement<
     iframeContent.style.width = '100%'
     iframeContent.style.height = '100%'
   }
+  // Note document
+  else if (isNoteDoc(ecosObj)) {
+    iframeContent = document.createElement('div')
+    iframeContent.classList.add(classes.ECOS_DOC_NOTE)
+    iframeContent.style.width = '100%'
+    iframeContent.style.height = '100%'
+  }
   // PDF Document
   else if (isPdfDoc(ecosObj)) {
     iframe.classList.add(classes.ECOS_DOC_PDF)
@@ -129,33 +133,15 @@ function createEcosDocElement<
     }
   }
   // Text document (markdown, html, plain text, etc)
-  else if (isTextDoc(ecosObj as EcosDocument)) {
+  else if (isNoteDoc(ecosObj) || isTextDoc(ecosObj as EcosDocument)) {
     iframeContent = document.createElement('div')
     iframeContent.style.width = '100%'
     iframeContent.style.height = '100%'
-    iframeContent.classList.add(classes.ECOS_DOC_TEXT)
 
-    const createTextDocElement = function _createTextDocElement(
-      content: string | number,
-      options?: Record<string, any>,
-    ) {
-      const div = document.createElement('div')
-      const textNode = document.createTextNode(String(content))
-      if (options) {
-        u.entries(options).forEach(([key, value]) => {
-          if (key === 'style') {
-            div.style[key] = value
-          } else if (key === 'classList') {
-            u.array(value).forEach((className: string) => {
-              className && div.classList.add(className)
-            })
-          } else {
-            div.setAttribute(key, value)
-          }
-        })
-      }
-      div.appendChild(textNode)
-      return div
+    if (isNoteDoc(ecosObj)) {
+      iframeContent.classList.add(classes.ECOS_DOC_NOTE)
+    } else if (isTextDoc(ecosObj as EcosDocument)) {
+      iframeContent.classList.add(classes.ECOS_DOC_TEXT)
     }
 
     const appendTextNode = function _appendTextNode(
@@ -169,13 +155,12 @@ function createEcosDocElement<
             `color:#ec0000;`,
             content,
           )
-          u.eachEntries(content, (k, v) => {
-            u.isStr(v) && (content = v)
-          })
+          u.eachEntries(content, (k, v) => u.isStr(v) && (content = v))
         }
       }
+
       iframeContent.appendChild(
-        createTextDocElement(content, {
+        createTextNode(content, {
           title: label === 'title' ? ecosObj?.name?.[label] : undefined,
           name: label,
           classList:

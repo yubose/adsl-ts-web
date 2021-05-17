@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
 import { array } from './common'
@@ -95,14 +96,45 @@ export function openFileSelector(
   })
 }
 
+type DocumentScrollTopOptions = {
+  top?: number
+  left?: number
+  smooth?: boolean
+  win?: Window
+}
+
 /**
  * Set the current vertical position of the scroll bar for document
  * Note: do not support fixed position of body
  * @param { number } value
  */
-function setDocumentScrollTop(value: number, win?: Window | null) {
-  ;(win || window).scrollTo(0, value)
-  return value
+export function setDocumentScrollTop(opts: DocumentScrollTopOptions): void
+export function setDocumentScrollTop(top?: number, win?: Window | null): void
+export function setDocumentScrollTop(str: 'bottom'): void
+export function setDocumentScrollTop(str: 'center'): void
+export function setDocumentScrollTop(
+  opts: 'bottom' | 'center' | number | DocumentScrollTopOptions = 0,
+  win?: Window | null,
+) {
+  let top: number | undefined
+  let left: number | undefined
+  let behavior = 'smooth' as ScrollBehavior
+
+  if (u.isObj(opts)) {
+    top = opts.top || 0
+    left = opts.left || window.scrollX
+    opts.smooth === false && (behavior = 'auto')
+  } else if (u.isNum(opts)) {
+    top = opts
+  } else if (opts === 'bottom') {
+    top = (win || window).screen.height
+  } else if (opts === 'center') {
+    top = (win || window).screen.height / 2
+  }
+
+  u.isUnd(top) && (top = 0)
+  u.isUnd(left) && (left = window.scrollX)
+  ;(win || window).scrollTo({ top, left, behavior })
 }
 
 /**

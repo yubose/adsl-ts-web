@@ -25,23 +25,10 @@ These variables are available globally:
 - select options is now an array of objs
   - optionKey
   - dataKey gets set the object
-- url routing
-  - `aitmed.com/SignIn-MeetingRoomInvited-Dashboard` etc. etc
-  - back button detection
-  - max 10 entries
-  - final goal: compress/decompress with base64
 - images with an empty `src` attribute showing the "special" border. disable it or make it invisible in `stable` env
 - viewport top in yml not implemented
-- if obj expressions
-  - ex: `itemObject.value == "Female"` (string) --> grab itemObject, compare `.value` prop with `==`
-- history
-- bugs
-  - footer 4.0 --> 4.1 top value placement
-  - input focus issue on androids
 - contentType: timer
   - inc/dec value at `dataKey` every second
-- Bug with goBack
-  - UploadSharedDocuments should go back to the docs list (but goes back to dashboard)
 
 ## Notes
 
@@ -52,6 +39,25 @@ These variables are available globally:
   - B receives the invitation
   - Server sends notification with payload of document id (`did`)
   - A receives notification. Pass `did` to emit call
+
+### `Note` ecosDoc
+
+- Creating a comment on a note (DocumentDetail)
+- Creating a note
+  - Params to sdk:
+    - title
+    - content
+    - targetRoomName
+    - mediaType: text/plain
+    - type: "1025"
+  - Params response received from sdk:
+    - title
+    - data
+    - targetRoomName
+    - type: application/json
+    - type: 1025
+    - subtype:
+      - mediaType: 8 (TextMediaType)
 
 #### Image
 

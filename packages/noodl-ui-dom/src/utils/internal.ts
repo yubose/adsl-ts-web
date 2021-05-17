@@ -55,7 +55,7 @@ export function addClassName(className: string, node: HTMLElement) {
 type CreateDocIdentifierArg =
   | NUIComponent.Instance
   | ComponentObject
-  | EcosDocument<NameField.Base>
+  | EcosDocument<NameField>
   | null
   | undefined
 
@@ -116,6 +116,7 @@ function _createDocIdentifier(
 
 export const isImageDoc = _createDocIdentifier(4, 'image')
 export const isMarkdownDoc = _createDocIdentifier(8, 'markdown')
+export const isNoteDoc = _createDocIdentifier(1, 'json')
 export const isPdfDoc = _createDocIdentifier(1, 'pdf')
 export const isTextDoc = (obj: Record<string, any>) => {
   const isTxt = (s: string) => (isStr(s) && /text/i.test(s)) || s === ''
