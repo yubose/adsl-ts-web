@@ -8,6 +8,7 @@ import ComponentResolver from '../Resolver'
 import * as com from '../utils/common'
 import * as u from '../utils/internal'
 import * as util from '../utils/style'
+import { el } from 'date-fns/locale'
 
 function createStyleEditor(component: NUIComponent.Instance) {
   function editComponentStyles(
@@ -264,7 +265,11 @@ resolveStyles.setResolver(
       // Remove the width to maintain the aspect ratio since images are
       // assumed to have an object-fit of 'contain'
       if (!('width' in originalStyles)) edit(undefined, { remove: 'width' })
-      edit({ objectFit: 'contain' })
+
+      if(!('objectFit' in originalStyles)) {
+        edit({ objectFit: 'contain' }) 
+      }
+      
     } else if (Identify.component.listLike(component)) {
       edit({
         display: originalStyles?.axis === 'horizontal' ? 'flex' : 'block',

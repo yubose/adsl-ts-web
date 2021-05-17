@@ -19,6 +19,7 @@ import {
 import { ConsumerOptions, NUIComponent } from '../types'
 import * as c from '../constants'
 import * as u from '../utils/internal'
+import { getSize } from '../utils/style'
 
 const componentResolver = new Resolver('resolveComponents')
 
@@ -304,6 +305,9 @@ componentResolver.setResolver((component, options, next) => {
            * attributes like "position: absolute" which disrupts the text display.
            * TODO: Instead of a resolverComponent, we should make a resolveStyles
            * to get around this issue. For now we'll hard code known props like "color"
+           * color ---> color
+           * fontSize----> fontSize 
+           * fontWeight---> normal | bold | number 
            */
           const text = createComponent({
             type: 'label',
@@ -311,6 +315,18 @@ componentResolver.setResolver((component, options, next) => {
               display: 'inline-block',
               ...('color' in item
                 ? { color: formatColor(item.color || '') }
+                : undefined),
+              ...('fontSize' in item
+                ? { fontSize: item.fontSize.search(/[a-z]/gi)!=-1 ? item.fontSize : item.fontSize+'px',}
+                : undefined),
+              ...('fontWeight' in item
+                ? { fontWeight: item.fontWeight}
+                : undefined),
+              ...('left' in item
+                ? { marginLeft: item.left.includes('px')?item.left: `${item.left}px`,}
+                : undefined),
+              ...('top' in item
+                ? { marginTop: item.top.includes('px')?item.top: `${item.top}px`}
                 : undefined),
             },
             text: 'text' in item ? item.text : '',
