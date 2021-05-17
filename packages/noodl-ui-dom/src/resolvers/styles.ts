@@ -1,5 +1,4 @@
 import { Identify as is } from 'noodl-types'
-import { Viewport as VP } from 'noodl-ui'
 import { RegisterOptions } from '../types'
 import { addClassName, entries, isObj } from '../utils/internal'
 
@@ -10,21 +9,12 @@ export default {
   before(node, component, { ndom }) {
     if (component.has?.('global')) {
       component.on('image', (src) => {
-        console.log(`%cReceived src for Global Component`, `color:#00b406;`, {
-          src,
-          nodeId: node.id,
-          componentId: component.id,
-          globalId: component.get('data-globalid'),
-          globalObject: ndom.global.components[component.get('data-globalid')],
-        })
         node && (node.style.backgroundImage = `url("${src}")`)
       })
     }
   },
   resolve: (node: HTMLElement, component) => {
-    if (isObj(component.style?.textAlign)) {
-      delete component.style.textAlign
-    }
+    isObj(component.style?.textAlign) && delete component.style.textAlign
 
     entries(component.style).forEach(([styleKey, styleValue]) => {
       node.style[styleKey] = String(styleValue)
@@ -41,7 +31,6 @@ export default {
       ---- TEMP - Experimenting CSS
     -------------------------------------------------------- */
 
-    is.component.ecosDoc(component) && addClassName('ecosDoc', node)
     is.component.page(component) && addClassName('page', node)
     is.component.popUp(component) && addClassName('popup', node)
     is.component.scrollView(component) && addClassName('scroll-view', node)

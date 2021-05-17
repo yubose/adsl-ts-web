@@ -134,7 +134,7 @@ export namespace NUIComponent {
 
   export type HookEvent = keyof Hook
 
-  export interface Hook {
+  export type Hook = {
     [nuiEvent.component.list.ADD_DATA_OBJECT](args: {
       dataObject: any
       index: number
@@ -164,6 +164,30 @@ export namespace NUIComponent {
     options(options: any[]): void
     path(src: string): void
     placeholder(src: string): void
+  } & Partial<
+    Record<TimerHook<'init'>, (fn: (initialTimer: Date) => void) => void> &
+      Record<
+        TimerHook<'interval'>,
+        (args: { component: NUIComponent.Instance; node: HTMLElement }) => void
+      > &
+      Record<TimerHook<'ref'>, (ref: TimerRef) => void>
+  >
+
+  // TODO - Find a better place to put these Timer typings
+  type TimerHook<Evt extends string = string> = `timer:${Evt}`
+  interface TimerRef {
+    start(): void
+    current: Date
+    ref: NodeJS.Timeout
+    clear: () => void
+    increment(): void
+    set(value: any): void
+    onInterval?:
+      | ((args: {
+          node: HTMLElement
+          component: NUIComponent.Instance
+        }) => void)
+      | null
   }
 
   export type Instance = ComponentBase

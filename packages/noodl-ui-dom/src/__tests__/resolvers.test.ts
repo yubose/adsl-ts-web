@@ -8,12 +8,13 @@ import {
 } from 'noodl-ui'
 import { screen, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { coolGold, italic, magenta } from 'noodl-common'
+import { coolGold, italic, magenta, white } from 'noodl-common'
 import { createRender, ndom } from '../test-utils'
 import NOODLDOM from '../noodl-ui-dom'
 import * as u from '../utils/internal'
 import * as n from '../utils'
 import * as c from '../constants'
+import { getFirstByElementId } from '../utils'
 
 describe(coolGold(`resolvers`), () => {
   it(`should attach the component id as the element id`, async () => {
@@ -209,6 +210,29 @@ describe(italic(`ecosDoc`), () => {
   describe(`videos`, () => {
     xit(``, () => {
       //
+    })
+  })
+
+  describe(italic(`Displaying`), () => {
+    describe(white('note'), () => {
+      it(`should only display the note's body content and not the title`, async () => {
+        const component = await createRender({
+          components: [mock.getEcosDocComponent('note')],
+        }).render()
+        const node = getFirstByElementId(component)
+        const iframe = node.firstElementChild as HTMLIFrameElement
+        await waitFor(() => {
+          const body = iframe.contentDocument?.body as HTMLBodyElement
+          const titleNode = body.getElementsByClassName(
+            c.classes.ECOS_DOC_TEXT_TITLE,
+          )[0]
+          const descNode = body.getElementsByClassName(
+            c.classes.ECOS_DOC_NOTE_DATA,
+          )[0]
+          expect(titleNode).not.to.exist
+          expect(descNode).to.exist
+        })
+      })
     })
   })
 })

@@ -1,6 +1,7 @@
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import { NOODLDOMElement, RegisterOptions } from '../types'
+import { Identify } from 'noodl-types'
+import { RegisterOptions } from '../types'
 import { eventId } from '../constants'
 
 export default (function () {
@@ -17,15 +18,15 @@ export default (function () {
 
   return {
     name: '[noodl-ui-dom] text=func',
-    cond: (n, c) => typeof c.get?.('text=func') === 'function',
-    resolve: (node: NOODLDOMElement, component, { ndom }) => {
+    cond: (n, c) => c.has('text=func'),
+    resolve: (node: HTMLElement, component, { ndom }) => {
       if (component.contentType === 'timer') {
         setTimeout(() => {
-          component.emit('initial.timer', (initialTime: Date) => {
+          component.emit('timer:init', (initialTime: Date) => {
             timers[component.id] = {
               start() {
                 timers[component.id].ref = setInterval(() => {
-                  component.emit('interval', {
+                  component.emit('timer:interval', {
                     node,
                     component,
                     ref: timers[component.id],
@@ -60,7 +61,7 @@ export default (function () {
               timers[component.id]?.clear,
             )
 
-            component.emit('timer.ref', timers[component.id])
+            component.emit('timer:ref', timers[component.id])
           })
         }, 500)
       } else {

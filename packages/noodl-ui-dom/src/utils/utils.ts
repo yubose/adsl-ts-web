@@ -124,7 +124,11 @@ export function makeFindByAttr(
 
 export function findBySelector(selector: string | undefined) {
   return selector
-    ? findElement((doc) => doc?.querySelectorAll?.(selector))
+    ? findElement((doc) => {
+        let nodes = doc?.querySelectorAll?.(selector)
+        if (nodes?.length) return nodes
+        return null
+      })
     : null
 }
 
@@ -143,24 +147,44 @@ export const findBySrc = makeFindByAttr('data-src')
 export const findByViewTag = makeFindByAttr('data-viewtag')
 export const findByUX = makeFindByAttr('data-ux')
 
+export function findByClassName(className: string | undefined) {
+  return findElement((doc) =>
+    doc?.getElementsByClassName(u.isStr(className) ? className : ''),
+  )
+}
+
 export function findByElementId(c: NUIComponent.Instance | string | undefined) {
   return findElement((doc) => doc?.getElementById(u.isStr(c) ? c : c?.id || ''))
 }
 
-export function getFirstByElementId(c: Parameters<typeof findByElementId>[0]) {
-  return u.array(asHtmlElement(findByElementId(c)))[0] as HTMLElement
+export function getFirstByClassName<N extends HTMLElement = HTMLElement>(
+  c: Parameters<typeof findByClassName>[0],
+) {
+  return u.array(asHtmlElement(findByClassName(c)))[0] as N
 }
 
-export function getFirstByGlobalId(c: Parameters<typeof findByGlobalId>[0]) {
-  return u.array(asHtmlElement(findByGlobalId(c)))[0] as HTMLElement
+export function getFirstByElementId<N extends HTMLElement = HTMLElement>(
+  c: Parameters<typeof findByElementId>[0],
+) {
+  return u.array(asHtmlElement(findByElementId(c)))[0] as N
 }
 
-export function getFirstByViewTag(c: Parameters<typeof findByViewTag>[0]) {
-  return u.array(asHtmlElement(findByViewTag(c)))[0] as HTMLElement
+export function getFirstByGlobalId<N extends HTMLElement = HTMLElement>(
+  c: Parameters<typeof findByGlobalId>[0],
+) {
+  return u.array(asHtmlElement(findByGlobalId(c)))[0] as N
 }
 
-export function getFirstByUX(c: Parameters<typeof findByUX>[0]) {
-  return u.array(asHtmlElement(findByUX(c)))[0] as HTMLElement
+export function getFirstByViewTag<N extends HTMLElement = HTMLElement>(
+  c: Parameters<typeof findByViewTag>[0],
+) {
+  return u.array(asHtmlElement(findByViewTag(c)))[0] as N
+}
+
+export function getFirstByUX<N extends HTMLElement = HTMLElement>(
+  c: Parameters<typeof findByUX>[0],
+) {
+  return u.array(asHtmlElement(findByUX(c)))[0] as N
 }
 
 /**

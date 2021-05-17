@@ -60,8 +60,6 @@ const createActions = function createActions(app: App) {
             log.func(`emit [${trigger}]`)
             log.grey('', action)
 
-            console.info(`EMIT!!!`, { action, options })
-
             const emitParams = {
               actions: _pick(action, 'actions'),
               pageName: app.currentPage,
@@ -348,7 +346,7 @@ const createActions = function createActions(app: App) {
     const { ref } = options
     const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
     const popUpView = _pick(action, 'popUpView')
-    u.arrayEach(findByViewTag(popUpView), async (elem) => {
+    u.arrayEach(asHtmlElement(findByViewTag(popUpView)), (elem) => {
       if (dismissOnTouchOutside) {
         const onTouchOutside = function onTouchOutside(
           this: HTMLDivElement,
@@ -422,7 +420,7 @@ const createActions = function createActions(app: App) {
               `waiting on a response. Aborting now...`,
             action,
           )
-          await ref?.abort?.()
+          ref?.abort?.()
         }
       } else {
         let msg = `Tried to ${action.actionType === 'popUp' ? 'show' : 'hide'}`

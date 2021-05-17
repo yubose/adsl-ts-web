@@ -45,7 +45,7 @@ const domComponentsResolver: Resolve.Config = {
         const idLabel =
           (u.isImageDoc(component) && 'image') ||
           (u.isMarkdownDoc(component) && 'markdown') ||
-          (u.isPdfDoc(component) && 'pdf') ||
+          (Identify.ecosObj.doc(component) && 'doc') ||
           (u.isTextDoc(component) && 'text') ||
           (u.isWordDoc(component) && 'word-doc') ||
           'ecos'

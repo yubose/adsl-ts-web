@@ -14,6 +14,7 @@ import { array, keys, isArr, isStr, isUnd } from './utils/internal'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import * as defaultResolvers from './resolvers'
+import createEcosDocElement from './utils/createEcosDocElement'
 
 export const baseUrl = 'https://aitmed.com/'
 export const assetsUrl = baseUrl + 'assets/'
