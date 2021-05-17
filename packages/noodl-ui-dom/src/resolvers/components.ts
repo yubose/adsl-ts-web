@@ -280,7 +280,7 @@ const domComponentsResolver: Resolve.Config = {
         let sourceEl: HTMLSourceElement
         let notSupportedEl: HTMLParagraphElement
         videoEl.controls = Identify.isBooleanTrue(controls)
-        if (poster) videoEl.setAttribute('poster', poster)
+        if (poster) videoEl.setAttribute('poster', component.get('poster'))
         if (component.has('path')) {
           component.on('path', (res) => {
             sourceEl = document.createElement('source')

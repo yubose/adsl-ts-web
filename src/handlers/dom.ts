@@ -783,7 +783,7 @@ const createExtendedDOMResolvers = function (app: App) {
               const newParent = document.createElement('div')
               const eyeContainer = document.createElement('button')
               const eyeIcon = document.createElement('img')
-
+              eyeIcon.style.zIndex = '100'
               // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
               // prettier-ignore
               const dividedStyleKeys = ['position', 'left', 'top', 'right', 'bottom', 'width', 'height'] as const
@@ -831,7 +831,7 @@ const createExtendedDOMResolvers = function (app: App) {
               newParent.appendChild(node)
               newParent.appendChild(eyeContainer)
 
-              let selected = false
+              let selected = true
 
               eyeIcon.dataset.mods = ''
               eyeIcon.dataset.mods += '[password.eye.toggle]'
