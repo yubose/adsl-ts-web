@@ -10,21 +10,10 @@ objects:
 server:
   dir: server
   host: 127.0.0.1
-  port: "3001"
+  port: '3001'
   protocol: http
   config: meet4d
 op:
-  alias:
-    "@aitmed/web-common-utils":
-      regex: (common|util|cu)
-    noodl-ui:
-      regex: (nui|noodl-ui)
-    noodl-ui-dom:
-      regex: (ndom|noodl-ui-dom)
-    noodl-utils:
-      regex: (nutil|noodl-utils)
-    noodl-ui-test-utils:
-      regex: (nuitu|ntu|nuitest|noodl-ui-test-utils)
   split:
     pageObject:
       - dir: _data/meetingChat
@@ -33,3 +22,9 @@ op:
           - components
         target:
           dir: src/__tests__/helpers/mockMeetingChat
+regex:
+  packages:
+    (nui|noodl-ui): noodl-ui
+    (ndom|noodl-ui-dom): noodl-ui-dom
+    (nutil|noodl-utils): noodl-utils
+    (nuitu|ntu|nuitest|noodl-ui-test-utils): noodl-ui-test-utils

@@ -1,64 +1,98 @@
 const u = require('@jsmanifest/utils')
-const { spawn } = require('child_process')
+const execa = require('execa')
 const color = require('./colors')
+
+const colors = [color.aquamarine, color.cyan, color.coolGold, color.fadedSalmon]
 
 /**
  *
  * @param { import('./op') } props
  */
-async function buildOrStart(props) {
-  console.log('props', props)
+function buildOrStart(props) {
+  function startWebApp() {
+    getShell(
+      {
+        command: 'npm',
+        args: ['run', 'start:test'],
+        opts: { shell: true },
+      },
+      (data) => console.log(`[${color.brightGreen('app')}] ${data}`),
+    )
+  }
 
-  const { config, input = [] } = props
-  const { deploy } = props.flags
-
-  let command = input[0] // 'start', 'build', etc
-  let lib = '' // Will be found using libInput
-  let libInput = input[1] // Regex / alias (ex: 'nui' will be computed to 'noodl-ui')
-  let isBuilding = command === 'build'
-  let isStart = command === 'start'
-  let isDeploying = deploy === true
+  /**
+   * @param { object } options
+   * @param { [string, string[] ] } options.args
+   * @param { string } options.label
+   * @param { execa.Options } options.opts
+   * @param { (data: string) => void } onData
+   */
+  function getShell({ command, args, label, opts }, onData) {
+    const shell = execa.commandSync(`${command} ${args.join(' ')}`, {
+      shell: true,
+      encoding: 'utf8',
+      stdio: 'inherit',
+      ...opts,
+    })
+    shell.stdout.on('close', () => console.log(`[${label}] close`))
+    shell.stdout.on('end', () => console.log(`[${label}] end`))
+    shell.stdout.on('error', () => console.log(`[${label}] error`))
+    shell.stdout.on('pause', () => console.log(`[${label}] pause`))
+    shell.stdout.on('data', (c) => onData?.(c.toString().trim()))
+    return shell
+  }
 
   try {
-    let cmd = ``
-    let cmdArgs = []
+    let { config, flags } = props
+    let { build, start } = flags
 
-    const aliases = config.op?.alias
+    let command = build ? 'build' : 'start'
+    let inputs = (build || start).split(',').filter(Boolean)
+    let isAppIncluded = start === 'app' || inputs.includes('app')
 
-    if (libInput === 'app') {
-      // Web app
-      cmd += `npm`
-      cmdArgs.push('run')
-      if (isBuilding) {
-        cmdArgs.push(isDeploying ? 'build:deploy:test' : 'build:test')
-      } else if (isStarting) {
-        cmdArgs.push(`lib:start`)
-      }
-    } else {
-      // Local pkg
-      for (const [pkgName, { regex: regexStr }] of u.entries(aliases)) {
-        if (new RegExp(regexStr, 'i').test(libInput)) {
-          lib = pkgName
+    console.log(`command: ${u.magenta(command)}`)
+    console.log(`inputs`, inputs)
+    console.log(`isAppIncluded`, isAppIncluded)
+    u.newline()
+
+    isAppIncluded && (inputs = inputs.filter((s) => !!s && s !== 'app'))
+
+    const entries = u.entries(config.regex.packages)
+    const numEntries = entries.length
+
+    console.log(entries)
+    
+
+    for (let index = 0; index < numEntries; index++) {
+      const [regex, pkg] = entries[index]
+      console.log(regex)
+      for (const input of inputs) {
+        const matches = new RegExp(regex, 'i').test(input)
+        if (matches) {
+          const shell = getShell(
+            {
+              command: 'lerna',
+              args: [`exec`, `--scope`, pkg, `"npm run ${command}"`],
+            },
+            (data) => {
+              console.log(`[${label}]: ${data}`)
+              ;/bundle/i.test(data) && isAppIncluded && startWebApp()
+            },
+          )
           break
         }
+        // console.log({
+        //   command,
+        //   color,
+        //   isAppIncluded,
+        //   matches,
+        //   regex,
+        //   pkg,
+        //   input,
+        //   inputs,
+        // })
       }
-
-      if (!lib) {
-        throw new Error(
-          `Required lib name for ${color.magenta(command)} script`,
-        )
-      }
-
-      cmd += `lerna`
-      cmdArgs.push(
-        'exec',
-        '--scope',
-        lib,
-        `\"npm run ${command}${args._.join(' ')}\"`,
-      )
     }
-
-    spawn(cmd, cmdArgs, { stdio: 'inherit', shell: true })
   } catch (error) {
     throw new Error(error.message)
   }

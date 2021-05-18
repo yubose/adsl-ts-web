@@ -7,7 +7,7 @@
   "license": "ISC",
   "private": true,
   "bin": {
-    "op": "node ./scripts/op"
+    "op": "node ./op"
   },
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",

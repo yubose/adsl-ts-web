@@ -7,7 +7,8 @@ export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
 }
 
 class Resolver<Func extends (...args: any[]) => any, Inst = any>
-  implements IResolver<Func> {
+  implements IResolver<Func>
+{
   #resolve = {} as IResolver<Func>['resolver']
   #next: Inst | null = null
 
@@ -31,7 +32,7 @@ class Resolver<Func extends (...args: any[]) => any, Inst = any>
 class ComponentResolver<
   Func extends (...args: NUIComponent.ResolverArgs) => void = (
     ...args: NUIComponent.ResolverArgs
-  ) => void
+  ) => void,
 > extends Resolver<Func, ComponentResolver<Func>> {
   #isInternal: boolean = false
   #name: string
