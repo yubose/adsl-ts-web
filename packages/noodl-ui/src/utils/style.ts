@@ -19,14 +19,17 @@ export function getPositionProps(
   key: string, // 'marginTop' | 'top' | 'height' | 'width' | 'left' | 'fontSize'
   viewportSize: number,
 ) {
+  
+  
   if (!styleObj) return
   const value = styleObj?.[key]
   // String
   if (u.isStr(value)) {
     if (value == '0') return { [key]: '0px' }
     if (value == '1') return { [key]: `${viewportSize}px` }
-    if (!hasLetter(value))
+    if (!hasLetter(value)){
       return { [key]: getViewportRatio(viewportSize, value) + 'px' }
+    }
   }
   // Number
   else if (hasDecimal(styleObj?.[key]))
@@ -45,8 +48,7 @@ export function getSize(value: string | number, viewportSize: number) {
   if (value == '1') return `${viewportSize}px`
   if (u.isStr(value)) {
     if (!hasLetter(value)) {
-      if (hasDecimal(value)) return `${Number(value) * viewportSize}px`
-      return `${value}px`
+      return `${Number(value) * viewportSize}px`
     }
     // Assuming it already has a 'px' appended
     return value
@@ -89,8 +91,7 @@ export function getTextAlign(
  */
 export function getViewportRatio(viewportSize: number, size: string | number) {
   if (u.isStr(size) || u.isNum(size)) {
-    if (hasDecimal(size)) return viewportSize * Number(size)
-    return viewportSize / Number(size)
+    return viewportSize * Number(size)
   }
   return viewportSize
 }

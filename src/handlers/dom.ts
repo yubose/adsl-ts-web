@@ -246,6 +246,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
                 gridPages?.addEventListener('click', stopProp)
                 gridSearch?.addEventListener('click', stopProp)
+                break
               }
               case 'timeTable': {
                 // generateYaxis according to timeAxis
@@ -357,8 +358,6 @@ const createExtendedDOMResolvers = function (app: App) {
                 // 把数据按照周几进行划分
                 let weekDate = divideByWeek(dataValue.chartData)
                 let ItemList = generateData(weekDate, itemLength)
-                console.error(weekDate)
-                console.error(ItemList)
                 // 根据 item 找到所处的
                 const Timetable = new Timetables({
                   el: `#${node.id}`,
@@ -445,9 +444,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   element.style.cssText +=
                     ' text-align: center;background-color: #e3f5fc;color: #517086;box-sizing: border-box;border-left: 2px solid #2db3e4;padding-top: 5px;font-size: 14px'
                 })
-                // tableContent?.querySelectorAll
-                // spanContent?.style.cssText += 'background-color: #e3f5fc;color:#517086;box-sizing: border-box;border-left: 2px #2db3e4 solid;'
-                // spanContent?.setAttribute('style','text-align: center!important')
+                break
               }
             }
           } else {
