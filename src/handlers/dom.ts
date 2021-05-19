@@ -773,7 +773,7 @@ const createExtendedDOMResolvers = function (app: App) {
           if (!app[label].isSameElement(node)) {
             app[label].setElement(node)
             log.func('[App] onMeetingComponent')
-            log.green(`Bound an element to ${label}`, app[label])
+            log.green(`Bound an element to ${label}`, app[label],app[label].snapshot())
           }
         }
         if (/mainStream/i.test(viewTag)) setImportantStream('mainStream')
@@ -786,7 +786,7 @@ const createExtendedDOMResolvers = function (app: App) {
               resolver: app.nui.resolveComponents.bind(app.nui),
             })
             log.func('[App] onMeetingComponent')
-            log.green('Initiated subStreams container', subStreams)
+            log.grey('Initiated subStreams container', subStreams,subStreams.snapshot())
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
             // the DOM node and blueprint since it was reset from a previous cleanup
@@ -803,7 +803,7 @@ const createExtendedDOMResolvers = function (app: App) {
               log.red(
                 `Attempted to add an element to a subStream but it ` +
                   `already exists in the subStreams container`,
-                app.subStreams,
+                app.subStreams.snapshot(),
               )
             }
           } else {

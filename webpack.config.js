@@ -1,7 +1,7 @@
 const u = require('@jsmanifest/utils')
 const path = require('path')
 const webpack = require('webpack')
-const singleLog = require('single-line-log')
+const singleLog = require('single-line-log').stdout
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
@@ -179,31 +179,41 @@ module.exports = {
           from: 'public/firebase-messaging-sw.js',
           to: 'firebase-messaging-sw.js',
         },
+        {
+          from: 'public/worker.js',
+          to: 'worker.js',
+        },
       ],
     }),
     new webpack.ProgressPlugin({
-      handler(percentage, msg, ...args) {
-        // prettier-ignore
-        singleLog.stdout(`
-----------------------------------------------------------------------------------------------------
-  Your app is being built for ${u.yellow(`eCOS`)} ${u.magenta(ecos)} environment in ${u.yellow(env)} mode
-  Status:    ${u.blue(msg.toUpperCase())}
-  File:      ${u.magenta(args[0])}
-  Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
-  ${u.blue('eCOS packages')}:
-  ${u.yellow(`@aitmed/cadl`)}:            ${u.magenta(noodlSdkVersion)}
-  ${u.yellow(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(ecosSdkVersion)}
-  ${u.yellow(`noodl-ui`)}:                ${u.magenta(nuiVersion)}
-  ${u.yellow(`noodl-ui-dom`)}:            ${u.magenta(ndomVersion)}
-  ${nodeEnv === 'production' && `
-  A "${u.magenta(filename)}" file will be generated inside your ${u.magenta('build')} directory.
-  The title of the page was set to "${u.yellow(title)}"`})
-----------------------------------------------------------------------------------------------------`)
-      },
+      handler: webpackProgress,
     }),
   ],
   ...productionOptions,
   optimization: {
     ...(productionOptions && productionOptions.optimization),
   },
+}
+
+/**
+ * @param { number } percentage
+ * @param { string } msg
+ * @param { ...string } args
+ */
+function webpackProgress(percentage, msg, ...args) {
+  process.stdout.write('\x1Bc')
+  // prettier-ignore
+  singleLog(
+`Your app is being built for ${u.yellow(`eCOS`)} ${u.magenta(ecos)} environment in ${u.yellow(env)} mode
+Status:    ${u.blue(msg.toUpperCase())}
+File:      ${u.magenta(args[0])}
+Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
+${u.blue('eCOS packages')}:
+${u.yellow(`@aitmed/cadl`)}:            ${u.magenta(noodlSdkVersion)}
+${u.yellow(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(ecosSdkVersion)}
+${u.yellow(`noodl-ui`)}:                ${u.magenta(nuiVersion)}
+${u.yellow(`noodl-ui-dom`)}:            ${u.magenta(ndomVersion)}
+${nodeEnv === 'production' && `
+A "${u.magenta(filename)}" file will be generated inside your ${u.magenta('build')} directory.
+The title of the page was set to "${u.yellow(title)}"`})`)
 }

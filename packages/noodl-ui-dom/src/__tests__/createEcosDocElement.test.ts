@@ -59,7 +59,7 @@ function getEcosDocRenderResults<N extends NameField = NameField>({
   }
 }
 
-describe.only(coolGold(`createEcosDocElement`), async () => {
+describe(coolGold(`createEcosDocElement`), async () => {
   it(`should create an iframe element`, () => {
     const iframe = getEcosDocElement()
     expect(iframe).to.have.property('tagName', 'IFRAME')

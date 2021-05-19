@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import pick from 'lodash/pick'
 import * as lib from 'noodl-ui'
@@ -60,6 +61,7 @@ window.addEventListener('load', async (e) => {
       isSupported: firebaseSupported,
     } = await import('./app/firebase')
     const { default: noodl } = await import('./app/noodl')
+    const { createOnPopState } = await import('./handlers/history')
 
     const app = new App({
       noodl,
@@ -80,7 +82,7 @@ window.addEventListener('load', async (e) => {
       }
     })
 
-    Object.assign(window, {
+    u.assign(window, {
       Account,
       build: process.env.BUILD,
     })
@@ -115,10 +117,12 @@ window.addEventListener('load', async (e) => {
           }
         },
       },
-      ...Object.entries(getWindowHelpers()).reduce(
-        (acc, [key, fn]) => Object.assign(acc, { [key]: { get: () => fn } }),
-        {},
-      ),
+      ...u
+        .entries(getWindowHelpers())
+        .reduce(
+          (acc, [key, fn]) => Object.assign(acc, { [key]: { get: () => fn } }),
+          {},
+        ),
     })
 
     try {
@@ -132,42 +136,19 @@ window.addEventListener('load', async (e) => {
       console.error(error)
     }
 
-    window.addEventListener('popstate', async (e) => {
-      stable && log.cyan(`Received the "goBack" page as ${app.previousPage}`)
-      const parts = app.mainPage.pageUrl.split('-')
-      stable && log.cyan(`URL parts`, parts)
-      if (parts.length > 1) {
-        let popped = parts.pop()
-        stable && log.cyan(`Popped: ${popped}`)
-        while (
-          parts[parts.length - 1].endsWith('MenuBar') &&
-          parts.length > 1
-        ) {
-          popped = parts.pop()
-          stable && log.cyan(`Popped`)
-        }
-        stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
-        if (parts.length > 1) {
-          app.mainPage.pageUrl = parts.join('-')
-          stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
-        } else if (parts.length === 1) {
-          if (parts[0].endsWith('MenuBar')) {
-            stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
-            app.mainPage.pageUrl = 'index.html?'
-          } else {
-            app.mainPage.pageUrl = parts[0]
-            stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
-          }
-        }
-      } else {
-        app.mainPage.pageUrl = 'index.html?'
-        stable && log.cyan(`Page URL: ${app.mainPage.pageUrl}`)
-      }
-      await app.navigate(app.previousPage)
-    })
+    window.addEventListener('popstate', createOnPopState(app))
   } catch (error) {
     console.error(error)
   }
+
+  // if ('serviceWorker' in navigator) {
+  //   navigator.serviceWorker.addEventListener('message', function onMessage(ev) {
+  //     console.log(`%cReceived message!`, `color:#00b406;`, ev)
+  //   })
+  //   const registration = await navigator.serviceWorker.register('worker.js', {
+  //     type: 'classic',
+  //   })
+  // }
 
   // const ws = new WebSocket(`ws://127.0.0.1:3002`)
 

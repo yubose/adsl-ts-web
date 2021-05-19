@@ -7,7 +7,7 @@ import * as com from '../../utils/common'
 
 describe(coolGold(`common (utils)`), () => {
   describe(`getActionMetadata`, () => {
-    it.only(`should create subfields as { fromAction, fromComponent } if a component is provided`, () => {
+    it(`should create subfields as { fromAction, fromComponent } if a component is provided`, () => {
       const component = nui.resolveComponents(
         mock.getButtonComponent({ viewTag: 'buttonTag', text: 'submit' }),
       )

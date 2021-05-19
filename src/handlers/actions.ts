@@ -126,9 +126,30 @@ const createActions = function createActions(app: App) {
                   `will no longer proceed`,
                 { actionChain, injectedObject: result },
               )
-              await actionChain?.abort?.(
-                `An evalObject is requesting to abort using the "abort" key`,
-              )
+              if (actionChain) {
+                // There is a bug with global popups not being able to be visible because of this abort block.
+                // For now until a better solution is implemented we can do a check here
+                for (const action of actionChain.queue) {
+                  const popUpView = _pick(action, 'popUpView')
+                  if (popUpView) {
+                    if (app.ndom.global.components.has(popUpView)) {
+                      log.salmon(
+                        `An "abort: true" was injected from evalObject but a global component ` +
+                          `with popUpView "${popUpView}" was found. These popUp actions will ` +
+                          `still be called to ensure the behavior persists for global popUps`,
+                        {
+                          globalObject:
+                            app.ndom.global.components.get(popUpView),
+                        },
+                      )
+                      await action.execute()
+                    }
+                  }
+                }
+                await actionChain.abort(
+                  `An evalObject is requesting to abort using the "abort" key`,
+                )
+              }
             } else {
               log.grey(
                 `An evalObject action is injecting a new object to the chain`,

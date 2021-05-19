@@ -13,7 +13,6 @@ const resolveAttributes: Resolve.Config = {
   name: `[noodl-ui-dom] Default Common Resolvers`,
   resolve(node, component, { ndom }) {
     const original = component?.blueprint || {}
-
     const { contentType, text, placeholder, path } = original
 
     if (component && node && !u.isFnc(node)) {

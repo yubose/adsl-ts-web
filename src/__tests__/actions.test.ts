@@ -48,7 +48,7 @@ describe(coolGold(`Noodl actions`), () => {
         })
       })
 
-      it.only(`should change the value on the sdk to on`, async () => {
+      it(`should change the value on the sdk to on`, async () => {
         const spy = sinon.spy()
         const { pageName, pageObject } = getPageObject()
         pageObject.micOn = false

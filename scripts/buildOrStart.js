@@ -1,5 +1,6 @@
 const u = require('@jsmanifest/utils')
 const execa = require('execa')
+const { spawn } = require('child_process')
 const color = require('./colors')
 
 const colors = [color.aquamarine, color.cyan, color.coolGold, color.fadedSalmon]
@@ -10,14 +11,17 @@ const colors = [color.aquamarine, color.cyan, color.coolGold, color.fadedSalmon]
  */
 function buildOrStart(props) {
   function startWebApp() {
-    getShell(
-      {
-        command: 'npm',
-        args: ['run', 'start:test'],
-        opts: { shell: true },
-      },
-      (data) => console.log(`[${color.brightGreen('app')}] ${data}`),
-    )
+    const shell = execa('npm', ['run', 'start:test'], { stdio: 'inherit' })
+    // const shell = getShell(
+    //   {
+    //     command: 'npm',
+    //     args: ['run', 'start:test'],
+    //     label: 'app',
+    //     color: color.brightGreen,
+    //     opts: { stdio: 'inherit' },
+    //   },
+    //   (data) => console.log(`[${color.brightGreen('app')}] ${data}`),
+    // )
   }
 
   /**
@@ -27,18 +31,15 @@ function buildOrStart(props) {
    * @param { execa.Options } options.opts
    * @param { (data: string) => void } onData
    */
-  function getShell({ command, args, label, opts }, onData) {
-    const shell = execa.commandSync(`${command} ${args.join(' ')}`, {
-      shell: true,
-      encoding: 'utf8',
-      stdio: 'inherit',
-      ...opts,
-    })
-    shell.stdout.on('close', () => console.log(`[${label}] close`))
-    shell.stdout.on('end', () => console.log(`[${label}] end`))
-    shell.stdout.on('error', () => console.log(`[${label}] error`))
-    shell.stdout.on('pause', () => console.log(`[${label}] pause`))
-    shell.stdout.on('data', (c) => onData?.(c.toString().trim()))
+  function getShell({ command, args, label: labelProp, color, opts }, onData) {
+    const label = color(labelProp)
+    console.info({ command, args, opts, label })
+    const shell = execa(command, args, { shell: true, ...opts })
+    // shell.stdout.on('close', () => console.log(`[${label}] close`))
+    // shell.stdout.on('end', () => console.log(`[${label}] end`))
+    // shell.stdout.on('error', () => console.log(`[${label}] error`))
+    // shell.stdout.on('pause', () => console.log(`[${label}] pause`))
+    // shell.stdout.on('data', (c) => onData?.(c.toString().trim()))
     return shell
   }
 
@@ -53,44 +54,68 @@ function buildOrStart(props) {
     console.log(`command: ${u.magenta(command)}`)
     console.log(`inputs`, inputs)
     console.log(`isAppIncluded`, isAppIncluded)
+
+    u.newline()
+    isAppIncluded && (inputs = inputs.filter((s) => !!s && s !== 'app'))
     u.newline()
 
-    isAppIncluded && (inputs = inputs.filter((s) => !!s && s !== 'app'))
+    // Run lib:start then start:test
+    if (command === 'start' && start === '' && !inputs.length) {
+      /** @type { ChildProcess } appShell */
+      let appShell
 
-    const entries = u.entries(config.regex.packages)
-    const numEntries = entries.length
+      const libShell = execa('npm', ['run', 'lib:start'], { detached: true })
 
-    console.log(entries)
-    
-
-    for (let index = 0; index < numEntries; index++) {
-      const [regex, pkg] = entries[index]
-      console.log(regex)
-      for (const input of inputs) {
-        const matches = new RegExp(regex, 'i').test(input)
-        if (matches) {
-          const shell = getShell(
-            {
-              command: 'lerna',
-              args: [`exec`, `--scope`, pkg, `"npm run ${command}"`],
-            },
-            (data) => {
-              console.log(`[${label}]: ${data}`)
-              ;/bundle/i.test(data) && isAppIncluded && startWebApp()
-            },
-          )
-          break
+      libShell.stdout.on('data', (chunk) => {
+        const data = Buffer.isBuffer(chunk) ? chunk.toString('utf-8') : chunk
+        if (/bundle/i.test(data)) {
+          appShell = spawn('npm', ['run', 'start:test'], {
+            detached: true,
+            stdio: 'inherit',
+          })
+        } else {
+          process.stdout.write(data)
         }
-        // console.log({
-        //   command,
-        //   color,
-        //   isAppIncluded,
-        //   matches,
-        //   regex,
-        //   pkg,
-        //   input,
-        //   inputs,
-        // })
+      })
+
+      // process.on('message', (data) => {
+      //   console.log(`data`, data)
+      // })
+    } else {
+      let index = 0
+      for (const [regexStr, pkg] of u.entries(config.regex.packages)) {
+        const regex = new RegExp(regexStr, 'i')
+        for (const input of inputs) {
+          const matches = regex.test(input)
+          if (matches) {
+            console.log({ matches, input, regex })
+            const color = colors[index++]
+            const commandArgs = [`exec`, `--scope`, pkg, `"npm run ${command}"`]
+            const shell = getShell(
+              {
+                command: 'lerna',
+                args: commandArgs,
+                label: pkg,
+                color,
+              },
+              (data) => {
+                console.log(`[${color(pkg)}]: ${data}`)
+                ;/bundle/i.test(data) && isAppIncluded && startWebApp()
+              },
+            )
+            break
+          }
+          // console.log({
+          //   command,
+          //   color,
+          //   isAppIncluded,
+          //   matches,
+          //   regex,
+          //   pkg,
+          //   input,
+          //   inputs,
+          // })
+        }
       }
     }
   } catch (error) {

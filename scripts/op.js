@@ -40,7 +40,7 @@ console.log(
   )})\n`,
 )
 
-if (flags.start || flags.build) {
+if (flags.start || flags.build || (flags.start === '' && !input.length)) {
   require('./buildOrStart')(getCliArgs())
 } else {
   switch (script) {
@@ -73,6 +73,6 @@ function getCliArgs() {
 
 module.exports = getCliArgs()
 
-process.exit((code) => {
+process.on('exit', (code) => {
   console.log(`Process exited with code ${code}`)
 })

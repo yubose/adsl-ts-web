@@ -15,6 +15,7 @@ declare global {
   const echarts: echarts
   const gridjs: any
   const mapboxgl: any
+  export const self: ServiceWorkerGlobalScope
 
   interface Window {
     ac: any

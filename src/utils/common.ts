@@ -154,7 +154,7 @@ export function isPlainAction(
 export function mapEntries<
   Obj extends Record<string, any>,
   Key extends keyof Obj = keyof Obj,
-  RT = any
+  RT = any,
 >(fn: (key: Key, value: Obj[Key]) => RT, obj: Obj): RT[] {
   return entries(obj).map(([k, v]) => fn(k as Key, v))
 }
@@ -164,16 +164,20 @@ type ActionObjectArg =
   | Parameters<Store.ActionObject['fn']>[0]
   | Record<string, any>
 
+/**
+ * Gets the value of the path/property given from the key from either an action
+ * instance or action object by accessing action.original[key] or action[key]
+ */
 export function pickActionKey<
   A extends ActionObjectArg = ActionObjectArg,
   K extends keyof (ActionObject | UncommonActionObjectProps) = keyof (
     | ActionObject
     | UncommonActionObjectProps
-  )
->(action: A, key: LiteralUnion<K, string>) {
+  ),
+>(action: A, key: LiteralUnion<K, string>, defaultValue?: any) {
   if (!key) return
   const result = get(action.original, key)
-  return isUnd(result) ? get(action, key) : result
+  return isUnd(result) ? get(action, key, defaultValue) : result || defaultValue
 }
 
 export function pickHasActionKey<
@@ -181,7 +185,7 @@ export function pickHasActionKey<
   K extends keyof (ActionObject | UncommonActionObjectProps) = keyof (
     | ActionObject
     | UncommonActionObjectProps
-  )
+  ),
 >(action: A, key: LiteralUnion<K, string>) {
   if (!key || !(isObj(action) || isFnc(action))) return false
   return has(action, 'original') ? has(action.original, key) : has(action, key)
