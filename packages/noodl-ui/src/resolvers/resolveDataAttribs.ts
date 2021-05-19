@@ -59,7 +59,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.popUp(original)) {
-    component.edit({ 'data-ux': viewTag })
+    component.edit({ 'data-ux': popUpView || viewTag })
   }
 
   /* -------------------------------------------------------

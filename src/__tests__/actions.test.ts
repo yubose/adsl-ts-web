@@ -10,28 +10,73 @@ import {
   NUIActionType,
 } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
-import { getFirstByViewTag } from 'noodl-ui-dom'
+import {
+  getFirstByElementId,
+  getFirstByGlobalId,
+  getFirstByViewTag,
+} from 'noodl-ui-dom'
 import { getApp, ndom } from '../utils/test-utils'
 import App from '../App'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
 import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
-import * as u from '../utils/common'
 import getVideoChatPageObject from './helpers/getVideoChatPage'
+import * as u from '../utils/common'
+import * as dom from '../utils/dom'
 
 const nonEmitBuiltInActionTypes = nuiActionTypes.filter(
   (t) => !/(builtIn|emit|register)/.test(t),
 ) as Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>[]
 
-describe(coolGold(`Noodl actions`), () => {
+describe(coolGold(`actions`), () => {
+  describe(italic(`evalObject`), () => {
+    describe.only(`when dynamically receiving actions in the middle of the call`, () => {
+      it(
+        `should still invoke global popUp actions if there are any ` +
+          `remaining when receiving { abort: true }`,
+        async () => {
+          const popUpView = `minimizeVideoChat`
+          const app = await getApp({
+            navigate: true,
+            pageName: 'Cereal',
+            components: [
+              mock.getPopUpComponent({ global: true, popUpView }),
+              mock.getButtonComponent({
+                id: 'button',
+                onClick: [
+                  mock.getEvalObjectAction({
+                    object: async () => ({ abort: true }),
+                  }),
+                  mock.getPopUpAction(popUpView),
+                ],
+              }),
+            ],
+          })
+          const button = app.cache.component.get('button')
+          const buttonElem = getFirstByElementId(button)
+          const globalElem = getFirstByGlobalId(popUpView)
+          const popUpSpy = sinon.spy(app.actions.popUp[0], 'fn')
+          expect(buttonElem).to.exist
+          expect(globalElem).to.exist
+          expect(dom.isVisible(globalElem)).to.be.false
+          buttonElem.click()
+          await waitFor(() => {
+            expect(popUpSpy).to.be.calledOnce
+            expect(dom.isVisible(getFirstByGlobalId(popUpView))).to.be.true
+          })
+        },
+      )
+    })
+  })
+
   describe(italic(`builtIns`), () => {
     describe(`toggleMicrophoneOnOff`, () => {
       const getPageObject = () => {
         return { pageName: 'VideoChat', pageObject: getVideoChatPageObject() }
       }
 
-      it(`should change the value on the sdk to off`, async () => {
+      xit(`should change the value on the sdk to off`, async () => {
         const { pageName, pageObject } = getPageObject()
         pageObject.micOn = true
         await getApp({
@@ -48,7 +93,7 @@ describe(coolGold(`Noodl actions`), () => {
         })
       })
 
-      it(`should change the value on the sdk to on`, async () => {
+      xit(`should change the value on the sdk to on`, async () => {
         const spy = sinon.spy()
         const { pageName, pageObject } = getPageObject()
         pageObject.micOn = false
@@ -64,7 +109,7 @@ describe(coolGold(`Noodl actions`), () => {
         })
         const node = getFirstByViewTag('microphone')
         expect(pageObject.micOn).to.be.false
-        expect(app.cache.actions.emit.get('onClick')[0].fn).to.eq(onClick)
+        expect(app.cache.actions.emit.get('onClick')?.[0].fn).to.eq(onClick)
         node.click()
         await waitFor(() => {
           expect(spy).to.be.called

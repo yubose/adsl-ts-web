@@ -11,6 +11,7 @@ import {
   findByViewTag,
   findByDataAttrib,
   isPageConsumer,
+  findByUX,
 } from 'noodl-ui-dom'
 import {
   ConsumerOptions,
@@ -367,7 +368,7 @@ const createActions = function createActions(app: App) {
     const { ref } = options
     const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
     const popUpView = _pick(action, 'popUpView')
-    u.arrayEach(asHtmlElement(findByViewTag(popUpView)), (elem) => {
+    u.arrayEach(asHtmlElement(findByUX(popUpView)), (elem) => {
       if (dismissOnTouchOutside) {
         const onTouchOutside = function onTouchOutside(
           this: HTMLDivElement,
