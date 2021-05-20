@@ -45,6 +45,7 @@ import * as T from '../app/types'
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey
 const _has = pickHasActionKey
+let lastLoggedMsg = ''
 
 const createActions = function createActions(app: App) {
   const emit = triggers.reduce(

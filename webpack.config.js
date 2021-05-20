@@ -6,6 +6,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
+// const NoodlWebpackPlugin = require('noodl-webpack-plugin').default
 const pkg = require('./package.json')
 const nuiPkg = require('./packages/noodl-ui/package.json')
 const ntilPkg = require('./packages/noodl-utils/package.json')
@@ -131,6 +132,21 @@ module.exports = {
     modules: ['node_modules'],
   },
   plugins: [
+    // new NoodlWebpackPlugin({
+    //   config: 'meet4d',
+    //   hostname: '127.0.0.1',
+    //   // serverPort: 3001,
+    //   serverPath: 'server',
+    //   staticPaths: [
+    //     { name: 'HomePageUrl', res: (response) => response.send('') },
+    //     {
+    //       name: 'cadlEndpoint',
+    //       fn: (req, res) => {
+    //         res.sendFile(path.resolve(path.join('server', 'cadlEndpoint.yml')))
+    //       },
+    //     },
+    //   ],
+    // }),
     new webpack.ProvidePlugin({ process: 'process' }),
     new CircularDependencyPlugin({
       exclude: /node_modules/,
@@ -186,7 +202,7 @@ module.exports = {
       ],
     }),
     new webpack.ProgressPlugin({
-      handler: webpackProgress,
+      // handler: webpackProgress,
     }),
   ],
   ...productionOptions,

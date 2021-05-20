@@ -773,7 +773,11 @@ const createExtendedDOMResolvers = function (app: App) {
           if (!app[label].isSameElement(node)) {
             app[label].setElement(node)
             log.func('[App] onMeetingComponent')
-            log.green(`Bound an element to ${label}`, app[label],app[label].snapshot())
+            log.green(
+              `Bound an element to ${label}`,
+              app[label],
+              app[label].snapshot(),
+            )
           }
         }
         if (/mainStream/i.test(viewTag)) setImportantStream('mainStream')
@@ -786,7 +790,11 @@ const createExtendedDOMResolvers = function (app: App) {
               resolver: app.nui.resolveComponents.bind(app.nui),
             })
             log.func('[App] onMeetingComponent')
-            log.grey('Initiated subStreams container', subStreams,subStreams.snapshot())
+            log.grey(
+              'Initiated subStreams container',
+              subStreams,
+              subStreams.snapshot(),
+            )
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
             // the DOM node and blueprint since it was reset from a previous cleanup
@@ -905,48 +913,50 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] VideoChat Timer': {
-      cond: (n, c) => u.isFnc(c.get('text=func')),
+      cond: (n, c) => c.has('text=func'),
       resolve: (node, component) => {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         if (component.contentType === 'timer') {
-          component.on('timer:init', (setInitialTime: (date: Date) => void) => {
+          component.on('timer:init', (setInitialValue) => {
             const initialTime = startOfDay(new Date())
             // Initial SDK value is set in seconds
             const initialSeconds = get(app.root, dataKey, 0) as number
             // Sdk evaluates from start of day. So we must add onto the start of day
             // the # of seconds of the initial value in the Global object
             let initialValue = add(initialTime, { seconds: initialSeconds })
-            u.isNil(initialValue) && (initialValue = new Date())
-            setInitialTime(initialValue)
+            initialValue == null && (initialValue = new Date())
+            setInitialValue(initialValue)
           })
           // Look at the hard code implementation in noodl-ui-dom
           // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
           // the api declaration
-          component.on('timer:ref', (ref) => {
+          component.on('timer:ref', (timer) => {
             const textFunc = component.get('text=func') || ((x: any) => x)
-            component.on('timer:interval', ({ node, component }) => {
+            component.on('timer:interval', ({ value, node, component }) => {
               app.updateRoot((draft) => {
                 const seconds = get(draft, dataKey, 0)
                 set(draft, dataKey, seconds + 1)
                 const updatedSecs = get(draft, dataKey)
+                console.log(`${seconds} --> ${updatedSecs}`, value)
                 if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
                   if (seconds === updatedSecs) {
                     // Not updated
                     log.func('text=func timer [ndom.register]')
                     log.red(
                       `Tried to update the value of ${dataKey} but the value remained the same`,
-                      { node, component, seconds, updatedSecs, ref },
+                      { node, component, seconds, updatedSecs, timer },
                     )
                   } else {
+                    log.grey(`Updating the timer counter ${timer.value}`)
                     // Updated
-                    ref.increment()
-                    node.textContent = textFunc(ref.current)
+                    timer.increment()
+                    node.textContent = textFunc(timer.value)
                   }
                 }
               })
             })
-            ref.start()
+            timer.start()
           })
         }
       },

@@ -1,3 +1,4 @@
+import { LiteralUnion } from 'type-fest'
 import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
 import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
@@ -5,12 +6,12 @@ import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import createResolver from './createResolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
+import GlobalTimers from './global/Timers'
 import {
   eventId,
   dataAttributes,
   transaction as ndomTransaction,
 } from './constants'
-import { LiteralUnion } from 'type-fest'
 
 export interface IGlobalObject<T extends string = string> {
   type: T
@@ -19,6 +20,7 @@ export interface IGlobalObject<T extends string = string> {
 export interface GlobalMap {
   components: Map<string, GlobalComponentRecord>
   pages: Record<string, NOODLDOMPage>
+  timers: GlobalTimers
 }
 
 export interface GlobalComponentRecordObject {
@@ -198,7 +200,8 @@ export namespace Page {
     rootNode: boolean
   }
 
-  export type Status = typeof eventId.page.status[keyof typeof eventId.page.status]
+  export type Status =
+    typeof eventId.page.status[keyof typeof eventId.page.status]
 
   export interface Snapshot {
     previous: string
@@ -227,7 +230,7 @@ export namespace NDOMTransaction {
 }
 
 export interface UseObject<
-  TName extends NDOMTransaction.Id = NDOMTransaction.Id
+  TName extends NDOMTransaction.Id = NDOMTransaction.Id,
 > extends Omit<
     NUIUseObject<NDOMTransaction.Base, NDOMTransaction.Id>,
     'transaction'
