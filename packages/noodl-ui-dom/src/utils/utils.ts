@@ -163,6 +163,12 @@ export function getFirstByClassName<N extends HTMLElement = HTMLElement>(
   return u.array(asHtmlElement(findByClassName(c)))[0] as N
 }
 
+export function getFirstByDataKey<N extends HTMLElement = HTMLElement>(
+  c: Parameters<typeof findByDataKey>[0],
+) {
+  return u.array(asHtmlElement(findByElementId(c)))[0] as N
+}
+
 export function getFirstByElementId<N extends HTMLElement = HTMLElement>(
   c: Parameters<typeof findByElementId>[0],
 ) {

@@ -24,6 +24,7 @@ export {
   getByDataUX,
   getElementTag,
   getFirstByClassName,
+  getFirstByDataKey,
   getFirstByElementId,
   getFirstByGlobalId,
   getFirstByViewTag,

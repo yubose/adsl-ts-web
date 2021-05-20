@@ -213,13 +213,15 @@ componentResolver.setResolver((component, options, next) => {
           `color:#e50087;`,
           pageObject,
         )
-        const components = (pageObject?.components
-          ? resolveComponents({
-              components: pageObject.components,
-              page: nuiPage,
-              context,
-            })
-          : []) as NUIComponent.Instance[]
+        const components = (
+          pageObject?.components
+            ? resolveComponents({
+                components: pageObject.components,
+                page: nuiPage,
+                context,
+              })
+            : []
+        ) as NUIComponent.Instance[]
         components?.forEach(component.createChild.bind(component))
         component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, components)
       })
@@ -306,8 +308,8 @@ componentResolver.setResolver((component, options, next) => {
            * TODO: Instead of a resolverComponent, we should make a resolveStyles
            * to get around this issue. For now we'll hard code known props like "color"
            * color ---> color
-           * fontSize----> fontSize 
-           * fontWeight---> normal | bold | number 
+           * fontSize----> fontSize
+           * fontWeight---> normal | bold | number
            */
           const text = createComponent({
             type: 'label',
@@ -317,16 +319,29 @@ componentResolver.setResolver((component, options, next) => {
                 ? { color: formatColor(item.color || '') }
                 : undefined),
               ...('fontSize' in item
-                ? { fontSize: item.fontSize.search(/[a-z]/gi)!=-1 ? item.fontSize : item.fontSize+'px',}
+                ? {
+                    fontSize:
+                      item.fontSize.search(/[a-z]/gi) != -1
+                        ? item.fontSize
+                        : item.fontSize + 'px',
+                  }
                 : undefined),
               ...('fontWeight' in item
-                ? { fontWeight: item.fontWeight}
+                ? { fontWeight: item.fontWeight }
                 : undefined),
               ...('left' in item
-                ? { marginLeft: item.left.includes('px')?item.left: `${item.left}px`,}
+                ? {
+                    marginLeft: item.left.includes('px')
+                      ? item.left
+                      : `${item.left}px`,
+                  }
                 : undefined),
               ...('top' in item
-                ? { marginTop: item.top.includes('px')?item.top: `${item.top}px`}
+                ? {
+                    marginTop: item.top.includes('px')
+                      ? item.top
+                      : `${item.top}px`,
+                  }
                 : undefined),
             },
             text: 'text' in item ? item.text : '',
@@ -386,7 +401,7 @@ componentResolver.setResolver((component, options, next) => {
 
     if (u.isUnd(dataValue)) {
       console.log(
-        `%cNo data object or value could be found.`,
+        `%cNo data object or value could be found for a component with contentType: "timer".`,
         `color:#ec0000;`,
         { component, dataKey, dataObject, dataValue },
       )
