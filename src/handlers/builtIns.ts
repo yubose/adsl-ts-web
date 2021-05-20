@@ -626,8 +626,6 @@ export function createVideoChatBuiltIn(app: App) {
     action: BuiltInActionObject & {
       roomId: string
       accessToken: string
-      timer: number
-      timerTag: string
     },
   ) {
     log.func('onVideoChat')

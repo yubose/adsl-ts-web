@@ -31,20 +31,13 @@ function getConfigEndpoint(name: string) {
 const CONFIG_URL = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
 // China Sever
 // const CONFIG_URL = `https://public.ahmucel.com/config/${document.domain.split('.')[0]}.yml?`
-let noodl: NOODL | undefined
+const noodl = new NOODL({
+  aspectRatio:
+    typeof window !== 'undefined'
+      ? VP.getAspectRatio(window.innerWidth, window.innerHeight)
+      : 1,
+  cadlVersion: isStable() ? 'stable' : 'test',
+  configUrl: CONFIG_URL,
+})
 
-resetInstance()
-
-export function resetInstance() {
-  noodl = new NOODL({
-    aspectRatio:
-      typeof window !== 'undefined'
-        ? VP.getAspectRatio(window.innerWidth, window.innerHeight)
-        : 1,
-    cadlVersion: isStable() ? 'stable' : 'test',
-    configUrl: CONFIG_URL,
-  })
-  return noodl
-}
-
-export default noodl as NOODL
+export default noodl

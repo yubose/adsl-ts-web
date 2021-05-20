@@ -18,7 +18,6 @@ import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
 import Page from './Page'
-import Timers from './global/Timers'
 import * as defaultResolvers from './resolvers'
 import * as c from './constants'
 import * as T from './types'
@@ -31,7 +30,6 @@ class NOODLDOM extends NOODLDOMInternal {
   global: T.GlobalMap = {
     components: new Map(),
     pages: {},
-    timers: new Timers(),
   }
   page: Page // This is the main (root) page. All other pages are stored in this.#pages
 
@@ -58,7 +56,7 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   get length() {
-    return u.keys(this.global.pages).length
+    return Object.keys(this.global.pages).length
   }
 
   get pages() {
@@ -239,16 +237,10 @@ class NOODLDOM extends NOODLDOMInternal {
 
     try {
       page.ref.request.timer && clearTimeout(page.ref.request.timer)
-
       const pageObject = await this.transact({
         transaction: c.transaction.REQUEST_PAGE_OBJECT,
         page,
       })
-
-      /**
-       * TODO - Move this to an official location when we have time
-       */
-
       const action = async (cb: () => any | Promise<any>) => {
         try {
           if (

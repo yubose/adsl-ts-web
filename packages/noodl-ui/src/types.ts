@@ -168,27 +168,22 @@ export namespace NUIComponent {
     Record<TimerHook<'init'>, (fn: (initialTimer: Date) => void) => void> &
       Record<
         TimerHook<'interval'>,
-        (args: {
-          value: Date | undefined
-          component: NUIComponent.Instance
-          node: HTMLElement
-        }) => void
+        (args: { component: NUIComponent.Instance; node: HTMLElement }) => void
       > &
-      Record<TimerHook<'ref'>, (ref: Timer) => void>
+      Record<TimerHook<'ref'>, (ref: TimerRef) => void>
   >
 
   // TODO - Find a better place to put these Timer typings
   type TimerHook<Evt extends string = string> = `timer:${Evt}`
-  export interface Timer {
+  interface TimerRef {
     start(): void
     current: Date
-    ref: NodeJS.Timeout | 0 | undefined
+    ref: NodeJS.Timeout
     clear: () => void
     increment(): void
     set(value: any): void
     onInterval?:
       | ((args: {
-          value: Date | undefined
           node: HTMLElement
           component: NUIComponent.Instance
         }) => void)
