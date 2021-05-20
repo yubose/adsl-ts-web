@@ -274,6 +274,17 @@ const domComponentsResolver: Resolve.Config = {
           }
         }
       }
+      /* -------------------------------------------------------
+        ---- DISABLING / ENABLING
+      -------------------------------------------------------- */
+      // TEXTVIEW
+      else if (Identify.component.textView(component)) {
+        if (component.has('isEditable')) {
+          const isEditable = component.get('isEditable')
+          const isDisabled = Identify.isBooleanFalse(isEditable)
+          ;(node as HTMLTextAreaElement).disabled = isDisabled
+        }
+      }
       // VIDEO
       else if (Identify.component.video(component)) {
         const videoEl = node as HTMLVideoElement
