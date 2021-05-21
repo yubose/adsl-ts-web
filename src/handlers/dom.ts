@@ -492,6 +492,7 @@ const createExtendedDOMResolvers = function (app: App) {
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
+            console.log("test map",dataValue)
             let map = new mapboxgl.Map({
               container: parent?.id,
               style: 'mapbox://styles/mapbox/streets-v11',
@@ -521,9 +522,9 @@ const createExtendedDOMResolvers = function (app: App) {
                 let item = {
                   type: 'Feature',
                   properties: {
-                    Name: element.information.Name,
-                    Speciality: element.information.Speciality,
-                    Title: element.information.Title,
+                    name: element.information.name,
+                    speciality: element.information.speciality,
+                    phoneNumber: element.information.phoneNumber,
                     address: element.information.address,
                   },
                   geometry: { type: 'Point', coordinates: element.data },
@@ -640,13 +641,14 @@ const createExtendedDOMResolvers = function (app: App) {
                   // 'address'
                   console.log('test map3', e)
                   let coordinates = e.features[0].geometry.coordinates.slice()
-                  let Name = e.features[0].properties.Name
-                  let Speciality = e.features[0].properties.Speciality
+                  let Name = e.features[0].properties.name
+                  let Speciality = e.features[0].properties.speciality
                   // let Title = e.features[0].properties.Title
+                  let phoneNumber = e.features[0].properties.phoneNumber
                   let address = e.features[0].properties.address
                   new mapboxgl.Popup()
                     .setLngLat(coordinates)
-                    .setHTML(Name + ' <br> ' + Speciality + '<br> ' + address)
+                    .setHTML(Name + ' <br> ' + Speciality + '<br> '+phoneNumber+'<br> '  + address)
                     .addTo(map)
                 })
 
@@ -783,7 +785,7 @@ const createExtendedDOMResolvers = function (app: App) {
               const newParent = document.createElement('div')
               const eyeContainer = document.createElement('button')
               const eyeIcon = document.createElement('img')
-              eyeIcon.style.zIndex = '100'
+
               // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
               // prettier-ignore
               const dividedStyleKeys = ['position', 'left', 'top', 'right', 'bottom', 'width', 'height'] as const
@@ -831,7 +833,7 @@ const createExtendedDOMResolvers = function (app: App) {
               newParent.appendChild(node)
               newParent.appendChild(eyeContainer)
 
-              let selected = true
+              let selected = false
 
               eyeIcon.dataset.mods = ''
               eyeIcon.dataset.mods += '[password.eye.toggle]'
