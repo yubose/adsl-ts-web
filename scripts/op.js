@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 console.clear()
-const { cyan, magenta, red, white } = require('noodl-common')
-const get = require('lodash/get')
-const set = require('lodash/set')
+const u = require('@jsmanifest/utils')
+const { aquamarine, cyan, magenta, red, white } = require('noodl-common')
 const meow = require('meow')
 const yaml = require('yaml')
 const fs = require('fs-extra')
@@ -26,37 +25,40 @@ const cli = meow(
       convert: { alias: 'c', type: 'string' },
       test: { alias: 't', type: 'string' },
       update: { alias: 'u', type: 'string' },
-      deploy: { alias: 'd', type: 'boolean', default: true },
+      deploy: { alias: 'd', type: 'boolean' },
     },
   },
 )
 
 const { flags, input } = cli
-const { lib } = flags
 const script = input[0]
 
 console.log(`\n${cyan('Args')}`, flags)
-console.log(`${cyan('Input')}: ${white(input.join(', '))}\n`)
+console.log(
+  `${cyan('Input')}: ${white(input.join(', '))} (${aquamarine(
+    u.isArr(input) ? 'array' : typeof input,
+  )})\n`,
+)
 
-switch (script) {
-  case 'build':
-  case 'start':
-    require('./buildOrStart')(getCliArgs())
-    break
-  case 'convert':
-  case 'split':
-  case 'sync':
-  case 'update':
-    require(`./${script}`)(getCliArgs())
-    break
-  default:
-    throw new Error(
-      `${red('Invalid script')}. Current available options are: ${cyan(
-        `build`,
-      )}, ${cyan(`start`)}, ${cyan(`convert`)}, ${cyan(`split`)}, ${cyan(
-        `sync`,
-      )}, ${cyan(`update`)}`,
-    )
+if (flags.start || flags.build || (flags.start === '' && !input.length)) {
+  require('./buildOrStart')(getCliArgs())
+} else {
+  switch (script) {
+    case 'convert':
+    case 'split':
+    case 'sync':
+    case 'update':
+      require(`./${script}`)(getCliArgs())
+      break
+    default:
+      throw new Error(
+        `${red('Invalid script')}. Current available options are: ${cyan(
+          `build`,
+        )}, ${cyan(`start`)}, ${cyan(`convert`)}, ${cyan(`split`)}, ${cyan(
+          `sync`,
+        )}, ${cyan(`update`)}`,
+      )
+  }
 }
 
 function getCliArgs() {
@@ -70,3 +72,7 @@ function getCliArgs() {
 }
 
 module.exports = getCliArgs()
+
+process.on('exit', (code) => {
+  console.log(`Process exited with code ${code}`)
+})

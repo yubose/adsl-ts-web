@@ -18,6 +18,7 @@ import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
 import Page from './Page'
+import Timers from './global/Timers'
 import * as defaultResolvers from './resolvers'
 import * as c from './constants'
 import * as T from './types'
@@ -30,6 +31,7 @@ class NOODLDOM extends NOODLDOMInternal {
   global: T.GlobalMap = {
     components: new Map(),
     pages: {},
+    timers: new Timers(),
   }
   page: Page // This is the main (root) page. All other pages are stored in this.#pages
 
@@ -56,7 +58,7 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   get length() {
-    return Object.keys(this.global.pages).length
+    return u.keys(this.global.pages).length
   }
 
   get pages() {
@@ -237,10 +239,16 @@ class NOODLDOM extends NOODLDOMInternal {
 
     try {
       page.ref.request.timer && clearTimeout(page.ref.request.timer)
+
       const pageObject = await this.transact({
         transaction: c.transaction.REQUEST_PAGE_OBJECT,
         page,
       })
+
+      /**
+       * TODO - Move this to an official location when we have time
+       */
+
       const action = async (cb: () => any | Promise<any>) => {
         try {
           if (
@@ -253,10 +261,7 @@ class NOODLDOM extends NOODLDOMInternal {
               `%cAborting this navigate request to ${pageRequesting} because a more ` +
                 `recent request for "${page.requesting}" was instantiated`,
               `color:#FF5722;`,
-              {
-                pageAborting: pageRequesting,
-                pageRequesting: page.requesting,
-              },
+              { pageAborting: pageRequesting, pageRequesting: page.requesting },
             )
             await page.emitAsync(pageEvt.on.ON_NAVIGATE_ABORT, page.snapshot())
             // Remove the page modifiers so they don't propagate to subsequent navigates
@@ -432,17 +437,23 @@ class NOODLDOM extends NOODLDOMInternal {
           component.edit({ 'data-globalid': globalId, globalId })
           // Check mismatchings and recover from them
 
-          const publishMismatchMsg = (type: 'node' | 'component') => {
+          const publishMismatchMsg = (
+            type: 'node' | 'component',
+            extendedText?: string,
+          ) => {
             const id =
               type === 'node'
-                ? node?.id
+                ? node?.id ||
+                  `<Missing node id (component id is "${component.id}")>`
                 : type === 'component'
                 ? component.id
                 : '<Missing ID>'
             console.log(
-              `%cThe ${type} with id "${id} is different than the one in the global object"`,
+              `%cThe ${type} with id "${id}" is different than the one in the global object.${
+                extendedText || ''
+              }`,
               `color:#CCCD17`,
-              globalRecord,
+              { globalObject: globalRecord },
             )
           }
 
@@ -458,12 +469,10 @@ class NOODLDOM extends NOODLDOMInternal {
             if (!node.id) node.id = component.id
             if (globalRecord.nodeId) {
               if (globalRecord.nodeId !== node.id) {
-                console.log(
-                  `%cThe nodeId on the global component record does not match ` +
-                    `with the node that is being rendered. The old node will be ` +
+                publishMismatchMsg(
+                  'node',
+                  `The old node will be ` +
                     `replaced with the incoming node's id`,
-                  `color:#CCCD17;`,
-                  { record: globalRecord, node, component },
                 )
                 const _prevNode = document.getElementById(globalRecord.nodeId)
                 if (_prevNode) {
@@ -491,7 +500,6 @@ class NOODLDOM extends NOODLDOMInternal {
               globalRecord.nodeId = node.id
               node.dataset.globalid = globalId
             }
-            publishMismatchMsg('node')
           }
 
           if (globalRecord.pageId !== page.id) {

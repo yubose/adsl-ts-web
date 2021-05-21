@@ -1,64 +1,123 @@
 const u = require('@jsmanifest/utils')
+const execa = require('execa')
 const { spawn } = require('child_process')
 const color = require('./colors')
+
+const colors = [color.aquamarine, color.cyan, color.coolGold, color.fadedSalmon]
 
 /**
  *
  * @param { import('./op') } props
  */
-async function buildOrStart(props) {
-  console.log('props', props)
+function buildOrStart(props) {
+  function startWebApp() {
+    const shell = execa('npm', ['run', 'start:test'], { stdio: 'inherit' })
+    // const shell = getShell(
+    //   {
+    //     command: 'npm',
+    //     args: ['run', 'start:test'],
+    //     label: 'app',
+    //     color: color.brightGreen,
+    //     opts: { stdio: 'inherit' },
+    //   },
+    //   (data) => console.log(`[${color.brightGreen('app')}] ${data}`),
+    // )
+  }
 
-  const { config, input = [] } = props
-  const { deploy } = props.flags
-
-  let command = input[0] // 'start', 'build', etc
-  let lib = '' // Will be found using libInput
-  let libInput = input[1] // Regex / alias (ex: 'nui' will be computed to 'noodl-ui')
-  let isBuilding = command === 'build'
-  let isStart = command === 'start'
-  let isDeploying = deploy === true
+  /**
+   * @param { object } options
+   * @param { [string, string[] ] } options.args
+   * @param { string } options.label
+   * @param { execa.Options } options.opts
+   * @param { (data: string) => void } onData
+   */
+  function getShell({ command, args, label: labelProp, color, opts }, onData) {
+    const label = color(labelProp)
+    console.info({ command, args, opts, label })
+    const shell = execa(command, args, { shell: true, ...opts })
+    // shell.stdout.on('close', () => console.log(`[${label}] close`))
+    // shell.stdout.on('end', () => console.log(`[${label}] end`))
+    // shell.stdout.on('error', () => console.log(`[${label}] error`))
+    // shell.stdout.on('pause', () => console.log(`[${label}] pause`))
+    // shell.stdout.on('data', (c) => onData?.(c.toString().trim()))
+    return shell
+  }
 
   try {
-    let cmd = ``
-    let cmdArgs = []
+    let { config, flags } = props
+    let { build, start } = flags
 
-    const aliases = config.op?.alias
+    let command = build ? 'build' : 'start'
+    let inputs = (build || start).split(',').filter(Boolean)
+    let isAppIncluded = start === 'app' || inputs.includes('app')
 
-    if (libInput === 'app') {
-      // Web app
-      cmd += `npm`
-      cmdArgs.push('run')
-      if (isBuilding) {
-        cmdArgs.push(isDeploying ? 'build:deploy:test' : 'build:test')
-      } else if (isStarting) {
-        cmdArgs.push(`lib:start`)
-      }
+    console.log(`command: ${u.magenta(command)}`)
+    console.log(`inputs`, inputs)
+    console.log(`isAppIncluded`, isAppIncluded)
+
+    u.newline()
+    isAppIncluded && (inputs = inputs.filter((s) => !!s && s !== 'app'))
+    u.newline()
+
+    // Run lib:start then start:test
+    if (command === 'start' && start === '' && !inputs.length) {
+      /** @type { ChildProcess } appShell */
+      let appShell
+
+      const libShell = execa('npm', ['run', 'lib:start'], { detached: true })
+
+      libShell.stdout.on('data', (chunk) => {
+        const data = Buffer.isBuffer(chunk) ? chunk.toString('utf-8') : chunk
+        if (/bundle/i.test(data)) {
+          appShell = spawn('npm', ['run', 'start:test'], {
+            detached: true,
+            stdio: 'inherit',
+          })
+        } else {
+          process.stdout.write(data)
+        }
+      })
+
+      // process.on('message', (data) => {
+      //   console.log(`data`, data)
+      // })
     } else {
-      // Local pkg
-      for (const [pkgName, { regex: regexStr }] of u.entries(aliases)) {
-        if (new RegExp(regexStr, 'i').test(libInput)) {
-          lib = pkgName
-          break
+      let index = 0
+      for (const [regexStr, pkg] of u.entries(config.regex.packages)) {
+        const regex = new RegExp(regexStr, 'i')
+        for (const input of inputs) {
+          const matches = regex.test(input)
+          if (matches) {
+            console.log({ matches, input, regex })
+            const color = colors[index++]
+            const commandArgs = [`exec`, `--scope`, pkg, `"npm run ${command}"`]
+            const shell = getShell(
+              {
+                command: 'lerna',
+                args: commandArgs,
+                label: pkg,
+                color,
+              },
+              (data) => {
+                console.log(`[${color(pkg)}]: ${data}`)
+                ;/bundle/i.test(data) && isAppIncluded && startWebApp()
+              },
+            )
+            break
+          }
+          // console.log({
+          //   command,
+          //   color,
+          //   isAppIncluded,
+          //   matches,
+          //   regex,
+          //   pkg,
+          //   input,
+          //   inputs,
+          // })
         }
       }
-
-      if (!lib) {
-        throw new Error(
-          `Required lib name for ${color.magenta(command)} script`,
-        )
-      }
-
-      cmd += `lerna`
-      cmdArgs.push(
-        'exec',
-        '--scope',
-        lib,
-        `\"npm run ${command}${args._.join(' ')}\"`,
-      )
     }
-
-    spawn(cmd, cmdArgs, { stdio: 'inherit', shell: true })
   } catch (error) {
     throw new Error(error.message)
   }

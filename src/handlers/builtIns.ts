@@ -57,15 +57,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
       app.updateRoot((draft) => {
         if (localTrack) {
-          if (localTrack.isEnabled) {
-            localTrack.disable()
-            set(draft, devicePath, false)
-            log.grey(`Toggled ${kind} off`, localParticipant)
-          } else {
-            localTrack.enable()
-            set(draft, devicePath, true)
-            log.grey(`Toggled ${kind} on`, localParticipant)
-          }
+          localTrack[localTrack.isEnabled ? 'disable' : 'enable']?.()
+          set(draft, devicePath, !localTrack.isEnabled)
+          log.grey(
+            `Toggled ${kind} ${localTrack.isEnabled ? 'off' : 'on'}`,
+            localParticipant,
+          )
         } else {
           log.red(
             `Tried to toggle ${kind} track on/off for LocalParticipant but a ${kind} ` +
@@ -100,12 +97,33 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('goBack')
     log.grey('', action)
     const reload = _pick(action, 'reload')
+    app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
     if (u.isBool(reload)) {
-      app.mainPage.requesting = app.mainPage
-        .getPreviousPage(app.startPage)
-        .trim()
       app.mainPage.setModifier(app.mainPage.requesting, { reload })
     }
+    if (
+      app.mainPage.requesting === app.mainPage.page &&
+      app.mainPage.page === app.mainPage.previous
+    ) {
+      console.log(
+        `%cLOOK HERE: All three (previous, current, requesting) value of the page name in the noodl-ui-dom instance are the same`,
+        `color:#ec0000;background:#000`,
+      )
+    } else {
+      if (app.mainPage.previous === app.mainPage.page) {
+        console.log(
+          `%cLOOK HERE: The current page is the same as the "previous" page on the noodl-ui-dom page`,
+          `color:deepOrange;background:#000`,
+        )
+      }
+      if (app.mainPage.page === app.mainPage.requesting) {
+        console.log(
+          `%cLOOK HERE: The current page is the same as the "requesting" page on the noodl-ui-dom page`,
+          `color:orange;background:#000`,
+        )
+      }
+    }
+
     window.history.back()
   }
 
@@ -126,11 +144,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       elemCount = hide(findByViewTag(viewTag), onElem)
       !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
     }
-    if (!u.isUnd(wait)) {
-      setTimeout(onHide, wait === true ? 0 : wait)
-    } else {
-      onHide()
-    }
+    !u.isUnd(wait) ? setTimeout(onHide, wait === true ? 0 : wait) : onHide()
   }
 
   const showAction: Store.BuiltInObject['fn'] = async function onShow(
@@ -330,7 +344,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
     options,
   ) {
-    log.func('<builtIn> goto]')
+    log.func('builtIn goto]')
     log.red('', action)
 
     let destinationParam = ''
@@ -365,8 +379,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       }
     } else if (u.isObj(action)) {
-      if ('destination' in action) {
-        destinationParam = _pick(action, 'destination')
+      if ('destination' in action || 'goto' in action) {
+        destinationParam = _pick(action, 'destination', _pick(action, 'goto'))
         'reload' in action && (reload = _pick(action, 'reload'))
         'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
         'dataIn' in action && _pick(action, 'dataIn')
@@ -612,6 +626,8 @@ export function createVideoChatBuiltIn(app: App) {
     action: BuiltInActionObject & {
       roomId: string
       accessToken: string
+      timer: number
+      timerTag: string
     },
   ) {
     log.func('onVideoChat')

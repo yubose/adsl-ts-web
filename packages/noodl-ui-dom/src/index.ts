@@ -11,6 +11,7 @@ export { default as findWindow } from './utils/findWindow'
 export { default as findWindowDocument } from './utils/findWindowDocument'
 export {
   asHtmlElement,
+  findByClassName,
   findByDataAttrib,
   findByDataKey,
   findByElementId,
@@ -22,6 +23,8 @@ export {
   findByUX,
   getByDataUX,
   getElementTag,
+  getFirstByClassName,
+  getFirstByDataKey,
   getFirstByElementId,
   getFirstByGlobalId,
   getFirstByViewTag,

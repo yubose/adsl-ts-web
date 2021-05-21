@@ -12,7 +12,7 @@ let logStub: sinon.SinonStub
 
 before(() => {
   // invariantStub = sinon.stub(global.console, 'error').callsFake(() => {})
-  // logStub = sinon.stub(global.console, 'log').callsFake(() => () => {})
+  logStub = sinon.stub(global.console, 'log').callsFake(() => () => {})
 })
 
 afterEach(() => {
@@ -22,6 +22,6 @@ afterEach(() => {
 })
 
 after(() => {
-  // logStub.restore()
+  logStub.restore()
   // invariantStub.restore()
 })

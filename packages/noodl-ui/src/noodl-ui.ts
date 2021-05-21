@@ -963,6 +963,8 @@ const NUI = (function _NUI() {
         )
       }
 
+      //
+
       if ('emit' in args) {
         u.eachEntries(
           args.emit,

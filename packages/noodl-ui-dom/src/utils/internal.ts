@@ -105,8 +105,8 @@ function _createDocIdentifier(
     }
 
     return !!(
-      _pick(obj, 'mimeType', '').test?.(regex) ||
-      _pick(obj, 'name.type', '').test?.(regex) ||
+      _pick(obj, 'mimeType', '')?.test?.(regex) ||
+      _pick(obj, 'name.type', '')?.test?.(regex) ||
       _pick(obj, 'mediaType', '') == mediaType ||
       _pick(obj, 'subtype.mediaType', '') == mediaType
     )

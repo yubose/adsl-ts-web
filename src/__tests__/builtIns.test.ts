@@ -2,29 +2,69 @@ import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'
-import { Identify } from 'noodl-types'
+import { Identify, PageObject } from 'noodl-types'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { getFirstByElementId, getFirstByViewTag } from 'noodl-ui-dom'
-import { NUIComponent } from 'noodl-ui'
+import { NUIComponent, createAction } from 'noodl-ui'
 import { getApp } from '../utils/test-utils'
 import { isVisible } from '../utils/dom'
 
 const hideShowKey = ['hide', 'show'] as const
 
 describe(coolGold(`builtIn`), () => {
-  describe(italic('goto'), () => {
+  describe.only(italic('goBack'), () => {
+    it(`should set the requesting page to the previous page`, async () => {
+      const pageName = 'Oreo'
+      const app = await getApp({
+        pageName,
+        components: [
+          mock.getButtonComponent({
+            onClick: [
+              mock.getBuiltInAction({ funcName: 'goBack', reload: true }),
+            ],
+          }),
+        ],
+      })
+    })
+
+    xit(
+      `should set the reload property on the page modifier object if it is ` +
+        `going to be used`,
+      () => {
+        //
+      },
+    )
+
+    xit(`should set the "reload" modifier on the page when reload is a boolean`, () => {
+      //
+    })
+
+    xit(`should set the `, () => {
+      //
+    })
+
+    describe(`when multiple goBack builtIns are chained together`, () => {
+      xit(``, () => {
+        //
+      })
+    })
+  })
+
+  describe.only(italic('goto'), () => {
     const getActionObject = (destination: string) =>
       mock.getBuiltInAction({ funcName: 'goto', dataIn: { destination } })
-    const getRoot = () => ({
+    const getRoot = (other?: Record<string, any>) => ({
       Abc: {
         components: [
           mock.getButtonComponent({
             id: 'hello',
+            viewTag: 'helloTag',
             onClick: [getActionObject('Hello')],
           }),
         ],
       },
       Hello: { components: [mock.getLabelComponent({ id: 'block' })] },
+      ...other,
     })
 
     it(`should navigate to the destination`, async () => {
@@ -37,21 +77,46 @@ describe(coolGold(`builtIn`), () => {
       expect(getFirstByElementId('hello')).to.exist
     })
 
-    xit(`should still navigate normally when given plain objects`, async () => {
-      const app = await getApp({ pageName: 'Abc', root: getRoot() })
-      await app.navigate('Hello')
-      await app._test.triggerAction({
-        action: actionObject,
-        component: app._test.getComponent('block'),
-      })
-      expect(getFirstByElementId('block')).not.to.exist
-      await app.navigate('Hello')
+    it(
+      `should be able to navigate to the destination when being using the ` +
+        `{ goto } or { destination } syntax`,
+      async () => {
+        const thirdPageObject = {
+          components: [mock.getDividerComponent({ viewTag: 'dividerTag' })],
+        }
+        // prettier-ignore
+        const app = await getApp({ navigate: true, pageName: 'Abc', root: getRoot({Cereal:thirdPageObject}) })
+        expect(app.mainPage.page).to.eq('Abc')
+        expect(getFirstByViewTag('helloTag')).to.exist
+        await app.actions.builtIn.get('goto')?.[0].fn({ destination: 'Hello' })
+        expect(getFirstByElementId('block')).to.exist
+        await app.actions.builtIn.get('goto')?.[0].fn({ goto: 'Cereal' })
+        expect(getFirstByViewTag('dividerTag')).to.exist
+      },
+    )
+
+    it(`should be able to navigate to the destination using a plain string`, async () => {
+      // prettier-ignore
+      const app = await getApp({ navigate: true, pageName: 'Abc', root: getRoot() })
+      expect(app.mainPage.page).to.eq('Abc')
+      expect(getFirstByViewTag('helloTag')).to.exist
+      await app.actions.builtIn.get('goto')?.[0].fn('Hello')
       expect(getFirstByElementId('block')).to.exist
-      expect(getFirstByElementId('hello')).not.to.exist
-      await app.navigate('Abc')
-      expect(getFirstByElementId('block')).not.to.exist
-      expect(getFirstByElementId('hello')).to.exist
     })
+
+    it(
+      `should be able to navigate to the destination by injecting a ` +
+        `random action goto instance`,
+      async () => {
+        // prettier-ignore
+        const app = await getApp({ navigate: true, pageName: 'Abc', root: getRoot() })
+        expect(app.mainPage.page).to.eq('Abc')
+        expect(getFirstByViewTag('helloTag')).to.exist
+        const action = createAction('onClick', { goto: 'Hello' })
+        await app.actions.builtIn.get('goto')?.[0].fn(action)
+        await waitFor(() => expect(getFirstByElementId('block')).to.exist)
+      },
+    )
   })
 
   hideShowKey.forEach((funcName) => {

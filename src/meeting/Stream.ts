@@ -46,12 +46,13 @@ class MeetingStream {
   }
 
   setElement(node: HTMLElement | null) {
+    const label = this.type ? `${this.type}` : `this stream`
     this.#node = node
     this.#log(
       'setElement',
       node
-        ? 'New element has been set on this stream'
-        : 'Removed/reset the element on this stream',
+        ? `New element has been set on ${label}`
+        : `Removed/reset the element on ${label}`,
     )
   }
 
@@ -343,7 +344,9 @@ class MeetingStream {
         this.#node.appendChild(attachee)
         this.#log(
           `#attachTrack (${track.kind})`,
-          `Loaded the participant's ${track.kind} track`,
+          `Loaded the participant's ${track.kind} track ${
+            this.type ? `on ${this.type}` : ''
+          }`,
           { track },
         )
       }

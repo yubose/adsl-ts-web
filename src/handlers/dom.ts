@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
@@ -6,12 +7,12 @@ import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
-import * as u from '@jsmanifest/utils'
 import { Identify } from 'noodl-types'
 import {
   asHtmlElement,
   findByDataKey,
   getFirstByElementId,
+  getFirstByDataKey,
   isTextFieldLike,
   NOODLDOMDataValueElement,
   Resolve,
@@ -24,7 +25,7 @@ import {
   NUIComponent,
 } from 'noodl-ui'
 import App from '../App'
-import { hide, show } from '../utils/dom'
+import { hide } from '../utils/dom'
 
 const log = Logger.create('dom.ts')
 
@@ -241,9 +242,12 @@ const createExtendedDOMResolvers = function (app: App) {
                 // stopPropagation
                 let gridPages = node.querySelector('.gridjs-pages')
                 let gridSearch = node.querySelector('.gridjs-search')
-                let stopProp = (e: { stopPropagation: () => void })=>{e.stopPropagation();}
-                gridPages?.addEventListener('click',stopProp)
-                gridSearch?.addEventListener('click',stopProp)
+                let stopProp = (e: { stopPropagation: () => void }) => {
+                  e.stopPropagation()
+                }
+                gridPages?.addEventListener('click', stopProp)
+                gridSearch?.addEventListener('click', stopProp)
+                break
               }
               case 'timeTable': {
                 // generateYaxis according to timeAxis
@@ -276,7 +280,9 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
                 // 先把数据按照日期划分为七个数组
                 let divideByWeek = (obj: any[]) => {
-                  let divideDate = new Array(7).fill('').map((val,i)=>({week: i,list:[]}))
+                  let divideDate = new Array(7)
+                    .fill('')
+                    .map((val, i) => ({ week: i, list: [] }))
                   obj.forEach(
                     (element: {
                       stime: string
@@ -297,25 +303,36 @@ const createExtendedDOMResolvers = function (app: App) {
                   return divideDate
                 }
                 // 把日期数组整理为可展示格式
-                let generateData = (obj: { week: number; list: never[] }[],length:any)=>{
+                let generateData = (
+                  obj: { week: number; list: never[] }[],
+                  length: any,
+                ) => {
                   let showData = new Array()
-                  for(let i = 0 ; i < 7 ; i++){
-                    let dayData = new Array(length).fill("")
-                    if(obj[i].list.length != 0){
-                      for(let j =0;j<obj[i].list.length;j++){
+                  for (let i = 0; i < 7; i++) {
+                    let dayData = new Array(length).fill('')
+                    if (obj[i].list.length != 0) {
+                      for (let j = 0; j < obj[i].list.length; j++) {
                         let item = obj[i].list[j]
                         let startTimestamp = parseInt(item.stime) * 1000
                         let endTimestamp = parseInt(item.etime) * 1000
-                        let startTime = parseInt(formatDate(startTimestamp,'H'))*60+parseInt(formatDate(startTimestamp,'m')) 
-                        let endTime = parseInt(formatDate(endTimestamp,'H'))*60+parseInt(formatDate(endTimestamp,'m'))
+                        let startTime =
+                          parseInt(formatDate(startTimestamp, 'H')) * 60 +
+                          parseInt(formatDate(startTimestamp, 'm'))
+                        let endTime =
+                          parseInt(formatDate(endTimestamp, 'H')) * 60 +
+                          parseInt(formatDate(endTimestamp, 'm'))
                         let startIndex = startTime / 5
                         let endIndex = endTime / 5
-                        for(let index = startIndex ; index<endIndex; index++){
+                        for (
+                          let index = startIndex;
+                          index < endIndex;
+                          index++
+                        ) {
                           dayData[index] = item.visitReason
                         }
                         showData.push(dayData)
                       }
-                    }else{
+                    } else {
                       showData.push(dayData)
                     }
                   }
@@ -330,12 +347,18 @@ const createExtendedDOMResolvers = function (app: App) {
                 )
                 let itemLength = displayYAxis.length * dataValue.timeAxis.split
                 // 横坐标
-                let displayXAxis = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+                let displayXAxis = [
+                  'SUN',
+                  'MON',
+                  'TUE',
+                  'WED',
+                  'THU',
+                  'FRI',
+                  'SAT',
+                ]
                 // 把数据按照周几进行划分
                 let weekDate = divideByWeek(dataValue.chartData)
-                let ItemList = generateData(weekDate,itemLength)
-                console.error(weekDate);
-                console.error(ItemList);
+                let ItemList = generateData(weekDate, itemLength)
                 // 根据 item 找到所处的
                 const Timetable = new Timetables({
                   el: `#${node.id}`,
@@ -345,58 +368,84 @@ const createExtendedDOMResolvers = function (app: App) {
                   gridOnClick: function (item: any) {
                     console.log(item)
                   },
-                  styles: { 
+                  styles: {
                     Gheight: 20,
                     leftHandWidth: 70,
-                    palette: ['#ff6633', '#ff9da4']
+                    palette: ['#ff6633', '#ff9da4'],
                   },
                 })
                 // 美化样式
-                let tableContent= node.querySelector('#courseWrapper')
-                tableContent?.querySelectorAll('.Courses-head > div').forEach(element=>{
-                  element.style.cssText += "text-align: center;line-height: 28px;font-size: 14px;"
-                })
-                tableContent?.querySelectorAll('.Courses-head ').forEach(element=>{
-                  element.style.cssText += "background-color: #f2f6f7; border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important; "
-                })
-                tableContent?.querySelectorAll('.left-hand-TextDom').forEach(element=>{
-                  element.style.cssText += "background-color: #f2f6f7; border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important; box-sizing: content-box!important; padding-top: 0px!important; height:28px; "
-                })
-                tableContent?.querySelectorAll('.Courses-leftHand').forEach(element=>{
-                  element.style.cssText += "background-color: #f2f6f7; text-align: right; box-sizing: border-box; padding-right: 5px;"
-                })
-                tableContent?.querySelectorAll('.Courses-leftHand .left-hand-index').forEach(element=>{
-                  element.style.cssText += "margin-bottom: 4px !important;"
-                })
-                tableContent?.querySelectorAll('.Courses-head > div').forEach(element=>{
-                  element.style.cssText += "border-left: none !important;"
-                })
-                tableContent?.querySelectorAll('.Courses-leftHand > div').forEach(element=>{
-                  element.style.cssText += "border-bottom: 1px dashed rgb(219, 219, 219);padding-top: 5px;"
-                })
-                tableContent?.querySelectorAll('.Courses-leftHand > div:last-child').forEach(element=>{
-                  element.style.cssText += " border-bottom: none !important;"
-                })
-                tableContent?.querySelectorAll('.Courses-content > ul').forEach(element=>{
-                  element.style.cssText += "  border-bottom: 1px dashed rgb(219, 219, 219); box-sizing: border-box;"
-                })
-                tableContent?.querySelectorAll('.Courses-content > ul:last-child').forEach(element=>{
-                  element.style.cssText += " border-bottom: none !important;"
-                })
-                tableContent?.querySelectorAll('li').forEach(element=>{
-                  if ( element.innerHTML != "" && !element.innerHTML.startsWith('<span')) {
-                    
-                    element.style.cssText += " text-align: center;background-color: #e3f5fc;color: #517086;box-sizing: border-box;border-left: 2px solid #2db3e4;font-size: 14px"
-                    
+                let tableContent = node.querySelector('#courseWrapper')
+                tableContent
+                  ?.querySelectorAll('.Courses-head > div')
+                  .forEach((element) => {
+                    element.style.cssText +=
+                      'text-align: center;line-height: 28px;font-size: 14px;'
+                  })
+                tableContent
+                  ?.querySelectorAll('.Courses-head ')
+                  .forEach((element) => {
+                    element.style.cssText +=
+                      'background-color: #f2f6f7; border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important; '
+                  })
+                tableContent
+                  ?.querySelectorAll('.left-hand-TextDom')
+                  .forEach((element) => {
+                    element.style.cssText +=
+                      'background-color: #f2f6f7; border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important; box-sizing: content-box!important; padding-top: 0px!important; height:28px; '
+                  })
+                tableContent
+                  ?.querySelectorAll('.Courses-leftHand')
+                  .forEach((element) => {
+                    element.style.cssText +=
+                      'background-color: #f2f6f7; text-align: right; box-sizing: border-box; padding-right: 5px;'
+                  })
+                tableContent
+                  ?.querySelectorAll('.Courses-leftHand .left-hand-index')
+                  .forEach((element) => {
+                    element.style.cssText += 'margin-bottom: 4px !important;'
+                  })
+                tableContent
+                  ?.querySelectorAll('.Courses-head > div')
+                  .forEach((element) => {
+                    element.style.cssText += 'border-left: none !important;'
+                  })
+                tableContent
+                  ?.querySelectorAll('.Courses-leftHand > div')
+                  .forEach((element) => {
+                    element.style.cssText +=
+                      'border-bottom: 1px dashed rgb(219, 219, 219);padding-top: 5px;'
+                  })
+                tableContent
+                  ?.querySelectorAll('.Courses-leftHand > div:last-child')
+                  .forEach((element) => {
+                    element.style.cssText += ' border-bottom: none !important;'
+                  })
+                tableContent
+                  ?.querySelectorAll('.Courses-content > ul')
+                  .forEach((element) => {
+                    element.style.cssText +=
+                      '  border-bottom: 1px dashed rgb(219, 219, 219); box-sizing: border-box;'
+                  })
+                tableContent
+                  ?.querySelectorAll('.Courses-content > ul:last-child')
+                  .forEach((element) => {
+                    element.style.cssText += ' border-bottom: none !important;'
+                  })
+                tableContent?.querySelectorAll('li').forEach((element) => {
+                  if (
+                    element.innerHTML != '' &&
+                    !element.innerHTML.startsWith('<span')
+                  ) {
+                    element.style.cssText +=
+                      ' text-align: center;background-color: #e3f5fc;color: #517086;box-sizing: border-box;border-left: 2px solid #2db3e4;font-size: 14px'
                   }
                 })
-                tableContent?.querySelectorAll('span').forEach(element=>{
-                  element.style.cssText += " text-align: center;background-color: #e3f5fc;color: #517086;box-sizing: border-box;border-left: 2px solid #2db3e4;padding-top: 5px;font-size: 14px"
+                tableContent?.querySelectorAll('span').forEach((element) => {
+                  element.style.cssText +=
+                    ' text-align: center;background-color: #e3f5fc;color: #517086;box-sizing: border-box;border-left: 2px solid #2db3e4;padding-top: 5px;font-size: 14px'
                 })
-                // tableContent?.querySelectorAll
-                // spanContent?.style.cssText += 'background-color: #e3f5fc;color:#517086;box-sizing: border-box;border-left: 2px #2db3e4 solid;'
-                // spanContent?.setAttribute('style','text-align: center!important')
-                
+                break
               }
             }
           } else {
@@ -727,7 +776,11 @@ const createExtendedDOMResolvers = function (app: App) {
           if (!app[label].isSameElement(node)) {
             app[label].setElement(node)
             log.func('[App] onMeetingComponent')
-            log.green(`Bound an element to ${label}`, app[label])
+            log.green(
+              `Bound an element to ${label}`,
+              app[label],
+              app[label].snapshot(),
+            )
           }
         }
         if (/mainStream/i.test(viewTag)) setImportantStream('mainStream')
@@ -740,7 +793,11 @@ const createExtendedDOMResolvers = function (app: App) {
               resolver: app.nui.resolveComponents.bind(app.nui),
             })
             log.func('[App] onMeetingComponent')
-            log.green('Initiated subStreams container', subStreams)
+            log.grey(
+              'Initiated subStreams container',
+              subStreams,
+              subStreams.snapshot(),
+            )
           } else {
             // If an existing subStreams container is already existent in memory, re-initiate
             // the DOM node and blueprint since it was reset from a previous cleanup
@@ -757,7 +814,7 @@ const createExtendedDOMResolvers = function (app: App) {
               log.red(
                 `Attempted to add an element to a subStream but it ` +
                   `already exists in the subStreams container`,
-                app.subStreams,
+                app.subStreams.snapshot(),
               )
             }
           } else {
@@ -859,82 +916,52 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] VideoChat Timer': {
-      cond: (n, c) => u.isFnc(c.get('text=func')),
+      cond: (n, c) => c.has('text=func'),
       resolve: (node, component) => {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
-
         if (component.contentType === 'timer') {
-          component.on(
-            'initial.timer',
-            (setInitialTime: (date: Date) => void) => {
-              const initialTime = startOfDay(new Date())
-              // Initial SDK value is set in seconds
-              const initialSeconds = get(app.root, dataKey, 0) as number
-              // Sdk evaluates from start of day. So we must add onto the start of day
-              // the # of seconds of the initial value in the Global object
-              let initialValue = add(initialTime, { seconds: initialSeconds })
-              u.isNil(initialValue) && (initialValue = new Date())
-              setInitialTime(initialValue)
-            },
-          )
-
+          component.on('timer:init', (setInitialValue) => {
+            const initialTime = startOfDay(new Date())
+            // Initial SDK value is set in seconds
+            const initialSeconds = get(app.root, dataKey, 0) as number
+            // Sdk evaluates from start of day. So we must add onto the start of day
+            // the # of seconds of the initial value in the Global object
+            let initialValue = add(initialTime, { seconds: initialSeconds })
+            initialValue == null && (initialValue = new Date())
+            setInitialValue(initialValue)
+          })
           // Look at the hard code implementation in noodl-ui-dom
           // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
           // the api declaration
-          component.on(
-            'timer.ref',
-            (ref: {
-              start(): void
-              current: Date
-              ref: NodeJS.Timeout
-              clear: () => void
-              increment(): void
-              set(value: any): void
-              onInterval?:
-                | ((args: {
-                    node: HTMLElement
-                    component: NUIComponent.Instance
-                    ref: typeof ref
-                  }) => void)
-                | null
-            }) => {
-              const textFunc = component.get('text=func') || ((x: any) => x)
+          component.on('timer:ref', (timer) => {
+            const textFunc = component.get('text=func') || ((x: any) => x)
+            component.on('timer:interval', ({ value, node, component }) => {
+              app.updateRoot((draft) => {
+                const seconds = get(draft, dataKey, 0)
+                set(draft, dataKey, seconds + 1)
+                const updatedSecs = get(draft, dataKey)
+                console.log(`${seconds} --> ${updatedSecs}`)
+                if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
+                  if (seconds === updatedSecs) {
+                    // Not updated
+                    log.func('text=func timer [ndom.register]')
+                    log.red(
+                      `Tried to update the value of ${dataKey} but the value remained the same`,
+                      { node, component, seconds, updatedSecs, timer },
+                    )
+                  } else {
+                    log.grey(`Updating the timer counter`)
+                    // Updated
+                    // timer.increment()
+                  }
+                }
+                node.textContent = textFunc(timer.value)
+              })
+            })
 
-              component.on(
-                'interval',
-                ({
-                  node,
-                  component,
-                }: {
-                  node: HTMLElement
-                  component: NUIComponent.Instance
-                  ref: typeof ref
-                }) => {
-                  app.updateRoot((draft) => {
-                    const seconds = get(draft, dataKey, 0)
-                    set(draft, dataKey, seconds + 1)
-                    const updatedSecs = get(draft, dataKey)
-                    if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
-                      if (seconds === updatedSecs) {
-                        // Not updated
-                        log.func('text=func timer [ndom.register]')
-                        log.red(
-                          `Tried to update the value of ${dataKey} but the value remained the same`,
-                          { node, component, seconds, updatedSecs, ref },
-                        )
-                      } else {
-                        // Updated
-                        ref.increment()
-                        node.textContent = textFunc(ref.current)
-                      }
-                    }
-                  })
-                },
-              )
-              ref.start()
-            },
-          )
+            timer.start()
+          })
         }
       },
     },

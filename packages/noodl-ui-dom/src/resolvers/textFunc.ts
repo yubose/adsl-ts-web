@@ -1,71 +1,54 @@
-import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import { NOODLDOMElement, RegisterOptions } from '../types'
+import { RegisterOptions } from '../types'
 import { eventId } from '../constants'
 
-export default (function () {
-  const timers = {} as {
-    [componentId: string]: {
-      start(): void
-      current: Date
-      ref: null | NodeJS.Timeout
-      clear(): void
-      increment(): void
-      set(value: any): void
-    }
-  }
-
-  return {
-    name: '[noodl-ui-dom] text=func',
-    cond: (n, c) => typeof c.get?.('text=func') === 'function',
-    resolve: (node: NOODLDOMElement, component, { ndom }) => {
-      if (component.contentType === 'timer') {
-        setTimeout(() => {
-          component.emit('initial.timer', (initialTime: Date) => {
-            timers[component.id] = {
-              start() {
-                timers[component.id].ref = setInterval(() => {
-                  component.emit('interval', {
-                    node,
-                    component,
-                    ref: timers[component.id],
-                  })
-                }, 1000)
-              },
-              current: initialTime || startOfDay(new Date()),
-              ref: null,
-              set(value: any) {
-                timers[component.id] = value
-              },
-              increment() {
-                if (timers[component.id]) {
-                  timers[component.id].current = add(
-                    new Date(timers[component.id].current),
-                    { seconds: 1 },
-                  )
-                }
-              },
-              clear() {
-                clearInterval(timers[component.id].ref)
-                ndom.page.off(
-                  eventId.page.on.ON_DOM_CLEANUP,
-                  timers[component.id]?.clear,
-                )
-                console.log(`Cleared timer`, timers[component.id])
-              },
-            }
-
-            ndom.page.on(
-              eventId.page.on.ON_DOM_CLEANUP,
-              timers[component.id]?.clear,
+export default {
+  name: '[noodl-ui-dom] text=func',
+  cond: (n, c) => c.has('text=func'),
+  before: (n, c, { global }) => {
+    if (typeof window === 'undefined') return
+    if (!window['timers']) window['timers'] = global.timers
+  },
+  resolve: (node: HTMLElement, component, { global, page, ndom }) => {
+    if (component.contentType === 'timer') {
+      const dataKey = component.blueprint?.dataKey as string
+      // TODO - Refactor a better way to get the initial value since the
+      // call order isn't guaranteed
+      setTimeout(() => {
+        component.emit('timer:init', (initialValue?: Date) => {
+          if (global.timers.has(dataKey)) {
+            console.log(
+              `%cRestarting existing timer for dataKey "${dataKey}"`,
+              `color:#c4a901;`,
+              component,
             )
+            // global.timers.get(dataKey)?.start()
+            // setTimeout(() => component.emit('timer:restart'), 300)
+          } else {
+            console.log(`%cStarting new timer instance`, `color:#c4a901;`, {
+              initialValue,
+            })
+          }
 
-            component.emit('timer.ref', timers[component.id])
+          const timer = global.timers.set(dataKey, {
+            initialValue: initialValue || startOfDay(new Date()),
+            pageName: page.page,
           })
-        }, 500)
-      } else {
-        node && (node.textContent = component.get('data-value') || '')
-      }
-    },
-  } as RegisterOptions
-})()
+
+          timer.on('increment', (value) => {
+            component.emit('timer:interval', { value, node, component })
+          })
+
+          component.emit('timer:ref', timer)
+
+          ndom.page.once(eventId.page.on.ON_DOM_CLEANUP, () => {
+            timer.clear()
+            timer.onIncrement = undefined
+          })
+        })
+      }, 300)
+    } else {
+      node && (node.textContent = component.get('data-value') || '')
+    }
+  },
+} as RegisterOptions

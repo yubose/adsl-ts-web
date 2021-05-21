@@ -1,11 +1,9 @@
-import Logger from 'logsnap'
 import { Viewport as VP } from 'noodl-ui'
 import getViewportSizeWithMinMax from '../utils/getViewportSizeWithMinMax'
 
 const createViewportHandler = function (viewport: VP) {
   let min: number
   let max: number
-  const log = Logger.create('createViewportHandler')
   const fns = [] as Function[]
 
   const o = {
@@ -80,10 +78,8 @@ const createViewportHandler = function (viewport: VP) {
    * This affects the endpoints that the SDK uses to load pages
    */
   viewport.onResize = async function (args) {
-    log.func('onResize')
     const { width, height, previousWidth, previousHeight } = args
     if (width !== previousWidth || height !== previousHeight) {
-      console.log('VP changed', args)
       const results = o.computeViewportSize(args)
       o.setViewportSize(results)
       fns.forEach((fn) => fn(results))

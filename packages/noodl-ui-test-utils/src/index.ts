@@ -306,8 +306,12 @@ export function getEcosDocComponent(
     } else if (props === 'text') {
       obj.ecosObj = ecosTextDoc
     }
-  } else {
-    obj.ecosObj = getEcosDocObject(props as EcosDocument)
+  } else if (u.isObj(props)) {
+    if ('ecosObj' in props) {
+      u.assign(obj, props)
+    } else {
+      u.assign(obj, props, { ecosObj: getEcosDocObject(props as EcosDocument) })
+    }
   }
   return obj
 }
