@@ -14,39 +14,32 @@ export default {
       const dataKey = component.blueprint?.dataKey as string
       // TODO - Refactor a better way to get the initial value since the
       // call order isn't guaranteed
-      setTimeout(() => {
-        component.emit('timer:init', (initialValue?: Date) => {
-          if (global.timers.has(dataKey)) {
-            console.log(
-              `%cRestarting existing timer for dataKey "${dataKey}"`,
-              `color:#c4a901;`,
-              component,
-            )
-            // global.timers.get(dataKey)?.start()
-            // setTimeout(() => component.emit('timer:restart'), 300)
-          } else {
-            console.log(`%cStarting new timer instance`, `color:#c4a901;`, {
-              initialValue,
-            })
-          }
-
-          const timer = global.timers.set(dataKey, {
+      component.on('timer:init', (initialValue?: Date) => {
+        const timer =
+          global.timers.get(dataKey) ||
+          global.timers.set(dataKey, {
             initialValue: initialValue || startOfDay(new Date()),
             pageName: page.page,
           })
 
-          timer.on('increment', (value) => {
-            component.emit('timer:interval', { value, node, component })
-          })
+        if (initialValue && timer.value !== initialValue) {
+          timer.value = initialValue
+        }
 
-          component.emit('timer:ref', timer)
+        timer.pageName !== page.page && (timer.pageName = page.page)
 
-          ndom.page.once(eventId.page.on.ON_DOM_CLEANUP, () => {
-            timer.clear()
-            timer.onIncrement = undefined
-          })
+        timer.on('increment', (value) => {
+          component.emit('timer:interval', value)
         })
-      }, 300)
+        component.emit('timer:ref', timer)
+
+        ndom.page.once(eventId.page.on.ON_DOM_CLEANUP, () => {
+          timer.clear()
+          timer.onClear = undefined
+          timer.onIncrement = undefined
+          component.clear('hooks')
+        })
+      })
     } else {
       node && (node.textContent = component.get('data-value') || '')
     }

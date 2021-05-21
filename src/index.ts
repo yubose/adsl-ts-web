@@ -136,7 +136,39 @@ window.addEventListener('load', async (e) => {
       console.error(error)
     }
 
+    const configPages = [
+      ...(app.noodl.cadlEndpoint?.preload || []),
+      ...(app.noodl.cadlEndpoint?.page || []),
+    ] as string[]
+
     window.addEventListener('popstate', createOnPopState(app))
+
+    // const ws = new WebSocket(`ws://127.0.0.1:3002`)
+
+    // ws.onopen = (event) => {
+    //   // log.green(`Websocket client opened!`, event)
+    // }
+
+    // ws.onclose = (event) => {
+    //   log.grey(`Websocket client closed`, event)
+    // }
+
+    // ws.onerror = (event) => {
+    //   log.red(`Websocket client received an error!`, event)
+    // }
+
+    // ws.onmessage = async (event) => {
+    //   const data = JSON.parse(event.data)
+
+    //   if (data.type === 'FILE_CHANGED') {
+    //     const pageName = String(data.name).replace(/\//g, '')
+    //     if (pageName && configPages.includes(pageName)) {
+    //       console.clear()
+    //       log.green(`A noodl file was changed and the app restarted`, data)
+    //       app.reset(true)
+    //     }
+    //   }
+    // }
   } catch (error) {
     console.error(error)
   }
@@ -148,28 +180,6 @@ window.addEventListener('load', async (e) => {
   //   const registration = await navigator.serviceWorker.register('worker.js', {
   //     type: 'classic',
   //   })
-  // }
-
-  // const ws = new WebSocket(`ws://127.0.0.1:3002`)
-
-  // ws.onopen = (event) => {
-  //   log.func('ws.onopen')
-  //   log.green(`Websocket client opened!`, event)
-  // }
-
-  // ws.onclose = (event) => {
-  //   log.func('ws.onclose')
-  //   log.grey(`Websocket client closed`, event)
-  // }
-
-  // ws.onerror = (event) => {
-  //   log.func('ws.onerror')
-  //   log.red(`Websocket client received an error!`, event)
-  // }
-
-  // ws.onmessage = (msg) => {
-  //   log.func('ws.onmessage')
-  //   log.green(`Websocket client received a message!`, msg)
   // }
 })
 

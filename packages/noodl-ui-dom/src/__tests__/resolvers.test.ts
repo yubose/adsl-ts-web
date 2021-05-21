@@ -1,11 +1,7 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
-import {
-  NUIComponent,
-  createComponent,
-  flatten,
-  Viewport as VP,
-} from 'noodl-ui'
+import { prettyDOM } from '@testing-library/dom'
+import { NUIComponent, createComponent, flatten } from 'noodl-ui'
 import { screen, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta, white } from 'noodl-common'
@@ -15,10 +11,11 @@ import * as u from '../utils/internal'
 import * as n from '../utils'
 import * as c from '../constants'
 import { getFirstByElementId } from '../utils'
+import Timer from '../global/Timer'
 
 describe(coolGold(`resolvers`), () => {
   it(`should attach the component id as the element id`, async () => {
-    const { render } = createRender({ components: { type: 'label' } })
+    const { render } = createRender(mock.getLabelComponent())
     const component = await render()
     expect(n.getFirstByElementId(component))
       .to.have.property('id')
@@ -30,20 +27,19 @@ describe(coolGold(`resolvers`), () => {
     const { render } = createRender({
       pageName: 'F',
       pageObject: { formData: { password: dataValue } },
-      components: { type: 'label', dataKey: 'F.formData.password' },
+      components: mock.getLabelComponent({ dataKey: 'F.formData.password' }),
     })
     expect(n.getFirstByElementId(await render()).textContent).to.eq(dataValue)
   })
 
   describe(italic(`button`), () => {
     it('should have a pointer cursor if it has an onClick', async () => {
-      const { render } = createRender({
-        components: {
-          type: 'button',
+      const { render } = createRender(
+        mock.getButtonComponent({
           text: 'hello',
-          onClick: [mock.getEmitObject()],
-        },
-      })
+          onClick: [mock.getFoldedEmitObject()],
+        }),
+      )
       expect(n.getFirstByElementId(await render()).style)
         .to.have.property('cursor')
         .eq('pointer')
@@ -106,25 +102,20 @@ describe(coolGold(`resolvers`), () => {
 
 describe(italic(`ecosDoc`), () => {
   it(`should create an iframe as a direct child`, async () => {
-    const imageComponentObject = mock.getEcosDocComponent({
-      id: 'hello',
-      ecosObj: mock.getEcosDocObject('image'),
-    })
-    const { render } = createRender({
-      components: [imageComponentObject],
-    })
+    const ecosObj = mock.getEcosDocObject('image')
+    const { pageObject, render } = createRender(
+      mock.getEcosDocComponent({ id: 'hello', ecosObj }),
+    )
+    console.info(pageObject)
     await render()
     const node = n.getFirstByElementId('hello')
-    const child = node.firstElementChild as HTMLIFrameElement
-    expect(node).to.have.property('tagName').not.to.eq('IFRAME')
-    expect(child).to.have.property('tagName', 'IFRAME')
     await waitFor(() => {
+      const child = node.firstElementChild as HTMLIFrameElement
+      expect(node).to.have.property('tagName').not.to.eq('IFRAME')
+      expect(child).to.have.property('tagName', 'IFRAME')
       const image = child?.contentDocument?.body.querySelector('img')
       expect(image).to.exist
-      expect(image).to.have.property(
-        'src',
-        imageComponentObject.ecosObj.name.data,
-      )
+      expect(image).to.have.property('src', ecosObj.name?.data)
     })
   })
 
@@ -133,9 +124,7 @@ describe(italic(`ecosDoc`), () => {
       id: 'hello',
       ecosObj: mock.getEcosDocObject('image'),
     })
-    const { render } = createRender({
-      components: [imageComponentObject],
-    })
+    const { render } = createRender(imageComponentObject)
     await render()
     const node = n.getFirstByElementId('hello')
     const iframe = node.firstElementChild as HTMLIFrameElement
@@ -156,7 +145,7 @@ describe(italic(`ecosDoc`), () => {
         id: 'hello',
         ecosObj: mock.getEcosDocObject('pdf'),
       })
-      const { render } = createRender({ components: [componentObject] })
+      const { render } = createRender(componentObject)
       const component = await render()
       const node = n.getFirstByElementId(component.id)
       const iframe = node.firstElementChild as HTMLIFrameElement
@@ -184,11 +173,10 @@ describe(italic(`ecosDoc`), () => {
           id: 'hello',
           ecosObj: mock.getEcosDocObject('text'),
         })
-        const { render } = createRender({ components: [componentObject] })
+        const { render } = createRender(componentObject)
         const component = await render()
         const node = n.getFirstByElementId(component.id)
         const iframe = node.firstElementChild as HTMLIFrameElement
-        console.info(componentObject.ecosObj)
         await waitFor(() => {
           const text = iframe?.contentDocument?.body.getElementsByClassName(
             c.classes.ECOS_DOC_TEXT,
@@ -216,17 +204,18 @@ describe(italic(`ecosDoc`), () => {
   describe(italic(`Displaying`), () => {
     describe(white('note'), () => {
       it(`should only display the note's body content and not the title`, async () => {
-        const component = await createRender({
-          components: [mock.getEcosDocComponent('note')],
-        }).render()
-        const node = getFirstByElementId(component)
+        const component = await createRender(
+          mock.getEcosDocComponent('note'),
+        ).render()
+        const node = n.getFirstByElementId(component)
         const iframe = node.firstElementChild as HTMLIFrameElement
         await waitFor(() => {
           const body = iframe.contentDocument?.body as HTMLBodyElement
-          const titleNode = body.getElementsByClassName(
+          expect(body).to.exist
+          const titleNode = body?.getElementsByClassName(
             c.classes.ECOS_DOC_TEXT_TITLE,
           )[0]
-          const descNode = body.getElementsByClassName(
+          const descNode = body?.getElementsByClassName(
             c.classes.ECOS_DOC_NOTE_DATA,
           )[0]
           expect(titleNode).not.to.exist
@@ -239,18 +228,14 @@ describe(italic(`ecosDoc`), () => {
 
 describe(italic(`image`), () => {
   it('should attach the pointer cursor if it has onClick', async () => {
-    const { render } = createRender({
-      components: { type: 'image', onClick: [] },
-    })
+    const { render } = createRender(mock.getImageComponent({ onClick: [] }))
     expect(n.getFirstByElementId(await render())?.style)
       .to.have.property('cursor')
       .eq('pointer')
   })
 
   it('should set width and height to 100% if it has children (deprecate soon)', async () => {
-    const { render } = createRender({
-      components: { type: 'image', children: [] },
-    })
+    const { render } = createRender(mock.getImageComponent({ children: [] }))
     const node = n.getFirstByElementId(await render())
     expect(node?.style).to.have.property('width').eq('100%')
     expect(node?.style).to.have.property('height').eq('100%')
@@ -259,9 +244,7 @@ describe(italic(`image`), () => {
 
 describe(italic(`label`), () => {
   it('should attach the pointer cursor if it has onClick', async () => {
-    const { render } = createRender({
-      components: { type: 'label', onClick: [] },
-    })
+    const { render } = createRender(mock.getImageComponent({ onClick: [] }))
     expect(n.getFirstByElementId(await render()).style)
       .to.have.property('cursor')
       .eq('pointer')
@@ -279,9 +262,7 @@ describe(italic(`list`), () => {
 
   xit(`should remove removed list items from the component cache`, async () => {
     const listObject = mock.getGenderListObject()
-    const { ndom, render } = createRender({
-      components: mock.getListComponent({ listObject }),
-    })
+    const { ndom, render } = createRender(mock.getListComponent({ listObject }))
     const component = await render()
     const flattened = flatten(component)
     expect(ndom.cache.component.length).to.eq(flattened.length)
@@ -291,9 +272,7 @@ describe(italic(`list`), () => {
   })
 
   it(`should remove the corresponding list item's DOM node from the DOM`, async () => {
-    const { render } = createRender({
-      components: mock.getListComponent(),
-    })
+    const { render } = createRender(mock.getListComponent())
     const component = await render()
     const child2 = component.child(1)
     const child2Node = document.getElementById(child2?.id || '')
@@ -477,7 +456,7 @@ describe(italic(`styles`), () => {
 
       it(`should set marginTop to "0px" if it is missing`, async () => {
         const componentObject = mock.getListComponent()
-        const { render } = createRender({ components: [componentObject] })
+        const { render } = createRender(componentObject)
         const component = await render()
         expect(component.style).to.have.property('marginTop').to.to.eq('0px')
       })
@@ -524,8 +503,8 @@ describe(italic(`text=func`), () => {
     const date = new Date().toISOString()
     const spy = sinon.spy((v) => date)
     const ctime = 'abc'
-    const { render } = createRender({
-      components: mock.getListComponent({
+    const { render } = createRender(
+      mock.getListComponent({
         listObject: [{ ctime }],
         iteratorVar: 'itemObject',
         children: [
@@ -534,12 +513,12 @@ describe(italic(`text=func`), () => {
               mock.getLabelComponent({
                 dataKey: 'itemObject.ctime',
                 'text=func': spy,
-              } as any),
+              }),
             ],
           }),
         ],
       }),
-    })
+    )
     await render()
     expect(spy).to.be.calledOnce
     expect(spy).to.be.calledWith(ctime)
@@ -550,13 +529,15 @@ describe(italic(`text=func`), () => {
     const date = new Date().toISOString()
     const spy = sinon.spy((v) => 'mock-computed-time-value')
     const { render } = createRender({
-      pageObject: { formData: { ctime: date } },
-      components: [
-        mock.getLabelComponent({
-          dataKey: 'formData.ctime',
-          'text=func': spy,
-        } as any),
-      ],
+      pageObject: {
+        components: [
+          mock.getLabelComponent({
+            dataKey: 'formData.ctime',
+            'text=func': spy,
+          }),
+        ],
+        formData: { ctime: date },
+      },
     })
     await render()
     expect(spy).to.be.calledOnce
@@ -568,13 +549,15 @@ describe(italic(`text=func`), () => {
     xit(`should be able to display a text=func's data values for non timers`, async () => {
       const date = new Date().toISOString()
       const { render } = createRender({
-        pageObject: { formData: { ctime: date } },
-        components: [
-          mock.getLabelComponent({
-            dataKey: 'itemObject.ctime',
-            'text=func': (v: any) => v,
-          } as any),
-        ],
+        pageObject: {
+          components: [
+            mock.getLabelComponent({
+              dataKey: 'itemObject.ctime',
+              'text=func': (v: any) => v,
+            } as any),
+          ],
+          formData: { ctime: date },
+        },
       })
       const component = await render()
       expect(n.getFirstByElementId(component).textContent).to.eq(date)
@@ -582,11 +565,106 @@ describe(italic(`text=func`), () => {
   })
 })
 
+describe(italic(`timer`), () => {
+  let timer: Timer | undefined
+
+  afterEach(() => void timer?.clear?.())
+
+  it(`should create a new Timer using the dataKey as the key`, async () => {
+    const textFuncResult = Date.now()
+    const { ndom, nui, render } = createRender({
+      components: mock.getLabelComponent({
+        contentType: 'timer',
+        dataKey: 'Global.date',
+        'text=func': () => textFuncResult,
+      }),
+    })
+    const component = await render()
+    component.emit('timer:init', new Date())
+    await waitFor(() => {
+      expect(ndom.global.timers.has('Global.date')).to.be.true
+    })
+  })
+
+  it(`should initiate the timer with the custom value if given`, async () => {
+    const textFuncResult = Date.now()
+    const { ndom, render } = createRender({
+      root: {
+        Global: { date: textFuncResult },
+      },
+      components: [
+        mock.getLabelComponent({
+          contentType: 'timer',
+          dataKey: 'Global.date',
+          'text=func': () => textFuncResult,
+        }),
+      ],
+    })
+    const component = await render()
+    component.emit('timer:init', 'abc')
+    await waitFor(() => {
+      expect(ndom.global.timers.get('Global.date')).to.have.property(
+        'value',
+        'abc',
+      )
+    })
+  })
+
+  xit(`should initiate with a default value if nothing was given`, async () => {
+    const textFuncResult = Date.now()
+    const { ndom, render } = createRender({
+      root: {
+        Global: { date: textFuncResult },
+      },
+      components: [
+        mock.getLabelComponent({
+          contentType: 'timer',
+          dataKey: 'Global.date',
+          'text=func': () => textFuncResult,
+        }),
+      ],
+    })
+    await render()
+    await waitFor(() => {
+      const timer = ndom.global.timers.get('Global.date')
+      expect(timer).to.exist
+    })
+  })
+
+  it(`should clear the interval when the DOM re-renders`, async () => {
+    const textFuncResult = Date.now()
+    const dataKey = 'Global.timer'
+    const { ndom, render, request } = createRender({
+      root: {
+        Global: { date: textFuncResult },
+        Cereal: { components: [mock.getButtonComponent()] },
+      },
+      components: [
+        mock.getLabelComponent({
+          contentType: 'timer',
+          dataKey,
+          'text=func': () => textFuncResult,
+        }),
+      ],
+    })
+    const component = await render()
+
+    component.on('timer:ref', (ref) => ref.start())
+    component.emit('timer:init', new Date())
+    await waitFor(() => {
+      expect(ndom.global.timers.has(dataKey)).to.be.true
+      timer = ndom.global.timers.get(dataKey)
+      expect(timer).to.have.property('ref').to.exist
+    })
+    ;(await request('Cereal')).render()
+    expect(timer).to.have.property('ref').not.to.exist
+    component.clear()
+  })
+})
+
 describe(italic(`video`), () => {
   it('should have object-fit set to "contain"', async () => {
-    const { render } = createRender({
-      components: { type: 'video', videoFormat: 'mp4' },
-    })
+    const { render } = createRender({ type: 'video', videoFormat: 'mp4' })
     const component = await render()
     expect(n.getFirstByElementId(component)?.style.objectFit).to.equal(
       'contain',
@@ -595,7 +673,9 @@ describe(italic(`video`), () => {
 
   it('should create the source element as a child if the src is present', async () => {
     const { render } = createRender({
-      components: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
+      type: 'video',
+      path: 'asdloldlas.mp4',
+      videoFormat: 'mp4',
     })
     const node = n.getFirstByElementId(await render())
     await waitFor(() => {
@@ -607,7 +687,9 @@ describe(italic(`video`), () => {
   it('should have src set on the child source element instead of the video element itself', async () => {
     const path = 'asdloldlas.mp4'
     const { assetsUrl, render } = createRender({
-      components: { type: 'video', path: 'asdloldlas.mp4', videoFormat: 'mp4' },
+      type: 'video',
+      path: 'asdloldlas.mp4',
+      videoFormat: 'mp4',
     })
     const node = n.getFirstByElementId(await render())
     await waitFor(() => {
@@ -622,7 +704,9 @@ describe(italic(`video`), () => {
       `the video element itself`,
     async () => {
       const { render } = createRender({
-        components: { type: 'video', path: 'abc123.mp4', videoFormat: 'mp4' },
+        type: 'video',
+        path: 'abc123.mp4',
+        videoFormat: 'mp4',
       })
       const node = n.getFirstByElementId(await render())
       await waitFor(() => {
@@ -635,7 +719,9 @@ describe(italic(`video`), () => {
 
   it('should include the "browser not supported" message', async () => {
     const { render } = createRender({
-      components: { type: 'video', path: 'abc.jpeg', videoFormat: 'mp4' },
+      type: 'video',
+      path: 'abc.jpeg',
+      videoFormat: 'mp4',
     })
     const node = n.getFirstByElementId(await render())
     await waitFor(() => {
@@ -647,7 +733,10 @@ describe(italic(`video`), () => {
   it('should create a "source" element and attach the src attribute for video components', async () => {
     const path = 'pathology.mp4'
     const { assetsUrl, render } = createRender({
-      components: { type: 'video', path, videoFormat: 'mp4', id: 'id123' },
+      type: 'video',
+      path,
+      videoFormat: 'mp4',
+      id: 'id123',
     })
     const node = n.getFirstByElementId(await render())
     await waitFor(() => {

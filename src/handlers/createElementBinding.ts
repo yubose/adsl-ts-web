@@ -45,7 +45,7 @@ function createElementBindingFactory(app: App) {
         const isVideoStreamBinding = component.get('videoStream')
         // Currently used for the popUp in the VideoChat page that have global: true
         const onMutation: MutationCallback = function _onMutation(mutations) {
-          log.func(`<${component.type}> onMutation`)
+          log.func(``)
           log.grey(`Mutation change`, mutations)
 
           if (isVisible(node)) {

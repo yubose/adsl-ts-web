@@ -1,5 +1,4 @@
 import Logger from 'logsnap'
-// import {MEDIA_TYPE_LIST} from '@aitmed/cadl/dist/types/common/DType'
 import NOODLDOM, {
   eventId,
   isPage as isNOODLDOMPage,
@@ -11,7 +10,7 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { PageObject } from 'noodl-types'
-import { NUI, NUIComponent, Page as NUIPage, Viewport as VP } from 'noodl-ui'
+import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
 import { Draft } from 'immer/dist/internal'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import {
@@ -206,11 +205,6 @@ class App {
       const req = await this.ndom.request(_page)
       if (req) {
         const components = req.render()
-        log.func('navigate')
-        log.grey(
-          `Rendered ${components.length} components on ${_pageRequesting}`,
-          components,
-        )
         window.pcomponents = components
       }
     } catch (error) {
@@ -282,7 +276,7 @@ class App {
       this.ndom.use({ plugin: plugins })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
-      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
+      registers.forEach((keyVal) => this.nui._experimental.register(keyVal))
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
 
       this.meeting.onConnected = meetingfns.onConnected
@@ -374,8 +368,8 @@ class App {
 
   async getPageObject(page: NOODLDOMPage) {
     try {
-      log.func('getPageObject')
       const pageRequesting = page.requesting
+      log.func('getPageObject')
       log.grey(
         `Running noodl.initPage for page "${pageRequesting}"`,
         page.snapshot(),
@@ -503,29 +497,6 @@ class App {
   }
 
   observePages(page: NOODLDOMPage) {
-    if (
-      !this.mainPage.hooks[eventId.page.on.ON_REDRAW_BEFORE_CLEANUP]?.length
-    ) {
-      const onRedrawBeforeCleanup = (
-        node: HTMLElement,
-        component: NUIComponent.Instance,
-      ) => {
-        // const onPublish = (c: NUIComponent.Instance) => {
-        //   console.log(`Removed a ${c.type} component from cache: ${c.id}`)
-        //   this.cache.component.remove(c)
-        // }
-        // this.cache.component.remove(component)
-        // publish(component, onPublish)
-        // console.log(
-        //   `Removed a ${component.type} component from cache: ${component.id}`,
-        // )
-      }
-      this.mainPage.on(
-        eventId.page.on.ON_REDRAW_BEFORE_CLEANUP,
-        onRedrawBeforeCleanup,
-      )
-    }
-
     const onNavigateStart = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
         log.func('onNavigateStart')
@@ -582,22 +553,45 @@ class App {
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 
-  reset() {
-    this.streams.reset()
-    if (this.ndom) {
-      this.ndom.reset()
-      this.mainPage = this.ndom.createPage(
-        this.cache.page.length
-          ? this.nui.getRootPage()
-          : this.nui.createPage({ viewport: this.viewport }),
-      ) as NOODLDOMPage
-      this.ndom.page = this.mainPage
+  reset(soft?: boolean) {
+    if (soft) {
+      const reloadApp = async () => {
+        try {
+          const { resetInstance: resetSdk } = await import('./app/noodl')
+          const currentRoot = this.root
+          const currentPage = this.mainPage.page
+          delete currentRoot[currentPage]
+          this.#noodl = resetSdk()
+          await this.#noodl.init()
+          u.assign(this.#noodl.root, currentRoot)
+          this.cache.component.clear()
+          this.mainPage.getNuiPage().object().components = []
+          this.mainPage.page = this.mainPage.getPreviousPage(this.startPage)
+          this.mainPage.setPreviousPage('')
+          this.mainPage.requesting = currentPage
+          this.mainPage.components = []
+          await this.navigate()
+        } catch (error) {
+          console.error(error)
+        }
+      }
+      reloadApp()
+    } else {
+      this.streams.reset()
+      if (this.ndom) {
+        this.ndom.reset()
+        this.mainPage = this.ndom.createPage(
+          this.cache.page.length
+            ? this.nui.getRootPage()
+            : this.nui.createPage({ viewport: this.viewport }),
+        ) as NOODLDOMPage
+        this.ndom.page = this.mainPage
+      }
+      has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) &&
+        this.updateRoot((draft) => {
+          set(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, [])
+        })
     }
-
-    has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) &&
-      this.updateRoot((draft) => {
-        set(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, [])
-      })
   }
 
   /**

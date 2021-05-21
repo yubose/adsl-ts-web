@@ -642,15 +642,26 @@ describe(italic(`use`), () => {
         expect(register.handler).to.have.property('fn').eq(spy)
       })
 
-      it(
-        `should be able to process a register name and function as args ` +
-          `[<name>, <func>]`,
-        () => {
-          const spy = sinon.spy()
-          const register = nui._experimental.register('hello', spy)
-          expect(register.handler).to.have.property('fn', spy)
-        },
-      )
+      describe(`when giving args in the shape: [<name>, <function>]`, () => {
+        it(
+          `should set the fn to register.handler.fn if provided, and the ` +
+            `register.fn should be undefined`,
+          () => {
+            const spy = sinon.spy()
+            const register = nui._experimental.register('hello', spy)
+            expect(register.handler).to.have.property('fn', spy)
+            expect(register.fn).to.be.undefined
+          },
+        )
+
+        it(`should set a default function at register.fn if a fn was not provided`, () => {
+          const register = nui._experimental.register('hello', {
+            page: '_global',
+          })
+          expect(register.handler?.fn).to.be.undefined
+          expect(register.fn).to.be.undefined
+        })
+      })
 
       it(`should be able to process a register component object`, () => {
         const register = nui._experimental.register(mock.getRegisterComponent())

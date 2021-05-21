@@ -1,5 +1,6 @@
 import { WritableDraft } from 'immer/dist/internal'
 import { isDraft, original } from 'immer'
+import { AcceptArray } from '@jsmanifest/typefest'
 import { ComponentObject, StyleObject } from 'noodl-types'
 import * as u from './utils/internal'
 import * as T from './types'
@@ -61,9 +62,6 @@ class Component<C extends ComponentObject = ComponentObject>
       ? component.blueprint
       : component
     this.#cache = {}
-    // this.#component = createComponentDraftSafely(
-    //   this.#blueprint,
-    // ) as WritableDraft<ComponentObject>
     this.#component = {
       ...this.#blueprint,
       style: { ...this.#blueprint.style },
@@ -157,12 +155,10 @@ class Component<C extends ComponentObject = ComponentObject>
   ) => {
     let value
 
-    if (key === 'cache') {
-      return this.#cache
-    }
+    if (key === 'cache') return this.#cache
     if (key === 'style') {
       // Retrieve the entire style object
-      if (styleKey === undefined) {
+      if (u.isUnd(styleKey)) {
         value = isDraft(this.blueprint.style)
           ? original(this.blueprint.style)
           : this.blueprint.style
@@ -346,7 +342,7 @@ class Component<C extends ComponentObject = ComponentObject>
     return this
   }
 
-  clear(filter?: 'children' | 'hooks' | ('children' | 'hooks')[]) {
+  clear(filter?: AcceptArray<'children' | 'hooks'>) {
     const _clearChildren = (
       children: T.NUIComponent.Instance[] | undefined,
     ) => {
@@ -364,10 +360,9 @@ class Component<C extends ComponentObject = ComponentObject>
     const _clearHooks = () =>
       u.keys(this.#hooks).forEach((evt) => (this.#hooks[evt].length = 0))
     if (filter) {
-      u.array(filter).forEach((s: typeof filter) => {
-        if (s === 'children') _clearChildren(this.#children)
-        else if (s === 'hooks') _clearHooks()
-      })
+      u.arrayEach(filter, (s) =>
+        s === 'children' ? _clearChildren(this.#children) : _clearHooks(),
+      )
       return this
     }
     _clearChildren(this.children)
@@ -396,9 +391,9 @@ class Component<C extends ComponentObject = ComponentObject>
     if (u.isFnc(fn)) {
       const props = fn(this.props)
       if (u.isObj(props)) {
-        u.eachEntries((k, v) => {
+        u.eachEntries(props, (k, v) => {
           k === 'style' ? u.assign(this.style, v) : (this.props[k] = v)
-        }, props)
+        })
       }
     } else if (u.isStr(fn)) {
       this.props[fn] = value
@@ -419,7 +414,7 @@ class Component<C extends ComponentObject = ComponentObject>
           }
         : undefined
 
-      u.eachEntries((k, v) => {
+      u.eachEntries(fn, (k, v) => {
         if (k === 'style') {
           if (v === null) this.style = {}
           else if (u.isObj(v)) u.assign(this.style, v)
@@ -429,7 +424,7 @@ class Component<C extends ComponentObject = ComponentObject>
           this.props[k] = v
           remove?.()
         }
-      }, fn)
+      })
     }
   }
 

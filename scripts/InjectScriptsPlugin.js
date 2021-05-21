@@ -4,26 +4,48 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const fs = require('fs-extra')
 const path = require('path')
 
-fs.ensureDirSync('generated')
+const pluginName = 'InjectScriptsPlugin'
 
-const pathToLibsFile = path.resolve(path.join(__dirname, '../public/libs.html'))
+const cyan = (s) => `\x1b[36m${s}\x1b[0m`
+const tag = `[${cyan(pluginName)}]`
+
+/**
+ * @typedef Options
+ * @type { object }
+ * @property { string } path
+ */
 
 class InjectScriptsPlugin {
-  static pluginId = 'InjectScriptsPlugin'
+  static pluginName = pluginName
 
   /**
-   * @param { Compiler } compiler
+   * @param { Options } options
    */
+  constructor({ path: pathProp } = {}) {
+    if (!pathProp) {
+      throw new Error(`The "path" argument is required`)
+    }
+    const filepath = path.resolve(pathProp)
+    if (!fs.existsSync(filepath)) {
+      throw new Error(`${tag} The path "${filepath}" does not exist`)
+    }
+    this.path = pathProp
+  }
+
+  /** @param { Compiler } compiler */
   apply(compiler) {
     compiler.hooks.compilation.tap(
-      InjectScriptsPlugin.pluginId,
+      InjectScriptsPlugin.pluginName,
       (compilation) => {
         HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tapAsync(
-          InjectScriptsPlugin.pluginId,
+          InjectScriptsPlugin.pluginName,
           (data, cb) => {
-            if (fs.existsSync(pathToLibsFile)) {
+            if (fs.existsSync(this.path)) {
               // Add the CDN scripts to the html
-              data.html += fs.readFileSync(pathToLibsFile, { encoding: 'utf8' })
+              data.html += fs.readFileSync(
+                path.resolve(path.join(process.cwd(), this.path)),
+                { encoding: 'utf8' },
+              )
             }
             // Let webpack continue the compilation
             cb(null, data)

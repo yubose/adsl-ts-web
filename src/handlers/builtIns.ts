@@ -631,7 +631,6 @@ export function createVideoChatBuiltIn(app: App) {
     },
   ) {
     log.func('onVideoChat')
-    log.grey('', action)
     try {
       if (action) {
         let msg = ''
@@ -655,7 +654,6 @@ export function createVideoChatBuiltIn(app: App) {
 
       log.func('onVideoChat')
       // Reuse the existing room
-      console.log(app.meeting.room)
       if (app.meeting.isConnected) {
         newRoom = await app.meeting.rejoin()
         log.green(

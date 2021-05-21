@@ -6,6 +6,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
+// const NoodlWebpackPlugin = require('noodl-webpack-plugin').default
 const pkg = require('./package.json')
 const nuiPkg = require('./packages/noodl-ui/package.json')
 const ntilPkg = require('./packages/noodl-utils/package.json')
@@ -105,20 +106,6 @@ module.exports = {
           },
         ],
       },
-      // {
-      //   test: /\.css$/,
-      //   use: [
-      //     'style-loader',
-      //     {
-      //       loader: 'css-loader',
-      //       options: {
-      //         importLoaders: 1,
-      //         modules: false,
-      //       },
-      //     },
-      //   ],
-      //   include: /\.module\.css$/,
-      // },
       {
         test: /\.css$/,
         use: ['style-loader', 'css-loader'],
@@ -131,6 +118,12 @@ module.exports = {
     modules: ['node_modules'],
   },
   plugins: [
+    // new NoodlWebpackPlugin({
+    //   config: 'meet4d',
+    //   hostname: '127.0.0.1',
+    //   serverPort: 3001,
+    //   serverPath: 'server',
+    // }),
     new webpack.ProvidePlugin({ process: 'process' }),
     new CircularDependencyPlugin({
       exclude: /node_modules/,
@@ -172,16 +165,14 @@ module.exports = {
       minify: false,
       ...(ecosEnv !== 'test' ? { template: 'public/index.html' } : undefined),
     }),
-    new InjectScriptsPlugin(),
+    new InjectScriptsPlugin({
+      path: 'public/libs.html',
+    }),
     new CopyPlugin({
       patterns: [
         {
           from: 'public/firebase-messaging-sw.js',
           to: 'firebase-messaging-sw.js',
-        },
-        {
-          from: 'public/worker.js',
-          to: 'worker.js',
         },
       ],
     }),

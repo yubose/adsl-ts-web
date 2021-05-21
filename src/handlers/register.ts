@@ -40,16 +40,12 @@ function createRegisters(app: App) {
                 component.onEvent as string,
               )
               if (register) {
-                log.green(
-                  `Received register object for event "${register.name}"`,
-                  { register, component },
-                )
                 if (u.isFnc(register.fn)) {
-                  log.green(
-                    `Attaching the default noodl-ui register function on the register component in the root object`,
+                  component.onEvent = register.fn.bind(register) as any
+                  log.grey(
+                    `A function was attached on the "onEvent" property`,
                     { register, component },
                   )
-                  component.onEvent = register.fn.bind(register) as any
                 } else if (!register.handler) {
                   log.red(
                     `Alert! A register object was returned but the "fn" value was not a function and the "handler" object was empty!`,
@@ -124,6 +120,14 @@ function createRegisters(app: App) {
         return error
       }
     },
+    // async onNewEcosDoc(obj: Register.Object) {
+    //   log.func('onNewEcosDoc')
+    //   log.gold('', arguments)
+    //   log.gold('', arguments)
+    //   log.gold('', arguments)
+    //   log.gold('', arguments)
+    //   log.gold('', arguments)
+    // },
     twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
       console.log(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
         register: obj,

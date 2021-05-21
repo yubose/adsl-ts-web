@@ -1,13 +1,30 @@
+import * as u from '@jsmanifest/utils'
 import add from 'date-fns/add'
 
 class Timer {
-  #onIncrement: Timer['onIncrement']
   #onClear: Timer['onClear']
+  #onIncrement: Timer['onIncrement']
   dataKey: string
+  isGlobal: boolean
   pageName: string
   ref: NodeJS.Timeout | undefined
-  isGlobal: boolean
-  value: Date | undefined
+  value: Date | undefined;
+
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return {
+      dataKey: this.dataKey,
+      hasOnClearCallback: u.isFnc(this.#onClear),
+      hasOnIncrementCallback: u.isFnc(this.#onIncrement),
+      isGlobal: this.dataKey
+        .replace(/(\.|=|-|@|_)/g, '')
+        .toLowerCase()
+        .startsWith('global'),
+      isRunning: !u.isUnd(this.ref),
+      pageName: this.pageName,
+      ref: this.ref,
+      value: this.value,
+    }
+  }
 
   constructor({
     dataKey = '',
@@ -21,10 +38,6 @@ class Timer {
 
   increment() {
     this.value = add(new Date(this.value as Date), { seconds: 1 })
-    console.log(
-      `%cNew value after incremented: ${this.value}`,
-      `color:#c4a901;`,
-    )
     this.#onIncrement?.(this.value)
     return this.value
   }

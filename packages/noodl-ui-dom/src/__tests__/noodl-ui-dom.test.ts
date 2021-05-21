@@ -3,21 +3,11 @@ import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
 import { coolGold, italic, magenta } from 'noodl-common'
-import {
-  findByGlobalId,
-  getFirstByElementId,
-  getFirstByGlobalId,
-} from '../utils'
+import { getFirstByGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'
 import { GlobalComponentRecord } from '../global'
 
 describe(coolGold(`noodl-ui-dom`), () => {
-  describe(italic(`Instantiating`), () => {
-    xit(`should load up the styles resolver`, () => {
-      //
-    })
-  })
-
   describe(italic(`createGlobalRecord`), () => {
     it(`should add the GlobalComponentRecord to the global store`, async () => {
       const { render } = createRender({

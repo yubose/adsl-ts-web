@@ -774,7 +774,7 @@ const createExtendedDOMResolvers = function (app: App) {
           if (!app[label].isSameElement(node)) {
             app[label].setElement(node)
             log.func('[App] onMeetingComponent')
-            log.green(
+            log.grey(
               `Bound an element to ${label}`,
               app[label],
               app[label].snapshot(),
@@ -914,53 +914,46 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] VideoChat Timer': {
-      cond: (n, c) => c.has('text=func'),
+      cond: (n, c) => c.has('text=func') && c.contentType === 'timer',
       resolve: (node, component) => {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
-        if (component.contentType === 'timer') {
-          component.on('timer:init', (setInitialValue) => {
-            const initialTime = startOfDay(new Date())
-            // Initial SDK value is set in seconds
-            const initialSeconds = get(app.root, dataKey, 0) as number
-            // Sdk evaluates from start of day. So we must add onto the start of day
-            // the # of seconds of the initial value in the Global object
-            let initialValue = add(initialTime, { seconds: initialSeconds })
-            initialValue == null && (initialValue = new Date())
-            setInitialValue(initialValue)
-          })
-          // Look at the hard code implementation in noodl-ui-dom
-          // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
-          // the api declaration
-          component.on('timer:ref', (timer) => {
-            const textFunc = component.get('text=func') || ((x: any) => x)
-            component.on('timer:interval', ({ value, node, component }) => {
-              app.updateRoot((draft) => {
-                const seconds = get(draft, dataKey, 0)
-                set(draft, dataKey, seconds + 1)
-                const updatedSecs = get(draft, dataKey)
-                console.log(`${seconds} --> ${updatedSecs}`)
-                if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
-                  if (seconds === updatedSecs) {
-                    // Not updated
-                    log.func('text=func timer [ndom.register]')
-                    log.red(
-                      `Tried to update the value of ${dataKey} but the value remained the same`,
-                      { node, component, seconds, updatedSecs, timer },
-                    )
-                  } else {
-                    log.grey(`Updating the timer counter`)
-                    // Updated
-                    // timer.increment()
-                  }
-                }
-                node.textContent = textFunc(timer.value)
-              })
-            })
+        const textFunc = component.get('text=func') || ((x: any) => x)
+        const initialTime = startOfDay(new Date())
+        // Initial SDK value is set in seconds
+        const initialSeconds = get(app.root, dataKey, 0) as number
+        // Sdk evaluates from start of day. So we must add onto the start of day
+        // the # of seconds of the initial value in the Global object
+        let initialValue = add(initialTime, { seconds: initialSeconds })
+        initialValue == null && (initialValue = new Date())
 
-            timer.start()
+        // Look at the hard code implementation in noodl-ui-dom
+        // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
+        // the api declaration
+        component.on('timer:ref', (timer) => {
+          component.on('timer:interval', (value) => {
+            app.updateRoot((draft) => {
+              const seconds = get(draft, dataKey, 0)
+              set(draft, dataKey, seconds + 1)
+              const updatedSecs = get(draft, dataKey)
+              if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
+                if (seconds === updatedSecs) {
+                  // Not updated
+                  log.func('text=func timer:ref')
+                  log.red(
+                    `Tried to update the value of ${dataKey} but the value remained the same`,
+                    { component, seconds, updatedSecs, timer },
+                  )
+                }
+              }
+              node && (node.textContent = textFunc(value))
+            })
           })
-        }
+          timer.start()
+        })
+
+        // Set the initial value
+        component.emit('timer:init', initialValue)
       },
     },
   }
