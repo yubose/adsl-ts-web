@@ -11,7 +11,6 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import { PageObject } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
-import { Draft } from 'immer/dist/internal'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import {
   AuthStatus,
@@ -276,7 +275,7 @@ class App {
       this.ndom.use({ plugin: plugins })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
-      registers.forEach((keyVal) => this.nui._experimental.register(keyVal))
+      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
 
       this.meeting.onConnected = meetingfns.onConnected
@@ -610,18 +609,16 @@ class App {
   ): void
   updateRoot(
     fn: (
-      draft: Draft<App['noodl']['root']>,
+      draft: App['noodl']['root'],
       cb?: (root: Record<string, any>) => void,
     ) => void,
   ): void
   updateRoot<P extends string>(
-    fn: ((draft: Draft<App['noodl']['root']>) => void) | P,
+    fn: ((draft: App['noodl']['root']) => void) | P,
     value?: any | (() => void),
     cb?: (root: Record<string, any>) => void,
   ) {
-    this.noodl?.editDraft?.(function editDraft(
-      draft: Draft<App['noodl']['root']>,
-    ) {
+    this.noodl?.editDraft?.(function editDraft(draft: App['noodl']['root']) {
       if (u.isStr(fn)) {
         set(draft, fn, value)
       } else {
