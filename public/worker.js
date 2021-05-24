@@ -1,52 +1,20 @@
-/// <reference lib="WebWorker" />
-/// <reference lib="WebWorker.ImportScripts" />
-
-const tag = `[ServiceWorker]`
-/** @type { ServiceWorkerGlobalScope } self */
-const worker = this
-console.log(worker)
-console.log(worker)
-console.log(worker)
-console.log(worker)
-/**
- * @param { ExtendableEvent } event
- */
+const tag = `[ServiceWorker]`;
 self.oninstall = (event) => {
-  console.log(`%c${tag} oninstall`, `color:aquamarine;`, event)
-}
-
-/**
- * @param { ExtendableEvent } event
- */
+  console.log(`%c${tag} oninstall`, `color:aquamarine;`, event);
+};
 self.onactivate = (event) => {
-  console.log(`%c${tag} onactivate`, `color:aquamarine;`, event)
-}
-
-/**
- * @param { ExtendableMessageEvent } event
- */
-self.onmessage = (event) => {
-  console.log(`%c${tag} onmessage`, `color:aquamarine;`, event)
-}
-
-/**
- * @param { FetchEvent } event
- */
+  console.log(`%c${tag} onactivate`, `color:aquamarine;`, event);
+};
+self.addEventListener("message", function onWorkerMessage(evt) {
+  console.log(`%c${tag} onmessage`, `color:aquamarine;`, {
+    thisValue: this,
+    event: evt
+  });
+});
 self.onfetch = (event) => {
-  console.log(`%c${tag} onfetch`, `color:aquamarine;`, event)
-}
-
-/**
- * @param { PushEvent } event
- */
+  console.log(`%c${tag} onfetch`, `color:aquamarine;`, event);
+};
 self.onpush = (event) => {
-  console.log(`%c${tag} onpush`, `color:aquamarine;`, event)
-}
-
-worker.addEventListener('message', (event) => {
-  console.log(
-    `%c${tag} addEventListener NEW MESSAGE`,
-    `color:aquamarine;`,
-    event,
-  )
-})
+  console.log(`%c${tag} onpush`, `color:aquamarine;`, event);
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsiLi4vc3JjL3dvcmtlci50cyJdLAogICJzb3VyY2VzQ29udGVudCI6IFsiLy8vIDxyZWZlcmVuY2UgbGliPVwiV2ViV29ya2VyXCIgLz5cbi8vLyA8cmVmZXJlbmNlIGxpYj1cIldlYldvcmtlci5JbXBvcnRTY3JpcHRzXCIgLz5cbi8vIGltcG9ydCBDQURMIGZyb20gJ0BhaXRtZWQvY2FkbCdcblxuY29uc3QgdGFnID0gYFtTZXJ2aWNlV29ya2VyXWBcblxuLy8gQHRzLWV4cGVjdC1lcnJvclxuc2VsZi5vbmluc3RhbGwgPSAoZXZlbnQ6IEV4dGVuZGFibGVFdmVudCkgPT4ge1xuICBjb25zb2xlLmxvZyhgJWMke3RhZ30gb25pbnN0YWxsYCwgYGNvbG9yOmFxdWFtYXJpbmU7YCwgZXZlbnQpXG59XG5cbi8vIEB0cy1leHBlY3QtZXJyb3JcbnNlbGYub25hY3RpdmF0ZSA9IChldmVudDogRXh0ZW5kYWJsZUV2ZW50KSA9PiB7XG4gIGNvbnNvbGUubG9nKGAlYyR7dGFnfSBvbmFjdGl2YXRlYCwgYGNvbG9yOmFxdWFtYXJpbmU7YCwgZXZlbnQpXG59XG5cbnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignbWVzc2FnZScsIGZ1bmN0aW9uIG9uV29ya2VyTWVzc2FnZShldnQpIHtcbiAgLy8gY29uc3Qgc2RrID0gbmV3IENBREwoe1xuICAvLyAgIGFzcGVjdFJhdGlvOiAxLFxuICAvLyAgIGNhZGxWZXJzaW9uOiAndGVzdCcsXG4gIC8vICAgY29uZmlnVXJsOiBgaHR0cHM6Ly9wdWJsaWMuYWl0bWVkLmNvbS9jb25maWcvbWVldDRkLnltbGAsXG4gIC8vIH0pXG4gIC8vIGNvbnNvbGUubG9nKHNkaylcbiAgY29uc29sZS5sb2coYCVjJHt0YWd9IG9ubWVzc2FnZWAsIGBjb2xvcjphcXVhbWFyaW5lO2AsIHtcbiAgICB0aGlzVmFsdWU6IHRoaXMsXG4gICAgZXZlbnQ6IGV2dCxcbiAgfSlcbn0pXG5cbi8vIEB0cy1leHBlY3QtZXJyb3JcbnNlbGYub25mZXRjaCA9IChldmVudDogRmV0Y2hFdmVudCkgPT4ge1xuICBjb25zb2xlLmxvZyhgJWMke3RhZ30gb25mZXRjaGAsIGBjb2xvcjphcXVhbWFyaW5lO2AsIGV2ZW50KVxufVxuXG4vLyBAdHMtZXhwZWN0LWVycm9yXG5zZWxmLm9ucHVzaCA9IChldmVudDogUHVzaEV2ZW50KSA9PiB7XG4gIGNvbnNvbGUubG9nKGAlYyR7dGFnfSBvbnB1c2hgLCBgY29sb3I6YXF1YW1hcmluZTtgLCBldmVudClcbn1cbiJdLAogICJtYXBwaW5ncyI6ICJBQUlBLE1BQU0sTUFBTTtBQUdaLEtBQUssWUFBWSxDQUFDLFVBQTJCO0FBQzNDLFVBQVEsSUFBSSxLQUFLLGlCQUFpQixxQkFBcUI7QUFBQTtBQUl6RCxLQUFLLGFBQWEsQ0FBQyxVQUEyQjtBQUM1QyxVQUFRLElBQUksS0FBSyxrQkFBa0IscUJBQXFCO0FBQUE7QUFHMUQsS0FBSyxpQkFBaUIsV0FBVyx5QkFBeUIsS0FBSztBQU83RCxVQUFRLElBQUksS0FBSyxpQkFBaUIscUJBQXFCO0FBQUEsSUFDckQsV0FBVztBQUFBLElBQ1gsT0FBTztBQUFBO0FBQUE7QUFLWCxLQUFLLFVBQVUsQ0FBQyxVQUFzQjtBQUNwQyxVQUFRLElBQUksS0FBSyxlQUFlLHFCQUFxQjtBQUFBO0FBSXZELEtBQUssU0FBUyxDQUFDLFVBQXFCO0FBQ2xDLFVBQVEsSUFBSSxLQUFLLGNBQWMscUJBQXFCO0FBQUE7IiwKICAibmFtZXMiOiBbXQp9Cg==
