@@ -73,6 +73,7 @@ class App {
     ndom = new NOODLDOM(nui),
     viewport = new VP(),
   }: T.AppConstructorOptions = {}) {
+    console.log(`[App constructor]`)
     this.getStatus = getStatus
     this.mainPage = ndom.createPage(
       nui.cache.page.length ? nui.getRootPage() : nui.createPage({ viewport }),
@@ -218,6 +219,7 @@ class App {
     firebase?: { client?: App['firebase']; vapidKey?: string }
     firebaseSupported?: boolean
   } = {}) {
+    console.log(`[App initialize]`)
     try {
       !firebaseSupported && (this.#state.firebase.enabled = false)
       vapidKey && (this._store.messaging.vapidKey = vapidKey)
@@ -570,11 +572,12 @@ class App {
           this.mainPage.requesting = currentPage
           this.mainPage.components = []
           await this.navigate()
+          return this
         } catch (error) {
           console.error(error)
         }
       }
-      reloadApp()
+      return reloadApp()
     } else {
       this.streams.reset()
       if (this.ndom) {

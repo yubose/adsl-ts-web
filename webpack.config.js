@@ -6,33 +6,24 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
-// const NoodlWebpackPlugin = require('noodl-webpack-plugin').default
-const pkg = require('./package.json')
-const nuiPkg = require('./packages/noodl-ui/package.json')
-const ntilPkg = require('./packages/noodl-utils/package.json')
-const ndomPkg = require('./packages/noodl-ui-dom/package.json')
 
-const localPackages = {
-  nui: {
-    path: `./packages/noodl-ui/package.json`,
-    version: '',
-  },
-  ndom: `./packages/noodl-ui-dom/package.json`,
-  ntil: `./packages/noodl-utils/package.json`,
+const pkgJson = {
+  root: require('./package.json'),
+  nui: require('./packages/noodl-ui/package.json'),
+  ndom: require('./packages/noodl-ui-dom/package.json'),
+  nutil: require('./packages/noodl-utils/package.json'),
 }
 
-const noodlSdkVersion = pkg.devDependencies['@aitmed/cadl']
-const ecosSdkVersion = pkg.devDependencies['@aitmed/ecos-lvl2-sdk']
-const nuiVersion = pkg.dependencies['noodl-ui']
-const ndomVersion = pkg.dependencies['noodl-ui-dom']
-
-const ecosEnv = process.env.ECOS_ENV
-const nodeEnv = process.env.NODE_ENV
-const ecos = ecosEnv ? ecosEnv.toUpperCase() : '<Variable not set>'
-const env = nodeEnv ? nodeEnv.toUpperCase() : '<Variable not set>'
+const noodlSdkVersion = pkgJson.root.devDependencies['@aitmed/cadl']
+const ecosSdkVersion = pkgJson.root.devDependencies['@aitmed/ecos-lvl2-sdk']
+const nuiVersion = pkgJson.nui.version
+const ndomVersion = pkgJson.ndom.version
+const nutilVersion = pkgJson.ndom.version
+const nTypesVersion = pkgJson.root.dependencies['noodl-types']
 
 const favicon = 'public/favicon.ico'
 const filename = 'index.html'
+const publicPath = path.join(__dirname, 'public')
 const title = 'AiTmed Noodl Web'
 const productionOptions = {}
 
@@ -70,10 +61,42 @@ if (process.env.NODE_ENV === 'production') {
 const devServerOptions = {
   clientLogLevel: 'info',
   compress: false,
-  contentBase: [path.join(__dirname, 'public')],
+  contentBase: [publicPath],
   host: '127.0.0.1',
-  hot: false,
+  hot: true,
   liveReload: true,
+}
+
+const environmentPlugin = new webpack.EnvironmentPlugin({
+  BUILD: {
+    ecosEnv: process.env.ECOS_ENV,
+    nodeEnv: process.env.NODE_ENV,
+    packages: {
+      '@aitmed/cadl': noodlSdkVersion,
+      '@aitmed/ecos-lvl2-sdk': ecosSdkVersion,
+      'noodl-types': nTypesVersion,
+      'noodl-ui': pkgJson.nui.version,
+      'noodl-utils': nutilVersion,
+      'noodl-ui-dom': pkgJson.ndom.version,
+    },
+    timestamp: new Date().toLocaleString(),
+  },
+  // if process.env.DEPLOYING === true, this forces the config url in
+  // src/app/noodl.ts to point to the public.aitmed.com host
+  ECOS_ENV: process.env.ECOS_ENV,
+  NODE_ENV: process.env.NODE_ENV,
+  USE_DEV_PATHS: process.env.USE_DEV_PATHS,
+})
+
+let ecosEnv = environmentPlugin.defaultValues.ECOS_ENV
+let nodeEnv = environmentPlugin.defaultValues.NODE_ENV
+
+if (!u.isUnd(process.env['DEPLOYING'])) {
+  const value = process.env['DEPLOYING']
+  environmentPlugin.defaultValues['DEPLOYING'] = value
+  if (!environmentPlugin.keys.includes(value)) {
+    environmentPlugin.keys.push(value)
+  }
 }
 
 /**
@@ -81,15 +104,16 @@ const devServerOptions = {
  */
 module.exports = {
   entry: {
-    main: './src/index.ts',
+    main: ['./src/index.ts'],
   },
   output: {
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'build'),
   },
+  mode: process.env.NODE_ENV !== 'production' ? 'development' : 'production',
   devServer: devServerOptions,
   devtool: 'inline-source-map',
-  // externals: [],
+  externals: [],
   module: {
     rules: [
       {
@@ -114,48 +138,20 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.ts', '.js', '.mjs'],
+    extensions: ['.ts', '.js'],
     modules: ['node_modules'],
   },
   plugins: [
-    // new NoodlWebpackPlugin({
-    //   config: 'meet4d',
-    //   hostname: '127.0.0.1',
-    //   serverPort: 3001,
-    //   serverPath: 'server',
-    // }),
     new webpack.ProvidePlugin({ process: 'process' }),
     new CircularDependencyPlugin({
       exclude: /node_modules/,
-      include: /src/,
+      include: /(src|packages)/,
     }),
     new webpack.ContextReplacementPlugin(
       /date\-fns[\/\\]/,
       new RegExp(`[/\\\\\](${['en-US'].join('|')})[/\\\\\]index\.js$`),
     ),
-    new webpack.DefinePlugin({
-      // if process.env.DEPLOYING === true, this forces the config url in
-      // src/app/noodl.ts to point to the public.aitmed.com host
-      'process.env.DEPLOYING': JSON.stringify(process.env.DEPLOYING),
-      'process.env.ECOS_ENV': JSON.stringify(process.env.ECOS_ENV),
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
-      'process.env.USE_DEV_PATHS': JSON.stringify(process.env.USE_DEV_PATHS),
-      'process.env.BUILD': JSON.stringify({
-        ecosEnv: process.env.ECOS_ENV,
-        nodeEnv: process.env.NODE_ENV,
-        packages: {
-          '@aitmed/cadl': noodlSdkVersion,
-          '@aitmed/ecos-lvl2-sdk': ecosSdkVersion,
-          'noodl-types': pkg.dependencies['noodl-types'],
-          'noodl-ui': nuiPkg.version,
-          'noodl-utils': ntilPkg.version,
-          'noodl-ui-dom': ndomPkg.version,
-          typescript: pkg.devDependencies.typescript,
-          'twilio-video': pkg.devDependencies['twilio-video'],
-        },
-        timestamp: new Date().toLocaleString(),
-      }),
-    }),
+    environmentPlugin,
     new HtmlWebpackPlugin({
       filename,
       title,
@@ -177,7 +173,7 @@ module.exports = {
       ],
     }),
     new webpack.ProgressPlugin({
-      handler: webpackProgress,
+      // handler: webpackProgress,
     }),
   ],
   ...productionOptions,
@@ -193,18 +189,29 @@ module.exports = {
  */
 function webpackProgress(percentage, msg, ...args) {
   process.stdout.write('\x1Bc')
+
+  const getEcosEnv = () =>
+    ecosEnv ? ecosEnv.toUpperCase() : '<Variable not set>'
+
+  const getNodeEnv = () =>
+    nodeEnv ? nodeEnv.toUpperCase() : '<Variable not set>'
+
   // prettier-ignore
   singleLog(
-`Your app is being built for ${u.yellow(`eCOS`)} ${u.magenta(ecos)} environment in ${u.yellow(env)} mode
-Status:    ${u.blue(msg.toUpperCase())}
+`Your app is being built for ${u.cyan(`eCOS`)} ${u.magenta(getEcosEnv())} environment in ${u.cyan(getNodeEnv())} mode\n
+Status:    ${u.cyan(msg.toUpperCase())}
 File:      ${u.magenta(args[0])}
 Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
-${u.blue('eCOS packages')}:
-${u.yellow(`@aitmed/cadl`)}:            ${u.magenta(noodlSdkVersion)}
-${u.yellow(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(ecosSdkVersion)}
-${u.yellow(`noodl-ui`)}:                ${u.magenta(nuiVersion)}
-${u.yellow(`noodl-ui-dom`)}:            ${u.magenta(ndomVersion)}
-${nodeEnv === 'production' && `
-A "${u.magenta(filename)}" file will be generated inside your ${u.magenta('build')} directory.
-The title of the page was set to "${u.yellow(title)}"`})`)
+${u.cyan('eCOS packages')}:
+${u.white(`@aitmed/cadl`)}:            ${u.magenta(noodlSdkVersion)}
+${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(ecosSdkVersion)}
+${u.white(`noodl-types`)}:             ${u.magenta(nTypesVersion)}
+${u.white(`noodl-ui`)}:                ${u.magenta(nuiVersion)}
+${u.white(`noodl-ui-dom`)}:            ${u.magenta(ndomVersion)}
+${u.white(`noodl-utils`)}:             ${u.magenta(nutilVersion)}
+
+${nodeEnv === 'production' 
+    ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(title)}` 
+    : ''
+}\n\n`)
 }

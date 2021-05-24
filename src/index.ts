@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import CADL from '@aitmed/cadl'
 import Logger from 'logsnap'
 import pick from 'lodash/pick'
 import * as lib from 'noodl-ui'
@@ -52,21 +53,43 @@ export function getWindowHelpers() {
   )
 }
 
+let app: App | undefined
+
+async function getApp({
+  noodl,
+  Account,
+}: { noodl?: CADL; Account?: any } = {}) {
+  !noodl && (noodl = (await import('./app/noodl')).default)
+  !Account && (Account = (await import('@aitmed/cadl')).Account)
+  return new App({
+    noodl,
+    getStatus: Account?.getStatus?.bind(Account),
+  }) as App
+}
+
+async function initializeApp(appProp = app) {
+  if (!appProp) throw new Error(`Cannot initialize app because it is undefined`)
+  const {
+    default: firebase,
+    aitMessage,
+    isSupported: firebaseSupported,
+  } = await import('./app/firebase')
+  await appProp.initialize({
+    firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
+    firebaseSupported: firebaseSupported(),
+  })
+  return appProp as App
+}
+
 window.addEventListener('load', async (e) => {
   try {
     const { Account } = await import('@aitmed/cadl')
-    const {
-      default: firebase,
-      aitMessage,
-      isSupported: firebaseSupported,
-    } = await import('./app/firebase')
+    const { aitMessage } = await import('./app/firebase')
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
 
-    const app = new App({
-      noodl,
-      getStatus: Account.getStatus.bind(Account),
-    })
+    app = await getApp({ noodl, Account })
+    // await useTrackers(app)
 
     document.body.addEventListener('keydown', async (e) => {
       if ((e.key == '1' || e.key == '2') && e.metaKey) {
@@ -82,40 +105,23 @@ window.addEventListener('load', async (e) => {
       }
     })
 
-    u.assign(window, {
-      Account,
-      build: process.env.BUILD,
-    })
-
     Object.defineProperties(window, {
       app: { get: () => app },
-      l: { get: () => app.meeting.localParticipant },
-      cache: { get: () => app.cache },
+      build: { value: process.env.BUILD },
+      l: { get: () => app?.meeting.localParticipant },
+      cache: { get: () => app?.cache },
       cp: { get: () => copyToClipboard },
-      meeting: { get: () => app.meeting },
+      meeting: { get: () => app?.meeting },
       noodl: { get: () => noodl },
-      nui: { get: () => app.nui },
-      ndom: { get: () => app.ndom },
-      page: { get: () => app.mainPage },
+      nui: { get: () => app?.nui },
+      ndom: { get: () => app?.ndom },
+      page: { get: () => app?.mainPage },
       FCMOnTokenReceive: {
         get: () => (args: any) =>
           noodl.root.builtIn
             .FCMOnTokenReceive({ vapidKey: aitMessage.vapidKey, ...args })
             .then(console.log)
             .catch(console.error),
-      },
-      grid: {
-        get: () => () => {
-          const grid = document.getElementById('gridlines')
-          if (grid) {
-            grid.remove()
-          } else {
-            showGridLines.call(app, {
-              width: app.mainPage.viewport.width,
-              height: app.mainPage.viewport.height,
-            })
-          }
-        },
       },
       ...u
         .entries(getWindowHelpers())
@@ -127,126 +133,62 @@ window.addEventListener('load', async (e) => {
 
     try {
       stable && log.cyan('Initializing [App] instance')
-      await app.initialize({
-        firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
-        firebaseSupported: firebaseSupported(),
-      })
+
+      await initializeApp(app)
       stable && log.cyan('Initialized [App] instance')
     } catch (error) {
       console.error(error)
     }
 
-    const configPages = [
-      ...(app.noodl.cadlEndpoint?.preload || []),
-      ...(app.noodl.cadlEndpoint?.page || []),
-    ] as string[]
-
     window.addEventListener('popstate', createOnPopState(app))
-
-    // const ws = new WebSocket(`ws://127.0.0.1:3002`)
-
-    // ws.onopen = (event) => {
-    //   // log.green(`Websocket client opened!`, event)
-    // }
-
-    // ws.onclose = (event) => {
-    //   log.grey(`Websocket client closed`, event)
-    // }
-
-    // ws.onerror = (event) => {
-    //   log.red(`Websocket client received an error!`, event)
-    // }
-
-    // ws.onmessage = async (event) => {
-    //   const data = JSON.parse(event.data)
-
-    //   if (data.type === 'FILE_CHANGED') {
-    //     const pageName = String(data.name).replace(/\//g, '')
-    //     if (pageName && configPages.includes(pageName)) {
-    //       console.clear()
-    //       log.green(`A noodl file was changed and the app restarted`, data)
-    //       app.reset(true)
-    //     }
-    //   }
-    // }
   } catch (error) {
     console.error(error)
   }
-
-  // if ('serviceWorker' in navigator) {
-  //   navigator.serviceWorker.addEventListener('message', function onMessage(ev) {
-  //     console.log(`%cReceived message!`, `color:#00b406;`, ev)
-  //   })
-  //   const registration = await navigator.serviceWorker.register('worker.js', {
-  //     type: 'classic',
-  //   })
-  // }
 })
 
-function showGridLines(
-  this: App,
-  {
-    width = '100%',
-    height = 0,
-  }: {
-    width: any
-    height: any
-  },
-) {
-  if (typeof window !== 'undefined') {
-    const container = document.createElement('div')
-    const gridLines: HTMLDivElement[] = []
+async function useTrackers(app: App) {
+  const { CONFIG_KEY } = await import('./app/noodl')
+  const wssObs = (await import('./handlers/wss')).default
+  console.log('mkmkmk')
+  // const worker = new Worker('worker.js')
 
-    document.body.appendChild(container)
-    container.classList.add('grid-lines')
-    container.id = 'gridlines'
-    container.style.position = 'absolute'
-    container.style.width = width
-    container.style.height = '100%'
-    container.style.minHeight = height
-    container.style.top = '0px'
-    container.style.right = '0px'
-    container.style.left = '0px'
-    container.style.pointerEvents = 'none'
-    container.style.userSelect = 'none'
+  // worker.postMessage(`Worker started`)
 
-    let currTop = 0
-    let offset = 50
+  // worker.onmessage = function onMessage(evt) {
+  //   console.log(`[index.ts] Received new worker message`, evt)
+  // }
 
-    const createGridLineElem = ({
-      top,
-      text = '',
-    }: {
-      top: any
-      text: string | ((...args: any[]) => any)
-    }) => {
-      const node = document.createElement('div')
-      node.classList.add('grid-line')
-      node.style.position = 'absolute'
-      node.style.top = top + 'px'
-      node.style.width = width + 'px'
-      node.style.height = '100px'
-      node.style.zIndex = '10000'
-      // node.style.border = '0.5px dashed rgba(0, 0, 0, 0.15)'
-      const child = document.createElement('div')
-      child.style.position = 'absolute'
-      child.style.left = '0px'
-      child.style.width = width
-      child.style.color = 'hotpink'
-      child.style.fontSize = '11.5px'
-      child.textContent = typeof text === 'function' ? text(node) : text
-      node.appendChild(child)
-      return node
-    }
+  // worker.onmessageerror = function onMessageError(evt) {
+  //   console.log(`[index.ts] Received an error worker message`, evt)
+  // }
 
-    while (currTop < height) {
-      const node = createGridLineElem({
-        top: currTop,
-        text: currTop + 'px',
-      })
-      container.appendChild(node)
-      gridLines.push(node)
-      currTop += offset
-    }
+  // worker.onerror = function onMessageError(err) {
+  //   console.log(`[index.ts] Received an error from worker`, err)
+  // }
+
+  wssObs(app)
+    // .track('track', {
+    //   key: 'newDispatch',
+    //   label: 'DISPATCHING',
+    //   color: 'aquamarine',
+    // })
+    .track('track', {
+      key: 'setFromLocalStorage',
+      label: 'SETTING_FROM_LOCAL_STORAGE',
+      color: 'salmon',
+    })
+  return wssObs
+}
+
+if (module.hot) {
+  module.hot.accept()
+
+  if (module.hot.status() === 'apply') {
+    app = window.app as App
+    app.reset(true)
   }
+
+  module.hot.dispose((data = {}) => {
+    u.keys(data).forEach((key) => delete data[key])
+  })
 }

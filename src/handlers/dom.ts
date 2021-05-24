@@ -541,7 +541,7 @@ const createExtendedDOMResolvers = function (app: App) {
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
-            console.log("test map",dataValue)
+            console.log('test map', dataValue)
             let map = new mapboxgl.Map({
               container: parent?.id,
               style: 'mapbox://styles/mapbox/streets-v11',
@@ -697,7 +697,15 @@ const createExtendedDOMResolvers = function (app: App) {
                   let address = e.features[0].properties.address
                   new mapboxgl.Popup()
                     .setLngLat(coordinates)
-                    .setHTML(Name + ' <br> ' + Speciality + '<br> '+phoneNumber+'<br> '  + address)
+                    .setHTML(
+                      Name +
+                        ' <br> ' +
+                        Speciality +
+                        '<br> ' +
+                        phoneNumber +
+                        '<br> ' +
+                        address,
+                    )
                     .addTo(map)
                 })
 
@@ -960,6 +968,8 @@ const createExtendedDOMResolvers = function (app: App) {
     },
   }
 
+  console.log('hello')
+
   return u
     .entries(domResolvers)
     .reduce(
@@ -969,3 +979,43 @@ const createExtendedDOMResolvers = function (app: App) {
 }
 
 export default createExtendedDOMResolvers
+
+if (module.hot) {
+  module.hot.accept()
+
+  if (module.hot.status() === 'apply') {
+    console.log(
+      `%c[apply-dom] Module hot data`,
+      `color:#e50087;`,
+      module.hot.data,
+    )
+    module.hot.data.fruits = ['apple']
+    console.log(
+      `%c[apply-dom] Module hot data now`,
+      `color:#e50087;`,
+      module.hot.data,
+    )
+    // module.hot?.data.app.reset()
+    // app = module.hot?.data.app
+  }
+
+  if (module.hot.status() === 'idle') {
+    console.log(
+      `%c[idle-dom] Module hot data`,
+      `color:#00b406;`,
+      module.hot.data,
+    )
+  }
+
+  if (module.hot.status() === 'prepare') {
+    console.log(
+      `%c[prepare-dom] Module hot data`,
+      `color:#3498db;`,
+      module.hot.data,
+    )
+  }
+
+  if (module.hot.status() === 'watch') {
+    console.log(`%c[watch-dom]`, `color:#FF5722;`, module.hot.data)
+  }
+}
