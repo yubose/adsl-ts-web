@@ -2,7 +2,6 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import * as u from '@jsmanifest/utils'
-import { isDraft, original } from 'immer'
 import { isAction } from 'noodl-action-chain'
 import {
   findListDataObject,
@@ -207,8 +206,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       let previousDataValue: boolean | undefined
       let nextDataValue: boolean | undefined
       let newSrc = ''
-
-      if (isDraft(path)) path = original(path)
 
       if (dataKey?.startsWith(iteratorVar)) {
         let parts = dataKey.split('.').slice(1)

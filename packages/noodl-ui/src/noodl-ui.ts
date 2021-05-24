@@ -3,7 +3,6 @@ import merge from 'lodash/merge'
 import set from 'lodash/set'
 import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
-import { setUseProxies, enableES5 } from 'immer'
 import {
   ComponentObject,
   EmitObjectFold,
@@ -42,9 +41,6 @@ import {
 } from './utils/noodl'
 import { groupedActionTypes, nuiEmitType } from './constants'
 import * as T from './types'
-
-enableES5()
-setUseProxies(false)
 
 const NUI = (function _NUI() {
   const cache = {

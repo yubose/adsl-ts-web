@@ -1,9 +1,7 @@
 import { EventEmitter } from 'events'
 import { Status } from '@aitmed/ecos-lvl2-sdk'
 import { LocalParticipant } from 'twilio-video'
-import CADL from '@aitmed/cadl'
 import noop from 'lodash/noop'
-import produce, { Draft } from 'immer'
 import { ComponentObject, PageObject } from 'noodl-types'
 import NOODLDOM, {
   defaultResolvers,
@@ -226,7 +224,7 @@ export class MockNoodl extends EventEmitter {
     someArr?: string[],
     opts?: { builtIn?: {} },
   ) {}
-  editDraft(fn: (draft: Draft<MockNoodl['root']>) => void) {
+  editDraft(fn: (draft: MockNoodl['root']) => void) {
     fn(this.root)
   }
   getConfig() {

@@ -1,5 +1,3 @@
-import { WritableDraft } from 'immer/dist/internal'
-import { isDraft, original } from 'immer'
 import { AcceptArray } from '@jsmanifest/typefest'
 import { ComponentObject, StyleObject } from 'noodl-types'
 import * as u from './utils/internal'
@@ -18,7 +16,7 @@ class Component<C extends ComponentObject = ComponentObject>
   #cache: { [key: string]: any }
   #hooks = {} as Hooks
   #hookCbIds: string[] = []
-  #component: WritableDraft<ComponentObject> | ComponentObject
+  #component: ComponentObject
   #children: T.NUIComponent.Instance[] = []
   #id = ''
   #parent: T.NUIComponent.Instance | null = null
@@ -159,9 +157,7 @@ class Component<C extends ComponentObject = ComponentObject>
     if (key === 'style') {
       // Retrieve the entire style object
       if (u.isUnd(styleKey)) {
-        value = isDraft(this.blueprint.style)
-          ? original(this.blueprint.style)
-          : this.blueprint.style
+        value = this.blueprint.style
       }
       // Retrieve a property of the style object
       else if (u.isStr(styleKey)) {
@@ -178,7 +174,7 @@ class Component<C extends ComponentObject = ComponentObject>
       }
     }
 
-    return isDraft(value) ? original(value) : value
+    return value
   }
 
   /**
