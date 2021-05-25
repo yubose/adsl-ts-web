@@ -2,18 +2,18 @@ process.stdout.write('\x1Bc')
 const u = require('@jsmanifest/utils')
 const meow = require('meow')
 const express = require('express')
-const esbuild = require('esbuild')
+// const esbuild = require('esbuild')
 const webpack = require('webpack')
 const webpackDevMiddleware = require('webpack-dev-middleware')
 const webpackHotMiddleware = require('webpack-hot-middleware')
 
-esbuild.build({
-  charset: 'utf8',
-  entryPoints: ['src/worker.ts'],
-  outfile: 'public/worker.js',
-  sourcemap: 'inline',
-  watch: true,
-})
+// esbuild.build({
+//   charset: 'utf8',
+//   entryPoints: ['src/worker.ts'],
+//   outfile: 'public/worker.js',
+//   sourcemap: 'inline',
+//   watch: true,
+// })
 
 const startCmd = `${u.white(`npm run`)} ${u.yellow(`node start`)}`
 const withArgs = (s) => `${u.magenta(s)}`
@@ -38,9 +38,15 @@ const cli = meow(
       port: { alias: 'p', type: 'number', default: 3000 },
       serverDir: {type:'string',default:'server'},
       serverPort: {  type: 'number', default: 3001 },
+      baseUrl: { type: 'string' },
+      deviceType: { alias: 'd', type: 'string', default: 'web' },
     },
   },
 )
+
+u.newline()
+console.log(`FLAGS`, flags)
+u.newline()
 
 const webpackConfig = require('./webpack.config')
 const nodeEnv = 'development'
@@ -93,7 +99,7 @@ if (envPluginIndex !== -1) {
 }
 
 webpackConfig.entry = [
-  'webpack-hot-middleware/client?path=__webpack_hmr&reload=true',
+  'webpack-hot-middleware/client?path=__webpack_hmr',
   ...webpackConfig.entry.main,
 ]
 

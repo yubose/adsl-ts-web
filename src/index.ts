@@ -1,6 +1,6 @@
 import yaml from 'yaml'
 import * as u from '@jsmanifest/utils'
-import CADL from '@aitmed/cadl'
+import CADL, { Account } from '@aitmed/cadl'
 import Logger from 'logsnap'
 import pick from 'lodash/pick'
 import * as lib from 'noodl-ui'
@@ -20,20 +20,18 @@ import {
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
 import { copyToClipboard, getVcodeElem, toast } from './utils/dom'
-import { isStable } from './utils/common'
 import App from './App'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
 
 const log = Logger.create('App.ts')
-const stable = isStable()
 
 /**
  * Just a helper to return the utilities that are meant to be attached
  * to the global window object
  */
 export function getWindowHelpers() {
-  return Object.assign(
+  return u.assign(
     {
       findByDataAttrib,
       findByDataKey,
@@ -54,45 +52,78 @@ export function getWindowHelpers() {
   )
 }
 
-let app: App | undefined
+let app: App
+let ws: WebSocket
 
-async function getApp({
-  noodl,
-  Account,
-}: { noodl?: CADL; Account?: any } = {}) {
+async function initializeApp(
+  args: { noodl?: CADL; Account?: typeof Account } = {},
+) {
+  let { noodl, Account: accountProp } = args
+
   !noodl && (noodl = (await import('./app/noodl')).default)
-  !Account && (Account = (await import('@aitmed/cadl')).Account)
-  return new App({
-    noodl,
-    getStatus: Account?.getStatus?.bind(Account),
-  }) as App
-}
+  !accountProp && (accountProp = (await import('@aitmed/cadl')).Account)
 
-async function initializeApp(appProp = app) {
-  if (!appProp) throw new Error(`Cannot initialize app because it is undefined`)
+  if (!app) {
+    app = new App({
+      noodl,
+      getStatus: Account?.getStatus?.bind(Account),
+    }) as App
+  }
+
   const {
     default: firebase,
     aitMessage,
     isSupported: firebaseSupported,
   } = await import('./app/firebase')
-  await appProp.initialize({
+
+  await app.initialize({
     firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
     firebaseSupported: firebaseSupported(),
   })
-  return appProp as App
+
+  return app
+}
+
+async function initializeNoodlPluginRefresher() {
+  ws = new WebSocket(`ws://127.0.0.1:3002`)
+
+  ws.addEventListener('open', (event) => {
+    console.log(`[noodl refresher] started`, event)
+  })
+
+  ws.addEventListener('message', (msg) => {
+    console.log(`%cReceived from noodl-webpack-plugin:`, `color:#e50087;`, msg)
+    const data = JSON.parse(msg.data)
+    data.type === 'FILE_CHANGED' && app.reset(true)
+  })
+
+  ws.addEventListener('error', (err) => {
+    console.log(`%c[noodl refresher error]`, `color:#ec0000;`, err)
+  })
+
+  ws.addEventListener('close', (event) => {
+    console.log(`%c[noodl refresher] closed`, `color:#FF5722;`, event)
+  })
+
+  return ws
 }
 
 window.addEventListener('load', async (e) => {
   try {
+    log.func('onload')
+
     const { Account } = await import('@aitmed/cadl')
     const { aitMessage } = await import('./app/firebase')
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
 
-    app = await getApp({ noodl, Account })
-    // await useTrackers(app)
+    await initializeNoodlPluginRefresher()
 
-    document.body.addEventListener('keydown', async (e) => {
+    log.cyan('Initializing [App] instance')
+    app = await initializeApp({ noodl, Account })
+    log.cyan('Initialized [App] instance')
+
+    document.body.addEventListener('keydown', async function onKeyDown(e) {
       if ((e.key == '1' || e.key == '2') && e.metaKey) {
         e.preventDefault()
         let node: HTMLElement | null = null
@@ -127,24 +158,11 @@ window.addEventListener('load', async (e) => {
       ...u
         .entries(getWindowHelpers())
         .reduce(
-          (acc, [key, fn]) => Object.assign(acc, { [key]: { get: () => fn } }),
+          (acc, [key, fn]) => u.assign(acc, { [key]: { get: () => fn } }),
           {},
         ),
-      toYml: {
-        get() {
-          return yaml.stringify.bind(yaml)
-        },
-      },
+      toYml: { get: () => yaml.stringify.bind(yaml) },
     })
-
-    try {
-      stable && log.cyan('Initializing [App] instance')
-
-      await initializeApp(app)
-      stable && log.cyan('Initialized [App] instance')
-    } catch (error) {
-      console.error(error)
-    }
 
     window.addEventListener('popstate', createOnPopState(app))
   } catch (error) {
@@ -152,46 +170,12 @@ window.addEventListener('load', async (e) => {
   }
 })
 
-async function useTrackers(app: App) {
-  const { CONFIG_KEY } = await import('./app/noodl')
-  const wssObs = (await import('./handlers/wss')).default
-  console.log('mkmkmk')
-  // const worker = new Worker('worker.js')
-
-  // worker.postMessage(`Worker started`)
-
-  // worker.onmessage = function onMessage(evt) {
-  //   console.log(`[index.ts] Received new worker message`, evt)
-  // }
-
-  // worker.onmessageerror = function onMessageError(evt) {
-  //   console.log(`[index.ts] Received an error worker message`, evt)
-  // }
-
-  // worker.onerror = function onMessageError(err) {
-  //   console.log(`[index.ts] Received an error from worker`, err)
-  // }
-
-  wssObs(app)
-    // .track('track', {
-    //   key: 'newDispatch',
-    //   label: 'DISPATCHING',
-    //   color: 'aquamarine',
-    // })
-    .track('track', {
-      key: 'setFromLocalStorage',
-      label: 'SETTING_FROM_LOCAL_STORAGE',
-      color: 'salmon',
-    })
-  return wssObs
-}
-
 if (module.hot) {
   module.hot.accept()
 
   if (module.hot.status() === 'apply') {
     app = window.app as App
-    app.reset(true)
+    window.app.reset(true)
   }
 
   module.hot.dispose((data = {}) => {

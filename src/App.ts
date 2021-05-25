@@ -557,7 +557,8 @@ class App {
 
   reset(soft?: boolean) {
     if (soft) {
-      const reloadApp = async () => {
+      // Soft reset (retains the App instance reference as well as the actions/transactions, etc)
+      const softAppReset = async () => {
         try {
           const { resetInstance: resetSdk } = await import('./app/noodl')
           const currentRoot = this.root
@@ -572,13 +573,13 @@ class App {
           this.mainPage.setPreviousPage('')
           this.mainPage.requesting = currentPage
           this.mainPage.components = []
-          await this.navigate()
+          await this.navigate(this.mainPage)
           return this
         } catch (error) {
           console.error(error)
         }
       }
-      return reloadApp()
+      return softAppReset()
     } else {
       this.streams.reset()
       if (this.ndom) {

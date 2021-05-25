@@ -130,3 +130,39 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
 }
 
 export default createWssObserver
+
+/**
+// async function useTrackers(app: App) {
+//   const { CONFIG_KEY } = await import('./app/noodl')
+//   const wssObs = (await import('./handlers/wss')).default
+
+// const worker = new Worker('worker.js')
+
+// worker.postMessage(`Worker started`)
+
+// worker.onmessage = function onMessage(evt) {
+//   console.log(`[index.ts] Received new worker message`, evt)
+// }
+
+// worker.onmessageerror = function onMessageError(evt) {
+//   console.log(`[index.ts] Received an error worker message`, evt)
+// }
+
+// worker.onerror = function onMessageError(err) {
+//   console.log(`[index.ts] Received an error from worker`, err)
+// }
+
+// wssObs(app)
+//   .track('track', {
+//     key: 'newDispatch',
+//     label: 'DISPATCHING',
+//     color: 'aquamarine',
+//   })
+//   .track('track', {
+//     key: 'setFromLocalStorage',
+//     label: 'SETTING_FROM_LOCAL_STORAGE',
+//     color: 'salmon',
+//   })
+//   return wssObs
+// }
+ */
