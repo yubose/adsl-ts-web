@@ -22,7 +22,7 @@ import {
   getFirstByElementId,
   isPageConsumer,
 } from 'noodl-ui-dom'
-import { BuiltInActionObject, Identify } from 'noodl-types'
+import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import {
   LocalAudioTrack,
   LocalAudioTrackPublication,
@@ -32,10 +32,16 @@ import {
 } from 'twilio-video'
 import { parse } from 'noodl-utils'
 import Logger from 'logsnap'
-import { isVisible, toast, hide, show, scrollToElem } from '../utils/dom'
+import {
+  download,
+  isVisible,
+  toast,
+  hide,
+  show,
+  scrollToElem,
+} from '../utils/dom'
 import {
   getActionMetadata,
-  isPlainAction,
   pickActionKey,
   resolvePageUrl,
 } from '../utils/common'
@@ -617,12 +623,58 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 }
 
 /* -------------------------------------------------------
-  ---- Built in funcs below are for the SDK
--------------------------------------------------------- */
+  ---- Built in funcs below are for the SDK (most likely passed to initPage)
+---------------------------------------------------------- */
 
-// This goes on the SDK
-export function createVideoChatBuiltIn(app: App) {
-  return async function onVideoChat(
+// These get attached to the level 2 sdk's "builtIn" prop during initPage
+export const extendedSdkBuiltIns = {
+  /**
+   * Called when user clicks the download icon. The passed in args should contain
+   * the ecosObj that contains the file data
+   */
+  download(this: App, { ecosObj }: { ecosObj?: EcosDocument<any> } = {}) {
+    log.func('download (document)')
+    if (!ecosObj) {
+      return log.red(
+        `Cannot prompt with the download dialog because the "ecosObj" ` +
+          `object was passed in as typeof "${typeof ecosObj}"`,
+        ecosObj,
+      )
+    }
+    if (!ecosObj.name?.data || !u.isStr(ecosObj.name?.data)) {
+      return log.red(
+        `Tried to prompt a download window for the user but the "data" ` +
+          `field in the name object is empty`,
+        ecosObj,
+      )
+    }
+    let ext = ''
+    let filename = (ecosObj.name.title || '') as string
+    let mimeType = (ecosObj.name.type || '') as string
+    let data
+
+    if (mimeType && u.isStr(mimeType)) {
+      // Assuming these are note docs since we are storing their data in json
+      if (mimeType.endsWith('json')) {
+        ext = '.txt'
+        const title = ecosObj.name.title || ''
+        const body = ecosObj.name.data || ''
+        const note = `${title}\n\n${body}`
+        data = new Blob([note], { type: 'text/plain' })
+      } else {
+        ext = mimeType.substring(mimeType.lastIndexOf('/')).replace('/', '.')
+      }
+    }
+
+    ext && u.isStr(filename) && (filename += ext)
+    !data && (data = ecosObj.name?.data || '')
+    return download(data, filename)
+  },
+  /**
+   * Called during "init" when navigating to VideoChat
+   */
+  async videoChat(
+    this: App,
     action: BuiltInActionObject & {
       roomId: string
       accessToken: string
@@ -654,21 +706,21 @@ export function createVideoChatBuiltIn(app: App) {
 
       log.func('onVideoChat')
       // Reuse the existing room
-      if (app.meeting.isConnected) {
-        newRoom = await app.meeting.rejoin()
+      if (this.meeting.isConnected) {
+        newRoom = await this.meeting.rejoin()
         log.green(
           `Reusing existent room that you are already connected to`,
           newRoom,
         )
       } else {
         log.grey(`Connecting to room id: ${action?.roomId}`)
-        newRoom = (await app.meeting.join(action.accessToken)) as Room
+        newRoom = (await this.meeting.join(action.accessToken)) as Room
         newRoom && log.green(`Connected to room: ${newRoom.name}`, newRoom)
       }
       if (newRoom) {
         // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
         // to initiate the default values for audio/video default enabled/disabled state
-        const { cameraOn, micOn } = app.root.VideoChat || {}
+        const { cameraOn, micOn } = this.root.VideoChat || {}
         const { localParticipant } = newRoom
 
         const toggle =
@@ -715,7 +767,7 @@ export function createVideoChatBuiltIn(app: App) {
       console.error(error)
       toast(error.message, { type: 'error' })
     }
-  }
+  },
 }
 
 export default createBuiltInActions

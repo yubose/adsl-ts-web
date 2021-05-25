@@ -40,6 +40,14 @@ These variables are available globally:
   - Server sends notification with payload of document id (`did`)
   - A receives notification. Pass `did` to emit call
 
+## Download feat. (ref: DocumentDetail)
+
+- Pass builtIn fn
+- Receive `ecosObj` to determine the mime type
+- Show a (generic) popup for the download
+  - Let them select a location to save to
+  - Let them rename the file if needed
+
 ### `Note` ecosDoc
 
 - Creating a comment on a note (DocumentDetail)
