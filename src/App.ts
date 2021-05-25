@@ -19,7 +19,7 @@ import {
   FirebaseMessaging,
 } from './app/types'
 import createActions from './handlers/actions'
-import createBuiltIns, { createVideoChatBuiltIn } from './handlers/builtIns'
+import createBuiltIns, { extendedSdkBuiltIns } from './handlers/builtIns'
 import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
@@ -28,11 +28,10 @@ import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
 import { setDocumentScrollTop, toast } from './utils/dom'
-import { isStable, isUnitTestEnv, isOutboundLink } from './utils/common'
+import { isUnitTestEnv, isOutboundLink } from './utils/common'
 import * as T from './app/types'
 
 const log = Logger.create('App.ts')
-const stable = isStable()
 
 class App {
   #state = {
@@ -256,7 +255,7 @@ class App {
         this.#state.authStatus = 'temporary'
       }
 
-      NUI.use({
+      this.nui.use({
         getAssetsUrl: () => this.noodl.assetsUrl,
         getBaseUrl: () => this.noodl.cadlBaseUrl || '',
         getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
@@ -306,7 +305,6 @@ class App {
       ---- LOCAL STORAGE
     -------------------------------------------------------- */
       let startPage = this.noodl.cadlEndpoint?.startPage
-      stable && log.cyan(`Start page: ${startPage}`)
 
       // Override the start page if they were on a previous page
       const cachedPages = this.getCachedPages()
@@ -380,8 +378,11 @@ class App {
       await this.noodl?.initPage(pageRequesting, [], {
         ...page.modifiers[pageRequesting],
         builtIn: {
+          EcosObj: {
+            download: extendedSdkBuiltIns.download.bind(this),
+          },
           FCMOnTokenReceive: async (options?: any) => {
-            const token = await NUI.emit({
+            const token = await this.nui.emit({
               type: 'register',
               event: 'FCMOnTokenReceive',
               params: options,
@@ -396,7 +397,7 @@ class App {
           hide: self.builtIns.get('hide')?.find(Boolean)?.fn,
           show: self.builtIns.get('show')?.find(Boolean)?.fn,
           redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
-          videoChat: createVideoChatBuiltIn(this),
+          videoChat: extendedSdkBuiltIns.videoChat.bind(this),
         },
       })
       log.func('createPreparePage')
