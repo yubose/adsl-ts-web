@@ -1,3 +1,4 @@
+import yaml from 'yaml'
 import * as u from '@jsmanifest/utils'
 import CADL from '@aitmed/cadl'
 import Logger from 'logsnap'
@@ -129,6 +130,11 @@ window.addEventListener('load', async (e) => {
           (acc, [key, fn]) => Object.assign(acc, { [key]: { get: () => fn } }),
           {},
         ),
+      toYml: {
+        get() {
+          return yaml.stringify.bind(yaml)
+        },
+      },
     })
 
     try {
