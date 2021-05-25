@@ -8,11 +8,17 @@ import { getFirstByElementId, getFirstByViewTag } from 'noodl-ui-dom'
 import { NUIComponent, createAction } from 'noodl-ui'
 import { getApp } from '../utils/test-utils'
 import { isVisible } from '../utils/dom'
+import getVideoChatPageObject, {
+  cameraOnSrc,
+  cameraOffSrc,
+  micOnSrc,
+  micOffSrc,
+} from './helpers/getVideoChatPage'
 
 const hideShowKey = ['hide', 'show'] as const
 
 describe(coolGold(`builtIn`), () => {
-  describe.only(italic('goBack'), () => {
+  describe(italic('goBack'), () => {
     it(`should set the requesting page to the previous page`, async () => {
       const pageName = 'Oreo'
       const app = await getApp({
@@ -50,7 +56,7 @@ describe(coolGold(`builtIn`), () => {
     })
   })
 
-  describe.only(italic('goto'), () => {
+  describe(italic('goto'), () => {
     const getActionObject = (destination: string) =>
       mock.getBuiltInAction({ funcName: 'goto', dataIn: { destination } })
     const getRoot = (other?: Record<string, any>) => ({
@@ -266,6 +272,106 @@ describe(coolGold(`builtIn`), () => {
       // expect(document.getElementById(id)).to.exist
       // await app._test.triggerAction({ action: redrawObject, component: button })
       // expect(document.getElementById(id)).not.to.exist
+    })
+  })
+
+  describe(`toggleMicrophoneOnOff`, () => {
+    xit(`should change the value on the sdk to off`, async () => {
+      const pageName = 'VideoChat'
+      const pageObject = getVideoChatPageObject()
+      pageObject.micOn = true
+      await getApp({
+        emit: {
+          onClick: async () => void (pageObject.micOn = !pageObject.micOn),
+        },
+        navigate: true,
+        pageName,
+        pageObject,
+      })
+      const node = getFirstByViewTag('microphone')
+      expect(pageObject.micOn).to.be.true
+      node.click()
+      await waitFor(() => {
+        expect(pageObject.micOn).to.be.false
+        node.click()
+      })
+      await waitFor(() => {
+        expect(pageObject.micOn).to.be.true
+      })
+    })
+
+    it(`should show the on/off microphone icons correctly`, () => {
+      //
+    })
+
+    xit(`should turn the local audio tracks off`, () => {
+      //
+    })
+
+    xit(`should return the local audio tracks on`, () => {
+      //
+    })
+  })
+
+  describe.only(`toggleCameraOnOff`, () => {
+    it(`should change the value on the sdk to on/off expectedly`, async () => {
+      const pageName = 'VideoChat'
+      const pageObject = getVideoChatPageObject()
+      pageObject.cameraOn = true
+      await getApp({
+        emit: {
+          onClick: async () =>
+            void (pageObject.cameraOn = !pageObject.cameraOn),
+        },
+        navigate: true,
+        pageName,
+        pageObject,
+      })
+      const node = getFirstByViewTag('camera')
+      expect(pageObject.cameraOn).to.be.true
+      node.click()
+      await waitFor(() => {
+        expect(pageObject.cameraOn).to.be.false
+        node.click()
+      })
+      await waitFor(() => {
+        expect(pageObject.cameraOn).to.be.true
+      })
+    })
+
+    it(`should switch the camera on/off icons expectedly`, async () => {
+      const pageName = 'VideoChat'
+      const pageObject = getVideoChatPageObject()
+      pageObject.cameraOn = true
+      await getApp({
+        emit: {
+          onClick: async () =>
+            void (pageObject.cameraOn = !pageObject.cameraOn),
+        },
+        navigate: true,
+        pageName,
+        pageObject,
+      })
+      const node = getFirstByViewTag('camera') as HTMLImageElement
+      // node.click()
+      await waitFor(() => {
+        expect(node.src).to.eq(cameraOnSrc)
+      })
+      // await waitFor(() => {
+      //   expect(pageObject.cameraOn).to.be.false
+      //   node.click()
+      // })
+      // await waitFor(() => {
+      //   expect(pageObject.cameraOn).to.be.true
+      // })
+    })
+
+    xit(`should turn the local video tracks off`, () => {
+      //
+    })
+
+    xit(`should return the local video tracks on`, () => {
+      //
     })
   })
 })
