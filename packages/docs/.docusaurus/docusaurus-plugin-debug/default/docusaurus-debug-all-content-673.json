@@ -1,0 +1,143 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "loadedVersions": [
+        {
+          "versionName": "current",
+          "versionLabel": "Next",
+          "versionPath": "/docs",
+          "isLast": true,
+          "routePriority": -1,
+          "sidebarFilePath": "/Users/christ/aitmed-noodl-web-copy/packages/docs/sidebars.json",
+          "contentPath": "/Users/christ/aitmed-noodl-web-copy/packages/docs/docs",
+          "contentPathLocalized": "/Users/christ/aitmed-noodl-web-copy/packages/docs/i18n/en/docusaurus-plugin-content-docs/current",
+          "mainDocId": "installation",
+          "sidebars": {
+            "defaultSidebar": [
+              {
+                "type": "doc",
+                "id": "installation"
+              },
+              {
+                "type": "doc",
+                "id": "usage"
+              },
+              {
+                "type": "category",
+                "label": "API Reference",
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "api/unit_tests",
+                    "label": "Unit tests"
+                  }
+                ],
+                "collapsed": false
+              }
+            ]
+          },
+          "permalinkToSidebar": {
+            "/docs/api/unit_tests": "defaultSidebar",
+            "/docs/installation": "defaultSidebar",
+            "/docs/usage": "defaultSidebar"
+          },
+          "docs": [
+            {
+              "unversionedId": "api/unit_tests",
+              "id": "api/unit_tests",
+              "isDocsHomePage": false,
+              "title": "Unit tests",
+              "description": "Testing dynamically injected objects from an evalObject",
+              "source": "@site/docs/api/unit_tests.md",
+              "sourceDirName": "api",
+              "slug": "/api/unit_tests",
+              "permalink": "/docs/api/unit_tests",
+              "version": "current",
+              "sidebar_label": "Unit tests",
+              "frontMatter": {
+                "sidebar_label": "Unit tests",
+                "title": "Unit tests"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Usage",
+                "permalink": "/docs/usage"
+              }
+            },
+            {
+              "unversionedId": "installation",
+              "id": "installation",
+              "isDocsHomePage": false,
+              "title": "Installation",
+              "description": "",
+              "source": "@site/docs/installation.md",
+              "sourceDirName": ".",
+              "slug": "/installation",
+              "permalink": "/docs/installation",
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "id": "installation",
+                "sidebar_position": 1
+              },
+              "sidebar": "defaultSidebar",
+              "next": {
+                "title": "Usage",
+                "permalink": "/docs/usage"
+              }
+            },
+            {
+              "unversionedId": "usage",
+              "id": "usage",
+              "isDocsHomePage": false,
+              "title": "Usage",
+              "description": "",
+              "source": "@site/docs/usage.md",
+              "sourceDirName": ".",
+              "slug": "/usage",
+              "permalink": "/docs/usage",
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "id": "usage",
+                "sidebar_position": 2
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Installation",
+                "permalink": "/docs/installation"
+              },
+              "next": {
+                "title": "Unit tests",
+                "permalink": "/docs/api/unit_tests"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "docusaurus-plugin-content-blog": {
+    "default": null
+  },
+  "docusaurus-plugin-content-pages": {
+    "default": [
+      {
+        "type": "jsx",
+        "permalink": "/",
+        "source": "@site/src/pages/index.js"
+      },
+      {
+        "type": "mdx",
+        "permalink": "/markdown-page",
+        "source": "@site/src/pages/markdown-page.md"
+      }
+    ]
+  },
+  "docusaurus-plugin-debug": {
+    "default": null
+  },
+  "docusaurus-theme-classic": {
+    "default": null
+  }
+}

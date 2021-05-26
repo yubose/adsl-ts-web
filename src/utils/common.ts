@@ -13,6 +13,7 @@ import {
   nuiGroupedActionTypes,
   Store,
 } from 'noodl-ui'
+import { BASE_PAGE_URL } from 'noodl-ui-dom'
 import { LiteralUnion } from 'type-fest'
 import { ActionMetadata } from '../app/types'
 
@@ -236,9 +237,9 @@ export function resolvePageUrl({
   pageUrl: string
   startPage?: string
 }) {
-  pageUrl = pageUrl?.startsWith?.('index.html?')
+  pageUrl = pageUrl?.startsWith?.(BASE_PAGE_URL)
     ? pageUrl
-    : pageUrl + 'index.html?'
+    : pageUrl + BASE_PAGE_URL
 
   let separator = pageUrl.endsWith('?') ? '' : '-'
 
@@ -257,7 +258,7 @@ export function resolvePageUrl({
       pageUrl += `${separator}${destination}`
     }
   } else {
-    pageUrl = 'index.html?'
+    pageUrl = BASE_PAGE_URL
   }
   return pageUrl
 }

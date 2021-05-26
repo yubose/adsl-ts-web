@@ -1,7 +1,7 @@
 /**
  * Handlers for window.history listeners
  */
-import * as u from '@jsmanifest/utils'
+import { BASE_PAGE_URL } from 'noodl-ui-dom'
 import curry from 'lodash/curry'
 import Logger from 'logsnap'
 import App from '../App'
@@ -25,13 +25,13 @@ export const createOnPopState = curry(
         app.mainPage.pageUrl = parts.join('-')
       } else if (parts.length === 1) {
         if (parts[0].endsWith('MenuBar')) {
-          app.mainPage.pageUrl = 'index.html?'
+          app.mainPage.pageUrl = BASE_PAGE_URL
         } else {
           app.mainPage.pageUrl = parts[0]
         }
       }
     } else {
-      app.mainPage.pageUrl = 'index.html?'
+      app.mainPage.pageUrl = BASE_PAGE_URL
     }
     await app.navigate(app.previousPage)
   },

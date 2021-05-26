@@ -1,3 +1,4 @@
+import { BASE_PAGE_URL } from 'noodl-ui-dom'
 import { Page as NUIPage, Viewport } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
 import { eventId } from './constants'
@@ -29,7 +30,7 @@ class Page {
     T.Page.HookDescriptor[]
   >
   components: ComponentObject[] = []
-  pageUrl: string = 'index.html?'
+  pageUrl: string = BASE_PAGE_URL
   rootNode: HTMLDivElement
   ref: {
     request: {
@@ -41,10 +42,7 @@ class Page {
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       ...this.snapshot(),
-      id: this.id,
       nuiPage: this.#nuiPage,
-      pageUrl: this.pageUrl,
-      viewport: { width: this.viewport.width, height: this.viewport.height },
     }
   }
 
@@ -184,10 +182,23 @@ class Page {
    */
   snapshot(opts?: Record<string, any>) {
     return {
+      id: this.id,
+      modifiers: this.modifiers,
       status: this.state.status,
       previous: this.state.previous,
       current: this.page,
       requesting: this.state.requesting,
+      pageUrl: this.pageUrl,
+      viewport: {
+        width: this.viewport.width,
+        height: this.viewport.height,
+      },
+      rootNode: {
+        id: this.rootNode.id,
+        width: this.rootNode.style.width,
+        height: this.rootNode.style.height,
+        childrenCount: this.rootNode.children?.length || 0,
+      },
       ...opts,
     }
   }
