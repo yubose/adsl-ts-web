@@ -29,6 +29,8 @@ These variables are available globally:
 - viewport top in yml not implemented
 - contentType: timer
   - inc/dec value at `dataKey` every second
+- firebase [CDN](https://firebase.google.com/docs/web/setup#node.js-apps_1)
+- twilio [CDN](https://www.twilio.com/docs/video/javascript)
 
 ## Notes
 
