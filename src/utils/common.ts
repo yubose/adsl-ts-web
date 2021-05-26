@@ -198,8 +198,10 @@ export function pickActionKey<
   ),
 >(action: A, key: LiteralUnion<K, string>, defaultValue?: any) {
   if (!key) return
-  const result = get(action.original, key)
-  return isUnd(result) ? get(action, key, defaultValue) : result || defaultValue
+  let result = get(action.original, key)
+  isUnd(result) && (result = get(action, key, defaultValue))
+  isUnd(result) && (result = defaultValue)
+  return result
 }
 
 export function pickHasActionKey<
