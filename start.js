@@ -33,6 +33,7 @@ const cli = meow(
 `,
   {
     flags: {
+      clear: { type: 'boolean' },
       config: { alias: 'c', type: 'string' },
       env: { alias: 'e', type: 'string', default: 'test' },
       port: { alias: 'p', type: 'number', default: 3000 },
@@ -45,7 +46,7 @@ const cli = meow(
 )
 
 u.newline()
-console.log(`FLAGS`, flags)
+console.log(`FLAGS`, cli.flags)
 u.newline()
 
 const webpackConfig = require('./webpack.config')
@@ -65,6 +66,7 @@ const app = express()
 
 !webpackConfig.mode && (webpackConfig.mode = nodeEnv)
 !u.isArr(webpackConfig.plugins) && (webpackConfig.plugins = [])
+cli.flags.clear && (webpackConfig.entry = { main: ['./src/clean.ts'] })
 
 webpackConfig.plugins.unshift(
   new (require('noodl-webpack-plugin'))({
