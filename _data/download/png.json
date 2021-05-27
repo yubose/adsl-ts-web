@@ -1,0 +1,34 @@
+{
+  "atime": 1621781973,
+  "atimes": 1,
+  "bsig": "KyRGNeLKTPscmfAfMyKktw==",
+  "created_at": 1621781973000,
+  "ctime": 1621781973,
+  "deat": null,
+  "eid": "Yp7QdloFQm2qs9pkbyZ9BA==",
+  "esig": "Yp7QdloFQm2qs9pkbyZ9BA==",
+  "fid": "",
+  "id": "0JvBUOxKQstY94+DUlp/BA==",
+  "modified_at": 1621781973000,
+  "mtime": 1621781973,
+  "name": {
+    "data": "blob:http://127.0.0.1:3000/629c9889-46d1-473d-abb2-3e7540f5e71c",
+    "tags": [],
+    "title": "dadw",
+    "type": "image/png",
+    "user": "Chris Tran"
+  },
+  "size": 30545,
+  "subtype": {
+    "applicationDataType": 0,
+    "isBinary": false,
+    "isEditable": true,
+    "isEncrypted": true,
+    "isOnServer": true,
+    "isZipped": true,
+    "mediaType": 4,
+    "size": 30545
+  },
+  "tage": 0,
+  "type": 1025
+}

@@ -1,0 +1,26 @@
+{
+  "unversionedId": "usage",
+  "id": "usage",
+  "isDocsHomePage": false,
+  "title": "Usage",
+  "description": "",
+  "source": "@site/docs/usage.md",
+  "sourceDirName": ".",
+  "slug": "/usage",
+  "permalink": "/docs/usage",
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "id": "usage",
+    "sidebar_position": 2
+  },
+  "sidebar": "defaultSidebar",
+  "previous": {
+    "title": "Installation",
+    "permalink": "/docs/installation"
+  },
+  "next": {
+    "title": "Unit tests",
+    "permalink": "/docs/api/unit_tests"
+  }
+}

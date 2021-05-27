@@ -1,0 +1,24 @@
+{
+  "unversionedId": "api/api",
+  "id": "api/api",
+  "isDocsHomePage": false,
+  "title": "API Reference",
+  "description": "",
+  "source": "@site/docs/api/index.md",
+  "sourceDirName": "api",
+  "slug": "/api/api",
+  "permalink": "/docs/api/api",
+  "version": "current",
+  "sidebar_label": "API Reference",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "id": "api",
+    "sidebar_label": "API Reference",
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Usage",
+    "permalink": "/docs/usage"
+  }
+}

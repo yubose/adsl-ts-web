@@ -1,5 +1,6 @@
 import Logger from 'logsnap'
 import NOODLDOM, {
+  BASE_PAGE_URL,
   eventId,
   isPage as isNOODLDOMPage,
   Page as NOODLDOMPage,
@@ -62,7 +63,26 @@ class App {
   firebase = {} as FirebaseApp
   getStatus: T.AppConstructorOptions['getStatus']
   messaging = null as FirebaseMessaging | null
-  mainPage: NOODLDOM['page']
+  mainPage: NOODLDOM['page'];
+
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return {
+      ...this.#state,
+      startPage: this.startPage,
+      previousPage: this.previousPage,
+      getPreviousPage: this.mainPage.getPreviousPage(this.startPage),
+      currentPage: this.currentPage,
+      requestingPage: this.mainPage.requesting,
+      aspectRatio: this.aspectRatio,
+      cachedPages: this.getCachedPages(),
+      roomParticipants: this.getRoomParticipants(),
+      sdkParticipants: this.getSdkParticipants(),
+      viewport: {
+        width: this.viewport.width,
+        height: this.viewport.height,
+      },
+    }
+  }
 
   constructor({
     getStatus,
@@ -338,10 +358,10 @@ class App {
         ) {
           // Set the URL / cached pages to their base state
           ls.setItem('CACHED_PAGES', JSON.stringify([]))
-          this.mainPage.pageUrl = 'index.html?'
+          this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
-        } else if (!pathname?.startsWith('index.html?')) {
-          this.mainPage.pageUrl = 'index.html?'
+        } else if (!pathname?.startsWith(BASE_PAGE_URL)) {
+          this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
         } else {
           const pageParts = pathname.split('-')
