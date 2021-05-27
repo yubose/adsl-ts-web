@@ -219,7 +219,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
       if (isDraft(path)) path = original(path)
 
-      if (dataKey?.startsWith(iteratorVar)) {
+      if (iteratorVar && dataKey?.startsWith(iteratorVar)) {
         let parts = dataKey.split('.').slice(1)
         dataObject = findListDataObject(component)
         previousDataValue = get(dataObject, parts)
