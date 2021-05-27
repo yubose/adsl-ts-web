@@ -42,7 +42,7 @@ export function resetInstance() {
         ? VP.getAspectRatio(window.innerWidth, window.innerHeight)
         : 1,
     cadlVersion: isStable() ? 'stable' : 'test',
-    configUrl: CONFIG_URL,
+    configUrl: `${BASE}/${LOCAL_CONFIG}.yml`,
   })
   return noodl
 }

@@ -1,6 +1,6 @@
 # AiTmed NOODL Web
 
-# Steps to update the @aitmed/cadl eCOS package to latest version
+## Steps to update the @aitmed/cadl eCOS package to latest version
 
 - npm install @aitmed/cadl@latest
 - git add .
@@ -29,6 +29,8 @@ These variables are available globally:
 - viewport top in yml not implemented
 - contentType: timer
   - inc/dec value at `dataKey` every second
+- Fix 16:00:00 in VideoChat
+- [x] Fix camera/audio icon toggling
 
 ## Notes
 
