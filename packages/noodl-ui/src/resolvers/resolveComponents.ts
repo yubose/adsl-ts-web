@@ -406,9 +406,7 @@ componentResolver.setResolver((component, options, next) => {
       )
     } else {
       if (!u.isObj(dataObject)) {
-        if (dataObject === dataValue) {
-          //
-        }
+        //
       } else {
         set(dataObject, dataKey, dataValue)
       }

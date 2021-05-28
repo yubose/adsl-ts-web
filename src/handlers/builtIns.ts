@@ -615,7 +615,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'
       else {
         toast('Password is incorrect', { type: 'error' })
-        debugger
       }
       return 'abort'
     }

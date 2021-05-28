@@ -26,6 +26,7 @@ const cli = meow(
       test: { alias: 't', type: 'string' },
       update: { alias: 'u', type: 'string' },
       deploy: { alias: 'd', type: 'boolean' },
+      message: { alias: 'm', type: 'string' },
     },
   },
 )
@@ -42,6 +43,8 @@ console.log(
 
 if (flags.start || flags.build || (flags.start === '' && !input.length)) {
   require('./buildOrStart')(getCliArgs())
+} else if (flags.update) {
+  require('./update')(getCliArgs())
 } else {
   switch (script) {
     case 'convert':
