@@ -97,8 +97,11 @@ dataAttribsResolver.setResolver((component, options, next) => {
         )
       }
 
-      if (component.has('text=func')) {
-        result = component.get('text=func')?.(result)
+      if (u.isFnc(component.get('text=func'))) {
+        const initialTime = u.getStartOfDay(new Date())
+        let initialValue = u.addDate(initialTime, { seconds: result })
+        initialValue === null && (initialValue = new Date())
+        result = component.get('text=func')(initialValue)
       }
 
       component.edit({ 'data-value': result })
