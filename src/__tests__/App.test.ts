@@ -112,7 +112,6 @@ describe(coolGold(`App`), () => {
         `noodl.root.Global.globalRegister`,
       )}`, () => {
         it(``, () => {
-          console.info(onNewEcosDocObject)
           getMockMeetingChat()
         })
       })
@@ -186,6 +185,20 @@ describe(coolGold(`App`), () => {
 
     xit(`should set app.initialized to true`, () => {
       //
+    })
+  })
+
+  describe.only(italic(`navigate`), () => {
+    it(``, async () => {
+      const app = await initializeApp({
+        pageName: 'SignIn',
+        root: {
+          SignIn: { components: [mock.getButtonComponent()] },
+          Cereal: { components: [mock.getLabelComponent()] },
+          Paper: { components: [mock.getDividerComponent()] },
+        },
+      })
+      await app.navigate('Cereal')
     })
   })
 })

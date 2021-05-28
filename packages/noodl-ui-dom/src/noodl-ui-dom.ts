@@ -233,9 +233,9 @@ class NOODLDOM extends NOODLDOMInternal {
     // Cache the currently requesting page to detect for newer requests during the call
     pageRequesting = pageRequesting || page.requesting
 
-    u.keys(page.modifiers).forEach(
-      (key) => key !== pageRequesting && delete page.modifiers[key],
-    )
+    // u.keys(page.modifiers).forEach(
+    //   (key) => key !== pageRequesting && delete page.modifiers[key],
+    // )
 
     try {
       page.ref.request.timer && clearTimeout(page.ref.request.timer)
@@ -245,6 +245,7 @@ class NOODLDOM extends NOODLDOMInternal {
         page,
       })
 
+      u.keys(page.modifiers).forEach((key) => delete page.modifiers[key])
       /**
        * TODO - Move this to an official location when we have time
        */

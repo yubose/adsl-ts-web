@@ -14,6 +14,7 @@ import {
   isListConsumer,
 } from 'noodl-ui'
 import {
+  BASE_PAGE_URL,
   eventId as ndomEventId,
   findByViewTag,
   findByUX,
@@ -103,9 +104,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('goBack')
     log.grey('', action)
     const reload = _pick(action, 'reload')
-    app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
+    app.mainPage.requesting = app.mainPage.previous
+    // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
+    // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
     if (u.isBool(reload)) {
-      app.mainPage.setModifier(app.mainPage.requesting, { reload })
+      app.mainPage.setModifier(app.mainPage.previous, { reload })
     }
     if (
       app.mainPage.requesting === app.mainPage.page &&
@@ -216,7 +219,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
       if (isDraft(path)) path = original(path)
 
-      if (dataKey?.startsWith(iteratorVar)) {
+      if (iteratorVar && dataKey?.startsWith(iteratorVar)) {
         let parts = dataKey.split('.').slice(1)
         dataObject = findListDataObject(component)
         previousDataValue = get(dataObject, parts)
@@ -494,12 +497,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         const parts = app.mainPage.pageUrl.split('-')
         if (parts.length > 1) {
           if (!parts[0].startsWith('index.html')) {
-            parts.unshift('index.html?')
+            parts.unshift(BASE_PAGE_URL)
             parts.push(destination)
             urlToGoToInstead = parts.join('-')
           }
         } else {
-          urlToGoToInstead = 'index.html?' + destination
+          urlToGoToInstead = BASE_PAGE_URL + destination
         }
         window.location.href = urlToGoToInstead
       } else {

@@ -1,0 +1,24 @@
+{
+  "unversionedId": "intro",
+  "id": "intro",
+  "isDocsHomePage": false,
+  "title": "intro",
+  "description": "",
+  "source": "@site/docs/intro.md",
+  "sourceDirName": ".",
+  "slug": "/intro",
+  "permalink": "/docs/intro",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/intro.md",
+  "version": "current",
+  "sidebar_label": "API Reference",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_label": "API Reference",
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Usage",
+    "permalink": "/docs/usage"
+  }
+}

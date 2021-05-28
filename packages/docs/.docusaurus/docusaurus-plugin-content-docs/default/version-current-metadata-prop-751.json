@@ -1,0 +1,37 @@
+{
+  "pluginId": "default",
+  "version": "current",
+  "label": "Next",
+  "isLast": true,
+  "docsSidebars": {
+    "defaultSidebar": [
+      {
+        "type": "link",
+        "label": "Installation",
+        "href": "/docs/installation"
+      },
+      {
+        "type": "link",
+        "label": "Usage",
+        "href": "/docs/usage"
+      },
+      {
+        "type": "category",
+        "label": "API Reference",
+        "items": [
+          {
+            "type": "link",
+            "label": "Unit tests",
+            "href": "/docs/api/unit_tests"
+          }
+        ],
+        "collapsed": false
+      }
+    ]
+  },
+  "permalinkToSidebar": {
+    "/docs/api/unit_tests": "defaultSidebar",
+    "/docs/installation": "defaultSidebar",
+    "/docs/usage": "defaultSidebar"
+  }
+}

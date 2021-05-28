@@ -3,6 +3,7 @@ import {
   nuiEmitTransaction,
 } from 'noodl-ui'
 
+export const BASE_PAGE_URL = 'index.html?'
 export const classes = {
   ECOS_DOC: 'ecosdoc',
   ECOS_DOC_IMAGE: 'ecosdoc-image',
