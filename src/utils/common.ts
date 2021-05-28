@@ -7,12 +7,10 @@ import {
   UncommonActionObjectProps,
 } from 'noodl-types'
 import {
-  isComponent,
   NUIAction,
   NUIActionObjectInput,
   NUIComponent,
   nuiGroupedActionTypes,
-  NUITrigger,
   Store,
 } from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
@@ -113,6 +111,30 @@ export function getActionMetadata<PKey extends string = string>(
 
 export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
+}
+
+export function isImg(s: string) {
+  return /([a-z\-_0-9\/\:\.]*\.(jpg|jpeg|png|gif|bmp|tif))/i.test(s)
+}
+
+export function isPdf(s: string) {
+  return s.endsWith('.pdf')
+}
+
+export function isVid(s: string) {
+  return /([a-z\-_0-9\/\:\.]*\.(mp4|avi|wmv))/i.test(s)
+}
+
+export function isYml(s = '') {
+  return s.endsWith('.yml')
+}
+
+export function isJson(s = '') {
+  return s.endsWith('.json')
+}
+
+export function isJs(s = '') {
+  return s.endsWith('.js')
 }
 
 /**

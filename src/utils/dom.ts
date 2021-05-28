@@ -16,6 +16,32 @@ export function copyToClipboard(value: string) {
   return null
 }
 
+export function download(url: string | Blob, filename?: string) {
+  let downloadLink = ''
+  try {
+    let a = document.createElement('a')
+
+    if (u.isStr(url)) {
+      downloadLink = url
+    } else if (url instanceof Blob) {
+      downloadLink = window.URL.createObjectURL(url)
+    }
+
+    downloadLink && (a.href = downloadLink)
+
+    // Attempt to default to the original file name
+    if (!filename) {
+      // a.download =
+    } else {
+      a.download = filename
+    }
+
+    a.click()
+  } catch (error) {
+    throw error
+  }
+}
+
 export function getDocumentScrollTop(doc?: Document | null) {
   return (doc || document)?.body?.scrollTop
 }

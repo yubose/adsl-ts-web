@@ -1,7 +1,11 @@
 import * as mock from 'noodl-ui-test-utils'
-import omit from 'lodash/omit'
 import { ComponentObject } from 'noodl-types'
-// import { getMostRecentApp } from '../../utils/test-utils'
+import omit from 'lodash/omit'
+
+export const cameraOnSrc = 'https://public.aitmed.com/commonRes/cameraOn.png'
+export const cameraOffSrc = 'https://public.aitmed.com/commonRes/cameraOff.png'
+export const micOnSrc = 'https://public.aitmed.com/commonRes/micOn.png'
+export const micOffSrc = 'https://public.aitmed.com/commonRes/micOff.png'
 
 function getVideoChatPageObject({
   participants = [],
@@ -145,14 +149,14 @@ function getVideoChatPageObject({
                         {
                           if: [
                             '=.VideoChat.cameraOn',
-                            'https://public.aitmed.com/commonRes/cameraOn.png',
-                            'https://public.aitmed.com/commonRes/cameraOff.png',
+                            cameraOnSrc,
+                            cameraOffSrc,
                           ],
                         },
                       ],
                     }),
                     onClick: [
-                      mock.getEmitObject({
+                      mock.getFoldedEmitObject({
                         actions: [
                           {
                             if: [
@@ -179,16 +183,12 @@ function getVideoChatPageObject({
                     path: mock.getEmitObject({
                       actions: [
                         {
-                          if: [
-                            '=.VideoChat.micOn',
-                            'https://public.aitmed.com/commonRes/micOn.png',
-                            'https://public.aitmed.com/commonRes/micOff.png',
-                          ],
+                          if: ['=.VideoChat.micOn', micOnSrc, micOffSrc],
                         },
                       ],
                     }),
                     onClick: [
-                      mock.getEmitObject({
+                      mock.getFoldedEmitObject({
                         actions: [
                           {
                             if: [
@@ -280,13 +280,11 @@ function getVideoChatPageObject({
                 style: { display: 'inline' },
               }),
               mock.getLabelComponent({
-                text:
-                  'Closing the room will generate a Summary for each participant.',
+                text: 'Closing the room will generate a Summary for each participant.',
                 style: { display: 'inline' },
               }),
               mock.getLabelComponent({
-                text:
-                  'If you desire to return to this meeting, keep this room open',
+                text: 'If you desire to return to this meeting, keep this room open',
                 display: 'inline',
               }),
               mock.getDividerComponent(),
