@@ -541,7 +541,7 @@ const createExtendedDOMResolvers = function (app: App) {
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
-            console.log("test map",dataValue)
+            console.log('test map', dataValue)
             let map = new mapboxgl.Map({
               container: parent?.id,
               style: 'mapbox://styles/mapbox/streets-v11',
@@ -697,7 +697,15 @@ const createExtendedDOMResolvers = function (app: App) {
                   let address = e.features[0].properties.address
                   new mapboxgl.Popup()
                     .setLngLat(coordinates)
-                    .setHTML(Name + ' <br> ' + Speciality + '<br> '+phoneNumber+'<br> '  + address)
+                    .setHTML(
+                      Name +
+                        ' <br> ' +
+                        Speciality +
+                        '<br> ' +
+                        phoneNumber +
+                        '<br> ' +
+                        address,
+                    )
                     .addTo(map)
                 })
 
