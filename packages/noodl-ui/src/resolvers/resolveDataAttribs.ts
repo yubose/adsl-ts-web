@@ -97,8 +97,24 @@ dataAttribsResolver.setResolver((component, options, next) => {
         )
       }
 
-      if (component.has('text=func')) {
-        result = component.get('text=func')?.(result)
+      if (u.isFnc(component.get('text=func'))) {
+        if (contentType === 'timer') {
+          const initialTime = u.getStartOfDay(new Date())
+          result = u.addDate(initialTime, { seconds: result })
+          result === null && (result = new Date())
+        }
+        result = component.get('text=func')(result)
+      }
+
+      //path=func
+      if (Identify.component.image(component)) {
+        let src: any
+        if (component.has('path=func')) {
+          src = component.get('path=func')?.(result)
+          component.edit({ 'data-src': src })
+          path && component.emit('path', src)
+          image && component.emit('image', src)
+        }
       }
 
       component.edit({ 'data-value': result })
@@ -157,7 +173,8 @@ dataAttribsResolver.setResolver((component, options, next) => {
     component.edit({ poster: n.resolveAssetUrl(poster, getAssetsUrl()) })
   }
 
-  Identify.isBoolean(controls) && component.edit({ controls: true })
+  Identify.isBoolean(controls) &&
+    component.edit({ controls: Identify.isBooleanTrue(controls) })
 
   // Images / Plugins / Videos
   if (path || resource || image) {

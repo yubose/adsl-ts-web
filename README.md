@@ -1,6 +1,6 @@
 # AiTmed NOODL Web
 
-# Steps to update the @aitmed/cadl eCOS package to latest version
+## Steps to update the @aitmed/cadl eCOS package to latest version
 
 - npm install @aitmed/cadl@latest
 - git add .
@@ -31,6 +31,7 @@ These variables are available globally:
   - inc/dec value at `dataKey` every second
 - firebase [CDN](https://firebase.google.com/docs/web/setup#node.js-apps_1)
 - twilio [CDN](https://www.twilio.com/docs/video/javascript)
+- Fix 16:00:00 in VideoChat
 
 ## Notes
 

@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
@@ -18,8 +19,6 @@ import {
 } from '../utils/noodl'
 import { ConsumerOptions, NUIComponent } from '../types'
 import * as c from '../constants'
-import * as u from '../utils/internal'
-import { getSize } from '../utils/style'
 
 const componentResolver = new Resolver('resolveComponents')
 
@@ -49,7 +48,7 @@ componentResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.ecosDoc(component)) {
-    const ecosObj = component.get('ecosObj') as EcosDocument<{ type: string }>
+    const ecosObj = component.get('ecosObj') as EcosDocument
     if (u.isObj(ecosObj)) {
       component.edit({
         mediaType: ecosObj.subtype?.mediaType,
@@ -406,7 +405,11 @@ componentResolver.setResolver((component, options, next) => {
         { component, dataKey, dataObject, dataValue },
       )
     } else {
-      set(dataObject, dataKey, dataValue)
+      if (!u.isObj(dataObject)) {
+        //
+      } else {
+        set(dataObject, dataKey, dataValue)
+      }
     }
   }
 

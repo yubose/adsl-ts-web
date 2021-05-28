@@ -216,7 +216,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       let nextDataValue: boolean | undefined
       let newSrc = ''
 
-      if (dataKey?.startsWith(iteratorVar)) {
+      if (iteratorVar && dataKey?.startsWith(iteratorVar)) {
         let parts = dataKey.split('.').slice(1)
         dataObject = findListDataObject(component)
         previousDataValue = get(dataObject, parts)
@@ -612,7 +612,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'
       else {
         toast('Password is incorrect', { type: 'error' })
-        debugger
       }
       return 'abort'
     }

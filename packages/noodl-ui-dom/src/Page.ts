@@ -1,7 +1,6 @@
-import { BASE_PAGE_URL } from 'noodl-ui-dom'
 import { Page as NUIPage, Viewport } from 'noodl-ui'
 import { ComponentObject } from 'noodl-types'
-import { eventId } from './constants'
+import { BASE_PAGE_URL, eventId } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
 
