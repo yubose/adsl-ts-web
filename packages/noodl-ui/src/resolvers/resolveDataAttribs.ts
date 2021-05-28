@@ -26,6 +26,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     viewTag,
   } = original
 
+
   const iteratorVar = context?.iteratorVar || n.findIteratorVar(component)
 
   if (Identify.component.listItem(component)) {
@@ -34,6 +35,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
       component.edit(iteratorVar, context.dataObject)
       !u.isNil(context.index) && component.edit('index', context.index)
     }
+
   }
 
   /* -------------------------------------------------------
@@ -74,6 +76,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     ---- REFERENCES / DATAKEY
   -------------------------------------------------------- */
 
+
   if (u.isStr(dataKey)) {
     let result: any
     if (!Identify.folds.emit(dataKey)) {
@@ -101,7 +104,20 @@ dataAttribsResolver.setResolver((component, options, next) => {
         result = component.get('text=func')?.(result)
       }
 
+      //path=func
+      if(Identify.component.image(component)){
+        let src:any
+        if (component.has('path=func')) {
+          src = component.get('path=func')?.(result)
+          component.edit({ 'data-src': src })
+          path && component.emit('path', src)
+          image && component.emit('image', src)
+        }
+      }
+
       component.edit({ 'data-value': result })
+
+
     }
 
     // TODO - Deprecate this logic below for an easier implementation
@@ -159,8 +175,13 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
   Identify.isBoolean(controls) && component.edit({ controls: true })
 
+
+  
+
   // Images / Plugins / Videos
   if (path || resource || image) {
+
+
     let src = ''
 
     if (u.isStr(path)) src = path
