@@ -898,7 +898,7 @@ const createExtendedDOMResolvers = function (app: App) {
               newParent.appendChild(node)
               newParent.appendChild(eyeContainer)
 
-              let selected = false
+              let selected = true
 
               eyeIcon.dataset.mods = ''
               eyeIcon.dataset.mods += '[password.eye.toggle]'
