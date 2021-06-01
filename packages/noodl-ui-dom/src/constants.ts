@@ -40,6 +40,8 @@ export const eventId = {
   page: {
     /** Sorted by order of occurrence */
     on: {
+      ON_ASPECT_RATIO_MIN: 'ON_ASPECT_RATIO_MIN',
+      ON_ASPECT_RATIO_MAX: 'ON_ASPECT_RATIO_MAX',
       ON_STATUS_CHANGE: 'ON_STATUS_CHANGE',
       ON_NAVIGATE_START: 'ON_NAVIGATE_START',
       ON_NAVIGATE_ABORT: 'ON_NAVIGATE_ABORT',

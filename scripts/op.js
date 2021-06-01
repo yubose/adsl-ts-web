@@ -5,6 +5,7 @@ const { aquamarine, cyan, magenta, red, white } = require('noodl-common')
 const meow = require('meow')
 const yaml = require('yaml')
 const fs = require('fs-extra')
+const pkgJson = require('../package.json')
 
 /** @type { Record<string, any> } */
 const config = yaml.parse(fs.readFileSync('noodl.yml', 'utf8'))
@@ -69,6 +70,7 @@ function getCliArgs() {
     config,
     flags,
     input,
+    pkgJson,
     script: input[0],
     tag,
   }

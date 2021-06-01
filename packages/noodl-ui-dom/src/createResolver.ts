@@ -1,3 +1,4 @@
+import SignaturePad from 'signature_pad'
 import { Identify } from 'noodl-types'
 import { Component, NUI } from 'noodl-ui'
 import { entries, isArr, isFnc, isStr } from './utils/internal'
@@ -20,14 +21,16 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
 
   const util = (function () {
     return {
-      actionsContext() {
-        return {
-          findByElementId,
-          findByViewTag,
-          findWindow,
-          findWindowDocument,
-          isPageConsumer,
+      actionsContext(...args: T.Resolve.BaseArgs) {
+        const otherProps = {} as { signaturePad?: SignaturePad }
+
+        if (Identify.component.canvas(args[1])) {
+          otherProps.signaturePad = new SignaturePad(
+            args[0] as HTMLCanvasElement,
+          )
         }
+
+        return otherProps
       },
       options(...args: T.Resolve.BaseArgs) {
         function createStyleEditor(component: Component) {
@@ -48,11 +51,12 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
         }
 
         const options = {
-          ...util.actionsContext(),
+          ...util.actionsContext(...args),
           editStyle: createStyleEditor(args[1]),
           original: args[1].original,
           global: ndom.global,
           ndom: ndom,
+          nui: NUIDOMInternal._nui,
           page: ndom.page,
           draw: ndom.draw.bind(ndom),
           redraw: ndom.redraw.bind(ndom),

@@ -18,7 +18,7 @@ async function update(props) {
   const path = require('path')
   const { readdir } = require('fs-extra')
 
-  let { config, flags, input, tag } = props
+  let { config, flags, input, pkgJson, tag } = props
   let { lib, deploy, message } = flags
 
   const localLibs = await readdir(

@@ -1,5 +1,5 @@
 import { LiteralUnion } from 'type-fest'
-import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
+import { ComponentObject, ComponentType } from 'noodl-types'
 import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
 import NOODLDOM from './noodl-ui-dom'
@@ -60,6 +60,7 @@ export type NOODLDOMElements = Pick<
   HTMLElementTagNameMap,
   | 'br'
   | 'button'
+  | 'canvas'
   | 'div'
   | 'footer'
   | 'img'
@@ -147,6 +148,8 @@ export namespace Page {
   export type HookEvent = keyof Hook
 
   export type Hook = {
+    [eventId.page.on.ON_ASPECT_RATIO_MIN](prevMin: number, min: number): void
+    [eventId.page.on.ON_ASPECT_RATIO_MAX](prevMax: number, max: number): void
     [eventId.page.on.ON_STATUS_CHANGE](status: Page.Status): void
     [eventId.page.on.ON_NAVIGATE_START](page: NOODLDOMPage): void
     [eventId.page.on.ON_NAVIGATE_ABORT](snapshot: Snapshot): void
@@ -188,6 +191,9 @@ export namespace Page {
   }
 
   export interface State {
+    aspectRatio: number
+    aspectRatioMin: number
+    aspectRatioMax: number
     previous: string
     requesting: string
     modifiers: {

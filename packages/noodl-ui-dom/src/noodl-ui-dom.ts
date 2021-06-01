@@ -37,12 +37,18 @@ class NOODLDOM extends NOODLDOMInternal {
 
   static _nui: typeof NUI
 
+  // TODO - Deperec
   constructor(nui?: typeof NUI) {
     super()
     this.#R = createResolver(this)
     this.#R.use(this)
     u.values(defaultResolvers).forEach(this.#R.use.bind(this.#R))
-    NOODLDOM._nui = nui || NUI
+    if (nui) {
+      NOODLDOM._nui = nui
+      NOODLDOMInternal._nui = nui
+    } else {
+      NOODLDOM._nui = NOODLDOMInternal._nui
+    }
   }
 
   get actions() {

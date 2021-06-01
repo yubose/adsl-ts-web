@@ -254,9 +254,6 @@ class App {
 
       await this.noodl.init()
 
-      this.observeViewport(this.viewport)
-      this.observePages(this.mainPage)
-
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
 
@@ -318,6 +315,9 @@ class App {
           },
         )
       }
+
+      this.observeViewport(this.viewport)
+      this.observePages(this.mainPage)
 
       /* -------------------------------------------------------
       ---- LOCAL STORAGE
@@ -466,6 +466,17 @@ class App {
       if (viewWidthHeightRatio) {
         min = Number(viewWidthHeightRatio.min)
         max = Number(viewWidthHeightRatio.max)
+      }
+
+      debugger
+
+      if (this.mainPage) {
+        if (this.mainPage.aspectRatioMin !== min) {
+          this.mainPage.aspectRatioMin = min as number
+        }
+        if (this.mainPage.aspectRatioMax !== max) {
+          this.mainPage.aspectRatioMax = max as number
+        }
       }
     }
 

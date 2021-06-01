@@ -52,6 +52,8 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
       //
     } else if (Identify.action.saveObject(obj)) {
       //
+    } else if (Identify.action.saveSignature(obj)) {
+      //
     } else if (Identify.action.updateObject(obj)) {
       //
     } else {
