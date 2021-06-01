@@ -43,17 +43,9 @@ import {
   UpdateActionObject,
   VideoComponentObject,
   ViewComponentObject,
-  MediaType,
-  OtherMediaType, // 0
-  DocMediaType, // 1
-  AudioMediaType, // 2
-  FontMediaType, // 3
-  ImageMediaType, // 4
-  MessageMediaType, // 5
-  ModelMediaType, // 6
-  MultipartMediaType, // 7
-  TextMediaType, // 8
-  VideoMediaType, // 9
+  RemoveSignatureActionObject,
+  SaveSignatureActionObject,
+  CanvasComponentObject, // 9
 } from 'noodl-types'
 import { EmitAction, NUIAction, NUIActionObject } from 'noodl-ui'
 import {
@@ -152,6 +144,28 @@ export function getRefreshAction(
   props?: Partial<RefreshActionObject>,
 ): RefreshActionObject {
   return { actionType: 'refresh', ...props }
+}
+
+export function getRemoveSignatureAction(
+  props?: Partial<RemoveSignatureActionObject>,
+): RemoveSignatureActionObject {
+  return {
+    actionType: 'removeSignature',
+    dataKey: 'SignIn.signature',
+    dataObject: 'BLOB',
+    ...props,
+  }
+}
+
+export function getSaveSignatureAction(
+  props?: Partial<SaveSignatureActionObject>,
+): SaveSignatureActionObject {
+  return {
+    actionType: 'saveSignature',
+    dataKey: 'SignIn.signature',
+    dataObject: 'BLOB',
+    ...props,
+  }
 }
 
 export function getSaveObjectAction(
@@ -281,6 +295,18 @@ export function getButtonComponent(
     ],
     text: 'Delete',
   } as ButtonComponentObject
+  if (u.isStr(props)) obj.text = props
+  else if (props) u.assign(obj, props)
+  return obj
+}
+
+export function getCanvasComponent(
+  props?: string | ComponentProps<CanvasComponentObject>,
+) {
+  const obj = {
+    type: 'canvas',
+    dataKey: 'SignIn.signature',
+  } as CanvasComponentObject
   if (u.isStr(props)) obj.text = props
   else if (props) u.assign(obj, props)
   return obj
