@@ -1,4 +1,5 @@
 import { Identify } from 'noodl-types'
+import SignaturePad, { Options as SignaturePadOptions } from 'signature_pad'
 import {
   createComponent,
   formatColor,
@@ -10,11 +11,29 @@ import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import * as u from '../utils/internal'
+import * as c from '../constants'
 
 const domComponentsResolver: Resolve.Config = {
   name: `[noodl-ui-dom] Default Component Resolvers`,
   cond: (n, c) => !!(n && c),
-  resolve(node, component, { draw, ndom }) {
+  before(node, component, { page }) {
+    if (Identify.component.canvas(component)) {
+      page
+        .on(c.eventId.page.on.ON_ASPECT_RATIO_MIN, (prevMin, min) => {
+          console.log(
+            `%c[min] changed (${prevMin} --> ${min})`,
+            `color:#95a5a6;`,
+          )
+        })
+        .on(c.eventId.page.on.ON_ASPECT_RATIO_MAX, (prevMax, max) => {
+          console.log(
+            `%c[max] changed (${prevMax} --> ${max})`,
+            `color:#95a5a6;`,
+          )
+        })
+    }
+  },
+  resolve(node, component, { draw, ndom, page, signaturePad }) {
     if (!u.isFnc(node)) {
       const original = component.blueprint || {}
 
@@ -39,6 +58,45 @@ const domComponentsResolver: Resolve.Config = {
           node.style.alignItems = 'center'
         }
         node.style.cursor = onClick ? 'pointer' : 'auto'
+      }
+      // CANVAS
+      else if (Identify.component.canvas(component)) {
+        const dataValue = component.get('data-value')
+        const dataKey = (component.get('data-key') ||
+          original.dataKey) as string
+
+        if (dataKey) {
+          if (signaturePad) {
+            signaturePad.onBegin = (evt) => {
+              console.log(
+                `%conBegin fired for canvas's signature pad`,
+                `color:#c4a901;`,
+                evt,
+              )
+            }
+            signaturePad.onEnd = (evt) => {
+              console.log(
+                `%conEnd fired for canvas's signature pad`,
+                `color:#c4a901;`,
+                evt,
+              )
+            }
+          } else {
+            console.log(
+              `%cSignature pad is missing from a canvas component!`,
+              `color:#ec0000;`,
+              { node, component, signaturePad },
+            )
+          }
+          window['pad'] = signaturePad
+        } else {
+          console.log(
+            `%cInvalid data key "${dataKey}" for a canvas component. ` +
+              `There may be unexpected behavior`,
+            `color:#ec0000;`,
+            component,
+          )
+        }
       }
       // ECOSDOC
       else if (Identify.component.ecosDoc(component)) {

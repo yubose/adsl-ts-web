@@ -13,6 +13,9 @@ const getDefaultRenderState = (
 class Page {
   #nuiPage: NUIPage
   #state: T.Page.State = {
+    aspectRatio: 1,
+    aspectRatioMin: 1,
+    aspectRatioMax: 1,
     previous: '',
     requesting: '',
     modifiers: {} as {
@@ -67,6 +70,34 @@ class Page {
       document.body.appendChild(this.rootNode)
     }
     return this
+  }
+
+  get aspectRatio() {
+    return this.#state.aspectRatio
+  }
+
+  set aspectRatio(value) {
+    this.#state.aspectRatio = value
+  }
+
+  get aspectRatioMin() {
+    return this.#state.aspectRatioMin
+  }
+
+  set aspectRatioMin(value) {
+    const minBefore = this.aspectRatioMin
+    this.#state.aspectRatioMin = value
+    this.emitSync(eventId.page.on.ON_ASPECT_RATIO_MIN, minBefore, value)
+  }
+
+  get aspectRatioMax() {
+    return this.#state.aspectRatioMax
+  }
+
+  set aspectRatioMax(value) {
+    const maxBefore = this.aspectRatioMax
+    this.#state.aspectRatioMax = value
+    this.emitSync(eventId.page.on.ON_ASPECT_RATIO_MAX, maxBefore, value)
   }
 
   get hooks() {
