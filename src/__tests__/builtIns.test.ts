@@ -339,7 +339,7 @@ describe(coolGold(`builtIn`), () => {
       })
     })
 
-    it(`should switch the camera on/off icons expectedly`, async () => {
+    xit(`should switch the camera on/off icons expectedly`, async () => {
       const pageName = 'VideoChat'
       const pageObject = getVideoChatPageObject()
       pageObject.cameraOn = true

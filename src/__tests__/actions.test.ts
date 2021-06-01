@@ -113,4 +113,24 @@ describe(coolGold(`actions`), () => {
       }
     })
   })
+
+  xdescribe(`removeSignature`, () => {
+    it(`should remove the blob from the local root`, async () => {
+      const app = await getApp({
+        navigate: true,
+        components: [
+          mock.getCanvasComponent({
+            id: 'hello',
+            onClick: [mock.getSaveSignatureAction()],
+          }),
+        ],
+      })
+      const node = getFirstByElementId('hello')
+      const component = app.cache.component.get(node.id)
+    })
+
+    xit(`should clear the canvas`, () => {
+      //
+    })
+  })
 })

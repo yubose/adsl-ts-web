@@ -1,6 +1,6 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
-import { isArr, isNum, isObj, isStr, unwrapObj } from './_internal'
+import { array, isArr, isNum, isObj, isStr, unwrapObj } from './_internal'
 import * as T from './types'
 
 /**
@@ -87,6 +87,27 @@ export const findDataValue = <O extends FindDataValueItem = any>(
   )
 }
 
+// TODO - Finish testing this
+// export function findDataObject<O extends FindDataValueItem = FindDataValueItem>(
+//   objs: O,
+//   path: string | undefined,
+// ) {
+//   if (!path) return unwrapObj(isArr(objs) ? objs[0] : objs)
+//   for (let obj of array(objs)) {
+//     obj = unwrapObj(obj)
+//     const parts = (path?.split('.') || []) as string[]
+//     console.info(parts)
+//     const depth = parts.length
+//     if (!depth || depth === 1) return obj
+//     if (depth === 2 && has(obj, parts[0])) return get(obj, parts[0])
+//     if (depth >= 3) path = parts.slice(0, depth - 1).join('.')
+//     if (has(obj, path)) {
+//       const value = get(obj, path)
+//       if (value && !isStr(value) && !isNum(value)) return value
+//     }
+//   }
+// }
+
 export function findReferences(obj: any): string[] {
   let results = [] as string[]
   ;(Array.isArray(obj) ? obj : [obj]).forEach((o) => {
@@ -158,6 +179,17 @@ export function getDataValue<T = any>(
   }
 }
 
+export function isRootDataKey(dataKey: string | undefined) {
+  if (typeof dataKey === 'string') {
+    if (dataKey.startsWith('.')) {
+      dataKey = dataKey.substring(dataKey.search(/[a-zA-Z]/)).trim()
+    }
+    if (!/^[a-zA-Z]/i.test(dataKey)) return false
+    if (dataKey) return dataKey[0].toUpperCase() === dataKey[0]
+  }
+  return false
+}
+
 export const parse = (function () {
   const o = {
     /**
@@ -172,7 +204,7 @@ export const parse = (function () {
         isSamePage?: boolean
         duration: number
         [key: string]: any
-      } = any
+      } = any,
     >(
       destination: string,
       {

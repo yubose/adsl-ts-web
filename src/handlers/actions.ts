@@ -2,6 +2,7 @@ import Logger from 'logsnap'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
+import set from 'lodash/set'
 import * as u from '@jsmanifest/utils'
 import {
   asHtmlElement,
@@ -10,8 +11,10 @@ import {
   findByElementId,
   findByViewTag,
   findByDataAttrib,
-  isPageConsumer,
   findByUX,
+  isPageConsumer,
+  SignaturePad,
+  getFirstByDataKey,
 } from 'noodl-ui-dom'
 import {
   ConsumerOptions,
@@ -19,12 +22,14 @@ import {
   findListDataObject,
   findIteratorVar,
   getActionObjectErrors,
+  isComponent,
   NUITrigger,
   parseReference,
   Store,
   triggers,
+  NUIComponent,
 } from 'noodl-ui'
-import { evalIf, parse } from 'noodl-utils'
+import { evalIf, isRootDataKey, parse } from 'noodl-utils'
 import { IfObject, Identify } from 'noodl-types'
 import {
   getVcodeElem,
@@ -531,6 +536,106 @@ const createActions = function createActions(app: App) {
     }
   }
 
+  const removeSignature: Store.ActionObject['fn'] =
+    async function onRemoveSignature(action, options) {
+      try {
+        log.func('removeSignature')
+        log.grey('', { action, options })
+        const dataKey = _pick(action, 'dataKey')
+        const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
+        if (node) {
+          const component = app.cache.component.get(
+            node.id,
+          ) as NUIComponent.Instance
+          if (isComponent(component)) {
+            const signaturePad = component.get('signaturePad') as SignaturePad
+            if (signaturePad) {
+              signaturePad.clear()
+              log.grey(
+                `Cleared signature for dataKey "${dataKey}"`,
+                signaturePad,
+              )
+            } else {
+              log.red(
+                `Tried to clear the signature using dataKey "${dataKey}" ` +
+                  `but the component did not have the signature pad stored in its instance`,
+                component,
+              )
+            }
+          } else {
+            log.red(
+              `Tried to clear the signature using dataKey "${dataKey}" ` +
+                `but the component did not exist in the component cache`,
+              { node, component, cachedComponents: app.cache.component.get() },
+            )
+          }
+        }
+      } catch (error) {
+        toast(error.message, { type: 'error' })
+      }
+    }
+
+  const saveSignature: Store.ActionObject['fn'] =
+    async function onSaveSignature(action, options) {
+      try {
+        log.func('saveSignature')
+        log.grey('', { action, options })
+        const dataKey = _pick(action, 'dataKey')
+        if (dataKey) {
+          const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
+          const component = app.cache.component.get(node.id)
+          if (component) {
+            const signaturePad = component.get('signaturePad') as SignaturePad
+            if (signaturePad) {
+              let dataKey = _pick(action, 'dataKey')
+              let dataObject = isRootDataKey(dataKey)
+                ? app.root
+                : app.root?.[options?.page?.page || '']
+              let dataUrl = signaturePad.toDataURL()
+              let mimeType = dataUrl.split(';')[0].split(':')[1] || ''
+              if (has(dataObject, dataKey)) {
+                node.toBlob(
+                  (blob) => {
+                    set(dataObject, dataKey, blob)
+                    log.func('saveSignature')
+                    log.grey(`Saved blob to "${dataKey}"`, {
+                      blob,
+                      dataKey,
+                      mimeType,
+                    })
+                  },
+                  mimeType,
+                  8,
+                )
+              } else {
+                log.red(
+                  `Cannot save the signature because the component with dataKey "${dataKey}" did not have a SignaturePad stored in its instance`,
+                  { action, component },
+                )
+              }
+            } else {
+              log.red(`Missing signature pad from a canvas component`, {
+                action,
+                component,
+              })
+            }
+          } else {
+            log.red(
+              `Cannot save the signature because a component with dataKey "${dataKey}" was not available in the component cache`,
+              { action, component },
+            )
+          }
+        } else {
+          log.red(
+            `Cannot save the signature because there is no dataKey`,
+            action,
+          )
+        }
+      } catch (error) {
+        toast(error.message, { type: 'error' })
+      }
+    }
+
   const toastAction: Store.ActionObject['fn'] = async function onToast(action) {
     try {
       log.func('toast')
@@ -641,7 +746,9 @@ const createActions = function createActions(app: App) {
     popUp,
     popUpDismiss,
     refresh,
+    removeSignature,
     saveObject,
+    saveSignature,
     toast: toastAction,
     updateObject,
   }

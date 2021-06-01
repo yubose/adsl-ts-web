@@ -50,3 +50,42 @@ describe('findDataValue', () => {
     expect(n.findDataValue(root, 'Bottle')).to.eq(pageObject)
   })
 })
+
+// xdescribe(`findDataObject`, () => {
+//   it(`should return the data object`, () => {
+//     const obj = {
+//       formData: {
+//         items: {
+//           ages: [1, 2, 10, 11, 48],
+//           food: {
+//             fruits: 'apple',
+//             vegetables: { carrot: true, tomato: false },
+//           },
+//         },
+//       },
+//     }
+//     const dataKey = 'formData.items.food.vegetables'
+//   })
+
+//   xit(`should not return the data value but the obj that is wrapping it instead`, () => {
+//     //
+//   })
+// })
+
+describe(`isRootDataKey`, () => {
+  Object.entries({
+    '..SignIn.formData': true,
+    '.SignIn.formData': true,
+    'SignIn.formData': true,
+    ',SignIn.formData': false,
+    'signIn.formData': false,
+    sASKMSADSAD: false,
+    '.signIn.formData': false,
+    '..signIn.formData': false,
+    '..,fsignIn.formData': false,
+  }).forEach(([key, expectedResult]) => {
+    it(`should return ${expectedResult} for "${key}"`, () => {
+      expect(n.isRootDataKey(key)).to.be[expectedResult ? 'true' : 'false']
+    })
+  })
+})
