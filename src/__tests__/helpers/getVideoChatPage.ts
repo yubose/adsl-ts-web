@@ -32,8 +32,8 @@ function getVideoChatPageObject({
 } = {}) {
   const pageObject = {
     pageNumber: '190',
-    cameraOn: true,
-    micOn: true,
+    cameraOn: 'true',
+    micOn: 'true',
     miuAutoMicOffTimespan: '3',
     miuAutoMicOffThresdhold: '3',
     emptyId: '',
@@ -156,6 +156,10 @@ function getVideoChatPageObject({
                       ],
                     }),
                     onClick: [
+                      mock.getBuiltInAction({
+                        funcName: 'toggleFlag',
+                        dataKey: 'VideoChat.cameraOn',
+                      }),
                       mock.getFoldedEmitObject({
                         actions: [
                           {
@@ -171,10 +175,6 @@ function getVideoChatPageObject({
                         funcName: 'redraw',
                         viewTag: 'camera',
                       }),
-                      mock.getBuiltInAction({
-                        funcName: 'toggleFlag',
-                        dataKey: 'VideoChat.cameraOn',
-                      }),
                     ],
                     style: { top: '0.03', height: '0.035' },
                   }),
@@ -188,6 +188,10 @@ function getVideoChatPageObject({
                       ],
                     }),
                     onClick: [
+                      mock.getBuiltInAction({
+                        funcName: 'toggleFlag',
+                        dataKey: 'VideoChat.micOn',
+                      }),
                       mock.getFoldedEmitObject({
                         actions: [
                           {
@@ -202,10 +206,6 @@ function getVideoChatPageObject({
                       mock.getBuiltInAction({
                         funcName: 'redraw',
                         viewTag: 'microphone',
-                      }),
-                      mock.getBuiltInAction({
-                        funcName: 'toggleFlag',
-                        dataKey: 'VideoChat.micOn',
                       }),
                     ],
                     style: { top: '0.022', height: '0.05' },
