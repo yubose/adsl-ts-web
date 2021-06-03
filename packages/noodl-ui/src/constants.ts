@@ -122,7 +122,7 @@ export const nuiEmitType = {
 } as const
 
 export const nuiEmitTransaction = {
-  REQUEST_PAGE_OBJECT: 'register-page-object',
+  REQUEST_PAGE_OBJECT: 'REQUEST_PAGE_OBJECT',
 } as const
 
 export const trigger = {

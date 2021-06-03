@@ -116,15 +116,15 @@ window.addEventListener('load', async (e) => {
     log.func('onload')
 
     const { Account } = await import('@aitmed/cadl')
-    const { aitMessage } = await import('./app/firebase')
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
 
     await initializeNoodlPluginRefresher()
 
-    log.cyan('Initializing [App] instance')
+    log.grey('Initializing [App] instance')
     app = await initializeApp({ noodl, Account })
-    log.cyan('Initialized [App] instance')
+    log.func('onload')
+    log.grey('Initialized [App] instance')
 
     document.body.addEventListener('keydown', async function onKeyDown(e) {
       if ((e.key == '1' || e.key == '2') && e.metaKey) {
@@ -141,30 +141,29 @@ window.addEventListener('load', async (e) => {
     })
 
     Object.defineProperties(window, {
-      app: { get: () => app },
-      build: { value: process.env.BUILD },
-      l: { get: () => app?.meeting.localParticipant },
-      cache: { get: () => app?.cache },
-      cp: { get: () => copyToClipboard },
-      meeting: { get: () => app?.meeting },
-      noodl: { get: () => noodl },
-      nui: { get: () => app?.nui },
-      ndom: { get: () => app?.ndom },
-      page: { get: () => app?.mainPage },
-      FCMOnTokenReceive: {
-        get: () => (args: any) =>
-          noodl.root.builtIn
-            .FCMOnTokenReceive({ vapidKey: aitMessage.vapidKey, ...args })
-            .then(console.log)
-            .catch(console.error),
-      },
+      app: { configurable: true, get: () => app },
+      build: { configurable: true, value: process.env.BUILD },
+      l: { configurable: true, get: () => app?.meeting.localParticipant },
+      cache: { configurable: true, get: () => app?.cache },
+      cp: { configurable: true, get: () => copyToClipboard },
+      noodl: { configurable: true, get: () => noodl },
+      nui: { configurable: true, get: () => app?.nui },
+      ndom: { configurable: true, get: () => app?.ndom },
+      // FCMOnTokenReceive: {
+      //   get: () => (args: any) =>
+      //     noodl.root.builtIn
+      //       .FCMOnTokenReceive({ vapidKey: aitMessage.vapidKey, ...args })
+      //       .then(console.log)
+      //       .catch(console.error),
+      // },
       ...u
         .entries(getWindowHelpers())
         .reduce(
-          (acc, [key, fn]) => u.assign(acc, { [key]: { get: () => fn } }),
+          (acc, [key, fn]) =>
+            u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
           {},
         ),
-      toYml: { get: () => yaml.stringify.bind(yaml) },
+      toYml: { configurable: true, get: () => yaml.stringify.bind(yaml) },
     })
 
     window.addEventListener('popstate', createOnPopState(app))
@@ -175,12 +174,13 @@ window.addEventListener('load', async (e) => {
 
 if (module.hot) {
   module.hot.accept()
-
   if (module.hot.status() === 'apply') {
-    // app = window.app as App
-    // window.app.reset()
+    app = window.app as App
+    window.app.reset(true)
+    // app.reset(true).then(() => {
+    //   console.log(app)
+    // })
     delete window.app
-    // console.log(window.app)
     // window.dispatchEvent(new Event('load'))
   }
 

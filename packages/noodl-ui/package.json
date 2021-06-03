@@ -22,9 +22,8 @@
   "files": [
     "dist"
   ],
-  "devDependencies": {
-    "@rollup/plugin-alias": "^3.1.2"
-  },
+  "dependencies": {},
+  "devDependencies": {},
   "prettier": {
     "arrowParens": "always",
     "endOfLine": "lf",

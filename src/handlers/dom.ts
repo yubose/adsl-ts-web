@@ -12,7 +12,6 @@ import {
   asHtmlElement,
   findByDataKey,
   getFirstByElementId,
-  getFirstByDataKey,
   isTextFieldLike,
   NOODLDOMDataValueElement,
   Resolve,
@@ -967,8 +966,6 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
   }
-
-  console.log('hello')
 
   return u
     .entries(domResolvers)

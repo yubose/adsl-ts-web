@@ -4,7 +4,6 @@ import set from 'lodash/set'
 import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
 import {
-  ComponentObject,
   EmitObjectFold,
   Identify,
   IfObject,
@@ -111,7 +110,7 @@ const NUI = (function _NUI() {
           const emitAction = new EmitAction('path', args)
           if ('dataKey' in args.emit) {
             emitAction.dataKey = createEmitDataKey(
-              args.emit.dataKey,
+              args.emit.dataKey as string,
               _getQueryObjects({
                 component,
                 page,
@@ -496,7 +495,7 @@ const NUI = (function _NUI() {
         !(register.name === event) && (register.name = event)
       } else if (u.isObj(obj)) {
         event = obj.onEvent as string
-        register = o.cache.register.get(event) || {}
+        register = (o.cache.register.get(event) || {}) as T.Register.Object
 
         options && u.assign(register, options)
 
@@ -610,7 +609,7 @@ const NUI = (function _NUI() {
         }
       }
 
-      page = cache.page.create({ id, viewport: viewport as VP })
+      page = cache.page.create({ id, viewport: viewport as VP }) as NUIPage
       name && (page.page = name)
       page.use(() =>
         page?.page ? NUI.getRoot()[page.page] : { components: [] },

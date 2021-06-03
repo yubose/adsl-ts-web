@@ -14,7 +14,7 @@ function createElementBindingFactory(app: App) {
       component.has('videoStream') ||
       component.blueprint?.viewTag === 'selfStream'
     ) {
-      log.func(ndomTransaction.CREATE_ELEMENT)
+      log.func('createElementBinding')
 
       const { selfStream } = app.meeting.streams
       const streamNodes = [] as HTMLElement[]

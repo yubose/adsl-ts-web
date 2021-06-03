@@ -11,6 +11,7 @@ import {
   NUIComponent,
   publish,
   Store,
+  nuiEmitTransaction,
 } from 'noodl-ui'
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
 import { GlobalComponentRecord } from './global'
@@ -21,14 +22,14 @@ import Page from './Page'
 import Timers from './global/Timers'
 import * as defaultResolvers from './resolvers'
 import * as c from './constants'
-import * as T from './types'
+import * as t from './types'
 
 const pageEvt = c.eventId.page
 
 class NOODLDOM extends NOODLDOMInternal {
   #R: ReturnType<typeof createResolver>
-  #createElementBinding = undefined as T.UseObject['createElementBinding']
-  global: T.GlobalMap = {
+  #createElementBinding = undefined as t.UseObject['createElementBinding']
+  global: t.GlobalMap = {
     components: new Map(),
     pages: {},
     timers: new Timers(),
@@ -168,6 +169,7 @@ class NOODLDOM extends NOODLDOMInternal {
   removeComponent(component: NUIComponent.Instance | undefined | null) {
     if (!component) return this
     const remove = (c: NUIComponent.Instance) => {
+      debugger
       this.cache.component.remove(c)
       c.has?.('global') &&
         this.removeGlobal('component', c.get('data-globalid'))
@@ -212,7 +214,7 @@ class NOODLDOM extends NOODLDOMInternal {
     }
   }
 
-  removeNode(node: T.NOODLDOMElement) {
+  removeNode(node: t.NOODLDOMElement) {
     if (node?.id) {
       try {
         node.parentElement?.removeChild?.(node)
@@ -246,10 +248,10 @@ class NOODLDOM extends NOODLDOMInternal {
     try {
       page.ref.request.timer && clearTimeout(page.ref.request.timer)
 
-      const pageObject = await this.transact({
-        transaction: c.transaction.REQUEST_PAGE_OBJECT,
+      const pageObject = await this.transact(
+        nuiEmitTransaction.REQUEST_PAGE_OBJECT,
         page,
-      })
+      )
 
       // TODO - Add the string 'stale' to type to disable this lint error
       // If caller returns 'stale', it is an explicit call to cancel this request
@@ -389,11 +391,11 @@ class NOODLDOM extends NOODLDOMInternal {
    */
   draw<C extends Component = any>(
     component: C,
-    container?: T.NOODLDOMElement | null,
+    container?: t.NOODLDOMElement | null,
     pageProp?: Page,
     options?: { context?: Record<string, any>; node?: HTMLElement | null },
   ) {
-    let node: T.NOODLDOMElement | null = options?.node || null
+    let node: t.NOODLDOMElement | null = options?.node || null
     let page: Page = pageProp || this.page
 
     if (component) {
@@ -555,13 +557,13 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   redraw(
-    node: T.NOODLDOMElement | null, // ex: li (dom node)
+    node: t.NOODLDOMElement | null, // ex: li (dom node)
     component: Component, // ex: listItem (component instance)
     pageProp?: Page,
     options?: Parameters<NOODLDOM['draw']>[3],
   ) {
     let context: any = options?.context
-    let newNode: T.NOODLDOMElement | null = null
+    let newNode: t.NOODLDOMElement | null = null
     let newComponent: Component | undefined
     let page =
       pageProp ||
@@ -668,9 +670,9 @@ class NOODLDOM extends NOODLDOMInternal {
 
   register(obj: Store.ActionObject): this
   register(obj: Store.BuiltInObject): this
-  register(obj: T.Resolve.Config): this
+  register(obj: t.Resolve.Config): this
   register(
-    obj: T.Resolve.Config | Store.ActionObject | Store.BuiltInObject,
+    obj: t.Resolve.Config | Store.ActionObject | Store.BuiltInObject,
   ): this {
     if ('resolve' in obj) {
       this.#R.use(obj)
@@ -787,29 +789,14 @@ class NOODLDOM extends NOODLDOMInternal {
     return this
   }
 
-  async transact(args: {
-    transaction: typeof c.transaction.REQUEST_PAGE_OBJECT
-    page: Page
-  }): Promise<PageObject>
-  async transact(args: {
-    transaction: T.NDOMTransaction.Id
-    component?: NUIComponent.Instance
-    page?: Page
-  }) {
-    switch (args.transaction) {
-      case c.transaction.REQUEST_PAGE_OBJECT:
-        return (
-          this.cache.transactions
-            .get(c.transaction.REQUEST_PAGE_OBJECT)
-            // @ts-expect-error
-            ?.fn?.(args.page)
-        )
-      default:
-        return null
-    }
+  async transact<Tid extends t.NDOMTransactionId>(
+    transaction: Tid,
+    ...args: Parameters<t.NDOMTransaction[Tid]>
+  ) {
+    return this.cache.transactions.get(transaction)?.fn?.(...args)
   }
 
-  use(obj: NUIPage | Partial<T.UseObject>) {
+  use(obj: NUIPage | Partial<t.UseObject>) {
     if (!obj) return
     if (isNUIPage(obj)) return this.createPage(obj)
 
@@ -821,16 +808,17 @@ class NOODLDOM extends NOODLDOMInternal {
 
     if (transaction) {
       u.eachEntries(transaction, (id, val) => {
-        if (id === c.transaction.REQUEST_PAGE_OBJECT) {
-          const getPageObject = transaction[c.transaction.REQUEST_PAGE_OBJECT]
+        if (id === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
+          const getPageObject =
+            transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT]
           NOODLDOM._nui.use({
             transaction: {
-              [c.transaction.REQUEST_PAGE_OBJECT]: async (
+              [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (
                 pageProp: NUIPage,
               ) => {
                 invariant(
                   u.isFnc(getPageObject),
-                  `Missing transaction: ${c.transaction.REQUEST_PAGE_OBJECT}`,
+                  `Missing transaction: ${nuiEmitTransaction.REQUEST_PAGE_OBJECT}`,
                 )
 
                 let nuiPage: NUIPage
@@ -843,7 +831,7 @@ class NOODLDOM extends NOODLDOMInternal {
                   nuiPage = pageProp
                 }
 
-                let pageObject: PageObject | undefined
+                let pageObject: PageObject | 'stale' | undefined
                 let page =
                   u.values(this.pages).find((pg) => pg.isEqual(nuiPage)) ||
                   this.createPage(nuiPage)
@@ -856,7 +844,7 @@ class NOODLDOM extends NOODLDOMInternal {
 
                 pageObject = await getPageObject?.(page)
 
-                return pageObject as PageObject
+                return pageObject
               },
             },
           })

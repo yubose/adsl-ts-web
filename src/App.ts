@@ -30,7 +30,7 @@ import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv, isOutboundLink } from './utils/common'
-import * as T from './app/types'
+import * as t from './app/types'
 
 const log = Logger.create('App.ts')
 
@@ -43,10 +43,10 @@ class App {
     },
   }
   #meeting: ReturnType<typeof createMeetingFns>
-  #noodl: T.AppConstructorOptions['noodl']
-  #nui: T.AppConstructorOptions['nui']
-  #ndom: T.AppConstructorOptions['ndom']
-  obs: T.AppObservers = new Map()
+  #noodl: t.AppConstructorOptions['noodl']
+  #nui: t.AppConstructorOptions['nui']
+  #ndom: t.AppConstructorOptions['ndom']
+  obs: t.AppObservers = new Map()
   _store: {
     messaging: {
       serviceRegistration: ServiceWorkerRegistration
@@ -61,7 +61,7 @@ class App {
     },
   }
   firebase = {} as FirebaseApp
-  getStatus: T.AppConstructorOptions['getStatus']
+  getStatus: t.AppConstructorOptions['getStatus']
   messaging = null as FirebaseMessaging | null
   mainPage: NOODLDOM['page'];
 
@@ -91,7 +91,7 @@ class App {
     nui = NUI,
     ndom = new NOODLDOM(nui),
     viewport = new VP(),
-  }: T.AppConstructorOptions = {}) {
+  }: t.AppConstructorOptions = {}) {
     this.getStatus = getStatus
     this.mainPage = ndom.createPage(
       nui.cache.page.length ? nui.getRootPage() : nui.createPage({ viewport }),
@@ -150,15 +150,15 @@ class App {
   }
 
   get noodl() {
-    return this.#noodl as NonNullable<T.AppConstructorOptions['noodl']>
+    return this.#noodl as NonNullable<t.AppConstructorOptions['noodl']>
   }
 
   get nui() {
-    return this.#nui as NonNullable<T.AppConstructorOptions['nui']>
+    return this.#nui
   }
 
   get ndom() {
-    return this.#ndom as NonNullable<T.AppConstructorOptions['ndom']>
+    return this.#ndom as NonNullable<t.AppConstructorOptions['ndom']>
   }
 
   get mainStream() {
@@ -247,7 +247,7 @@ class App {
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
-      this.firebase = firebase as T.FirebaseApp
+      this.firebase = firebase as t.FirebaseApp
       this.messaging = this.getFirebaseState().enabled
         ? this.firebase.messaging()
         : null
@@ -580,7 +580,7 @@ class App {
 
     const onComponentsRendered = (page: NOODLDOMPage) => {
       log.func('onComponentsRendered')
-      log.grey(`Done rendering DOM nodes for ${page.page}`, page)
+      log.grey(`Done rendering DOM nodes for ${page.page}`, page.snapshot())
       if (page.page === 'VideoChat') {
         if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
           this.meeting.onConnected(this.meeting.room)
@@ -610,8 +610,11 @@ class App {
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 
+  reset(soft?: boolean): Promise<void>
+  reset(): this
   reset(soft?: boolean) {
     if (soft) {
+      //
       // Soft reset (retains the App instance reference as well as the actions/transactions, etc)
       const softAppReset = async () => {
         try {
@@ -628,8 +631,7 @@ class App {
           this.mainPage.setPreviousPage('')
           this.mainPage.requesting = currentPage
           this.mainPage.components = []
-          await this.navigate(this.mainPage)
-          return this
+          return this.navigate(this.mainPage)
         } catch (error) {
           console.error(error)
         }
@@ -650,6 +652,7 @@ class App {
         this.updateRoot((draft) => {
           set(draft, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, [])
         })
+      return this
     }
   }
 
@@ -689,7 +692,7 @@ class App {
     cb?.(this.noodl.root)
   }
 
-  listen<Id extends keyof T.AppObserver, Fn extends T.AppObserver[Id]['fn']>(
+  listen<Id extends keyof t.AppObserver, Fn extends t.AppObserver[Id]['fn']>(
     id: Id,
     fn: Fn,
   ) {
@@ -700,8 +703,8 @@ class App {
   }
 
   emit<
-    Id extends keyof T.AppObserver,
-    P extends T.AppObserver[Id]['params'] = T.AppObserver[Id]['params'],
+    Id extends keyof t.AppObserver,
+    P extends t.AppObserver[Id]['params'] = t.AppObserver[Id]['params'],
   >(id: Id, params?: P) {
     const fns = this.obs.has(id) && this.obs.get(id)
     fns && fns.forEach((fn) => u.isFnc(fn) && fn(params as P))
@@ -725,7 +728,7 @@ class App {
   }
 
   /** Retrieves a list of cached pages */
-  getCachedPages(): T.CachedPageObject[] {
+  getCachedPages(): t.CachedPageObject[] {
     let result: CachedPageObject[] = []
     const pageHistory = localStorage.getItem(CACHED_PAGES)
     if (pageHistory) {

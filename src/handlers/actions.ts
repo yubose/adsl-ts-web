@@ -64,7 +64,7 @@ const createActions = function createActions(app: App) {
         ) {
           try {
             log.func(`emit [${trigger}]`)
-            log.grey('', action)
+            log.grey('', action.snapshot?.())
 
             const emitParams = {
               actions: _pick(action, 'actions'),
@@ -77,16 +77,24 @@ const createActions = function createActions(app: App) {
               if (dataKeyValue == undefined) {
                 log.red(
                   `An undefined value was set for "dataKey" as arguments to emitCall`,
-                  { action, emitParams },
+                  { action: action.snapshot?.(), emitParams },
                 )
               }
             }
 
-            log.grey('Emitting', { action, emitParams, options })
+            log.grey('Emitting', {
+              action: action.snapshot?.(),
+              emitParams,
+              options,
+            })
             const emitResult = u.array(
               await app.noodl.emitCall(emitParams as any),
             )
-            log.grey(`Emitted`, { emitParams, emitResult })
+            log.grey(`Emitted`, {
+              action: action.snapshot?.(),
+              emitParams,
+              emitResult,
+            })
 
             return u.isArr(emitResult)
               ? emitResult.length > 1
@@ -103,7 +111,7 @@ const createActions = function createActions(app: App) {
 
   const anonymous: Store.ActionObject['fn'] = async (a) => {
     log.func('anonymous')
-    log.grey('', a)
+    log.grey('', a.snapshot())
   }
 
   const evalObject: Store.ActionObject['fn'] = async function onEvalObject(
@@ -111,7 +119,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     log.func('evalObject')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
 
     try {
       let object = _pick(action, 'object') as
@@ -157,18 +165,24 @@ const createActions = function createActions(app: App) {
                 )
               }
             } else {
-              log.grey(
-                `An evalObject action is injecting a new object to the chain`,
-                {
-                  actionChain,
-                  instance: actionChain?.inject.call(
+              const isPossiblyAction = 'actionType' in result
+              const isPossiblyToastMsg = 'message' in result
+              const isPossiblyGoto = 'goto' in result || 'destination' in result
+
+              if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
+                log.grey(
+                  `An evalObject action is injecting a new object to the chain`,
+                  {
                     actionChain,
-                    result as any,
-                  ),
-                  object: result,
-                  queue: actionChain?.queue.slice(),
-                },
-              )
+                    instance: actionChain?.inject.call(
+                      actionChain,
+                      result as any,
+                    ),
+                    object: result,
+                    queue: actionChain?.queue.slice(),
+                  },
+                )
+              }
             }
           }
         }
@@ -199,7 +213,7 @@ const createActions = function createActions(app: App) {
               log.hotpink(
                 `Received a value from evalObject's "if" evaluation. ` +
                   `Returning it back to the action chain now`,
-                { action, result },
+                { action: action.snapshot?.(), result },
               )
               return result
             }
@@ -219,7 +233,10 @@ const createActions = function createActions(app: App) {
     let goto = _pick(action, 'goto') || ''
 
     log.func('goto')
-    log.grey(_pick(action, 'goto'), action)
+    log.grey(
+      _pick(action, 'goto'),
+      u.isObj(action) ? action.snapshot?.() : action,
+    )
 
     let destinationParam =
       (u.isStr(goto)
@@ -282,7 +299,7 @@ const createActions = function createActions(app: App) {
           destination,
           isSamePage,
           duration,
-          action,
+          action: action.snapshot?.(),
         })
       }
     }
@@ -312,7 +329,7 @@ const createActions = function createActions(app: App) {
         log.func('goto')
         log.red(
           'Tried to go to a page but could not find information on the whereabouts',
-          { action, options },
+          { action: action.snapshot?.(), options },
         )
       }
     }
@@ -321,7 +338,7 @@ const createActions = function createActions(app: App) {
   const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
     async function getInjectBlob(action, options) {
       log.func(name)
-      log.gold('', action)
+      log.gold('', action.snapshot?.())
       const result = await openFileSelector()
       log.func(name)
       switch (result.status) {
@@ -337,7 +354,12 @@ const createActions = function createActions(app: App) {
             log.red(
               `%cBoth action and component is needed to inject a blob to the action chain`,
               `color:#ec0000;`,
-              { action, actionChain: ac, component: comp, dataKey },
+              {
+                action: action.snapshot?.(),
+                actionChain: ac,
+                component: comp,
+                dataKey,
+              },
             )
           }
           break
@@ -345,11 +367,11 @@ const createActions = function createActions(app: App) {
           await options?.ref?.abort?.('File input window was closed')
           return log.red(
             `File was not selected for action "${name}" and the operation was aborted`,
-            action,
+            action.snapshot?.(),
           )
         case 'error':
           return void log.red(`An error occurred for action "${name}"`, {
-            action,
+            action: action.snapshot?.(),
             ...result,
           })
       }
@@ -369,7 +391,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     log.func('popUp')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
     const { ref } = options
     const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
     const popUpView = _pick(action, 'popUpView')
@@ -417,6 +439,7 @@ const createActions = function createActions(app: App) {
             if (!app.currentPage) {
               log.red(
                 `Could not determine the page to query the verification code for`,
+                action.snapshot?.(),
               )
             }
             if (vcode) {
@@ -445,7 +468,7 @@ const createActions = function createActions(app: App) {
           log.grey(
             `Popup action for popUpView "${popUpView}" is ` +
               `waiting on a response. Aborting now...`,
-            action,
+            action.snapshot?.(),
           )
           ref?.abort?.()
         }
@@ -455,7 +478,7 @@ const createActions = function createActions(app: App) {
         log.red(
           `${msg} a ${action.actionType} element but the element ` +
             `was null or undefined`,
-          { action, popUpView },
+          { action: action.snapshot?.(), popUpView },
         )
       }
     })
@@ -466,7 +489,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     log.func('popUpDismiss')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
     for (const obj of app.actions.popUp) {
       await (obj as Store.ActionObject)?.fn?.(action, options)
     }
@@ -474,7 +497,7 @@ const createActions = function createActions(app: App) {
 
   const refresh: Store.ActionObject['fn'] = async function onRefresh(action) {
     log.func('refresh')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
     window.location.reload()
   }
 
@@ -483,7 +506,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     log.func('saveObject')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
 
     const { getRoot, ref } = options
     const object = _pick(action, 'object')
@@ -526,7 +549,7 @@ const createActions = function createActions(app: App) {
         log.red(
           `The "object" property in the saveObject action is a string which ` +
             `is in the incorrect format. Possibly a parsing error?`,
-          action,
+          action.snapshot?.(),
         )
       }
     } catch (error) {
@@ -540,7 +563,7 @@ const createActions = function createActions(app: App) {
     async function onRemoveSignature(action, options) {
       try {
         log.func('removeSignature')
-        log.grey('', { action, options })
+        log.grey('', { action: action.snapshot?.(), options })
         const dataKey = _pick(action, 'dataKey')
         const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
         if (node) {
@@ -579,7 +602,7 @@ const createActions = function createActions(app: App) {
     async function onSaveSignature(action, options) {
       try {
         log.func('saveSignature')
-        log.grey('', { action, options })
+        log.grey('', { action: action.snapshot?.(), options })
         const dataKey = _pick(action, 'dataKey')
         if (dataKey) {
           const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
@@ -610,25 +633,25 @@ const createActions = function createActions(app: App) {
               } else {
                 log.red(
                   `Cannot save the signature because the component with dataKey "${dataKey}" did not have a SignaturePad stored in its instance`,
-                  { action, component },
+                  { action: action.snapshot?.(), component },
                 )
               }
             } else {
               log.red(`Missing signature pad from a canvas component`, {
-                action,
+                action: action.snapshot?.(),
                 component,
               })
             }
           } else {
             log.red(
               `Cannot save the signature because a component with dataKey "${dataKey}" was not available in the component cache`,
-              { action, component },
+              { action: action.snapshot?.(), component },
             )
           }
         } else {
           log.red(
             `Cannot save the signature because there is no dataKey`,
-            action,
+            action.snapshot?.(),
           )
         }
       } catch (error) {
@@ -639,7 +662,7 @@ const createActions = function createActions(app: App) {
   const toastAction: Store.ActionObject['fn'] = async function onToast(action) {
     try {
       log.func('toast')
-      log.gold('', action)
+      log.gold('', action.snapshot?.())
       toast(_pick(action, 'message') || '')
     } catch (error) {
       toast(error.message, { type: 'error' })
@@ -651,7 +674,7 @@ const createActions = function createActions(app: App) {
     { component, ref },
   ) {
     log.func('updateObject')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
 
     let file: File | undefined
 
@@ -676,7 +699,7 @@ const createActions = function createActions(app: App) {
         } else {
           log.red(
             `Action chain does not exist. No blob will be available`,
-            action,
+            action.snapshot?.(),
           )
         }
       }
@@ -698,7 +721,7 @@ const createActions = function createActions(app: App) {
       } else if (u.isStr(object)) {
         log.red(
           `A string was received as the "object" property. Possible parsing error?`,
-          action,
+          action.snapshot?.(),
         )
       } else if (u.isArr(object)) {
         for (const obj of object) u.isFnc(obj) && (await obj())
@@ -721,11 +744,13 @@ const createActions = function createActions(app: App) {
         if (dataObject) {
           const params = { dataKey, dataObject }
           log.func('updateObject')
-          log.grey(`Calling updateObject with:`, params)
-          const result = await app.noodl.updateObject(params)
-          log.grey(`updateObject called`, result)
+          log.grey(`Calling updateObject`, { params })
+          await app.noodl.updateObject(params)
         } else {
-          log.red(`Invalid/empty dataObject`, { action, dataObject })
+          log.red(`Invalid/empty dataObject`, {
+            action: action.snapshot?.(),
+            dataObject,
+          })
         }
       }
     } catch (error) {

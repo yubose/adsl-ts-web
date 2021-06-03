@@ -8,7 +8,6 @@ import { Identify, PageObject } from 'noodl-types'
 import { Room } from 'twilio-video'
 import { Register } from 'noodl-ui'
 import { copyToClipboard } from '../utils/dom'
-import { mapEntries } from '../utils/common'
 import App from '../App'
 
 const log = Logger.create('register.ts')

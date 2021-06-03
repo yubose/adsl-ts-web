@@ -2,7 +2,6 @@ import SignaturePad from 'signature_pad'
 import { Identify } from 'noodl-types'
 import { Component, NUI } from 'noodl-ui'
 import { entries, isArr, isFnc, isStr } from './utils/internal'
-import { transaction } from './constants'
 import NOODLDOM from './noodl-ui-dom'
 import NUIDOMInternal from './Internal'
 import * as T from './types'
@@ -100,12 +99,7 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
     )
   }
 
-  function _get(key: typeof transaction.CREATE_ELEMENT): T.Resolve.Config
-  function _get(): typeof _internal.objs
-  function _get<K extends typeof transaction.CREATE_ELEMENT>(key?: K) {
-    if (key === transaction.CREATE_ELEMENT) {
-      return _internal.objs.find((obj) => obj.name === key)
-    }
+  function _get() {
     return _internal.objs
   }
 

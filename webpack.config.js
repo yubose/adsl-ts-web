@@ -99,8 +99,6 @@ if (!u.isUnd(process.env.DEPLOYING)) {
       : false
 }
 
-console.log(environmentPluginOptions)
-
 const environmentPlugin = new webpack.EnvironmentPlugin(
   environmentPluginOptions,
 )
@@ -178,7 +176,7 @@ module.exports = {
       ],
     }),
     new webpack.ProgressPlugin({
-      // handler: webpackProgress,
+      handler: webpackProgress,
     }),
   ],
   ...productionOptions,
@@ -205,6 +203,7 @@ function webpackProgress(percentage, msg, ...args) {
 Status:    ${u.cyan(msg.toUpperCase())}
 File:      ${u.magenta(args[0])}
 Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
+
 ${u.cyan('eCOS packages')}:
 ${u.white(`@aitmed/cadl`)}:            ${u.magenta(version.noodlSdk)}
 ${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(version.ecosSdk)}

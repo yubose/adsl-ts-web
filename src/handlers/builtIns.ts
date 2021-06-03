@@ -84,7 +84,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
   ) {
     log.func('checkField')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
     const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
       u.arrayEach(findByUX(_pick(action, 'contentType')), (n) => n && show(n))
@@ -95,13 +95,13 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const disconnectMeeting: Store.BuiltInObject['fn'] =
     async function onDisconnectMeeting(action) {
       log.func('disconnectMeeting')
-      log.grey('', action)
+      log.grey('', action.snapshot?.())
       app.meeting.leave()
     }
 
   const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {
     log.func('goBack')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
     const reload = _pick(action, 'reload')
     app.mainPage.requesting = app.mainPage.previous
     // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
@@ -137,7 +137,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
     log.func('hide')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
     let wait = _pick(action, 'wait')
     const onElem = (node: HTMLElement) => {
@@ -160,7 +160,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     log.func('show')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
     let wait = _pick(action, 'wait') || 0
     const onElem = (node: HTMLElement) => {
@@ -185,14 +185,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const toggleCameraOnOff: Store.BuiltInObject['fn'] =
     async function onToggleCameraOnOff(action) {
       log.func('toggleCameraOnOff')
-      log.green('', action)
+      log.green('', action.snapshot?.())
       _toggleMeetingDevice('video')
     }
 
   const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] =
     async function onToggleMicrophoneOnOff(action) {
       log.func('toggleMicrophoneOnOff')
-      log.green('', action)
+      log.green('', action.snapshot?.())
       _toggleMeetingDevice('audio')
     }
 
@@ -201,7 +201,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     log.func('toggleFlag')
-    log.grey('', action)
+    log.grey('', action.snapshot?.())
     try {
       const { component, getAssetsUrl } = options
       const dataKey = _pick(action, 'dataKey') || ''
@@ -282,7 +282,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           log.red(
             `${dataKey} is not a path of the data object. ` +
               `Defaulting to attaching ${dataKey} as a path to the root object`,
-            { dataObject, dataKey },
+            { action: action.snapshot?.(), dataObject, dataKey },
           )
           previousDataValue = undefined
           nextDataValue = false
@@ -305,6 +305,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       log.grey('', {
+        action: action.snapshot?.(),
         component,
         dataKey,
         dataValue,
@@ -350,8 +351,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
     options,
   ) {
-    log.func('builtIn goto]')
-    log.red('', action)
+    log.func('goto]')
+    log.hotpink('', u.isObj(action) ? action.snapshot?.() : action)
 
     let destinationParam = ''
     let reload: boolean | undefined
@@ -412,6 +413,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
 
     log.grey(`Goto info`, {
+      action: action.snapshot?.(),
       destination,
       destinationParam,
       duration,
@@ -467,12 +469,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       } else {
         log.red(`Could not search for a DOM node with an identity of "${id}"`, {
+          action: action.snapshot?.(),
           node,
           id,
           destination,
           isSamePage,
           duration,
-          action,
           options,
         })
       }
@@ -510,7 +512,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         log.func('builtIn')
         log.red(
           'Tried to go to a page but could not find information on the whereabouts',
-          { action, ...options },
+          { action: action.snapshot?.(), ...options },
         )
       }
     }
@@ -550,7 +552,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
     try {
       if (!numComponents) {
-        log.red(`Could not find any components to redraw`, action)
+        log.red(`Could not find any components to redraw`, action.snapshot?.())
       } else {
         log.grey(`Redrawing ${numComponents} components`, components)
       }

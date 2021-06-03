@@ -1,4 +1,3 @@
-import { LiteralUnion } from 'type-fest'
 import { ComponentObject, ComponentType } from 'noodl-types'
 import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
@@ -7,11 +6,7 @@ import NOODLDOMPage from './Page'
 import createResolver from './createResolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import GlobalTimers from './global/Timers'
-import {
-  eventId,
-  dataAttributes,
-  transaction as ndomTransaction,
-} from './constants'
+import { eventId, dataAttributes } from './constants'
 
 export interface IGlobalObject<T extends string = string> {
   type: T
@@ -221,35 +216,20 @@ export namespace Page {
   }
 }
 
-export namespace NDOMTransaction {
-  export type Id = keyof NDOMTransaction.Map
-  export interface Base<T extends string = string> {
-    transaction: T
-    params?: any
-    args?: any[]
-  }
-
-  export type Map<TName extends string = string, Arg = any> = {
-    [ndomTransaction.CREATE_ELEMENT]: (
-      component: NUIComponent.Instance,
-    ) => NUIComponent.Instance | void | null
-    [ndomTransaction.REQUEST_PAGE_OBJECT]: (
-      page: NOODLDOMPage,
-    ) => Promise<NOODLDOMPage>
-  } & Record<TName, <RT = any>(arg: Arg) => RT>
+export interface NDOMTransaction {
+  REQUEST_PAGE_OBJECT(page: NOODLDOMPage): Promise<NOODLDOMPage | 'stale'>
 }
 
-export interface UseObject<
-  TName extends NDOMTransaction.Id = NDOMTransaction.Id,
-> extends Omit<
-    NUIUseObject<NDOMTransaction.Base, NDOMTransaction.Id>,
+export type NDOMTransactionId = keyof NDOMTransaction
+
+export interface UseObject
+  extends Omit<
+    NUIUseObject<NDOMTransaction, NDOMTransactionId>,
     'transaction'
   > {
   createElementBinding?(
     component: NUIComponent.Instance,
   ): HTMLElement | null | void
   resolver?: Resolve.Config
-  transaction?: Partial<
-    Record<TName, NDOMTransaction.Map<LiteralUnion<TName, string>>[TName]>
-  >
+  transaction?: Partial<NDOMTransaction>
 }
