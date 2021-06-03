@@ -113,7 +113,7 @@
     "mutation-observer": "^1.0.3",
     "nodemon": "^2.0.7",
     "noodl-common": "^0.0.6",
-    "noodl-webpack-plugin": "^0.0.10",
+    "noodl-webpack-plugin": "^0.0.13",
     "prettier": "^2.1.2",
     "rollup": "^2.49.0",
     "rollup-plugin-filesize": "^9.0.2",

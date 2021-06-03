@@ -88,13 +88,16 @@ async function initializeNoodlPluginRefresher() {
   ws = new WebSocket(`ws://127.0.0.1:3002`)
 
   ws.addEventListener('open', (event) => {
-    console.log(`[noodl refresher] started`, event)
+    // console.log(`[noodl refresher] started`, event)
   })
 
   ws.addEventListener('message', (msg) => {
-    console.log(`%cReceived from noodl-webpack-plugin:`, `color:#e50087;`, msg)
-    const data = JSON.parse(msg.data)
-    data.type === 'FILE_CHANGED' && app.reset(true)
+    let data
+    try {
+      data = JSON.parse(msg.data)
+      // console.log(`%cReceived from noodl-webpack-plugin:`, `color:#e50087;`, data)
+      data.type === 'FILE_CHANGED' && app.reset(true)
+    } catch (error) {}
   })
 
   ws.addEventListener('error', (err) => {
@@ -174,8 +177,11 @@ if (module.hot) {
   module.hot.accept()
 
   if (module.hot.status() === 'apply') {
-    app = window.app as App
-    window.app.reset(true)
+    // app = window.app as App
+    // window.app.reset()
+    delete window.app
+    // console.log(window.app)
+    // window.dispatchEvent(new Event('load'))
   }
 
   module.hot.dispose((data = {}) => {

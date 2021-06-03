@@ -36,6 +36,7 @@ const cli = meow(
       clear: { type: 'boolean' },
       config: { alias: 'c', type: 'string' },
       env: { alias: 'e', type: 'string', default: 'test' },
+      local: { type: 'boolean', default: false },
       port: { alias: 'p', type: 'number', default: 3000 },
       serverDir: {type:'string',default:'server'},
       serverPort: {  type: 'number', default: 3001 },
@@ -72,7 +73,9 @@ webpackConfig.plugins.unshift(
   new (require('noodl-webpack-plugin'))({
     config: cli.flags.config,
     env: cli.flags.env,
+    isLocal: cli.flags.local,
     hostname: '127.0.0.1',
+    server: false,
     serverPath: cli.flags.serverDir,
     serverPort: cli.flags.serverPort,
   }),
