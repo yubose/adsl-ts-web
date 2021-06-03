@@ -251,7 +251,20 @@ class NOODLDOM extends NOODLDOMInternal {
         page,
       })
 
-      u.keys(page.modifiers).forEach((key) => delete page.modifiers[key])
+      // TODO - Add the string 'stale' to type to disable this lint error
+      // If caller returns 'stale', it is an explicit call to cancel this request
+      // because a newer one was initiated
+      if (pageObject === 'stale') {
+        u.keys(page.modifiers).forEach((key) => delete page.modifiers[key])
+        page.requesting === pageRequesting && (page.requesting = '')
+        page.emitSync(c.eventId.page.on.ON_NAVIGATE_STALE, {
+          previouslyRequesting: pageRequesting,
+          newPageRequesting: page.requesting,
+          snapshot: page.snapshot(),
+        })
+        return
+      }
+
       /**
        * TODO - Move this to an official location when we have time
        */

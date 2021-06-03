@@ -143,7 +143,6 @@ export type RegisterOptions = Resolve.Config
 /* -------------------------------------------------------
   ---- PAGE TYPES
 -------------------------------------------------------- */
-
 export namespace Page {
   export type HookEvent = keyof Hook
 
@@ -152,6 +151,11 @@ export namespace Page {
     [eventId.page.on.ON_ASPECT_RATIO_MAX](prevMax: number, max: number): void
     [eventId.page.on.ON_STATUS_CHANGE](status: Page.Status): void
     [eventId.page.on.ON_NAVIGATE_START](page: NOODLDOMPage): void
+    [eventId.page.on.ON_NAVIGATE_STALE](args: {
+      previouslyRequesting: string
+      newPageRequesting: string
+      snapshot: Snapshot
+    }): void
     [eventId.page.on.ON_NAVIGATE_ABORT](snapshot: Snapshot): void
     [eventId.page.on.ON_NAVIGATE_ERROR](
       snapshot: Snapshot & { error: Error },

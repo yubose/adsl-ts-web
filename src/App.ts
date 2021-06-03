@@ -92,7 +92,6 @@ class App {
     ndom = new NOODLDOM(nui),
     viewport = new VP(),
   }: T.AppConstructorOptions = {}) {
-    console.log(`[App constructor]`)
     this.getStatus = getStatus
     this.mainPage = ndom.createPage(
       nui.cache.page.length ? nui.getRootPage() : nui.createPage({ viewport }),
@@ -238,7 +237,6 @@ class App {
     firebase?: { client?: App['firebase']; vapidKey?: string }
     firebaseSupported?: boolean
   } = {}) {
-    console.log(`[App initialize]`)
     try {
       !firebaseSupported && (this.#state.firebase.enabled = false)
       vapidKey && (this._store.messaging.vapidKey = vapidKey)
@@ -388,6 +386,7 @@ class App {
   async getPageObject(page: NOODLDOMPage) {
     try {
       const pageRequesting = page.requesting
+      const currentPage = page.page
       log.func('getPageObject')
       log.grey(
         `Running noodl.initPage for page "${pageRequesting}"`,
@@ -428,6 +427,12 @@ class App {
         snapshot: page.snapshot(),
       })
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
+      if (
+        this.mainPage.requesting !== pageRequesting && 
+        this.mainPage.page !== currentPage
+      ) {
+        return 'stale'
+      }
       return this.root[pageRequesting]
     } catch (error) {
       console.error(error)
@@ -538,6 +543,18 @@ class App {
       }
     }
 
+    const onNavigateStale = (args: {
+      previouslyRequesting: string
+      newPageRequesting: string
+      snapshot: ReturnType<NOODLDOMPage['snapshot']>
+    }) => {
+      log.func('onNavigateStale')
+      log.green(
+        `Aborted a previous request to "${args.previouslyRequesting}" for "${args.newPageRequesting}"`,
+        args.snapshot,
+      )
+    }
+
     const onBeforeClearRootNode = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
         log.func('onBeforeClearRootNode')
@@ -582,6 +599,7 @@ class App {
 
     page
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
+      .on(eventId.page.on.ON_NAVIGATE_STALE, onNavigateStale)
       .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearRootNode)
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
