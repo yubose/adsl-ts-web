@@ -1,5 +1,8 @@
+import SignaturePad from 'signature_pad'
+import set from 'lodash/set'
+import has from 'lodash/has'
 import { Identify } from 'noodl-types'
-import SignaturePad, { Options as SignaturePadOptions } from 'signature_pad'
+import { isRootDataKey } from 'noodl-utils'
 import {
   createComponent,
   formatColor,
@@ -33,7 +36,7 @@ const domComponentsResolver: Resolve.Config = {
         })
     }
   },
-  resolve(node, component, { draw, ndom, page, signaturePad }) {
+  resolve(node, component, { draw, ndom, nui }) {
     if (!u.isFnc(node)) {
       const original = component.blueprint || {}
 
@@ -61,24 +64,47 @@ const domComponentsResolver: Resolve.Config = {
       }
       // CANVAS
       else if (Identify.component.canvas(component)) {
-        const dataValue = component.get('data-value')
         const dataKey = (component.get('data-key') ||
           original.dataKey) as string
 
         if (dataKey) {
+          const signaturePad = component.get('signaturePad') as SignaturePad
           if (signaturePad) {
-            signaturePad.onBegin = (evt) => {
-              console.log(
-                `%conBegin fired for canvas's signature pad`,
-                `color:#c4a901;`,
-                evt,
-              )
-            }
             signaturePad.onEnd = (evt) => {
-              console.log(
-                `%conEnd fired for canvas's signature pad`,
-                `color:#c4a901;`,
-                evt,
+              const dataUrl = signaturePad.toDataURL()
+              const mimeType = dataUrl.split(';')[0].split(':')[1] || ''
+              ;(node as HTMLCanvasElement).toBlob(
+                (blob) => {
+                  if (nui) {
+                    let dataObject = isRootDataKey(dataKey)
+                      ? nui.getRoot()
+                      : nui.getRoot()?.[ndom.page.page]
+                    if (has(dataObject, dataKey)) {
+                      // set(dataObject, dataKey, blob)
+                    } else {
+                      console.log(
+                        `%cTried to set a signature blob using path "${dataKey}" ` +
+                          `but it was not found in the root or local root object. ` +
+                          `It will be created now.`,
+                        `color:#ec0000;`,
+                        {
+                          blob,
+                          currentPage: ndom.page.page,
+                          node,
+                          root: nui.getRoot(),
+                        },
+                      )
+                    }
+                  } else {
+                    console.log(
+                      `%c"nui" is missing in the "components" DOM resolver`,
+                      `color:#ec0000;`,
+                      this,
+                    )
+                  }
+                },
+                mimeType,
+                8,
               )
             }
           } else {

@@ -26,12 +26,8 @@ These variables are available globally:
   - optionKey
   - dataKey gets set the object
 - images with an empty `src` attribute showing the "special" border. disable it or make it invisible in `stable` env
-- viewport top in yml not implemented
-- contentType: timer
-  - inc/dec value at `dataKey` every second
 - firebase [CDN](https://firebase.google.com/docs/web/setup#node.js-apps_1)
 - twilio [CDN](https://www.twilio.com/docs/video/javascript)
-- Fix 16:00:00 in VideoChat
 
 ## Notes
 

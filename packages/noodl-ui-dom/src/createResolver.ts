@@ -2,12 +2,9 @@ import SignaturePad from 'signature_pad'
 import { Identify } from 'noodl-types'
 import { Component, NUI } from 'noodl-ui'
 import { entries, isArr, isFnc, isStr } from './utils/internal'
-import { findByElementId, findByViewTag, isPageConsumer } from './utils'
-import findWindow from './utils/findWindow'
-import findWindowDocument from './utils/findWindowDocument'
+import { transaction } from './constants'
 import NOODLDOM from './noodl-ui-dom'
 import NUIDOMInternal from './Internal'
-import { transaction } from './constants'
 import * as T from './types'
 
 const createResolver = function _createResolver(ndom: NOODLDOM) {
@@ -22,14 +19,15 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
   const util = (function () {
     return {
       actionsContext(...args: T.Resolve.BaseArgs) {
-        const otherProps = {} as { signaturePad?: SignaturePad }
-
+        const otherProps = {} as Record<string, any>
         if (Identify.component.canvas(args[1])) {
-          otherProps.signaturePad = new SignaturePad(
-            args[0] as HTMLCanvasElement,
+          args[1].edit(
+            'signaturePad',
+            new SignaturePad(args[0] as HTMLCanvasElement, {
+              dotSize: 0.2,
+            }),
           )
         }
-
         return otherProps
       },
       options(...args: T.Resolve.BaseArgs) {
@@ -38,9 +36,7 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
             styles: Record<string, any> | undefined,
             { remove }: { remove?: string | string[] | false } = {},
           ) {
-            if (styles) {
-              component?.edit?.(() => ({ style: styles }))
-            }
+            styles && component?.edit?.(() => ({ style: styles }))
             if (isArr(remove)) {
               remove.forEach(
                 (styleKey) => styleKey && delete component.style[styleKey],

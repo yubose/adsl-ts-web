@@ -209,20 +209,28 @@ function createEcosDocElement<
 
     function appendTextNode(label: 'title' | 'content' | 'data') {
       let content = ecosObj?.name?.[label] || ''
-      iframeContent.appendChild(
-        createTextNode(content, {
-          title: label === 'title' ? ecosObj?.name?.[label] : undefined,
-          name: label,
-          classList:
-            label === 'title'
-              ? classes.ECOS_DOC_TEXT_TITLE
-              : label === 'content'
-              ? classes.ECOS_DOC_TEXT_BODY
-              : label === 'data'
-              ? classes.ECOS_DOC_TEXT_BODY
-              : undefined,
-        }),
-      )
+      if (u.isStr(content) && content.startsWith('blob:')) {
+        const img = document.createElement('img')
+        img.title = ecosObj?.name?.title || ''
+        img.alt = 'eCOS image'
+        img.src = content
+        iframeContent.appendChild(img)
+      } else {
+        iframeContent.appendChild(
+          createTextNode(content, {
+            title: label === 'title' ? ecosObj?.name?.[label] : undefined,
+            name: label,
+            classList:
+              label === 'title'
+                ? classes.ECOS_DOC_TEXT_TITLE
+                : label === 'content'
+                ? classes.ECOS_DOC_TEXT_BODY
+                : label === 'data'
+                ? classes.ECOS_DOC_TEXT_BODY
+                : undefined,
+          }),
+        )
+      }
     }
     ecosObj?.name?.title && !is.doc(ecosObj) && appendTextNode('title')
     ecosObj?.name?.content && appendTextNode('content')

@@ -17,9 +17,7 @@ function createTextNode(
         u.arrayEach(value, (className) => {
           className && div.classList.add(className)
         })
-      } else {
-        div.setAttribute(key, value)
-      }
+      } else div.setAttribute(key, value)
     })
   }
   div.appendChild(textNode)
