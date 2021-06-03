@@ -428,7 +428,7 @@ class App {
       })
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
       if (
-        this.mainPage.requesting !== pageRequesting && 
+        this.mainPage.requesting !== pageRequesting &&
         this.mainPage.page !== currentPage
       ) {
         return 'stale'
@@ -549,10 +549,16 @@ class App {
       snapshot: ReturnType<NOODLDOMPage['snapshot']>
     }) => {
       log.func('onNavigateStale')
-      log.green(
-        `Aborted a previous request to "${args.previouslyRequesting}" for "${args.newPageRequesting}"`,
-        args.snapshot,
-      )
+      if (args.newPageRequesting) {
+        log.green(
+          `Aborted a previous request to "${args.previouslyRequesting}" for "${args.newPageRequesting}"`,
+          args.snapshot,
+        )
+      } else {
+        log.green(
+          `Aborted an old/stale request to "${args.previouslyRequesting}"`,
+        )
+      }
     }
 
     const onBeforeClearRootNode = () => {

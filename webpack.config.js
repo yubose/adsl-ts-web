@@ -28,8 +28,10 @@ const filename = 'index.html'
 const publicPath = path.join(__dirname, 'public')
 const title = 'AiTmed Noodl Web'
 const productionOptions = {}
+const mode =
+  process.env.NODE_ENV !== 'production' ? 'development' : 'production'
 
-if (process.env.NODE_ENV === 'production') {
+if (mode === 'production') {
   /**
    * @type { webpack.Configuration['optimization'] }
    */
@@ -69,10 +71,10 @@ const devServerOptions = {
   liveReload: true,
 }
 
-const environmentPlugin = new webpack.EnvironmentPlugin({
+const environmentPluginOptions = {
   BUILD: {
     ecosEnv: process.env.ECOS_ENV,
-    nodeEnv: process.env.NODE_ENV,
+    nodeEnv: mode,
     packages: {
       '@aitmed/cadl': version.noodlSdk,
       '@aitmed/ecos-lvl2-sdk': version.ecosSdk,
@@ -86,20 +88,24 @@ const environmentPlugin = new webpack.EnvironmentPlugin({
   // if process.env.DEPLOYING === true, this forces the config url in
   // src/app/noodl.ts to point to the public.aitmed.com host
   ECOS_ENV: process.env.ECOS_ENV,
-  NODE_ENV: process.env.NODE_ENV,
-  USE_DEV_PATHS: process.env.USE_DEV_PATHS,
-})
-
-let ecosEnv = environmentPlugin.defaultValues.ECOS_ENV
-let nodeEnv = environmentPlugin.defaultValues.NODE_ENV
-
-if (!u.isUnd(process.env['DEPLOYING'])) {
-  const value = process.env['DEPLOYING']
-  environmentPlugin.defaultValues['DEPLOYING'] = value
-  if (!environmentPlugin.keys.includes(value)) {
-    environmentPlugin.keys.push(value)
-  }
+  NODE_ENV: mode,
+  USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
 }
+
+if (!u.isUnd(process.env.DEPLOYING)) {
+  environmentPluginOptions.DEPLOYING =
+    process.env.DEPLOYING === true || process.env.DEPLOYING === 'true'
+      ? true
+      : false
+}
+
+console.log(environmentPluginOptions)
+
+const environmentPlugin = new webpack.EnvironmentPlugin(
+  environmentPluginOptions,
+)
+
+let ecosEnv = environmentPluginOptions.ECOS_ENV
 
 /**
  * @type { webpack.Configuration } webpackOptions
@@ -112,7 +118,7 @@ module.exports = {
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'build'),
   },
-  mode: process.env.NODE_ENV !== 'production' ? 'development' : 'production',
+  mode,
   devServer: devServerOptions,
   devtool: 'inline-source-map',
   externals: [],
@@ -184,8 +190,7 @@ module.exports = {
 const getEcosEnv = () =>
   ecosEnv ? ecosEnv.toUpperCase() : '<Variable not set>'
 
-const getNodeEnv = () =>
-  nodeEnv ? nodeEnv.toUpperCase() : '<Variable not set>'
+const getNodeEnv = () => (mode ? mode.toUpperCase() : '<Variable not set>')
 
 /**
  * @param { number } percentage
@@ -208,7 +213,7 @@ ${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
 ${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
 ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
 
-${nodeEnv === 'production' 
+${mode === 'production' 
     ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(title)}` 
     : ''
 }\n\n`)
