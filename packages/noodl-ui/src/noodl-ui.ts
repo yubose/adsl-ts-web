@@ -525,9 +525,10 @@ const NUI = (function _NUI() {
               register.fn = async function onRegisterFn(obj, params) {
                 console.log(
                   `%cFunction has been called on register event "${event}"`,
-                  `color:#95a5a6;`,
+                  `color:aquamarine;`,
                   { obj, params },
                 )
+                debugger
                 const results = await Promise.all(
                   o.cache.register.get(event)?.callbacks?.map(async (cb) => {
                     if (isActionChain(cb)) {

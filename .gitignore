@@ -1,9 +1,6 @@
 build
-sbuild
 dist
 generated
 node_modules
-compiled
-coverage
-report
 server
+noodl.yml

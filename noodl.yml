@@ -10,18 +10,9 @@ objects:
 server:
   dir: server
   host: 127.0.0.1
-  port: "3001"
+  port: '3001'
   protocol: http
   config: meet4d
-op:
-  split:
-    pageObject:
-      - dir: _data/meetingChat
-        filename: pageObject.json
-        keys:
-          - components
-        target:
-          dir: src/__tests__/helpers/mockMeetingChat
 regex:
   packages:
     (nui|noodl-ui): noodl-ui

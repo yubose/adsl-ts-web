@@ -169,7 +169,6 @@ class NOODLDOM extends NOODLDOMInternal {
   removeComponent(component: NUIComponent.Instance | undefined | null) {
     if (!component) return this
     const remove = (c: NUIComponent.Instance) => {
-      debugger
       this.cache.component.remove(c)
       c.has?.('global') &&
         this.removeGlobal('component', c.get('data-globalid'))

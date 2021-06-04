@@ -2,7 +2,7 @@ import { NOODLDOMElement, RegisterOptions } from '../types'
 import { isTextFieldLike } from '../utils/utils'
 
 export default {
-  name: '[noodl-ui-dom] data values in non-textfield-like components',
+  name: '[noodl-ui-dom] nonTextField',
   cond: (node, component) =>
     !!node &&
     !isTextFieldLike(node) &&

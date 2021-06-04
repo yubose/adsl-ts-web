@@ -4,9 +4,9 @@
 
 import Logger from 'logsnap'
 import * as u from '@jsmanifest/utils'
-import { Identify, PageObject } from 'noodl-types'
+import { EmitObject, EmitObjectFold, Identify, PageObject } from 'noodl-types'
 import { Room } from 'twilio-video'
-import { Register } from 'noodl-ui'
+import { createAction, NUIComponent, Register } from 'noodl-ui'
 import { copyToClipboard } from '../utils/dom'
 import App from '../App'
 
@@ -34,28 +34,82 @@ function createRegisters(app: App) {
                   component,
                 )
               }
-              app.nui.use({ register: component })
-              const register = app.nui.cache.register.get(
-                component.onEvent as string,
-              )
-              if (register) {
-                if (u.isFnc(register.fn)) {
-                  component.onEvent = register.fn.bind(register) as any
-                  log.grey(
-                    `A function was attached on the "onEvent" property`,
-                    { register, component },
-                  )
-                } else if (!register.handler) {
+              if (component.onEvent === 'FCMOnTokenReceive') {
+                const instance = app.nui.resolveComponents(
+                  component,
+                ) as NUIComponent.Instance
+                const action = createAction({
+                  action: {
+                    emit: component.emit as EmitObject,
+                    actionType: 'register',
+                  },
+                  trigger: 'register',
+                })
+
+                component.onEvent = async function FCMOnTokenReceive(
+                  token: string,
+                ) {
+                  try {
+                    action.dataKey = { var: token }
+                    debugger
+                    await Promise.all(
+                      app.actions.emit.get('register')?.map((obj) =>
+                        obj?.fn?.(
+                          action,
+                          app.nui.getConsumerOptions({
+                            component: instance,
+                            page: app.mainPage,
+                          }),
+                        ),
+                      ) || [],
+                    )
+                    debugger
+                    return token
+                  } catch (error) {
+                    console.error(error)
+                    // throw error
+                  }
+                }
+
+                app.notification?.getMessagingToken().then(async (token) => {
+                  log.func('FCMOnTokenReceive')
+                  log.gold(`FCMOnTokenReceive`, token)
+                  await component.onEvent?.(token)
+                  // app.nui._experimental.register(component, {
+                  //   name: 'FCMOnTokenReceive',
+                  //   params: token,
+                  //   handler: {
+                  //   async fn() {
+
+                  //   },
+                  //   useReturnValue: true}
+                  //                 } as Register.Object)
+                  // const results = await ac.execute()
+                })
+              } else {
+                app.nui.use({ register: component })
+                const register = app.nui.cache.register.get(
+                  component.onEvent as string,
+                )
+                if (register) {
+                  if (u.isFnc(register.fn)) {
+                    component.onEvent = register.fn.bind(register) as any
+                    log.grey(
+                      `A function was attached on the "onEvent" property`,
+                      { register, component },
+                    )
+                  } else if (!register.handler) {
+                    log.red(
+                      `Alert! A register object was returned but the "fn" value was not a function and the "handler" object was empty!`,
+                      { register, component },
+                    )
+                  }
+                } else {
                   log.red(
-                    `Alert! A register object was returned but the "fn" value was not a function and the "handler" object was empty!`,
+                    `Alert! The register component of event "${component.onEvent}" was sent to noodl-ui but nothing was returned`,
                     { register, component },
                   )
                 }
-              } else {
-                log.red(
-                  `Alert! The register component of event "${component.onEvent}" was sent to noodl-ui but nothing was returned`,
-                  { register, component },
-                )
               }
             }
           })
@@ -70,7 +124,7 @@ function createRegisters(app: App) {
       { options }: { options?: Record<string, any> } = {},
     ) {
       log.func('FCMOnTokenReceive')
-      log.grey('', obj)
+      log.hotpink('', obj)
       try {
         const permission = await Notification.requestPermission()
         log.func('messaging.requestPermission')
@@ -80,53 +134,34 @@ function createRegisters(app: App) {
         log.red('Unable to get permission to notify.', err)
       }
       try {
-        if (app.getFirebaseState().enabled) {
-          app._store.messaging.serviceRegistration =
-            await navigator.serviceWorker.register('firebase-messaging-sw.js')
+        if (app.notification?.supported) {
           log.grey(
             'Initialized service worker',
-            app._store.messaging.serviceRegistration,
+            await app.notification.register(),
           )
-
-          app.messaging?.onMessage((...args) => {
-            log.func('app._store.messaging.onMessage')
-            log.green(`Received a message`, args)
-          })
         } else {
-          log.func('FCMOnTokenReceive')
           log.red(
             `Could not emit the "FCMOnTokenReceive" event because firebase ` +
               `messaging is disabled. Is it supported by app browser?`,
             app,
           )
         }
-
-        const getTokenOptions = {
-          vapidKey: app._store.messaging.vapidKey,
-          serviceWorkerRegistration: app._store.messaging.serviceRegistration,
-          ...options,
-        }
-
-        const token = app.getFirebaseState().enabled
-          ? (await app.messaging?.getToken(getTokenOptions)) || ''
-          : ''
-
-        copyToClipboard(token)
-
+        const token = await app.notification?.getMessagingToken()
+        copyToClipboard(token as string)
         return token
       } catch (error) {
         console.error(error)
         return error
       }
     },
-    // async onNewEcosDoc(obj: Register.Object) {
-    //   log.func('onNewEcosDoc')
-    //   log.gold('', arguments)
-    //   log.gold('', arguments)
-    //   log.gold('', arguments)
-    //   log.gold('', arguments)
-    //   log.gold('', arguments)
-    // },
+    async onNewEcosDoc(obj: Register.Object) {
+      log.func('onNewEcosDoc')
+      log.gold('', arguments)
+      log.gold('', arguments)
+      log.gold('', arguments)
+      log.gold('', arguments)
+      log.gold('', arguments)
+    },
     twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
       console.log(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
         register: obj,

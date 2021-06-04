@@ -17,7 +17,7 @@ import * as u from '../utils/internal'
 import * as c from '../constants'
 
 const domComponentsResolver: Resolve.Config = {
-  name: `[noodl-ui-dom] Default Component Resolvers`,
+  name: `[noodl-ui-dom] components`,
   cond: (n, c) => !!(n && c),
   before(node, component, { page }) {
     if (Identify.component.canvas(component)) {

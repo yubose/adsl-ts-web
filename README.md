@@ -156,3 +156,9 @@ NUI.emit({
 ```bash
 process.stdout.write('\x1Bc')
 ```
+
+### Data corrupted
+
+- after creating room
+  - cannot even leave room
+  - room doesnt close when going out

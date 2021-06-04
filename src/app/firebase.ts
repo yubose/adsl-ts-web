@@ -53,7 +53,7 @@ export const senderId = '121837683309'
 export async function getToken(messaging: any) {
   log.func('getToken')
   try {
-    const token = await messaging.getToken({ vapidKey })
+    const token = await messaging.getToken({ vapidKey: aitMessage.vapidKey })
     log.grey(`Firebase messaging token received as: ${token}`)
     if (token) {
     } else {

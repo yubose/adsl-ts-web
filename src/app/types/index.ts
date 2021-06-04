@@ -3,6 +3,7 @@ import CADL, { Account } from '@aitmed/cadl'
 import { NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
 import { ActionObject, EmitObjectFold, PageObject } from 'noodl-types'
 import NOODLDOM from 'noodl-ui-dom'
+import AppNotification from '../Notifications'
 import createMeetingFns from '../../meeting'
 export * from './domTypes'
 export * from './meetingTypes'
@@ -10,6 +11,7 @@ export * from './meetingTypes'
 export interface AppConstructorOptions {
   getStatus?: typeof Account.getStatus
   meeting?: Meeting | typeof createMeetingFns
+  notification?: AppNotification
   noodl?: CADL
   ndom?: NOODLDOM
   nui?: typeof NUI

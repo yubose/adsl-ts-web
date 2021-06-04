@@ -359,8 +359,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
     let dataIn: any // sdk use
 
-    // "Reload" currently is only known to be used in goto when runnning
-    // an action chain and given an object like { destination, reload }
     if (u.isStr(action)) {
       destinationParam = action
     } else if (isAction(action)) {
@@ -548,7 +546,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
 
     log.func('redraw')
-    log.red('', metadata)
+    log.hotpink('', metadata)
 
     try {
       if (!numComponents) {

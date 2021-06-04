@@ -3,7 +3,7 @@ import { RegisterOptions } from '../types'
 import { addClassName, entries, isObj } from '../utils/internal'
 
 export default {
-  name: '[noodl-dom] Styles',
+  name: '[noodl-dom] styles',
   cond: (node, component) =>
     !!(node && component && node?.tagName !== 'SCRIPT'),
   before(node, component, { ndom }) {

@@ -20,6 +20,7 @@ import {
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
 import { copyToClipboard, getVcodeElem, toast } from './utils/dom'
+import AppNotification from './app/Notifications'
 import App from './App'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
@@ -56,31 +57,25 @@ let app: App
 let ws: WebSocket
 
 async function initializeApp(
-  args: { noodl?: CADL; Account?: typeof Account } = {},
+  args: {
+    notification?: AppNotification
+    noodl?: CADL
+    Account?: typeof Account
+  } = {},
 ) {
-  let { noodl, Account: accountProp } = args
-
+  let { notification, noodl, Account: accountProp } = args
   !noodl && (noodl = (await import('./app/noodl')).default)
   !accountProp && (accountProp = (await import('@aitmed/cadl')).Account)
-
+  !notification &&
+    (notification = new (await import('./app/Notifications')).default())
   if (!app) {
     app = new App({
       noodl,
+      notification,
       getStatus: Account?.getStatus?.bind(Account),
     }) as App
   }
-
-  const {
-    default: firebase,
-    aitMessage,
-    isSupported: firebaseSupported,
-  } = await import('./app/firebase')
-
-  await app.initialize({
-    firebase: { client: firebase, vapidKey: aitMessage.vapidKey },
-    firebaseSupported: firebaseSupported(),
-  })
-
+  await app.initialize()
   return app
 }
 

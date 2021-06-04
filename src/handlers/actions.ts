@@ -66,14 +66,17 @@ const createActions = function createActions(app: App) {
             log.func(`emit [${trigger}]`)
             log.grey('', action.snapshot?.())
 
+            debugger
             const emitParams = {
               actions: _pick(action, 'actions'),
               pageName: app.currentPage,
             } as T.EmitCallParams
+            debugger
 
             if (_has(_pick(action, 'emit'), 'dataKey')) {
               const dataKeyValue = _pick(action, 'dataKey')
               emitParams.dataKey = dataKeyValue
+              debugger
               if (dataKeyValue == undefined) {
                 log.red(
                   `An undefined value was set for "dataKey" as arguments to emitCall`,
@@ -99,7 +102,7 @@ const createActions = function createActions(app: App) {
             return u.isArr(emitResult)
               ? emitResult.length > 1
                 ? emitResult
-                : emitResult[0]
+                : emitResult?.[0]
               : [emitResult]
           } catch (error) {
             console.error(error)

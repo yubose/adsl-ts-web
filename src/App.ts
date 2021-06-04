@@ -13,12 +13,7 @@ import set from 'lodash/set'
 import { PageObject } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
-import {
-  AuthStatus,
-  CachedPageObject,
-  FirebaseApp,
-  FirebaseMessaging,
-} from './app/types'
+import { AuthStatus, CachedPageObject } from './app/types'
 import createActions from './handlers/actions'
 import createBuiltIns, { extendedSdkBuiltIns } from './handlers/builtIns'
 import createPlugins from './handlers/plugins'
@@ -38,31 +33,14 @@ class App {
   #state = {
     authStatus: '' as AuthStatus | '',
     initialized: false,
-    firebase: {
-      enabled: true,
-    },
   }
   #meeting: ReturnType<typeof createMeetingFns>
+  #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
   obs: t.AppObservers = new Map()
-  _store: {
-    messaging: {
-      serviceRegistration: ServiceWorkerRegistration
-      token: string
-      vapidKey?: string
-    }
-  } = {
-    messaging: {
-      serviceRegistration: {} as ServiceWorkerRegistration,
-      token: '',
-      vapidKey: '',
-    },
-  }
-  firebase = {} as FirebaseApp
   getStatus: t.AppConstructorOptions['getStatus']
-  messaging = null as FirebaseMessaging | null
   mainPage: NOODLDOM['page'];
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
@@ -88,6 +66,7 @@ class App {
     getStatus,
     meeting,
     noodl,
+    notification,
     nui = NUI,
     ndom = new NOODLDOM(nui),
     viewport = new VP(),
@@ -99,6 +78,7 @@ class App {
     this.#meeting =
       (meeting && u.isFnc(meeting) ? meeting(this) : meeting) ||
       createMeetingFns(this)
+    this.#notification = notification
     this.#ndom = ndom
     this.#nui = nui
 
@@ -159,6 +139,10 @@ class App {
 
   get ndom() {
     return this.#ndom as NonNullable<t.AppConstructorOptions['ndom']>
+  }
+
+  get notification() {
+    return this.#notification as t.AppConstructorOptions['notification']
   }
 
   get mainStream() {
@@ -230,29 +214,23 @@ class App {
     }
   }
 
-  async initialize({
-    firebase: { client: firebase, vapidKey } = {},
-    firebaseSupported = true,
-  }: {
-    firebase?: { client?: App['firebase']; vapidKey?: string }
-    firebaseSupported?: boolean
-  } = {}) {
+  async initialize() {
     try {
-      !firebaseSupported && (this.#state.firebase.enabled = false)
-      vapidKey && (this._store.messaging.vapidKey = vapidKey)
-
       if (!this.getStatus) {
         this.getStatus = (await import('@aitmed/cadl')).Account.getStatus
       }
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
-      this.firebase = firebase as t.FirebaseApp
-      this.messaging = this.getFirebaseState().enabled
-        ? this.firebase.messaging()
-        : null
-
       await this.noodl.init()
+
+      if (!this.notification) {
+        this.#notification = new (await import('./app/Notifications')).default()
+      }
+
+      if (!this.notification?.initiated) {
+        await this.notification?.init()
+      }
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -298,23 +276,6 @@ class App {
       this.meeting.onAddRemoteParticipant = meetingfns.onAddRemoteParticipant
       this.meeting.onRemoveRemoteParticipant =
         meetingfns.onRemoveRemoteParticipant
-
-      if (this.getFirebaseState().enabled) {
-        this.messaging?.onMessage(
-          (obs) => {
-            log.func('onMessage')
-            log.green('[nextOrObserver]: obs', obs)
-          },
-          (err) => {
-            log.func('onMessage')
-            log.red(`[onError]: ${err.message}`, err)
-          },
-          () => {
-            log.func('[onComplete]')
-            log.grey(`from onMessage`)
-          },
-        )
-      }
 
       this.observeViewport(this.viewport)
       this.observePages(this.mainPage)
@@ -400,16 +361,27 @@ class App {
           EcosObj: {
             download: extendedSdkBuiltIns.download.bind(this),
           },
+          // onNewEcosDoc(...args) {
+          //   log.func('onNewEcosDoc')
+          //   log.gold('', args)
+          //   log.gold('', args)
+          //   log.gold('thisValue', this)
+          //   log.gold('thisValue', this)
+          // },
           FCMOnTokenReceive: async (options?: any) => {
             const token = await this.nui.emit({
               type: 'register',
               event: 'FCMOnTokenReceive',
               params: options,
             })
+            log.func('FCMOnTokenReceive')
+            log.gold(`FCMOnTokenReceive`, { token, options })
             return token
           },
-          FCMOnTokenRefresh: this.getFirebaseState().enabled
-            ? this.messaging?.onTokenRefresh.bind(this.messaging)
+          FCMOnTokenRefresh: this.notification?.supported
+            ? this.notification.messaging?.onTokenRefresh.bind(
+                this.notification.messaging,
+              )
             : undefined,
           checkField: self.builtIns.get('checkField')?.find(Boolean)?.fn,
           goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
@@ -438,10 +410,6 @@ class App {
       console.error(error)
       toast(error.message, { type: 'error' })
     }
-  }
-
-  getFirebaseState() {
-    return this.#state.firebase
   }
 
   getRoomParticipants() {
