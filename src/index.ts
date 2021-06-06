@@ -96,11 +96,11 @@ async function initializeNoodlPluginRefresher() {
   })
 
   ws.addEventListener('error', (err) => {
-    console.log(`%c[noodl refresher error]`, `color:#ec0000;`, err)
+    console.log(`%c[noodl reloader error]`, `color:#ec0000;`, err)
   })
 
   ws.addEventListener('close', (event) => {
-    console.log(`%c[noodl refresher] closed`, `color:#FF5722;`, event)
+    console.log(`%c[noodl reloader] closed`, `color:#FF5722;`, event)
   })
 
   return ws

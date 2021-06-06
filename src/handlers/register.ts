@@ -51,7 +51,6 @@ function createRegisters(app: App) {
                 ) {
                   try {
                     action.dataKey = { var: token }
-                    debugger
                     await Promise.all(
                       app.actions.emit.get('register')?.map((obj) =>
                         obj?.fn?.(
@@ -63,7 +62,6 @@ function createRegisters(app: App) {
                         ),
                       ) || [],
                     )
-                    debugger
                     return token
                   } catch (error) {
                     console.error(error)
@@ -86,6 +84,41 @@ function createRegisters(app: App) {
                   //                 } as Register.Object)
                   // const results = await ac.execute()
                 })
+              } else if (component.onEvent === 'onNewEcosDoc') {
+                const instance = app.nui.resolveComponents(
+                  component,
+                ) as NUIComponent.Instance
+                const action = createAction({
+                  action: {
+                    emit: component.emit as EmitObject,
+                    actionType: 'register',
+                  },
+                  trigger: 'register',
+                })
+
+                component.onEvent = async function onNewEcosDoc(did: string) {
+                  log.func('onNewEcosDoc')
+                  log.gold(``, did)
+                  try {
+                    action.dataKey = { var: did }
+                    debugger
+                    await Promise.all(
+                      app.actions.emit.get('register')?.map((obj) =>
+                        obj?.fn?.(
+                          action,
+                          app.nui.getConsumerOptions({
+                            component: instance,
+                            page: app.mainPage,
+                          }),
+                        ),
+                      ) || [],
+                    )
+                    return did
+                  } catch (error) {
+                    console.error(error)
+                    // throw error
+                  }
+                }
               } else {
                 app.nui.use({ register: component })
                 const register = app.nui.cache.register.get(

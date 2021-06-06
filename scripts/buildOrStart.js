@@ -1,7 +1,11 @@
 const u = require('@jsmanifest/utils')
+const path = require('path')
+const fs = require('fs-extra')
 const execa = require('execa')
 const { spawn } = require('child_process')
+const esbuild = require('esbuild')
 const color = require('./colors')
+const rollup = require('rollup')
 
 const colors = [color.aquamarine, color.cyan, color.coolGold, color.fadedSalmon]
 
@@ -9,118 +13,44 @@ const colors = [color.aquamarine, color.cyan, color.coolGold, color.fadedSalmon]
  *
  * @param { import('./op') } props
  */
-function buildOrStart(props) {
-  function startWebApp() {
-    const shell = execa('npm', ['run', 'start:test'], { stdio: 'inherit' })
-    // const shell = getShell(
-    //   {
-    //     command: 'npm',
-    //     args: ['run', 'start:test'],
-    //     label: 'app',
-    //     color: color.brightGreen,
-    //     opts: { stdio: 'inherit' },
-    //   },
-    //   (data) => console.log(`[${color.brightGreen('app')}] ${data}`),
-    // )
-  }
+async function buildOrStart(props) {
+  const libShell = execa.command(`npm run lib:start`, {
+    encoding: 'utf8',
+    stdio: 'inherit',
+  })
 
-  /**
-   * @param { object } options
-   * @param { [string, string[] ] } options.args
-   * @param { string } options.label
-   * @param { execa.Options } options.opts
-   * @param { (data: string) => void } onData
-   */
-  function getShell({ command, args, label: labelProp, color, opts }, onData) {
-    const label = color(labelProp)
-    console.info({ command, args, opts, label })
-    const shell = execa(command, args, { shell: true, ...opts })
-    // shell.stdout.on('close', () => console.log(`[${label}] close`))
-    // shell.stdout.on('end', () => console.log(`[${label}] end`))
-    // shell.stdout.on('error', () => console.log(`[${label}] error`))
-    // shell.stdout.on('pause', () => console.log(`[${label}] pause`))
-    // shell.stdout.on('data', (c) => onData?.(c.toString().trim()))
-    return shell
-  }
+  const appShell = execa.command(`npm run start:test`, {
+    encoding: 'utf8',
+    shell: true,
+    stdio: 'ignore',
+  })
 
-  try {
-    let { config, flags } = props
-    let { build, start } = flags
+  // const nuiPkgPath = path.resolve(path.join(process.cwd(), 'packages/noodl-ui'))
+  // const nuiRollupConfigPath = path.join(nuiPkgPath, 'rollup.config.js')
+  // const nuiEntryPointPath = path.join(nuiPkgPath, 'src/index.ts')
+  // const nuiPkgRollupConfigCode = await fs.readFile(nuiRollupConfigPath, 'utf8')
+  // const nuiCodeTransformResult = await esbuild.transform(
+  //   nuiPkgRollupConfigCode,
+  //   {
+  //     charset: 'utf8',
+  //     color: true,
+  //     format: 'cjs',
+  //     target: 'es6',
+  //   },
+  // )
 
-    let command = build ? 'build' : 'start'
-    let inputs = (build || start).split(',').filter(Boolean)
-    let isAppIncluded = start === 'app' || inputs.includes('app')
+  // const nuiCode = eval(nuiCodeTransformResult.code)
 
-    console.log(`command: ${u.magenta(command)}`)
-    console.log(`inputs`, inputs)
-    console.log(`isAppIncluded`, isAppIncluded)
+  // console.log(typeof nuiCode)
 
-    u.newline()
-    isAppIncluded && (inputs = inputs.filter((s) => !!s && s !== 'app'))
-    u.newline()
-
-    // Run lib:start then start:test
-    if (command === 'start' && start === '' && !inputs.length) {
-      /** @type { ChildProcess } appShell */
-      let appShell
-
-      const libShell = execa('npm', ['run', 'lib:start'], { detached: true })
-
-      libShell.stdout.on('data', (chunk) => {
-        const data = Buffer.isBuffer(chunk) ? chunk.toString('utf-8') : chunk
-        if (/bundle/i.test(data)) {
-          appShell = spawn('npm', ['run', 'start:test'], {
-            detached: true,
-            stdio: 'inherit',
-          })
-        } else {
-          process.stdout.write(data)
-        }
-      })
-
-      // process.on('message', (data) => {
-      //   console.log(`data`, data)
-      // })
-    } else {
-      let index = 0
-      for (const [regexStr, pkg] of u.entries(config.regex.packages)) {
-        const regex = new RegExp(regexStr, 'i')
-        for (const input of inputs) {
-          const matches = regex.test(input)
-          if (matches) {
-            console.log({ matches, input, regex })
-            const color = colors[index++]
-            const commandArgs = [`exec`, `--scope`, pkg, `"npm run ${command}"`]
-            const shell = getShell(
-              {
-                command: 'lerna',
-                args: commandArgs,
-                label: pkg,
-                color,
-              },
-              (data) => {
-                console.log(`[${color(pkg)}]: ${data}`)
-                ;/bundle/i.test(data) && isAppIncluded && startWebApp()
-              },
-            )
-            break
-          }
-          // console.log({
-          //   command,
-          //   color,
-          //   isAppIncluded,
-          //   matches,
-          //   regex,
-          //   pkg,
-          //   input,
-          //   inputs,
-          // })
-        }
-      }
-    }
-  } catch (error) {
-    throw new Error(error.message)
-  }
+  // rollup
+  //   .rollup({})
+  //   .then((build) => {
+  //     build
+  //   })
+  //   .catch((err) => {
+  //     console.error(err)
+  //   })
 }
 
 module.exports = buildOrStart

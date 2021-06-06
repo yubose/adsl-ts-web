@@ -157,8 +157,9 @@ NUI.emit({
 process.stdout.write('\x1Bc')
 ```
 
-### Data corrupted
+### Notification codes (from noodl)
 
-- after creating room
-  - cannot even leave room
-  - room doesnt close when going out
+| Code       | Description    |
+| ---------- | -------------- |
+| `16777472` | Open the app   |
+| `1537`     | Nothing/Ignore |

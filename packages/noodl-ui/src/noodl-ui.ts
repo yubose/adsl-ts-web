@@ -528,7 +528,7 @@ const NUI = (function _NUI() {
                   `color:aquamarine;`,
                   { obj, params },
                 )
-                debugger
+                // debugger
                 const results = await Promise.all(
                   o.cache.register.get(event)?.callbacks?.map(async (cb) => {
                     if (isActionChain(cb)) {

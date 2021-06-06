@@ -43,6 +43,7 @@ export function resetInstance() {
         : 1,
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: CONFIG_URL,
+    // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
   })
   return noodl
 }

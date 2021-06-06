@@ -21,6 +21,7 @@ const cli = meow(
 `,
   {
     flags: {
+      abc: { type: 'boolean' },
       start: { alias: 's', type: 'string' },
       build: { alias: 'b', type: 'string' },
       convert: { alias: 'c', type: 'string' },
