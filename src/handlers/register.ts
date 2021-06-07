@@ -71,7 +71,7 @@ function createRegisters(app: App) {
 
                 app.notification?.getMessagingToken().then(async (token) => {
                   log.func('FCMOnTokenReceive')
-                  log.gold(`FCMOnTokenReceive`, token)
+                  log.grey(token)
                   await component.onEvent?.(token)
                   // app.nui._experimental.register(component, {
                   //   name: 'FCMOnTokenReceive',

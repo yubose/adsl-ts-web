@@ -75,6 +75,13 @@ async function initializeApp(
       getStatus: Account?.getStatus?.bind(Account),
     }) as App
   }
+  /* -------------------------------------------------------
+    ---- Testing tracker
+  -------------------------------------------------------- */
+  const { trackSdk, trackWebApp } = await import('./app/trackers')
+  trackSdk(app)
+  trackWebApp(app)
+  ////////////////////////////////////////////////////////////
   await app.initialize()
   return app
 }
@@ -144,13 +151,6 @@ window.addEventListener('load', async (e) => {
       noodl: { configurable: true, get: () => noodl },
       nui: { configurable: true, get: () => app?.nui },
       ndom: { configurable: true, get: () => app?.ndom },
-      // FCMOnTokenReceive: {
-      //   get: () => (args: any) =>
-      //     noodl.root.builtIn
-      //       .FCMOnTokenReceive({ vapidKey: aitMessage.vapidKey, ...args })
-      //       .then(console.log)
-      //       .catch(console.error),
-      // },
       ...u
         .entries(getWindowHelpers())
         .reduce(

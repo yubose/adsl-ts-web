@@ -352,7 +352,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     log.func('goto]')
-    log.hotpink('', u.isObj(action) ? action.snapshot?.() : action)
+    log.grey('', u.isObj(action) ? action.snapshot?.() : action)
 
     let destinationParam = ''
     let reload: boolean | undefined

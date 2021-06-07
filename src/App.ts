@@ -224,6 +224,8 @@ class App {
 
       await this.noodl.init()
 
+      // this.noodl.root.FirebaseToken.edge.subtype = 2
+
       if (!this.notification) {
         this.#notification = new (await import('./app/Notifications')).default()
       }
@@ -375,7 +377,7 @@ class App {
               params: options,
             })
             log.func('FCMOnTokenReceive')
-            log.gold(`FCMOnTokenReceive`, { token, options })
+            log.grey(token)
             return token
           },
           FCMOnTokenRefresh: this.notification?.supported

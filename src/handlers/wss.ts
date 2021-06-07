@@ -31,9 +31,10 @@ function createWssObserver(fn: (ws: WebSocket) => App): WssObserver
 function createWssObserver(app: App): WssObserver
 function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
   let app: App
-  let ws: WebSocket = new WebSocket(`ws://127.0.0.1:3002`)
+  let ws: WebSocket | undefined
 
   if (u.isFnc(appProp)) return appProp(ws)
+  if (!appProp) return
 
   app = appProp
 
@@ -68,7 +69,7 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
 
       try {
         // worker.postMessage(msg)
-        ws.send(JSON.stringify(msg, null, 2))
+        ws?.send(JSON.stringify(msg, null, 2))
       } catch (error) {
         console.error({
           code: error.code,
@@ -99,19 +100,19 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
   const observer: WssObserver = {
     configPages,
     listen() {
-      ws.addEventListener('open', (event) => {
+      ws?.addEventListener('open', (event) => {
         //
       })
 
-      ws.addEventListener('message', (event) => {
+      ws?.addEventListener('message', (event) => {
         console.log(`Received new message`, event)
       })
 
-      ws.addEventListener('error', (event) => {
+      ws?.addEventListener('error', (event) => {
         //
       })
 
-      ws.addEventListener('close', (event) => {
+      ws?.addEventListener('close', (event) => {
         //
       })
     },
@@ -122,8 +123,21 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
       }
       return observer
     },
-    url: ws.url,
-    ws,
+    get app() {
+      return app
+    },
+    set app(_app) {
+      app = _app
+    },
+    get url() {
+      return observer?.ws.url
+    },
+    get ws() {
+      return ws as WebSocket
+    },
+    set ws(_ws) {
+      ws = _ws
+    },
   }
 
   return observer
