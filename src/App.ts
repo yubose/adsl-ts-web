@@ -10,10 +10,11 @@ import { RemoteParticipant } from 'twilio-video'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { PageObject } from 'noodl-types'
+import { PageObject, RegisterComponentObject } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
+import AppNotification from './app/Notifications'
 import createActions from './handlers/actions'
 import createBuiltIns, { extendedSdkBuiltIns } from './handlers/builtIns'
 import createPlugins from './handlers/plugins'
@@ -121,6 +122,11 @@ class App {
     return this.mainPage.getPreviousPage(this.startPage)
   }
 
+  get globalRegister() {
+    return this.noodl.root?.Global?.globalRegister as
+      | t.GlobalRegisterComponent[]
+  }
+
   get initialized() {
     return this.#state.initialized
   }
@@ -134,7 +140,7 @@ class App {
   }
 
   get nui() {
-    return this.#nui
+    return this.#nui as typeof NUI
   }
 
   get ndom() {
@@ -142,7 +148,7 @@ class App {
   }
 
   get notification() {
-    return this.#notification as t.AppConstructorOptions['notification']
+    return this.#notification as AppNotification
   }
 
   get mainStream() {
@@ -224,11 +230,18 @@ class App {
 
       await this.noodl.init()
 
-      // this.noodl.root.FirebaseToken.edge.subtype = 2
-
       if (!this.notification) {
         this.#notification = new (await import('./app/Notifications')).default()
+        log.grey(`Initialized notifications`, this.#notification)
       }
+
+      this.#notification?.on('message', (obs) => {
+        if (u.isFnc(obs)) {
+          obs
+        } else {
+          obs
+        }
+      })
 
       if (!this.notification?.initiated) {
         await this.notification?.init()
@@ -363,13 +376,6 @@ class App {
           EcosObj: {
             download: extendedSdkBuiltIns.download.bind(this),
           },
-          // onNewEcosDoc(...args) {
-          //   log.func('onNewEcosDoc')
-          //   log.gold('', args)
-          //   log.gold('', args)
-          //   log.gold('thisValue', this)
-          //   log.gold('thisValue', this)
-          // },
           FCMOnTokenReceive: async (options?: any) => {
             const token = await this.nui.emit({
               type: 'register',

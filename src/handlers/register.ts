@@ -1,151 +1,173 @@
-// These callbacks are to handle components of type "register"
-// TEMP: "Register" components that operate with "emit" objects
-// are currently handled in App.ts
-
-import Logger from 'logsnap'
 import * as u from '@jsmanifest/utils'
-import { EmitObject, EmitObjectFold, Identify, PageObject } from 'noodl-types'
+import Logger from 'logsnap'
+import { Identify, PageObject } from 'noodl-types'
 import { Room } from 'twilio-video'
-import { createAction, NUIComponent, Register } from 'noodl-ui'
-import { copyToClipboard } from '../utils/dom'
+import {
+  createAction,
+  EmitAction,
+  NUIComponent,
+  Register,
+  Store,
+} from 'noodl-ui'
 import App from '../App'
+import { copyToClipboard } from '../utils/dom'
+import { GlobalRegisterComponent } from '../app/types'
 
 const log = Logger.create('register.ts')
 
 function createRegisters(app: App) {
-  function onInitPage(pageObject: PageObject) {
-    if (app?.root?.Global?.globalRegister) {
-      const GlobalRoot = app.root.Global as Record<string, any>
-      const globalRegister = GlobalRoot.globalRegister
-      if (u.isArr(globalRegister)) {
-        log.func('onInitPage')
-        for (const obj of globalRegister) {
-          log.grey(
-            `Scanning ${globalRegister.length} items found in globalRegister`,
-            globalRegister,
+  app.notification.on('message', (obs) => {
+    if (!u.isFnc(obs) && u.isObj(obs)) {
+      const { data } = (obs as any) || {}
+      if (data?.did) {
+        //  call onNewEcosDoc for now  until we propose a more generic approach
+        const onNewEcosDocRegisterComponent = app.globalRegister?.find?.(
+          (obj) => obj?.eventId === 'onNewEcosDoc',
+        )
+        onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+      }
+    }
+  })
+
+  const globalRegisterComponent = {
+    FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
+      log.func('FCMOnTokenReceive')
+
+      componentObject.eventId = 'FCMOnTokenReceive'
+
+      const action = createAction({
+        action: { emit: componentObject.emit, actionType: 'register' },
+        trigger: 'register',
+      }) as EmitAction
+
+      const component = app.nui.resolveComponents(
+        componentObject,
+      ) as NUIComponent.Instance
+
+      componentObject.onEvent = async function FCMOnTokenReceive(
+        token: string,
+      ) {
+        try {
+          action.dataKey = { var: token }
+          await Promise.all(
+            app.actions.emit.get('register')?.map((obj: Store.ActionObject) =>
+              obj?.fn?.(
+                action,
+                app.nui.getConsumerOptions({
+                  component,
+                  page: app.mainPage.getNuiPage(),
+                }),
+              ),
+            ) || [],
           )
-          globalRegister.forEach((component: Record<string, any>) => {
-            if (Identify.component.register(component)) {
-              // Already attached a function
-              if (u.isFnc(component.onEvent)) return
-              if (!component.onEvent) {
-                return log.red(
-                  `The "onEvent" identifier was not found in the register component!`,
+          return token
+        } catch (error) {
+          console.error(error)
+        }
+      }
+
+      app.notification
+        ?.getToken()
+        .then(async (token) => {
+          log.grey(token)
+          await componentObject.onEvent?.(token)
+        })
+        .catch((err) => log.red(`[Error]: ${err.message}`))
+    },
+    onNewEcosDoc(componentObject: GlobalRegisterComponent) {
+      log.func('onNewEcosDoc')
+
+      componentObject.eventId = 'onNewEcosDoc'
+
+      const action = createAction({
+        action: { emit: componentObject.emit, actionType: 'register' },
+        trigger: 'register',
+      }) as EmitAction
+
+      const component = app.nui.resolveComponents(
+        componentObject,
+      ) as NUIComponent.Instance
+
+      componentObject.onEvent = async function onNewEcosDoc(did: string) {
+        log.func('onNewEcosDoc onEvent')
+        log.gold(``, did)
+        try {
+          action.dataKey = { var: did }
+          await Promise.all(
+            app.actions.emit.get('register')?.map((obj: Store.ActionObject) =>
+              obj?.fn?.(
+                action,
+                app.nui.getConsumerOptions({
                   component,
+                  page: app.mainPage.getNuiPage(),
+                }),
+              ),
+            ) || [],
+          )
+          return did
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    },
+  }
+
+  function onInitPage(pageObject: PageObject) {
+    if (app.globalRegister) {
+      log.func('onInitPage')
+
+      for (const componentObject of app.globalRegister) {
+        if (Identify.component.register(componentObject)) {
+          // Already attached a function
+          if (u.isFnc(componentObject.onEvent)) continue
+          if (!componentObject.onEvent) {
+            log.red(
+              `The "onEvent" identifier was not found in the register component!`,
+              componentObject,
+            )
+            continue
+          }
+
+          if (
+            u.isStr(componentObject.onEvent) &&
+            u.isFnc(globalRegisterComponent[componentObject.onEvent])
+          ) {
+            const onEvent = componentObject.onEvent as any
+            ;(globalRegisterComponent as any)[onEvent](componentObject)
+          } else {
+            // This block runs if the event is not in globalRegisterComponent
+            app.nui.use({ register: componentObject })
+
+            log.func('onInitPage')
+            log.orange(
+              `The register component "${componentObject.onEvent}" is not handled in the app yet`,
+              componentObject,
+            )
+
+            const register = app.nui.cache.register.get(
+              componentObject.onEvent as string,
+            )
+
+            if (register) {
+              if (u.isFnc(register.fn)) {
+                componentObject.onEvent = register.fn.bind(register) as any
+                log.grey(`A function was attached on the "onEvent" property`, {
+                  register,
+                  component: componentObject,
+                })
+              } else if (!register.handler) {
+                log.red(
+                  `Alert! A register object was returned but the "fn" value was not a function and the "handler" object was empty!`,
+                  { componentObject, register },
                 )
               }
-              if (component.onEvent === 'FCMOnTokenReceive') {
-                const instance = app.nui.resolveComponents(
-                  component,
-                ) as NUIComponent.Instance
-                const action = createAction({
-                  action: {
-                    emit: component.emit as EmitObject,
-                    actionType: 'register',
-                  },
-                  trigger: 'register',
-                })
-
-                component.onEvent = async function FCMOnTokenReceive(
-                  token: string,
-                ) {
-                  try {
-                    action.dataKey = { var: token }
-                    await Promise.all(
-                      app.actions.emit.get('register')?.map((obj) =>
-                        obj?.fn?.(
-                          action,
-                          app.nui.getConsumerOptions({
-                            component: instance,
-                            page: app.mainPage,
-                          }),
-                        ),
-                      ) || [],
-                    )
-                    return token
-                  } catch (error) {
-                    console.error(error)
-                    // throw error
-                  }
-                }
-
-                app.notification?.getMessagingToken().then(async (token) => {
-                  log.func('FCMOnTokenReceive')
-                  log.grey(token)
-                  await component.onEvent?.(token)
-                  // app.nui._experimental.register(component, {
-                  //   name: 'FCMOnTokenReceive',
-                  //   params: token,
-                  //   handler: {
-                  //   async fn() {
-
-                  //   },
-                  //   useReturnValue: true}
-                  //                 } as Register.Object)
-                  // const results = await ac.execute()
-                })
-              } else if (component.onEvent === 'onNewEcosDoc') {
-                const instance = app.nui.resolveComponents(
-                  component,
-                ) as NUIComponent.Instance
-                const action = createAction({
-                  action: {
-                    emit: component.emit as EmitObject,
-                    actionType: 'register',
-                  },
-                  trigger: 'register',
-                })
-
-                component.onEvent = async function onNewEcosDoc(did: string) {
-                  log.func('onNewEcosDoc')
-                  log.gold(``, did)
-                  try {
-                    action.dataKey = { var: did }
-                    debugger
-                    await Promise.all(
-                      app.actions.emit.get('register')?.map((obj) =>
-                        obj?.fn?.(
-                          action,
-                          app.nui.getConsumerOptions({
-                            component: instance,
-                            page: app.mainPage,
-                          }),
-                        ),
-                      ) || [],
-                    )
-                    return did
-                  } catch (error) {
-                    console.error(error)
-                    // throw error
-                  }
-                }
-              } else {
-                app.nui.use({ register: component })
-                const register = app.nui.cache.register.get(
-                  component.onEvent as string,
-                )
-                if (register) {
-                  if (u.isFnc(register.fn)) {
-                    component.onEvent = register.fn.bind(register) as any
-                    log.grey(
-                      `A function was attached on the "onEvent" property`,
-                      { register, component },
-                    )
-                  } else if (!register.handler) {
-                    log.red(
-                      `Alert! A register object was returned but the "fn" value was not a function and the "handler" object was empty!`,
-                      { register, component },
-                    )
-                  }
-                } else {
-                  log.red(
-                    `Alert! The register component of event "${component.onEvent}" was sent to noodl-ui but nothing was returned`,
-                    { register, component },
-                  )
-                }
-              }
+            } else {
+              log.red(
+                `Alert! The register component of event "${componentObject.onEvent}" was sent to noodl-ui but nothing was returned`,
+                componentObject,
+              )
             }
-          })
+          }
         }
       }
     }
@@ -168,10 +190,6 @@ function createRegisters(app: App) {
       }
       try {
         if (app.notification?.supported) {
-          log.grey(
-            'Initialized service worker',
-            await app.notification.register(),
-          )
         } else {
           log.red(
             `Could not emit the "FCMOnTokenReceive" event because firebase ` +
@@ -179,7 +197,7 @@ function createRegisters(app: App) {
             app,
           )
         }
-        const token = await app.notification?.getMessagingToken()
+        const token = await app.notification?.getToken()
         copyToClipboard(token as string)
         return token
       } catch (error) {
@@ -187,16 +205,9 @@ function createRegisters(app: App) {
         return error
       }
     },
-    async onNewEcosDoc(obj: Register.Object) {
-      log.func('onNewEcosDoc')
-      log.gold('', arguments)
-      log.gold('', arguments)
-      log.gold('', arguments)
-      log.gold('', arguments)
-      log.gold('', arguments)
-    },
     twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
-      console.log(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
+      log.func('twilioOnPeopleJoin')
+      log.grey(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
         register: obj,
         params,
       })
@@ -206,7 +217,8 @@ function createRegisters(app: App) {
       obj: Register.Object,
       { room }: { room?: Room } = {},
     ) {
-      console.log(`%c[twilioOnNoParticipant]`, `color:#95a5a6;`, obj)
+      log.func('twilioOnNoParticipant')
+      log.grey(`%c[twilioOnNoParticipant]`, `color:#95a5a6;`, obj)
       if (room?.participants?.size === 0) {
         app.meeting.showWaitingOthersMessage()
       }

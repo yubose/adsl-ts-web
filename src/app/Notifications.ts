@@ -1,101 +1,150 @@
 import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
-import { copyToClipboard } from '../utils/dom'
-import { FirebaseApp, FirebaseMessaging } from './types'
+import firebase from 'firebase/app'
+import 'firebase/auth'
+import 'firebase/messaging'
+import {
+  FirebaseMessaging,
+  AppNotificationHook,
+  AppNotificationHooks,
+} from './types'
 
 const log = Logger.create('Notifications.ts')
 
+const credentials = {
+  apiKey: 'AIzaSyCjNVKmHuDKra5Ct1MKAJ5fI0iQ3UnK7Ho',
+  authDomain: 'aitmessage.firebaseapp.com',
+  databaseURL: 'https://aitmessage.firebaseio.com',
+  projectId: 'aitmessage',
+  storageBucket: 'aitmessage.appspot.com',
+  messagingSenderId: '121837683309',
+  appId: '1:121837683309:web:7fda76efe79928215f3564',
+}
+const vapidKey =
+  'BMVzqbFGARITrYSAi2mPaEMEl6WFBzkliYC8r92Ru3SGtyywC7t4boMPlwnFIeNSEBSyaxV6ue_uo2SMf7rdEHs'
+
 export interface Options {}
 
+const hooks = new Map<
+  AppNotificationHook,
+  AppNotificationHooks[AppNotificationHook][]
+>()
+
 class AppNotification {
-  #fb: FirebaseApp | undefined
-  #messaging: FirebaseMessaging | undefined
-  #supported: boolean | undefined
-  #vapidKey = ''
+  #unsubscribe: firebase.Unsubscribe | undefined
+  client: firebase.app.App | undefined
   initiated = false
+  messaging: FirebaseMessaging | undefined
   workerRegistration: ServiceWorkerRegistration | undefined
 
-  static path = 'firebase-messaging-sw.js'
+  static path = 'firebase-messaging-sw.js';
 
-  async init() {
-    try {
-      const {
-        default: fb,
-        aitMessage,
-        isSupported,
-      } = await import('./firebase')
-
-      this.#supported = isSupported()
-
-      if (this.#supported) {
-        this.#fb = fb
-        this.#vapidKey = aitMessage.vapidKey
-        this.#messaging = fb.messaging()
-
-        this.#messaging.onMessage(
-          (obs) => {
-            log.func('onMessage<nextOrObserver>')
-            log.green('obs', obs)
-          },
-          (err) => {
-            log.func('onMessage<onError>')
-            log.red(err.message, err)
-          },
-          () => {
-            log.func('onMessage<onComplete>')
-            log.grey(`from onMessage`)
-          },
-        )
-      }
-
-      this.initiated = true
-    } catch (error) {
-      console.error(error)
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return {
+      enabled: !!this.supported,
+      initiated: this.initiated,
     }
+  }
+
+  get hooks() {
+    return hooks
   }
 
   get supported() {
-    return this.#supported
+    return firebase.messaging.isSupported()
   }
 
-  get firebase() {
-    return this.#fb
+  get unsubscribe() {
+    return this.#unsubscribe
   }
 
-  get messaging() {
-    return this.#messaging
+  set unsubscribe(unsubscribe) {
+    this.#unsubscribe = unsubscribe
   }
 
-  async getMessagingToken(opts?: Record<string, any>) {
+  async init() {
     try {
-      const token = this.supported
-        ? await this.messaging?.getToken({
-            vapidKey: this.#vapidKey,
-            serviceWorkerRegistration: this.workerRegistration,
-            ...opts,
-          })
-        : ''
-      return token || ''
-    } catch (error) {
-      console.error(error)
-      throw error
-    }
-  }
+      if (this.supported) {
+        this.client = firebase.initializeApp(credentials)
+        this.messaging = firebase.messaging()
 
-  async register() {
-    try {
+        const onMessageNextOrObserver = (
+          obs: firebase.NextFn<any> | firebase.Observer<any, Error>,
+        ) => {
+          log.func('onMessage<nextOrObserver>')
+          log.green('obs', obs)
+          this.emit('message', obs)
+
+          if (u.isFnc(obs)) {
+            obs
+          } else if (u.isObj(obs)) {
+            obs
+          }
+        }
+
+        const onMessageError = (err: Error) => {
+          log.func('onMessage<error>')
+          log.red(err.message, err)
+          this.emit('error', err)
+        }
+
+        const onMessageComplete = () => {
+          log.func('onMessage<completed>')
+          log.grey(`from onMessage`)
+          this.emit('complete')
+        }
+
+        this.unsubscribe = this.messaging.onMessage(
+          onMessageNextOrObserver,
+          onMessageError,
+          onMessageComplete,
+        )
+      }
+      this.initiated = true
       this.workerRegistration = await navigator.serviceWorker.register(
         AppNotification.path,
       )
-      this.messaging?.onMessage((...args) => {
-        log.func('register<messaging.onMessage>')
-        log.green(`Received a message`, args)
-      })
-      return [this.workerRegistration, this.messaging] as const
+      this.emit('initiated', this.client as firebase.app.App)
+      return this.client
     } catch (error) {
       console.error(error)
-      throw error
+      this.emit('initError', error)
     }
+  }
+
+  async getToken(opts?: Record<string, any>) {
+    try {
+      const token =
+        (this.supported &&
+          (await this.messaging?.getToken({
+            vapidKey,
+            serviceWorkerRegistration: this.workerRegistration,
+            ...opts,
+          }))) ||
+        ''
+      this.emit('token', token)
+      return token
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  emit<Hook extends AppNotificationHook>(
+    hook: Hook,
+    ...args: Parameters<AppNotificationHooks[Hook]>
+  ) {
+    this.hooks.get(hook)?.forEach?.((fn) => (fn as any)?.(...args))
+  }
+
+  on<Hook extends AppNotificationHook>(
+    hook: Hook,
+    fn: AppNotificationHooks[Hook],
+  ) {
+    if (!this.hooks.has(hook)) this.hooks.set(hook, [])
+    if (!this.hooks.get(hook)?.includes?.(fn)) {
+      this.hooks.get(hook)?.push(fn)
+    }
+    return this
   }
 }
 

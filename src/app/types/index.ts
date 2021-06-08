@@ -1,7 +1,12 @@
 import firebase from 'firebase'
 import CADL, { Account } from '@aitmed/cadl'
 import { NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
-import { ActionObject, EmitObjectFold, PageObject } from 'noodl-types'
+import {
+  ActionObject,
+  EmitObjectFold,
+  PageObject,
+  RegisterComponentObject,
+} from 'noodl-types'
 import NOODLDOM from 'noodl-ui-dom'
 import AppNotification from '../Notifications'
 import createMeetingFns from '../../meeting'
@@ -58,3 +63,21 @@ export type ActionMetadata<PKey extends string = string> = {
 export type Meeting = ReturnType<typeof createMeetingFns>
 export type FirebaseApp = firebase.app.App
 export type FirebaseMessaging = firebase.messaging.Messaging
+
+export interface AppNotificationHooks {
+  message(obs: firebase.NextFn<any> | firebase.Observer<any, Error>): void
+  error(error: Error): void
+  complete(): void
+  initiated(client: firebase.app.App): void
+  initError(error: Error): void
+  token(token: string): void
+}
+
+export type AppNotificationHook = keyof AppNotificationHooks
+
+export interface GlobalRegisterComponent<EventId extends string = string>
+  extends Omit<RegisterComponentObject, 'onEvent'> {
+  type: 'register'
+  eventId: EventId
+  onEvent(...args: any[]): any
+}

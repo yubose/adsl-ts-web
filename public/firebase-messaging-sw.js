@@ -23,7 +23,7 @@ messaging.onBackgroundMessage(function (payload) {
     payload,
   )
   // payload.from example --> "669708592038"
-  const { collapseKey, data, from, notification } = payload
+  const { collapseKey, data, from, notification = {} } = payload
   const notificationTitle = notification.title || ''
   const notificationOptions = {
     body: notification.body || '',

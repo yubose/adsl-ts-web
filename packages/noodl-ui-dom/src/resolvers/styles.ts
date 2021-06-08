@@ -46,8 +46,6 @@ export default {
       ---- TEMP - Experimenting CSS
     -------------------------------------------------------- */
 
-    // if (is.component.canvas(component)) debugger
-
     is.component.canvas(component) && addClassName('canvas', node)
     is.component.page(component) && addClassName('page', node)
     is.component.popUp(component) && addClassName('popup', node)

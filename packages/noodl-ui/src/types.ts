@@ -337,10 +337,7 @@ export namespace Store {
     ATrigger extends NUITrigger = NUITrigger,
   > {
     actionType: 'builtIn'
-    fn(
-      action: Action<'builtIn', ATrigger>,
-      options: ConsumerOptions,
-    ): Promise<any[] | void>
+    fn(action: Action<'builtIn', ATrigger>, options: any): Promise<any[] | void>
     funcName: FuncName
   }
 

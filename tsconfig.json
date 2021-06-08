@@ -28,7 +28,6 @@
     "dist",
     "generated",
     "server",
-    "scripts",
-    "packages/**/*/dist/**/*"
+    "scripts"
   ]
 }

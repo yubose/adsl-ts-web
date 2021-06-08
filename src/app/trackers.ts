@@ -10,13 +10,17 @@ const trackProperty = function trackProperty({
   const getArgs = (args: any[]) => (args.length >= 2 ? args : args[0])
   const label = `[${keyProp}]`
   function value(...args: any[]) {
+    const type = (args as any).type || args?.[0]?.type || ''
     // This is spamming the console
-    if ((args.type || args?.[0]?.type) !== 'EDIT_DRAFT') {
+    if (type !== 'EDIT_DRAFT') {
       console.log(
         `%c${category ? `[${category}]` : ''}${label}`,
         `color:${colorProp};`,
         getArgs(args),
       )
+      if (type === 'SET_ROOT_PROPERTIES') {
+        // if (args[0]?.payload?.properties?.Global) debugger
+      }
     }
     return ref(...args)
   }
@@ -77,11 +81,9 @@ export const trackWebApp = function trackWebApp(app: App) {
     'viewport',
     'navigate',
     'initialize',
-    'getPageObject',
     'getRoomParticipants',
     'getSdkParticipants',
     'setSdkParticipants',
-    'updateRoot',
   ] as (keyof App)[]
 
   for (const key of keysToTrack) {

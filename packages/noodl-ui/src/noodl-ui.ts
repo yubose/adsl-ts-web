@@ -180,6 +180,7 @@ const NUI = (function _NUI() {
     }
   }
 
+  // @ts-expect-error
   async function _emit<Evt extends string = string>(
     opts?: T.NUIEmit.EmitRegister<Evt>,
   ): Promise<any[]>
@@ -686,31 +687,6 @@ const NUI = (function _NUI() {
             options: T.ConsumerOptions,
           ) {
             return async function executeActionChain(event?: Event) {
-              const { calls } =
-                cache.actions.state[action.actionType as T.NUIActionType]
-                  .executor || {}
-
-              if (calls) {
-                const timestamp = {
-                  id: ++calls.count,
-                  timestamp: new Date().toISOString(),
-                }
-
-                calls.timestamps.push(timestamp)
-
-                if (calls.timestamps.length > 6) {
-                  while (calls.timestamps.length > 6) {
-                    calls.timestamps.shift()
-                  }
-                }
-              } else {
-                console.log(
-                  `%c[${action.actionType}] Could not find "calls" in the ActionsCache state`,
-                  `color:#ec0000;`,
-                  cache.actions.state,
-                )
-              }
-
               let results = [] as (Error | any)[]
               if (fns.length) {
                 const callbacks = fns.map(

@@ -51,7 +51,7 @@ const configs = [
         include: ['src/**/*'],
         exclude: ['node_modules/**/*'],
         extensions,
-        presets: ['@babel/env', '@babel/preset-typescript'],
+        presets: ['@babel/env'],
         plugins: ['@babel/plugin-transform-runtime'],
       }),
       // Env var set by root lerna repo

@@ -598,66 +598,71 @@ const createActions = function createActions(app: App) {
       }
     }
 
-  const saveSignature: Store.ActionObject['fn'] =
-    async function onSaveSignature(action, options) {
-      try {
-        log.func('saveSignature')
-        log.grey('', { action: action.snapshot?.(), options })
-        const dataKey = _pick(action, 'dataKey')
-        if (dataKey) {
-          const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
-          const component = app.cache.component.get(node.id)
-          if (component) {
-            const signaturePad = component.get('signaturePad') as SignaturePad
-            if (signaturePad) {
-              let dataKey = _pick(action, 'dataKey')
-              let dataObject = isRootDataKey(dataKey)
-                ? app.root
-                : app.root?.[options?.page?.page || '']
-              let dataUrl = signaturePad.toDataURL()
-              let mimeType = dataUrl.split(';')[0].split(':')[1] || ''
-              if (has(dataObject, dataKey)) {
-                node.toBlob(
-                  (blob) => {
-                    set(dataObject, dataKey, blob)
-                    log.func('saveSignature')
-                    log.grey(`Saved blob to "${dataKey}"`, {
-                      blob,
-                      dataKey,
-                      mimeType,
-                    })
-                  },
-                  mimeType,
-                  8,
-                )
-              } else {
-                log.red(
-                  `Cannot save the signature because the component with dataKey "${dataKey}" did not have a SignaturePad stored in its instance`,
-                  { action: action.snapshot?.(), component },
-                )
-              }
+  const saveSignature: Store.ActionObject['fn'] = function onSaveSignature(
+    action,
+    options,
+  ) {
+    return new Promise((resolve, reject) => {
+      log.func('saveSignature')
+      log.grey('', { action: action.snapshot?.(), options })
+      const dataKey = _pick(action, 'dataKey')
+      if (dataKey) {
+        const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
+        const component = app.cache.component.get(node.id)
+        if (component) {
+          const signaturePad = component.get('signaturePad') as SignaturePad
+          if (signaturePad) {
+            let dataKey = _pick(action, 'dataKey')
+            let dataObject = isRootDataKey(dataKey)
+              ? app.root
+              : app.root?.[options?.page?.page || '']
+            let dataUrl = signaturePad.toDataURL()
+            let mimeType = dataUrl.split(';')[0].split(':')[1] || ''
+            if (has(dataObject, dataKey)) {
+              node.toBlob(
+                (blob) => {
+                  set(dataObject, dataKey, blob)
+                  log.func('saveSignature')
+                  log.grey(`Saved blob to "${dataKey}"`, {
+                    blob,
+                    dataKey,
+                    mimeType,
+                  })
+                  resolve()
+                },
+                mimeType,
+                8,
+              )
             } else {
-              log.red(`Missing signature pad from a canvas component`, {
-                action: action.snapshot?.(),
-                component,
-              })
+              log.red(
+                `Cannot save the signature because the component with dataKey "${dataKey}" did not have a SignaturePad stored in its instance`,
+                { action: action.snapshot?.(), component },
+              )
+              resolve()
             }
           } else {
-            log.red(
-              `Cannot save the signature because a component with dataKey "${dataKey}" was not available in the component cache`,
-              { action: action.snapshot?.(), component },
-            )
+            log.red(`Missing signature pad from a canvas component`, {
+              action: action.snapshot?.(),
+              component,
+            })
+            resolve()
           }
         } else {
           log.red(
-            `Cannot save the signature because there is no dataKey`,
-            action.snapshot?.(),
+            `Cannot save the signature because a component with dataKey "${dataKey}" was not available in the component cache`,
+            { action: action.snapshot?.(), component },
           )
+          resolve()
         }
-      } catch (error) {
-        toast(error.message, { type: 'error' })
+      } else {
+        log.red(
+          `Cannot save the signature because there is no dataKey`,
+          action.snapshot?.(),
+        )
+        resolve()
       }
-    }
+    })
+  }
 
   const toastAction: Store.ActionObject['fn'] = async function onToast(action) {
     try {
