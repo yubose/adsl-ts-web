@@ -50,10 +50,4 @@ self.addEventListener('push', (event /* PushEvent */) => {
 
 self.addEventListener('notificationclick', function (event) {
   console.log(event)
-  console.log(event)
-  console.log(event)
-  console.log(event)
-  console.log(event)
-
-  window.alert('You sent an event', event)
 })

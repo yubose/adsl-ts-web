@@ -8,9 +8,9 @@
           "versionPath": "/docs",
           "isLast": true,
           "routePriority": -1,
-          "sidebarFilePath": "/Users/christ/aitmed-noodl-web-copy/packages/docs/sidebars.json",
-          "contentPath": "/Users/christ/aitmed-noodl-web-copy/packages/docs/docs",
-          "contentPathLocalized": "/Users/christ/aitmed-noodl-web-copy/packages/docs/i18n/en/docusaurus-plugin-content-docs/current",
+          "sidebarFilePath": "C:\\Users\\AITMED\\aitmed-noodl-web\\packages\\docs\\sidebars.json",
+          "contentPath": "C:\\Users\\AITMED\\aitmed-noodl-web\\packages\\docs\\docs",
+          "contentPathLocalized": "C:\\Users\\AITMED\\aitmed-noodl-web\\packages\\docs\\i18n\\en\\docusaurus-plugin-content-docs\\current",
           "mainDocId": "installation",
           "sidebars": {
             "defaultSidebar": [
@@ -21,6 +21,10 @@
               {
                 "type": "doc",
                 "id": "usage"
+              },
+              {
+                "type": "doc",
+                "id": "notifications"
               },
               {
                 "type": "category",
@@ -39,6 +43,7 @@
           "permalinkToSidebar": {
             "/docs/api/unit_tests": "defaultSidebar",
             "/docs/installation": "defaultSidebar",
+            "/docs/notifications": "defaultSidebar",
             "/docs/usage": "defaultSidebar"
           },
           "docs": [
@@ -60,8 +65,8 @@
               },
               "sidebar": "defaultSidebar",
               "previous": {
-                "title": "Usage",
-                "permalink": "/docs/usage"
+                "title": "Notifications",
+                "permalink": "/docs/notifications"
               }
             },
             {
@@ -87,11 +92,38 @@
               }
             },
             {
+              "unversionedId": "notifications",
+              "id": "notifications",
+              "isDocsHomePage": false,
+              "title": "Notifications",
+              "description": "Register",
+              "source": "@site/docs/notifications.md",
+              "sourceDirName": ".",
+              "slug": "/notifications",
+              "permalink": "/docs/notifications",
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "id": "notifications",
+                "title": "Notifications",
+                "sidebar_position": 3
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Usage",
+                "permalink": "/docs/usage"
+              },
+              "next": {
+                "title": "Unit tests",
+                "permalink": "/docs/api/unit_tests"
+              }
+            },
+            {
               "unversionedId": "usage",
               "id": "usage",
               "isDocsHomePage": false,
               "title": "Usage",
-              "description": "",
+              "description": "`js",
               "source": "@site/docs/usage.md",
               "sourceDirName": ".",
               "slug": "/usage",
@@ -108,8 +140,8 @@
                 "permalink": "/docs/installation"
               },
               "next": {
-                "title": "Unit tests",
-                "permalink": "/docs/api/unit_tests"
+                "title": "Notifications",
+                "permalink": "/docs/notifications"
               }
             }
           ]

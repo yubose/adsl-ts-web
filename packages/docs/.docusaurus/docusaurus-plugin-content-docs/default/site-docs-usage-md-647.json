@@ -3,7 +3,7 @@
   "id": "usage",
   "isDocsHomePage": false,
   "title": "Usage",
-  "description": "",
+  "description": "`js",
   "source": "@site/docs/usage.md",
   "sourceDirName": ".",
   "slug": "/usage",
@@ -20,7 +20,7 @@
     "permalink": "/docs/installation"
   },
   "next": {
-    "title": "Unit tests",
-    "permalink": "/docs/api/unit_tests"
+    "title": "Notifications",
+    "permalink": "/docs/notifications"
   }
 }

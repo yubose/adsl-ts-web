@@ -116,7 +116,7 @@ export default {
           "showReadingTime": true
         },
         "theme": {
-          "customCss": "/Users/christ/aitmed-noodl-web-copy/packages/docs/src/css/custom.css"
+          "customCss": "C:\\Users\\AITMED\\aitmed-noodl-web\\packages\\docs\\src\\css\\custom.css"
         }
       }
     ]
