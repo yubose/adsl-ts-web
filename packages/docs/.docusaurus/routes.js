@@ -49,7 +49,7 @@ export default [
 },
 {
   path: '/docs',
-  component: ComponentCreator('/docs','5ac'),
+  component: ComponentCreator('/docs','ba6'),
   
   routes: [
 {
@@ -60,6 +60,11 @@ export default [
 {
   path: '/docs/installation',
   component: ComponentCreator('/docs/installation','b2a'),
+  exact: true,
+},
+{
+  path: '/docs/notifications',
+  component: ComponentCreator('/docs/notifications','e6a'),
   exact: true,
 },
 {

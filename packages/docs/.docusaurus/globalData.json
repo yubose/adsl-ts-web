@@ -21,6 +21,11 @@
               "sidebar": "defaultSidebar"
             },
             {
+              "id": "notifications",
+              "path": "/docs/notifications",
+              "sidebar": "defaultSidebar"
+            },
+            {
               "id": "usage",
               "path": "/docs/usage",
               "sidebar": "defaultSidebar"

@@ -16,6 +16,11 @@
         "href": "/docs/usage"
       },
       {
+        "type": "link",
+        "label": "Notifications",
+        "href": "/docs/notifications"
+      },
+      {
         "type": "category",
         "label": "API Reference",
         "items": [
@@ -32,6 +37,7 @@
   "permalinkToSidebar": {
     "/docs/api/unit_tests": "defaultSidebar",
     "/docs/installation": "defaultSidebar",
+    "/docs/notifications": "defaultSidebar",
     "/docs/usage": "defaultSidebar"
   }
 }
