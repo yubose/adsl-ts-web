@@ -1,4 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
+import * as u from '@jsmanifest/utils'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import sinon from 'sinon'
 import { expect } from 'chai'
@@ -22,7 +23,6 @@ import createBuiltIns from '../handlers/builtIns'
 import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
 import getVideoChatPageObject from './helpers/getVideoChatPage'
-import * as u from '../utils/common'
 import * as dom from '../utils/dom'
 
 const nonEmitBuiltInActionTypes = nuiActionTypes.filter(

@@ -25,13 +25,7 @@ export const isNil = (v: any): v is null | undefined => isNull(v) && isUnd(v)
 export const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
   typeof v === 'function'
 export const keys = (v: any) => Object.keys(v)
-export const mapEntries = <O extends Record<string, any> | Map<string, any>>(
-  fn: (key: string, value: any) => void,
-  obj: O | null | undefined,
-) => {
-  if (obj instanceof Map) return Array.from(obj)
-  return isObj(obj) ? entries(obj).map(([k, v]) => fn(k, v)) : obj
-}
+
 export const eachEntries = <O extends Record<string, any> | Map<string, any>>(
   fn: (key: string, value: any) => void,
   obj: O | null | undefined,

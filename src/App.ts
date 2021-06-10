@@ -10,7 +10,8 @@ import { RemoteParticipant } from 'twilio-video'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { PageObject, RegisterComponentObject } from 'noodl-types'
+import { isOutboundLink, Parser } from 'noodl-utils'
+import { PageObject } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
@@ -25,7 +26,7 @@ import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createTransactions from './handlers/transactions'
 import { setDocumentScrollTop, toast } from './utils/dom'
-import { isUnitTestEnv, isOutboundLink } from './utils/common'
+import { isUnitTestEnv } from './utils/common'
 import * as t from './app/types'
 
 const log = Logger.create('App.ts')
@@ -40,6 +41,7 @@ class App {
   #noodl: t.AppConstructorOptions['noodl']
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
+  #parser: Parser
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NOODLDOM['page'];
@@ -84,6 +86,7 @@ class App {
     this.#nui = nui
 
     noodl && (this.#noodl = noodl)
+    this.#parser = new Parser()
   }
 
   get aspectRatio() {
@@ -149,6 +152,10 @@ class App {
 
   get notification() {
     return this.#notification as AppNotification
+  }
+
+  get parse() {
+    return this.#parser
   }
 
   get mainStream() {

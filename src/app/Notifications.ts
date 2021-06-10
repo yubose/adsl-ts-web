@@ -101,7 +101,7 @@ class AppNotification {
         )
       }
       this.initiated = true
-      this.workerRegistration = await navigator.serviceWorker.register(
+      this.workerRegistration = await navigator.serviceWorker?.register(
         AppNotification.path,
       )
       this.emit('initiated', this.client as firebase.app.App)

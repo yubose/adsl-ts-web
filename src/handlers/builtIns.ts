@@ -30,7 +30,6 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from 'twilio-video'
-import { parse } from 'noodl-utils'
 import Logger from 'logsnap'
 import {
   download,
@@ -40,11 +39,7 @@ import {
   show,
   scrollToElem,
 } from '../utils/dom'
-import {
-  getActionMetadata,
-  pickActionKey,
-  resolvePageUrl,
-} from '../utils/common'
+import { getActionMetadata, pickActionKey } from '../utils/common'
 import App from '../App'
 
 const log = Logger.create('builtIns.ts')
@@ -405,7 +400,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       id = '',
       isSamePage,
       duration,
-    } = parse.destination(destinationParam)
+    } = app.parse.destination(destinationParam)
     if (destination === destinationParam) {
       app.mainPage.requesting = destination
     }
@@ -479,7 +474,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
 
     if (!destinationParam.startsWith('http')) {
-      app.mainPage.pageUrl = resolvePageUrl({
+      app.mainPage.pageUrl = app.parse.queryString({
         destination,
         pageUrl: app.mainPage.pageUrl,
         startPage: app.startPage,

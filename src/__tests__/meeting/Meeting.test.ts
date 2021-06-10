@@ -1,4 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
+import * as u from '@jsmanifest/utils'
 import sinon from 'sinon'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { coolGold, italic, magenta } from 'noodl-common'
@@ -7,7 +8,6 @@ import { asHtmlElement, findByGlobalId } from 'noodl-ui-dom'
 import { getApp as _getApp } from '../../utils/test-utils'
 import Stream from '../../meeting/Stream'
 import getMockParticipant from '../helpers/getMockParticipant'
-import * as u from '../../utils/common'
 import * as dom from '../../utils/dom'
 
 const getApp: typeof _getApp = async (args) => {

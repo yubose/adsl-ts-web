@@ -1,4 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
+import * as u from '@jsmanifest/utils'
 import userEvent from '@testing-library/user-event'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
@@ -10,7 +11,6 @@ import {
 } from 'noodl-ui-dom'
 import { createRender, getApp, getBuiltIns } from '../../utils/test-utils'
 import * as d from '../../utils/dom'
-import * as u from '../../utils/common'
 
 describe(coolGold(`dom (utils)`), () => {
   describe(italic(`hide`), () => {

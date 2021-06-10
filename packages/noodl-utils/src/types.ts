@@ -1,11 +1,10 @@
-export type PlainObject = { [key: string]: any }
+export type QueryObj<O extends Record<string, any> = any> =
+  | O
+  | ((...args: any[]) => O)
 
-export interface DataObject {
-  [key: string]: any
+export interface ParsedDestinationObject {
+  destination: string
+  id: string
+  isSamePage?: boolean
+  duration: number
 }
-
-export interface DataFunc<O extends DataObject = any> {
-  (): O
-}
-
-export type QueryObj<O extends DataObject = any> = O | DataFunc<O>

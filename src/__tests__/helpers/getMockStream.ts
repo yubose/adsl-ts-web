@@ -1,4 +1,3 @@
-import { inspect } from '../../utils/common'
 import {
   RoomParticipant,
   RoomParticipantTrackPublication,
@@ -14,7 +13,7 @@ export class MockStream extends MeetingStream {
   type: StreamType | null = null
   events = new Map<string, ((...args: any[]) => any)[]>();
 
-  [inspect]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.snapshot()
   }
 

@@ -126,14 +126,6 @@ export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
 
 export const keys = (v: any) => Object.keys(v)
 
-export const mapEntries = <O extends Record<string, any> | Map<string, any>>(
-  fn: (key: string, value: any) => void,
-  obj: O | null | undefined,
-) => {
-  if (obj instanceof Map) return Array.from(obj)
-  return isObj(obj) ? entries(obj).map(([k, v]) => fn(k, v)) : obj
-}
-
 export function eachEntries<
   O extends Record<string, any> = Record<string, any>,
 >(fn: (key: string, value: any) => void, obj: O | null | undefined): void

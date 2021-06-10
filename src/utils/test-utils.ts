@@ -1,28 +1,27 @@
+import noop from 'lodash/noop'
+import { LiteralUnion } from 'type-fest'
 import { EventEmitter } from 'events'
 import { Status } from '@aitmed/ecos-lvl2-sdk'
 import { LocalParticipant } from 'twilio-video'
-import noop from 'lodash/noop'
 import { ComponentObject, PageObject } from 'noodl-types'
 import NOODLDOM, {
   defaultResolvers,
   Page as NOODLDOMPage,
   Resolve,
-  Transaction,
 } from 'noodl-ui-dom'
 import {
   actionTypes as nuiActionTypes,
-  nuiGroupedActionTypes,
   nuiEmitTransaction,
   NUI,
   NUIActionType,
   NUIComponent,
-  Page as NUIPage,
-  Viewport,
-  Store,
   NUITrigger,
   NUIActionGroupedType,
-  Register,
   NUIActionObjectInput,
+  Page as NUIPage,
+  Register,
+  Store,
+  Viewport,
 } from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 import App from '../App'
@@ -34,7 +33,6 @@ import getMockParticipant, {
   MockParticipant,
 } from '../__tests__/helpers/getMockParticipant'
 import * as c from '../constants'
-import { LiteralUnion } from 'type-fest'
 
 export const deviceSize = {
   galaxys5: { width: 360, height: 640, aspectRatio: 0.5621345029239766 },
@@ -147,8 +145,7 @@ export function createRender(opts: MockRenderOptions) {
 
   ndom.use({
     transaction: {
-      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
-        pageObject as PageObject,
+      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
     },
   })
 
@@ -253,7 +250,7 @@ export async function initializeApp(
       participants?: Record<string, any> | Map<string, any>
     }
     root?: Record<string, any>
-    transaction?: Partial<Transaction>
+    transaction?: any
   } & {
     builtIn?: Partial<Record<string, Store.BuiltInObject['fn']>>
     emit?: Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn']>>
@@ -318,10 +315,7 @@ export async function initializeApp(
     }
   }
 
-  await _app.initialize({
-    firebase: { client: { messaging: noop } as any, vapidKey: 'mockVapidKey' },
-    firebaseSupported: false,
-  })
+  await _app.initialize()
 
   // Handle custom provided fns to substitute
   const handleAction = (
