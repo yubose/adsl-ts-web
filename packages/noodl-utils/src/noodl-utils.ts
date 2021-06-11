@@ -252,6 +252,10 @@ export function isRootDataKey(dataKey: string | undefined) {
   return false
 }
 
+export function isSerializableStr(value: unknown) {
+  return u.isStr(value) && /^[a-zA-Z]+[0-9]+/.test(value)
+}
+
 export function isStable() {
   return process.env.ECOS_ENV === 'stable'
 }
