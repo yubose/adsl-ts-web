@@ -248,203 +248,40 @@ const createExtendedDOMResolvers = function (app: App) {
                 gridSearch?.addEventListener('click', stopProp)
                 break
               }
-              case 'timeTable': {
-                // generateYaxis according to timeAxis
-                let generateYaxis = (
-                  start: string,
-                  end: string,
-                  timeSlot: number,
-                  split: number,
-                ) => {
-                  // convert time to minutes, then generate the time array
-                  let yAxis: any[] = []
-                  let [startH, startM] = start.split(':')
-                  let [endH, endM] = end.split(':')
-                  let startTime = parseInt(startH) * 60 + parseInt(startM)
-                  let endTime = parseInt(endH) * 60 + parseInt(endM)
-                  for (
-                    let index = startTime;
-                    index < endTime;
-                    index += timeSlot
-                  ) {
-                    let item: any[] = []
-                    let timeName = { name: '' }
-                    let h = Math.floor(index / 60)
-                    let m = index % 60
-                    timeName.name = m < 10 ? h + ':0' + m : h + ':' + m
-                    item.push(timeName, split)
-                    yAxis.push(item)
-                  }
-                  return yAxis
+              case 'calendarTable': {
+                let headerBar = {
+                  start: "title",
+                  center: '',
+                  end: 'today prev,next'
                 }
-                // 先把数据按照日期划分为七个数组
-                let divideByWeek = (obj: any[]) => {
-                  let divideDate = new Array(7)
-                    .fill('')
-                    .map((val, i) => ({ week: i, list: [] }))
-                  obj.forEach(
-                    (element: {
-                      stime: string
-                      etime: string
-                      visitReason: string
-                      name: string
-                    }) => {
-                      let startTimestamp = parseInt(element.stime) * 1000
-                      let endTimestamp = parseInt(element.etime) * 1000
-                      let date = new Date(startTimestamp)
-                      let nameObj = {
-                        name: '',
-                      }
-                      let getDay = date.getDay()
-                      divideDate[getDay].list.push(element)
-                    },
-                  )
-                  return divideDate
-                }
-                // 把日期数组整理为可展示格式
-                let generateData = (
-                  obj: { week: number; list: never[] }[],
-                  length: any,
-                ) => {
-                  let showData = new Array()
-                  for (let i = 0; i < 7; i++) {
-                    let dayData = new Array(length).fill('')
-                    if (obj[i].list.length != 0) {
-                      for (let j = 0; j < obj[i].list.length; j++) {
-                        let item = obj[i].list[j]
-                        let startTimestamp = parseInt(item.stime) * 1000
-                        let endTimestamp = parseInt(item.etime) * 1000
-                        let startTime =
-                          parseInt(formatDate(startTimestamp, 'H')) * 60 +
-                          parseInt(formatDate(startTimestamp, 'm'))
-                        let endTime =
-                          parseInt(formatDate(endTimestamp, 'H')) * 60 +
-                          parseInt(formatDate(endTimestamp, 'm'))
-                        let startIndex = startTime / 5
-                        let endIndex = endTime / 5
-                        for (
-                          let index = startIndex;
-                          index < endIndex;
-                          index++
-                        ) {
-                          dayData[index] = item.visitReason
-                        }
-                        showData.push(dayData)
-                      }
-                    } else {
-                      showData.push(dayData)
+                let defaultData = dataValue.chartData
+                defaultData.forEach(element => {
+                  element.start = element.stime*1000
+                  element.end = element.etime*1000
+                  element.title = element.visitReason
+                  delete element.visitReason
+                  delete element.stime
+                  delete element.etime
+                });
+                let calendar = new FullCalendar.Calendar(node, {
+                  headerToolbar: headerBar,
+                  height: "auto",              // 定义表格高度
+                  allDaySlot: false,           // 是否显示表头的全天事件栏
+                  initialView: 'timeGridWeek',
+                  // locale: 'zh-cn',             // 区域本地化
+                  firstDay: 0,                 // 每周的第一天： 0:周日
+                  nowIndicator: true,          // 是否显示当前时间的指示条
+                  slotMinTime: "00:00:00",     // 图表展示的开始时间
+                  slotMaxTime: "24:00:00",     // 图表展示的结束时间
+                  slotLabelFormat:[
+                    {
+                       hour: 'numeric',
+                       minute: '2-digit'
                     }
-                  }
-                  return showData
-                }
-                // 生成纵坐标
-                let displayYAxis = generateYaxis(
-                  dataValue.timeAxis.start,
-                  dataValue.timeAxis.end,
-                  dataValue.timeAxis.timeSlot,
-                  dataValue.timeAxis.split,
-                )
-                let itemLength = displayYAxis.length * dataValue.timeAxis.split
-                // 横坐标
-                let displayXAxis = [
-                  'SUN',
-                  'MON',
-                  'TUE',
-                  'WED',
-                  'THU',
-                  'FRI',
-                  'SAT',
-                ]
-                // 把数据按照周几进行划分
-                let weekDate = divideByWeek(dataValue.chartData)
-                let ItemList = generateData(weekDate, itemLength)
-                // 根据 item 找到所处的
-                const Timetable = new Timetables({
-                  el: `#${node.id}`,
-                  timetables: ItemList,
-                  week: displayXAxis,
-                  timetableType: displayYAxis,
-                  gridOnClick: function (item: any) {
-                    console.log(item)
-                  },
-                  styles: {
-                    Gheight: 20,
-                    leftHandWidth: 70,
-                    palette: ['#ff6633', '#ff9da4'],
-                  },
-                })
-                // 美化样式
-                let tableContent = node.querySelector('#courseWrapper')
-                tableContent
-                  ?.querySelectorAll('.Courses-head > div')
-                  .forEach((element) => {
-                    element.style.cssText +=
-                      'text-align: center;line-height: 28px;font-size: 14px;'
-                  })
-                tableContent
-                  ?.querySelectorAll('.Courses-head ')
-                  .forEach((element) => {
-                    element.style.cssText +=
-                      'background-color: #f2f6f7; border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important; '
-                  })
-                tableContent
-                  ?.querySelectorAll('.left-hand-TextDom')
-                  .forEach((element) => {
-                    element.style.cssText +=
-                      'background-color: #f2f6f7; border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important; box-sizing: content-box!important; padding-top: 0px!important; height:28px; '
-                  })
-                tableContent
-                  ?.querySelectorAll('.Courses-leftHand')
-                  .forEach((element) => {
-                    element.style.cssText +=
-                      'background-color: #f2f6f7; text-align: right; box-sizing: border-box; padding-right: 5px;'
-                  })
-                tableContent
-                  ?.querySelectorAll('.Courses-leftHand .left-hand-index')
-                  .forEach((element) => {
-                    element.style.cssText += 'margin-bottom: 4px !important;'
-                  })
-                tableContent
-                  ?.querySelectorAll('.Courses-head > div')
-                  .forEach((element) => {
-                    element.style.cssText += 'border-left: none !important;'
-                  })
-                tableContent
-                  ?.querySelectorAll('.Courses-leftHand > div')
-                  .forEach((element) => {
-                    element.style.cssText +=
-                      'border-bottom: 1px dashed rgb(219, 219, 219);padding-top: 5px;'
-                  })
-                tableContent
-                  ?.querySelectorAll('.Courses-leftHand > div:last-child')
-                  .forEach((element) => {
-                    element.style.cssText += ' border-bottom: none !important;'
-                  })
-                tableContent
-                  ?.querySelectorAll('.Courses-content > ul')
-                  .forEach((element) => {
-                    element.style.cssText +=
-                      '  border-bottom: 1px dashed rgb(219, 219, 219); box-sizing: border-box;'
-                  })
-                tableContent
-                  ?.querySelectorAll('.Courses-content > ul:last-child')
-                  .forEach((element) => {
-                    element.style.cssText += ' border-bottom: none !important;'
-                  })
-                tableContent?.querySelectorAll('li').forEach((element) => {
-                  if (
-                    element.innerHTML != '' &&
-                    !element.innerHTML.startsWith('<span')
-                  ) {
-                    element.style.cssText +=
-                      ' text-align: center;background-color: #e3f5fc;color: #517086;box-sizing: border-box;border-left: 2px solid #2db3e4;font-size: 14px'
-                  }
-                })
-                tableContent?.querySelectorAll('span').forEach((element) => {
-                  element.style.cssText +=
-                    ' text-align: center;background-color: #e3f5fc;color: #517086;box-sizing: border-box;border-left: 2px solid #2db3e4;padding-top: 5px;font-size: 14px'
-                })
-                break
+                 ],
+                 events: defaultData
+                });
+                calendar.render();
               }
             }
           } else {
