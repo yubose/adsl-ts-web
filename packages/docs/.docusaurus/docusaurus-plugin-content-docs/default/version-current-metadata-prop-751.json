@@ -17,6 +17,16 @@
       },
       {
         "type": "link",
+        "label": "Actions",
+        "href": "/docs/actions"
+      },
+      {
+        "type": "link",
+        "label": "Built Ins",
+        "href": "/docs/builtIns"
+      },
+      {
+        "type": "link",
         "label": "Notifications",
         "href": "/docs/notifications"
       },
@@ -24,6 +34,11 @@
         "type": "category",
         "label": "API Reference",
         "items": [
+          {
+            "type": "link",
+            "label": "Actions",
+            "href": "/docs/api/actions"
+          },
           {
             "type": "link",
             "label": "Unit tests",
@@ -35,7 +50,10 @@
     ]
   },
   "permalinkToSidebar": {
+    "/docs/actions": "defaultSidebar",
+    "/docs/api/actions": "defaultSidebar",
     "/docs/api/unit_tests": "defaultSidebar",
+    "/docs/builtIns": "defaultSidebar",
     "/docs/installation": "defaultSidebar",
     "/docs/notifications": "defaultSidebar",
     "/docs/usage": "defaultSidebar"

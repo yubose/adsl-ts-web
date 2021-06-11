@@ -16,9 +16,9 @@ import { GlobalRegisterComponent } from '../app/types'
 const log = Logger.create('register.ts')
 
 function createRegisters(app: App) {
-  app.notification?.on('message', (obs) => {
-    if (!u.isFnc(obs) && u.isObj(obs)) {
-      const { data } = (obs as any) || {}
+  app.notification?.on('message', (message) => {
+    if (message) {
+      const { data } = message
       if (data?.did) {
         //  call onNewEcosDoc for now  until we propose a more generic approach
         const onNewEcosDocRegisterComponent = app.globalRegister?.find?.(
@@ -28,6 +28,18 @@ function createRegisters(app: App) {
       }
     }
   })
+
+  const registerHandlers = {
+    onNewDocument() {
+      //
+    },
+    onNewMessage() {
+      //
+    },
+    onNewMeetingInvite() {
+      //
+    },
+  }
 
   const registrees = {
     FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
@@ -109,6 +121,10 @@ function createRegisters(app: App) {
           console.error(error)
         }
       }
+    },
+    async onNewMeetingInvite(componentObject: GlobalRegisterComponent) {
+      log.func('onNewMeetingInvite')
+      componentObject.eventId = 'onNewMeetingInvite'
     },
   }
 

@@ -31,7 +31,7 @@ const nonEmitBuiltInActionTypes = nuiActionTypes.filter(
 
 describe(coolGold(`actions`), () => {
   describe(italic(`evalObject`), () => {
-    describe.only(`when dynamically receiving actions in the middle of the call`, () => {
+    describe(`when dynamically receiving actions in the middle of the call`, () => {
       it(
         `should still invoke global popUp actions if there are any ` +
           `remaining when receiving { abort: true }`,
@@ -131,6 +131,13 @@ describe(coolGold(`actions`), () => {
 
     xit(`should clear the canvas`, () => {
       //
+    })
+  })
+
+  describe.only(`register`, () => {
+    it(``, async () => {
+      const app = await getApp()
+      console.info(app)
     })
   })
 })

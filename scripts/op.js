@@ -45,7 +45,7 @@ console.log(
 
 if (flags.start || flags.build || (flags.start === '' && !input.length)) {
   require('./buildOrStart')(getCliArgs())
-} else if (flags.update) {
+} else if (flags.update || input[0] === 'update') {
   require('./update')(getCliArgs())
 } else {
   switch (script) {

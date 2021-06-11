@@ -1,7 +1,80 @@
 import get from 'lodash.get'
 import has from 'lodash.has'
+import curry from 'lodash.curry'
+import flowRight from 'lodash.flowright'
 import * as u from './_internal'
 import * as t from './types'
+
+export function createPlaceholderReplacer(
+  placeholders: string | string[],
+  flags?: string,
+) {
+  const regexp = new RegExp(
+    (u.isArr(placeholders) ? placeholders : [placeholders]).reduce(
+      (str, placeholder) => str + (!str ? placeholder : `|${placeholder}`),
+      '',
+    ),
+    flags,
+  )
+  function replace(str: string, value: string | number): string
+  function replace<Obj extends {} = any>(obj: Obj, value: string | number): Obj
+  function replace<Obj extends {} = any>(
+    str: string | Obj,
+    value: string | number,
+  ) {
+    if (u.isStr(str)) {
+      return str.replace(regexp, String(value))
+    } else if (u.isObj(str)) {
+      const stringified = JSON.stringify(str).replace(regexp, String(value))
+      return JSON.parse(stringified)
+    }
+    return ''
+  }
+  return replace
+}
+
+export const createNoodlPlaceholderReplacer = (function () {
+  const replaceCadlBaseUrl = curry(
+    createPlaceholderReplacer('\\${cadlBaseUrl}', 'gi'),
+  )
+  const replaceCadlVersion = curry(
+    createPlaceholderReplacer('\\${cadlVersion}', 'gi'),
+  )
+  const replaceDesignSuffix = curry(
+    createPlaceholderReplacer('\\${designSuffix}', 'gi'),
+  )
+  const replacerMapper = {
+    cadlVersion: replaceCadlVersion,
+    designSuffix: replaceDesignSuffix,
+    cadlBaseUrl: replaceCadlBaseUrl,
+  }
+  const createReplacer = (keyMap: {
+    cadlBaseUrl?: any
+    cadlVersion?: any
+    designSuffix?: any
+  }) => {
+    let replacers = [] as ((s: string) => string)[]
+    let entries = Object.entries(keyMap)
+
+    if (keyMap.cadlBaseUrl && 'cadlVersion' in keyMap) {
+      keyMap.cadlBaseUrl = replaceCadlBaseUrl(
+        keyMap.cadlBaseUrl,
+        keyMap.cadlVersion,
+      )
+    }
+
+    for (let index = 0; index < entries.length; index++) {
+      const [placeholder, value] = entries[index]
+      if (placeholder in replacerMapper) {
+        const regexStr = '\\${' + placeholder + '}'
+        const regex = new RegExp(regexStr, 'gi')
+        replacers.push((s: string) => s.replace(regex, value))
+      }
+    }
+    return flowRight(...replacers)
+  }
+  return createReplacer
+})()
 
 /**
  * Transforms the dataKey of an emit object. If the dataKey is an object,
@@ -149,6 +222,21 @@ export function getDataValue<T = any>(
   }
 }
 
+export const hasNoodlPlaceholder = (function () {
+  const regex = new RegExp(
+    `(${Object.values({
+      cadlBaseUrl: '\\${cadlBaseUrl}',
+      cadlVersion: '\\${cadlVersion}',
+      designSuffix: '\\${designSuffix}',
+    } as const).join('|')})`,
+    'i',
+  )
+  function hasPlaceholder(str: string | undefined) {
+    return u.isStr(str) ? regex.test(str) : false
+  }
+  return hasPlaceholder
+})()
+
 export function isOutboundLink(s: string | undefined = '') {
   return /https?:\/\//.test(s)
 }
@@ -170,4 +258,9 @@ export function isStable() {
 
 export function isTest() {
   return process.env.ECOS_ENV === 'test'
+}
+
+export function isValidAsset(value: string | undefined) {
+  if (value?.endsWith('..tar')) return false
+  return u.isStr(value) && /(.[a-zA-Z]+)$/i.test(value)
 }

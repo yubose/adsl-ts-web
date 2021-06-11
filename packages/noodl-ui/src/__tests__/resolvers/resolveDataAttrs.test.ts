@@ -208,12 +208,12 @@ describe(coolGold(`resolveDataAttrs`), () => {
   )
 
   describe('when handling dataValue emits', () => {
-    it('should pass the value from the emit executor', async () => {
+    it.only('should pass the value from the emit executor', async () => {
       const spy = sinon.spy(() => Promise.resolve('iamjoshua'))
       const dataObject = { fruit: 'apple' }
       const iteratorVar = 'hello'
       const listObject = [dataObject, { fruit: 'orange' }]
-      NUI.use({ actionType: 'emit', fn: spy, trigger: 'dataValue' })
+      NUI.use({ emit: { dataValue: spy } as any })
       const { component: view } = resolveComponent(
         mock.getViewComponent({
           children: [

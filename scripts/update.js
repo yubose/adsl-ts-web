@@ -14,7 +14,6 @@ const pkgs = {
  * @param { import('./op') } props
  */
 async function update(props) {
-  console.log('props', props)
   const path = require('path')
   const { readdir } = require('fs-extra')
 

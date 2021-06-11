@@ -187,7 +187,7 @@ describe(coolGold(`App`), () => {
     })
   })
 
-  describe.only(italic(`navigate`), () => {
+  describe(italic(`navigate`), () => {
     it(``, async () => {
       const app = await initializeApp({
         pageName: 'SignIn',

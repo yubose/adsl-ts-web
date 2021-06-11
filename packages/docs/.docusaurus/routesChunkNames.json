@@ -29,13 +29,25 @@
     "component": "component---theme-mdx-page-1-f-3-b90",
     "content": "content---markdown-page-393-028"
   },
-  "/docs-ba6": {
+  "/docs-7de": {
     "component": "component---theme-doc-page-1-be-9be",
     "versionMetadata": "versionMetadata---docs-935-398"
+  },
+  "/docs/actions-a9f": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-actionsbd-0-985"
+  },
+  "/docs/api/actions-235": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-api-actionsc-5-e-6e4"
   },
   "/docs/api/unit_tests-558": {
     "component": "component---theme-doc-item-178-a40",
     "content": "content---docs-api-unit-testsff-9-842"
+  },
+  "/docs/builtIns-6ce": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---docs-built-ins-030-7aa"
   },
   "/docs/installation-b2a": {
     "component": "component---theme-doc-item-178-a40",

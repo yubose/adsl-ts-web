@@ -1,6 +1,6 @@
 {
   "name": "noodl-utils",
-  "version": "0.0.50",
+  "version": "0.0.51",
   "description": "Utility/helpers for working with NOODL values",
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "main": "dist/index.js",
@@ -40,11 +40,15 @@
   },
   "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
   "dependencies": {
+    "lodash.curry": "^4.1.1",
+    "lodash.flowright": "^3.5.0",
     "lodash.get": "^4.4.2",
     "lodash.has": "^4.5.2",
     "noodl-types": "^1.0.100"
   },
   "devDependencies": {
+    "@types/lodash.curry": "^4.1.6",
+    "@types/lodash.flowright": "^3.5.6",
     "@types/lodash.get": "^4.4.6",
     "@types/lodash.has": "^4.5.6"
   }

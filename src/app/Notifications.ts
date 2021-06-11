@@ -7,6 +7,7 @@ import {
   FirebaseMessaging,
   AppNotificationHook,
   AppNotificationHooks,
+  AppNotificationMessageObject,
 } from './types'
 
 const log = Logger.create('Notifications.ts')
@@ -73,13 +74,17 @@ class AppNotification {
         ) => {
           log.func('onMessage<nextOrObserver>')
           log.green('obs', obs)
-          this.emit('message', obs)
+
+          let data = {} as AppNotificationMessageObject
 
           if (u.isFnc(obs)) {
-            obs
+            data = obs as any
           } else if (u.isObj(obs)) {
-            obs
+            // @ts-expect-error
+            data = obs as AppNotificationMessageObject
           }
+
+          this.emit('message', data)
         }
 
         const onMessageError = (err: Error) => {
@@ -108,25 +113,27 @@ class AppNotification {
       return this.client
     } catch (error) {
       console.error(error)
-      this.emit('initError', error)
+      this.emit('initError', error as Error)
     }
   }
 
-  async getToken(opts?: Record<string, any>) {
+  async getToken(
+    opts?: Parameters<firebase.messaging.Messaging['getToken']>[0],
+  ) {
+    let token = ''
     try {
-      const token =
-        (this.supported &&
-          (await this.messaging?.getToken({
-            vapidKey,
-            serviceWorkerRegistration: this.workerRegistration,
-            ...opts,
-          }))) ||
-        ''
+      if (this.supported) {
+        opts = { vapidKey, ...opts }
+        if (this.workerRegistration) {
+          opts.serviceWorkerRegistration = this.workerRegistration
+        }
+        token = (await this.messaging?.getToken(opts)) || ''
+      }
       this.emit('token', token)
-      return token
     } catch (error) {
       console.error(error)
     }
+    return token
   }
 
   emit<Hook extends AppNotificationHook>(

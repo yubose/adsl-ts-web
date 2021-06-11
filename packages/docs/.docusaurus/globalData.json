@@ -11,8 +11,23 @@
           "mainDocId": "installation",
           "docs": [
             {
+              "id": "actions",
+              "path": "/docs/actions",
+              "sidebar": "defaultSidebar"
+            },
+            {
+              "id": "api/actions",
+              "path": "/docs/api/actions",
+              "sidebar": "defaultSidebar"
+            },
+            {
               "id": "api/unit_tests",
               "path": "/docs/api/unit_tests",
+              "sidebar": "defaultSidebar"
+            },
+            {
+              "id": "builtIns",
+              "path": "/docs/builtIns",
               "sidebar": "defaultSidebar"
             },
             {
