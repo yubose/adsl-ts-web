@@ -113,19 +113,3 @@ describe(coolGold('isRootDataKey'), () => {
     })
   })
 })
-
-// describe(coolGold(`trimRefPrefix`), () => {
-//   u.entries({
-//     [`..formData.password`]: 'formData.password',
-//     [`.formData.password`]: 'formData.password',
-//     [`@=.formData.password`]: 'formData.password',
-//     [`@formData.password`]: 'formData.password',
-//     [`.....formData.password`]: 'formData.password',
-//     [`  formData.password`]: 'formData.password',
-//     [`formData.password`]: 'formData.password',
-//   }).forEach(([testStr, expectedResult]) => {
-//     it(`should trim the reference prefix for ${testStr}`, () => {
-//       expect(n.trimRefPrefix(testStr)).to.eq(expectedResult)
-//     })
-//   })
-// })

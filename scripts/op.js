@@ -8,7 +8,7 @@ const fs = require('fs-extra')
 const pkgJson = require('../package.json')
 
 /** @type { Record<string, any> } */
-const config = yaml.parse(fs.readFileSync('noodl.yml', 'utf8'))
+// const config = yaml.parse(fs.readFileSync('noodl.yml', 'utf8'))
 const tag = (s) => cyan(`[${s}]`)
 
 const cli = meow(
@@ -29,6 +29,7 @@ const cli = meow(
       update: { alias: 'u', type: 'string' },
       deploy: { alias: 'd', type: 'boolean' },
       message: { alias: 'm', type: 'string' },
+      ntil: { type: 'string' },
     },
   },
 )
@@ -45,6 +46,8 @@ console.log(
 
 if (flags.start || flags.build || (flags.start === '' && !input.length)) {
   require('./buildOrStart')(getCliArgs())
+} else if (flags.test) {
+  require('./test')(getCliArgs())
 } else if (flags.update || input[0] === 'update') {
   require('./update')(getCliArgs())
 } else {
@@ -68,7 +71,6 @@ if (flags.start || flags.build || (flags.start === '' && !input.length)) {
 
 function getCliArgs() {
   return {
-    config,
     flags,
     input,
     pkgJson,
