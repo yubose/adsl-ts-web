@@ -16,7 +16,7 @@
   },
   "sidebar": "defaultSidebar",
   "previous": {
-    "title": "Notifications",
-    "permalink": "/docs/notifications"
+    "title": "Actions",
+    "permalink": "/docs/api/actions"
   }
 }

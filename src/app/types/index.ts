@@ -65,7 +65,11 @@ export type FirebaseApp = firebase.app.App
 export type FirebaseMessaging = firebase.messaging.Messaging
 
 export interface AppNotificationHooks {
-  message(obs: firebase.NextFn<any> | firebase.Observer<any, Error>): void
+  message<
+    Msg extends AppNotificationMessageObject = AppNotificationMessageObject,
+  >(
+    msg: Msg,
+  ): void
   error(error: Error): void
   complete(): void
   initiated(client: firebase.app.App): void
@@ -74,6 +78,14 @@ export interface AppNotificationHooks {
 }
 
 export type AppNotificationHook = keyof AppNotificationHooks
+
+export interface AppNotificationMessageObject<
+  O extends Record<string, any> = Record<string, any>,
+> {
+  data: O
+  from?: string
+  priority?: 'normal'
+}
 
 export interface GlobalRegisterComponent<EventId extends string = string>
   extends Omit<RegisterComponentObject, 'onEvent'> {

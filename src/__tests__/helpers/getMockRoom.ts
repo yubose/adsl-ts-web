@@ -1,8 +1,8 @@
+import * as u from '@jsmanifest/utils'
 import { RemoteParticipant, Room } from 'twilio-video'
 import { LiteralUnion } from 'type-fest'
 import { EventEmitter } from 'events'
 import getMockParticipant from './getMockParticipant'
-import * as u from '../../utils/common'
 
 type MockRoomEvent = LiteralUnion<
   'participantConnected' | 'participantDisconnected' | 'disconnected',

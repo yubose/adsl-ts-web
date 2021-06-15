@@ -313,7 +313,7 @@ describe(coolGold(`builtIn`), () => {
     })
   })
 
-  describe.only(`toggleCameraOnOff`, () => {
+  describe(`toggleCameraOnOff`, () => {
     it(`should change the value on the sdk to on/off expectedly`, async () => {
       const pageName = 'VideoChat'
       const pageObject = getVideoChatPageObject()

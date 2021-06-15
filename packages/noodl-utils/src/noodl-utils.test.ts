@@ -1,7 +1,9 @@
+import * as u from '@jsmanifest/utils'
+import { coolGold, italic, magenta } from 'noodl-common'
 import { expect } from 'chai'
 import * as n from '.'
 
-describe('createEmitDataKey', () => {
+describe(coolGold('createEmitDataKey'), () => {
   const dataObject = { key: 'gender', value: 'Female' }
   const pageObject = { genderInfo: dataObject }
   const root = { Global: {}, MeetingRoomCreate: pageObject }
@@ -34,7 +36,29 @@ describe('createEmitDataKey', () => {
   })
 })
 
-describe('findDataValue', () => {
+describe(coolGold('excludeIteratorVar'), () => {
+  const iteratorVar = 'itemObject'
+  const tests = {
+    [iteratorVar]: ``,
+    [`${iteratorVar}.`]: ``,
+    [`${iteratorVar}.....`]: `....`,
+    [`${iteratorVar}.formData.password`]: `formData.password`,
+    [`.formData.password`]: `.formData.password`,
+    [`formData.password`]: `formData.password`,
+    [`${iteratorVar}formData.${iteratorVar}.password`]: `formData.password`,
+    [`${iteratorVar}...formData.${iteratorVar}.password`]: `..formData.password`,
+  } as const
+
+  u.entries(tests).forEach(([testStr, expectedResult]) => {
+    it(`should return ${u.white(expectedResult)} for ${testStr}`, () => {
+      expect(n.excludeIteratorVar(testStr as string, iteratorVar)).to.eq(
+        expectedResult,
+      )
+    })
+  })
+})
+
+describe(coolGold('findDataValue'), () => {
   let listObject = [
     { fruits: ['apple'], color: 'purple' },
     { fruits: ['banana'], color: 'red' },
@@ -72,7 +96,7 @@ describe('findDataValue', () => {
 //   })
 // })
 
-describe(`isRootDataKey`, () => {
+describe(coolGold('isRootDataKey'), () => {
   Object.entries({
     '..SignIn.formData': true,
     '.SignIn.formData': true,
@@ -89,3 +113,19 @@ describe(`isRootDataKey`, () => {
     })
   })
 })
+
+// describe(coolGold(`trimRefPrefix`), () => {
+//   u.entries({
+//     [`..formData.password`]: 'formData.password',
+//     [`.formData.password`]: 'formData.password',
+//     [`@=.formData.password`]: 'formData.password',
+//     [`@formData.password`]: 'formData.password',
+//     [`.....formData.password`]: 'formData.password',
+//     [`  formData.password`]: 'formData.password',
+//     [`formData.password`]: 'formData.password',
+//   }).forEach(([testStr, expectedResult]) => {
+//     it(`should trim the reference prefix for ${testStr}`, () => {
+//       expect(n.trimRefPrefix(testStr)).to.eq(expectedResult)
+//     })
+//   })
+// })

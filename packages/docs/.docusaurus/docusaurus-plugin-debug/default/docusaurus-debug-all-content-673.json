@@ -24,12 +24,27 @@
               },
               {
                 "type": "doc",
+                "id": "actions",
+                "label": "Actions"
+              },
+              {
+                "type": "doc",
+                "id": "builtIns",
+                "label": "Built Ins"
+              },
+              {
+                "type": "doc",
                 "id": "notifications"
               },
               {
                 "type": "category",
                 "label": "API Reference",
                 "items": [
+                  {
+                    "type": "doc",
+                    "id": "api/actions",
+                    "label": "Actions"
+                  },
                   {
                     "type": "doc",
                     "id": "api/unit_tests",
@@ -41,12 +56,69 @@
             ]
           },
           "permalinkToSidebar": {
+            "/docs/actions": "defaultSidebar",
+            "/docs/api/actions": "defaultSidebar",
             "/docs/api/unit_tests": "defaultSidebar",
+            "/docs/builtIns": "defaultSidebar",
             "/docs/installation": "defaultSidebar",
             "/docs/notifications": "defaultSidebar",
             "/docs/usage": "defaultSidebar"
           },
           "docs": [
+            {
+              "unversionedId": "actions",
+              "id": "actions",
+              "isDocsHomePage": false,
+              "title": "Actions",
+              "description": "anonymous",
+              "source": "@site/docs/actions.md",
+              "sourceDirName": ".",
+              "slug": "/actions",
+              "permalink": "/docs/actions",
+              "version": "current",
+              "sidebar_label": "Actions",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "title": "Actions",
+                "sidebar_label": "Actions",
+                "sidebar_position": 3
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Usage",
+                "permalink": "/docs/usage"
+              },
+              "next": {
+                "title": "Built Ins",
+                "permalink": "/docs/builtIns"
+              }
+            },
+            {
+              "unversionedId": "api/actions",
+              "id": "api/actions",
+              "isDocsHomePage": false,
+              "title": "Actions",
+              "description": "Handling actions",
+              "source": "@site/docs/api/actions.md",
+              "sourceDirName": "api",
+              "slug": "/api/actions",
+              "permalink": "/docs/api/actions",
+              "version": "current",
+              "sidebar_label": "Actions",
+              "frontMatter": {
+                "sidebar_label": "Actions",
+                "title": "Actions"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Notifications",
+                "permalink": "/docs/notifications"
+              },
+              "next": {
+                "title": "Unit tests",
+                "permalink": "/docs/api/unit_tests"
+              }
+            },
             {
               "unversionedId": "api/unit_tests",
               "id": "api/unit_tests",
@@ -65,6 +137,34 @@
               },
               "sidebar": "defaultSidebar",
               "previous": {
+                "title": "Actions",
+                "permalink": "/docs/api/actions"
+              }
+            },
+            {
+              "unversionedId": "builtIns",
+              "id": "builtIns",
+              "isDocsHomePage": false,
+              "title": "Built Ins",
+              "description": "checkField",
+              "source": "@site/docs/builtIns.md",
+              "sourceDirName": ".",
+              "slug": "/builtIns",
+              "permalink": "/docs/builtIns",
+              "version": "current",
+              "sidebar_label": "Built Ins",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "title": "Built Ins",
+                "sidebar_label": "Built Ins",
+                "sidebar_position": 3
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Actions",
+                "permalink": "/docs/actions"
+              },
+              "next": {
                 "title": "Notifications",
                 "permalink": "/docs/notifications"
               }
@@ -110,12 +210,12 @@
               },
               "sidebar": "defaultSidebar",
               "previous": {
-                "title": "Usage",
-                "permalink": "/docs/usage"
+                "title": "Built Ins",
+                "permalink": "/docs/builtIns"
               },
               "next": {
-                "title": "Unit tests",
-                "permalink": "/docs/api/unit_tests"
+                "title": "Actions",
+                "permalink": "/docs/api/actions"
               }
             },
             {
@@ -140,8 +240,8 @@
                 "permalink": "/docs/installation"
               },
               "next": {
-                "title": "Notifications",
-                "permalink": "/docs/notifications"
+                "title": "Actions",
+                "permalink": "/docs/actions"
               }
             }
           ]

@@ -1,6 +1,6 @@
 import NOODL from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
-import { isStable } from '../utils/common'
+import { isStable } from 'noodl-utils'
 
 const BASE = 'https://public.aitmed.com/config'
 export const CONFIG_KEY = 'meet4d'

@@ -1,7 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
-import { array } from './common'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 
 export function copyToClipboard(value: string) {
@@ -47,7 +46,7 @@ export function getDocumentScrollTop(doc?: Document | null) {
 }
 
 export function getVcodeElem(dataKey = 'formData.code') {
-  return array(asHtmlElement(findByDataKey(dataKey)))[0] as HTMLInputElement
+  return u.array(asHtmlElement(findByDataKey(dataKey)))[0] as HTMLInputElement
 }
 
 export const hide = makeElemFn((node) => (node.style.visibility = 'hidden'))
@@ -224,24 +223,10 @@ export function toast(message: string | number, options?: Toast['options']) {
   }
 }
 
-/**
- * Toggles the visibility state of a DOM node. If a condition func is passed,
- * it will be called and passed an object with a "isHidden" prop that reveals its
- * current visibility state. The callback must return 'visible' or 'hidden' that
- * will be used as the new visibility state. The return
- * @param { HTMLElement } node - DOM node
- * @param { function? } cond - Function returning 'visible' or 'hidden'
- */
-export function toggleVisibility(
-  node: HTMLElement,
-  cond?: (arg: { isHidden: boolean }) => 'visible' | 'hidden',
-) {
-  if (node?.style) {
-    const isHidden = node.style.visibility === 'hidden'
-    if (typeof cond === 'function') {
-      node.style.visibility = cond({ isHidden })
-    } else {
-      node.style.visibility = isHidden ? 'visible' : 'hidden'
-    }
-  }
+export function getBlobFromCanvas(
+  node: HTMLCanvasElement,
+  mimeType: string,
+  quality: number = 8,
+): Promise<Blob | null> {
+  return new Promise((resolve) => node.toBlob(resolve, mimeType, quality))
 }

@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import inRange from 'lodash/inRange'
 import last from 'lodash/last'
@@ -6,7 +7,6 @@ import { NUI } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
 import { RemoteParticipant } from 'twilio-video'
 import { RoomParticipant } from '../app/types'
-import { isObj, isFnc } from '../utils/common'
 import Stream from './Stream'
 
 const log = Logger.create('Substreams.ts')
@@ -192,8 +192,8 @@ class MeetingSubstreams {
         stream.snapshot(),
       ),
       container: this.container,
-      hasBlueprint: isObj(this.blueprint) && 'type' in this.blueprint,
-      hasResolver: isFnc(this.resolver),
+      hasBlueprint: u.isObj(this.blueprint) && 'type' in this.blueprint,
+      hasResolver: u.isFnc(this.resolver),
       length: this.length,
       type: 'subStreams',
     }

@@ -1,6 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
-import CADL from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
@@ -188,7 +187,7 @@ describe(coolGold(`App`), () => {
     })
   })
 
-  describe.only(italic(`navigate`), () => {
+  describe(italic(`navigate`), () => {
     it(``, async () => {
       const app = await initializeApp({
         pageName: 'SignIn',

@@ -1,7 +1,80 @@
-import get from 'lodash/get'
-import has from 'lodash/has'
-import { array, isArr, isNum, isObj, isStr, unwrapObj } from './_internal'
-import * as T from './types'
+import get from 'lodash.get'
+import has from 'lodash.has'
+import curry from 'lodash.curry'
+import flowRight from 'lodash.flowright'
+import * as u from './_internal'
+import * as t from './types'
+
+export function createPlaceholderReplacer(
+  placeholders: string | string[],
+  flags?: string,
+) {
+  const regexp = new RegExp(
+    (u.isArr(placeholders) ? placeholders : [placeholders]).reduce(
+      (str, placeholder) => str + (!str ? placeholder : `|${placeholder}`),
+      '',
+    ),
+    flags,
+  )
+  function replace(str: string, value: string | number): string
+  function replace<Obj extends {} = any>(obj: Obj, value: string | number): Obj
+  function replace<Obj extends {} = any>(
+    str: string | Obj,
+    value: string | number,
+  ) {
+    if (u.isStr(str)) {
+      return str.replace(regexp, String(value))
+    } else if (u.isObj(str)) {
+      const stringified = JSON.stringify(str).replace(regexp, String(value))
+      return JSON.parse(stringified)
+    }
+    return ''
+  }
+  return replace
+}
+
+export const createNoodlPlaceholderReplacer = (function () {
+  const replaceCadlBaseUrl = curry(
+    createPlaceholderReplacer('\\${cadlBaseUrl}', 'gi'),
+  )
+  const replaceCadlVersion = curry(
+    createPlaceholderReplacer('\\${cadlVersion}', 'gi'),
+  )
+  const replaceDesignSuffix = curry(
+    createPlaceholderReplacer('\\${designSuffix}', 'gi'),
+  )
+  const replacerMapper = {
+    cadlVersion: replaceCadlVersion,
+    designSuffix: replaceDesignSuffix,
+    cadlBaseUrl: replaceCadlBaseUrl,
+  }
+  const createReplacer = (keyMap: {
+    cadlBaseUrl?: any
+    cadlVersion?: any
+    designSuffix?: any
+  }) => {
+    let replacers = [] as ((s: string) => string)[]
+    let entries = Object.entries(keyMap)
+
+    if (keyMap.cadlBaseUrl && 'cadlVersion' in keyMap) {
+      keyMap.cadlBaseUrl = replaceCadlBaseUrl(
+        keyMap.cadlBaseUrl,
+        keyMap.cadlVersion,
+      )
+    }
+
+    for (let index = 0; index < entries.length; index++) {
+      const [placeholder, value] = entries[index]
+      if (placeholder in replacerMapper) {
+        const regexStr = '\\${' + placeholder + '}'
+        const regex = new RegExp(regexStr, 'gi')
+        replacers.push((s: string) => s.replace(regex, value))
+      }
+    }
+    return flowRight(...replacers)
+  }
+  return createReplacer
+})()
 
 /**
  * Transforms the dataKey of an emit object. If the dataKey is an object,
@@ -13,14 +86,14 @@ import * as T from './types'
  * @param { object | object[] } dataObject - Data object or an array of data objects
  */
 export function createEmitDataKey(
-  dataKey: string | T.PlainObject,
-  dataObject: T.QueryObj | T.QueryObj[],
+  dataKey: string | Record<string, any>,
+  dataObject: t.QueryObj | t.QueryObj[],
   opts?: { iteratorVar?: string },
 ): any {
   const iteratorVar = opts?.iteratorVar || ''
-  if (isStr(dataKey)) {
+  if (u.isStr(dataKey)) {
     return findDataValue(dataObject, excludeIteratorVar(dataKey, iteratorVar))
-  } else if (isObj(dataKey)) {
+  } else if (u.isObj(dataKey)) {
     return Object.keys(dataKey).reduce((acc, property) => {
       acc[property] = findDataValue(
         dataObject,
@@ -32,10 +105,14 @@ export function createEmitDataKey(
   return dataKey
 }
 
-export function excludeIteratorVar(dataKey: string, iteratorVar: string = '') {
-  if (!isStr(dataKey)) return dataKey
-  if (iteratorVar && dataKey.startsWith(iteratorVar)) {
-    return dataKey.split('.').slice(1).join('.')
+export function excludeIteratorVar(
+  dataKey: string | undefined,
+  iteratorVar: string | undefined = '',
+) {
+  if (!u.isStr(dataKey)) return dataKey
+  if (iteratorVar && dataKey.includes(iteratorVar)) {
+    if (dataKey === iteratorVar) return ''
+    return dataKey.split(`${iteratorVar}.`).join('').replace(iteratorVar, '')
   }
   return dataKey
 }
@@ -66,7 +143,7 @@ export function evalIf<IfObj extends { if: [any, any, any] }>(
 
 type FindDataValueItem =
   | ((...args: any[]) => any)
-  | T.PlainObject
+  | Record<string, any>
   | FindDataValueItem[]
 
 /**
@@ -76,12 +153,12 @@ type FindDataValueItem =
  */
 export const findDataValue = <O extends FindDataValueItem = any>(
   objs: O,
-  path: string | string[],
+  path: string | string[] | undefined,
 ) => {
-  if (!path) return unwrapObj(isArr(objs) ? objs[0] : objs)
+  if (!path) return u.unwrapObj(u.isArr(objs) ? objs[0] : objs)
   return get(
-    unwrapObj(
-      (isArr(objs) ? objs : [objs])?.find((o) => has(unwrapObj(o), path)),
+    u.unwrapObj(
+      (u.isArr(objs) ? objs : [objs])?.find((o) => has(u.unwrapObj(o), path)),
     ),
     path,
   )
@@ -92,9 +169,9 @@ export const findDataValue = <O extends FindDataValueItem = any>(
 //   objs: O,
 //   path: string | undefined,
 // ) {
-//   if (!path) return unwrapObj(isArr(objs) ? objs[0] : objs)
+//   if (!path) return u.unwrapObj(u.isArr(objs) ? objs[0] : objs)
 //   for (let obj of array(objs)) {
-//     obj = unwrapObj(obj)
+//     obj = u.unwrapObj(obj)
 //     const parts = (path?.split('.') || []) as string[]
 //     console.info(parts)
 //     const depth = parts.length
@@ -103,7 +180,7 @@ export const findDataValue = <O extends FindDataValueItem = any>(
 //     if (depth >= 3) path = parts.slice(0, depth - 1).join('.')
 //     if (has(obj, path)) {
 //       const value = get(obj, path)
-//       if (value && !isStr(value) && !isNum(value)) return value
+//       if (value && !u.isStr(value) && !u.isNum(value)) return value
 //     }
 //   }
 // }
@@ -111,11 +188,11 @@ export const findDataValue = <O extends FindDataValueItem = any>(
 export function findReferences(obj: any): string[] {
   let results = [] as string[]
   ;(Array.isArray(obj) ? obj : [obj]).forEach((o) => {
-    if (isStr(o)) {
+    if (u.isStr(o)) {
       if (o.startsWith('.')) results.push(o)
-    } else if (isArr(o)) {
+    } else if (u.isArr(o)) {
       results = results.concat(findReferences(o))
-    } else if (isObj(o)) {
+    } else if (u.isObj(o)) {
       for (let key in o) {
         const value = o[key]
         results = results.concat(findReferences(key))
@@ -124,40 +201,6 @@ export function findReferences(obj: any): string[] {
     }
   })
   return results
-}
-
-export function getAllByDataKey<Elem extends HTMLElement = HTMLElement>(
-  dataKey?: string,
-) {
-  return Array.from(
-    document.querySelectorAll(`[data-key${dataKey ? `="${dataKey}"` : ''}]`),
-  ) as Elem[]
-}
-
-export function getAllByDataListId<Elem extends HTMLElement = HTMLElement>() {
-  return Array.from(document.querySelectorAll('[data-listid]')) as Elem[]
-}
-
-export function getAllByDataName<Elem extends HTMLElement = HTMLElement>() {
-  return Array.from(document.querySelectorAll('[data-name]')) as Elem[]
-}
-
-export function getAllByDataViewTag(viewTag: string) {
-  return typeof viewTag === 'string'
-    ? Array.from(document.querySelectorAll(`[data-viewtag="${viewTag}"]`))
-    : []
-}
-
-export function getByDataKey(value: string) {
-  return document.querySelector(`[data-key="${value}"]`)
-}
-
-export function getByDataListId(value: string) {
-  return document.querySelector(`[data-listid="${value}"]`)
-}
-
-export function getByDataViewTag(value: string) {
-  return document.querySelector(`[data-viewtag="${value}"]`)
 }
 
 export function getDataValue<T = any>(
@@ -179,6 +222,25 @@ export function getDataValue<T = any>(
   }
 }
 
+export const hasNoodlPlaceholder = (function () {
+  const regex = new RegExp(
+    `(${Object.values({
+      cadlBaseUrl: '\\${cadlBaseUrl}',
+      cadlVersion: '\\${cadlVersion}',
+      designSuffix: '\\${designSuffix}',
+    } as const).join('|')})`,
+    'i',
+  )
+  function hasPlaceholder(str: string | undefined) {
+    return u.isStr(str) ? regex.test(str) : false
+  }
+  return hasPlaceholder
+})()
+
+export function isOutboundLink(s: string | undefined = '') {
+  return /https?:\/\//.test(s)
+}
+
 export function isRootDataKey(dataKey: string | undefined) {
   if (typeof dataKey === 'string') {
     if (dataKey.startsWith('.')) {
@@ -190,74 +252,19 @@ export function isRootDataKey(dataKey: string | undefined) {
   return false
 }
 
-export const parse = (function () {
-  const o = {
-    /**
-     * Parses a destination string
-     * (In most scenarios it will be coming from goto actions)
-     * @param { string } destination
-     */
-    destination<
-      RT extends {
-        destination: string
-        id?: string
-        isSamePage?: boolean
-        duration: number
-        [key: string]: any
-      } = any,
-    >(
-      destination: string,
-      {
-        denoter = '^',
-        duration = 350,
-      }: { denoter?: string; duration?: number } = {},
-    ): RT {
-      const result = { duration } as RT
-      if (isStr(destination)) {
-        // TEMP here until cache issue is fixed
-        if (!destination.includes(denoter)) {
-          if (destination.includes('#')) denoter = '#'
-          else if (destination.includes('/')) denoter = '/'
-        }
-        if (denoter && destination.includes(denoter)) {
-          if (destination.indexOf(denoter) === 0) {
-            // Most likely a viewTag on the destination page.
-            // For now we will just always assume it represents an
-            // html element holding the viewTag
-            result.destination = ''
-            result.id = destination.replace(denoter, '')
-            result.isSamePage = true
-          } else {
-            const parts = destination.split(denoter)[1]?.split(';')
-            let serializedProps = parts?.[1] || ''
-            let propKey = ''
-            if (serializedProps.startsWith(';')) {
-              serializedProps = serializedProps.replace(';', '')
-            }
-            result.id = parts?.[0] || ''
-            result.isSamePage = false
-            result.destination = destination.substring(
-              0,
-              destination.indexOf(denoter),
-            )
-            serializedProps.split(':').forEach((v, index) => {
-              if (index % 2 === 1) (result as any)[propKey] = v
-              else if (index % 2 === 0) propKey = v
-            })
-            result.duration = isNum(result.props?.duration)
-              ? result.props.duration
-              : duration
-          }
-        } else {
-          result.destination = destination.replace(denoter, '')
-          result.isSamePage = false
-        }
-      } else {
-        result.destination = ''
-      }
-      return result
-    },
-  }
+export function isSerializableStr(value: unknown) {
+  return u.isStr(value) && /^[a-zA-Z]+[0-9]+/.test(value)
+}
 
-  return o
-})()
+export function isStable() {
+  return process.env.ECOS_ENV === 'stable'
+}
+
+export function isTest() {
+  return process.env.ECOS_ENV === 'test'
+}
+
+export function isValidAsset(value: string | undefined) {
+  if (value?.endsWith('..tar')) return false
+  return u.isStr(value) && /(.[a-zA-Z]+)$/i.test(value)
+}

@@ -16,9 +16,9 @@ import { GlobalRegisterComponent } from '../app/types'
 const log = Logger.create('register.ts')
 
 function createRegisters(app: App) {
-  app.notification.on('message', (obs) => {
-    if (!u.isFnc(obs) && u.isObj(obs)) {
-      const { data } = (obs as any) || {}
+  app.notification?.on('message', (message) => {
+    if (message) {
+      const { data } = message
       if (data?.did) {
         //  call onNewEcosDoc for now  until we propose a more generic approach
         const onNewEcosDocRegisterComponent = app.globalRegister?.find?.(
@@ -29,7 +29,19 @@ function createRegisters(app: App) {
     }
   })
 
-  const globalRegisterComponent = {
+  const registerHandlers = {
+    onNewDocument() {
+      //
+    },
+    onNewMessage() {
+      //
+    },
+    onNewMeetingInvite() {
+      //
+    },
+  }
+
+  const registrees = {
     FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
       log.func('FCMOnTokenReceive')
 
@@ -40,7 +52,7 @@ function createRegisters(app: App) {
         trigger: 'register',
       }) as EmitAction
 
-      const component = app.nui.resolveComponents(
+      const component = app.nui?.resolveComponents(
         componentObject,
       ) as NUIComponent.Instance
 
@@ -50,12 +62,12 @@ function createRegisters(app: App) {
         try {
           action.dataKey = { var: token }
           await Promise.all(
-            app.actions.emit.get('register')?.map((obj: Store.ActionObject) =>
+            app.actions?.emit.get('register')?.map((obj: Store.ActionObject) =>
               obj?.fn?.(
                 action,
-                app.nui.getConsumerOptions({
+                app.nui?.getConsumerOptions({
                   component,
-                  page: app.mainPage.getNuiPage(),
+                  page: app.mainPage?.getNuiPage(),
                 }),
               ),
             ) || [],
@@ -84,7 +96,7 @@ function createRegisters(app: App) {
         trigger: 'register',
       }) as EmitAction
 
-      const component = app.nui.resolveComponents(
+      const component = app.nui?.resolveComponents(
         componentObject,
       ) as NUIComponent.Instance
 
@@ -94,12 +106,12 @@ function createRegisters(app: App) {
         try {
           action.dataKey = { var: did }
           await Promise.all(
-            app.actions.emit.get('register')?.map((obj: Store.ActionObject) =>
+            app.actions?.emit.get('register')?.map((obj: Store.ActionObject) =>
               obj?.fn?.(
                 action,
-                app.nui.getConsumerOptions({
+                app.nui?.getConsumerOptions({
                   component,
-                  page: app.mainPage.getNuiPage(),
+                  page: app.mainPage?.getNuiPage(),
                 }),
               ),
             ) || [],
@@ -109,6 +121,10 @@ function createRegisters(app: App) {
           console.error(error)
         }
       }
+    },
+    async onNewMeetingInvite(componentObject: GlobalRegisterComponent) {
+      log.func('onNewMeetingInvite')
+      componentObject.eventId = 'onNewMeetingInvite'
     },
   }
 
@@ -130,12 +146,12 @@ function createRegisters(app: App) {
 
           if (
             u.isStr(componentObject.onEvent) &&
-            u.isFnc(globalRegisterComponent[componentObject.onEvent])
+            u.isFnc(registrees[componentObject.onEvent])
           ) {
             const onEvent = componentObject.onEvent as any
-            ;(globalRegisterComponent as any)[onEvent](componentObject)
+            ;(registrees as any)[onEvent](componentObject)
           } else {
-            // This block runs if the event is not in globalRegisterComponent
+            // This block runs if the event is not in registrees
             app.nui.use({ register: componentObject })
 
             log.func('onInitPage')

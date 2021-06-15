@@ -29,9 +29,10 @@ import {
   triggers,
   NUIComponent,
 } from 'noodl-ui'
-import { evalIf, isRootDataKey, parse } from 'noodl-utils'
+import { evalIf, isRootDataKey } from 'noodl-utils'
 import { IfObject, Identify } from 'noodl-types'
 import {
+  getBlobFromCanvas,
   getVcodeElem,
   hide,
   show,
@@ -40,11 +41,7 @@ import {
   toast,
 } from '../utils/dom'
 import App from '../App'
-import {
-  pickActionKey,
-  pickHasActionKey,
-  resolvePageUrl,
-} from '../utils/common'
+import { pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
 
 const log = Logger.create('actions.ts')
@@ -249,7 +246,7 @@ const createActions = function createActions(app: App) {
       id = '',
       isSamePage,
       duration,
-    } = parse.destination(destinationParam)
+    } = app.parse.destination(destinationParam)
     let pageModifiers = {} as any
 
     if (destination === destinationParam) {
@@ -305,7 +302,7 @@ const createActions = function createActions(app: App) {
     }
 
     if (!destinationParam.startsWith('http')) {
-      app.mainPage.pageUrl = resolvePageUrl({
+      app.mainPage.pageUrl = app.parse.queryString({
         destination,
         pageUrl: app.mainPage.pageUrl,
         startPage: app.startPage,
@@ -619,47 +616,48 @@ const createActions = function createActions(app: App) {
             let dataUrl = signaturePad.toDataURL()
             let mimeType = dataUrl.split(';')[0].split(':')[1] || ''
             if (has(dataObject, dataKey)) {
-              node.toBlob(
-                (blob) => {
-                  set(dataObject, dataKey, blob)
-                  log.func('saveSignature')
-                  log.grey(`Saved blob to "${dataKey}"`, {
-                    blob,
-                    dataKey,
-                    mimeType,
-                  })
-                  resolve()
-                },
-                mimeType,
-                8,
-              )
+              getBlobFromCanvas(node, mimeType).then((blob) => {
+                set(dataObject, dataKey, blob)
+                log.func('saveSignature')
+                log.grey(`Saved blob to "${dataKey}"`, {
+                  blob,
+                  dataKey,
+                  dataObject,
+                  mimeType,
+                })
+                resolve()
+              })
             } else {
-              log.red(
-                `Cannot save the signature because the component with dataKey "${dataKey}" did not have a SignaturePad stored in its instance`,
-                { action: action.snapshot?.(), component },
+              resolve(
+                log.red(
+                  `Cannot save the signature because the component with dataKey "${dataKey}" did not have a SignaturePad stored in its instance`,
+                  { action: action.snapshot?.(), component },
+                ),
               )
-              resolve()
             }
           } else {
-            log.red(`Missing signature pad from a canvas component`, {
-              action: action.snapshot?.(),
-              component,
-            })
-            resolve()
+            resolve(
+              log.red(`Missing signature pad from a canvas component`, {
+                action: action.snapshot?.(),
+                component,
+              }),
+            )
           }
         } else {
-          log.red(
-            `Cannot save the signature because a component with dataKey "${dataKey}" was not available in the component cache`,
-            { action: action.snapshot?.(), component },
+          resolve(
+            log.red(
+              `Cannot save the signature because a component with dataKey "${dataKey}" was not available in the component cache`,
+              { action: action.snapshot?.(), component },
+            ),
           )
-          resolve()
         }
       } else {
-        log.red(
-          `Cannot save the signature because there is no dataKey`,
-          action.snapshot?.(),
+        resolve(
+          log.red(
+            `Cannot save the signature because there is no dataKey`,
+            action.snapshot?.(),
+          ),
         )
-        resolve()
       }
     })
   }

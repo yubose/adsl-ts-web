@@ -3,6 +3,7 @@
     "transpileOnly": true
   },
   "compilerOptions": {
+    "keyofStringsOnly": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "commonjs",
     "target": "es2019"

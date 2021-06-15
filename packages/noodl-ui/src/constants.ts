@@ -27,17 +27,6 @@ export const groupedActionTypes = actionTypes.filter(
   (t) => !/(builtIn|emit|register)/i.test(t),
 ) as Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>[]
 
-export const colorMap = {
-  ...groupedActionTypes.reduce((acc, actionType) => {
-    acc[actionType] = 'mediumspringgreen'
-    return acc
-  }, {} as Record<Exclude<typeof groupedActionTypes[number], 'goto'>, 'mediumspringgreen'>),
-  builtIn: 'palegoldenrod',
-  emit: 'fuchsia',
-  register: 'tomato',
-  transaction: 'darkkhaki',
-} as const
-
 export const presets = {
   border: {
     '1': { borderStyle: 'none', borderRadius: '0px' },

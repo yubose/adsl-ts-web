@@ -351,16 +351,6 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
       expect(result.style.height).to.equal('667px')
     })
 
-    // TODO: come back to this
-    // '12' --> '12px'
-    it('should append px for now (NOTE: come back to this)', () => {
-      const result = resolveComponent(
-        mock.getSelectComponent({ style: { width: '12', height: '2' } }),
-      )
-      expect(result.style.width).to.equal('12px')
-      expect(result.style.height).to.equal('2px')
-    })
-
     // 1 --> '375px'
     it('should return the the size with px appended if value is a number 1', () => {
       let result = resolveComponent(

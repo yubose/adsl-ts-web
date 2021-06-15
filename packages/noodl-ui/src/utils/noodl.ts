@@ -68,11 +68,6 @@ export function findListDataObject(
 
   if (isComponent(listItem)) {
     if (iteratorVar && listItem.props[iteratorVar]) {
-      // console.log(
-      //   `%cFound dataObject in listItem.props[iteratorVar]`,
-      //   `color:#00b406;`,
-      //   listItem.props[iteratorVar],
-      // )
       return listItem.props[iteratorVar]
     }
 

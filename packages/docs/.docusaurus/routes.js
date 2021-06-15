@@ -49,12 +49,27 @@ export default [
 },
 {
   path: '/docs',
-  component: ComponentCreator('/docs','ba6'),
+  component: ComponentCreator('/docs','7de'),
   
   routes: [
 {
+  path: '/docs/actions',
+  component: ComponentCreator('/docs/actions','a9f'),
+  exact: true,
+},
+{
+  path: '/docs/api/actions',
+  component: ComponentCreator('/docs/api/actions','235'),
+  exact: true,
+},
+{
   path: '/docs/api/unit_tests',
   component: ComponentCreator('/docs/api/unit_tests','558'),
+  exact: true,
+},
+{
+  path: '/docs/builtIns',
+  component: ComponentCreator('/docs/builtIns','6ce'),
   exact: true,
 },
 {

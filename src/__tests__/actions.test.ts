@@ -1,4 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
+import * as u from '@jsmanifest/utils'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import sinon from 'sinon'
 import { expect } from 'chai'
@@ -22,7 +23,6 @@ import createBuiltIns from '../handlers/builtIns'
 import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
 import getVideoChatPageObject from './helpers/getVideoChatPage'
-import * as u from '../utils/common'
 import * as dom from '../utils/dom'
 
 const nonEmitBuiltInActionTypes = nuiActionTypes.filter(
@@ -31,7 +31,7 @@ const nonEmitBuiltInActionTypes = nuiActionTypes.filter(
 
 describe(coolGold(`actions`), () => {
   describe(italic(`evalObject`), () => {
-    describe.only(`when dynamically receiving actions in the middle of the call`, () => {
+    describe(`when dynamically receiving actions in the middle of the call`, () => {
       it(
         `should still invoke global popUp actions if there are any ` +
           `remaining when receiving { abort: true }`,
@@ -131,6 +131,13 @@ describe(coolGold(`actions`), () => {
 
     xit(`should clear the canvas`, () => {
       //
+    })
+  })
+
+  describe.only(`register`, () => {
+    it(``, async () => {
+      const app = await getApp()
+      console.info(app)
     })
   })
 })

@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events'
+import * as u from '@jsmanifest/utils'
 import unary from 'lodash/unary'
 import {
   connect,
@@ -12,7 +13,7 @@ import {
 } from 'twilio-video'
 import Logger from 'logsnap'
 import { getFirstByViewTag, findByUX } from 'noodl-ui-dom'
-import { array, isMobile, isUnitTestEnv } from '../utils/common'
+import { isMobile, isUnitTestEnv } from '../utils/common'
 import { hide, show, toast } from '../utils/dom'
 import App from '../App'
 import Stream from '../meeting/Stream'
@@ -399,7 +400,9 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       }
     },
     getWaitingMessageElements() {
-      return array(findByUX('waitForOtherTag')).filter(Boolean) as HTMLElement[]
+      return u
+        .array(findByUX('waitForOtherTag'))
+        .filter(Boolean) as HTMLElement[]
     },
     /**
      * Wipes the entire internal state. This is mainly just used for testing
