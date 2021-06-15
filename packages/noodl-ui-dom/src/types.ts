@@ -162,13 +162,8 @@ export namespace Page {
       rootNode: NOODLDOM['page']['rootNode']
     }): void
     [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
-      snapshot: Snapshot,
-    ): Promise<
-      | 'old.request'
-      | { name: string; object: Record<string, any> }
-      | void
-      | undefined
-    >
+      snapshot: Snapshot & { components: NUIComponent.Instance[] },
+    ): void
     [eventId.page.on.ON_COMPONENTS_RENDERED](page: NOODLDOMPage): void
     [eventId.page.on.ON_APPEND_NODE](args: {
       page: NOODLDOMPage
@@ -208,12 +203,7 @@ export namespace Page {
   export type Status =
     typeof eventId.page.status[keyof typeof eventId.page.status]
 
-  export interface Snapshot {
-    previous: string
-    current: string
-    requesting: string
-    status: Page.Status
-  }
+  export type Snapshot = ReturnType<NOODLDOMPage['snapshot']>
 }
 
 export interface NDOMTransaction {
