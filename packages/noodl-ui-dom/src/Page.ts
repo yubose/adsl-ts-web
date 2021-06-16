@@ -210,8 +210,10 @@ class Page {
   /**
    * Returns a JS representation of the current state of this page instance
    */
-  snapshot(opts?: Record<string, any>) {
-    return {
+  snapshot<OtherProps extends Record<string, any> = Record<string, any>>(
+    opts?: OtherProps,
+  ) {
+    const snapshot = {
       id: this.id,
       modifiers: this.modifiers,
       status: this.state.status,
@@ -231,6 +233,7 @@ class Page {
       },
       ...opts,
     }
+    return snapshot as typeof snapshot & OtherProps
   }
 
   on<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {

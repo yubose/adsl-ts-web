@@ -316,18 +316,6 @@ class NOODLDOM extends NOODLDOMInternal {
         }
       })
 
-      await action(async () => {
-        if (
-          (await page.emitAsync(
-            pageEvt.on.ON_BEFORE_RENDER_COMPONENTS,
-            page.snapshot(),
-          )) === 'old.request'
-        ) {
-          await page.emitAsync(pageEvt.on.ON_NAVIGATE_ABORT, page.snapshot())
-          throw new Error(`A more recent request was called`)
-        }
-      })
-
       await action(() => {
         page.previous = page.page
         page.page = page.requesting
@@ -373,6 +361,11 @@ class NOODLDOM extends NOODLDOMInternal {
     page.clearRootNode()
 
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
+
+    page.emitSync(
+      pageEvt.on.ON_BEFORE_RENDER_COMPONENTS,
+      page.snapshot({ components }),
+    )
 
     components.forEach((component) => this.draw(component, page.rootNode, page))
 
