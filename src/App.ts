@@ -563,6 +563,12 @@ class App {
       }
     };
 
+    const onBeforRenderComponents: NOODLDOMPage["hooks"]["ON_BEFORE_RENDER_COMPONENTS"][number]["fn"] =
+      (snapshot) => {
+        log.func("onBeforRenderComponents");
+        log.grey(`onBeforRenderComponents`, snapshot);
+      };
+
     const onComponentsRendered = (page: NOODLDOMPage) => {
       log.func("onComponentsRendered");
       log.grey(`Done rendering DOM nodes for ${page.page}`, page.snapshot());
@@ -592,6 +598,7 @@ class App {
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
       .on(eventId.page.on.ON_NAVIGATE_STALE, onNavigateStale)
       .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearRootNode)
+      .on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, onBeforRenderComponents)
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered);
   }
 
