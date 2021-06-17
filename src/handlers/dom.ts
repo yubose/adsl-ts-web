@@ -2,6 +2,9 @@ import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
+import 'tippy.js/dist/tippy.css';
+import 'tippy.js/themes/light.css';
+import tippy, { followCursor, MultipleTargets } from 'tippy.js';
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
@@ -250,38 +253,113 @@ const createExtendedDOMResolvers = function (app: App) {
               }
               case 'calendarTable': {
                 let headerBar = {
-                  start: "title",
-                  center: '',
-                  end: 'today prev,next'
+                  start: "prev next",
+                  center: 'title',
+                  end: 'timeGridDay,timeGridWeek'
                 }
                 let defaultData = dataValue.chartData
                 defaultData.forEach(element => {
-                  element.start = element.stime*1000
-                  element.end = element.etime*1000
-                  element.title = element.visitReason
+                  element.start = formatDate(element.stime * 1000);
+                  element.end = formatDate(element.etime * 1000);
+                  element.title = element.visitReason;
+                
+                  delete element.stime;
+                  delete element.etime;
                   delete element.visitReason
-                  delete element.stime
-                  delete element.etime
+
                 });
+                function dateFormat(fmt: string, date) {
+                  let ret;
+                  const opt = {
+                    "Y+": date.getFullYear().toString(),        // 年
+                    "m+": (date.getMonth() + 1).toString(),     // 月
+                    "d+": date.getDate().toString(),            // 日
+                    "H+": date.getHours().toString(),           // 时
+                    "M+": date.getMinutes().toString(),         // 分
+                    "S+": date.getSeconds().toString()          // 秒
+                    // 有其他格式化字符需求可以继续添加，必须转化成字符串
+                  };
+                  for (let k in opt) {
+                    ret = new RegExp("(" + k + ")").exec(fmt);
+                    if (ret) {
+                      fmt = fmt.replace(ret[1], (ret[1].length == 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, "0")))
+                    };
+                  };
+                  return fmt;
+                };
+                function formatDate(dat: string | number | Date) {
+                  let date = new Date(dat);
+                  let YY = date.getFullYear() + '-';
+                  let MM = (date.getMonth() + 1 < 10 ? '0' + (date.getMonth() + 1) : date.getMonth() + 1) + '-';
+                  let DD = (date.getDate() < 10 ? '0' + (date.getDate()) : date.getDate());
+                  let hh = (date.getHours() < 10 ? '0' + date.getHours() : date.getHours()) + ':';
+                  let mm = (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes()) + ':';
+                  let ss = (date.getSeconds() < 10 ? '0' + date.getSeconds() : date.getSeconds());
+                  return YY + MM + DD + " " + hh + mm + ss;
+                }
                 let calendar = new FullCalendar.Calendar(node, {
                   headerToolbar: headerBar,
-                  height: "auto",              // 定义表格高度
+                  
+                  height: 'auto',
+                 
                   allDaySlot: false,           // 是否显示表头的全天事件栏
                   initialView: 'timeGridWeek',
                   // locale: 'zh-cn',             // 区域本地化
                   firstDay: 0,                 // 每周的第一天： 0:周日
                   nowIndicator: true,          // 是否显示当前时间的指示条
-                  slotMinTime: "00:00:00",     // 图表展示的开始时间
-                  slotMaxTime: "24:00:00",     // 图表展示的结束时间
-                  slotLabelFormat:[
+                  slotLabelFormat: [
                     {
-                       hour: 'numeric',
-                       minute: '2-digit'
+                      hour: 'numeric',
+                      minute: '2-digit'
                     }
-                 ],
-                 events: defaultData
+                  ],
+                  buttonText:{
+                    week:'Weeks',
+                    day:'Day'
+                  },
+                  slotDuration:'00:05:00',
+                  // slotLabelInterval : "00:05:00",
+                  displayEventTime:false,
+                  views: {
+                    timeGridFourDay: {
+                      type: 'timeGrid',
+                      buttonText: '2 day'
+                    }
+                  },
+                  events: defaultData,
+                  handleWindowResize:true,
+                  eventLimit: true,
+                  eventMouseEnter: (info: { el: MultipleTargets; event: { _def: { title: string; }; _instance: { range: { start: any; end: any; }; }; }; }) => {
+                    //console.log(info);
+                    tippy(info.el, {
+                      content: '<div >\
+                       <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Patient Information</div>\
+                       <div style="padding-top:2px">Patient Reason：'+ info.event._def.title + '</div>\
+                       <div style="padding:4px 0">startTime：'+ dateFormat('YYYY-mm-dd HH:MM', info.event._instance.range.start) + '</div>\
+                       <div>endTime： '+ dateFormat('YYYY-mm-dd HH:MM', info.event._instance.range.end) + '</div>\
+ 　　　　　　　        　</div>',
+                      allowHTML: true,
+                      theme: 'translucent',
+                      //interactive: true,
+                      //placement: 'right-end',
+                      followCursor: true,
+                      plugins: [followCursor],
+                      duration: [0, 0]
+                    });
+                  },
+                  //eventColor: 'red',
+                 
+                  eventClick: function (event: { event: { _def: { publicId: any; }; }; }) {
+                    //alert(event.event._instance.range);
+                   
+                    if (event.event._def) {
+                      dataValue.response = event.event._def.publicId;
+                    }
+
+                  },
                 });
                 calendar.render();
+                break
               }
             }
           } else {
