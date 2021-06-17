@@ -1,8 +1,8 @@
-import get from "lodash/get";
-import has from "lodash/has";
-import set from "lodash/set";
-import * as u from "@jsmanifest/utils";
-import { isAction } from "noodl-action-chain";
+import get from 'lodash/get'
+import has from 'lodash/has'
+import set from 'lodash/set'
+import * as u from '@jsmanifest/utils'
+import { isAction } from 'noodl-action-chain'
 import {
   findListDataObject,
   findIteratorVar,
@@ -11,7 +11,7 @@ import {
   Store,
   Viewport as VP,
   isListConsumer,
-} from "noodl-ui";
+} from 'noodl-ui'
 import {
   BASE_PAGE_URL,
   eventId as ndomEventId,
@@ -21,16 +21,16 @@ import {
   getByDataUX,
   getFirstByElementId,
   isPageConsumer,
-} from "noodl-ui-dom";
-import { BuiltInActionObject, EcosDocument, Identify } from "noodl-types";
+} from 'noodl-ui-dom'
+import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import {
   LocalAudioTrack,
   LocalAudioTrackPublication,
   LocalVideoTrack,
   LocalVideoTrackPublication,
   Room,
-} from "twilio-video";
-import Logger from "logsnap";
+} from 'twilio-video'
+import Logger from 'logsnap'
 import {
   download,
   isVisible,
@@ -38,71 +38,71 @@ import {
   hide,
   show,
   scrollToElem,
-} from "../utils/dom";
-import { getActionMetadata, pickActionKey } from "../utils/common";
-import App from "../App";
+} from '../utils/dom'
+import { getActionMetadata, pickActionKey } from '../utils/common'
+import App from '../App'
 
-const log = Logger.create("builtIns.ts");
-const _pick = pickActionKey;
+const log = Logger.create('builtIns.ts')
+const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
-  function _toggleMeetingDevice(kind: "audio" | "video") {
-    log.func(`(${kind}) toggleDevice`);
-    log.grey(`Toggling ${kind}`);
-    let devicePath = `VideoChat.${kind === "audio" ? "micOn" : "cameraOn"}`;
-    let localParticipant = app.meeting.localParticipant;
-    let localTrack: LocalAudioTrack | LocalVideoTrack | undefined;
+  function _toggleMeetingDevice(kind: 'audio' | 'video') {
+    log.func(`(${kind}) toggleDevice`)
+    log.grey(`Toggling ${kind}`)
+    let devicePath = `VideoChat.${kind === 'audio' ? 'micOn' : 'cameraOn'}`
+    let localParticipant = app.meeting.localParticipant
+    let localTrack: LocalAudioTrack | LocalVideoTrack | undefined
     if (localParticipant) {
       for (const publication of localParticipant.tracks.values()) {
-        if (publication.track.kind === kind) localTrack = publication.track;
+        if (publication.track.kind === kind) localTrack = publication.track
       }
       app.updateRoot((draft) => {
         if (localTrack) {
-          localTrack[localTrack.isEnabled ? "disable" : "enable"]?.();
-          set(draft, devicePath, !localTrack.isEnabled);
+          localTrack[localTrack.isEnabled ? 'disable' : 'enable']?.()
+          set(draft, devicePath, !localTrack.isEnabled)
           log.grey(
-            `Toggled ${kind} ${localTrack.isEnabled ? "off" : "on"}`,
-            localParticipant
-          );
+            `Toggled ${kind} ${localTrack.isEnabled ? 'off' : 'on'}`,
+            localParticipant,
+          )
         } else {
           log.red(
             `Tried to toggle ${kind} track on/off for LocalParticipant but a ${kind} ` +
               `track was not available`,
-            app.meeting.localParticipant
-          );
+            app.meeting.localParticipant,
+          )
         }
-      });
+      })
     }
   }
 
-  const checkField: Store.BuiltInObject["fn"] = async function onCheckField(
-    action
+  const checkField: Store.BuiltInObject['fn'] = async function onCheckField(
+    action,
   ) {
-    log.func("checkField");
-    log.grey("", action.snapshot?.());
-    const delay: number | boolean = _pick(action, "wait");
+    log.func('checkField')
+    log.grey('', action.snapshot?.())
+    const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
-      u.arrayEach(findByUX(_pick(action, "contentType")), (n) => n && show(n));
-    };
-    u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField();
-  };
+      u.arrayEach(findByUX(_pick(action, 'contentType')), (n) => n && show(n))
+    }
+    u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
+  }
 
-  const disconnectMeeting: Store.BuiltInObject["fn"] =
+  const disconnectMeeting: Store.BuiltInObject['fn'] =
     async function onDisconnectMeeting(action) {
-      log.func("disconnectMeeting");
-      log.grey("", action.snapshot?.());
-      app.meeting.leave();
-    };
+      log.func('disconnectMeeting')
+      log.grey('', action.snapshot?.())
+      app.meeting.leave()
+    }
 
-  const goBack: Store.BuiltInObject["fn"] = async function onGoBack(action) {
-    log.func("goBack");
-    log.grey("", action.snapshot?.());
-    const reload = _pick(action, "reload");
-    app.mainPage.requesting = app.mainPage.previous;
+  const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {
+    log.func('goBack')
+    log.grey('', action.snapshot?.())
+    const reload = _pick(action, 'reload')
+    app.mainPage.requesting = app.mainPage.previous
     // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
     // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
     if (u.isBool(reload)) {
-      app.mainPage.setModifier(app.mainPage.previous, { reload });
+      app.mainPage.setModifier(app.mainPage.previous, { reload })
     }
     if (
       app.mainPage.requesting === app.mainPage.page &&
@@ -110,196 +110,196 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     ) {
       console.log(
         `%cLOOK HERE: All three (previous, current, requesting) value of the page name in the noodl-ui-dom instance are the same`,
-        `color:#ec0000;background:#000`
-      );
+        `color:#ec0000;background:#000`,
+      )
     } else {
       if (app.mainPage.previous === app.mainPage.page) {
         console.log(
           `%cLOOK HERE: The current page is the same as the "previous" page on the noodl-ui-dom page`,
-          `color:deepOrange;background:#000`
-        );
+          `color:deepOrange;background:#000`,
+        )
       }
       if (app.mainPage.page === app.mainPage.requesting) {
         console.log(
           `%cLOOK HERE: The current page is the same as the "requesting" page on the noodl-ui-dom page`,
-          `color:orange;background:#000`
-        );
+          `color:orange;background:#000`,
+        )
       }
     }
 
-    window.history.back();
-  };
+    window.history.back()
+  }
 
-  const hideAction: Store.BuiltInObject["fn"] = async function onHide(action) {
-    log.func("hide");
-    log.grey("", action.snapshot?.());
-    const viewTag = _pick(action, "viewTag");
-    let wait = _pick(action, "wait");
+  const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
+    log.func('hide')
+    log.grey('', action.snapshot?.())
+    const viewTag = _pick(action, 'viewTag')
+    let wait = _pick(action, 'wait')
     const onElem = (node: HTMLElement) => {
-      if (VP.isNil(node.style.top, "px")) {
-        node.style.display !== "none" && (node.style.display = "none");
+      if (VP.isNil(node.style.top, 'px')) {
+        node.style.display !== 'none' && (node.style.display = 'none')
       } else {
-        node.style.display === "none" && (node.style.display = "block");
+        node.style.display === 'none' && (node.style.display = 'block')
       }
-    };
-    let elemCount;
+    }
+    let elemCount
     const onHide = () => {
-      elemCount = hide(findByViewTag(viewTag), onElem);
-      !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`);
-    };
-    !u.isUnd(wait) ? setTimeout(onHide, wait === true ? 0 : wait) : onHide();
-  };
+      elemCount = hide(findByViewTag(viewTag), onElem)
+      !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    }
+    !u.isUnd(wait) ? setTimeout(onHide, wait === true ? 0 : wait) : onHide()
+  }
 
-  const showAction: Store.BuiltInObject["fn"] = async function onShow(
+  const showAction: Store.BuiltInObject['fn'] = async function onShow(
     action,
-    options
+    options,
   ) {
-    log.func("show");
-    log.grey("", action.snapshot?.());
-    const viewTag = _pick(action, "viewTag");
-    let wait = _pick(action, "wait") || 0;
+    log.func('show')
+    log.grey('', action.snapshot?.())
+    const viewTag = _pick(action, 'viewTag')
+    let wait = _pick(action, 'wait') || 0
     const onElem = (node: HTMLElement) => {
-      const component = options.component;
+      const component = options.component
       if (component && VP.isNil(node.style.top)) {
-        !isVisible(node) && (node.style.visibility = "visible");
-        node.style.display === "none" && (node.style.display = "block");
+        !isVisible(node) && (node.style.visibility = 'visible')
+        node.style.display === 'none' && (node.style.display = 'block')
       }
-    };
-    let elemCount;
+    }
+    let elemCount
     if (!u.isUnd(wait)) {
       setTimeout(
         () => void (elemCount = show(findByViewTag(viewTag), onElem)),
-        wait === true ? 0 : wait
-      );
+        wait === true ? 0 : wait,
+      )
     } else {
-      elemCount = show(findByViewTag(viewTag), onElem);
+      elemCount = show(findByViewTag(viewTag), onElem)
     }
-    !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`);
-  };
+    !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+  }
 
-  const toggleCameraOnOff: Store.BuiltInObject["fn"] =
+  const toggleCameraOnOff: Store.BuiltInObject['fn'] =
     async function onToggleCameraOnOff(action) {
-      log.func("toggleCameraOnOff");
-      log.green("", action.snapshot?.());
-      _toggleMeetingDevice("video");
-    };
+      log.func('toggleCameraOnOff')
+      log.green('', action.snapshot?.())
+      _toggleMeetingDevice('video')
+    }
 
-  const toggleMicrophoneOnOff: Store.BuiltInObject["fn"] =
+  const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] =
     async function onToggleMicrophoneOnOff(action) {
-      log.func("toggleMicrophoneOnOff");
-      log.green("", action.snapshot?.());
-      _toggleMeetingDevice("audio");
-    };
+      log.func('toggleMicrophoneOnOff')
+      log.green('', action.snapshot?.())
+      _toggleMeetingDevice('audio')
+    }
 
-  const toggleFlag: Store.BuiltInObject["fn"] = async function onToggleFlag(
+  const toggleFlag: Store.BuiltInObject['fn'] = async function onToggleFlag(
     action,
-    options
+    options,
   ) {
-    log.func("toggleFlag");
-    log.grey("", action.snapshot?.());
+    log.func('toggleFlag')
+    log.grey('', action.snapshot?.())
     try {
-      const { component, getAssetsUrl } = options;
-      const dataKey = _pick(action, "dataKey") || "";
-      const iteratorVar = findIteratorVar(component);
-      const node = getFirstByElementId(component);
-      const pageName = app.mainPage.page || "";
-      let path = component?.get("path");
+      const { component, getAssetsUrl } = options
+      const dataKey = _pick(action, 'dataKey') || ''
+      const iteratorVar = findIteratorVar(component)
+      const node = getFirstByElementId(component)
+      const pageName = app.mainPage.page || ''
+      let path = component?.get('path')
 
-      let dataValue: any;
-      let dataObject: any;
-      let previousDataValue: boolean | undefined;
-      let nextDataValue: boolean | undefined;
-      let newSrc = "";
+      let dataValue: any
+      let dataObject: any
+      let previousDataValue: boolean | undefined
+      let nextDataValue: boolean | undefined
+      let newSrc = ''
 
       if (iteratorVar && dataKey?.startsWith(iteratorVar)) {
-        let parts = dataKey.split(".").slice(1);
-        dataObject = findListDataObject(component);
-        previousDataValue = get(dataObject, parts);
-        dataValue = previousDataValue;
+        let parts = dataKey.split('.').slice(1)
+        dataObject = findListDataObject(component)
+        previousDataValue = get(dataObject, parts)
+        dataValue = previousDataValue
         if (Identify.isBoolean(dataValue)) {
           // true -> false / false -> true
-          nextDataValue = !Identify.isBooleanTrue(dataValue);
+          nextDataValue = !Identify.isBooleanTrue(dataValue)
         } else {
           // Set to true if am item exists
-          nextDataValue = !dataValue;
+          nextDataValue = !dataValue
         }
-        set(dataObject, parts, nextDataValue);
+        set(dataObject, parts, nextDataValue)
       } else {
         const onNextValue = (
           prevValue: any,
-          { updateDraft }: { updateDraft?: { path: string } } = {}
+          { updateDraft }: { updateDraft?: { path: string } } = {},
         ) => {
-          let nextValue: any;
+          let nextValue: any
           if (Identify.isBoolean(prevValue)) {
-            nextValue = !Identify.isBooleanTrue(prevValue);
+            nextValue = !Identify.isBooleanTrue(prevValue)
           }
-          nextValue = !prevValue;
+          nextValue = !prevValue
           if (updateDraft) {
             app.updateRoot(
-              (draft) => void set(draft, updateDraft.path, nextValue)
-            );
+              (draft) => void set(draft, updateDraft.path, nextValue),
+            )
           }
           // Propagate the changes to to UI if there is a path "if" object that
           // references the value as well
           if (node && u.isObj(path)) {
-            let valEvaluating = path?.if?.[0];
+            let valEvaluating = path?.if?.[0]
             // If the dataKey is the same as the the value we are evaluating we can
             // just re-use the nextDataValue
             if (valEvaluating === dataKey) {
-              valEvaluating = nextValue;
+              valEvaluating = nextValue
             } else {
               valEvaluating =
                 get(app.root, valEvaluating) ||
-                get(app.root[pageName], valEvaluating);
+                get(app.root[pageName], valEvaluating)
             }
             node.setAttribute(
-              "src",
-              getAssetsUrl() + valEvaluating ? path?.if?.[1] : path?.if?.[2]
-            );
+              'src',
+              getAssetsUrl() + valEvaluating ? path?.if?.[1] : path?.if?.[2],
+            )
           }
-          return nextValue;
-        };
+          return nextValue
+        }
 
-        dataObject = app.root;
+        dataObject = app.root
 
         if (has(dataObject, dataKey)) {
-          previousDataValue = get(dataObject, dataKey);
-          onNextValue(previousDataValue, { updateDraft: { path: dataKey } });
+          previousDataValue = get(dataObject, dataKey)
+          onNextValue(previousDataValue, { updateDraft: { path: dataKey } })
         } else if (has(dataObject[pageName], dataKey)) {
-          dataObject = dataObject[pageName];
-          previousDataValue = get(dataObject, dataKey);
+          dataObject = dataObject[pageName]
+          previousDataValue = get(dataObject, dataKey)
           onNextValue(previousDataValue, {
             updateDraft: {
-              path: `${dataKey}${pageName ? `.${pageName}` : ""}`,
+              path: `${dataKey}${pageName ? `.${pageName}` : ''}`,
             },
-          });
+          })
         } else {
           log.red(
             `${dataKey} is not a path of the data object. ` +
               `Defaulting to attaching ${dataKey} as a path to the root object`,
-            { action: action.snapshot?.(), dataObject, dataKey }
-          );
-          previousDataValue = undefined;
-          nextDataValue = false;
+            { action: action.snapshot?.(), dataObject, dataKey },
+          )
+          previousDataValue = undefined
+          nextDataValue = false
           onNextValue(previousDataValue, {
-            updateDraft: { path: `${dataKey}.${pageName || ""}` },
-          });
+            updateDraft: { path: `${dataKey}.${pageName || ''}` },
+          })
         }
       }
 
       if (/mic/i.test(dataKey)) {
         await app.builtIns
-          .get("toggleMicrophoneOnOff")
+          .get('toggleMicrophoneOnOff')
           ?.find(Boolean)
-          ?.fn?.(action, options);
+          ?.fn?.(action, options)
       } else if (/camera/i.test(dataKey)) {
         await app.builtIns
-          .get("toggleCameraOnOff")
+          .get('toggleCameraOnOff')
           ?.find(Boolean)
-          ?.fn?.(action, options);
+          ?.fn?.(action, options)
       }
 
-      log.grey("", {
+      log.grey('', {
         action: action.snapshot?.(),
         component,
         dataKey,
@@ -311,100 +311,98 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         node,
         path,
         options,
-      });
+      })
     } catch (error) {
-      console.error(error);
-      throw error;
+      console.error(error)
+      throw error
     }
-  };
+  }
 
-  const lockApplication: Store.BuiltInObject["fn"] =
+  const lockApplication: Store.BuiltInObject['fn'] =
     async function onLockApplication(action, options) {
-      const result = await _onLockLogout();
-      if (result === "abort") options?.ref?.abort?.();
-      await (await import("@aitmed/cadl")).Account.logout(false);
-      window.location.reload();
-    };
+      const result = await _onLockLogout()
+      if (result === 'abort') options?.ref?.abort?.()
+      await (await import('@aitmed/cadl')).Account.logout(false)
+      window.location.reload()
+    }
 
-  const logOutOfApplication: Store.BuiltInObject["fn"] =
+  const logOutOfApplication: Store.BuiltInObject['fn'] =
     async function onLogOutOfApplication(action, options) {
-      if ((await _onLockLogout()) === "abort") options?.ref?.abort?.();
-      await (await import("@aitmed/cadl")).Account.logout(true);
-      window.location.reload();
-    };
+      if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
+      await (await import('@aitmed/cadl')).Account.logout(true)
+      window.location.reload()
+    }
 
-  const logout: Store.BuiltInObject["fn"] = async function onLogout(
+  const logout: Store.BuiltInObject['fn'] = async function onLogout(
     action,
-    options
+    options,
   ) {
-    if ((await _onLockLogout()) === "abort") options?.ref?.abort?.();
-    (await import("@aitmed/cadl")).Account.logout(true);
-    window.location.reload();
-  };
+    if ((await _onLockLogout()) === 'abort') options?.ref?.abort?.()
+    ;(await import('@aitmed/cadl')).Account.logout(true)
+    window.location.reload()
+  }
 
-  const goto: Store.BuiltInObject["fn"] = async function onGoto(
+  const goto: Store.BuiltInObject['fn'] = async function onGoto(
     action,
-    options
+    options,
   ) {
-    log.func("goto]");
-    log.grey("", u.isObj(action) ? action.snapshot?.() : action);
+    log.func('goto]')
+    log.grey('', u.isObj(action) ? action.snapshot?.() : action)
 
-    let destinationParam = "";
-    let reload: boolean | undefined;
-    let pageReload: boolean | undefined; // If true, gets passed to sdk initPage to disable the page object's "init" from being run
-    let dataIn: any; // sdk use
+    let destinationParam = ''
+    let reload: boolean | undefined
+    let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
+    let dataIn: any // sdk use
 
     if (u.isStr(action)) {
-      destinationParam = action;
+      destinationParam = action
     } else if (isAction(action)) {
-      const gotoObj = action.original;
+      const gotoObj = action.original
       if (u.isStr(gotoObj)) {
-        destinationParam = gotoObj;
+        destinationParam = gotoObj
       } else if (u.isObj(gotoObj)) {
-        if ("goto" in gotoObj) {
+        if ('goto' in gotoObj) {
           if (u.isObj(gotoObj.goto)) {
-            destinationParam = _pick(gotoObj.goto, "destination");
-            "reload" in gotoObj.goto &&
-              (reload = _pick(gotoObj.goto, "reload"));
-            "pageReload" in gotoObj.goto &&
-              (pageReload = _pick(gotoObj.goto, "pageReload"));
-            "dataIn" in gotoObj.goto &&
-              (dataIn = _pick(gotoObj.goto, "dataIn"));
+            destinationParam = _pick(gotoObj.goto, 'destination')
+            'reload' in gotoObj.goto && (reload = _pick(gotoObj.goto, 'reload'))
+            'pageReload' in gotoObj.goto &&
+              (pageReload = _pick(gotoObj.goto, 'pageReload'))
+            'dataIn' in gotoObj.goto && (dataIn = _pick(gotoObj.goto, 'dataIn'))
           } else if (u.isStr(gotoObj.goto)) {
-            destinationParam = gotoObj.goto;
+            destinationParam = gotoObj.goto
           }
         } else if (u.isObj(gotoObj)) {
-          destinationParam = gotoObj.destination;
-          "reload" in gotoObj && (reload = gotoObj.reload);
-          "pageReload" in gotoObj && (pageReload = gotoObj.pageReload);
-          "dataIn" in gotoObj && (dataIn = gotoObj.dataIn);
+          destinationParam = gotoObj.destination
+          'reload' in gotoObj && (reload = gotoObj.reload)
+          'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
+          'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
         }
       }
     } else if (u.isObj(action)) {
-      if ("destination" in action || "goto" in action) {
-        destinationParam = _pick(action, "destination", _pick(action, "goto"));
-        "reload" in action && (reload = _pick(action, "reload"));
-        "pageReload" in action && (pageReload = _pick(action, "pageReload"));
-        "dataIn" in action && _pick(action, "dataIn");
+      if ('destination' in action || 'goto' in action) {
+        destinationParam = _pick(action, 'destination', _pick(action, 'goto'))
+        'reload' in action && (reload = _pick(action, 'reload'))
+        'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
+        'dataIn' in action && _pick(action, 'dataIn')
       }
     }
     if (!u.isUnd(reload)) {
-      app.mainPage.setModifier(destinationParam, { reload });
+      app.mainPage.setModifier(destinationParam, { reload })
     }
     if (!u.isUnd(pageReload)) {
-      app.mainPage.setModifier(destinationParam, { pageReload });
+      app.mainPage.setModifier(destinationParam, { pageReload })
     }
     if (!u.isUnd(dataIn)) {
-      app.mainPage.setModifier(destinationParam, { ...dataIn });
+      app.mainPage.setModifier(destinationParam, { ...dataIn })
     }
     let {
       destination,
-      id = "",
+      id = '',
       isSamePage,
       duration,
-    } = app.parse.destination(destinationParam);
+    } = app.parse.destination(destinationParam)
     if (destination === destinationParam) {
-      app.mainPage.requesting = destination;
+      app.mainPage.requesting = destination
     }
 
     log.grey(`Goto info`, {
@@ -416,51 +414,51 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       isSamePage,
       reload,
       pageReload,
-    });
+    })
 
-    if (destination.startsWith("http")) {
+    if (destination.startsWith('http')) {
       // This is for testing in mobile mode to prevent the auto-redirection to google play store
       // return
     }
 
     if (id) {
-      const isInsidePageComponent = isPageConsumer(options.component);
-      const node = findByViewTag(id) || getFirstByElementId(id);
+      const isInsidePageComponent = isPageConsumer(options.component)
+      const node = findByViewTag(id) || getFirstByElementId(id)
 
       if (node) {
-        let win: Window | undefined | null;
-        let doc: Document | null | undefined;
+        let win: Window | undefined | null
+        let doc: Document | null | undefined
         if (document.contains?.(node as HTMLElement)) {
-          win = window;
-          doc = window.document;
+          win = window
+          doc = window.document
         } else {
           win = findWindow((w: any) => {
             if (w) {
-              if ("contentDocument" in w) {
-                doc = (w as any).contentDocument;
+              if ('contentDocument' in w) {
+                doc = (w as any).contentDocument
               } else {
-                doc = w.document;
+                doc = w.document
               }
-              return doc?.contains?.(node as HTMLElement);
+              return doc?.contains?.(node as HTMLElement)
             }
-            return false;
-          });
+            return false
+          })
         }
         const scroll = () => {
           if (isInsidePageComponent) {
-            scrollToElem(node, { win, doc, duration });
+            scrollToElem(node, { win, doc, duration })
           } else {
-            (node as HTMLElement).scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-              inline: "center",
-            });
+            ;(node as HTMLElement).scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'center',
+            })
           }
-        };
+        }
         if (isSamePage) {
-          scroll();
+          scroll()
         } else {
-          app.mainPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll);
+          app.mainPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
         }
       } else {
         log.red(`Could not search for a DOM node with an identity of "${id}"`, {
@@ -471,108 +469,108 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           isSamePage,
           duration,
           options,
-        });
+        })
       }
     }
 
-    if (!destinationParam.startsWith("http")) {
+    if (!destinationParam.startsWith('http')) {
       app.mainPage.pageUrl = app.parse.queryString({
         destination,
         pageUrl: app.mainPage.pageUrl,
         startPage: app.startPage,
-      });
+      })
     } else {
-      destination = destinationParam;
+      destination = destinationParam
     }
 
     if (!isSamePage) {
       if (reload) {
-        let urlToGoToInstead = "";
-        const parts = app.mainPage.pageUrl.split("-");
+        let urlToGoToInstead = ''
+        const parts = app.mainPage.pageUrl.split('-')
         if (parts.length > 1) {
-          if (!parts[0].startsWith("index.html")) {
-            parts.unshift(BASE_PAGE_URL);
-            parts.push(destination);
-            urlToGoToInstead = parts.join("-");
+          if (!parts[0].startsWith('index.html')) {
+            parts.unshift(BASE_PAGE_URL)
+            parts.push(destination)
+            urlToGoToInstead = parts.join('-')
           }
         } else {
-          urlToGoToInstead = BASE_PAGE_URL + destination;
+          urlToGoToInstead = BASE_PAGE_URL + destination
         }
-        window.location.href = urlToGoToInstead;
+        window.location.href = urlToGoToInstead
       } else {
-        await app.navigate(destination);
+        await app.navigate(destination)
       }
 
       if (!destination) {
-        log.func("builtIn");
+        log.func('builtIn')
         log.red(
-          "Tried to go to a page but could not find information on the whereabouts",
-          { action: action.snapshot?.(), ...options }
-        );
+          'Tried to go to a page but could not find information on the whereabouts',
+          { action: action.snapshot?.(), ...options },
+        )
       }
     }
-  };
+  }
 
-  const redraw: Store.BuiltInObject["fn"] = async function onRedraw(
+  const redraw: Store.BuiltInObject['fn'] = async function onRedraw(
     action,
-    options
+    options,
   ) {
-    const component = options?.component as NUIComponent.Instance;
+    const component = options?.component as NUIComponent.Instance
     const metadata = getActionMetadata(action, {
       component,
-      pickKeys: "viewTag",
-    });
-    const { viewTag } = metadata;
+      pickKeys: 'viewTag',
+    })
+    const { viewTag } = metadata
 
-    let components = [] as NUIComponent.Instance[];
-    let numComponents = 0;
+    let components = [] as NUIComponent.Instance[]
+    let numComponents = 0
 
     for (const c of app.cache.component) {
       c &&
-        (c.blueprint?.viewTag || c.get("data-viewtag")) ===
+        (c.blueprint?.viewTag || c.get('data-viewtag')) ===
           viewTag.fromAction &&
         components.push(c) &&
-        numComponents++;
+        numComponents++
     }
 
     if (
       viewTag.fromComponent === viewTag.fromAction &&
       !components.includes(component)
     ) {
-      components.push(component) && numComponents++;
+      components.push(component) && numComponents++
     }
 
-    log.func("redraw");
-    log.hotpink("", metadata);
+    log.func('redraw')
+    log.hotpink('', metadata)
 
     try {
       if (!numComponents) {
-        log.red(`Could not find any components to redraw`, action.snapshot?.());
+        log.red(`Could not find any components to redraw`, action.snapshot?.())
       } else {
-        log.grey(`Redrawing ${numComponents} components`, components);
+        log.grey(`Redrawing ${numComponents} components`, components)
       }
 
-      let startCount = 0;
+      let startCount = 0
 
       while (startCount < numComponents) {
-        const _component = components[startCount];
-        const _node = getFirstByElementId(_component);
-        const ctx = {} as any;
+        const _component = components[startCount]
+        const _node = getFirstByElementId(_component)
+        const ctx = {} as any
         if (isListConsumer(_component)) {
-          const dataObject = findListDataObject(_component);
-          dataObject && (ctx.dataObject = dataObject);
+          const dataObject = findListDataObject(_component)
+          dataObject && (ctx.dataObject = dataObject)
         }
         const redrawed = app.ndom.redraw(_node, _component, app.mainPage, {
           context: ctx,
-        });
-        app.cache.component.add(redrawed[1]) && startCount++;
+        })
+        app.cache.component.add(redrawed[1]) && startCount++
       }
     } catch (error) {
-      console.error(error);
-      error instanceof Error && toast(error.message, { type: "error" });
+      console.error(error)
+      error instanceof Error && toast(error.message, { type: 'error' })
     }
-    log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`);
-  };
+    log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
+  }
 
   const builtIns = {
     checkField,
@@ -588,35 +586,35 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     logout,
     goto,
     redraw,
-  };
+  }
 
   /** Shared common logic for both lock/logout logic */
   async function _onLockLogout() {
-    const dataValues = getDataValues() as { password: string };
-    const hiddenPwLabel = getByDataUX("passwordHidden") as HTMLDivElement;
-    const password = dataValues.password || "";
+    const dataValues = getDataValues() as { password: string }
+    const hiddenPwLabel = getByDataUX('passwordHidden') as HTMLDivElement
+    const password = dataValues.password || ''
     // Reset the visible status since this is a new attempt
     if (hiddenPwLabel) {
-      const isVisible = hiddenPwLabel.style.visibility === "visible";
-      if (isVisible) hiddenPwLabel.style.visibility = "hidden";
+      const isVisible = hiddenPwLabel.style.visibility === 'visible'
+      if (isVisible) hiddenPwLabel.style.visibility = 'hidden'
     }
     // Validate if their password is correct or not
     const isValid = (
-      await import("@aitmed/cadl")
-    ).Account?.verifyUserPassword?.(password);
+      await import('@aitmed/cadl')
+    ).Account?.verifyUserPassword?.(password)
     if (!isValid) {
-      console.log(`%cisValid ?`, "color:#e74c3c;font-weight:bold;", isValid);
-      if (hiddenPwLabel) hiddenPwLabel.style.visibility = "visible";
+      console.log(`%cisValid ?`, 'color:#e74c3c;font-weight:bold;', isValid)
+      if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'
       else {
-        toast("Password is incorrect", { type: "error" });
+        toast('Password is incorrect', { type: 'error' })
       }
-      return "abort";
+      return 'abort'
     }
-    if (hiddenPwLabel) hiddenPwLabel.style.visibility = "hidden";
+    if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'hidden'
   }
 
-  return builtIns as Record<keyof typeof builtIns, Store.BuiltInObject["fn"]>;
-};
+  return builtIns as Record<keyof typeof builtIns, Store.BuiltInObject['fn']>
+}
 
 /* -------------------------------------------------------
   ---- Built in funcs below are for the SDK (most likely passed to initPage)
@@ -629,42 +627,42 @@ export const extendedSdkBuiltIns = {
    * the ecosObj that contains the file data
    */
   download(this: App, { ecosObj }: { ecosObj?: EcosDocument<any> } = {}) {
-    log.func("download (document)");
+    log.func('download (document)')
     if (!ecosObj) {
       return log.red(
         `Cannot prompt with the download dialog because the "ecosObj" ` +
           `object was passed in as typeof "${typeof ecosObj}"`,
-        ecosObj
-      );
+        ecosObj,
+      )
     }
     if (!ecosObj.name?.data || !u.isStr(ecosObj.name?.data)) {
       return log.red(
         `Tried to prompt a download window for the user but the "data" ` +
           `field in the name object is empty`,
-        ecosObj
-      );
+        ecosObj,
+      )
     }
-    let ext = "";
-    let filename = (ecosObj.name.title || "") as string;
-    let mimeType = (ecosObj.name.type || "") as string;
-    let data;
+    let ext = ''
+    let filename = (ecosObj.name.title || '') as string
+    let mimeType = (ecosObj.name.type || '') as string
+    let data
 
     if (mimeType && u.isStr(mimeType)) {
       // Assuming these are note docs since we are storing their data in json
-      if (mimeType.endsWith("json")) {
-        ext = ".txt";
-        const title = ecosObj.name.title || "";
-        const body = ecosObj.name.data || "";
-        const note = `${title}\n\n${body}`;
-        data = new Blob([note], { type: "text/plain" });
+      if (mimeType.endsWith('json')) {
+        ext = '.txt'
+        const title = ecosObj.name.title || ''
+        const body = ecosObj.name.data || ''
+        const note = `${title}\n\n${body}`
+        data = new Blob([note], { type: 'text/plain' })
       } else {
-        ext = mimeType.substring(mimeType.lastIndexOf("/")).replace("/", ".");
+        ext = mimeType.substring(mimeType.lastIndexOf('/')).replace('/', '.')
       }
     }
 
-    ext && u.isStr(filename) && (filename += ext);
-    !data && (data = ecosObj.name?.data || "");
-    return download(data, filename);
+    ext && u.isStr(filename) && (filename += ext)
+    !data && (data = ecosObj.name?.data || '')
+    return download(data, filename)
   },
   /**
    * Called during "init" when navigating to VideoChat
@@ -672,27 +670,27 @@ export const extendedSdkBuiltIns = {
   async videoChat(
     this: App,
     action: BuiltInActionObject & {
-      roomId: string;
-      accessToken: string;
-      timer: number;
-      timerTag: string;
-    }
+      roomId: string
+      accessToken: string
+      timer: number
+      timerTag: string
+    },
   ) {
-    log.func("onVideoChat");
+    log.func('onVideoChat')
     try {
       if (action) {
-        let msg = "";
-        if (action.accessToken) msg += "Received access token ";
-        if (action.roomId) msg += "and room id";
-        log.grey(msg, action);
+        let msg = ''
+        if (action.accessToken) msg += 'Received access token '
+        if (action.roomId) msg += 'and room id'
+        log.grey(msg, action)
       } else {
         log.red(
-          "Expected an action object but the value passed in was null or undefined",
-          action
-        );
+          'Expected an action object but the value passed in was null or undefined',
+          action,
+        )
       }
 
-      let newRoom: Room | null = null;
+      let newRoom: Room | null = null
       // Disconnect from the room if for some reason we
       // are still connected to one
       // if (room.state === 'connected' || room.state === 'reconnecting') {
@@ -700,70 +698,70 @@ export const extendedSdkBuiltIns = {
       //   if (connecting) setConnecting(false)
       // }
 
-      log.func("onVideoChat");
+      log.func('onVideoChat')
       // Reuse the existing room
       if (this.meeting.isConnected) {
-        newRoom = await this.meeting.rejoin();
+        newRoom = await this.meeting.rejoin()
         log.green(
           `Reusing existent room that you are already connected to`,
-          newRoom
-        );
+          newRoom,
+        )
       } else {
-        log.grey(`Connecting to room id: ${action?.roomId}`);
-        newRoom = (await this.meeting.join(action.accessToken)) as Room;
-        newRoom && log.green(`Connected to room: ${newRoom.name}`, newRoom);
+        log.grey(`Connecting to room id: ${action?.roomId}`)
+        newRoom = (await this.meeting.join(action.accessToken)) as Room
+        newRoom && log.green(`Connected to room: ${newRoom.name}`, newRoom)
       }
       if (newRoom) {
         // TODO - read VideoChat.micOn and VideoChat.cameraOn and use those values
         // to initiate the default values for audio/video default enabled/disabled state
-        const { cameraOn, micOn } = this.root.VideoChat || {};
-        const { localParticipant } = newRoom;
+        const { cameraOn, micOn } = this.root.VideoChat || {}
+        const { localParticipant } = newRoom
 
         const toggle =
-          (state: "enable" | "disable") =>
+          (state: 'enable' | 'disable') =>
           (
             tracks: Map<
               string,
               LocalVideoTrackPublication | LocalAudioTrackPublication
-            >
+            >,
           ) => {
-            tracks.forEach((publication) => publication?.track?.[state]?.());
-          };
+            tracks.forEach((publication) => publication?.track?.[state]?.())
+          }
 
-        const enable = toggle("enable");
-        const disable = toggle("disable");
+        const enable = toggle('enable')
+        const disable = toggle('disable')
 
         if (Identify.isBoolean(cameraOn)) {
           if (Identify.isBooleanTrue(cameraOn)) {
-            enable(localParticipant?.videoTracks);
+            enable(localParticipant?.videoTracks)
           } else if (Identify.isBooleanFalse(cameraOn)) {
-            disable(localParticipant?.videoTracks);
+            disable(localParticipant?.videoTracks)
           }
         } else {
           // Automatically disable by default
-          disable(localParticipant?.videoTracks);
+          disable(localParticipant?.videoTracks)
         }
         if (Identify.isBoolean(micOn)) {
           if (Identify.isBooleanTrue(micOn)) {
-            enable(localParticipant?.audioTracks);
+            enable(localParticipant?.audioTracks)
           } else if (Identify.isBooleanFalse(micOn)) {
-            disable(localParticipant?.audioTracks);
+            disable(localParticipant?.audioTracks)
           }
         } else {
-          disable(localParticipant?.audioTracks);
+          disable(localParticipant?.audioTracks)
         }
       } else {
-        log.func("onVideoChat");
+        log.func('onVideoChat')
         log.red(
           `Expected a room instance to be returned but received null or undefined instead`,
-          newRoom
-        );
+          newRoom,
+        )
       }
     } catch (error) {
-      console.error(error);
-      error instanceof Error && toast(error.message, { type: "error" });
+      console.error(error)
+      error instanceof Error && toast(error.message, { type: 'error' })
     }
   },
-};
+}
 
-export default createBuiltInActions;
+export default createBuiltInActions
