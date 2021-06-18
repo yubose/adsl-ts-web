@@ -209,8 +209,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       if (_room?.state === 'connected') {
         if (force || !o.isLocalParticipant(participant)) {
           if (!force && o.mainStream.isParticipant(participant)) {
+            // Check and remove the participant if it is still in the substreams
             if (!o.subStreams?.participantExists(participant)) {
               const subStream = o.subStreams?.findByParticipant(participant)
+              // Removes the stream's video/audio tracks, video/audio elements, the main node of the stream instance, and the stream itself from the substreams collection
               if (subStream) {
                 subStream.unpublish()
                 subStream.removeElement()
@@ -231,11 +233,13 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           }
 
           if (o.subStreams) {
+            // Adds the remote participant to the substreams collection
             if (force || !o.subStreams.participantExists(participant)) {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = o.subStreams.blueprint
               const node = app.ndom.draw(
+                // TODO - Replace this resolver call and do a cleaner
                 o.subStreams.resolver?.(props) || props,
               ) as any
               const subStream = o.subStreams

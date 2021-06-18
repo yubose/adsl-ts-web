@@ -105,6 +105,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     -------------------------------------------------------- */
     if (!app.selfStream.isParticipant(room.localParticipant)) {
       app.selfStream.setParticipant(room.localParticipant)
+      app.selfStream.getElement().style.zIndex = '1000'
       log.func('onConnected')
       log.grey(`Bound local participant to selfStream`, app.selfStream)
     }

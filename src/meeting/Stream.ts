@@ -1,10 +1,16 @@
 import {
   createLocalAudioTrack,
   createLocalVideoTrack,
+  LocalAudioTrackPublication,
   LocalTrack,
+  LocalVideoTrackPublication,
+  RemoteAudioTrackPublication,
   RemoteTrack,
+  RemoteTrackPublication,
+  RemoteVideoTrackPublication,
 } from 'twilio-video'
 import Logger from 'logsnap'
+import { getRandomKey } from '../utils/common'
 import { toast } from '../utils/dom'
 import {
   RoomParticipant,
@@ -16,6 +22,7 @@ import {
 const log = Logger.create('Streams.ts')
 
 class MeetingStream {
+  #id = getRandomKey()
   #node: HTMLElement | null = null
   #participant: RoomParticipant | null = null
   previous: { sid?: string; identity?: string } = {}
@@ -32,13 +39,47 @@ class MeetingStream {
     if (!type) console.log({ this: this, node })
   }
 
+  get tracks() {
+    return (
+      this.hasParticipant()
+        ? Array.from(this.getParticipant()?.tracks.values() as any).filter(
+            Boolean,
+          )
+        : []
+    ) as RoomParticipantTrackPublication[]
+  }
+
+  get audioTrackPublication() {
+    return (
+      (this.tracks.find((publication) => publication.kind === 'audio') as
+        | LocalAudioTrackPublication
+        | RemoteAudioTrackPublication) || null
+    )
+  }
+
+  get videoTrackPublication() {
+    return (
+      (this.tracks.find((publication) => publication.kind === 'video') as
+        | LocalVideoTrackPublication
+        | RemoteVideoTrackPublication) || null
+    )
+  }
+
+  get audioTrack() {
+    return this.audioTrackPublication?.track || null
+  }
+
+  get videoTrack() {
+    return this.videoTrackPublication?.track || null
+  }
+
   #log = (name: string, s?: string, o?: Record<string, any>) => {
     s ? log.func(name) : (s = name)
     console.log(s, this.snapshot(o))
   }
 
   getElement() {
-    return this.#node
+    return this.#node as HTMLElement
   }
 
   hasElement() {
@@ -56,6 +97,9 @@ class MeetingStream {
     )
   }
 
+  /**
+   * Removes the main node of this stream (container)
+   */
   removeElement() {
     if (this.#node) {
       try {
@@ -173,7 +217,9 @@ class MeetingStream {
     return this
   }
 
-  /** Removes the participant's video/audio tracks from the DOM */
+  /**
+   * Removes the participant's video/audio track as well as their video/audio element they were bound to
+   */
   unpublish() {
     if (this.hasParticipant()) {
       this.#participant?.tracks?.forEach(
@@ -305,6 +351,47 @@ class MeetingStream {
   #handlePublishTracks = () => {
     this.#participant?.tracks?.forEach?.(this.#handleAttachTracks)
     this.#participant?.on?.('trackPublished', this.#handleAttachTracks)
+    this.#participant?.on?.('trackEnabled', this.#handleTrackToggle)
+    this.#participant?.on?.('trackDisabled', this.#handleTrackToggle)
+  }
+
+  #handleTrackToggle = (
+    trackOrPublication: LocalTrack | RemoteTrackPublication,
+  ) => {
+    log.func('handleTrackToggle')
+    if ('isTrackEnabled' in trackOrPublication) {
+      if (trackOrPublication.kind === 'video') {
+        this.toggleBackdrop(
+          trackOrPublication.isTrackEnabled ? 'open' : 'close',
+        )
+      }
+    } else {
+      const localTrack = trackOrPublication
+      log.green(`localTrack`, localTrack)
+    }
+  }
+
+  toggleBackdrop(type: 'open' | 'close') {
+    const backdropId = `${this.#id}_backdrop`
+    let backdrop = this.#node?.querySelector?.(
+      `#${backdropId}`,
+    ) as HTMLDivElement
+
+    if (!backdrop) {
+      backdrop = document.createElement('div')
+      backdrop.id = backdropId
+      backdrop.style.width = this.#node?.style?.width || '100%'
+      backdrop.style.height = this.#node?.style?.height || '100%'
+      backdrop.style.position = 'absolute'
+      backdrop.style.top = '0px'
+      backdrop.style.right = '0px'
+      backdrop.style.bottom = '0px'
+      backdrop.style.left = '0px'
+      backdrop.style.background = '#000'
+      this.#node?.appendChild?.(backdrop)
+    }
+
+    backdrop.style.visibility = type === 'close' ? 'visible' : 'hidden'
   }
 
   /**

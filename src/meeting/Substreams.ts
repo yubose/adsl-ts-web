@@ -40,22 +40,29 @@ class MeetingSubstreams {
 
   /**
    * Adds a new stream instance to the subStreams collection. If a node was passed in
-   * it will be inserted into the DOM. If a participant was passed in their media
-   * tracks will attempt to automatically start
-   * @param { NOODLDOMElement | undefined } node
+   * it will be inserted into the DOM. If a participant was passed in their media tracks will attempt to start automatically
+   * @param { HTMLElement | undefined } node
    * @param { RemoteParticipant | undefined } participant
    */
   create({
     node,
     participant,
-  }: { node?: NOODLDOMElement; participant?: RemoteParticipant } = {}) {
+  }: { node?: HTMLElement; participant?: RemoteParticipant } = {}) {
+    log.func('create')
+
     const stream = new Stream('subStream', { node })
+
     if (node && this.container && !this.container.contains(node)) {
       this.container?.appendChild(node)
+      log.grey(`Appended new child DOM element to substreams's node`)
     }
     // Apply the blueprint onto the new node to align with the current items
     if (participant) {
       stream.setParticipant(participant)
+      log.grey(
+        `The participant "${participant.sid}" was set on the stream`,
+        stream.snapshot(),
+      )
     }
     this.addToCollection(stream)
     return this
