@@ -1,5 +1,4 @@
 import SignaturePad from 'signature_pad'
-import set from 'lodash/set'
 import has from 'lodash/has'
 import { Identify } from 'noodl-types'
 import { isRootDataKey } from 'noodl-utils'
@@ -7,6 +6,8 @@ import {
   createComponent,
   formatColor,
   NUIComponent,
+  isPage as isNuiPage,
+  Page as NUIPage,
   event as noodluiEvent,
   SelectOption,
 } from 'noodl-ui'
@@ -170,30 +171,51 @@ const domComponentsResolver: Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(component)) {
-        if (ndom.pages[component.id].rootNode !== node) {
-          try {
-            if (document.body.contains(ndom.pages[component.id].rootNode)) {
-              ndom.pages[component.id].rootNode.textContent = ''
-              document.body.removeChild(ndom.pages[component.id].rootNode)
-            }
-          } catch (error) {
-            console.error(error)
-          }
-          ndom.pages[component.id].rootNode = node as any
+        const nuiPage = component.get('page') as NUIPage
+        if (isNuiPage(nuiPage)) {
+          const ndomPage = ndom.createPage(nuiPage)
+          ndomPage.components = nuiPage.object().components
+          ndomPage.requesting = nuiPage.page
+          ndom
+            .request(ndomPage)
+            .then((req) => {
+              console.log({ req, ndomPage })
+              if (req) {
+                const components = req.render()
+                console.log(
+                  `%cRendered ${components.length} components for page "${ndomPage.page}" on a page component`,
+                  `color:#00b406;`,
+                )
+              }
+            })
+            .catch((err) => console.error(err))
+
+          // ndomPage.components = nuiPage.object().components
+          // component.on(
+          //   noodluiEvent.component.page.PAGE_COMPONENTS,
+          //   () => {
+          //     component.children?.forEach((child: NUIComponent.Instance) =>
+          //       draw(
+          //         child,
+          //         (node as HTMLIFrameElement).contentDocument?.body,
+          //         ndom.pages[component.id],
+          //       ),
+          //     )
+          //   },
+          //   `[noodl-ui-dom] ${noodluiEvent.component.page.PAGE_COMPONENTS}`,
+          // )
+        } else {
+          console.log(
+            `%cCould not create an NDOM page because the NUI page is missing`,
+            `color:#ec0000;`,
+            {
+              component: component.snapshot(),
+              nuiPage,
+              pagesInNuiCache: nui.cache.page.get(),
+              pagesInNdomGlobal: ndom.global.pages,
+            },
+          )
         }
-        component.on(
-          noodluiEvent.component.page.PAGE_COMPONENTS,
-          () => {
-            component.children?.forEach((child: NUIComponent.Instance) =>
-              draw(
-                child,
-                (node as HTMLIFrameElement).contentDocument?.body,
-                ndom.pages[component.id],
-              ),
-            )
-          },
-          `[noodl-ui-dom] ${noodluiEvent.component.page.PAGE_COMPONENTS}`,
-        )
       }
       // PLUGIN
       else if (Identify.component.plugin(original)) {

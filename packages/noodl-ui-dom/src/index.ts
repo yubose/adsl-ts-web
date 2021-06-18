@@ -10,6 +10,7 @@ export { default as createElement } from './utils/createElement'
 export { default as findElement } from './utils/findElement'
 export { default as findWindow } from './utils/findWindow'
 export { default as findWindowDocument } from './utils/findWindowDocument'
+export { default as isPage } from './utils/isPage'
 export {
   asHtmlElement,
   findByClassName,
@@ -30,8 +31,8 @@ export {
   getFirstByGlobalId,
   getFirstByViewTag,
   getFirstByUX,
+  getPageAncestor,
   isDisplayable,
-  isPage,
   isPageConsumer,
   isTextFieldLike,
   makeElemFn,

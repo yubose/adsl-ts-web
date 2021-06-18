@@ -211,6 +211,20 @@ export function getByDataUX(key: string) {
   return null
 }
 
+/**
+ * Returns the component instance of type: page if it exists in the parent ancestry tree
+ * @param { NUIComponent.Instance } component
+ */
+export function getPageAncestor(
+  component: NUIComponent.Instance | null | undefined,
+) {
+  if (isComponent(component)) {
+    if (component.type === 'page') return component
+    return findParent(component, (parent) => parent?.type === 'page')
+  }
+  return null
+}
+
 export function makeElemFn(fn: (node: HTMLElement) => void) {
   const onNodes = function _onNodes(nodes: DOMNodeInput, cb?: typeof fn) {
     let count = 0
@@ -233,10 +247,6 @@ export function makeElemFn(fn: (node: HTMLElement) => void) {
  */
 export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || u.isStr(value) || u.isNum(value)
-}
-
-export function isPage(val: unknown): val is NOODLDOMPage {
-  return !!(val && val instanceof NOODLDOMPage)
 }
 
 /**

@@ -1,7 +1,6 @@
 import Logger from 'logsnap'
 import { Identify } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
-import { transaction as ndomTransaction } from 'noodl-ui-dom'
 import App from '../App'
 import { isVisible } from '../utils/dom'
 
@@ -40,7 +39,10 @@ function createElementBindingFactory(app: App) {
               `assume the "join" function will load the tracks`,
           )
         }
-      } else if (viewTag !== 'selfStream') {
+      }
+
+      // Substream
+      else if (viewTag !== 'selfStream') {
         const isAudioStreamBinding = component.get('audioStream')
         const isVideoStreamBinding = component.get('videoStream')
         // Currently used for the popUp in the VideoChat page that have global: true

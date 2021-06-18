@@ -151,6 +151,9 @@ window.addEventListener('load', async (e) => {
       noodl: { configurable: true, get: () => noodl },
       nui: { configurable: true, get: () => app?.nui },
       ndom: { configurable: true, get: () => app?.ndom },
+      phone: {
+        get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
+      },
       ...u
         .entries(getWindowHelpers())
         .reduce(

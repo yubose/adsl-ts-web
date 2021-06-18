@@ -19,6 +19,7 @@ import getActionType from './utils/getActionType'
 import getActionObjectErrors from './utils/getActionObjectErrors'
 import isComponent from './utils/isComponent'
 import isPage from './utils/isPage'
+import isViewport from './utils/isViewport'
 import NUIPage from './Page'
 import ActionsCache from './cache/ActionsCache'
 import PageCache from './cache/PageCache'
@@ -266,13 +267,15 @@ const NUI = (function _NUI() {
         }
       } else if (opts.type === nuiEmitType.TRANSACTION) {
         const fn = cache.transactions.get(opts.transaction)?.fn
-        console.log(
-          `%cMissing a callback handler for transaction "${
-            opts.transaction
-          }" but received ${typeof fn}`,
-          `color:#ec0000;`,
-          opts,
-        )
+        if (!u.isFnc(fn)) {
+          console.log(
+            `%cMissing a callback handler for transaction "${
+              opts.transaction
+            }" but received ${typeof fn}`,
+            `color:#ec0000;`,
+            opts,
+          )
+        }
         return fn?.(opts.params as string | NUIPage)
       }
     } catch (error) {
@@ -606,12 +609,12 @@ const NUI = (function _NUI() {
         args.name && (name = args.name)
         args.id && (id = args.id)
         if (args?.viewport) {
-          if (args.viewport instanceof VP) viewport = args.viewport
+          if (isViewport(args.viewport)) viewport = args.viewport
           else if (u.isObj(args.viewport)) viewport = new VP(args.viewport)
         }
       }
 
-      page = cache.page.create({ id, viewport: viewport as VP }) as NUIPage
+      page = cache.page.create({ id, viewport: viewport }) as NUIPage
       name && (page.page = name)
       page.use(() =>
         page?.page ? NUI.getRoot()[page.page] : { components: [] },

@@ -11,7 +11,10 @@ const createTransactions = function _createTransactions(app: App) {
   transactions[nuiEmitTransaction.REQUEST_PAGE_OBJECT] =
     async function onRequestPageObject(page) {
       return (
-        (await app.getPageObject(page)) || { fallback: true, components: [] }
+        (await app.getPageObject.call(app, page)) || {
+          fallback: true,
+          components: [],
+        }
       )
     }
 

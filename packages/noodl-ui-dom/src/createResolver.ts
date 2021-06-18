@@ -2,7 +2,9 @@ import SignaturePad from 'signature_pad'
 import { Identify } from 'noodl-types'
 import { Component, NUI } from 'noodl-ui'
 import { entries, isArr, isFnc, isStr } from './utils/internal'
+import { getPageAncestor } from './utils'
 import NOODLDOM from './noodl-ui-dom'
+import NDOMPage from './Page'
 import NUIDOMInternal from './Internal'
 import * as T from './types'
 
@@ -52,13 +54,10 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
           global: ndom.global,
           ndom: ndom,
           nui: NUIDOMInternal._nui,
-          page: ndom.page,
+          page:
+            ndom.findPage(getPageAncestor(args[1])?.get?.('page')) || ndom.page,
           draw: ndom.draw.bind(ndom),
           redraw: ndom.redraw.bind(ndom),
-        }
-
-        if (Identify.component.page(args[1])) {
-          options.page = ndom.findPage(args[1].get('page')) || options.page
         }
 
         return options

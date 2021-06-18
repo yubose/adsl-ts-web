@@ -16,6 +16,7 @@ import {
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
 import { GlobalComponentRecord } from './global'
 import createAsyncImageElement from './utils/createAsyncImageElement'
+import isNDOMPage from './utils/isPage'
 import createResolver from './createResolver'
 import NOODLDOMInternal from './Internal'
 import Page from './Page'
@@ -149,11 +150,13 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   /** TODO - More cases */
-  findPage(nuiPage: NUIPage) {
+  findPage(nuiPage: NUIPage | Page) {
     if (isNUIPage(nuiPage)) {
       return Object.values(this.global.pages).find((page) =>
         page.isEqual(nuiPage),
       )
+    } else if (isNDOMPage(nuiPage)) {
+      return Object.values(this.global.pages).find((page) => page === nuiPage)
     }
     return null
   }
@@ -581,7 +584,6 @@ class NOODLDOM extends NOODLDOMInternal {
       }
       const parent = component.parent
       page.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, node, component)
-
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {

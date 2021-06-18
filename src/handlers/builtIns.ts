@@ -21,6 +21,7 @@ import {
   getByDataUX,
   getFirstByElementId,
   isPageConsumer,
+  Page as NDOMPage,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import {
@@ -94,32 +95,33 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       app.meeting.leave()
     }
 
-  const goBack: Store.BuiltInObject['fn'] = async function onGoBack(action) {
+  const goBack: Store.BuiltInObject['fn'] = async function onGoBack(
+    action,
+    options,
+  ) {
     log.func('goBack')
     log.grey('', action.snapshot?.())
     const reload = _pick(action, 'reload')
-    app.mainPage.requesting = app.mainPage.previous
+    const page = options?.page || app.mainPage
+    page.requesting = page.previous
     // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
     // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
     if (u.isBool(reload)) {
-      app.mainPage.setModifier(app.mainPage.previous, { reload })
+      page.setModifier(page.previous, { reload })
     }
-    if (
-      app.mainPage.requesting === app.mainPage.page &&
-      app.mainPage.page === app.mainPage.previous
-    ) {
+    if (page.requesting === page.page && page.page === page.previous) {
       console.log(
         `%cLOOK HERE: All three (previous, current, requesting) value of the page name in the noodl-ui-dom instance are the same`,
         `color:#ec0000;background:#000`,
       )
     } else {
-      if (app.mainPage.previous === app.mainPage.page) {
+      if (page.previous === page.page) {
         console.log(
           `%cLOOK HERE: The current page is the same as the "previous" page on the noodl-ui-dom page`,
           `color:deepOrange;background:#000`,
         )
       }
-      if (app.mainPage.page === app.mainPage.requesting) {
+      if (page.page === page.requesting) {
         console.log(
           `%cLOOK HERE: The current page is the same as the "requesting" page on the noodl-ui-dom page`,
           `color:orange;background:#000`,
@@ -198,11 +200,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('toggleFlag')
     log.grey('', action.snapshot?.())
     try {
-      const { component, getAssetsUrl } = options
+      const { component, getAssetsUrl, page = app.mainPage } = options
       const dataKey = _pick(action, 'dataKey') || ''
       const iteratorVar = findIteratorVar(component)
       const node = getFirstByElementId(component)
-      const pageName = app.mainPage.page || ''
+      const pageName = page.page || ''
       let path = component?.get('path')
 
       let dataValue: any
@@ -352,6 +354,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     let destinationParam = ''
     let reload: boolean | undefined
     let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
+    let page = options?.page || app.mainPage
     let dataIn: any // sdk use
 
     if (u.isStr(action)) {
@@ -387,13 +390,13 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
     if (!u.isUnd(reload)) {
-      app.mainPage.setModifier(destinationParam, { reload })
+      page.setModifier(destinationParam, { reload })
     }
     if (!u.isUnd(pageReload)) {
-      app.mainPage.setModifier(destinationParam, { pageReload })
+      page.setModifier(destinationParam, { pageReload })
     }
     if (!u.isUnd(dataIn)) {
-      app.mainPage.setModifier(destinationParam, { ...dataIn })
+      page.setModifier(destinationParam, { ...dataIn })
     }
     let {
       destination,
@@ -402,7 +405,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       duration,
     } = app.parse.destination(destinationParam)
     if (destination === destinationParam) {
-      app.mainPage.requesting = destination
+      page.requesting = destination
     }
 
     log.grey(`Goto info`, {
@@ -458,7 +461,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (isSamePage) {
           scroll()
         } else {
-          app.mainPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+          page.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
         }
       } else {
         log.red(`Could not search for a DOM node with an identity of "${id}"`, {
@@ -474,9 +477,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
 
     if (!destinationParam.startsWith('http')) {
-      app.mainPage.pageUrl = app.parse.queryString({
+      page.pageUrl = app.parse.queryString({
         destination,
-        pageUrl: app.mainPage.pageUrl,
+        pageUrl: page.pageUrl,
         startPage: app.startPage,
       })
     } else {
@@ -486,7 +489,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     if (!isSamePage) {
       if (reload) {
         let urlToGoToInstead = ''
-        const parts = app.mainPage.pageUrl.split('-')
+        const parts = page.pageUrl.split('-')
         if (parts.length > 1) {
           if (!parts[0].startsWith('index.html')) {
             parts.unshift(BASE_PAGE_URL)
@@ -560,9 +563,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           const dataObject = findListDataObject(_component)
           dataObject && (ctx.dataObject = dataObject)
         }
-        const redrawed = app.ndom.redraw(_node, _component, app.mainPage, {
-          context: ctx,
-        })
+        const redrawed = app.ndom.redraw(
+          _node,
+          _component,
+          app.ndom.findPage(options?.page || app.mainPage) as NDOMPage,
+          { context: ctx },
+        )
         app.cache.component.add(redrawed[1]) && startCount++
       }
     } catch (error) {

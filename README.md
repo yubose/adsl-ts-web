@@ -22,14 +22,13 @@ These variables are available globally:
 
 ## Todos
 
-- select options is now an array of objs
-  - optionKey
-  - dataKey gets set the object
-- images with an empty `src` attribute showing the "special" border. disable it or make it invisible in `stable` env
 - firebase [CDN](https://firebase.google.com/docs/web/setup#node.js-apps_1)
 - twilio [CDN](https://www.twilio.com/docs/video/javascript)
 - videochat togglevideo black background
 - page component
+- ecosDoc image cannot be displayed
+- ecosDoc images stuck being in the dom globally:
+  - ![](https://aitmedstuff.s3.us-west-1.amazonaws.com/images/Screen+Shot+2021-06-18+at+9.27.28+AM.png)
 
 ## Notes
 
