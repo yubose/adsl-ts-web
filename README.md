@@ -28,6 +28,8 @@ These variables are available globally:
 - images with an empty `src` attribute showing the "special" border. disable it or make it invisible in `stable` env
 - firebase [CDN](https://firebase.google.com/docs/web/setup#node.js-apps_1)
 - twilio [CDN](https://www.twilio.com/docs/video/javascript)
+- videochat togglevideo black background
+- page component
 
 ## Notes
 
