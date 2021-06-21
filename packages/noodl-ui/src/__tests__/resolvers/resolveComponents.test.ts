@@ -101,10 +101,10 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     it(
       `should have set the Viewport's width/height to the root page's viewport's ` +
         `width/height if it was not provided`,
-      () => {
+      async () => {
         const component = resolveComponent({ ...componentObject, style: {} })
         const page = component.get('page') as NUIPage
-        const rootPage = NUI.cache.page.get()?.[0].page as NUIPage
+        const rootPage = NUI.getRootPage()
         expect(page.viewport.width).to.eq(rootPage.viewport.width)
         expect(page.viewport.height).to.eq(rootPage.viewport.height)
       },

@@ -179,9 +179,11 @@ componentResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.page(component)) {
-    const nuiPage = createPage({ id: component.id, name: path })
+    let nuiPage = cache.page.get(component.id)?.page
+    !nuiPage && (nuiPage = createPage({ id: component.id, name: path }))
     const viewport = nuiPage.viewport
-    if (u.isNil(originalStyle.width)) {
+
+    if (VP.isNil(originalStyle.width)) {
       viewport.width = getRootPage().viewport.width
     } else {
       viewport.width = Number(
@@ -190,7 +192,7 @@ componentResolver.setResolver((component, options, next) => {
         }),
       )
     }
-    if (u.isNil(originalStyle.height)) {
+    if (VP.isNil(originalStyle.height)) {
       viewport.height = getRootPage().viewport.height
     } else {
       viewport.height = Number(
@@ -207,11 +209,6 @@ componentResolver.setResolver((component, options, next) => {
       params: nuiPage,
     })
       .then((pageObject) => {
-        console.log(
-          `%cReceived page object from transaction "${c.nuiEmitTransaction.REQUEST_PAGE_OBJECT}"`,
-          `color:#e50087;`,
-          pageObject,
-        )
         const components = (
           pageObject?.components
             ? resolveComponents({

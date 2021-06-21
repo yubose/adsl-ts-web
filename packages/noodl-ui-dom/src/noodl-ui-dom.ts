@@ -152,11 +152,9 @@ class NOODLDOM extends NOODLDOMInternal {
   /** TODO - More cases */
   findPage(nuiPage: NUIPage | Page) {
     if (isNUIPage(nuiPage)) {
-      return Object.values(this.global.pages).find((page) =>
-        page.isEqual(nuiPage),
-      )
+      return u.values(this.global.pages).find((page) => page.isEqual(nuiPage))
     } else if (isNDOMPage(nuiPage)) {
-      return Object.values(this.global.pages).find((page) => page === nuiPage)
+      return u.values(this.global.pages).find((page) => page === nuiPage)
     }
     return null
   }
@@ -645,10 +643,15 @@ class NOODLDOM extends NOODLDOMInternal {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.draw(newComponent as NUIComponent.Instance, null, page, {
-        ...options,
-        context,
-      })
+      this.draw(
+        newComponent as NUIComponent.Instance,
+        null,
+        page || this.page,
+        {
+          ...options,
+          context,
+        },
+      )
     }
     if (node instanceof HTMLElement) {
       // console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)

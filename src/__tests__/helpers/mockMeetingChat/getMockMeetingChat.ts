@@ -430,7 +430,7 @@ function getMockMeetingChat({
     components: [
       mock.getRegisterComponent({
         onEvent: 'onNewMessageDisplay',
-        emit: mock.getEmitObject({
+        emit: mock.getFoldedEmitObject({
           dataKey: { var: 'onNewMessageDisplay' },
           actions: [
             mock.getEvalObjectAction(),

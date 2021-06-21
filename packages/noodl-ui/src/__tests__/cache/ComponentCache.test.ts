@@ -41,8 +41,8 @@ describe(coolGold(`ComponentCache`), () => {
       expect(spy).not.to.be.calledOnce
       expect(spy2).not.to.be.calledOnce
       componentCache.clear()
-      expect(spy).to.be.calledTwice
-      expect(spy2).to.be.calledTwice
+      expect(spy).to.be.calledOnce
+      expect(spy2).to.be.calledOnce
     })
 
     it(`should call the funcs subscribed to the "remove" hook`, () => {

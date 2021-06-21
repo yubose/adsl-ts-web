@@ -24,13 +24,6 @@ import {
   Page as NDOMPage,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
-import {
-  LocalAudioTrack,
-  LocalAudioTrackPublication,
-  LocalVideoTrack,
-  LocalVideoTrackPublication,
-  Room,
-} from 'twilio-video'
 import Logger from 'logsnap'
 import {
   download,
@@ -40,13 +33,23 @@ import {
   show,
   scrollToElem,
 } from '../utils/dom'
+import createPagePicker from '../utils/createPagePicker'
 import { getActionMetadata, pickActionKey } from '../utils/common'
 import App from '../App'
+import {
+  LocalAudioTrack,
+  LocalAudioTrackPublication,
+  LocalVideoTrack,
+  LocalVideoTrackPublication,
+  Room,
+} from '../app/types'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
+  const pickPage = createPagePicker(app)
+
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
     log.func(`(${kind}) toggleDevice`)
     log.grey(`Toggling ${kind}`)
@@ -102,7 +105,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('goBack')
     log.grey('', action.snapshot?.())
     const reload = _pick(action, 'reload')
-    const page = options?.page || app.mainPage
+    const page = pickPage(options)
     page.requesting = page.previous
     // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
     // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
@@ -200,10 +203,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('toggleFlag')
     log.grey('', action.snapshot?.())
     try {
-      const { component, getAssetsUrl, page = app.mainPage } = options
+      const { component, getAssetsUrl } = options
       const dataKey = _pick(action, 'dataKey') || ''
       const iteratorVar = findIteratorVar(component)
       const node = getFirstByElementId(component)
+      const page = pickPage(options)
       const pageName = page.page || ''
       let path = component?.get('path')
 
@@ -354,7 +358,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     let destinationParam = ''
     let reload: boolean | undefined
     let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
-    let page = options?.page || app.mainPage
+    let page =
+      (options?.page && 'requesting' in (options?.page || {})) || app.mainPage
     let dataIn: any // sdk use
 
     if (u.isStr(action)) {

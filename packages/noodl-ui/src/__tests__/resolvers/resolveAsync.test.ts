@@ -39,7 +39,7 @@ describe(coolGold(`resolveAsync`), () => {
       mock.getLabelComponent({
         [trigger]: [
           mock.getEvalObjectAction(),
-          mock.getEmitObject(),
+          mock.getFoldedEmitObject(),
           mock.getEvalObjectAction(),
         ],
       }),

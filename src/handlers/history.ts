@@ -11,11 +11,25 @@ const log = Logger.create('history')
 export const createOnPopState = curry(
   async (app: App, event: PopStateEvent) => {
     log.func('onPopState')
-    log.grey(`Received the "goBack" page as ${app.previousPage}`, event)
 
     let parts = app.mainPage.pageUrl.split('-')
     let popped
 
+    if (
+      app.previousPage === app.currentPage &&
+      app.startPage &&
+      app.startPage !== 'SignIn' &&
+      app.previousPage !== app.startPage
+    ) {
+      // app.mainPage.requesting = app.startPage
+      log.grey(`Received the "goBack" page as ${app.previousPage}`, event)
+      // log.grey(
+      //   `Received the "goBack" page as ${app.previousPage} (B) but modified to start page "${app.startPage}"`,
+      //   event,
+      // )
+    } else {
+      log.grey(`Received the "goBack" page as ${app.previousPage}`, event)
+    }
     if (parts.length > 1) {
       popped = parts.pop()
       while (parts[parts.length - 1].endsWith('MenuBar') && parts.length > 1) {

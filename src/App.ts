@@ -6,7 +6,6 @@ import NOODLDOM, {
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
 import * as u from '@jsmanifest/utils'
-import { RemoteParticipant } from 'twilio-video'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
@@ -428,7 +427,7 @@ class App {
     return this.meeting.room.participants
   }
 
-  getSdkParticipants(root = this.noodl.root): RemoteParticipant[] {
+  getSdkParticipants(root = this.noodl.root): t.RemoteParticipant[] {
     return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)
   }
 

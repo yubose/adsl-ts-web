@@ -5,9 +5,8 @@ import last from 'lodash/last'
 import { ComponentObject } from 'noodl-types'
 import { NUI } from 'noodl-ui'
 import { NOODLDOMElement } from 'noodl-ui-dom'
-import { RemoteParticipant } from 'twilio-video'
-import { RoomParticipant } from '../app/types'
 import Stream from './Stream'
+import * as t from '../app/types'
 
 const log = Logger.create('Substreams.ts')
 
@@ -47,7 +46,7 @@ class MeetingSubstreams {
   create({
     node,
     participant,
-  }: { node?: HTMLElement; participant?: RemoteParticipant } = {}) {
+  }: { node?: HTMLElement; participant?: t.RemoteParticipant } = {}) {
     log.func('create')
 
     const stream = new Stream('subStream', { node })
@@ -119,7 +118,7 @@ class MeetingSubstreams {
    * the collection
    * @param { RoomParticipant } participant
    */
-  participantExists(participant: RoomParticipant) {
+  participantExists(participant: t.RoomParticipant) {
     return this.#subStreams.some(
       (subStream: Stream) => subStream && subStream.isParticipant(participant),
     )
@@ -129,7 +128,7 @@ class MeetingSubstreams {
    * Returns the stream from the subStreams collection, null otherwise
    * @param { RoomParticipant } participant
    */
-  getSubStream(participant: RoomParticipant) {
+  getSubStream(participant: t.RoomParticipant) {
     const fn = (subStream: Stream) => subStream.isParticipant(participant)
     return this.findBy(fn)
   }
@@ -143,7 +142,7 @@ class MeetingSubstreams {
     return this.#subStreams.find(cb)
   }
 
-  findByParticipant(participant: RoomParticipant) {
+  findByParticipant(participant: t.RoomParticipant) {
     return this.#subStreams.find((s) => s.isParticipant(participant))
   }
 

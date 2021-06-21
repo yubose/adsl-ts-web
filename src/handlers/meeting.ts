@@ -1,15 +1,15 @@
 import * as u from '@jsmanifest/utils'
 import has from 'lodash/has'
 import Logger from 'logsnap'
-import {
-  LocalAudioTrackPublication,
-  LocalVideoTrackPublication,
-  RemoteParticipant,
-} from 'twilio-video'
 import Stream from '../meeting/Stream'
 import { isMobile } from '../utils/common'
 import { PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from '../constants'
 import { Meeting } from '../app/types'
+import {
+  RemoteParticipant,
+  LocalAudioTrackPublication,
+  LocalVideoTrackPublication,
+} from '../app/types'
 import { toast } from '../utils/dom'
 import App from '../App'
 

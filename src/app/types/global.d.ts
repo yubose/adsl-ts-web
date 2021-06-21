@@ -10,12 +10,17 @@ import echarts from '@types/echarts'
 import Modal from 'components/NOODLModal'
 import Meeting from '../../meeting'
 import { App } from '../../app'
+import { TwilioVideo } from './twilio'
 
 declare global {
   const echarts: echarts
   const gridjs: any
   const mapboxgl: any
   export const self: DedicatedWorkerGlobalScope
+
+  export const Twilio = {
+    Video: TwilioVideo,
+  }
 
   interface Window {
     ac: any

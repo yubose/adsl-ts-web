@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import SignaturePad from 'signature_pad'
 import { Identify } from 'noodl-types'
 import { Component, NUI } from 'noodl-ui'
@@ -47,6 +48,12 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
           return editComponentStyles
         }
 
+        let page = ndom.findPage(getPageAncestor(args[1])?.get?.('page'))
+        if ('object' in (page || {})) {
+          console.log(`%cRECEIVED A NUI PAGE`, `color:#ec0000;`, page)
+        }
+        page && !u.isStr(page) && 'object' in page && (page = ndom.page)
+
         const options = {
           ...util.actionsContext(...args),
           editStyle: createStyleEditor(args[1]),
@@ -54,8 +61,7 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
           global: ndom.global,
           ndom: ndom,
           nui: NUIDOMInternal._nui,
-          page:
-            ndom.findPage(getPageAncestor(args[1])?.get?.('page')) || ndom.page,
+          page,
           draw: ndom.draw.bind(ndom),
           redraw: ndom.redraw.bind(ndom),
         }

@@ -144,7 +144,7 @@ function getVideoChatPageObject({
                 children: [
                   mock.getImageComponent({
                     viewTag: 'camera',
-                    path: mock.getEmitObject({
+                    path: mock.getFoldedEmitObject({
                       actions: [
                         {
                           if: [
@@ -180,7 +180,7 @@ function getVideoChatPageObject({
                   }),
                   mock.getImageComponent({
                     viewTag: 'microphone',
-                    path: mock.getEmitObject({
+                    path: mock.getFoldedEmitObject({
                       actions: [
                         {
                           if: ['=.VideoChat.micOn', micOnSrc, micOffSrc],

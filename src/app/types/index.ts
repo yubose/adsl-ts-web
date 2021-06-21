@@ -12,6 +12,7 @@ import AppNotification from '../Notifications'
 import createMeetingFns from '../../meeting'
 export * from './domTypes'
 export * from './meetingTypes'
+export * from './twilio'
 
 export interface AppConstructorOptions {
   getStatus?: typeof Account.getStatus

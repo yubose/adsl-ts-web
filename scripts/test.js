@@ -1,38 +1,28 @@
 const execa = require('execa')
 const u = require('@jsmanifest/utils')
-const path = require('path')
-const { readdir } = require('fs-extra')
-const { magenta, newline, red } = require('noodl-common')
-
-const pkgs = {
-  lvl2: '@aitmed/ecos-lvl2-sdk',
-  sdk: '@aitmed/cadl',
-  noodlTypes: 'noodl-types',
-  noodlActionChain: 'noodl-action-chain',
-}
 
 /**
- *
  * @param { import('./op') } props
  */
 async function test(props) {
-  const { flags } = props
-  const { test: testPreset } = flags
+  const { test: key, file } = props.flags
 
-  /** @type Parameters<typeof execa.commandSync>[1] */
-  const args = { shell: true, stdio: 'inherit' }
+  const tests = {
+    ntil: `npm run test:ntil`,
+    nui: `npm run test:nui`,
+    ndom: `npm run test:ndom`,
+  }
 
-  switch (testPreset) {
-    case 'ntil':
-      return execa.commandSync(`npm run test:ntil`, {
-        shell: true,
-        stdio: 'inherit',
-      })
-    case 'register':
-      return execa.commandSync(`npm run test:nui`, {
-        shell: true,
-        stdio: 'inherit',
-      })
+  if (tests[key]) {
+    let cmdStr = tests[key]
+    file && (cmdStr += `:file`)
+    execa(tests[key], { shell: true, stdio: 'inherit' })
+  } else {
+    throw new Error(
+      `Did not find a test preset for key "${key}". Available presets: ${u
+        .keys(tests)
+        .join(', ')}`,
+    )
   }
 }
 

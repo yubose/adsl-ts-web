@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import { Identify, PageObject } from 'noodl-types'
-import { Room } from 'twilio-video'
+// import { Room } from 'twilio-video'
 import {
   createAction,
   EmitAction,
@@ -12,6 +12,8 @@ import {
 import App from '../App'
 import { copyToClipboard } from '../utils/dom'
 import { GlobalRegisterComponent } from '../app/types'
+
+type Room = any
 
 const log = Logger.create('register.ts')
 

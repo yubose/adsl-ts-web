@@ -30,6 +30,13 @@ These variables are available globally:
 - ecosDoc images stuck being in the dom globally:
   - ![](https://aitmedstuff.s3.us-west-1.amazonaws.com/images/Screen+Shot+2021-06-18+at+9.27.28+AM.png)
 
+## Accomplished
+
+- fixed `goBack` not going back to startPage in testpage
+- fixed `NiL` check not behaving expectedly for page components
+- migrated twilio in bundle to load from cdn (reduced bundle size from 21kb --> 17kb)
+- fixed some `goBack` issue from the page component update earlier
+
 ## Notes
 
 - MeetingChat notification

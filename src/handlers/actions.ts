@@ -13,6 +13,7 @@ import {
   findByDataAttrib,
   findByUX,
   isPageConsumer,
+  isPage as isNDOMPage,
   SignaturePad,
   getFirstByDataKey,
 } from 'noodl-ui-dom'
@@ -40,6 +41,7 @@ import {
   scrollToElem,
   toast,
 } from '../utils/dom'
+import createPagePicker from '../utils/createPagePicker'
 import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
@@ -49,6 +51,8 @@ const _pick = pickActionKey
 const _has = pickHasActionKey
 
 const createActions = function createActions(app: App) {
+  const pickPage = createPagePicker(app)
+
   const emit = triggers.reduce(
     (
       acc: Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn']>>,
@@ -232,7 +236,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     let goto = _pick(action, 'goto') || ''
-    let page = options?.page || app.mainPage
+    let page = pickPage(options)
 
     log.func('goto')
     log.grey(
@@ -255,6 +259,9 @@ const createActions = function createActions(app: App) {
     let pageModifiers = {} as any
 
     if (destination === destinationParam) {
+      if (!('requesting' in (page || {}))) {
+        page = app.mainPage
+      }
       page.requesting = destination
     }
 

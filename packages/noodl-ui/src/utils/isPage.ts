@@ -1,7 +1,12 @@
 import NUIPage from '../Page'
 
-function isPage(value: unknown): value is NUIPage {
-  return !!(value && value instanceof NUIPage)
+function isNUIPage(value: unknown): value is NUIPage {
+  return !!(
+    value &&
+    typeof value === 'object' &&
+    'object' in value &&
+    typeof value['object'] === 'function'
+  )
 }
 
-export default isPage
+export default isNUIPage
