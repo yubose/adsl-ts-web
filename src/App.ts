@@ -222,6 +222,7 @@ class App {
         window.pcomponents = components
       }
     } catch (error) {
+      console.error(error)
       throw new Error(error as any)
     }
   }

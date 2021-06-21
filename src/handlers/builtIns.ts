@@ -33,7 +33,7 @@ import {
   show,
   scrollToElem,
 } from '../utils/dom'
-import createPagePicker from '../utils/createPagePicker'
+import createPickPage from '../utils/createPickPage'
 import { getActionMetadata, pickActionKey } from '../utils/common'
 import App from '../App'
 import {
@@ -48,7 +48,7 @@ const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
-  const pickPage = createPagePicker(app)
+  const pickPage = createPickPage(app)
 
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
     log.func(`(${kind}) toggleDevice`)
@@ -106,29 +106,32 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action.snapshot?.())
     const reload = _pick(action, 'reload')
     const page = pickPage(options)
-    page.requesting = page.previous
-    // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
-    // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
-    if (u.isBool(reload)) {
-      page.setModifier(page.previous, { reload })
-    }
-    if (page.requesting === page.page && page.page === page.previous) {
-      console.log(
-        `%cLOOK HERE: All three (previous, current, requesting) value of the page name in the noodl-ui-dom instance are the same`,
-        `color:#ec0000;background:#000`,
-      )
-    } else {
-      if (page.previous === page.page) {
-        console.log(
-          `%cLOOK HERE: The current page is the same as the "previous" page on the noodl-ui-dom page`,
-          `color:deepOrange;background:#000`,
-        )
+
+    if (page) {
+      page.requesting = page.previous
+      // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
+      // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
+      if (u.isBool(reload)) {
+        page.setModifier(page.previous, { reload })
       }
-      if (page.page === page.requesting) {
+      if (page.requesting === page.page && page.page === page.previous) {
         console.log(
-          `%cLOOK HERE: The current page is the same as the "requesting" page on the noodl-ui-dom page`,
-          `color:orange;background:#000`,
+          `%cLOOK HERE: All three (previous, current, requesting) value of the page name in the noodl-ui-dom instance are the same`,
+          `color:#ec0000;background:#000`,
         )
+      } else {
+        if (page.previous === page.page) {
+          console.log(
+            `%cLOOK HERE: The current page is the same as the "previous" page on the noodl-ui-dom page`,
+            `color:deepOrange;background:#000`,
+          )
+        }
+        if (page.page === page.requesting) {
+          console.log(
+            `%cLOOK HERE: The current page is the same as the "requesting" page on the noodl-ui-dom page`,
+            `color:orange;background:#000`,
+          )
+        }
       }
     }
 
@@ -208,7 +211,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const iteratorVar = findIteratorVar(component)
       const node = getFirstByElementId(component)
       const page = pickPage(options)
-      const pageName = page.page || ''
+      const pageName = page?.page || ''
       let path = component?.get('path')
 
       let dataValue: any

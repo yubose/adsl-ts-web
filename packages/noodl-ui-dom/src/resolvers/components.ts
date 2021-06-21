@@ -79,7 +79,7 @@ const domComponentsResolver: Resolve.Config = {
                   if (nui) {
                     let dataObject = isRootDataKey(dataKey)
                       ? nui.getRoot()
-                      : nui.getRoot()?.[ndom.page.page]
+                      : nui.getRoot()?.[ndom?.page?.page || '']
                     if (has(dataObject, dataKey)) {
                       // set(dataObject, dataKey, blob)
                     } else {
@@ -90,7 +90,7 @@ const domComponentsResolver: Resolve.Config = {
                         `color:#ec0000;`,
                         {
                           blob,
-                          currentPage: ndom.page.page,
+                          currentPage: ndom?.page?.page,
                           node,
                           root: nui.getRoot(),
                         },
