@@ -28,6 +28,7 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
+import { isArray } from 'lodash';
 
 const log = Logger.create('dom.ts')
 
@@ -258,15 +259,19 @@ const createExtendedDOMResolvers = function (app: App) {
                   right: 'timeGridDay,timeGridWeek'
                 }
                 let defaultData = dataValue.chartData
-                defaultData.forEach(element => {
-
-                  element.start =  new Date(element.stime * 1000);
-                  element.end =  new Date(element.etime * 1000);
-                  element.title = element.visitReason;
-                  delete element.stime;
-                  delete element.etime;
-                  delete element.visitReason
-                });
+                if(isArray(defaultData)){
+                  defaultData.forEach(element => {
+                    element.start =  new Date(element.stime * 1000);
+                    element.end =  new Date(element.etime * 1000);
+                    element.title = element.visitReason;
+                    delete element.stime;
+                    delete element.etime;
+                    delete element.visitReason
+                  });
+                }else{
+                  defaultData = {}
+                }
+                
                 let calendar = new FullCalendar.Calendar(node, {
                   headerToolbar: headerBar,
                   height: 'auto',
