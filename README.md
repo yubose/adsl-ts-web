@@ -36,6 +36,7 @@ These variables are available globally:
 - fixed `NiL` check not behaving expectedly for page components
 - migrated twilio in bundle to load from cdn (reduced bundle size from 21kb --> 17kb)
 - fixed some `goBack` issue from the page component update earlier
+- fixed a syntax error
 
 ## Notes
 
