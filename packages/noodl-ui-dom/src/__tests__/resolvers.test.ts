@@ -106,7 +106,6 @@ describe(italic(`ecosDoc`), () => {
     const { pageObject, render } = createRender(
       mock.getEcosDocComponent({ id: 'hello', ecosObj }),
     )
-    console.info(pageObject)
     await render()
     const node = n.getFirstByElementId('hello')
     await waitFor(() => {

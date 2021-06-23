@@ -12,6 +12,7 @@ import {
   publish,
   Store,
   nuiEmitTransaction,
+  Viewport,
 } from 'noodl-ui'
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
 import { GlobalComponentRecord } from './global'
@@ -83,7 +84,7 @@ class NDOM extends NDOMInternal {
     page: NUIPage
     viewport?: { width?: number; height?: number }
   }): NDOMPage
-  createPage(args: string): NDOMPage
+  createPage(name: string): NDOMPage
   createPage(
     args?:
       | NUIPage
@@ -93,33 +94,29 @@ class NDOM extends NDOMInternal {
   ) {
     let page: NDOMPage | undefined
 
-    const getExistingPage = (nuiPage: NUIPage) => {
-      if (this.page?.isEqual?.(nuiPage)) return this.page
-      return Object.values(this.pages).find((page) => page.isEqual(nuiPage))
-    }
-
     if (isNUIPage(args)) {
-      page = getExistingPage(args)
-      if (!page) page = new NDOMPage(args)
+      page = this.findPage(args) || new NDOMPage(args)
     } else if (u.isObj(args)) {
       if ('page' in args) {
-        page = getExistingPage(args.page)
-        if (!page) {
-          page = new NDOMPage(args.page)
-          if (args.viewport) u.assign(page.viewport, args.viewport)
-        }
+        page = this.findPage(args.page) || new NDOMPage(args.page)
+        // if (!page.viewport) page.viewport = new Viewport()
+        // if (args.viewport) {
+        //   page.viewport.width = args.viewport.width as number
+        //   page.viewport.height = args.viewport.height as number
+        // }
       } else {
-        page = new NDOMPage(NDOM._nui.createPage?.(args))
+        page = new NDOMPage(NDOM._nui.createPage(args))
       }
-    } else if (u.isStr(args)) {
-      page = new NDOMPage(NDOM._nui.createPage?.({ name: args }))
     } else {
-      page = new NDOMPage(NDOM._nui.createPage?.())
+      page = new NDOMPage(NDOM._nui.createPage())
     }
 
-    this.global.pages[page.id] !== page && (this.global.pages[page.id] = page)
-    !this.page && (this.page = page)
-    return page as NDOMPage
+    if (page) {
+      this.global.pages[page.id] !== page && (this.global.pages[page.id] = page)
+      !this.page && (this.page = page)
+    }
+
+    return page
   }
 
   createGlobalRecord(
@@ -152,15 +149,15 @@ class NDOM extends NDOMInternal {
   /**
    * Finds and returns the associated NDOMPage from NUIPage
    * @param NUIPage nuiPage
-   * @returns NDOMPage | null | undefined
+   * @returns NDOMPage | null
    */
   findPage(nuiPage: NUIPage | NDOMPage) {
     if (isNUIPage(nuiPage)) {
-      return u
-        .values(this.global.pages)
-        .find((page) => page.getNuiPage() === nuiPage)
+      for (const [id, page] of u.entries(this.global.pages)) {
+        if (page.id === nuiPage.id) return page
+      }
     } else if (isNDOMPage(nuiPage)) {
-      return u.values(this.global.pages).find((page) => page === nuiPage)
+      return nuiPage
     }
     return null
   }
@@ -251,10 +248,6 @@ class NDOM extends NDOMInternal {
     // Cache the currently requesting page to detect for newer requests during the call
     pageRequesting = pageRequesting || page.requesting
 
-    // u.keys(page.modifiers).forEach(
-    //   (key) => key !== pageRequesting && delete page.modifiers[key],
-    // )
-
     try {
       page.ref.request.timer && clearTimeout(page.ref.request.timer)
 
@@ -262,20 +255,6 @@ class NDOM extends NDOMInternal {
         nuiEmitTransaction.REQUEST_PAGE_OBJECT,
         page,
       )
-
-      // TODO - Add the string 'stale' to type to disable this lint error
-      // If caller returns 'stale', it is an explicit call to cancel this request
-      // because a newer one was initiated
-      if (pageObject === 'stale') {
-        u.keys(page.modifiers).forEach((key) => delete page.modifiers[key])
-        page.requesting === pageRequesting && (page.requesting = '')
-        page.emitSync(c.eventId.page.on.ON_NAVIGATE_STALE, {
-          previouslyRequesting: pageRequesting,
-          newPageRequesting: page.requesting,
-          snapshot: page.snapshot(),
-        })
-        return
-      }
 
       /**
        * TODO - Move this to an official location when we have time
@@ -307,9 +286,9 @@ class NDOM extends NDOMInternal {
         }
       }
 
-      await action(() => {
-        pageObject && (page.components = (pageObject as PageObject)?.components)
-      })
+      // await action(() => {
+      //   pageObject && (page.components = (pageObject as PageObject)?.components)
+      // })
 
       page.setStatus(pageEvt.status.NAVIGATING)
 
@@ -355,10 +334,12 @@ class NDOM extends NDOMInternal {
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
 
     this.reset('componentCache')
+
+    const nuiPage = page.getNuiPage()
     const components = u.array(
       NDOM._nui.resolveComponents.call(NDOM._nui, {
         components: page.components,
-        page: page.getNuiPage(),
+        page: nuiPage,
       }),
     ) as NUIComponent.Instance[]
 
@@ -816,15 +797,13 @@ class NDOM extends NDOMInternal {
     if (transaction) {
       u.eachEntries(transaction, (id, val) => {
         if (id === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
-          const getPageObject =
-            transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT]
           NDOM._nui.use({
             transaction: {
               [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (
                 pageProp: NUIPage,
               ) => {
                 invariant(
-                  u.isFnc(getPageObject),
+                  u.isFnc(transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT]),
                   `Missing transaction: ${nuiEmitTransaction.REQUEST_PAGE_OBJECT}`,
                 )
 
@@ -839,9 +818,7 @@ class NDOM extends NDOMInternal {
                 }
 
                 let pageObject: PageObject | 'stale' | undefined
-                let page =
-                  u.values(this.pages).find((pg) => pg.isEqual(nuiPage)) ||
-                  this.createPage(nuiPage)
+                let page = this.page
 
                 if (!page.requesting) {
                   // Default to use the one set on the NUIPage
@@ -849,7 +826,9 @@ class NDOM extends NDOMInternal {
                   page.requesting = nuiPage?.page || ''
                 }
 
-                pageObject = await getPageObject?.(page)
+                pageObject = await transaction[
+                  nuiEmitTransaction.REQUEST_PAGE_OBJECT
+                ]?.(page)
 
                 return pageObject
               },

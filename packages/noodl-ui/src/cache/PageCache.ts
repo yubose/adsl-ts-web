@@ -30,16 +30,7 @@ class PageCache implements ICache {
 
   clear() {
     for (const [id, { page }] of this.#pages) {
-      const pageObject = page.object()
-      const components = pageObject.components
-      if (pageObject !== null && typeof pageObject === 'object') {
-        for (const [key, value] of Object.entries(pageObject)) {
-          if (key === 'components') {
-            components?.length && (components.length = 0)
-          }
-          delete pageObject[key]
-        }
-      }
+      page.components.length = 0
       this.#pages.delete(id)
     }
   }

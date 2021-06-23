@@ -22,7 +22,6 @@ async function resolveAsync(
         { emit: dataValue.emit, actionType: 'emit' },
       ])
       const results = await ac?.execute?.()
-      console.info(results)
       const result = results.find((val) => !!val?.result)?.result
       component.edit({ 'data-value': result })
       component.emit('dataValue', result)

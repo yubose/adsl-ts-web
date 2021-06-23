@@ -172,7 +172,7 @@ function createEcosDocElement<
     -------------------------------------------------------- */
       iframeContent = document.createElement('div')
       if (ecosObj.name?.data) {
-        if (u.isStr(ecosObj.name.data)) {
+        if (u.isStr(ecosObj.name.data) || u.isNum(ecosObj.name.data)) {
           iframeContent?.appendChild(
             createTextNode(ecosObj.name.data, {
               title: ecosObj.name.title,

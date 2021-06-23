@@ -6,7 +6,7 @@ import {
   createComponent,
   formatColor,
   NUIComponent,
-  isPage as isNuiPage,
+  isPage as isNUIPage,
   Page as NUIPage,
   event as noodluiEvent,
   SelectOption,
@@ -37,7 +37,7 @@ const domComponentsResolver: Resolve.Config = {
         })
     }
   },
-  resolve(node, component, { draw, ndom, nui }) {
+  resolve(node, component, { draw, global: globalMap, ndom, nui }) {
     if (!u.isFnc(node)) {
       const original = component.blueprint || {}
 
@@ -171,51 +171,68 @@ const domComponentsResolver: Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(component)) {
-        const nuiPage = component.get('page') as NUIPage
-        if (isNuiPage(nuiPage)) {
-          const ndomPage = ndom.createPage(nuiPage)
-          ndomPage.components = nuiPage.object().components
-          ndomPage.requesting = nuiPage.page
-          ndom
-            .request(ndomPage)
-            .then((req) => {
-              console.log({ req, ndomPage })
-              if (req) {
-                const components = req.render()
-                console.log(
-                  `%cRendered ${components.length} components for page "${ndomPage.page}" on a page component`,
-                  `color:#00b406;`,
-                )
-              }
-            })
-            .catch((err) => console.error(err))
+        const nuiPage = component.get('page')
+        component.on('page-components', (components) => {
+          let ndomPage = ndom.findPage(nuiPage)
 
-          // ndomPage.components = nuiPage.object().components
-          // component.on(
-          //   noodluiEvent.component.page.PAGE_COMPONENTS,
-          //   () => {
-          //     component.children?.forEach((child: NUIComponent.Instance) =>
-          //       draw(
-          //         child,
-          //         (node as HTMLIFrameElement).contentDocument?.body,
-          //         ndom.pages[component.id],
-          //       ),
-          //     )
-          //   },
-          //   `[noodl-ui-dom] ${noodluiEvent.component.page.PAGE_COMPONENTS}`,
-          // )
-        } else {
-          console.log(
-            `%cCould not create an NDOM page because the NUI page is missing`,
-            `color:#ec0000;`,
-            {
-              component: component.snapshot(),
-              nuiPage,
-              pagesInNuiCache: nui.cache.page.get(),
-              pagesInNdomGlobal: ndom.global.pages,
-            },
-          )
-        }
+          if (!ndomPage) {
+            console.info(
+              `%cCreating new NDOMPage for page component`,
+              `color:#95a5a6;`,
+              component.snapshot(),
+            )
+            console.info(nuiPage.components)
+            try {
+              ndomPage = ndom.createPage(nuiPage)
+            } catch (error) {
+              console.error(error)
+            }
+          }
+
+          // console.info(nuiPage)
+          // console.info(ndomPage)
+          // if (!ndomPage) {
+          //   console.info(
+          //     `%cTried to find a NUI page for a page component but did not get any results`,
+          //     `color:#ec0000;`,
+          //     { globalMap, nuiPage },
+          //   )
+          // } else {
+          //   const components = nui.resolveComponents({
+          //     page: nuiPage,
+          //     components: nuiPage.components,
+          //   })
+          //   ndomPage.components = components
+          //   ndomPage.requesting = nuiPage.page
+          //   ndom
+          //     .request(ndomPage, nuiPage.page)
+          //     .then((req) => {
+          //       if (req) {
+          //         const components = req.render()
+          //         console.log(
+          //           `%cRendered ${components.length} components for page "${ndomPage.page}" on a page component`,
+          //           `color:#00b406;`,
+          //         )
+          //       }
+          //     })
+          //     .catch((err) => console.error(err))
+          // }
+        })
+
+        // ndomPage.components = nuiPage.object().components
+        // component.on(
+        //   noodluiEvent.component.page.PAGE_COMPONENTS,
+        //   () => {
+        //     component.children?.forEach((child: NUIComponent.Instance) =>
+        //       draw(
+        //         child,
+        //         (node as HTMLIFrameElement).contentDocument?.body,
+        //         ndom.pages[component.id],
+        //       ),
+        //     )
+        //   },
+        //   `[noodl-ui-dom] ${noodluiEvent.component.page.PAGE_COMPONENTS}`,
+        // )
       }
       // PLUGIN
       else if (Identify.component.plugin(original)) {

@@ -24,8 +24,9 @@ These variables are available globally:
 
 - firebase [CDN](https://firebase.google.com/docs/web/setup#node.js-apps_1)
 - twilio [CDN](https://www.twilio.com/docs/video/javascript)
-- videochat togglevideo black background
 - page component
+  - adjusting "left" doesnt work
+  - type: "page" doesnt work
 - ecosDoc image cannot be displayed
 - ecosDoc images stuck being in the dom globally:
   - ![](https://aitmedstuff.s3.us-west-1.amazonaws.com/images/Screen+Shot+2021-06-18+at+9.27.28+AM.png)
