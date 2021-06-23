@@ -34,7 +34,7 @@ describe(ncom.coolGold('components'), () => {
 
       // const components = (req && req.render()) as NUIComponent.Instance[]
 
-      const req = await request('Cereal')
+      // const req = await request('Cereal')
       const view = req.render()
       const component = await render('Gold')
       console.info(component)
