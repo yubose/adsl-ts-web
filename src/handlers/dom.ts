@@ -307,8 +307,8 @@ const createExtendedDOMResolvers = function (app: App) {
                     //console.log(info);
                     tippy(info.el, {
                       content: '<div >\
-                       <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Doctor Information</div>\
-                       <div style="padding-top:2px">Doctor Name：'+ info.event._def.title + '</div>\
+                       <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Appointment Information</div>\
+                       <div style="padding-top:2px">Appointment Name：'+ info.event._def.title + '</div>\
                        <div style="padding:4px 0">startTime：'+formatDate(new Date(info.event._instance.range.start).getTime()+(new Date().getTimezoneOffset()*60*1000),'yyyy-MM-dd HH:mm:ss')+ '</div>\
                        <div>endTime： '+formatDate(new Date(info.event._instance.range.end).getTime()+(new Date().getTimezoneOffset()*60*1000),'yyyy-MM-dd HH:mm:ss')+ '</div>\
  　　　　　　　        　</div>',
