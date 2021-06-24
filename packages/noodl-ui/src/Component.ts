@@ -1,5 +1,6 @@
 import { AcceptArray } from '@jsmanifest/typefest'
 import { ComponentObject, StyleObject } from 'noodl-types'
+import isComponent from './utils/isComponent'
 import * as u from './utils/internal'
 import * as T from './types'
 
@@ -24,12 +25,8 @@ class Component<C extends ComponentObject = ComponentObject>
   original: ComponentObject
   type: C['type']
 
-  static isComponent(component: any): component is T.NUIComponent.Instance {
-    return (
-      !!component &&
-      !u.isStr(component) &&
-      (component instanceof Component || 'blueprint' in component)
-    )
+  static isComponent(component: unknown): component is T.NUIComponent.Instance {
+    return isComponent(component)
   }
 
   [Symbol.iterator]() {

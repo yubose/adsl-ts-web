@@ -4,6 +4,7 @@ import set from 'lodash/set'
 import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
 import {
+  ComponentObject,
   EmitObjectFold,
   Identify,
   IfObject,
@@ -40,18 +41,18 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import { groupedActionTypes, nuiEmitType } from './constants'
-import * as T from './types'
+import * as t from './types'
 
 const NUI = (function _NUI() {
   const cache = {
     actions: new ActionsCache() as ActionsCache &
       Record<
-        T.NUIActionGroupedType,
-        T.Store.ActionObject<T.NUIActionGroupedType>[]
+        t.NUIActionGroupedType,
+        t.Store.ActionObject<t.NUIActionGroupedType>[]
       > & {
-        builtIn: Map<string, T.Store.BuiltInObject[]>
-        emit: Map<T.NUITrigger, T.Store.ActionObject[]>
-        register: Record<string, T.Register.Object[]>
+        builtIn: Map<string, t.Store.BuiltInObject[]>
+        emit: Map<t.NUITrigger, t.Store.ActionObject[]>
+        register: Record<string, t.Register.Object[]>
       },
     component: new ComponentCache(),
     page: new PageCache(),
@@ -60,14 +61,27 @@ const NUI = (function _NUI() {
     transactions: new TransactionCache(),
   }
 
+  function _createComponent(
+    componentObject:
+      | t.NUIComponent.Instance
+      | ComponentObject
+      | null
+      | undefined,
+  ) {
+    if (isComponent(componentObject)) return componentObject
+    const component = createComponent(componentObject as ComponentObject)
+    cache.component.add(component)
+    return component
+  }
+
   function _createSrc(args: {
-    component: T.NUIComponent.Instance
+    component: t.NUIComponent.Instance
     page: NUIPage
   }): Promise<string>
   function _createSrc(
     path: EmitObjectFold,
     opts?: {
-      component: T.NUIComponent.Instance
+      component: t.NUIComponent.Instance
       context?: Record<string, any>
     },
   ): Promise<string>
@@ -79,16 +93,16 @@ const NUI = (function _NUI() {
       | IfObject
       | {
           context?: Record<string, any>
-          component: T.NUIComponent.Instance
+          component: t.NUIComponent.Instance
           page: NUIPage
         }
       | string,
     opts?: {
-      component?: T.NUIComponent.Instance
+      component?: t.NUIComponent.Instance
       context?: Record<string, any>
     },
   ) {
-    let component: T.NUIComponent.Instance
+    let component: t.NUIComponent.Instance
     let page: NUIPage = o.getRootPage()
 
     if (u.isStr(args)) {
@@ -102,7 +116,7 @@ const NUI = (function _NUI() {
       return resolveAssetUrl(args, o.getAssetsUrl())
     } else if (u.isObj(args)) {
       if (Identify.folds.emit(args)) {
-        component = opts?.component as T.NUIComponent.Instance
+        component = opts?.component as t.NUIComponent.Instance
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = o.cache.actions.emit.get('path')?.[0]
         const iteratorVar =
@@ -128,7 +142,7 @@ const NUI = (function _NUI() {
             )
             if (!callbacks.length) return ''
             const result = await Promise.race(
-              callbacks.map((obj: T.Store.ActionObject) =>
+              callbacks.map((obj: t.Store.ActionObject) =>
                 obj.fn?.(
                   emitAction,
                   o.getConsumerOptions({ component, page, path: args }),
@@ -183,17 +197,17 @@ const NUI = (function _NUI() {
 
   // @ts-expect-error
   async function _emit<Evt extends string = string>(
-    opts?: T.NUIEmit.EmitRegister<Evt>,
+    opts?: t.NUIEmit.EmitRegister<Evt>,
   ): Promise<any[]>
 
-  async function _emit<Tid extends T.TransactionId = T.TransactionId>(
-    obj?: T.NUIEmit.EmitTransaction<Tid>,
-  ): Promise<Parameters<T.Transaction[Tid]['callback']>[0]>
+  async function _emit<Tid extends t.TransactionId = t.TransactionId>(
+    obj?: t.NUIEmit.EmitTransaction<Tid>,
+  ): Promise<Parameters<t.Transaction[Tid]['callback']>[0]>
 
   async function _emit<
     Evt extends string = string,
-    Tid extends T.TransactionId = T.TransactionId,
-  >(opts: T.NUIEmit.EmitRegister<Evt> | T.NUIEmit.EmitTransaction<Tid>) {
+    Tid extends t.TransactionId = t.TransactionId,
+  >(opts: t.NUIEmit.EmitRegister<Evt> | t.NUIEmit.EmitTransaction<Tid>) {
     try {
       if (opts.type === nuiEmitType.REGISTER) {
         const { event, params } = opts
@@ -256,7 +270,7 @@ const NUI = (function _NUI() {
             )
             console.log(obj)
             // TODO - Refactor this awkward code
-            return obj.fn?.(obj, params as T.Register.ParamsObject)
+            return obj.fn?.(obj, params as t.Register.ParamsObject)
           }
         } else {
           console.log(
@@ -286,7 +300,7 @@ const NUI = (function _NUI() {
 
   function _getQueryObjects(
     opts: {
-      component?: T.NUIComponent.Instance
+      component?: t.NUIComponent.Instance
       page?: NUIPage
       queries?: () => Record<string, any> | (() => Record<string, any>)[]
       listDataObject?: any
@@ -336,49 +350,49 @@ const NUI = (function _NUI() {
 
   function _resolveComponents(opts: {
     page?: NUIPage
-    components: T.NUIComponent.CreateType
+    components: t.NUIComponent.CreateType
     context?: Record<string, any>
-  }): T.NUIComponent.Instance
+  }): t.NUIComponent.Instance
   function _resolveComponents(opts: {
     page: NUIPage
-    components: T.NUIComponent.CreateType[]
+    components: t.NUIComponent.CreateType[]
     context?: Record<string, any>
-  }): T.NUIComponent.Instance[]
+  }): t.NUIComponent.Instance[]
   function _resolveComponents(
     page: NUIPage,
-    component: T.NUIComponent.CreateType,
-  ): T.NUIComponent.Instance
+    component: t.NUIComponent.CreateType,
+  ): t.NUIComponent.Instance
   function _resolveComponents(
     page: NUIPage,
-    components: T.NUIComponent.CreateType[],
-  ): T.NUIComponent.Instance[]
+    components: t.NUIComponent.CreateType[],
+  ): t.NUIComponent.Instance[]
   function _resolveComponents(
-    component: T.NUIComponent.CreateType,
-  ): T.NUIComponent.Instance
+    component: t.NUIComponent.CreateType,
+  ): t.NUIComponent.Instance
   function _resolveComponents(
-    components: T.NUIComponent.CreateType[],
-  ): T.NUIComponent.Instance[]
+    components: t.NUIComponent.CreateType[],
+  ): t.NUIComponent.Instance[]
   function _resolveComponents(
     pageProp:
       | NUIPage
-      | T.NUIComponent.CreateType
-      | T.NUIComponent.CreateType[]
+      | t.NUIComponent.CreateType
+      | t.NUIComponent.CreateType[]
       | {
           page?: NUIPage
-          components: T.NUIComponent.CreateType | T.NUIComponent.CreateType[]
+          components: t.NUIComponent.CreateType | t.NUIComponent.CreateType[]
           context?: Record<string, any>
         },
-    componentsProp?: T.NUIComponent.CreateType | T.NUIComponent.CreateType[],
+    componentsProp?: t.NUIComponent.CreateType | t.NUIComponent.CreateType[],
   ) {
     let isArr = true
-    let resolvedComponents: T.NUIComponent.Instance[] = []
-    let components: T.NUIComponent.CreateType[] = []
+    let resolvedComponents: t.NUIComponent.Instance[] = []
+    let components: t.NUIComponent.CreateType[] = []
     let page: NUIPage
     let context: Record<string, any> = {}
 
     if (isPage(pageProp)) {
       page = pageProp
-      components = u.array(componentsProp) as T.NUIComponent.CreateType[]
+      components = u.array(componentsProp) as t.NUIComponent.CreateType[]
       isArr = u.isArr(componentsProp)
     } else if (u.isArr(pageProp)) {
       components = pageProp
@@ -398,13 +412,13 @@ const NUI = (function _NUI() {
       }
     }
 
-    function xform(c: T.NUIComponent.Instance) {
+    function xform(c: t.NUIComponent.Instance) {
       _transform(c, o.getConsumerOptions({ component: c, page, context }))
       return c
     }
 
-    components.forEach((c, i) => {
-      const component = createComponent(c as T.NUIComponent.Instance)
+    components.forEach((c: t.NUIComponent.Instance, i) => {
+      const component = o.createComponent(c)
       component.ppath = `[${i}]`
       resolvedComponents.push(xform(component))
     })
@@ -415,13 +429,13 @@ const NUI = (function _NUI() {
   function _getActions(): ActionsCache
   function _getActions(
     actionType: 'emit',
-  ): Map<T.NUITrigger, T.Store.ActionObject<'emit'>[]>
+  ): Map<t.NUITrigger, t.Store.ActionObject<'emit'>[]>
   function _getActions(
     actionType: 'builtIn',
-  ): Map<string, T.Store.BuiltInObject[]>
+  ): Map<string, t.Store.BuiltInObject[]>
   function _getActions<AType extends typeof groupedActionTypes[number]>(
     actionType: AType,
-  ): T.Store.ActionObject<AType>[]
+  ): t.Store.ActionObject<AType>[]
   function _getActions<GAType extends typeof groupedActionTypes[number]>(
     actionType?: GAType | 'builtIn' | 'emit' | never,
   ) {
@@ -444,27 +458,27 @@ const NUI = (function _NUI() {
 
   function _experimental_Register(
     name: string,
-    fn: T.Register.Object['fn'] | Partial<T.Register.Object>,
-    options?: Partial<T.Register.Object>,
-  ): T.Register.Object
+    fn: t.Register.Object['fn'] | Partial<t.Register.Object>,
+    options?: Partial<t.Register.Object>,
+  ): t.Register.Object
 
   function _experimental_Register(
     registerComponent: RegisterComponentObject,
-    options?: Partial<T.Register.Object> | T.Register.Object['fn'],
-  ): T.Register.Object
+    options?: Partial<t.Register.Object> | t.Register.Object['fn'],
+  ): t.Register.Object
 
   function _experimental_Register(
     obj: RegisterComponentObject | string,
-    options: Partial<T.Register.Object> | T.Register.Object['fn'] = {},
-    options2: Partial<T.Register.Object> = {},
+    options: Partial<t.Register.Object> | t.Register.Object['fn'] = {},
+    options2: Partial<t.Register.Object> = {},
   ) {
     try {
       let event = ''
-      let register: T.Register.Object | undefined
+      let register: t.Register.Object | undefined
 
       if (u.isStr(obj)) {
         event = obj
-        register = (o.cache.register.get(event) || {}) as T.Register.Object
+        register = (o.cache.register.get(event) || {}) as t.Register.Object
         if (u.isFnc(options)) {
           set(register, 'handler.fn', options)
           if (u.isObj(options2)) {
@@ -499,7 +513,7 @@ const NUI = (function _NUI() {
         !(register.name === event) && (register.name = event)
       } else if (u.isObj(obj)) {
         event = obj.onEvent as string
-        register = (o.cache.register.get(event) || {}) as T.Register.Object
+        register = (o.cache.register.get(event) || {}) as t.Register.Object
 
         options && u.assign(register, options)
 
@@ -560,8 +574,8 @@ const NUI = (function _NUI() {
 
       return cache.register.set(
         event,
-        register as T.Register.Object,
-      ) as T.Register.Object
+        register as t.Register.Object,
+      ) as t.Register.Object
     } catch (error) {
       console.error(`[${error.name}] ${error.message}`)
     }
@@ -582,6 +596,7 @@ const NUI = (function _NUI() {
       })
     },
     cache,
+    createComponent: _createComponent,
     createPage(
       args?:
         | string
@@ -624,12 +639,12 @@ const NUI = (function _NUI() {
     },
     createPlugin(
       location:
-        | T.Plugin.Location
-        | T.Plugin.ComponentObject
-        | T.NUIComponent.Instance = 'head',
-      obj?: T.NUIComponent.Instance | T.Plugin.ComponentObject,
+        | t.Plugin.Location
+        | t.Plugin.ComponentObject
+        | t.NUIComponent.Instance = 'head',
+      obj?: t.NUIComponent.Instance | t.Plugin.ComponentObject,
     ) {
-      let _location = '' as T.Plugin.Location
+      let _location = '' as t.Plugin.Location
       let _path = ''
 
       if (u.isStr(location)) {
@@ -650,16 +665,16 @@ const NUI = (function _NUI() {
         initiated: false,
         location: _location,
         path: _path,
-      } as T.Plugin.Object
+      } as t.Plugin.Object
 
       !cache.plugin.has(id) && cache.plugin.add(_location, plugin)
       return plugin
     },
     createActionChain(
-      trigger: T.NUITrigger,
-      actions: T.NUIActionObjectInput | T.NUIActionObjectInput[],
+      trigger: t.NUITrigger,
+      actions: t.NUIActionObjectInput | t.NUIActionObjectInput[],
       opts?: {
-        component?: T.NUIComponent.Instance
+        component?: t.NUIComponent.Instance
         context?: Record<string, any>
         loadQueue?: boolean
         page?: NUIPage
@@ -668,7 +683,7 @@ const NUI = (function _NUI() {
       if (!u.isArr(actions)) actions = [actions]
 
       const actionChain = createActionChain({
-        actions: actions?.reduce((acc: T.NUIActionObject[], obj) => {
+        actions: actions?.reduce((acc: t.NUIActionObject[], obj) => {
           const errors = getActionObjectErrors(obj)
           if (errors.length) {
             errors.forEach((errMsg) =>
@@ -680,21 +695,21 @@ const NUI = (function _NUI() {
           } else if (u.isFnc(obj)) {
             obj = { actionType: 'anonymous', fn: obj }
           }
-          return acc.concat(obj as T.NUIActionObject)
+          return acc.concat(obj as t.NUIActionObject)
         }, []),
         trigger,
         loader: (objs) => {
           function __createExecutor(
-            action: T.NUIAction,
-            fns: (T.Store.ActionObject | T.Store.BuiltInObject)[] = [],
-            options: T.ConsumerOptions,
+            action: t.NUIAction,
+            fns: (t.Store.ActionObject | t.Store.BuiltInObject)[] = [],
+            options: t.ConsumerOptions,
           ) {
             return async function executeActionChain(event?: Event) {
               let results = [] as (Error | any)[]
               if (fns.length) {
                 const callbacks = fns.map(
                   async function executeActionChainCallback(
-                    obj: T.Store.ActionObject | T.Store.BuiltInObject,
+                    obj: t.Store.ActionObject | t.Store.BuiltInObject,
                   ) {
                     return obj.fn?.(action as any, {
                       ...options,
@@ -785,7 +800,7 @@ const NUI = (function _NUI() {
     getActions: _getActions,
     getBuiltIns: () => cache.actions.builtIn,
     getBaseUrl: () => '',
-    getBaseStyles({ component }: { component: T.NUIComponent.Instance }) {
+    getBaseStyles({ component }: { component: t.NUIComponent.Instance }) {
       const originalStyle = component?.blueprint?.style || {}
       const styles = { ...originalStyle } as any
 
@@ -812,7 +827,7 @@ const NUI = (function _NUI() {
       page,
       context,
     }: {
-      component?: T.NUIComponent.Instance
+      component?: t.NUIComponent.Instance
       page: NUIPage
       context?: Record<string, any>
     } & { [key: string]: any }) {
@@ -825,8 +840,8 @@ const NUI = (function _NUI() {
           return o.createPage
         },
         createActionChain(
-          trigger: T.NUITrigger,
-          actions: T.NUIActionObject | T.NUIActionObject[],
+          trigger: t.NUITrigger,
+          actions: t.NUIActionObject | t.NUIActionObject[],
           {
             context: contextProp,
             loadQueue = true,
@@ -844,7 +859,7 @@ const NUI = (function _NUI() {
         },
         createSrc: _createSrc,
         emit: _emit,
-        getBaseStyles(c: T.NUIComponent.Instance) {
+        getBaseStyles(c: t.NUIComponent.Instance) {
           return o.getBaseStyles?.({ component: c })
         },
         get getQueryObjects() {
@@ -859,7 +874,7 @@ const NUI = (function _NUI() {
         },
       }
     },
-    getPlugins: (location?: T.Plugin.Location) => cache.plugin.get(location),
+    getPlugins: (location?: t.Plugin.Location) => cache.plugin.get(location),
     getPages: () => [] as string[],
     getPreloadPages: () => [] as string[],
     getRoot: () => ({} as Record<string, any>),
@@ -925,7 +940,7 @@ const NUI = (function _NUI() {
       o._defineGetter('getPreloadPages', () => [])
       o._defineGetter('getRoot', () => '')
     },
-    use(args: T.UseArg) {
+    use(args: t.UseArg) {
       for (const actionType of groupedActionTypes) {
         if (actionType in args) {
           u.arrayEach(args[actionType], (fn) => {
@@ -941,7 +956,7 @@ const NUI = (function _NUI() {
       if ('builtIn' in args) {
         u.eachEntries(
           args.builtIn,
-          (funcName, fn: T.Store.BuiltInObject['fn']) => {
+          (funcName, fn: t.Store.BuiltInObject['fn']) => {
             u.arrayEach(fn, (f) => {
               invariant(!!funcName, `"Missing funcName in a builtIn handler`)
               invariant(
@@ -966,7 +981,7 @@ const NUI = (function _NUI() {
       if ('emit' in args) {
         u.eachEntries(
           args.emit,
-          (trigger: T.NUITrigger, func: (...args: any[]) => any) => {
+          (trigger: t.NUITrigger, func: (...args: any[]) => any) => {
             u.arrayEach(func, (fn) => {
               invariant(
                 u.isFnc(fn),
@@ -997,7 +1012,7 @@ const NUI = (function _NUI() {
             o._experimental.register(component)
           })
         } else {
-          u.eachEntries(args.register, (event, fn: T.Register.Object['fn']) => {
+          u.eachEntries(args.register, (event, fn: t.Register.Object['fn']) => {
             if (u.isFnc(fn)) o._experimental.register(event, fn)
           })
         }
@@ -1007,7 +1022,7 @@ const NUI = (function _NUI() {
         u.eachEntries(args.transaction, (tid, fn) => {
           const opts = {} as any
           u.isFnc(fn) ? (opts.fn = fn) : u.isObj(fn) && u.assign(opts, fn)
-          o.getTransactions().set(tid as T.TransactionId, opts)
+          o.getTransactions().set(tid as t.TransactionId, opts)
         })
       }
 

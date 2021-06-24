@@ -35,12 +35,10 @@ describe(ncom.coolGold('components'), () => {
       // const components = (req && req.render()) as NUIComponent.Instance[]
 
       // const req = await request('Cereal')
-      const view = req.render()
-      const component = await render('Gold')
-      console.info(component)
-      let req = await ndom.request()
-
-      const pageComponent = viewComponent.child()
+      const { render } = createRender(viewComponentObject)
+      const view = await render()
+      console.info(view)
+      const pageComponent = view.child()
       expect(isNUIPage(pageComponent.get('page'))).to.be.true
     })
   })

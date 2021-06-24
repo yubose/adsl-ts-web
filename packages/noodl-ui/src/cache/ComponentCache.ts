@@ -1,6 +1,8 @@
 import isComponent from '../utils/isComponent'
-import { NUIComponent } from '../types'
+import { ComponentCacheObject, NUIComponent } from '../types'
 import { isArr, isStr } from '../utils/internal'
+import isNUIPage from '../utils/isPage'
+import NUIPage from '../Page'
 
 type ComponentCacheHookEvent = 'add' | 'clear' | 'remove'
 
@@ -11,13 +13,19 @@ interface ComponentCacheHook {
 }
 
 class ComponentCache {
-  #cache = new Map<string, NUIComponent.Instance>()
+  #cache = new Map<string, ComponentCacheObject>()
   #observers: Record<
     ComponentCacheHookEvent,
     ComponentCacheHook[ComponentCacheHookEvent][]
   > = { add: [], clear: [], remove: [] }
 
   static _inst: ComponentCache;
+
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return {
+      length: this.length,
+    }
+  }
 
   [Symbol.iterator]() {
     const components = [...this.#cache.values()]
@@ -57,9 +65,12 @@ class ComponentCache {
     return this
   }
 
-  add(component: NUIComponent.Instance) {
+  add(component: NUIComponent.Instance, page: NUIPage | string | undefined) {
     if (component) {
-      this.#cache.set(component.id, component)
+      this.#cache.set(component.id, {
+        component,
+        page: (isNUIPage(page) ? page.page : page) || '',
+      })
       this.emit('add', component)
     }
     return this
@@ -77,8 +88,8 @@ class ComponentCache {
 
   get(
     component: NUIComponent.Instance | string | undefined,
-  ): NUIComponent.Instance
-  get(): Map<string, NUIComponent.Instance>
+  ): ComponentCacheObject
+  get(): Map<string, ComponentCacheObject>
   get(component?: NUIComponent.Instance | string | undefined) {
     if (isComponent(component)) return this.#cache.get(component.id)
     if (isStr(component)) return this.#cache.get(component)
@@ -92,7 +103,7 @@ class ComponentCache {
 
   remove(component: NUIComponent.Instance | string) {
     if (isStr(component)) {
-      component = this.#cache.get(component) as NUIComponent.Instance
+      component = this.#cache.get(component)?.component as NUIComponent.Instance
     }
     if (isComponent(component)) {
       const json = component.toJSON()

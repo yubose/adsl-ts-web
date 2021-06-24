@@ -166,6 +166,13 @@ describe(italic(`createActionChain`), () => {
   )
 })
 
+describe.only(italic(`createComponent`), () => {
+  it(`should add the component to the component cache`, () => {
+    const component = nui.createComponent(mock.getButtonComponent())
+    expect(nui.cache.component.has(component)).to.be.true
+  })
+})
+
 describe(italic(`createPage`), () => {
   it(`should create and return a new Page instance from the PageCache`, () => {
     const page = nui.createPage({

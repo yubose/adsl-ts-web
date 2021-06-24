@@ -60,6 +60,11 @@ export type NUIActionObjectInput =
   | GotoObject
   | ToastObject
 
+export interface ComponentCacheObject {
+  component: NUIComponent.Instance
+  page: string
+}
+
 export namespace NUIEmit {
   export interface EmitRegister<Evt extends string = string> {
     type: typeof nuiEmitType.REGISTER

@@ -135,6 +135,10 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         await waitFor(() => expect(spy).to.be.calledOnce)
       },
     )
+
+    xit(`should `, () => {
+      //
+    })
   })
 
   describe(italic(`plugin`), () => {

@@ -7,6 +7,10 @@
 - git commit -a -m "update aitmed sdk"
 - git push
 
+## Correct link to GitLab
+
+- https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/
+
 ## Globals
 
 These variables are available globally:

@@ -3,8 +3,10 @@ import { coolGold, italic } from 'noodl-common'
 import sinon from 'sinon'
 import createComponent from '../../utils/createComponent'
 import ComponentCache from '../../cache/ComponentCache'
+import { nui } from '../../utils/test-utils'
 
 let componentCache: ComponentCache
+let page = nui.createPage({ viewport: { width: 375, height: 667 } })
 
 beforeEach(() => {
   componentCache = new ComponentCache()
@@ -23,7 +25,7 @@ describe(coolGold(`ComponentCache`), () => {
       componentCache.on('add', spy2)
       expect(spy).not.to.be.calledOnce
       expect(spy2).not.to.be.calledOnce
-      componentCache.add({} as any)
+      componentCache.add({} as any, {} as any)
       expect(spy).to.be.calledOnce
       expect(spy2).to.be.calledOnce
     })
@@ -36,8 +38,8 @@ describe(coolGold(`ComponentCache`), () => {
       expect(spy).not.to.be.calledOnce
       expect(spy2).not.to.be.calledOnce
       const component = createComponent('button')
-      componentCache.add(component)
-      componentCache.add(component)
+      const page = componentCache.add(component, {} as any)
+      componentCache.add(component, {} as any)
       expect(spy).not.to.be.calledOnce
       expect(spy2).not.to.be.calledOnce
       componentCache.clear()
@@ -51,7 +53,7 @@ describe(coolGold(`ComponentCache`), () => {
       componentCache.on('remove', spy)
       componentCache.on('remove', spy2)
       const component = createComponent('label')
-      componentCache.add(component)
+      componentCache.add(component, {})
       expect(spy).not.to.be.calledOnce
       expect(spy2).not.to.be.calledOnce
       componentCache.remove(component)
@@ -63,17 +65,18 @@ describe(coolGold(`ComponentCache`), () => {
   describe(italic(`get`), () => {
     it(`should return the component instance if given the component instance`, () => {
       const component = createComponent('select')
-      componentCache.add(component)
-      expect(componentCache.get(component)).to.eq(component)
+      componentCache.add(component, {} as any)
+      expect(componentCache.get(component).component).to.eq(component)
     })
 
     it(`should return the component instance if given the component id`, () => {
       const component = createComponent('select')
-      componentCache.add(component)
-      expect(componentCache.get(component.id)).to.eq(component)
+      componentCache.add(component, {} as any)
+      expect(componentCache.get(component.id).component).to.eq(component)
     })
 
     it(`should return the whole component cache object if args is empty`, () => {
+      console.info(componentCache)
       expect(componentCache.get()).to.be.instanceOf(Map)
     })
   })
