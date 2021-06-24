@@ -563,7 +563,7 @@ const createActions = function createActions(app: App) {
       }
     } catch (error) {
       console.error(error)
-      toast(error.message, { type: 'error' })
+      toast((error as Error).message, { type: 'error' })
       ref?.abort?.()
     }
   }
@@ -576,9 +576,7 @@ const createActions = function createActions(app: App) {
         const dataKey = _pick(action, 'dataKey')
         const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
         if (node) {
-          const component = app.cache.component.get(
-            node.id,
-          ) as NUIComponent.Instance
+          const component = app.cache.component.get(node.id)?.component
           if (isComponent(component)) {
             const signaturePad = component.get('signaturePad') as SignaturePad
             if (signaturePad) {
@@ -603,7 +601,7 @@ const createActions = function createActions(app: App) {
           }
         }
       } catch (error) {
-        toast(error.message, { type: 'error' })
+        toast((error as Error).message, { type: 'error' })
       }
     }
 
@@ -617,7 +615,7 @@ const createActions = function createActions(app: App) {
       const dataKey = _pick(action, 'dataKey')
       if (dataKey) {
         const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
-        const component = app.cache.component.get(node.id)
+        const component = app.cache.component.get(node.id)?.component
         if (component) {
           const signaturePad = component.get('signaturePad') as SignaturePad
           if (signaturePad) {

@@ -114,7 +114,7 @@ componentResolver.setResolver((component, options, next) => {
           context: ctx,
           page,
         })
-        cache.component.add(listItem)
+        cache.component.add(listItem, page)
         const numGeneratedChildren = listItem.length
         const expectedNumChildren = listItem.blueprint?.children?.length
         if (listItem.length > (listItem.blueprint?.children?.length || 0)) {
@@ -423,11 +423,11 @@ componentResolver.setResolver((component, options, next) => {
         child = component.createChild(child)
         child.ppath = `${component.ppath || ''}.children[${i}]`
         child = resolveComponents({ components: child, context, page })
-        !cache.component.has(child) && cache.component.add(child)
+        !cache.component.has(child) && cache.component.add(child, page)
       },
     )
   }
-  !cache.component.has(component) && cache.component.add(component)
+  !cache.component.has(component) && cache.component.add(component, page)
   next?.()
 })
 

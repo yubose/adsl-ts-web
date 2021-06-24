@@ -67,10 +67,11 @@ const NUI = (function _NUI() {
       | ComponentObject
       | null
       | undefined,
+    page = o.getRootPage(),
   ) {
     if (isComponent(componentObject)) return componentObject
     const component = createComponent(componentObject as ComponentObject)
-    cache.component.add(component)
+    cache.component.add(component, page)
     return component
   }
 

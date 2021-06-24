@@ -201,7 +201,9 @@ class NDOM extends NDOMInternal {
             const { componentId, nodeId } = obj
             if (componentId) {
               if (this.cache.component.has(componentId)) {
-                this.removeComponent(this.cache.component.get(componentId))
+                this.removeComponent(
+                  this.cache.component.get(componentId)?.component,
+                )
               }
             }
             this.global.components.delete(globalId)
@@ -466,7 +468,7 @@ class NDOM extends NDOMInternal {
           if (globalRecord.componentId !== component.id) {
             publishMismatchMsg('component')
             this.removeComponent(
-              this.cache.component.get(globalRecord.componentId),
+              this.cache.component.get(globalRecord.componentId)?.component,
             )
             globalRecord.componentId = component.id
           }
@@ -734,7 +736,9 @@ class NDOM extends NDOMInternal {
               document.getElementById(record.nodeId)?.remove?.()
             }
             if (this.cache.component.has(record.componentId)) {
-              this.removeComponent(this.cache.component.get(record.componentId))
+              this.removeComponent(
+                this.cache.component.get(record.componentId)?.component,
+              )
             }
           }
           this.global.components.delete(record?.globalId as string)

@@ -536,12 +536,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     let components = [] as NUIComponent.Instance[]
     let numComponents = 0
 
-    for (const c of app.cache.component) {
-      c &&
-        (c.blueprint?.viewTag || c.get('data-viewtag')) ===
-          viewTag.fromAction &&
-        components.push(c) &&
-        numComponents++
+    for (const obj of app.cache.component) {
+      if (obj) {
+        if (
+          obj.component?.blueprint?.viewTag ||
+          obj.component?.get?.('data-viewtag') === viewTag.fromAction
+        ) {
+          components.push(obj.component)
+          numComponents++
+        }
+      }
     }
 
     if (
@@ -577,7 +581,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           app.ndom.findPage(options?.page || app.mainPage) as NDOMPage,
           { context: ctx },
         )
-        app.cache.component.add(redrawed[1]) && startCount++
+        app.cache.component.add(redrawed[1], options?.page || app.mainPage) &&
+          startCount++
       }
     } catch (error) {
       console.error(error)
