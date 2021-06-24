@@ -313,8 +313,8 @@ const createExtendedDOMResolvers = function (app: App) {
                     tippy(info.el, {
                       content:
                         '<div >\
-                       <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Doctor Information</div>\
-                       <div style="padding-top:2px">Doctor Name：' +
+                       <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Appointment Information</div>\
+                       <div style="padding-top:2px">Appointment Name：' +
                         info.event._def.title +
                         '</div>\
                        <div style="padding:4px 0">startTime：' +

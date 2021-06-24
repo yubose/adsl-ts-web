@@ -1,7 +1,6 @@
 import SignaturePad from 'signature_pad'
 import has from 'lodash/has'
 import { Identify } from 'noodl-types'
-import { isRootDataKey } from 'noodl-utils'
 import {
   createComponent,
   formatColor,
@@ -77,6 +76,21 @@ const domComponentsResolver: Resolve.Config = {
               ;(node as HTMLCanvasElement).toBlob(
                 (blob) => {
                   if (nui) {
+                    // TEMP - Remove this when "isRootDataKey" is not giving the "not a function" error
+                    function isRootDataKey(dataKey: string | undefined) {
+                      if (typeof dataKey === 'string') {
+                        if (dataKey.startsWith('.')) {
+                          dataKey = dataKey
+                            .substring(dataKey.search(/[a-zA-Z]/))
+                            .trim()
+                        }
+                        if (!/^[a-zA-Z]/i.test(dataKey)) return false
+                        if (dataKey)
+                          return dataKey[0].toUpperCase() === dataKey[0]
+                      }
+                      return false
+                    }
+
                     let dataObject = isRootDataKey(dataKey)
                       ? nui.getRoot()
                       : nui.getRoot()?.[ndom?.page?.page || '']
