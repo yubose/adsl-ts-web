@@ -36,7 +36,8 @@
     "test:ntil": "lerna exec --scope noodl-utils \"npm run test\"",
     "lib:build": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --parallel build",
     "lib:start": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start",
-    "updatesdk": "node scripts/update.js -u sdk -d"
+    "updatesdk": "node scripts/update.js -u sdk -d",
+    "updatenoodl": "node scripts/update.js -u noodl -d"
   },
   "dependencies": {
     "@jsmanifest/typefest": "^1.0.1",
@@ -46,12 +47,12 @@
     "invariant": "^2.2.4",
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
-    "noodl-action-chain": "^0.0.66",
-    "noodl-types": "^1.0.94",
+    "noodl-action-chain": "^0.0.69",
+    "noodl-types": "^1.0.103",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-ui-test-utils": "file:packages/noodl-ui-test-utils",
-    "noodl-utils": "^0.0.53",
+    "noodl-utils": "^0.0.54",
     "process": "^0.11.10",
     "signature_pad": "^3.0.0-beta.4",
     "tippy.js": "^6.3.1",
