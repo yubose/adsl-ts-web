@@ -137,13 +137,19 @@ export function createRender(
 
   if (u.isArr(opts) || 'type' in opts) {
     pageRequesting = _defaults.pageRequesting
-    page = ndom.page || ndom.createPage(pageRequesting)
-    pageObject = _defaults.root[pageRequesting] || { components: [] }
-    u.arrayEach(opts, (obj) => pageObject.components?.push(obj))
-    page.requesting !== pageRequesting && (page.requesting = pageRequesting)
   } else {
     currentPage = opts.currentPage || ''
-    page = opts.page || ndom.page
+    page = opts.page
+  }
+
+  !page && (page = ndom.page || ndom.createPage(pageRequesting))
+
+  if (u.isArr(opts) || 'type' in opts) {
+    pageObject = _defaults.root[pageRequesting] || { components: [] }
+    u.arrayEach(opts, (obj) => pageObject.components?.push(obj))
+    page?.requesting !== pageRequesting &&
+      ((page as NOODLDOMPage).requesting = pageRequesting)
+  } else {
     pageRequesting =
       opts.pageName || page?.requesting || _defaults.pageRequesting
     pageObject = opts.pageObject || {
@@ -160,10 +166,8 @@ export function createRender(
 
   !resolver && (resolver = defaultResolversKeys)
 
-  if (page) {
-    if (page.requesting !== pageRequesting) page.requesting = pageRequesting
-    if (currentPage && page.page !== currentPage) page.page = currentPage
-  }
+  if (page.requesting !== pageRequesting) page.requesting = pageRequesting
+  if (currentPage && page.page !== currentPage) page.page = currentPage
 
   array(resolver).forEach(
     (r: Resolve.Config | typeof defaultResolversKeys[number]) => {
@@ -189,13 +193,19 @@ export function createRender(
     getRoot: () => ({
       ...root,
       ...opts?.['root'],
-      [pageRequesting]: { ...root[pageRequesting], ...pageObject },
+      [pageRequesting]: {
+        ...opts?.['root']?.[pageRequesting],
+        ...root[pageRequesting],
+        ...pageObject,
+      },
     }),
     transaction: {
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
         use.getRoot()[page?.page || ''],
     },
   }
+
+  console.info(`ROOT!!!`, use.getRoot())
 
   ndom.use(use)
 

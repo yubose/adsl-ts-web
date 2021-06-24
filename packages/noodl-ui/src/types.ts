@@ -159,7 +159,7 @@ export namespace NUIComponent {
       options: ConsumerOptions,
     ): Promise<void | PageObject>
     [nuiEvent.component.page.PAGE_COMPONENTS](
-      components: NUIComponent.Instance[],
+      components: ComponentObject[],
     ): void
     [nuiEvent.component.register.ONEVENT](): void
     content(pluginContent: string): void

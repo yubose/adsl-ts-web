@@ -51,7 +51,11 @@ const createExtendedDOMResolvers = function (app: App) {
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
         if (dataObject) {
-          set(dataObject, excludeIteratorVar(dataKey, iteratorVar), value)
+          set(
+            dataObject,
+            excludeIteratorVar(dataKey, iteratorVar) as string,
+            value,
+          )
           component.edit('data-value', value)
           node.dataset.value = value
         } else {
