@@ -219,7 +219,7 @@ export function getEcosDocObject<N extends NameField>(
   propsProp?: GetEcosDocObjectPreset | PartialDeep<EcosDocument<N>>,
 ): EcosDocument<N> {
   let ecosObj = {
-    name: { data: `blob:http://a0242fasa141inmfakmf24242`, type: '' },
+    name: { data: `blob:http://a0242fasa141inmfakmf24242`, type: '' as any },
   } as Partial<EcosDocument<NameField>>
 
   if (u.isStr(propsProp)) {
@@ -227,7 +227,7 @@ export function getEcosDocObject<N extends NameField>(
       ecosObj.name = { ...ecosObj.name, type: 'audio/wav' }
       ecosObj.subtype = { ...ecosObj.subtype, mediaType: 2 }
     } else if (propsProp === 'docx') {
-      ecosObj.name = { ...ecosObj.name, type: 'application/vnl.' }
+      ecosObj.name = { ...ecosObj.name, type: 'application/vnl.' as any }
       ecosObj.subtype = { ...ecosObj.subtype, mediaType: 1 }
     } else if (propsProp === 'image') {
       ecosObj = (ecosPngDoc || ecosJpgDoc) as EcosDocument

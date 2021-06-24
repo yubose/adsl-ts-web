@@ -11,7 +11,6 @@ const pkgJson = {
   root: require('./package.json'),
   nui: require('./packages/noodl-ui/package.json'),
   ndom: require('./packages/noodl-ui-dom/package.json'),
-  nutil: require('./packages/noodl-utils/package.json'),
 }
 
 const version = {
@@ -19,7 +18,7 @@ const version = {
   ecosSdk: pkgJson.root.devDependencies['@aitmed/ecos-lvl2-sdk'],
   nui: pkgJson.nui.version,
   ndom: pkgJson.ndom.version,
-  nutil: pkgJson.ndom.version,
+  nutil: pkgJson.root.dependencies['noodl-utils'],
   nTypes: pkgJson.root.dependencies['noodl-types'],
 }
 
