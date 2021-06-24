@@ -143,7 +143,7 @@ export function createRender(
     page.requesting !== pageRequesting && (page.requesting = pageRequesting)
   } else {
     currentPage = opts.currentPage || ''
-    page = opts.page || ndom.page || ndom.createPage(currentPage)
+    page = opts.page || ndom.page
     pageRequesting =
       opts.pageName || page?.requesting || _defaults.pageRequesting
     pageObject = opts.pageObject || {
@@ -191,14 +191,11 @@ export function createRender(
       ...opts?.['root'],
       [pageRequesting]: { ...root[pageRequesting], ...pageObject },
     }),
-  }
-
-  ndom.use({
     transaction: {
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
-        pageObject as PageObject,
+        use.getRoot()[page?.page || ''],
     },
-  })
+  }
 
   ndom.use(use)
 
@@ -217,8 +214,8 @@ export function createRender(
       }>
     },
     render: async (pgName?: string): Promise<NUIComponent.Instance> => {
-      const req = (await o.request(pgName || page?.requesting)) as any
-      return (req && req?.render?.()[0]) as NUIComponent.Instance
+      const req = await o.request(pgName || page?.requesting)
+      return req?.render?.()[0] as NUIComponent.Instance
     },
   }
 

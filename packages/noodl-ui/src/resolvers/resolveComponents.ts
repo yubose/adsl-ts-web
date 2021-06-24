@@ -179,8 +179,9 @@ componentResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.page(component)) {
-    let nuiPage = cache.page.get(component.id)?.page
-    !nuiPage && (nuiPage = createPage({ id: component.id, name: path }))
+    const nuiPage =
+      cache.page.get(component.id)?.page ||
+      createPage({ id: component.id, name: path })
     const viewport = nuiPage.viewport
 
     if (VP.isNil(originalStyle.width)) {
@@ -192,6 +193,7 @@ componentResolver.setResolver((component, options, next) => {
         }),
       )
     }
+
     if (VP.isNil(originalStyle.height)) {
       viewport.height = getRootPage().viewport.height
     } else {
@@ -201,8 +203,10 @@ componentResolver.setResolver((component, options, next) => {
         }),
       )
     }
+
     component.edit('page', nuiPage)
     nuiPage.page = path
+
     emit({
       type: c.nuiEmitType.TRANSACTION,
       transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
@@ -218,7 +222,7 @@ componentResolver.setResolver((component, options, next) => {
               })
             : []
         ) as NUIComponent.Instance[]
-        components?.forEach(component.createChild.bind(component))
+        components?.forEach((c) => component.createChild(c))
         component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, components)
       })
       .catch((err: Error) => {

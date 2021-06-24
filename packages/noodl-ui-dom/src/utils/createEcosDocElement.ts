@@ -28,17 +28,14 @@ interface CreateEcosDocElementArgs<N extends NameField = NameField> {
   }): void
 }
 
-function createEcosDocElement<N extends NameField = NameField>(
-  container: HTMLElement,
-  ecosObj: EcosDocument<N>,
-): HTMLIFrameElement
-
 function createEcosDocElement<
   N extends NameField = NameField,
   Args extends CreateEcosDocElementArgs<N> = CreateEcosDocElementArgs<N>,
->(
+>(container: HTMLElement, opts: Args): HTMLIFrameElement
+
+function createEcosDocElement<N extends NameField = NameField>(
   container: HTMLElement,
-  opts: CreateEcosDocElementArgs<NameField>,
+  ecosObj: EcosDocument<N>,
 ): HTMLIFrameElement
 
 function createEcosDocElement<
@@ -101,7 +98,9 @@ function createEcosDocElement<
     } else if (is.video(ecosObj)) {
       className = classes.ECOS_DOC_VIDEO
     }
+
     className && getBody(iframe)?.classList.add(className)
+
     iframeContent && getBody(iframe)?.appendChild(iframeContent)
     onLoad?.({
       event,
@@ -121,17 +120,14 @@ function createEcosDocElement<
     ---- IMAGE DOCUMENTS
   -------------------------------------------------------- */
   if (is.image(ecosObj)) {
-    iframeContent = createAsyncImageElement(getBody(iframe))
-    if (ecosObj.name?.data) {
-      // TODO - Change iframeContent to just be the iframe
-      iframeContent.src = ecosObj.name.data || ''
-    } else {
-      console.log(
-        `%cData is missing from an image ecosObj`,
-        `color:#ec0000;`,
-        ecosObj,
-      )
-    }
+    iframeContent = createAsyncImageElement(null, {
+      append({ node: img }) {
+        img.style.width = '100%'
+        img.style.height = '100%'
+        getBody(iframe)?.appendChild(img)
+      },
+    })
+    iframeContent.src = ecosObj?.name?.data
   } else if (is.doc(ecosObj)) {
     if (/pdf/i.test(ecosObj.name?.type || '')) {
       iframe.classList.add(classes.ECOS_DOC_PDF)
@@ -172,7 +168,7 @@ function createEcosDocElement<
     -------------------------------------------------------- */
       iframeContent = document.createElement('div')
       if (ecosObj.name?.data) {
-        if (u.isStr(ecosObj.name.data)) {
+        if (u.isStr(ecosObj.name.data) || u.isNum(ecosObj.name.data)) {
           iframeContent?.appendChild(
             createTextNode(ecosObj.name.data, {
               title: ecosObj.name.title,

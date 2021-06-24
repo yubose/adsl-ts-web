@@ -165,7 +165,8 @@ export function createRender(opts: MockRenderOptions) {
     },
     render: async (pgName?: string): Promise<NUIComponent.Instance> => {
       const req = await o.request(pgName)
-      return req && req?.render()[0]
+      // @ts-expect-error
+      return req && (req?.render()[0] as NUIComponent.Instance)
     },
   }
 
@@ -300,7 +301,6 @@ export async function initializeApp(
 
   _app.mainPage.requesting = pageName
   _app.mainPage.components = pageObject.components || []
-  _app.mainPage.getNuiPage().object().components = _app.mainPage.components
 
   _app.meeting.room = getMockRoom({
     localParticipant: (room?.localParticipant ||

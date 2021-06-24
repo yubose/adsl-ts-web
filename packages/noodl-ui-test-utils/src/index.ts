@@ -447,11 +447,11 @@ export function getListItemComponent({
   }
 }
 
-export function getPageComponent(
-  props?: ComponentProps<PageComponentObject> & { path?: string },
-): PageComponentObject {
-  return { type: 'page', path: 'SignIn', ...props }
-}
+export const getPageComponent =
+  createComponentWithKeyOrProps<PageComponentObject>(
+    { type: 'page', path: 'SignIn' },
+    'path',
+  )
 
 export function getPluginComponent(
   props?: ComponentProps<PluginComponentObject> & { path?: string },

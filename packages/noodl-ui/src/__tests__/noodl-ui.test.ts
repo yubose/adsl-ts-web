@@ -158,7 +158,6 @@ describe(italic(`createActionChain`), () => {
       )
       await ac.execute()
       spies.forEach((s, i) => {
-        console.info(i)
         expect(s).to.be.calledOnce
       })
       // await ac.execute()
@@ -327,7 +326,6 @@ describe(italic(`emit`), () => {
   describe(`type: ${magenta(nuiEmitTransaction.REQUEST_PAGE_OBJECT)}`, () => {
     it(`should call the function`, async () => {
       const cbSpy = sinon.spy()
-      console.info(NUI.cache.transactions.get())
       NUI.use({
         transaction: {
           [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: cbSpy,
@@ -635,7 +633,6 @@ describe(italic(`use`), () => {
         let register = nui.cache.register.get('hello')
         expect(register).to.have.property('fn').to.be.a('function')
         expect(register.handler).to.be.undefined
-        console.info(register)
         nui._experimental.register('hello', spy)
         expect(register).to.have.property('fn').to.be.undefined
         expect(register.handler).not.to.be.undefined
@@ -725,7 +722,6 @@ describe(italic(`use`), () => {
           const obj = nui.cache.register.get(event)
           const did = 'docId123'
           await nui.emit({ type: 'register', event, params: did })
-          console.info(obj)
         })
       })
     })

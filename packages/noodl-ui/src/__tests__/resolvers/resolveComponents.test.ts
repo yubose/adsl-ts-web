@@ -2,11 +2,12 @@ import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
+import { waitFor } from '@testing-library/dom'
 import { ComponentObject } from 'noodl-types'
+import { nuiEmitTransaction } from '../../constants'
 import NUI from '../../noodl-ui'
 import NUIPage from '../../Page'
 import Viewport from '../../Viewport'
-import { waitFor } from '@testing-library/dom'
 
 function resolveComponent(component: ComponentObject) {
   const page = NUI.createPage({
@@ -61,27 +62,27 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     )
   })
 
-  describe(italic(`page`), () => {
+  describe.only(italic(`page`), () => {
     let componentObject: ReturnType<typeof mock.getPageComponent>
 
     beforeEach(() => {
-      componentObject = mock.getPageComponent({ path: 'Cereal' })
+      componentObject = mock.getPageComponent('Cereal')
     })
 
-    it(`should obtain a "page" property that is a Page instance`, () => {
+    it(`should set "page" on the component that is an instance of NUIPage`, () => {
       expect(resolveComponent(componentObject).get('page')).to.be.instanceOf(
         NUIPage,
       )
     })
 
-    it(`should set its page name to the value of its "path"`, () => {
+    it(`should set its current page name to its "path" value`, () => {
       expect(resolveComponent(componentObject).get('page').page).to.eq('Cereal')
     })
 
     it(`should have created its own Viewport inside the Page`, () => {
       expect(resolveComponent(componentObject).get('page'))
         .to.have.property('viewport')
-        .instanceOf(Viewport)
+        .to.be.instanceOf(Viewport)
     })
 
     it(
@@ -93,8 +94,22 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
           style: { width: '0.2', height: '0.5', top: '0' },
         })
         const page = component.get('page') as NUIPage
-        expect(page.viewport.width + 'px').to.eq(component.style.width)
-        expect(page.viewport.height + 'px').to.eq(component.style.height)
+        expect(page.viewport.width + 'px').to.eq(
+          Number(
+            Viewport.getSize(
+              component.blueprint.style.width,
+              NUI.getRootPage().viewport.width,
+            ),
+          ).toPrecision() + 'px',
+        )
+        expect(page.viewport.height + 'px').to.eq(
+          Number(
+            Viewport.getSize(
+              component.blueprint.style.height,
+              NUI.getRootPage().viewport.height,
+            ),
+          ).toPrecision() + 'px',
+        )
       },
     )
 
@@ -107,6 +122,17 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         const rootPage = NUI.getRootPage()
         expect(page.viewport.width).to.eq(rootPage.viewport.width)
         expect(page.viewport.height).to.eq(rootPage.viewport.height)
+      },
+    )
+
+    it(
+      `should emit the "page-components" hook after receiving the resolved ` +
+        `components`,
+      async () => {
+        const spy = sinon.spy()
+        const component = resolveComponent({ ...componentObject, style: {} })
+        component.on('page-components', spy)
+        await waitFor(() => expect(spy).to.be.calledOnce)
       },
     )
   })

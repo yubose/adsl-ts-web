@@ -20,59 +20,7 @@ These variables are available globally:
 - [TypeScript DOM types](https://github.com/microsoft/TypeScript/blob/master/lib/lib.dom.d.ts)
 - [Merge requests](https://gitlab.aitmed.com/help/user/project/merge_requests/index.md#checkout-merge-requests-locally)
 
-## Todos
-
-- firebase [CDN](https://firebase.google.com/docs/web/setup#node.js-apps_1)
-- twilio [CDN](https://www.twilio.com/docs/video/javascript)
-- videochat togglevideo black background
-- page component
-- ecosDoc image cannot be displayed
-- ecosDoc images stuck being in the dom globally:
-  - ![](https://aitmedstuff.s3.us-west-1.amazonaws.com/images/Screen+Shot+2021-06-18+at+9.27.28+AM.png)
-
-## Accomplished
-
-- fixed `goBack` not going back to startPage in testpage
-- fixed `NiL` check not behaving expectedly for page components
-- migrated twilio in bundle to load from cdn (reduced bundle size from 21kb --> 17kb)
-- fixed some `goBack` issue from the page component update earlier
-
-## Notes
-
-- MeetingChat notification
-  - A goes to ContactsList to select B
-  - A invites B
-  - A goes to MeetingChat
-  - B receives the invitation
-  - Server sends notification with payload of document id (`did`)
-  - A receives notification. Pass `did` to emit call
-
-## Download feat. (ref: DocumentDetail)
-
-- Pass builtIn fn
-- Receive `ecosObj` to determine the mime type
-- Show a (generic) popup for the download
-  - Let them select a location to save to
-  - Let them rename the file if needed
-
-### `Note` ecosDoc
-
-- Creating a comment on a note (DocumentDetail)
-- Creating a note
-  - Params to sdk:
-    - title
-    - content
-    - targetRoomName
-    - mediaType: text/plain
-    - type: "1025"
-  - Params response received from sdk:
-    - title
-    - data
-    - targetRoomName
-    - type: application/json
-    - type: 1025
-    - subtype:
-      - mediaType: 8 (TextMediaType)
+### ecosDoc variations
 
 #### Image
 
@@ -99,11 +47,6 @@ These variables are available globally:
 </iframe>
 ```
 
-## Lib Todos
-
-- have the same path/resource resolve logic for "poster" prop
-- make output from resolved components as plain objs instead with some getInstance getter
-
 ## Goto Examples
 
 ```yml
@@ -114,20 +57,6 @@ These variables are available globally:
 - goto: ^redTag # defaulted to 350 ms
 - goto: ^redTag;duration:15000 # slow scroll effect for 15 seconds
 ```
-
-## Positioning
-
-| When the component: | Value          |
-| ------------------- | -------------- |
-| Has `top`           | `absolute`     |
-| Missing `top`       | `relative`     |
-| Has `marginTop`     | _set to value_ |
-| Missing `marginTop` | `0px`          |
-
-## Hide/Show
-
-- When a component is _hidden_ and has `position: relative`, _don't_ hold the space
-- When a component has `position: absolute`, _hold_ the space
 
 ## Emitting register events
 
@@ -158,16 +87,3 @@ NUI.emit({
     console.error(err)
   })
 ```
-
-## Correctly clearing the console
-
-```bash
-process.stdout.write('\x1Bc')
-```
-
-### Notification codes (from noodl)
-
-| Code       | Description    |
-| ---------- | -------------- |
-| `16777472` | Open the app   |
-| `1537`     | Nothing/Ignore |

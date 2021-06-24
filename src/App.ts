@@ -461,6 +461,7 @@ class App {
         if (this.mainPage.aspectRatioMin !== min) {
           this.mainPage.aspectRatioMin = min as number
         }
+
         if (this.mainPage.aspectRatioMax !== max) {
           this.mainPage.aspectRatioMax = max as number
         }
@@ -507,8 +508,6 @@ class App {
         document.body.style.height = `${args.height}px`
         this.mainPage.rootNode.style.width = `${args.width}px`
         this.mainPage.rootNode.style.height = `${args.height}px`
-        this.mainPage.components =
-          this.root?.[this.currentPage]?.components || []
         this.ndom.render(this.mainPage)
       }
     }
@@ -575,8 +574,8 @@ class App {
         }
       }
       // Handle pages that have { viewPort: "top" }
-      const pageObjectViewPort = (page.getNuiPage() as NUIPage).object?.()
-        .viewPort
+      const pageObjectViewPort =
+        this.root[(page.getNuiPage() as NUIPage).page || '']?.viewPort
 
       if (pageObjectViewPort) {
         if (pageObjectViewPort === 'top') {
@@ -613,11 +612,9 @@ class App {
           await this.#noodl.init()
           u.assign(this.#noodl.root, currentRoot)
           this.cache.component.clear()
-          this.mainPage.getNuiPage().object().components = []
           this.mainPage.page = this.mainPage.getPreviousPage(this.startPage)
           this.mainPage.setPreviousPage('')
           this.mainPage.requesting = currentPage
-          this.mainPage.components = []
           return this.navigate(this.mainPage)
         } catch (error) {
           console.error(error)

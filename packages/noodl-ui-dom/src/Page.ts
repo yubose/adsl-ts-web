@@ -31,7 +31,6 @@ class Page {
     T.Page.HookEvent,
     T.Page.HookDescriptor[]
   >
-  components: ComponentObject[] = []
   pageUrl: string = BASE_PAGE_URL
   rootNode: HTMLDivElement
   ref: {
@@ -44,6 +43,7 @@ class Page {
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       ...this.snapshot(),
+      components: this.components,
       nuiPage: this.#nuiPage,
     }
   }
@@ -98,6 +98,10 @@ class Page {
     const maxBefore = this.aspectRatioMax
     this.#state.aspectRatioMax = value
     this.emitSync(eventId.page.on.ON_ASPECT_RATIO_MAX, maxBefore, value)
+  }
+
+  get components() {
+    return this.#nuiPage?.components
   }
 
   get hooks() {
