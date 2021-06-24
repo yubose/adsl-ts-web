@@ -414,9 +414,6 @@ class App {
         snapshot: page.snapshot(),
       })
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
-      if (page.requesting !== pageRequesting && page.page !== currentPage) {
-        return 'stale'
-      }
       return this.root[pageRequesting]
     } catch (error) {
       console.error(error)
@@ -613,7 +610,7 @@ class App {
           u.assign(this.#noodl.root, currentRoot)
           this.cache.component.clear()
           this.mainPage.page = this.mainPage.getPreviousPage(this.startPage)
-          this.mainPage.setPreviousPage('')
+          this.mainPage.previous = ''
           this.mainPage.requesting = currentPage
           return this.navigate(this.mainPage)
         } catch (error) {

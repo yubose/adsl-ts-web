@@ -40,6 +40,8 @@ class Page implements IPage {
 
   toJSON() {
     return {
+      components: this.components,
+      currentPage: this.page,
       id: this.#id,
       viewport: { width: this.viewport.width, height: this.viewport.height },
     }

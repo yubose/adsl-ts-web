@@ -13,6 +13,7 @@ import {
 import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
 import createEcosDocElement from '../utils/createEcosDocElement'
+import NDOMPage from '../Page'
 import * as u from '../utils/internal'
 import * as c from '../constants'
 
@@ -185,53 +186,55 @@ const domComponentsResolver: Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(component)) {
-        const nuiPage = component.get('page')
-        component.on('page-components', (components) => {
-          let ndomPage = ndom.findPage(nuiPage)
+        let nuiPage = component.get('page')
+        let ndomPage = ndom.findPage(nuiPage) as NDOMPage
 
-          if (!ndomPage) {
-            console.info(
-              `%cCreating new NDOMPage for page component`,
-              `color:#95a5a6;`,
-              component.snapshot(),
-            )
-            console.info(nuiPage.components)
-            try {
-              ndomPage = ndom.createPage(nuiPage)
-            } catch (error) {
-              console.error(error)
-            }
+        if (!ndomPage) {
+          try {
+            ndomPage = ndom.createPage(nuiPage)
+            document.body.removeChild(ndomPage.rootNode)
+            ndomPage.rootNode.remove()
+          } catch (error) {
+            console.error(error)
           }
+        }
 
-          // console.info(nuiPage)
-          // console.info(ndomPage)
-          // if (!ndomPage) {
-          //   console.info(
-          //     `%cTried to find a NUI page for a page component but did not get any results`,
-          //     `color:#ec0000;`,
-          //     { globalMap, nuiPage },
-          //   )
-          // } else {
-          //   const components = nui.resolveComponents({
-          //     page: nuiPage,
-          //     components: nuiPage.components,
-          //   })
-          //   ndomPage.components = components
-          //   ndomPage.requesting = nuiPage.page
-          //   ndom
-          //     .request(ndomPage, nuiPage.page)
-          //     .then((req) => {
-          //       if (req) {
-          //         const components = req.render()
-          //         console.log(
-          //           `%cRendered ${components.length} components for page "${ndomPage.page}" on a page component`,
-          //           `color:#00b406;`,
-          //         )
-          //       }
-          //     })
-          //     .catch((err) => console.error(err))
-          // }
+        component.on('page-components', () => {
+          ndomPage.rootNode = node.parentElement as HTMLDivElement
+          const pageComponents = ndom.render(ndomPage)
+          console.log(`%cPage component children`, `color:#95a5a6;`, {
+            pageComponents,
+            node,
+          })
         })
+
+        // console.info(nuiPage)
+        // if (!ndomPage) {
+        //   console.info(
+        //     `%cTried to find a NUI page for a page component but did not get any results`,
+        //     `color:#ec0000;`,
+        //     { globalMap, nuiPage },
+        //   )
+        // } else {
+        //   const components = nui.resolveComponents({
+        //     page: nuiPage,
+        //     components: nuiPage.components,
+        //   })
+        //   ndomPage.components = components
+        //   ndomPage.requesting = nuiPage.page
+        //   ndom
+        //     .request(ndomPage, nuiPage.page)
+        //     .then((req) => {
+        //       if (req) {
+        //         const components = req.render()
+        //         console.log(
+        //           `%cRendered ${components.length} components for page "${ndomPage.page}" on a page component`,
+        //           `color:#00b406;`,
+        //         )
+        //       }
+        //     })
+        //     .catch((err) => console.error(err))
+        // }
 
         // ndomPage.components = nuiPage.object().components
         // component.on(

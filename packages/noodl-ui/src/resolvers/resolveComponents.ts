@@ -179,10 +179,9 @@ componentResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.page(component)) {
-    const nuiPage =
-      cache.page.get(component.id)?.page ||
-      createPage({ id: component.id, name: path })
-    const viewport = nuiPage.viewport
+    let nuiPage = cache.page.get(component.id)?.page
+    !nuiPage && (nuiPage = createPage({ id: component.id, name: path }))
+    let viewport = nuiPage.viewport
 
     if (VP.isNil(originalStyle.width)) {
       viewport.width = getRootPage().viewport.width
@@ -205,26 +204,18 @@ componentResolver.setResolver((component, options, next) => {
     }
 
     component.edit('page', nuiPage)
-    nuiPage.page = path
 
     emit({
       type: c.nuiEmitType.TRANSACTION,
       transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
       params: nuiPage,
     })
-      .then((pageObject) => {
-        const components = (
-          pageObject?.components
-            ? resolveComponents({
-                components: pageObject.components,
-                page: nuiPage,
-                context,
-              })
-            : []
-        ) as NUIComponent.Instance[]
-        components?.forEach((c) => component.createChild(c))
-        component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, components)
-      })
+      .then((pageObject) =>
+        component.emit(
+          c.nuiEvent.component.page.PAGE_COMPONENTS,
+          pageObject.components || nuiPage.components || [],
+        ),
+      )
       .catch((err: Error) => {
         throw new Error(
           `[Attempted to get page (${nuiPage.page}) object for a page component]: ${err.message}`,
@@ -414,15 +405,23 @@ componentResolver.setResolver((component, options, next) => {
     }
   }
 
+  /* -------------------------------------------------------
+    ---- CHILDREN 
+  -------------------------------------------------------- */
+
   // Children of list components are created by the lib. All other children
   // are handled here
-  if (!isListLike(component)) {
+  if (!isListLike(component) && !Identify.component.page(component)) {
     component.blueprint?.children?.forEach?.(
       (childObject: ComponentObject, i) => {
         let child = createComponent(childObject)
         child = component.createChild(child)
         child.ppath = `${component.ppath || ''}.children[${i}]`
-        child = resolveComponents({ components: child, context, page })
+        child = resolveComponents({
+          components: child,
+          context,
+          page,
+        })
         !cache.component.has(child) && cache.component.add(child)
       },
     )

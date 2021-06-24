@@ -1,4 +1,4 @@
-import { Identify, Identify as is } from 'noodl-types'
+import { Identify as is } from 'noodl-types'
 import { RegisterOptions } from '../types'
 import { addClassName, entries, isObj } from '../utils/internal'
 
@@ -13,7 +13,7 @@ export default {
       })
     }
   },
-  resolve: (node, component, { page, signaturePad }) => {
+  resolve: (node, component) => {
     isObj(component.style?.textAlign) && delete component.style.textAlign
 
     entries(component.style).forEach(([styleKey, styleValue]) => {
@@ -36,9 +36,6 @@ export default {
         canvas.height = Number(parentHeight.replace(/[a-zA-Z]+/g, ''))
         canvas.style.width = parentWidth
         canvas.style.height = parentHeight
-        // canvas
-        //   .getContext('2d')
-        //   ?.scale(page.aspectRatioMin, page.aspectRatioMax)
       }
     }
 
