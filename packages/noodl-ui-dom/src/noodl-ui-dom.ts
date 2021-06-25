@@ -327,7 +327,7 @@ class NDOM extends NDOMInternal {
     // The root node is a direct child of document.body
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
 
-    this.reset('componentCache')
+    this.reset('componentCache', page)
 
     const nuiPage = page.getNuiPage()
     const components = u.array(
@@ -638,15 +638,10 @@ class NDOM extends NDOMInternal {
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
       // component is still running
-      this.draw(
-        newComponent as NUIComponent.Instance,
-        null,
-        page || this.page,
-        {
-          ...options,
-          context,
-        },
-      )
+      this.draw(newComponent as NUIComponent.Instance, null, page, {
+        ...options,
+        context,
+      })
     }
     if (node instanceof HTMLElement) {
       // console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)
@@ -678,6 +673,7 @@ class NDOM extends NDOMInternal {
     return this.#R.get()
   }
 
+  reset(key: 'componentCache', page: NDOMPage): this
   reset(opts?: {
     componentCache?: boolean
     global?: boolean
@@ -710,13 +706,14 @@ class NDOM extends NDOMInternal {
       | 'register'
       | 'resolvers'
       | 'transactions',
+    page?: NDOMPage,
   ) {
     const resetActions = () => {
       NDOM._nui.cache.actions.clear()
       NDOM._nui.cache.actions.reset()
     }
     const resetComponentCache = () => {
-      NDOM._nui.cache.component.clear()
+      NDOM._nui.cache.component.clear(page?.page)
     }
     const resetPages = () => {
       this.page = undefined as any

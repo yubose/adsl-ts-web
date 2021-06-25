@@ -632,9 +632,7 @@ const NUI = (function _NUI() {
 
       page = cache.page.create({ id, viewport: viewport }) as NUIPage
       name && (page.page = name)
-      page.use(() =>
-        page?.page ? NUI.getRoot()[page.page]?.components || [] : [],
-      )
+      page.use(() => NUI.getRoot()[page?.page || '']?.components)
 
       return page
     },

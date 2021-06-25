@@ -40,21 +40,17 @@ describe(ncom.coolGold('components'), () => {
       })
       const view = await render()
       const pageComponent = view.child()
-      const pageNode = findByElementId(pageComponent.id)
+      const pageNode = findByElementId(pageComponent.id) as HTMLIFrameElement
       expect(isNUIPage(pageComponent.get('page'))).to.be.true
-      expect(pageNode.contentDocument.body).to.exist
-      console.info(`pageObject`, pageObject)
-      console.info(`root`, getRoot())
-      console.info(`page`, page)
-      console.info(`ndom page`, ndom.page)
-      // await waitFor(() => {
-      //   expect(
-      //     Array.from(pageNode.contentDocument.body.children),
-      //   ).to.have.length.greaterThan(0)
-      // })
+      await waitFor(() => {
+        expect(pageNode?.contentDocument?.body).to.exist
+        expect(
+          Array.from(pageNode.contentDocument?.body.children || []),
+        ).to.have.length.greaterThan(0)
+      })
     })
 
-    it(`should render it to the DOM`, async () => {
+    xit(`should render it to the DOM`, async () => {
       const { render } = createRender({
         root: {
           SignIn: { components: [viewComponentObject] },
@@ -80,11 +76,6 @@ describe(ncom.coolGold('components'), () => {
       // const req = await ndom.request(ndomPage, 'Hello')
       // const components = (req && req.render()) as NUIComponent.Instance[]
       // const req = await request('Cereal')
-      const { render } = createRender(viewComponentObject)
-      const view = await render()
-      console.info(view)
-      const pageComponent = view.child()
-      expect(isNUIPage(pageComponent.get('page'))).to.be.true
     })
   })
 })

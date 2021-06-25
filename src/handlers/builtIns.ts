@@ -578,7 +578,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         const redrawed = app.ndom.redraw(
           _node,
           _component,
-          app.ndom.findPage(options?.page || app.mainPage) as NDOMPage,
+          app.ndom.findPage(options?.page) || app.mainPage,
           { context: ctx },
         )
         app.cache.component.add(redrawed[1], options?.page || app.mainPage) &&
