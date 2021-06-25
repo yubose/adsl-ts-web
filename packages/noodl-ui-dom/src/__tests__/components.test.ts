@@ -13,9 +13,8 @@ import {
 } from '../test-utils'
 import NDOM from '../noodl-ui-dom'
 import { ViewComponentObject } from 'noodl-types'
-import { findByClassName } from '../utils'
+import { findByClassName, findByElementId } from '../utils'
 import { classes } from '../constants'
-import { findByElementId } from '../../dist'
 
 describe(ncom.coolGold('components'), () => {
   describe(ncom.italic(`Page`), () => {
@@ -76,6 +75,14 @@ describe(ncom.coolGold('components'), () => {
       // const req = await ndom.request(ndomPage, 'Hello')
       // const components = (req && req.render()) as NUIComponent.Instance[]
       // const req = await request('Cereal')
+    })
+
+    xit(`should update the root object which should also reflect in the root page`, () => {
+      //
+    })
+
+    xit(`should have the same width/size and positioning as defined in the component style`, () => {
+      //
     })
   })
 })
