@@ -1,4 +1,8 @@
 {
+  "typedocOptions": {
+    "entryPoints": ["./packages/noodl-ui/src/index.ts"],
+    "out": "docs"
+  },
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
