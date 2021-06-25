@@ -713,7 +713,7 @@ class NDOM extends NDOMInternal {
       NDOM._nui.cache.actions.reset()
     }
     const resetComponentCache = () => {
-      NDOM._nui.cache.component.clear(page?.page)
+      NDOM._nui.cache.component.clear(page?.requesting || page?.page)
     }
     const resetPages = () => {
       this.page = undefined as any

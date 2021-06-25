@@ -539,7 +539,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     for (const obj of app.cache.component) {
       if (obj) {
         if (
-          obj.component?.blueprint?.viewTag ||
+          obj.component?.blueprint?.viewTag &&
           obj.component?.get?.('data-viewtag') === viewTag.fromAction
         ) {
           components.push(obj.component)
