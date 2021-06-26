@@ -53,7 +53,7 @@ These variables are available globally:
 
 ## Goto Examples
 
-```yml
+```yaml
 - goto: AbcDashboard^redTag
 - goto: AbcDashboard^redTag;duration:15000 # slow scroll effect for 15 seconds
 - goto: AbcDashboard^redTag;duration:0 # instantly scroll to element

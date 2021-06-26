@@ -1,4 +1,4 @@
-import noop from 'lodash/noop'
+// @ts-nocheck
 import { LiteralUnion } from 'type-fest'
 import { EventEmitter } from 'events'
 import { Status } from '@aitmed/ecos-lvl2-sdk'

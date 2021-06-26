@@ -1,13 +1,23 @@
+import { PartialDeep } from 'type-fest'
 import { ActionObject, ComponentObject } from 'noodl-types'
-import { NUIActionObjectInput, NUITrigger } from 'noodl-ui'
+import {
+  NUIAction,
+  NUIActionObjectInput,
+  NUIComponent,
+  NUITrigger,
+} from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 
-export type ActionProps<C extends Partial<ActionObject> = ActionObject> =
-  Partial<C>
+export type ActionProps<C extends PartialDeep<ActionObject> = ActionObject> = C
 
-export type ComponentProps<
-  C extends Partial<ComponentObject> = ComponentObject,
-> = Partial<{ [K in NUITrigger]: NUIActionObjectInput[] } & C>
+export type ComponentProps<C extends ComponentObject | NUIComponent.Instance> =
+  Partial<
+    Record<
+      NUITrigger,
+      (C extends ComponentObject ? NUIActionObjectInput : NUIAction)[]
+    >
+  > &
+    C
 
 export function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
   defaultProps: O,
@@ -28,12 +38,11 @@ export function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
   return createObj
 }
 
-export function createComponentWithKeyOrProps<O extends ComponentObject>(
-  defaultProps: O,
-  key: string | Partial<Record<string, any>>,
-) {
-  const createObj = (props?: string | ComponentProps<O>): O => {
-    const obj = { ...defaultProps } as ComponentObject
+export function createComponentWithKeyOrProps<
+  O extends ComponentObject | NUIComponent.Instance,
+>(defaultProps: O, key: string | Partial<Record<string, any>>) {
+  const createObj = (props?: string | Partial<O>): O => {
+    const obj = { ...defaultProps } as O
     if (u.isStr(key)) {
       if (u.isObj(props)) {
         if (key in props) u.assign(obj, props)

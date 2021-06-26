@@ -199,16 +199,16 @@ type GetEcosDocObjectPreset =
   | 'video'
 
 /**
- * Generate an eCOS document object by preset
- */
-export function getEcosDocObject<N extends NameField>(
-  preset?: GetEcosDocObjectPreset,
-): EcosDocument<N>
-/**
  * Generate an eCOS document object by component props
  */
 export function getEcosDocObject<N extends NameField>(
   propsProp?: PartialDeep<EcosDocument<N>>,
+): EcosDocument<N>
+/**
+ * Generate an eCOS document object by preset
+ */
+export function getEcosDocObject<N extends NameField>(
+  preset?: GetEcosDocObjectPreset,
 ): EcosDocument<N>
 /**
  * Generate an eCOS document object
@@ -336,7 +336,7 @@ export function getEcosDocComponent(
     if ('ecosObj' in props) {
       u.assign(obj, props)
     } else {
-      u.assign(obj, props, { ecosObj: getEcosDocObject(props as EcosDocument) })
+      u.assign(obj, props, { ecosObj: getEcosDocObject(props as any) })
     }
   }
   return obj
@@ -361,7 +361,9 @@ export function getHeaderComponent(
 }
 
 export function getImageComponent(
-  args: string | ComponentProps<ImageComponentObject> = {},
+  args:
+    | string
+    | ComponentProps<ImageComponentObject> = {} as ComponentProps<ImageComponentObject>,
 ): ImageComponentObject {
   const obj = { type: 'image', path: 'abc.png' } as ImageComponentObject
   if (typeof args === 'string') obj.path = args
@@ -369,37 +371,34 @@ export function getImageComponent(
   return obj
 }
 
-export function getLabelComponent(
-  args?:
-    | string
-    | (ComponentProps<LabelComponentObject> & {
-        dataKey?: string
-        placeholder?: string
-        text?: string
-        textBoard?: TextBoardObject
-      }),
-): LabelComponentObject {
-  const obj = {
+export const getLabelComponent = createComponentWithKeyOrProps<
+  LabelComponentObject & {
+    dataKey?: string
+    placeholder?: string
+    text?: string
+    textBoard?: TextBoardObject
+  }
+>(
+  {
     type: 'label',
     text: 'J',
     dataKey: 'formData.firstName',
     style: { border: { style: '1' } },
-  } as LabelComponentObject
-  if (typeof args === 'string') obj.path = args
-  else if (args) Object.assign(obj, args)
-  return obj
-}
+  },
+  'text',
+)
 
-export function getListComponent({
-  iteratorVar = 'itemObject',
-  ...rest
-}: ComponentProps<ListComponentObject> & {
-  contentType?: string
-  iteratorVar?: string
-  listObject?: any[]
-} = {}): ListComponentObject {
+export function getListComponent(
+  {
+    iteratorVar = 'itemObject',
+    ...rest
+  }: ComponentProps<ListComponentObject> & {
+    contentType?: string
+    iteratorVar?: string
+    listObject?: any[]
+  } = {} as ComponentProps<ListComponentObject>,
+): ListComponentObject {
   return {
-    type: 'list',
     listObject: getGenderListObject(),
     contentType: 'listObject',
     iteratorVar,
@@ -417,19 +416,21 @@ export function getListComponent({
       },
     ],
     ...rest,
+    type: 'list',
   }
 }
 
-export function getListItemComponent({
-  iteratorVar = 'itemObject',
-  dataObject,
-  ...rest
-}: ComponentProps<ListItemComponentObject> & {
-  dataObject?: any
-  iteratorVar?: string
-} = {}): ListItemComponentObject {
+export function getListItemComponent(
+  {
+    iteratorVar = 'itemObject',
+    dataObject,
+    ...rest
+  }: ComponentProps<ListItemComponentObject> & {
+    dataObject?: any
+    iteratorVar?: string
+  } = {} as ListItemComponentObject,
+): ListItemComponentObject {
   return {
-    type: 'listItem',
     [iteratorVar]: dataObject || '',
     style: { left: '0', border: { style: '1' } },
     children: [
@@ -444,6 +445,7 @@ export function getListItemComponent({
       getButtonComponent(),
     ],
     ...rest,
+    type: 'listItem',
   }
 }
 
@@ -537,20 +539,22 @@ export const getVideoComponent =
     'path',
   )
 
-export function getViewComponent({
-  addChildren = [],
-  children,
-  ...rest
-}: ComponentProps<ViewComponentObject> & {
-  addChildren?: ComponentObject[]
-} = {}): ViewComponentObject {
+export function getViewComponent(
+  {
+    addChildren = [],
+    children,
+    ...rest
+  }: ComponentProps<ViewComponentObject> & {
+    addChildren?: ComponentObject[]
+  } = {} as ViewComponentObject,
+): ViewComponentObject {
   return {
-    type: 'view',
     viewTag: 'subStream',
     required: false,
     style: { fontStyle: 'bold', height: '0.15', borderRadius: '5' },
     children: children || [getLabelComponent(), ...addChildren],
     ...rest,
+    type: 'view',
   }
 }
 

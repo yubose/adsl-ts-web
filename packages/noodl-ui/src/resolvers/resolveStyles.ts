@@ -336,7 +336,11 @@ resolveStyles.setResolver(
               if (u.isObj(dataObject)) {
                 edit({
                   [styleKey]: com.formatColor(
-                    get(dataObject, excludeIteratorVar(value, iteratorVar), ''),
+                    get(
+                      dataObject,
+                      excludeIteratorVar(value, iteratorVar) as string,
+                      '',
+                    ),
                   ),
                 })
               } else {

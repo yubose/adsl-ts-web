@@ -15,6 +15,7 @@ import { TwilioVideo } from './twilio'
 declare global {
   const echarts: echarts
   const gridjs: any
+  const FullCalendar: any
   const mapboxgl: any
   export const self: DedicatedWorkerGlobalScope
 

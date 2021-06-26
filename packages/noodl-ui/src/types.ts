@@ -234,51 +234,6 @@ export namespace Plugin {
   }
 }
 
-export interface IComponent<
-  C extends ComponentObject = ComponentObject,
-  Type extends keyof C = ComponentType,
-> {
-  id: string
-  type: Type
-  style: StyleObject
-  length: number
-  blueprint: ComponentObject
-  original: ComponentObject
-  child(index?: number): NUIComponent.Instance | undefined
-  children: NUIComponent.Instance[]
-  createChild<Child extends NUIComponent.Instance = any>(child: Child): Child
-  removeChild(child: NUIComponent.Instance): NUIComponent.Instance | undefined
-  removeChild(id: string): NUIComponent.Instance | undefined
-  removeChild(index: number): NUIComponent.Instance | undefined
-  removeChild(): NUIComponent.Instance | undefined
-  get<K extends keyof C>(key: K, styleKey?: keyof StyleObject): C[K]
-  get<K extends keyof C>(
-    key: K[],
-    styleKey?: keyof StyleObject,
-  ): Record<K, C[K]>
-  get(key: keyof C, styleKey?: keyof StyleObject): any
-  has(key: keyof C, styleKey?: keyof StyleObject): boolean
-  on<Evt extends NUIComponent.HookEvent>(
-    evt: Evt,
-    cb: NUIComponent.Hook[Evt],
-    id?: string,
-  ): this
-  off(eventName: string, cb: Function): this
-  parent: NUIComponent.Instance | null
-  props: { id: string } & ComponentObject
-  remove(key: keyof C, styleKey?: keyof StyleObject): this
-  set<K extends keyof C>(key: K, value?: any, styleChanges?: any): this
-  set<O extends C>(key: O, value?: any, styleChanges?: any): this
-  setParent(parent: NUIComponent.Instance): this
-  snapshot(): ReturnType<IComponent['toJSON']> & {
-    _cache: any
-  }
-  toJSON(): Omit<IComponent['props'], 'children'> & {
-    children: ReturnType<IComponent['toJSON']>[]
-    parentId: string | null
-  }
-}
-
 export type ConsumerOptions = Omit<
   ReturnType<typeof NUI['getConsumerOptions']>,
   'createActionChain' | 'getBaseStyles'

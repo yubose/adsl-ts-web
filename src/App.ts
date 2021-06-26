@@ -291,7 +291,9 @@ class App {
       this.ndom.use({ plugin: plugins })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
-      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
+      registers.forEach((keyVal) =>
+        (this.nui._experimental.register as any)(...keyVal),
+      )
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
 
       this.meeting.onConnected = meetingfns.onConnected
@@ -555,7 +557,7 @@ class App {
     }
 
     const onBeforRenderComponents: NOODLDOMPage['hooks']['ON_BEFORE_RENDER_COMPONENTS'][number]['fn'] =
-      (snapshot) => {
+      (snapshot: any) => {
         log.func('onBeforRenderComponents')
         log.grey(`onBeforRenderComponents`, snapshot)
       }
@@ -589,7 +591,10 @@ class App {
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
       .on(eventId.page.on.ON_NAVIGATE_STALE, onNavigateStale)
       .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearRootNode)
-      .on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, onBeforRenderComponents)
+      .on(
+        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
+        onBeforRenderComponents as any,
+      )
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 

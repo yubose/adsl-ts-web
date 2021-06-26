@@ -9,9 +9,7 @@ type Hooks = Record<
   T.NUIComponent.Hook[T.NUIComponent.HookEvent][]
 >
 
-class Component<C extends ComponentObject = ComponentObject>
-  implements T.IComponent<C>
-{
+class Component<C extends ComponentObject = ComponentObject> {
   #blueprint: ComponentObject
   // This cache is used internally to cache original objects (ex: action objects)
   #cache: { [key: string]: any }
@@ -329,9 +327,9 @@ class Component<C extends ComponentObject = ComponentObject>
 
   emit<Evt extends T.NUIComponent.HookEvent>(
     eventName: Evt,
-    ...args: Parameters<T.NUIComponent.Hook[Evt]>
+    ...args: Parameters<NonNullable<T.NUIComponent.Hook[Evt]>>
   ) {
-    this.#hooks[eventName]?.forEach((cb) => cb(...args))
+    this.#hooks[eventName]?.forEach((cb) => (cb as any)(...args))
     return this
   }
 
@@ -423,13 +421,12 @@ class Component<C extends ComponentObject = ComponentObject>
 
   /** Returns the JS representation of the currently resolved component */
   toJSON() {
-    const result = {} as ReturnType<T.IComponent['toJSON']>
-    u.assign(result, this.props, {
+    return {
+      ...this.props,
       id: this.id,
       parentId: this.parent?.id || null,
       children: this.children.map((child) => child?.toJSON?.()),
-    })
-    return result
+    }
   }
 }
 

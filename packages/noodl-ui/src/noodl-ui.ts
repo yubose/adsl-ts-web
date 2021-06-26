@@ -43,7 +43,9 @@ import {
 import { groupedActionTypes, nuiEmitType } from './constants'
 import * as t from './types'
 
+/** @type { object } NUI */
 const NUI = (function _NUI() {
+  /** @type { object } cache */
   const cache = {
     actions: new ActionsCache() as ActionsCache &
       Record<
@@ -75,6 +77,10 @@ const NUI = (function _NUI() {
     return component
   }
 
+  /**
+   *  Create a url
+   * @param { function } createSrc
+   */
   function _createSrc(args: {
     component: t.NUIComponent.Instance
     page: NUIPage

@@ -618,9 +618,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (isVisible) hiddenPwLabel.style.visibility = 'hidden'
     }
     // Validate if their password is correct or not
-    const isValid = (
-      await import('@aitmed/cadl')
-    ).Account?.verifyUserPassword?.(password)
+    const isValid = (await import('@aitmed/cadl'))// @ts-expect-error
+    .Account?.verifyUserPassword?.(password)
     if (!isValid) {
       console.log(`%cisValid ?`, 'color:#e74c3c;font-weight:bold;', isValid)
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'

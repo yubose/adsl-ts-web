@@ -23,6 +23,7 @@ describe(coolGold(`dom (utils)`), () => {
     })
 
     it(`should set its visibility to "hidden"`, async () => {
+      // @ts-expect-error
       await getApp({
         navigate: true,
         components: [
@@ -128,6 +129,7 @@ describe(coolGold(`dom (utils)`), () => {
 
   describe(italic(`show`), () => {
     it(`should set its visibility to "visible"`, async () => {
+      // @ts-expect-error
       await getApp({
         navigate: true,
         components: [

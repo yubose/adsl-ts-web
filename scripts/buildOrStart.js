@@ -14,16 +14,26 @@ const colors = [color.aquamarine, color.cyan, color.coolGold, color.fadedSalmon]
  * @param { import('./op') } props
  */
 async function buildOrStart(props) {
-  const libShell = execa.command(`npm run lib:start`, {
-    encoding: 'utf8',
-    stdio: 'inherit',
-  })
+  const { build: buildPreset } = props.flags
 
-  const appShell = execa.command(`npm run start:test`, {
-    encoding: 'utf8',
-    shell: true,
-    stdio: 'ignore',
-  })
+  if (buildPreset === 'ntest') {
+    execa(`lerna exec --scope noodl-ui-test-utils "npm run build"`, {
+      encoding: 'utf8',
+      shell: true,
+      stdio: 'inherit',
+    })
+  } else {
+    const libShell = execa.command(`npm run lib:start`, {
+      encoding: 'utf8',
+      stdio: 'inherit',
+    })
+
+    const appShell = execa.command(`npm run start:test`, {
+      encoding: 'utf8',
+      shell: true,
+      stdio: 'ignore',
+    })
+  }
 
   // const nuiPkgPath = path.resolve(path.join(process.cwd(), 'packages/noodl-ui'))
   // const nuiRollupConfigPath = path.join(nuiPkgPath, 'rollup.config.js')
