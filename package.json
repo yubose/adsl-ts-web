@@ -42,6 +42,7 @@
   "dependencies": {
     "@jsmanifest/typefest": "^1.0.1",
     "@jsmanifest/utils": "^1.0.5",
+    "chokidar": "^3.5.1",
     "date-fns": "^2.21.2",
     "firebase": "^8.6.5",
     "invariant": "^2.2.4",
@@ -85,6 +86,7 @@
     "@types/webpack-env": "^1.16.0",
     "@typescript-eslint/eslint-plugin": "^4.26.1",
     "@typescript-eslint/parser": "^4.26.1",
+    "aws-sdk": "^2.935.0",
     "babel-plugin-lodash": "^3.3.4",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
@@ -93,6 +95,8 @@
     "copy-webpack-plugin": "^8.1.1",
     "cross-env": "^7.0.2",
     "css-loader": "^5.2.6",
+    "del": "^4.1.1",
+    "dotenv": "^10.0.0",
     "esbuild": "^0.12.6",
     "esbuild-loader": "^2.13.1",
     "eslint": "^7.28.0",
@@ -107,6 +111,7 @@
     "jsdom-global": "^3.0.2",
     "lerna": "^4.0.0",
     "meow": "^8.1.2",
+    "mime": "^1.6.0",
     "mocha": "^8.2.1",
     "mutation-observer": "^1.0.3",
     "nodemon": "^2.0.7",
@@ -138,6 +143,7 @@
     "webpack-dev-middleware": "^3.7.3",
     "webpack-dev-server": "^3.11.2",
     "webpack-hot-middleware": "^2.25.0",
+    "ws": "^7.5.0",
     "yaml": "^2.0.0-5"
   },
   "eslintConfig": {
