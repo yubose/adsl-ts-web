@@ -248,7 +248,7 @@ class NDOM extends NDOMInternal {
    */
   async request(page = this.page, pageRequesting = '') {
     // Cache the currently requesting page to detect for newer requests during the call
-    pageRequesting = pageRequesting || page.requesting
+    pageRequesting = pageRequesting || page.requesting || ''
 
     try {
       // This is needed for the consumer to run any operations prior to working
