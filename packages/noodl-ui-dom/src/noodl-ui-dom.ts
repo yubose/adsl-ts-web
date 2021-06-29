@@ -44,6 +44,7 @@ class NDOM extends NDOMInternal {
     },
     timers: new Timers(),
   }
+
   page: NDOMPage // This is the main (root) page. All other pages are stored in this.#pages
 
   static _nui: typeof NUI
@@ -143,7 +144,7 @@ class NDOM extends NDOMInternal {
       | { type: 'page' },
   ) {
     switch (args.type) {
-      case 'component':
+      case 'component': {
         const { type, page, ...rest } = args
         const record = new GlobalComponentRecord({
           ...rest,
@@ -151,6 +152,7 @@ class NDOM extends NDOMInternal {
         })
         this.global.components.set(record.globalId, record)
         return record
+      }
       case 'page':
         break
       default:

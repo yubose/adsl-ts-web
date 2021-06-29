@@ -117,7 +117,7 @@
     "mutation-observer": "^1.0.3",
     "nodemon": "^2.0.7",
     "noodl-common": "^0.0.8",
-    "noodl-types": "^1.0.103",
+    "noodl-types": "^1.0.105",
     "noodl-webpack-plugin": "^0.0.13",
     "prettier": "^2.3.1",
     "rollup": "^2.49.0",
@@ -163,8 +163,7 @@
       "eslint:recommended",
       "plugin:@typescript-eslint/eslint-recommended",
       "plugin:@typescript-eslint/recommended",
-      "prettier/@typescript-eslint",
-      "prettier/recommended"
+      "prettier"
     ],
     "plugins": [
       "@typescript-eslint",
@@ -194,6 +193,13 @@
       "@typescript-eslint/no-namespace": "off",
       "@typescript-eslint/no-this-alias": "off",
       "@typescript-eslint/no-unused-vars": 1,
+      "@typescript-eslint/lines-between-class-members": [
+        "error",
+        "always",
+        {
+          "exceptAfterSingleLine": true
+        }
+      ],
       "arrow-body-style": "off",
       "consistent-return": "off",
       "default-case": "off",
@@ -207,7 +213,6 @@
       "import/no-unresolved": "off",
       "import/no-extraneous-dependencies": "off",
       "import/prefer-default-export": "off",
-      "lines-between-class-members": "off",
       "max-classes-per-file": "off",
       "no-alert": "off",
       "no-floating-decimal": "off",
