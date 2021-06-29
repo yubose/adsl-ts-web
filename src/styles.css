@@ -66,6 +66,7 @@ div.pluginBodyTail {
 }
 
 .page {
+  overflow-y: auto !important;
 }
 
 .grid-lines {

@@ -1,5 +1,4 @@
 import { Page as NUIPage, Viewport } from 'noodl-ui'
-import { ComponentObject } from 'noodl-types'
 import { BASE_PAGE_URL, eventId } from './constants'
 import * as u from './utils/internal'
 import * as T from './types'
@@ -31,15 +30,8 @@ class Page {
     T.Page.HookEvent,
     T.Page.HookDescriptor[]
   >
-  components: ComponentObject[] = []
   pageUrl: string = BASE_PAGE_URL
-  rootNode: HTMLDivElement
-  ref: {
-    request: {
-      name: string
-      timer: NodeJS.Timeout | null
-    }
-  } = { request: { name: '', timer: null } };
+  rootNode: HTMLDivElement;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -100,6 +92,10 @@ class Page {
     this.emitSync(eventId.page.on.ON_ASPECT_RATIO_MAX, maxBefore, value)
   }
 
+  get components() {
+    return this.#nuiPage?.components
+  }
+
   get hooks() {
     return this.#hooks
   }
@@ -110,7 +106,7 @@ class Page {
 
   get modifiers() {
     if (!this.#state.modifiers) this.#state.modifiers = {}
-    return this.state.modifiers
+    return this.#state.modifiers
   }
 
   get page() {
@@ -138,10 +134,6 @@ class Page {
     this.#state.requesting = pageName || ''
   }
 
-  get state() {
-    return this.#state as T.Page.State
-  }
-
   get viewport() {
     return this.#nuiPage.viewport as Viewport
   }
@@ -154,10 +146,6 @@ class Page {
     return this.#nuiPage as NUIPage
   }
 
-  isEqual(val: NUIPage | Page) {
-    return val === this.getNuiPage() || val === this
-  }
-
   getCbs() {
     return this.hooks
   }
@@ -167,10 +155,6 @@ class Page {
       while (arr.length) arr.pop()
     })
     return this
-  }
-
-  getState() {
-    return this.#state
   }
 
   getPreviousPage(startPage: string) {
@@ -188,23 +172,6 @@ class Page {
       previousPage = startPage
     }
     return previousPage || ''
-    // index.html?Dashboard-Apponitment
-    // if (parts.length > 1) {
-    //   parts.pop()
-    //   while (parts[parts.length - 1]?.endsWith('MenuBar') && parts.length > 1) {
-    //     parts.pop()
-    //   }
-    //   if (parts.length > 1) {
-    //     previousPage = parts[parts.length - 1]
-    //   } else if (parts.length === 1) {
-    //     if (parts[0]?.endsWith('MenuBar')) previousPage = startPage
-    //     else previousPage = parts[0].split('?')[1]
-    //   }
-    // } else {
-    //   previousPage = startPage
-    // }
-    // console.error(`最终指向的文件${previousPage}`);
-    // return previousPage || ''
   }
 
   /**
@@ -215,11 +182,12 @@ class Page {
   ) {
     const snapshot = {
       id: this.id,
+      components: this.components,
       modifiers: this.modifiers,
-      status: this.state.status,
-      previous: this.state.previous,
+      status: this.#state.status,
+      previous: this.#state.previous,
       current: this.page,
-      requesting: this.state.requesting,
+      requesting: this.#state.requesting,
       pageUrl: this.pageUrl,
       viewport: {
         width: this.viewport.width,
@@ -287,11 +255,6 @@ class Page {
     return this
   }
 
-  setPreviousPage(name: string) {
-    this.#state.previous = name
-    return this
-  }
-
   setModifier(page: string, obj: { [key: string]: any }) {
     if (!this.#state.modifiers[page]) this.#state.modifiers[page] = {}
     u.assign(this.#state.modifiers[page], obj)
@@ -300,7 +263,6 @@ class Page {
 
   remove() {
     try {
-      this.ref.request.timer && clearTimeout(this.ref.request.timer)
       this.rootNode.innerHTML = ''
       if (this.rootNode.parentNode) {
         this.rootNode.parentNode?.removeChild?.(this.rootNode)
@@ -312,9 +274,7 @@ class Page {
         this.rootNode.remove?.()
       }
       this.#nuiPage.viewport = null as any
-      u.isArr(this.components)
-        ? (this.components.length = 0)
-        : (this.components = [])
+      u.isArr(this.components) && (this.components.length = 0)
       u.values(this.#hooks).forEach((v) => v && (v.length = 0))
     } catch (error) {
       console.error(error)

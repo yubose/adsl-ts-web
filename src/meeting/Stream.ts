@@ -1,21 +1,17 @@
-import {
-  createLocalAudioTrack,
-  createLocalVideoTrack,
-  LocalAudioTrackPublication,
-  LocalTrack,
-  LocalVideoTrackPublication,
-  RemoteAudioTrackPublication,
-  RemoteTrack,
-  RemoteTrackPublication,
-  RemoteVideoTrackPublication,
-} from 'twilio-video'
 import Logger from 'logsnap'
 import { getRandomKey } from '../utils/common'
 import { toast } from '../utils/dom'
 import {
+  LocalTrack,
+  LocalAudioTrackPublication,
+  LocalVideoTrackPublication,
+  RemoteTrack,
+  RemoteAudioTrackPublication,
+  RemoteVideoTrackPublication,
+  RemoteTrackPublication,
+  RoomTrack,
   RoomParticipant,
   RoomParticipantTrackPublication,
-  RoomTrack,
   StreamType,
 } from '../app/types'
 
@@ -258,7 +254,9 @@ class MeetingStream {
     if (!this.#participant?.tracks?.size) {
       const createTrack = async (kind: 'audio' | 'video') => {
         const fn =
-          kind === 'audio' ? createLocalAudioTrack : createLocalVideoTrack
+          kind === 'audio'
+            ? Twilio.Video.createLocalAudioTrack
+            : Twilio.Video.createLocalVideoTrack
         try {
           this.#attachTrack(await fn())
         } catch (err) {

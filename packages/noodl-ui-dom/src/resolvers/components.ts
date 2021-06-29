@@ -1,26 +1,23 @@
 import SignaturePad from 'signature_pad'
 import has from 'lodash/has'
 import { Identify } from 'noodl-types'
-import { isRootDataKey } from 'noodl-utils'
 import {
   createComponent,
   formatColor,
   NUIComponent,
-  isPage as isNuiPage,
-  Page as NUIPage,
-  event as noodluiEvent,
   SelectOption,
 } from 'noodl-ui'
 import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
 import createEcosDocElement from '../utils/createEcosDocElement'
+import NDOMPage from '../Page'
 import * as u from '../utils/internal'
 import * as c from '../constants'
 
 const domComponentsResolver: Resolve.Config = {
   name: `[noodl-ui-dom] components`,
   cond: (n, c) => !!(n && c),
-  before(node, component, { page }) {
+  before(node, component, { nui, page, draw }) {
     if (Identify.component.canvas(component)) {
       page
         .on(c.eventId.page.on.ON_ASPECT_RATIO_MIN, (prevMin, min) => {
@@ -37,7 +34,7 @@ const domComponentsResolver: Resolve.Config = {
         })
     }
   },
-  resolve(node, component, { draw, ndom, nui }) {
+  resolve(node, component, { draw, global: globalMap, ndom, nui }) {
     if (!u.isFnc(node)) {
       const original = component.blueprint || {}
 
@@ -77,9 +74,24 @@ const domComponentsResolver: Resolve.Config = {
               ;(node as HTMLCanvasElement).toBlob(
                 (blob) => {
                   if (nui) {
+                    // TEMP - Remove this when "isRootDataKey" is not giving the "not a function" error
+                    function isRootDataKey(dataKey: string | undefined) {
+                      if (typeof dataKey === 'string') {
+                        if (dataKey.startsWith('.')) {
+                          dataKey = dataKey
+                            .substring(dataKey.search(/[a-zA-Z]/))
+                            .trim()
+                        }
+                        if (!/^[a-zA-Z]/i.test(dataKey)) return false
+                        if (dataKey)
+                          return dataKey[0].toUpperCase() === dataKey[0]
+                      }
+                      return false
+                    }
+
                     let dataObject = isRootDataKey(dataKey)
                       ? nui.getRoot()
-                      : nui.getRoot()?.[ndom.page.page]
+                      : nui.getRoot()?.[ndom?.page?.page || '']
                     if (has(dataObject, dataKey)) {
                       // set(dataObject, dataKey, blob)
                     } else {
@@ -90,7 +102,7 @@ const domComponentsResolver: Resolve.Config = {
                         `color:#ec0000;`,
                         {
                           blob,
-                          currentPage: ndom.page.page,
+                          currentPage: ndom?.page?.page,
                           node,
                           root: nui.getRoot(),
                         },
@@ -171,51 +183,38 @@ const domComponentsResolver: Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(component)) {
-        const nuiPage = component.get('page') as NUIPage
-        if (isNuiPage(nuiPage)) {
-          const ndomPage = ndom.createPage(nuiPage)
-          ndomPage.components = nuiPage.object().components
-          ndomPage.requesting = nuiPage.page
-          ndom
-            .request(ndomPage)
-            .then((req) => {
-              console.log({ req, ndomPage })
-              if (req) {
-                const components = req.render()
-                console.log(
-                  `%cRendered ${components.length} components for page "${ndomPage.page}" on a page component`,
-                  `color:#00b406;`,
-                )
-              }
-            })
-            .catch((err) => console.error(err))
+        let nuiPage = component.get('page')
+        let ndomPage = ndom.findPage(nuiPage) as NDOMPage
 
-          // ndomPage.components = nuiPage.object().components
-          // component.on(
-          //   noodluiEvent.component.page.PAGE_COMPONENTS,
-          //   () => {
-          //     component.children?.forEach((child: NUIComponent.Instance) =>
-          //       draw(
-          //         child,
-          //         (node as HTMLIFrameElement).contentDocument?.body,
-          //         ndom.pages[component.id],
-          //       ),
-          //     )
-          //   },
-          //   `[noodl-ui-dom] ${noodluiEvent.component.page.PAGE_COMPONENTS}`,
-          // )
-        } else {
-          console.log(
-            `%cCould not create an NDOM page because the NUI page is missing`,
-            `color:#ec0000;`,
-            {
-              component: component.snapshot(),
-              nuiPage,
-              pagesInNuiCache: nui.cache.page.get(),
-              pagesInNdomGlobal: ndom.global.pages,
-            },
-          )
+        if (!ndomPage) {
+          try {
+            ndomPage = ndom.createPage(nuiPage)
+          } catch (error) {
+            console.error(error)
+          }
         }
+
+        ndomPage.rootNode?.parentElement?.removeChild?.(ndomPage.rootNode)
+        ndomPage.rootNode = node as HTMLIFrameElement
+
+        component.on('page-components', () => {
+          const pageComponents = nui.resolveComponents.call(nui, {
+            components: ndomPage.components,
+            page: nuiPage,
+          }) as NUIComponent.Instance[]
+
+          for (const pageComponent of pageComponents) {
+            const pageComponentNode = ndom.draw(
+              pageComponent,
+              ndomPage.rootNode,
+            )
+            ;(
+              ndomPage.rootNode as HTMLIFrameElement
+            )?.contentDocument?.body?.appendChild(
+              pageComponentNode as HTMLElement,
+            )
+          }
+        })
       }
       // PLUGIN
       else if (Identify.component.plugin(original)) {

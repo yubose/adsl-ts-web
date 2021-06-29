@@ -6,7 +6,6 @@ import NOODLDOM, {
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
 import * as u from '@jsmanifest/utils'
-import { RemoteParticipant } from 'twilio-video'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
@@ -223,6 +222,7 @@ class App {
         window.pcomponents = components
       }
     } catch (error) {
+      console.error(error)
       throw new Error(error as any)
     }
   }
@@ -291,7 +291,9 @@ class App {
       this.ndom.use({ plugin: plugins })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
-      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
+      registers.forEach((keyVal) =>
+        (this.nui._experimental.register as any)(...keyVal),
+      )
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
 
       this.meeting.onConnected = meetingfns.onConnected
@@ -414,9 +416,6 @@ class App {
         snapshot: page.snapshot(),
       })
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
-      if (page.requesting !== pageRequesting && page.page !== currentPage) {
-        return 'stale'
-      }
       return this.root[pageRequesting]
     } catch (error) {
       console.error(error)
@@ -428,7 +427,7 @@ class App {
     return this.meeting.room.participants
   }
 
-  getSdkParticipants(root = this.noodl.root): RemoteParticipant[] {
+  getSdkParticipants(root = this.noodl.root): t.RemoteParticipant[] {
     return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)
   }
 
@@ -461,6 +460,7 @@ class App {
         if (this.mainPage.aspectRatioMin !== min) {
           this.mainPage.aspectRatioMin = min as number
         }
+
         if (this.mainPage.aspectRatioMax !== max) {
           this.mainPage.aspectRatioMax = max as number
         }
@@ -507,8 +507,6 @@ class App {
         document.body.style.height = `${args.height}px`
         this.mainPage.rootNode.style.width = `${args.width}px`
         this.mainPage.rootNode.style.height = `${args.height}px`
-        this.mainPage.components =
-          this.root?.[this.currentPage]?.components || []
         this.ndom.render(this.mainPage)
       }
     }
@@ -559,7 +557,7 @@ class App {
     }
 
     const onBeforRenderComponents: NOODLDOMPage['hooks']['ON_BEFORE_RENDER_COMPONENTS'][number]['fn'] =
-      (snapshot) => {
+      (snapshot: any) => {
         log.func('onBeforRenderComponents')
         log.grey(`onBeforRenderComponents`, snapshot)
       }
@@ -575,8 +573,8 @@ class App {
         }
       }
       // Handle pages that have { viewPort: "top" }
-      const pageObjectViewPort = (page.getNuiPage() as NUIPage).object?.()
-        .viewPort
+      const pageObjectViewPort =
+        this.root[(page.getNuiPage() as NUIPage).page || '']?.viewPort
 
       if (pageObjectViewPort) {
         if (pageObjectViewPort === 'top') {
@@ -593,7 +591,10 @@ class App {
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
       .on(eventId.page.on.ON_NAVIGATE_STALE, onNavigateStale)
       .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearRootNode)
-      .on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, onBeforRenderComponents)
+      .on(
+        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
+        onBeforRenderComponents as any,
+      )
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 
@@ -613,11 +614,9 @@ class App {
           await this.#noodl.init()
           u.assign(this.#noodl.root, currentRoot)
           this.cache.component.clear()
-          this.mainPage.getNuiPage().object().components = []
           this.mainPage.page = this.mainPage.getPreviousPage(this.startPage)
-          this.mainPage.setPreviousPage('')
+          this.mainPage.previous = ''
           this.mainPage.requesting = currentPage
-          this.mainPage.components = []
           return this.navigate(this.mainPage)
         } catch (error) {
           console.error(error)

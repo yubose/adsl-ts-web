@@ -2,9 +2,9 @@ import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import 'tippy.js/dist/tippy.css';
-import 'tippy.js/themes/light.css';
-import tippy, { followCursor, MultipleTargets } from 'tippy.js';
+import 'tippy.js/dist/tippy.css'
+import 'tippy.js/themes/light.css'
+import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
@@ -52,7 +52,11 @@ const createExtendedDOMResolvers = function (app: App) {
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
         if (dataObject) {
-          set(dataObject, excludeIteratorVar(dataKey, iteratorVar), value)
+          set(
+            dataObject,
+            excludeIteratorVar(dataKey, iteratorVar) as string,
+            value,
+          )
           component.edit('data-value', value)
           node.dataset.value = value
         } else {
@@ -256,59 +260,84 @@ const createExtendedDOMResolvers = function (app: App) {
               }
               case 'calendarTable': {
                 let headerBar = {
-                  left: "prev next",
+                  left: 'prev next',
                   center: 'title',
-                  right: 'timeGridDay,timeGridWeek'
+                  right: 'timeGridDay,timeGridWeek',
                 }
                 let defaultData = dataValue.chartData
-                defaultData.forEach(element => {
+                if (u.isArr(defaultData)) {
+                  defaultData.forEach((element) => {
+                    element.start = new Date(element.stime * 1000)
+                    element.end = new Date(element.etime * 1000)
+                    element.title = element.visitReason
+                    delete element.stime
+                    delete element.etime
+                    delete element.visitReason
+                  })
+                } else {
+                  defaultData = {}
+                }
 
-                  element.start =  new Date(element.stime * 1000);
-                  element.end =  new Date(element.etime * 1000);
-                  element.title = element.visitReason;
-                  delete element.stime;
-                  delete element.etime;
-                  delete element.visitReason
-                });
                 let calendar = new FullCalendar.Calendar(node, {
                   headerToolbar: headerBar,
                   height: 'auto',
-                  allDaySlot: false,           // 是否显示表头的全天事件栏
+                  allDaySlot: false, // 是否显示表头的全天事件栏
                   initialView: 'timeGridWeek',
                   //locale: 'zh-cn',             // 区域本地化
-                  firstDay: 0,                 // 每周的第一天： 0:周日
-                  nowIndicator: true,          // 是否显示当前时间的指示条
+                  firstDay: 0, // 每周的第一天： 0:周日
+                  nowIndicator: true, // 是否显示当前时间的指示条
                   slotLabelFormat: [
                     {
                       hour: 'numeric',
-                      minute: '2-digit'
-                    }
+                      minute: '2-digit',
+                    },
                   ],
-                  buttonText:{
-                    week:'Weeks',
-                    day:'Day'
+                  buttonText: {
+                    week: 'Weeks',
+                    day: 'Day',
                   },
-               
-                  slotDuration:'00:15:00',
+
+                  slotDuration: '00:15:00',
                   // slotLabelInterval : "00:05:00",
-                  displayEventTime:false,
+                  displayEventTime: false,
                   views: {
                     timeGridFourDay: {
                       type: 'timeGrid',
-                      buttonText: '2 day'
-                    }
+                      buttonText: '2 day',
+                    },
                   },
                   events: defaultData,
-                  handleWindowResize:true,
+                  handleWindowResize: true,
                   eventLimit: true,
-                  eventMouseEnter: (info: { el: MultipleTargets; event: { _def: { title: string; }; _instance: { range: { start: any; end: any; }; }; }; }) => {
+                  eventMouseEnter: (info: {
+                    el: MultipleTargets
+                    event: {
+                      _def: { title: string }
+                      _instance: { range: { start: any; end: any } }
+                    }
+                  }) => {
                     //console.log(info);
                     tippy(info.el, {
-                      content: '<div >\
-                       <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Doctor Information</div>\
-                       <div style="padding-top:2px">Doctor Name：'+ info.event._def.title + '</div>\
-                       <div style="padding:4px 0">startTime：'+formatDate(new Date(info.event._instance.range.start).getTime()+(new Date().getTimezoneOffset()*60*1000),'yyyy-MM-dd HH:mm:ss')+ '</div>\
-                       <div>endTime： '+formatDate(new Date(info.event._instance.range.end).getTime()+(new Date().getTimezoneOffset()*60*1000),'yyyy-MM-dd HH:mm:ss')+ '</div>\
+                      content:
+                        '<div >\
+                       <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Appointment Information</div>\
+                       <div style="padding-top:2px">Appointment Name：' +
+                        info.event._def.title +
+                        '</div>\
+                       <div style="padding:4px 0">startTime：' +
+                        formatDate(
+                          new Date(info.event._instance.range.start).getTime() +
+                            new Date().getTimezoneOffset() * 60 * 1000,
+                          'yyyy-MM-dd HH:mm:ss',
+                        ) +
+                        '</div>\
+                       <div>endTime： ' +
+                        formatDate(
+                          new Date(info.event._instance.range.end).getTime() +
+                            new Date().getTimezoneOffset() * 60 * 1000,
+                          'yyyy-MM-dd HH:mm:ss',
+                        ) +
+                        '</div>\
  　　　　　　　        　</div>',
                       allowHTML: true,
                       //theme: 'translucent',
@@ -316,24 +345,23 @@ const createExtendedDOMResolvers = function (app: App) {
                       //placement: 'right-end',
                       followCursor: true,
                       plugins: [followCursor],
-                      duration: [0, 0]
-                    });
+                      duration: [0, 0],
+                    })
                   },
-                  
-                  //eventColor: 'red',
-                 
-                  eventClick: function (event: { event: { _def: { publicId: any; }; }; }) {
-                   
-                   
-                    if (event.event._def) {
-                      dataValue.response = event.event._def.publicId;
-                    }
-                    console.log(event);
 
+                  //eventColor: 'red',
+
+                  eventClick: function (event: {
+                    event: { _def: { publicId: any } }
+                  }) {
+                    if (event.event._def) {
+                      dataValue.response = event.event._def.publicId
+                    }
+                    console.log(event)
                   },
-                });
-                calendar.render();
-                break;
+                })
+                calendar.render()
+                break
               }
             }
           } else {
@@ -1040,6 +1068,7 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
         // Set the initial value
+        // @ts-expect-error
         component.emit('timer:init', initialValue)
       },
     },

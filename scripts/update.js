@@ -5,6 +5,7 @@ const { magenta, newline, red } = require('noodl-common')
 const pkgs = {
   lvl2: '@aitmed/ecos-lvl2-sdk',
   sdk: '@aitmed/cadl',
+  noodlUtils: 'noodl-utils',
   noodlTypes: 'noodl-types',
   noodlActionChain: 'noodl-action-chain',
 }
@@ -43,6 +44,19 @@ async function update(props) {
         `&& git push ` +
         `&& npm run build:deploy:test`
       execa.commandSync(cmd, { shell: true, stdio: 'inherit' })
+    } else if (value === 'noodl') {
+      !message && (message = `Updated NOODL libs`)
+      const cmd =
+        `npm i ` +
+        `${pkgs.lvl2}@latest ` +
+        `${pkgs.sdk}@latest ` +
+        `${pkgs.noodlActionChain}@latest ` +
+        `${pkgs.noodlTypes}@latest ` +
+        `${pkgs.noodlUtils}@latest ` +
+        `&& git add package.json package-lock.json ` +
+        `&& git commit -m "${message}" ` +
+        `&& git push `
+      execa.commandSync(cmd, { shell: true, stdio: 'inherit' })
     }
     // noodl-types
     else if (value === 'nt') {
@@ -66,6 +80,9 @@ async function update(props) {
     if (input[1] === 'sdk') {
       npmInstallStr = `${npmInstallStr}`
       remotePkgs.push('@aitmed/cadl@latest', '@aitmed/ecos-lvl2-sdk@latest')
+    } else if (input[1] === 'noodl') {
+      npmInstallStr = `${npmInstallStr}`
+      remotePkgs.push('noodl-action-chain', 'noodl-types', 'noodl-utils')
     } else {
       addFilesStr = `lerna exec ${addFilesStr}`
       // Local packages

@@ -34,7 +34,7 @@ describe(coolGold(`history`), () => {
         navigate: true,
         pageName: getDefaultPageName(),
         pageObject: getDefaultPageObject(),
-      })
+      } as any)
       const page = app.mainPage
       const node = getFirstByElementId('hi')
       node.click()

@@ -88,7 +88,7 @@ export const trackWebApp = function trackWebApp(app: App) {
 
   for (const key of keysToTrack) {
     if (typeof app[key] !== 'function') continue
-    const value = app[key].bind(app)
+    const value = (app[key] as any)?.bind(app)
     trackProperty({
       category: 'web',
       value,

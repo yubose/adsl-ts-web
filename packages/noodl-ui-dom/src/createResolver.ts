@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import SignaturePad from 'signature_pad'
 import { Identify } from 'noodl-types'
 import { Component, NUI } from 'noodl-ui'

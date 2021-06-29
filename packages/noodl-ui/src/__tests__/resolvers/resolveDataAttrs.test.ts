@@ -208,12 +208,12 @@ describe(coolGold(`resolveDataAttrs`), () => {
   )
 
   describe('when handling dataValue emits', () => {
-    it.only('should pass the value from the emit executor', async () => {
+    it('should pass the value from the emit executor', async () => {
       const spy = sinon.spy(() => Promise.resolve('iamjoshua'))
       const dataObject = { fruit: 'apple' }
       const iteratorVar = 'hello'
       const listObject = [dataObject, { fruit: 'orange' }]
-      NUI.use({ emit: { dataValue: spy } as any })
+      NUI.use({ emit: { dataValue: spy } })
       const { component: view } = resolveComponent(
         mock.getViewComponent({
           children: [
@@ -226,7 +226,7 @@ describe(coolGold(`resolveDataAttrs`), () => {
                   children: [
                     mock.getTextFieldComponent({
                       dataKey: `${iteratorVar}.fruit`,
-                      dataValue: mock.getEmitObject({
+                      dataValue: mock.getFoldedEmitObject({
                         dataKey: { var1: iteratorVar },
                       }),
                     }),

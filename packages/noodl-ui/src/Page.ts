@@ -1,11 +1,11 @@
-import { PageObject } from 'noodl-types'
+import { ComponentObject, PageObject } from 'noodl-types'
 import { getRandomKey, inspect } from './utils/internal'
 import { IPage } from './types'
 import Viewport from './Viewport'
 
 class Page implements IPage {
   static _id: IPage['id'] = 'root'
-  #get: () => PageObject = () => ({ components: [] })
+  #get: () => ComponentObject[] = () => []
   #id: IPage['id']
   #page = ''
   viewport: Viewport;
@@ -26,8 +26,8 @@ class Page implements IPage {
     return this.#id
   }
 
-  object() {
-    return this.#get?.() || { components: [] }
+  get components() {
+    return this.#get()
   }
 
   get page() {
@@ -40,6 +40,8 @@ class Page implements IPage {
 
   toJSON() {
     return {
+      components: this.components,
+      currentPage: this.page,
       id: this.#id,
       viewport: { width: this.viewport.width, height: this.viewport.height },
     }
@@ -49,8 +51,8 @@ class Page implements IPage {
     return JSON.stringify(this.toJSON(), null, 2)
   }
 
-  use(getObj: Page['object']) {
-    this.#get = getObj
+  use(getComponents: () => Page['components']) {
+    this.#get = getComponents
     return this
   }
 }

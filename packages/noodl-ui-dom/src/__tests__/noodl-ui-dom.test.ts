@@ -179,13 +179,11 @@ describe(coolGold(`noodl-ui-dom`), () => {
           ]
           const newPopUp = await render()
           const newPopUpNode = getFirstByGlobalId('cerealView')
-          console.info(ndom.global.components)
           expect(globalRecord).to.have.property('componentId').not.eq(popUp.id)
           expect(globalRecord)
             .to.have.property('nodeId')
             .not.eq(globalPopUpNode.id)
           expect(globalRecord).to.have.property('componentId').eq(newPopUp.id)
-          // expect(globalRecord).to.have.property('nodeId').eq(newPopUpNode.id)
         },
       )
 
@@ -363,10 +361,10 @@ describe(coolGold(`noodl-ui-dom`), () => {
             components,
           },
         })
-        const pageObject = await ndom.transact({
-          transaction: nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+        const pageObject = await ndom.transact(
+          nuiEmitTransaction.REQUEST_PAGE_OBJECT,
           page,
-        })
+        )
         expect(pageObject?.components).to.eq(components)
       },
     )

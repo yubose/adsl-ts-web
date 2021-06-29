@@ -1,4 +1,12 @@
 {
+  "typedocOptions": {
+    "name": "AiTmed NOODL",
+    "entryPoints": [
+      "./packages/noodl-ui/tsconfig.json",
+      "./packages/noodl-ui-dom/tsconfig.json"
+    ],
+    "out": "./docs/"
+  },
   "compilerOptions": {
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
@@ -18,9 +26,9 @@
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "es2015"
+    "target": "es2017"
   },
-  "include": ["src/**/*"],
+  "include": ["src"],
   "exclude": [
     "_data",
     "node_modules",

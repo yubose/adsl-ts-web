@@ -83,7 +83,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
         } else {
           result = get(
             context?.dataObject,
-            excludeIteratorVar(dataKey, iteratorVar),
+            excludeIteratorVar(dataKey, iteratorVar) as string,
           )
         }
       } else {

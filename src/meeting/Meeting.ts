@@ -1,16 +1,6 @@
-import { EventEmitter } from 'events'
 import * as u from '@jsmanifest/utils'
+import { EventEmitter } from 'events'
 import unary from 'lodash/unary'
-import {
-  connect,
-  createLocalVideoTrack,
-  createLocalAudioTrack,
-  LocalAudioTrackPublication,
-  LocalParticipant,
-  LocalVideoTrackPublication,
-  RemoteParticipant,
-  Room,
-} from 'twilio-video'
 import Logger from 'logsnap'
 import { getFirstByViewTag, findByUX } from 'noodl-ui-dom'
 import { isMobile, isUnitTestEnv } from '../utils/common'
@@ -18,17 +8,17 @@ import { hide, show, toast } from '../utils/dom'
 import App from '../App'
 import Stream from '../meeting/Stream'
 import Streams from '../meeting/Streams'
-import * as T from '../app/types/meetingTypes'
+import * as t from '../app/types'
 
 const log = Logger.create('Meeting.ts')
 
 const createMeetingFns = function _createMeetingFns(app: App) {
-  let _room = new EventEmitter() as Room & { _isMock?: boolean }
+  let _room = new EventEmitter() as t.Room & { _isMock?: boolean }
   let _streams = new Streams()
   let _calledOnConnected = false
 
   async function _createRoom(token: string) {
-    return connect(token, {
+    return Twilio.Video.connect(token, {
       dominantSpeaker: true,
       logLevel: 'info',
       tracks: [],
@@ -86,12 +76,16 @@ const createMeetingFns = function _createMeetingFns(app: App) {
         o.selfStream.snapshot(),
       )
       try {
-        _room.localParticipant?.publishTrack(await createLocalAudioTrack())
+        _room.localParticipant?.publishTrack(
+          await Twilio.Video.createLocalAudioTrack(),
+        )
       } catch (error) {
         handleTrackErr('audio', error)
       }
       try {
-        _room.localParticipant?.publishTrack(await createLocalVideoTrack())
+        _room.localParticipant?.publishTrack(
+          await Twilio.Video.createLocalVideoTrack(),
+        )
       } catch (error) {
         handleTrackErr('video', error)
       }
@@ -178,8 +172,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       if (_room?.state) {
         const unpublishTracks = (
           trackPublication:
-            | LocalVideoTrackPublication
-            | LocalAudioTrackPublication,
+            | t.LocalVideoTrackPublication
+            | t.LocalAudioTrackPublication,
         ) => {
           trackPublication?.track?.stop?.()
           trackPublication?.unpublish?.()
@@ -199,7 +193,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * @param { object } options - This is temporarily used for debugging
      */
     addRemoteParticipant(
-      participant: T.RoomParticipant,
+      participant: t.RoomParticipant,
       {
         force = false,
       }: {
@@ -226,7 +220,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           if (!o.mainStream.hasParticipant()) {
             o.mainStream.setParticipant(participant)
             app.meeting.onAddRemoteParticipant?.(
-              participant as RemoteParticipant,
+              participant as t.RemoteParticipant,
               o.mainStream,
             )
             return this
@@ -241,11 +235,13 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               const node = app.ndom.draw(
                 // TODO - Replace this resolver call and do a cleaner
                 o.subStreams.resolver?.(props) || props,
+                undefined,
+                app.mainPage,
               ) as any
               const subStream = o.subStreams
                 .create({
                   node,
-                  participant: participant as RemoteParticipant,
+                  participant: participant as t.RemoteParticipant,
                 })
                 .last()
               log.green(
@@ -253,7 +249,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
                 { blueprint: props, node, participant, subStream },
               )
               app.meeting.onAddRemoteParticipant?.(
-                participant as RemoteParticipant,
+                participant as t.RemoteParticipant,
                 subStream as Stream,
               )
             } else {
@@ -285,7 +281,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
       return this
     },
     removeRemoteParticipant(
-      participant: T.RoomParticipant,
+      participant: t.RoomParticipant,
       { force }: { force?: boolean } = {},
     ) {
       if (participant && (force || !o.isLocalParticipant(participant))) {
@@ -302,11 +298,11 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           // would call subStream.removeElement() for those
           app.mainStream.unpublish()
           app.meeting.onRemoveRemoteParticipant?.(
-            participant as RemoteParticipant,
+            participant as t.RemoteParticipant,
             app.mainStream,
           )
 
-          let nextMainParticipant: T.RoomParticipant | null
+          let nextMainParticipant: t.RoomParticipant | null
 
           if (app.subStreams) {
             subStream = app.subStreams.findBy((stream: Stream) =>
@@ -342,7 +338,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
             subStream.unpublish().removeElement()
             app.subStreams?.removeSubStream(subStream)
             app.meeting.onRemoveRemoteParticipant?.(
-              participant as RemoteParticipant,
+              participant as t.RemoteParticipant,
               subStream,
             )
           }
@@ -355,8 +351,8 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * @param { RoomParticipant } participant
      */
     isLocalParticipant(
-      participant: T.RoomParticipant,
-    ): participant is LocalParticipant {
+      participant: t.RoomParticipant,
+    ): participant is t.LocalParticipant {
       return !!(_room && participant === _room.localParticipant)
     },
     /** Element used for the dominant/main speaker */
@@ -413,10 +409,10 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      */
     reset(key?: 'room' | 'streams') {
       if (key) {
-        key === 'room' && (_room = new EventEmitter() as Room)
+        key === 'room' && (_room = new EventEmitter() as t.Room)
         key === 'streams' && (_streams = new Streams())
       } else {
-        _room = new EventEmitter() as Room
+        _room = new EventEmitter() as t.Room
         _streams = new Streams()
       }
       return this
@@ -427,10 +423,13 @@ const createMeetingFns = function _createMeetingFns(app: App) {
   }
 
   return o as typeof o & {
-    onConnected(room: Room): any
-    onAddRemoteParticipant(participant: RemoteParticipant, stream: Stream): any
+    onConnected(room: t.Room): any
+    onAddRemoteParticipant(
+      participant: t.RemoteParticipant,
+      stream: Stream,
+    ): any
     onRemoveRemoteParticipant(
-      participant: RemoteParticipant,
+      participant: t.RemoteParticipant,
       stream: Stream,
     ): any
   }

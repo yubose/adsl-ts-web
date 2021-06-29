@@ -13,6 +13,7 @@ import {
   findByDataAttrib,
   findByUX,
   isPageConsumer,
+  isPage as isNDOMPage,
   SignaturePad,
   getFirstByDataKey,
 } from 'noodl-ui-dom'
@@ -40,6 +41,7 @@ import {
   scrollToElem,
   toast,
 } from '../utils/dom'
+import createPickPage from '../utils/createPickPage'
 import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
@@ -49,6 +51,8 @@ const _pick = pickActionKey
 const _has = pickHasActionKey
 
 const createActions = function createActions(app: App) {
+  const pickPage = createPickPage(app)
+
   const emit = triggers.reduce(
     (
       acc: Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn']>>,
@@ -190,7 +194,7 @@ const createActions = function createActions(app: App) {
       } else if (_has(object, 'if')) {
         const ifObj = object
         if (u.isArr(ifObj)) {
-          const pageName = (options?.page || app.mainPage).page || ''
+          const pageName = (options?.page || app.mainPage)?.page || ''
           object = evalIf((valEvaluating) => {
             let value
             if (Identify.isBoolean(valEvaluating)) {
@@ -232,7 +236,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     let goto = _pick(action, 'goto') || ''
-    let page = options?.page || app.mainPage
+    let page = pickPage(options)
 
     log.func('goto')
     log.grey(
@@ -255,7 +259,10 @@ const createActions = function createActions(app: App) {
     let pageModifiers = {} as any
 
     if (destination === destinationParam) {
-      page.requesting = destination
+      if (!('requesting' in (page || {}))) {
+        page = app.mainPage
+      }
+      page && (page.requesting = destination)
     }
 
     if (u.isObj(goto?.dataIn)) {
@@ -294,7 +301,7 @@ const createActions = function createActions(app: App) {
         }
         if (isSamePage) scroll()
         else;
-        page.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+        page?.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
       } else {
         log.red(`Could not search for a DOM node with an identity of "${id}"`, {
           id,
@@ -306,7 +313,7 @@ const createActions = function createActions(app: App) {
       }
     }
 
-    if (!destinationParam.startsWith('http')) {
+    if (!destinationParam.startsWith('http') && page) {
       page.pageUrl = app.parse.queryString({
         destination,
         pageUrl: page.pageUrl,
@@ -322,7 +329,7 @@ const createActions = function createActions(app: App) {
       destinationParam,
       isSamePage,
       pageModifiers,
-      updatedQueryString: page.pageUrl,
+      updatedQueryString: page?.pageUrl,
     })
 
     if (!isSamePage) {
@@ -556,7 +563,7 @@ const createActions = function createActions(app: App) {
       }
     } catch (error) {
       console.error(error)
-      toast(error.message, { type: 'error' })
+      toast((error as Error).message, { type: 'error' })
       ref?.abort?.()
     }
   }
@@ -569,9 +576,7 @@ const createActions = function createActions(app: App) {
         const dataKey = _pick(action, 'dataKey')
         const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
         if (node) {
-          const component = app.cache.component.get(
-            node.id,
-          ) as NUIComponent.Instance
+          const component = app.cache.component.get(node.id)?.component
           if (isComponent(component)) {
             const signaturePad = component.get('signaturePad') as SignaturePad
             if (signaturePad) {
@@ -596,7 +601,7 @@ const createActions = function createActions(app: App) {
           }
         }
       } catch (error) {
-        toast(error.message, { type: 'error' })
+        toast((error as Error).message, { type: 'error' })
       }
     }
 
@@ -610,7 +615,7 @@ const createActions = function createActions(app: App) {
       const dataKey = _pick(action, 'dataKey')
       if (dataKey) {
         const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
-        const component = app.cache.component.get(node.id)
+        const component = app.cache.component.get(node.id)?.component
         if (component) {
           const signaturePad = component.get('signaturePad') as SignaturePad
           if (signaturePad) {

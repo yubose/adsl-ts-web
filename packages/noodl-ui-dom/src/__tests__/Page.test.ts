@@ -22,7 +22,7 @@ afterEach(() => {
   ndom.page?.reset()
 })
 
-describe.only(coolGold(`Page`), () => {
+describe(coolGold(`Page`), () => {
   it(`should initiate the pageUrl with "${BASE_PAGE_URL}"`, () => {
     const page = createPage()
     expect(page.pageUrl).to.eq(BASE_PAGE_URL)

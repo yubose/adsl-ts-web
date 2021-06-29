@@ -39,8 +39,8 @@
   },
   "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
   "dependencies": {
-    "noodl-types": "^1.0.39",
-    "noodl-utils": "^0.0.49"
+    "noodl-types": "^1.0.103",
+    "noodl-utils": "^0.0.54"
   },
   "peerDependencies": {
     "noodl-ui": "^0.1.35"

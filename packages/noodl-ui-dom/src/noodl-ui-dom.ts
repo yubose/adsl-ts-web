@@ -12,14 +12,15 @@ import {
   publish,
   Store,
   nuiEmitTransaction,
+  Viewport,
 } from 'noodl-ui'
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
 import { GlobalComponentRecord } from './global'
 import createAsyncImageElement from './utils/createAsyncImageElement'
-import isNDOMPage from './utils/isPage'
 import createResolver from './createResolver'
-import NOODLDOMInternal from './Internal'
-import Page from './Page'
+import isNDOMPage from './utils/isPage'
+import NDOMInternal from './Internal'
+import NDOMPage from './Page'
 import Timers from './global/Timers'
 import * as defaultResolvers from './resolvers'
 import * as c from './constants'
@@ -27,7 +28,7 @@ import * as t from './types'
 
 const pageEvt = c.eventId.page
 
-class NOODLDOM extends NOODLDOMInternal {
+class NDOM extends NDOMInternal {
   #R: ReturnType<typeof createResolver>
   #createElementBinding = undefined as t.UseObject['createElementBinding']
   global: t.GlobalMap = {
@@ -35,7 +36,7 @@ class NOODLDOM extends NOODLDOMInternal {
     pages: {},
     timers: new Timers(),
   }
-  page: Page // This is the main (root) page. All other pages are stored in this.#pages
+  page: NDOMPage // This is the main (root) page. All other pages are stored in this.#pages
 
   static _nui: typeof NUI
 
@@ -46,10 +47,10 @@ class NOODLDOM extends NOODLDOMInternal {
     this.#R.use(this)
     u.values(defaultResolvers).forEach(this.#R.use.bind(this.#R))
     if (nui) {
-      NOODLDOM._nui = nui
-      NOODLDOMInternal._nui = nui
+      NDOM._nui = nui
+      NDOMInternal._nui = nui
     } else {
-      NOODLDOM._nui = NOODLDOMInternal._nui
+      NDOM._nui = NDOMInternal._nui
     }
   }
 
@@ -62,7 +63,7 @@ class NOODLDOM extends NOODLDOMInternal {
   }
 
   get cache() {
-    return NOODLDOM._nui.cache
+    return NDOM._nui.cache
   }
 
   get length() {
@@ -77,13 +78,13 @@ class NOODLDOM extends NOODLDOMInternal {
     return this.cache.transactions
   }
 
-  createPage(nuiPage?: NUIPage): Page
-  createPage(args: Parameters<typeof NUI['createPage']>[0]): Page
+  createPage(nuiPage?: NUIPage): NDOMPage
+  createPage(args: Parameters<typeof NUI['createPage']>[0]): NDOMPage
   createPage(args: {
     page: NUIPage
     viewport?: { width?: number; height?: number }
-  }): Page
-  createPage(args: string): Page
+  }): NDOMPage
+  createPage(name: string): NDOMPage
   createPage(
     args?:
       | NUIPage
@@ -91,35 +92,31 @@ class NOODLDOM extends NOODLDOMInternal {
       | { page: NUIPage; viewport?: { width?: number; height?: number } }
       | string,
   ) {
-    let page: Page | undefined
-
-    const getExistingPage = (nuiPage: NUIPage) => {
-      if (this.page?.isEqual?.(nuiPage)) return this.page
-      return Object.values(this.pages).find((page) => page.isEqual(nuiPage))
-    }
+    let page: NDOMPage | undefined
 
     if (isNUIPage(args)) {
-      page = getExistingPage(args)
-      if (!page) page = new Page(args)
+      page = this.findPage(args) || new NDOMPage(args)
     } else if (u.isObj(args)) {
       if ('page' in args) {
-        page = getExistingPage(args.page)
-        if (!page) {
-          page = new Page(args.page)
-          if (args.viewport) u.assign(page.viewport, args.viewport)
-        }
+        page = this.findPage(args.page) || new NDOMPage(args.page)
+        // if (!page.viewport) page.viewport = new Viewport()
+        // if (args.viewport) {
+        //   page.viewport.width = args.viewport.width as number
+        //   page.viewport.height = args.viewport.height as number
+        // }
       } else {
-        page = new Page(NOODLDOM._nui.createPage?.(args))
+        page = new NDOMPage(NDOM._nui.createPage(args))
       }
-    } else if (u.isStr(args)) {
-      page = new Page(NOODLDOM._nui.createPage?.({ name: args }))
     } else {
-      page = new Page(NOODLDOM._nui.createPage?.())
+      page = new NDOMPage(NDOM._nui.createPage())
     }
 
-    this.global.pages[page.id] !== page && (this.global.pages[page.id] = page)
-    !this.page && (this.page = page)
-    return page as Page
+    if (page) {
+      this.global.pages[page.id] !== page && (this.global.pages[page.id] = page)
+      !this.page && (this.page = page)
+    }
+
+    return page
   }
 
   createGlobalRecord(
@@ -129,7 +126,7 @@ class NOODLDOM extends NOODLDOMInternal {
           component: NUIComponent.Instance
           id?: string
           node?: HTMLElement | null
-          page: Page
+          page: NDOMPage
         }
       | { type: 'page' },
   ) {
@@ -149,19 +146,27 @@ class NOODLDOM extends NOODLDOMInternal {
     }
   }
 
-  /** TODO - More cases */
-  findPage(nuiPage: NUIPage | Page) {
+  /**
+   * Finds and returns the associated NDOMPage from NUIPage
+   * @param NUIPage nuiPage
+   * @returns NDOMPage | null
+   */
+  findPage(nuiPage: NUIPage | NDOMPage) {
     if (isNUIPage(nuiPage)) {
-      return Object.values(this.global.pages).find((page) =>
-        page.isEqual(nuiPage),
-      )
+      for (const page of u.values(this.global.pages)) {
+        if (page.getNuiPage() === nuiPage) return page
+      }
     } else if (isNDOMPage(nuiPage)) {
-      return Object.values(this.global.pages).find((page) => page === nuiPage)
+      return nuiPage
     }
     return null
   }
 
-  removePage(page: Page | undefined | null) {
+  /**
+   * Removes the NDOMPage from the global store object
+   * @param { NDOMPage | undefined | null } page
+   */
+  removePage(page: NDOMPage | undefined | null) {
     if (page) {
       page.remove()
       if (page.id in this.global.pages) delete this.global.pages[page.id]
@@ -196,7 +201,9 @@ class NOODLDOM extends NOODLDOMInternal {
             const { componentId, nodeId } = obj
             if (componentId) {
               if (this.cache.component.has(componentId)) {
-                this.removeComponent(this.cache.component.get(componentId))
+                this.removeComponent(
+                  this.cache.component.get(componentId)?.component,
+                )
               }
             }
             this.global.components.delete(globalId)
@@ -237,42 +244,20 @@ class NOODLDOM extends NOODLDOMInternal {
    * Initiates a request to the parameters set in Page.
    * The page.requesting value should be set prior to calling this method unless
    * pageRequesting is provided. If it is provided, it will be set automatically
-   * @param { NOODLDOMPage } page
+   * @param NOODLDOMPage page
    */
   async request(page = this.page, pageRequesting = '') {
     // Cache the currently requesting page to detect for newer requests during the call
     pageRequesting = pageRequesting || page.requesting
 
-    // u.keys(page.modifiers).forEach(
-    //   (key) => key !== pageRequesting && delete page.modifiers[key],
-    // )
-
     try {
-      page.ref.request.timer && clearTimeout(page.ref.request.timer)
-
-      const pageObject = await this.transact(
-        nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-        page,
-      )
-
-      // TODO - Add the string 'stale' to type to disable this lint error
-      // If caller returns 'stale', it is an explicit call to cancel this request
-      // because a newer one was initiated
-      if (pageObject === 'stale') {
-        u.keys(page.modifiers).forEach((key) => delete page.modifiers[key])
-        page.requesting === pageRequesting && (page.requesting = '')
-        page.emitSync(c.eventId.page.on.ON_NAVIGATE_STALE, {
-          previouslyRequesting: pageRequesting,
-          newPageRequesting: page.requesting,
-          snapshot: page.snapshot(),
-        })
-        return
-      }
+      // This is needed for the consumer to run any operations prior to working
+      // with the components (ex: processing the "init" in page objects)
+      await this.transact(nuiEmitTransaction.REQUEST_PAGE_OBJECT, page)
 
       /**
        * TODO - Move this to an official location when we have time
        */
-
       const action = async (cb: () => any | Promise<any>) => {
         try {
           if (
@@ -289,7 +274,7 @@ class NOODLDOM extends NOODLDOMInternal {
             )
             await page.emitAsync(pageEvt.on.ON_NAVIGATE_ABORT, page.snapshot())
             // Remove the page modifiers so they don't propagate to subsequent navigates
-            delete page.state.modifiers[pageRequesting]
+            delete page.modifiers[pageRequesting]
             return console.error(
               `A more recent request from "${pageRequesting}" to "${page.requesting}" was called`,
             )
@@ -298,10 +283,6 @@ class NOODLDOM extends NOODLDOMInternal {
           throw error
         }
       }
-
-      await action(() => {
-        pageObject && (page.components = (pageObject as PageObject)?.components)
-      })
 
       page.setStatus(pageEvt.status.NAVIGATING)
 
@@ -340,17 +321,19 @@ class NOODLDOM extends NOODLDOMInternal {
    * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
    * @param { ComponentObject | ComponentObject[] } components
    */
-  render(page: Page) {
+  render(page: NDOMPage) {
     page.reset('render')
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
 
-    this.reset('componentCache')
+    this.reset('componentCache', page)
+
+    const nuiPage = page.getNuiPage()
     const components = u.array(
-      NOODLDOM._nui.resolveComponents.call(NOODLDOM._nui, {
+      NDOM._nui.resolveComponents.call(NDOM._nui, {
         components: page.components,
-        page: page.getNuiPage(),
+        page: nuiPage,
       }),
     ) as NUIComponent.Instance[]
 
@@ -361,7 +344,9 @@ class NOODLDOM extends NOODLDOMInternal {
       rootNode: page.rootNode,
     })
 
-    page.clearRootNode()
+    if (page.rootNode.tagName !== 'IFRAME') {
+      page.clearRootNode()
+    }
 
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
 
@@ -370,7 +355,15 @@ class NOODLDOM extends NOODLDOMInternal {
       page.snapshot({ components }),
     )
 
-    components.forEach((component) => this.draw(component, page.rootNode, page))
+    components.forEach((component) =>
+      this.draw(
+        component,
+        page.rootNode?.tagName === 'IFRAME'
+          ? (page.rootNode as HTMLIFrameElement).contentDocument?.body
+          : page.rootNode,
+        page,
+      ),
+    )
 
     page.emitSync(c.eventId.page.on.ON_COMPONENTS_RENDERED, page)
 
@@ -387,11 +380,11 @@ class NOODLDOM extends NOODLDOMInternal {
   draw<C extends Component = any>(
     component: C,
     container?: t.NOODLDOMElement | null,
-    pageProp?: Page,
+    pageProp?: NDOMPage,
     options?: { context?: Record<string, any>; node?: HTMLElement | null },
   ) {
     let node: t.NOODLDOMElement | null = options?.node || null
-    let page: Page = pageProp || this.page
+    let page: NDOMPage = pageProp || this.page
 
     if (component) {
       if (Identify.component.plugin(component)) {
@@ -477,7 +470,7 @@ class NOODLDOM extends NOODLDOMInternal {
           if (globalRecord.componentId !== component.id) {
             publishMismatchMsg('component')
             this.removeComponent(
-              this.cache.component.get(globalRecord.componentId),
+              this.cache.component.get(globalRecord.componentId)?.component,
             )
             globalRecord.componentId = component.id
           }
@@ -554,8 +547,8 @@ class NOODLDOM extends NOODLDOMInternal {
   redraw(
     node: t.NOODLDOMElement | null, // ex: li (dom node)
     component: Component, // ex: listItem (component instance)
-    pageProp?: Page,
-    options?: Parameters<NOODLDOM['draw']>[3],
+    pageProp?: NDOMPage,
+    options?: Parameters<NDOM['draw']>[3],
   ) {
     let context: any = options?.context
     let newNode: t.NOODLDOMElement | null = null
@@ -618,7 +611,7 @@ class NOODLDOM extends NOODLDOMInternal {
       this.removeComponent(component)
 
       newComponent =
-        NOODLDOM._nui.resolveComponents?.({
+        NDOM._nui.resolveComponents?.({
           components: newComponent,
           page,
           context,
@@ -671,7 +664,7 @@ class NOODLDOM extends NOODLDOMInternal {
     if ('resolve' in obj) {
       this.#R.use(obj)
     } else if ('actionType' in obj || 'funcName' in obj) {
-      NOODLDOM._nui.use({ [obj.actionType]: obj })
+      NDOM._nui.use({ [obj.actionType]: obj })
     }
     return this
   }
@@ -680,6 +673,7 @@ class NOODLDOM extends NOODLDOMInternal {
     return this.#R.get()
   }
 
+  reset(key: 'componentCache', page: NDOMPage): this
   reset(opts?: {
     componentCache?: boolean
     global?: boolean
@@ -712,23 +706,24 @@ class NOODLDOM extends NOODLDOMInternal {
       | 'register'
       | 'resolvers'
       | 'transactions',
+    page?: NDOMPage,
   ) {
     const resetActions = () => {
-      NOODLDOM._nui.cache.actions.clear()
-      NOODLDOM._nui.cache.actions.reset()
+      NDOM._nui.cache.actions.clear()
+      NDOM._nui.cache.actions.reset()
     }
     const resetComponentCache = () => {
-      NOODLDOM._nui.cache.component.clear()
+      NDOM._nui.cache.component.clear(page?.requesting || page?.page)
     }
     const resetPages = () => {
       this.page = undefined as any
-      u.eachEntries(this.pages, (pageName, page: Page) => {
+      u.eachEntries(this.pages, (pageName, page: NDOMPage) => {
         delete this.pages[pageName]
         page?.reset?.()
       })
-      NOODLDOM._nui.cache.page.clear()
+      NDOM._nui.cache.page.clear()
     }
-    const resetRegisters = () => NOODLDOM._nui.cache.register.clear()
+    const resetRegisters = () => NDOM._nui.cache.register.clear()
     const resetResolvers = () => void (this.resolvers().length = 0)
     const resetGlobal = () => {
       resetPages()
@@ -740,7 +735,9 @@ class NOODLDOM extends NOODLDOMInternal {
               document.getElementById(record.nodeId)?.remove?.()
             }
             if (this.cache.component.has(record.componentId)) {
-              this.removeComponent(this.cache.component.get(record.componentId))
+              this.removeComponent(
+                this.cache.component.get(record.componentId)?.component,
+              )
             }
           }
           this.global.components.delete(record?.globalId as string)
@@ -749,7 +746,7 @@ class NOODLDOM extends NOODLDOMInternal {
       })
     }
     const resetTransactions = () => {
-      NOODLDOM._nui.cache.transactions.clear()
+      NDOM._nui.cache.transactions.clear()
     }
 
     if (key !== undefined) {
@@ -787,7 +784,7 @@ class NOODLDOM extends NOODLDOMInternal {
     transaction: Tid,
     ...args: Parameters<t.NDOMTransaction[Tid]>
   ) {
-    return this.cache.transactions.get(transaction)?.fn?.(...args)
+    return this.cache.transactions.get(transaction)?.['fn' as any]?.(...args)
   }
 
   use(obj: NUIPage | Partial<t.UseObject>) {
@@ -803,54 +800,43 @@ class NOODLDOM extends NOODLDOMInternal {
     if (transaction) {
       u.eachEntries(transaction, (id, val) => {
         if (id === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
-          const getPageObject =
-            transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT]
-          NOODLDOM._nui.use({
+          NDOM._nui.use({
             transaction: {
               [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (
-                pageProp: NUIPage,
+                nuiPage: NUIPage,
               ) => {
                 invariant(
-                  u.isFnc(getPageObject),
+                  u.isFnc(transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT]),
                   `Missing transaction: ${nuiEmitTransaction.REQUEST_PAGE_OBJECT}`,
                 )
 
-                let nuiPage: NUIPage
+                let pageObject: PageObject | undefined
+                let page = this.findPage(nuiPage)
 
-                if (u.isStr(pageProp)) {
-                  // Default to main page
-                  nuiPage = this.page.getNuiPage()
+                if (page) {
+                  !page.requesting && (page.requesting = nuiPage?.page || '')
                 } else {
-                  // Most likely coming from a page component's "nuiPage" property
-                  nuiPage = pageProp
-                }
-
-                let pageObject: PageObject | 'stale' | undefined
-                let page =
-                  u.values(this.pages).find((pg) => pg.isEqual(nuiPage)) ||
-                  this.createPage(nuiPage)
-
-                if (!page.requesting) {
-                  // Default to use the one set on the NUIPage
-                  // This is to be compatible with page components being generated on the fly
+                  page = this.createPage(nuiPage)
                   page.requesting = nuiPage.page
                 }
 
-                pageObject = await getPageObject?.(page)
+                pageObject = await transaction[
+                  nuiEmitTransaction.REQUEST_PAGE_OBJECT
+                ]?.(page)
 
                 return pageObject
               },
             },
           })
         } else {
-          NOODLDOM._nui.use({ transaction: { [id]: val } })
+          NDOM._nui.use({ transaction: { [id]: val } })
         }
       })
     }
 
-    NOODLDOM._nui.use(rest)
+    NDOM._nui.use(rest)
     return this
   }
 }
 
-export default NOODLDOM
+export default NDOM
