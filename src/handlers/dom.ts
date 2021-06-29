@@ -130,6 +130,10 @@ const createExtendedDOMResolvers = function (app: App) {
   const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
     '[App] chart': {
       cond: 'chart',
+      resource: [
+        'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.js',
+        'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css',
+      ],
       resolve(node, component) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
@@ -256,128 +260,128 @@ const createExtendedDOMResolvers = function (app: App) {
                 break
               }
               case 'calendarTable': {
-                const script = document.createElement('script')
-                script.onload = () => {
-                  console.log('APPENDED js to body')
+                // const script = document.createElement('script')
+                // script.onload = () => {
+                //   console.log('APPENDED js to body')
 
-                  let headerBar = {
-                    left: 'prev next',
-                    center: 'title',
-                    right: 'timeGridDay,timeGridWeek',
-                  }
-                  let defaultData = dataValue.chartData
-                  if (u.isArr(defaultData)) {
-                    defaultData.forEach((element) => {
-                      element.start = new Date(element.stime * 1000)
-                      element.end = new Date(element.etime * 1000)
-                      element.title = element.visitReason
-                      delete element.stime
-                      delete element.etime
-                      delete element.visitReason
-                    })
-                  } else {
-                    defaultData = {}
-                  }
-
-                  let calendar = new FullCalendar.Calendar(node, {
-                    headerToolbar: headerBar,
-                    height: 'auto',
-                    allDaySlot: false, // 是否显示表头的全天事件栏
-                    initialView: 'timeGridWeek',
-                    //locale: 'zh-cn',             // 区域本地化
-                    firstDay: 0, // 每周的第一天： 0:周日
-                    nowIndicator: true, // 是否显示当前时间的指示条
-                    slotLabelFormat: [
-                      {
-                        hour: 'numeric',
-                        minute: '2-digit',
-                      },
-                    ],
-                    buttonText: {
-                      week: 'Weeks',
-                      day: 'Day',
-                    },
-
-                    slotDuration: '00:15:00',
-                    // slotLabelInterval : "00:05:00",
-                    displayEventTime: false,
-                    views: {
-                      timeGridFourDay: {
-                        type: 'timeGrid',
-                        buttonText: '2 day',
-                      },
-                    },
-                    events: defaultData,
-                    handleWindowResize: true,
-                    eventLimit: true,
-                    eventMouseEnter: (info: {
-                      el: MultipleTargets
-                      event: {
-                        _def: { title: string }
-                        _instance: { range: { start: any; end: any } }
-                      }
-                    }) => {
-                      //console.log(info);
-                      tippy(info.el, {
-                        content:
-                          '<div >\
-                         <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Appointment Information</div>\
-                         <div style="padding-top:2px">Appointment Name：' +
-                          info.event._def.title +
-                          '</div>\
-                         <div style="padding:4px 0">startTime：' +
-                          formatDate(
-                            new Date(
-                              info.event._instance.range.start,
-                            ).getTime() +
-                              new Date().getTimezoneOffset() * 60 * 1000,
-                            'yyyy-MM-dd HH:mm:ss',
-                          ) +
-                          '</div>\
-                         <div>endTime： ' +
-                          formatDate(
-                            new Date(info.event._instance.range.end).getTime() +
-                              new Date().getTimezoneOffset() * 60 * 1000,
-                            'yyyy-MM-dd HH:mm:ss',
-                          ) +
-                          '</div>\
-   　　　　　　　        　</div>',
-                        allowHTML: true,
-                        //theme: 'translucent',
-                        //interactive: true,
-                        //placement: 'right-end',
-                        followCursor: true,
-                        plugins: [followCursor],
-                        duration: [0, 0],
-                      })
-                    },
-
-                    //eventColor: 'red',
-
-                    eventClick: function (event: {
-                      event: { _def: { publicId: any } }
-                    }) {
-                      if (event.event._def) {
-                        dataValue.response = event.event._def.publicId
-                      }
-                      console.log(event)
-                    },
+                let headerBar = {
+                  left: 'prev next',
+                  center: 'title',
+                  right: 'timeGridDay,timeGridWeek',
+                }
+                let defaultData = dataValue.chartData
+                if (u.isArr(defaultData)) {
+                  defaultData.forEach((element) => {
+                    element.start = new Date(element.stime * 1000)
+                    element.end = new Date(element.etime * 1000)
+                    element.title = element.visitReason
+                    delete element.stime
+                    delete element.etime
+                    delete element.visitReason
                   })
-                  calendar.render()
+                } else {
+                  defaultData = {}
                 }
 
-                script.src =
-                  'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.js'
-                document.body.appendChild(script)
+                debugger
 
-                const link = document.createElement('link')
-                link.rel = 'stylesheet'
-                link.href =
-                  'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css'
-                link.onload = () => {
-                  console.log('APPENDED css to head')
-                }
-                document.head.appendChild(link)
+                //     let calendar = new FullCalendar.Calendar(node, {
+                //       headerToolbar: headerBar,
+                //       height: 'auto',
+                //       allDaySlot: false, // 是否显示表头的全天事件栏
+                //       initialView: 'timeGridWeek',
+                //       //locale: 'zh-cn',             // 区域本地化
+                //       firstDay: 0, // 每周的第一天： 0:周日
+                //       nowIndicator: true, // 是否显示当前时间的指示条
+                //       slotLabelFormat: [
+                //         {
+                //           hour: 'numeric',
+                //           minute: '2-digit',
+                //         },
+                //       ],
+                //       buttonText: {
+                //         week: 'Weeks',
+                //         day: 'Day',
+                //       },
+
+                //       slotDuration: '00:15:00',
+                //       // slotLabelInterval : "00:05:00",
+                //       displayEventTime: false,
+                //       views: {
+                //         timeGridFourDay: {
+                //           type: 'timeGrid',
+                //           buttonText: '2 day',
+                //         },
+                //       },
+                //       events: defaultData,
+                //       handleWindowResize: true,
+                //       eventLimit: true,
+                //       eventMouseEnter: (info: {
+                //         el: MultipleTargets
+                //         event: {
+                //           _def: { title: string }
+                //           _instance: { range: { start: any; end: any } }
+                //         }
+                //       }) => {
+                //         //console.log(info);
+                //         tippy(info.el, {
+                //           content:
+                //             '<div >\
+                //                        <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Appointment Information</div>\
+                //                        <div style="padding-top:2px">Appointment Name：' +
+                //             info.event._def.title +
+                //             '</div>\
+                //                        <div style="padding:4px 0">startTime：' +
+                //             formatDate(
+                //               new Date(info.event._instance.range.start).getTime() +
+                //                 new Date().getTimezoneOffset() * 60 * 1000,
+                //               'yyyy-MM-dd HH:mm:ss',
+                //             ) +
+                //             '</div>\
+                //                        <div>endTime： ' +
+                //             formatDate(
+                //               new Date(info.event._instance.range.end).getTime() +
+                //                 new Date().getTimezoneOffset() * 60 * 1000,
+                //               'yyyy-MM-dd HH:mm:ss',
+                //             ) +
+                //             '</div>\
+                //  　　　　　　　        　</div>',
+                //           allowHTML: true,
+                //           //theme: 'translucent',
+                //           //interactive: true,
+                //           //placement: 'right-end',
+                //           followCursor: true,
+                //           plugins: [followCursor],
+                //           duration: [0, 0],
+                //         })
+                //       },
+
+                //       //eventColor: 'red',
+
+                //       eventClick: function (event: {
+                //         event: { _def: { publicId: any } }
+                //       }) {
+                //         if (event.event._def) {
+                //           dataValue.response = event.event._def.publicId
+                //         }
+                //         console.log(event)
+                //       },
+                //     })
+                //     calendar.render()
+                // }
+
+                // script.src =
+                //   'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.js'
+                // document.body.appendChild(script)
+
+                // const link = document.createElement('link')
+                // link.rel = 'stylesheet'
+                // link.href =
+                //   'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css'
+                // link.onload = () => {
+                //   console.log('APPENDED css to head')
+                // }
+                // document.head.appendChild(link)
 
                 break
               }

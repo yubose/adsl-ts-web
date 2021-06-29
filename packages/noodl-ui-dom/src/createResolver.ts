@@ -1,11 +1,11 @@
 import * as u from '@jsmanifest/utils'
 import SignaturePad from 'signature_pad'
+import matcher from 'matcher'
 import { Identify } from 'noodl-types'
 import { Component, NUI } from 'noodl-ui'
-import { entries, isArr, isFnc, isStr } from './utils/internal'
+import { isArr, isFnc, isStr } from './utils/internal'
 import { getPageAncestor } from './utils'
 import NOODLDOM from './noodl-ui-dom'
-import NDOMPage from './Page'
 import NUIDOMInternal from './Internal'
 import * as T from './types'
 
@@ -76,6 +76,8 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
         // If they passed in a resolver strictly for this node/component
         if (obj.cond === args[1]?.type) {
           acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.Resolve.Func)
+        } else {
+          // const regexp = matcher.isMatch()
         }
       } else if (isFnc(obj.cond)) {
         // If they only want this resolver depending on a certain condition
@@ -89,6 +91,7 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
         if (obj.before) attach('before', acc, obj)
         if (obj.resolve) attach('resolve', acc, obj)
         if (obj.after) attach('after', acc, obj)
+        if (obj.resource) ndom.use({ resource: obj.resource })
         return acc
       },
       {
@@ -111,6 +114,9 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
       !_internal.objs.includes(obj) && _internal.objs.push(obj)
       return o
     },
+    /**
+     * Runs the DOM resolvers on the node (args[0]) and component (args[1])
+     */
     run: (...args: T.Resolve.BaseArgs) => {
       const { before, resolve, after } = _getRunners(...args)
       const runners = [...before, ...resolve, ...after]
@@ -131,13 +137,6 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
         ndom = value as NOODLDOM
       } else if (value) {
         o.register(value)
-        if (value.observe) {
-          entries(value.observe).forEach(([evt, fn]) => {
-            if (ndom.page.hooks[evt] && !ndom.page.hooks[evt]?.includes(fn)) {
-              ndom.page.on(evt as T.Page.HookEvent, fn)
-            }
-          })
-        }
       }
       return o
     },

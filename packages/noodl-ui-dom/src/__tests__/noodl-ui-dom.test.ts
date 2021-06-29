@@ -4,8 +4,17 @@ import { expect } from 'chai'
 import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { getFirstByGlobalId } from '../utils'
-import { ndom, createRender } from '../test-utils'
-import { GlobalComponentRecord } from '../global'
+import {
+  ndom,
+  createRender,
+  createMockCssResource,
+  createMockJsResource,
+} from '../test-utils'
+import {
+  GlobalComponentRecord,
+  GlobalCssResourceRecord,
+  GlobalJsResourceRecord,
+} from '../global'
 
 describe(coolGold(`noodl-ui-dom`), () => {
   describe(italic(`createGlobalRecord`), () => {
@@ -52,7 +61,8 @@ describe(coolGold(`noodl-ui-dom`), () => {
         () => {
           const nuiPage = NUI.createPage()
           const ndomPage = ndom.createPage(nuiPage)
-          expect(ndomPage.isEqual(ndom.createPage(nuiPage))).to.be.true
+          const anotherNdomPage = ndom.createPage(nuiPage) as any
+          expect(ndomPage === anotherNdomPage).to.be.true
         },
       )
     })
@@ -344,37 +354,77 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`transact`), () => {
-    it(
-      `should be able to pull/call transactions that were stored ` +
-        `inside noodl-ui`,
-      async () => {
-        const components = [
-          mock.getButtonComponent(),
-          mock.getTextFieldComponent(),
-          mock.getSelectComponent(),
-          mock.getVideoComponent({ global: true }),
-        ]
-        const { page, ndom } = createRender({
-          pageObject: {
-            formData: { password: 'hello123' },
-            components,
-          },
-        })
-        const pageObject = await ndom.transact(
-          nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-          page,
-        )
-        expect(pageObject?.components).to.eq(components)
-      },
-    )
+  describe(italic(`use`), () => {
+    describe(`resource`, () => {
+      let cssResource = createMockCssResource()
+      let jsResource = createMockJsResource()
 
-    xit(
-      `should throw if ${nuiEmitTransaction.REQUEST_PAGE_OBJECT} is ` +
-        `missing a transaction when being requested`,
-      () => {
-        //
-      },
-    )
+      const getMockGlobalCssNode = (queryType?: 'all') => {
+        const selector = `link[href="${cssResource.href}"]`
+        if (queryType === 'all') return document.head.querySelectorAll(selector)
+        return document.head.querySelector(selector)
+      }
+
+      const getMockGlobalJsNode = (queryType?: 'all') => {
+        const selector = `script[src="${jsResource.src}"]`
+        if (queryType === 'all') return document.body.querySelectorAll(selector)
+        return document.body.querySelector(selector)
+      }
+
+      beforeEach(() => {
+        cssResource = createMockCssResource()
+        jsResource = createMockJsResource()
+      })
+
+      describe(italic(`remote resources`), () => {
+        it(`should load the resource(s) to the global map`, () => {
+          ndom.use({ resource: [cssResource, jsResource] })
+          expect(ndom.global.resources.css).to.have.property(cssResource.href)
+          expect(ndom.global.resources.js).to.have.property(jsResource.src)
+        })
+
+        it(`should load global resources to the DOM when calling render`, async () => {
+          const { render } = createRender({
+            pageName: 'Hello',
+            components: [mock.getButtonComponent()],
+            resource: [cssResource, jsResource],
+          })
+          expect(getMockGlobalCssNode()).to.be.null
+          expect(getMockGlobalJsNode()).to.be.null
+          await render()
+          await waitFor(() => {
+            expect(document.head.children).to.have.length.greaterThan(0)
+            expect(getMockGlobalCssNode()).not.to.be.null
+            expect(getMockGlobalJsNode()).not.to.be.null
+          })
+        })
+
+        it(`should not load scripts twice`, async () => {
+          const { render } = createRender({
+            components: [mock.getVideoComponent()],
+            resource: [cssResource, jsResource],
+          })
+          expect(getMockGlobalCssNode()).to.be.null
+          expect(getMockGlobalJsNode()).to.be.null
+          await render()
+          await waitFor(() => {
+            expect(getMockGlobalCssNode('all'))
+              .to.have.property('length')
+              .to.eq(1)
+            expect(getMockGlobalJsNode('all'))
+              .to.have.property('length')
+              .to.eq(1)
+          })
+        })
+
+        xit(`should not create duplicate elements that have the same script`, () => {
+          //
+        })
+
+        xit(`should be able to render elements to the DOM after loading their resource(s)`, () => {
+          //
+        })
+      })
+    })
   })
 })

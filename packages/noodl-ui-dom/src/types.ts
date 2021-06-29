@@ -1,3 +1,4 @@
+import { AcceptArray } from '@jsmanifest/typefest'
 import { ComponentObject, ComponentType } from 'noodl-types'
 import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
@@ -5,6 +6,8 @@ import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import createResolver from './createResolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
+import GlobalCssResourceRecord from './global/GlobalCssResourceRecord'
+import GlobalJsResourceRecord from './global/GlobalJsResourceRecord'
 import GlobalTimers from './global/Timers'
 import { eventId, dataAttributes } from './constants'
 
@@ -15,8 +18,34 @@ export interface IGlobalObject<T extends string = string> {
 export interface GlobalMap {
   components: Map<string, GlobalComponentRecord>
   pages: Record<string, NOODLDOMPage>
+  resources: {
+    css: Record<string, GlobalCssResourceRecord>
+    js: Record<string, GlobalJsResourceRecord>
+  }
   timers: GlobalTimers
 }
+
+export type GlobalResourceRecords =
+  GlobalMap['resources'][keyof GlobalMap['resources']][string]
+
+export interface GlobalResourceObjectBase<T extends string = string> {
+  cond?: Resolve.Config['cond']
+  type: T
+  [key: string]: any
+}
+
+export interface GlobalCssResourceObject
+  extends GlobalResourceObjectBase<'css'> {
+  href: string
+}
+
+export interface GlobalJsResourceObject extends GlobalResourceObjectBase<'js'> {
+  src: string
+}
+
+export type GlobalResourceObjects =
+  | GlobalCssResourceObject
+  | GlobalJsResourceObject
 
 export interface GlobalComponentRecordObject {
   type: 'component'
@@ -99,11 +128,10 @@ export namespace Resolve {
   export interface Config {
     name?: string
     cond?: ComponentType | Func
-    // createNode?()
     before?: Resolve.Config | Func
     resolve?: Resolve.Config | Func
     after?: Resolve.Config | Func
-    observe?: Partial<Page.Hook>
+    resource?: UseObject['resource']
   }
 
   export interface Func<RT = any, N extends HTMLElement | null = HTMLElement> {
@@ -221,5 +249,11 @@ export interface UseObject
     component: NUIComponent.Instance,
   ): HTMLElement | null | void
   resolver?: Resolve.Config
+  resource?: AcceptArray<
+    | string
+    | (GlobalResourceObjects & {
+        onCreateRecord?(record: GlobalResourceObjects | null): void
+      })
+  >
   transaction?: Partial<NDOMTransaction>
 }

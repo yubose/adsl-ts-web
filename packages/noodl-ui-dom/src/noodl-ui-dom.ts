@@ -12,13 +12,17 @@ import {
   publish,
   Store,
   nuiEmitTransaction,
-  Viewport,
 } from 'noodl-ui'
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
-import { GlobalComponentRecord } from './global'
+import {
+  GlobalComponentRecord,
+  GlobalCssResourceRecord,
+  GlobalJsResourceRecord,
+} from './global'
 import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
 import isNDOMPage from './utils/isPage'
+import renderResource from './utils/renderResource'
 import NDOMInternal from './Internal'
 import NDOMPage from './Page'
 import Timers from './global/Timers'
@@ -34,6 +38,10 @@ class NDOM extends NDOMInternal {
   global: t.GlobalMap = {
     components: new Map(),
     pages: {},
+    resources: {
+      css: {},
+      js: {},
+    },
     timers: new Timers(),
   }
   page: NDOMPage // This is the main (root) page. All other pages are stored in this.#pages
@@ -72,6 +80,10 @@ class NDOM extends NDOMInternal {
 
   get pages() {
     return this.global.pages
+  }
+
+  get resources() {
+    return u.values(this.global.resources)
   }
 
   get transactions() {
@@ -146,6 +158,63 @@ class NDOM extends NDOMInternal {
     }
   }
 
+  #createResource = (
+    resource:
+      | string
+      | Partial<
+          t.GlobalResourceObjects & {
+            onCreateRecord?(record: t.GlobalResourceRecords | null): void
+          }
+        >
+      | undefined,
+  ) => {
+    let callback: ((record: t.GlobalResourceRecords | null) => void) | undefined
+    let record: t.GlobalResourceRecords | undefined
+    let resourceObject: t.GlobalResourceObjects | undefined
+    let id = ''
+
+    if (u.isStr(resource)) {
+      id = resource
+      if (id?.endsWith('.css')) {
+        resourceObject = { href: id, type: 'css' }
+      } else if (id?.endsWith('.js')) {
+        resourceObject = { src: id, type: 'js' }
+      }
+    } else if (u.isObj(resource)) {
+      const { onCreateRecord, ...rest } = resource
+      callback = onCreateRecord
+      resourceObject = rest as t.GlobalResourceObjects
+    }
+
+    if (resourceObject) {
+      if (resourceObject.type === 'css') {
+        id = resourceObject.href
+        record = new GlobalCssResourceRecord(resourceObject)
+      } else if (resourceObject.type === 'js') {
+        id = resourceObject.src
+        record = new GlobalJsResourceRecord(resourceObject)
+      }
+    }
+
+    if (record) {
+      let resourceType = record.resourceType
+
+      if (id in this.global.resources[resourceType]) {
+        console.log(
+          `%cGlobal ${resourceType} resource already exists in the resource store`,
+          `color:#ec0000;`,
+        )
+        record = null as any
+        return this.global.resources[resourceType][id]
+      }
+      this.global.resources[resourceType][id] = record
+    }
+
+    callback?.(record as t.GlobalResourceRecords)
+
+    return record
+  }
+
   /**
    * Finds and returns the associated NDOMPage from NUIPage
    * @param NUIPage nuiPage
@@ -163,8 +232,7 @@ class NDOM extends NDOMInternal {
   }
 
   /**
-   * Removes the NDOMPage from the global store object
-   * @param { NDOMPage | undefined | null } page
+   * Removes the NDOMPage from the {@link GlobalMap}
    */
   removePage(page: NDOMPage | undefined | null) {
     if (page) {
@@ -174,6 +242,9 @@ class NDOM extends NDOMInternal {
     }
   }
 
+  /**
+   * Removes the component from the {@link ComponentCache}
+   */
   removeComponent(component: NUIComponent.Instance | undefined | null) {
     if (!component) return this
     const remove = (c: NUIComponent.Instance) => {
@@ -223,6 +294,9 @@ class NDOM extends NDOMInternal {
     }
   }
 
+  /**
+   * Removes the node from the DOM
+   */
   removeNode(node: t.NOODLDOMElement) {
     if (node?.id) {
       try {
@@ -244,7 +318,6 @@ class NDOM extends NDOMInternal {
    * Initiates a request to the parameters set in Page.
    * The page.requesting value should be set prior to calling this method unless
    * pageRequesting is provided. If it is provided, it will be set automatically
-   * @param NOODLDOMPage page
    */
   async request(page = this.page, pageRequesting = '') {
     // Cache the currently requesting page to detect for newer requests during the call
@@ -318,8 +391,10 @@ class NDOM extends NDOMInternal {
   }
 
   /**
-   * Takes a list of raw NOODL components, converts to DOM nodes and appends to the DOM
-   * @param { ComponentObject | ComponentObject[] } components
+   * Takes a list of raw noodl components, converts them to their corresponding
+   * DOM nodes and appends to the DOM
+   * @param { NDOMPage } page
+   * @returns NUIComponent.Instance
    */
   render(page: NDOMPage) {
     page.reset('render')
@@ -344,9 +419,7 @@ class NDOM extends NDOMInternal {
       rootNode: page.rootNode,
     })
 
-    if (page.rootNode.tagName !== 'IFRAME') {
-      page.clearRootNode()
-    }
+    if (page.rootNode.tagName !== 'IFRAME') page.clearRootNode()
 
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
 
@@ -354,6 +427,23 @@ class NDOM extends NDOMInternal {
       pageEvt.on.ON_BEFORE_RENDER_COMPONENTS,
       page.snapshot({ components }),
     )
+
+    // Handle high level resources here so the component resolvers only worry
+    // about the low level ones
+    for (const [type, resources] of u.entries(this.global.resources)) {
+      u.eachEntries(resources, (id, record: t.GlobalResourceRecords) => {
+        // Global resource if "cond" was not provided or is empty
+        if (!record.cond) {
+          if (record.resourceType === 'css') {
+            record = record as GlobalCssResourceRecord
+            const el = renderResource(record.href)
+          } else if (record.resourceType === 'js') {
+            record = record as GlobalJsResourceRecord
+            renderResource(record.src)
+          }
+        }
+      })
+    }
 
     components.forEach((component) =>
       this.draw(
@@ -728,7 +818,7 @@ class NDOM extends NDOMInternal {
     const resetGlobal = () => {
       resetPages()
       u.keys(this.global).forEach((k) => {
-        if (k === 'component') {
+        if (k === 'components') {
           const record = this.global.components.get(k)
           if (record) {
             if (record.nodeId) {
@@ -741,7 +831,19 @@ class NDOM extends NDOMInternal {
             }
           }
           this.global.components.delete(record?.globalId as string)
-        } else if (k === 'page') {
+        } else if (k === 'pages') {
+          //
+        } else if (k === 'resources') {
+          u.keys(this.global.resources).forEach((resourceType) => {
+            u.keys(this.global.resources[resourceType]).forEach((id) => {
+              delete this.global.resources[resourceType][id]
+            })
+          })
+        } else if (k === 'timers') {
+          // TODO - check if there is a memory leak
+          u.eachEntries(this.global.timers, (k) => {
+            delete this.global.timers[k]
+          })
         }
       })
     }
@@ -791,11 +893,21 @@ class NDOM extends NDOMInternal {
     if (!obj) return
     if (isNUIPage(obj)) return this.createPage(obj)
 
-    const { createElementBinding, register, transaction, resolver, ...rest } =
-      obj
+    const {
+      createElementBinding,
+      register,
+      resource,
+      transaction,
+      resolver,
+      ...rest
+    } = obj
 
     createElementBinding && (this.#createElementBinding = createElementBinding)
     resolver && this.register(resolver)
+
+    if (resource) {
+      u.array(resource).forEach((r) => this.#createResource(r))
+    }
 
     if (transaction) {
       u.eachEntries(transaction, (id, val) => {

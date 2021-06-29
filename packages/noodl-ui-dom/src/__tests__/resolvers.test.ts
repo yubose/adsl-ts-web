@@ -10,7 +10,6 @@ import NOODLDOM from '../noodl-ui-dom'
 import * as u from '../utils/internal'
 import * as n from '../utils'
 import * as c from '../constants'
-import { getFirstByElementId } from '../utils'
 import Timer from '../global/Timer'
 
 describe(coolGold(`resolvers`), () => {
