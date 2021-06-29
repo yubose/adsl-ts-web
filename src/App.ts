@@ -23,6 +23,8 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
+import createPickNUIPage from './utils/createPickNUIPage'
+import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
@@ -43,7 +45,9 @@ class App {
   #parser: Parser
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
-  mainPage: NOODLDOM['page'];
+  mainPage: NOODLDOM['page']
+  pickNUIPage = createPickNUIPage(this)
+  pickNDOMPage = createPickNDOMPage(this);
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -560,6 +564,21 @@ class App {
       (snapshot: any) => {
         log.func('onBeforRenderComponents')
         log.grey(`onBeforRenderComponents`, snapshot)
+        const pageIds = []
+        const currentPageNames = []
+
+        for (const ndomPage of u.values(this.ndom.pages)) {
+          pageIds.push(ndomPage.id)
+          currentPageNames.push(ndomPage.page)
+        }
+
+        for (const obj of this.cache.component) {
+          if (obj) {
+            if (!currentPageNames.includes(obj.page)) {
+              this.cache.component.remove(obj.component)
+            }
+          }
+        }
       }
 
     const onComponentsRendered = (page: NOODLDOMPage) => {

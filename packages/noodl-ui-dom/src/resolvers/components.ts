@@ -207,12 +207,15 @@ const domComponentsResolver: Resolve.Config = {
             const pageComponentNode = ndom.draw(
               pageComponent,
               ndomPage.rootNode,
+              ndomPage,
             )
-            ;(
-              ndomPage.rootNode as HTMLIFrameElement
-            )?.contentDocument?.body?.appendChild(
-              pageComponentNode as HTMLElement,
-            )
+            if (pageComponentNode) {
+              ;(
+                ndomPage.rootNode as HTMLIFrameElement
+              )?.contentDocument?.body?.appendChild(
+                pageComponentNode as HTMLElement,
+              )
+            }
           }
         })
       }

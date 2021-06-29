@@ -140,6 +140,7 @@ export function createRender(
   } else {
     currentPage = opts.currentPage || ''
     page = opts.page
+    root = { ...root, ...opts?.root }
   }
 
   !page && (page = ndom.page || ndom.createPage(pageRequesting))
@@ -190,22 +191,23 @@ export function createRender(
     getPageObject: async () => pageObject as PageObject,
     getPages: () => [pageRequesting],
     getPreloadPages: () => [],
-    getRoot: () => ({
-      ...root,
-      ...opts?.['root'],
-      [pageRequesting]: {
-        ...opts?.['root']?.[pageRequesting],
-        ...root[pageRequesting],
-        ...pageObject,
-      },
-    }),
+    getRoot: () => {
+      const result = {
+        ...root,
+        ...opts?.['root'],
+        [pageRequesting]: {
+          ...opts?.['root']?.[pageRequesting],
+          ...root[pageRequesting],
+          ...pageObject,
+        },
+      }
+      return result
+    },
     transaction: {
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
         use.getRoot()[page?.page || ''],
     },
   }
-
-  console.info(`ROOT!!!`, use.getRoot())
 
   ndom.use(use)
 
