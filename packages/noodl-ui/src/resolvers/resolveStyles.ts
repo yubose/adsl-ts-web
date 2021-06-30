@@ -325,11 +325,6 @@ resolveStyles.setResolver(
             value = value.substring(1)
             value = get(getRoot(), value)
           }
-          console.log("test stylecolor",{
-            originalStyles,
-            styleKey: styleKey,
-            value: value,
-          })
           edit({ [styleKey]: com.formatColor(value) })
         }
 
