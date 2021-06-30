@@ -1,6 +1,5 @@
 import * as u from '@jsmanifest/utils'
 import SignaturePad from 'signature_pad'
-import matcher from 'matcher'
 import { Identify } from 'noodl-types'
 import { Component, NUI } from 'noodl-ui'
 import { isArr, isFnc, isStr } from './utils/internal'
@@ -73,7 +72,7 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
       obj: T.Resolve.Config,
     ) => {
       if (isStr(obj.cond)) {
-        // If they passed in a resolver strictly for this node/component
+        // If they passed in a resol0ver strictly for this node/component
         if (obj.cond === args[1]?.type) {
           acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.Resolve.Func)
         } else {
@@ -111,7 +110,24 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
       return util
     },
     register(obj: T.Resolve.Config) {
-      !_internal.objs.includes(obj) && _internal.objs.push(obj)
+      if (!_internal.objs.includes(obj)) {
+        _internal.objs.push(obj)
+        if (!u.isFnc(obj.resolve) && u.isObj(obj.resolve)) {
+          if ('onResource' in obj.resolve) {
+            if (u.isObj(obj.resolve.onResource)) {
+              let rsourceHooks = ndom.global.resources.hooks.onResource
+              for (const [resourceName, fn] of u.entries(
+                obj.resolve.onResource,
+              )) {
+                !rsourceHooks[resourceName] && (rsourceHooks[resourceName] = [])
+                if (!rsourceHooks[resourceName].includes(fn)) {
+                  ndom.global.resources.hooks.onResource[resourceName].push({})
+                }
+              }
+            }
+          }
+        }
+      }
       return o
     },
     /**

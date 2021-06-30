@@ -2,6 +2,9 @@ import * as u from '@jsmanifest/utils'
 
 export type CSSResourceLink<S extends string = string> = `${S}.css`
 export type JSResourceLink<S extends string = string> = `${S}.js`
+export interface OnLoadCallback {
+  (node: HTMLElement | null): void
+}
 
 /**
  * Takes a url and renders a DOM node corresponding to the type of resource it is
@@ -15,13 +18,18 @@ export type JSResourceLink<S extends string = string> = `${S}.js`
  */
 function renderResource<Id extends string>(
   id: `${Id}.css`,
+  onLoad?: OnLoadCallback,
 ): HTMLLinkElement | null
 
 function renderResource<Id extends string>(
   id: `${Id}.js`,
+  onLoad?: OnLoadCallback,
 ): HTMLScriptElement | null
 
-function renderResource<Id extends string>(id: `${Id}.css` | `${Id}.js`) {
+function renderResource<Id extends string>(
+  id: `${Id}.css` | `${Id}.js`,
+  onLoad?: OnLoadCallback,
+) {
   if (u.isStr(id)) {
     if (id.endsWith('.css')) {
       let node = document.head.querySelector(
@@ -35,6 +43,7 @@ function renderResource<Id extends string>(id: `${Id}.css` | `${Id}.js`) {
             event: evt,
             href: id,
           })
+          onLoad?.(node)
         }
 
         node.rel = 'stylesheet'
@@ -55,6 +64,7 @@ function renderResource<Id extends string>(id: `${Id}.css` | `${Id}.js`) {
             event: evt,
             src: id,
           })
+          onLoad?.(node)
         }
 
         node.id = id

@@ -19,8 +19,14 @@ import {
   GlobalCssResourceRecord,
   GlobalJsResourceRecord,
 } from './global'
+import {
+  isCssResourceLink,
+  isJsResourceLink,
+  resourceTypes,
+} from './utils/internal'
 import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
+import createResourceObject from './utils/createResourceObject'
 import isNDOMPage from './utils/isPage'
 import renderResource from './utils/renderResource'
 import NDOMInternal from './Internal'
@@ -39,6 +45,9 @@ class NDOM extends NDOMInternal {
     components: new Map(),
     pages: {},
     resources: {
+      hooks: {
+        onResource: {},
+      },
       css: {},
       js: {},
     },
@@ -160,59 +169,29 @@ class NDOM extends NDOMInternal {
     }
   }
 
-  #createResource = (
-    resource:
-      | string
-      | Partial<
-          t.GlobalResourceObjects & {
-            onCreateRecord?(record: t.GlobalResourceRecords | null): void
-          }
-        >
-      | undefined,
+  #createResource = <Type extends t.GlobalResourceType = t.GlobalResourceType>(
+    resource: t.UseObjectGlobalResource<Type> | undefined,
   ) => {
-    let callback: ((record: t.GlobalResourceRecords | null) => void) | undefined
-    let record: t.GlobalResourceRecords | undefined
-    let resourceObject: t.GlobalResourceObjects | undefined
-    let id = ''
+    let record: t.GetGlobalResourceRecordAlias<Type> | undefined
+    let resourceObject = createResourceObject<Type>(resource)
+    let resourceType: Type | undefined
+    let key = '' // should be the link to the resource which is also the key in the global map
 
-    if (u.isStr(resource)) {
-      id = resource
-      if (id?.endsWith('.css')) {
-        resourceObject = { href: id, type: 'css' }
-      } else if (id?.endsWith('.js')) {
-        resourceObject = { src: id, type: 'js' }
-      }
-    } else if (u.isObj(resource)) {
-      const { onCreateRecord, ...rest } = resource
-      callback = onCreateRecord
-      resourceObject = rest as t.GlobalResourceObjects
-    }
+    invariant(resourceType, `Resource key cannot be undefined`)
 
-    if (resourceObject) {
-      if (resourceObject.type === 'css') {
-        id = resourceObject.href
-        record = new GlobalCssResourceRecord(resourceObject)
-      } else if (resourceObject.type === 'js') {
-        id = resourceObject.src
-        record = new GlobalJsResourceRecord(resourceObject)
+    if (key) {
+      invariant(
+        resourceType,
+        `Resource type is empty. Valid options are: ${resourceTypes.join(
+          ', ',
+        )}`,
+      )
+
+      if (!(key in this.global.resources[resourceType])) {
+        this.global.resources[resourceType][key] =
+          {} as t.GlobalResourceObject<Type>
       }
     }
-
-    if (record) {
-      let resourceType = record.resourceType
-
-      if (id in this.global.resources[resourceType]) {
-        console.log(
-          `%cGlobal ${resourceType} resource already exists in the resource store`,
-          `color:#ec0000;`,
-        )
-        record = null as any
-        return this.global.resources[resourceType][id]
-      }
-      this.global.resources[resourceType][id] = record
-    }
-
-    callback?.(record as t.GlobalResourceRecords)
 
     return record
   }
@@ -432,19 +411,23 @@ class NDOM extends NDOMInternal {
 
     // Handle high level resources here so the component resolvers only worry
     // about the low level ones
-    for (const [type, resources] of u.entries(this.global.resources)) {
-      u.eachEntries(resources, (id, record: t.GlobalResourceRecords) => {
+    for (const [resourceName, hookObjects] of u.entries(
+      this.global.resources.hooks.onResource,
+    )) {
+      for (const hookObject of hookObjects) {
+      }
+      for (let [id, { record, onLoad }] of u.entries(resources)) {
         // Global resource if "cond" was not provided or is empty
         if (!record.cond) {
           if (record.resourceType === 'css') {
             record = record as GlobalCssResourceRecord
-            const el = renderResource(record.href)
+            const el = renderResource(record.href, onLoad)
           } else if (record.resourceType === 'js') {
             record = record as GlobalJsResourceRecord
-            renderResource(record.src)
+            renderResource(record.src, onLoad)
           }
         }
-      })
+      }
     }
 
     components.forEach((component) =>
