@@ -99,8 +99,6 @@ export const nuiEvent = {
       placeholder: 'PLACEHOLDER',
     },
   },
-
-  SET_PAGE: 'set-page',
   NEW_PAGE: 'new-page',
   NEW_PAGE_REF: 'new-page-ref',
 } as const

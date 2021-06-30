@@ -4,3 +4,4 @@ generated
 node_modules
 server
 noodl.yml
+.env
