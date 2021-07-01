@@ -312,20 +312,6 @@ resolveStyles.setResolver(
     // HANDLING ARTBITRARY STYLES
     u.eachEntries(originalStyles, (styleKey, value) => {
       if (u.isStr(value)) {
-        //handing style by path
-        // help for redraw style
-        if (Identify.reference(value)) {
-          if (value?.startsWith?.('..')) {
-            // Local
-            value = value.substring(2)
-            value = get(getRoot()[page.page], value)
-          } else if (value?.startsWith?.('.')) {
-            // Root
-            value = value.substring(1)
-            value = get(getRoot(), value)
-          }
-          edit({ [styleKey]: com.formatColor(value) })
-        }
 
         if (
           styleKey === 'textColor' ||
@@ -363,6 +349,21 @@ resolveStyles.setResolver(
               }
             }
           }
+        }
+
+        //handing style by path
+        // help for redraw style
+        if (Identify.reference(value)) {
+          if (value?.startsWith?.('..')) {
+            // Local
+            value = value.substring(2)
+            value = get(getRoot()[page.page], value)
+          } else if (value?.startsWith?.('.')) {
+            // Root
+            value = value.substring(1)
+            value = get(getRoot(), value)
+          }
+          edit({ [styleKey]: com.formatColor(value) })
         }
       }
     })
