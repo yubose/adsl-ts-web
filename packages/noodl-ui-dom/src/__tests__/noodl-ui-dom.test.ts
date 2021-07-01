@@ -1,23 +1,14 @@
 import * as mock from 'noodl-ui-test-utils'
+import * as nc from 'noodl-common'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
-import { coolGold, italic, magenta } from 'noodl-common'
 import { getFirstByGlobalId } from '../utils'
-import {
-  ndom,
-  createRender,
-  createMockCssResource,
-  createMockJsResource,
-} from '../test-utils'
-import {
-  GlobalComponentRecord,
-  GlobalCssResourceRecord,
-  GlobalJsResourceRecord,
-} from '../global'
+import { ndom, createRender } from '../test-utils'
+import { GlobalComponentRecord } from '../global'
 
-describe(coolGold(`noodl-ui-dom`), () => {
-  describe(italic(`createGlobalRecord`), () => {
+describe(nc.coolGold(`noodl-ui-dom`), () => {
+  describe(nc.italic(`createGlobalRecord`), () => {
     it(`should add the GlobalComponentRecord to the global store`, async () => {
       const { render } = createRender({
         components: [mock.getPopUpComponent({ global: true })],
@@ -31,7 +22,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`createPage`), () => {
+  describe(nc.italic(`createPage`), () => {
     it(`should set the base/main "page" property if it is empty`, () => {
       expect(ndom.page).to.be.undefined
       const page = ndom.createPage()
@@ -58,7 +49,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`draw`), () => {
+  describe(nc.italic(`draw`), () => {
     it(`should have all components in the component cache`, async () => {
       const rawComponents = [
         mock.getListComponent({
@@ -230,7 +221,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`request`), () => {
+  describe(nc.italic(`request`), () => {
     xit(
       `should throw if the ${nuiEmitTransaction.REQUEST_PAGE_OBJECT} transaction ` +
         `doesn't exist`,
@@ -264,7 +255,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`redraw`), () => {
+  describe(nc.italic(`redraw`), () => {
     xit(`should delete all components involved in the redraw from the component cache`, async () => {
       const rawComponents = [
         mock.getListComponent({
@@ -296,7 +287,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`render`), () => {
+  describe(nc.italic(`render`), () => {
     it(`should render noodl components to the DOM`, async () => {
       const { render } = createRender({
         components: [
@@ -333,82 +324,6 @@ describe(coolGold(`noodl-ui-dom`), () => {
       })
       const req = await ndom.request(page)
       req?.render()
-    })
-  })
-
-  describe(italic(`use`), () => {
-    describe(`resource`, () => {
-      let cssResource = createMockCssResource()
-      let jsResource = createMockJsResource()
-
-      const getMockGlobalCssNode = (queryType?: 'all') => {
-        const selector = `link[href="${cssResource.href}"]`
-        if (queryType === 'all') return document.head.querySelectorAll(selector)
-        return document.head.querySelector(selector)
-      }
-
-      const getMockGlobalJsNode = (queryType?: 'all') => {
-        const selector = `script[src="${jsResource.src}"]`
-        if (queryType === 'all') return document.body.querySelectorAll(selector)
-        return document.body.querySelector(selector)
-      }
-
-      beforeEach(() => {
-        cssResource = createMockCssResource()
-        jsResource = createMockJsResource()
-      })
-
-      describe(italic(`remote resources`), () => {
-        it(`should load the resource(s) to the global map`, () => {
-          ndom.use({ resource: [cssResource, jsResource] })
-          console.info(cssResource)
-          console.info(jsResource)
-          expect(ndom.global.resources.css).to.have.property(cssResource.href)
-          expect(ndom.global.resources.js).to.have.property(jsResource.src)
-        })
-
-        xit(`should load global resources to the DOM when calling render`, async () => {
-          const { render } = createRender({
-            pageName: 'Hello',
-            components: [mock.getButtonComponent()],
-            resource: [cssResource, jsResource],
-          })
-          expect(getMockGlobalCssNode()).to.be.null
-          expect(getMockGlobalJsNode()).to.be.null
-          await render()
-          await waitFor(() => {
-            expect(document.head.children).to.have.length.greaterThan(0)
-            expect(getMockGlobalCssNode()).not.to.be.null
-            expect(getMockGlobalJsNode()).not.to.be.null
-          })
-        })
-
-        xit(`should not load scripts twice`, async () => {
-          const { render } = createRender({
-            components: [mock.getVideoComponent()],
-            resource: [cssResource, jsResource],
-          })
-          expect(getMockGlobalCssNode()).to.be.null
-          expect(getMockGlobalJsNode()).to.be.null
-          await render()
-          await waitFor(() => {
-            expect(getMockGlobalCssNode('all'))
-              .to.have.property('length')
-              .to.eq(1)
-            expect(getMockGlobalJsNode('all'))
-              .to.have.property('length')
-              .to.eq(1)
-          })
-        })
-
-        xit(`should not create duplicate elements that have the same script`, () => {
-          //
-        })
-
-        xit(`should be able to render elements to the DOM after loading their resource(s)`, () => {
-          //
-        })
-      })
     })
   })
 })

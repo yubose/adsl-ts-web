@@ -3,9 +3,9 @@ import { isCssResourceLink, isJsResourceLink } from './internal'
 import * as t from '../types'
 
 function createResourceObject<Type extends t.GlobalResourceType>(
-  arg: t.UseObjectGlobalResource<Type> | undefined,
-): t.GetGlobalResourceObjectAlias<Type> {
-  let resourceObject
+  arg: string | (t.GetGlobalResourceObjectAlias<Type> & Record<string, any>),
+) {
+  let resourceObject = {} as any
 
   if (u.isStr(arg)) {
     if (isCssResourceLink(arg)) {

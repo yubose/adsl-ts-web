@@ -10,7 +10,7 @@ import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
-import { Identify } from 'noodl-types'
+import { action, Identify } from 'noodl-types'
 import {
   asHtmlElement,
   findByDataKey,
@@ -32,6 +32,7 @@ import { hide } from '../utils/dom'
 const log = Logger.create('dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
+  
   const getOnChange = function _getOnChangeFn(args: {
     component: NUIComponent.Instance
     dataKey: string
@@ -120,12 +121,14 @@ const createExtendedDOMResolvers = function (app: App) {
             }
           })
         }
+        // console.log("test actionChain",actionChain)
         await actionChain?.execute?.(event)
       }
     }
 
     return onChange
   }
+  
 
   const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
     '[App] chart': {
@@ -435,6 +438,20 @@ const createExtendedDOMResolvers = function (app: App) {
               iteratorVar,
             }),
           )
+
+          if(component?.type == "textField"){
+            node.addEventListener(
+              'input',
+              getOnChange({
+                component,
+                dataKey,
+                evtName: 'onInput',
+                node: node as NOODLDOMDataValueElement,
+                iteratorVar,
+              }),
+            )
+          }
+
         }
 
         if (component.has('onBlur')) {
@@ -469,6 +486,181 @@ const createExtendedDOMResolvers = function (app: App) {
           parent && getFirstByElementId(parent)?.appendChild?.(iframeEl)
         }
       },
+    },
+    '[App] dropDown': {
+      cond: 'textField',
+      resolve(node, component) {
+        if (component.contentType === 'dropDown') {
+          const iteratorVar = findIteratorVar(component)
+          const dataKey =
+            component.get('data-key') || component.blueprint?.dataKey || ''
+          const originalParent = node?.parentNode as HTMLDivElement
+          let pageName = app.currentPage
+          let json1 = [
+            {
+              "id": 1, 
+              "disabled": false, 
+              "groupName": "Condition",  
+              "groupId": 1,
+              "selected": false, 
+              "name": "Primary Care Physician (PCP)" 
+            },
+            {
+              "id": 2,
+              "disabled": false,
+              "groupName": "Condition",
+              "groupId": 1,
+              "selected": false,
+              "name": "OB-GYN (Obstetrician-Gynecologist)"
+            },
+            {
+                "id": 3, 
+                "disabled": false, 
+                "groupName": "procedure",  
+                "groupId": 2,
+                "selected": false, 
+                "name": "Dermatologist" 
+              },
+              {
+                "id": 4,
+                "disabled": false,
+                "groupName": "procedure",
+                "groupId": 2,
+                "selected": false,
+                "name": "Dentist"
+              },
+              {
+                "id": 5, 
+                "disabled": false, 
+                "groupName": "doctor",  
+                "groupId": 3,
+                "selected": false, 
+                "name": "Ear, Nose & Throat Doctor (ENT / Otolaryngologist)" 
+              },
+              {
+                "id": 6,
+                "disabled": false,
+                "groupName": "doctor",
+                "groupId": 3,
+                "selected": false,
+                "name": "Eye Doctor"
+              }
+          ]
+        
+          if(node){
+
+            let ul = document.createElement("ul")
+            let top = parseFloat(node.style.top.replace("px",""))
+            let height = parseFloat(node.style.height.replace("px",""))
+            let newTop = top + height
+            ul.style.display = "none"
+            ul.style.width = node.style.width
+            ul.style.zIndex = "100"
+            ul.style.background = "#ffffff"
+            ul.style.overflowY = "auto"
+            ul.style.overflowX = "hidden"
+            ul.style.padding = "0"
+            ul.style.margin = "0"
+            ul.style.top = newTop + "px"
+            ul.style.left = node.style.left
+            ul.style.position = "absolute"
+            ul.style.alignItems = "center"
+
+            
+            node.addEventListener("focus",function(e){
+              ul.innerHTML = ""
+              ul.style.display = "block"
+              json1.forEach(element => {
+                let li = document.createElement("li")
+                li.style.width = node.style.width
+                li.style.height = "40px"
+                li.style.listStyleType = "none"
+                li.style.fontWeight = "400"
+                li.style.fontSize = "14px"
+                li.style.fontFamily =  "Helvetica Neue,Helvetica,Arial,sans-serif"
+                li.innerHTML = element.name
+                li.style.cursor = "point"
+                ul.style.border = "solid 1px #A5A5A5"
+                
+                li.addEventListener("mouseover",function(e){
+                  li.style.background = "#efefef"
+                })
+                li.addEventListener("mouseout",function(e){
+                  li.style.background = "#ffffff"
+                })
+  
+                li.onclick = function(){
+                  console.log(li.innerHTML)
+                  node.value = li.innerHTML
+                  node.setAttribute("data-value",li.innerHTML)
+                  ul.innerHTML = ""
+                  ul.style.display = "none"
+                  app.updateRoot((draft)=>{
+                    set(draft?.[pageName], dataKey, li.innerHTML)
+                  })
+                }
+                ul.appendChild(li)
+              })
+              ul.style.height = json1.length*40+"px"
+            })
+  
+            node.addEventListener("input",function(e){
+              ul.innerHTML = ""
+              ul.style.display = "block"
+              // console.log(node.value)
+              let count = 0
+              json1.forEach(element => {
+                let name = element.name.toLowerCase()
+                let key = node.value.toLowerCase()
+                if( name.indexOf(key) != -1 ){
+                  count = count + 1
+                  let li = document.createElement("li")
+                  li.style.width = node.style.width
+                  li.style.height = "40px"
+                  li.style.listStyleType = "none"
+                  li.style.fontWeight = "400"
+                  li.style.fontSize = "14px"
+                  li.style.fontFamily =  "Helvetica Neue,Helvetica,Arial,sans-serif"
+                  li.setAttribute(":hover","")
+                  li.innerHTML = element.name
+                  li.style.cursor = "point"
+                  ul.style.border = "solid 1px #A5A5A5"
+                  
+                  li.addEventListener("mouseover",function(e){
+                    li.style.background = "#efefef"
+                  })
+                  li.addEventListener("mouseout",function(e){
+                    li.style.background = "#ffffff"
+                  })
+                  
+                  li.onclick = function(){
+                    console.log(li.innerHTML)
+                    node.value = li.innerHTML
+                    node.setAttribute("data-value",li.innerHTML)
+                    ul.innerHTML = ""
+                    ul.style.display = "none"
+                    app.updateRoot((draft)=>{
+                      set(draft?.[pageName], dataKey, li.innerHTML)
+                    })
+                  }
+                  ul.appendChild(li)
+                }
+              })
+              ul.style.height = count*40+"px"
+            })
+
+            // node.addEventListener("mouseout",function(e){
+            //   ul.style.display = "none"
+            // })
+
+            originalParent.appendChild(ul)
+        }
+
+
+          
+
+        }
+      }
     },
     '[App] Map': {
       cond: 'map',

@@ -23,6 +23,10 @@ class GlobalCssResourceRecord extends GlobalRecord<'resource'> {
     }
   }
 
+  get id() {
+    return this.#id
+  }
+
   get href() {
     return this.#id
   }

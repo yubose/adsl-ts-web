@@ -1,6 +1,8 @@
+import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { ComponentObject, EcosDocument, NameField } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
+import * as t from '../types'
 
 export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
   isArr(o) ? o : [o]
@@ -147,5 +149,4 @@ export const isWordDoc = _createDocIdentifier(
 export const xKeys = ['width', 'left']
 export const yKeys = ['height', 'top']
 export const posKeys = [...xKeys, ...yKeys]
-
 export const resourceTypes = ['css', 'js'] as const

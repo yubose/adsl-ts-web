@@ -23,6 +23,10 @@ class GlobalJsResourceRecord extends GlobalRecord<'resource'> {
     }
   }
 
+  get id() {
+    return this.#id
+  }
+
   get resourceType() {
     return 'js'
   }

@@ -1,9 +1,9 @@
-import * as u from '@jsmanifest/utils'
+import isCssResourceRecord from './isCssResourceRecord'
+import isJsResourceRecord from './isJsResourceRecord'
+import * as t from '../types'
 
-export type CSSResourceLink<S extends string = string> = `${S}.css`
-export type JSResourceLink<S extends string = string> = `${S}.js`
-export interface OnLoadCallback {
-  (node: HTMLElement | null): void
+export interface OnLoadCallback<T extends t.GlobalResourceType[][number]> {
+  (node: t.GetGlobalResourceElementAlias<T>): void
 }
 
 /**
@@ -16,69 +16,52 @@ export interface OnLoadCallback {
  * @param id string
  * @returns HTMLLinkElement | HTMLScriptElement | undefined
  */
-function renderResource<Id extends string>(
-  id: `${Id}.css`,
-  onLoad?: OnLoadCallback,
-): HTMLLinkElement | null
 
-function renderResource<Id extends string>(
-  id: `${Id}.js`,
-  onLoad?: OnLoadCallback,
-): HTMLScriptElement | null
-
-function renderResource<Id extends string>(
-  id: `${Id}.css` | `${Id}.js`,
-  onLoad?: OnLoadCallback,
+function renderResource<T extends t.GlobalResourceType[][number]>(
+  record: t.GetGlobalResourceRecordAlias<T>,
+  onLoad?: OnLoadCallback<T>,
 ) {
-  if (u.isStr(id)) {
-    if (id.endsWith('.css')) {
-      let node = document.head.querySelector(
-        `link[href="${id}"]`,
-      ) as HTMLLinkElement | null
+  let node: unknown
 
-      if (!node) {
-        node = document.createElement('link')
-        node.onload = (evt) => {
-          console.info(`%cLoaded CSS element to head`, `color:#00b406;`, {
-            event: evt,
-            href: id,
-          })
-          onLoad?.(node)
-        }
+  if (isCssResourceRecord(record)) {
+    let node = document.head.querySelector(
+      `link[href="${record.href}"]`,
+    ) as HTMLLinkElement
 
-        node.rel = 'stylesheet'
+    if (!node) {
+      node = document.createElement('link') as HTMLLinkElement
+      node.id = record.href
+      node.rel = 'stylesheet'
+      node.type = 'text/css'
+      node.href = record.href
+    }
+    if (!document.head.contains(node)) {
+      document.head.appendChild(node)
+      onLoad?.(node)
+    }
+  } else if (isJsResourceRecord(record)) {
+    let node = document.getElementById(record.src) as HTMLScriptElement
+
+    if (!node) {
+      node = document.createElement('script')
+      node.id = record.src
+      node.onload = (evt) => {
+        console.info(`%cLoaded SCRIPT element to body`, `color:#00b406;`, {
+          event: evt,
+          src: record.src,
+        })
+        onLoad?.(node)
       }
-
-      if (!document.head.contains(node)) {
-        node.href = id
-        document.head.appendChild(node)
+    }
+    if (node) {
+      node.src = record.src
+      if (!document.body.contains(node)) {
+        document.body.appendChild(node)
       }
-      return node
-    } else if (id.endsWith('.js')) {
-      let node = document.getElementById(id) as HTMLScriptElement | null
-
-      if (!node) {
-        node = document.createElement('script')
-        node.onload = (evt) => {
-          console.info(`%cLoaded SCRIPT element to body`, `color:#00b406;`, {
-            event: evt,
-            src: id,
-          })
-          onLoad?.(node)
-        }
-
-        node.id = id
-      }
-
-      if (node) {
-        if (!document.body.contains(node)) {
-          node.src = id
-          document.body.appendChild(node)
-        }
-      }
-      return node
     }
   }
+
+  return node as t.GetGlobalResourceRecordAlias<T>
 }
 
 export default renderResource

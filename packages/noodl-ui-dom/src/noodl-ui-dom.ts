@@ -19,15 +19,13 @@ import {
   GlobalCssResourceRecord,
   GlobalJsResourceRecord,
 } from './global'
-import {
-  isCssResourceLink,
-  isJsResourceLink,
-  resourceTypes,
-} from './utils/internal'
+import { resourceTypes } from './utils/internal'
 import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
 import createResourceObject from './utils/createResourceObject'
 import isNDOMPage from './utils/isPage'
+import isCssResourceRecord from './utils/isCssResourceRecord'
+import isJsResourceRecord from './utils/isJsResourceRecord'
 import renderResource from './utils/renderResource'
 import NDOMInternal from './Internal'
 import NDOMPage from './Page'
@@ -38,16 +36,13 @@ import * as t from './types'
 
 const pageEvt = c.eventId.page
 
-class NDOM extends NDOMInternal {
+class NDOM<ResourceKey extends string = string> extends NDOMInternal {
   #R: ReturnType<typeof createResolver>
   #createElementBinding = undefined as t.UseObject['createElementBinding']
-  global: t.GlobalMap = {
+  global: t.GlobalMap<ResourceKey> = {
     components: new Map(),
     pages: {},
     resources: {
-      hooks: {
-        onResource: {},
-      },
       css: {},
       js: {},
     },
@@ -121,11 +116,6 @@ class NDOM extends NDOMInternal {
     } else if (u.isObj(args)) {
       if ('page' in args) {
         page = this.findPage(args.page) || new NDOMPage(args.page)
-        // if (!page.viewport) page.viewport = new Viewport()
-        // if (args.viewport) {
-        //   page.viewport.width = args.viewport.width as number
-        //   page.viewport.height = args.viewport.height as number
-        // }
       } else {
         page = new NDOMPage(NDOM._nui.createPage(args))
       }
@@ -169,31 +159,79 @@ class NDOM extends NDOMInternal {
     }
   }
 
-  #createResource = <Type extends t.GlobalResourceType = t.GlobalResourceType>(
-    resource: t.UseObjectGlobalResource<Type> | undefined,
+  /**
+   * Creates a resource record object to the global map. If `lazyLoad` is true, the element will not load to the DOM until `render` is called
+   * @param t.UseObjectGlobalResource resource
+   * @returns GlobalResourceRecord
+   */
+  createResource = <Type extends t.GlobalResourceType>(
+    resource:
+      | string
+      | (t.GetGlobalResourceObjectAlias<Type> &
+          Partial<t.GlobalResourceObject<Type>> & {
+            loadToDOM?: boolean
+          }),
   ) => {
-    let record: t.GetGlobalResourceRecordAlias<Type> | undefined
-    let resourceObject = createResourceObject<Type>(resource)
-    let resourceType: Type | undefined
-    let key = '' // should be the link to the resource which is also the key in the global map
+    let resourceObject = createResourceObject(resource)
 
-    invariant(resourceType, `Resource key cannot be undefined`)
+    invariant(
+      resourceTypes.includes(resourceObject.type),
+      `"${
+        resourceObject.type
+      }" is not a supported resource type yet. Supported types are: ${resourceTypes.join(
+        ', ',
+      )}`,
+    )
 
-    if (key) {
-      invariant(
-        resourceType,
-        `Resource type is empty. Valid options are: ${resourceTypes.join(
-          ', ',
-        )}`,
-      )
+    const record =
+      resourceObject.type === 'css'
+        ? new GlobalCssResourceRecord(resourceObject)
+        : new GlobalJsResourceRecord(resourceObject)
 
-      if (!(key in this.global.resources[resourceType])) {
-        this.global.resources[resourceType][key] =
-          {} as t.GlobalResourceObject<Type>
+    const recordId = isCssResourceRecord(record) ? record.href : record.src
+
+    const globalResourceObject = {
+      record,
+      isActive: () => {
+        try {
+          if (resourceObject.type === 'css') {
+            return (
+              document.head.querySelector(`link[href="${recordId}"]`) != null
+            )
+          }
+          return document.getElementById(recordId) != null
+        } catch (error) {
+          console.error(`[Error in [get] active accessor]`, error)
+          return false
+        }
+      },
+    } as t.GlobalResourceObject<Type>
+
+    this.global.resources[record.resourceType][recordId] = globalResourceObject
+
+    if (u.isObj(resource)) {
+      for (const [key, value] of u.entries(resource)) {
+        if (key === 'onCreateRecord') {
+          globalResourceObject.onCreateRecord = resource.onCreateRecord
+          globalResourceObject.onCreateRecord?.(record)
+        } else if (key === 'onLoad') {
+          globalResourceObject.onLoad = resource.onLoad
+        } else {
+          globalResourceObject[key as keyof t.GlobalResourceObject<Type>] =
+            value
+        }
+      }
+
+      if (resource.loadToDOM === true) {
+        renderResource(
+          record,
+          globalResourceObject.onLoad &&
+            ((node) => globalResourceObject.onLoad?.({ node, record })),
+        )
       }
     }
 
-    return record
+    return record as t.GetGlobalResourceRecordAlias<Type>
   }
 
   /**
@@ -409,23 +447,11 @@ class NDOM extends NDOMInternal {
       page.snapshot({ components }),
     )
 
-    // Handle high level resources here so the component resolvers only worry
-    // about the low level ones
-    for (const [resourceName, hookObjects] of u.entries(
-      this.global.resources.hooks.onResource,
-    )) {
-      for (const hookObject of hookObjects) {
-      }
-      for (let [id, { record, onLoad }] of u.entries(resources)) {
-        // Global resource if "cond" was not provided or is empty
-        if (!record.cond) {
-          if (record.resourceType === 'css') {
-            record = record as GlobalCssResourceRecord
-            const el = renderResource(record.href, onLoad)
-          } else if (record.resourceType === 'js') {
-            record = record as GlobalJsResourceRecord
-            renderResource(record.src, onLoad)
-          }
+    // Handle high level (global) resources here so the component resolvers only worry about handling the more narrow (low level) ones
+    for (const globalResources of u.values(this.global.resources)) {
+      for (const { record, onLoad, isActive } of u.values(globalResources)) {
+        if (record && !isActive()) {
+          renderResource(record, (node) => onLoad?.({ node, record }))
         }
       }
     }
@@ -820,9 +846,12 @@ class NDOM extends NDOMInternal {
           //
         } else if (k === 'resources') {
           u.keys(this.global.resources).forEach((resourceType) => {
-            u.keys(this.global.resources[resourceType]).forEach((id) => {
-              delete this.global.resources[resourceType][id]
-            })
+            u.entries(this.global.resources[resourceType]).forEach(
+              ([key, obj]) => {
+                u.keys(obj).forEach((k) => delete obj[k])
+                delete this.global.resources[resourceType][key]
+              },
+            )
           })
         } else if (k === 'timers') {
           // TODO - check if there is a memory leak
@@ -891,7 +920,7 @@ class NDOM extends NDOMInternal {
     resolver && this.register(resolver)
 
     if (resource) {
-      u.array(resource).forEach((r) => this.#createResource(r))
+      u.array(resource).forEach((r) => this.createResource(r))
     }
 
     if (transaction) {
