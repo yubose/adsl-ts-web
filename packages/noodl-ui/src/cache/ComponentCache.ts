@@ -1,6 +1,8 @@
+import * as u from '@jsmanifest/utils'
 import isComponent from '../utils/isComponent'
-import { NUIComponent } from '../types'
-import { isArr, isStr } from '../utils/internal'
+import { ComponentCacheObject, NUIComponent } from '../types'
+import isNUIPage from '../utils/isPage'
+import NUIPage from '../Page'
 
 type ComponentCacheHookEvent = 'add' | 'clear' | 'remove'
 
@@ -11,13 +13,40 @@ interface ComponentCacheHook {
 }
 
 class ComponentCache {
-  #cache = new Map<string, NUIComponent.Instance>()
+  #cache = new Map<string, ComponentCacheObject>()
   #observers: Record<
     ComponentCacheHookEvent,
     ComponentCacheHook[ComponentCacheHookEvent][]
   > = { add: [], clear: [], remove: [] }
 
   static _inst: ComponentCache;
+
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    const result = {
+      length: this.length,
+      components: {} as Record<string, { ids: string[]; total: number }>,
+    }
+
+    for (const obj of this) {
+      if (obj) {
+        if (!(obj.page in result.components)) {
+          result.components[obj.page] = {} as typeof result.components[string]
+        }
+
+        const item = result.components[obj.page]
+
+        !item.ids && (item.ids = [])
+        !item.total && (item.total = 0)
+
+        if (!item.ids.includes(obj.component.id)) {
+          item.ids.push(obj.component.id)
+          item.total++
+        }
+      }
+    }
+
+    return result
+  }
 
   [Symbol.iterator]() {
     const components = [...this.#cache.values()]
@@ -45,7 +74,7 @@ class ComponentCache {
   on(e: 'remove', fn: ComponentCacheHook['remove']): this
   on<Evt extends ComponentCacheHookEvent>(e: Evt, fn: ComponentCacheHook[Evt]) {
     const obs = this.#observers[e]
-    isArr(obs) && !obs.includes(fn) && obs.push(fn)
+    u.isArr(obs) && !obs.includes(fn) && obs.push(fn)
     return this
   }
 
@@ -57,42 +86,57 @@ class ComponentCache {
     return this
   }
 
-  add(component: NUIComponent.Instance) {
+  add(
+    component: NUIComponent.Instance,
+    page: NUIPage | string | undefined,
+  ): ComponentCacheObject {
     if (component) {
-      this.#cache.set(component.id, component)
+      this.#cache.set(component.id, {
+        component,
+        page: (isNUIPage(page) ? page.page : page) || '',
+      })
       this.emit('add', component)
     }
-    return this
+    return this.get(component)
   }
 
-  clear() {
-    const removed = {}
-    this.#cache.forEach((component, id) => {
-      removed[id] = component
+  clear(page?: string) {
+    let removed = {} as any
+    let remove = (obj: ComponentCacheObject) => {
+      const id = obj?.component?.id || ''
+      removed[id] = obj
       this.#cache.delete(id)
-      this.emit('clear', removed)
-    })
+    }
+
+    for (const obj of this.#cache.values()) {
+      if (page) page === obj.page && remove(obj)
+      else remove(obj)
+    }
+
+    this.emit('clear', removed)
+    removed = null
+
     return this
   }
 
   get(
     component: NUIComponent.Instance | string | undefined,
-  ): NUIComponent.Instance
-  get(): Map<string, NUIComponent.Instance>
+  ): ComponentCacheObject
+  get(): Map<string, ComponentCacheObject>
   get(component?: NUIComponent.Instance | string | undefined) {
     if (isComponent(component)) return this.#cache.get(component.id)
-    if (isStr(component)) return this.#cache.get(component)
+    if (u.isStr(component)) return this.#cache.get(component)
     return this.#cache
   }
 
   has(component: NUIComponent.Instance | string | undefined) {
     if (!component) return false
-    return this.#cache.has(isStr(component) ? component : component.id || '')
+    return this.#cache.has(u.isStr(component) ? component : component.id || '')
   }
 
   remove(component: NUIComponent.Instance | string) {
-    if (isStr(component)) {
-      component = this.#cache.get(component) as NUIComponent.Instance
+    if (u.isStr(component)) {
+      component = this.#cache.get(component)?.component as NUIComponent.Instance
     }
     if (isComponent(component)) {
       const json = component.toJSON()

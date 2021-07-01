@@ -7,6 +7,10 @@
 - git commit -a -m "update aitmed sdk"
 - git push
 
+## Correct link to GitLab
+
+- https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/
+
 ## Globals
 
 These variables are available globally:
@@ -49,7 +53,7 @@ These variables are available globally:
 
 ## Goto Examples
 
-```yml
+```yaml
 - goto: AbcDashboard^redTag
 - goto: AbcDashboard^redTag;duration:15000 # slow scroll effect for 15 seconds
 - goto: AbcDashboard^redTag;duration:0 # instantly scroll to element

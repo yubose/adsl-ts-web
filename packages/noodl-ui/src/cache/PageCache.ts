@@ -30,7 +30,7 @@ class PageCache implements ICache {
 
   clear() {
     for (const [id, { page }] of this.#pages) {
-      page.components.length = 0
+      Array.isArray(page.components) && (page.components.length = 0)
       this.#pages.delete(id)
     }
   }

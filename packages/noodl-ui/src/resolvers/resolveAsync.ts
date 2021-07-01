@@ -74,6 +74,15 @@ asyncResolver.setResolver((component, options, next) => {
       )
       component.edit({ [eventType]: actionChain })
     }
+
+    if(original['onTextChange']){
+      const actionChain = createActionChain(
+        "onInput",
+        original['onTextChange'] as NUIActionObject[],
+      )
+      component.edit({ ['onInput']: actionChain })
+    }
+
   })
 
   resolveAsync(component, options)

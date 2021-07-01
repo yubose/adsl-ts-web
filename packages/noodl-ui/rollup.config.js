@@ -1,9 +1,7 @@
 import path from 'path'
 import { RollupOptions } from 'rollup'
 import { DEFAULT_EXTENSIONS } from '@babel/core'
-import alias from '@rollup/plugin-alias'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
-// import esbuild from 'rollup-plugin-esbuild'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
@@ -31,7 +29,7 @@ const configs = [
         globals: {
           'noodl-action-chain': 'nac',
           'noodl-types': 'nt',
-          'noodl-utils': 'nutil',
+          'noodl-utils': 'ntil',
           'lodash/get': '_get',
           'lodash/cloneDeep': '_cloneDeep',
           'lodash/has': '_has',
@@ -44,17 +42,6 @@ const configs = [
     ],
     plugins: [
       nodePolyfills(),
-      alias({
-        entries: [
-          {
-            find: 'noodl-utils',
-            replacement: path.join(
-              rootDir,
-              'packages/noodl-utils/dist/index.js',
-            ),
-          },
-        ],
-      }),
       external(),
       commonjs(),
       filesize(),

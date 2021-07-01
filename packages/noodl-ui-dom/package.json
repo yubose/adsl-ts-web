@@ -1,26 +1,30 @@
 {
-  "name": "noodl-ui-dom",
-  "version": "0.0.61",
-  "description": "",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "jsnext:main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "rm -rf dist && rollup -c --environment BUILD:production",
-    "start": "rm -rf dist && rollup -c -w --environment BUILD:development",
-    "test": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\" --file src/setupTests.ts",
-    "test:file": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\""
-  },
-  "keywords": [],
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
-  "license": "ISC",
-  "files": [
-    "dist"
-  ],
+  "dependencies": {
+    "noodl-types": "^1.0.103",
+    "noodl-utils": "^0.0.54"
+  },
+  "description": "",
+  "devDependencies": {
+    "noodl-ui": "file:../noodl-ui",
+    "noodl-ui-test-utils": "file:../noodl-ui-test-utils"
+  },
   "engines": {
     "node": ">=12",
     "npm": ">=6"
+  },
+  "files": [
+    "dist"
+  ],
+  "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
+  "jsnext:main": "dist/index.js",
+  "keywords": [],
+  "license": "ISC",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "name": "noodl-ui-dom",
+  "peerDependencies": {
+    "noodl-ui": "^0.1.35"
   },
   "prettier": {
     "arrowParens": "always",
@@ -31,22 +35,12 @@
     "tabWidth": 2,
     "trailingComma": "all"
   },
-  "eslintConfig": {
-    "root": false,
-    "rules": {
-      "no-unused-vars": "warn"
-    }
+  "scripts": {
+    "build": "rm -rf dist && rollup -c --environment BUILD:production",
+    "start": "rm -rf dist && rollup -c -w --environment BUILD:development",
+    "test": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\" --file src/setupTests.ts",
+    "test:file": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\""
   },
-  "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
-  "dependencies": {
-    "noodl-types": "^1.0.39",
-    "noodl-utils": "^0.0.49"
-  },
-  "peerDependencies": {
-    "noodl-ui": "^0.1.35"
-  },
-  "devDependencies": {
-    "noodl-ui": "file:../noodl-ui",
-    "noodl-ui-test-utils": "file:../noodl-ui-test-utils"
-  }
+  "types": "dist/index.d.ts",
+  "version": "0.0.61"
 }

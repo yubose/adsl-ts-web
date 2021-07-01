@@ -33,7 +33,7 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
   let app: App
   let ws: WebSocket | undefined
 
-  if (u.isFnc(appProp)) return appProp(ws)
+  if (u.isFnc(appProp)) return appProp(ws as WebSocket)
   if (!appProp) return
 
   app = appProp
@@ -117,6 +117,7 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
       })
     },
     trackers,
+    // @ts-expect-error
     track(kind: 'track' | '', tracker: TrackPropertyMessage) {
       if (kind === 'track') {
         trackProperty({ ...tracker, type: 'track' })

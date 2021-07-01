@@ -8,9 +8,11 @@ import {
   findIteratorVar,
   getDataValues,
   NUIComponent,
+  Page as NUIPage,
   Store,
   Viewport as VP,
   isListConsumer,
+  ConsumerOptions,
 } from 'noodl-ui'
 import {
   BASE_PAGE_URL,
@@ -33,7 +35,6 @@ import {
   show,
   scrollToElem,
 } from '../utils/dom'
-import createPickPage from '../utils/createPickPage'
 import { getActionMetadata, pickActionKey } from '../utils/common'
 import App from '../App'
 import {
@@ -48,7 +49,11 @@ const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
-  const pickPage = createPickPage(app)
+  const pickNUIPageFromOptions = (options: ConsumerOptions) =>
+    (app.pickNUIPage(options?.page) || app.mainPage.getNuiPage()) as NUIPage
+
+  const pickNDOMPageFromOptions = (options: ConsumerOptions) =>
+    (app.pickNDOMPage(options?.page) || app.mainPage) as NDOMPage
 
   function _toggleMeetingDevice(kind: 'audio' | 'video') {
     log.func(`(${kind}) toggleDevice`)
@@ -105,28 +110,31 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('goBack')
     log.grey('', action.snapshot?.())
     const reload = _pick(action, 'reload')
-    const page = pickPage(options)
+    const ndomPage = pickNDOMPageFromOptions(options)
 
-    if (page) {
-      page.requesting = page.previous
+    if (ndomPage) {
+      ndomPage.requesting = ndomPage.previous
       // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
       if (u.isBool(reload)) {
-        page.setModifier(page.previous, { reload })
+        ndomPage.setModifier(ndomPage.previous, { reload })
       }
-      if (page.requesting === page.page && page.page === page.previous) {
+      if (
+        ndomPage.requesting === ndomPage.page &&
+        ndomPage.page === ndomPage.previous
+      ) {
         console.log(
           `%cLOOK HERE: All three (previous, current, requesting) value of the page name in the noodl-ui-dom instance are the same`,
           `color:#ec0000;background:#000`,
         )
       } else {
-        if (page.previous === page.page) {
+        if (ndomPage.previous === ndomPage.page) {
           console.log(
             `%cLOOK HERE: The current page is the same as the "previous" page on the noodl-ui-dom page`,
             `color:deepOrange;background:#000`,
           )
         }
-        if (page.page === page.requesting) {
+        if (ndomPage.page === ndomPage.requesting) {
           console.log(
             `%cLOOK HERE: The current page is the same as the "requesting" page on the noodl-ui-dom page`,
             `color:orange;background:#000`,
@@ -210,8 +218,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const dataKey = _pick(action, 'dataKey') || ''
       const iteratorVar = findIteratorVar(component)
       const node = getFirstByElementId(component)
-      const page = pickPage(options)
-      const pageName = page?.page || ''
+      const ndomPage = pickNDOMPageFromOptions(options)
+      const pageName = ndomPage?.page || ''
       let path = component?.get('path')
 
       let dataValue: any
@@ -361,8 +369,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     let destinationParam = ''
     let reload: boolean | undefined
     let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
-    let page =
-      (options?.page && 'requesting' in (options?.page || {})) || app.mainPage
+    let ndomPage = pickNDOMPageFromOptions(options)
     let dataIn: any // sdk use
 
     if (u.isStr(action)) {
@@ -398,13 +405,13 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
     if (!u.isUnd(reload)) {
-      page.setModifier(destinationParam, { reload })
+      ndomPage.setModifier(destinationParam, { reload })
     }
     if (!u.isUnd(pageReload)) {
-      page.setModifier(destinationParam, { pageReload })
+      ndomPage.setModifier(destinationParam, { pageReload })
     }
     if (!u.isUnd(dataIn)) {
-      page.setModifier(destinationParam, { ...dataIn })
+      ndomPage.setModifier(destinationParam, { ...dataIn })
     }
     let {
       destination,
@@ -413,7 +420,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       duration,
     } = app.parse.destination(destinationParam)
     if (destination === destinationParam) {
-      page.requesting = destination
+      ndomPage.requesting = destination
     }
 
     log.grey(`Goto info`, {
@@ -469,7 +476,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (isSamePage) {
           scroll()
         } else {
-          page.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+          ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
         }
       } else {
         log.red(`Could not search for a DOM node with an identity of "${id}"`, {
@@ -485,9 +492,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
 
     if (!destinationParam.startsWith('http')) {
-      page.pageUrl = app.parse.queryString({
+      ndomPage.pageUrl = app.parse.queryString({
         destination,
-        pageUrl: page.pageUrl,
+        pageUrl: ndomPage.pageUrl,
         startPage: app.startPage,
       })
     } else {
@@ -497,7 +504,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     if (!isSamePage) {
       if (reload) {
         let urlToGoToInstead = ''
-        const parts = page.pageUrl.split('-')
+        const parts = ndomPage.pageUrl.split('-')
         if (parts.length > 1) {
           if (!parts[0].startsWith('index.html')) {
             parts.unshift(BASE_PAGE_URL)
@@ -536,12 +543,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     let components = [] as NUIComponent.Instance[]
     let numComponents = 0
 
-    for (const c of app.cache.component) {
-      c &&
-        (c.blueprint?.viewTag || c.get('data-viewtag')) ===
-          viewTag.fromAction &&
-        components.push(c) &&
-        numComponents++
+    for (const obj of app.cache.component) {
+      if (obj) {
+        if (
+          obj.component?.blueprint?.viewTag &&
+          obj.component?.get?.('data-viewtag') === viewTag.fromAction
+        ) {
+          components.push(obj.component)
+          numComponents++
+        }
+      }
     }
 
     if (
@@ -571,13 +582,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           const dataObject = findListDataObject(_component)
           dataObject && (ctx.dataObject = dataObject)
         }
-        const redrawed = app.ndom.redraw(
-          _node,
-          _component,
-          app.ndom.findPage(options?.page || app.mainPage) as NDOMPage,
-          { context: ctx },
-        )
-        app.cache.component.add(redrawed[1]) && startCount++
+        const ndomPage = pickNDOMPageFromOptions(options)
+        const redrawed = app.ndom.redraw(_node, _component, ndomPage, {
+          context: ctx,
+        })
+        app.cache.component.add(redrawed[1], ndomPage.getNuiPage()) &&
+          startCount++
       }
     } catch (error) {
       console.error(error)
@@ -615,7 +625,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     // Validate if their password is correct or not
     const isValid = (
       await import('@aitmed/cadl')
-    ).Account?.verifyUserPassword?.(password)
+    ).Account?.verifyUserPassword?.(password) // @ts-expect-error
     if (!isValid) {
       console.log(`%cisValid ?`, 'color:#e74c3c;font-weight:bold;', isValid)
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'

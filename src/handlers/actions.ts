@@ -14,6 +14,7 @@ import {
   findByUX,
   isPageConsumer,
   isPage as isNDOMPage,
+  Page as NDOMPage,
   SignaturePad,
   getFirstByDataKey,
 } from 'noodl-ui-dom'
@@ -26,6 +27,7 @@ import {
   isComponent,
   NUITrigger,
   parseReference,
+  Page as NUIPage,
   Store,
   triggers,
   NUIComponent,
@@ -41,7 +43,6 @@ import {
   scrollToElem,
   toast,
 } from '../utils/dom'
-import createPickPage from '../utils/createPickPage'
 import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
@@ -51,7 +52,11 @@ const _pick = pickActionKey
 const _has = pickHasActionKey
 
 const createActions = function createActions(app: App) {
-  const pickPage = createPickPage(app)
+  const pickNUIPageFromOptions = (options: ConsumerOptions) =>
+    (app.pickNUIPage(options.page) || app.mainPage.getNuiPage()) as NUIPage
+
+  const pickNDOMPageFromOptions = (options: ConsumerOptions) =>
+    (app.pickNDOMPage(options.page) || app.mainPage) as NDOMPage
 
   const emit = triggers.reduce(
     (
@@ -69,7 +74,8 @@ const createActions = function createActions(app: App) {
 
             const emitParams = {
               actions: _pick(action, 'actions'),
-              pageName: options?.page?.page || app.currentPage,
+              pageName:
+                pickNUIPageFromOptions(options)?.page || app.currentPage,
             } as T.EmitCallParams
 
             if (_has(_pick(action, 'emit'), 'dataKey')) {
@@ -194,7 +200,7 @@ const createActions = function createActions(app: App) {
       } else if (_has(object, 'if')) {
         const ifObj = object
         if (u.isArr(ifObj)) {
-          const pageName = (options?.page || app.mainPage)?.page || ''
+          const pageName = pickNUIPageFromOptions(options)?.page || ''
           object = evalIf((valEvaluating) => {
             let value
             if (Identify.isBoolean(valEvaluating)) {
@@ -236,7 +242,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     let goto = _pick(action, 'goto') || ''
-    let page = pickPage(options)
+    let ndomPage = pickNDOMPageFromOptions(options)
 
     log.func('goto')
     log.grey(
@@ -259,10 +265,7 @@ const createActions = function createActions(app: App) {
     let pageModifiers = {} as any
 
     if (destination === destinationParam) {
-      if (!('requesting' in (page || {}))) {
-        page = app.mainPage
-      }
-      page && (page.requesting = destination)
+      ndomPage.requesting = destination
     }
 
     if (u.isObj(goto?.dataIn)) {
@@ -301,7 +304,7 @@ const createActions = function createActions(app: App) {
         }
         if (isSamePage) scroll()
         else;
-        page?.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+        ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
       } else {
         log.red(`Could not search for a DOM node with an identity of "${id}"`, {
           id,
@@ -313,13 +316,13 @@ const createActions = function createActions(app: App) {
       }
     }
 
-    if (!destinationParam.startsWith('http') && page) {
-      page.pageUrl = app.parse.queryString({
+    if (!destinationParam.startsWith('http')) {
+      ndomPage.pageUrl = app.parse.queryString({
         destination,
-        pageUrl: page.pageUrl,
+        pageUrl: ndomPage.pageUrl,
         startPage: app.startPage,
       })
-      log.grey(`Page URL evaluates to: ${page.pageUrl}`)
+      log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
     } else {
       destination = destinationParam
     }
@@ -329,7 +332,7 @@ const createActions = function createActions(app: App) {
       destinationParam,
       isSamePage,
       pageModifiers,
-      updatedQueryString: page?.pageUrl,
+      updatedQueryString: ndomPage?.pageUrl,
     })
 
     if (!isSamePage) {
@@ -427,7 +430,8 @@ const createActions = function createActions(app: App) {
         // Auto prefills the verification code when ECOS_ENV === 'test'
         // and when the entered phone number starts with 888
         if (process.env.ECOS_ENV === 'test') {
-          const currentPage = options?.page?.page || app.currentPage
+          const currentPage =
+            pickNUIPageFromOptions(options)?.page || app.currentPage
           const vcodeInput = getVcodeElem()
           const phoneInput = u.array(
             asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
@@ -518,7 +522,7 @@ const createActions = function createActions(app: App) {
 
     const { getRoot, ref } = options
     const object = _pick(action, 'object')
-    const currentPage = options?.page?.page || app.currentPage
+    const currentPage = pickNUIPageFromOptions(options)?.page || app.currentPage
 
     try {
       if (u.isFnc(object)) {
@@ -563,7 +567,7 @@ const createActions = function createActions(app: App) {
       }
     } catch (error) {
       console.error(error)
-      toast(error.message, { type: 'error' })
+      toast((error as Error).message, { type: 'error' })
       ref?.abort?.()
     }
   }
@@ -576,9 +580,7 @@ const createActions = function createActions(app: App) {
         const dataKey = _pick(action, 'dataKey')
         const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
         if (node) {
-          const component = app.cache.component.get(
-            node.id,
-          ) as NUIComponent.Instance
+          const component = app.cache.component.get(node.id)?.component
           if (isComponent(component)) {
             const signaturePad = component.get('signaturePad') as SignaturePad
             if (signaturePad) {
@@ -603,7 +605,7 @@ const createActions = function createActions(app: App) {
           }
         }
       } catch (error) {
-        toast(error.message, { type: 'error' })
+        toast((error as Error).message, { type: 'error' })
       }
     }
 
@@ -617,14 +619,14 @@ const createActions = function createActions(app: App) {
       const dataKey = _pick(action, 'dataKey')
       if (dataKey) {
         const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
-        const component = app.cache.component.get(node.id)
+        const component = app.cache.component.get(node.id)?.component
         if (component) {
           const signaturePad = component.get('signaturePad') as SignaturePad
           if (signaturePad) {
             let dataKey = _pick(action, 'dataKey')
             let dataObject = isRootDataKey(dataKey)
               ? app.root
-              : app.root?.[options?.page?.page || '']
+              : app.root?.[pickNUIPageFromOptions(options)?.page || '']
             let dataUrl = signaturePad.toDataURL()
             let mimeType = dataUrl.split(';')[0].split(':')[1] || ''
             if (has(dataObject, dataKey)) {

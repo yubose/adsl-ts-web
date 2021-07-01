@@ -207,7 +207,7 @@ export namespace Page {
 }
 
 export interface NDOMTransaction {
-  REQUEST_PAGE_OBJECT(page: NOODLDOMPage): Promise<NOODLDOMPage | 'stale'>
+  REQUEST_PAGE_OBJECT(page: NOODLDOMPage): Promise<NOODLDOMPage>
 }
 
 export type NDOMTransactionId = keyof NDOMTransaction

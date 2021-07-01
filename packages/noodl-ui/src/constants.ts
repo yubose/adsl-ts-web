@@ -21,7 +21,7 @@ export const lib = {
 
 export const actionTypes = [...noodlTypesActionTypes, ...lib.actionTypes]
 
-export const triggers = [...lib.emitTriggers, ...userEvent]
+export const triggers = [...lib.emitTriggers, ...userEvent,'onInput']
 
 export const groupedActionTypes = actionTypes.filter(
   (t) => !/(builtIn|emit|register)/i.test(t),
@@ -99,8 +99,6 @@ export const nuiEvent = {
       placeholder: 'PLACEHOLDER',
     },
   },
-
-  SET_PAGE: 'set-page',
   NEW_PAGE: 'new-page',
   NEW_PAGE_REF: 'new-page-ref',
 } as const

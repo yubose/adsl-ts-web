@@ -23,6 +23,8 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
+import createPickNUIPage from './utils/createPickNUIPage'
+import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
@@ -43,7 +45,9 @@ class App {
   #parser: Parser
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
-  mainPage: NOODLDOM['page'];
+  mainPage: NOODLDOM['page']
+  pickNUIPage = createPickNUIPage(this)
+  pickNDOMPage = createPickNDOMPage(this);
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -291,7 +295,9 @@ class App {
       this.ndom.use({ plugin: plugins })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
-      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
+      registers.forEach((keyVal) =>
+        (this.nui._experimental.register as any)(...keyVal),
+      )
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
 
       this.meeting.onConnected = meetingfns.onConnected
@@ -414,9 +420,6 @@ class App {
         snapshot: page.snapshot(),
       })
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
-      if (page.requesting !== pageRequesting && page.page !== currentPage) {
-        return 'stale'
-      }
       return this.root[pageRequesting]
     } catch (error) {
       console.error(error)
@@ -558,9 +561,24 @@ class App {
     }
 
     const onBeforRenderComponents: NOODLDOMPage['hooks']['ON_BEFORE_RENDER_COMPONENTS'][number]['fn'] =
-      (snapshot) => {
+      (snapshot: any) => {
         log.func('onBeforRenderComponents')
         log.grey(`onBeforRenderComponents`, snapshot)
+        const pageIds = []
+        const currentPageNames = []
+
+        for (const ndomPage of u.values(this.ndom.pages)) {
+          pageIds.push(ndomPage.id)
+          currentPageNames.push(ndomPage.page)
+        }
+
+        for (const obj of this.cache.component) {
+          if (obj) {
+            if (!currentPageNames.includes(obj.page)) {
+              this.cache.component.remove(obj.component)
+            }
+          }
+        }
       }
 
     const onComponentsRendered = (page: NOODLDOMPage) => {
@@ -592,7 +610,10 @@ class App {
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
       .on(eventId.page.on.ON_NAVIGATE_STALE, onNavigateStale)
       .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearRootNode)
-      .on(eventId.page.on.ON_BEFORE_RENDER_COMPONENTS, onBeforRenderComponents)
+      .on(
+        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
+        onBeforRenderComponents as any,
+      )
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 
@@ -613,7 +634,7 @@ class App {
           u.assign(this.#noodl.root, currentRoot)
           this.cache.component.clear()
           this.mainPage.page = this.mainPage.getPreviousPage(this.startPage)
-          this.mainPage.setPreviousPage('')
+          this.mainPage.previous = ''
           this.mainPage.requesting = currentPage
           return this.navigate(this.mainPage)
         } catch (error) {

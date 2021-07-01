@@ -10,6 +10,11 @@ const pkgJson = require('../package.json')
 /** @type { Record<string, any> } */
 // const config = yaml.parse(fs.readFileSync('noodl.yml', 'utf8'))
 const tag = (s) => cyan(`[${s}]`)
+const pkgs = {
+  nui: 'noodl-ui',
+  ndom: 'noodl-ui-dom',
+  ntest: 'noodl-ui-test-utils',
+}
 
 const cli = meow(
   `
@@ -30,6 +35,7 @@ const cli = meow(
       deploy: { alias: 'd', type: 'boolean' },
       message: { alias: 'm', type: 'string' },
       ntil: { type: 'string' },
+      ntest: { type: 'string' },
     },
   },
 )
@@ -73,6 +79,7 @@ function getCliArgs() {
   return {
     flags,
     input,
+    pkgs,
     pkgJson,
     script: input[0],
     tag,

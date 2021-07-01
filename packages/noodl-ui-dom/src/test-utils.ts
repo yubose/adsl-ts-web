@@ -137,13 +137,20 @@ export function createRender(
 
   if (u.isArr(opts) || 'type' in opts) {
     pageRequesting = _defaults.pageRequesting
-    page = ndom.page || ndom.createPage(pageRequesting)
-    pageObject = _defaults.root[pageRequesting] || { components: [] }
-    u.arrayEach(opts, (obj) => pageObject.components?.push(obj))
-    page.requesting !== pageRequesting && (page.requesting = pageRequesting)
   } else {
     currentPage = opts.currentPage || ''
-    page = opts.page || ndom.page
+    page = opts.page
+    root = { ...root, ...opts?.root }
+  }
+
+  !page && (page = ndom.page || ndom.createPage(pageRequesting))
+
+  if (u.isArr(opts) || 'type' in opts) {
+    pageObject = _defaults.root[pageRequesting] || { components: [] }
+    u.arrayEach(opts, (obj) => pageObject.components?.push(obj))
+    page?.requesting !== pageRequesting &&
+      ((page as NOODLDOMPage).requesting = pageRequesting)
+  } else {
     pageRequesting =
       opts.pageName || page?.requesting || _defaults.pageRequesting
     pageObject = opts.pageObject || {
@@ -160,10 +167,8 @@ export function createRender(
 
   !resolver && (resolver = defaultResolversKeys)
 
-  if (page) {
-    if (page.requesting !== pageRequesting) page.requesting = pageRequesting
-    if (currentPage && page.page !== currentPage) page.page = currentPage
-  }
+  if (page.requesting !== pageRequesting) page.requesting = pageRequesting
+  if (currentPage && page.page !== currentPage) page.page = currentPage
 
   array(resolver).forEach(
     (r: Resolve.Config | typeof defaultResolversKeys[number]) => {
@@ -186,11 +191,18 @@ export function createRender(
     getPageObject: async () => pageObject as PageObject,
     getPages: () => [pageRequesting],
     getPreloadPages: () => [],
-    getRoot: () => ({
-      ...root,
-      ...opts?.['root'],
-      [pageRequesting]: { ...root[pageRequesting], ...pageObject },
-    }),
+    getRoot: () => {
+      const result = {
+        ...root,
+        ...opts?.['root'],
+        [pageRequesting]: {
+          ...opts?.['root']?.[pageRequesting],
+          ...root[pageRequesting],
+          ...pageObject,
+        },
+      }
+      return result
+    },
     transaction: {
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
         use.getRoot()[page?.page || ''],
