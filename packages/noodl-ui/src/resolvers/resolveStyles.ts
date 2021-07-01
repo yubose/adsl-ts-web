@@ -26,7 +26,7 @@ const resolveStyles = new ComponentResolver('resolveStyles')
 
 resolveStyles.setResolver(
   (component: NUIComponent.Instance, options: ConsumerOptions, next) => {
-    const { context, getBaseStyles, viewport,getRoot,page } = options
+    const { context, getBaseStyles, viewport, getRoot, page } = options
     const edit = createStyleEditor(component)
 
     const originalStyles = component.blueprint?.style || {}
@@ -315,12 +315,12 @@ resolveStyles.setResolver(
 
         //handing style by path
         // help for redraw style
-        if(Identify.reference(value)){
-          if (value.startsWith('..')) {
+        if (Identify.reference(value)) {
+          if (value?.startsWith?.('..')) {
             // Local
             value = value.substring(2)
             value = get(getRoot()[page.page], value)
-          } else if (value.startsWith('.')) {
+          } else if (value?.startsWith?.('.')) {
             // Root
             value = value.substring(1)
             value = get(getRoot(), value)
