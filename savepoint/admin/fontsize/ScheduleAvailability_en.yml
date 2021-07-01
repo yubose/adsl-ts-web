@@ -1,0 +1,371 @@
+ScheduleAvailability: #xd page number: 67
+  pageNumber: "390"
+  init:
+    - .SignInCheck
+  viewPort: top
+  date:
+    - day: Monday
+    - day: Tuesday
+    - day: Wednesday
+    - day: Thursday
+    - day: Friday
+  treatTimeColor:
+    - color: "#c70909"
+    - color: "#0024eb"
+    - color: "#ef53ef"
+    - color: "#ff9300"
+    - color: "#bbe272"
+    - color: "#388ecc"
+    - color: "#fd9090"
+    - color: "#a7ff97"
+    - color: "#714100"
+    - color: "#000000"
+    - color: "#a0a0a0"
+    - color: "#5954d0"
+    - color: "#0583ef"
+    - color: "#670c0c"
+    - color: "#03a710"
+    - color: "#ffeb00"
+    - color: "#00ffeb"
+    - color: "#8600e8"
+    - color: "#febf90"
+    - color: "#72cce2"
+    - color: "#fad8ff"
+    - color: "#d06183"
+    - color: "#336415"
+    - color: "#4b4b4b"
+    - color: "#cbed5b"
+    - color: "#49bab2"
+    - color: "#ff0000"
+    - color: "#cb00cb"
+  components:
+    - .SideMenuBar:
+      children:
+        - .aitLogo:
+        - .MenuBar:
+    - .TopBar:
+    - .BodyView:
+      style:
+      children:
+        - .ContentView:
+          style:
+            height: "0.83"
+            top: "0.05"
+          children:
+            - type: view
+              style:
+                width: "0.78"
+                height: "0.25"
+                top: "0"
+                left: "0"
+                border: 
+                  style: "2"
+                borderBottom: "solid 2px #d5e0e9"
+              children:
+                - type: image
+                  path: drimg.png
+                  style:
+                    top: "0.05"
+                    left: "0.05"
+                    width: "0.1"
+                - type: label
+                  text: Gary Chen, MD
+                  style:
+                    top: "0.1"
+                    left: "0.16"
+                    width: "0.1"
+                    fontSize: "18"
+                    fontFamily: Poppins
+                    color: "#646d82"
+                - type: label
+                  text: Orthopedic
+                  style:
+                    top: "0.15"
+                    left: "0.16"
+                    width: "0.06"
+                    fontSize: "14"
+                    fontFamily: Poppins
+                    color: "#a6b1c2"   
+                - type: label
+                  text: Providers Schedule Availability
+                  style:
+                    top: "0.18"
+                    left: "0.3"
+                    width: "0.22"
+                    fontSize: "20"
+                    fontFamily: Poppins
+                    color: "#000000"
+                - type: button
+                  text: Done
+                  style:
+                    top: "0.07"
+                    left: "0.65"
+                    width: "0.1"
+                    height: "0.05"
+                    fontSize: "15"
+                    border:
+                      style: "3"
+                    borderRadius: "5"
+                    backgroundColor: "#015694"
+                    color: "#ffffff"                           
+            - type: view
+              style:
+                width: "0.78"
+                height: "0.575"
+                top: "0.255"
+                left: "0"
+              children:
+                - type: label
+                  text: Office Visit Availability
+                  style:
+                    top: "0.03"
+                    left: "0.05"
+                    width: "0.12"
+                    fontSize: "15"
+                    fontFamily: Poppins
+                    color: "#000000"
+                - type: button
+                  text: Edit Availability
+                  style:
+                    top: "0.03"
+                    left: "0.65"
+                    width: "0.1"
+                    height: "0.05"
+                    fontSize: "15"
+                    border:
+                      style: "3"
+                    borderRadius: "5"
+                    borderColor: "#015694"
+                    backgroundColor: "#ffffff"
+                    color: "#015694"
+                - type: view
+                  style:
+                    top: "0.08"
+                  children:
+                    - type: label
+                      text: Appointment Type
+                      style:
+                        left: "0.16"
+                        top: "0"
+                        width: "0.105"
+                        fontSize: "13"
+                        fontFamily: Poppins
+                        color: "#000000"
+                    - type: label
+                      text: Duration
+                      style:
+                        left: "0.38"
+                        top: "0"
+                        width: "0.05"
+                        fontSize: "13"
+                        fontFamily: Poppins
+                        color: "#000000"
+                    - .Line2:
+                      style:
+                        width: "0.42"
+                        top: "0.04"
+                        left: "0.16"
+                    - .Line2:
+                      style:
+                        width: "0.42"
+                        top: "0.09"
+                        left: "0.16"
+                    - .Line3:
+                      style:
+                        left: "0.16"
+                        height: "0.05"
+                        top: "0.04"
+                    - .Line3:
+                      style:
+                        left: "0.38"
+                        height: "0.05"
+                        top: "0.04"
+                    - .Line3:
+                      style:
+                        left: "0.5795"
+                        height: "0.05"
+                        top: "0.04"
+                    - type: label
+                      text: Office visit
+                      style:
+                        left: "0.17"
+                        top: "0.05"
+                        width: "0.06"
+                        fontSize: "14"
+                    - type: label
+                      text: 15 min
+                      style:
+                        left: "0.39"
+                        top: "0.05"
+                        width: "0.04"
+                        fontSize: "14"
+
+                - type: view
+                  style:
+                    top: "0.188"
+                    left: "0.16"
+                    width: "0.42"
+                    height: "0.247"
+                    border:
+                      style: "3"
+                    borderColor: "#d0d9df"
+                  children:
+                    - type: view
+                      style:
+                        top: "0"
+                        left: "0"
+                        width: "0.42"
+                        height: "0.05"
+                        backgroundColor: "#004779"
+                      children:
+                        - type: label
+                          text: Availability
+                          style:
+                            top: "0.01"
+                            left: "0.02"
+                            fontFamily: Poppins 
+                            fontSize: "16"
+                            color: "0xffffff"
+                    - .BaseList:
+                      listObject: ..date
+                      style:
+                        top: "0.029"
+                        width: "0.42"
+                      children:
+                        - .BaseListItem:
+                          style:
+                            width: "0.42"
+                            height: "0.04"
+                          children:
+                            - type: view
+                              style: 
+                                top: "0"
+                                left: "0"
+                                height: "0.04"
+                                width: "0.1"
+                                backgroundColor: "#f7f7f7"
+                                # borderRight: "solid 1px #d0d9df"
+                                # borderBottom: "solid 1px #d0d9df"
+                            - type: view
+                              style: 
+                                top: "0"
+                                left: "0.1"
+                                height: "0.04"
+                                width: "0.16"
+                                backgroundColor: "#ffffff"
+                                # borderRight: "solid 1px #d0d9df"
+                                # borderBottom: "solid 1px #d0d9df"
+                            - type: view
+                              style: 
+                                top: "0"
+                                left: "0.26"
+                                height: "0.04"
+                                width: "0.16"
+                                backgroundColor: "#ffffff"
+                                # borderRight: "solid 1px #d0d9df"
+                                # borderBottom: "solid 1px #d0d9df"    
+                            - .Line2:
+                              style:
+                                width: "0.42"
+                                left: "0"
+                                top: "0.038"
+                            - type: label
+                              dataKey: itemObject.day
+                              style:
+                                top: "0.007"
+                                left: "0.025"
+                                fontFamily: Poppins 
+                                fontSize: "14"
+                            - type: label
+                              text: "08:00"
+                              style: 
+                                top: "0.007"
+                                width: "0.05"
+                                height: "0.05"
+                                left: "0.12"
+                                borderColor: "#d0d9df"
+                                textAlign:
+                                  x: right
+                            - type: label
+                              text: AM
+                              style:
+                                top: "0.008"
+                                left: "0.19"
+                                fontFamily: Poppins 
+                                fontSize: "12"   
+                            - type: label
+                              text: "05:00"
+                              style: 
+                                top: "0.007"
+                                width: "0.05"
+                                height: "0.05"
+                                left: "0.3"
+                                borderColor: "#d0d9df"
+                            - type: label
+                              text: PM
+                              style:
+                                top: "0.008"
+                                left: "0.35"
+                                fontFamily: Poppins 
+                                fontSize: "12"       
+                - type: view
+                  style:
+                    top: "0.46"
+                  children:
+                    - type: label
+                      text: Time period for availability
+                      style:
+                        left: "0.16"
+                        top: "0"
+                        width: "0.13"
+                        fontSize: "13"
+                        fontFamily: Poppins
+                        color: "#000000"
+                    - type: label
+                      text: "Location:"
+                      style:
+                        left: "0.38"
+                        top: "0"
+                        width: "0.05"
+                        fontSize: "13"
+                        fontFamily: Poppins
+                        color: "#000000"
+                    - .Line2:
+                      style:
+                        width: "0.42"
+                        top: "0.04"
+                        left: "0.16"
+                    - .Line2:
+                      style:
+                        width: "0.42"
+                        top: "0.09"
+                        left: "0.16"
+                    - .Line3:
+                      style:
+                        left: "0.16"
+                        height: "0.05"
+                        top: "0.04"
+                    - .Line3:
+                      style:
+                        left: "0.38"
+                        height: "0.05"
+                        top: "0.04"
+                    - .Line3:
+                      style:
+                        left: "0.5795"
+                        height: "0.05"
+                        top: "0.04"
+                    - type: label
+                      text: Febuary 1,2021 to February 26,2021
+                      style:
+                        left: "0.17"
+                        top: "0.053"
+                        width: "0.18"
+                        fontSize: "13"
+                    - type: label
+                      text: 1000 S Anaheim Blvd Anaheim, CA 92805
+                      style:
+                        left: "0.385"
+                        top: "0.053"
+                        width: "0.194"
+                        fontSize: "13"

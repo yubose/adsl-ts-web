@@ -172,10 +172,10 @@ module.exports = {
           from: 'public/firebase-messaging-sw.js',
           to: 'firebase-messaging-sw.js',
         },
-        // {
-        //   from: 'public/sql-wasm.wasm',
-        //   to: 'sql-wasm.wasm',
-        // },
+        {
+          from: 'public/sql-wasm.wasm',
+          to: 'sql-wasm.wasm',
+        },
       ],
     }),
     new webpack.ProgressPlugin({
