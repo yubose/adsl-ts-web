@@ -803,13 +803,15 @@ const createExtendedDOMResolvers = function (app: App) {
                   new mapboxgl.Popup()
                     .setLngLat(coordinates)
                     .setHTML(
-                      Name +
-                        ' <br> ' +
+                      '<span style="font-size: 1vh;">' +
+                        Name +
+                        ' </span><br> <span style="font-size: 1vh;">' +
                         Speciality +
-                        '<br> ' +
+                        '</span><br> <span style="font-size: 1vh;">' +
                         phoneNumber +
-                        '<br> ' +
-                        address,
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        address +
+                        '</span>',
                     )
                     .addTo(map)
                 })
