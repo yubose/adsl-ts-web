@@ -136,12 +136,14 @@ const createExtendedDOMResolvers = function (app: App) {
         // TODO - Check to make sure these aren't loaded multiple times
         {
           type: 'css',
+           // Identifier used as regex when testing if/else conditional rendering for components (see "resolve.onResource.fullCalendar" below)
           name: 'fullCalendar',
           href: 'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.css',
           lazyLoad: true,
         },
         {
           type: 'js',
+           // Identifier used as regex when testing if/else conditional rendering for components (see "resolve.onResource.fullCalendar" below) 
           name: 'fullCalendar',
           src: 'https://cdn.jsdelivr.net/npm/fullcalendar@5.7.2/main.min.js',
           lazyLoad: true,
