@@ -33,6 +33,12 @@ const CONFIG_URL = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
 // const CONFIG_URL = `https://public.ahmucel.com/config/${document.domain.split('.')[0]}.yml?`
 let noodl: NOODL | undefined
 
+const dbConfig = {
+  locateFile: (filename) => {
+    return `./${filename}`
+  },
+}
+
 resetInstance()
 
 export function resetInstance() {
@@ -44,6 +50,7 @@ export function resetInstance() {
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: CONFIG_URL,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
+    dbConfig,
   })
   return noodl
 }
