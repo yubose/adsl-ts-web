@@ -3,7 +3,7 @@ import * as mock from 'noodl-ui-test-utils'
 import { AcceptArray } from '@jsmanifest/typefest'
 import isNil from 'lodash/isNil'
 import sinon from 'sinon'
-import { ComponentObject, Identify, PageObject } from 'noodl-types'
+import { ComponentObject, PageObject } from 'noodl-types'
 import {
   nuiEmitTransaction,
   NUIComponent,
@@ -11,7 +11,13 @@ import {
   Page as NUIPage,
   Viewport,
 } from 'noodl-ui'
-import { NOODLDOMElement, Resolve } from './types'
+import {
+  GlobalCssResourceObject,
+  GlobalJsResourceObject,
+  NOODLDOMElement,
+  Resolve,
+  UseObject,
+} from './types'
 import { array, keys, isArr, isStr, isUnd } from './utils/internal'
 import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
@@ -68,6 +74,7 @@ interface MockRenderOptions {
   pageName?: string
   pageObject?: Partial<PageObject>
   resolver?: MockDrawResolver
+  resource?: UseObject['resource']
   root?: Record<string, any>
 }
 
@@ -134,6 +141,7 @@ export function createRender(
   let pageObject: Partial<PageObject>
   let root = _defaults.root
   let resolver: AcceptArray<MockDrawResolver> | undefined
+  let resource: MockRenderOptions['resource'] | undefined
 
   if (u.isArr(opts) || 'type' in opts) {
     pageRequesting = _defaults.pageRequesting
@@ -141,6 +149,7 @@ export function createRender(
     currentPage = opts.currentPage || ''
     page = opts.page
     root = { ...root, ...opts?.root }
+    resource = opts.resource
   }
 
   !page && (page = ndom.page || ndom.createPage(pageRequesting))
@@ -203,6 +212,7 @@ export function createRender(
       }
       return result
     },
+    resource,
     transaction: {
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
         use.getRoot()[page?.page || ''],
@@ -232,6 +242,20 @@ export function createRender(
   }
 
   return o
+}
+
+export function createMockCssResource({
+  href = 'https://some-mock-link.com/chart.min.css',
+  ...rest
+}: Partial<GlobalCssResourceObject> = {}) {
+  return { ...rest, type: 'css', href } as GlobalCssResourceObject
+}
+
+export function createMockJsResource({
+  src = 'https://some-mock-link.com/chart.min.js',
+  ...rest
+}: Partial<GlobalJsResourceObject> = {}) {
+  return { ...rest, type: 'js', src } as GlobalJsResourceObject
 }
 
 export function stubInvariant() {

@@ -1,6 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
-import { prettyDOM } from '@testing-library/dom'
 import { NUIComponent, createComponent, flatten } from 'noodl-ui'
 import { screen, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
@@ -10,7 +9,6 @@ import NOODLDOM from '../noodl-ui-dom'
 import * as u from '../utils/internal'
 import * as n from '../utils'
 import * as c from '../constants'
-import { getFirstByElementId } from '../utils'
 import Timer from '../global/Timer'
 
 describe(coolGold(`resolvers`), () => {
@@ -741,6 +739,26 @@ describe(italic(`video`), () => {
     await waitFor(() => {
       const sourceElem = node.querySelector('source')
       expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + path)
+    })
+  })
+})
+
+/* -------------------------------------------------------
+  ---- HOOKS
+-------------------------------------------------------- */
+
+describe.only(italic(`Hooks`), () => {
+  describe(`onResource`, () => {
+    xit(`should call the resolve functions immediately if the resource node is already in the DOM`, async () => {
+      //
+    })
+
+    xit(`should not call any of the resolve functions if the resource element is not yet loaded to the DOM`, () => {
+      //
+    })
+
+    xit(`should pass the resource node and record into args`, () => {
+      //
     })
   })
 })

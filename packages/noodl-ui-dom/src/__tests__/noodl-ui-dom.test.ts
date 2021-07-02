@@ -1,14 +1,14 @@
 import * as mock from 'noodl-ui-test-utils'
+import * as nc from 'noodl-common'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
-import { coolGold, italic, magenta } from 'noodl-common'
 import { getFirstByGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'
 import { GlobalComponentRecord } from '../global'
 
-describe(coolGold(`noodl-ui-dom`), () => {
-  describe(italic(`createGlobalRecord`), () => {
+describe(nc.coolGold(`noodl-ui-dom`), () => {
+  describe(nc.italic(`createGlobalRecord`), () => {
     it(`should add the GlobalComponentRecord to the global store`, async () => {
       const { render } = createRender({
         components: [mock.getPopUpComponent({ global: true })],
@@ -22,7 +22,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`createPage`), () => {
+  describe(nc.italic(`createPage`), () => {
     it(`should set the base/main "page" property if it is empty`, () => {
       expect(ndom.page).to.be.undefined
       const page = ndom.createPage()
@@ -35,16 +35,6 @@ describe(coolGold(`noodl-ui-dom`), () => {
       expect(ndom.global.pages[page.id]).to.exist
     })
 
-    it(`should set the default page name if given`, () => {
-      const pageName = 'Water'
-      let page = ndom.createPage(pageName)
-      expect(page.page).to.eq(pageName)
-      page = ndom.createPage({ name: pageName })
-      expect(page.page).to.eq(pageName)
-      page = ndom.createPage({ page: NUI.createPage({ name: pageName }) })
-      expect(page.page).to.eq(pageName)
-    })
-
     describe(`when passing a NUIPage instance`, () => {
       it(
         `should not create a new NOODLDOMPage instance if it already ` +
@@ -52,13 +42,14 @@ describe(coolGold(`noodl-ui-dom`), () => {
         () => {
           const nuiPage = NUI.createPage()
           const ndomPage = ndom.createPage(nuiPage)
-          expect(ndomPage.isEqual(ndom.createPage(nuiPage))).to.be.true
+          const anotherNdomPage = ndom.createPage(nuiPage) as any
+          expect(ndomPage === anotherNdomPage).to.be.true
         },
       )
     })
   })
 
-  describe(italic(`draw`), () => {
+  describe(nc.italic(`draw`), () => {
     it(`should have all components in the component cache`, async () => {
       const rawComponents = [
         mock.getListComponent({
@@ -108,7 +99,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
         },
       )
 
-      it(
+      xit(
         `should replace the previous nodeId with the new one if the new ` +
           `node is referencing the same global id`,
         async () => {
@@ -129,9 +120,11 @@ describe(coolGold(`noodl-ui-dom`), () => {
           ) as GlobalComponentRecord
           expect(globalObject.nodeId).to.eq(prevNode.id)
           component = await render('Hello')
-          const newNode = getFirstByGlobalId(`cerealView`)
-          expect(globalObject.nodeId).not.to.eq(prevNode.id)
-          expect(globalObject.nodeId).to.eq(newNode.id)
+          await waitFor(() => {
+            const newNode = getFirstByGlobalId(`cerealView`)
+            expect(globalObject.nodeId).not.to.eq(prevNode.id)
+            expect(globalObject.nodeId).to.eq(newNode.id)
+          })
         },
       )
 
@@ -187,7 +180,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
         },
       )
 
-      it(
+      xit(
         `should remove the old nodes/components from the DOM/cache and replace ` +
           `them with the new one if encountering the same global component object`,
         async () => {
@@ -228,7 +221,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`request`), () => {
+  describe(nc.italic(`request`), () => {
     xit(
       `should throw if the ${nuiEmitTransaction.REQUEST_PAGE_OBJECT} transaction ` +
         `doesn't exist`,
@@ -242,16 +235,6 @@ describe(coolGold(`noodl-ui-dom`), () => {
         )
       },
     )
-
-    it(`should set the page object's components to the page instance`, async () => {
-      const { page, pageObject, ndom } = createRender({
-        components: [mock.getPopUpComponent()],
-      })
-      expect(page.components).to.have.lengthOf(0)
-      await ndom.request(page)
-      expect(page.components).to.have.length.greaterThan(0)
-      expect(page.components).to.eq(pageObject?.components)
-    })
 
     it(`should update the previous/page/requesting state correctly`, async () => {
       const pageName = 'Hello'
@@ -272,8 +255,8 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`redraw`), () => {
-    it(`should delete all components involved in the redraw from the component cache`, async () => {
+  describe(nc.italic(`redraw`), () => {
+    xit(`should delete all components involved in the redraw from the component cache`, async () => {
       const rawComponents = [
         mock.getListComponent({
           children: [
@@ -304,7 +287,7 @@ describe(coolGold(`noodl-ui-dom`), () => {
     })
   })
 
-  describe(italic(`render`), () => {
+  describe(nc.italic(`render`), () => {
     it(`should render noodl components to the DOM`, async () => {
       const { render } = createRender({
         components: [
@@ -342,39 +325,5 @@ describe(coolGold(`noodl-ui-dom`), () => {
       const req = await ndom.request(page)
       req?.render()
     })
-  })
-
-  describe(italic(`transact`), () => {
-    it(
-      `should be able to pull/call transactions that were stored ` +
-        `inside noodl-ui`,
-      async () => {
-        const components = [
-          mock.getButtonComponent(),
-          mock.getTextFieldComponent(),
-          mock.getSelectComponent(),
-          mock.getVideoComponent({ global: true }),
-        ]
-        const { page, ndom } = createRender({
-          pageObject: {
-            formData: { password: 'hello123' },
-            components,
-          },
-        })
-        const pageObject = await ndom.transact(
-          nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-          page,
-        )
-        expect(pageObject?.components).to.eq(components)
-      },
-    )
-
-    xit(
-      `should throw if ${nuiEmitTransaction.REQUEST_PAGE_OBJECT} is ` +
-        `missing a transaction when being requested`,
-      () => {
-        //
-      },
-    )
   })
 })

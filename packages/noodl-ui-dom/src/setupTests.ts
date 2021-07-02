@@ -1,8 +1,15 @@
+import JSDOM from 'jsdom-global'
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import chaiAsPromised from 'chai-as-promised'
 import { ndom } from './test-utils'
+
+JSDOM('', {
+  resources: 'usable',
+  runScripts: 'dangerously',
+  // pretendToBeVisual: true,
+})
 
 chai.use(sinonChai)
 chai.use(chaiAsPromised)
