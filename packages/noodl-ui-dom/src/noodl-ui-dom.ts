@@ -167,10 +167,9 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
   createResource = <Type extends t.GlobalResourceType>(
     resource:
       | string
-      | (t.GetGlobalResourceObjectAlias<Type> &
-          Partial<t.GlobalResourceObject<Type>> & {
-            loadToDOM?: boolean
-          }),
+      | (t.GetGlobalResourceObjectAlias<Type> & {
+          loadToDOM?: boolean
+        }),
   ) => {
     let resourceObject = createResourceObject(resource)
 
@@ -449,8 +448,10 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
 
     // Handle high level (global) resources here so the component resolvers only worry about handling the more narrow (low level) ones
     for (const globalResources of u.values(this.global.resources)) {
-      for (const { record, onLoad, isActive } of u.values(globalResources)) {
-        if (record && !isActive()) {
+      for (const { record, lazyLoad, onLoad, isActive } of u.values(
+        globalResources,
+      )) {
+        if (record && !lazyLoad && !isActive()) {
           renderResource(record, (node) => onLoad?.({ node, record }))
         }
       }

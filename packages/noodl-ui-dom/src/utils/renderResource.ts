@@ -1,15 +1,14 @@
+import * as u from '@jsmanifest/utils'
 import isCssResourceRecord from './isCssResourceRecord'
 import isJsResourceRecord from './isJsResourceRecord'
 import * as t from '../types'
 
-export interface OnLoadCallback<T extends t.GlobalResourceType[][number]> {
+export interface OnLoadCallback<T extends t.GlobalResourceType> {
   (node: t.GetGlobalResourceElementAlias<T>): void
 }
 
 /**
- * Takes a url and renders a DOM node corresponding to the type of resource it is
- *
- * For example, if id is "https://www.somewebsite.com/somestyles.min.css", it will create a link element if there isn't already one existent in the document head.
+ * Takes a GlobalResourceRecord and renders a DOM node corresponding to the type of resource it is
  *
  * This currently supports only css or javascript
  *
@@ -24,44 +23,57 @@ function renderResource<T extends t.GlobalResourceType[][number]>(
   let node: unknown
 
   if (isCssResourceRecord(record)) {
-    let node = document.head.querySelector(
-      `link[href="${record.href}"]`,
-    ) as HTMLLinkElement
-
-    if (!node) {
-      node = document.createElement('link') as HTMLLinkElement
-      node.id = record.href
-      node.rel = 'stylesheet'
-      node.type = 'text/css'
-      node.href = record.href
-    }
-    if (!document.head.contains(node)) {
-      document.head.appendChild(node)
-      onLoad?.(node)
-    }
+    renderToDOM({
+      record,
+      onLoad,
+      elementProps: { rel: 'stylesheet', type: 'text/css' },
+    })
   } else if (isJsResourceRecord(record)) {
-    let node = document.getElementById(record.src) as HTMLScriptElement
-
-    if (!node) {
-      node = document.createElement('script')
-      node.id = record.src
-      node.onload = (evt) => {
-        console.info(`%cLoaded SCRIPT element to body`, `color:#00b406;`, {
-          event: evt,
-          src: record.src,
-        })
-        onLoad?.(node)
-      }
-    }
-    if (node) {
-      node.src = record.src
-      if (!document.body.contains(node)) {
-        document.body.appendChild(node)
-      }
-    }
+    renderToDOM({
+      record,
+      onLoad,
+      elementProps: { type: 'application/json' },
+    })
   }
 
   return node as t.GetGlobalResourceRecordAlias<T>
+}
+
+function renderToDOM<T extends t.GlobalResourceType>({
+  record,
+  elementProps,
+  onLoad,
+}: {
+  record: t.GetGlobalResourceRecordAlias<T>
+  elementProps?: Record<string, any>
+  onLoad?: OnLoadCallback<T>
+}) {
+  const isCss = record.resourceType === 'css'
+  const idKey = isCss ? 'href' : 'src'
+  const location = isCss ? 'head' : 'body'
+  const elementTag = isCss ? 'link' : 'script'
+
+  let node =
+    document.getElementById(record.id) || document.createElement(elementTag)
+
+  node.id = record.id
+
+  node[idKey] = record.id
+
+  if (!document[location].contains(node)) {
+    document[location].appendChild(node)
+    node.onload = () => onLoad?.(node as t.GetGlobalResourceElementAlias<T>)
+  } else {
+    onLoad?.(node as t.GetGlobalResourceElementAlias<T>)
+  }
+
+  if (u.isObj(elementProps)) {
+    for (const [key, value] of u.entries(elementProps)) {
+      node.setAttribute(key, value)
+    }
+  }
+
+  // document[location].appendChild(node)
 }
 
 export default renderResource
