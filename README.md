@@ -104,6 +104,7 @@ NUI.emit({
 
 | app    | phone #    | password |
 | ------ | ---------- | -------- |
+| admin  | 8882005050 | password |
 | patd   | 8884240000 | 12345    |
 | prod   | 8885550010 | password |
 | meet4d | 8882465555 | 142251   |
