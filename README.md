@@ -91,3 +91,11 @@ NUI.emit({
     console.error(err)
   })
 ```
+
+---
+
+## Todos
+
+- [ ] PasswordRecoveryHelper (Jiahao)
+- [ ] Font size (Elaine)
+- [ ] lazyload libs
