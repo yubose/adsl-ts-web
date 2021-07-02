@@ -1,0 +1,1381 @@
+ProviderManagement: #xd page number: 92
+  pageNumber: "590" 
+  viewPort: top
+  title: "ProviderManagement"
+  init:
+    - .SignInCheck
+    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+    - =.Global.jwt.edgeAPI.store: ""
+    - ..providerList.docAPI.get
+    - ..invite.edgeAPI.get
+    - =.builtIn.object.extractArray: 
+        dataIn: 
+          obj: =..providerList.list.doc
+          arr: =..formData1.dataStruc
+        dataOut: ProviderManagement.testD  
+    - .ProviderManagement.tableData.dataObject@: =..testD
+  formData:
+    firstName: ""
+    middleName: ""
+    lastName: ""
+    countryCode: "+1"
+    number: ""
+    phoneNumber: ""
+    providerInfo: ""
+    indexList: ""
+    currentProviderList: []
+    providerList: ""
+  gender: 
+    - key: gender
+      value: "Male"
+    - key: gender
+      value: "Female"
+  page: ""
+  invite:
+    response: ""
+    edge:
+      .Edge: ""
+      type: .EdgeType.InviteInfo
+      bvid: .Global.currentFacility.id
+      _nonce: =.Global._nonce
+      subtype: "196608"
+      # refid: null
+      name:
+        phoneNumber: ""
+        inviterPhoneNumber: .Global.currentFacility.name.basicInfo.phoneNumber
+        inviterName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+    edgeAPI:
+      .EdgeAPI: ""
+      store:
+        api: ce
+        dataIn: invite.edge
+        dataOut: ProviderManagement.invite.response
+  inviteInfo:  # for get provider's id and use id to get provider's personal profile
+    response:
+      edge: 
+    store: 
+      .EdgeAPI.get: ""
+      api: ce
+      dataIn: inviteInfo.edge
+      dataOut: ProviderManagement.inviteInfo.response
+    delete:
+      api: dx
+      dataIn: ProviderManagement.inviteInfo.response.edge
+    edge:
+      type: .EdgeType.InviteInfo
+      refid: ""
+      bvid: .Global.currentFacility.id
+      _nonce: '=.Global._nonce'
+      name:
+        phoneNumber: ""
+  providerList:
+    list: ""
+    docAPI:
+      get: 
+        api: rd
+        dataKey: providerList.list
+        ObjType: 12
+        type: .DocType.DoctorProfile
+        id: .Global.currentFacility.id
+        xfname: E.bvid|E.evid
+        sCondition: E.type=10002 AND E.tage=1
+        maxcount: "10000"
+        _nonce: =.Global._nonce
+      store:
+        api: ce
+        dataIn: formData.providerInfo
+  providerDisplay:  # 邀请provider的时候，点击搜索会展示provider的信息
+    docResp: 
+    docIn: 
+      type: .DocType.DoctorProfile
+      id: ""
+      xfname: ovid
+      maxcount: "1"
+      _nonce: =.Global._nonce
+    docAPI: 
+      get: 
+        .DocAPI.get: ""
+        api: rd
+        dataIn: providerDisplay.docIn
+        dataOut: ProviderManagement.providerDisplay.docResp
+  prodProfile: 
+    docResp: ""
+    docIn: 
+      id: ""
+      type: .DocType.DoctorProfile
+      xfname: id
+      maxcount: "1"
+      _nonce: =.Global._nonce
+    docAPI:
+      get: 
+        .DocAPI.get: ""
+        api: rd
+        dataIn: prodProfile.docIn
+        dataOut: ProviderManagement.prodProfile.docResp
+  testD: {}
+  tableData: 
+    chartType: "table"
+    allowOnclick: 
+      value: EDIT
+      color: "#2988e6"
+      buttonColor: "#ffffff"
+    tableHeader: 
+      - name: id
+        hidden: true
+      - Name
+      - Specialty
+      - Gender
+      - Status
+      - Rating & Reviews
+    dataHeader: 
+      - id
+      - fullName
+      - specialty
+      - gender 
+      - history
+    dataObject:
+    response: 
+    attribute: 
+      search: 'search'
+      sort: "true"
+      pagination: "8"
+  formData1:
+    dataStruc:
+      - id
+      - name.data.fullName
+      - name.data.specialty 
+      - name.data.gender
+      - name.history
+  components:
+    - .BaseCheckView: ""
+      message: "Required information: First name, Last name, Phone number. This is the minimum information needed to create a new provider. The other information can be updated whenever you want."
+      viewTag: errorFillinView
+      style: 
+        zIndex: "100000"
+    - .LoadingView: ""
+      message: "In searching..."
+      viewTag: searchingView
+    - .BaseCheckView: ""
+      message: "You don't have the authority to add a new provider"
+      viewTag: providerAuthCreate
+      style: 
+        zIndex: "100000"
+    - .BaseCheckView: ""
+      message: "successful!"
+      viewTag: success
+      style: 
+        zIndex: "100000"
+        left: "0.42"
+    - .BaseCheckView: ""
+      message: "You don't have the authority to edit"
+      viewTag: providerAuthEdit
+      style: 
+        zIndex: "100000"           
+    - .BasePopUp:
+      viewTag: EditProvider
+      children:
+        - type: view
+          style:
+            left: "0.6"
+            width: "0.4"
+            top: "0"
+            height: "1"
+            backgroundColor: "0xffffff"
+          children:
+            - .PopUphead:
+              children:
+                - .CreateLabel:
+                  text: 'Edit Provider'
+                - .Closebutton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: EditProvider
+            - type: scrollView
+              viewTag: editView
+              style:
+                height: '0.82'
+                width: '0.4'
+                top: '0.08'
+                backgroundColor: '0xffffff'
+                overflow: scroll
+              children:
+                - type: view
+                  style: 
+                    marginTop: "0"
+                    width: "0.4"
+                    height: "0.06"
+                    left: "0"
+                  children: 
+                    - type: label
+                      text: Basic Info
+                      style:
+                        fontSize: '1.7vh'
+                        left: '0.03'
+                        top: '0'
+                        height: "0.06"
+                        textAlign: 
+                          y: center
+                        color: '#7f7f7f'
+                    - type: label
+                      text: "Status"
+                      style:
+                        left: "0.26"
+                        top: '0'
+                        height: "0.06"
+                        textAlign: 
+                          y: center
+                        fontSize: "14"  
+                    - type: image
+                      viewTag: statusTag
+                      path: switch.png 
+                      style:
+                        top: "0.022"
+                        left: "0.3"
+                        width: "0.03"  
+                - type: view
+                  viewTag: profileView
+                  style: 
+                    marginTop: "0.01"
+                    width: "0.4"
+                    left: "0"
+                    height: "0.8"
+                  children: 
+                    - type: view
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.3" 
+                      children: 
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: First Name
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.phone
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: First Name
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.firstName
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Middle Name
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.middleName
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Lasr Name
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.lastName
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Gender
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.gender
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Email
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.email  
+                    - type: view
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.36"  
+                      children:              
+                        - type: view
+                          style: 
+                            marginTop: "0"
+                            width: "0.4"
+                            height: "0.06"
+                            left: "0"
+                          children: 
+                            - type: label
+                              text: Education & Background
+                              style:
+                                fontSize: '1.7vh'
+                                left: '0.03'
+                                top: '0'
+                                height: "0.06"
+                                textAlign: 
+                                  y: center
+                                color: '#7f7f7f'
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Specialty
+                            - type: textView
+                              isEditable: false
+                              dataKey: prodProfile.docResp.doc.0.name.data.specialty  
+                              # options: 
+                              #   ..prodProfile.docResp.doc.0.name.data.specialty
+                              style:      
+                                width: "0.2"
+                                left: "0.15"
+                                top: "0.008"
+                                height: "0.034"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Medical School
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.medicalSchool
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: NPI
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.NPI
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: License Number
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.licenseExpiration
+                              style: 
+                                width: "0.08"
+                            - .ProdManageLabel:
+                              text: State
+                              style:
+                                left: "0.24"
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.state
+                              style: 
+                                left: "0.27"
+                                width: "0.08"
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: DEA Number
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.DEA
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Board Certified
+                            - .Prfield:
+                              dataKey: prodProfile.docResp.doc.0.name.data.boardCertified
+                    - type: view
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.21" 
+                      children: 
+                        - type: view
+                          style: 
+                            marginTop: "0"
+                            width: "0.4"
+                            height: "0.06"
+                            left: "0"
+                          children: 
+                            - type: label
+                              text: About
+                              style:
+                                fontSize: '1.7vh'
+                                left: '0.03'
+                                top: '0'
+                                height: "0.06"
+                                textAlign: 
+                                  y: center
+                                color: '#7f7f7f'
+                        - .ProdManageView:
+                          children: 
+                            - type: textView
+                              isEditable: false
+                              dataKey: prodProfile.docResp.doc.0.name.data.about
+                              style: 
+                                width: "0.3"
+                                left: "0.05"
+                                top: "0.01"
+                                height: "0.15"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center        
+    - .SideMenuBar:
+      children:
+        - .aitLogo:
+        - .MenuBar:
+    - .TopBar:
+      style:
+    - .BodyView:
+      style:
+        position: fixed
+      children:
+        - .Label2:
+          type: label
+          text: "Provider Management"
+          style:
+            left: "0.03"
+            fontSize: "2.9vh"
+            width: "0.3"
+            top: "0.02"
+        - type: view
+          onClick:
+            - actionType: evalObject
+              object:
+                - if: 
+                  - =.builtIn.string.equal:
+                      dataIn: 
+                        string1: =.Global.auth.provider.create
+                        string2: true 
+                  - actionType: popUp
+                    popUpView: AddProvider
+                  - actionType: popUp
+                    popUpView: providerAuthCreate
+          style:
+            width: '0.11'
+            left: '0.69'
+            height: '0.05'
+            top:  '0.015'
+            backgroundColor: '#005795'
+            borderRadius: "5"
+            color: '#FFFFFF'
+          children:
+            - .Label1:
+              text: Add New Provider
+              style: 
+                fontSize: '15'
+                # top: '0.01208'
+                left: '0.023'
+                height: '0.05'
+                color: '#e8eef3'
+                textAlign: 
+                  y: center
+            - type: image
+              path: addwhite.png
+              style:
+                width: '0.01'
+                top: '0.015'
+                left: '0.009'
+    - .ContentView:
+      style: 
+        height: "0.8"
+        left: "0.19"
+        top: "0.145"
+        position: fixed
+      children:
+        - type: view
+          style:
+            # backgroundColor: '#569cd6'
+            top: '0.04'
+            width: '0.72'
+            left: '0.03'
+            height: '0.4'
+            borderRadius: "5"
+          children:
+            - type: view                      #表头
+              style:
+                width: '0.72'
+                left: '0'
+                height: '0.054'
+                top: '0'
+                backgroundColor: '#014c82'
+                borderRadius: "5"
+                boxShadow: "0px 0px 1px 1px #5b829d" 
+              children:
+                - .Label2:
+                  text: Provider List
+                  style:
+                    top: '0.01'
+                    color: '#e8eef3'
+                    fontSize: '15'
+            - type: view                      #表格
+              style: 
+                width: '0.72'
+                left: '0'
+                height: '0.5'
+                top: '0.052'
+                # backgroundColor: '#f3f3f3'
+              children:
+                - type: chart
+                  viewTag: refreshData
+                  dataKey: tableData
+                  style: 
+                    left: "0"
+                    width: "0.72"
+                    height: "auto"
+                    top: "0"
+                    # overflow: hidden
+                    margin: "0"
+                    padding: "0"  
+                  onClick:
+                    # - .Global.providerId@: =.ProviderManagement.tableData.response.row.bvid 
+                    - actionType: evalObject
+                      object:
+                        - if: 
+                          - =.ProviderManagement.tableData.response.row.id 
+                          - ..prodProfile.docIn.id@: =.ProviderManagement.tableData.response.row.id 
+                          - continue                   
+                    - actionType: evalObject
+                      object: 
+                        - if:
+                          - =.ProviderManagement.tableData.response.column
+                          - continue 
+                          - actionType: evalObject
+                            object: 
+                              - =..prodProfile.docAPI.get: ""    #可以整合  
+                              - if: 
+                                - =.builtIn.string.equal:
+                                    dataIn: 
+                                      string1: =.Global.auth.provider.edit
+                                      string2: true 
+                                - actionType: popUp
+                                  popUpView: EditProvider
+                                - actionType: popUp
+                                  popUpView: providerAuthEdit
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: editView   
+    
+    - .BasePopUp:
+      viewTag: AddProvider
+      children:
+        - type: view
+          style:
+            left: "0.6"
+            width: "0.4"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0xffffff"
+          children:
+            - .PopUphead:
+              children:
+                - .CreateLabel:
+                  text: 'Add Provider'
+                - .Closebutton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: AddProvider
+            - type: scrollView
+              style:
+                height: '0.82'
+                width: '0.4'
+                top: '0.08'
+                backgroundColor: '0xffffff'
+                overflow: scroll
+              children:
+                - type: view
+                  style: 
+                    marginTop: "0"
+                    width: "0.4"
+                    height: "0.06"
+                    left: "0"
+                  children: 
+                    - type: label
+                      text: Basic Info
+                      style:
+                        fontSize: '1.7vh'
+                        left: '0.03'
+                        top: '0'
+                        height: "0.06"
+                        textAlign: 
+                          y: center
+                        color: '#7f7f7f'
+                    - type: label
+                      text: "Status"
+                      style:
+                        left: "0.26"
+                        top: '0'
+                        height: "0.06"
+                        textAlign: 
+                          y: center
+                        fontSize: "14"  
+                    - type: image
+                      viewTag: statusTag
+                      path: switch.png 
+                      style:
+                        top: "0.022"
+                        left: "0.3"
+                        width: "0.03"  
+                - type: view
+                  viewTag: profileView
+                  style: 
+                    marginTop: "0.01"
+                    width: "0.4"
+                    left: "0"
+                    height: "0.8"
+                  children: 
+                    - .ProdManageView:
+                      children: 
+                        - .ProdManageLabel:
+                          text: Phone Number
+                        - type: select
+                          contentType: countryCode
+                          placeholder: ..formData.countryCode
+                          dataKey: formData.countryCode # formData.countryCode : inputValue
+                          options:
+                            .CountryCode
+                          required: "true"
+                          style:
+                            width: "0.022"
+                            left: "0.15"
+                            top: "0.008"
+                            height: "0.034"
+                            placeholder: "US +1"
+                            borderWidth: "1"
+                            boxSizing: border-box
+                            border:
+                              style: "3"
+                              color: "0xdededf"  
+                        - type: textField
+                          placeholder: "Enter Here"
+                          dataKey: formData.number
+                          style:
+                            width: "0.11"
+                            left: "0.18"
+                            top: "0.008"
+                            height: "0.034"
+                            boxSizing: border-box
+                            border: 
+                              style: "3"  
+                            borderColor: "#DCDCDC" 
+                        - type: button
+                          text: Search
+                          onClick:
+                            - actionType: popUp
+                              popUpView: searchingView 
+                            - actionType: evalObject
+                              object: 
+                                - =.builtIn.string.concat: 
+                                    dataIn: 
+                                      - =..formData.countryCode
+                                      - " "
+                                      - =..formData.number
+                                    dataOut: ProviderManagement.formData.phoneNumber
+                                - ..inviteInfo.edge.name.phoneNumber@: =..formData.phoneNumber
+                                - =..inviteInfo.store: ""
+                                - ..providerDisplay.docIn.id@: =..inviteInfo.response.edge.evid
+                                - =..inviteInfo.delete: ""
+                                - =..providerDisplay.docAPI.get: ""
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: profileView
+                            - actionType: popUpDismiss
+                              popUpView: searchingView 
+                          style: 
+                            left: "0.3"
+                            top: "0.008"
+                            height: "0.033"
+                            width: "0.05"
+                            boxSizing: border-box
+                            backgroundColor: "0x005795"
+                            color: "0xffffff"
+                            border: 
+                              style: "3"  
+                            borderColor: "0x005795" 
+                            borderRadius: "3"
+                    - type: view
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.25" 
+                      children: 
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: First Name
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.firstName
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Middle Name
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.middleName
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Lasr Name
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.lastName
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Gender
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.gender
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Email
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.email  
+                    - type: view
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.36"  
+                      children:              
+                        - type: view
+                          style: 
+                            marginTop: "0"
+                            width: "0.4"
+                            height: "0.06"
+                            left: "0"
+                          children: 
+                            - type: label
+                              text: Education & Background
+                              style:
+                                fontSize: '1.7vh'
+                                left: '0.03'
+                                top: '0'
+                                height: "0.06"
+                                textAlign: 
+                                  y: center
+                                color: '#7f7f7f'
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Specialty
+                            - type: textView
+                              isEditable: false
+                              dataKey: providerDisplay.docResp.doc.0.name.data.specialty  
+                              # options: 
+                              #   ..providerDisplay.docResp.doc.0.name.data.specialty
+                              style:      
+                                width: "0.2"
+                                left: "0.15"
+                                top: "0.008"
+                                height: "0.034"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Medical School
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.medicalSchool
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: NPI
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.NPI
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: License Number
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.licenseExpiration
+                              style: 
+                                width: "0.08"
+                            - .ProdManageLabel:
+                              text: State
+                              style:
+                                left: "0.24"
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.state
+                              style: 
+                                left: "0.27"
+                                width: "0.08"
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: DEA Number
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.DEA
+                        - .ProdManageView:
+                          children: 
+                            - .ProdManageLabel:
+                              text: Board Certified
+                            - .Prfield:
+                              dataKey: providerDisplay.docResp.doc.0.name.data.boardCertified
+                    - type: view
+                      style: 
+                        marginTop: "0"
+                        width: "0.4"
+                        left: "0"
+                        height: "0.21" 
+                      children: 
+                        - type: view
+                          style: 
+                            marginTop: "0"
+                            width: "0.4"
+                            height: "0.06"
+                            left: "0"
+                          children: 
+                            - type: label
+                              text: About
+                              style:
+                                fontSize: '1.7vh'
+                                left: '0.03'
+                                top: '0'
+                                height: "0.06"
+                                textAlign: 
+                                  y: center
+                                color: '#7f7f7f'
+                        - .ProdManageView:
+                          children: 
+                            - type: textView
+                              isEditable: false
+                              dataKey: providerDisplay.docResp.doc.0.name.data.about
+                              style: 
+                                width: "0.3"
+                                left: "0.05"
+                                top: "0.01"
+                                height: "0.15"
+                                boxSizing: border-box
+                                border: 
+                                  style: "3"
+                                borderWidth: "1"
+                                borderColor: "0xdddddd"
+                                textAlign: 
+                                  # x: right
+                                  y: center        
+            - .BottomButton:
+              text: 'Next'
+              style:
+                left: '0.28'
+                top: '0.92'
+                backgroundColor: '0x005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: evalObject
+                  object: 
+                    - if: 
+                      - =.builtIn.string.equal:
+                          dataIn: 
+                            string1: =..invite.edge.name.statusMark
+                            string2: true
+                      - ..invite.edge.subtype@: "196608"
+                      - ..invite.edge.subtype@: "196624"
+                      # - ..invite.edge.name.status@: Inactive
+                      
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - =..invite.edge.name.firstName
+                          - " "
+                          - =..invite.edge.name.middleName
+                          - " "
+                          - =..invite.edge.name.lastName
+                        dataOut: ProviderManagement.invite.edge.name.inviteeName
+                    - =.builtIn.string.concat:
+                        dataIn:
+                          - =..formData.countryCode
+                          - " "
+                          - =..formData.number
+                        dataOut: ProviderManagement.invite.edge.name.phoneNumber
+                - actionType: evalObject
+                  object: 
+                    - if: 
+                      - =.builtIn.string.judgeFillinAll:
+                          dataIn:
+                            - =..formData.number
+                            - =..invite.edge.name.firstName
+                            - =..invite.edge.name.lastName
+                      - actionType: popUp
+                        popUpView: errorFillinView
+                      - continue
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: aSent
+                - actionType: evalObject
+                  object: 
+                    - if: 
+                      - =.builtIn.string.judgeFillinAll:
+                          dataIn:
+                            - =..formData.number
+                            - =..invite.edge.name.firstName
+                            - =..invite.edge.name.lastName
+                      - continue
+                      - actionType: popUpDismiss
+                        popUpView: AddProvider
+                - actionType: evalObject
+                  object: 
+                    - if: 
+                      - =.builtIn.string.judgeFillinAll:
+                          dataIn:
+                            - =..formData.number
+                            - =..invite.edge.name.firstName
+                            - =..invite.edge.name.lastName
+                      - continue
+                      - actionType: popUp
+                        popUpView: Confirm 
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: phoneNumberView
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: confirmTag   
+    - .BasePopUp:
+      viewTag: Confirm
+      children:
+        - type: view
+          style:
+            left: "0.6"
+            width: "0.4"
+            top: "0"
+            height: "1"
+            backgroundColor: '0xffffff'  
+          children:
+            - .PopUphead:
+              children:
+                - .CreateLabel:
+                  text: 'Add Provider'
+                - .Closebutton:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: Confirm
+            - type: scrollView
+              viewTag: confirmTag
+              style:
+                height: '0.825'
+                width: '0.4'
+                top: '0.08'
+                backgroundColor: '0xffffff'  
+                overflow: scroll
+              children:
+                - type: label
+                  text: Confirm Informations
+                  style:
+                    fontSize: '16'
+                    left: '0.14'
+                    top: '0.03'
+                    color: '#7f7f7f'
+                - type: image
+                  viewTag: statusTag
+                  path: switch.png
+                  style:
+                    top: "0.027"
+                    left: "0.3"
+                    width: "0.03"  
+                # - type: view
+                #   viewTag: showStatus 
+                #   children:
+                #     - type: image
+                #       path: approve.png
+                #       style:
+                #         top: '0.07'
+                #         left: '0.3'
+                #         height: '0.02'
+                #     - type: label
+                #       text: Active
+                #       style:
+                #         fontSize: '13'
+                #         left: '0.315'
+                #         top: '0.068'
+                - type: view
+                  style:
+                    top: "0.07"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'First Name:'
+                      style:
+                        top: "0"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.firstName
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.175'
+                        width: "0.1"
+                        textAlign: 
+                          x: right
+                - type: view
+                  style:
+                    top: "0.11"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'Middle Name:'
+                      style:
+                        top: "0"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.middleName
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.175'
+                        width: "0.1"
+                        textAlign: 
+                          x: right        
+                - type: view
+                  style:
+                    top: "0.15"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'Last Name:'
+                      style:
+                        top: "0"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.lastName
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.175'
+                        width: "0.1"
+                        textAlign: 
+                          x: right       
+                - type: view
+                  style:
+                    top: "0.19"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'Gender:'
+                      style:
+                        top: "0"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.gender
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.175'
+                        width: "0.1"
+                        textAlign: 
+                          x: right     
+                - type: view
+                  viewTag: phoneNumberView
+                  style:
+                    top: "0.23"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'Phone Number:'
+                      style:
+                        top: "0"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.phone
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.195'
+                        width: "0.08"
+                        textAlign: 
+                          x: right         
+                - type: view
+                  style:
+                    top: "0.27"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'Email:'
+                      style:
+                        top: "0"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.email
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.175'
+                        width: "0.1"
+                        textAlign: 
+                          x: right     
+                - type: label
+                  text: Education & Background
+                  style:
+                    fontSize: '16'
+                    left: '0.04'
+                    top: '0.32'
+                    color: '#7f7f7f'
+                - type: view
+                  style:
+                    top: "0.36"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'Specialty:'
+                      style:
+                        top: "0"
+                        height: '0.03'
+                    - type: textView
+                      isEditable: false
+                      dataKey: providerDisplay.docResp.doc.0.name.data.specialty
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        width: "0.18"
+                        left: "0.095"
+                        boxSizing: border-box
+                        backgroundColor: "0xffffff"
+                        border: 
+                          style: "1"
+                        textAlign: 
+                          x: left
+                                  # y: center
+                - type: view
+                  style:
+                    top: "0.4"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'Medical School:'
+                      style:
+                        top: "0.002"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.medicalschool
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.175'
+                        width: "0.1"
+                        textAlign: 
+                          x: right            
+                - type: view
+                  style:
+                    top: "0.44"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'NPI:'
+                      style:
+                        top: "0.002"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.NPI
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.175'
+                        width: "0.1"
+                        textAlign: 
+                          x: right    
+                - type: view
+                  style:
+                    top: "0.48"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'License Number:'
+                      style:
+                        top: "0.002"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.licenseNumber
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.175'
+                        width: "0.1"
+                        textAlign: 
+                          x: right        
+                - type: view
+                  style:
+                    top: "0.52"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'DEA Number:'
+                      style:
+                        top: "0.002"
+                        height: '0.03'
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.DEA
+                      style: 
+                        top: '0'
+                        height: "0.03"
+                        left: '0.175'
+                        width: "0.1"
+                        textAlign: 
+                          x: right    
+                - type: view
+                  style:
+                    top: "0.56"
+                    fontSize: '14'
+                    left: '0.06'
+                    height: '0.03'
+                    width: '0.2'
+                  children:
+                    - type: label
+                      text: 'Board Certified'
+                      style:
+                        top: "0.006"
+                        height: '0.03'
+                    - type: image
+                      viewTag: boardCertifiedTag
+                      path:
+                        emit:
+                          actions:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: "Yes"
+                                      string2: =..providerDisplay.docResp.doc.0.name.data.boardCertified
+                                - MaterialCheck.png
+                                - MaterialNoCheck.png
+                      style:
+                        top: "0.01"
+                        left: "0.135"
+                        height: "0.025"
+                        width: "0.042"
+                    - type: label
+                      text: "Yes"
+                      style:
+                        top: "0.01"
+                        width: "0.04"
+                        left: "0.175"
+                        fontWeight: "400"
+                        fontSize: "18"
+                        textAlign:
+                          x: left
+                    - type: image
+                      viewTag: boardCertifiedTag
+                      path:
+                        emit:
+                          actions:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: "No"
+                                      string2: =..providerDisplay.docResp.doc.0.name.data.boardCertified
+                                - MaterialCheck.png
+                                - MaterialNoCheck.png
+                      style:
+                        top: "0.01"
+                        left: "0.225"
+                        height: "0.025"
+                        width: "0.04"
+                    - type: label
+                      text: "No"
+                      style:
+                        top: "0.01"
+                        width: "0.04"
+                        left: "0.265"
+                        fontWeight: "400"
+                        fontSize: "18"
+                        textAlign:
+                          x: left                        
+                - type: label
+                  text: About
+                  style:
+                    fontSize: '16'
+                    left: '0.04'
+                    top: '0.61'
+                    color: '#7f7f7f'
+                - type: view
+                  style:
+                    left: '0.06'
+                    top: '0.66'
+                    border:
+                      style: 3
+                    borderColor: '#AFC6D6'
+                    width: '0.28'
+                    height: '0.16'
+                    fontWeight: '500'
+                  children: 
+                    - type: label
+                      dataKey: providerDisplay.docResp.doc.0.name.data.about
+                      # text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc a risus arcu. Quisque faucibus accumsan nisi nec tempor. Maecenas et felis justo. Nunc justo purus, lacinia eu neque vitae, varius pharetra risus. Sed semper feugiat est, non laoreet metus pharetra in. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nam ac nibh ex.'
+                      style:
+                        left: '0.01'
+                        fontSize: '12'
+                        top: '0.005'
+            - .BottomButton:
+              text: 'Done'
+              style:
+                left: '0.28'
+                top: '0.92'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                    - =.Global.jwt.edgeAPI.store: ""
+                - actionType: evalObject
+                  object:
+                    - =..invite.edgeAPI.store: ""
+                - actionType: evalObject
+                  object:
+                    - ..providerDisplay.docResp.doc.0.name.data.DEA@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.NPI@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.email@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.firstName@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.gender@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.inviteeName@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.inviteePhoneNumbe@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.lastName@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.licenseNumber@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.medicalschool@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.middleName@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.specialty@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.state@: ""
+                    - ..formData.phoneNumber@: ""
+                    - ..providerDisplay.docResp.doc.0.name.data.about@: ""
+                - actionType: evalObject
+                  object:
+                    - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+                    - =.Global.jwt.edgeAPI.store: ""
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: AddProvider 
+                - actionType: popUpDismiss
+                  popUpView: Confirm        
+                - actionType: popUp
+                  popUpView: success                            
+
+    

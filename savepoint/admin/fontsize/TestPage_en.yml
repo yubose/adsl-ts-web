@@ -1,0 +1,257 @@
+TestPage:
+  pageNumber: "0"
+  init:
+    - .SignInCheck
+  viewPort: top
+  color: "red"
+  components:
+    - .SideMenuBar:
+      children:
+        - .aitLogo:
+        - .MenuBar:
+    - .TopBar:
+    - .BodyView:
+      style:
+        height: "0.5"
+      children:
+        - type: view
+          onClick:
+            - actionType: popUp
+              popUpView: AddPatient
+          style:
+            width: '0.11'
+            left: '0.68'
+            height: '0.05'
+            top:  '0.015'
+            backgroundColor: '#005795'
+            borderRadius: "5"
+            color: '#FFFFFF'
+          children:
+            - .Label1:
+              text: 'Add New Patient'
+              style: 
+                fontSize: '13'
+                top: '0.01'
+                left: '0.025'
+            - type: image
+              path: addwhite.png
+              style:
+                top: '0.01'
+                left: '0.005'
+        - .PageTitle:
+        - .ContentView:
+          children: 
+    - .BasePopUp:
+      viewTag: AddPatient
+      children:
+        - .PopUphead:
+          children:
+            - .CreateLabel:
+            - .Closebutton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: AddPatient
+        - type: view
+          style:
+            height: '0.91'
+            width: '0.4'
+            top: '0.08'
+          children:
+            - type: view
+              style:
+                top: "0"
+                left: "0"
+                width: "0.4"
+                height: "0.4"
+              children:
+                - type: label
+                  text: Basic Info
+                  style:
+                    top: "0.05"
+                    left: "0.05"
+                    fontSize: "22"
+                    color: "#7f7f7f"
+                    fontFamily: Poppins
+                - type: view
+                  style:
+                    top: "0.12"
+                    left: "0.07"
+                  children:
+                    - type: label
+                      text: First Name
+                      style: 
+                        width: "0.1"
+                        top: "0"
+                        left: "0"
+                        fontSize: "14"
+                        fontFamily: Poppins
+                    - type: textField
+                      style:
+                        top: "0"
+                        left: "0.1"
+                        width: "0.15"
+                        height: "0.03"
+                        border:
+                          style: "5"
+                        backgroundColor: "#f4f8fa"
+                - type: view
+                  style:
+                    top: "0.18"
+                    left: "0.07"
+                  children:
+                    - type: label
+                      text: Middle Name
+                      style: 
+                        width: "0.1"
+                        top: "0"
+                        left: "0"
+                        fontSize: "14"
+                        fontFamily: Poppins
+                    - type: textField
+                      style:
+                        top: "0"
+                        left: "0.1"
+                        width: "0.15"
+                        height: "0.03"
+                        border:
+                          style: "5"
+                        backgroundColor: "#f4f8fa"    
+                - type: view
+                  style:
+                    top: "0.24"
+                    left: "0.07"
+                  children:
+                    - type: label
+                      text: Last Name
+                      style: 
+                        width: "0.1"
+                        top: "0"
+                        left: "0"
+                        fontSize: "14"
+                        fontFamily: Poppins
+                    - type: textField
+                      style:
+                        top: "0"
+                        left: "0.1"
+                        width: "0.15"
+                        height: "0.03"
+                        border:
+                          style: "5"
+                        backgroundColor: "#f4f8fa" 
+                - type: view
+                  style:
+                    top: "0.3"
+                    left: "0.07"
+                  children:
+                    - type: label
+                      text: Gender
+                      style: 
+                        width: "0.1"
+                        top: "0"
+                        left: "0"
+                        fontSize: "14"
+                        fontFamily: Poppins
+                    - type: textField
+                      style:
+                        top: "0"
+                        left: "0.1"
+                        width: "0.15"
+                        height: "0.03"
+                        border:
+                          style: "5"
+                        backgroundColor: "#f4f8fa" 
+                - type: view
+                  style:
+                    top: "0.36"
+                    left: "0.07"
+                  children:
+                    - type: label
+                      text: Phone Number
+                      style: 
+                        width: "0.1"
+                        top: "0"
+                        left: "0"
+                        fontSize: "14"
+                        fontFamily: Poppins
+                    - type: textField
+                      style:
+                        top: "0"
+                        left: "0.1"
+                        width: "0.15"
+                        height: "0.03"
+                        border:
+                          style: "5"
+                        backgroundColor: "#f4f8fa" 
+                - type: view
+                  style:
+                    top: "0.42"
+                    left: "0.07"
+                  children:
+                    - type: label
+                      text: Email
+                      style: 
+                        width: "0.1"
+                        top: "0"
+                        left: "0"
+                        fontSize: "14"
+                        fontFamily: Poppins
+                    - type: textField
+                      style:
+                        top: "0"
+                        left: "0.1"
+                        width: "0.15"
+                        height: "0.03"
+                        border:
+                          style: "5"
+                        backgroundColor: "#f4f8fa" 
+            - type: label
+              text: Vitals Signs
+              style:
+                top: "0.5"
+                left: "0.05"
+                fontSize: "22"
+                color: "#7f7f7f"
+                fontFamily: Poppins
+            - .BaseList:
+              listObject: ..vitalSigns
+              style:
+                top: "0.55"
+                width: "0.4" 
+                height: "0.5"
+              children:
+                - .BaseListItem:
+                  style:
+                    width: "0.4" 
+                  children:
+                    - type: label
+                      dataKey: itemObject.value
+                      style: 
+                        width: "0.2"
+                        top: "0"
+                        left: "0.07"
+                        fontSize: "14"
+                        fontFamily: Poppins
+                    - type: textField
+                      placeholder: "Enter Here"
+                      style:
+                        top: "0"
+                        left: "0.2"
+                        width: "0.1"
+                        height: "0.03"
+                        border:
+                          style: "5"
+                        backgroundColor: "#f4f8fa" 
+                        textAlign:
+                          x: center
+            - .BottomButton:
+              text: 'Next'
+              style:
+                left: '0.28'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: popUp
+                  popUpView: Next1
+                - actionType: popUpDismiss
+                  popUpView: AddPatient

@@ -1,0 +1,106 @@
+ViewMedicalRecord: 
+  pageNumber: "1490"
+  init: 
+    - .ViewMedicalRecord.dataObject@: .Global.formData.medicalRecords
+    - actionType: evalObject
+      object:
+        =.builtIn.utils.prepareDoc:
+          dataIn:
+            doc: =..dataObject
+          dataOut: ViewMedicalRecord.dataObject
+  dataObject: ""
+  components: 
+    - .SideMenuBar:
+      children:
+        - .aitLogo:
+        - .MenuBar:
+    - .TopBar:
+    - .BodyView:
+      children:
+        - type: view
+          style:
+            left: "0.04"
+            width: "0.76"
+            top: "0.02"
+            height: "0.9"
+            boxShadow: "#dededf 0px 0px 10px"
+            backgroundColor: "0xffffff"
+          children: 
+            - type: view
+              style: 
+                left: "0"
+                width: "0.14"
+                top: "0.07"
+                height: "0.3"
+              children: 
+                - type: label
+                  text: ""
+                  dataKey: dataObject.name.title
+                  style: 
+                    left: "0.04"
+                    width: "0.1"
+                    fontSize: "2.5vh"
+                    height: "0.04"
+                    top: "0"
+                    textAlign: 
+                      x: left
+                    # fontWeight: "500"
+                    fontFamily: "sans-serif"
+                - type: label
+                  text=func: .builtIn.string.formatUnixtime_en
+                  dataKey: dataObject.ctime
+                  style: 
+                    left: "0.04"
+                    width: "0.1"
+                    fontSize: "1.6vh"
+                    top: "0.04"
+                    textAlign: 
+                      x: left
+                    # fontWeight: "500"
+                    fontFamily: "sans-serif"
+                - type: label
+                  text=func: .builtIn.string.formatDurationInSecond
+                  dataKey: dataObject.tage
+                  style: 
+                    left: "0.04"
+                    width: "0.1"
+                    fontSize: "1.6vh"
+                    top: "0.07"
+                    textAlign: 
+                      x: left
+                    # fontWeight: "500"
+                    fontFamily: "sans-serif"
+            - type: view
+              style: 
+                left: "0.14"
+                width: "0.48"
+                top: "0.02"
+                height: "0.88"
+              children: 
+                - type: image
+                  path: ..dataObject.name.data
+                  style: 
+                    left: "0"
+                    width: "0.48"
+                    top: "0"
+            - type: button
+              text: Done
+              onClick: 
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true 
+              style: 
+                left: "0.64"
+                width: "0.1"
+                top: "0.04"
+                height: "0.05"
+                backgroundColor: "#005795"
+                color: "0xffffff"
+                fontSize: "1.7vh"
+                border:   
+                  style: "5"
+                borderRadius: "5"
+                
+
+
+

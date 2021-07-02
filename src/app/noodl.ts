@@ -3,7 +3,7 @@ import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
 
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'testpage'
+export const CONFIG_KEY = 'meet4d'
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
 
@@ -35,7 +35,7 @@ let noodl: NOODL | undefined
 
 const dbConfig = {
   locateFile: (filename) => {
-    return `./${filename}`
+    return `https://cdn.jsdelivr.net/npm/sql-wasm@1.1.4/dist/cjs/sql-wasm.min.js`
   },
 }
 
@@ -50,7 +50,7 @@ export function resetInstance() {
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: CONFIG_URL,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
-    dbConfig,
+    // dbConfig,
   })
   return noodl
 }
