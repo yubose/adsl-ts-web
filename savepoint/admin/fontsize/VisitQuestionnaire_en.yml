@@ -1,0 +1,385 @@
+VisitQuestionnaire:
+  pageNumber: "160"
+  title: "Visit Questionnaire"
+  init:
+    - .SignInCheck
+    - ..visitQuestionnaire.docAPI.get
+    - actionType: evalObject
+      object:
+        .VisitQuestionnaire.visitQuestionnaireObject.document@: =..docResponse.doc.0
+  visitQuestionnaireTemp:
+    Visit:
+      input1:
+        - key: purpose
+          value: "What is the purpose of your visit?"
+        - key: anythingElse
+          value: "Is there anything else you would like to talk about?"
+      radio:
+        - key: prescribed
+          value: "Taking medication"
+    isPrescribed:
+      - key: isPrescribed
+        value: 'Yes'
+      - key: isPrescribed
+        value: 'Sometimes'
+      - key: isPrescribed
+        value: 'No'
+    isProblems:
+      - key: isProblems
+        value: "Yes"
+      - key: isProblems
+        value: "Sometimes"
+      - key: isProblems
+        value: "No" 
+    isToEmergency:
+      - key: isToEmergency
+        value: "Yes"
+      - key: isToEmergency
+        value: "No"
+    isFamilyHistoryChanges:
+      - key: isFamilyHistoryChanges
+        value: "Yes"
+      - key: isFamilyHistoryChanges
+        value: "No"
+    isNewDrug:
+      - key: isNewDrug
+        value: "Yes"
+      - key: isNewDrug
+        value: "No"
+  visitQuestionnaireObject:
+    document:
+      type: .DocType.VitalQuestionnaire
+      eid: .Global.formData.patientHistoryInfo.id
+      name:
+        type: "application/json"
+        data:
+          purpose: ""
+          anythingElse: ""
+          isPrescribed: "Yes"
+          isProblems: "Yes"
+          problems: ""
+          isToEmergency: "No"
+          toEmergency: ""
+          isFamilyHistoryChanges: "No"
+          familyHistoryChanges: ""
+          isNewDrug: "No"
+          newDrug: ""
+          notes: ""
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataKey: visitQuestionnaireObject.document
+        subtype:
+          mediaType: "application/json"
+  visitQuestionnaire:
+    # document:    
+    docAPI:
+      .DocAPI: ""
+      get:
+        dataKey:  docResponse
+        id: .Global.formData.patientHistoryInfo.id
+        xfname: eid
+        type: .DocType.VitalQuestionnaire
+        _nonce: =.Global._nonce
+  # subvisitQuestionnaire:
+
+  docResponse: 
+    # doc:
+    #   - type: .DocType.VitalQuestionnaire # - type: "257" # private profile
+    #     ovid: .Global.formData.patientHistoryId
+    #     name: ""
+    # error: ""
+    # jwt: ""
+  components:
+    - type: scrollView
+      style:
+        top: "0"
+        width: "1"
+        height: "1.45"
+        left: "0"
+        overflow: scroll
+      children:
+        - type: label
+          text: Visit Questionnaire
+          style: 
+            left: "0.1"
+            width: "0.5"
+            top: "0.05"
+            height: "0.03"
+            color: "0x000000"
+            fontFamily: "Poppins"
+            fontWeight: "600"
+            fontSize: "22"
+            textAlign: 
+              x: left
+        - type: label
+          text: "Please update information if appplicable or requested" 
+          style:
+            color: "0x00000066"
+            left: "0.08"
+            width: "1"
+            fontSize: "16"
+            top: "0.13"
+            height: "0.04" 
+            textAlign: 
+              x: left
+        - type: view
+          style:
+            top: "0.2"
+            width: "1"
+            height: "0.8"
+            left: "0"
+          children:
+            - .Profile2Title:
+              text: "Today's Visit"
+              style:
+                fontStyle: "bold"
+                top: "0"
+                left: "0.1"
+                width: "0.9"
+            - .Profile2View: 
+              children: 
+                - type: label
+                  text: "What is the purpose of your visit?"
+                  style:
+                    fontSize: "14"
+                - .Profile2TextView:
+                  placeholder: "Ex: Follow-up,wirst pain,lab results,physical,etc"
+                  dataKey: visitQuestionnaireObject.document.name.data.purpose
+            - .Profile2View: 
+              style: 
+                top: "0.27"
+              children: 
+                - type: label
+                  text: "Is there anything else you would like to talk about?"
+                - .Profile2TextView: 
+                  placeholder: "Ex: medication refill,fill out from,screening,advice"
+                  dataKey: visitQuestionnaireObject.document.name.data.anythingElse
+            - .Profile2View: 
+              style: 
+                top: "0.47"
+                height: "0.05"
+              children:
+                - type: label
+                  text: "Taking medications as prescribed?"
+                  style:
+                    top: "0"
+                    left: "0" 
+                    width: "0.41"
+                    fontSize: "14"
+                    # backgroundColor: "0xcdcdcd"
+                - type: view
+                  style: 
+                    left: "0.62"
+                    width: "0.18"
+                    height: "0.03"
+                    top: "0"
+                  children:
+                    - type: label
+                      dataKey: visitQuestionnaireObject.document.name.data.isPrescribed
+                      style: 
+                        left: "0.05"
+                        width: "0.11"
+                        height: "0.03"
+                        fontSize: "14"
+                        top: "0"
+                        textAlign: 
+                          x: right
+            - .Profile2View: 
+              style: 
+                top: "0.55"
+                height: "0.05"
+              children:
+                - type: label
+                  text: Any problems with your medications?
+                  style:
+                    top: "0"
+                    left: "0" 
+                    width: "0.45"
+                    fontSize: "14"
+                    # backgroundColor: "0xcdcdcd"
+                - type: view
+                  style: 
+                    left: "0.62"
+                    width: "0.18"
+                    height: "0.03"
+                    top: "0"
+                  children:
+                    - type: label
+                      dataKey: visitQuestionnaireObject.document.name.data.isProblems
+                      style: 
+                        left: "0.05"
+                        width: "0.11"
+                        height: "0.03"
+                        fontSize: "14"
+                        top: "0"
+                        textAlign: 
+                          x: right
+                - .Profile2TextView:
+                  placeholder: "Please explain here"
+                  dataKey: visitQuestionnaireObject.document.name.data.problems
+        - type: view
+          style:
+            top: "0.95"
+            width: "1"
+            height: "0.6"
+            left: "0"
+            # backgroundColor: "0x000000"
+          children:
+            - .Profile2Title:
+              text: "Update information"
+              style:
+                fontStyle: "bold"
+                top: "0"
+                left: "0.1"
+                width: "0.9"
+            - type: view
+              style:
+                top: "0.08"
+                width: "1"
+                left: "0"
+                # backgroundColor: "0xcdcdcd"
+              children:
+                - type: label
+                  text: "Have you been to the emergency room,hospital,or another doctor since your last visit?"
+                  style:
+                    top: "0"
+                    width: "0.83"
+                    left: "0.1" 
+                    fontSize: "14"
+                - type: view
+                  style: 
+                    left: "0.72"
+                    width: "0.18"
+                    height: "0.03"
+                    top: "0.034"
+                  children:
+                    - type: label
+                      dataKey: visitQuestionnaireObject.document.name.data.isToEmergency
+                      style: 
+                        left: "0.05"
+                        width: "0.11"
+                        height: "0.03"
+                        fontSize: "14"
+                        top: "0"
+                        textAlign: 
+                          x: right
+                - .Profile2TextView:
+                  placeholder: "Please explain here"
+                  dataKey: visitQuestionnaireObject.document.name.data.toEmergency
+                  style: 
+                    left: "0.1"
+                    top: "0.08"
+            - type: view
+              style:
+                top: "0.32"
+                width: "1"
+                left: "0"
+                height: "0.2"
+              children:
+                - type: label
+                  text: "Any changes or new conditions in your family history?"
+                  style:
+                    top: "0"
+                    width: "0.64"
+                    left: "0.1" 
+                    fontSize: "14"
+                    height: "0.05"
+                - type: view
+                  style: 
+                    left: "0.72"
+                    width: "0.18"
+                    height: "0.03"
+                    top: "0"
+                  children:
+                    - type: label
+                      dataKey: visitQuestionnaireObject.document.name.data.isFamilyHistoryChanges
+                      style: 
+                        left: "0.05"
+                        width: "0.11"
+                        height: "0.03"
+                        fontSize: "14"
+                        top: "0"
+                        textAlign: 
+                          x: right
+                - .Profile2TextView:
+                  placeholder: "Please explain here"
+                  dataKey: visitQuestionnaireObject.document.name.data.familyHistoryChanges
+                  style:
+                    left: "0.1"
+                    top: "0.06"
+            - .Profile2View: 
+              style: 
+                top: "0.53"
+              children:
+                - type: label
+                  text: "Any new drug or environmental allergies?"
+                  style:
+                    top: "0"
+                    width: "0.6"
+                    
+                    left: "0" 
+                    fontSize: "14"
+                    textAlign: 
+                      x: left
+                - type: view
+                  style: 
+                    left: "0.62"
+                    width: "0.18"
+                    height: "0.03"
+                    top: "0"
+                  children:
+                    - type: label
+                      dataKey: visitQuestionnaireObject.document.name.data.isNewDrug
+                      style: 
+                        left: "0.05"
+                        width: "0.11"
+                        height: "0.03"
+                        fontSize: "14"
+                        top: "0"
+                        textAlign: 
+                          x: right
+                - .Profile2TextView:
+                  style: 
+                    top: "0.07"
+                  placeholder: "Please explain here"
+                  dataKey: visitQuestionnaireObject.document.name.data.newDrug
+                - type: label
+                  text: "Other notes?"
+                  style:
+                    top: "0.22"
+                    width: "0.8"
+                    
+                    fontSize: "14"
+                - .Profile2TextView:
+                  placeholder: "Please explain here"
+                  dataKey: visitQuestionnaireObject.document.name.data.notes
+                  style:
+                    top: "0.27"
+            - type: view
+              style: 
+                left: "0"
+                width: "1"
+                top: "0.95"
+                height: "0.1"
+              children:
+                - type: button
+                  text: Update
+                  style: 
+                    left: "0.4"
+                    width: "0.2"
+                    top: "0"
+                    height: "0.07"
+                    color: "0xffffff"
+                    fontFamily: "Poppins"
+                    fontWeight: "500"
+                    backgroundColor: "0x005795"
+                    fontSize: "18"
+                    border: 
+                      style: "1"
+                    borderRadius: "5"
+                    textAlign: 
+                      x: center
+
+

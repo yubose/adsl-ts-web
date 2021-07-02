@@ -1,0 +1,227 @@
+MenuBar:
+  init:
+    - .SignInCheck
+  type: view
+  style:
+    top: "0"
+    width: "0.16"
+    height: "0.7"
+    left: "0"
+  children:
+    - type: list  
+      contentType: listObject
+      listObject: .Global.menuBar.listData
+      iteratorVar: itemObject
+      style: 
+        width: "0.16"
+        height: "0.7"
+        left: "0"
+        top: "0.12"
+      children:
+        - type: listItem
+          itemObject: ""
+          style: 
+            left: "0"
+            marginTop: "0"
+            width: "0.16"
+            border: "none"
+            borderBottom: "1.5px solid #326182"
+            borderColor: "#326182"
+            height: "0.06"
+            backgroundColor: itemObject.backgroundColor
+            display: "inline-block"
+          onClick:
+            - actionType: evalObject
+              object:
+                .Global.menuBar.listData@: ""
+            - emit:
+                dataKey:
+                  var: itemObject
+                actions:
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Dashboard'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.Dashboard
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Account & Billing'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.MyPackage
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Analytics'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.Analytics
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Inbox'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.Inbox
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Settings'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.Settings
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Schedule Management'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.ScheduleManagement
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'User Management'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.StaffManagement
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Staff'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.Staff
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Provider'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.Provider
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Account Management'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.AccountManagement
+                    - continue
+                  - if:
+                    - =.builtIn.string.equal:
+                        dataIn:
+                          string1: $var.title
+                          string2: 'Patient'
+                    - .Global.menuBar.listData@: =.SideMenuBarDM.Patient
+                    - continue
+                  - if:
+                    - true
+                    - goto: $var.pageName
+                    - goto: $var.pageName
+          children:
+            - type: image
+              path: 
+                emit:
+                  dataKey:
+                    var: itemObject
+                  actions:
+                    - if:
+                      - true
+                      - $var.logoPath
+                      - $var.logoPath
+              style:
+                height: "0.02"
+                top: '0.02'
+                left: '0.02'
+            - type: label
+              dataKey: itemObject.title
+              style:
+                width: "0.1"
+                height: "0.06"
+                top: "0"
+                left: "0.05"
+                color: "0xffffff"
+                fontSize: .Nfont.h1
+                backgroundColor: itemObject.backgroundColor
+                textAlign:
+                  y: center
+            - type: image
+              path:
+                emit:
+                  dataKey:
+                    var: itemObject
+                  actions:
+                    - if:
+                      - true
+                      - $var.iconPath
+                      - $var.iconPath
+              style:
+                height: "0.02"
+                top: "0.02"
+                left: "0.14"
+                zIndex: '100'
+    - type: view
+      style: 
+        top: "0.86"
+        height: "0.13"
+        width: "0.16"
+        left: "0"
+      children:
+        - type: label
+          text: "Last sign on: "
+          style: 
+            fontSize: .Nfont.h1
+            fontWeight: "4500"
+            left: "0.044"
+            top: "0.007"
+            width: "0.2"
+            height: "0.03"  
+            color: "#FFFFFFFF"   
+        - type: label
+          # text: "October 20,2020 at 12:43 PM"
+          text=func: =.builtIn.string.formatUnixtime_en
+          dataKey: Global.currentFacility.atime
+          style: 
+            fontSize: .Nfont.h1
+            fontWeight: "4500"
+            top: "0.035"
+            left: "0.018"
+            width: "0.16"
+            height: "0.03"  
+            color: "#FFFFFFFF"
+        - type: view
+          style: 
+            top: "0.07"
+            height: "0.001"
+            width: "0.16"
+            left: "0"
+            backgroundColor: "#326182" 
+        - type: view
+          onClick:
+            - goto: LogOut
+            # - actionType: popUp
+            #   popUpView: logOutView
+          style: 
+            left: "0"
+            width: "0.16" 
+            top: "0.07" 
+            height: "0.045"     
+          children:
+            - type: label
+              text: "Log out"
+              style: 
+                fontSize: .Nfont.h2
+                fontWeight: "4500"
+                top: "0.02"
+                left: "0.046"
+                width: "0.11"
+                height: "0.025"  
+                color: "#FFFFFFFF"  
+            - type: image
+              path: "logout.png"
+              style: 
+                width: "0.02"
+                top: "0.02"
+                left: "0.024"
+                height: "0.025"      

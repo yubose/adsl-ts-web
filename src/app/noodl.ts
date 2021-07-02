@@ -35,7 +35,7 @@ let noodl: NOODL | undefined
 
 const dbConfig = {
   locateFile: (filename) => {
-    return `./${filename}`
+    return `https://cdn.jsdelivr.net/npm/sql-wasm@1.1.4/dist/cjs/sql-wasm.min.js`
   },
 }
 
@@ -50,7 +50,7 @@ export function resetInstance() {
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: CONFIG_URL,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
-    dbConfig,
+    // dbConfig,
   })
   return noodl
 }

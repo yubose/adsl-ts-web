@@ -26,7 +26,7 @@ const resolveStyles = new ComponentResolver('resolveStyles')
 
 resolveStyles.setResolver(
   (component: NUIComponent.Instance, options: ConsumerOptions, next) => {
-    const { context, getBaseStyles, viewport,getRoot,page } = options
+    const { context, getBaseStyles, viewport, getRoot, page } = options
     const edit = createStyleEditor(component)
 
     const originalStyles = component.blueprint?.style || {}
@@ -312,15 +312,15 @@ resolveStyles.setResolver(
     // HANDLING ARTBITRARY STYLES
     u.eachEntries(originalStyles, (styleKey, value) => {
       if (u.isStr(value)) {
-
         //handing style by path
         // help for redraw style
-        if(Identify.reference(value)){
-          if (value.startsWith('..')) {
+        if (Identify.reference(value)) {
+          // TODO - Investigate the issue on why value is crashing without the "isStr" check below when it is already checked above
+          if (u.isStr(value) && value.startsWith?.('..')) {
             // Local
             value = value.substring(2)
-            value = get(getRoot()[page.page], value)
-          } else if (value.startsWith('.')) {
+            value = get(getRoot()[page?.page || ''], value)
+          } else if (u.isStr(value) && value.startsWith?.('.')) {
             // Root
             value = value.substring(1)
             value = get(getRoot(), value)
@@ -328,10 +328,10 @@ resolveStyles.setResolver(
           edit({ [styleKey]: com.formatColor(value) })
         }
 
-
         if (
           styleKey === 'textColor' ||
-          value.startsWith('0x') ||
+          // TODO - Investigate the issue on why value is crashing without the "isStr" check below when it is already checked above
+          (u.isStr(value) && value.startsWith('0x')) ||
           (iteratorVar && value.startsWith(iteratorVar))
         ) {
           /* -------------------------------------------------------
@@ -343,8 +343,9 @@ resolveStyles.setResolver(
               { remove: 'textColor' },
             )
           } else {
+            // TODO - Investigate the issue on why value is crashing without the "isStr" check below when it is already checked above
             // Convert other keys if they aren't formatted as well just in case
-            if (value.startsWith('0x'))
+            if (u.isStr(value) && value.startsWith('0x'))
               edit({ [styleKey]: com.formatColor(value) })
             // Some list item consumers have data keys referencing color data values
             // They are in the 0x0000000 form so we must convert them to be DOM compatible

@@ -1,0 +1,516 @@
+SelectOrganization: #xd page number 7
+  pageNumber: "70"
+  init:
+    - .SignInCheck
+    - .Global.formData.firstLogin@: true
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: updateObject
+      dataKey: Global.currentFacility
+      dataObject: ""
+    - .Global.jwt.edge.bvid@: =.Global.currentUser.vertex.id
+    - actionType: evalObject
+      object:
+        - =.Global.jwt.edgeAPI.store: ""
+    - ..listData.get
+    # - ..auth.edgeAPI.get
+    - if:
+        - =..listData.organization.vertex.0
+        - continue
+        - =.builtIn.checkField:
+            dataIn:
+              contentType: messageHidden
+              wait: 100
+    - actionType: evalObject
+      object: 
+        - .Global.MedicalFacilityInfo@: ""
+    - actionType: evalObject
+      object: 
+        - .Global.DEAUrl@: ""
+    - actionType: evalObject
+      object: 
+        - .Global.MedicalLicenseUrl@: ""
+    - actionType: evalObject
+      object: 
+        - .Global.BusinessLogoUrl@: ""
+    - actionType: evalObject
+      object: 
+        - .Global.ProfileUrl@: ""
+    - actionType: updateObject
+      dataKey: Global.auth
+      dataObject: ""
+  formData:
+    status: false
+    auth:
+      MFI:
+        create: false
+        edit: false
+        review: false
+      TDT:
+        create: false
+        edit: false
+        review: false
+      staff:
+        create: false
+        edit: false
+        review: false
+      patient:
+        create: false
+        edit: false
+        review: false
+      provider:
+        create: false
+        edit: false
+        review: false
+      scheduleInfo:
+        create: false
+        edit: false
+        review: false
+      PAT:
+        create: false
+        edit: false
+        review: false
+  auth:
+    info: ""
+    document:
+      xfname: eid
+      id: ""
+      type: .DocType.Auth
+    docAPI:
+      get:
+        api: rd
+        dataIn: SelectOrganization.auth.document
+        dataOut: SelectOrganization.auth.info
+  relation:
+    edgeStore: ""
+    info: ""
+    edge:
+      xfname: bvid,evid
+      id: []
+      type: .EdgeType.StaffToFacility
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+      asc: false
+    edgeAPI: 
+      get:
+        api: re
+        dataIn: SelectOrganization.relation.edge
+        dataOut: SelectOrganization.relation.info
+  relation1:
+    edge: ""
+    edgeReq:
+      xfname: bvid,evid
+      id: []
+      type: 1100
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: SelectOrganization.relation1.edgeReq
+        dataOut: SelectOrganization.relation1.edge
+  listData:
+    organization:
+      vertex: ""
+    vertex: 
+      ObjType: "4"
+      ids: 
+        - .Global.currentUser.vertex.id
+      xfname: "E.bvid"
+      sCondition: "E.type in (1100,1200) AND V.type!=1"
+      maxcount : "100"
+      obfname : "ctime"
+      _nonce: =.Global._nonce
+    get:
+      api: rv
+      dataOut: listData.organization
+      dataIn: listData.vertex
+  medicalFacilityRootNoteBook:
+    response: ""
+    edge:
+      id: ""
+      type: 10000
+      xfname: "bvid"
+      sCondition: "subtype=1"
+      _nonce: =.Global._nonce
+    EdgeAPI:
+      get:
+        api: re
+        dataIn: SelectOrganization.medicalFacilityRootNoteBook.edge
+        dataOut: SelectOrganization.medicalFacilityRootNoteBook.response
+  medicalFacility:
+    response: ""
+    vertex: 
+      .Vertex: ""
+      id: ""
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: SelectOrganization.medicalFacility.vertex
+        dataOut: SelectOrganization.medicalFacility.response
+  FacilityJWT:
+    JWT: ""
+    edge:
+      .Edge: ""
+      type: .EdgeType.JWT
+      bvid: ""
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: SelectOrganization.FacilityJWT.edge
+        dataOut: SelectOrganization.FacilityJWT.JWT
+  components:
+    - .BaseCheckView: ""
+      message: "You have no authority to enter the facility"
+      viewTag: statusTag
+      style: 
+        zIndex: "100000"
+    - .MainView:
+      style: 
+        height: "1"
+      children:
+        - .Head0:
+        - .CenterView:
+          style:
+            width: "0.8"
+            left: "0.1"
+            height: "0.89"
+            top: "0.11"
+            backgroundColor: "#ffffff"
+          children:
+            - type: label
+              text: Select Organization
+              style:
+                fontSize: "21"
+                fontWeight: "700"
+                top: "0.065"
+                left: "0.05"
+                color: "black"
+            - type: label
+              text: Existing Organization
+              style:
+                fontSize: "19"
+                fontWeight: "400"
+                top: "0.12"
+                left: "0.1"    
+                color: "#517086"
+            - type: label
+              text: Create a new organization
+              style:
+                fontSize: "18"
+                fontWeight: "400"
+                top: "0.12"
+                left: "0.45"    
+                color: "#517086"   
+            - type: scrollView
+              style:
+                height: "0.63"
+                width: '0.42'
+                top: '0.16'
+                left: "0"
+                marginTop: '0'
+                overflowY: scroll
+                overflowX: hidden
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..listData.organization.vertex
+                  iteratorVar: itemObject
+                  style:
+                    width: '0.3'
+                    left: "0.1"
+                    height: auto
+                    margin: "0"
+                  children:
+                    - type: listItem
+                      itemObject: 
+                      onClick:
+                        - emit:
+                            dataKey: 
+                              var: itemObject
+                            actions:
+                              - .Global.currentFacility@: $var
+                              - ..medicalFacilityRootNoteBook.edge.id@: $var.id
+                              - .Global.currentId.facility@: $var.id
+                              - .Global.currentId.location@: $var.id
+                              - =..medicalFacilityRootNoteBook.EdgeAPI.get: ""
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - .Global.currentFacility.rootNotebookID@: =..medicalFacilityRootNoteBook.response.edge.0.id
+                            # - ..relation.edge.id@: =.Global.currentFacility.id
+                            - =.builtIn.array.add:
+                                dataIn:
+                                  object: =..relation.edge.id
+                                  value: =.Global.currentUser.vertex.id
+                            - =.builtIn.array.add:
+                                dataIn:
+                                  object: =..relation.edge.id
+                                  value: =.Global.currentFacility.id
+                            - =..relation.edgeAPI.get: ""
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - if:
+                              - =..relation.info.edge.0
+                              - .Global.auth@: =..relation.info.edge.0.name.auth
+                              - actionType: evalObject
+                                object:
+                                  # - ..relation1.edgeReq.id@: =.Global.currentFacility.id
+                                  - =.builtIn.array.add:
+                                      dataIn:
+                                        object: =..relation1.edgeReq.id
+                                        value: =.Global.currentUser.vertex.id
+                                  - =.builtIn.array.add:
+                                      dataIn:
+                                        object: =..relation1.edgeReq.id
+                                        value: =.Global.currentFacility.id
+                                  - =..relation1.edgeAPI.get: ""
+                            - if:
+                              - =..relation.info.edge.0
+                              - .Global.auth@: =..relation.edge.edge.0.name.auth
+                              - actionType: evalObject
+                                object:
+                                  - .Global.auth@: =..relation1.edge.edge.0.name.auth
+                            - .Global.facilityList@: =..listData.organization.vertex
+                            # - ..FacilityJWT.edge.bvid@: =.Global.currentFacility.id
+                            # - =..FacilityJWT.edgeAPI.store: ""
+                            # - .Global.JWT@: =..FacilityJWT.JWT.jwt
+                        - actionType: evalObject
+                          object:
+                            - if:
+                              - =..relation.info.edge.0
+                              - actionType: evalObject
+                                object:
+                                  - if: 
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..relation.info.edge.0.name.status
+                                          string2: Inactive
+                                    - ..formData.status@: false
+                                    - ..formData.status@: true
+                              - goto: Overview
+                            - if:
+                              - =..formData.status
+                              - goto: Overview
+                              - actionType: popUp
+                                popUpView: statusTag
+                        # - goto: Overview
+                      style:
+                        width: '0.3'
+                        height: '0.18'
+                        left: '0'
+                        marginTop: '0.02'
+                        border:  
+                          style: "3"
+                        borderColor: "#008080"
+                        borderWidth: "1"
+                        borderRadius: "5"
+                      children: 
+                        - type: label
+                          dataKey: itemObject.name.basicInfo.medicalFacilityName
+                          style:
+                            fontSize: "17"
+                            fontWeight: "500"
+                            top: "0.015"
+                            left: "0.012"    
+                            color: "0x0063a5"
+                        - type: image
+                          path: "office-building.png"
+                          style: 
+                            width: "0.03"
+                            top: "0.05"
+                            left: "0.11"
+                        - type: label
+                          text: "Registered Date:" 
+                          style:
+                            fontSize: "1.6vh"
+                            fontWeight: "400"
+                            top: "0.14"
+                            left: "0.012" 
+                            width: "0.077"   
+                            color: "#517086"  
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtime_en
+                          dataKey: itemObject.ctime
+                          style:
+                            fontSize: "1.6vh"
+                            fontWeight: "500"
+                            top: "0.14"
+                            left: "0.089"    
+                            color: "#517086"  
+                        - type: view  
+                          style:
+                            top: "0"
+                            width: "0.05"
+                            height: "0.18"
+                            left: "0.25"
+                            backgroundColor: "#008080"
+                            borderRadius: "5"
+                            boxShadow: "0px 0px 1px 1px #a6bbca" 
+                          children:
+                            - type: image
+                              path: "enter.png"
+                              style: 
+                                width: "0.03"
+                                top: "0.052"
+                                left: "0.01"
+                            - type: label
+                              text: Enter
+                              style:
+                                fontSize: "15"
+                                fontWeight: "500"
+                                top: "0.115"
+                                left: "0.015"
+                                color: "#FFFFFF"        
+                # - type: label
+                #   text: Medical Facility
+                #   style:
+                #     fontSize: "25"
+                #     fontWeight: "500"
+                #     top: "0.07"
+                #     left: "0.11"
+            - type: view
+              contentType: messageHidden
+              style:
+                top: "0.1"
+                left: "0"
+                isHidden: "true"
+                textAlign:
+                  x: center
+              children:
+                - type: label
+                  text: No existing Organization
+                  style:
+                    fontSize: "28"
+                    fontWeight: "800"
+                    top: "0.52"
+                    left: "0"
+                    width: "0.42"   
+                    color: "#0063A8"
+                - type: label
+                  text: Create a new Organization
+                  style:
+                    fontSize: "19"
+                    fontWeight: "400"
+                    top: "0.58"
+                    left: "0" 
+                    width: "0.42"   
+                    color: "#0063A8"
+                # - type: label
+                #   text: Create a new Organization
+                #   style:
+                #     fontSize: "18"
+                #     fontWeight: "400"
+                #     top: "0.12"
+                #     left: "0"    
+                #     color: "#517086"
+                - type: image
+                  path: "office-building.png"
+                  style:
+                    width: "0.15"
+                    left: "0.135"
+                    top: "0.16"
+            - .BigButton:
+              onClick:
+                - goto: MedicalFacility1
+              style:
+                boxShadow: "0px 0px 1px 1px #a6bbca"
+                top: "0.18"
+                height: "0.14"
+              children:
+                - type: image
+                  path: "add1.png"
+                  style: 
+                    width: "0.05"
+                    top: "0.028"
+                    left: "0.05"
+                - type: label
+                  text: Medical Facility
+                  style:
+                    fontSize: "25"
+                    fontWeight: "500"
+                    # top: "0.055"
+                    left: "0.11"
+                    textAlign:
+                      y: center
+            - .BigButton:
+              style:
+                boxShadow: "0px 0px 1px 1px #75d8af"
+                top: "0.36"
+                height: "0.14"
+              children:
+                - type: image
+                  path: "add2.png"
+                  style: 
+                    width: "0.055"
+                    top: "0.03"
+                    left: "0.0475"
+                - type: label
+                  text: Business
+                  style:
+                    fontSize: "25"
+                    fontWeight: "500"
+                    # top: "0.045"
+                    left: "0.11"
+                    textAlign:
+                      y: center
+            - .BigButton:
+              style:
+                boxShadow: "0px 0px 1px 1px #75d8af"
+                top: "0.54"
+                height: "0.14"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - .Global.currentFacility@: =.Global.currentUser.vertex
+                    - .Global.currentId.facility@: =.Global.currentUser.vertex.id
+                    - .Global.currentId.location@: =.Global.currentUser.vertex.id
+                    - .Global.currentFacility.rootNotebookID@: =.Global.rootNotebookID
+                    - =.builtIn.object.setAuthAllTrue:
+                        dataIn:
+                          object: =..formData.auth
+                        dataOut: Global.auth
+                - goto: Overview
+              children:
+                - type: image
+                  path: "add2.png"
+                  style: 
+                    width: "0.055"
+                    top: "0.03"
+                    left: "0.0475"
+                - type: label
+                  text: Work For Myself
+                  style:
+                    fontSize: "25"
+                    fontWeight: "500"
+                    # top: "0.045"
+                    textAlign:
+                      y: center
+                    left: "0.11"
+            # - .BigButton:
+            #   style:
+            #     boxShadow: "0px 0px 1px 1px #75d8af"
+            #     top: "0.72"
+            #     height: "0.14"
+            #   onClick:
+            #     - goto: Approve
+            #   children:
+            #     - type: image
+            #       path: "add2.png"
+            #       style: 
+            #         width: "0.055"
+            #         top: "0.03"
+            #         left: "0.05"
+            #     - type: label
+            #       text: Approve
+            #       style:
+            #         fontSize: "25"
+            #         fontWeight: "500"
+            #         top: "0.045"
+            #         left: "0.11"

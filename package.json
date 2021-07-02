@@ -61,7 +61,7 @@
     "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.292",
+    "@aitmed/cadl": "^1.0.294",
     "@aitmed/ecos-lvl2-sdk": "^1.4.154",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
@@ -104,6 +104,7 @@
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.0",
+    "execa": "^5.1.1",
     "express": "^4.17.1",
     "fs-extra": "^10.0.0",
     "globby": "^11.0.2",
