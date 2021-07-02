@@ -315,11 +315,12 @@ resolveStyles.setResolver(
         //handing style by path
         // help for redraw style
         if (Identify.reference(value)) {
-          if (value?.startsWith?.('..')) {
+          // TODO - Investigate the issue on why value is crashing without the "isStr" check below when it is already checked above
+          if (u.isStr(value) && value.startsWith?.('..')) {
             // Local
             value = value.substring(2)
             value = get(getRoot()[page?.page || ''], value)
-          } else if (value?.startsWith?.('.')) {
+          } else if (u.isStr(value) && value.startsWith?.('.')) {
             // Root
             value = value.substring(1)
             value = get(getRoot(), value)
@@ -329,7 +330,8 @@ resolveStyles.setResolver(
 
         if (
           styleKey === 'textColor' ||
-          value.startsWith('0x') ||
+          // TODO - Investigate the issue on why value is crashing without the "isStr" check below when it is already checked above
+          (u.isStr(value) && value.startsWith('0x')) ||
           (iteratorVar && value.startsWith(iteratorVar))
         ) {
           /* -------------------------------------------------------
@@ -341,8 +343,9 @@ resolveStyles.setResolver(
               { remove: 'textColor' },
             )
           } else {
+            // TODO - Investigate the issue on why value is crashing without the "isStr" check below when it is already checked above
             // Convert other keys if they aren't formatted as well just in case
-            if (value.startsWith('0x'))
+            if (u.isStr(value) && value.startsWith('0x'))
               edit({ [styleKey]: com.formatColor(value) })
             // Some list item consumers have data keys referencing color data values
             // They are in the 0x0000000 form so we must convert them to be DOM compatible
