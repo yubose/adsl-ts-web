@@ -28,6 +28,7 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
+import { BackgroundColor } from 'chalk'
 
 const log = Logger.create('dom.ts')
 
@@ -462,6 +463,12 @@ const createExtendedDOMResolvers = function (app: App) {
             node?.addEventListener("mouseout",function(e){
               u.eachEntries(component?.original?.hover,(key:any,value)=>{
                 let realvalue = component.style[key]
+                if(typeof realvalue == 'undefined' && key == 'backgroundColor'){
+                  realvalue = "#ffffff"
+                }
+                if(typeof realvalue == 'undefined' && key == 'fontColor'){
+                  realvalue = "#000000"
+                }
                 node.style[key] = realvalue
               })
             })
