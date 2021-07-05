@@ -1,0 +1,288 @@
+PatientHistory: 
+  title: "PatientHistory"
+  init: 
+    - ..everypatientInfo.edgeAPI.get
+    - ..listData.get
+    # - ..avatar.docAPI.get
+    # - actionType: evalObject
+    #   object:
+    #     - ..avatar.showdocument@: =..avatar.docRes.doc.0
+    # - actionType: evalObject
+    #   object: 
+    #     - =.builtIn.utils.prepareDoc:
+    #         dataIn:
+    #           doc: =..avatar.showdocument
+    #         dataOut: PatientHistory.avatar.showdocument
+    # - actionType: evalObject
+    #   object: 
+    #     - ..avatar.url@: =..avatar.showdocument.name.data
+  listData: 
+    WaitingInRoom:
+      edge: "" 
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataKey: listData.WaitingInRoom
+      type: .EdgeType.WaitingRoom
+      id: .Global.formData.patientHistoryId
+      sCondition: "tage!=0 AND subtype in (6,100)"
+      xfname: "bvid | evid"
+      obfname : "mtime" 
+      maxcount: "20"
+      _nonce: .Global._nonce
+
+  everypatientInfo: 
+    list: ""
+      # type: .EdgeType.Accept
+    edge:
+      type: .EdgeType.Accept
+      xfname: bvid
+      maxcount: "1"
+      id: =.Global.formData.patientHistoryId
+      obfname: ctime
+      # sCondition: name like '%"inviteeCategory":"Patient"%'
+      dataKey: everypatientInfo.list
+      _nonce: =.Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        _nonce: =.Global._nonce
+        dataIn: everypatientInfo.edge
+        dataOut: everypatientInfo.list
+
+  jwt:
+    edge:
+      .Edge: ""
+      type: 1030
+      id: .Global.formData.patientHistoryId
+      xfname: "bvid"
+    edgeAPI:
+      store:
+        api: ce
+        dataIn: jwt.edge
+
+  docResponse: 
+    doc:
+      - type: .DocType.Profile # - type: "257" # private profile
+        ovid: .Global.formData.patientHistoryId
+        name: ""
+    error: ""
+    jwt: ""  
+  avatar:
+    url: ava.png
+    showdocument: ""
+    docRes: ""
+    docAPI: 
+      get:
+        .DocAPI.get: "" 
+        api: rd
+        id: .Global.formData.patientHistoryId
+        xfname: ovid
+        type: .DocType.UserAvatar
+        dataKey: avatar.docRes
+        maxcount: "1"
+        obfname: "mtime"
+  components:
+    - .SideMenuBar:
+      children:
+        - .aitLogo:
+        - .MenuBar:
+    - .TopBar:
+    - .BodyView:
+      children:
+        - type: view
+          style: 
+            left: "0.05"
+            width: "0.73"
+            height: "0.2"
+            top: "0.05"
+            border:   
+              style: "5"
+            borderRadius: "5"
+            boxShadow: "#dededf 0px 0px 10px"
+            backgroundColor: "0xffffff"
+          children: 
+            - type: label
+              text: Profile
+              style: 
+                left: '0.015'
+                top: "0.01"
+                width: "0.12"
+                height: "0.035"
+                fontSize: "2.2vh"
+                color: "#517086"
+            - type: image
+              path: 
+                emit:
+                  actions:
+                    - if:
+                      - =..avatar.showdocument.name.data
+                      - ..avatar.url
+                      - ava.png  
+              style: 
+                left: "0.02"
+                width: "0.075"
+                top: "0.05"
+            - type: view
+              style: 
+                left: "0.13"
+                width: "0.3"
+                height: "0.15"
+                top: "0.025"
+                # backgroundColor: "0xffffff"
+              children: 
+                - .PatientHistoryText: 
+                  dataKey: everypatientInfo.list.edge.0.name.inviteeName
+                - .PatientHistoryText: 
+                  dataKey: everypatientInfo.list.edge.0.name.gender
+                  style: 
+                    top: "0.0375"
+                - .PatientHistoryText: 
+                  dataKey: everypatientInfo.list.edge.0.name.inviteePhoneNumber
+                  style: 
+                    top: "0.075"
+                - .PatientHistoryText: 
+                  dataKey: everypatientInfo.list.edge.0.name.email
+                  style: 
+                    top: "0.11"
+            - type: button
+              text: Done
+              onClick: 
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+              style: 
+                left: "0.62"
+                top: "0.05"
+                width: "0.09" 
+                height: "0.05" 
+                backgroundColor: "0x005795"
+                color: "0xffffff"
+                fontSize: "1.8vh"
+                border: 
+                  style: '5'
+                borderRadius: "5"
+        - type: view
+          style: 
+            left: "0.05"
+            width: "0.73"
+            height: "0.6"
+            top: "0.28"
+            border:   
+              style: "5"
+            borderRadius: "5"
+            boxShadow: "#dededf 0px 0px 10px"
+            backgroundColor: "0xffffff"
+          children: 
+            - type: label
+              text: Visit History
+              style: 
+                left: '0.015'
+                top: "0.02"
+                width: "0.12"
+                height: "0.035"
+                fontSize: "2.1vh"
+                color: "#517086"
+            - type: scrollView
+              style: 
+                left: "0.11"
+                width: "0.57"
+                height: "0.49"
+                top: "0.065"
+                overflow: scroll
+                # backgroundColor: "0x30b354"
+
+              children: 
+                - type: list
+                  contentType: listObject
+                  listObject: ..listData.WaitingInRoom.edge
+                  iteratorVar: itemObject
+                  style:
+                    width: '0.57'
+                    left: "0"
+                    top: "0"
+                    height: "0.49"
+                    margin: '0'
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      onClick: 
+                        # - actionType: updateObject 
+                        #   dataKey: Global.formData.appointmentId
+                        #   dataObject: itemObject 
+                        - emit: 
+                            dataKey: 
+                              var: itemObject
+                            actions: 
+                              - .Global.formData.appointmentId@: $var.id
+                        - goto: PatientSummary
+                      style:
+                        width: '0.55'
+                        height: '0.15'
+                        marginTop: "0.02"
+                        left: '0.005'
+                        border:   
+                          style: "5"
+                        borderRadius: "5"
+                        boxShadow: "#dededf 0px 0px 10px"
+                      children:
+                        - type: label
+                          text=func: .builtIn.string.getFirstChar
+                          dataKey: itemObject.name.providerName
+                          style: 
+                            left: "0.02"
+                            top: "0.04"
+                            width: "0.0365"
+                            height: "0.065"
+                            backgroundColor: "0xffd25a"
+                            color: "0xffffff"
+                            fontSize: "2.4vh"
+                            border: 
+                              style: "5"
+                            borderRadius: "50"
+                            textAlign: 
+                              x: center
+                              y: center
+                        - type: label
+                          dataKey: itemObject.name.visitReason
+                          style: 
+                            left: "0.08"
+                            width: "0.2"
+                            top: "0.038"
+                            height: "0.03"
+                            fontSize: "1.9vh"
+                        - type: label
+                          dataKey: itemObject.name.providerName
+                          style: 
+                            left: "0.08"
+                            width: "0.2"
+                            top: "0.082"
+                            height: "0.03"
+                            fontSize: "1.8vh"
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtime_en
+                          dataKey: itemObject.stime
+                          style: 
+                            left: "0.42"
+                            width: "0.1"
+                            top: "0.038"
+                            height: "0.03"
+                            fontSize: "1.6vh"
+                            textAlign:  
+                              x: right
+                        - type: label
+                          # text=func: 
+                          #   - =.builtIn.date.getDurationByMinute:
+                          #       dataIn:
+                          #         stime: itemObject.stime
+                          #         etime: itemObject.etime
+                          #       dataOut: itemObject.name.duration
+                          dataKey: itemObject.name.visitType
+                          style: 
+                            left: "0.42"
+                            width: "0.1"
+                            top: "0.082"
+                            height: "0.03"
+                            fontSize: "1.6vh"
+                            textAlign:  
+                              x: right

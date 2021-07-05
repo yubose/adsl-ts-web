@@ -1,0 +1,198 @@
+SignInSuccessful: #xd page number15
+  pageNumber: "100"
+  init:
+    - .SignInCheck
+    - =..businessLogo.docAPI.get: ""
+    - =..profile.docAPI.get: ""
+    - =..fac_RootNotebook.edgeAPI.get: ""
+    - actionType: evalObject
+      object:
+        - ..businessLogo.document@: =..businessLogo.resp.doc.0
+        - ..profile.document@: =..profile.resp.doc.0
+    - .Global.formData.medicalFacility.name.basicInfo.medicalFacilityName@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.phoneNumber@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.specialty@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.introduction@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.address@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.city@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.state@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.zipCode@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.NPI@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.DEANumber@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.medicalLicenseState@: ""
+    - .Global.formData.medicalFacility.name.basicInfo.medicalLicense@: ""
+
+  fac_RootNotebook:
+    edgeReq:
+      id: .Global.currentFacility.data.vertex.id
+      xfname: bvid
+      type: .EdgeType.RootNotebook
+    edge: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: SignInSuccessful.fac_RootNotebook.edgeReq
+        dataOut: SignInSuccessful.fac_RootNotebook.edge
+  businessLogo:
+    url: BusinessLogo.png
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: .DocType.BusinessLogoPicture
+      name:
+        title: ""
+        type: ..businessLogo.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""     
+      eid: .Global.rootNotebookID
+    resp: ""
+    docIn: 
+      id: .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.BusinessLogoPicture
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    docAPI: 
+      store:
+        api: cd
+        dataKey: businessLogo.document
+        subtype:
+          mediaType: ""
+      get:
+        .DocAPI.get: "" 
+        dataIn: businessLogo.docIn
+        dataOut: SignInSuccessful.businessLogo.resp
+  profile:
+    url: ProfilePicture.png
+    document:
+      .Document: ""
+      subtype:
+        isEncrypted: "1"
+        isOnServer: "0"
+      type: .DocType.ProfilePicture
+      name:
+        title: ""
+        type: ..profile.docAPI.store.subtype.mediaType
+        data: binFile
+      deat:
+        sig: ""
+        url: ""     
+      eid: .Global.rootNotebookID
+    docIn: 
+      id: .Global.rootNotebookID
+      xfname: eid
+      type: .DocType.ProfilePicture
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    docAPI: 
+      store:
+        api: cd
+        dataKey: profile.document
+        subtype:
+          mediaType: ""
+      get:
+        .DocAPI.get: "" 
+        dataIn: profile.docIn
+        dataOut: SignInSuccessful.profile.resp
+
+  components:
+    - .MainView:
+      children:        
+        - .LeftDivider:
+        - .Head0:
+        - .CenterView: 
+          children:
+            - .LeftLabel:
+              text: "Basic settings are complete!"
+              style: 
+                fontSize: "30"
+                fontWeight: "400"
+            - .LeftImage:
+              path: "confetti.png"
+            - .FlowChart:
+              children:
+                - type: label
+                  text: "Basic Info "
+                  style:
+                    fontSize: "12"
+                    left: "0.01"
+                    top: "0.05"
+                - type: label
+                  text: "Billing Info"
+                  style:
+                    fontSize: "12"
+                    left: "0.14"
+                    top: "0.05"
+                - type: divider
+                  style:
+                    top: "0.01"
+                    width: "0.075"
+                    left: "0.045"
+                    color: "red"
+                    backgroundColor: "#0063A8"
+                    height: "0.0001"
+                - .TrueImage:
+                - .TrueImage:
+                  text: "2"
+                  style: 
+                    left: "0.14"
+            - .Label1:
+              text: "Successful"
+              style: 
+                width: '0.5'
+                textAlign:
+                  x: center
+                left: "0.25"
+                top: "0.27"
+                fontSize: "38"
+                color: "#517086"
+            - .Label1:
+              text: "Welcome to AiTmed!"
+              style: 
+                width: '0.5'
+                textAlign:
+                  x: center
+                left: "0.25"
+                top: "0.4"
+                fontSize: "39"
+            - .BottomButton:
+              text: "Continue"
+              onClick:
+                - actionType: evalObject
+                  object: 
+                    - .Global.jwt.edge.bvid@: =.Global.currentFacility.data.vertex.id
+                    - =.Global.jwt.edgeAPI.store: ""
+                    - if: 
+                      - ..businessLogo.resp.doc.0
+                      - =.builtIn.ecos.shareDoc: 
+                          dataIn:                
+                            sourceDoc: =..businessLogo.document
+                            # targetEdgeID: =.Global.rootRoomInfo.edge.id
+                            targetEdgeID: =..fac_RootNotebook.edge.edge.0.id
+                      - continue
+                    - if: 
+                      - ..profile.resp.doc.0 
+                      - =.builtIn.ecos.shareDoc: 
+                          dataIn:                
+                            sourceDoc: =..profile.document
+                            # targetEdgeID: =.Global.rootRoomInfo.edge.id
+                            targetEdgeID: =..fac_RootNotebook.edge.edge.0.id
+                      - continue
+                    # - ..businessLogo.document.id@: ""
+                    # - ..profile.document.id@: ""
+                    # - ..businessLogo.document.eid@: =..fac_RootNotebook.edge.edge.0.id
+                    # - ..profile.document.eid@: =..fac_RootNotebook.edge.edge.0.id
+                    # - =..businessLogo.docAPI.store: ""
+                    # - =..profile.docAPI.store: ""     
+                - goto: SelectOrganization
+              style:
+                left: "0.45"
+                top: "0.65"
+                backgroundColor: "#005795"
+                color: "0xffffff"

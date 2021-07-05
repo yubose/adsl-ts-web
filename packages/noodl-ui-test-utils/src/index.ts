@@ -277,8 +277,8 @@ export function getGotoObject(
   return obj
 }
 
-export function getButtonComponent(
-  props?: string | ComponentProps<ButtonComponentObject>,
+export function getButtonComponent<C extends ButtonComponentObject>(
+  props?: string | ComponentProps<Partial<C>>,
 ): ButtonComponentObject {
   const obj = {
     type: 'button',
@@ -301,7 +301,7 @@ export function getButtonComponent(
 }
 
 export function getCanvasComponent(
-  props?: string | ComponentProps<CanvasComponentObject>,
+  props?: string | ComponentProps<Partial<CanvasComponentObject>>,
 ) {
   const obj = {
     type: 'canvas',
@@ -316,10 +316,12 @@ export function getEcosDocComponent(
   preset?: GetEcosDocObjectPreset,
 ): EcosDocComponentObject
 export function getEcosDocComponent(
-  props?: ComponentProps<EcosDocComponentObject>,
+  props?: ComponentProps<Partial<EcosDocComponentObject>>,
 ): EcosDocComponentObject
 export function getEcosDocComponent(
-  props?: ComponentProps<EcosDocComponentObject> | GetEcosDocObjectPreset,
+  props?:
+    | ComponentProps<Partial<EcosDocComponentObject>>
+    | GetEcosDocObjectPreset,
 ): EcosDocComponentObject {
   const obj = { type: 'ecosDoc' } as EcosDocComponentObject
   if (u.isStr(props)) {
@@ -343,19 +345,19 @@ export function getEcosDocComponent(
 }
 
 export function getDividerComponent(
-  props?: ComponentProps<DividerComponentObject>,
+  props?: ComponentProps<Partial<DividerComponentObject>>,
 ): DividerComponentObject {
   return { type: 'divider', ...props }
 }
 
 export function getFooterComponent(
-  props?: ComponentProps<FooterComponentObject>,
+  props?: ComponentProps<Partial<FooterComponentObject>>,
 ): FooterComponentObject {
   return { type: 'footer', ...props }
 }
 
 export function getHeaderComponent(
-  props?: ComponentProps<HeaderComponentObject>,
+  props?: ComponentProps<Partial<HeaderComponentObject>>,
 ): HeaderComponentObject {
   return { type: 'header', ...props }
 }
@@ -363,7 +365,9 @@ export function getHeaderComponent(
 export function getImageComponent(
   args:
     | string
-    | ComponentProps<ImageComponentObject> = {} as ComponentProps<ImageComponentObject>,
+    | ComponentProps<Partial<ImageComponentObject>> = {} as ComponentProps<
+    Partial<ImageComponentObject>
+  >,
 ): ImageComponentObject {
   const obj = { type: 'image', path: 'abc.png' } as ImageComponentObject
   if (typeof args === 'string') obj.path = args
@@ -392,11 +396,11 @@ export function getListComponent(
   {
     iteratorVar = 'itemObject',
     ...rest
-  }: ComponentProps<ListComponentObject> & {
+  }: ComponentProps<Partial<ListComponentObject>> & {
     contentType?: string
     iteratorVar?: string
     listObject?: any[]
-  } = {} as ComponentProps<ListComponentObject>,
+  } = {} as ComponentProps<Partial<ListComponentObject>>,
 ): ListComponentObject {
   return {
     listObject: getGenderListObject(),
@@ -420,16 +424,14 @@ export function getListComponent(
   }
 }
 
-export function getListItemComponent(
-  {
-    iteratorVar = 'itemObject',
-    dataObject,
-    ...rest
-  }: ComponentProps<ListItemComponentObject> & {
-    dataObject?: any
-    iteratorVar?: string
-  } = {} as ListItemComponentObject,
-): ListItemComponentObject {
+export function getListItemComponent({
+  iteratorVar = 'itemObject',
+  dataObject,
+  ...rest
+}: ComponentProps<Partial<ListItemComponentObject>> & {
+  dataObject?: any
+  iteratorVar?: string
+} = {}): ListItemComponentObject {
   return {
     [iteratorVar]: dataObject || '',
     style: { left: '0', border: { style: '1' } },
@@ -456,13 +458,15 @@ export const getPageComponent =
   )
 
 export function getPluginComponent(
-  props?: ComponentProps<PluginComponentObject> & { path?: string },
+  props?: ComponentProps<Partial<PluginComponentObject>> & { path?: string },
 ): PluginComponentObject {
   return { type: 'plugin', path: 'googleTM.js', ...props }
 }
 
 export function getPluginHeadComponent(
-  props?: ComponentProps<PluginHeadComponentObject> & { path?: string },
+  props?: ComponentProps<Partial<PluginHeadComponentObject>> & {
+    path?: string
+  },
 ): PluginHeadComponentObject {
   return { type: 'pluginHead', path: 'googleTM.js', ...props }
 }
@@ -494,7 +498,7 @@ export const getRegisterComponent =
 export function getSelectComponent(
   props?:
     | Record<string, any>[]
-    | (ComponentProps<SelectComponentObject> & { options?: string[] }),
+    | (ComponentProps<Partial<SelectComponentObject>> & { options?: string[] }),
 ): SelectComponentObject {
   const obj = {
     type: 'select',
@@ -506,14 +510,14 @@ export function getSelectComponent(
 }
 
 export function getScrollViewComponent(
-  props?: ComponentProps<ScrollViewComponentObject>,
+  props?: ComponentProps<Partial<ScrollViewComponentObject>>,
 ): ScrollViewComponentObject {
   return { type: 'scrollView', ...props }
 }
 
 export function getTextFieldComponent(
   props?: ComponentProps<
-    TextFieldComponentObject & {
+    Partial<TextFieldComponentObject> & {
       placeholder?: Path
       dataKey?: string
     }
@@ -528,7 +532,7 @@ export function getTextFieldComponent(
 }
 
 export function getTextViewComponent(
-  props?: ComponentProps<TextViewComponentObject>,
+  props?: ComponentProps<Partial<TextViewComponentObject>>,
 ): TextViewComponentObject {
   return { type: 'textView', ...props }
 }
@@ -539,15 +543,13 @@ export const getVideoComponent =
     'path',
   )
 
-export function getViewComponent(
-  {
-    addChildren = [],
-    children,
-    ...rest
-  }: ComponentProps<ViewComponentObject> & {
-    addChildren?: ComponentObject[]
-  } = {} as ViewComponentObject,
-): ViewComponentObject {
+export function getViewComponent({
+  addChildren = [],
+  children,
+  ...rest
+}: ComponentProps<Partial<ViewComponentObject>> & {
+  addChildren?: Partial<ComponentObject>[]
+} = {}): ViewComponentObject {
   return {
     viewTag: 'subStream',
     required: false,

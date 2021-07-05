@@ -9,6 +9,9 @@ type Hooks = Record<
   T.NUIComponent.Hook[T.NUIComponent.HookEvent][]
 >
 
+/**
+ * noodl-ui Component
+ */
 class Component<C extends ComponentObject = ComponentObject> {
   #blueprint: ComponentObject
   // This cache is used internally to cache original objects (ex: action objects)

@@ -1,0 +1,95 @@
+VitalSigns:
+  pageNumber: "150"
+  init:
+    - .SignInCheck
+  title: "Vital Signs"
+  components:
+    - type: view
+      style:
+        top: "0"
+        width: "1"
+        height: "0.9"
+        left: "0"
+      children:
+        - type: label
+          text: Vital Signs
+          style: 
+            left: "0.1"
+            width: "0.5"
+            top: "0.05"
+            height: "0.03"
+            color: "0x000000"
+            fontFamily: "Poppins"
+            fontWeight: "500"
+            fontSize: "19"
+            textAlign: 
+              x: left
+        - .VitalSignsView: 
+          children:
+            - .VitalSignsText: 
+              text: "Blood Pressure(mmHg)"
+            - .VitalSignsTextField: 
+              placeholder: "Enter here"
+        - .VitalSignsView:
+          style: 
+            top: "0.22" 
+          children:
+            - .VitalSignsText: 
+              text: "Heart Rate(bpm)"
+            - .VitalSignsTextField: 
+              placeholder: "Enter here"
+        - .VitalSignsView: 
+          style: 
+            top: "0.32" 
+          children:
+            - .VitalSignsText: 
+              text: "Respiratory Rate(breaths/min)"
+            - .VitalSignsTextField: 
+              placeholder: "Enter here"
+        - .VitalSignsView: 
+          style: 
+            top: "0.42" 
+          children:
+            - .VitalSignsText: 
+              text: "Pulse Oximetry(O2%)"
+            - .VitalSignsTextField: 
+              placeholder: "Enter here"
+        - .VitalSignsView: 
+          style: 
+            top: "0.52" 
+          children:
+            - .VitalSignsText: 
+              text: "Temperature"
+            - .VitalSignsTextField: 
+              placeholder: "Enter here"
+        - .VitalSignsView: 
+          style: 
+            top: "0.62" 
+          children:
+            - .VitalSignsText: 
+              text: "Height(ft.in.)"
+            - .VitalSignsTextField: 
+        - .VitalSignsView: 
+          style: 
+            top: "0.72" 
+          children:
+            - .VitalSignsText: 
+              text: "Weight(Ibs)"
+            - .VitalSignsTextField: 
+              placeholder: "Enter here"
+        - .VitalSignsView:
+          style: 
+            top: "0.82"  
+          children:
+            - .VitalSignsText: 
+              text: "Body Mass Index(BMI)"
+            - .VitalSignsTextField: 
+              placeholder: "Enter here"
+        - .VitalSignsView: 
+          style: 
+            top: "0.92" 
+          children:
+            - .VitalSignsText: 
+              text: "Blood Glucose levels"
+            - .VitalSignsTextField: 
+              placeholder: "Enter here"

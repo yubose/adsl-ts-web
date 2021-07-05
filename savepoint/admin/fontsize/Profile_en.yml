@@ -1,0 +1,185 @@
+Profile:        # xd page number: 104
+  pageNumber: "690"
+  init:
+    - .SignInCheck
+  viewPort: top
+  MenuData: .Global.menuBar.listData
+  profile:
+  - key: "yellowM.png"
+    value1: "Dr. Mueller’s Room"
+    value2: "Thomas Mueller, MD"
+    value3: "August 12, 2020 10:30am"
+    value4: "for 12 min 53 secs"
+  components:
+    - .SideMenuBar:
+      children:
+        - .aitLogo:
+        - .MenuBar:
+    - .TopBar:
+    - .BodyView:
+    - .TopSearch:
+    - .TopSearch:
+      path: Notifications.png
+      style:   
+        left: "0.85" 
+    - .TopSearch:
+      path: Icons - chevron-down.png
+      style:    
+        left: "0.94"   
+    - type: label
+      text: "A&C Urgentcare"
+      style:
+        top: "0.03"     
+        left: "0.87"   
+        height: "0.1"
+        color: "#000000"
+        fontSize: "11"
+    - type: view
+      style:
+        width: "1"
+        left: "0"
+        height: "0"
+        top: "0"
+      children:
+        - .Border3: 
+          style: 
+            top: "0.12"
+            left: "0.2" 
+            width: "0.73" 
+            height: "0.22"
+        - .View1:
+          text: "Profile"
+          style:
+            top: "0.135"
+            left: "0.215"
+            fontSize: "15"
+            zIndex: "100"
+        - type: image
+          path: "profilehead.png"
+          style:
+            top: "0.18"     
+            left: "0.22"   
+            height: "0.14"
+            zIndex: "100"
+        - .View5:
+          text: "Steve Chandler"
+          style:
+            top: "0.155"
+            left: "0.3"
+            fontSize: "12"
+            zIndex: "100"
+        - .View5:
+          text: "Male"
+          style:
+            top: "0.2"
+            left: "0.3"
+            fontSize: "12"
+            zIndex: "100"
+        - .View5:
+          text: "424-123-4567"
+          style:
+            top: "0.245"
+            left: "0.3"
+            fontSize: "12"
+            zIndex: "100"
+        - type: label
+          text: "Steve@gmail.com"
+          style:
+            top: "0.29"
+            left: "0.3"
+            fontSize: "12"
+            zIndex: "100"
+            color: "#517086"
+        - .Mybutton:
+          text: "Done"
+          onClick:
+            - goto: Done
+          style: 
+            left: "0.82"
+            top: "0.17"
+            width: "0.08"
+            paddingTop: "6px"
+            color: "#FFFFFF"
+            backgroundColor: "#005795" 
+            borderRadius: "3px"
+        - .Border3: 
+          style: 
+            top: "0.37"
+            left: "0.2" 
+            width: "0.73" 
+            height: "0.59"
+        - type: label
+          text: "Visit History"
+          style:
+            top: "0.41"
+            left: "0.22"
+            fontSize: "15"
+            zIndex: "100"
+            color: "#000000"
+            # fontStyle: "bold"
+        - .Border1: 
+          style: 
+            top: "0.47"
+            left: "0.26" 
+            width: "0.62" 
+            height: "0.47"
+            border: "1px solid #FFFFFF"
+            zIndex: "100"
+        - type: view
+          style:
+            top: "0.3"
+            width: "0.16"
+            height: "0.6"
+            left: "0.1"
+          children:
+            - .Border3: 
+              style: 
+                top: "0.18"
+                left: "0.164" 
+                width: "0.61" 
+                height: "0.15"
+                zIndex: "100"
+                boxShadow: "0px 8px 15px 1px #FFFFFF"
+                # border: "1px solid #FFFFFF"
+            - type: list
+              contentType: listObject
+              listObject: ..profile 
+              iteratorVar: itemObject
+              style:
+                width: "0.9"
+                height: "0.4"
+                top: "0.1"
+                left: "0"
+                display: "flex" 
+                zIndex: "100"
+              children:
+                - .MylistItem:
+                  children:
+                    - .Mylistimage:
+                      style:
+                        top: "0.09" 
+                        left: "0.18"
+                        width: "0.03"
+                    - .Mylistword:
+                      dataKey: itemObject.value1
+                      style:
+                        top: "0.085" 
+                        left: "0.03"
+                    - .Mylistword:
+                      dataKey: itemObject.value2
+                      style:
+                        top: "0.13" 
+                        left: "0.025"
+                        fontSize: "1.8vh"
+                    - .Mylistword:
+                      dataKey: itemObject.value3
+                      style:
+                        top: "0.06" 
+                        left: "0.46"
+                        fontSize: "1.6vh"
+                    - .Mylistword:
+                      dataKey: itemObject.value4
+                      style:
+                        top: "0.16" 
+                        left: "0.473"
+                        fontSize: "1.6vh"

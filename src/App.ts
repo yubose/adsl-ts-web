@@ -25,6 +25,7 @@ import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
+import createResources from './handlers/resources'
 import createTransactions from './handlers/transactions'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
@@ -288,11 +289,13 @@ class App {
       const registers = createRegisters(this)
       const doms = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
+      const resources = createResources(this)
       const transactions = createTransactions(this)
 
       this.ndom.use(actions)
       this.ndom.use({ builtIn: builtIns })
       this.ndom.use({ plugin: plugins })
+      this.ndom.use({ resource: resources })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
       registers.forEach((keyVal) =>

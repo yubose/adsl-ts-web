@@ -91,3 +91,22 @@ NUI.emit({
     console.error(err)
   })
 ```
+
+---
+
+## Todos
+
+- [ ] PasswordRecoveryHelper (Jiahao)
+- [x] Font size (Elaine)
+- [ ] lazyload libs
+
+## Accounts
+
+| app    | phone #    | password |
+| ------ | ---------- | -------- |
+| admin  | 8882005050 | password |
+| patd   | 8884240000 | 12345    |
+| prod   | 8885550010 | password |
+| meet4d | 8882465555 | 142251   |
+| meet4d | 8882468491 | 142251   |
+| meet4d | 8882461234 | 142251   |

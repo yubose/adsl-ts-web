@@ -10,17 +10,18 @@ import * as u from '@jsmanifest/utils'
 
 export type ActionProps<C extends PartialDeep<ActionObject> = ActionObject> = C
 
-export type ComponentProps<C extends ComponentObject | NUIComponent.Instance> =
-  Partial<
-    Record<
-      NUITrigger,
-      (C extends ComponentObject ? NUIActionObjectInput : NUIAction)[]
-    >
-  > &
-    C
+export type ComponentProps<
+  C extends Partial<ComponentObject> | NUIComponent.Instance,
+> = Partial<
+  Record<
+    NUITrigger,
+    (C extends ComponentObject ? NUIActionObjectInput : NUIAction)[]
+  >
+> &
+  C
 
 export function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
-  defaultProps: O,
+  defaultProps: Partial<O>,
   key: keyof O,
 ) {
   const createObj = (props?: string | ActionProps<O>): O => {
@@ -39,8 +40,8 @@ export function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
 }
 
 export function createComponentWithKeyOrProps<
-  O extends ComponentObject | NUIComponent.Instance,
->(defaultProps: O, key: string | Partial<Record<string, any>>) {
+  O extends Partial<ComponentObject> | NUIComponent.Instance,
+>(defaultProps: Partial<O>, key: string | Partial<Record<string, any>>) {
   const createObj = (props?: string | Partial<O>): O => {
     const obj = { ...defaultProps } as O
     if (u.isStr(key)) {

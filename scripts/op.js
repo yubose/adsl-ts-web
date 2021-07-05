@@ -14,6 +14,7 @@ const pkgs = {
   nui: 'noodl-ui',
   ndom: 'noodl-ui-dom',
   ntest: 'noodl-ui-test-utils',
+  ntil: 'noodl-utils',
 }
 
 const cli = meow(

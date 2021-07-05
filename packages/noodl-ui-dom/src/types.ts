@@ -1,3 +1,5 @@
+import { LiteralUnion } from 'type-fest'
+import { AcceptArray } from '@jsmanifest/typefest'
 import { ComponentObject, ComponentType } from 'noodl-types'
 import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
@@ -5,17 +7,73 @@ import NOODLDOM from './noodl-ui-dom'
 import NOODLDOMPage from './Page'
 import createResolver from './createResolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
+import GlobalCssResourceRecord from './global/GlobalCssResourceRecord'
+import GlobalJsResourceRecord from './global/GlobalJsResourceRecord'
 import GlobalTimers from './global/Timers'
 import { eventId, dataAttributes } from './constants'
+import { resourceTypes } from './utils/internal'
 
 export interface IGlobalObject<T extends string = string> {
   type: T
 }
 
-export interface GlobalMap {
+export interface GlobalMap<ResourceKey extends string = string> {
   components: Map<string, GlobalComponentRecord>
   pages: Record<string, NOODLDOMPage>
+  resources: {
+    css: Record<ResourceKey, GlobalResourceObject<'css'>>
+    js: Record<ResourceKey, GlobalResourceObject<'js'>>
+  }
   timers: GlobalTimers
+}
+
+export interface GlobalResourceObject<Type extends GlobalResourceType> {
+  isActive(): boolean
+  onCreateRecord?: (<T extends GlobalResourceType>(
+    record: GetGlobalResourceRecordAlias<T>,
+  ) => Promise<void> | void)[]
+  onLoad?: <T extends GlobalResourceType>(args?: {
+    node: GetGlobalResourceElementAlias<T>
+    record: GetGlobalResourceRecordAlias<T>
+  }) => Promise<void> | void
+  record: GetGlobalResourceRecordAlias<Type>
+  lazyLoad?: boolean
+}
+
+export type GlobalResourceType = typeof resourceTypes[number]
+
+export type GetGlobalResourceRecordAlias<Type extends GlobalResourceType> =
+  Type extends 'css' ? GlobalCssResourceRecord : GlobalJsResourceRecord
+
+export type GetGlobalResourceObjectAlias<Type extends GlobalResourceType> =
+  Type extends 'css' ? GlobalCssResourceObject : GlobalJsResourceObject
+
+export type GetGlobalResourceElementAlias<Type extends GlobalResourceType> =
+  Type extends 'css'
+    ? HTMLLinkElement
+    : Type extends 'js'
+    ? HTMLScriptElement
+    : HTMLElement
+
+export type GlobalResourceRecord =
+  | GlobalCssResourceRecord
+  | GlobalJsResourceRecord
+
+export interface GlobalResourceObjectBase<T extends string = string> {
+  cond?: Resolve.Config['cond']
+  type: T
+  [key: string]: any
+}
+
+export interface GlobalCssResourceObject
+  extends GlobalResourceObjectBase<'css'> {
+  href: string
+  [key: string]: any
+}
+
+export interface GlobalJsResourceObject extends GlobalResourceObjectBase<'js'> {
+  src: string
+  [key: string]: any
 }
 
 export interface GlobalComponentRecordObject {
@@ -98,22 +156,42 @@ export namespace Resolve {
 
   export interface Config {
     name?: string
-    cond?: ComponentType | Func
-    // createNode?()
-    before?: Resolve.Config | Func
-    resolve?: Resolve.Config | Func
-    after?: Resolve.Config | Func
-    observe?: Partial<Page.Hook>
+    cond?: LiteralUnion<ComponentType, string> | Resolve.Func
+    init?: Resolve.Func
+    before?: Resolve.Func
+    resolve?: Resolve.Func | Resolve.Hooks
+    after?: Resolve.Func
+    resource?: UseObject['resource']
   }
 
-  export interface Func<RT = any, N extends HTMLElement | null = HTMLElement> {
-    (node: N, component: Component, options: Resolve.Options): RT
+  export interface Func<RT = any> {
+    (
+      node: HTMLElement | null,
+      component: NUIComponent.Instance,
+      options: Resolve.Options,
+    ): RT | void | Promise<RT | void>
+  }
+
+  export interface Hooks {
+    onResource?: Record<string, ResourceOnLoadHook>
+  }
+
+  export interface ResourceOnLoadHook {
+    (options: {
+      node: HTMLElement | null
+      component: NUIComponent.Instance
+      options: Resolve.Options
+      resource: {
+        node: HTMLElement | null
+        record: GlobalResourceRecord
+      }
+    }): Promise<void> | void
   }
 
   export interface LifeCycle {
-    before: Func[]
-    resolve: Func[]
-    after: Func[]
+    before: Resolve.Func[]
+    resolve: (Resolve.Func | Resolve.Hooks)[]
+    after: Resolve.Func[]
   }
 
   export type LifeCycleEvent = 'before' | 'resolve' | 'after'
@@ -221,5 +299,6 @@ export interface UseObject
     component: NUIComponent.Instance,
   ): HTMLElement | null | void
   resolver?: Resolve.Config
+  resource?: AcceptArray<Parameters<NOODLDOM['createResource']>[0]>
   transaction?: Partial<NDOMTransaction>
 }
