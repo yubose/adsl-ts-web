@@ -361,7 +361,17 @@ const createActions = function createActions(app: App) {
           const dataKey = _pick(action, 'dataKey')
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
-            log.green(`Selected file for dataKey "${dataKey}"`, files?.[0])
+            if (u.isStr(dataKey)) {
+              app.updateRoot(dataKey, ac.data.get(dataKey))
+            } else {
+              log.red(
+                `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,
+              )
+            }
+            log.green(`Selected file for dataKey "${dataKey}"`, {
+              file: files?.[0],
+              actionChain: ac,
+            })
           } else {
             log.red(
               `%cBoth action and component is needed to inject a blob to the action chain`,
