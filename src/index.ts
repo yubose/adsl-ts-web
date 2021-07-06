@@ -81,8 +81,10 @@ async function initializeApp(
   const { trackSdk, trackWebApp } = await import('./app/trackers')
   trackSdk(app)
   trackWebApp(app)
+  window.app = app
   ////////////////////////////////////////////////////////////
   await app.initialize()
+
   return app
 }
 

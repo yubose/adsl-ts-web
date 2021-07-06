@@ -1,6 +1,7 @@
 import * as mock from 'noodl-ui-test-utils'
 import * as nc from 'noodl-common'
 import sinon from 'sinon'
+import nock from 'nock'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import {
@@ -10,7 +11,6 @@ import {
   createMockJsResource,
 } from '../test-utils'
 import { GlobalCssResourceRecord, GlobalJsResourceRecord } from '../global'
-import { GlobalCssResourceObject } from '../../dist'
 
 let cssResource = createMockCssResource()
 let jsResource = createMockJsResource()
@@ -24,12 +24,15 @@ const getMockGlobalCssNode = (queryType?: 'all') => {
 const getMockGlobalJsNode = (queryType?: 'all') => {
   const selector = `script[src="${jsResource.src}"]`
   if (queryType === 'all') return document.body.querySelectorAll(selector)
-  return document.body.querySelector(selector)
+  return document.getElementById(jsResource.src)
 }
 
 beforeEach(() => {
   cssResource = createMockCssResource()
   jsResource = createMockJsResource()
+  nock(/some-mock-link/i)
+    .get(/chart.min/i)
+    .reply(200)
 })
 
 describe(nc.coolGold(`resources`), () => {
@@ -113,11 +116,10 @@ describe(nc.coolGold(`resources`), () => {
     })
   })
 
-  it.only(`should call the onResource hook function after their resources are appended to the DOM`, async () => {
+  it(`should call the onResource hook function after their resources are appended to the DOM`, async () => {
     const spy = sinon.spy()
     const { render } = createRender({
       components: [mock.getButtonComponent()],
-      // resource: jsResource,
     })
     expect(getMockGlobalJsNode()).to.be.null
     ndom.use({
@@ -134,18 +136,18 @@ describe(nc.coolGold(`resources`), () => {
     })
   })
 
-  xit(`should render elements to the DOM only after their resource(s) are in the DOM`, (done) => {
+  it(`should render elements to the DOM only after their resource(s) are in the DOM`, (done) => {
     const { render } = createRender({
       components: [mock.getButtonComponent({ id: 'hellobtn' })],
     })
     expect(getMockGlobalJsNode()).to.be.null
     ndom.use({
-      resource: jsResource,
       resolver: {
+        resource: jsResource,
         resolve: {
           onResource: {
-            [jsResource.src]({ resource }) {
-              console.info(resource)
+            [jsResource.src]({ node, resource }) {
+              expect(document.body.contains(resource.node)).to.be.true
               done()
             },
           },

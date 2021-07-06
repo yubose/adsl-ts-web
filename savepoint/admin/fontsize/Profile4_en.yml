@@ -1,0 +1,175 @@
+Profile4: 
+  pageNumber: "730"
+  init:
+    - .SignInCheck
+  viewPort: top
+  Test: ""
+  title: "Profile"
+  components:
+    - .SideMenuBar:
+      children:
+        - .aitLogo:
+        - .MenuBar:
+    - .TopBar:
+    - .BodyView:
+      style:
+        top: "0.05"
+      children:
+        - .ContentView:
+          style: 
+            height: "0.18"
+            top: "0.05"
+          children: 
+            - .ProfileTitle: 
+            - .ProfileImg: 
+            - .ProfileText: 
+            - .ProfileText: 
+              text: Male
+              style: 
+                top: "0.06"
+            - .ProfileText: 
+              text: 424-123-4567
+              style: 
+                top: "0.1"
+            - .ProfileText: 
+              text: Steve@gmail.com
+              style: 
+                top: "0.14"
+            - type: button
+              text: Done
+              style: 
+                left: "0.65"
+                width: "0.08"
+                top: "0.04"
+                height: "0.05"
+                color: "0xffffff"
+                fontFamily: "Poppins"
+                fontWeight: "500"
+                backgroundColor: "0x005795"
+                fontSize: "1.8vh"
+                border: 
+                  style: "1"
+                borderRadius: "5"
+                textAlign: 
+                  x: center
+        - .ContentView:
+          style: 
+            height: "0.65"
+            top: "0.27"
+          children: 
+            - .ContentView:
+              style: 
+                top: "0"
+                width: "0.43"
+                height: "0.65"
+                left: "0"
+                boxShadow: "5px 5px 10px 5px #f5f5f5"
+              children: 
+                - .ProfileInnerTitle:
+                - type: view
+                  style: 
+                    left: "0.025"
+                    width: "0.4"
+                    height: "0.35"
+                    top: "0.08"
+                  children: 
+                    - .ProfileInnerText: 
+                    - .ProfileInnerTextField: 
+                    - .ProfileInnerText:  
+                      text: Participants
+                      style: 
+                        top: "0.08"
+                    - .ProfileInnerTextField: 
+                      placeholder: Thomas Mueller,MD Melissa West
+                      style: 
+                        top: "0.11"
+                    - .ProfileInnerText:  
+                      text: Date and Time
+                      style: 
+                        top: "0.16"
+                    - .ProfileInnerTextField: 
+                      placeholder: August 12,2020 at 10:30am
+                      style: 
+                        top: "0.19"
+                    - .ProfileInnerText:  
+                      text: Duration
+                      style: 
+                        top: "0.24"
+                    - .ProfileInnerTextField: 
+                      placeholder: 12 min 53 seconds
+                      style: 
+                        top: "0.27"
+                - .ProfileInnerTitle:
+                  text: Shared Information
+                  style: 
+                    top: "0.415"
+                - type: view
+                  style: 
+                    left: "0.025"
+                    width: "0.4"
+                    height: "0.15"
+                    top: "0.47"  
+                  children: 
+                    - .ProfileInnerView: 
+                      onClick: 
+                        - goto: Profile1
+                      style:
+                        border: 
+                          style: "1"
+                      children: 
+                        - .ProfileInnerViewImg: 
+                        - .ProfileInnerViewText:             
+                    - .ProfileInnerView: 
+                      onClick: 
+                          - goto: Profile2
+                      style: 
+                        left: "0.11"
+                        border: 
+                          style: "1"
+                      children: 
+                        - .ProfileInnerViewImg: 
+                          path: visitquestionaire.jpg
+                        - .ProfileInnerViewText:   
+                          text: Visit Questionnaire 
+                    - .ProfileInnerView: 
+                      onClick: 
+                        - goto: Profile3
+                      style: 
+                        left: "0.205"
+                        border: 
+                          style: "1"
+                      children: 
+                        - .ProfileInnerViewImg: 
+                          path: PatientChart.png
+                        - .ProfileInnerViewText:   
+                          text: Patient Chart
+                    - .ProfileInnerView: 
+                      
+                      style: 
+                        left: "0.3"
+                        backgroundColor: "0xf4f8fa" 
+                        
+                      children: 
+                        - .ProfileInnerViewImg: 
+                          path: medicalrecords.png
+                        - .ProfileInnerViewText:   
+                          text: Medical Records
+            - .ContentView:
+              style: 
+                top: "0"
+                width: "0.35"
+                height: "0.65"
+                left: "0.43"
+                boxShadow: "5px 5px 10px 5px #f5f5f5"
+              children: 
+                - type: page
+                  path: MedicalRecords
+                  style: 
+                    left: "0"
+                    top: "0"
+                    width: "0.35"
+                    height: "0.65"
+                    border: 
+                      style: "1"
+
+

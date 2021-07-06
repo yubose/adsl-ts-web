@@ -67,6 +67,15 @@ async function update(props) {
       })
       u.log(u.green(`Updated ${pkgs.noodlTypes}`))
     }
+    // noodl-utils
+    else if (value === 'ntil') {
+      !message && (message = `Updated ${pkgs.noodlUtils}`)
+      execa.commandSync(`npm i ${pkgs.noodlUtils}@latest `, {
+        shell: true,
+        stdio: 'inherit',
+      })
+      u.log(u.green(`Updated ${pkgs.noodlUtils}`))
+    }
     // noodl-action-chain
     else if (value === 'nac') {
       !message && (message = `Updated ${pkgs.noodlActionChain}`)

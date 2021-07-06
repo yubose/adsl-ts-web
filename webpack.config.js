@@ -68,6 +68,18 @@ const devServerOptions = {
   host: '127.0.0.1',
   hot: true,
   liveReload: true,
+  headers: {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers':
+      'Origin, X-Requested-With, Content-Type, Accept',
+    'X-Content-Type-Options': 'nosniff',
+  },
+  allowedHosts: ['localhost', '127.0.0.1', 'aitmed.com', 'aitmed.io'],
+  before(app, server, compiler) {
+    //
+  },
+  stats: { chunks: true },
+  historyApiFallback: true,
 }
 
 const environmentPluginOptions = {
@@ -172,10 +184,10 @@ module.exports = {
           from: 'public/firebase-messaging-sw.js',
           to: 'firebase-messaging-sw.js',
         },
-        // {
-        //   from: 'public/sql-wasm.wasm',
-        //   to: 'sql-wasm.wasm',
-        // },
+        {
+          from: 'public/sql-wasm.wasm',
+          to: 'sql-wasm.wasm',
+        },
       ],
     }),
     new webpack.ProgressPlugin({

@@ -1,0 +1,450 @@
+Patient: #xd page number: 41
+  pageNumber: "220"
+  init:
+    - .SignInCheck
+  viewPort: top
+  title: "OverView"
+  TimeList: 
+    - time: 01/12/2021
+      number: 6
+      accumulated: 4000
+    - time: 01/11/2021
+      number: 13
+      accumulated: 3994
+    - time: 01/10/2021
+      number: 45
+      accumulated: 3981
+    - time: 01/09/2021
+      number: 57
+      accumulated: 3951
+  NumberList:
+    - key: 1
+    - key: 2    
+    - key: 3   
+    - key: 4 
+    - key: 5    
+    - key: 6   
+    - key: 7    
+    - key: 8  
+  components:
+    - .SideMenuBar:
+      children:
+        - .aitLogo:
+        - .MenuBar:
+    - .TopBar:
+    - .BodyView:
+      children:
+        - type: view
+          style:  
+            left: "0.04"
+            top: "0.02"
+            width: "0.2"
+            height: "0.06"
+            # backgroundColor: "0xcdcdcd"
+          children: 
+            - .ProviderButton: 
+              text: Provider
+              onClick: 
+                - goto: Provider
+            - .ProviderButton: 
+              text: Patient
+              onClick: 
+                - goto: Patient
+              style:
+                left: "0.1"
+                color: "0xffffff"
+                textDecoration: underline
+                textAlign: 
+                  x: center
+                backgroundColor: "0x004779"
+            - .ProviderButton: 
+              text: COVID-19
+              onClick: 
+                - goto: Covid19
+              style: 
+                left: "0.2"
+            - .ProviderButton: 
+              text: Patient properties
+              onClick: 
+                - goto: PatientProperties
+              style: 
+                left: "0.3"
+        - .ContentView:
+          style: 
+            height: "1.13"
+          children: 
+            - type: view
+              style: 
+                left: "0"
+                width: "0.5"
+                height: "0.05"
+                # backgroundColor: '0xcdcdcd'
+                top: "0.02"
+              children: 
+                - type: label
+                  text: Yesterdays Key Indicator
+                  style: 
+                    left: "0.03"
+                    top: "0.01"
+                    height: "0.03"
+                    width: "0.12"
+                    fontSize: "1.7vh"
+                    fontFamily: "sans-serif"
+                    # backgroundColor: '0xcdcdcd'
+                - type: image
+                  path: Iconquestion.png
+                  style: 
+                    left: "0.15"
+                    top: "0.003"
+                    width: "0.016"
+            - .IndicatorView:   
+              children: 
+                - type: view
+                  style: 
+                    left: "0"
+                    width: "0.24"
+                    height: "0.18"
+                    top: "0"
+                  children:
+                    - .IndicatorTitle: 
+                      text: 15
+                    - .IndicatorText:
+                      text: NEW PATIENTS 
+                    - .IndicatorDate:  
+                    - .IndicatorDate:
+                      text: 1.2% ↓
+                      style: 
+                        left: "0.18"  
+                        color: "0xf0142f"
+                        fontWeight: "600"    
+                    - .IndicatorDate:
+                      text: Week
+                      style: 
+                        top: "0.07"       
+                    - .IndicatorDate:       
+                      text: 0.5% ↑
+                      style: 
+                        top: "0.07"
+                        left: "0.18"  
+                        color: "0x3dd598"
+                        fontWeight: "600"
+                    - .IndicatorDate:
+                      text: Month
+                      style: 
+                        top: "0.1"       
+                    - .IndicatorDate:       
+                      text: 1.3% ↑
+                      style: 
+                        top: "0.1"
+                        left: "0.18"  
+                        color: "0x3dd598"
+                        fontWeight: "600"  
+                    - type: divider
+                      style: 
+                        left: "0.235"
+                        width: "0.0001"
+                        height: "0.16"
+                        top: "0"                 
+                - type: view
+                  style: 
+                    left: "0.24"
+                    width: "0.24"
+                    height: "0.18"
+                    top: "0"
+                  children:
+                    - .IndicatorTitle: 
+                      text: "300"
+                    - .IndicatorText: 
+                      text: "ACCUMULATED NUMBER OF PATIENTS"
+                    - .IndicatorDate:  
+                    - .IndicatorDate:
+                      text: 1.2% ↓
+                      style: 
+                        left: "0.18"  
+                        color: "0xf0142f"
+                        fontWeight: "600"    
+                    - .IndicatorDate:
+                      text: Week
+                      style: 
+                        top: "0.07"       
+                    - .IndicatorDate:       
+                      text: 0.5% ↑
+                      style: 
+                        top: "0.07"
+                        left: "0.18"  
+                        color: "0x3dd598"
+                        fontWeight: "600"
+                    - .IndicatorDate:
+                      text: Month
+                      style: 
+                        top: "0.1"       
+                    - .IndicatorDate:       
+                      text: 1.3% ↑
+                      style: 
+                        top: "0.1"
+                        left: "0.18"  
+                        color: "0x3dd598"
+                        fontWeight: "600"  
+            - .IndicatorView:
+              style: 
+                width: "0.74"
+                top: "0.27"
+                height: "0.4"
+              children: 
+                - type: view
+                  style: 
+                    left: "0"
+                    width: "0.68"
+                    height: "0.05"
+                    top: "0"
+                    border: 
+                      style: "2"
+                    borderColor: "0x00000022"
+                    borderWidth: "1"
+                  children: 
+                    - type: label
+                      text: Number 0f New patient
+                      style: 
+                        top: "0.02"
+                        height: "0.03"
+                        width: "0.15"
+                        left: "0.01"
+                        textIndent: "15px"
+                        fontSize: "1.9vh"
+                        fontFamily: "sans-serif"
+                        color: "0x003d68"
+                        border:  
+                          style: "2"
+                        borderColor: "0x003d68"
+                        borderWidth: "1.5"
+                    - type: label
+                      text: Accumulated number of patient
+                      style: 
+                        top: "0.02"
+                        height: "0.03"
+                        width: "0.18"
+                        left: "0.17"
+                        fontSize: "1.9vh"
+                        fontFamily: "sans-serif"
+                        color: "0x003d6899"
+                - type: button
+                  text: Compare by time
+                  style: 
+                    left: "0.63"
+                    width: "0.08"
+                    top: "0.02"
+                    height: "0.05"
+                    color: "0xffffff"
+                    textAlign: 
+                      x: center
+                    fontSize: "1.6vh"
+                    backgroundColor: "0x003d68"
+                    border: 
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0x003d68"
+                    borderRadius: "1"   
+            - .ProviderTable: 
+              style: 
+                top: "0.71"
+              children:
+                - type: view
+                  style: 
+                    left: "0"
+                    height: "0.05"
+                    width: "0.74"
+                    top: "0"
+                    zIndex: "10"
+                  children:  
+                    - type: label
+                      text: 12/14/2020 - 01/12/2021
+                      style: 
+                        left: "0"
+                        width: "0.74"
+                        height: "0.05"
+                        top: "0"
+                        textIndent: "20px"
+                        color: "0xffffff"
+                        fontSize: "1.9vh"
+                        backgroundColor: "0x003d68"
+                        textAlign: 
+                          y: center
+                    - type: image
+                      path: icondown.png
+                      style: 
+                        left: "0.15"
+                        width: "0.008"
+                        top: "0.022"
+                        zIndex: "10"
+                - type: view
+                  style: 
+                    left: "0"
+                    height: "0.05"
+                    width: "0.74"
+                    top: "0.05"
+                    backgroundColor: "0xf3f3f3ad"
+                  children: 
+                    - .ProviderTableView: 
+                      children: 
+                        - .ProviderTableText: 
+                          style: 
+                            left: "0.045"
+                        - .ProviderTableImg:
+                          style: 
+                            left: "0.15"
+                    - .ProviderTableView: 
+                      style: 
+                        left: "0.2"
+                      children: 
+                        - .ProviderTableText:
+                          text: Number of new appointments 
+                          style: 
+                            width: "0.17"
+                            left: "0.01"
+                        - .ProviderTableImg:
+                          style: 
+                            left: "0.175"
+                    - .ProviderTableView: 
+                      style: 
+                        left: "0.4"
+                        width: "0.24"
+                      children: 
+                        - .ProviderTableText:
+                          text: Accumulated number of appointments
+                          style: 
+                            left: "0.01"
+                            width: "0.2"
+                        - .ProviderTableImg:
+                          style: 
+                            left: "0.21"
+                    - .ProviderTableView: 
+                      style: 
+                        left: "0.64"
+                        width: "0.1"
+                      children: 
+                        - .ProviderTableText:
+                          text: Download
+                          style: 
+                            width: "0.08"
+                            left: "0.01"
+                            textAlign: 
+                              x: center 
+                - type: list
+                  contentType: listObject
+                  listObject: ..TimeList
+                  iteratorVar: itemObject
+                  style: 
+                    left: "0"
+                    height: "0.2"
+                    top: "0.102"
+                    width: "0.74"
+                    margin: "0"
+                    padding: "0"
+                  children: 
+                    - type: listItem
+                      itemObject: ""
+                      style: 
+                        left: "0"
+                        width: "0.74"
+                        height: "0.0484"
+                        borderBottom: "1px solid rgb(0, 61, 104, 0.25)"
+                      children: 
+                        - .ProviderTableItem:
+                        
+                        - .ProviderTableItem:
+                          dataKey: itemObject.number
+                          style: 
+                            left: "0.2"
+                        - .ProviderTableItem:
+                          dataKey: itemObject.accumulated
+                          style: 
+                            left: "0.4"
+                            width: "0.24"
+                            textAlign: 
+                              x: center
+                        - type: image
+                          path: icondownload.png
+                          style: 
+                            left: "0.68"
+                            width: "0.015"
+                            top: "0.005"
+            - type: view
+              style: 
+                left: "0.6"
+                width: "0.15"
+                height: "0.04"
+                top: "1.1"
+              children: 
+                - type: view
+                  style: 
+                    left: "0"
+                    top: "0"
+                    width: "0.015"
+                    height: "0.028"
+                    border:   
+                      style: "3"
+                    borderColor: rgb(0, 61, 104, 0.25)
+                    borderWidth: "1"
+                  children: 
+                    - type: image
+                      path: leftarrow.png
+                      style: 
+                        left: "0.004"
+                        width: "0.008"
+                        top: "0.007"
+                - type: list
+                  contentType: listObject
+                  listObject: ..NumberList
+                  iteratorVar: itemObject
+                  style: 
+                    left: "0.015"
+                    width: "0.137"
+                    height: "0.035"
+                    top: "0"
+                    margin: "0"
+                  children: 
+                    - type: listItem
+                      itemObject: ""
+                      style:
+                        left: "0"
+                        width: "0.0148"
+                        height: "0.028"
+                        display: "inline-block"
+                        border:   
+                          style: "3"
+                        borderColor: rgb(0, 61, 104, 0.25)
+                        borderWidth: "1"
+                      children: 
+                        - type: label
+                          dataKey: itemObject.key
+                          style: 
+                            left: "0"
+                            top: "0.005"
+                            width: "0.0148"
+                            height: "0.03"
+                            fontSize: "12"
+                            textAlign: 
+                              x: center
+                - type: view
+                  style: 
+                    left: "0.141"
+                    top: "0"
+                    width: "0.015"
+                    height: "0.028"
+                    border:   
+                      style: "3"
+                    borderColor: rgb(0, 61, 104, 0.25)
+                    borderWidth: "1"
+                  children: 
+                    - type: image
+                      path: rightarrow.png
+                      style: 
+                        left: "0.004"
+                        width: "0.008"
+                        top: "0.007"
+                      
+
+
+
+
+

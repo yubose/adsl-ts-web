@@ -143,32 +143,27 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
           resolveFn(...args, util.options(...args))
         } else if (u.isObj(resolveFn)) {
           if (u.isObj(resolveFn.onResource)) {
-            for (const [resourceKey, callback] of u.entries(
+            for (const [resourceKey, resourceResolveFn] of u.entries(
               resolveFn.onResource,
             )) {
               const regexp = new RegExp(resourceKey.trim(), 'i')
-
               for (const resourceObjects of u.values(ndom.global.resources)) {
                 for (const [key, obj] of u.entries(resourceObjects)) {
                   if (regexp.test(key)) {
-                    const record = ndom.createResource({
-                      ...obj,
-                      loadToDOM: true,
-                    })
-                    // if (obj && obj.onLoad && !obj.isActive?.()) {
-                    renderResource(record, (resourceNode) => {
-                      console.info('HELOOOOOOOOO!!')
-                      callback({
-                        node: args[0],
-                        component: args[1],
-                        options: util.options(args[0], args[1]),
-                        resource: {
-                          node: resourceNode,
-                          record,
-                        },
+                    const record = ndom.createResource(obj)
+                    if (obj && !obj.isActive()) {
+                      renderResource(record, (resourceNode) => {
+                        resourceResolveFn({
+                          node: args[0],
+                          component: args[1],
+                          options: util.options(args[0], args[1]),
+                          resource: {
+                            node: resourceNode,
+                            record,
+                          },
+                        })
                       })
-                    })
-                    // }
+                    }
                   }
                 }
               }

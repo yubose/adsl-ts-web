@@ -1,0 +1,1387 @@
+ScheduleManagementBilling: #xd page number: 84
+  pageNumber: "450" 
+  init:
+    - .SignInCheck
+  viewPort: top
+  title: "ScheduleManagementBilling"
+  Requst:
+    - key: Joss Bouvet
+    - key: Joss Bouvet
+    - key: Joss Bouvet
+    - key: Joss Bouvet 
+    - key: Joss Bouvet
+    - key: Joss Bouvet
+  Date:
+    - key: '9:00a'
+      value1:  Alina Grant
+      value2:  Alina Grant
+      value3: Shyam Phelps
+      value4: Shyam Phelps
+      backgroundColor1: '#E1F5FF'
+      backgroundColor2: '#E1F5FF'
+      backgroundColor3: '#F9EFE3'
+      backgroundColor4: '#F9EFE3'
+      path1: 'blue.png'
+      path2: 'kong.png'
+      path3: 'kong.png'
+      path4: 'yellow1.png'
+    - key: '10:00a'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '11:00a'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '12:00a'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '1:00p'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '2:00p'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '3:00p'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '4:00p'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '5:00p'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '6:00p'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '7:00p'
+      path1: 'kong.png'
+      path4: 'kong.png'
+    - key: '8:00p'
+      path1: 'kong.png'
+      path4: 'kong.png'
+  Recents:
+    - key: 'Fatema Robertson'
+      time: '9:32am'
+  Favorites:
+    - key: 'Fatema Robertson'
+      time: '9:32am'
+  Contacts:
+    - key: 'Fatema Robertson'
+      time: '9:32am'
+      path: 'star.png'
+    - key: 'Fatema Robertson'
+      time: '9:32am'
+      path: 'emptystar.png'
+  components:
+    - .SideMenuBar:
+      children:
+        - .aitLogo:
+        - .MenuBar:
+    - .TopBar:
+    - .BodyView:
+      children:
+        - .Label1:
+          type: label
+          text: "Schedule Management"
+          style:
+            left: "0.03"
+            fontSize: "15"
+            top: "0.02"
+        - .Scselect1:
+          options:
+            - Eiliyah Golden, MD
+            - Gary Chen, MD
+            - Beau McGee, MD
+        - .Scimage1:
+        - .Addbutton:
+          onClick:
+            - actionType: popUp
+              popUpView: AddAppointment
+    - .BaseList:
+      listObject: ..Requst
+      style:
+        width: '0.22'
+        left: '0.18'
+        height: '0.75'
+        top: '0.22'
+        backgroundColor: 0xffffff
+        overflow: "hidden"
+        display: flex
+        # position: fixed
+      children:
+        - .BaseListItem:
+          style:
+            width: '0.2'
+            left: '0.01'
+            height: '0.16'
+            display: inline-block
+            backgroundColor: ' #F4F8FA'
+            borderRadius: '10'
+            # overflow: "hidden"
+          children:
+            - .Label1:
+              dataKey: itemObject.key
+              style:
+                fontSize: '14'
+                fontWeight: '500'
+                left: '0.03'
+                top: '0.01'
+            - .Label1:
+              text: 'Appointment Type: Virtual Care'
+              style:
+                left: '0.03'
+                top: '0.05'
+                color: '#808080'
+            - .Label1:
+              text: 'View Patient Info'
+              style:
+                left: '0.12'
+                top: '0.01'
+                color: '#1492E6'
+              onClick: 
+                - goto: ScheduleManagementPI
+            - type: image
+              path: schedule.png
+              style:
+                width: '0.012'
+                left: '0.03'
+                top: '0.08'
+            - .Label1:
+              text: 'Jan 14, 2021'
+              style:
+                left: '0.05'
+                top: '0.08'
+                color: '#000000'
+            - type: image
+              path: history.png
+              style:
+                width: '0.012'
+                left: '0.11'
+                top: '0.081'
+            - .Label1:
+              text: '11:29AM'
+              style:
+                left: '0.13'
+                top: '0.08'
+                color: '#000000'               
+            - type: button
+              text: 'Confirm'
+              style:
+                fontSize: '13'
+                color: '#8990a1'
+                backgroundColor: '#f4f8fa'
+                width: '0.08'
+                top: '0.12'
+                borderRadius: '5'
+                left: '0.02'
+            - type: button
+              text: 'Unavailable'
+              style:
+                fontSize: '13'
+                color: '#8990a1'
+                backgroundColor: '#f4f8fa'
+                width: '0.08'
+                top: '0.12'
+                borderRadius: '5'
+                left: '0.12'
+            - type: view
+              style:
+                width: '0.23'
+                height: '0.001'
+                backgroundColor: '#dee2e4'
+                top: '0.11'
+            - type: view
+              style:
+                height: '0.049'
+                width: '0.0005'
+                backgroundColor: '#dee2e4'
+                top: '0.11'
+                left: '0.105'
+            - type: image
+              path: 'Icon awesome-check.png'
+              style: 
+                width: '0.01'
+                top: '0.125'
+                left: '0.025'
+            - type: image
+              path: 'Icon material-close.png'
+              style: 
+                width: '0.01'
+                top: '0.123'
+                left: '0.12'
+    - type: view
+      style:
+        width: '0.22'
+        height: '0.08'
+        top: '0.15'
+        left: '0.18'
+        backgroundColor: 0xffffff
+      children:
+        - .Label1:
+          text: Appointment Requst
+          style:
+            left: '0.01'
+            fontSize: '14'
+            top: '0.015'
+        - .Label1:
+          text: 13 pending request
+          style:
+            left: '0.01'
+            # fontSize: '14'
+            color: '#0063A8'
+            top: '0.05'
+
+    - type: view
+      style:
+        width: '0.55'
+        height: '0.85'
+        top: '0.15'
+        left: '0.41'
+        background: "0xffffff"
+      children:
+        - .InfoTitle:
+        - .InfoButton:
+        - .InfoSelect2:
+        - .InfoClose:
+        - type: label
+          text: Billing Info
+          style:
+            left: "0.02"
+            fontFamily: Poppins
+            fontSize: "16"
+            top: "0.22"
+            color: "#517086"
+        - type: label
+          text: Uploads
+          style:
+            left: "0.02"
+            fontFamily: Poppins
+            fontSize: "16"
+            top: "0.55"
+            color: "#517086"
+        - type: view
+          style:
+            width: "0.24"
+            left: "0.02"
+            top: "0.28"
+            height: "0.08"
+            border:
+              style: "2"
+              width: "1px"
+              color: "#AFC6D6"
+          children:
+            - type: label
+              text: "Name on Card"
+              style: 
+                fontFamily: "Poppins"
+                fontSize: "12"
+                color: "#517086"
+            - type: label
+              text: "Joss Bouvet"
+              style: 
+                top: "0.04"
+                fontFamily: "Poppins"
+                fontSize: "14"
+                left: "0.01"
+                color: "#003D68"
+        - type: view
+          style:
+            width: "0.24"
+            left: "0.02"
+            top: "0.36"
+            height: "0.08"
+            border:
+              style: "2"
+              width: "1px"
+              color: "#AFC6D6"
+          children:
+            - type: label
+              text: "EXP"
+              style: 
+                fontFamily: "Poppins"
+                fontSize: "12"
+                color: "#517086"
+            - type: label
+              text: "01/2025"
+              style: 
+                top: "0.04"
+                fontFamily: "Poppins"
+                fontSize: "14"
+                left: "0.01"
+                color: "#003D68"
+        - type: view
+          style:
+            width: "0.24"
+            left: "0.02"
+            top: "0.44"
+            height: "0.08"
+            border:
+              style: "2"
+              width: "1px"
+              color: "#AFC6D6"
+          children:
+            - type: label
+              text: "Address"
+              style: 
+                fontFamily: "Poppins"
+                fontSize: "12"
+                color: "#517086"
+            - type: label
+              text: "1234 Address St"
+              style: 
+                top: "0.04"
+                fontFamily: "Poppins"
+                fontSize: "14"
+                left: "0.01"
+                color: "#003D68"  
+        - type: view
+          style:
+            width: "0.24"
+            left: "0.28"
+            top: "0.28"
+            height: "0.08"
+            border:
+              style: "2"
+              width: "1px"
+              color: "#AFC6D6"
+          children:
+            - type: label
+              text: "Card Number"
+              style: 
+                fontFamily: "Poppins"
+                fontSize: "12"
+                color: "#517086"
+            - type: label
+              text: "1234 5678 9012 3456"
+              style: 
+                top: "0.04"
+                fontFamily: "Poppins"
+                fontSize: "14"
+                left: "0.01"
+                color: "#003D68"
+        - type: view
+          style:
+            width: "0.24"
+            left: "0.28"
+            top: "0.36"
+            height: "0.08"
+            border:
+              style: "2"
+              width: "1px"
+              color: "#AFC6D6"
+          children:
+            - type: label
+              text: "CVV"
+              style: 
+                fontFamily: "Poppins"
+                fontSize: "12"
+                color: "#517086"
+            - type: label
+              text: "123"
+              style: 
+                top: "0.04"
+                fontFamily: "Poppins"
+                fontSize: "14"
+                left: "0.01"
+                color: "#003D68"
+        - type: view
+          style:
+            width: "0.24"
+            left: "0.28"
+            top: "0.44"
+            height: "0.08"
+            border:
+              style: "2"
+              width: "1px"
+              color: "#AFC6D6"
+          children:
+            - type: label
+              text: "City, State, Zip code"
+              style: 
+                fontFamily: "Poppins"
+                fontSize: "12"
+                color: "#517086"
+            - type: label
+              text: "Anaheim, CA 92805"
+              style: 
+                top: "0.04"
+                fontFamily: "Poppins"
+                fontSize: "14"
+                left: "0.01"
+                color: "#003D68"  
+                
+    - .BasePopUp:
+      viewTag: Create
+      children:
+        - .PopUphead:
+          children:
+            - .CreateLabel:
+            - .Closebutton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: Create
+        - type: view
+          style:
+            height: '0.91'
+            width: '0.4'
+            top: '0.08'
+            backgroundColor: '0xffffff'
+          children:
+            - type: label
+              text: Complete fields below
+              style:
+                left: '0.04'
+                top: '0.01'
+                fontSize: '14'
+                color: '#517086'
+            - type: label
+              text: Provider
+              style:
+                left: '0.08'
+                top: '0.07'
+                fontSize: '13'
+            - .TextField1:
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.1'
+                fontSize: '13'
+            - type: label
+              text: Appointment Type
+              style:
+                left: '0.08'
+                top: '0.18'
+                fontSize: '13'
+            - type: label
+              text: Gary Chen, MD
+              style:
+                left: '0.088'
+                top: '0.11'
+                fontSize: '13'
+            - type: select
+              options:
+                - Select
+                - Office Visit
+                - Virtual Care
+              style:
+                left: '0.08'
+                top: '0.21'
+                fontSize: '13'
+                borderColor: "#EAEAEA" 
+                width: '0.245'
+                height: '0.046'
+                textIndent: 10px
+            - .Scimage1:         
+              style:
+                left: '0.30'
+                top: '0.21'
+                height: '0.046'
+            - type: image
+              path: redstar.png
+              style:
+                width: '0.01'
+                left: '0.17'
+                top: '0.175'
+            - type: label
+              text: Reason for Visit
+              style:
+                left: '0.08'
+                top: '0.29'
+                fontSize: '13'
+            - .TextField1:
+              placeholder: 'Enter Here'
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.32'
+                fontSize: '13'
+            - type: label
+              text: Invite Participant's
+              style:
+                left: '0.08'
+                top: '0.4'
+                fontSize: '13'          
+            - .TextField1:
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.43'
+                fontSize: '13'
+            - type: label
+              text: Invite
+              style:
+                color: '#1492E6'
+                left: '0.29'
+                top: '0.44'
+                fontSize: '13'    
+            - type: label
+              text: January 12, 2021 9:15am
+              style:
+                color: '#0063A8'
+                left: '0.21'
+                top: '0.5'
+                fontSize: '15'
+            - type: label
+              text: Date & Time Selected
+              style:
+                color: 'black'
+                left: '0.08'
+                top: '0.5'
+                fontSize: '14'
+            - .BottomButton:
+              text: 'Next'
+              style:
+                left: '0.28'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: popUp
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Create
+   
+      # children:  
+    - .BasePopUp:
+      viewTag: AddAppointment
+      children:
+        - .PopUphead:
+          children:
+            - .CreateLabel:
+            - .Closebutton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: AddAppointment
+        - type: view
+          style:
+            height: '0.91'
+            width: '0.4'
+            top: '0.08'
+            backgroundColor: '0xffffff'
+          children:
+            - type: label
+              text: Complete fields below
+              style:
+                left: '0.04'
+                top: '0.01'
+                fontSize: '14'
+                color: '#517086'
+            - type: label
+              text: Select Provider
+              style:
+                left: '0.08'
+                top: '0.08'
+                fontSize: '13'
+            - .TextField1:
+              placeholder: 'Enter Here'
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.31'
+                fontSize: '13'
+            - .TimeSelect: 
+              options:
+                - select
+                - Eiliyah Golden, MD
+                - Gary Chen, MD
+                - Beau McGee, MD
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.11'
+                fontSize: '13'
+                textIndent: 10px
+            - .Scimage1:         
+              style:
+                left: '0.30'
+                top: '0.11'
+                height: '0.046'
+            - type: label
+              text: Appointment Type
+              style:
+                left: '0.08'
+                top: '0.18'
+                fontSize: '13'
+            - type: label
+              text: Choose a Date
+              style:
+                left: '0.08'
+                top: '0.38'
+                fontSize: '13'
+            - type: label
+              text: Reason for Visit
+              style:
+                left: '0.08'
+                top: '0.28'
+                fontSize: '13'
+            - .TimeSelect: 
+              options:
+                - select
+                - Office Visit
+                - Virtual Care
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.21'
+                fontSize: '13'
+                textIndent: 10px
+            - .Scimage1:         
+              style:
+                left: '0.30'
+                top: '0.21'
+                height: '0.046'
+            - type: image
+              path: redstar.png
+              style:
+                width: '0.01'
+                left: '0.155'
+                top: '0.083'
+            - type: image
+              path: redstar.png
+              style:
+                width: '0.01'
+                left: '0.17'
+                top: '0.183'
+            - type: image
+              path: redstar.png
+              style:
+                width: '0.01'
+                left: '0.155'
+                top: '0.383'
+            - .BottomButton:
+              text: 'Next'
+              style:
+                left: '0.28'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: popUp
+                  popUpView: Next1
+                - actionType: popUpDismiss
+                  popUpView: AddAppointment
+    - .BasePopUp:
+      viewTag: Next1
+      children:
+        - .PopUphead:
+          children:
+            - .CreateLabel:
+            - .Closebutton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: Next1
+        - type: view
+          style:
+            height: '0.91'
+            width: '0.4'
+            top: '0.08'
+            backgroundColor: '0xffffff'
+          children:
+            - type: label
+              text: Complete fields below
+              style:
+                left: '0.04'
+                top: '0.01'
+                fontSize: '14'
+                color: '#517086' 
+            - type: label
+              text: Provider
+              style:
+                left: '0.08'
+                top: '0.07'
+                fontSize: '13'
+            - .TextField1:
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.1'
+                fontSize: '13'
+            - type: label
+              text: Appointment Type
+              style:
+                left: '0.08'
+                top: '0.18'
+                fontSize: '13'
+            - type: label
+              text: Gary Chen, MD
+              style:
+                left: '0.088'
+                top: '0.11'
+                fontSize: '13'
+            
+            - .TextField1:
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.21'
+                fontSize: '13'
+            - type: label
+              text: Virtual Care
+              style:
+                left: '0.088'
+                top: '0.22'
+                fontSize: '13'              
+            - .TextField1:
+              placeholder: 'Enter Here'
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.32'
+                fontSize: '13'
+            - type: label
+              text: Reason for Visit
+              style:
+                left: '0.08'
+                top: '0.29'
+                fontSize: '13'
+            - type: label
+              text: Invite Participant's
+              style:
+                left: '0.08'
+                top: '0.4'
+                fontSize: '13'          
+            - .TextField1:
+              style:
+                width: '0.24'
+                left: '0.08'
+                top: '0.43'
+                fontSize: '13'
+            - type: label
+              text: Invite
+              style:
+                color: '#1492E6'
+                left: '0.29'
+                top: '0.44'
+                fontSize: '13'
+            - type: label
+              text: January 12, 2021 at 9:00am
+              style:
+                color: '#0063A8'
+                left: '0.18'
+                top: '0.5'
+                fontSize: '15'
+            - type: label
+              text: Date Selected
+              style:
+                color: 'black'
+                left: '0.08'
+                top: '0.5'
+                fontSize: '14'
+            - .BottomButton:
+              text: 'Next'
+              style:
+                left: '0.28'
+                top: '0.8'
+                backgroundColor: '#DDDDDD'
+                color: '#737373'
+              onClick:
+                - actionType: popUp
+                  popUpView: Next2
+                - actionType: popUpDismiss
+                  popUpView: Next1
+            - .BottomButton:
+              text: 'Back'
+              style:
+                left: '0.03'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: popUp
+                  popUpView: AddApponintment
+                - actionType: popUpDismiss
+                  popUpView: Next1
+    - .BasePopUp:
+      viewTag: Next2
+      children:
+        - .PopUphead:
+          children:
+            - .CreateLabel:
+              text: 'Appointment Details'
+            - .Closebutton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: Next2
+        - type: view
+          style:
+            height: '0.91'
+            width: '0.4'
+            top: '0.08'
+            backgroundColor: '0xffffff'
+          children:
+            - type: label
+              text: Success!
+              style:
+                width: '0.4'
+                textAlign:
+                  x: center
+                # left: '0.04'
+                top: '0.05'
+                fontSize: '18'
+            - type: image
+              path: Flat.jpg
+              style:
+                width: '0.09'
+                left: '0.14'
+                top: '0.14'
+            - type: label
+              textBoard: 
+                - text: 'Provider:'
+                - br:
+                - text: 'Appointment Type:'
+                - br:
+                - text: 'Reason for Visit:'
+                - br:
+                - text: 'Appointment Date:'
+                - br: 
+                - text: 'Appointment Time:'
+                - br:
+                - text: 'Participants:'
+                - br:
+                - text: 'Patient need to complete intake forms'
+              style:
+                left: '0.08'
+                top: '0.37'
+                lineHeight: '2'
+            - type: label
+              textBoard: 
+                - text: 'Gary Chen, MD'
+              style:
+                left: '0.132'
+                top: '0.38'
+                fontWeight: '500'
+            - type: label
+              text: 'Virtual Care'
+              style:
+                left: '0.192'
+                top: '0.427'
+                fontWeight: '500'
+            - type: label
+              text: ' January 12, 2021'
+              style:
+                left: '0.19'
+                top: '0.524'
+                fontWeight: '500'
+            - type: label
+              text: '9:00am'
+              style:
+                left: '0.192'
+                top: '0.573'
+                fontWeight: '500'
+            - type: label
+              text: 'Elizabeth Del Rio, Gary Chen, MD'
+              style:
+                left: '0.15'
+                top: '0.62'
+                fontWeight: '500'
+            - .BottomButton:
+              text: 'Next'
+              style:
+                left: '0.28'
+                top: '0.8'
+                backgroundColor: '#DDDDDD'
+                color: '#737373'
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: Next2
+            - .BottomButton:
+              text: 'Back'
+              style:
+                left: '0.03'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: popUp
+                  popUpView: Next1
+                - actionType: popUpDismiss
+                  popUpView: Next2
+    - .BasePopUp:
+      viewTag: Recents
+      children:
+        - .PopUphead:
+          children:
+            - .CreateLabel:
+              text: 'Invite'
+            - .Closebutton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: Recents      
+        - type: view
+          style:
+            height: '0.91'
+            width: '0.4'
+            top: '0.08'
+            backgroundColor: '0xffffff'
+          children:
+            - .BaseList:
+              listObject: ..Recents
+              style:
+                width: '0.4'
+                height: '0.35'  
+                top: '0.06'   
+                left: '0'
+                display: flex
+                # backgroundColor: 'red'
+                borderBottom: '1px solid #f3f3f3'
+              children:
+                - .BaseListItem:
+                  style:
+                    height: '0.05'
+                    width: '0.4'
+                    display: inline-block
+                    # backgroundColor: 'blue'
+                  children:
+                    - .Label1:
+                      dataKey: 'itemObject.key'
+                      style: 
+                        height: '0.05'
+                        textAlign:
+                          y: center
+                        left: '0.08'
+                        fontSize: '13'
+                    - .Label1:
+                      dataKey: 'itemObject.time'
+                      style:  
+                        height: '0.05'
+                        textAlign:
+                          y: center
+                        left: '0.29'
+                        fontSize: '13'
+            - .Recentsbutton:
+              onClick:
+                - actionType: popUp
+                  popUpView: Contacts
+                - actionType: popUpDismiss
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Favorites
+              text: Contacts
+              style:
+                top: '0.03'
+                width: '0.1'
+                left: '0.08'
+                opacity: '0.5'
+            - .Recentsbutton:
+              text: Recents
+              onClick:
+                - actionType: popUp
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Contacts
+                - actionType: popUpDismiss
+                  popUpView: Favorites
+              style:
+                top: '0.03'
+                left: '0.16'
+            - type: view
+              style: 
+                backgroundColor: '#003D68'
+                width: '0.06'
+                height: '0.003'
+                left: '0.17'
+                top: '0.07'
+            - .Recentsbutton:
+              text: Favorites 
+              onClick:
+                - actionType: popUp
+                  popUpView: Favorites
+                - actionType: popUpDismiss
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Contacts
+              style:
+                top: '0.03'
+                left: '0.24'
+                opacity: '0.5'
+            - .Label1:
+              text: 'First Name'
+              style:
+                fontSize: '13'
+                left: '0.1'
+                top: '0.47'
+            - .TextField1:
+              placeholder: 'Enter Here' 
+              style:
+                width: '0.2'
+                left: '0.1'
+                top: '0.5'
+                fontSize: '13'
+            - .Label1:
+              text: 'Last Name'
+              style:
+                fontSize: '13'
+                left: '0.1'
+                top: '0.57'
+            - .TextField1:
+              placeholder: 'Enter Here' 
+              style:
+                width: '0.2'
+                left: '0.1'
+                top: '0.6'
+                fontSize: '13' 
+            - .Label1:
+              text: 'Phone Number'
+              style:
+                fontSize: '13'
+                left: '0.1'
+                top: '0.67'
+            - .TextField1:
+              placeholder: 'Enter Here' 
+              style:
+                width: '0.2'
+                left: '0.1'
+                top: '0.7'
+                fontSize: '13'  
+            - .BottomButton:
+              text: 'Invite'
+              style:
+                left: '0.28'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: popUp
+                  popUpView: Next2
+                - actionType: popUpDismiss
+                  popUpView: Recents
+            - .BottomButton:
+              text: 'Back'
+              style:
+                left: '0.03'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+    - .BasePopUp:
+      viewTag: Favorites
+      children:
+        - .PopUphead:
+          children:
+            - .CreateLabel:
+              text: 'Invite'
+            - .Closebutton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: Favorites     
+        - type: view
+          style:
+            height: '0.91'
+            width: '0.4'
+            top: '0.08'
+            backgroundColor: '0xffffff'
+          children:
+            - .BaseList:
+              listObject: ..Favorites
+              style:
+                width: '0.4'
+                height: '0.35'  
+                top: '0.06'   
+                left: '0'
+                display: flex
+                # backgroundColor: 'red'
+                borderBottom: '1px solid #f3f3f3'
+              children:
+                - .BaseListItem:
+                  style:
+                    height: '0.05'
+                    width: '0.4'
+                    display: inline-block
+                    # backgroundColor: 'blue'
+                  children:
+                    - .Label1:
+                      dataKey: 'itemObject.key'
+                      style: 
+                        height: '0.05'
+                        textAlign:
+                          y: center
+                        left: '0.08'
+                        fontSize: '13'
+                    - .Label1:
+                      dataKey: 'itemObject.time'
+                      style:  
+                        height: '0.05'
+                        textAlign:
+                          y: center
+                        left: '0.29'
+                        fontSize: '13' 
+                    - type: image
+                      path: star.png
+                      style:
+                        left: '0.055'
+                        top: '0.01'
+                        height: '0.03'
+            - .Recentsbutton:
+              onClick:
+                - actionType: popUp
+                  popUpView: Contacts
+                - actionType: popUpDismiss
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Favorites
+              text: Contacts
+              style:
+                top: '0.03'
+                width: '0.1'
+                left: '0.08'
+                opacity: '0.5'
+            - .Recentsbutton:
+              onClick:
+                - actionType: popUp
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Contacts
+                - actionType: popUpDismiss
+                  popUpView: Favorites
+              text: Recents
+              style:
+                top: '0.03'
+                left: '0.16'
+                opacity: '0.5'
+            - type: view
+              style: 
+                backgroundColor: '#003D68'
+                width: '0.06'
+                height: '0.003'
+                left: '0.25'
+                top: '0.07'
+            - .Recentsbutton:
+              onClick:
+                - actionType: popUp
+                  popUpView: Favorites
+                - actionType: popUpDismiss
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Contacts
+              text: Favorites 
+              style:
+                top: '0.03'
+                left: '0.24'
+                # opacity: '0.5'
+            - .Label1:
+              text: 'First Name'
+              style:
+                fontSize: '13'
+                left: '0.1'
+                top: '0.47'
+            - .TextField1:
+              placeholder: 'Enter Here' 
+              style:
+                width: '0.2'
+                left: '0.1'
+                top: '0.5'
+                fontSize: '13'
+            - .Label1:
+              text: 'Last Name'
+              style:
+                fontSize: '13'
+                left: '0.1'
+                top: '0.57'
+            - .TextField1:
+              placeholder: 'Enter Here' 
+              style:
+                width: '0.2'
+                left: '0.1'
+                top: '0.6'
+                fontSize: '13' 
+            - .Label1:
+              text: 'Phone Number'
+              style:
+                fontSize: '13'
+                left: '0.1'
+                top: '0.67'
+            - .TextField1:
+              placeholder: 'Enter Here' 
+              style:
+                width: '0.2'
+                left: '0.1'
+                top: '0.7'
+                fontSize: '13'  
+            - .BottomButton:
+              text: 'Invite'
+              style:
+                left: '0.28'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: popUp
+                  popUpView: Next2
+                - actionType: popUpDismiss
+                  popUpView: Favorites
+            - .BottomButton:
+              text: 'Back'
+              style:
+                left: '0.03'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'       
+    - .BasePopUp:
+      viewTag: Contacts
+      children:
+        - .PopUphead:
+          children:
+            - .CreateLabel:
+              text: 'Invite'
+            - .Closebutton:
+              onClick:
+                - actionType: popUpDismiss
+                  popUpView: Contacts     
+        - type: view
+          style:
+            height: '0.91'
+            width: '0.4'
+            top: '0.08'
+            backgroundColor: '0xffffff'
+          children:
+            - .BaseList:
+              listObject: ..Contacts
+              style:
+                width: '0.4'
+                height: '0.35'  
+                top: '0.06'   
+                left: '0'
+                display: flex
+                # backgroundColor: 'red'
+                borderBottom: '1px solid #f3f3f3'
+              children:
+                - .BaseListItem:
+                  style:
+                    height: '0.05'
+                    width: '0.4'
+                    display: inline-block
+                    # backgroundColor: 'blue'
+                  children:
+                    - .Label1:
+                      dataKey: 'itemObject.key'
+                      style: 
+                        height: '0.05'
+                        textAlign:
+                          y: center
+                        left: '0.08'
+                        fontSize: '13'
+                    - .Label1:
+                      dataKey: 'itemObject.time'
+                      style:  
+                        height: '0.05'
+                        textAlign:
+                          y: center
+                        left: '0.29'
+                        fontSize: '13' 
+                    - type: image
+                      path:
+                        emit:
+                          dataKey:
+                            var: itemObject
+                          actions:
+                            - if: 
+                              - true
+                              - $var.path
+                              - $var.path
+                      style:
+                        left: '0.055'
+                        top: '0.01'
+                        height: '0.03'
+            - .Recentsbutton:
+              onClick:
+                - actionType: popUp
+                  popUpView: Contacts
+                - actionType: popUpDismiss
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Favorites
+              text: Contacts
+              style:
+                top: '0.03'
+                width: '0.1'
+                left: '0.08'
+                # opacity: '0.5'
+            - .Recentsbutton:
+              onClick:
+                - actionType: popUp
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Contacts
+                - actionType: popUpDismiss
+                  popUpView: Favorites
+              text: Recents
+              style:
+                top: '0.03'
+                left: '0.16'
+                opacity: '0.5'
+            - type: view
+              style: 
+                backgroundColor: '#003D68'
+                width: '0.06'
+                height: '0.003'
+                left: '0.1'
+                top: '0.07'
+            - .Recentsbutton:
+              onClick:
+                - actionType: popUp
+                  popUpView: Favorites
+                - actionType: popUpDismiss
+                  popUpView: Recents
+                - actionType: popUpDismiss
+                  popUpView: Contacts
+              text: Favorites 
+              style:
+                top: '0.03'
+                left: '0.24'
+                opacity: '0.5'
+            - .Label1:
+              text: 'First Name'
+              style:
+                fontSize: '13'
+                left: '0.1'
+                top: '0.47'
+            - .TextField1:
+              placeholder: 'Enter Here' 
+              style:
+                width: '0.2'
+                left: '0.1'
+                top: '0.5'
+                fontSize: '13'
+            - .Label1:
+              text: 'Last Name'
+              style:
+                fontSize: '13'
+                left: '0.1'
+                top: '0.57'
+            - .TextField1:
+              placeholder: 'Enter Here' 
+              style:
+                width: '0.2'
+                left: '0.1'
+                top: '0.6'
+                fontSize: '13' 
+            - .Label1:
+              text: 'Phone Number'
+              style:
+                fontSize: '13'
+                left: '0.1'
+                top: '0.67'
+            - .TextField1:
+              placeholder: 'Enter Here' 
+              style:
+                width: '0.2'
+                left: '0.1'
+                top: '0.7'
+                fontSize: '13'  
+            - .BottomButton:
+              text: 'Invite'
+              style:
+                left: '0.28'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'
+              onClick:
+                - actionType: popUp
+                  popUpView: Next2
+                - actionType: popUpDismiss
+                  popUpView: Contacts
+            - .BottomButton:
+              text: 'Back'
+              style:
+                left: '0.03'
+                top: '0.8'
+                backgroundColor: '#005795'
+                color: '0xffffff'                

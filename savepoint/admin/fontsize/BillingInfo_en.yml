@@ -1,0 +1,370 @@
+BillingInfo:  # xd page number10
+  pageNumber: "180"
+  init:
+    # - ..businessLogo.docAPI.get
+    # - ..profile.docAPI.get
+    - actionType: updateObject
+      dataKey: Global.jwt.edge.id
+      dataObject: ""
+    - actionType: evalObject
+      object:
+        - ..facilityProfile.document.name.data.basicInfo@: .Global.formData.medicalFacility.name.basicInfo
+  fac_RootNotebook:
+    edgeReq:
+      id: ""
+      xfname: bvid
+      type: .EdgeType.RootNotebook
+    edge: ""
+    edgeAPI:
+      get:
+        api: re
+        dataIn: BillingInfo.fac_RootNotebook.edgeReq
+        dataOut: BillingInfo.fac_RootNotebook.edge
+  relation:
+    edgeStore: ""
+    edge: ""
+    edgeReq:
+      id: []
+      xfname: bvid,evid
+      type: 1100
+      _nonce: .Global._nonce
+    edgeAPI:
+      get:
+        api: re
+        dataIn: BillingInfo.relation.edgeReq
+        dataOut: BillingInfo.relation.edge
+      store:
+        api: ce
+        dataIn: BillingInfo.relation.edgeStore
+  auth:
+    documentReq:
+      name:
+        data:
+          auth: ""
+      eid: ""
+      type: .DocType.Auth
+    docAPI:
+      store:
+        api: cd
+        dataIn: StaffManagement.auth.documentReq
+  medicalFacility:
+    vertex:
+      .Global.formData.medicalFacility: ""
+      name:
+        billingInfo:
+          cardholderName: ""
+          billingAddress: ""
+          cardNumber: ""
+          city: ""
+          cardExpiration: ""
+          securityCode: ""
+          state: ""
+          zipCode: ""
+    vertexAPI:
+      .VertexAPI: ""
+      store:
+        api: cv
+        dataIn: BillingInfo.medicalFacility.vertex
+        dataOut: Global.currentFacility  
+  facilityProfile: 
+    document:
+      eid: ""
+      type: .DocType.FacilityProfile
+      name: 
+        data: 
+          basicInfo: ""
+    docAPI:
+      store:
+        api: cd
+        dataIn: BillingInfo.facilityProfile.document
+  formData:
+    auth:
+      MFI:
+        create: false
+        edit: false
+        review: false
+      TDT:
+        create: false
+        edit: false
+        review: false
+      staff:
+        create: false
+        edit: false
+        review: false
+      patient:
+        create: false
+        edit: false
+        review: false
+      provider:
+        create: false
+        edit: false
+        review: false
+      scheduleInfo:
+        create: false
+        edit: false
+        review: false
+      PAT:
+        create: false
+        edit: false
+        review: false
+  components:
+    - .MainView:
+      children:        
+        - .LeftDivider:
+        - .Head0:
+        - .CenterView: 
+          children:
+            - .LeftLabel:
+              text: "Please complete facility basic info, you can always edit in setting if needed."
+            - .LeftImage:
+              path: surgery center color.png
+            - .FlowChart:
+              children:
+                - type: label
+                  text: "Basic Info "
+                  onClick:
+                    - goto: MedicalFacility1
+                  style:
+                    fontSize: "12"
+                    left: "0.01"
+                    top: "0.04"
+                - type: divider
+                  style:
+                    width: "0.08"
+                    left: "0.04"
+                    color: "red"
+                    top: "0.01"
+                    backgroundColor: "#0063A8"
+                    height: "0.001"
+                - type: label
+                  text: "Billing Info"
+                  style:
+                    style:
+                    fontSize: "12"
+                    left: "0.135"
+                    top: "0.04"
+                - .TrueImage:
+                - .Ball:
+                  text: "2"
+                  style: 
+                    top: "0.0085"
+                    left: "0.14"
+            - .Label1:
+              text: "No charge until more than 10 providers added."
+              style:
+                top: "0.18"
+                left: "0.28"
+                color: "#505050"
+
+            - .BottomButton:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.BillingInfo.medicalFacility.vertexAPI.store: ""
+                    - ..fac_RootNotebook.edgeReq.id@: =.Global.currentFacility.data.vertex.id
+                    - =..fac_RootNotebook.edgeAPI.get: ""
+                    # - ..relation.edgeReq.id@: =.Global.currentFacility.data.vertex.id
+                    - =.builtIn.array.add:
+                        dataIn: 
+                          object: =..relation.edgeReq.id
+                          value: =.Global.currentUser.vertex.id
+                    - =.builtIn.array.add:
+                        dataIn: 
+                          object: =..relation.edgeReq.id
+                          value: =.Global.currentFacility.data.vertex.id
+                    - =..relation.edgeAPI.get: ""
+                    - ..relation.edgeStore@: =..relation.edge.edge.0
+                    - =.builtIn.object.setAuthAllTrue:
+                        dataIn:
+                          object: =..formData.auth
+                        dataOut: BillingInfo.relation.edgeStore.name.auth
+                    - =..relation.edgeAPI.store: ""
+                    - .Global.jwt.edge.bvid@: =.Global.currentFacility.data.vertex.id
+                    - =.Global.jwt.edgeAPI.store: ""
+                    - ..facilityProfile.document.eid@: =..fac_RootNotebook.edge.edge.0.id
+                    - =..facilityProfile.docAPI.store: ""
+                    # - .Global.jwt.edge.bvid@: =.Global.currentFacility.data.vertex.id
+                    # - =.Global.jwt.edgeAPI.store: ""
+                    # - ..businessLogo.document.id@: ""
+                    # - ..profile.document.id@: ""
+                    # - ..businessLogo.document.eid@: =..fac_RootNotebook.edge.edge.0.id
+                    # - ..profile.document.eid@: =..fac_RootNotebook.edge.edge.0.id
+                    # - =..BusinessLogo.docAPI.store: ""
+                    # - =..Profile.docAPI.store: ""     
+                - goto: SignInSuccessful
+              text: "Skip"
+              style:
+                backgroundColor: "#0063a8"
+                color: "0xffffff"
+                left: "0.63"
+                top: '0.18'                
+            - .Label1:
+              text: "Cardholder name"
+              style:
+                top: "0.23"
+                left: "0.28"
+            - .TextField2:
+              dataKey: medicalFacility.vertex.name.billingInfo.cardholderName
+              style:
+                left: "0.28"
+                borderRadius: "10"
+                top: "0.25"
+            - .Label1:
+              text: "Billing Address"
+              style:
+                top: "0.23"
+                left: "0.515"
+            - .TextField2:
+              dataKey: medicalFacility.vertex.name.billingInfo.billingAddress
+              style:
+                left: "0.515"
+                borderRadius: "10"
+                top: "0.25"
+            - .Label1:
+              text: "Card number"
+              style:
+                top: "0.35"
+                left: "0.28"
+            - .TextField2:
+              dataKey: medicalFacility.vertex.name.billingInfo.cardNumber
+              style:
+                left: "0.28"
+                borderRadius: "10"
+                top: "0.37"
+            - .Label1:
+              text: "City"
+              style:
+                top: "0.35"
+                left: "0.515"
+            - .TextField2:
+              dataKey: medicalFacility.vertex.name.billingInfo.city
+              style:
+                left: "0.515"
+                top: "0.37"
+                borderRadius: "10"
+            - .Label1:
+              text: "Card expiration"
+              style:
+                top: "0.47"
+                left: "0.28"
+            - .TextField2:
+              placeholder: "MM/YY"
+              dataKey: medicalFacility.vertex.name.billingInfo.cardExpiration
+              style:
+                width: "0.1"
+                left: "0.28"
+                borderRadius: "10"
+                top: "0.49"
+            - .Label1:
+              text: "Security Code"
+              style:
+                top: "0.47"
+                left: "0.4"
+            - .TextField2:
+              placeholder: "CVC"
+              dataKey: medicalFacility.vertex.name.billingInfo.securityCode
+              style:
+                width: "0.08"
+                left: "0.4"
+                borderRadius: "10"
+                top: "0.49"
+            - .Label1:
+              text: "State"
+              style:
+                top: "0.47"
+                left: "0.515"
+            - type: select
+              dataKey: medicalFacility.vertex.name.billingInfo.state
+              options:
+                .State
+              style:
+                height: "0.055"
+                width: "0.04"
+                left: "0.515"
+                top: "0.49"
+                color: "#acacac"
+                border:
+                  style: "3"
+                fontSize: "12" 
+                borderColor: "#EAEAEA" 
+                backgroundColor: "#ffffff"
+                borderRadius: "10"
+                textIndent: '10px'
+            - .Label1:
+              text: "Zip code"
+              style:
+                top: "0.47"
+                left: "0.575"
+            - .TextField2:
+              dataKey: medicalFacility.vertex.name.billingInfo.zipCode
+              style:
+                width: "0.14"
+                left: "0.575"
+                borderRadius: "10"
+                top: "0.49"
+
+            # - .Label1:
+            #   textBoard:
+            #     - text: "*"
+            #       color: "0xff0000"
+            #     - text: "&nbsp;"
+            #     - text: "save payment info"
+            #   style:
+            #     top: "0.68"
+            #     left: "0.28"
+            #     color: "#c8c8c8"
+            - .BottomButton:
+              text: "Next"
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - if:
+                      - =.builtIn.string.judgesFillinAll:
+                          dataIn:
+                            object: =..medicalFacility.vertex.name.billingInfo
+                      - continue
+                      - actionType: popUp
+                        popUpView: errorFill
+                    - =.BillingInfo.medicalFacility.vertexAPI.store: ""
+                    - ..fac_RootNotebook.edgeReq.id@: =.Global.currentFacility.data.vertex.id
+                    - =..fac_RootNotebook.edgeAPI.get: ""
+                    # - ..relation.edgeReq.id@: =.Global.currentFacility.data.vertex.id
+                    - =.builtIn.array.add:
+                        dataIn: 
+                          object: =..relation.edgeReq.id
+                          value: =.Global.currentUser.vertex.id
+                    - =.builtIn.array.add:
+                        dataIn: 
+                          object: =..relation.edgeReq.id
+                          value: =.Global.currentFacility.data.vertex.id
+                    - =..relation.edgeAPI.get: ""
+                    - ..relation.edgeStore@: =..relation.edge.edge.0
+                    - =.builtIn.object.setAuthAllTrue:
+                        dataIn:
+                          object: =..formData.auth
+                        dataOut: BillingInfo.relation.edgeStore.name.auth
+                    - =..relation.edgeAPI.store: ""
+                    - .Global.jwt.edge.bvid@: =.Global.currentFacility.data.vertex.id
+                    - =.Global.jwt.edgeAPI.store: ""
+                    - ..facilityProfile.document.eid@: =..fac_RootNotebook.edge.edge.0.id
+                    - =..facilityProfile.docAPI.store: ""
+                    # - .Global.jwt.edge.bvid@: =.Global.currentFacility.data.vertex.id
+                    # - =.Global.jwt.edgeAPI.store: ""
+                    # - ..businessLogo.document.id@: ""
+                    # - ..profile.document.id@: ""
+                    # - ..businessLogo.document.eid@: =..fac_RootNotebook.edge.edge.0.id
+                    # - ..profile.document.eid@: =..fac_RootNotebook.edge.edge.0.id
+                    # - =..BusinessLogo.docAPI.store: ""
+                    # - =..Profile.docAPI.store: ""     
+                    - goto: SignInSuccessful
+              style:
+                backgroundColor: "#dddddd"
+                color: "#737373"
+                left: "0.37"
+                top: "0.73"
+                width: '0.25'
+    - .BaseCheckView: ""
+      message: "You should fill in all the blank"
+      viewTag: errorFill
+      style: 
+        zIndex: "100000"                     

@@ -37,6 +37,7 @@ export interface GlobalResourceObject<Type extends GlobalResourceType> {
     record: GetGlobalResourceRecordAlias<T>
   }) => Promise<void> | void
   record: GetGlobalResourceRecordAlias<Type>
+  lazyLoad?: boolean
 }
 
 export type GlobalResourceType = typeof resourceTypes[number]
@@ -52,7 +53,7 @@ export type GetGlobalResourceElementAlias<Type extends GlobalResourceType> =
     ? HTMLLinkElement
     : Type extends 'js'
     ? HTMLScriptElement
-    : null
+    : HTMLElement
 
 export type GlobalResourceRecord =
   | GlobalCssResourceRecord
