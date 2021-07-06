@@ -186,15 +186,19 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
     // Path emits are handled in resolveActions
     if (u.isStr(src)) {
-      if (Identify.reference(src)) {
-        if (src.startsWith('..')) {
-          // Local
-          src = src.substring(2)
-          src = get(getRoot()[page.page], src)
-        } else if (src.startsWith('.')) {
-          // Root
-          src = src.substring(1)
-          src = get(getRoot(), src)
+      if (iteratorVar && src.startsWith(iteratorVar)) {
+        src = excludeIteratorVar(src, iteratorVar) || ''
+      } else {
+        if (Identify.reference(src)) {
+          if (src.startsWith('..')) {
+            // Local
+            src = src.substring(2)
+            src = get(getRoot()[page.page], src)
+          } else if (src.startsWith('.')) {
+            // Root
+            src = src.substring(1)
+            src = get(getRoot(), src)
+          }
         }
       }
 
