@@ -43,7 +43,6 @@ import {
 import { groupedActionTypes, nuiEmitType } from './constants'
 import * as t from './types'
 
-/** @type { object } NUI */
 const NUI = (function _NUI() {
   /** @type { object } cache */
   const cache = {
