@@ -17,6 +17,7 @@ export default {
     isObj(component.style?.textAlign) && delete component.style.textAlign
 
     entries(component.style).forEach(([styleKey, styleValue]) => {
+      if (Number.isFinite(Number(styleKey))) return
       node.style[styleKey] = String(styleValue)
     })
 
