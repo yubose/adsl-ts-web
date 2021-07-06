@@ -451,7 +451,7 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] Hover': {
-      cond: (n, c) => c.contentType === 'hover',
+      cond: (n, c) => c.has('hover'),
       resolve(node, component){
           if(component?.original?.hover){
             node?.addEventListener('mouseover', function (e) {
