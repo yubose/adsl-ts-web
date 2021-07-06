@@ -99,6 +99,7 @@ NUI.emit({
 - [ ] PasswordRecoveryHelper (Jiahao)
 - [x] Font size (Elaine)
 - [ ] lazyload libs
+- [x] fixed path not being appended to assets url for iteratorVar paths
 
 ## Accounts
 
