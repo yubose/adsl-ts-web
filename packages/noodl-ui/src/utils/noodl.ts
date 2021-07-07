@@ -396,13 +396,14 @@ export function resolveAssetUrl(
       } else src = assetsUrl + pathValue
     } else src = `${assetsUrl}${pathValue}`
   } else if (u.isObj(options)) {
-    let { dataObject, dataKey = '', iteratorVar = '' } = options
-    if (u.isObj(dataObject) && u.isStr(dataKey) && u.isStr(iteratorVar)) {
-      if (dataKey.startsWith(iteratorVar)) {
-        dataKey = excludeIteratorVar(dataKey, iteratorVar) || ''
+    // TODO - Fix this
+    src = pathValue || ''
+    let { dataObject, iteratorVar = '' } = options
+    if (u.isObj(dataObject) && u.isStr(src) && u.isStr(iteratorVar)) {
+      if (iteratorVar && src.startsWith(iteratorVar)) {
+        src = excludeIteratorVar(src, iteratorVar) || ''
       }
-      src = get(dataObject, dataKey)
-
+      src = get(dataObject, src)
       if (u.isStr(src)) {
         if (/^(http|blob)/i.test(src)) src = src
         else if (src.startsWith('~/')) {

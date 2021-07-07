@@ -180,7 +180,30 @@ describe(coolGold(`Utils`), () => {
 })
 
 describe(italic(`resolveAssetUrl`), () => {
-  xit(`should return true`, () => {
-    //
+  describe(`when resolving through list item data objects`, () => {
+    const assetsUrl = 'https://aitmed.com/abc/assets/'
+    const iteratorVar = 'imagePath'
+    const imagePath = 'pigBlack.png'
+    const src = `${assetsUrl}${imagePath}`
+    const dataObject = {
+      imagePath,
+      imgName: 'Free',
+      number: 1,
+    }
+
+    it.only(
+      `should return the correct url using the list item ` + `iteratorVar way`,
+      () => {
+        expect(
+          n.resolveAssetUrl(src, { assetsUrl, dataObject, iteratorVar }),
+        ).to.eq(`${assetsUrl}${imagePath}`)
+      },
+    )
+  })
+
+  it(`should return true`, () => {
+    expect(n.resolveAssetUrl('abc.png', NUI.getAssetsUrl())).to.eq(
+      `${NUI.getAssetsUrl()}abc.png`,
+    )
   })
 })
