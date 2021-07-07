@@ -711,6 +711,10 @@ const createExtendedDOMResolvers = function (app: App) {
           const parent = component.parent
           mapboxgl.accessToken =
             'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
+          // let script = document.createElement("script")
+          // script.type = "text/javascript"
+          // script.appendChild(document.createTextNode("https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.js"))
+          // document.head.appendChild(script)
           let link = document.createElement('link')
           link.href = 'https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
           link.rel = 'stylesheet'
