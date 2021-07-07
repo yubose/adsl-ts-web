@@ -188,6 +188,15 @@ dataAttribsResolver.setResolver((component, options, next) => {
     if (u.isStr(src)) {
       if (iteratorVar && src.startsWith(iteratorVar)) {
         src = excludeIteratorVar(src, iteratorVar) || ''
+        src = get(context?.dataObject, src) || ''
+
+        if (u.isStr(src) && !src.startsWith(getAssetsUrl())) {
+          src = getAssetsUrl() + src
+        }
+        // TODO - Deprecate "src" in favor of data-value
+        component.edit({ 'data-src': src, src })
+        path && component.emit('path', src)
+        image && component.emit('image', src)
       } else {
         if (Identify.reference(src)) {
           if (src.startsWith('..')) {
@@ -200,18 +209,18 @@ dataAttribsResolver.setResolver((component, options, next) => {
             src = get(getRoot(), src)
           }
         }
-      }
 
-      if (src) {
-        // Wrapping this in a setTimeout allows DOM elements to subscribe
-        // their callbacks before this fires
-        setTimeout(() => {
-          src = n.resolveAssetUrl(src, getAssetsUrl())
-          // TODO - Deprecate "src" in favor of data-value
-          component.edit({ 'data-src': src })
-          path && component.emit('path', src)
-          image && component.emit('image', src)
-        })
+        if (src) {
+          // Wrapping this in a setTimeout allows DOM elements to subscribe
+          // their callbacks before this fires
+          setTimeout(() => {
+            src = n.resolveAssetUrl(src, getAssetsUrl())
+            // TODO - Deprecate "src" in favor of data-value
+            component.edit({ 'data-src': src })
+            path && component.emit('path', src)
+            image && component.emit('image', src)
+          })
+        }
       }
     }
   }
