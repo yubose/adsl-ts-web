@@ -225,7 +225,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
         renderResource(
           record,
           globalResourceObject.onLoad &&
-            ((node) => globalResourceObject.onLoad?.({ node, record })),
+            (({ node }) => globalResourceObject.onLoad?.({ node, record })),
         )
       }
     }
@@ -452,7 +452,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
         globalResources,
       )) {
         if (record && !lazyLoad && !isActive()) {
-          renderResource(record, (node) => onLoad?.({ node, record }))
+          renderResource(record, ({ node }) => onLoad?.({ node, record }))
         }
       }
     }

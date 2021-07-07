@@ -186,28 +186,41 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
     // Path emits are handled in resolveActions
     if (u.isStr(src)) {
-      if (Identify.reference(src)) {
-        if (src.startsWith('..')) {
-          // Local
-          src = src.substring(2)
-          src = get(getRoot()[page.page], src)
-        } else if (src.startsWith('.')) {
-          // Root
-          src = src.substring(1)
-          src = get(getRoot(), src)
-        }
-      }
+      if (iteratorVar && src.startsWith(iteratorVar)) {
+        src = excludeIteratorVar(src, iteratorVar) || ''
+        src = get(context?.dataObject, src) || ''
 
-      if (src) {
-        // Wrapping this in a setTimeout allows DOM elements to subscribe
-        // their callbacks before this fires
-        setTimeout(() => {
-          src = n.resolveAssetUrl(src, getAssetsUrl())
-          // TODO - Deprecate "src" in favor of data-value
-          component.edit({ 'data-src': src })
-          path && component.emit('path', src)
-          image && component.emit('image', src)
-        })
+        if (u.isStr(src) && !src.startsWith(getAssetsUrl())) {
+          src = getAssetsUrl() + src
+        }
+        // TODO - Deprecate "src" in favor of data-value
+        component.edit({ 'data-src': src, src })
+        path && component.emit('path', src)
+        image && component.emit('image', src)
+      } else {
+        if (Identify.reference(src)) {
+          if (src.startsWith('..')) {
+            // Local
+            src = src.substring(2)
+            src = get(getRoot()[page.page], src)
+          } else if (src.startsWith('.')) {
+            // Root
+            src = src.substring(1)
+            src = get(getRoot(), src)
+          }
+        }
+
+        if (src) {
+          // Wrapping this in a setTimeout allows DOM elements to subscribe
+          // their callbacks before this fires
+          setTimeout(() => {
+            src = n.resolveAssetUrl(src, getAssetsUrl())
+            // TODO - Deprecate "src" in favor of data-value
+            component.edit({ 'data-src': src })
+            path && component.emit('path', src)
+            image && component.emit('image', src)
+          })
+        }
       }
     }
   }

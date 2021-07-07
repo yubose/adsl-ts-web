@@ -152,7 +152,7 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
                   if (regexp.test(key)) {
                     const record = ndom.createResource(obj)
                     if (obj && !obj.isActive()) {
-                      renderResource(record, (resourceNode) => {
+                      renderResource(record, ({ node: resourceNode }) => {
                         resourceResolveFn({
                           node: args[0],
                           component: args[1],

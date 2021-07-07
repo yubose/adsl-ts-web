@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import { excludeIteratorVar } from 'noodl-utils'
 import { ComponentObject, Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isComponent from './isComponent'
@@ -358,16 +359,60 @@ export function publish(
 
 export function resolveAssetUrl(
   pathValue: string | undefined,
+  opts: {
+    assetsUrl?: string
+    dataObject?: Record<string, any>
+    dataKey?: string
+    iteratorVar?: string
+  },
+): string
+
+export function resolveAssetUrl(
+  pathValue: string | undefined,
   assetsUrl: string,
+): string
+
+export function resolveAssetUrl(
+  pathValue: string | undefined,
+  options:
+    | string
+    | {
+        assetsUrl?: string
+        dataObject?: Record<string, any>
+        dataKey?: string
+        iteratorVar?: string
+      },
 ) {
-  if (!pathValue) return assetsUrl || ''
+  let assetsUrl = ''
   let src = ''
-  if (typeof pathValue === 'string') {
-    if (/^(http|blob)/i.test(pathValue)) src = pathValue
-    else if (pathValue.startsWith('~/')) {
-      // Should be handled by an SDK
-    } else src = assetsUrl + pathValue
-  } else src = `${assetsUrl}${pathValue}`
+
+  if (u.isStr(options)) {
+    assetsUrl = options
+    if (!pathValue) return assetsUrl || ''
+    if (u.isStr(pathValue)) {
+      if (/^(http|blob)/i.test(pathValue)) src = pathValue
+      else if (pathValue.startsWith('~/')) {
+        // Should be handled by an SDK
+      } else src = assetsUrl + pathValue
+    } else src = `${assetsUrl}${pathValue}`
+  } else if (u.isObj(options)) {
+    // TODO - Fix this
+    src = pathValue || ''
+    let { dataObject, iteratorVar = '' } = options
+    if (u.isObj(dataObject) && u.isStr(src) && u.isStr(iteratorVar)) {
+      if (iteratorVar && src.startsWith(iteratorVar)) {
+        src = excludeIteratorVar(src, iteratorVar) || ''
+      }
+      src = get(dataObject, src)
+      if (u.isStr(src)) {
+        if (/^(http|blob)/i.test(src)) src = src
+        else if (src.startsWith('~/')) {
+          // Should be handled by an SDK
+        } else src = assetsUrl + src
+      } else src = `${assetsUrl}${src}`
+    }
+  }
+
   return src
 }
 

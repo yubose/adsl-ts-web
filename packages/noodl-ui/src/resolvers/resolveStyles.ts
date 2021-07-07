@@ -258,15 +258,17 @@ resolveStyles.setResolver(
     if (Identify.component.header(component)) {
       edit({ zIndex: 100 })
     } else if (Identify.component.image(component)) {
-      // Remove the height to maintain the aspect ratio since images are
-      // assumed to have an object-fit of 'contain'
-      if (!('height' in originalStyles)) edit(undefined, { remove: 'height' })
-      // Remove the width to maintain the aspect ratio since images are
-      // assumed to have an object-fit of 'contain'
-      if (!('width' in originalStyles)) edit(undefined, { remove: 'width' })
+      if (u.isObj(originalStyles)) {
+        // Remove the height to maintain the aspect ratio since images are
+        // assumed to have an object-fit of 'contain'
+        if (!('height' in originalStyles)) edit(undefined, { remove: 'height' })
+        // Remove the width to maintain the aspect ratio since images are
+        // assumed to have an object-fit of 'contain'
+        if (!('width' in originalStyles)) edit(undefined, { remove: 'width' })
 
-      if (!('objectFit' in originalStyles)) {
-        edit({ objectFit: 'contain' })
+        if (!('objectFit' in originalStyles)) {
+          edit({ objectFit: 'contain' })
+        }
       }
     } else if (Identify.component.listLike(component)) {
       edit({
