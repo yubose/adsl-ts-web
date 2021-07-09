@@ -813,6 +813,9 @@ const NUI = (function _NUI() {
       } else {
         styles.position = 'absolute'
       }
+      if(originalStyle?.position == 'fixed'){
+        styles.position = "fixed"
+      }
 
       u.isNil(originalStyle.height) && (styles.height = 'auto')
 
