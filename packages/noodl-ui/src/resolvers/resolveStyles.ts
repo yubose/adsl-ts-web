@@ -5,6 +5,7 @@ import { NUIComponent, ConsumerOptions } from '../types'
 import { presets } from '../constants'
 import { findListDataObject, findIteratorVar } from '../utils/noodl'
 import ComponentResolver from '../Resolver'
+import VP from '../Viewport'
 import * as com from '../utils/common'
 import * as u from '../utils/internal'
 import * as util from '../utils/style'
@@ -161,15 +162,6 @@ resolveStyles.setResolver(
         edit(presets.border['7'])
       }
     }
-    if (borderRadius) {
-      if (u.isStr(borderRadius)) {
-        if (!com.hasLetter(borderRadius)) {
-          edit({ borderRadius: `${borderRadius}px` })
-        }
-      } else if (u.isNum(borderRadius)) {
-        edit({ borderRadius: `${borderRadius}px` })
-      }
-    }
     if (borderWidth) {
       if (u.isStr(borderWidth)) {
         if (!com.hasLetter(borderWidth)) {
@@ -179,21 +171,38 @@ resolveStyles.setResolver(
         edit({ borderWidth: `${borderWidth}px` })
       }
     }
-    // If a borderRadius effect is to be expected and there is no border
-    // (since no border negates borderRadius), we need to add an invisible
-    // border to simulate the effect
     if (borderRadius) {
-      const regex = /[a-zA-Z]+$/
-      const radius = Number(`${borderRadius}`.replace(regex, ''))
-      if (!Number.isNaN(radius)) {
-        edit({ borderRadius: `${radius}px` })
-        if (
-          !component.style.borderWidth ||
-          component.style.borderWidth === 'none' ||
-          component.style.borderWidth === '0px'
-        ) {
-          // Make the border invisible
-          edit({ borderWidth: '1px', borderColor: 'rgba(0, 0, 0, 0)' })
+      const isNoodlUnit = borderRadius % 1 !== 0
+      if (isNoodlUnit) {
+        edit({
+          borderRadius: String(util.getSize(borderRadius, viewport.height)),
+        })
+      } else {
+        if (u.isStr(borderRadius)) {
+          if (!com.hasLetter(borderRadius)) {
+            edit({ borderRadius: borderRadius + 'px' })
+          } else {
+            edit({ borderRadius: `${borderRadius}` })
+          }
+        } else if (u.isNum(borderRadius)) {
+          edit({ borderRadius: `${borderRadius}px` })
+        }
+
+        // If a borderRadius effect is to be expected and there is no border
+        // (since no border negates borderRadius), we need to add an invisible
+        // border to simulate the effect
+        const regex = /[a-zA-Z]+$/
+        const radius = Number(`${borderRadius}`.replace(regex, ''))
+        if (!Number.isNaN(radius)) {
+          edit({ borderRadius: `${radius}px` })
+          if (
+            !component.style.borderWidth ||
+            component.style.borderWidth === 'none' ||
+            component.style.borderWidth === '0px'
+          ) {
+            // Make the border invisible
+            edit({ borderWidth: '1px', borderColor: 'rgba(0, 0, 0, 0)' })
+          }
         }
       }
     }

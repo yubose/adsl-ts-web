@@ -60,7 +60,7 @@ export const trackSdk = function trackSdk(app: App) {
 
   for (const key of keysToTrack) {
     if (!app.noodl?.[key]) continue
-    const value = app.noodl?.[key].bind(app.noodl)
+    const value = app.noodl?.[key]?.bind?.(app.noodl)
     trackProperty({
       category: 'sdk',
       value,
