@@ -28,10 +28,12 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
+import { BackgroundColor } from 'chalk'
 
 const log = Logger.create('dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
+  
   const getOnChange = function _getOnChangeFn(args: {
     component: NUIComponent.Instance
     dataKey: string
@@ -127,6 +129,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
     return onChange
   }
+  
 
   const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
     '[App] chart': {
@@ -423,6 +426,7 @@ const createExtendedDOMResolvers = function (app: App) {
         },
       },
     },
+
     '[App] data-value': {
       cond: (node) => isTextFieldLike(node),
       before(node, component) {
@@ -451,7 +455,7 @@ const createExtendedDOMResolvers = function (app: App) {
             }),
           )
 
-          if (component?.type == 'textField') {
+          if(component?.type == "textField"){
             node.addEventListener(
               'input',
               getOnChange({
@@ -463,6 +467,7 @@ const createExtendedDOMResolvers = function (app: App) {
               }),
             )
           }
+
         }
 
         if (component.has('onBlur')) {
@@ -498,6 +503,31 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    '[App] Hover': {
+      cond: (n, c) => c.has('hover'),
+      resolve(node, component){
+          if(component?.original?.hover){
+            node?.addEventListener('mouseover', function (e) {
+              u.eachEntries(component?.original?.hover,(key:any,value)=>{
+                value = value.substring(2)
+                node.style[key] = "#"+value
+              })
+            })
+            node?.addEventListener("mouseout",function(e){
+              u.eachEntries(component?.original?.hover,(key:any,value)=>{
+                let realvalue = component.style[key]
+                if(typeof realvalue == 'undefined' && key == 'backgroundColor'){
+                  realvalue = "#ffffff"
+                }
+                if(typeof realvalue == 'undefined' && key == 'fontColor'){
+                  realvalue = "#000000"
+                }
+                node.style[key] = realvalue
+              })
+            })
+          }
+      }
+    },
     '[App] dropDown': {
       cond: 'textField',
       resolve(node, component) {
@@ -509,155 +539,155 @@ const createExtendedDOMResolvers = function (app: App) {
           let pageName = app.currentPage
           let json1 = [
             {
-              id: 1,
-              disabled: false,
-              groupName: 'Condition',
-              groupId: 1,
-              selected: false,
-              name: 'Primary Care Physician (PCP)',
+              "id": 1, 
+              "disabled": false, 
+              "groupName": "Condition",  
+              "groupId": 1,
+              "selected": false, 
+              "name": "Primary Care Physician (PCP)" 
             },
             {
-              id: 2,
-              disabled: false,
-              groupName: 'Condition',
-              groupId: 1,
-              selected: false,
-              name: 'OB-GYN (Obstetrician-Gynecologist)',
+              "id": 2,
+              "disabled": false,
+              "groupName": "Condition",
+              "groupId": 1,
+              "selected": false,
+              "name": "OB-GYN (Obstetrician-Gynecologist)"
             },
             {
-              id: 3,
-              disabled: false,
-              groupName: 'procedure',
-              groupId: 2,
-              selected: false,
-              name: 'Dermatologist',
-            },
-            {
-              id: 4,
-              disabled: false,
-              groupName: 'procedure',
-              groupId: 2,
-              selected: false,
-              name: 'Dentist',
-            },
-            {
-              id: 5,
-              disabled: false,
-              groupName: 'doctor',
-              groupId: 3,
-              selected: false,
-              name: 'Ear, Nose & Throat Doctor (ENT / Otolaryngologist)',
-            },
-            {
-              id: 6,
-              disabled: false,
-              groupName: 'doctor',
-              groupId: 3,
-              selected: false,
-              name: 'Eye Doctor',
-            },
+                "id": 3, 
+                "disabled": false, 
+                "groupName": "procedure",  
+                "groupId": 2,
+                "selected": false, 
+                "name": "Dermatologist" 
+              },
+              {
+                "id": 4,
+                "disabled": false,
+                "groupName": "procedure",
+                "groupId": 2,
+                "selected": false,
+                "name": "Dentist"
+              },
+              {
+                "id": 5, 
+                "disabled": false, 
+                "groupName": "doctor",  
+                "groupId": 3,
+                "selected": false, 
+                "name": "Ear, Nose & Throat Doctor (ENT / Otolaryngologist)" 
+              },
+              {
+                "id": 6,
+                "disabled": false,
+                "groupName": "doctor",
+                "groupId": 3,
+                "selected": false,
+                "name": "Eye Doctor"
+              }
           ]
+        
+          if(node){
 
-          if (node) {
-            let ul = document.createElement('ul')
-            let top = parseFloat(node.style.top.replace('px', ''))
-            let height = parseFloat(node.style.height.replace('px', ''))
+            let ul = document.createElement("ul")
+            let top = parseFloat(node.style.top.replace("px",""))
+            let height = parseFloat(node.style.height.replace("px",""))
             let newTop = top + height
-            ul.style.display = 'none'
+            ul.style.display = "none"
             ul.style.width = node.style.width
-            ul.style.zIndex = '100'
-            ul.style.background = '#ffffff'
-            ul.style.overflowY = 'auto'
-            ul.style.overflowX = 'hidden'
-            ul.style.padding = '0'
-            ul.style.margin = '0'
-            ul.style.top = newTop + 'px'
+            ul.style.zIndex = "100"
+            ul.style.background = "#ffffff"
+            ul.style.overflowY = "auto"
+            ul.style.overflowX = "hidden"
+            ul.style.padding = "0"
+            ul.style.margin = "0"
+            ul.style.top = newTop + "px"
             ul.style.left = node.style.left
-            ul.style.position = 'absolute'
-            ul.style.alignItems = 'center'
+            ul.style.position = "absolute"
+            ul.style.alignItems = "center"
 
-            node.addEventListener('focus', function (e) {
-              ul.innerHTML = ''
-              ul.style.display = 'block'
-              json1.forEach((element) => {
-                let li = document.createElement('li')
+            
+            node.addEventListener("focus",function(e){
+              ul.innerHTML = ""
+              ul.style.display = "block"
+              json1.forEach(element => {
+                let li = document.createElement("li")
                 li.style.width = node.style.width
-                li.style.height = '40px'
-                li.style.listStyleType = 'none'
-                li.style.fontWeight = '400'
-                li.style.fontSize = '14px'
-                li.style.fontFamily =
-                  'Helvetica Neue,Helvetica,Arial,sans-serif'
+                li.style.height = "40px"
+                li.style.listStyleType = "none"
+                li.style.fontWeight = "400"
+                li.style.fontSize = "14px"
+                li.style.fontFamily =  "Helvetica Neue,Helvetica,Arial,sans-serif"
                 li.innerHTML = element.name
-                li.style.cursor = 'point'
-                ul.style.border = 'solid 1px #A5A5A5'
-
-                li.addEventListener('mouseover', function (e) {
-                  li.style.background = '#efefef'
+                li.style.cursor = "point"
+                ul.style.border = "solid 1px #A5A5A5"
+                
+                li.addEventListener("mouseover",function(e){
+                  li.style.background = "#efefef"
                 })
-                li.addEventListener('mouseout', function (e) {
-                  li.style.background = '#ffffff'
+                li.addEventListener("mouseout",function(e){
+                  li.style.background = "#ffffff"
                 })
-
-                li.onclick = function () {
+  
+                li.onclick = function(){
                   console.log(li.innerHTML)
                   node.value = li.innerHTML
-                  node.setAttribute('data-value', li.innerHTML)
-                  ul.innerHTML = ''
-                  ul.style.display = 'none'
-                  app.updateRoot((draft) => {
+                  node.setAttribute("data-value",li.innerHTML)
+                  ul.innerHTML = ""
+                  ul.style.display = "none"
+                  app.updateRoot((draft)=>{
                     set(draft?.[pageName], dataKey, li.innerHTML)
                   })
                 }
                 ul.appendChild(li)
               })
-              ul.style.height = json1.length * 40 + 'px'
+              ul.style.height = json1.length*40+"px"
             })
-
-            node.addEventListener('input', function (e) {
-              ul.innerHTML = ''
-              ul.style.display = 'block'
+  
+            node.addEventListener("input",function(e){
+              ul.innerHTML = ""
+              ul.style.display = "block"
               // console.log(node.value)
               let count = 0
-              json1.forEach((element) => {
+              json1.forEach(element => {
                 let name = element.name.toLowerCase()
                 let key = node.value.toLowerCase()
-                if (name.indexOf(key) != -1) {
+                if( name.indexOf(key) != -1 ){
                   count = count + 1
-                  let li = document.createElement('li')
+                  let li = document.createElement("li")
                   li.style.width = node.style.width
-                  li.style.height = '40px'
-                  li.style.listStyleType = 'none'
-                  li.style.fontWeight = '400'
-                  li.style.fontSize = '14px'
-                  li.style.fontFamily =
-                    'Helvetica Neue,Helvetica,Arial,sans-serif'
-                  li.setAttribute(':hover', '')
+                  li.style.height = "40px"
+                  li.style.listStyleType = "none"
+                  li.style.fontWeight = "400"
+                  li.style.fontSize = "14px"
+                  li.style.fontFamily =  "Helvetica Neue,Helvetica,Arial,sans-serif"
+                  li.setAttribute(":hover","")
                   li.innerHTML = element.name
-                  li.style.cursor = 'point'
-                  ul.style.border = 'solid 1px #A5A5A5'
-
-                  li.addEventListener('mouseover', function (e) {
-                    li.style.background = '#efefef'
+                  li.style.cursor = "point"
+                  ul.style.border = "solid 1px #A5A5A5"
+                  
+                  li.addEventListener("mouseover",function(e){
+                    li.style.background = "#efefef"
                   })
-                  li.addEventListener('mouseout', function (e) {
-                    li.style.background = '#ffffff'
+                  li.addEventListener("mouseout",function(e){
+                    li.style.background = "#ffffff"
                   })
-
-                  li.onclick = function () {
+                  
+                  li.onclick = function(){
                     console.log(li.innerHTML)
                     node.value = li.innerHTML
-                    node.setAttribute('data-value', li.innerHTML)
-                    ul.innerHTML = ''
-                    ul.style.display = 'none'
-                    app.updateRoot((draft) => {
+                    node.setAttribute("data-value",li.innerHTML)
+                    ul.innerHTML = ""
+                    ul.style.display = "none"
+                    app.updateRoot((draft)=>{
                       set(draft?.[pageName], dataKey, li.innerHTML)
                     })
                   }
                   ul.appendChild(li)
                 }
               })
-              ul.style.height = count * 40 + 'px'
+              ul.style.height = count*40+"px"
             })
 
             // node.addEventListener("mouseout",function(e){
@@ -665,9 +695,13 @@ const createExtendedDOMResolvers = function (app: App) {
             // })
 
             originalParent.appendChild(ul)
-          }
         }
-      },
+
+
+          
+
+        }
+      }
     },
     '[App] Map': {
       cond: 'map',
@@ -677,8 +711,12 @@ const createExtendedDOMResolvers = function (app: App) {
           const parent = component.parent
           mapboxgl.accessToken =
             'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
+          // let script = document.createElement("script")
+          // script.type = "text/javascript"
+          // script.appendChild(document.createTextNode("https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.js"))
+          // document.head.appendChild(script)
           let link = document.createElement('link')
-          link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.1.1/mapbox-gl.css'
+          link.href = 'https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
           link.rel = 'stylesheet'
           document.head.appendChild(link)
           if (dataValue.mapType == 1) {
@@ -848,13 +886,15 @@ const createExtendedDOMResolvers = function (app: App) {
                   new mapboxgl.Popup()
                     .setLngLat(coordinates)
                     .setHTML(
-                      Name +
-                        ' <br> ' +
+                      '<span style="font-size: 1vh;">' +
+                        Name +
+                        ' </span><br> <span style="font-size: 1vh;">' +
                         Speciality +
-                        '<br> ' +
+                        '</span><br> <span style="font-size: 1vh;">' +
                         phoneNumber +
-                        '<br> ' +
-                        address,
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        address +
+                        '</span>',
                     )
                     .addTo(map)
                 })
