@@ -35,29 +35,33 @@ if (mode === 'production') {
    * @type { webpack.Configuration['optimization'] }
    */
   productionOptions.optimization = {
-    // minimize: true,
-    splitChunks: {
-      chunks: 'async',
-      minSize: 20000,
-      maxSize: 50000,
-      minChunks: 1,
-      maxAsyncRequests: 30,
-      maxInitialRequests: 30,
-      automaticNameDelimiter: '~',
-      enforceSizeThreshold: 50000,
-      cacheGroups: {
-        defaultVendors: {
-          test: /[\\/]node_modules[\\/]/,
-          priority: -10,
-        },
-        default: {
-          minChunks: 2,
-          priority: -20,
-          reuseExistingChunk: true,
-        },
-      },
-    },
-  }
+    // concatenateModules: true,
+  //   innerGraph: true,
+  //   mergeDuplicateChunks: true,
+    minimize: false,
+  //   mangleExports: true,
+  //   splitChunks: {
+  //     chunks: 'async',
+  //     minSize: 50000,
+  //     maxSize: 100000,
+  //     minChunks: 1,
+  //     maxAsyncRequests: 30,
+  //     maxInitialRequests: 30,
+  //     automaticNameDelimiter: '~',
+  //     enforceSizeThreshold: 50000,
+  //     cacheGroups: {
+  //       defaultVendors: {
+  //         test: /[\\/]node_modules[\\/]/,
+  //         priority: -10,
+  //       },
+  //       default: {
+  //         minChunks: 2,
+  //         priority: -20,
+  //         reuseExistingChunk: true,
+  //       },
+  //     },
+    }
+  // }
 }
 
 /** @type { import('webpack-dev-server').Configuration } */
