@@ -4,7 +4,6 @@ import { ComponentObject, Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isComponent from './isComponent'
 import { NUIComponent } from '../types'
-import { array, isNum } from './internal'
 
 /**
  * Traverses the children hierarchy, running the comparator function in each
@@ -73,7 +72,7 @@ export function findListDataObject(
     }
 
     let list = listItem.parent
-    let listIndex = isNum(listItem.get('index'))
+    let listIndex = u.isNum(listItem.get('index'))
       ? listItem.get('index')
       : listItem.get('listIndex')
 
@@ -84,7 +83,7 @@ export function findListDataObject(
         dataObject = list.get('listObject')?.[listIndex]
       }
     }
-    if (!dataObject && isNum(listIndex)) {
+    if (!dataObject && u.isNum(listIndex)) {
       const listObject = isComponent(list)
         ? list.blueprint?.listObject
         : undefined
@@ -333,7 +332,7 @@ export function find(
   key: string | string[] | undefined,
   component: NUIComponent.Instance | null | undefined,
 ) {
-  const keys = array(key)
+  const keys = u.array(key)
   const numKeys = keys.length
   for (let index = 0; index < numKeys; index++) {
     const k = keys[index]

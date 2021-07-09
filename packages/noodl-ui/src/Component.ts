@@ -1,7 +1,8 @@
+import * as u from '@jsmanifest/utils'
 import { AcceptArray } from '@jsmanifest/typefest'
 import { ComponentObject, StyleObject } from 'noodl-types'
+import { getRandomKey } from './utils/internal'
 import isComponent from './utils/isComponent'
-import * as u from './utils/internal'
 import * as T from './types'
 
 type Hooks = Record<
@@ -62,7 +63,7 @@ class Component<C extends ComponentObject = ComponentObject> {
       ...this.#blueprint,
       style: { ...this.#blueprint.style },
     }
-    this.#id = opts?.id || this.#component.id || u.getRandomKey()
+    this.#id = opts?.id || this.#component.id || getRandomKey()
     this.original = this.#blueprint
     this.type = this.#blueprint.type
   }

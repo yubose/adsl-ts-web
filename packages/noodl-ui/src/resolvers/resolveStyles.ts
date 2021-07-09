@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar } from 'noodl-utils'
@@ -7,8 +8,9 @@ import { findListDataObject, findIteratorVar } from '../utils/noodl'
 import ComponentResolver from '../Resolver'
 import VP from '../Viewport'
 import * as com from '../utils/common'
-import * as u from '../utils/internal'
 import * as util from '../utils/style'
+
+const isNil = (v: any) => u.isNull(v) || u.isUnd(v)
 
 function createStyleEditor(component: NUIComponent.Instance) {
   function editComponentStyles(
@@ -172,8 +174,7 @@ resolveStyles.setResolver(
       }
     }
     if (borderRadius) {
-      const isNoodlUnit = borderRadius % 1 !== 0
-      if (isNoodlUnit) {
+      if (util.isNoodlUnit(borderRadius)) {
         edit({
           borderRadius: String(util.getSize(borderRadius, viewport.height)),
         })
@@ -215,8 +216,14 @@ resolveStyles.setResolver(
 
     if (!u.isUnd(fontSize)) {
       // '10' --> '10px'
-      if (u.isStr(fontSize) && !com.hasLetter(fontSize)) {
-        edit({ fontSize: `${fontSize}px` })
+      if (u.isStr(fontSize)) {
+        if (!com.hasLetter(fontSize)) {
+          if (util.isNoodlUnit(fontSize)) {
+            edit({ fontSize: String(VP.getSize(fontSize, viewport.height)) })
+          } else {
+            edit({ fontSize: `${fontSize}px` })
+          }
+        }
       }
       // 10 --> '10px'
       else if (u.isNum(fontSize)) edit({ fontSize: `${fontSize}px` })
@@ -234,7 +241,7 @@ resolveStyles.setResolver(
 
     {
       util.posKeys.forEach((posKey) => {
-        if (!u.isNil(component.blueprint?.style?.[posKey])) {
+        if (!isNil(component.blueprint?.style?.[posKey])) {
           const result = util.getPositionProps(
             component.blueprint.style,
             posKey as any,
@@ -253,11 +260,19 @@ resolveStyles.setResolver(
 
     const { width, height } = originalStyles
 
-    if (!u.isNil(width)) {
+    if (!isNil(width)) {
       edit({ width: String(util.getSize(width, viewport.width)) })
     }
-    if (!u.isNil(height)) {
-      edit({ height: String(util.getSize(height, viewport.height)) })
+
+    if (!isNil(height)) {
+      // When the value needs to change whenever the viewport height changes
+      if (util.isNoodlUnit(height)) {
+        edit({ height: String(util.getSize(height, viewport.height)) })
+      } else {
+        edit({
+          height: `${String(com.hasLetter(height) ? height : height + 'px')}`,
+        })
+      }
     }
 
     /* -------------------------------------------------------
@@ -323,27 +338,25 @@ resolveStyles.setResolver(
     // HANDLING ARTBITRARY STYLES
     u.eachEntries(originalStyles, (styleKey, value) => {
       if (u.isStr(value)) {
-        //handing style by path
-        // help for redraw style
+        // Cache this value to the variable so it doesn't get mutated inside this func since there are moments when value is changing before this func ends
+        // If the value is a path of a list item data object
+        const isListPath = iteratorVar && value.startsWith(iteratorVar)
         if (Identify.reference(value)) {
-          // TODO - Investigate the issue on why value is crashing without the "isStr" check below when it is already checked above
+          // Local
           if (u.isStr(value) && value.startsWith?.('..')) {
-            // Local
-            value = value.substring(2)
-            value = get(getRoot()[page?.page || ''], value)
-          } else if (u.isStr(value) && value.startsWith?.('.')) {
-            // Root
-            value = value.substring(1)
-            value = get(getRoot(), value)
+            value = get(getRoot()[page?.page || ''], value.substring(2))
+          }
+          // Root
+          else if (u.isStr(value) && value.startsWith?.('.')) {
+            value = get(getRoot(), value.substring(1))
           }
           edit({ [styleKey]: com.formatColor(value) })
         }
 
+        // TODO - Find out how to resolve the issue of "value" being undefined without this string check when we already checked above this
         if (
-          styleKey === 'textColor' ||
-          // TODO - Investigate the issue on why value is crashing without the "isStr" check below when it is already checked above
-          (u.isStr(value) && value.startsWith('0x')) ||
-          (iteratorVar && value.startsWith(iteratorVar))
+          u.isStr(value) &&
+          (styleKey === 'textColor' || value.startsWith('0x') || isListPath)
         ) {
           /* -------------------------------------------------------
             ---- COLORS - REMINDER: Convert color values like 0x00000000 to #00000000
@@ -354,29 +367,45 @@ resolveStyles.setResolver(
               { remove: 'textColor' },
             )
           } else {
-            // TODO - Investigate the issue on why value is crashing without the "isStr" check below when it is already checked above
-            // Convert other keys if they aren't formatted as well just in case
-            if (u.isStr(value) && value.startsWith('0x'))
+            if (u.isStr(value) && value.startsWith('0x')) {
               edit({ [styleKey]: com.formatColor(value) })
+            }
+
             // Some list item consumers have data keys referencing color data values
             // They are in the 0x0000000 form so we must convert them to be DOM compatible
-            if (iteratorVar && value.startsWith(iteratorVar)) {
+            if (isListPath) {
               const dataObject = findListDataObject(component)
               if (u.isObj(dataObject)) {
-                edit({
-                  [styleKey]: com.formatColor(
-                    get(
-                      dataObject,
-                      excludeIteratorVar(value, iteratorVar) as string,
-                      '',
-                    ),
-                  ),
-                })
+                const dataKey = excludeIteratorVar(value, iteratorVar) as string
+
+                let styleValue = get(dataObject, dataKey)
+
+                styleValue = com.formatColor(styleValue)
+
+                if (util.vpHeightKeys.includes(styleKey as any)) {
+                  if (util.isNoodlUnit(styleValue)) {
+                    edit({
+                      [styleKey]: String(
+                        VP.getSize(styleValue, viewport.height, { unit: 'px' }),
+                      ),
+                    })
+                  }
+                } else {
+                  edit({ [styleKey]: styleValue })
+                }
               } else {
-                edit({ [styleKey]: com.formatColor(dataObject) })
+                edit({ [styleKey]: com.formatColor(String(dataObject)) })
               }
             }
           }
+        }
+
+        if (Number.isNaN(value)) {
+          console.log(
+            `%cAlert!! The value for style key "${styleKey}" is "${value}"`,
+            `color:#ec0000;`,
+            { component, styleKey, styleValue: value },
+          )
         }
       }
     })

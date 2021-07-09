@@ -1,5 +1,7 @@
+import * as u from '@jsmanifest/utils'
 import { hasLetter, hasDecimal } from './utils/common'
-import { isStr, isNum, isNil, isUnd } from './utils/internal'
+
+const isNil = (f: any) => u.isNull(f) || u.isUnd(f)
 
 interface GetSizeOptions<U extends 'px' | 'noodl' = 'px' | 'noodl'> {
   toFixed?: number
@@ -91,13 +93,13 @@ class NOODLViewport {
     } else if (value == '1') {
       result = Number(vpSize)
     } else {
-      if (isStr(value)) {
+      if (u.isStr(value)) {
         if (!hasLetter(value)) {
           result = Number(value) * vpSize
         } else {
           result = value.replace(/[a-zA-Z]+/gi, '')
         }
-      } else if (isNum(value)) {
+      } else if (u.isNum(value)) {
         if (hasDecimal(value)) {
           result = value * vpSize
         } else {
@@ -128,7 +130,7 @@ class NOODLViewport {
    */
   static isNil(v: unknown, unit?: string): v is null | undefined | '' | 'auto' {
     return (
-      v === null || isUnd(v) || v === 'auto' || v === '' || v === `0${unit}`
+      v === null || u.isUnd(v) || v === 'auto' || v === '' || v === `0${unit}`
     )
   }
 
@@ -139,13 +141,13 @@ class NOODLViewport {
    * @param { unknown } value
    */
   static isNoodlUnit(v: unknown): v is string {
-    return isStr(v) && !/[a-zA-Z]/i.test(v) && !Number.isNaN(Number(v))
+    return u.isStr(v) && !/[a-zA-Z]/i.test(v) && !Number.isNaN(Number(v))
   }
 
   /** https://tc39.es/ecma262/#sec-tonumber */
   static toNum(v: unknown) {
-    if (isNum(v)) return v
-    else if (isStr(v)) return Number(v.replace(/[a-zA-Z]/gi, ''))
+    if (u.isNum(v)) return v
+    else if (u.isStr(v)) return Number(v.replace(/[a-zA-Z]/gi, ''))
     return Number(String(v))
   }
 

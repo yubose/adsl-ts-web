@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import sample from 'lodash/sample'
@@ -15,9 +16,7 @@ import {
 } from '../constants'
 import Component from '../Component'
 import Page from '../Page'
-import Resolver from '../Resolver'
 import NUI from '../noodl-ui'
-import * as u from '../utils/internal'
 
 describe(italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {

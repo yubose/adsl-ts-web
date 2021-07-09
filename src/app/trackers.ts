@@ -19,7 +19,6 @@ const trackProperty = function trackProperty({
         getArgs(args),
       )
       if (type === 'SET_ROOT_PROPERTIES') {
-        // if (args[0]?.payload?.properties?.Global) debugger
       }
     }
     return ref(...args)

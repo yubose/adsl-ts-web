@@ -2,9 +2,11 @@ import * as u from '@jsmanifest/utils'
 import { StyleObject } from 'noodl-types'
 import { hasDecimal, hasLetter } from './common'
 
-export const xKeys = ['width', 'left']
-export const yKeys = ['height', 'top', 'marginTop']
-export const posKeys = [...xKeys, ...yKeys]
+export const xKeys = <const>['width', 'left']
+export const yKeys = <const>['height', 'top', 'marginTop']
+export const posKeys = <const>[...xKeys, ...yKeys]
+// Style keys that map their values relative to the viewport's height
+export const vpHeightKeys = <const>[...yKeys, 'borderRadius', 'fontSize']
 
 export const textAlignStrings = [
   'left',
@@ -19,15 +21,13 @@ export function getPositionProps(
   key: string, // 'marginTop' | 'top' | 'height' | 'width' | 'left' | 'fontSize'
   viewportSize: number,
 ) {
-  
-  
   if (!styleObj) return
   const value = styleObj?.[key]
   // String
   if (u.isStr(value)) {
     if (value == '0') return { [key]: '0px' }
     if (value == '1') return { [key]: `${viewportSize}px` }
-    if (!hasLetter(value)){
+    if (!hasLetter(value)) {
       return { [key]: getViewportRatio(viewportSize, value) + 'px' }
     }
   }
@@ -38,6 +38,7 @@ export function getPositionProps(
   return undefined
 }
 
+// TODO - Deprecate this in favor of Viewport.getSize
 /**
  * Takes a value and a full viewport size and returns a computed value in px
  * @param { string | number } value - width / height value
@@ -94,4 +95,12 @@ export function getViewportRatio(viewportSize: number, size: string | number) {
     return viewportSize * Number(size)
   }
   return viewportSize
+}
+
+/**
+ * If this returns true, the value is something like "0.2", "0.4", etc.
+ * Whole numbers like "1" or "5" will return false, which is not what we want for positioning values like "marginTop" or "top" since we assume "1" means full screen, etc.
+ */
+export function isNoodlUnit(value: unknown): value is string {
+  return u.isStr(value) && !/[a-zA-Z]/i.test(value) && (value as any) % 1 !== 0
 }

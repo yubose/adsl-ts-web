@@ -101,6 +101,7 @@ NUI.emit({
 - [x] fixed path not being appended to assets url for iteratorVar paths
 - [ ] redraw transition (`effect: slideLeft`)
 - [ ] support borderRadius in noodl unit (ex: "0.1") (relative to screen size)
+- [ ] curry func utility to finalize parsings
 
 ## Accounts
 

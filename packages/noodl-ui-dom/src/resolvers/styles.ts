@@ -21,8 +21,6 @@ export default {
       node.style[styleKey] = String(styleValue)
     })
 
-    if (component.blueprint.style?.borderRadius === '0.1') debugger
-
     if (
       !('marginTop' in component.style) ||
       !('marginTop' in (component.blueprint?.style || {}))

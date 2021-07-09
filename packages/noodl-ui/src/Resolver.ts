@@ -1,5 +1,5 @@
+import * as u from '@jsmanifest/utils'
 import { NUIComponent, ConsumerOptions } from './types'
-import { isObj } from './utils/internal'
 
 export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
   next: Inst | null
@@ -77,7 +77,7 @@ class ComponentResolver<
       this: ComponentResolver<Func>,
       opts?: Record<string, any>,
     ) {
-      if (isObj(opts)) options = { ...options, ...opts }
+      if (u.isObj(opts)) options = { ...options, ...opts }
       this.next?.resolve?.(component, options)
     }.bind(this)
 

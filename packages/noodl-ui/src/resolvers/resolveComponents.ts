@@ -423,6 +423,7 @@ componentResolver.setResolver((component, options, next) => {
     )
   }
   !cache.component.has(component) && cache.component.add(component, page)
+
   next?.()
 })
 

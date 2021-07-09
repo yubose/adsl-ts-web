@@ -461,8 +461,6 @@ class App {
         max = Number(viewWidthHeightRatio.max)
       }
 
-      // debugger
-
       if (this.mainPage) {
         if (this.mainPage.aspectRatioMin !== min) {
           this.mainPage.aspectRatioMin = min as number

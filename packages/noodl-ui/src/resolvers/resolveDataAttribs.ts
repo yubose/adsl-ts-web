@@ -1,12 +1,17 @@
 // Resolve data attributes which get attached to the outcome as data-* properties
 // If any emit objects are encountered the resolveActions resolver should be
 // picking them up
+import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar, findDataValue } from 'noodl-utils'
+import {
+  addDate,
+  createGlobalComponentId,
+  getStartOfDay,
+} from '../utils/internal'
 import Resolver from '../Resolver'
 import * as n from '../utils/noodl'
-import * as u from '../utils/internal'
 
 const dataAttribsResolver = new Resolver('resolveDataAttribs')
 
@@ -51,7 +56,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
 -------------------------------------------------------- */
 
   if (component.has('global')) {
-    component.edit({ 'data-globalid': u.createGlobalComponentId(component) })
+    component.edit({ 'data-globalid': createGlobalComponentId(component) })
   }
 
   /* -------------------------------------------------------
@@ -99,8 +104,8 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
       if (u.isFnc(component.get('text=func'))) {
         if (contentType === 'timer') {
-          const initialTime = u.getStartOfDay(new Date())
-          result = u.addDate(initialTime, { seconds: result })
+          const initialTime = getStartOfDay(new Date())
+          result = addDate(initialTime, { seconds: result })
           result === null && (result = new Date())
         }
         result = component.get('text=func')(result)
@@ -193,7 +198,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
         if (u.isStr(src) && !src.startsWith(getAssetsUrl())) {
           src = getAssetsUrl() + src
         }
-        // TODO - Deprecate "src" in favor of data-value
+        // TODO - Deprecate "data-src" in favor of data-value
         component.edit({ 'data-src': src, src })
         path && component.emit('path', src)
         image && component.emit('image', src)

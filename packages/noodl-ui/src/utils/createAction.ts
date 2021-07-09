@@ -1,8 +1,8 @@
+import * as u from '@jsmanifest/utils'
 import { EmitObjectFold, Identify } from 'noodl-types'
 import { Action, createAction as __createAction } from 'noodl-action-chain'
 import getActionType from './getActionType'
 import getActionObjectErrors from './getActionObjectErrors'
-import { isObj, isStr } from './internal'
 import {
   NUIAction,
   NUIActionObject,
@@ -33,13 +33,13 @@ function createAction(
 ) {
   let action: NUIAction | undefined
 
-  if (isStr(args)) {
+  if (u.isStr(args)) {
     if (Identify.folds.emit(args2)) {
       action = new EmitAction(args, args2)
     } else if (args2) {
-      if (isStr(args2)) {
+      if (u.isStr(args2)) {
         action = __createAction(args, { actionType: 'goto', goto: args2 })
-      } else if (isObj(args2)) {
+      } else if (u.isObj(args2)) {
         if (!('actionType' in args2)) args2['actionType'] = getActionType(args2)
         action = __createAction(args, args2 as NUIActionObject)
       }

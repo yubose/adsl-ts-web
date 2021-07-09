@@ -1,6 +1,7 @@
+import * as u from '@jsmanifest/utils'
 import { LiteralUnion } from 'type-fest'
 import { ICache, NUIActionType, NUITrigger, Store } from '../types'
-import { inspect, isFnc } from '../utils/internal'
+import { inspect } from '../utils/internal'
 import {
   actionTypes as allActionTypes,
   groupedActionTypes,
@@ -108,7 +109,7 @@ class ActionsCache implements ICache {
   }
 
   exists(fn: Store.ActionObject['fn'] | Store.BuiltInObject['fn']) {
-    if (isFnc(fn)) {
+    if (u.isFnc(fn)) {
       for (const objs of this) {
         if (objs) {
           for (const obj of objs) {

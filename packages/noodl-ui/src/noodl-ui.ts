@@ -1,5 +1,6 @@
 import invariant from 'invariant'
 import merge from 'lodash/merge'
+import get from 'lodash/get'
 import set from 'lodash/set'
 import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
@@ -10,7 +11,7 @@ import {
   IfObject,
   RegisterComponentObject,
 } from 'noodl-types'
-import { createEmitDataKey, evalIf } from 'noodl-utils'
+import { createEmitDataKey, evalIf, excludeIteratorVar } from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
 import ComponentCache from './cache/ComponentCache'
 import createAction from './utils/createAction'
@@ -40,6 +41,7 @@ import {
   isListConsumer,
   resolveAssetUrl,
 } from './utils/noodl'
+import { isNoodlUnit, vpHeightKeys } from './utils/style'
 import { groupedActionTypes, nuiEmitType } from './constants'
 import * as t from './types'
 
@@ -354,6 +356,13 @@ const NUI = (function _NUI() {
 
   const _transform = _transformers[0].resolve.bind(_transformers[0])
 
+  const createResolveComponents = function (fn: typeof _resolveComponents) {
+    const _resolve = function (...args: Parameters<typeof fn>) {
+      fn(...args)
+    }
+    return _resolve
+  }
+
   function _resolveComponents(opts: {
     page?: NUIPage
     components: t.NUIComponent.CreateType
@@ -419,7 +428,73 @@ const NUI = (function _NUI() {
     }
 
     function xform(c: t.NUIComponent.Instance) {
-      _transform(c, o.getConsumerOptions({ component: c, page, context }))
+      const options = o.getConsumerOptions({ component: c, page, context })
+      _transform(c, options)
+      const iteratorVar = options?.context?.iteratorVar || ''
+      const isListConsumer =
+        iteratorVar && u.isObj(options?.context?.dataObject)
+
+      for (const [key, value] of u.entries(c.props)) {
+        if (key === 'style') {
+          // TODO - Put these finalizers into a curry utility func. This is temp. hardcoded for now
+          if (isListConsumer) {
+            if (u.isObj(value)) {
+              for (let [styleKey, styleValue] of u.entries(value)) {
+                // if (u.isStr(value) && vpHeightKeys.includes(key as any)) {
+                if (u.isStr(styleValue)) {
+                  if (styleValue.startsWith(iteratorVar)) {
+                    const dataKey = excludeIteratorVar(
+                      styleValue,
+                      iteratorVar,
+                    ) as string
+                    const cachedValue = styleValue
+                    styleValue = get(options.context?.dataObject, dataKey)
+                    if (styleValue) {
+                      c.edit({ style: { [styleKey]: styleValue } })
+                    } else {
+                      console.log(
+                        `%cEncountered an unparsed style value "${cachedValue}" for style key "${styleKey}"`,
+                        `color:#ec0000;`,
+                        { component: c, possibleValue: styleValue },
+                      )
+                    }
+
+                    if (isNoodlUnit(styleValue)) {
+                      // c.edit({
+                      //   style: {
+                      //     [key]:
+                      //       value === undefined
+                      //         ? 'auto'
+                      //         :String(
+                      //           VP.getSize(value, options.viewport.height),
+                      //         ),
+                      //   },
+                      // })
+                    }
+                    // debugger
+                  } else if (Identify.reference(value)) {
+                    console.log(
+                      `%cEncountered an unparsed style value "${value}" for style key "${key}"`,
+                      `color:#ec0000;`,
+                      c,
+                    )
+                  }
+                }
+                // }
+              }
+            }
+          }
+        } else {
+          if (Identify.reference(value)) {
+            console.log(
+              `%cEncountered an unparsed style value "${value}" for style key "${key}"`,
+              `color:#ec0000;`,
+              c,
+            )
+          }
+        }
+      }
+
       return c
     }
 
@@ -552,7 +627,6 @@ const NUI = (function _NUI() {
                   `color:aquamarine;`,
                   { obj, params },
                 )
-                // debugger
                 const results = await Promise.all(
                   o.cache.register.get(event)?.callbacks?.map(async (cb) => {
                     if (isActionChain(cb)) {
@@ -813,8 +887,8 @@ const NUI = (function _NUI() {
       } else {
         styles.position = 'absolute'
       }
-      if(originalStyle?.position == 'fixed'){
-        styles.position = "fixed"
+      if (originalStyle?.position == 'fixed') {
+        styles.position = 'fixed'
       }
 
       u.isNil(originalStyle.height) && (styles.height = 'auto')
