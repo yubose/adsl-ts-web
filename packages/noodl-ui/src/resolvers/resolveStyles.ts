@@ -269,9 +269,14 @@ resolveStyles.setResolver(
       if (util.isNoodlUnit(height)) {
         edit({ height: String(util.getSize(height, viewport.height)) })
       } else {
-        edit({
-          height: `${String(com.hasLetter(height) ? height : height + 'px')}`,
-        })
+        if(height == 1 || height == '1'){
+          edit({ height: String(util.getSize(height, viewport.height)) })
+        }else{
+          edit({
+            height: `${String(com.hasLetter(height) ? height : height + 'px')}`,
+          })
+        }
+
       }
     }
 
