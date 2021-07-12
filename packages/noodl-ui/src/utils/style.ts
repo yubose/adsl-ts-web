@@ -102,5 +102,5 @@ export function getViewportRatio(viewportSize: number, size: string | number) {
  * Whole numbers like "1" or "5" will return false, which is not what we want for positioning values like "marginTop" or "top" since we assume "1" means full screen, etc.
  */
 export function isNoodlUnit(value: unknown): value is string {
-  return u.isStr(value) && !/[a-zA-Z]/i.test(value)
+  return u.isStr(value) && !/[a-zA-Z]/i.test(value) && (value as any) % 1 !== 0
 }
