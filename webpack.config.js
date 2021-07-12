@@ -5,6 +5,7 @@ const singleLog = require('single-line-log').stdout
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const NodePolyfillsPlugin = require('node-polyfill-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
 const pkgJson = {
@@ -36,31 +37,31 @@ if (mode === 'production') {
    */
   productionOptions.optimization = {
     // concatenateModules: true,
-  //   innerGraph: true,
-  //   mergeDuplicateChunks: true,
+    //   innerGraph: true,
+    //   mergeDuplicateChunks: true,
     minimize: false,
-  //   mangleExports: true,
-  //   splitChunks: {
-  //     chunks: 'async',
-  //     minSize: 50000,
-  //     maxSize: 100000,
-  //     minChunks: 1,
-  //     maxAsyncRequests: 30,
-  //     maxInitialRequests: 30,
-  //     automaticNameDelimiter: '~',
-  //     enforceSizeThreshold: 50000,
-  //     cacheGroups: {
-  //       defaultVendors: {
-  //         test: /[\\/]node_modules[\\/]/,
-  //         priority: -10,
-  //       },
-  //       default: {
-  //         minChunks: 2,
-  //         priority: -20,
-  //         reuseExistingChunk: true,
-  //       },
-  //     },
-    }
+    //   mangleExports: true,
+    //   splitChunks: {
+    //     chunks: 'async',
+    //     minSize: 50000,
+    //     maxSize: 100000,
+    //     minChunks: 1,
+    //     maxAsyncRequests: 30,
+    //     maxInitialRequests: 30,
+    //     automaticNameDelimiter: '~',
+    //     enforceSizeThreshold: 50000,
+    //     cacheGroups: {
+    //       defaultVendors: {
+    //         test: /[\\/]node_modules[\\/]/,
+    //         priority: -10,
+    //       },
+    //       default: {
+    //         minChunks: 2,
+    //         priority: -20,
+    //         reuseExistingChunk: true,
+    //       },
+    //     },
+  }
   // }
 }
 
@@ -158,8 +159,13 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js'],
     modules: ['node_modules'],
+    fallback: {
+      // crypto: require.resolve('crypto-browserify'),
+      // stream: require.resolve('stream-browserify'),
+    },
   },
   plugins: [
+    new NodePolyfillsPlugin(),
     new webpack.ProvidePlugin({ process: 'process' }),
     new CircularDependencyPlugin({
       exclude: /node_modules/,
