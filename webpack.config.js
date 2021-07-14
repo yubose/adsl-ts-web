@@ -26,7 +26,7 @@ const version = {
 const favicon = 'public/favicon.ico'
 const filename = 'index.html'
 const publicPath = path.join(__dirname, 'public')
-const title = 'AiTmed Noodl Web'
+const title = 'AiTmed: Start your E-health Journal Anywhere, Anytime'
 const productionOptions = {}
 const mode =
   process.env.NODE_ENV !== 'production' ? 'development' : 'production'
