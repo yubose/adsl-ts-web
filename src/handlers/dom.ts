@@ -265,8 +265,6 @@ const createExtendedDOMResolvers = function (app: App) {
                   option.dataHeader.forEach(push)
                   tableData.data.push(dataArray)
                 })
-                console.error(tableData);
-                
                 new gridjs.Grid(tableData).render(node)
                 // stopPropagation
                 let gridPages = node.querySelector('.gridjs-pages')
