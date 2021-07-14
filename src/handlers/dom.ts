@@ -29,6 +29,7 @@ import {
 import App from '../App'
 import { hide } from '../utils/dom'
 import { BackgroundColor } from 'chalk'
+// import { isArray } from 'lodash'
 
 const log = Logger.create('dom.ts')
 
@@ -260,10 +261,12 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
                 option.dataObject.forEach((item: any) => {
                   let dataArray: any = []
-                  let push = (key: string) => dataArray.push(item[key])
+                  let push = (key: string) => dataArray.push(u.isArr(item[key])?item[key].toString():item[key])
                   option.dataHeader.forEach(push)
                   tableData.data.push(dataArray)
                 })
+                console.error(tableData);
+                
                 new gridjs.Grid(tableData).render(node)
                 // stopPropagation
                 let gridPages = node.querySelector('.gridjs-pages')
