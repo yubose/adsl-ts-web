@@ -5,7 +5,6 @@ const singleLog = require('single-line-log').stdout
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
-const NodePolyfillsPlugin = require('node-polyfill-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
 const pkgJson = {
@@ -165,7 +164,6 @@ module.exports = {
     },
   },
   plugins: [
-    new NodePolyfillsPlugin(),
     new webpack.ProvidePlugin({ process: 'process' }),
     new CircularDependencyPlugin({
       exclude: /node_modules/,
