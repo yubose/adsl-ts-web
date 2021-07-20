@@ -73,6 +73,7 @@ asyncResolver.setResolver((component, options, next) => {
         original[eventType] as NUIActionObject[],
       )
       component.edit({ [eventType]: actionChain })
+      component.style.cursor = "pointer"
     }
 
     if(original['onTextChange']){
