@@ -1,3 +1,4 @@
+import get from 'lodash/get'
 import { Identify, userEvent } from 'noodl-types'
 import { ConsumerOptions, NUIComponent, NUIActionObject } from '../types'
 import { resolveAssetUrl } from '../utils/noodl'
@@ -7,7 +8,7 @@ const asyncResolver = new Resolver('resolveAsync')
 
 async function resolveAsync(
   component: NUIComponent.Instance,
-  { createActionChain, getAssetsUrl }: ConsumerOptions,
+  { createActionChain, getAssetsUrl, getRoot, page }: ConsumerOptions,
 ) {
   try {
     const original = component.blueprint || {}
@@ -35,12 +36,19 @@ async function resolveAsync(
       const ac = createActionChain('path', [
         { emit: path.emit, actionType: 'emit' },
       ])
+
       const results = await ac.execute()
+
       let result = results?.find((val) => !!val?.result)?.result
-      result = result ? resolveAssetUrl(result, getAssetsUrl()) : ''
-      component.edit({ src: result })
-      component.edit({ 'data-src': result })
-      component.emit('path', result)
+
+      if (Identify.component.page(component)) {
+        //
+      } else {
+        result = result ? resolveAssetUrl(result, getAssetsUrl()) : ''
+        component.edit({ src: result })
+        component.edit({ 'data-src': result })
+        component.emit('path', result)
+      }
     }
 
     if (Identify.folds.emit(placeholder)) {
@@ -75,14 +83,13 @@ asyncResolver.setResolver((component, options, next) => {
       component.edit({ [eventType]: actionChain })
     }
 
-    if(original['onTextChange']){
+    if (original['onTextChange']) {
       const actionChain = createActionChain(
-        "onInput",
+        'onInput',
         original['onTextChange'] as NUIActionObject[],
       )
       component.edit({ ['onInput']: actionChain })
     }
-
   })
 
   resolveAsync(component, options)

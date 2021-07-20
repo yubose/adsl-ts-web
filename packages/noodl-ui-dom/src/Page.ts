@@ -190,8 +190,8 @@ class Page {
       requesting: this.#state.requesting,
       pageUrl: this.pageUrl,
       viewport: {
-        width: this.viewport.width,
-        height: this.viewport.height,
+        width: this.viewport?.width,
+        height: this.viewport?.height,
       },
       rootNode: {
         id: this.rootNode.id,

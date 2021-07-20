@@ -808,27 +808,41 @@ const NUI = (function _NUI() {
 
           return objs.map((obj) => {
             if (Identify.folds.emit(obj)) {
-              const action = createAction(
-                trigger,
-                // Filter out unwanted props (ex: a register component that has an emit)
-                obj,
-              )
+              const action = createAction(trigger, obj)
               if (opts?.component) {
                 const iteratorVar =
                   opts?.context?.iteratorVar || findIteratorVar(opts.component)
+
                 const dataObject =
                   opts?.context?.dataObject ||
                   findListDataObject(opts.component)
-                if (obj.emit?.dataKey) {
-                  action.dataKey = createEmitDataKey(
-                    obj.emit.dataKey,
-                    _getQueryObjects({
-                      component: opts.component,
-                      page: opts.page,
-                      listDataObject: dataObject,
-                    }),
-                    { iteratorVar },
-                  )
+
+                const dataKey = obj.emit?.dataKey
+
+                if (dataKey) {
+                  if (Identify.component.page(opts.component)) {
+                    // if (Identify.reference(dataKey)) {
+                    //   action.dataKey = createEmitDataKey(
+                    //     dataKey,
+                    //     _getQueryObjects({
+                    //       component: opts.component,
+                    //       page: opts.page,
+                    //       listDataObject: dataObject,
+                    //     }),
+                    //     { iteratorVar },
+                    //   )
+                    // }
+                  } else {
+                    action.dataKey = createEmitDataKey(
+                      dataKey,
+                      _getQueryObjects({
+                        component: opts.component,
+                        page: opts.page,
+                        listDataObject: dataObject,
+                      }),
+                      { iteratorVar },
+                    )
+                  }
                 }
               }
 

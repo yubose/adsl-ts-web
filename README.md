@@ -113,3 +113,16 @@ NUI.emit({
 | meet4d | 8882465555 | 142251   |
 | meet4d | 8882468491 | 142251   |
 | meet4d | 8882461234 | 142251   |
+
+## Ecos types
+
+- 1031 --> JWT
+- 1032 --> JWT with signature
+
+## Login
+
+- JWT expired --> 2 hours passed
+- JWT not found --> server restarted
+
+- Some apis like signing on does not provide a new jwt, but most do
+- If an error occurred with jwt, attempt to relogin with an existing token
