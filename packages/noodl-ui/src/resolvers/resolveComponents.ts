@@ -12,6 +12,7 @@ import {
 } from 'noodl-types'
 import { evalIf, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
+import NUIPage from '../Page'
 import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
 import { formatColor, isPromise } from '../utils/common'
@@ -186,11 +187,9 @@ componentResolver.setResolver((component, options, next) => {
 
   if (Identify.component.page(component)) {
     let nuiPage = cache.page.get(component.id)?.page
+    let pageName = ''
 
     if (!nuiPage) {
-      nuiPage = createPage({ id: component.id })
-      let pageName = ''
-
       if (Identify.if(path)) {
         pageName = evalIf((val: any) => {
           if (Identify.isBoolean(val)) return Identify.isBooleanTrue(val)
@@ -225,6 +224,8 @@ componentResolver.setResolver((component, options, next) => {
           pageName = path
         }
       }
+
+      nuiPage = createPage({ id: component.id, name: pageName }) as NUIPage
 
       if (pageName) {
         ;(async () => {
@@ -277,26 +278,6 @@ componentResolver.setResolver((component, options, next) => {
         }),
       )
     }
-
-    // ;(async () => {
-    //   try {
-    //     const pageObject = await emit({
-    //       type: c.nuiEmitType.TRANSACTION,
-    //       transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-    //       params: nuiPage,
-    //     })
-    //     component.edit('page', nuiPage)
-    //     component.emit(
-    //       c.nuiEvent.component.page.PAGE_COMPONENTS,
-    //       pageObject.components || nuiPage.components || [],
-    //     )
-    //   } catch (err) {
-    //     throw new Error(
-    //       `[Page component] ` +
-    //         `Error attempting to get the page object for a page component]: ${err.message}`,
-    //     )
-    //   }
-    // })()
   }
 
   /* -------------------------------------------------------

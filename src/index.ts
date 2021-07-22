@@ -169,6 +169,8 @@ window.addEventListener('load', async (e) => {
     window.addEventListener('popstate', createOnPopState(app))
   } catch (error) {
     console.error(error)
+  } finally {
+    !attachDebugUtilsToWindow.attached && attachDebugUtilsToWindow(app)
   }
 })
 
@@ -188,3 +190,23 @@ if (module.hot) {
     u.keys(data).forEach((key) => delete data[key])
   })
 }
+
+function attachDebugUtilsToWindow(app: App) {
+  window.componentStats = () => {
+    const pageComponentCount = {} as Record<string, number>
+    for (const obj of app.cache.component) {
+      if (obj) {
+        const pageName = obj.page
+        if (!(pageName in pageComponentCount)) {
+          pageComponentCount[pageName] = 0
+        }
+        pageComponentCount[pageName]++
+      }
+    }
+    console.log(pageComponentCount)
+  }
+
+  attachDebugUtilsToWindow.attached = true
+}
+
+attachDebugUtilsToWindow.attached = false

@@ -471,7 +471,6 @@ const NUI = (function _NUI() {
                       //   },
                       // })
                     }
-                    // debugger
                   } else if (Identify.reference(value)) {
                     console.log(
                       `%cEncountered an unparsed style value "${value}" for style key "${key}"`,
@@ -709,9 +708,49 @@ const NUI = (function _NUI() {
         }
       }
 
-      page = cache.page.create({ id, viewport: viewport }) as NUIPage
+      let isPreexistent = false
+
+      if (name) {
+        for (const obj of o.cache.page) {
+          if (obj) {
+            const [pageId, { page: _prevPage }] = obj
+            if (_prevPage.page === name) {
+              page = _prevPage
+              isPreexistent = true
+
+              let totalStaleComponents = 0
+              let totalStaleComponentIds = [] as string[]
+
+              // Delete the cached components from the page since it will be re-rerendered
+              for (const obj of o.cache.component) {
+                if (obj) {
+                  if (obj.page === page.page) {
+                    totalStaleComponentIds.push(obj.component.id)
+                    o.cache.component.remove(obj.component)
+                    totalStaleComponents++
+                  }
+                }
+              }
+
+              if (totalStaleComponents > 0) {
+                console.log(
+                  `%cRemoved ${totalStaleComponents} old/stale cached components from ` +
+                    `page "${name}"`,
+                  `color:#95a5a6;`,
+                  totalStaleComponentIds,
+                )
+              }
+            }
+          }
+        }
+      }
+
+      if (!isPreexistent) {
+        page = cache.page.create({ id, viewport: viewport }) as NUIPage
+      }
+
       name && (page.page = name)
-      page.use(() => NUI.getRoot()[page?.page || '']?.components)
+      ;(page as NUIPage).use(() => NUI.getRoot()[page?.page || '']?.components)
 
       return page
     },

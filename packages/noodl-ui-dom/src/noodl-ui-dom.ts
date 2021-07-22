@@ -241,7 +241,8 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
   findPage(nuiPage: NUIPage | NDOMPage) {
     if (isNUIPage(nuiPage)) {
       for (const page of u.values(this.global.pages)) {
-        if (page.getNuiPage() === nuiPage) return page
+        if (page.getNuiPage() === nuiPage || page.page === nuiPage.page)
+          return page
       }
     } else if (isNDOMPage(nuiPage)) {
       return nuiPage
