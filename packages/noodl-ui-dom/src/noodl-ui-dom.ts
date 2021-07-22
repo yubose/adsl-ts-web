@@ -692,12 +692,11 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
               })
               c.remove('page')
               this.removePage(ndomPage)
-              this.transact('REQUEST_PAGE_OBJECT', ndomPage).then(
-                (pageObject) => {
-                  debugger
-                  console.log(pageObject)
-                },
-              )
+              // this.transact('REQUEST_PAGE_OBJECT', ndomPage).then(
+              //   (pageObject) => {
+              //     console.log(pageObject)
+              //   },
+              // )
             } else {
               console.log(
                 `%cCould not find a NUIPage in redraw`,
