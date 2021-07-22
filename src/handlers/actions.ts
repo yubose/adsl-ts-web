@@ -486,25 +486,18 @@ const createActions = function createActions(app: App) {
             phoneNumber.startsWith('888') ||
             phoneNumber.startsWith('+1888') ||
             phoneNumber.startsWith('+1 888')
-          if (vcodeInput && is888) {
-            const pathToTage = 'verificationCode.response.edge.tage'
+
+          if (vcodeInput && is888 && action.actionType !== 'popUpDismiss') {
+            let pathToTage = 'verificationCode.response.edge.tage'
             let vcode = get(app.root?.[currentPage], pathToTage, '')
-            if (!currentPage) {
-              log.red(
-                `Could not determine the page to query the verification code for`,
-                action.snapshot?.(),
-              )
-            }
             if (vcode) {
-              if (!vcodeInput.value || vcodeInput.value == '0') {
-                vcode = String(vcode)
-                vcodeInput.value = vcode
-                vcodeInput.dataset.value = vcode
-                app.updateRoot(
-                  `${currentPage}.${vcodeInput.dataset.key || 'formData.code'}`,
-                  vcode,
-                )
-              }
+              vcode = String(vcode)
+              vcodeInput.value = vcode
+              vcodeInput.dataset.value = vcode
+              app.updateRoot(
+                `${currentPage}.${vcodeInput.dataset.key || 'formData.code'}`,
+                vcode,
+              )
             } else {
               log.orange(
                 `Could not find a verification code at path "${pathToTage}"`,
