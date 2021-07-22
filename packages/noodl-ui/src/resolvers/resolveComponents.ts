@@ -3,8 +3,14 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { ComponentObject, EcosDocument, Identify } from 'noodl-types'
-import { findDataValue } from 'noodl-utils'
+import {
+  ComponentObject,
+  EcosDocument,
+  EmitObjectFold,
+  Identify,
+  PageObject,
+} from 'noodl-types'
+import { evalIf, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
@@ -180,14 +186,83 @@ componentResolver.setResolver((component, options, next) => {
 
   if (Identify.component.page(component)) {
     let nuiPage = cache.page.get(component.id)?.page
-    !nuiPage && (nuiPage = createPage({ id: component.id, name: path }))
+
+    if (!nuiPage) {
+      nuiPage = createPage({ id: component.id })
+      let pageName = ''
+
+      if (Identify.if(path)) {
+        pageName = evalIf((val: any) => {
+          if (Identify.isBoolean(val)) return Identify.isBooleanTrue(val)
+          if (u.isFnc(val)) {
+            if (component) return val(findListDataObject(component))
+            return val()
+          }
+          return !!val
+        }, path)
+
+        if (u.isStr(pageName)) {
+          if (Identify.reference(pageName)) {
+            const dataKey = Identify.reference.format(pageName)
+            if (Identify.reference.isLocal(pageName)) {
+              pageName = get(getRoot()[options.page.page || ''], dataKey)
+            } else if (Identify.reference.isRoot(pageName)) {
+              pageName = get(getRoot(), dataKey)
+            }
+          } else {
+            //
+          }
+        }
+      } else if (u.isStr(path)) {
+        if (Identify.reference(path)) {
+          const dataKey = Identify.reference.format(path)
+          if (Identify.reference.isLocal(path)) {
+            pageName = get(getRoot()[options.page.page || ''], dataKey)
+          } else if (Identify.reference.isRoot(path)) {
+            pageName = get(getRoot(), dataKey)
+          }
+        } else {
+          pageName = path
+        }
+      }
+
+      if (pageName) {
+        ;(async () => {
+          try {
+            nuiPage.page = pageName
+            const pageObject = await emit({
+              type: c.nuiEmitType.TRANSACTION,
+              transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+              params: nuiPage,
+            })
+            component.edit('page', nuiPage)
+            component.emit(
+              c.nuiEvent.component.page.PAGE_COMPONENTS,
+              pageObject.components || nuiPage.components || [],
+            )
+          } catch (err) {
+            throw new Error(
+              `[Page component] ` +
+                `Error attempting to get the page object for a page component]: ${err.message}`,
+            )
+          }
+        })()
+      } else {
+        console.log(
+          `%cCould not resolve the page name for a page component`,
+          `color:#ec0000;`,
+          { component, options },
+        )
+      }
+    }
+
     let viewport = nuiPage.viewport
 
     if (VP.isNil(originalStyle.width)) {
       viewport.width = getRootPage().viewport.width
     } else {
       viewport.width = Number(
-        VP.getSize(originalStyle.width, getRootPage().viewport.width, {
+        VP.getSize(originalStyle.width, options.viewport?.width, {
           toFixed: 2,
         }),
       )
@@ -197,30 +272,31 @@ componentResolver.setResolver((component, options, next) => {
       viewport.height = getRootPage().viewport.height
     } else {
       viewport.height = Number(
-        VP.getSize(originalStyle.height, getRootPage().viewport.height, {
+        VP.getSize(originalStyle.height, options.viewport?.height, {
           toFixed: 2,
         }),
       )
     }
 
-    component.edit('page', nuiPage)
-
-    emit({
-      type: c.nuiEmitType.TRANSACTION,
-      transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-      params: nuiPage,
-    })
-      .then((pageObject) =>
-        component.emit(
-          c.nuiEvent.component.page.PAGE_COMPONENTS,
-          pageObject.components || nuiPage.components || [],
-        ),
-      )
-      .catch((err: Error) => {
-        throw new Error(
-          `[Attempted to get page (${nuiPage.page}) object for a page component]: ${err.message}`,
-        )
-      })
+    // ;(async () => {
+    //   try {
+    //     const pageObject = await emit({
+    //       type: c.nuiEmitType.TRANSACTION,
+    //       transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+    //       params: nuiPage,
+    //     })
+    //     component.edit('page', nuiPage)
+    //     component.emit(
+    //       c.nuiEvent.component.page.PAGE_COMPONENTS,
+    //       pageObject.components || nuiPage.components || [],
+    //     )
+    //   } catch (err) {
+    //     throw new Error(
+    //       `[Page component] ` +
+    //         `Error attempting to get the page object for a page component]: ${err.message}`,
+    //     )
+    //   }
+    // })()
   }
 
   /* -------------------------------------------------------

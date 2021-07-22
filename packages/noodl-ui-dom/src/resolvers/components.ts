@@ -183,32 +183,35 @@ const domComponentsResolver: Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(component)) {
-        let nuiPage = component.get('page')
-        let ndomPage = ndom.findPage(nuiPage) as NDOMPage
-
-        if (!ndomPage) {
-          try {
-            ndomPage = ndom.createPage(nuiPage)
-          } catch (error) {
-            console.error(error)
-          }
-        }
-
-        ndomPage.rootNode?.parentElement?.removeChild?.(ndomPage.rootNode)
-        ndomPage.rootNode = node as HTMLIFrameElement
-
         component.on('page-components', () => {
+          let nuiPage = component.get('page')
+          let ndomPage = ndom.findPage(nuiPage) as NDOMPage
+
+          if (!ndomPage) {
+            try {
+              ndomPage = ndom.createPage(nuiPage)
+            } catch (error) {
+              console.error(error)
+            }
+          }
+
+          ndomPage.rootNode?.parentElement?.removeChild?.(ndomPage.rootNode)
+          ndomPage.rootNode = node as HTMLIFrameElement
+
           const pageComponents = nui.resolveComponents.call(nui, {
             components: ndomPage.components,
             page: nuiPage,
           }) as NUIComponent.Instance[]
 
+          debugger
           for (const pageComponent of pageComponents) {
             const pageComponentNode = ndom.draw(
               pageComponent,
               ndomPage.rootNode,
               ndomPage,
+              { node: ndomPage.rootNode },
             )
+            debugger
             if (pageComponentNode) {
               ;(
                 ndomPage.rootNode as HTMLIFrameElement

@@ -87,6 +87,35 @@ const createActions = function createActions(app: App) {
                   { action: action.snapshot?.(), emitParams },
                 )
               }
+
+              // if (u.isObj(emitParams.dataKey)) {
+              //   const newDataKeyObject = { ...emitParams.dataKey }
+              //   for (const [k, v] of u.entries(emitParams.dataKey)) {
+              //     if (Identify.reference(v)) {
+              //       if (Identify.reference.isLocal(v)) {
+              //         newDataKeyObject[k] = get(
+              //           app.root[options.page.page || ''],
+              //           Identify.reference.format(v),
+              //         )
+              //       } else if (Identify.reference.isRoot(v)) {
+              //         newDataKeyObject[k] = get(
+              //           app.root,
+              //           Identify.reference.format(v),
+              //         )
+              //       }
+              //     }
+              //   }
+              //   emitParams.dataKey = newDataKeyObject
+              // } else if (u.isStr(emitParams.dataKey)) {
+              //   if (Identify.reference(emitParams.dataKey)) {
+              //     emitParams.dataKey = get(
+              //       Identify.reference.isLocal(emitParams.dataKey)
+              //         ? app.root[options.page.page || '']
+              //         : app.root,
+              //       Identify.reference.format(emitParams.dataKey),
+              //     )
+              //   }
+              // }
             }
 
             log.grey('Emitting', {

@@ -683,14 +683,21 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       publish(component, (c) => {
         if (c) {
           if (Identify.component.page(c)) {
-            const page = this.findPage(c.get('page'))
-            if (page) {
-              console.log(
-                `%cRedrawing a page component`,
-                `color:#00b406;`,
-                page,
+            const nuiPage = c.get('page')
+            const ndomPage = this.findPage(nuiPage)
+            if (ndomPage) {
+              console.log(`%cRedrawing a page component`, `color:#00b406;`, {
+                nuiPage,
+                ndomPage,
+              })
+              c.remove('page')
+              this.removePage(ndomPage)
+              this.transact('REQUEST_PAGE_OBJECT', ndomPage).then(
+                (pageObject) => {
+                  debugger
+                  console.log(pageObject)
+                },
               )
-              this.removePage(page)
             } else {
               console.log(
                 `%cCould not find a NUIPage in redraw`,
