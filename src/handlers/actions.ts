@@ -346,12 +346,25 @@ const createActions = function createActions(app: App) {
     }
 
     if (!destinationParam.startsWith('http')) {
-      ndomPage.pageUrl = app.parse.queryString({
-        destination,
-        pageUrl: ndomPage.pageUrl,
-        startPage: app.startPage,
-      })
-      log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+      // Avoids letting page components (lower level components) from mutating the tab's url
+      if (ndomPage === app.mainPage) {
+        ndomPage.pageUrl = app.parse.queryString({
+          destination,
+          pageUrl: ndomPage.pageUrl,
+          startPage: app.startPage,
+        })
+        log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+      } else {
+        // TODO - Move this to an official location in noodl-ui-dom
+        if (
+          ndomPage.rootNode &&
+          ndomPage.rootNode instanceof HTMLIFrameElement
+        ) {
+          if (ndomPage.rootNode.contentDocument?.body) {
+            ndomPage.rootNode.contentDocument.body.textContent = ''
+          }
+        }
+      }
     } else {
       destination = destinationParam
     }
@@ -365,7 +378,7 @@ const createActions = function createActions(app: App) {
     })
 
     if (!isSamePage) {
-      await app.navigate(destination)
+      await app.navigate(ndomPage, destination)
       if (!destination) {
         log.func('goto')
         log.red(

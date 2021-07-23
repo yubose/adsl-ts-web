@@ -1,9 +1,44 @@
 import * as u from '@jsmanifest/utils'
-import { excludeIteratorVar } from 'noodl-utils'
-import { ComponentObject, Identify } from 'noodl-types'
+import { evalIf as _evalIf, excludeIteratorVar } from 'noodl-utils'
+import { ComponentObject, Identify, IfObject, PageObject } from 'noodl-types'
 import get from 'lodash/get'
 import isComponent from './isComponent'
 import { NUIComponent } from '../types'
+
+export function evalIf<O extends IfObject>(
+  val: O,
+  // opts?: {
+  //   root?: Record<string, any>
+  //   pageObject?: PageObject
+  //   dataObject?: Record<string, any>
+  //   iteratorVar?: string
+  // },
+) {
+  return _evalIf((value) => {
+    if (Identify.isBoolean(value)) return Identify.isBooleanTrue(value)
+    if (u.isFnc(value)) return value()
+    if (value) return true
+    return false
+    // if (u.isStr(value)) {
+    //   if (Identify.reference(value)) {
+    //     const dataKey = Identify.reference.format(value)
+    //     if (Identify.reference.isLocal(value)) {
+    //       if (opts?.pageObject) return get(opts.pageObject, dataKey)
+    //     }
+    //     if (Identify.reference.isRoot(value)) {
+    //       if (opts?.root) return get(opts.root, dataKey)
+    //     }
+    //   } else if (opts?.iteratorVar && value.startsWith(opts.iteratorVar)) {
+    //     if (opts?.dataObject) {
+    //       return get(
+    //         opts?.dataObject,
+    //         excludeIteratorVar(value, opts.iteratorVar) || '',
+    //       )
+    //     }
+    //   }
+    // }
+  }, val)
+}
 
 /**
  * Traverses the children hierarchy, running the comparator function in each
