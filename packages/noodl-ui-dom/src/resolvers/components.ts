@@ -165,6 +165,16 @@ const domComponentsResolver: Resolve.Config = {
         if (component.get('data-src')) {
           ;(node as HTMLImageElement).src = component.get('data-src')
         }
+
+        // load promise return to image
+        if(component.has('path=func')){
+          component.get('data-src').then(
+            (path:any)=>{
+              ;(node as HTMLImageElement).src = path
+            }
+          )
+        }
+
       }
       // LABEL
       else if (Identify.component.label(component)) {
