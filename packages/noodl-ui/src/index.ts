@@ -22,6 +22,7 @@ export {
   nuiEmitTransaction,
 } from './constants'
 export {
+  evalIf,
   findChild,
   findListDataObject,
   findIteratorVar,

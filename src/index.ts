@@ -192,6 +192,7 @@ if (module.hot) {
 }
 
 function attachDebugUtilsToWindow(app: App) {
+  // @ts-expect-error
   window.componentStats = () => {
     const pageComponentCount = {} as Record<string, number>
     for (const obj of app.cache.component) {
