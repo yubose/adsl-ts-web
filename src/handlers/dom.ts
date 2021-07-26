@@ -259,9 +259,12 @@ const createExtendedDOMResolvers = function (app: App) {
                     tableData.columns.push({ name: 'Actions', formatter })
                   }
                 }
-                option.dataObject.forEach((item: any) => {
+                option.dataObject?.forEach?.((item: any) => {
                   let dataArray: any = []
-                  let push = (key: string) => dataArray.push(u.isArr(item[key])?item[key].toString():item[key])
+                  let push = (key: string) =>
+                    dataArray.push(
+                      u.isArr(item[key]) ? item[key].toString() : item[key],
+                    )
                   option.dataHeader.forEach(push)
                   tableData.data.push(dataArray)
                 })

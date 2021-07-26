@@ -139,9 +139,8 @@ class ComponentCache {
       component = this.#cache.get(component)?.component as NUIComponent.Instance
     }
     if (isComponent(component)) {
-      const json = component.toJSON()
       this.#cache.delete(component.id)
-      this.emit('remove', json)
+      this.emit('remove', component.toJSON())
     }
     return this
   }

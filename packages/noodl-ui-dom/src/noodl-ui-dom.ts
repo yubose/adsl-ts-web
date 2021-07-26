@@ -241,7 +241,8 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
   findPage(nuiPage: NUIPage | NDOMPage) {
     if (isNUIPage(nuiPage)) {
       for (const page of u.values(this.global.pages)) {
-        if (page.getNuiPage() === nuiPage) return page
+        if (page.getNuiPage() === nuiPage || page.page === nuiPage.page)
+          return page
       }
     } else if (isNDOMPage(nuiPage)) {
       return nuiPage
@@ -692,12 +693,11 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
               })
               c.remove('page')
               this.removePage(ndomPage)
-              this.transact('REQUEST_PAGE_OBJECT', ndomPage).then(
-                (pageObject) => {
-                  debugger
-                  console.log(pageObject)
-                },
-              )
+              // this.transact('REQUEST_PAGE_OBJECT', ndomPage).then(
+              //   (pageObject) => {
+              //     console.log(pageObject)
+              //   },
+              // )
             } else {
               console.log(
                 `%cCould not find a NUIPage in redraw`,

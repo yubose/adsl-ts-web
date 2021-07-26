@@ -213,7 +213,6 @@ const domComponentsResolver: Resolve.Config = {
             page: nuiPage,
           }) as NUIComponent.Instance[]
 
-          debugger
           for (const pageComponent of pageComponents) {
             const pageComponentNode = ndom.draw(
               pageComponent,
@@ -221,7 +220,6 @@ const domComponentsResolver: Resolve.Config = {
               ndomPage,
               { node: ndomPage.rootNode },
             )
-            debugger
             if (pageComponentNode) {
               ;(
                 ndomPage.rootNode as HTMLIFrameElement
