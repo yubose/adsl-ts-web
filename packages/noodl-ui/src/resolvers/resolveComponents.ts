@@ -10,13 +10,14 @@ import {
   Identify,
   PageObject,
 } from 'noodl-types'
-import { evalIf, findDataValue } from 'noodl-utils'
+import { findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import NUIPage from '../Page'
 import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
 import { formatColor, isPromise } from '../utils/common'
 import {
+  evalIf,
   findIteratorVar,
   findListDataObject,
   isListConsumer,
@@ -37,6 +38,7 @@ componentResolver.setResolver((component, options, next) => {
     createPlugin,
     createSrc,
     emit,
+    get: enhancedGet, // A more optimized getter. TODO: Replace regular get func calls with this one
     getAssetsUrl,
     getRoot,
     getRootPage,
@@ -191,38 +193,12 @@ componentResolver.setResolver((component, options, next) => {
 
     if (!nuiPage) {
       if (Identify.if(path)) {
-        pageName = evalIf((val: any) => {
-          if (Identify.isBoolean(val)) return Identify.isBooleanTrue(val)
-          if (u.isFnc(val)) {
-            if (component) return val(findListDataObject(component))
-            return val()
-          }
-          return !!val
-        }, path)
-
+        pageName = evalIf(path)
         if (u.isStr(pageName)) {
-          if (Identify.reference(pageName)) {
-            const dataKey = Identify.reference.format(pageName)
-            if (Identify.reference.isLocal(pageName)) {
-              pageName = get(getRoot()[options.page.page || ''], dataKey)
-            } else if (Identify.reference.isRoot(pageName)) {
-              pageName = get(getRoot(), dataKey)
-            }
-          } else {
-            //
-          }
+          if (Identify.reference(pageName)) pageName = enhancedGet(pageName)
         }
       } else if (u.isStr(path)) {
-        if (Identify.reference(path)) {
-          const dataKey = Identify.reference.format(path)
-          if (Identify.reference.isLocal(path)) {
-            pageName = get(getRoot()[options.page.page || ''], dataKey)
-          } else if (Identify.reference.isRoot(path)) {
-            pageName = get(getRoot(), dataKey)
-          }
-        } else {
-          pageName = path
-        }
+        pageName = Identify.reference(path) ? enhancedGet(path) : path
       }
 
       nuiPage = createPage({ id: component.id, name: pageName }) as NUIPage
@@ -257,7 +233,7 @@ componentResolver.setResolver((component, options, next) => {
       }
     }
 
-    let viewport = nuiPage.viewport
+    let viewport = nuiPage.viewport || new VP()
 
     if (VP.isNil(originalStyle.width)) {
       viewport.width = getRootPage().viewport.width

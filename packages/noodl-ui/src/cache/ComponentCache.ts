@@ -31,6 +31,7 @@ class ComponentCache {
       if (obj) {
         if (!(obj.page in result.components)) {
           result.components[obj.page] = {} as typeof result.components[string]
+          if (typeof obj.page !== 'string') debugger
         }
 
         const item = result.components[obj.page]
@@ -93,7 +94,12 @@ class ComponentCache {
     if (component) {
       this.#cache.set(component.id, {
         component,
-        page: (isNUIPage(page) ? page.page : page) || '',
+        page:
+          (isNUIPage(page)
+            ? page.page
+            : u.isObj(page)
+            ? page.page || ''
+            : page) || '',
       })
       this.emit('add', component)
     }

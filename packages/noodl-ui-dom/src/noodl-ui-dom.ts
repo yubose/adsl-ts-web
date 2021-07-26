@@ -4,6 +4,7 @@ import * as u from '@jsmanifest/utils'
 import {
   Component,
   createComponent,
+  evalIf,
   findIteratorVar,
   isPage as isNUIPage,
   NUI,
@@ -255,6 +256,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
    */
   removePage(page: NDOMPage | undefined | null) {
     if (page) {
+      NDOM._nui.clean(page.getNuiPage(), console.log)
       page.remove()
       if (page.id in this.global.pages) delete this.global.pages[page.id]
       page = null
@@ -691,13 +693,8 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
                 nuiPage,
                 ndomPage,
               })
-              c.remove('page')
               this.removePage(ndomPage)
-              // this.transact('REQUEST_PAGE_OBJECT', ndomPage).then(
-              //   (pageObject) => {
-              //     console.log(pageObject)
-              //   },
-              // )
+              c.remove('page')
             } else {
               console.log(
                 `%cCould not find a NUIPage in redraw`,
