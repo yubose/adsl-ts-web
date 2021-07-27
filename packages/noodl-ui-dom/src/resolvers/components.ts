@@ -411,6 +411,10 @@ const domComponentsResolver: Resolve.Config = {
           const isDisabled = Identify.isBooleanFalse(isEditable)
           ;(node as HTMLTextAreaElement).disabled = isDisabled
         }
+        if (component.has('autocomplete')) {
+          const autocomplete = component.get('autocomplete')
+          ;(node as HTMLTextAreaElement).setAttribute('autocomplete',autocomplete)
+        }
       }
       // VIDEO
       else if (Identify.component.video(component)) {
