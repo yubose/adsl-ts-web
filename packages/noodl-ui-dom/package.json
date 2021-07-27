@@ -43,5 +43,5 @@
     "test:file": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\""
   },
   "types": "dist/index.d.ts",
-  "version": "0.0.61"
+  "version": "0.0.62"
 }

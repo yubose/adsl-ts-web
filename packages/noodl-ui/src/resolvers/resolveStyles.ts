@@ -99,11 +99,12 @@ resolveStyles.setResolver(
           // The y value needs to be handled manually here since util.getTextAlign will
           //    return { textAlign } which is meant for x
           if (textAlign.y === 'center' || textAlign.y === 'centerY') {
+            let convert = new Map([["left","flex-start"],["right","flex-end"],["center","center"]])
+            // convert (left ,center ,right) to (flex-start | flex-end | center)
             edit(
-              { display: 'flex', alignItems: 'center' },
+              { display: 'flex', alignItems: 'center' ,justifyContent: convert.get(textAlign.x?textAlign.x:"left")},
               { remove: !textAlign.x && 'textAlign' },
             )
-            textAlign.x === 'center' && edit({ justifyContent: 'center' })
           }
         }
       }
