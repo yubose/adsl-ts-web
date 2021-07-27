@@ -346,12 +346,25 @@ const createActions = function createActions(app: App) {
     }
 
     if (!destinationParam.startsWith('http')) {
-      ndomPage.pageUrl = app.parse.queryString({
-        destination,
-        pageUrl: ndomPage.pageUrl,
-        startPage: app.startPage,
-      })
-      log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+      // Avoids letting page components (lower level components) from mutating the tab's url
+      if (ndomPage === app.mainPage) {
+        ndomPage.pageUrl = app.parse.queryString({
+          destination,
+          pageUrl: ndomPage.pageUrl,
+          startPage: app.startPage,
+        })
+        log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+      } else {
+        // TODO - Move this to an official location in noodl-ui-dom
+        if (
+          ndomPage.rootNode &&
+          ndomPage.rootNode instanceof HTMLIFrameElement
+        ) {
+          if (ndomPage.rootNode.contentDocument?.body) {
+            ndomPage.rootNode.contentDocument.body.textContent = ''
+          }
+        }
+      }
     } else {
       destination = destinationParam
     }
@@ -365,7 +378,7 @@ const createActions = function createActions(app: App) {
     })
 
     if (!isSamePage) {
-      await app.navigate(destination)
+      await app.navigate(ndomPage, destination)
       if (!destination) {
         log.func('goto')
         log.red(
@@ -486,25 +499,18 @@ const createActions = function createActions(app: App) {
             phoneNumber.startsWith('888') ||
             phoneNumber.startsWith('+1888') ||
             phoneNumber.startsWith('+1 888')
-          if (vcodeInput && is888) {
-            const pathToTage = 'verificationCode.response.edge.tage'
+
+          if (vcodeInput && is888 && action.actionType !== 'popUpDismiss') {
+            let pathToTage = 'verificationCode.response.edge.tage'
             let vcode = get(app.root?.[currentPage], pathToTage, '')
-            if (!currentPage) {
-              log.red(
-                `Could not determine the page to query the verification code for`,
-                action.snapshot?.(),
-              )
-            }
             if (vcode) {
-              if (!vcodeInput.value || vcodeInput.value == '0') {
-                vcode = String(vcode)
-                vcodeInput.value = vcode
-                vcodeInput.dataset.value = vcode
-                app.updateRoot(
-                  `${currentPage}.${vcodeInput.dataset.key || 'formData.code'}`,
-                  vcode,
-                )
-              }
+              vcode = String(vcode)
+              vcodeInput.value = vcode
+              vcodeInput.dataset.value = vcode
+              app.updateRoot(
+                `${currentPage}.${vcodeInput.dataset.key || 'formData.code'}`,
+                vcode,
+              )
             } else {
               log.orange(
                 `Could not find a verification code at path "${pathToTage}"`,

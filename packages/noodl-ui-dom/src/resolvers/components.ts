@@ -214,7 +214,6 @@ const domComponentsResolver: Resolve.Config = {
             page: nuiPage,
           }) as NUIComponent.Instance[]
 
-          debugger
           for (const pageComponent of pageComponents) {
             const pageComponentNode = ndom.draw(
               pageComponent,
@@ -222,7 +221,6 @@ const domComponentsResolver: Resolve.Config = {
               ndomPage,
               { node: ndomPage.rootNode },
             )
-            debugger
             if (pageComponentNode) {
               ;(
                 ndomPage.rootNode as HTMLIFrameElement
@@ -413,6 +411,10 @@ const domComponentsResolver: Resolve.Config = {
           const isEditable = component.get('isEditable')
           const isDisabled = Identify.isBooleanFalse(isEditable)
           ;(node as HTMLTextAreaElement).disabled = isDisabled
+        }
+        if (component.has('autocomplete')) {
+          const autocomplete = component.get('autocomplete')
+          ;(node as HTMLTextAreaElement).setAttribute('autocomplete',autocomplete)
         }
       }
       // VIDEO

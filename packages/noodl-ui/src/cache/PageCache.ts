@@ -65,6 +65,10 @@ class PageCache implements ICache {
       fn(obj, key, collection)
     })
   }
+
+  remove(page: NUIPage) {
+    this.#pages.delete(page.id)
+  }
 }
 
 export default PageCache

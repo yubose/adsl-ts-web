@@ -9,6 +9,7 @@ import {
   EmitObjectFold,
   Identify,
   IfObject,
+  PageObject,
   RegisterComponentObject,
 } from 'noodl-types'
 import { createEmitDataKey, evalIf, excludeIteratorVar } from 'noodl-utils'
@@ -62,6 +63,36 @@ const NUI = (function _NUI() {
     plugin: new PluginCache(),
     register: new RegisterCache(),
     transactions: new TransactionCache(),
+  }
+
+  /**
+   * Determining on the type of value, this performs necessary clean operations to ensure its resources that are bound to it are removed from memory
+   * @param value
+   */
+  function _clean(
+    page: NUIPage,
+    onClean?: (stats?: { componentsRemoved: number }) => void,
+  ): void
+  function _clean(
+    value: NUIPage,
+    onClean?: (stats?: { componentsRemoved: number }) => void,
+  ) {
+    if (isPage(value)) {
+      const currentPage = value.page
+      if (currentPage) {
+        let componentsRemoved = 0
+        for (const obj of cache.component) {
+          if (obj) {
+            if (obj.page === currentPage) {
+              cache.component.remove(obj.component)
+              componentsRemoved++
+            }
+          }
+        }
+        onClean?.({ componentsRemoved })
+      }
+      cache.page.remove(value)
+    }
   }
 
   function _createComponent(
@@ -306,6 +337,66 @@ const NUI = (function _NUI() {
     }
   }
 
+  function _createGetter(page?: NUIPage) {
+    return function _get(
+      key = '',
+      {
+        dataObject,
+        iteratorVar = '',
+        // They can optionally provide another page instance to override the page given above when determining the page name
+        page: priorityPage,
+        pageObject,
+      }: {
+        dataObject?: any
+        iteratorVar?: string
+        page?: NUIPage
+        pageObject?: PageObject
+      } = {},
+    ) {
+      let _path = key
+      const pageName = priorityPage?.page || page?.page || ''
+
+      if (u.isStr(key)) {
+        if (Identify.reference(key)) {
+          _path = Identify.reference.format(key)
+          if (Identify.reference.isLocal(key)) {
+            return get(pageObject || o.getRoot()?.[pageName], _path)
+          } else if (Identify.reference.isRoot(key)) {
+            return get(o.getRoot(), _path)
+          }
+        }
+
+        if (iteratorVar) {
+          if (_path.startsWith(iteratorVar)) {
+            _path = excludeIteratorVar(_path, iteratorVar) || ''
+            if (!dataObject) {
+              console.log(
+                `%cAttempting to retrieve a value from a list data object but a data object was not provided. This may result in an unexpected value being returned`,
+                `color:#ec0000;`,
+              )
+            }
+            return get(
+              dataObject ||
+                pageObject ||
+                o.getRoot()?.[pageName] ||
+                o.getRoot(),
+              _path,
+            )
+          }
+        }
+
+        if (_path[0].toLowerCase() === _path[0]) {
+          const value = get(dataObject, _path)
+          return !u.isUnd(value) ? value : get(o.getRoot()?.[pageName], _path)
+        }
+
+        const value = get(dataObject, _path)
+        if (!u.isUnd(value)) return value
+        return get(o.getRoot(), _path)
+      }
+    }
+  }
+
   function _getQueryObjects(
     opts: {
       component?: t.NUIComponent.Instance
@@ -355,13 +446,6 @@ const NUI = (function _NUI() {
   }
 
   const _transform = _transformers[0].resolve.bind(_transformers[0])
-
-  const createResolveComponents = function (fn: typeof _resolveComponents) {
-    const _resolve = function (...args: Parameters<typeof fn>) {
-      fn(...args)
-    }
-    return _resolve
-  }
 
   function _resolveComponents(opts: {
     page?: NUIPage
@@ -458,20 +542,6 @@ const NUI = (function _NUI() {
                         { component: c, possibleValue: styleValue },
                       )
                     }
-
-                    if (isNoodlUnit(styleValue)) {
-                      // c.edit({
-                      //   style: {
-                      //     [key]:
-                      //       value === undefined
-                      //         ? 'auto'
-                      //         :String(
-                      //           VP.getSize(value, options.viewport.height),
-                      //         ),
-                      //   },
-                      // })
-                    }
-                    // debugger
                   } else if (Identify.reference(value)) {
                     console.log(
                       `%cEncountered an unparsed style value "${value}" for style key "${key}"`,
@@ -676,6 +746,8 @@ const NUI = (function _NUI() {
       })
     },
     cache,
+    clean: _clean,
+    createGetter: _createGetter,
     createComponent: _createComponent,
     createPage(
       args?:
@@ -709,9 +781,49 @@ const NUI = (function _NUI() {
         }
       }
 
-      page = cache.page.create({ id, viewport: viewport }) as NUIPage
+      let isPreexistent = false
+
+      if (name) {
+        for (const obj of o.cache.page) {
+          if (obj) {
+            const [pageId, { page: _prevPage }] = obj
+            if (_prevPage.page === name) {
+              page = _prevPage
+              isPreexistent = true
+
+              let totalStaleComponents = 0
+              let totalStaleComponentIds = [] as string[]
+
+              // Delete the cached components from the page since it will be re-rerendered
+              for (const obj of o.cache.component) {
+                if (obj) {
+                  if (obj.page === page.page) {
+                    totalStaleComponentIds.push(obj.component.id)
+                    o.cache.component.remove(obj.component)
+                    totalStaleComponents++
+                  }
+                }
+              }
+
+              if (totalStaleComponents > 0) {
+                console.log(
+                  `%cRemoved ${totalStaleComponents} old/stale cached components from ` +
+                    `page "${name}"`,
+                  `color:#95a5a6;`,
+                  totalStaleComponentIds,
+                )
+              }
+            }
+          }
+        }
+      }
+
+      if (!isPreexistent) {
+        page = cache.page.create({ id, viewport: viewport }) as NUIPage
+      }
+
       name && (page.page = name)
-      page.use(() => NUI.getRoot()[page?.page || '']?.components)
+      ;(page as NUIPage).use(() => NUI.getRoot()[page?.page || '']?.components)
 
       return page
     },
@@ -954,6 +1066,7 @@ const NUI = (function _NUI() {
         },
         createSrc: _createSrc,
         emit: _emit,
+        get: _createGetter(page),
         getBaseStyles(c: t.NUIComponent.Instance) {
           return o.getBaseStyles?.({ component: c })
         },
