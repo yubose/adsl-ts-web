@@ -1,7 +1,7 @@
+import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import * as u from '@jsmanifest/utils'
 import { isAction } from 'noodl-action-chain'
 import {
   findListDataObject,
@@ -30,10 +30,10 @@ import Logger from 'logsnap'
 import {
   download,
   isVisible,
-  toast,
   hide,
   show,
   scrollToElem,
+  toast,
 } from '../utils/dom'
 import { getActionMetadata, pickActionKey } from '../utils/common'
 import App from '../App'
@@ -49,9 +49,6 @@ const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
-  const pickNUIPageFromOptions = (options: ConsumerOptions) =>
-    (app.pickNUIPage(options?.page) || app.mainPage.getNuiPage()) as NUIPage
-
   const pickNDOMPageFromOptions = (options: ConsumerOptions) =>
     (app.pickNDOMPage(options?.page) || app.mainPage) as NDOMPage
 
@@ -363,7 +360,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
     options,
   ) {
-    log.func('goto]')
+    log.func('goto')
     log.grey('', u.isObj(action) ? action.snapshot?.() : action)
 
     let destinationParam = ''
@@ -516,7 +513,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
         window.location.href = urlToGoToInstead
       } else {
-        await app.navigate(destination)
+        await app.navigate(ndomPage, destination)
+        if (
+          ndomPage.rootNode &&
+          ndomPage.rootNode instanceof HTMLIFrameElement
+        ) {
+          if (ndomPage.rootNode.contentDocument?.body) {
+            ndomPage.rootNode.contentDocument.body.textContent = ''
+          }
+        }
       }
 
       if (!destination) {
@@ -625,7 +630,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     // Validate if their password is correct or not
     const isValid = (
       await import('@aitmed/cadl')
-    ).Account?.verifyUserPassword?.(password) // @ts-expect-error
+    ).Account?.verifyUserPassword?.(password)
     if (!isValid) {
       console.log(`%cisValid ?`, 'color:#e74c3c;font-weight:bold;', isValid)
       if (hiddenPwLabel) hiddenPwLabel.style.visibility = 'visible'

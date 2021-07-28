@@ -10,7 +10,7 @@ import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
-import { action, Identify } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import {
   asHtmlElement,
   findByDataKey,
@@ -28,7 +28,6 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
-import { BackgroundColor } from 'chalk'
 // import { isArray } from 'lodash'
 
 const log = Logger.create('dom.ts')

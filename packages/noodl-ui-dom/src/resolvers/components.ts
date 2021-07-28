@@ -167,15 +167,12 @@ const domComponentsResolver: Resolve.Config = {
         }
 
         // load promise return to image
-        if(component.has('path=func')){
+        if (component.has('path=func')) {
           ;(node as HTMLImageElement).src = '../waiting.png'
-          component.get('data-src').then(
-            (path:any)=>{
-              ;(node as HTMLImageElement).src = path
-            }
-          )
+          component.get('data-src').then((path: any) => {
+            ;(node as HTMLImageElement).src = path
+          })
         }
-
       }
       // LABEL
       else if (Identify.component.label(component)) {
@@ -414,7 +411,10 @@ const domComponentsResolver: Resolve.Config = {
         }
         if (component.has('autocomplete')) {
           const autocomplete = component.get('autocomplete')
-          ;(node as HTMLTextAreaElement).setAttribute('autocomplete',autocomplete)
+          ;(node as HTMLTextAreaElement).setAttribute(
+            'autocomplete',
+            autocomplete,
+          )
         }
       }
       // VIDEO
