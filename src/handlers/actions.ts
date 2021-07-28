@@ -1,10 +1,10 @@
 import Logger from 'logsnap'
-import flowRight from 'lodash/flowRight'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import * as u from '@jsmanifest/utils'
+import { isAction } from 'noodl-action-chain'
 import {
   asHtmlElement,
   eventId as ndomEventId,
@@ -20,6 +20,7 @@ import {
 } from 'noodl-ui-dom'
 import {
   ConsumerOptions,
+  createAction,
   EmitAction,
   findListDataObject,
   findIteratorVar,
@@ -43,6 +44,8 @@ import {
   toast,
 } from '../utils/dom'
 import App from '../App'
+import actionFnFactory from '../factories/actionFactory'
+import createActionHandler from '../utils/createActionHandler'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
 
@@ -120,158 +123,121 @@ const createActions = function createActions(app: App) {
     log.grey('', a.snapshot())
   }
 
-  const evalObject = (function () {
-    const onEvalObject: Store.ActionObject['fn'] = async function onEvalObject(
-      action,
+  const evalObject: Store.ActionObject['fn'] = async function onEvalObject(
+    action,
+    options,
+  ) {
+    log.func('evalObject')
+    log.grey('', {
+      action: action.snapshot?.(),
+      actionChain: options?.ref?.snapshot?.(),
       options,
-    ) {
-      log.func('evalObject')
-      log.grey('', {
-        action: action.snapshot?.(),
-        actionChain: options?.ref?.snapshot?.(),
-        options,
-      })
+    })
 
-      try {
-        let object = _pick(action, 'object') as
-          | IfObject
-          | ((...args: any[]) => any)
+    try {
+      let object = _pick(action, 'object') as
+        | IfObject
+        | ((...args: any[]) => any)
 
-        if (u.isFnc(object)) {
-          const result = await object()
-          if (result) {
-            const { ref: actionChain } = options
-            if (u.isObj(result)) {
-              getActionObjectErrors(result).forEach((errMsg: string) =>
-                log.red(errMsg, result),
+      if (u.isFnc(object)) {
+        const result = await object()
+        if (result) {
+          const { ref: actionChain } = options
+          if (u.isObj(result)) {
+            getActionObjectErrors(result).forEach((errMsg: string) =>
+              log.red(errMsg, result),
+            )
+            if (result.abort) {
+              log.grey(
+                `An evalObject returned an object with abort: true. The action chain ` +
+                  `will no longer proceed`,
+                { actionChain, injectedObject: result },
               )
-              if (result.abort) {
-                log.grey(
-                  `An evalObject returned an object with abort: true. The action chain ` +
-                    `will no longer proceed`,
-                  { actionChain, injectedObject: result },
-                )
-                if (actionChain) {
-                  // There is a bug with global popups not being able to be visible because of this abort block.
-                  // For now until a better solution is implemented we can do a check here
-                  for (const action of actionChain.queue) {
-                    const popUpView = _pick(action, 'popUpView')
-                    if (popUpView) {
-                      if (app.ndom.global.components.has(popUpView)) {
-                        log.salmon(
-                          `An "abort: true" was injected from evalObject but a global component ` +
-                            `with popUpView "${popUpView}" was found. These popUp actions will ` +
-                            `still be called to ensure the behavior persists for global popUps`,
-                          {
-                            globalObject:
-                              app.ndom.global.components.get(popUpView),
-                          },
-                        )
-                        await action.execute()
-                      }
+              if (actionChain) {
+                // There is a bug with global popups not being able to be visible because of this abort block.
+                // For now until a better solution is implemented we can do a check here
+                for (const action of actionChain.queue) {
+                  const popUpView = _pick(action, 'popUpView')
+                  if (popUpView) {
+                    if (app.ndom.global.components.has(popUpView)) {
+                      log.salmon(
+                        `An "abort: true" was injected from evalObject but a global component ` +
+                          `with popUpView "${popUpView}" was found. These popUp actions will ` +
+                          `still be called to ensure the behavior persists for global popUps`,
+                        {
+                          globalObject:
+                            app.ndom.global.components.get(popUpView),
+                        },
+                      )
+                      await action.execute()
                     }
                   }
-                  await actionChain.abort(
-                    `An evalObject is requesting to abort using the "abort" key`,
-                  )
                 }
-              } else {
-                const isPossiblyAction = 'actionType' in result
-                const isPossiblyToastMsg = 'message' in result
-                const isPossiblyGoto =
-                  'goto' in result || 'destination' in result
-
-                if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
-                  log.grey(
-                    `An evalObject action is injecting a new object to the chain`,
-                    {
-                      actionChain,
-                      instance: actionChain?.inject.call(
-                        actionChain,
-                        result as any,
-                      ),
-                      object: result,
-                      queue: actionChain?.queue.slice(),
-                    },
-                  )
-                }
-              }
-            }
-          }
-        } else if (_has(object, 'if')) {
-          const ifObj = object
-          if (u.isArr(ifObj)) {
-            const pageName = pickNUIPageFromOptions(options)?.page || ''
-            object = evalIf((valEvaluating) => {
-              let value
-              if (Identify.isBoolean(valEvaluating)) {
-                return Identify.isBooleanTrue(valEvaluating)
-              }
-              if (u.isStr(valEvaluating)) {
-                if (valEvaluating.includes('.')) {
-                  if (has(app.root, valEvaluating)) {
-                    value = get(app.root, valEvaluating)
-                  } else if (has(app.root[pageName], valEvaluating)) {
-                    value = get(app.root[pageName], valEvaluating)
-                  }
-                }
-                if (Identify.isBoolean(value)) Identify.isBooleanTrue(value)
-              }
-              return !!value
-            }, ifObj)
-            if (u.isFnc(object)) {
-              const result = await object()
-              if (result) {
-                log.hotpink(
-                  `Received a value from evalObject's "if" evaluation. ` +
-                    `Returning it back to the action chain now`,
-                  { action: action.snapshot?.(), result },
+                await actionChain.abort(
+                  `An evalObject is requesting to abort using the "abort" key`,
                 )
-                return result
+              }
+            } else {
+              const isPossiblyAction = 'actionType' in result
+              const isPossiblyToastMsg = 'message' in result
+              const isPossiblyGoto = 'goto' in result || 'destination' in result
+
+              if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
+                log.grey(
+                  `An evalObject action is injecting a new object to the chain`,
+                  {
+                    actionChain,
+                    instance: actionChain?.inject.call(
+                      actionChain,
+                      result as any,
+                    ),
+                    object: result,
+                    queue: actionChain?.queue.slice(),
+                  },
+                )
               }
             }
           }
         }
-      } catch (error) {
-        console.error(error)
-        toast(error.message, { type: 'error' })
-      }
-    }
-
-    // TODO - Move these higher order evalObject funcs below in a higher order
-    // function in noodl-ui or noodl-ui-dom
-
-    /**
-     * Handles dynamically injected objects returned from evalObject, such as
-     * when handling goto actions when demanded from user interactions
-     */
-    const handleInjections: Store.ActionObject['fn'] = async (
-      action,
-      options,
-    ) => {
-      try {
-        if (u.isStr(action)) {
+      } else if (_has(object, 'if')) {
+        const ifObj = object
+        if (u.isArr(ifObj)) {
+          const pageName = pickNUIPageFromOptions(options)?.page || ''
+          object = evalIf((valEvaluating) => {
+            let value
+            if (Identify.isBoolean(valEvaluating)) {
+              return Identify.isBooleanTrue(valEvaluating)
+            }
+            if (u.isStr(valEvaluating)) {
+              if (valEvaluating.includes('.')) {
+                if (has(app.root, valEvaluating)) {
+                  value = get(app.root, valEvaluating)
+                } else if (has(app.root[pageName], valEvaluating)) {
+                  value = get(app.root[pageName], valEvaluating)
+                }
+              }
+              if (Identify.isBoolean(value)) Identify.isBooleanTrue(value)
+            }
+            return !!value
+          }, ifObj)
+          if (u.isFnc(object)) {
+            const result = await object()
+            if (result) {
+              log.hotpink(
+                `Received a value from evalObject's "if" evaluation. ` +
+                  `Returning it back to the action chain now`,
+                { action: action.snapshot?.(), result },
+              )
+              return result
+            }
+          }
         }
-      } catch (error) {
-        console.error(error)
       }
+    } catch (error) {
+      console.error(error)
+      toast(error.message, { type: 'error' })
     }
-
-    // TODO - Create a generalized factory of this func for all actions
-    const createActionWithMiddleware = function (
-      ...middlewares: Store.ActionObject['fn'][]
-    ) {
-      return (executor: Store.ActionObject['fn']) => {
-        return async (...args: Parameters<Store.ActionObject['fn']>) => {
-          await Promise.all(middlewares.map((fn) => fn?.(...args)))
-          return executor(...args)
-        }
-      }
-    }
-
-    const withMiddleware = createActionWithMiddleware(handleInjections)
-    return withMiddleware(onEvalObject)
-  })()
+  }
 
   const goto: Store.ActionObject['fn'] = async function onGoto(
     action,
@@ -827,6 +793,34 @@ const createActions = function createActions(app: App) {
       toast(error.message, { type: 'error' })
     }
   }
+
+  app.actionFactory.createMiddleware((args) => {
+    if (u.isStr(args[0])) {
+      const prevArgs = [...args]
+      if (!prevArgs[1]) {
+        args[1] = app.nui.getConsumerOptions({
+          page: app.mainPage.getNuiPage(),
+        })
+      }
+      // Dynamically injected goto action from lvl 2
+      args[0] = createAction({ action: { goto: args[0] }, trigger: 'onClick' })
+      log.func('handleInjections')
+      log.green(
+        `A goto destination of "${prevArgs[0]}" was dynamically injected into an action chain`,
+        { prevArgs, newArgs: args },
+      )
+    } else if (!isAction(args[0])) {
+      const prevArgs = [...args]
+      // Dynamically injected plain objects as potential actions from lvl 2
+      args[0] = createAction({ action: args[0], trigger: 'onClick' })
+      log.func('handleInjections')
+      log.green(
+        `An action object was dynamically injected into an action chain`,
+        { prevArgs, newArgs: args },
+      )
+    }
+    return args
+  })
 
   return {
     anonymous,

@@ -1,6 +1,6 @@
 import firebase from 'firebase'
 import CADL, { Account } from '@aitmed/cadl'
-import { NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
+import { NUI, NUIAction, NUITrigger, Store, Viewport } from 'noodl-ui'
 import {
   ActionObject,
   EmitObjectFold,
@@ -24,23 +24,19 @@ export interface AppConstructorOptions {
   viewport?: Viewport
 }
 
+export type ActionFnWrapper = <
+  Fn extends (...args: any[]) => any,
+  A extends Store.ActionObject['fn'] | Store.BuiltInObject['fn'],
+>(
+  fn: Fn,
+) => A
+
 export type AuthStatus =
   | 'logged.in'
   | 'logged.out'
   | 'new.device'
   | 'temporary'
   | null
-
-export interface CachedPageObject {
-  name: string
-  timestamp: number
-}
-
-export interface EmitCallParams {
-  actions: EmitObjectFold['emit']['actions']
-  dataKey: EmitObjectFold['emit']['dataKey']
-  pageName: string
-}
 
 export type AppObservers<Id extends keyof AppObserver = keyof AppObserver> =
   Map<Id, AppObserver[Id]['fn'][]>
@@ -86,6 +82,17 @@ export interface AppNotificationMessageObject<
   data: O
   from?: string
   priority?: 'normal'
+}
+
+export interface CachedPageObject {
+  name: string
+  timestamp: number
+}
+
+export interface EmitCallParams {
+  actions: EmitObjectFold['emit']['actions']
+  dataKey: EmitObjectFold['emit']['dataKey']
+  pageName: string
 }
 
 export interface GlobalRegisterComponent<EventId extends string = string>

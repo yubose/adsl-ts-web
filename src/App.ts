@@ -15,6 +15,7 @@ import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
+import actionFactory from './factories/actionFactory'
 import createActions from './handlers/actions'
 import createBuiltIns, { extendedSdkBuiltIns } from './handlers/builtIns'
 import createPlugins from './handlers/plugins'
@@ -44,6 +45,7 @@ class App {
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
   #parser: Parser
+  actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NOODLDOM['page']
