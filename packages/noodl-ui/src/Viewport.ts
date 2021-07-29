@@ -191,19 +191,21 @@ class NOODLViewport {
       }
 
       const onUnload = (e: Event) => {
+        // window.removeEventListener('gesturestart', this.#onResize)
         window.removeEventListener('gestureend', this.#onResize)
-        window.removeEventListener('gesturechange', this.#onResize)
+        // window.removeEventListener('gesturechange', this.#onResize)
         window.removeEventListener('resize', this.#onResize)
         window.removeEventListener('unload', onUnload)
       }
 
       if (typeof window !== 'undefined') {
-        window.addEventListener('gestureend', this.#onResize, {
-          passive: false,
-        })
-        window.addEventListener('gesturechange', this.#onResize, {
-          passive: false,
-        })
+        window.addEventListener('gestureend', this.#onResize)
+        // window.addEventListener('gestureend', this.#onResize, {
+        //   passive: false,
+        // })
+        // window.addEventListener('gesturechange', this.#onResize, {
+        //   passive: false,
+        // })
         window.addEventListener('resize', this.#onResize)
         window.addEventListener('unload', onUnload)
       }
