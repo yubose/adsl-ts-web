@@ -184,8 +184,8 @@ module.exports = {
       ...(ecosEnv !== 'test' ? { template: 'public/index.html' } : undefined),
       meta: {
         keywords: 'aitmed, telemedicine, blockchain, noodl',
-        // viewport:
-        //   'width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no',
+        viewport:
+          'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
       },
     }),
     new InjectScriptsPlugin({

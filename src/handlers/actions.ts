@@ -1,10 +1,9 @@
+import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import * as u from '@jsmanifest/utils'
-import { isAction } from 'noodl-action-chain'
 import {
   asHtmlElement,
   eventId as ndomEventId,
@@ -20,7 +19,6 @@ import {
 } from 'noodl-ui-dom'
 import {
   ConsumerOptions,
-  createAction,
   EmitAction,
   findListDataObject,
   findIteratorVar,
@@ -44,8 +42,6 @@ import {
   toast,
 } from '../utils/dom'
 import App from '../App'
-import actionFnFactory from '../factories/actionFactory'
-import createActionHandler from '../utils/createActionHandler'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
 
@@ -821,34 +817,6 @@ const createActions = function createActions(app: App) {
       toast(error.message, { type: 'error' })
     }
   }
-
-  app.actionFactory.createMiddleware((args) => {
-    if (u.isStr(args[0])) {
-      const prevArgs = [...args]
-      if (!prevArgs[1]) {
-        args[1] = app.nui.getConsumerOptions({
-          page: app.mainPage.getNuiPage(),
-        })
-      }
-      // Dynamically injected goto action from lvl 2
-      args[0] = createAction({ action: { goto: args[0] }, trigger: 'onClick' })
-      log.func('handleInjections')
-      log.green(
-        `A goto destination of "${prevArgs[0]}" was dynamically injected into an action chain`,
-        { prevArgs, newArgs: args },
-      )
-    } else if (!isAction(args[0])) {
-      const prevArgs = [...args]
-      // Dynamically injected plain objects as potential actions from lvl 2
-      args[0] = createAction({ action: args[0], trigger: 'onClick' })
-      log.func('handleInjections')
-      log.green(
-        `An action object was dynamically injected into an action chain`,
-        { prevArgs, newArgs: args },
-      )
-    }
-    return args
-  })
 
   return {
     anonymous,
