@@ -452,7 +452,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       log.grey(`Goto info`, {
-        action: action.snapshot?.(),
+        action: action?.snapshot?.(),
         ...destProps,
         destinationParam,
         reload,
