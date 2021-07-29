@@ -28,9 +28,7 @@ export type ActionHandlerArgs =
   | Parameters<Store.ActionObject['fn']>
   | Parameters<Store.BuiltInObject['fn']>
 
-export interface MiddlewareObject<
-  O extends Record<string, any> = Record<string, any>,
-> {
+export interface MiddlewareObject {
   id: string
   fn: MiddlewareFn | null
 }
@@ -59,17 +57,9 @@ const actionFactory = function (app: App) {
    * @param id
    * @param fn
    */
-  function _createMiddleware<
-    O extends Record<string, any> = Record<string, any>,
-  >(id: string, fn: MiddlewareFn<O>): void
-
-  function _createMiddleware<
-    O extends Record<string, any> = Record<string, any>,
-  >(fn: MiddlewareFn<O>): void
-
-  function _createMiddleware<
-    O extends Record<string, any> = Record<string, any>,
-  >(id: string | MiddlewareFn<O>, fn?: MiddlewareFn<O>) {
+  function _createMiddleware(id: string, fn: MiddlewareFn): void
+  function _createMiddleware(fn: MiddlewareFn): void
+  function _createMiddleware(id: string | MiddlewareFn, fn?: MiddlewareFn) {
     middlewares.push({
       id: u.isStr(id) ? id : '',
       fn: u.isFnc(id) ? id : u.isFnc(fn) ? fn : null,

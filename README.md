@@ -116,8 +116,21 @@ NUI.emit({
 
 ## Ecos types
 
-- 1031 --> JWT
-- 1032 --> JWT with signature
+- 1030
+  - Id
+- 1031
+  - Does not require JWT
+  - Generates JWT
+  - Secured login
+- 1032
+  - Auto secured login
+  - Does not require JWT
+  - With signature
+- 1033
+  - Owner login
+  - Requires JWT
+- bjwt --> Business jwt
+- User 1110 login --> Checks relation between business and bjwt
 
 ## Login
 
