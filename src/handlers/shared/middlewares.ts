@@ -1,0 +1,48 @@
+import * as u from '@jsmanifest/utils'
+import { isAction } from 'noodl-action-chain'
+import { createAction } from 'noodl-ui'
+import Logger from 'logsnap'
+
+const log = Logger.create('middlewares.ts')
+
+/**
+ * This file contains middleware functions wrapping functions from
+ * src/actions.ts and src/builtIns.ts
+ */
+
+import App from '../../App'
+
+const registerMiddleware = function (app: App) {
+  const { createActionHandler, createBuiltInHandler, createMiddleware } =
+    app.actionFactory
+
+  createMiddleware((args) => {
+    if (u.isStr(args[0])) {
+      const prevArgs = [...args]
+      if (!prevArgs[1]) {
+        args[1] = app.nui.getConsumerOptions({
+          page: app.mainPage.getNuiPage(),
+        })
+      }
+      // Dynamically injected goto action from lvl 2
+      args[0] = createAction({ action: { goto: args[0] }, trigger: 'onClick' })
+      log.func('handleInjections')
+      log.green(
+        `A goto destination of "${prevArgs[0]}" was dynamically injected into an action chain`,
+        { prevArgs, newArgs: args },
+      )
+    } else if (!isAction(args[0])) {
+      const prevArgs = [...args]
+      // Dynamically injected plain objects as potential actions from lvl 2
+      args[0] = createAction({ action: args[0], trigger: 'onClick' })
+      log.func('handleInjections')
+      log.green(
+        `An action object was dynamically injected into an action chain`,
+        { prevArgs, newArgs: args },
+      )
+    }
+    return args
+  })
+}
+
+export default registerMiddleware

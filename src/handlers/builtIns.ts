@@ -44,12 +44,13 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
-import createActionHandler from '../utils/createActionHandler'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
+  const { createBuiltInHandler } = app.actionFactory
+
   const pickNDOMPageFromOptions = (options: ConsumerOptions) =>
     (app.pickNDOMPage(options?.page) || app.mainPage) as NDOMPage
 
@@ -357,216 +358,208 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     window.location.reload()
   }
 
-  const goto: Store.BuiltInObject['fn'] = createActionHandler(
-    'builtIn',
-    async function onGoto(action, options) {
-      log.func('goto')
-      log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
+  const goto = createBuiltInHandler(async function onGoto(action, options) {
+    log.func('goto')
+    log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
 
-      let destinationParam = ''
-      let reload: boolean | undefined
-      let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
-      let ndomPage = pickNDOMPageFromOptions(options)
-      let dataIn: any // sdk use
+    let destinationParam = ''
+    let reload: boolean | undefined
+    let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
+    let ndomPage = pickNDOMPageFromOptions(options)
+    let dataIn: any // sdk use
 
-      let destProps: ReturnType<typeof app.parse.destination>
-      let destination = ''
-      let id = ''
-      let isSamePage = false
-      let duration = 350
+    let destProps: ReturnType<typeof app.parse.destination>
+    let destination = ''
+    let id = ''
+    let isSamePage = false
+    let duration = 350
 
-      if (u.isStr(action)) {
-        destinationParam = action
-      } else if (isAction(action)) {
-        const gotoObj = action?.original
-        if (u.isStr(gotoObj)) {
-          destinationParam = gotoObj
+    if (u.isStr(action)) {
+      destinationParam = action
+    } else if (isAction(action)) {
+      const gotoObj = action?.original
+      if (u.isStr(gotoObj)) {
+        destinationParam = gotoObj
+      } else if (u.isObj(gotoObj)) {
+        if ('goto' in gotoObj) {
+          if (u.isObj(gotoObj.goto)) {
+            destinationParam = _pick(gotoObj.goto, 'destination')
+            'reload' in gotoObj.goto && (reload = _pick(gotoObj.goto, 'reload'))
+            'pageReload' in gotoObj.goto &&
+              (pageReload = _pick(gotoObj.goto, 'pageReload'))
+            'dataIn' in gotoObj.goto && (dataIn = _pick(gotoObj.goto, 'dataIn'))
+          } else if (u.isStr(gotoObj.goto)) {
+            destinationParam = gotoObj.goto
+          }
         } else if (u.isObj(gotoObj)) {
-          if ('goto' in gotoObj) {
-            if (u.isObj(gotoObj.goto)) {
-              destinationParam = _pick(gotoObj.goto, 'destination')
-              'reload' in gotoObj.goto &&
-                (reload = _pick(gotoObj.goto, 'reload'))
-              'pageReload' in gotoObj.goto &&
-                (pageReload = _pick(gotoObj.goto, 'pageReload'))
-              'dataIn' in gotoObj.goto &&
-                (dataIn = _pick(gotoObj.goto, 'dataIn'))
-            } else if (u.isStr(gotoObj.goto)) {
-              destinationParam = gotoObj.goto
-            }
-          } else if (u.isObj(gotoObj)) {
-            destinationParam = gotoObj.destination
-            'reload' in gotoObj && (reload = gotoObj.reload)
-            'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
-            'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
-          }
-        }
-      } else if (u.isObj(action)) {
-        if ('destination' in action || 'goto' in action) {
-          destinationParam = _pick(action, 'destination', _pick(action, 'goto'))
-          'reload' in action && (reload = _pick(action, 'reload'))
-          'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
-          'dataIn' in action && _pick(action, 'dataIn')
+          destinationParam = gotoObj.destination
+          'reload' in gotoObj && (reload = gotoObj.reload)
+          'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
+          'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
         }
       }
-
-      destProps = app.parse.destination(destinationParam)
-
-      /** PARSE FOR DESTINATION PROPS */
-
-      if ('destination' in destProps) {
-        destination = destProps.destination || ''
-        id = destProps.id || id
-        isSamePage = !!destProps.isSamePage
-        duration = destProps.duration || duration
-      } else if ('targetPage' in destProps) {
-        destination = destProps.targetPage || ''
-        id = destProps.viewTag || ''
-        if (id) {
-          const pageNode = findByViewTag(id)
-          const pageComponent = Array.from(app.cache.component || [])?.find(
-            (obj) => obj?.component?.blueprint?.viewTag === id,
-          )?.component
-          if (pageNode) {
-            if (pageNode instanceof HTMLIFrameElement) {
-              //
-            }
-          }
-          const currentPageName = pageComponent?.get?.('path')
-          ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
-        }
+    } else if (u.isObj(action)) {
+      if ('destination' in action || 'goto' in action) {
+        destinationParam = _pick(action, 'destination', _pick(action, 'goto'))
+        'reload' in action && (reload = _pick(action, 'reload'))
+        'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
+        'dataIn' in action && _pick(action, 'dataIn')
       }
+    }
 
-      if (destination === destinationParam) {
-        ndomPage.requesting = destination
-      }
+    destProps = app.parse.destination(destinationParam)
 
-      if (!u.isUnd(reload)) {
-        ndomPage.setModifier(destinationParam, { reload })
-      }
-      if (!u.isUnd(pageReload)) {
-        ndomPage.setModifier(destinationParam, { pageReload })
-      }
-      if (!u.isUnd(dataIn)) {
-        ndomPage.setModifier(destinationParam, { ...dataIn })
-      }
+    /** PARSE FOR DESTINATION PROPS */
 
-      log.grey(`Goto info`, {
-        action: action?.snapshot?.(),
-        ...destProps,
-        destinationParam,
-        reload,
-        pageReload,
-      })
-
-      if (destination.startsWith('http')) {
-        // This is for testing in mobile mode to prevent the auto-redirection to google play store
-        // return
-      }
-
+    if ('destination' in destProps) {
+      destination = destProps.destination || ''
+      id = destProps.id || id
+      isSamePage = !!destProps.isSamePage
+      duration = destProps.duration || duration
+    } else if ('targetPage' in destProps) {
+      destination = destProps.targetPage || ''
+      id = destProps.viewTag || ''
       if (id) {
-        const isInsidePageComponent =
-          isPageConsumer(options?.component) || !!destProps.targetPage
-        const node = findByViewTag(id) || getFirstByElementId(id)
+        const pageNode = findByViewTag(id)
+        const pageComponent = Array.from(app.cache.component || [])?.find(
+          (obj) => obj?.component?.blueprint?.viewTag === id,
+        )?.component
+        if (pageNode) {
+          if (pageNode instanceof HTMLIFrameElement) {
+            //
+          }
+        }
+        const currentPageName = pageComponent?.get?.('path')
+        ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+      }
+    }
 
-        if (node) {
-          let win: Window | undefined | null
-          let doc: Document | null | undefined
-          if (document.contains?.(node as HTMLElement)) {
-            win = window
-            doc = window.document
-          } else {
-            win = findWindow((w: any) => {
-              if (w) {
-                if ('contentDocument' in w) {
-                  doc = (w as any).contentDocument
-                } else {
-                  doc = w.document
-                }
-                return doc?.contains?.(node as HTMLElement)
+    if (destination === destinationParam) {
+      ndomPage.requesting = destination
+    }
+
+    if (!u.isUnd(reload)) {
+      ndomPage.setModifier(destinationParam, { reload })
+    }
+    if (!u.isUnd(pageReload)) {
+      ndomPage.setModifier(destinationParam, { pageReload })
+    }
+    if (!u.isUnd(dataIn)) {
+      ndomPage.setModifier(destinationParam, { ...dataIn })
+    }
+
+    log.grey(`Goto info`, {
+      action: action?.snapshot?.(),
+      ...destProps,
+      destinationParam,
+      reload,
+      pageReload,
+    })
+
+    if (destination.startsWith('http')) {
+      // This is for testing in mobile mode to prevent the auto-redirection to google play store
+      // return
+    }
+
+    if (id) {
+      const isInsidePageComponent =
+        isPageConsumer(options?.component) || !!destProps.targetPage
+      const node = findByViewTag(id) || getFirstByElementId(id)
+
+      if (node) {
+        let win: Window | undefined | null
+        let doc: Document | null | undefined
+        if (document.contains?.(node as HTMLElement)) {
+          win = window
+          doc = window.document
+        } else {
+          win = findWindow((w: any) => {
+            if (w) {
+              if ('contentDocument' in w) {
+                doc = (w as any).contentDocument
+              } else {
+                doc = w.document
               }
-              return false
+              return doc?.contains?.(node as HTMLElement)
+            }
+            return false
+          })
+        }
+        const scroll = () => {
+          if (isInsidePageComponent) {
+            scrollToElem(node, { win, doc, duration })
+          } else {
+            ;(node as HTMLElement).scrollIntoView({
+              behavior: 'smooth',
+              block: 'center',
+              inline: 'center',
             })
           }
-          const scroll = () => {
-            if (isInsidePageComponent) {
-              scrollToElem(node, { win, doc, duration })
-            } else {
-              ;(node as HTMLElement).scrollIntoView({
-                behavior: 'smooth',
-                block: 'center',
-                inline: 'center',
-              })
-            }
-          }
-          if (isSamePage) {
-            scroll()
-          } else {
-            ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
-          }
-        } else {
-          log.red(
-            `Could not search for a DOM node with an identity of "${id}"`,
-            {
-              action: action?.snapshot?.(),
-              node,
-              id,
-              destination,
-              isSamePage,
-              duration,
-              options,
-            },
-          )
         }
-      }
-
-      if (!destinationParam.startsWith('http')) {
-        ndomPage.pageUrl = app.parse.queryString({
-          destination,
-          pageUrl: ndomPage.pageUrl,
-          startPage: app.startPage,
-        })
+        if (isSamePage) {
+          scroll()
+        } else {
+          ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+        }
       } else {
-        destination = destinationParam
+        log.red(`Could not search for a DOM node with an identity of "${id}"`, {
+          action: action?.snapshot?.(),
+          node,
+          id,
+          destination,
+          isSamePage,
+          duration,
+          options,
+        })
       }
+    }
 
-      if (!isSamePage) {
-        if (reload) {
-          let urlToGoToInstead = ''
-          const parts = ndomPage.pageUrl.split('-')
-          if (parts.length > 1) {
-            if (!parts[0].startsWith('index.html')) {
-              parts.unshift(BASE_PAGE_URL)
-              parts.push(destination)
-              urlToGoToInstead = parts.join('-')
-            }
-          } else {
-            urlToGoToInstead = BASE_PAGE_URL + destination
+    if (!destinationParam.startsWith('http')) {
+      ndomPage.pageUrl = app.parse.queryString({
+        destination,
+        pageUrl: ndomPage.pageUrl,
+        startPage: app.startPage,
+      })
+    } else {
+      destination = destinationParam
+    }
+
+    if (!isSamePage) {
+      if (reload) {
+        let urlToGoToInstead = ''
+        const parts = ndomPage.pageUrl.split('-')
+        if (parts.length > 1) {
+          if (!parts[0].startsWith('index.html')) {
+            parts.unshift(BASE_PAGE_URL)
+            parts.push(destination)
+            urlToGoToInstead = parts.join('-')
           }
-          window.location.href = urlToGoToInstead
         } else {
-          if (
-            ndomPage.rootNode &&
-            ndomPage.rootNode instanceof HTMLIFrameElement
-          ) {
-            if (ndomPage.rootNode.contentDocument?.body) {
-              ndomPage.rootNode.contentDocument.body.textContent = ''
-            }
+          urlToGoToInstead = BASE_PAGE_URL + destination
+        }
+        window.location.href = urlToGoToInstead
+      } else {
+        if (
+          ndomPage.rootNode &&
+          ndomPage.rootNode instanceof HTMLIFrameElement
+        ) {
+          if (ndomPage.rootNode.contentDocument?.body) {
+            ndomPage.rootNode.contentDocument.body.textContent = ''
           }
-
-          await app.navigate(ndomPage, destination)
         }
 
-        if (!destination) {
-          log.func('builtIn')
-          log.red(
-            'Tried to go to a page but could not find information on the whereabouts',
-            { action: action?.snapshot?.(), ...options },
-          )
-        }
+        await app.navigate(ndomPage, destination)
       }
-    },
-  )
+
+      if (!destination) {
+        log.func('builtIn')
+        log.red(
+          'Tried to go to a page but could not find information on the whereabouts',
+          { action: action?.snapshot?.(), ...options },
+        )
+      }
+    }
+  })
 
   const redraw: Store.BuiltInObject['fn'] = async function onRedraw(
     action,
