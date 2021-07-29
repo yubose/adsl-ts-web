@@ -28,6 +28,7 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createResources from './handlers/resources'
 import createTransactions from './handlers/transactions'
+import createMiddleware from './handlers/shared/middlewares'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
 import * as t from './app/types'
@@ -291,6 +292,7 @@ class App {
       const registers = createRegisters(this)
       const doms = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
+      const middlewares = createMiddleware(this)
       const resources = createResources(this)
       const transactions = createTransactions(this)
 
@@ -300,10 +302,12 @@ class App {
       this.ndom.use({ resource: resources })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
-      registers.forEach((keyVal) =>
-        (this.nui._experimental.register as any)(...keyVal),
-      )
+
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
+      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
+      u.entries(middlewares).forEach(([k, v]) =>
+        this.actionFactory.createMiddleware(k, v),
+      )
 
       this.meeting.onConnected = meetingfns.onConnected
       this.meeting.onAddRemoteParticipant = meetingfns.onAddRemoteParticipant

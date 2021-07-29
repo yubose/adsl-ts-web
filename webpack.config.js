@@ -185,7 +185,7 @@ module.exports = {
       meta: {
         keywords: 'aitmed, telemedicine, blockchain, noodl',
         viewport:
-          'width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no',
+          'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
       },
     }),
     new InjectScriptsPlugin({

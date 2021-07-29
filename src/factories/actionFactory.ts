@@ -14,7 +14,6 @@ import {
   NUIAction,
   NUIActionGroupedType,
   NUIActionObject,
-  NUIActionType,
   Store,
 } from 'noodl-ui'
 import App from '../App'
@@ -23,8 +22,8 @@ import * as t from '../app/types'
 export type ActionKind = 'action' | 'builtIn'
 
 export type ActionHandlerArgs =
-  | [destination: string]
-  | [actionObject: NUIActionObject]
+  | [destination: string, ...rest: any[]]
+  | [actionObject: NUIActionObject, ...rest: any[]]
   | Parameters<Store.ActionObject['fn']>
   | Parameters<Store.BuiltInObject['fn']>
 
@@ -34,7 +33,7 @@ export interface MiddlewareObject {
 }
 
 export interface MiddlewareFn {
-  (args: ActionHandlerArgs): ActionHandlerArgs
+  (args: ActionHandlerArgs): Promise<ActionHandlerArgs> | ActionHandlerArgs
 }
 
 export type StoreActionObject<
@@ -44,20 +43,22 @@ export type StoreActionObject<
 const actionFactory = function (app: App) {
   const middlewares = [] as MiddlewareObject[]
 
-  async function runMiddleware(
-    args: ActionHandlerArgs,
-    options: Record<string, any> = {},
-  ) {
-    return Promise.all(middlewares.map(async (mo) => mo.fn?.(args, options)))
+  /**
+   *
+   * @param { ActionHandlerArgs } args
+   * @returns { Promise<any>[] }
+   */
+  async function runMiddleware(args: ActionHandlerArgs) {
+    return Promise.all(middlewares.map(async (mo) => mo.fn?.(args)))
   }
 
   /**
    * Adds a new middleware object containing the function which will be called
    * with the incoming args when actions call their handlers
-   * @param id
-   * @param fn
+   * @param { string } id
+   * @param { MiddlewareFn } fn
    */
-  function _createMiddleware(id: string, fn: MiddlewareFn): void
+  function _createMiddleware(id: string, fn?: MiddlewareFn): void
   function _createMiddleware(fn: MiddlewareFn): void
   function _createMiddleware(id: string | MiddlewareFn, fn?: MiddlewareFn) {
     middlewares.push({
@@ -130,7 +131,7 @@ const actionFactory = function (app: App) {
       }
 
       try {
-        const args = [action, options, ...rest]
+        const args = [action, options, ...rest] as ActionHandlerArgs
         await runMiddleware(args)
 
         let _action: NUIAction | undefined
@@ -149,11 +150,11 @@ const actionFactory = function (app: App) {
             //
           }
         } else if (u.isObj(action)) {
-          if (Identify.action.any(action)) {
-            _action = createAction({ action, trigger: 'onClick' })
-          } else if (Identify.folds.emit(action)) {
-            _action = createAction({ action, trigger: 'onClick' })
-          } else if (Identify.goto(action)) {
+          if (
+            [Identify.action.any, Identify.folds.emit, Identify.goto].some(
+              (identify) => identify(action),
+            )
+          ) {
             _action = createAction({ action, trigger: 'onClick' })
           } else {
             //
@@ -174,13 +175,11 @@ const actionFactory = function (app: App) {
     createBuiltInHandler(fn: Store.ActionObject['fn']) {
       return _createActionHandler('builtIn', fn)
     },
-    createMiddleware(...args: Parameters<typeof _createActionHandler>) {
-      let id = u.isStr(args[0]) ? args[0] : ''
-      let fn = u.isFnc(args[0]) ? args[0] : u.isFnc(args[1]) ? args[1] : null
-      _createMiddleware(id, (a, o) => {
-        fn?.(a, { ...o, app })
-        return a
-      })
+    createMiddleware(idProp: string | MiddlewareFn, fnProp?: MiddlewareFn) {
+      let id = u.isStr(idProp) ? idProp : ''
+      let fn = u.isFnc(idProp) ? idProp : u.isFnc(fnProp) ? fnProp : null
+      let middleware: MiddlewareFn = (args) => (u.isFnc(fn) ? fn(args) : args)
+      _createMiddleware(id, middleware)
     },
   }
 }

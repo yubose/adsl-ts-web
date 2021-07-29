@@ -11,12 +11,15 @@ const log = Logger.create('middlewares.ts')
  */
 
 import App from '../../App'
+import { ActionHandlerArgs, MiddlewareFn } from '../../factories/actionFactory'
 
 const registerMiddleware = function (app: App) {
-  const { createActionHandler, createBuiltInHandler, createMiddleware } =
-    app.actionFactory
-
-  createMiddleware((args) => {
+  /**
+   * Transforms abnormal args to the expected [action, options] structure
+   * Useful to handle dynamically injected actions (goto strings for
+   * destinations for ex)
+   */
+  const handleInjections: MiddlewareFn = (args: ActionHandlerArgs) => {
     if (u.isStr(args[0])) {
       const prevArgs = [...args]
       if (!prevArgs[1]) {
@@ -41,8 +44,18 @@ const registerMiddleware = function (app: App) {
         { prevArgs, newArgs: args },
       )
     }
+
+    if (u.isArr(args) && isAction(args[0])) {
+      args = [...args]
+      args[1] = { ...args[1], snapshot: args[0].snapshot() }
+    }
+
     return args
-  })
+  }
+
+  return {
+    handleInjections,
+  }
 }
 
 export default registerMiddleware

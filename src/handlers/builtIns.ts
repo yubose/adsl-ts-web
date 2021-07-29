@@ -458,7 +458,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
     if (destination.startsWith('http')) {
       // This is for testing in mobile mode to prevent the auto-redirection to google play store
-      // return
+      return
     }
 
     if (id) {
