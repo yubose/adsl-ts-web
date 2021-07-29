@@ -17,9 +17,7 @@ import * as t from '../app/types'
 
 const actionFactory = function (app: App) {
   return {
-    createMiddleware: <F extends MiddlewareFn<{ app: App }>>(
-      ...args: Parameters<typeof createMiddleware>
-    ) => {
+    createMiddleware: (...args: Parameters<typeof createMiddleware>) => {
       let id = u.isStr(args[0]) ? args[0] : ''
       let fn = u.isFnc(args[0]) ? args[0] : u.isFnc(args[1]) ? args[1] : null
       createMiddleware(id, (a, o) => {

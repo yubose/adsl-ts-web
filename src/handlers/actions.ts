@@ -245,6 +245,7 @@ const createActions = function createActions(app: App) {
   ) {
     let goto = _pick(action, 'goto') || ''
     let ndomPage = pickNDOMPageFromOptions(options)
+    let destProps: ReturnType<typeof app.parse.destination>
 
     log.func('goto')
     log.grey(
@@ -258,16 +259,33 @@ const createActions = function createActions(app: App) {
         : u.isObj(goto)
         ? goto.destination || goto.dataIn?.destination || goto
         : '') || ''
-    let {
-      destination,
-      id = '',
-      isSamePage,
-      duration,
-    } = app.parse.destination(destinationParam)
+
+    destProps = app.parse.destination(destinationParam)
+
+    let { destination, id = '', isSamePage, duration } = destProps
+
     let pageModifiers = {} as any
 
     if (destination === destinationParam) {
       ndomPage.requesting = destination
+    }
+
+    if ('targetPage' in destProps) {
+      destination = destProps.targetPart || ''
+      id = destProps.viewTag || ''
+      if (id) {
+        const pageNode = findByViewTag(id)
+        const pageComponent = Array.from(app.cache.component || [])?.find(
+          (obj) => obj?.component?.blueprint?.viewTag === id,
+        )?.component
+        if (pageNode) {
+          if (pageNode instanceof HTMLIFrameElement) {
+            //
+          }
+        }
+        const currentPageName = pageComponent?.get?.('path')
+        ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+      }
     }
 
     if (u.isObj(goto?.dataIn)) {
@@ -277,7 +295,8 @@ const createActions = function createActions(app: App) {
     }
 
     if (id) {
-      const isInsidePageComponent = isPageConsumer(options.component)
+      const isInsidePageComponent =
+        isPageConsumer(options.component) || !!destProps.targetPage
       const node = findByViewTag(id) || findByElementId(id)
       if (node) {
         let win: Window | undefined | null
@@ -351,6 +370,15 @@ const createActions = function createActions(app: App) {
     })
 
     if (!isSamePage) {
+      if (
+        ndomPage?.rootNode &&
+        ndomPage.rootNode instanceof HTMLIFrameElement
+      ) {
+        if (ndomPage.rootNode.contentDocument?.body) {
+          ndomPage.rootNode.contentDocument.body.textContent = ''
+        }
+      }
+
       await app.navigate(ndomPage, destination)
       if (!destination) {
         log.func('goto')
