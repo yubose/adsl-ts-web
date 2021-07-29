@@ -28,8 +28,8 @@ TimeStamp=$(date "+%Y-%m-%dT%Hh%Mm%Ss")
 BackupDirName=${DBucket}${TimeStamp}
 
 # create
-aws s3 cp s3://${DBucket} s3://${BackupBucket}/${BackupDirName}/ --recursive
-aws s3 rm s3://${DBucket} --recursive
-aws s3 cp ${DDIR}/ s3://${DBucket} --recursive
+aws s3 cp s3://${DBucket}/latest/ s3://${BackupBucket}/${BackupDirName}/ --recursive
+aws s3 rm s3://${DBucket}/latest/ --recursive
+aws s3 cp ${DDIR}/ s3://${DBucket}/latest/ --recursive
 #aws s3 cp ${DDIR}/index.html s3://${DBucket} --content-type text/html --cache-control no-cache,no-store,must-revalidate --expires "0"
 #disable invalidate aws cloudfront create-invalidation --distribution-id ${CloudFrontID} --paths "/*"
