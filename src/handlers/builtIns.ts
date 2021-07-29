@@ -434,7 +434,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           }
           const currentPageName = pageComponent?.get?.('path')
           ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
-          debugger
         }
       }
 
@@ -556,8 +555,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           }
 
           await app.navigate(ndomPage, destination)
-
-          debugger
         }
 
         if (!destination) {
