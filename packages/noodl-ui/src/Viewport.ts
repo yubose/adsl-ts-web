@@ -176,6 +176,7 @@ class NOODLViewport {
       window.removeEventListener('resize', this.#onResize)
 
       this.#onResize = () => {
+        console.log('resized')
         const previousWidth = this.width
         const previousHeight = this.height
         this.width = window.innerWidth
@@ -190,11 +191,15 @@ class NOODLViewport {
       }
 
       const onUnload = (e: Event) => {
+        window.removeEventListener('gestureend', this.#onResize)
         window.removeEventListener('resize', this.#onResize)
         window.removeEventListener('unload', onUnload)
       }
 
       if (typeof window !== 'undefined') {
+        window.addEventListener('gestureend', this.#onResize, {
+          passive: false,
+        })
         window.addEventListener('resize', this.#onResize)
         window.addEventListener('unload', onUnload)
       }

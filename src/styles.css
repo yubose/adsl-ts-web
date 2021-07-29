@@ -9,8 +9,8 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
-  /* touch-action: none;
-  -ms-touch-action: none; */
+  touch-action: none;
+  -ms-touch-action: none;
   -moz-osx-font-smoothing: grayscale;
 }
 
@@ -83,7 +83,7 @@ div.pluginBodyTail {
   /* align-items: flex-start !important; */
   overflow-y: auto !important;
 }
-.scroll-view::-webkit-scrollbar{
+.scroll-view::-webkit-scrollbar {
   /* hide scrollBar for scrollView */
   display: none;
 }

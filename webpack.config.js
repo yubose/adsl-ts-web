@@ -5,6 +5,7 @@ const singleLog = require('single-line-log').stdout
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
 const pkgJson = {
@@ -25,7 +26,7 @@ const version = {
 const favicon = 'public/favicon.ico'
 const filename = 'index.html'
 const publicPath = path.join(__dirname, 'public')
-const title = 'AiTmed: Start your E-health Journal Anywhere, Anytime'
+const title = 'AiTmfsaash Journal Anywhere, Anytime'
 const productionOptions = {}
 const mode =
   process.env.NODE_ENV !== 'production' ? 'development' : 'production'
@@ -175,6 +176,7 @@ module.exports = {
     ),
     environmentPlugin,
     new HtmlWebpackPlugin({
+      alwaysWriteToDisk: true,
       filename,
       title,
       favicon,
@@ -188,6 +190,7 @@ module.exports = {
           'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
       },
     }),
+    new HtmlWebpackHarddiskPlugin(),
     new InjectScriptsPlugin({
       path: 'public/libs.html',
     }),
