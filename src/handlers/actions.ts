@@ -169,7 +169,7 @@ const createActions = function createActions(app: App) {
                             app.ndom.global.components.get(popUpView),
                         },
                       )
-                      await action.execute()
+                      await action?.execute()
                     }
                   }
                 }
@@ -501,7 +501,7 @@ const createActions = function createActions(app: App) {
             phoneNumber.startsWith('+1888') ||
             phoneNumber.startsWith('+1 888')
 
-          if (vcodeInput && is888 && action.actionType !== 'popUpDismiss') {
+          if (vcodeInput && is888 && action?.actionType !== 'popUpDismiss') {
             let pathToTage = 'verificationCode.response.edge.tage'
             let vcode = get(app.root?.[currentPage], pathToTage, '')
             if (vcode) {
@@ -531,10 +531,10 @@ const createActions = function createActions(app: App) {
           ref?.abort?.()
         }
       } else {
-        let msg = `Tried to ${action.actionType === 'popUp' ? 'show' : 'hide'}`
-        log.func(action.actionType)
+        let msg = `Tried to ${action?.actionType === 'popUp' ? 'show' : 'hide'}`
+        log.func(action?.actionType)
         log.red(
-          `${msg} a ${action.actionType} element but the element ` +
+          `${msg} a ${action?.actionType} element but the element ` +
             `was null or undefined`,
           { action: action?.snapshot?.(), popUpView },
         )
@@ -775,7 +775,7 @@ const createActions = function createActions(app: App) {
       // This is the more newer version that is more descriptive, utilizing the data key
       // action = { actionType: 'updateObject', dataKey, dataObject }
       else if (_pick(action, 'dataKey') || _pick(action, 'dataObject')) {
-        object = omit(action.original || action, 'actionType')
+        object = omit(action?.original || action, 'actionType')
       }
 
       if (u.isFnc(object)) {

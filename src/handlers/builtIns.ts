@@ -378,7 +378,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (u.isStr(action)) {
         destinationParam = action
       } else if (isAction(action)) {
-        const gotoObj = action.original
+        const gotoObj = action?.original
         if (u.isStr(gotoObj)) {
           destinationParam = gotoObj
         } else if (u.isObj(gotoObj)) {
@@ -743,8 +743,8 @@ export const extendedSdkBuiltIns = {
     try {
       if (action) {
         let msg = ''
-        if (action.accessToken) msg += 'Received access token '
-        if (action.roomId) msg += 'and room id'
+        if (action?.accessToken) msg += 'Received access token '
+        if (action?.roomId) msg += 'and room id'
         log.grey(msg, action)
       } else {
         log.red(
@@ -771,7 +771,7 @@ export const extendedSdkBuiltIns = {
         )
       } else {
         log.grey(`Connecting to room id: ${action?.roomId}`)
-        newRoom = (await this.meeting.join(action.accessToken)) as Room
+        newRoom = (await this.meeting.join(action?.accessToken)) as Room
         newRoom && log.green(`Connected to room: ${newRoom.name}`, newRoom)
       }
       if (newRoom) {
