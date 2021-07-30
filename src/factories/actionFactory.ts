@@ -52,6 +52,11 @@ class Middleware {
     this.#middleware = middleware
     this.#run = middleware.fn
   }
+
+  run(args: any[]) {
+    // this.#run(args)
+    return args
+  }
 }
 
 const actionFactory = function (app: App) {
@@ -63,6 +68,8 @@ const actionFactory = function (app: App) {
    * @returns { Promise<any>[] }
    */
   async function runMiddleware(args: ActionHandlerArgs) {
+    args = u.array(args)
+    console.log(`%cRUN MIDDLEWARE ARGS`, `color:#c4a901;`, args)
     await Promise.all(middlewares.map(async (mo) => mo.fn?.(args)))
     return args
   }
@@ -76,7 +83,7 @@ const actionFactory = function (app: App) {
   function _createMiddleware(id: string, fn?: MiddlewareFn): Middleware
   function _createMiddleware(fn: MiddlewareFn): Middleware
   function _createMiddleware(id: string | MiddlewareFn, fn?: MiddlewareFn) {
-    return new Middleware({
+    middlewares.push({
       id: u.isStr(id) ? id : '',
       fn: u.isFnc(id) ? id : u.isFnc(fn) ? fn : null,
     })
@@ -146,37 +153,36 @@ const actionFactory = function (app: App) {
       }
 
       try {
-        const args = [action, options, ...rest] as ActionHandlerArgs
-        await runMiddleware(args)
-
         let _action: NUIAction | undefined
 
-        if (u.isStr(action)) {
-          // Goto action (page navigation)
-          const destination = action
-          // TODO - Put "anonymous"
-          _action = createAction({
-            action: { goto: destination },
-            trigger: 'onClick',
-          })
-        } else if (isAction(action)) {
-          _action = action
-          if (!options) {
-            //
-          }
-        } else if (u.isObj(action)) {
-          if (
-            [Identify.action.any, Identify.folds.emit, Identify.goto].some(
-              (identify) => identify(action),
-            )
-          ) {
-            _action = createAction({ action, trigger: 'onClick' })
-          } else {
-            //
-          }
-        }
+        // if (u.isStr(action)) {
+        //   // Goto action (page navigation)
+        //   const destination = action
+        //   _action = createAction({
+        //     action: { actionType: 'goto', goto: destination },
+        //     trigger: 'onClick',
+        //   })
+        // } else if (isAction(action)) {
+        //   _action = action
+        //   if (!options) {
+        //     //
+        //   }
+        // } else if (u.isObj(action)) {
+        //   if (
+        //     [Identify.action.any, Identify.folds.emit, Identify.goto].some(
+        //       (identify) => identify(action),
+        //     )
+        //   ) {
+        //     _action = createAction({ action, trigger: 'onClick' })
+        //   } else {
+        //     //
+        //   }
+        // }
 
-        return _fn?.(_action, options)
+        let args = [action, options, ...rest]
+        await runMiddleware(args)
+
+        return _fn?.(...args)
       } catch (error) {
         throw error
       }

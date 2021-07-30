@@ -48,7 +48,7 @@ function createAction(
     if (Identify.folds.emit(args.action)) {
       action = new EmitAction(args.trigger, args.action)
     } else {
-      if (!('actionType' in args.action)) {
+      if (!('actionType' in (args.action || {}))) {
         args.action = { ...args.action, actionType: getActionType(args.action) }
       }
       action = __createAction(args.trigger, args.action as NUIActionObject)

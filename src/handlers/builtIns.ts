@@ -555,7 +555,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         log.func('builtIn')
         log.red(
           'Tried to go to a page but could not find information on the whereabouts',
-          { action: action?.snapshot?.(), ...options },
+          { action, snapshot: action?.snapshot?.(), ...options },
         )
       }
     }
