@@ -294,10 +294,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     defaultData.forEach((element) => {
                       element.start = new Date(element.stime * 1000)
                       element.end = new Date(element.etime * 1000)
-                      element.title = element.visitReason
+                      element.title = element.patientName
+                      element.name = element.visitReason
+                      // element.name = element.patientName
                       delete element.stime
                       delete element.etime
                       delete element.visitReason
+                      // delete element.patientName
+                      // delete element.visitType
                     })
                   } else {
                     defaultData = {}
@@ -341,14 +345,14 @@ const createExtendedDOMResolvers = function (app: App) {
                         _instance: { range: { start: any; end: any } }
                       }
                     }) => {
-                      //console.log(info);
+                      // console.log(info);
                       tippy(info.el, {
                         content:
                           '<div >\
                                              <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Appointment Information</div>\
-                                             <div style="padding-top:2px">Appointment Name：' +
-                          info.event._def.title +
-                          '</div>\
+                                             <div style="padding-top:2px">Patient Name ：' +info.event._def.extendedProps.patientName+'</div>\
+                                             <div style="padding-top:2px">Appointment Type ：' +info.event._def.extendedProps.visitType+'</div>\
+                                             <div style="padding-top:3px">Reason ：' +info.event._def.extendedProps.name +'</div>\
                                              <div style="padding:4px 0">startTime：' +
                           formatDate(
                             new Date(
