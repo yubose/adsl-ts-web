@@ -1,10 +1,9 @@
+import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
-import flowRight from 'lodash/flowRight'
 import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import * as u from '@jsmanifest/utils'
 import {
   asHtmlElement,
   eventId as ndomEventId,
@@ -69,7 +68,7 @@ const createActions = function createActions(app: App) {
         ) {
           try {
             log.func(`emit [${trigger}]`)
-            log.grey('', action.snapshot?.())
+            log.grey('', action?.snapshot?.())
 
             const emitParams = {
               actions: _pick(action, 'actions'),
@@ -83,13 +82,13 @@ const createActions = function createActions(app: App) {
               if (dataKeyValue == undefined) {
                 log.red(
                   `An undefined value was set for "dataKey" as arguments to emitCall`,
-                  { action: action.snapshot?.(), emitParams },
+                  { action: action?.snapshot?.(), emitParams },
                 )
               }
             }
 
             log.grey('Emitting', {
-              action: action.snapshot?.(),
+              action: action?.snapshot?.(),
               emitParams,
               options,
             })
@@ -97,7 +96,7 @@ const createActions = function createActions(app: App) {
               await app.noodl.emitCall(emitParams as any),
             )
             log.grey(`Emitted`, {
-              action: action.snapshot?.(),
+              action: action?.snapshot?.(),
               emitParams,
               emitResult,
             })
@@ -120,158 +119,121 @@ const createActions = function createActions(app: App) {
     log.grey('', a.snapshot())
   }
 
-  const evalObject = (function () {
-    const onEvalObject: Store.ActionObject['fn'] = async function onEvalObject(
-      action,
+  const evalObject: Store.ActionObject['fn'] = async function onEvalObject(
+    action,
+    options,
+  ) {
+    log.func('evalObject')
+    log.grey('', {
+      action: action?.snapshot?.(),
+      actionChain: options?.ref?.snapshot?.(),
       options,
-    ) {
-      log.func('evalObject')
-      log.grey('', {
-        action: action.snapshot?.(),
-        actionChain: options?.ref?.snapshot?.(),
-        options,
-      })
+    })
 
-      try {
-        let object = _pick(action, 'object') as
-          | IfObject
-          | ((...args: any[]) => any)
+    try {
+      let object = _pick(action, 'object') as
+        | IfObject
+        | ((...args: any[]) => any)
 
-        if (u.isFnc(object)) {
-          const result = await object()
-          if (result) {
-            const { ref: actionChain } = options
-            if (u.isObj(result)) {
-              getActionObjectErrors(result).forEach((errMsg: string) =>
-                log.red(errMsg, result),
+      if (u.isFnc(object)) {
+        const result = await object()
+        if (result) {
+          const { ref: actionChain } = options
+          if (u.isObj(result)) {
+            getActionObjectErrors(result).forEach((errMsg: string) =>
+              log.red(errMsg, result),
+            )
+            if (result.abort) {
+              log.grey(
+                `An evalObject returned an object with abort: true. The action chain ` +
+                  `will no longer proceed`,
+                { actionChain, injectedObject: result },
               )
-              if (result.abort) {
-                log.grey(
-                  `An evalObject returned an object with abort: true. The action chain ` +
-                    `will no longer proceed`,
-                  { actionChain, injectedObject: result },
-                )
-                if (actionChain) {
-                  // There is a bug with global popups not being able to be visible because of this abort block.
-                  // For now until a better solution is implemented we can do a check here
-                  for (const action of actionChain.queue) {
-                    const popUpView = _pick(action, 'popUpView')
-                    if (popUpView) {
-                      if (app.ndom.global.components.has(popUpView)) {
-                        log.salmon(
-                          `An "abort: true" was injected from evalObject but a global component ` +
-                            `with popUpView "${popUpView}" was found. These popUp actions will ` +
-                            `still be called to ensure the behavior persists for global popUps`,
-                          {
-                            globalObject:
-                              app.ndom.global.components.get(popUpView),
-                          },
-                        )
-                        await action.execute()
-                      }
+              if (actionChain) {
+                // There is a bug with global popups not being able to be visible because of this abort block.
+                // For now until a better solution is implemented we can do a check here
+                for (const action of actionChain.queue) {
+                  const popUpView = _pick(action, 'popUpView')
+                  if (popUpView) {
+                    if (app.ndom.global.components.has(popUpView)) {
+                      log.salmon(
+                        `An "abort: true" was injected from evalObject but a global component ` +
+                          `with popUpView "${popUpView}" was found. These popUp actions will ` +
+                          `still be called to ensure the behavior persists for global popUps`,
+                        {
+                          globalObject:
+                            app.ndom.global.components.get(popUpView),
+                        },
+                      )
+                      await action?.execute()
                     }
                   }
-                  await actionChain.abort(
-                    `An evalObject is requesting to abort using the "abort" key`,
-                  )
                 }
-              } else {
-                const isPossiblyAction = 'actionType' in result
-                const isPossiblyToastMsg = 'message' in result
-                const isPossiblyGoto =
-                  'goto' in result || 'destination' in result
-
-                if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
-                  log.grey(
-                    `An evalObject action is injecting a new object to the chain`,
-                    {
-                      actionChain,
-                      instance: actionChain?.inject.call(
-                        actionChain,
-                        result as any,
-                      ),
-                      object: result,
-                      queue: actionChain?.queue.slice(),
-                    },
-                  )
-                }
-              }
-            }
-          }
-        } else if (_has(object, 'if')) {
-          const ifObj = object
-          if (u.isArr(ifObj)) {
-            const pageName = pickNUIPageFromOptions(options)?.page || ''
-            object = evalIf((valEvaluating) => {
-              let value
-              if (Identify.isBoolean(valEvaluating)) {
-                return Identify.isBooleanTrue(valEvaluating)
-              }
-              if (u.isStr(valEvaluating)) {
-                if (valEvaluating.includes('.')) {
-                  if (has(app.root, valEvaluating)) {
-                    value = get(app.root, valEvaluating)
-                  } else if (has(app.root[pageName], valEvaluating)) {
-                    value = get(app.root[pageName], valEvaluating)
-                  }
-                }
-                if (Identify.isBoolean(value)) Identify.isBooleanTrue(value)
-              }
-              return !!value
-            }, ifObj)
-            if (u.isFnc(object)) {
-              const result = await object()
-              if (result) {
-                log.hotpink(
-                  `Received a value from evalObject's "if" evaluation. ` +
-                    `Returning it back to the action chain now`,
-                  { action: action.snapshot?.(), result },
+                await actionChain.abort(
+                  `An evalObject is requesting to abort using the "abort" key`,
                 )
-                return result
+              }
+            } else {
+              const isPossiblyAction = 'actionType' in result
+              const isPossiblyToastMsg = 'message' in result
+              const isPossiblyGoto = 'goto' in result || 'destination' in result
+
+              if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
+                log.grey(
+                  `An evalObject action is injecting a new object to the chain`,
+                  {
+                    actionChain,
+                    instance: actionChain?.inject.call(
+                      actionChain,
+                      result as any,
+                    ),
+                    object: result,
+                    queue: actionChain?.queue.slice(),
+                  },
+                )
               }
             }
           }
         }
-      } catch (error) {
-        console.error(error)
-        toast(error.message, { type: 'error' })
-      }
-    }
-
-    // TODO - Move these higher order evalObject funcs below in a higher order
-    // function in noodl-ui or noodl-ui-dom
-
-    /**
-     * Handles dynamically injected objects returned from evalObject, such as
-     * when handling goto actions when demanded from user interactions
-     */
-    const handleInjections: Store.ActionObject['fn'] = async (
-      action,
-      options,
-    ) => {
-      try {
-        if (u.isStr(action)) {
+      } else if (_has(object, 'if')) {
+        const ifObj = object
+        if (u.isArr(ifObj)) {
+          const pageName = pickNUIPageFromOptions(options)?.page || ''
+          object = evalIf((valEvaluating) => {
+            let value
+            if (Identify.isBoolean(valEvaluating)) {
+              return Identify.isBooleanTrue(valEvaluating)
+            }
+            if (u.isStr(valEvaluating)) {
+              if (valEvaluating.includes('.')) {
+                if (has(app.root, valEvaluating)) {
+                  value = get(app.root, valEvaluating)
+                } else if (has(app.root[pageName], valEvaluating)) {
+                  value = get(app.root[pageName], valEvaluating)
+                }
+              }
+              if (Identify.isBoolean(value)) Identify.isBooleanTrue(value)
+            }
+            return !!value
+          }, ifObj)
+          if (u.isFnc(object)) {
+            const result = await object()
+            if (result) {
+              log.hotpink(
+                `Received a value from evalObject's "if" evaluation. ` +
+                  `Returning it back to the action chain now`,
+                { action: action?.snapshot?.(), result },
+              )
+              return result
+            }
+          }
         }
-      } catch (error) {
-        console.error(error)
       }
+    } catch (error) {
+      console.error(error)
+      toast(error.message, { type: 'error' })
     }
-
-    // TODO - Create a generalized factory of this func for all actions
-    const createActionWithMiddleware = function (
-      ...middlewares: Store.ActionObject['fn'][]
-    ) {
-      return (executor: Store.ActionObject['fn']) => {
-        return async (...args: Parameters<Store.ActionObject['fn']>) => {
-          await Promise.all(middlewares.map((fn) => fn?.(...args)))
-          return executor(...args)
-        }
-      }
-    }
-
-    const withMiddleware = createActionWithMiddleware(handleInjections)
-    return withMiddleware(onEvalObject)
-  })()
+  }
 
   const goto: Store.ActionObject['fn'] = async function onGoto(
     action,
@@ -279,11 +241,12 @@ const createActions = function createActions(app: App) {
   ) {
     let goto = _pick(action, 'goto') || ''
     let ndomPage = pickNDOMPageFromOptions(options)
+    let destProps: ReturnType<typeof app.parse.destination>
 
     log.func('goto')
     log.grey(
       _pick(action, 'goto'),
-      u.isObj(action) ? action.snapshot?.() : action,
+      u.isObj(action) ? action?.snapshot?.() : action,
     )
 
     let destinationParam =
@@ -292,16 +255,33 @@ const createActions = function createActions(app: App) {
         : u.isObj(goto)
         ? goto.destination || goto.dataIn?.destination || goto
         : '') || ''
-    let {
-      destination,
-      id = '',
-      isSamePage,
-      duration,
-    } = app.parse.destination(destinationParam)
+
+    destProps = app.parse.destination(destinationParam)
+
+    let { destination, id = '', isSamePage, duration } = destProps
+
     let pageModifiers = {} as any
 
     if (destination === destinationParam) {
       ndomPage.requesting = destination
+    }
+
+    if ('targetPage' in destProps) {
+      destination = destProps.targetPart || ''
+      id = destProps.viewTag || ''
+      if (id) {
+        const pageNode = findByViewTag(id)
+        const pageComponent = Array.from(app.cache.component || [])?.find(
+          (obj) => obj?.component?.blueprint?.viewTag === id,
+        )?.component
+        if (pageNode) {
+          if (pageNode instanceof HTMLIFrameElement) {
+            //
+          }
+        }
+        const currentPageName = pageComponent?.get?.('path')
+        ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+      }
     }
 
     if (u.isObj(goto?.dataIn)) {
@@ -311,7 +291,8 @@ const createActions = function createActions(app: App) {
     }
 
     if (id) {
-      const isInsidePageComponent = isPageConsumer(options.component)
+      const isInsidePageComponent =
+        isPageConsumer(options.component) || !!destProps.targetPage
       const node = findByViewTag(id) || findByElementId(id)
       if (node) {
         let win: Window | undefined | null
@@ -347,7 +328,7 @@ const createActions = function createActions(app: App) {
           destination,
           isSamePage,
           duration,
-          action: action.snapshot?.(),
+          action: action?.snapshot?.(),
         })
       }
     }
@@ -385,12 +366,21 @@ const createActions = function createActions(app: App) {
     })
 
     if (!isSamePage) {
+      if (
+        ndomPage?.rootNode &&
+        ndomPage.rootNode instanceof HTMLIFrameElement
+      ) {
+        if (ndomPage.rootNode.contentDocument?.body) {
+          ndomPage.rootNode.contentDocument.body.textContent = ''
+        }
+      }
+
       await app.navigate(ndomPage, destination)
       if (!destination) {
         log.func('goto')
         log.red(
           'Tried to go to a page but could not find information on the whereabouts',
-          { action: action.snapshot?.(), options },
+          { action: action?.snapshot?.(), options },
         )
       }
     }
@@ -399,7 +389,7 @@ const createActions = function createActions(app: App) {
   const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
     async function getInjectBlob(action, options) {
       log.func(name)
-      log.gold('', action.snapshot?.())
+      log.gold('', action?.snapshot?.())
       const result = await openFileSelector()
       log.func(name)
       switch (result.status) {
@@ -426,7 +416,7 @@ const createActions = function createActions(app: App) {
               `%cBoth action and component is needed to inject a blob to the action chain`,
               `color:#ec0000;`,
               {
-                action: action.snapshot?.(),
+                action: action?.snapshot?.(),
                 actionChain: ac,
                 component: comp,
                 dataKey,
@@ -438,11 +428,11 @@ const createActions = function createActions(app: App) {
           await options?.ref?.abort?.('File input window was closed')
           return log.red(
             `File was not selected for action "${name}" and the operation was aborted`,
-            action.snapshot?.(),
+            action?.snapshot?.(),
           )
         case 'error':
           return void log.red(`An error occurred for action "${name}"`, {
-            action: action.snapshot?.(),
+            action: action?.snapshot?.(),
             ...result,
           })
       }
@@ -462,7 +452,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     log.func('popUp')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
     const { ref } = options
     const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
     const popUpView = _pick(action, 'popUpView')
@@ -507,7 +497,7 @@ const createActions = function createActions(app: App) {
             phoneNumber.startsWith('+1888') ||
             phoneNumber.startsWith('+1 888')
 
-          if (vcodeInput && is888 && action.actionType !== 'popUpDismiss') {
+          if (vcodeInput && is888 && action?.actionType !== 'popUpDismiss') {
             let pathToTage = 'verificationCode.response.edge.tage'
             let vcode = get(app.root?.[currentPage], pathToTage, '')
             if (vcode) {
@@ -532,17 +522,17 @@ const createActions = function createActions(app: App) {
           log.grey(
             `Popup action for popUpView "${popUpView}" is ` +
               `waiting on a response. Aborting now...`,
-            action.snapshot?.(),
+            action?.snapshot?.(),
           )
           ref?.abort?.()
         }
       } else {
-        let msg = `Tried to ${action.actionType === 'popUp' ? 'show' : 'hide'}`
-        log.func(action.actionType)
+        let msg = `Tried to ${action?.actionType === 'popUp' ? 'show' : 'hide'}`
+        log.func(action?.actionType)
         log.red(
-          `${msg} a ${action.actionType} element but the element ` +
+          `${msg} a ${action?.actionType} element but the element ` +
             `was null or undefined`,
-          { action: action.snapshot?.(), popUpView },
+          { action: action?.snapshot?.(), popUpView },
         )
       }
     })
@@ -553,7 +543,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     log.func('popUpDismiss')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
     for (const obj of app.actions.popUp) {
       await (obj as Store.ActionObject)?.fn?.(action, options)
     }
@@ -561,7 +551,7 @@ const createActions = function createActions(app: App) {
 
   const refresh: Store.ActionObject['fn'] = async function onRefresh(action) {
     log.func('refresh')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
     window.location.reload()
   }
 
@@ -570,7 +560,7 @@ const createActions = function createActions(app: App) {
     options,
   ) {
     log.func('saveObject')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
 
     const { getRoot, ref } = options
     const object = _pick(action, 'object')
@@ -614,7 +604,7 @@ const createActions = function createActions(app: App) {
         log.red(
           `The "object" property in the saveObject action is a string which ` +
             `is in the incorrect format. Possibly a parsing error?`,
-          action.snapshot?.(),
+          action?.snapshot?.(),
         )
       }
     } catch (error) {
@@ -628,7 +618,7 @@ const createActions = function createActions(app: App) {
     async function onRemoveSignature(action, options) {
       try {
         log.func('removeSignature')
-        log.grey('', { action: action.snapshot?.(), options })
+        log.grey('', { action: action?.snapshot?.(), options })
         const dataKey = _pick(action, 'dataKey')
         const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
         if (node) {
@@ -667,7 +657,7 @@ const createActions = function createActions(app: App) {
   ) {
     return new Promise((resolve, reject) => {
       log.func('saveSignature')
-      log.grey('', { action: action.snapshot?.(), options })
+      log.grey('', { action: action?.snapshot?.(), options })
       const dataKey = _pick(action, 'dataKey')
       if (dataKey) {
         const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
@@ -697,14 +687,14 @@ const createActions = function createActions(app: App) {
               resolve(
                 log.red(
                   `Cannot save the signature because the component with dataKey "${dataKey}" did not have a SignaturePad stored in its instance`,
-                  { action: action.snapshot?.(), component },
+                  { action: action?.snapshot?.(), component },
                 ),
               )
             }
           } else {
             resolve(
               log.red(`Missing signature pad from a canvas component`, {
-                action: action.snapshot?.(),
+                action: action?.snapshot?.(),
                 component,
               }),
             )
@@ -713,7 +703,7 @@ const createActions = function createActions(app: App) {
           resolve(
             log.red(
               `Cannot save the signature because a component with dataKey "${dataKey}" was not available in the component cache`,
-              { action: action.snapshot?.(), component },
+              { action: action?.snapshot?.(), component },
             ),
           )
         }
@@ -721,7 +711,7 @@ const createActions = function createActions(app: App) {
         resolve(
           log.red(
             `Cannot save the signature because there is no dataKey`,
-            action.snapshot?.(),
+            action?.snapshot?.(),
           ),
         )
       }
@@ -731,7 +721,7 @@ const createActions = function createActions(app: App) {
   const toastAction: Store.ActionObject['fn'] = async function onToast(action) {
     try {
       log.func('toast')
-      log.gold('', action.snapshot?.())
+      log.gold('', action?.snapshot?.())
       toast(_pick(action, 'message') || '')
     } catch (error) {
       error instanceof Error && toast(error.message, { type: 'error' })
@@ -743,7 +733,7 @@ const createActions = function createActions(app: App) {
     { component, ref },
   ) {
     log.func('updateObject')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
 
     let file: File | undefined
 
@@ -768,7 +758,7 @@ const createActions = function createActions(app: App) {
         } else {
           log.red(
             `Action chain does not exist. No blob will be available`,
-            action.snapshot?.(),
+            action?.snapshot?.(),
           )
         }
       }
@@ -781,7 +771,7 @@ const createActions = function createActions(app: App) {
       // This is the more newer version that is more descriptive, utilizing the data key
       // action = { actionType: 'updateObject', dataKey, dataObject }
       else if (_pick(action, 'dataKey') || _pick(action, 'dataObject')) {
-        object = omit(action.original || action, 'actionType')
+        object = omit(action?.original || action, 'actionType')
       }
 
       if (u.isFnc(object)) {
@@ -790,7 +780,7 @@ const createActions = function createActions(app: App) {
       } else if (u.isStr(object)) {
         log.red(
           `A string was received as the "object" property. Possible parsing error?`,
-          action.snapshot?.(),
+          action?.snapshot?.(),
         )
       } else if (u.isArr(object)) {
         for (const obj of object) u.isFnc(obj) && (await obj())
@@ -817,7 +807,7 @@ const createActions = function createActions(app: App) {
           await app.noodl.updateObject(params)
         } else {
           log.red(`Invalid/empty dataObject`, {
-            action: action.snapshot?.(),
+            action: action?.snapshot?.(),
             dataObject,
           })
         }

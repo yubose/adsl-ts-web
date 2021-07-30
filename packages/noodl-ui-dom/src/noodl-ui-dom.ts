@@ -239,7 +239,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
    * @param NUIPage nuiPage
    * @returns NDOMPage | null
    */
-  findPage(nuiPage: NUIPage | NDOMPage) {
+  findPage(nuiPage: NUIPage | NDOMPage | string) {
     if (isNUIPage(nuiPage)) {
       for (const page of u.values(this.global.pages)) {
         if (page.getNuiPage() === nuiPage || page.page === nuiPage.page)
@@ -247,6 +247,8 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       }
     } else if (isNDOMPage(nuiPage)) {
       return nuiPage
+    } else if (u.isStr(nuiPage)) {
+      return u.values(this.pages).find((page) => page.page === nuiPage)
     }
     return null
   }

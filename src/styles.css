@@ -1,3 +1,9 @@
+html {
+  -webkit-text-size-adjust: none;
+  -ms-touch-action: none;
+  touch-action: pan-y; /* Prevents user scaling*/
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -11,6 +17,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+
 
 button {
   cursor: pointer;
@@ -81,7 +89,7 @@ div.pluginBodyTail {
   /* align-items: flex-start !important; */
   overflow-y: auto !important;
 }
-.scroll-view::-webkit-scrollbar{
+.scroll-view::-webkit-scrollbar {
   /* hide scrollBar for scrollView */
   display: none;
 }

@@ -64,6 +64,17 @@ export function isMobile() {
     : false
 }
 
+export function isIOS() {
+  return (
+    typeof window !== 'undefined' &&
+    /iPad|iPhone|iPod/.test(
+      window.navigator.userAgent || window.navigator.vendor || '',
+    ) &&
+    // @ts-expect-error
+    !window.MSStream
+  )
+}
+
 export function isUnitTestEnv() {
   return process.env.NODE_ENV === 'test'
 }

@@ -6,7 +6,9 @@ function createPickNDOMPage(app: App) {
   const pickNDOMPage = function _pickNDOMPage(
     page: NUIPage | NDOMPage | undefined,
   ) {
-    if (isNUIPage(page)) return app.ndom.findPage(page)
+    if (typeof page == 'string' || isNUIPage(page)) {
+      return app.ndom.findPage(page)
+    }
     return page
   }
 

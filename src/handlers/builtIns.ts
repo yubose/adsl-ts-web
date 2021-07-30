@@ -49,6 +49,8 @@ const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
 
 const createBuiltInActions = function createBuiltInActions(app: App) {
+  const { createBuiltInHandler } = app.actionFactory
+
   const pickNDOMPageFromOptions = (options: ConsumerOptions) =>
     (app.pickNDOMPage(options?.page) || app.mainPage) as NDOMPage
 
@@ -85,7 +87,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
   ) {
     log.func('checkField')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
     const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
       u.arrayEach(findByUX(_pick(action, 'contentType')), (n) => n && show(n))
@@ -96,7 +98,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const disconnectMeeting: Store.BuiltInObject['fn'] =
     async function onDisconnectMeeting(action) {
       log.func('disconnectMeeting')
-      log.grey('', action.snapshot?.())
+      log.grey('', action?.snapshot?.())
       app.meeting.leave()
     }
 
@@ -105,7 +107,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     log.func('goBack')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
     const reload = _pick(action, 'reload')
     const ndomPage = pickNDOMPageFromOptions(options)
 
@@ -145,7 +147,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const hideAction: Store.BuiltInObject['fn'] = async function onHide(action) {
     log.func('hide')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
     let wait = _pick(action, 'wait')
     const onElem = (node: HTMLElement) => {
@@ -168,7 +170,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     log.func('show')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
     let wait = _pick(action, 'wait') || 0
     const onElem = (node: HTMLElement) => {
@@ -193,14 +195,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const toggleCameraOnOff: Store.BuiltInObject['fn'] =
     async function onToggleCameraOnOff(action) {
       log.func('toggleCameraOnOff')
-      log.green('', action.snapshot?.())
+      log.green('', action?.snapshot?.())
       _toggleMeetingDevice('video')
     }
 
   const toggleMicrophoneOnOff: Store.BuiltInObject['fn'] =
     async function onToggleMicrophoneOnOff(action) {
       log.func('toggleMicrophoneOnOff')
-      log.green('', action.snapshot?.())
+      log.green('', action?.snapshot?.())
       _toggleMeetingDevice('audio')
     }
 
@@ -209,7 +211,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     options,
   ) {
     log.func('toggleFlag')
-    log.grey('', action.snapshot?.())
+    log.grey('', action?.snapshot?.())
     try {
       const { component, getAssetsUrl } = options
       const dataKey = _pick(action, 'dataKey') || ''
@@ -291,7 +293,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           log.red(
             `${dataKey} is not a path of the data object. ` +
               `Defaulting to attaching ${dataKey} as a path to the root object`,
-            { action: action.snapshot?.(), dataObject, dataKey },
+            { action: action?.snapshot?.(), dataObject, dataKey },
           )
           previousDataValue = undefined
           nextDataValue = false
@@ -314,7 +316,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       log.grey('', {
-        action: action.snapshot?.(),
+        action: action?.snapshot?.(),
         component,
         dataKey,
         dataValue,
@@ -356,12 +358,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     window.location.reload()
   }
 
-  const goto: Store.BuiltInObject['fn'] = async function onGoto(
-    action,
-    options,
-  ) {
+  const goto = createBuiltInHandler(async function onGoto(action, options) {
     log.func('goto')
-    log.grey('', u.isObj(action) ? action.snapshot?.() : action)
+    log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
 
     let destinationParam = ''
     let reload: boolean | undefined
@@ -369,10 +368,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     let ndomPage = pickNDOMPageFromOptions(options)
     let dataIn: any // sdk use
 
+    let destProps: ReturnType<typeof app.parse.destination>
+    let destination = ''
+    let id = ''
+    let isSamePage = false
+    let duration = 350
+
     if (u.isStr(action)) {
       destinationParam = action
     } else if (isAction(action)) {
-      const gotoObj = action.original
+      const gotoObj = action?.original
       if (u.isStr(gotoObj)) {
         destinationParam = gotoObj
       } else if (u.isObj(gotoObj)) {
@@ -401,6 +406,38 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         'dataIn' in action && _pick(action, 'dataIn')
       }
     }
+
+    destProps = app.parse.destination(destinationParam)
+
+    /** PARSE FOR DESTINATION PROPS */
+
+    if ('destination' in destProps) {
+      destination = destProps.destination || ''
+      id = destProps.id || id
+      isSamePage = !!destProps.isSamePage
+      duration = destProps.duration || duration
+    } else if ('targetPage' in destProps) {
+      destination = destProps.targetPage || ''
+      id = destProps.viewTag || ''
+      if (id) {
+        const pageNode = findByViewTag(id)
+        const pageComponent = Array.from(app.cache.component || [])?.find(
+          (obj) => obj?.component?.blueprint?.viewTag === id,
+        )?.component
+        if (pageNode) {
+          if (pageNode instanceof HTMLIFrameElement) {
+            //
+          }
+        }
+        const currentPageName = pageComponent?.get?.('path')
+        ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+      }
+    }
+
+    if (destination === destinationParam) {
+      ndomPage.requesting = destination
+    }
+
     if (!u.isUnd(reload)) {
       ndomPage.setModifier(destinationParam, { reload })
     }
@@ -410,34 +447,23 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     if (!u.isUnd(dataIn)) {
       ndomPage.setModifier(destinationParam, { ...dataIn })
     }
-    let {
-      destination,
-      id = '',
-      isSamePage,
-      duration,
-    } = app.parse.destination(destinationParam)
-    if (destination === destinationParam) {
-      ndomPage.requesting = destination
-    }
 
     log.grey(`Goto info`, {
-      action: action.snapshot?.(),
-      destination,
+      action: action?.snapshot?.(),
+      ...destProps,
       destinationParam,
-      duration,
-      id,
-      isSamePage,
       reload,
       pageReload,
     })
 
     if (destination.startsWith('http')) {
       // This is for testing in mobile mode to prevent the auto-redirection to google play store
-      // return
+      return
     }
 
     if (id) {
-      const isInsidePageComponent = isPageConsumer(options.component)
+      const isInsidePageComponent =
+        isPageConsumer(options?.component) || !!destProps.targetPage
       const node = findByViewTag(id) || getFirstByElementId(id)
 
       if (node) {
@@ -477,7 +503,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       } else {
         log.red(`Could not search for a DOM node with an identity of "${id}"`, {
-          action: action.snapshot?.(),
+          action: action?.snapshot?.(),
           node,
           id,
           destination,
@@ -513,7 +539,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
         window.location.href = urlToGoToInstead
       } else {
-        await app.navigate(ndomPage, destination)
         if (
           ndomPage.rootNode &&
           ndomPage.rootNode instanceof HTMLIFrameElement
@@ -522,17 +547,19 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             ndomPage.rootNode.contentDocument.body.textContent = ''
           }
         }
+
+        await app.navigate(ndomPage, destination)
       }
 
       if (!destination) {
         log.func('builtIn')
         log.red(
           'Tried to go to a page but could not find information on the whereabouts',
-          { action: action.snapshot?.(), ...options },
+          { action: action?.snapshot?.(), ...options },
         )
       }
     }
-  }
+  })
 
   const redraw: Store.BuiltInObject['fn'] = async function onRedraw(
     action,
@@ -572,7 +599,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
     try {
       if (!numComponents) {
-        log.red(`Could not find any components to redraw`, action.snapshot?.())
+        log.red(`Could not find any components to redraw`, action?.snapshot?.())
       } else {
         log.grey(`Redrawing ${numComponents} components`, components)
       }
@@ -709,8 +736,8 @@ export const extendedSdkBuiltIns = {
     try {
       if (action) {
         let msg = ''
-        if (action.accessToken) msg += 'Received access token '
-        if (action.roomId) msg += 'and room id'
+        if (action?.accessToken) msg += 'Received access token '
+        if (action?.roomId) msg += 'and room id'
         log.grey(msg, action)
       } else {
         log.red(
@@ -737,7 +764,7 @@ export const extendedSdkBuiltIns = {
         )
       } else {
         log.grey(`Connecting to room id: ${action?.roomId}`)
-        newRoom = (await this.meeting.join(action.accessToken)) as Room
+        newRoom = (await this.meeting.join(action?.accessToken)) as Room
         newRoom && log.green(`Connected to room: ${newRoom.name}`, newRoom)
       }
       if (newRoom) {

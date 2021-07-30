@@ -15,6 +15,7 @@ import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
+import actionFactory from './factories/actionFactory'
 import createActions from './handlers/actions'
 import createBuiltIns, { extendedSdkBuiltIns } from './handlers/builtIns'
 import createPlugins from './handlers/plugins'
@@ -27,6 +28,7 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createResources from './handlers/resources'
 import createTransactions from './handlers/transactions'
+import createMiddleware from './handlers/shared/middlewares'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
 import * as t from './app/types'
@@ -44,6 +46,7 @@ class App {
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
   #parser: Parser
+  actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NOODLDOM['page']
@@ -289,6 +292,7 @@ class App {
       const registers = createRegisters(this)
       const doms = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
+      const middlewares = createMiddleware(this)
       const resources = createResources(this)
       const transactions = createTransactions(this)
 
@@ -298,10 +302,12 @@ class App {
       this.ndom.use({ resource: resources })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
-      registers.forEach((keyVal) =>
-        (this.nui._experimental.register as any)(...keyVal),
-      )
+
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
+      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
+      u.entries(middlewares).forEach(([k, v]) =>
+        this.actionFactory.createMiddleware(k, v),
+      )
 
       this.meeting.onConnected = meetingfns.onConnected
       this.meeting.onAddRemoteParticipant = meetingfns.onAddRemoteParticipant
@@ -501,6 +507,8 @@ class App {
     refreshWidthAndHeight()
 
     viewport.onResize = async (args) => {
+      log.func('onResiz')
+      log.grey('Resizing')
       if (
         args.width !== args.previousWidth ||
         args.height !== args.previousHeight
@@ -515,6 +523,22 @@ class App {
         this.ndom.render(this.mainPage)
       }
     }
+
+    // document.addEventListener('gesturechange', (args) => {
+    //   if (
+    //     args.width !== args.previousWidth ||
+    //     args.height !== args.previousHeight
+    //   ) {
+    //     if (this.currentPage === 'VideoChat') return
+    //     this.aspectRatio = aspectRatio
+    //     refreshWidthAndHeight()
+    //     document.body.style.width = `${args.width}px`
+    //     document.body.style.height = `${args.height}px`
+    //     this.mainPage.rootNode.style.width = `${args.width}px`
+    //     this.mainPage.rootNode.style.height = `${args.height}px`
+    //     this.ndom.render(this.mainPage)
+    //   }
+    // })
   }
 
   observePages(page: NOODLDOMPage) {
