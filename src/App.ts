@@ -305,8 +305,8 @@ class App {
 
       doms.forEach((obj) => this.ndom.use({ resolver: obj }))
       registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
-      u.entries(middlewares).forEach(([k, v]) =>
-        this.actionFactory.createMiddleware(k, v),
+      u.entries(middlewares).forEach(([id, fn]) =>
+        this.actionFactory.createMiddleware(id, fn),
       )
 
       this.meeting.onConnected = meetingfns.onConnected
