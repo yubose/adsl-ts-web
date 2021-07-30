@@ -2,52 +2,68 @@ import * as u from '@jsmanifest/utils'
 import { isAction } from 'noodl-action-chain'
 import { createAction } from 'noodl-ui'
 import Logger from 'logsnap'
-
-const log = Logger.create('middlewares.ts')
+import App from '../../App'
+import { ActionHandlerArgs, MiddlewareFn } from '../../factories/actionFactory'
 
 /**
  * This file contains middleware functions wrapping functions from
  * src/actions.ts and src/builtIns.ts
  */
 
-import App from '../../App'
-import { ActionHandlerArgs, MiddlewareFn } from '../../factories/actionFactory'
-
 const registerMiddleware = function (app: App) {
+  const log = Logger.create('middlewares.ts')
   /**
    * Transforms abnormal args to the expected [action, options] structure
    * Useful to handle dynamically injected actions (goto strings for
    * destinations for ex)
    */
-  const handleInjections: MiddlewareFn = (args: ActionHandlerArgs) => {
-    if (u.isStr(args[0])) {
-      const prevArgs = [...args]
-      if (!prevArgs[1]) {
+  const handleInjections: MiddlewareFn = (
+    args: ActionHandlerArgs,
+  ): ActionHandlerArgs => {
+    if (u.isArr(args)) {
+      if (u.isStr(args[0])) {
+        const prevArgs = [...args]
+        if (!prevArgs[1]) {
+          args[1] = app.nui.getConsumerOptions({
+            page: app.mainPage.getNuiPage(),
+          })
+        }
+        // Dynamically injected goto action from lvl 2
+        args[0] = createAction({
+          action: { goto: args[0] },
+          trigger: 'onClick',
+        })
+        log.func('handleInjections')
+        log.green(
+          `A goto destination of "${prevArgs[0]}" was dynamically injected into an action chain`,
+          { prevArgs, newArgs: args },
+        )
+      } else if (!isAction(args[0])) {
+        const prevArgs = [...args]
+        // Dynamically injected plain objects as potential actions from lvl 2
+        args[0] = createAction({ action: args[0], trigger: 'onClick' })
+        log.func('handleInjections')
+        log.green(
+          `An action object was dynamically injected into an action chain`,
+          { prevArgs, newArgs: args },
+        )
+      } else if (u.isObj(args[0])) {
+        // Another possible object format for goto objects
+        if ('destination' in args[0]) {
+          args[0] = createAction({ action: { ...args[0], actionType: 'goto' } })
+        }
+      }
+
+      if (!args[1]) {
         args[1] = app.nui.getConsumerOptions({
           page: app.mainPage.getNuiPage(),
         })
       }
-      // Dynamically injected goto action from lvl 2
-      args[0] = createAction({ action: { goto: args[0] }, trigger: 'onClick' })
-      log.func('handleInjections')
-      log.green(
-        `A goto destination of "${prevArgs[0]}" was dynamically injected into an action chain`,
-        { prevArgs, newArgs: args },
-      )
-    } else if (!isAction(args[0])) {
-      const prevArgs = [...args]
-      // Dynamically injected plain objects as potential actions from lvl 2
-      args[0] = createAction({ action: args[0], trigger: 'onClick' })
-      log.func('handleInjections')
-      log.green(
-        `An action object was dynamically injected into an action chain`,
-        { prevArgs, newArgs: args },
-      )
-    }
 
-    if (u.isArr(args) && isAction(args[0])) {
-      args = [...args]
-      args[1] = { ...args[1], snapshot: args[0].snapshot() }
+      if (isAction(args[0])) {
+        args = [...args]
+        args[1] = { ...args[1], snapshot: args[0].snapshot() }
+      }
     }
 
     return args

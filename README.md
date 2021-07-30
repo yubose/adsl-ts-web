@@ -121,6 +121,7 @@ NUI.emit({
 - 1031
   - Does not require JWT
   - Generates JWT
+  -
   - Secured login
 - 1032
   - Auto secured login

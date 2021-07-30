@@ -1,4 +1,6 @@
 /**
+ * TODO - Move middlewares to noodl-ui
+ *
  * The actionFactory is in its experimental phase and is meant to wrap
  * actions in src/handlers/actions.ts (or src/handlers/builtIns.ts) to
  * provide more functionality in a more dynamic way to capture injected
@@ -40,6 +42,18 @@ export type StoreActionObject<
   T extends Exclude<NUIActionGroupedType, 'anonymous'> | 'builtIn' | 'emit',
 > = T extends 'builtIn' ? Store.BuiltInObject : Store.ActionObject<T>
 
+class Middleware {
+  #id = ''
+  #middleware: MiddlewareObject
+  #run: MiddlewareObject['fn']
+
+  constructor(middleware: MiddlewareObject) {
+    this.#id = middleware.id
+    this.#middleware = middleware
+    this.#run = middleware.fn
+  }
+}
+
 const actionFactory = function (app: App) {
   const middlewares = [] as MiddlewareObject[]
 
@@ -49,7 +63,8 @@ const actionFactory = function (app: App) {
    * @returns { Promise<any>[] }
    */
   async function runMiddleware(args: ActionHandlerArgs) {
-    return Promise.all(middlewares.map(async (mo) => mo.fn?.(args)))
+    await Promise.all(middlewares.map(async (mo) => mo.fn?.(args)))
+    return args
   }
 
   /**
@@ -58,10 +73,10 @@ const actionFactory = function (app: App) {
    * @param { string } id
    * @param { MiddlewareFn } fn
    */
-  function _createMiddleware(id: string, fn?: MiddlewareFn): void
-  function _createMiddleware(fn: MiddlewareFn): void
+  function _createMiddleware(id: string, fn?: MiddlewareFn): Middleware
+  function _createMiddleware(fn: MiddlewareFn): Middleware
   function _createMiddleware(id: string | MiddlewareFn, fn?: MiddlewareFn) {
-    middlewares.push({
+    return new Middleware({
       id: u.isStr(id) ? id : '',
       fn: u.isFnc(id) ? id : u.isFnc(fn) ? fn : null,
     })

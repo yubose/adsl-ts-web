@@ -1,3 +1,9 @@
+html {
+  -webkit-text-size-adjust: none;
+  -ms-touch-action: none;
+  touch-action: pan-y; /* Prevents user scaling*/
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -9,10 +15,10 @@ body {
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
-  touch-action: none;
-  -ms-touch-action: none;
   -moz-osx-font-smoothing: grayscale;
 }
+
+
 
 button {
   cursor: pointer;
