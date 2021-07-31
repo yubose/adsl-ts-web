@@ -294,7 +294,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     
                     defaultData.forEach((element) => {
                       let duration = element.etime-element.stime
-                      if(duration/60<=5){
+                      if(duration/60<=15){
                         // display min: 15min
                         element.etime = element.stime + 900
                       }
