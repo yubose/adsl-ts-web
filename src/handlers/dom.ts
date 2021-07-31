@@ -355,7 +355,6 @@ const createExtendedDOMResolvers = function (app: App) {
                       tippy(info.el, {
                         content:
                           '<div >\
-                                        <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:5px 0px">Appointment Information</div>\
                                         <div style="padding-top:2px">Patient Name ：' +info.event._def.extendedProps.patientName+'</div>\
                                         <div style="padding-top:2px">Appointment Type ：' +info.event._def.extendedProps.visitType+'</div>\
                                         <div style="padding-top:3px">Reason ：' +info.event._def.extendedProps.name +'</div>\
@@ -368,7 +367,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             'HH:mm:ss',
                           ) +
                           '</div>\
-                          <div>Length Of Appointment：' + info.event._def.extendedProps.timeLength +' minutes' + 
+                          <div>Duration：' + info.event._def.extendedProps.timeLength +' minutes' + 
                             
                           '</div>\
 　　　　　　        　</div>',
