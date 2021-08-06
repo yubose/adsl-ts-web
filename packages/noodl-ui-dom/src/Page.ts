@@ -43,6 +43,9 @@ class Page {
   constructor(nuiPage: NUIPage) {
     this.#nuiPage = nuiPage
     this.clearRootNode()
+    if (this.id === 'root' && !document.body.contains(this.rootNode)) {
+      document.body.appendChild(this.rootNode)
+    }
   }
 
   clearRootNode() {
@@ -58,9 +61,6 @@ class Page {
     this.rootNode.style.width = '100%'
     this.rootNode.style.height = '100%'
 
-    if (!document.body.contains(this.rootNode)) {
-      document.body.appendChild(this.rootNode)
-    }
     return this
   }
 

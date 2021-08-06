@@ -601,7 +601,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (!numComponents) {
         log.red(`Could not find any components to redraw`, action?.snapshot?.())
       } else {
-        log.grey(`Redrawing ${numComponents} components`, components)
+        log.grey(`Redrawing ${numComponents} components`, {
+          components,
+          nodes: components.map((c) => getFirstByElementId(c)),
+        })
       }
 
       let startCount = 0
@@ -609,17 +612,26 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       while (startCount < numComponents) {
         const _component = components[startCount]
         const _node = getFirstByElementId(_component)
-        const ctx = {} as any
-        if (isListConsumer(_component)) {
-          const dataObject = findListDataObject(_component)
-          dataObject && (ctx.dataObject = dataObject)
+
+        if (!_node) {
+          log.func('redraw')
+          log.red(
+            `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+            { component: _component, node: _node },
+          )
+        } else {
+          const ctx = {} as any
+          if (isListConsumer(_component)) {
+            const dataObject = findListDataObject(_component)
+            dataObject && (ctx.dataObject = dataObject)
+          }
+          const ndomPage = pickNDOMPageFromOptions(options)
+          const redrawed = app.ndom.redraw(_node, _component, ndomPage, {
+            context: ctx,
+          })
+          app.cache.component.add(redrawed[1], ndomPage.getNuiPage()) &&
+            startCount++
         }
-        const ndomPage = pickNDOMPageFromOptions(options)
-        const redrawed = app.ndom.redraw(_node, _component, ndomPage, {
-          context: ctx,
-        })
-        app.cache.component.add(redrawed[1], ndomPage.getNuiPage()) &&
-          startCount++
       }
     } catch (error) {
       console.error(error)

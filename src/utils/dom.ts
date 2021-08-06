@@ -49,8 +49,11 @@ export function getVcodeElem(dataKey = 'formData.code') {
   return u.array(asHtmlElement(findByDataKey(dataKey)))[0] as HTMLInputElement
 }
 
-export const hide = makeElemFn((node) => (node.style.visibility = 'hidden'))
+export const hide = makeElemFn(
+  (node) => node?.style && (node.style.visibility = 'hidden'),
+)
 export const show = makeElemFn((node) => {
+  if (!node?.style) return
   node.style.visibility !== 'visible' && (node.style.visibility = 'visible')
   node.style.display === 'none' && (node.style.display = 'block')
 })

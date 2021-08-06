@@ -14,7 +14,6 @@ import {
 import NDOM from '../noodl-ui-dom'
 import { PageObject, ViewComponentObject } from 'noodl-types'
 import { findByClassName, findByElementId } from '../utils'
-import { classes } from '../constants'
 
 describe(ncom.coolGold('components'), () => {
   describe(ncom.italic(`Page`), () => {
@@ -90,7 +89,7 @@ describe(ncom.coolGold('components'), () => {
       }).render()
     }
 
-    it(`should become an iframe`, async () => {
+    it.only(`should become an iframe`, async () => {
       const view = await render()
       expect(findByElementId(view.child())).to.be.instanceOf(HTMLIFrameElement)
     })

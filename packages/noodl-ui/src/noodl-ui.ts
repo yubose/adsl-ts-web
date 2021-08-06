@@ -358,10 +358,10 @@ const NUI = (function _NUI() {
 
       if (u.isStr(key)) {
         if (Identify.reference(key)) {
-          _path = Identify.reference.format(key)
-          if (Identify.reference.isLocal(key)) {
+          _path = Identify.reference.trim(key)
+          if (Identify.reference.local(key)) {
             return get(pageObject || o.getRoot()?.[pageName], _path)
-          } else if (Identify.reference.isRoot(key)) {
+          } else if (Identify.reference.root(key)) {
             return get(o.getRoot(), _path)
           }
         }
