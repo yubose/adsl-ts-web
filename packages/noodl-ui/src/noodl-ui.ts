@@ -354,14 +354,15 @@ const NUI = (function _NUI() {
       } = {},
     ) {
       let _path = key
-      const pageName = priorityPage?.page || page?.page || ''
+      const pageName =
+        priorityPage?.page || page?.page || ''
 
-      if (u.isStr(key)) {
-        if (Identify.reference(key)) {
-          _path = Identify.reference.trim(key)
-          if (Identify.reference.local(key)) {
+      if (u.isStr(_path)) {
+        if (Identify.reference(_path)) {
+          _path = Identify.reference.trim(_path)
+          if (Identify.localKey(_path)) {
             return get(pageObject || o.getRoot()?.[pageName], _path)
-          } else if (Identify.reference.root(key)) {
+          } else if (Identify.rootKey(_path)) {
             return get(o.getRoot(), _path)
           }
         }

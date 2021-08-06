@@ -191,7 +191,7 @@ componentResolver.setResolver((component, options, next) => {
     let nuiPage = cache.page.get(component.id)?.page
     let pageName = ''
 
-    if (!nuiPage) {
+    if (!nuiPage || !nuiPage?.page) {
       if (Identify.if(path)) {
         pageName = evalIf(path)
         if (u.isStr(pageName)) {

@@ -5,39 +5,14 @@ import get from 'lodash/get'
 import isComponent from './isComponent'
 import { NUIComponent } from '../types'
 
-export function evalIf<O extends IfObject>(
-  val: O,
-  // opts?: {
-  //   root?: Record<string, any>
-  //   pageObject?: PageObject
-  //   dataObject?: Record<string, any>
-  //   iteratorVar?: string
-  // },
-) {
-  return _evalIf((value) => {
-    if (Identify.isBoolean(value)) return Identify.isBooleanTrue(value)
-    if (u.isFnc(value)) return value()
-    if (value) return true
-    return false
-    // if (u.isStr(value)) {
-    //   if (Identify.reference(value)) {
-    //     const dataKey = Identify.reference.trim(value)
-    //     if (Identify.reference.local(value)) {
-    //       if (opts?.pageObject) return get(opts.pageObject, dataKey)
-    //     }
-    //     if (Identify.reference.root(value)) {
-    //       if (opts?.root) return get(opts.root, dataKey)
-    //     }
-    //   } else if (opts?.iteratorVar && value.startsWith(opts.iteratorVar)) {
-    //     if (opts?.dataObject) {
-    //       return get(
-    //         opts?.dataObject,
-    //         excludeIteratorVar(value, opts.iteratorVar) || '',
-    //       )
-    //     }
-    //   }
-    // }
-  }, val)
+export function evalIf<O extends IfObject>(val: O) {
+  const [value, valOnTrue, valOnFalse] = val?.if || []
+  if (Identify.isBoolean(value)) {
+    return Identify.isBooleanTrue(value) ? valOnTrue : valOnFalse
+  }
+  if (u.isFnc(value)) return value() ? valOnTrue : valOnFalse
+  if (value) return valOnTrue
+  return valOnFalse
 }
 
 /**
