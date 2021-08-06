@@ -57,7 +57,6 @@ export const trackSdk = function trackSdk(app: App) {
     'handleEvalObject',
     'handleEvalString',
     'newDispatch',
-    'processPopulate',
     'setFromLocalStorage',
     'updateObject',
     'set-api-buffer',

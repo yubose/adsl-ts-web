@@ -6,6 +6,7 @@ import pick from 'lodash/pick'
 import * as lib from 'noodl-ui'
 import {
   asHtmlElement,
+  eventId as ndomEventId,
   findByDataAttrib,
   findByDataKey,
   findByElementId,
@@ -205,6 +206,62 @@ window.addEventListener('load', async (e) => {
     // log.func('gesturechange')
     // log.orange(`fired`, e)
   })
+
+  app.ndom.on(
+    ndomEventId.ON_REDRAW_START,
+    function onRedrawStart({ context, component, node, page, parent }) {
+      // log.func('onRedrawStart')
+      // log.hotpink(
+      //   `component: ${component?.type} (parent: ${
+      //     parent?.type || '<No parent component>'
+      //   }), \nDOM node: ${node?.tagName} (parent: ${
+      //     node?.parentElement?.tagName || '<No parent node>'
+      //   })`,
+      //   arguments[0],
+      // )
+      console.table({
+        page: page?.page || '',
+        [`component [redrawing]`]: component?.type
+          ? `[${component.type}] ${component.id}`
+          : '<No component>',
+        parentComponent: parent?.type
+          ? `[${parent.type}] ${parent.id}`
+          : '<No parent>',
+        [`node [redrawing]`]: node?.tagName
+          ? `[${node.tagName?.toLowerCase?.()}] ${node.id}`
+          : '<No node>',
+        parentNode: node?.parentElement
+          ? `[${node.parentElement.tagName.toLowerCase?.()}] ${
+              node.parentElement.id
+            }`
+          : '<No parent node>',
+      })
+
+      const activePages = [] as string[]
+
+      for (const obj of app.cache.component) {
+        if (obj) {
+          if (obj.page && !activePages.includes(obj.page)) {
+            activePages.push(obj.page)
+          }
+        }
+      }
+
+      for (const obj of app.cache.page) {
+        if (obj) {
+          const [id, { page }] = obj
+          if (!page.page || !activePages.includes(page.page)) {
+            console.log(
+              `%cRemoving ${!page.page ? 'empty' : 'inactive'} page from NUI`,
+              `color:#00b406;`,
+              page.toJSON(),
+            )
+            app.cache.page.remove(page)
+          }
+        }
+      }
+    },
+  )
 })
 
 if (module.hot) {

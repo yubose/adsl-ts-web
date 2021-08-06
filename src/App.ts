@@ -381,7 +381,7 @@ class App {
     }
   }
 
-  async getPageObject(page: NOODLDOMPage) {
+  async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
     try {
       const pageRequesting = page.requesting
       const currentPage = page.page
@@ -392,35 +392,39 @@ class App {
       )
 
       let self = this
-      await this.noodl?.initPage(pageRequesting, [], {
-        ...(page.modifiers[pageRequesting] as any),
-        builtIn: {
-          EcosObj: {
-            download: extendedSdkBuiltIns.download.bind(this),
+
+      const isAborted = (
+        await this.noodl?.initPage(pageRequesting, [], {
+          ...(page.modifiers[pageRequesting] as any),
+          builtIn: {
+            EcosObj: {
+              download: extendedSdkBuiltIns.download.bind(this),
+            },
+            FCMOnTokenReceive: async (options?: any) => {
+              const token = await this.nui.emit({
+                type: 'register',
+                event: 'FCMOnTokenReceive',
+                params: options,
+              })
+              log.func('FCMOnTokenReceive')
+              log.grey(token)
+              return token
+            },
+            FCMOnTokenRefresh: this.notification?.supported
+              ? this.notification.messaging?.onTokenRefresh.bind(
+                  this.notification.messaging,
+                )
+              : undefined,
+            checkField: self.builtIns.get('checkField')?.find(Boolean)?.fn,
+            goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
+            hide: self.builtIns.get('hide')?.find(Boolean)?.fn,
+            show: self.builtIns.get('show')?.find(Boolean)?.fn,
+            redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
+            videoChat: extendedSdkBuiltIns.videoChat.bind(this),
           },
-          FCMOnTokenReceive: async (options?: any) => {
-            const token = await this.nui.emit({
-              type: 'register',
-              event: 'FCMOnTokenReceive',
-              params: options,
-            })
-            log.func('FCMOnTokenReceive')
-            log.grey(token)
-            return token
-          },
-          FCMOnTokenRefresh: this.notification?.supported
-            ? this.notification.messaging?.onTokenRefresh.bind(
-                this.notification.messaging,
-              )
-            : undefined,
-          checkField: self.builtIns.get('checkField')?.find(Boolean)?.fn,
-          goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
-          hide: self.builtIns.get('hide')?.find(Boolean)?.fn,
-          show: self.builtIns.get('show')?.find(Boolean)?.fn,
-          redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
-          videoChat: extendedSdkBuiltIns.videoChat.bind(this),
-        },
-      })
+        })
+      )?.aborted
+
       log.func('createPreparePage')
       log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
         pageRequesting,
@@ -428,6 +432,14 @@ class App {
         pageObject: this?.root[pageRequesting],
         snapshot: page.snapshot(),
       })
+
+      if (isAborted) {
+        log.grey(
+          `Aborting from ${pageRequesting} due to abort request from lvl3`,
+        )
+        return { aborted: true }
+      }
+
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
       return this.root[pageRequesting]
     } catch (error) {
