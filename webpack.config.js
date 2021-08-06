@@ -183,7 +183,8 @@ module.exports = {
       cache: false,
       scriptLoading: 'defer',
       minify: false,
-      ...(ecosEnv !== 'test' ? { template: 'public/index.html' } : undefined),
+      //Austin Yu 8/5/2021 disable for stable build to use webpack generate index.html
+      // ...(ecosEnv !== 'test' ? { template: 'public/index.html' } : undefined),
       meta: {
         keywords: 'aitmed, telemedicine, blockchain, noodl',
         viewport:
