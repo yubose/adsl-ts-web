@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import App from '../App'
 
 const trackProperty = function trackProperty({
@@ -11,15 +12,33 @@ const trackProperty = function trackProperty({
   const label = `[${keyProp}]`
   function value(...args: any[]) {
     const type = (args as any).type || args?.[0]?.type || ''
-    // This is spamming the console
-    if (type !== 'EDIT_DRAFT') {
+    const payload = (args as any).payload || args?.[0]?.payload || ''
+    if (
+      // These are unnecessarily spamming the console
+      ![
+        'ADD_BUILTIN_FNS',
+        'EDIT_DRAFT',
+        'SET_ROOT_PROPERTIES',
+        'SET_LOCAL_PROPERTIES',
+        'add-fn',
+        'populate',
+        'set-api-buffer',
+        'update-localStorage',
+        'update-map',
+      ].includes(type)
+    ) {
+      if (type === 'SET_VALUE') {
+        if (
+          [payload?.value, payload?.fn, payload?.update].some((o) => u.isFnc(o))
+        ) {
+          return ref(...args)
+        }
+      }
       console.log(
         `%c${category ? `[${category}]` : ''}${label}`,
         `color:${colorProp};`,
         getArgs(args),
       )
-      if (type === 'SET_ROOT_PROPERTIES') {
-      }
     }
     return ref(...args)
   }
@@ -32,29 +51,16 @@ const trackProperty = function trackProperty({
 
 export const trackSdk = function trackSdk(app: App) {
   const keysToTrack = [
-    'addValue',
     'dispatch',
-    'defaultObject',
-    'editListDraft',
     'emitCall',
-    'getApiCache',
-    'getData',
-    'getPage',
-    'handleEvalArray',
-    'handleEvalAssignmentExpressions',
-    'handleEvalCommands',
     'handleEvalFunction',
     'handleEvalObject',
     'handleEvalString',
-    'handleIfCommand',
-    'initCallQueue',
     'newDispatch',
     'processPopulate',
-    'removeValue',
-    'replaceValue',
     'setFromLocalStorage',
-    'setValue',
     'updateObject',
+    'set-api-buffer',
   ] as const
 
   for (const key of keysToTrack) {
@@ -72,12 +78,12 @@ export const trackSdk = function trackSdk(app: App) {
 
 export const trackWebApp = function trackWebApp(app: App) {
   const keysToTrack = [
-    'aspectRatio',
-    'authStatus',
-    'currentPage',
-    'previousPage',
-    'startPage',
-    'viewport',
+    // 'aspectRatio',
+    // 'authStatus',
+    // 'currentPage',
+    // 'previousPage',
+    // 'startPage',
+    // 'viewport',
     'navigate',
     'initialize',
     'getRoomParticipants',

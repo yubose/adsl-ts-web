@@ -1,5 +1,6 @@
 import invariant from 'invariant'
 import { Identify, PageObject } from 'noodl-types'
+import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
 import {
   Component,
@@ -13,6 +14,7 @@ import {
   publish,
   Store,
   nuiEmitTransaction,
+  isComponent,
 } from 'noodl-ui'
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
 import {
@@ -239,8 +241,58 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
    * @param NUIPage nuiPage
    * @returns NDOMPage | null
    */
-  findPage(nuiPage: NUIPage | NDOMPage | string) {
-    if (isNUIPage(nuiPage)) {
+  findPage(nuiPage: NUIPage | NDOMPage | string): NUIPage
+  findPage(pageComponent: NUIComponent.Instance, currentPage: string): NUIPage
+  findPage(
+    nuiPage: NUIComponent.Instance | NUIPage | NDOMPage | string,
+    currentPage?: string,
+  ) {
+    // TODO - Finish this isComponent block
+    if (isComponent(nuiPage)) {
+      const page = nuiPage.get('page') as NUIPage
+      if (!page) {
+        if (Identify.if(nuiPage.props.path)) {
+          const [val, valOnTrue, valOnFalse] = nuiPage.props.path.if
+          if (Identify.isBoolean(val)) {
+            const value = Identify.isBooleanTrue(val) ? valOnTrue : valOnFalse
+            if (u.isStr(value)) {
+              if (Identify.reference(value)) {
+                const datapath = Identify.reference.trim(value)
+                if (!currentPage) {
+                  console.log(
+                    `%cA page component was passed to NDOM#findPage but the required "currentPage" argument is empty`,
+                    `color:#ec0000;`,
+                    arguments,
+                  )
+                }
+                let pageValue = ''
+                // ex: formData.pageName
+                if (Identify.localKey(datapath)) {
+                  pageValue =
+                    get(NDOM._nui.getRoot()[currentPage || ''], datapath) || ''
+                } else if (Identify.rootKey(datapath)) {
+                  // ex: FormData.pageName
+                  pageValue = get(NDOM._nui.getRoot(), datapath) || ''
+                }
+                if (pageValue && u.isStr(pageValue)) {
+                  return this.findPage(pageValue)
+                } else {
+                  console.log(
+                    `%cRetrieved a value by data path "${datapath}" but received ${typeof pageValue}`,
+                    `color:#ec0000;`,
+                    pageValue,
+                  )
+                  return null
+                }
+              }
+
+              return this.findPage(value)
+            }
+          }
+        }
+      }
+      return this.findPage(page)
+    } else if (isNUIPage(nuiPage)) {
       for (const page of u.values(this.global.pages)) {
         if (page.getNuiPage() === nuiPage || page.page === nuiPage.page)
           return page
@@ -350,6 +402,24 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       // This is needed for the consumer to run any operations prior to working
       // with the components (ex: processing the "init" in page objects)
       await this.transact(nuiEmitTransaction.REQUEST_PAGE_OBJECT, page)
+      console.log(`Request transact`, page)
+      /**
+       * Clean up inactive / aborted pages that remain in the memory
+       */
+
+      const ndomPageIds = u.keys(this.global.pages)
+
+      if (ndomPageIds.length !== this.cache.page.length) {
+        // debugger
+        console.log(
+          `%cThe number of NDOM pages is ${ndomPageIds.length} and NUI pages is ${this.cache.page.length}. They should be in sync`,
+          `color:#ec0000;`,
+          {
+            ndomPages: u.entries(this.global.pages),
+            nuiPages: Array.from(this.cache.page.get()),
+          },
+        )
+      }
 
       /**
        * TODO - Move this to an official location when we have time
@@ -638,14 +708,25 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
           ? document.body
           : container || document.body
 
+        if (node.tagName === 'IFRAME') {
+          node.onload = (evt) => {
+            this.#R.run(node, component)
+            component.children?.forEach?.((child: Component) => {
+              node?.appendChild(
+                this.draw(child, node, page, options) as HTMLElement,
+              )
+            })
+          }
+        } else {
+          this.#R.run(node, component)
+          component.children?.forEach?.((child: Component) => {
+            node?.appendChild(
+              this.draw(child, node, page, options) as HTMLElement,
+            )
+          })
+        }
+
         parent.appendChild(node)
-
-        this.#R.run(node, component)
-
-        component.children?.forEach?.((child: Component) => {
-          const childNode = this.draw(child, node, page, options) as HTMLElement
-          node?.appendChild(childNode)
-        })
       }
     }
     return node || null
@@ -653,7 +734,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
 
   redraw(
     node: t.NOODLDOMElement | null, // ex: li (dom node)
-    component: Component, // ex: listItem (component instance)
+    component: NUIComponent.Instance, // ex: listItem (component instance)
     pageProp?: NDOMPage,
     options?: Parameters<NDOM['draw']>[3],
   ) {
@@ -689,7 +770,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
         if (c) {
           if (Identify.component.page(c)) {
             const nuiPage = c.get('page')
-            const ndomPage = this.findPage(nuiPage)
+            const ndomPage = this.findPage(nuiPage || c, page?.page)
             if (ndomPage) {
               console.log(`%cRedrawing a page component`, `color:#00b406;`, {
                 nuiPage,
@@ -728,6 +809,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
 
     if (node) {
       const parentNode = node.parentNode
+
       if (newComponent) {
         newNode = this.draw(
           newComponent,
@@ -735,7 +817,18 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
           page,
           { ...options, context },
         )
+
+        if (newNode) {
+          newNode.onload = (evt) => {
+            console.log(
+              `%cA ${newComponent?.type} component loaded its html element to the DOM`,
+              `color:#00b406;`,
+              { evt, newNode, newComponent },
+            )
+          }
+        }
       }
+
       if (parentNode) {
         if (parentNode.contains(node) && newNode) {
           parentNode.replaceChild(newNode, node)

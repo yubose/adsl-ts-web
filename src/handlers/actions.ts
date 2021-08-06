@@ -30,7 +30,11 @@ import {
   Store,
   triggers,
 } from 'noodl-ui'
-import { evalIf, isRootDataKey } from 'noodl-utils'
+import {
+  evalIf,
+  isRootDataKey,
+  ParsedPageComponentUrlObject,
+} from 'noodl-utils'
 import { IfObject, Identify } from 'noodl-types'
 import {
   getBlobFromCanvas,
@@ -267,20 +271,21 @@ const createActions = function createActions(app: App) {
     }
 
     if ('targetPage' in destProps) {
-      destination = destProps.targetPart || ''
-      id = destProps.viewTag || ''
+      // @ts-expect-error
+      const destObj = destProps as ParsedPageComponentUrlObject
+      destination = destObj.targetPage || ''
+      id = destObj.viewTag || ''
       if (id) {
-        const pageNode = findByViewTag(id)
-        const pageComponent = Array.from(app.cache.component || [])?.find(
-          (obj) => obj?.component?.blueprint?.viewTag === id,
-        )?.component
-        if (pageNode) {
-          if (pageNode instanceof HTMLIFrameElement) {
-            //
+        for (const obj of app.cache.component) {
+          if (obj) {
+            if (obj?.component?.blueprint?.id === id) {
+              const pageComponent = obj.component
+              const currentPageName = pageComponent?.get?.('path') 
+              ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+              break
+            }
           }
         }
-        const currentPageName = pageComponent?.get?.('path')
-        ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
       }
     }
 

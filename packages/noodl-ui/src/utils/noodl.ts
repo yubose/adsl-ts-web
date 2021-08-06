@@ -21,11 +21,11 @@ export function evalIf<O extends IfObject>(
     return false
     // if (u.isStr(value)) {
     //   if (Identify.reference(value)) {
-    //     const dataKey = Identify.reference.format(value)
-    //     if (Identify.reference.isLocal(value)) {
+    //     const dataKey = Identify.reference.trim(value)
+    //     if (Identify.reference.local(value)) {
     //       if (opts?.pageObject) return get(opts.pageObject, dataKey)
     //     }
-    //     if (Identify.reference.isRoot(value)) {
+    //     if (Identify.reference.root(value)) {
     //       if (opts?.root) return get(opts.root, dataKey)
     //     }
     //   } else if (opts?.iteratorVar && value.startsWith(opts.iteratorVar)) {

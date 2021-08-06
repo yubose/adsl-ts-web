@@ -140,3 +140,19 @@ NUI.emit({
 
 - Some apis like signing on does not provide a new jwt, but most do
 - If an error occurred with jwt, attempt to relogin with an existing token
+
+## Transactions
+
+### Navigate
+
+- App#navigate
+  - ndom#request
+    - Wrapped ndom func
+      - `onRequestPageObject` (transactions.ts)
+      - `getPageObject` (App.ts)
+
+### `REQUEST_PAGE_OBJECT`
+
+- Wrapped ndom func
+  - `onRequestPageObject` (transactions.ts)
+    - `getPageObject` (App.ts)
