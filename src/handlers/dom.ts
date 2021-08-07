@@ -703,8 +703,8 @@ const createExtendedDOMResolvers = function (app: App) {
           // script.appendChild(document.createTextNode("https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.js"))
           // document.head.appendChild(script)
           let link = document.createElement('link')
-          link.href =
-            'https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
+          link.href = 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.4.0/dist/mapbox-gl.min.css'
+          // not accessible from outside China 8/6/2021 link.href = 'https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
           link.rel = 'stylesheet'
           document.head.appendChild(link)
           if (dataValue.mapType == 1) {
