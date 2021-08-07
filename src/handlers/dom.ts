@@ -291,11 +291,19 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                   let defaultData = dataValue.chartData
                   if (u.isArr(defaultData)) {
+                    
                     defaultData.forEach((element) => {
+                      let duration = element.etime-element.stime
+                      if(duration/60<=15){
+                        // display min: 15min
+                        element.etime = element.stime + 900
+                      }
                       element.start = new Date(element.stime * 1000)
                       element.end = new Date(element.etime * 1000)
+                      element.timeLength = duration/60
                       element.title = element.patientName
                       element.name = element.visitReason
+
                       // element.name = element.patientName
                       delete element.stime
                       delete element.etime
@@ -306,7 +314,6 @@ const createExtendedDOMResolvers = function (app: App) {
                   } else {
                     defaultData = {}
                   }
-
                   let calendar = new FullCalendar.Calendar(node, {
                     headerToolbar: headerBar,
                     height: 'auto',
@@ -327,7 +334,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     },
 
                     slotDuration: '00:15:00',
-                    // slotLabelInterval : "00:05:00",
+                    // slotLabelInterval : "00:10:00",
                     displayEventTime: false,
                     views: {
                       timeGridFourDay: {
@@ -345,31 +352,25 @@ const createExtendedDOMResolvers = function (app: App) {
                         _instance: { range: { start: any; end: any } }
                       }
                     }) => {
-                      // console.log(info);
                       tippy(info.el, {
                         content:
                           '<div >\
-                                             <div style="border-bottom: 1px solid #CCCCCC;font:18px bold;padding:2px 0">Appointment Information</div>\
-                                             <div style="padding-top:2px">Patient Name ：' +info.event._def.extendedProps.patientName+'</div>\
-                                             <div style="padding-top:2px">Appointment Type ：' +info.event._def.extendedProps.visitType+'</div>\
-                                             <div style="padding-top:3px">Reason ：' +info.event._def.extendedProps.name +'</div>\
-                                             <div style="padding:4px 0">startTime：' +
+                                        <div style="padding-top:2px">Patient Name ：' +info.event._def.extendedProps.patientName+'</div>\
+                                        <div style="padding-top:2px">Appointment Type ：' +info.event._def.extendedProps.visitType+'</div>\
+                                        <div style="padding-top:3px">Reason ：' +info.event._def.extendedProps.name +'</div>\
+                                        <div style="padding:4px 0">StartTime：' +
                           formatDate(
                             new Date(
                               info.event._instance.range.start,
                             ).getTime() +
                               new Date().getTimezoneOffset() * 60 * 1000,
-                            'yyyy-MM-dd HH:mm:ss',
+                            'HH:mm:ss',
                           ) +
                           '</div>\
-                                             <div>endTime： ' +
-                          formatDate(
-                            new Date(info.event._instance.range.end).getTime() +
-                              new Date().getTimezoneOffset() * 60 * 1000,
-                            'yyyy-MM-dd HH:mm:ss',
-                          ) +
+                          <div>Duration：' + info.event._def.extendedProps.timeLength +' minutes' + 
+                            
                           '</div>\
-                       　　　　　　　        　</div>',
+　　　　　　        　</div>',
                         allowHTML: true,
                         //theme: 'translucent',
                         //interactive: true,

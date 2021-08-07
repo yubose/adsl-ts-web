@@ -1,7 +1,7 @@
 html {
   -webkit-text-size-adjust: none !important;
-  -ms-touch-action: none !important;
-  touch-action: none !important; /* Prevents user scaling*/
+  /* -ms-touch-action: none !important; */
+  /* touch-action: none !important; Prevents user scaling */
 }
 
 body {
@@ -16,8 +16,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -ms-touch-action: none !important;
-  touch-action: none !important;
+  /* -ms-touch-action: none !important; */
+  /* touch-action: none !important; */
   -webkit-text-size-adjust: none !important;
 }
 

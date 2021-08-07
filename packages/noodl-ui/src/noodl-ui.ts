@@ -980,7 +980,7 @@ const NUI = (function _NUI() {
                 ? o.cache.actions.builtIn.get(obj.funcName as string)
                 : Identify.goto(obj)
                 ? o.cache.actions.goto
-                : Identify.toast(obj)
+                : Identify.toast?.(obj)
                 ? o.cache.actions.toast
                 : o.cache.actions[obj.actionType] || [],
               o.getConsumerOptions({

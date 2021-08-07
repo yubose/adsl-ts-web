@@ -178,17 +178,17 @@ window.addEventListener('load', async (e) => {
    * Disable user gesture / pinch zoom events for iOS devices (mainly safari)
    * since they break the layout
    */
-  if (isIOS()) {
-    document.addEventListener(
-      'touchmove',
-      (evt) => {
-        // @ts-expect-error
-        if (Number(evt?.scale) != 1) evt.preventDefault()
-        // console.log(`[touchmove] default prevented`, e)
-      },
-      { passive: false },
-    )
-  }
+  // if (isIOS()) {
+  //   document.addEventListener(
+  //     'touchmove',
+  //     (evt) => {
+  //       // @ts-expect-error
+  //       if (Number(evt?.scale) != 1) evt.preventDefault()
+  //       // console.log(`[touchmove] default prevented`, e)
+  //     },
+  //     { passive: false },
+  //   )
+  // }
   document.addEventListener('gesturestart', (e) => {
     e.preventDefault()
     // log.func('gesturestart')
