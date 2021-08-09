@@ -59,6 +59,14 @@ iframe.ecosdoc-text-title {
 iframe.ecosdoc-text-body {
 }
 
+.fc-col-header,
+.fc-timegrid-body,
+.fc-timegrid-body table,
+.fc-timegrid-body colgroup,
+.fc-timegrid-body .fc-timegrid-slot {
+  width: 100% !important;
+}
+
 video::-webkit-media-controls-fullscreen-button {
   display: none;
 }

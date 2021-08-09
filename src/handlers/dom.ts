@@ -28,6 +28,7 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
+import { ToolbarInput } from '@fullcalendar/core'
 // import { isArray } from 'lodash'
 
 const log = Logger.create('dom.ts')
@@ -284,10 +285,11 @@ const createExtendedDOMResolvers = function (app: App) {
                   // script.onload = () => {
                   //   console.log('APPENDED js to body')
 
-                  let headerBar = {
+                  let headerBar: ToolbarInput = {
                     left: 'prev next',
                     center: 'title',
                     right: 'timeGridDay,timeGridWeek',
+
                   }
                   let defaultData = dataValue.chartData
                   if (u.isArr(defaultData)) {
@@ -315,6 +317,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     defaultData = {}
                   }
                   let calendar = new FullCalendar.Calendar(node, {
+                    dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
                     height: 'auto',
                     allDaySlot: false, // 是否显示表头的全天事件栏
@@ -331,6 +334,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     buttonText: {
                       week: 'Weeks',
                       day: 'Day',
+
                     },
 
                     slotDuration: '00:15:00',
