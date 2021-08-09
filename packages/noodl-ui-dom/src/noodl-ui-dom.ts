@@ -16,6 +16,7 @@ import {
   nuiEmitTransaction,
   isComponent,
 } from 'noodl-ui'
+import { trimReference } from 'noodl-utils'
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
 import {
   GlobalComponentRecord,
@@ -36,6 +37,7 @@ import Timers from './global/Timers'
 import * as defaultResolvers from './resolvers'
 import * as c from './constants'
 import * as t from './types'
+
 
 const pageEvt = c.eventId.page
 
@@ -257,7 +259,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
             const value = Identify.isBooleanTrue(val) ? valOnTrue : valOnFalse
             if (u.isStr(value)) {
               if (Identify.reference(value)) {
-                const datapath = Identify.reference.trim(value)
+                const datapath = trimReference(value)
                 if (!currentPage) {
                   console.log(
                     `%cA page component was passed to NDOM#findPage but the required "currentPage" argument is empty`,

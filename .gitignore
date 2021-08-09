@@ -6,4 +6,3 @@ server
 noodl.yml
 .env
 public
-package-lock.json

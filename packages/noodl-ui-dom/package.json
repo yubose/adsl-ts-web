@@ -1,8 +1,8 @@
 {
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "dependencies": {
-    "noodl-types": "^1.0.103",
-    "noodl-utils": "^0.0.54"
+    "noodl-types": "^1.0.139",
+    "noodl-utils": "^0.0.65"
   },
   "description": "",
   "devDependencies": {

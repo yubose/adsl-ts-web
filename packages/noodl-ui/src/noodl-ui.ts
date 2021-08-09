@@ -12,7 +12,12 @@ import {
   PageObject,
   RegisterComponentObject,
 } from 'noodl-types'
-import { createEmitDataKey, evalIf, excludeIteratorVar } from 'noodl-utils'
+import {
+  createEmitDataKey,
+  evalIf,
+  excludeIteratorVar,
+  trimReference,
+} from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
 import ComponentCache from './cache/ComponentCache'
 import createAction from './utils/createAction'
@@ -354,12 +359,11 @@ const NUI = (function _NUI() {
       } = {},
     ) {
       let _path = key
-      const pageName =
-        priorityPage?.page || page?.page || ''
+      const pageName = priorityPage?.page || page?.page || ''
 
       if (u.isStr(_path)) {
         if (Identify.reference(_path)) {
-          _path = Identify.reference.trim(_path)
+          _path = trimReference(_path)
           if (Identify.localKey(_path)) {
             return get(pageObject || o.getRoot()?.[pageName], _path)
           } else if (Identify.rootKey(_path)) {
