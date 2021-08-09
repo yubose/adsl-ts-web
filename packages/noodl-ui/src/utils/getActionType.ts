@@ -6,7 +6,6 @@ function getActionType(obj: NUIActionObjectInput): NUIActionType {
     if ('actionType' in obj) return obj.actionType
     if (Identify.folds.emit(obj)) return 'emit'
     if (Identify.goto(obj) || Identify.folds.goto(obj)) return 'goto'
-    if (Identify.toast?.(obj)) return 'toast'
   }
   console.log(
     `%cUnknown actionType "${obj['actionType']}". It will be set to "anonymous"`,

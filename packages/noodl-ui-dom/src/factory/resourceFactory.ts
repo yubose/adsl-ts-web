@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import { GlobalResourceRecord } from '../global'
+import { GlobalCssResourceRecord, GlobalJsResourceRecord } from '../global'
 import * as t from '../types'
 
 const resourceFactory = function () {
@@ -54,9 +54,9 @@ const resourceFactory = function () {
 
   function _createRecord<T extends t.GlobalResourceType>(
     obj: t.GetGlobalResourceObjectAlias<T>,
-  ): GlobalResourceRecord<T> {
-    if ('href' in obj) return new GlobalResourceRecord('css', obj.href)
-    if ('src' in obj) return new GlobalResourceRecord('js', obj.src)
+  ): GlobalCssResourceRecord | GlobalJsResourceRecord | null {
+    if ('href' in obj) return new GlobalCssResourceRecord(obj)
+    if ('src' in obj) return new GlobalJsResourceRecord(obj)
     return null
   }
 

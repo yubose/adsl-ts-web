@@ -1,11 +1,12 @@
 import NUI from '../noodl-ui'
 import NUIPage from '../Page'
 import Viewport from '../Viewport'
-import { isNil } from '../utils/internal'
 
 export const assetsUrl = 'https://something.com/assets/'
 export const nui = NUI
 export const viewport = new Viewport()
+
+const isNil = (v: any) => v === null || v === undefined || v === ''
 
 export function createDataKeyReference({
   page = NUI.getRootPage(),

@@ -28,7 +28,7 @@
     "strictNullChecks": true,
     "target": "es2017"
   },
-  "include": ["src/**/*", "packages/**/*/src/**/*"],
+  "include": ["src/**/*", "packages/**/*"],
   "exclude": [
     "_data",
     "node_modules",

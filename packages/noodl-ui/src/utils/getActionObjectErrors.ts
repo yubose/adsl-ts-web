@@ -8,8 +8,6 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
     //
   } else if (Identify.goto(obj)) {
     //
-  } else if (Identify.toast?.(obj)) {
-    //
   } else if (Identify.action.any(obj)) {
     if (obj.actionType === 'anonymous') {
       //
