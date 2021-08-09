@@ -629,9 +629,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           const redrawed = app.ndom.redraw(_node, _component, ndomPage, {
             context: ctx,
           })
-          app.cache.component.add(redrawed[1], ndomPage.getNuiPage()) &&
-            startCount++
+          app.cache.component.add(redrawed[1], ndomPage.getNuiPage())
         }
+        startCount++
       }
     } catch (error) {
       console.error(error)
