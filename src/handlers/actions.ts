@@ -46,7 +46,7 @@ import {
   toast,
 } from '../utils/dom'
 import App from '../App'
-import { pickActionKey, pickHasActionKey } from '../utils/common'
+import { getRandomKey, pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
 
 const log = Logger.create('actions.ts')
@@ -99,6 +99,7 @@ const createActions = function createActions(app: App) {
             const emitResult = u.array(
               await app.noodl.emitCall(emitParams as any),
             )
+
             log.grey(`Emitted`, {
               action: action?.snapshot?.(),
               emitParams,
@@ -280,7 +281,7 @@ const createActions = function createActions(app: App) {
           if (obj) {
             if (obj?.component?.blueprint?.id === id) {
               const pageComponent = obj.component
-              const currentPageName = pageComponent?.get?.('path') 
+              const currentPageName = pageComponent?.get?.('path')
               ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
               break
             }

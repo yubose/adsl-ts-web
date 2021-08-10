@@ -5,9 +5,9 @@ function isDisplayable(value: unknown): value is string | number {
 }
 export default {
   name: '[noodl-ui-dom] common',
-  cond: (node) => node != null,
+  cond: (node) => !!node,
   resolve(node, component) {
-    if (!node.innerHTML.trim()) {
+    if (!node.innerHTML?.trim?.()) {
       const text = component.get?.('text')
       if (isDisplayable(component.get?.('data-value'))) {
         node.innerHTML = `${component.get('data-value')}`

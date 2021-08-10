@@ -38,7 +38,6 @@ import * as defaultResolvers from './resolvers'
 import * as c from './constants'
 import * as t from './types'
 
-
 const pageEvt = c.eventId.page
 
 class NDOM<ResourceKey extends string = string> extends NDOMInternal {

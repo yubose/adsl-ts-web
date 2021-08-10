@@ -31,7 +31,6 @@ class ComponentCache {
       if (obj) {
         if (!(obj.page in result.components)) {
           result.components[obj.page] = {} as typeof result.components[string]
-          // if (typeof obj.page !== 'string') debugger
         }
 
         const item = result.components[obj.page]

@@ -35,7 +35,100 @@ const domComponentsResolver: Resolve.Config = {
     }
   },
   resolve(node, component, { draw, global: globalMap, ndom, nui }) {
-    if (!u.isFnc(node)) {
+    if (u.isFnc(node)) {
+      // PLUGIN
+      if (
+        [
+          Identify.component.plugin,
+          Identify.component.pluginHead,
+          Identify.component.pluginBodyTop,
+          Identify.component.pluginBodyTail,
+        ].some((cond) => cond(component))
+      ) {
+        // !NOTE - We passed the node argument as a function that expects our
+        // resolved node instead
+        // This is specific for these plugin components but may be extended to be used more later
+        function getMetadata(component: NUIComponent.Instance) {
+          const path = String(
+            component.get('plugin')?.path ||
+              component.blueprint?.path ||
+              component.get('path') ||
+              '',
+          )
+          const isLib = component?.contentType === 'library'
+          const metadata = {} as { type: string; tagName: string }
+
+          if (path.endsWith('.css')) {
+            metadata.type = 'text/css'
+            metadata.tagName = 'STYLE'
+          } else if (path.endsWith('.html')) {
+            metadata.type = 'text/html'
+            metadata.tagName = 'DIV'
+          } else if (path.endsWith('.js') || isLib) {
+            metadata.type = 'text/javascript'
+            metadata.tagName = 'SCRIPT'
+          } else {
+            metadata.type = component.blueprint?.mimeType || 'text/plain'
+            metadata.tagName = 'SCRIPT'
+          }
+          return metadata
+        }
+
+        const metadata = getMetadata(component)
+        const pluginNode = document.createElement(
+          metadata.tagName.toLowerCase(),
+        ) as HTMLScriptElement
+
+        pluginNode.type = metadata.type
+
+        if (metadata.type === 'text/javascript') {
+          pluginNode.onload = function onLoadJsPluginDOMNode(evt) {
+            const location = component.get('plugin')?.location || ''
+            if (location) {
+              try {
+                if (location === 'head') {
+                  document.head.appendChild(pluginNode)
+                } else if (location === 'body-top') {
+                  document.body.insertBefore(
+                    pluginNode,
+                    document.body.childNodes[0],
+                  )
+                } else if (location === 'body-bottom') {
+                  document.body.appendChild(pluginNode)
+                } else {
+                  document.body.appendChild(pluginNode)
+                }
+              } catch (error) {
+                console.error(error)
+              }
+            }
+          }
+          pluginNode.src = component.get('data-src')
+        } else if (
+          metadata.type === 'text/html' ||
+          metadata.type === 'text/css'
+        ) {
+          pluginNode.type = metadata.type
+          pluginNode.tagName === 'STYLE' && (pluginNode.rel = 'stylesheet')
+          component.on(
+            'content',
+            (content: string) => {
+              pluginNode && (pluginNode.innerHTML += content)
+            },
+            'content',
+          )
+        }
+
+        // If the node is a function then it is expecting us to decide what node to use
+        u.isFnc(node) && node(pluginNode)
+        try {
+          pluginNode && document.body.appendChild(pluginNode)
+        } catch (error) {
+          console.error(error)
+        }
+        return pluginNode
+      }
+    } else {
       const original = component.blueprint || {}
 
       const {
@@ -191,7 +284,8 @@ const domComponentsResolver: Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(component)) {
-        component.on('page-components', () => {
+        const src = component.get('data-src') || ''
+        if (src.startsWith('http')) {
           let nuiPage = component.get('page')
           let ndomPage = ndom.findPage(nuiPage) as NDOMPage
 
@@ -205,102 +299,45 @@ const domComponentsResolver: Resolve.Config = {
 
           ndomPage.rootNode?.parentElement?.removeChild?.(ndomPage.rootNode)
           ndomPage.rootNode = node as HTMLIFrameElement
+          ndomPage.rootNode.src = src
+        } else {
+          component.on('page-components', () => {
+            let nuiPage = component.get('page')
+            let ndomPage = ndom.findPage(nuiPage) as NDOMPage
 
-          const pageComponents = nui.resolveComponents.call(nui, {
-            components: ndomPage.components,
-            page: nuiPage,
-          }) as NUIComponent.Instance[]
-
-          for (const pageComponent of pageComponents) {
-            const pageComponentNode = ndom.draw(
-              pageComponent,
-              ndomPage.rootNode,
-              ndomPage,
-              { node: ndomPage.rootNode },
-            )
-            if (pageComponentNode) {
-              ;(
-                ndomPage.rootNode as HTMLIFrameElement
-              )?.contentDocument?.body?.appendChild(
-                pageComponentNode as HTMLElement,
-              )
-            }
-          }
-        })
-      }
-      // PLUGIN
-      else if (Identify.component.plugin(original)) {
-        // !NOTE - We passed the node argument as a function that expects our
-        // resolved node instead
-        // This is specific for these plugin components but may be extended to be used more later
-        function getMetadata(component: NUIComponent.Instance) {
-          const src = String(component.get('data-src'))
-          const isLib = contentType === 'library'
-          const metadata = {} as { type: string; tagName: string }
-
-          if (src.endsWith('.css')) {
-            metadata.type = 'text/css'
-            metadata.tagName = 'STYLE'
-          } else if (src.endsWith('.html')) {
-            metadata.type = 'text/html'
-            metadata.tagName = 'DIV'
-          } else if (src.endsWith('.js') || isLib) {
-            metadata.type = 'text/javascript'
-            metadata.tagName = 'SCRIPT'
-          } else {
-            metadata.type = mimeType || 'text/plain'
-            metadata.tagName = 'SCRIPT'
-          }
-          return metadata
-        }
-
-        const metadata = getMetadata(component)
-        const pluginNode = document.createElement(
-          metadata.tagName,
-        ) as HTMLScriptElement
-
-        pluginNode.type = metadata.type
-
-        if (metadata.type === 'text/javascript') {
-          pluginNode.onload = function onLoadJsPluginDOMNode(evt) {
-            const location = plugin?.location || ''
-            if (location) {
+            if (!ndomPage) {
               try {
-                if (location === 'head') {
-                  document.head.appendChild(pluginNode)
-                } else if (location === 'body-top') {
-                  document.body.insertBefore(
-                    pluginNode,
-                    document.body.childNodes[0],
-                  )
-                } else if (location === 'body-bottom') {
-                  document.body.appendChild(pluginNode)
-                } else {
-                  document.body.appendChild(pluginNode)
-                }
+                ndomPage = ndom.createPage(nuiPage)
               } catch (error) {
                 console.error(error)
               }
             }
-          }
-          pluginNode.src = component.get('data-src')
-        } else if (
-          metadata.type === 'text/html' ||
-          metadata.type === 'text/css'
-        ) {
-          component.on(
-            'content',
-            (content: string) => (node.innerHTML += content),
-          )
+
+            ndomPage.rootNode?.parentElement?.removeChild?.(ndomPage.rootNode)
+            ndomPage.rootNode = node as HTMLIFrameElement
+
+            const pageComponents = nui.resolveComponents.call(nui, {
+              components: ndomPage.components,
+              page: nuiPage,
+            }) as NUIComponent.Instance[]
+
+            for (const pageComponent of pageComponents) {
+              const pageComponentNode = ndom.draw(
+                pageComponent,
+                ndomPage.rootNode,
+                ndomPage,
+                { node: ndomPage.rootNode },
+              )
+              if (pageComponentNode) {
+                ;(
+                  ndomPage.rootNode as HTMLIFrameElement
+                )?.contentDocument?.body?.appendChild(
+                  pageComponentNode as HTMLElement,
+                )
+              }
+            }
+          })
         }
-        // If the node is a function then it is expecting us to decide what node to use
-        u.isFnc(node) && node(pluginNode)
-        try {
-          pluginNode && document.body.appendChild(pluginNode)
-        } catch (error) {
-          console.error(error)
-        }
-        return pluginNode
       }
       // SELECT
       else if (Identify.component.select(original)) {

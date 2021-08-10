@@ -18,7 +18,7 @@ export default {
 
     entries(component.style).forEach(([styleKey, styleValue]) => {
       if (Number.isFinite(Number(styleKey))) return
-      node.style[styleKey] = String(styleValue)
+      node.style && (node.style[styleKey] = String(styleValue))
     })
 
     if (

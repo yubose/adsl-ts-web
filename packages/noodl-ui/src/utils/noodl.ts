@@ -366,6 +366,7 @@ export function publish(
   })
 }
 
+// TODO - This overload doesn't work when doing resolveAssetUrl("SquarePayment.html", { assetsUrl: getAssetsUrl() })
 export function resolveAssetUrl(
   pathValue: string | undefined,
   opts: {

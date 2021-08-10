@@ -3,13 +3,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import {
-  ComponentObject,
-  EcosDocument,
-  EmitObjectFold,
-  Identify,
-  PageObject,
-} from 'noodl-types'
+import { ComponentObject, EcosDocument, Identify } from 'noodl-types'
 import { findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import NUIPage from '../Page'
@@ -40,6 +34,7 @@ componentResolver.setResolver((component, options, next) => {
     emit,
     get: enhancedGet, // A more optimized getter. TODO: Replace regular get func calls with this one
     getAssetsUrl,
+    getPages,
     getRoot,
     getRootPage,
     page,
@@ -207,16 +202,32 @@ componentResolver.setResolver((component, options, next) => {
         ;(async () => {
           try {
             nuiPage.page = pageName
-            const pageObject = await emit({
-              type: c.nuiEmitType.TRANSACTION,
-              transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-              params: nuiPage,
-            })
-            component.edit('page', nuiPage)
-            component.emit(
-              c.nuiEvent.component.page.PAGE_COMPONENTS,
-              pageObject.components || nuiPage.components || [],
-            )
+
+            // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window
+            if (getPages().includes(pageName)) {
+              const pageObject = await emit({
+                type: c.nuiEmitType.TRANSACTION,
+                transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+                params: nuiPage,
+              })
+              component.edit('page', nuiPage)
+              component.emit(
+                c.nuiEvent.component.page.PAGE_COMPONENTS,
+                pageObject.components || nuiPage.components || [],
+              )
+            } else {
+              // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
+
+              if (pageName.endsWith('.html')) {
+                if (!pageName.startsWith('http')) {
+                  pageName = resolveAssetUrl(pageName, getAssetsUrl())
+                  debugger
+                }
+                nuiPage.page = pageName
+              } else {
+                // TODO
+              }
+            }
           } catch (err) {
             throw new Error(
               `[Page component] ` +
@@ -263,6 +274,7 @@ componentResolver.setResolver((component, options, next) => {
   if (
     Identify.component.plugin(component) ||
     Identify.component.pluginHead(component) ||
+    Identify.component.pluginBodyTop(component) ||
     Identify.component.pluginBodyTail(component)
   ) {
     /**
@@ -296,10 +308,17 @@ componentResolver.setResolver((component, options, next) => {
         // path event here
         if (src) return window.fetch?.(src)
       })
-      .then((res) => res?.json?.())
+      .then((res) => {
+        const contentType = res?.headers?.get?.('Content-Type')
+        if (u.isStr(contentType)) {
+          if (contentType.includes(`text/`)) return res?.text?.()
+        }
+        return res?.json?.()
+      })
       .then((content) => {
         plugin && (plugin.content = content)
-        component.set('content', content).emit('content', content || '')
+        component.set('content', content)
+        component.emit('content', content || '')
       })
       .catch((err) => console.error(`[${err.name}]: ${err.message}`, err))
       .finally(() => (plugin.initiated = true))

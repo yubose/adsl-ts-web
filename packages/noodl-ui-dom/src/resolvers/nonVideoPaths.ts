@@ -15,7 +15,7 @@ export default {
     node.src = component.get('data-src')
     component.on('path', (result) => {
       node.src = result
-      node.dataset.src = result
+      node.dataset && (node.dataset.src = result)
     })
   },
 } as RegisterOptions

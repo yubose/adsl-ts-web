@@ -83,6 +83,7 @@ const devServerOptions = {
   before(app, server, compiler) {
     //
   },
+  // https: true,
   stats: { chunks: true },
   historyApiFallback: true,
 }

@@ -840,18 +840,22 @@ const NUI = (function _NUI() {
       obj?: t.NUIComponent.Instance | t.Plugin.ComponentObject,
     ) {
       let _location = '' as t.Plugin.Location
-      let _path = ''
+      let _path = (isComponent(obj) ? obj.blueprint?.path : obj?.path) || ''
 
       if (u.isStr(location)) {
         _location = location
       } else {
-        _location = location?.type === 'pluginBodyTail' ? 'body-bottom' : 'head'
         obj = location
+        _path = location.blueprint?.path || ''
+        const type = location?.type
+        if (_path.endsWith('.css')) _location = 'head'
+        else if (_path.endsWith('.html')) _location = 'body-top'
+        // else if (type === 'plugin') _location = 'head'
+        else if (type === 'pluginHead') _location = 'head'
+        else if (type === 'pluginBodyTop') _location = 'body-top'
+        else if (type === 'pluginBodyTail') _location = 'body-bottom'
+        !_location && (_location = 'head')
       }
-      _path = isComponent(obj) ? obj.blueprint?.path : obj?.path
-
-      invariant(!!_path, `Path is required`)
-      invariant(u.isStr(_path), `Path is not a string`)
 
       const id = _path
       const plugin = {
@@ -861,6 +865,17 @@ const NUI = (function _NUI() {
         location: _location,
         path: _path,
       } as t.Plugin.Object
+
+      if (!_path) {
+        console.log(
+          `%cThe path "${_path}" passed to a plugin component is null or undefined`,
+          `color:#ec0000;`,
+          plugin,
+        )
+        _path = ''
+        plugin.id = ''
+        plugin.path = ''
+      }
 
       !cache.plugin.has(id) && cache.plugin.add(_location, plugin)
       return plugin
