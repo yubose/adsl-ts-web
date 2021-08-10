@@ -7,6 +7,7 @@ import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
 import babel from '@rollup/plugin-babel'
 import typescript from 'rollup-plugin-typescript2'
+import { terser } from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 
@@ -54,8 +55,7 @@ const configs = [
         presets: ['@babel/env'],
         plugins: ['@babel/plugin-transform-runtime'],
       }),
-      // Env var set by root lerna repo
-      // ...(process.env.NODE_ENV !== 'development' ? [terser()] : []),
+      terser({ compress: true }),
     ],
   },
 ]

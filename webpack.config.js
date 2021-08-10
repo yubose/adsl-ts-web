@@ -36,33 +36,35 @@ if (mode === 'production') {
    * @type { webpack.Configuration['optimization'] }
    */
   productionOptions.optimization = {
-    // concatenateModules: true,
+    concatenateModules: true,
     //   innerGraph: true,
-    //   mergeDuplicateChunks: true,
-    minimize: false,
-    //   mangleExports: true,
-    //   splitChunks: {
-    //     chunks: 'async',
-    //     minSize: 50000,
-    //     maxSize: 100000,
-    //     minChunks: 1,
-    //     maxAsyncRequests: 30,
-    //     maxInitialRequests: 30,
-    //     automaticNameDelimiter: '~',
-    //     enforceSizeThreshold: 50000,
-    //     cacheGroups: {
-    //       defaultVendors: {
-    //         test: /[\\/]node_modules[\\/]/,
-    //         priority: -10,
-    //       },
-    //       default: {
-    //         minChunks: 2,
-    //         priority: -20,
-    //         reuseExistingChunk: true,
-    //       },
-    //     },
+    mergeDuplicateChunks: true,
+    minimize: true,
+    // mangleExports: true,
+    nodeEnv: 'production',
+    removeEmptyChunks: true,
+    splitChunks: {
+      chunks: 'async',
+      minSize: 30000,
+      maxSize: 80000,
+      minChunks: 8,
+      maxAsyncRequests: 30,
+      maxInitialRequests: 30,
+      automaticNameDelimiter: '~',
+      enforceSizeThreshold: 50000,
+      cacheGroups: {
+        defaultVendors: {
+          test: /[\\/]node_modules[\\/]/,
+          priority: -10,
+        },
+        default: {
+          minChunks: 5,
+          priority: -20,
+          reuseExistingChunk: true,
+        },
+      },
+    },
   }
-  // }
 }
 
 /** @type { import('webpack-dev-server').Configuration } */
@@ -130,6 +132,7 @@ module.exports = {
     main: ['./src/index.ts'],
   },
   output: {
+    clean: true,
     filename: '[name].[contenthash].js',
     path: path.resolve(__dirname, 'build'),
   },
@@ -183,10 +186,11 @@ module.exports = {
       favicon,
       cache: false,
       scriptLoading: 'defer',
-      minify: false,
+      minify: true,
       //Austin Yu 8/5/2021 disable for stable build to use webpack generate index.html
       // ...(ecosEnv !== 'test' ? { template: 'public/index.html' } : undefined),
       meta: {
+        description: `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`,
         keywords: 'aitmed, telemedicine, blockchain, noodl',
         viewport:
           'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no',

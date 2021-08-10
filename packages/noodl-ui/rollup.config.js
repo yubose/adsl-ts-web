@@ -9,6 +9,7 @@ import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
 import babel from '@rollup/plugin-babel'
 import typescript from 'rollup-plugin-typescript2'
+import { terser } from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 const rootDir = path.join(process.cwd(), '../..')
@@ -64,6 +65,7 @@ const configs = [
         exclude: ['node_modules/**/*'],
         extensions: ['.js'],
       }),
+      terser({ compress: true }),
       // esbuild({
       //   include: /\.[jt]s?$/,
       //   exclude: /node_modules/,
