@@ -47,7 +47,6 @@ import {
   isListConsumer,
   resolveAssetUrl,
 } from './utils/noodl'
-import { isNoodlUnit, vpHeightKeys } from './utils/style'
 import { groupedActionTypes, nuiEmitType } from './constants'
 import * as t from './types'
 
@@ -827,7 +826,7 @@ const NUI = (function _NUI() {
         page = cache.page.create({ id, viewport: viewport }) as NUIPage
       }
 
-      name && (page.page = name)
+      name && page && (page.page = name)
       ;(page as NUIPage).use(() => NUI.getRoot()[page?.page || '']?.components)
 
       return page
@@ -1000,8 +999,6 @@ const NUI = (function _NUI() {
                 ? o.cache.actions.builtIn.get(obj.funcName as string)
                 : Identify.goto(obj)
                 ? o.cache.actions.goto
-                : Identify.toast?.(obj)
-                ? o.cache.actions.toast
                 : o.cache.actions[obj.actionType] || [],
               o.getConsumerOptions({
                 component: opts?.component,

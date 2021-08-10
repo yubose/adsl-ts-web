@@ -709,6 +709,8 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
           ? document.body
           : container || document.body
 
+        // NOTE: This needs to stay above the code below or the children will
+        // not be able to access their parent during the resolver calls
         parent.appendChild(node)
 
         if (node.tagName === 'IFRAME') {

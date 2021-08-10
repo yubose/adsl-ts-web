@@ -1,17 +1,17 @@
-import { NOODL, NOODLComponent, ProxiedComponent } from 'noodl-ui'
-import {
+import type { NOODL, NOODLComponent, ProxiedComponent } from 'noodl-ui'
+import type {
   Room,
   Participant,
   LocalParticipant,
   RemoteParticipant,
 } from 'twilio-video'
-import NOODLDOM from 'noodl-ui-dom'
-import echarts from '@types/echarts'
-import Modal from 'components/NOODLModal'
-import { Calendar } from '@fullcalendar/core'
-import Meeting from '../../meeting'
-import { App } from '../../app'
-import { TwilioVideo } from './twilio'
+import type NOODLDOM from 'noodl-ui-dom'
+import type echarts from '@types/echarts'
+import type Modal from 'components/NOODLModal'
+import type { Calendar } from '@fullcalendar/core'
+import type Meeting from '../../meeting'
+import type { App } from '../../app'
+import type { TwilioVideo } from './twilio'
 
 declare global {
   const echarts: echarts

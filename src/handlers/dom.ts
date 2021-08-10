@@ -289,20 +289,18 @@ const createExtendedDOMResolvers = function (app: App) {
                     left: 'prev next',
                     center: 'title',
                     right: 'timeGridDay,timeGridWeek',
-
                   }
                   let defaultData = dataValue.chartData
                   if (u.isArr(defaultData)) {
-                    
                     defaultData.forEach((element) => {
-                      let duration = element.etime-element.stime
-                      if(duration/60<=15){
+                      let duration = element.etime - element.stime
+                      if (duration / 60 <= 15) {
                         // display min: 15min
                         element.etime = element.stime + 900
                       }
                       element.start = new Date(element.stime * 1000)
                       element.end = new Date(element.etime * 1000)
-                      element.timeLength = duration/60
+                      element.timeLength = duration / 60
                       element.title = element.patientName
                       element.name = element.visitReason
 
@@ -334,7 +332,6 @@ const createExtendedDOMResolvers = function (app: App) {
                     buttonText: {
                       week: 'Weeks',
                       day: 'Day',
-
                     },
 
                     slotDuration: '00:15:00',
@@ -359,9 +356,15 @@ const createExtendedDOMResolvers = function (app: App) {
                       tippy(info.el, {
                         content:
                           '<div >\
-                                        <div style="padding-top:2px">Patient Name ：' +info.event._def.extendedProps.patientName+'</div>\
-                                        <div style="padding-top:2px">Appointment Type ：' +info.event._def.extendedProps.visitType+'</div>\
-                                        <div style="padding-top:3px">Reason ：' +info.event._def.extendedProps.name +'</div>\
+                                        <div style="padding-top:2px">Patient Name ：' +
+                          info.event._def.extendedProps.patientName +
+                          '</div>\
+                                        <div style="padding-top:2px">Appointment Type ：' +
+                          info.event._def.extendedProps.visitType +
+                          '</div>\
+                                        <div style="padding-top:3px">Reason ：' +
+                          info.event._def.extendedProps.name +
+                          '</div>\
                                         <div style="padding:4px 0">StartTime：' +
                           formatDate(
                             new Date(
@@ -371,8 +374,9 @@ const createExtendedDOMResolvers = function (app: App) {
                             'HH:mm:ss',
                           ) +
                           '</div>\
-                          <div>Duration：' + info.event._def.extendedProps.timeLength +' minutes' + 
-                            
+                          <div>Duration：' +
+                          info.event._def.extendedProps.timeLength +
+                          ' minutes' +
                           '</div>\
 　　　　　　        　</div>',
                         allowHTML: true,
@@ -707,7 +711,8 @@ const createExtendedDOMResolvers = function (app: App) {
           // script.appendChild(document.createTextNode("https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.js"))
           // document.head.appendChild(script)
           let link = document.createElement('link')
-          link.href = 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.4.0/dist/mapbox-gl.min.css'
+          link.href =
+            'https://cdn.jsdelivr.net/npm/mapbox-gl@2.4.0/dist/mapbox-gl.min.css'
           // not accessible from outside China 8/6/2021 link.href = 'https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
           link.rel = 'stylesheet'
           document.head.appendChild(link)

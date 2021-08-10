@@ -221,7 +221,6 @@ componentResolver.setResolver((component, options, next) => {
               if (pageName.endsWith('.html')) {
                 if (!pageName.startsWith('http')) {
                   pageName = resolveAssetUrl(pageName, getAssetsUrl())
-                  debugger
                 }
                 nuiPage.page = pageName
               } else {
