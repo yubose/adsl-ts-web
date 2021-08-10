@@ -709,6 +709,8 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
           ? document.body
           : container || document.body
 
+        parent.appendChild(node)
+
         if (node.tagName === 'IFRAME') {
           node.onload = (evt) => {
             this.#R.run(node, component)
@@ -727,7 +729,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
           })
         }
 
-        parent.appendChild(node)
+        // parent.appendChild(node)
       }
     }
     return node || null
