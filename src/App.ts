@@ -6,11 +6,12 @@ import NOODLDOM, {
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
 import * as u from '@jsmanifest/utils'
+import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { isOutboundLink, Parser } from 'noodl-utils'
-import { PageObject } from 'noodl-types'
+import * as nu from 'noodl-utils'
+import { Identify, PageObject } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
@@ -45,7 +46,7 @@ class App {
   #noodl: t.AppConstructorOptions['noodl']
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
-  #parser: Parser
+  #parser: nu.Parser
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
@@ -93,7 +94,7 @@ class App {
     this.#nui = nui
 
     noodl && (this.#noodl = noodl)
-    this.#parser = new Parser()
+    this.#parser = new nu.Parser()
   }
 
   get aspectRatio() {
@@ -217,7 +218,7 @@ class App {
       if (_pageRequesting && _page.requesting !== _pageRequesting) {
         _page.requesting = _pageRequesting
       }
-      if (isOutboundLink(_pageRequesting)) {
+      if (nu.isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
         return void (window.location.href = _pageRequesting)
       }
@@ -421,6 +422,66 @@ class App {
             show: self.builtIns.get('show')?.find(Boolean)?.fn,
             redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
             videoChat: extendedSdkBuiltIns.videoChat.bind(this),
+          },
+          onBeforeInit: (init) => {
+            log.func('onBeforeInit')
+            log.grey('', { init, page: pageRequesting })
+          },
+          onInit: (current, index, init) => {
+            log.func('onInit')
+            log.grey('', { current, index, init, page: pageRequesting })
+
+            const validateReference = (ref: string) => {
+              const datapath = nu.trimReference(ref)
+              const location = ref.startsWith(`=.builtIn`)
+                ? 'root'
+                : Identify.localKey(datapath)
+                ? 'local'
+                : 'root'
+              if (
+                !has(
+                  location === 'local' ? this.root[pageRequesting] : this.root,
+                  datapath,
+                )
+              ) {
+                log.func(`${pageRequesting} init`)
+                log.red(
+                  `The reference "${ref}" is missing from the ${
+                    location === 'local' ? 'local root' : 'root'
+                  }`,
+                  {
+                    previous: init[index - 1],
+                    current: { value: current, index },
+                    next: init[index + 1],
+                    datapath,
+                    location,
+                    page: pageRequesting,
+                    snapshot: cloneDeep(
+                      location === 'root'
+                        ? this.root
+                        : this.root[pageRequesting],
+                    ),
+                  },
+                )
+              }
+            }
+
+            const validateObject = (obj: Record<string, any>) => {
+              for (const [key, value] of u.entries(obj)) {
+                Identify.reference(key) && validateReference(key)
+                Identify.reference(value) && validateReference(value)
+                if (u.isObj(value)) {
+                  validateObject(value)
+                }
+              }
+            }
+
+            u.isObj(current) && validateObject(current)
+          },
+          onAfterInit: (err, init) => {
+            if (err) throw err
+            log.func('onAfterInit')
+            log.grey('', { err, init, page: pageRequesting })
           },
         })
       )?.aborted
