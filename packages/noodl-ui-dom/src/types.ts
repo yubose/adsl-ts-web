@@ -1,10 +1,10 @@
 import { LiteralUnion } from 'type-fest'
-import { AcceptArray } from '@jsmanifest/typefest'
+import { OrArray, OrPromise } from '@jsmanifest/typefest'
 import { ComponentObject, ComponentType } from 'noodl-types'
 import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
 import NOODLDOM from './noodl-ui-dom'
-import NOODLDOMPage from './Page'
+import NDOMPage from './Page'
 import createResolver from './createResolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import GlobalCssResourceRecord from './global/GlobalCssResourceRecord'
@@ -19,7 +19,7 @@ export interface IGlobalObject<T extends string = string> {
 
 export interface GlobalMap<ResourceKey extends string = string> {
   components: Map<string, GlobalComponentRecord>
-  pages: Record<string, NOODLDOMPage>
+  pages: Record<string, NDOMPage>
   resources: {
     css: Record<ResourceKey, GlobalResourceObject<'css'>>
     js: Record<ResourceKey, GlobalResourceObject<'js'>>
@@ -83,7 +83,7 @@ export interface GlobalComponentRecordObject {
 
 export interface GlobalPageRecordObject {
   type: 'page'
-  record: NOODLDOMPage
+  record: NDOMPage
 }
 
 export type GlobalStoreRecordObject =
@@ -91,6 +91,16 @@ export type GlobalStoreRecordObject =
   | GlobalPageRecordObject
 
 export type GlobalRecordType = GlobalStoreRecordObject['type']
+
+export interface Hooks {
+  onRedrawStart(args: {
+    parent: NUIComponent.Instance | null
+    component: NUIComponent.Instance
+    context?: { dataObject?: any }
+    node: HTMLElement | null
+    page: NDOMPage
+  }): OrPromise<void>
+}
 
 export type DOMNodeInput =
   | NodeListOf<any>
@@ -223,7 +233,7 @@ export namespace Page {
     [eventId.page.on.ON_ASPECT_RATIO_MIN](prevMin: number, min: number): void
     [eventId.page.on.ON_ASPECT_RATIO_MAX](prevMax: number, max: number): void
     [eventId.page.on.ON_STATUS_CHANGE](status: Page.Status): void
-    [eventId.page.on.ON_NAVIGATE_START](page: NOODLDOMPage): void
+    [eventId.page.on.ON_NAVIGATE_START](page: NDOMPage): void
     [eventId.page.on.ON_NAVIGATE_STALE](args: {
       previouslyRequesting: string
       newPageRequesting: string
@@ -242,18 +252,21 @@ export namespace Page {
     [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
       snapshot: Snapshot & { components: NUIComponent.Instance[] },
     ): void
-    [eventId.page.on.ON_COMPONENTS_RENDERED](page: NOODLDOMPage): void
+    [eventId.page.on.ON_COMPONENTS_RENDERED](page: NDOMPage): void
     [eventId.page.on.ON_APPEND_NODE](args: {
-      page: NOODLDOMPage
+      page: NDOMPage
       parentNode: HTMLElement
       node: HTMLElement
       component: Component
     }): void
     // Redraw events
-    [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](
-      node: HTMLElement | null,
-      component: Component,
-    ): void
+    [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](args: {
+      parent: NUIComponent.Instance | null
+      component: NUIComponent.Instance
+      context?: { dataObject?: any }
+      node: HTMLElement | null
+      page: NDOMPage
+    }): void
   }
 
   export interface HookDescriptor<Evt extends Page.HookEvent = Page.HookEvent> {
@@ -281,11 +294,11 @@ export namespace Page {
   export type Status =
     typeof eventId.page.status[keyof typeof eventId.page.status]
 
-  export type Snapshot = ReturnType<NOODLDOMPage['snapshot']>
+  export type Snapshot = ReturnType<NDOMPage['snapshot']>
 }
 
 export interface NDOMTransaction {
-  REQUEST_PAGE_OBJECT(page: NOODLDOMPage): Promise<NOODLDOMPage>
+  REQUEST_PAGE_OBJECT(page: NDOMPage): Promise<NDOMPage>
 }
 
 export type NDOMTransactionId = keyof NDOMTransaction
@@ -299,6 +312,6 @@ export interface UseObject
     component: NUIComponent.Instance,
   ): HTMLElement | null | void
   resolver?: Resolve.Config
-  resource?: AcceptArray<Parameters<NOODLDOM['createResource']>[0]>
+  resource?: OrArray<Parameters<NOODLDOM['createResource']>[0]>
   transaction?: Partial<NDOMTransaction>
 }

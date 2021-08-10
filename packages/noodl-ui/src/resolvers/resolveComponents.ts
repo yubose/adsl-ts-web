@@ -3,10 +3,11 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { ComponentObject, EcosDocument, Identify } from 'noodl-types'
+import type { ComponentObject, EcosDocument } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import { findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
-import NUIPage from '../Page'
+import type NUIPage from '../Page'
 import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
 import { formatColor, isPromise } from '../utils/common'
@@ -19,7 +20,7 @@ import {
   publish,
   resolveAssetUrl,
 } from '../utils/noodl'
-import { ConsumerOptions, NUIComponent } from '../types'
+import type { ConsumerOptions, NUIComponent } from '../types'
 import * as c from '../constants'
 
 const componentResolver = new Resolver('resolveComponents')

@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
-import { AcceptArray } from '@jsmanifest/typefest'
-import { ComponentObject, StyleObject } from 'noodl-types'
+import type { OrArray } from '@jsmanifest/typefest'
+import type { ComponentObject, StyleObject } from 'noodl-types'
 import { getRandomKey } from './utils/internal'
 import isComponent from './utils/isComponent'
 import * as T from './types'
@@ -337,7 +337,7 @@ class Component<C extends ComponentObject = ComponentObject> {
     return this
   }
 
-  clear(filter?: AcceptArray<'children' | 'hooks'>) {
+  clear(filter?: OrArray<'children' | 'hooks'>) {
     const _clearChildren = (
       children: T.NUIComponent.Instance[] | undefined,
     ) => {
@@ -402,8 +402,8 @@ class Component<C extends ComponentObject = ComponentObject> {
               value.remove.forEach((key) => delete obj[key])
             } else if (u.isObj(value.remove)) {
               u.eachEntries(
-                (k, pred) => pred?.() && delete obj[k],
                 value.remove,
+                (k, pred) => pred?.() && delete obj[k],
               )
             }
           }

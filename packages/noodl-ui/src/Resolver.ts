@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import { NUIComponent, ConsumerOptions } from './types'
+import type { NUIComponent, ConsumerOptions } from './types'
 
 export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
   next: Inst | null

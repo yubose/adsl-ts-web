@@ -1,8 +1,8 @@
 import * as u from '@jsmanifest/utils'
 import isComponent from '../utils/isComponent'
-import { ComponentCacheObject, NUIComponent } from '../types'
 import isNUIPage from '../utils/isPage'
-import NUIPage from '../Page'
+import type { ComponentCacheObject, NUIComponent } from '../types'
+import type NUIPage from '../Page'
 
 type ComponentCacheHookEvent = 'add' | 'clear' | 'remove'
 

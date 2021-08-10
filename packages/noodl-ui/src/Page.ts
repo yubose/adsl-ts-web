@@ -1,6 +1,6 @@
-import { ComponentObject, PageObject } from 'noodl-types'
+import type { ComponentObject } from 'noodl-types'
 import { getRandomKey, inspect } from './utils/internal'
-import { IPage } from './types'
+import type { IPage } from './types'
 import Viewport from './Viewport'
 
 class Page implements IPage {

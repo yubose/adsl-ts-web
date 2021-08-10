@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
-import { LiteralUnion } from 'type-fest'
-import { ICache, NUIActionType, NUITrigger, Store } from '../types'
+import type { LiteralUnion } from 'type-fest'
+import type { ICache, NUIActionType, NUITrigger, Store } from '../types'
 import { inspect } from '../utils/internal'
 import {
   actionTypes as allActionTypes,

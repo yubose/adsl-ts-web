@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import * as mock from 'noodl-ui-test-utils'
-import { AcceptArray } from '@jsmanifest/typefest'
+import { OrArray } from '@jsmanifest/typefest'
 import isNil from 'lodash/isNil'
 import sinon from 'sinon'
 import { ComponentObject, PageObject } from 'noodl-types'
@@ -67,7 +67,7 @@ type MockDrawResolver =
   | (Resolve.Config | keyof typeof defaultResolvers)[]
 
 interface MockRenderOptions {
-  components?: AcceptArray<ComponentObject>
+  components?: OrArray<ComponentObject>
   currentPage?: string
   getPageObject?: (page: string) => Promise<Partial<PageObject>>
   page?: NOODLDOMPage
@@ -127,11 +127,11 @@ export interface CreateRenderResult {
  * to provide a getRoot function in that case
  */
 export function createRender(
-  components: AcceptArray<ComponentObject>,
+  components: OrArray<ComponentObject>,
 ): CreateRenderResult
 export function createRender(opts: MockRenderOptions): CreateRenderResult
 export function createRender(
-  opts: AcceptArray<ComponentObject> | MockRenderOptions,
+  opts: OrArray<ComponentObject> | MockRenderOptions,
 ) {
   ndom.reset()
 
@@ -140,7 +140,7 @@ export function createRender(
   let page: NOODLDOMPage | undefined
   let pageObject: Partial<PageObject>
   let root = _defaults.root
-  let resolver: AcceptArray<MockDrawResolver> | undefined
+  let resolver: OrArray<MockDrawResolver> | undefined
   let resource: MockRenderOptions['resource'] | undefined
 
   if (u.isArr(opts) || 'type' in opts) {

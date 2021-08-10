@@ -1,4 +1,4 @@
-import { Register } from '../types'
+import type { Register } from '../types'
 
 class RegisterCache {
   #cache: Map<string, Register.Object> = new Map()

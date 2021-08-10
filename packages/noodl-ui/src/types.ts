@@ -1,12 +1,11 @@
-import { AcceptArray } from '@jsmanifest/typefest'
-import {
+import { OrArray } from '@jsmanifest/typefest'
+import type {
   ActionObject,
   ActionType,
   BuiltInActionObject,
   ComponentObject,
   ComponentType,
   EventType,
-  EmitObject,
   EmitObjectFold,
   EvalActionObject,
   GotoObject,
@@ -24,15 +23,15 @@ import {
   PluginHeadComponentObject,
   PluginBodyTailComponentObject,
 } from 'noodl-types'
-import { Action, ActionChain } from 'noodl-action-chain'
-import { LiteralUnion } from 'type-fest'
-import ComponentBase from './Component'
-import _ComponentCache from './cache/ComponentCache'
-import _PluginCache from './cache/PluginCache'
-import EmitAction from './actions/EmitAction'
-import NUI from './noodl-ui'
-import NUIPage from './Page'
-import Viewport from './Viewport'
+import type { Action, ActionChain } from 'noodl-action-chain'
+import type { LiteralUnion } from 'type-fest'
+import type ComponentBase from './Component'
+import type _ComponentCache from './cache/ComponentCache'
+import type _PluginCache from './cache/PluginCache'
+import type EmitAction from './actions/EmitAction'
+import type NUI from './noodl-ui'
+import type NUIPage from './Page'
+import type Viewport from './Viewport'
 import {
   nuiEvent,
   groupedActionTypes,
@@ -354,7 +353,7 @@ export interface UseArg<
   plugin?: ComponentObject | ComponentObject[]
   register?:
     | Record<string, Register.Object['fn']>
-    | AcceptArray<
+    | OrArray<
         RegisterComponentObject & { handler?: Register.Object['handler'] }
       >
   transaction?: Partial<

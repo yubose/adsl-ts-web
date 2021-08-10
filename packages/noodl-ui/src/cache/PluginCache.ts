@@ -1,5 +1,5 @@
 import invariant from 'invariant'
-import { ICache, Plugin } from '../types'
+import type { ICache, Plugin } from '../types'
 
 const _locations = ['head', 'body-top', 'body-bottom'] as Plugin.Location[]
 

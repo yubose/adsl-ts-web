@@ -4,14 +4,14 @@ import get from 'lodash/get'
 import set from 'lodash/set'
 import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
-import {
+import type {
   ComponentObject,
   EmitObjectFold,
-  Identify,
   IfObject,
   PageObject,
   RegisterComponentObject,
 } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import {
   createEmitDataKey,
   evalIf,

@@ -43,6 +43,10 @@ const pageEvt = c.eventId.page
 class NDOM<ResourceKey extends string = string> extends NDOMInternal {
   #R: ReturnType<typeof createResolver>
   #createElementBinding = undefined as t.UseObject['createElementBinding']
+  #hooks = { onRedrawStart: [] } as Record<
+    keyof t.Hooks,
+    t.Hooks[keyof t.Hooks][]
+  >
   global: t.GlobalMap<ResourceKey> = {
     components: new Map(),
     pages: {},
@@ -121,10 +125,10 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       if ('page' in args) {
         page = this.findPage(args.page) || new NDOMPage(args.page)
       } else {
-        page = new NDOMPage(NDOM._nui.createPage(args))
+        page = new NDOMPage(NDOM._nui.createPage(args) as NUIPage)
       }
     } else {
-      page = new NDOMPage(NDOM._nui.createPage())
+      page = new NDOMPage(NDOM._nui.createPage() as NUIPage)
     }
 
     if (page) {
@@ -242,8 +246,8 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
    * @param NUIPage nuiPage
    * @returns NDOMPage | null
    */
-  findPage(nuiPage: NUIPage | NDOMPage | string): NUIPage
-  findPage(pageComponent: NUIComponent.Instance, currentPage: string): NUIPage
+  findPage(nuiPage: NUIPage | NDOMPage | string): NDOMPage
+  findPage(pageComponent: NUIComponent.Instance, currentPage: string): NDOMPage
   findPage(
     nuiPage: NUIComponent.Instance | NUIPage | NDOMPage | string,
     currentPage?: string,
@@ -304,6 +308,11 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       return u.values(this.pages).find((page) => page.page === nuiPage)
     }
     return null
+  }
+
+  on<Evt extends keyof t.Hooks>(evt: Evt, fn: t.Hooks[Evt]) {
+    this.#hooks[evt].push(fn)
+    return this
   }
 
   /**
@@ -769,7 +778,14 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
         }
       }
       const parent = component.parent
-      page.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, node, component)
+      page.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, {
+        parent,
+        component,
+        context,
+        node,
+        page,
+      })
+
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {

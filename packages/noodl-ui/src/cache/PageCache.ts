@@ -1,6 +1,6 @@
 import NUIPage from '../Page'
-import Viewport from '../Viewport'
-import { ICache, IPage } from '../types'
+import type Viewport from '../Viewport'
+import type { ICache, IPage } from '../types'
 
 class PageCache implements ICache {
   #pages = new Map() as Map<IPage['id'], { page: NUIPage }>

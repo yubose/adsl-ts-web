@@ -1,6 +1,4 @@
-import { Identify, userEvent } from 'noodl-types'
-import { ConsumerOptions, NUIComponent, NUIActionObject } from '../types'
-import { resolveAssetUrl } from '../utils/noodl'
+import type { ConsumerOptions } from '../types'
 import Resolver from '../Resolver'
 
 const asyncResolver = new Resolver('resolveFinalizer')

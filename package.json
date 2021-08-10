@@ -39,8 +39,7 @@
     "updatenoodl": "node scripts/update.js -u noodl -d"
   },
   "dependencies": {
-    "@jsmanifest/typefest": "^1.0.1",
-    "@jsmanifest/utils": "^1.0.5",
+    "@jsmanifest/utils": "^1.0.11",
     "axios": "^0.21.1",
     "date-fns": "^2.21.2",
     "firebase": "^8.7.0",
@@ -64,6 +63,7 @@
     "@babel/plugin-transform-runtime": "^7.14.3",
     "@babel/preset-env": "^7.14.2",
     "@fullcalendar/core": "^5.9.0",
+    "@jsmanifest/typefest": "^1.0.9",
     "@rollup/plugin-alias": "^3.1.2",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^19.0.0",

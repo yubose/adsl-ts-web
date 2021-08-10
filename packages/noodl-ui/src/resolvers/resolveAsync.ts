@@ -1,6 +1,5 @@
-import get from 'lodash/get'
 import { Identify, userEvent } from 'noodl-types'
-import { ConsumerOptions, NUIComponent, NUIActionObject } from '../types'
+import type { ConsumerOptions, NUIComponent, NUIActionObject } from '../types'
 import { resolveAssetUrl } from '../utils/noodl'
 import Resolver from '../Resolver'
 
@@ -81,7 +80,7 @@ asyncResolver.setResolver((component, options, next) => {
         original[eventType] as NUIActionObject[],
       )
       component.edit({ [eventType]: actionChain })
-      component.style.cursor = "pointer"
+      component.style.cursor = 'pointer'
     }
 
     if (original['onTextChange']) {

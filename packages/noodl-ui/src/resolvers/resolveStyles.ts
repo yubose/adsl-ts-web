@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar } from 'noodl-utils'
-import { NUIComponent, ConsumerOptions } from '../types'
+import type { NUIComponent, ConsumerOptions } from '../types'
 import { presets } from '../constants'
 import { findListDataObject, findIteratorVar } from '../utils/noodl'
 import ComponentResolver from '../Resolver'
@@ -99,10 +99,18 @@ resolveStyles.setResolver(
           // The y value needs to be handled manually here since util.getTextAlign will
           //    return { textAlign } which is meant for x
           if (textAlign.y === 'center' || textAlign.y === 'centerY') {
-            let convert = new Map([["left","flex-start"],["right","flex-end"],["center","center"]])
+            let convert = new Map([
+              ['left', 'flex-start'],
+              ['right', 'flex-end'],
+              ['center', 'center'],
+            ])
             // convert (left ,center ,right) to (flex-start | flex-end | center)
             edit(
-              { display: 'flex', alignItems: 'center' ,justifyContent: convert.get(textAlign.x?textAlign.x:"left")},
+              {
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: convert.get(textAlign.x ? textAlign.x : 'left'),
+              },
               { remove: !textAlign.x && 'textAlign' },
             )
           }
@@ -246,7 +254,7 @@ resolveStyles.setResolver(
           const result = util.getPositionProps(
             component.blueprint.style,
             posKey as any,
-            viewport[util.xKeys.includes(posKey) ? 'width' : 'height'],
+            viewport[util.xKeys.includes(posKey as any) ? 'width' : 'height'],
           )
           result && u.assign(component.style, result)
         }
@@ -262,7 +270,7 @@ resolveStyles.setResolver(
     const { width, height } = originalStyles
 
     if (!isNil(width)) {
-      edit({ width: String(util.getSize(width, viewport.width)) })
+      edit({ width: String(util.getSize(width as any, viewport.width)) })
     }
 
     if (!isNil(height)) {
@@ -270,14 +278,13 @@ resolveStyles.setResolver(
       if (util.isNoodlUnit(height)) {
         edit({ height: String(util.getSize(height, viewport.height)) })
       } else {
-        if(height == 1 || height == '1'){
+        if (height == 1 || height == '1') {
           edit({ height: String(util.getSize(height, viewport.height)) })
-        }else{
+        } else {
           edit({
             height: `${String(com.hasLetter(height) ? height : height + 'px')}`,
           })
         }
-
       }
     }
 

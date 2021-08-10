@@ -1,7 +1,6 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import { ComponentObject } from 'noodl-types'
-import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'
 import NUI from '../../noodl-ui'
