@@ -125,6 +125,10 @@ class App {
     return this.nui.cache
   }
 
+  get pendingPage() {
+    return this.mainPage.requesting || ''
+  }
+
   get currentPage() {
     return this.mainPage.page || ''
   }
@@ -447,7 +451,7 @@ class App {
                 log.func(`${pageRequesting} init`)
                 log.red(
                   `The reference "${ref}" is missing from the ${
-                    location === 'local' ? 'local root' : 'root'
+                    location === 'local' ? `local root for page "${pageRequesting}"` : 'root'
                   }`,
                   {
                     previous: init[index - 1],
