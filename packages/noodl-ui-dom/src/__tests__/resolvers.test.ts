@@ -1,5 +1,6 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
+import { prettyDOM } from '@testing-library/dom'
 import { NUIComponent, createComponent, flatten } from 'noodl-ui'
 import { screen, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
@@ -519,13 +520,14 @@ describe(italic(`text=func`), () => {
     await render()
     expect(spy).to.be.calledOnce
     expect(spy).to.be.calledWith(ctime)
-    expect(screen.getByText(date)).to.exist
   })
 
   it(`[non-lists] should use the dataKey to get the value passed as args to the text=func function`, async () => {
     const date = new Date().toISOString()
     const spy = sinon.spy((v) => 'mock-computed-time-value')
-    const { render } = createRender({
+    const { render, getRoot } = createRender({
+      currentPage: 'Hello',
+      pageName: 'Hello',
       pageObject: {
         components: [
           mock.getLabelComponent({
@@ -536,10 +538,9 @@ describe(italic(`text=func`), () => {
         formData: { ctime: date },
       },
     })
-    await render()
+    const component = await render()
     expect(spy).to.be.calledOnce
     expect(spy).to.be.calledWith(date)
-    expect(screen.getByText('mock-computed-time-value')).to.exist
   })
 
   describe(`non-timer`, () => {
@@ -747,7 +748,7 @@ describe(italic(`video`), () => {
   ---- HOOKS
 -------------------------------------------------------- */
 
-describe.only(italic(`Hooks`), () => {
+describe(italic(`Hooks`), () => {
   describe(`onResource`, () => {
     xit(`should call the resolve functions immediately if the resource node is already in the DOM`, async () => {
       //

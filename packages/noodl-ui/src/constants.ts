@@ -44,63 +44,17 @@ export const presets = {
 }
 
 export const nuiEvent = {
-  action: {
-    PAGEJUMP: 'pageJump',
-    BUILTIN: 'builtIn',
-    EMIT: 'emit',
-    EVALOBJECT: 'evalObject',
-    GOTO: 'goto',
-    UPDATEOBJECT: 'updateObject',
-    REFRESH: 'refresh',
-    SAVEOBJECT: 'saveObject',
-    POPUP: 'popUp',
-    POPUPDISMISS: 'popUpDismiss',
-    TOAST: 'toast',
-  },
-  actionChain: {
-    ON_BEFORE_RESOLVE: 'beforeResolve',
-    ON_BEFORE_RESOLVE_STYLES: 'beforeResolveStyles',
-    ON_CHAIN_START: 'chainStart',
-    ON_CHAIN_ABORTED: 'chainAborted',
-    ON_OVERRIDE_DATA_VALUE: 'overrideDataValue',
-    ON_BUILTIN_MISSING: 'builtinMissing',
-    ON_CHAIN_END: 'chainEnd',
-    ON_CHAIN_ERROR: 'chainError',
-    ON_AFTER_RESOLVE: 'afterResolve',
-  },
   component: {
-    image: {
-      PATH: 'path',
-    },
     list: {
       ADD_DATA_OBJECT: 'add-data-object',
-      DELETE_DATA_OBJECT: 'delete-data-object',
-      RETRIEVE_DATA_OBJECT: 'retrieve-data-object',
-      UPDATE_DATA_OBJECT: 'update-data-object',
-    },
-    listItem: {
-      REDRAW: 'redraw',
-      REDRAWED: 'redrawed',
     },
     page: {
-      PAGE_INSTANCE_CREATED: 'page-instance-created',
-      PAGE_OBJECT: 'page-object',
       PAGE_COMPONENTS: 'page-components',
-      RETRIEVE_COMPONENTS: 'retrieve-components',
-      COMPONENTS_RECEIVED: 'components-received',
-      MISSING_COMPONENTS: 'missing-components',
-      RESOLVED_COMPONENTS: 'resolved-components',
-      SET_REF: 'set-ref',
-    },
-    register: {
-      ONEVENT: 'onEvent',
     },
     textField: {
       placeholder: 'PLACEHOLDER',
     },
   },
-  NEW_PAGE: 'new-page',
-  NEW_PAGE_REF: 'new-page-ref',
 } as const
 
 export const nuiEmitType = {

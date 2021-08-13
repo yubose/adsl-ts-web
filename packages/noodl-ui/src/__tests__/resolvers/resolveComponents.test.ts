@@ -62,7 +62,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     )
   })
 
-  describe.only(italic(`page`), () => {
+  describe(italic(`page`), () => {
     let componentObject: ReturnType<typeof mock.getPageComponent>
 
     beforeEach(() => {

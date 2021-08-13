@@ -191,7 +191,7 @@ describe(italic(`resolveAssetUrl`), () => {
       number: 1,
     }
 
-    it.only(
+    it(
       `should return the correct url using the list item ` + `iteratorVar way`,
       () => {
         expect(

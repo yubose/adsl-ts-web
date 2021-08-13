@@ -256,47 +256,9 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
     if (isComponent(nuiPage)) {
       const page = nuiPage.get('page') as NUIPage
       if (!page) {
-        if (Identify.if(nuiPage.props.path)) {
-          const [val, valOnTrue, valOnFalse] = nuiPage.props.path.if
-          if (Identify.isBoolean(val)) {
-            const value = Identify.isBooleanTrue(val) ? valOnTrue : valOnFalse
-            if (u.isStr(value)) {
-              if (Identify.reference(value)) {
-                const datapath = trimReference(value)
-                if (!currentPage) {
-                  console.log(
-                    `%cA page component was passed to NDOM#findPage but the required "currentPage" argument is empty`,
-                    `color:#ec0000;`,
-                    arguments,
-                  )
-                }
-                let pageValue = ''
-                // ex: formData.pageName
-                if (Identify.localKey(datapath)) {
-                  pageValue =
-                    get(NDOM._nui.getRoot()[currentPage || ''], datapath) || ''
-                } else if (Identify.rootKey(datapath)) {
-                  // ex: FormData.pageName
-                  pageValue = get(NDOM._nui.getRoot(), datapath) || ''
-                }
-                if (pageValue && u.isStr(pageValue)) {
-                  return this.findPage(pageValue)
-                } else {
-                  console.log(
-                    `%cRetrieved a value by data path "${datapath}" but received ${typeof pageValue}`,
-                    `color:#ec0000;`,
-                    pageValue,
-                  )
-                  return null
-                }
-              }
-
-              return this.findPage(value)
-            }
-          }
-        }
+        const pagePath = nuiPage.get('path')
+        if (u.isStr(pagePath) && pagePath) return this.findPage(pagePath)
       }
-      return this.findPage(page)
     } else if (isNUIPage(nuiPage)) {
       for (const page of u.values(this.global.pages)) {
         if (page.getNuiPage() === nuiPage || page.page === nuiPage.page)
@@ -305,7 +267,14 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
     } else if (isNDOMPage(nuiPage)) {
       return nuiPage
     } else if (u.isStr(nuiPage)) {
-      return u.values(this.pages).find((page) => page.page === nuiPage)
+      return u
+        .values(this.pages)
+        .find(
+          (page) =>
+            page.page === nuiPage ||
+            page.page === currentPage ||
+            page.id === nuiPage,
+        )
     }
     return null
   }
@@ -322,7 +291,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
     if (page) {
       NDOM._nui.clean(page.getNuiPage(), console.log)
       page.remove()
-      if (page.id in this.global.pages) delete this.global.pages[page.id]
+      // if (page.id in this.global.pages) delete this.global.pages[page.id]
       page = null
     }
   }
@@ -420,7 +389,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       const ndomPageIds = u.keys(this.global.pages)
 
       if (ndomPageIds.length !== this.cache.page.length) {
-        // debugger
+        // // debugger
         console.log(
           `%cThe number of NDOM pages is ${ndomPageIds.length} and NUI pages is ${this.cache.page.length}. They should be in sync`,
           `color:#ec0000;`,
@@ -496,10 +465,12 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
   /**
    * Takes a list of raw noodl components, converts them to their corresponding
    * DOM nodes and appends to the DOM
+   *
    * @param { NDOMPage } page
    * @returns NUIComponent.Instance
    */
   render(page: NDOMPage) {
+    // REMINDER: The value of this page's "requesting" is empty at this moment
     page.reset('render')
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
@@ -594,9 +565,8 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
         }
       } else {
         node = this.#createElementBinding?.(component) || null
-        node
-          ? (node['isElementBinding'] = true)
-          : (node = document.createElement(getElementTag(component)))
+        node && (node['isElementBinding'] = true)
+        !node && (node = document.createElement(getElementTag(component)))
       }
 
       const attachOnClick = (n: HTMLElement | null, globalId: string) => {
@@ -786,25 +756,47 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
         page,
       })
 
+      // if ()
+
+      let pageComponentsRedrawing = [] as string[]
+
       // Deeply walk down the tree hierarchy
       publish(component, (c) => {
         if (c) {
-          if (Identify.component.page(c)) {
-            const nuiPage = c.get('page')
-            const ndomPage = this.findPage(nuiPage || c, page?.page)
-            if (ndomPage) {
-              console.log(`%cRedrawing a page component`, `color:#00b406;`, {
-                nuiPage,
-                ndomPage,
-              })
-              this.removePage(ndomPage)
-              c.remove('page')
+          if (
+            Identify.component.page(c) &&
+            !pageComponentsRedrawing.includes(c.id)
+          ) {
+            pageComponentsRedrawing.push(c.id)
+
+            let nuiPage = c?.get('page')
+
+            if (c && isComponent(c)) {
+              nuiPage = c?.get?.('page')
             } else {
               console.log(
-                `%cCould not find a NUIPage in redraw`,
+                `%cAttempting to redraw a page component but it is not a Component instance!`,
                 `color:#ec0000;`,
+                c,
               )
             }
+
+            if (!nuiPage) {
+              let pagePath = c.get('path')
+              if (pagePath && u.isStr(pagePath)) {
+                nuiPage = this.findPage(pagePath)
+              } else {
+                nuiPage = this.cache.page.get(c?.id || '')?.page
+              }
+            }
+
+            const ndomPage = this.findPage(nuiPage || c, page?.page)
+            console.log(`%cRedrawing a page component`, `color:#00b406;`, {
+              nuiPage,
+              ndomPage,
+            })
+            this.removePage(ndomPage)
+            c.remove('page')
           }
         }
       })
@@ -832,30 +824,22 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       const parentNode = node.parentNode
 
       if (newComponent) {
-        newNode = this.draw(
-          newComponent,
-          parentNode || (document.body as any),
-          page,
-          { ...options, context },
-        )
-
-        if (newNode) {
-          newNode.onload = (evt) => {
-            console.log(
-              `%cA ${newComponent?.type} component loaded its html element to the DOM`,
-              `color:#00b406;`,
-              { evt, newNode, newComponent },
-            )
-          }
-        }
+        node.innerHTML = ''
+        this.draw(newComponent, parentNode || (document.body as any), page, {
+          ...options,
+          context,
+          node,
+        })
       }
 
       if (parentNode) {
-        if (parentNode.contains(node) && newNode) {
-          parentNode.replaceChild(newNode, node)
-        } else if (newNode) {
-          parentNode.insertBefore(newNode, parentNode.childNodes[0])
-        }
+        // if (parentNode.contains(node) && newNode) {
+        //   parentNode.replaceChild(newNode, node)
+        // } else if (newNode) {
+        //   if (!parentNode.contains(newNode)) {
+        //     parentNode.insertBefore(newNode, parentNode.childNodes[0])
+        //   }
+        // }
       }
     } else if (component) {
       // Some components like "plugin" can have a null as their node, but their
@@ -866,15 +850,17 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       })
     }
     if (node instanceof HTMLElement) {
-      // console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)
+      console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)
       try {
-        node.parentNode?.removeChild?.(node)
-        node.remove()
+        if (!(node instanceof HTMLIFrameElement)) {
+          node.parentNode?.removeChild?.(node)
+          node.remove()
+        }
       } catch (error) {
         console.error(error)
       }
     }
-    return [newNode, newComponent] as [typeof node, typeof component]
+    return [node, newComponent] as [typeof node, typeof component]
   }
 
   register(obj: Store.ActionObject): this

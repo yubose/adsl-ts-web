@@ -127,10 +127,7 @@ export interface IPage {
 }
 
 export namespace NUIComponent {
-  export type CreateType =
-    | ComponentType
-    | ComponentObject
-    | NUIComponent.Instance
+  export type CreateType = ComponentObject | NUIComponent.Instance
 
   export interface EditResolutionOptions {
     remove?: string | string[] | Record<string, () => boolean>
@@ -143,26 +140,11 @@ export namespace NUIComponent {
       dataObject: any
       index: number
     }): void
-    [nuiEvent.component.list.DELETE_DATA_OBJECT](args: {
-      component: NUIComponent.Instance
-      dataObject: any
-      index: number
-    }): void
-    [nuiEvent.component.list.UPDATE_DATA_OBJECT](args: {
-      dataObject: any
-      index: number
-    }): void
-    [nuiEvent.component.page.PAGE_INSTANCE_CREATED](page: NUIPage): void
-    [nuiEvent.component.page.PAGE_OBJECT](
-      component: NUIComponent.Instance,
-      options: ConsumerOptions,
-    ): Promise<void | PageObject>
     [nuiEvent.component.page.PAGE_COMPONENTS](
       components: ComponentObject[],
     ): void
-    [nuiEvent.component.register.ONEVENT](): void
     content(pluginContent: string): void
-    dataValue(dataValue: any): void
+    'data-value'(dataValue: any): void
     'data-src'(src: string): void
     image(src: string): void
     options(options: any[]): void
@@ -201,12 +183,6 @@ export namespace NUIComponent {
 
   export type Instance = ComponentBase
 
-  export type ResolverArgs = [
-    component: NUIComponent.Instance,
-    options: ConsumerOptions,
-    next: (opts?: Record<string, any>) => void,
-  ]
-
   export type Type = NUIComponentType
 }
 
@@ -215,12 +191,6 @@ export namespace Plugin {
     | PluginComponentObject
     | PluginHeadComponentObject
     | PluginBodyTailComponentObject
-
-  export type CreateType =
-    | string
-    | NUIComponent.Instance
-    | Plugin.ComponentObject
-    | Plugin.Object
 
   export type Location = 'head' | 'body-top' | 'body-bottom'
 
@@ -234,7 +204,7 @@ export namespace Plugin {
 }
 
 export type ConsumerOptions = Omit<
-  ReturnType<typeof NUI['getConsumerOptions']>,
+  ReturnType<typeof NUI.getConsumerOptions>,
   'createActionChain' | 'getBaseStyles'
 > & {
   createActionChain(
@@ -265,7 +235,10 @@ export namespace Register {
     ) => Promise<any>
   }
 
-  export type Params<RT = any> = ParamsObject | ParamsGetter<RT>
+  export type Params<RT = any> =
+    | ParamsObject
+    | ((obj: Register.Object) => RT | Promise<RT>)
+
   export type ParamsObject<K extends string = string> = Record<
     LiteralUnion<K, string>,
     any
@@ -273,7 +246,6 @@ export namespace Register {
     args?: any[]
     data?: K | Record<K, any>
   }
-  export type ParamsGetter<RT> = (obj: Register.Object) => RT | Promise<RT>
 
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
 }
@@ -298,14 +270,6 @@ export namespace Store {
     actionType: 'builtIn'
     fn(action: Action<'builtIn', ATrigger>, options: any): Promise<any[] | void>
     funcName: FuncName
-  }
-
-  export interface Plugins {
-    head: Plugin.Object[]
-    body: {
-      top: Plugin.Object[]
-      bottom: Plugin.Object[]
-    }
   }
 }
 

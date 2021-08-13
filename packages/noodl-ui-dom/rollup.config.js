@@ -10,7 +10,7 @@ import typescript from 'rollup-plugin-typescript2'
 import { terser } from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
-
+const _DEV_ = process.env.NODE_ENV === 'development'
 /**
  * @typedef { RollupOptions[] }
  */
@@ -55,7 +55,18 @@ const configs = [
         presets: ['@babel/env'],
         plugins: ['@babel/plugin-transform-runtime'],
       }),
-      terser({ compress: true }),
+      !_DEV_
+        ? terser({
+            compress: {
+              drop_console: false,
+              drop_debugger: false,
+            },
+            keep_fnames: true,
+            format: {
+              source_map: { includeSources: true },
+            },
+          })
+        : undefined,
     ],
   },
 ]

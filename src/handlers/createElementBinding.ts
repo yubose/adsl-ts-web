@@ -1,6 +1,6 @@
 import Logger from 'logsnap'
 import { Identify } from 'noodl-types'
-import { NUIComponent } from 'noodl-ui'
+import { isComponent, NUIComponent } from 'noodl-ui'
 import App from '../App'
 import { isVisible } from '../utils/dom'
 
@@ -8,6 +8,11 @@ const log = Logger.create('createElementBinding')
 
 function createElementBindingFactory(app: App) {
   function createElementBinding(component: NUIComponent.Instance) {
+    if (!isComponent(component)) {
+      log.red(`The "component" is not a Component!`, component)
+      return component
+    }
+
     if (
       component.has('audioStream') ||
       component.has('videoStream') ||

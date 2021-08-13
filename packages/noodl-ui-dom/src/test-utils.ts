@@ -10,6 +10,7 @@ import {
   NUI,
   Page as NUIPage,
   Viewport,
+  isComponent,
 } from 'noodl-ui'
 import {
   GlobalCssResourceObject,
@@ -20,7 +21,7 @@ import {
 } from './types'
 import { array, keys, isArr, isStr, isUnd } from './utils/internal'
 import NOODLDOM from './noodl-ui-dom'
-import NOODLDOMPage from './Page'
+import NDOMPage from './Page'
 import * as defaultResolvers from './resolvers'
 
 export const _defaults = {
@@ -70,7 +71,7 @@ interface MockRenderOptions {
   components?: OrArray<ComponentObject>
   currentPage?: string
   getPageObject?: (page: string) => Promise<Partial<PageObject>>
-  page?: NOODLDOMPage
+  page?: NDOMPage
   pageName?: string
   pageObject?: Partial<PageObject>
   resolver?: MockDrawResolver
@@ -112,7 +113,7 @@ export interface CreateRenderResult {
   baseUrl: string
   nui: typeof NUI
   ndom: NOODLDOM
-  page: NOODLDOMPage
+  page: NDOMPage
   pageObject: PageObject
   request(pgName?: string): Promise<{
     render: () => NUIComponent.Instance[]
@@ -137,47 +138,49 @@ export function createRender(
 
   let currentPage = ''
   let pageRequesting = ''
-  let page: NOODLDOMPage | undefined
-  let pageObject: Partial<PageObject>
+  let page: NDOMPage | undefined
+  let pageObject: Partial<PageObject> = {}
   let root = _defaults.root
   let resolver: OrArray<MockDrawResolver> | undefined
   let resource: MockRenderOptions['resource'] | undefined
 
-  if (u.isArr(opts) || 'type' in opts) {
+  if (u.isArr(opts) || 'type' in (opts || {})) {
     pageRequesting = _defaults.pageRequesting
+    pageObject.components = u.array(opts)
   } else {
-    currentPage = opts.currentPage || ''
-    page = opts.page
-    root = { ...root, ...opts?.root }
-    resource = opts.resource
-  }
+    opts.currentPage && (currentPage = opts.currentPage)
+    opts.pageName && (pageRequesting = opts.pageName)
+    opts.pageObject && u.assign(pageObject, opts.pageObject)
+    opts.page && (page = page)
+    opts.root && (root = opts.root)
+    opts.resolver && (resolver = opts.resolver)
+    opts.resource && (resource = opts.resource)
 
-  !page && (page = ndom.page || ndom.createPage(pageRequesting))
+    !pageRequesting && (pageRequesting = _defaults.pageRequesting)
 
-  if (u.isArr(opts) || 'type' in opts) {
-    pageObject = _defaults.root[pageRequesting] || { components: [] }
-    u.arrayEach(opts, (obj) => pageObject.components?.push(obj))
-    page?.requesting !== pageRequesting &&
-      ((page as NOODLDOMPage).requesting = pageRequesting)
-  } else {
-    pageRequesting =
-      opts.pageName || page?.requesting || _defaults.pageRequesting
-    pageObject = opts.pageObject || {
-      ...root[pageRequesting],
+    if (opts.root?.[pageRequesting]) {
+      u.assign(pageObject, {
+        ...opts.root[pageRequesting],
+        components: u.array(opts.root[pageRequesting].components),
+      })
     }
-    pageObject.components =
-      opts.components ||
-      opts.pageObject?.components ||
-      pageObject?.components ||
-      root[pageRequesting]?.components ||
-      root[_defaults.pageName]?.components ||
-      _defaults.pageObject.components
+    if (opts.pageObject) {
+      u.assign(pageObject, opts.pageObject)
+    }
+    if (opts.components) {
+      pageObject.components = root[pageRequesting].components = u.array(
+        opts.components,
+      )
+    }
   }
 
-  !resolver && (resolver = defaultResolversKeys)
+  root?.[pageRequesting] && (root[pageRequesting] = pageObject)
 
-  if (page.requesting !== pageRequesting) page.requesting = pageRequesting
-  if (currentPage && page.page !== currentPage) page.page = currentPage
+  page = ndom.page || ndom.createPage(pageRequesting)
+  !page && (page = ndom.page || ndom.createPage(pageRequesting))
+  currentPage && (page.page = currentPage)
+  pageRequesting && (page.requesting = pageRequesting)
+  !resolver && (resolver = defaultResolversKeys)
 
   array(resolver).forEach(
     (r: Resolve.Config | typeof defaultResolversKeys[number]) => {
@@ -189,33 +192,27 @@ export function createRender(
     },
   )
 
-  if (page && (isUnd(page?.viewport.width) || isUnd(page?.viewport.height))) {
+  if (isUnd(page?.viewport.width) || isUnd(page?.viewport.height)) {
     page.viewport.width = page.viewport.width || 375
     page.viewport.height = page.viewport.height || 667
   }
 
+  const getPageObject = async (pageProp: NDOMPage) =>
+    use.getRoot()[pageProp?.requesting || pageProp?.page || ''] as PageObject
+
   const use = {
     getAssetsUrl: () => _defaults.assetsUrl,
     getBaseUrl: () => _defaults.baseUrl,
-    getPageObject: async () => pageObject as PageObject,
+    getPageObject,
     getPages: () => [pageRequesting],
     getPreloadPages: () => [],
-    getRoot: () => {
-      const result = {
-        ...root,
-        ...opts?.['root'],
-        [pageRequesting]: {
-          ...opts?.['root']?.[pageRequesting],
-          ...root[pageRequesting],
-          ...pageObject,
-        },
-      }
-      return result
-    },
+    getRoot: () => ({
+      ...root,
+      [pageRequesting]: { ...root?.[pageRequesting], ...pageObject },
+    }),
     resource,
     transaction: {
-      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
-        use.getRoot()[page?.page || ''],
+      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: getPageObject,
     },
   }
 
@@ -227,15 +224,17 @@ export function createRender(
     baseUrl: _defaults.baseUrl,
     nui: _defaults.nui,
     ndom,
-    page: page as NOODLDOMPage,
-    pageObject: pageObject as PageObject,
-    request: (pgName?: string) => {
+    page,
+    get pageObject() {
+      return use.getRoot()[pageRequesting || ''] as PageObject
+    },
+    request: (pgName = '') => {
       pgName && page && (page.requesting = pgName)
       return ndom.request(page) as Promise<{
         render: () => NUIComponent.Instance[]
       }>
     },
-    render: async (pgName?: string): Promise<NUIComponent.Instance> => {
+    render: async (pgName = ''): Promise<NUIComponent.Instance> => {
       const req = await o.request(pgName || page?.requesting)
       return req?.render?.()[0] as NUIComponent.Instance
     },

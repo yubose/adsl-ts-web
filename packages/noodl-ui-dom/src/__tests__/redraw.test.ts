@@ -690,12 +690,16 @@ describe(coolGold(`redraw`), () => {
     expect(findBySelector('li')).to.have.lengthOf(2)
     expect(findBySelector('img')).to.have.lengthOf(2)
     expect(findBySelector('input')).to.have.lengthOf(2)
+    const componentId = u.array(findBySelector('li'))[0]?.id as string
     ndom.redraw(
       u.array(findBySelector('li'))[0],
-      ndom.cache.component.get(u.array(findBySelector('li'))[0]?.id),
+      ndom.cache.component.get(componentId).component,
     )
     expect(u.array(findBySelector('ul'))).to.have.lengthOf(1)
-    expect(u.array(findBySelector('li'))).to.have.lengthOf(2)
+
+    await waitFor(() => {
+      expect(u.array(findBySelector('li'))).to.have.lengthOf(2)
+    })
     expect(u.array(findBySelector('img'))).to.have.lengthOf(2)
     expect(u.array(findBySelector('input'))).to.have.lengthOf(2)
   })

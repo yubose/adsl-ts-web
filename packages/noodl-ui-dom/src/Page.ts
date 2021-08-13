@@ -45,6 +45,8 @@ class Page {
     this.clearRootNode()
     if (this.id === 'root' && !document.body.contains(this.rootNode)) {
       document.body.appendChild(this.rootNode)
+    } else {
+      // debugger
     }
   }
 
@@ -263,16 +265,26 @@ class Page {
 
   remove() {
     try {
-      this.rootNode.innerHTML = ''
-      if (this.rootNode.parentNode) {
-        this.rootNode.parentNode?.removeChild?.(this.rootNode)
+      if (this.rootNode.parentElement) {
+        this.rootNode.innerHTML = ''
         console.log(
-          `%c[Page] Removed rootNode from parentNode`,
+          `%c[Page] Cleared all child content from rootNode for page "${this.page}"`,
           `color:#00b406;`,
         )
       } else {
-        this.rootNode.remove?.()
+        try {
+          // this.rootNode.parentElement?.removeChild?.(this.rootNode)
+          this.rootNode.remove?.()
+          console.log(
+            `%c[Page] Removed rootNode from parentNode for page "${this.page}"`,
+            `color:#00b406;`,
+          )
+        } catch (error) {
+          console.error(error)
+          throw error
+        }
       }
+
       this.#nuiPage.viewport = null as any
       u.isArr(this.components) && (this.components.length = 0)
       u.values(this.#hooks).forEach((v) => v && (v.length = 0))

@@ -15,16 +15,12 @@ type Hooks = Record<
  */
 class Component<C extends ComponentObject = ComponentObject> {
   #blueprint: ComponentObject
-  // This cache is used internally to cache original objects (ex: action objects)
-  #cache: { [key: string]: any }
   #hooks = {} as Hooks
   #hookCbIds: string[] = []
   #component: ComponentObject
   #children: T.NUIComponent.Instance[] = []
   #id = ''
   #parent: T.NUIComponent.Instance | null = null
-  #propPath = ''
-  original: ComponentObject
   type: C['type']
 
   static isComponent(component: unknown): component is T.NUIComponent.Instance {
@@ -48,7 +44,6 @@ class Component<C extends ComponentObject = ComponentObject> {
       ...this.toJSON(),
       type: this.type,
       blueprint: this.#blueprint,
-      cache: this.#cache,
       hooks: this.hooks,
       hookIds: this.#hookCbIds,
     }
@@ -58,13 +53,11 @@ class Component<C extends ComponentObject = ComponentObject> {
     this.#blueprint = Component.isComponent(component)
       ? component.blueprint
       : component
-    this.#cache = {}
     this.#component = {
       ...this.#blueprint,
       style: { ...this.#blueprint.style },
     }
     this.#id = opts?.id || this.#component.id || getRandomKey()
-    this.original = this.#blueprint
     this.type = this.#blueprint.type
   }
 
@@ -152,7 +145,6 @@ class Component<C extends ComponentObject = ComponentObject> {
   ) => {
     let value
 
-    if (key === 'cache') return this.#cache
     if (key === 'style') {
       // Retrieve the entire style object
       if (u.isUnd(styleKey)) {
@@ -221,24 +213,13 @@ class Component<C extends ComponentObject = ComponentObject> {
     return this
   }
 
-  get ppath() {
-    return this.#propPath
-  }
-
-  set ppath(path) {
-    this.#propPath = path
-  }
-
   /**
    * Returns the most recent
    * component object at the time of this call.
    * If it is still a draft it is converted into plain JS
    */
   snapshot() {
-    return {
-      ...this.toJSON(),
-      _cache: this.#cache,
-    }
+    return this.toJSON()
   }
 
   /**

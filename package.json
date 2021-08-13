@@ -34,7 +34,7 @@
     "test:ndom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
     "test:ntil": "lerna exec --scope noodl-utils \"npm run test\"",
     "lib:build": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --parallel build",
-    "lib:start": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start",
+    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start",
     "updatesdk": "node scripts/update.js -u sdk -d",
     "updatenoodl": "node scripts/update.js -u noodl -d"
   },

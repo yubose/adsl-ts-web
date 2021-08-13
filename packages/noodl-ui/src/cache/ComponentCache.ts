@@ -124,10 +124,10 @@ class ComponentCache {
     return this
   }
 
+  get(): Map<string, ComponentCacheObject>
   get(
     component: NUIComponent.Instance | string | undefined,
   ): ComponentCacheObject
-  get(): Map<string, ComponentCacheObject>
   get(component?: NUIComponent.Instance | string | undefined) {
     if (isComponent(component)) return this.#cache.get(component.id)
     if (u.isStr(component)) return this.#cache.get(component)

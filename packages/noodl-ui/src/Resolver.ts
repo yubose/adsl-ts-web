@@ -6,6 +6,12 @@ export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
   resolver: Func
 }
 
+type ResolverArgs = [
+  component: NUIComponent.Instance,
+  options: ConsumerOptions,
+  next: (opts?: Record<string, any>) => void,
+]
+
 class Resolver<Func extends (...args: any[]) => any, Inst = any>
   implements IResolver<Func>
 {
@@ -30,8 +36,8 @@ class Resolver<Func extends (...args: any[]) => any, Inst = any>
 }
 
 class ComponentResolver<
-  Func extends (...args: NUIComponent.ResolverArgs) => void = (
-    ...args: NUIComponent.ResolverArgs
+  Func extends (...args: ResolverArgs) => void = (
+    ...args: ResolverArgs
   ) => void,
 > extends Resolver<Func, ComponentResolver<Func>> {
   #isInternal: boolean = false

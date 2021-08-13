@@ -1,8 +1,8 @@
+import * as u from '@jsmanifest/utils'
 import invariant from 'invariant'
 import merge from 'lodash/merge'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
 import type {
   ComponentObject,
@@ -34,11 +34,12 @@ import PageCache from './cache/PageCache'
 import PluginCache from './cache/PluginCache'
 import RegisterCache from './cache/RegisterCache'
 import TransactionCache from './cache/TransactionsCache'
-import VP from './Viewport'
 import resolveAsync from './resolvers/resolveAsync'
 import resolveComponents from './resolvers/resolveComponents'
 import resolveStyles from './resolvers/resolveStyles'
+import resolveSetup from './resolvers/resolveSetup'
 import resolveDataAttribs from './resolvers/resolveDataAttribs'
+import VP from './Viewport'
 import { isPromise, promiseAllSafely } from './utils/common'
 import {
   findIteratorVar,
@@ -238,7 +239,6 @@ const NUI = (function _NUI() {
     }
   }
 
-  // @ts-expect-error
   async function _emit<Evt extends string = string>(
     opts?: t.NUIEmit.EmitRegister<Evt>,
   ): Promise<any[]>
@@ -256,16 +256,8 @@ const NUI = (function _NUI() {
         const { event, params } = opts
         if (cache.register.has(event)) {
           const results = [] as any[]
-          console.log(
-            `%cThe register event "${event}" exists in the register cache`,
-            `color:#95a5a6;`,
-          )
           const obj = cache.register.get(event)
           if (obj.handler) {
-            console.log(
-              `%c"Handler" is an object. Attempting to use a "callback" in the handler object if it exists`,
-              `color:#95a5a6;`,
-            )
             const callback = obj.handler.fn
             if (u.isFnc(callback)) {
               console.log(
@@ -274,36 +266,11 @@ const NUI = (function _NUI() {
               )
               const result = await callback?.(obj, opts.params)
               results.push(result)
-              console.log(
-                `%cChecking if a "register" transaction was registered in from the client`,
-                `color:#95a5a6;`,
-              )
               const transactionHandler = o.cache.transactions.getHandler(
                 'register',
                 event,
               )
-              if (u.isFnc(transactionHandler)) {
-                console.log(
-                  `%cFound a transaction handler from the client. It will be invoked at the end and passed the return value of the callback from the handler object earlier`,
-                  `color:#95a5a6;`,
-                )
-                const _result = await transactionHandler(result)
-                console.log(
-                  `%cResult from transaction handler`,
-                  `color:#95a5a6;`,
-                  _result,
-                )
-              } else {
-                console.log(
-                  `%cA transaction handler was not found in the transaction cache. Only the callback in the handler object will be called`,
-                  `color:#CCCD17;`,
-                )
-              }
-            } else {
-              console.log(
-                `%cEntered a handler object that did not have a callback function. Nothing will happen`,
-                `color:#ec0000;`,
-              )
+              u.isFnc(transactionHandler) && (await transactionHandler(result))
             }
             return results
           } else {
@@ -323,17 +290,7 @@ const NUI = (function _NUI() {
           )
         }
       } else if (opts.type === nuiEmitType.TRANSACTION) {
-        const fn = cache.transactions.get(opts.transaction)?.fn
-        if (!u.isFnc(fn)) {
-          console.log(
-            `%cMissing a callback handler for transaction "${
-              opts.transaction
-            }" but received ${typeof fn}`,
-            `color:#ec0000;`,
-            opts,
-          )
-        }
-        return fn?.(opts.params as string | NUIPage)
+        return cache.transactions.get(opts.transaction)?.fn?.(opts.params)
       }
     } catch (error) {
       console.error(error)
@@ -435,6 +392,7 @@ const NUI = (function _NUI() {
   }
 
   const _transformers = [
+    resolveSetup,
     resolveAsync,
     resolveComponents,
     resolveStyles,
@@ -574,7 +532,6 @@ const NUI = (function _NUI() {
 
     components.forEach((c: t.NUIComponent.Instance, i) => {
       const component = o.createComponent(c)
-      component.ppath = `[${i}]`
       resolvedComponents.push(xform(component))
     })
 
@@ -649,9 +606,7 @@ const NUI = (function _NUI() {
             if (register) {
               if (key === 'handler') {
                 register.handler = { ...register.handler, ...options.handler }
-              } else {
-                register[key] = val
-              }
+              } else register[key] = val
             }
           })
         }
@@ -677,31 +632,16 @@ const NUI = (function _NUI() {
         !register.page && (register.page = '_global')
 
         if (!o.cache.register.has(event)) {
-          console.log(
-            `%cAdding a new register object "${event}" to the store`,
-            `color:#95a5a6;`,
-            register,
-          )
           if (register.handler) {
-            if (u.isFnc(register.handler.fn)) {
-              if (u.isFnc(register.fn)) {
-                register.fn = undefined
-                console.log(
-                  `%cSetting register.fn to undefined because a custom handler fn was provided`,
-                  `color:#95a5a6;`,
-                  register,
-                )
-              }
+            if (u.isFnc(register.handler.fn) && u.isFnc(register.fn)) {
+              // Setting register.fn to undefined because a custom handler fn
+              // was provided (which takes higher priority)
+              register.fn = undefined
             }
           } else {
             if (!u.isFnc(register.fn)) {
               register.fn = async function onRegisterFn(obj, params) {
-                console.log(
-                  `%cFunction has been called on register event "${event}"`,
-                  `color:aquamarine;`,
-                  { obj, params },
-                )
-                const results = await Promise.all(
+                return Promise.all(
                   o.cache.register.get(event)?.callbacks?.map(async (cb) => {
                     if (isActionChain(cb)) {
                       return cb?.execute?.call(cb, obj, params)
@@ -709,11 +649,9 @@ const NUI = (function _NUI() {
                     return u.isFnc(cb) ? cb(obj, params) : cb
                   }) || [],
                 )
-                return results
               }
             }
           }
-          // TODO - Should we convert the component object to a NUI component instance?
           if (Identify.folds.emit(obj)) {
             const ac = o.createActionChain(
               'register',
@@ -726,10 +664,7 @@ const NUI = (function _NUI() {
         }
       }
 
-      return cache.register.set(
-        event,
-        register as t.Register.Object,
-      ) as t.Register.Object
+      return cache.register.set(event, register as t.Register.Object)
     } catch (error) {
       console.error(`[${error.name}] ${error.message}`)
     }
@@ -798,37 +733,25 @@ const NUI = (function _NUI() {
               let totalStaleComponents = 0
               let totalStaleComponentIds = [] as string[]
 
-              // Delete the cached components from the page since it will be re-rerendered
+              // Delete the cached components from the page since it will be
+              // re-rerendered
               for (const obj of o.cache.component) {
-                if (obj) {
-                  if (obj.page === page.page) {
-                    totalStaleComponentIds.push(obj.component.id)
-                    o.cache.component.remove(obj.component)
-                    totalStaleComponents++
-                  }
+                if (obj && obj.page === page.page) {
+                  totalStaleComponentIds.push(obj.component.id)
+                  o.cache.component.remove(obj.component)
+                  totalStaleComponents++
                 }
-              }
-
-              if (totalStaleComponents > 0) {
-                console.log(
-                  `%cRemoved ${totalStaleComponents} old/stale cached components from ` +
-                    `page "${name}"`,
-                  `color:#95a5a6;`,
-                  totalStaleComponentIds,
-                )
               }
             }
           }
         }
       }
-
       if (!isPreexistent) {
         page = cache.page.create({ id, viewport: viewport }) as NUIPage
       }
 
       name && page && (page.page = name)
       ;(page as NUIPage).use(() => NUI.getRoot()[page?.page || '']?.components)
-
       return page
     },
     createPlugin(
@@ -866,11 +789,6 @@ const NUI = (function _NUI() {
       } as t.Plugin.Object
 
       if (!_path) {
-        console.log(
-          `%cThe path "${_path}" passed to a plugin component is null or undefined`,
-          `color:#ec0000;`,
-          plugin,
-        )
         _path = ''
         plugin.id = ''
         plugin.path = ''
@@ -892,20 +810,24 @@ const NUI = (function _NUI() {
       if (!u.isArr(actions)) actions = [actions]
 
       const actionChain = createActionChain({
-        actions: actions?.reduce((acc: t.NUIActionObject[], obj) => {
-          const errors = getActionObjectErrors(obj)
-          if (errors.length) {
-            errors.forEach((errMsg) =>
-              console.log(`%c${errMsg}`, `color:#ec0000;`, obj),
-            )
-          }
-          if (u.isObj(obj) && !('actionType' in obj)) {
-            obj = { ...obj, actionType: getActionType(obj) }
-          } else if (u.isFnc(obj)) {
-            obj = { actionType: 'anonymous', fn: obj }
-          }
-          return acc.concat(obj as t.NUIActionObject)
-        }, []),
+        actions: u.reduce(
+          actions,
+          (acc: t.NUIActionObject[], obj) => {
+            const errors = getActionObjectErrors(obj)
+            if (errors.length) {
+              errors.forEach((errMsg) =>
+                console.log(`%c${errMsg}`, `color:#ec0000;`, obj),
+              )
+            }
+            if (u.isObj(obj) && !('actionType' in obj)) {
+              obj = { ...obj, actionType: getActionType(obj) }
+            } else if (u.isFnc(obj)) {
+              obj = { actionType: 'anonymous', fn: obj }
+            }
+            return acc.concat(obj as t.NUIActionObject)
+          },
+          [],
+        ),
         trigger,
         loader: (objs) => {
           function __createExecutor(
@@ -917,9 +839,7 @@ const NUI = (function _NUI() {
               let results = [] as (Error | any)[]
               if (fns.length) {
                 const callbacks = fns.map(
-                  async function executeActionChainCallback(
-                    obj: t.Store.ActionObject | t.Store.BuiltInObject,
-                  ) {
+                  async (obj: t.Store.ActionObject | t.Store.BuiltInObject) => {
                     return obj.fn?.(action as any, {
                       ...options,
                       component: opts?.component,
@@ -948,32 +868,16 @@ const NUI = (function _NUI() {
                   opts?.context?.dataObject ||
                   findListDataObject(opts.component)
 
-                const dataKey = obj.emit?.dataKey
-
-                if (dataKey) {
-                  if (Identify.component.page(opts.component)) {
-                    // if (Identify.reference(dataKey)) {
-                    //   action.dataKey = createEmitDataKey(
-                    //     dataKey,
-                    //     _getQueryObjects({
-                    //       component: opts.component,
-                    //       page: opts.page,
-                    //       listDataObject: dataObject,
-                    //     }),
-                    //     { iteratorVar },
-                    //   )
-                    // }
-                  } else {
-                    action.dataKey = createEmitDataKey(
-                      dataKey,
-                      _getQueryObjects({
-                        component: opts.component,
-                        page: opts.page,
-                        listDataObject: dataObject,
-                      }),
-                      { iteratorVar },
-                    )
-                  }
+                if (obj.emit?.dataKey) {
+                  action.dataKey = createEmitDataKey(
+                    obj.emit.dataKey,
+                    _getQueryObjects({
+                      component: opts.component,
+                      page: opts.page,
+                      listDataObject: dataObject,
+                    }),
+                    { iteratorVar },
+                  )
                 }
               }
 
@@ -1021,28 +925,22 @@ const NUI = (function _NUI() {
     getActions: _getActions,
     getBuiltIns: () => cache.actions.builtIn,
     getBaseUrl: () => '',
-    getBaseStyles({ component }: { component: t.NUIComponent.Instance }) {
-      const originalStyle = component?.blueprint?.style || {}
-      const styles = { ...originalStyle } as any
+    getBaseStyles(component: t.NUIComponent.Instance) {
+      const origStyle = component?.blueprint?.style || {}
+      const styles = { ...origStyle } as any
 
-      if (VP.isNil(originalStyle?.top) || originalStyle?.top === 'auto') {
+      if (VP.isNil(origStyle?.top) || origStyle?.top === 'auto') {
         styles.position = 'relative'
       } else {
         styles.position = 'absolute'
       }
-      if (originalStyle?.position == 'fixed') {
-        styles.position = 'fixed'
-      }
+      origStyle?.position == 'fixed' && (styles.position = 'fixed')
 
-      u.isNil(originalStyle.height) && (styles.height = 'auto')
+      u.isNil(origStyle.height) && (styles.height = 'auto')
 
       return merge(
-        {
-          ...o.getRoot().Style,
-          position: 'absolute',
-          outline: 'none',
-        },
-        originalStyle,
+        { ...o.getRoot()?.Style, position: 'absolute', outline: 'none' },
+        origStyle,
         styles,
       )
     },
@@ -1084,9 +982,7 @@ const NUI = (function _NUI() {
         createSrc: _createSrc,
         emit: _emit,
         get: _createGetter(page),
-        getBaseStyles(c: t.NUIComponent.Instance) {
-          return o.getBaseStyles?.({ component: c })
-        },
+        getBaseStyles: (c: t.NUIComponent.Instance) => o.getBaseStyles?.(c),
         get getQueryObjects() {
           return _getQueryObjects
         },
@@ -1109,7 +1005,6 @@ const NUI = (function _NUI() {
       }
       return u.array(cache.page.get('root'))[0]?.page as NUIPage
     },
-    getTransactions: () => cache.transactions,
     resolveComponents: _resolveComponents,
     reset(
       filter?:
@@ -1201,8 +1096,6 @@ const NUI = (function _NUI() {
         )
       }
 
-      //
-
       if ('emit' in args) {
         u.eachEntries(
           args.emit,
@@ -1238,7 +1131,7 @@ const NUI = (function _NUI() {
           })
         } else {
           u.eachEntries(args.register, (event, fn: t.Register.Object['fn']) => {
-            if (u.isFnc(fn)) o._experimental.register(event, fn)
+            u.isFnc(fn) && o._experimental.register(event, fn)
           })
         }
       }
@@ -1247,7 +1140,7 @@ const NUI = (function _NUI() {
         u.eachEntries(args.transaction, (tid, fn) => {
           const opts = {} as any
           u.isFnc(fn) ? (opts.fn = fn) : u.isObj(fn) && u.assign(opts, fn)
-          o.getTransactions().set(tid as t.TransactionId, opts)
+          cache.transactions.set(tid as t.TransactionId, opts)
         })
       }
 

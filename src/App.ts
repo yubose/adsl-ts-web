@@ -421,7 +421,14 @@ class App {
                 )
               : undefined,
             checkField: self.builtIns.get('checkField')?.find(Boolean)?.fn,
-            goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
+            goto: (...args) => {
+              // debugger
+              return self.builtIns
+                .get('goto')
+                ?.find(Boolean)
+                ?.fn(...args)
+            },
+            // goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
             hide: self.builtIns.get('hide')?.find(Boolean)?.fn,
             show: self.builtIns.get('show')?.find(Boolean)?.fn,
             redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
@@ -451,7 +458,9 @@ class App {
                 log.func(`${pageRequesting} init`)
                 log.red(
                   `The reference "${ref}" is missing from the ${
-                    location === 'local' ? `local root for page "${pageRequesting}"` : 'root'
+                    location === 'local'
+                      ? `local root for page "${pageRequesting}"`
+                      : 'root'
                   }`,
                   {
                     previous: init[index - 1],
@@ -486,6 +495,33 @@ class App {
             if (err) throw err
             log.func('onAfterInit')
             log.grey('', { err, init, page: pageRequesting })
+
+            const activePages = [] as string[]
+
+            for (const obj of this.cache.component) {
+              if (obj) {
+                if (obj.page && !activePages.includes(obj.page)) {
+                  activePages.push(obj.page)
+                }
+              }
+            }
+
+            for (const obj of this.cache.page) {
+              if (obj) {
+                const [id, { page }] = obj
+                if (!page.page || !activePages.includes(page.page)) {
+                  console.log(
+                    `%cRemoving ${
+                      !page.page ? 'empty' : 'inactive'
+                    } page from NUI`,
+                    `color:#00b406;`,
+                    page.toJSON(),
+                  )
+                  // debugger
+                  this.cache.page.remove(page)
+                }
+              }
+            }
           },
         })
       )?.aborted

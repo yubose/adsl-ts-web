@@ -505,9 +505,9 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] Hover': {
       cond: (n, c) => c.has('hover'),
       resolve(node, component) {
-        if (component?.original?.hover) {
+        if (component?.blueprint?.hover) {
           node?.addEventListener('mouseover', function (e) {
-            u.eachEntries(component?.original?.hover, (key: any, value) => {
+            u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
               value = value.substring(2)
               node.style[key] = '#' + value
             })

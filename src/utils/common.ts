@@ -70,7 +70,6 @@ export function isIOS() {
     /iPad|iPhone|iPod/.test(
       window.navigator.userAgent || window.navigator.vendor || '',
     ) &&
-    // @ts-expect-error
     !window.MSStream
   )
 }

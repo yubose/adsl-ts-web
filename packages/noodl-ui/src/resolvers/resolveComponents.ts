@@ -112,7 +112,6 @@ componentResolver.setResolver((component, options, next) => {
       ({ index, dataObject }) => {
         const ctx = { index, iteratorVar, dataObject }
         let listItem = component.createChild(createComponent(listItemBlueprint))
-        listItem.ppath = `${component.ppath}.children[${index}]`
         listItem.edit({ index, [iteratorVar]: dataObject })
         listItem = resolveComponents({
           components: listItem,
@@ -133,40 +132,6 @@ componentResolver.setResolver((component, options, next) => {
       'ADD_DATA_OBJECT',
     )
 
-    // Removes list items when their data object is removed
-    component.on(
-      c.nuiEvent.component.list.DELETE_DATA_OBJECT,
-      (args) => {
-        const listItem = component?.children?.find(
-          (child) => child.get(iteratorVar) === args.dataObject,
-        )
-        if (listItem) {
-          const liProps = listItem.props
-          liProps[iteratorVar] = ''
-          if (listItem) {
-            component.removeChild(listItem)
-            cache.component.remove(listItem)
-            publish(listItem, (c) => {
-              console.log(`%cRemoving from cache: ${c.id}`, `color:#00b406`)
-              cache.component.remove(c)
-            })
-          }
-        }
-      },
-      'DELETE_DATA_OBJECT',
-    )
-
-    // Updates list items with new updates to their data object
-    component.on(
-      c.nuiEvent.component.list.UPDATE_DATA_OBJECT,
-      (args) => {
-        component.children?.[args.index]?.edit?.({
-          [iteratorVar]: args.dataObject,
-        })
-      },
-      'UPDATE_DATA_OBJECT',
-    )
-
     // Removes the placeholder (first child)
     component.clear('children')
 
@@ -185,25 +150,25 @@ componentResolver.setResolver((component, options, next) => {
 
   if (Identify.component.page(component)) {
     let nuiPage = cache.page.get(component.id)?.page
-    let pageName = ''
+    let pageName = component.get('path') || ''
 
-    if (!nuiPage || !nuiPage?.page) {
-      if (Identify.if(path)) {
-        pageName = evalIf(path)
-        if (u.isStr(pageName)) {
-          if (Identify.reference(pageName)) pageName = enhancedGet(pageName)
-        }
-      } else if (u.isStr(path)) {
-        pageName = Identify.reference(path) ? enhancedGet(path) : path
+    if (u.isStr(pageName)) {
+      if (!nuiPage) {
+        nuiPage = createPage({
+          id: component.id,
+          component,
+          name: pageName,
+        }) as NUIPage
+        component.emit('page-created', nuiPage)
       }
 
-      nuiPage = createPage({ id: component.id, name: pageName }) as NUIPage
+      if (pageName && nuiPage.page !== pageName) {
+        nuiPage.page = pageName
+      }
 
-      if (pageName) {
+      if (nuiPage?.page) {
         ;(async () => {
           try {
-            nuiPage.page = pageName
-
             // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window
             if (getPages().includes(pageName)) {
               const pageObject = await emit({
@@ -229,9 +194,11 @@ componentResolver.setResolver((component, options, next) => {
               }
             }
           } catch (err) {
-            throw new Error(
+            // TODO - handle this. Maybe cleanup?
+            console.error(
               `[Page component] ` +
                 `Error attempting to get the page object for a page component]: ${err.message}`,
+              err,
             )
           }
         })()
@@ -242,28 +209,28 @@ componentResolver.setResolver((component, options, next) => {
           { component, options },
         )
       }
-    }
 
-    let viewport = nuiPage.viewport || new VP()
+      let viewport = nuiPage.viewport || new VP()
 
-    if (VP.isNil(originalStyle.width)) {
-      viewport.width = getRootPage().viewport.width
-    } else {
-      viewport.width = Number(
-        VP.getSize(originalStyle.width, options.viewport?.width, {
-          toFixed: 2,
-        }),
-      )
-    }
+      if (VP.isNil(originalStyle.width)) {
+        viewport.width = getRootPage().viewport.width
+      } else {
+        viewport.width = Number(
+          VP.getSize(originalStyle.width, options.viewport?.width, {
+            toFixed: 2,
+          }),
+        )
+      }
 
-    if (VP.isNil(originalStyle.height)) {
-      viewport.height = getRootPage().viewport.height
-    } else {
-      viewport.height = Number(
-        VP.getSize(originalStyle.height, options.viewport?.height, {
-          toFixed: 2,
-        }),
-      )
+      if (VP.isNil(originalStyle.height)) {
+        viewport.height = getRootPage().viewport.height
+      } else {
+        viewport.height = Number(
+          VP.getSize(originalStyle.height, options.viewport?.height, {
+            toFixed: 2,
+          }),
+        )
+      }
     }
   }
 
@@ -468,7 +435,6 @@ componentResolver.setResolver((component, options, next) => {
       (childObject: ComponentObject, i) => {
         let child = createComponent(childObject)
         child = component.createChild(child)
-        child.ppath = `${component.ppath || ''}.children[${i}]`
         child = resolveComponents({ components: child, context, page })
         !cache.component.has(child) && cache.component.add(child, page)
       },

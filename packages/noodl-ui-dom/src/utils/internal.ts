@@ -84,7 +84,6 @@ function _createDocIdentifier(
     isFnc(obj.get) && (result = obj.get(key))
     isUnd(result) && (result = get(obj, key))
     isUnd(result) && (result = get(obj.blueprint, key))
-    isUnd(result) && (result = get(obj.original, key))
     return result || defaultValue
   }
   // TODO - Docx files is being detected as PDF -- which prompts downloading

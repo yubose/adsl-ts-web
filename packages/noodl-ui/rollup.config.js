@@ -12,8 +12,7 @@ import typescript from 'rollup-plugin-typescript2'
 import { terser } from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
-const rootDir = path.join(process.cwd(), '../..')
-console.log(`[noodl-ui] ROOT DIR: ${rootDir}`)
+const _DEV_ = process.env.NODE_ENV === 'development'
 
 /**
  * @typedef { RollupOptions[] }
@@ -65,7 +64,18 @@ const configs = [
         exclude: ['node_modules/**/*'],
         extensions: ['.js'],
       }),
-      terser({ compress: true }),
+      !_DEV_
+        ? terser({
+            compress: {
+              drop_console: false,
+              drop_debugger: false,
+            },
+            keep_fnames: true,
+            format: {
+              source_map: { includeSources: true },
+            },
+          })
+        : undefined,
       // esbuild({
       //   include: /\.[jt]s?$/,
       //   exclude: /node_modules/,

@@ -7,7 +7,7 @@ const asyncResolver = new Resolver('resolveAsync')
 
 async function resolveAsync(
   component: NUIComponent.Instance,
-  { createActionChain, getAssetsUrl, getRoot, page }: ConsumerOptions,
+  { createActionChain, getAssetsUrl }: ConsumerOptions,
 ) {
   try {
     const original = component.blueprint || {}
@@ -24,7 +24,7 @@ async function resolveAsync(
       const results = await ac?.execute?.()
       const result = results.find((val) => !!val?.result)?.result
       component.edit({ 'data-value': result })
-      component.emit('dataValue', result)
+      component.emit('data-value', result)
     }
 
     /* -------------------------------------------------------
@@ -83,11 +83,8 @@ asyncResolver.setResolver((component, options, next) => {
       component.style.cursor = 'pointer'
     }
 
-    if (original['onTextChange']) {
-      const actionChain = createActionChain(
-        'onInput',
-        original['onTextChange'] as NUIActionObject[],
-      )
+    if (original.onTextChange) {
+      const actionChain = createActionChain('onInput', original.onTextChange)
       component.edit({ ['onInput']: actionChain })
     }
   })

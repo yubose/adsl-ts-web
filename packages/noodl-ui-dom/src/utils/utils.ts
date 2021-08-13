@@ -6,9 +6,8 @@ import {
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
-import * as u from '@jsmanifest/utils'
 import { LiteralUnion } from 'type-fest'
-import NOODLDOMPage from '../Page'
+import * as u from '@jsmanifest/utils'
 import findElement from './findElement'
 import { DOMNodeInput, NOODLDOMDataAttribute } from '../types'
 import { dataAttributes } from '../constants'
