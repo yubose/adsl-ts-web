@@ -261,9 +261,14 @@ const domComponentsResolver: Resolve.Config = {
 
         // load promise return to image
         if (component.has('path=func')) {
-          ;(node as HTMLImageElement).src = '../waiting.png'
+          // ;(node as HTMLImageElement).src = '../waiting.png'
           component.get('data-src').then((path: any) => {
-            ;(node as HTMLImageElement).src = path
+            console.log("test path=func",path)
+            if(path){
+              ;(node as HTMLImageElement).src = path
+            }else{
+              ;(node as HTMLImageElement).src = component.get('data-src')
+            }
           })
         }
       }
