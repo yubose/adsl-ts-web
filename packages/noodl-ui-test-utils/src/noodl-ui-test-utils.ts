@@ -1,10 +1,9 @@
-import { Action, createActionChain } from 'noodl-action-chain'
 import * as u from '@jsmanifest/utils'
 import { PartialDeep } from 'type-fest'
 import {
   BuiltInActionObject,
   ButtonComponentObject,
-  ComponentObject,
+  CanvasComponentObject, // 9
   DividerComponentObject,
   EcosDocComponentObject,
   EcosDocument,
@@ -14,7 +13,6 @@ import {
   FooterComponentObject,
   GotoObject,
   HeaderComponentObject,
-  Identify,
   IfObject,
   ImageComponentObject,
   LabelComponentObject,
@@ -24,16 +22,18 @@ import {
   PageComponentObject,
   PageJumpActionObject,
   Path,
-  PluginComponentObject,
-  PluginBodyTopComponentObject,
-  PluginHeadComponentObject,
   PluginBodyTailComponentObject,
+  PluginBodyTopComponentObject,
+  PluginComponentObject,
+  PluginHeadComponentObject,
   PopupActionObject,
   PopUpComponentObject,
   PopupDismissActionObject,
   RefreshActionObject,
   RegisterComponentObject,
+  RemoveSignatureActionObject,
   SaveActionObject,
+  SaveSignatureActionObject,
   ScrollViewComponentObject,
   SelectComponentObject,
   TextBoardObject,
@@ -43,71 +43,36 @@ import {
   UpdateActionObject,
   VideoComponentObject,
   ViewComponentObject,
-  RemoveSignatureActionObject,
-  SaveSignatureActionObject,
-  CanvasComponentObject, // 9
 } from 'noodl-types'
-import { EmitAction, NUIAction, NUIActionObject } from 'noodl-ui'
 import {
   ComponentProps,
-  createActionWithKeyOrProps,
-  createComponentWithKeyOrProps,
+  createActionObject_next,
+  createComponentObject,
 } from './utils'
 import ecosJpgDoc from './fixtures/jpg.json'
 import ecosNoteDoc from './fixtures/note.json'
 import ecosPdfDoc from './fixtures/pdf.json'
 import ecosPngDoc from './fixtures/png.json'
 import ecosTextDoc from './fixtures/text.json'
-import * as T from './types'
 
-export function getActionChain({
-  actions,
-  loader,
-  load = true,
-  trigger,
-}: T.MockGetActionChainOptions) {
-  let isExtendedActions = 'fn' in actions[0] || 'action' in actions[0]
-
-  const getInstance = (obj: NUIActionObject) => {
-    const action = Identify.folds.emit(obj)
-      ? new EmitAction(trigger, obj)
-      : new Action(trigger, obj)
-
-    if (isExtendedActions) {
-      const o = actions.find(
-        (o: T.MockGetActionChainExtendedActionsArg) => o.action === obj,
-      ) as T.MockGetActionChainExtendedActionsArg
-      // Convenience if they want to provide spies
-      typeof o?.fn === 'function' && (action.executor = o.fn)
-    }
-
-    return action as NUIAction
-  }
-
-  const actionChain = createActionChain(
-    trigger,
-    (isExtendedActions
-      ? actions.map(
-          (o: { action: NUIActionObject; fn: (...args: any[]) => any }) =>
-            o.action,
-        )
-      : actions) as NUIActionObject[],
-    (actions) => (loader ? loader(actions) : actions.map(getInstance)) as any,
-  )
-
-  load && actionChain.loadQueue()
-  return actionChain
+export function getBuiltInAction(obj?: string | Partial<BuiltInActionObject>) {
+  u.isStr(obj) && (obj = { funcName: obj } as BuiltInActionObject)
+  return createActionObject_next('builtIn')({
+    ...obj,
+    funcName: obj?.funcName || 'redraw',
+  })
 }
 
-export const getBuiltInAction = createActionWithKeyOrProps<BuiltInActionObject>(
-  { actionType: 'builtIn', funcName: 'hello' },
-  'funcName',
-)
-
 export function getEvalObjectAction(
-  props?: Partial<EvalActionObject>,
+  obj?: EvalActionObject['object'] | Partial<EvalActionObject>,
 ): EvalActionObject {
-  return { actionType: 'evalObject', object: {}, ...props }
+  !obj && (obj = { actionType: 'evalObject', object: getIfObject() })
+  !('actionType' in obj) &&
+    (obj = { actionType: 'evalObject', object: obj['object'] })
+  return createActionObject_next('evalObject')({
+    ...obj,
+    object: obj['object'],
+  })
 }
 
 export function getPageJumpAction(
@@ -252,10 +217,8 @@ export function getEcosDocObject<N extends NameField>(
   return ecosObj as EcosDocument<N>
 }
 
-export function getFoldedEmitObject(
-  ...args: Parameters<typeof getEmitObject>
-): EmitObjectFold {
-  return { emit: getEmitObject(...args) }
+export function getFoldedEmitObject(...args: Parameters<typeof getEmitObject>) {
+  return { emit: getEmitObject(...args) } as EmitObjectFold
 }
 
 export function getEmitObject({
@@ -264,8 +227,8 @@ export function getEmitObject({
   actions = [{}, {}, {}],
 }: {
   iteratorVar?: string
-} & Partial<EmitObject> = {}): EmitObject {
-  return { dataKey, actions }
+} & Partial<EmitObject> = {}) {
+  return { dataKey, actions } as EmitObject
 }
 
 export function getGotoObject(
@@ -375,7 +338,7 @@ export function getImageComponent(
   return obj
 }
 
-export const getLabelComponent = createComponentWithKeyOrProps<
+export const getLabelComponent = createComponentObject<
   LabelComponentObject & {
     dataKey?: string
     placeholder?: string
@@ -424,38 +387,29 @@ export function getListComponent(
   }
 }
 
-export function getListItemComponent({
-  iteratorVar = 'itemObject',
-  dataObject,
-  ...rest
-}: ComponentProps<Partial<ListItemComponentObject>> & {
-  dataObject?: any
-  iteratorVar?: string
-} = {}): ListItemComponentObject {
+export function getListItemComponent(
+  {
+    iteratorVar = 'itemObject',
+    dataObject,
+    ...rest
+  }: ComponentProps<Partial<ListItemComponentObject>> & {
+    dataObject?: any
+    iteratorVar?: string
+  } = {} as any,
+): ListItemComponentObject {
   return {
     [iteratorVar]: dataObject || '',
     style: { left: '0', border: { style: '1' } },
-    children: [
-      getLabelComponent(),
-      getViewComponent({
-        addChildren: [
-          getViewComponent({
-            addChildren: [getViewComponent()],
-          } as any),
-        ],
-      } as any),
-      getButtonComponent(),
-    ],
+    children: [getLabelComponent(), getViewComponent(), getButtonComponent()],
     ...rest,
     type: 'listItem',
   }
 }
 
-export const getPageComponent =
-  createComponentWithKeyOrProps<PageComponentObject>(
-    { type: 'page', path: 'SignIn' },
-    'path',
-  )
+export const getPageComponent = createComponentObject<PageComponentObject>(
+  { type: 'page', path: 'SignIn' },
+  'path',
+)
 
 export function getPluginComponent(
   props?: ComponentProps<Partial<PluginComponentObject>> & { path?: string },
@@ -472,25 +426,24 @@ export function getPluginHeadComponent(
 }
 
 export const getPluginBodyTopComponent =
-  createComponentWithKeyOrProps<PluginBodyTopComponentObject>(
+  createComponentObject<PluginBodyTopComponentObject>(
     { type: 'pluginBodyTop', path: 'googleTM.js' } as any,
     'path',
   )
 
 export const getPluginBodyTailComponent =
-  createComponentWithKeyOrProps<PluginBodyTailComponentObject>(
+  createComponentObject<PluginBodyTailComponentObject>(
     { type: 'pluginBodyTail', path: 'googleTM.js' },
     'path',
   )
 
-export const getPopUpComponent =
-  createComponentWithKeyOrProps<PopUpComponentObject>(
-    { type: 'popUp', popUpView: 'genderView' },
-    'popUpView',
-  )
+export const getPopUpComponent = createComponentObject<PopUpComponentObject>(
+  { type: 'popUp', popUpView: 'genderView' },
+  'popUpView',
+)
 
 export const getRegisterComponent =
-  createComponentWithKeyOrProps<RegisterComponentObject>(
+  createComponentObject<RegisterComponentObject>(
     { type: 'register', onEvent: 'toggleCameraOn' },
     'onEvent',
   )
@@ -537,24 +490,19 @@ export function getTextViewComponent(
   return { type: 'textView', ...props }
 }
 
-export const getVideoComponent =
-  createComponentWithKeyOrProps<VideoComponentObject>(
-    { type: 'video', videoFormat: 'video/mp4' },
-    'path',
-  )
+export const getVideoComponent = createComponentObject<VideoComponentObject>(
+  { type: 'video', videoFormat: 'video/mp4' },
+  'path',
+)
 
-export function getViewComponent({
-  addChildren = [],
-  children,
-  ...rest
-}: ComponentProps<Partial<ViewComponentObject>> & {
-  addChildren?: Partial<ComponentObject>[]
-} = {}): ViewComponentObject {
+export function getViewComponent(
+  {
+    children = [],
+    ...rest
+  }: ComponentProps<Partial<ViewComponentObject>> = {} as any,
+): ViewComponentObject {
   return {
-    viewTag: 'subStream',
-    required: false,
-    style: { fontStyle: 'bold', height: '0.15', borderRadius: '5' },
-    children: children || [getLabelComponent(), ...addChildren],
+    children,
     ...rest,
     type: 'view',
   }
