@@ -282,7 +282,7 @@ resolveStyles.setResolver(
           edit({ height: String(util.getSize(height, viewport.height)) })
         } else {
           edit({
-            height: `${String(com.hasLetter(height) ? height : height + 'px')}`,
+            height: String(util.getSize(height as any, viewport.height)),
           })
         }
       }

@@ -8,6 +8,7 @@ import {
 } from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
 import * as u from '@jsmanifest/utils'
+import NDOMGlobal from '../Global'
 import findElement from './findElement'
 import { DOMNodeInput, NOODLDOMDataAttribute } from '../types'
 import { dataAttributes } from '../constants'
@@ -122,7 +123,7 @@ export function makeFindByAttr(
   return findByAttr
 }
 
-export function findBySelector(selector: string | undefined) {
+export function findBySelector(selector = '') {
   return selector
     ? findElement((doc) => {
         let nodes = doc?.querySelectorAll?.(selector)
@@ -130,6 +131,12 @@ export function findBySelector(selector: string | undefined) {
         return null
       })
     : null
+}
+
+export function findFirstBySelector(
+  ...args: Parameters<typeof findBySelector>
+) {
+  return u.array(findBySelector(...args)).find(Boolean) as HTMLElement
 }
 
 export function findByDataAttrib(

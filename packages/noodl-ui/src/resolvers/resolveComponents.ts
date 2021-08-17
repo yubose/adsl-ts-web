@@ -8,11 +8,9 @@ import { Identify } from 'noodl-types'
 import { findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import type NUIPage from '../Page'
-import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
 import { formatColor, isPromise } from '../utils/common'
 import {
-  evalIf,
   findIteratorVar,
   findListDataObject,
   isListConsumer,
@@ -27,13 +25,14 @@ const componentResolver = new Resolver('resolveComponents')
 
 componentResolver.setResolver((component, options, next) => {
   const {
+    callback,
     cache,
     context,
+    createComponent,
     createPage,
     createPlugin,
     createSrc,
     emit,
-    get: enhancedGet, // A more optimized getter. TODO: Replace regular get func calls with this one
     getAssetsUrl,
     getPages,
     getRoot,
@@ -64,14 +63,14 @@ componentResolver.setResolver((component, options, next) => {
         console.log(
           `%cAn ecosObj was received with a "name" field that was not an object. ` +
             `This will rely on the subtype to determine the type of document ` +
-            `to generate the metadata for`,
+            `to determine the metadata`,
           `color:#FF5722;`,
           { component, ecosObj },
         )
       }
     } else {
       console.log(
-        `%cAn ecosDoc component did not have a valid "ecosObj" value`,
+        `%cAn ecosDoc component had an empty "ecosObj" value`,
         `color:#ec0000;`,
         component,
       )
@@ -89,11 +88,9 @@ componentResolver.setResolver((component, options, next) => {
       return component.type === 'chatList' ? 'chatItem' : 'children'
     }
 
+    /** Filter invalid values (0 is a valid value)  */
     function getListObject() {
-      if (u.isArr(component.blueprint.listObject)) {
-        return component.blueprint.listObject
-      }
-      return []
+      return u.array(component.blueprint.listObject).filter(Boolean)
     }
 
     function getRawBlueprint(component: NUIComponent.Instance) {
@@ -111,26 +108,41 @@ componentResolver.setResolver((component, options, next) => {
       c.nuiEvent.component.list.ADD_DATA_OBJECT,
       ({ index, dataObject }) => {
         const ctx = { index, iteratorVar, dataObject }
-        let listItem = component.createChild(createComponent(listItemBlueprint))
+        let listItem = createComponent(listItemBlueprint)
+        listItem = component.createChild(listItem)
         listItem.edit({ index, [iteratorVar]: dataObject })
         listItem = resolveComponents({
+          callback,
           components: listItem,
-          context: ctx,
+          context: { ...context, ...ctx },
           page,
         })
-        cache.component.add(listItem, page)
-        const numGeneratedChildren = listItem.length
-        const expectedNumChildren = listItem.blueprint?.children?.length
-        if (listItem.length > (listItem.blueprint?.children?.length || 0)) {
-          console.log(
-            `%cA listItem has more children (${numGeneratedChildren}) than what its blueprint represents (${expectedNumChildren})`,
-            `color:#ec0000;`,
-            { list: component, listItem, dataObject, index },
-          )
-        }
       },
-      'ADD_DATA_OBJECT',
+      c.nuiEvent.component.list.ADD_DATA_OBJECT,
     )
+
+    // Removes list items when their data object is removed
+    // component.on(
+    //   c.nuiEvent.component.list.DELETE_DATA_OBJECT,
+    //   (args) => {
+    //     const listItem = component?.children?.find(
+    //       (child) => child.get(iteratorVar) === args.dataObject,
+    //     )
+    //     if (listItem) {
+    //       const liProps = listItem.props
+    //       liProps[iteratorVar] = ''
+    //       if (listItem) {
+    //         component.removeChild(listItem)
+    //         cache.component.remove(listItem)
+    //         publish(listItem, (c) => {
+    //           console.log(`%cRemoving from cache: ${c.id}`, `color:#00b406`)
+    //           cache.component.remove(c)
+    //         })
+    //       }
+    //     }
+    //   },
+    //   'DELETE_DATA_OBJECT',
+    // )
 
     // Removes the placeholder (first child)
     component.clear('children')
@@ -149,7 +161,7 @@ componentResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.page(component)) {
-    let nuiPage = cache.page.get(component.id)?.page
+    let nuiPage = component.get('page') || cache.page.get(component.id)?.page
     let pageName = component.get('path') || ''
 
     if (u.isStr(pageName)) {
@@ -159,31 +171,43 @@ componentResolver.setResolver((component, options, next) => {
           component,
           name: pageName,
         }) as NUIPage
-        component.emit('page-created', nuiPage)
+        component.edit('page', nuiPage)
+        component.emit(c.nuiEvent.component.page.PAGE_CREATED, nuiPage)
       }
 
-      if (pageName && nuiPage.page !== pageName) {
-        nuiPage.page = pageName
-      }
+      !pageName && (pageName = component.get('path'))
+      pageName && nuiPage.page !== pageName && (nuiPage.page = pageName)
 
-      if (nuiPage?.page) {
+      if (nuiPage) {
+        if (!nuiPage.page) {
+          console.log(
+            `%cThe page component does not have its page name resolved yet`,
+            `color:#ec0000;`,
+            { component, options },
+          )
+          return
+        }
         ;(async () => {
           try {
             // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window
             if (getPages().includes(pageName)) {
-              const pageObject = await emit({
-                type: c.nuiEmitType.TRANSACTION,
-                transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-                params: nuiPage,
-              })
+              const onPageChange = async (initializing = false) => {
+                !component.get('page') && component.edit('page', nuiPage)
+                await emit({
+                  type: c.nuiEmitType.TRANSACTION,
+                  transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+                  params: nuiPage,
+                })
+                component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, {
+                  page: nuiPage,
+                  type: initializing ? 'init' : 'update',
+                })
+              }
               component.edit('page', nuiPage)
-              component.emit(
-                c.nuiEvent.component.page.PAGE_COMPONENTS,
-                pageObject.components || nuiPage.components || [],
-              )
+              component.on(c.nuiEvent.component.page.PAGE_CHANGED, onPageChange)
+              await onPageChange(true)
             } else {
               // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
-
               if (pageName.endsWith('.html')) {
                 if (!pageName.startsWith('http')) {
                   pageName = resolveAssetUrl(pageName, getAssetsUrl())
@@ -200,14 +224,11 @@ componentResolver.setResolver((component, options, next) => {
                 `Error attempting to get the page object for a page component]: ${err.message}`,
               err,
             )
+            debugger
           }
         })()
       } else {
-        console.log(
-          `%cCould not resolve the page name for a page component`,
-          `color:#ec0000;`,
-          { component, options },
-        )
+        debugger
       }
 
       let viewport = nuiPage.viewport || new VP()
@@ -435,11 +456,17 @@ componentResolver.setResolver((component, options, next) => {
       (childObject: ComponentObject, i) => {
         let child = createComponent(childObject)
         child = component.createChild(child)
-        child = resolveComponents({ components: child, context, page })
+        child = resolveComponents({
+          callback,
+          components: child,
+          context,
+          page,
+        })
         !cache.component.has(child) && cache.component.add(child, page)
       },
     )
   }
+
   !cache.component.has(component) && cache.component.add(component, page)
 
   next?.()

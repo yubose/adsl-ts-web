@@ -226,9 +226,7 @@ class App {
         _page.requesting = ''
         return void (window.location.href = _pageRequesting)
       }
-      // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside
-      // our init() method. Page.components should also contain the components retrieved from
-      // that page object
+      // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       const req = await this.ndom.request(_page)
       if (req) {
         const components = req.render()
@@ -396,6 +394,16 @@ class App {
         page.snapshot(),
       )
 
+      if (pageRequesting === currentPage) {
+        console.log(
+          `%cYou are already on the "${pageRequesting}" page. ` +
+            `The page is unnecessarily rendering twice to the DOM`,
+          `color:#ec0000;`,
+        )
+        // debugger
+        // return { aborted: true }
+      }
+
       let self = this
 
       const isAborted = (
@@ -495,33 +503,6 @@ class App {
             if (err) throw err
             log.func('onAfterInit')
             log.grey('', { err, init, page: pageRequesting })
-
-            const activePages = [] as string[]
-
-            for (const obj of this.cache.component) {
-              if (obj) {
-                if (obj.page && !activePages.includes(obj.page)) {
-                  activePages.push(obj.page)
-                }
-              }
-            }
-
-            for (const obj of this.cache.page) {
-              if (obj) {
-                const [id, { page }] = obj
-                if (!page.page || !activePages.includes(page.page)) {
-                  console.log(
-                    `%cRemoving ${
-                      !page.page ? 'empty' : 'inactive'
-                    } page from NUI`,
-                    `color:#00b406;`,
-                    page.toJSON(),
-                  )
-                  // debugger
-                  this.cache.page.remove(page)
-                }
-              }
-            }
           },
         })
       )?.aborted
@@ -713,7 +694,7 @@ class App {
         for (const obj of this.cache.component) {
           if (obj) {
             if (!currentPageNames.includes(obj.page)) {
-              this.cache.component.remove(obj.component)
+              // this.cache.component.remove(obj.component)
             }
           }
         }

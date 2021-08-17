@@ -1,17 +1,34 @@
 import * as mock from 'noodl-ui-test-utils'
+import * as u from '@jsmanifest/utils'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { waitFor } from '@testing-library/dom'
 import { ComponentObject } from 'noodl-types'
-import { nuiEmitTransaction } from '../../constants'
 import NUI from '../../noodl-ui'
 import NUIPage from '../../Page'
 import Viewport from '../../Viewport'
+import * as c from '../../constants'
+
+const getRoot = (args?: Record<string, any>) => ({
+  Hello: { components: [mock.getButtonComponent()] },
+  ...args,
+})
+
+const getPages = () => ['Hello', 'Cereal', 'SignIn']
 
 function resolveComponent(component: ComponentObject) {
+  const pageName = 'Hello'
+  const pageObject = { components: u.array(component) }
+  NUI.use({
+    getPages,
+    getRoot: () => getRoot({ [pageName]: pageObject }),
+    transaction: {
+      [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
+    },
+  })
   const page = NUI.createPage({
-    name: 'Hello',
+    name: pageName,
     viewport: { width: 375, height: 667 },
   })
   return NUI.resolveComponents({ components: component, page })
@@ -68,6 +85,22 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     beforeEach(() => {
       componentObject = mock.getPageComponent('Cereal')
     })
+
+    function resolveComponent(component: ComponentObject) {
+      const pageObject = { components: u.array(component) }
+      NUI.use({
+        getPages,
+        getRoot: () => getRoot({ Cereal: pageObject }),
+        transaction: {
+          [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
+        },
+      })
+      const page = NUI.createPage({
+        name: 'Hello',
+        viewport: { width: 375, height: 667 },
+      })
+      return NUI.resolveComponents({ components: component, page })
+    }
 
     it(`should set "page" on the component that is an instance of NUIPage`, () => {
       expect(resolveComponent(componentObject).get('page')).to.be.instanceOf(
@@ -126,18 +159,67 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     )
 
     it(
-      `should emit the "page-components" hook after receiving the resolved ` +
+      `should emit the ${c.nuiEvent.component.page.PAGE_COMPONENTS} hook after receiving the resolved ` +
         `components`,
       async () => {
+        const Cereal = {
+          components: mock.getPageComponent({
+            path: 'Hello',
+            children: [mock.getLabelComponent('Hi all')],
+          }),
+        }
         const spy = sinon.spy()
-        const component = resolveComponent({ ...componentObject, style: {} })
-        component.on('page-components', spy)
+        NUI.use({
+          getRoot: () => getRoot({ Cereal }),
+          getPages: () => ['Cereal', 'Hello'],
+          transaction: {
+            [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => Cereal,
+          },
+        })
+        const component = NUI.resolveComponents(Cereal.components)
+        component.on(c.nuiEvent.component.page.PAGE_COMPONENTS, spy)
         await waitFor(() => expect(spy).to.be.calledOnce)
       },
     )
 
-    xit(`should `, () => {
-      //
+    it(`should rerun the fetch components function and emit PAGE_COMPONENTS with the new components when PAGE_CHANGED is emitted`, async () => {
+      const dividerComponent = mock.getDividerComponent({ id: 'divider' })
+      const Cereal = {
+        components: mock.getPageComponent({
+          path: 'Hello',
+          children: [mock.getLabelComponent('Hi all')],
+        }),
+      }
+      const spy = sinon.spy()
+      NUI.use({
+        getRoot: () =>
+          getRoot({
+            Cereal,
+            Tiger: { components: [dividerComponent] },
+          }),
+        getPages: () => ['Cereal', 'Hello', 'Tiger'],
+        transaction: {
+          [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (p) =>
+            p.page === 'Tiger' ? NUI.getRoot().Tiger : Cereal,
+        },
+      })
+      const component = NUI.resolveComponents(Cereal.components)
+      component.on(c.nuiEvent.component.page.PAGE_COMPONENTS, spy)
+      await waitFor(() => expect(spy).to.be.calledOnce)
+      const page = component.get('page') as NUIPage
+      page.page = 'Tiger'
+      component.emit(c.nuiEvent.component.page.PAGE_CHANGED, page)
+      await waitFor(() => expect(spy).to.be.calledTwice)
+      expect(component.get('page')).to.have.property('page', 'Tiger')
+      expect(component.get('page'))
+        .to.have.property('components')
+        .to.deep.eq([dividerComponent])
+    })
+
+    describe(`when passing in remote urls (http**/*)`, () => {
+      xit(``, () => {
+        //
+      })
     })
   })
 
@@ -182,6 +264,19 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
 
   describe(italic(`scrollView`), () => {
     //
+  })
+
+  describe(italic(`textField`), () => {
+    it(`should set the data-value from local root`, () => {
+      const pageObject = {
+        formData: { password: 'mypassword' },
+        components: [mock.getTextFieldComponent('formData.password')],
+      }
+      NUI.use({ getRoot: () => ({ Hello: pageObject }) })
+      const component = NUI.resolveComponents(pageObject.components)[0]
+      const value = component.get('data-value')
+      expect(value).to.eq(pageObject.formData.password)
+    })
   })
 
   describe(italic(`textBoard`), () => {

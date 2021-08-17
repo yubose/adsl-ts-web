@@ -4,10 +4,11 @@ import { Identify } from 'noodl-types'
 import { Component, NUI } from 'noodl-ui'
 import { isArr, isFnc, isStr } from './utils/internal'
 import { getPageAncestor } from './utils'
+import { nui } from './nui'
 import NOODLDOM from './noodl-ui-dom'
 import NUIDOMInternal from './Internal'
-import * as T from './types'
 import renderResource from './utils/renderResource'
+import * as T from './types'
 
 const createResolver = function _createResolver(ndom: NOODLDOM) {
   const _internal: {
@@ -54,7 +55,7 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
           original: args[1].blueprint,
           global: ndom.global,
           ndom: ndom,
-          nui: NUIDOMInternal._nui,
+          nui,
           page:
             ndom.findPage(getPageAncestor(args[1])?.get?.('page')) || ndom.page,
           draw: ndom.draw.bind(ndom),

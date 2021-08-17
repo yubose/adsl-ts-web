@@ -605,11 +605,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           components,
           nodes: components.map((c) => getFirstByElementId(c)),
         })
-        
       }
 
       let startCount = 0
-      
 
       while (startCount < numComponents) {
         const _component = components[startCount]
@@ -626,49 +624,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           if (isListConsumer(_component)) {
             const dataObject = findListDataObject(_component)
             dataObject && (ctx.dataObject = dataObject)
-          } else {
-            // const pageChild = findChild(_component, Identify.component.page)
-            // if (pageChild) {
-            //   const componentPage = pageChild.get('page')
-            //   if (!componentPage) {
-            //     console.log(
-            //       `Page is missing in a page component. Attempting to set one now`,
-            //       pageChild,
-            //     )
-            //     const pagePath = pageChild.get('path')
-            //     if (pagePath && u.isStr(pagePath)) {
-            //       console.log(
-            //         `%cResolved a nested redrawed component's page path to "${pagePath}"`,
-            //         `color:#00b406;`,
-            //         pageChild,
-            //       )
-            //       const nuiPage = app.cache.page.get(component.id)
-            //       if (nuiPage?.page) {
-            //         nuiPage.page.page = pagePath
-            //         pageChild.set('page', nuiPage)
-            //       }
-            //     } else {
-            //       console.log(
-            //         `%cCould not resolve page path of "${pagePath}" for a page component in the nested tree of a redraw component`,
-            //         `color:#ec0000;`,
-            //         pageChild,
-            //       )
-            //     }
-            //   }
-            //   console.log(`Encountered page component in redraw loop`, {
-            //     parent:
-            //       _component === pageChild ? _component?.parent : _component,
-            //     parentElement: _node,
-            //     component: pageChild,
-            //     page: pageChild.get('page'),
-            //   })
-            // }
           }
           const ndomPage = pickNDOMPageFromOptions(options)
-          const redrawed = app.ndom.redraw(_node, _component, ndomPage, {
-            context: ctx,
-          })
-          app.cache.component.add(redrawed[1], ndomPage.getNuiPage())
+          app.ndom.redraw(_node, _component, ndomPage, { context: ctx })
+          // const pageComponent = findChild(redrawed[1], Identify.component.page)
+          // pageComponent && pageComponents.push(pageComponent)
+          // app.cache.component.add(redrawed[1], ndomPage.getNuiPage())
         }
         startCount++
       }

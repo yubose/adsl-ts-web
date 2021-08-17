@@ -140,9 +140,12 @@ export namespace NUIComponent {
       dataObject: any
       index: number
     }): void
-    [nuiEvent.component.page.PAGE_COMPONENTS](
-      components: ComponentObject[],
-    ): void
+    [nuiEvent.component.page.PAGE_CREATED](page: NUIPage): void
+    [nuiEvent.component.page.PAGE_CHANGED](): void
+    [nuiEvent.component.page.PAGE_COMPONENTS](options: {
+      page: NUIPage
+      type: 'init' | 'update'
+    }): void
     content(pluginContent: string): void
     'data-value'(dataValue: any): void
     'data-src'(src: string): void
@@ -248,6 +251,12 @@ export namespace Register {
   }
 
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
+}
+
+export interface ResolveComponentCallback<
+  C extends NUIComponent.Instance = NUIComponent.Instance,
+> {
+  (component: C): C | void
 }
 
 export namespace Store {

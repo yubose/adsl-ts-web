@@ -137,7 +137,6 @@ describe(coolGold(`actions`), () => {
   describe(`register`, () => {
     it(``, async () => {
       const app = await getApp()
-      console.info(app)
     })
   })
 })

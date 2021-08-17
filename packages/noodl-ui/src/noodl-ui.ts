@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import { OrArray } from '@jsmanifest/typefest'
 import invariant from 'invariant'
 import merge from 'lodash/merge'
 import get from 'lodash/get'
@@ -50,6 +51,7 @@ import {
 } from './utils/noodl'
 import { groupedActionTypes, nuiEmitType } from './constants'
 import * as t from './types'
+import isNUIPage from './utils/isPage'
 
 const NUI = (function _NUI() {
   /** @type { object } cache */
@@ -110,7 +112,7 @@ const NUI = (function _NUI() {
   ) {
     if (isComponent(componentObject)) return componentObject
     const component = createComponent(componentObject as ComponentObject)
-    cache.component.add(component, page)
+    !cache.component.has(component) && cache.component.add(component, page)
     return component
   }
 
@@ -278,7 +280,6 @@ const NUI = (function _NUI() {
               `%cA handler object did not exist. A default function will be used that calls the functions in the callbacks list by default`,
               `color:#95a5a6;`,
             )
-            console.log(obj)
             // TODO - Refactor this awkward code
             return obj.fn?.(obj, params as t.Register.ParamsObject)
           }
@@ -409,63 +410,67 @@ const NUI = (function _NUI() {
 
   const _transform = _transformers[0].resolve.bind(_transformers[0])
 
-  function _resolveComponents(opts: {
+  function _resolveComponents<
+    C extends OrArray<t.NUIComponent.CreateType>,
+    Context extends Record<string, any>,
+  >(opts: {
     page?: NUIPage
-    components: t.NUIComponent.CreateType
-    context?: Record<string, any>
-  }): t.NUIComponent.Instance
-  function _resolveComponents(opts: {
-    page: NUIPage
-    components: t.NUIComponent.CreateType[]
-    context?: Record<string, any>
-  }): t.NUIComponent.Instance[]
-  function _resolveComponents(
+    components: C
+    context?: Context
+    callback?: t.ResolveComponentCallback
+  }): C extends C[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+
+  function _resolveComponents<C extends OrArray<t.NUIComponent.CreateType>>(
     page: NUIPage,
-    component: t.NUIComponent.CreateType,
-  ): t.NUIComponent.Instance
-  function _resolveComponents(
-    page: NUIPage,
-    components: t.NUIComponent.CreateType[],
-  ): t.NUIComponent.Instance[]
-  function _resolveComponents(
-    component: t.NUIComponent.CreateType,
-  ): t.NUIComponent.Instance
-  function _resolveComponents(
-    components: t.NUIComponent.CreateType[],
-  ): t.NUIComponent.Instance[]
-  function _resolveComponents(
+    component: C,
+    callback?: t.ResolveComponentCallback,
+  ): C extends C[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+
+  function _resolveComponents<C extends OrArray<t.NUIComponent.CreateType>>(
+    component: C,
+    callback?: t.ResolveComponentCallback,
+  ): C extends C[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+
+  function _resolveComponents<C extends OrArray<t.NUIComponent.CreateType>>(
     pageProp:
       | NUIPage
-      | t.NUIComponent.CreateType
-      | t.NUIComponent.CreateType[]
+      | C
       | {
           page?: NUIPage
-          components: t.NUIComponent.CreateType | t.NUIComponent.CreateType[]
+          components: C
           context?: Record<string, any>
+          callback?: t.ResolveComponentCallback
         },
-    componentsProp?: t.NUIComponent.CreateType | t.NUIComponent.CreateType[],
+    componentsProp?: C | t.ResolveComponentCallback,
+    callbackProp?: t.ResolveComponentCallback,
   ) {
     let isArr = true
     let resolvedComponents: t.NUIComponent.Instance[] = []
     let components: t.NUIComponent.CreateType[] = []
     let page: NUIPage
     let context: Record<string, any> = {}
+    let callback: t.ResolveComponentCallback | undefined
 
     if (isPage(pageProp)) {
       page = pageProp
-      components = u.array(componentsProp) as t.NUIComponent.CreateType[]
+      if (!u.isFnc(componentsProp)) {
+        components = u.array(componentsProp) as t.NUIComponent.CreateType[]
+      }
       isArr = u.isArr(componentsProp)
     } else if (u.isArr(pageProp)) {
       components = pageProp
-      // Missing page. Default to root page
-      page = o.getRootPage()
+      u.isFnc(callbackProp) && (callback = callbackProp)
+      if (isNUIPage(componentsProp)) page = componentsProp
+      else page = o.getRootPage()
     } else if (u.isObj(pageProp)) {
       // Missing page. Default to root page
       if ('type' in pageProp || 'children' in pageProp || 'style' in pageProp) {
         components = [pageProp]
-        page = o.getRootPage()
+        u.isFnc(callbackProp) && (callback = callbackProp)
+        page = isNUIPage(componentsProp) ? componentsProp : o.getRootPage()
         isArr = false
       } else {
+        callback = pageProp.callback
         components = u.array(pageProp.components)
         page = 'page' in pageProp ? pageProp.page : o.getRootPage()
         context = pageProp.context || context
@@ -473,8 +478,16 @@ const NUI = (function _NUI() {
       }
     }
 
-    function xform(c: t.NUIComponent.Instance) {
-      const options = o.getConsumerOptions({ component: c, page, context })
+    function xform(
+      c: t.NUIComponent.Instance,
+      cb?: t.ResolveComponentCallback,
+    ) {
+      const options = o.getConsumerOptions({
+        callback: cb,
+        component: c,
+        page,
+        context,
+      })
       _transform(c, options)
       const iteratorVar = options?.context?.iteratorVar || ''
       const isListConsumer =
@@ -530,9 +543,8 @@ const NUI = (function _NUI() {
       return c
     }
 
-    components.forEach((c: t.NUIComponent.Instance, i) => {
-      const component = o.createComponent(c)
-      resolvedComponents.push(xform(component))
+    components.forEach((c) => {
+      resolvedComponents.push(xform(o.createComponent(c), callback))
     })
 
     return isArr ? resolvedComponents : resolvedComponents[0]
@@ -693,6 +705,7 @@ const NUI = (function _NUI() {
         | string
         | {
             name?: string
+            component?: t.NUIComponent.Instance
             id?: string
             viewport?: VP | { width?: number; height?: number }
           },
@@ -887,6 +900,7 @@ const NUI = (function _NUI() {
                 action,
                 callbacks,
                 o.getConsumerOptions({
+                  context: opts?.context,
                   component: opts?.component,
                   page: opts?.page as NUIPage,
                 }),
@@ -905,6 +919,7 @@ const NUI = (function _NUI() {
                 ? o.cache.actions.goto
                 : o.cache.actions[obj.actionType] || [],
               o.getConsumerOptions({
+                context: opts?.context,
                 component: opts?.component,
                 page: opts?.page as NUIPage,
               }),
@@ -944,17 +959,20 @@ const NUI = (function _NUI() {
         styles,
       )
     },
-    getConsumerOptions({
+    getConsumerOptions<C extends t.NUIComponent.Instance>({
+      callback,
       component,
       page,
       context,
     }: {
-      component?: t.NUIComponent.Instance
+      callback?: t.ResolveComponentCallback<C>
+      component?: C
       page: NUIPage
       context?: Record<string, any>
     } & { [key: string]: any }) {
       return {
         ...o,
+        callback,
         cache,
         component,
         context, // Internal context during component resolving

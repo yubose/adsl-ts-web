@@ -31,7 +31,7 @@ class Page {
     T.Page.HookDescriptor[]
   >
   pageUrl: string = BASE_PAGE_URL
-  rootNode: HTMLDivElement;
+  rootNode: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -266,14 +266,14 @@ class Page {
   remove() {
     try {
       if (this.rootNode.parentElement) {
-        this.rootNode.innerHTML = ''
-        console.log(
-          `%c[Page] Cleared all child content from rootNode for page "${this.page}"`,
-          `color:#00b406;`,
-        )
+        // this.rootNode.innerHTML = ''
+        // console.log(
+        //   `%c[Page] Cleared all child content from rootNode for page "${this.page}"`,
+        //   `color:#00b406;`,
+        // )
       } else {
         try {
-          // this.rootNode.parentElement?.removeChild?.(this.rootNode)
+          this.rootNode.parentElement?.removeChild?.(this.rootNode)
           this.rootNode.remove?.()
           console.log(
             `%c[Page] Removed rootNode from parentNode for page "${this.page}"`,

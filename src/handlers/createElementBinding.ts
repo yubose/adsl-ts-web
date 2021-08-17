@@ -14,8 +14,8 @@ function createElementBindingFactory(app: App) {
     }
 
     if (
-      component.has('audioStream') ||
-      component.has('videoStream') ||
+      component.blueprint?.audioStream ||
+      component.blueprint?.videoStream ||
       component.blueprint?.viewTag === 'selfStream'
     ) {
       log.func('createElementBinding')

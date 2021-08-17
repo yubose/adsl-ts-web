@@ -1,5 +1,6 @@
 export { default as SignaturePad } from 'signature_pad'
 export { default } from './noodl-ui-dom'
+export { default as Global } from './Global'
 export { default as Page } from './Page'
 export * as defaultResolvers from './resolvers'
 export * from './constants'

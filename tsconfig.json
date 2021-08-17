@@ -28,13 +28,17 @@
     "strictNullChecks": true,
     "target": "es2017"
   },
-  "include": ["src/**/*", "packages/**/*"],
+  "include": ["src/**/*", "packages/**/*/src/**/*"],
   "exclude": [
     "_data",
+    "docs",
+    "libs",
     "node_modules",
     "build",
     "dist",
     "generated",
+    "output",
+    "public",
     "server",
     "scripts"
   ]

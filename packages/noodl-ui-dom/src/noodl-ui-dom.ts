@@ -1,11 +1,9 @@
 import invariant from 'invariant'
-import { Identify, PageObject } from 'noodl-types'
-import get from 'lodash/get'
+import { ComponentObject, Identify, PageObject } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import {
   Component,
   createComponent,
-  evalIf,
   findIteratorVar,
   isPage as isNUIPage,
   NUI,
@@ -15,64 +13,49 @@ import {
   Store,
   nuiEmitTransaction,
   isComponent,
+  ConsumerOptions,
 } from 'noodl-ui'
-import { trimReference } from 'noodl-utils'
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
 import {
   GlobalComponentRecord,
   GlobalCssResourceRecord,
   GlobalJsResourceRecord,
-} from './global'
+} from './global/index'
 import { resourceTypes } from './utils/internal'
 import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
 import createResourceObject from './utils/createResourceObject'
 import isNDOMPage from './utils/isPage'
 import isCssResourceRecord from './utils/isCssResourceRecord'
-import isJsResourceRecord from './utils/isJsResourceRecord'
 import renderResource from './utils/renderResource'
 import NDOMInternal from './Internal'
+import NDOMGlobal from './Global'
 import NDOMPage from './Page'
-import Timers from './global/Timers'
+import { cache as nuiCache, nui } from './nui'
 import * as defaultResolvers from './resolvers'
 import * as c from './constants'
 import * as t from './types'
 
 const pageEvt = c.eventId.page
 
-class NDOM<ResourceKey extends string = string> extends NDOMInternal {
+class NDOM extends NDOMInternal {
   #R: ReturnType<typeof createResolver>
   #createElementBinding = undefined as t.UseObject['createElementBinding']
   #hooks = { onRedrawStart: [] } as Record<
     keyof t.Hooks,
     t.Hooks[keyof t.Hooks][]
   >
-  global: t.GlobalMap<ResourceKey> = {
-    components: new Map(),
-    pages: {},
-    resources: {
-      css: {},
-      js: {},
-    },
-    timers: new Timers(),
-  }
-
-  page: NDOMPage // This is the main (root) page. All other pages are stored in this.#pages
+  global = new NDOMGlobal()
+  page: NDOMPage // This is the main (root) page. All other pages are stored in this.global.pages
 
   static _nui: typeof NUI
 
-  // TODO - Deperec
-  constructor(nui?: typeof NUI) {
+  constructor(nuiProp = nui) {
     super()
     this.#R = createResolver(this)
     this.#R.use(this)
     u.values(defaultResolvers).forEach(this.#R.use.bind(this.#R))
-    if (nui) {
-      NDOM._nui = nui
-      NDOMInternal._nui = nui
-    } else {
-      NDOM._nui = NDOMInternal._nui
-    }
+    NDOM._nui = nuiProp
   }
 
   get actions() {
@@ -84,7 +67,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
   }
 
   get cache() {
-    return NDOM._nui.cache
+    return nuiCache
   }
 
   get length() {
@@ -297,23 +280,23 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
   }
 
   /**
-   * Removes the component from the {@link ComponentCache}
+   * Removes the component from the {@link ComponentCache} and all parent/child
+   * references
    */
   removeComponent(component: NUIComponent.Instance | undefined | null) {
-    if (!component) return this
+    if (!component) return
     const remove = (c: NUIComponent.Instance) => {
+      console.log(`%cRemoving ${c.type} component: ${c.id}`, `color:#00b406;`)
+      c.has?.('global') && c
+      this.removeGlobal('component', c.get('data-globalid'))
+      c?.setParent?.(null)
+      c?.parent?.removeChild(c)
+      c.children?.forEach?.(remove)
       this.cache.component.remove(c)
-      c.has?.('global') &&
-        this.removeGlobal('component', c.get('data-globalid'))
-      c.children?.forEach?.((_c) => {
-        // c?.parent?.removeChild(c)
-        c?.setParent?.(null)
-        remove(_c)
-      })
+      if (c.has('page')) c.remove('page')
       c.clear?.()
     }
     remove(component)
-    return this
   }
 
   removeGlobal(type: 'component', globalId: string | undefined) {
@@ -352,17 +335,13 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
    * Removes the node from the DOM
    */
   removeNode(node: t.NOODLDOMElement) {
-    if (node?.id) {
+    if (node) {
       try {
-        node.parentElement?.removeChild?.(node)
+        node.parentNode?.removeChild?.(node)
         node.remove?.()
       } catch (error) {
         console.error(error)
       }
-      // Remove parent references
-      node?.parentNode?.removeChild?.(node)
-      // Remove from DOM
-      node?.remove?.()
     }
 
     return this
@@ -381,7 +360,6 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       // This is needed for the consumer to run any operations prior to working
       // with the components (ex: processing the "init" in page objects)
       await this.transact(nuiEmitTransaction.REQUEST_PAGE_OBJECT, page)
-      console.log(`Request transact`, page)
       /**
        * Clean up inactive / aborted pages that remain in the memory
        */
@@ -458,7 +436,8 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
     }
 
     return {
-      render: () => this.render(page),
+      render: (callback?: ConsumerOptions['callback']) =>
+        this.render(page, callback),
     }
   }
 
@@ -469,7 +448,7 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
    * @param { NDOMPage } page
    * @returns NUIComponent.Instance
    */
-  render(page: NDOMPage) {
+  render(page: NDOMPage, callback?: ConsumerOptions['callback']) {
     // REMINDER: The value of this page's "requesting" is empty at this moment
     page.reset('render')
     // Create the root node where we will be placing DOM nodes inside.
@@ -481,6 +460,10 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
     const nuiPage = page.getNuiPage()
     const components = u.array(
       NDOM._nui.resolveComponents.call(NDOM._nui, {
+        // components: page.components.map((o) =>
+        //   nui.createComponent(o, page.getNuiPage()),
+        // ),
+        callback,
         components: page.components,
         page: nuiPage,
       }),
@@ -493,6 +476,10 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
       rootNode: page.rootNode,
     })
 
+    /**
+     * Page components use NDOMPage instances that use their rootNode as an
+     * HTMLIFrameElement. They will have their own way of clearing their tree
+     */
     if (page.rootNode.tagName !== 'IFRAME') page.clearRootNode()
 
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
@@ -535,19 +522,32 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
    * resolves its children hieararchy until there are none left
    * @param { Component } props
    */
-  draw<C extends Component = any>(
+  draw<C extends NUIComponent.Instance>(
     component: C,
     container?: t.NOODLDOMElement | null,
     pageProp?: NDOMPage,
-    options?: { context?: Record<string, any>; node?: HTMLElement | null },
+    options?: {
+      callback?: ConsumerOptions['callback']
+      context?: Record<string, any>
+      /**
+       * Callback called when a page component finishes loading its element in the DOM. The resolvers are run on the page node before this callback fires. The caller is responsible for handling the page component's children
+       * @param options
+       */
+      onPageComponentLoad?(options: {
+        event: Event
+        node: HTMLIFrameElement
+        component: C
+        page: NDOMPage
+      }): void
+    },
   ) {
-    let node: t.NOODLDOMElement | null = options?.node || null
+    let node: t.NOODLDOMElement | null = null
     let page: NDOMPage = pageProp || this.page
 
     if (component) {
       if (Identify.component.plugin(component)) {
         // We will delegate the role of the node creation to the consumer
-        const getNode = (elem: HTMLElement) => (node = elem)
+        const getNode = (elem: HTMLElement) => (node = elem || node)
         // @ts-expect-error
         this.#R.run(getNode, component)
         return node
@@ -555,14 +555,15 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
         if (this.#createElementBinding) {
           node = this.#createElementBinding(component) as HTMLElement
         }
-        if (!node) {
-          node = Identify.folds.emit(component.get('path'))
+        !node &&
+          (node = Identify.folds.emit(component.get('path'))
             ? createAsyncImageElement(
                 (container || document.body) as HTMLElement,
                 {},
               )
-            : document.createElement('img')
-        }
+            : document.createElement('img'))
+      } else if (Identify.component.list(component)) {
+        node = document.createElement(getElementTag(component))
       } else {
         node = this.#createElementBinding?.(component) || null
         node && (node['isElementBinding'] = true)
@@ -690,52 +691,57 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
 
         // NOTE: This needs to stay above the code below or the children will
         // not be able to access their parent during the resolver calls
-        parent.appendChild(node)
+        !parent.contains(node) && parent.appendChild(node)
 
         if (node.tagName === 'IFRAME') {
           node.onload = (evt) => {
-            this.#R.run(node, component)
-            component.children?.forEach?.((child: Component) => {
-              node?.appendChild(
-                this.draw(child, node, page, options) as HTMLElement,
-              )
-            })
+            if (Identify.component.page(component)) {
+              options?.onPageComponentLoad?.({
+                event: evt,
+                node: node as HTMLIFrameElement,
+                component,
+                page,
+              })
+            } else {
+              component.children?.forEach?.((child: NUIComponent.Instance) => {
+                node?.appendChild(
+                  this.draw(child, node, page, options) as HTMLElement,
+                )
+              })
+            }
           }
+          this.#R.run(node as t.NOODLDOMElement, component)
         } else {
           this.#R.run(node, component)
-          component.children?.forEach?.((child: Component) => {
-            node?.appendChild(
-              this.draw(child, node, page, options) as HTMLElement,
-            )
+          component.children?.forEach?.((child: NUIComponent.Instance) => {
+            const childNode = this.draw(
+              child,
+              node,
+              page,
+              options,
+            ) as HTMLElement
+            childNode && node?.appendChild(childNode)
           })
         }
-
-        // parent.appendChild(node)
       }
     }
     return node || null
   }
 
-  redraw(
+  redraw<C extends NUIComponent.Instance>(
     node: t.NOODLDOMElement | null, // ex: li (dom node)
-    component: NUIComponent.Instance, // ex: listItem (component instance)
+    component: C, // ex: listItem (component instance)
     pageProp?: NDOMPage,
     options?: Parameters<NDOM['draw']>[3],
   ) {
     let context: any = options?.context
-    let newNode: t.NOODLDOMElement | null = null
-    let newComponent: Component | undefined
+    let isPageComponent = Identify.component.page(component)
+    let newComponent: NUIComponent.Instance | undefined
     let page =
       pageProp ||
-      (Identify.component.page(component) && component.get('page')) ||
+      (isPageComponent && this.findPage(component.get('page'))) ||
       this.page
-
-    if (!page) {
-      throw new Error(
-        `The "page" is not a valid noodl-ui-dom page. Check the ` +
-          `redraw function`,
-      )
-    }
+    let parent = component.parent
 
     if (component) {
       if (Identify.component.listItem(component)) {
@@ -747,119 +753,87 @@ class NDOM<ResourceKey extends string = string> extends NDOMInternal {
           context.iteratorVar = iteratorVar
         }
       }
-      const parent = component.parent
-      page.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, {
-        parent,
+
+      page?.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, {
+        parent: component?.parent as NUIComponent.Instance,
         component,
         context,
         node,
         page,
       })
 
-      // if ()
-
-      let pageComponentsRedrawing = [] as string[]
-
-      // Deeply walk down the tree hierarchy
-      publish(component, (c) => {
-        if (c) {
-          if (
-            Identify.component.page(c) &&
-            !pageComponentsRedrawing.includes(c.id)
-          ) {
-            pageComponentsRedrawing.push(c.id)
-
-            let nuiPage = c?.get('page')
-
-            if (c && isComponent(c)) {
-              nuiPage = c?.get?.('page')
-            } else {
-              console.log(
-                `%cAttempting to redraw a page component but it is not a Component instance!`,
-                `color:#ec0000;`,
-                c,
-              )
-            }
-
-            if (!nuiPage) {
-              let pagePath = c.get('path')
-              if (pagePath && u.isStr(pagePath)) {
-                nuiPage = this.findPage(pagePath)
-              } else {
-                nuiPage = this.cache.page.get(c?.id || '')?.page
-              }
-            }
-
-            const ndomPage = this.findPage(nuiPage || c, page?.page)
-            console.log(`%cRedrawing a page component`, `color:#00b406;`, {
-              nuiPage,
-              ndomPage,
-            })
-            this.removePage(ndomPage)
-            c.remove('page')
-          }
-        }
+      newComponent = createComponent({
+        ...component.blueprint,
+        id: component.id,
       })
 
-      newComponent = createComponent(component.blueprint)
-
-      if (parent && newComponent) {
-        // Set the original parent on the new component
+      if (parent) {
         newComponent.setParent(parent)
-        // Set the new component as a child on the parent
         parent.createChild(newComponent)
       }
 
       this.removeComponent(component)
 
-      newComponent =
-        NDOM._nui.resolveComponents?.({
-          components: newComponent,
-          page,
-          context,
-        }) || newComponent
-    }
-
-    if (node) {
-      const parentNode = node.parentNode
-
-      if (newComponent) {
-        node.innerHTML = ''
-        this.draw(newComponent, parentNode || (document.body as any), page, {
-          ...options,
-          context,
-          node,
-        })
-      }
-
-      if (parentNode) {
-        // if (parentNode.contains(node) && newNode) {
-        //   parentNode.replaceChild(newNode, node)
-        // } else if (newNode) {
-        //   if (!parentNode.contains(newNode)) {
-        //     parentNode.insertBefore(newNode, parentNode.childNodes[0])
-        //   }
-        // }
-      }
-    } else if (component) {
-      // Some components like "plugin" can have a null as their node, but their
-      // component is still running
-      this.draw(newComponent as NUIComponent.Instance, null, page, {
-        ...options,
+      newComponent = NDOM._nui.resolveComponents?.({
+        callback: options?.callback,
+        components: newComponent,
+        page: page.getNuiPage(),
         context,
       })
     }
-    if (node instanceof HTMLElement) {
-      console.log(`%cRemoving node inside redraw`, `color:#00b406;`, node)
-      try {
-        if (!(node instanceof HTMLIFrameElement)) {
-          node.parentNode?.removeChild?.(node)
-          node.remove()
-        }
-      } catch (error) {
-        console.error(error)
+
+    if (node) {
+      if (newComponent) {
+        const parentNode = node.parentNode || (document.body as any)
+
+        this.removeNode(node)
+        // let prevNode = node
+
+        node = this.draw(newComponent, parentNode, page, {
+          ...options,
+          context,
+          onPageComponentLoad: async (args) => {
+            try {
+              if (args.node && args.component) {
+                const pageObject = (await this.transact(
+                  'REQUEST_PAGE_OBJECT',
+                  args.page,
+                )) as PageObject
+
+                u.array(pageObject.components).forEach((childObject) => {
+                  const child = nui.resolveComponents({
+                    callback: options?.callback,
+                    components: childObject,
+                    page: args.page.getNuiPage() || args.component.get('page'),
+                  })
+
+                  args.component.createChild(child)
+
+                  const childNode = this.draw(child, args.node, page, {
+                    ...options,
+                    context,
+                  })
+
+                  childNode && args.node?.appendChild(childNode)
+                })
+              }
+            } catch (error) {
+              console.error(error)
+              throw error
+            }
+          },
+        })
+
+        // if (parentNode) {
+        //   if (parentNode.contains(prevNode) && node) {
+        //     parentNode.replaceChild(node, prevNode)
+        //   } else if (node) {
+        //     parentNode.insertBefore(node, parentNode.childNodes[0])
+        //   }
+        // }
       }
     }
+
     return [node, newComponent] as [typeof node, typeof component]
   }
 

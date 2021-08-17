@@ -192,7 +192,7 @@ describe(italic(`resolveAssetUrl`), () => {
     }
 
     it(
-      `should return the correct url using the list item ` + `iteratorVar way`,
+      `should return the correct url using the list item ` + `iteratorVar`,
       () => {
         expect(
           n.resolveAssetUrl(src, { assetsUrl, dataObject, iteratorVar }),

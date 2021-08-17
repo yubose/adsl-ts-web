@@ -17,12 +17,12 @@ export interface IGlobalObject<T extends string = string> {
   type: T
 }
 
-export interface GlobalMap<ResourceKey extends string = string> {
+export interface GlobalMap {
   components: Map<string, GlobalComponentRecord>
   pages: Record<string, NDOMPage>
   resources: {
-    css: Record<ResourceKey, GlobalResourceObject<'css'>>
-    js: Record<ResourceKey, GlobalResourceObject<'js'>>
+    css: Record<string, GlobalResourceObject<'css'>>
+    js: Record<string, GlobalResourceObject<'js'>>
   }
   timers: GlobalTimers
 }

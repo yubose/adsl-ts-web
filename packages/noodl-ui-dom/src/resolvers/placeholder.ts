@@ -3,7 +3,7 @@ import { RegisterOptions } from '../types'
 
 export default {
   name: '[noodl-ui-dom] placeholder',
-  cond: (node, component) => component.has?.('placeholder'),
+  cond: (node, component) => !!component.blueprint?.['placeholder'],
   resolve: (node: HTMLInputElement, component) => {
     const placeholder =
       component.get('data-placeholder') || component.get('placeholder') || ''

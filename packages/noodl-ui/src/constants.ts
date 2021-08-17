@@ -46,10 +46,13 @@ export const presets = {
 export const nuiEvent = {
   component: {
     list: {
-      ADD_DATA_OBJECT: 'add-data-object',
+      ADD_DATA_OBJECT: 'ADD_DATA_OBJECT',
+      DELETE_DATA_OBJECT: 'DELETE_DATA_OBJECT',
     },
     page: {
-      PAGE_COMPONENTS: 'page-components',
+      PAGE_CREATED: 'PAGE_CREATED',
+      PAGE_CHANGED: 'PAGE_CHANGED',
+      PAGE_COMPONENTS: 'PAGE_COMPONENTS',
     },
     textField: {
       placeholder: 'PLACEHOLDER',

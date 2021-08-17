@@ -35,7 +35,7 @@ beforeEach(() => {
     .reply(200)
 })
 
-describe(nc.coolGold(`resources`), () => {
+xdescribe(nc.coolGold(`resources`), () => {
   describe(nc.italic(`when using ${nc.yellow(`ndom.use`)}`), () => {
     it(`should load the resource(s) to the global map`, () => {
       ndom.use({ resource: [cssResource, jsResource] })

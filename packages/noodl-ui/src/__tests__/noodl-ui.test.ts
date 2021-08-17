@@ -158,6 +158,10 @@ describe(italic(`createActionChain`), () => {
       })
     },
   )
+
+  xit(`should always pass the dataObject, index and iteratorVar to context in consumer options for list consumers`, () => {
+    //
+  })
 })
 
 describe(italic(`createComponent`), () => {
@@ -268,7 +272,7 @@ describe(italic(`createSrc`), () => {
           children: [
             mock.getListItemComponent({
               cereal: '',
-              children: [mock.getImageComponent(path)],
+              children: [mock.getImageComponent({ path })],
             }),
           ],
         }),

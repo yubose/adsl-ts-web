@@ -1,0 +1,221 @@
+{
+  "Cereal": {
+    "components": [
+      {
+        "id": 12,
+        "type": "view",
+        "children": [
+          {
+            "type": "view",
+            "children": [
+              {
+                "type": "button",
+                "onClick": [
+                  {
+                    "actionType": "updateObject",
+                    "dataKey": "MeetingLobbyStart.inviteesInfo.edge",
+                    "dataObject": "itemObject"
+                  },
+                  {
+                    "actionType": "evalObject",
+                    "object": {
+                      "..inviteesInfo.edge.tage@": -1
+                    }
+                  }
+                ],
+                "text": "Delete",
+                "children": [
+                  {
+                    "type": "scrollView",
+                    "children": [
+                      {
+                        "type": "scrollView",
+                        "children": [
+                          {
+                            "dataKey": "formData.password",
+                            "placeholder": "Enter name",
+                            "id": 1,
+                            "type": "textField"
+                          }
+                        ],
+                        "id": 2
+                      }
+                    ],
+                    "id": 3
+                  }
+                ],
+                "id": 4
+              },
+              {
+                "dataKey": "formData.password",
+                "type": "textField",
+                "id": 5
+              },
+              {
+                "type": "textView",
+                "id": 6
+              },
+              {
+                "text": "morning",
+                "type": "label",
+                "id": 7
+              },
+              {
+                "type": "button",
+                "onClick": [
+                  {
+                    "actionType": "updateObject",
+                    "dataKey": "MeetingLobbyStart.inviteesInfo.edge",
+                    "dataObject": "itemObject"
+                  },
+                  {
+                    "actionType": "evalObject",
+                    "object": {
+                      "..inviteesInfo.edge.tage@": -1
+                    }
+                  }
+                ],
+                "text": "Delete",
+                "id": 8
+              },
+              {
+                "path": "abc.png",
+                "type": "image",
+                "id": 9
+              },
+              {
+                "type": "divider",
+                "id": 10
+              }
+            ],
+            "id": 11
+          }
+        ]
+      }
+    ]
+  },
+  "Donut": {
+    "formData": {
+      "password": "fruits"
+    },
+    "components": [
+      {
+        "type": "view",
+        "id": "donutContainer",
+        "children": [
+          {
+            "dataKey": "formData.password",
+            "id": "donutInput",
+            "onChange": [
+              {
+                "emit": {
+                  "dataKey": "Donut.formData.password",
+                  "actions": [
+                    {},
+                    {},
+                    {}
+                  ]
+                }
+              }
+            ],
+            "type": "textField"
+          },
+          {
+            "type": "button",
+            "onClick": [
+              {
+                "goto": "Donut"
+              }
+            ],
+            "text": "Go to Donut page",
+            "id": "b"
+          },
+          {
+            "type": "divider",
+            "id": "divider"
+          },
+          {
+            "id": "label",
+            "text": "..fullName",
+            "type": "label"
+          }
+        ]
+      }
+    ]
+  },
+  "Hello": {
+    "greeting": "good morning",
+    "fullName": "Chris Tran",
+    "listData": [
+      {
+        "firstName": "Mike",
+        "gender": "Male"
+      },
+      {
+        "firstName": "Lisa",
+        "gender": "Feale"
+      },
+      {
+        "firstName": "Brit",
+        "gender": "Female"
+      }
+    ],
+    "components": [
+      {
+        "id": "p1",
+        "type": "view",
+        "children": [
+          {
+            "text": "Hello",
+            "type": "label"
+          }
+        ]
+      },
+      {
+        "id": "p2",
+        "type": "view",
+        "children": [
+          {
+            "id": "page123",
+            "path": "Cereal",
+            "type": "page"
+          }
+        ]
+      }
+    ]
+  },
+  "Tiger": {
+    "components": [
+      {
+        "type": "view",
+        "id": "tigerView",
+        "children": [
+          {
+            "type": "scrollView",
+            "id": "tigerScrollView",
+            "children": [
+              {
+                "type": "button",
+                "onClick": [
+                  {
+                    "actionType": "updateObject",
+                    "dataKey": "MeetingLobbyStart.inviteesInfo.edge",
+                    "dataObject": "itemObject"
+                  },
+                  {
+                    "actionType": "evalObject",
+                    "object": {
+                      "..inviteesInfo.edge.tage@": -1
+                    }
+                  }
+                ],
+                "text": "Submit",
+                "id": "tigerButton"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

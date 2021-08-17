@@ -301,7 +301,6 @@ describe(coolGold(`Meeting`), () => {
     describe(`when navigating away`, () => {
       it(`should not have disconnected from the room`, async () => {
         const app = await getApp()
-        console.info(app.meeting.room._isMock)
         await app.meeting.join('token')
         expect(app.meeting.room.state).to.eq('connected')
         await app.navigate('VideoChat')

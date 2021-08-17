@@ -333,7 +333,8 @@ export function pullFromComponent(
   return (
     component.get(key) ||
     component[key] ||
-    (component.has(key) && component.blueprint?.[key]) ||
+    ((component.has(key) || component.props?.[key]) &&
+      component.blueprint?.[key]) ||
     null
   )
 }
@@ -409,17 +410,20 @@ export function resolveAssetUrl(
     // TODO - Fix this
     src = pathValue || ''
     let { dataObject, iteratorVar = '' } = options
-    if (u.isObj(dataObject) && u.isStr(src) && u.isStr(iteratorVar)) {
-      if (iteratorVar && src.startsWith(iteratorVar)) {
-        src = excludeIteratorVar(src, iteratorVar) || ''
+    if (u.isStr(src)) {
+      if (src.startsWith('http')) return src
+      if (u.isObj(dataObject) && u.isStr(iteratorVar)) {
+        if (iteratorVar && src.startsWith(iteratorVar)) {
+          src = excludeIteratorVar(src, iteratorVar) || ''
+        }
+        src = get(dataObject, src)
+        if (u.isStr(src)) {
+          if (/^(http|blob)/i.test(src)) src = src
+          else if (src.startsWith('~/')) {
+            // Should be handled by an SDK
+          } else src = `${assetsUrl}${src}`
+        } else src = `${assetsUrl}${src}`
       }
-      src = get(dataObject, src)
-      if (u.isStr(src)) {
-        if (/^(http|blob)/i.test(src)) src = src
-        else if (src.startsWith('~/')) {
-          // Should be handled by an SDK
-        } else src = assetsUrl + src
-      } else src = `${assetsUrl}${src}`
     }
   }
 

@@ -129,25 +129,56 @@ class ComponentCache {
     component: NUIComponent.Instance | string | undefined,
   ): ComponentCacheObject
   get(component?: NUIComponent.Instance | string | undefined) {
-    if (isComponent(component)) return this.#cache.get(component.id)
-    if (u.isStr(component)) return this.#cache.get(component)
+    if (u.isObj(component)) return this.#cache.get(component.id)
+    if (component) return this.#cache.get(component)
     return this.#cache
   }
 
   has(component: NUIComponent.Instance | string | undefined) {
     if (!component) return false
-    return this.#cache.has(u.isStr(component) ? component : component.id || '')
+    return this.#cache.has(!u.isObj(component) ? component : component.id || '')
   }
 
   remove(component: NUIComponent.Instance | string) {
-    if (u.isStr(component)) {
-      component = this.#cache.get(component)?.component as NUIComponent.Instance
-    }
-    if (isComponent(component)) {
-      this.#cache.delete(component.id)
-      this.emit('remove', component.toJSON())
+    if (!u.isObj(component)) {
+      if (this.#cache.has(component)) {
+        const snapshot = this.#cache.get(component)?.component?.toJSON?.()
+        this.#cache.delete(component)
+        this.emit('remove', snapshot)
+      }
+    } else if (component) {
+      if (this.#cache.has(component.id)) {
+        const snapshot = component.toJSON?.()
+        this.#cache.delete(component.id)
+        this.emit('remove', snapshot)
+      }
     }
     return this
+  }
+
+  filter(cb: string | ((obj: ComponentCacheObject) => boolean)) {
+    if (u.isStr(cb)) {
+      return this.reduce(
+        (acc, obj) => (obj.page === cb ? acc.concat(obj) : acc),
+        [] as ComponentCacheObject[],
+      )
+    }
+    return this.reduce(
+      (acc, obj) => (cb(obj) ? acc.concat(obj) : acc),
+      [] as ComponentCacheObject[],
+    )
+  }
+
+  forEach(cb: (obj: ComponentCacheObject) => void) {
+    for (const obj of this.get().values()) cb(obj)
+  }
+
+  map(cb: <V>(obj: ComponentCacheObject) => V) {
+    return [...this.get().values()].map(cb)
+  }
+
+  reduce<A>(cb: (acc: A, obj: ComponentCacheObject) => A, initialValue: A) {
+    return u.reduce([...this.get().values()], cb, initialValue)
   }
 }
 

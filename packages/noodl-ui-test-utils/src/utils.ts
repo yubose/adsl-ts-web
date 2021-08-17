@@ -1,3 +1,4 @@
+import curry from 'lodash/curry'
 import {
   ActionObject,
   ComponentObject,
@@ -40,6 +41,12 @@ export function createActionObject<O extends ActionObject>(
     return obj as O
   }
 }
+
+export const createComponentObject_next = curry(
+  <T extends string, O extends ComponentObject<T>>(componentType: T) =>
+    (obj?: Partial<O>) =>
+      ({ ...obj, type: componentType } as O),
+)
 
 export function createComponentObject<
   O extends ComponentObject,

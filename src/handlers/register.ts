@@ -246,7 +246,7 @@ function createRegisters(app: App) {
   if (u.isFnc(app.listen)) {
     app.listen('onInitPage', onInitPage)
   } else {
-    console.info(
+    console.log(
       `%cThe "listen" method on App was skipped because it was undefined`,
       'color:red;font-weight:bold',
     )

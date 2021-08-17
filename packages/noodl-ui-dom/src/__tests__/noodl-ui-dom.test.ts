@@ -5,7 +5,7 @@ import { expect } from 'chai'
 import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
 import { getFirstByGlobalId } from '../utils'
 import { ndom, createRender } from '../test-utils'
-import { GlobalComponentRecord } from '../global'
+import { GlobalComponentRecord } from '../global/index'
 
 describe(nc.coolGold(`noodl-ui-dom`), () => {
   describe(nc.italic(`createGlobalRecord`), () => {

@@ -3,10 +3,10 @@ import has from 'lodash/has'
 import { Identify } from 'noodl-types'
 import {
   createComponent,
-  evalIf,
+  flatten,
   formatColor,
+  event as nuiEvent,
   NUIComponent,
-  Page as NUIPage,
   SelectOption,
 } from 'noodl-ui'
 import { Resolve } from '../types'
@@ -15,28 +15,12 @@ import createEcosDocElement from '../utils/createEcosDocElement'
 import NDOMPage from '../Page'
 import * as u from '../utils/internal'
 import * as c from '../constants'
+import { cache } from '../nui'
 
 const domComponentsResolver: Resolve.Config = {
   name: `[noodl-ui-dom] components`,
   cond: (n, c) => !!(n && c),
-  before(node, component, { nui, page, draw }) {
-    if (Identify.component.canvas(component)) {
-      page
-        .on(c.eventId.page.on.ON_ASPECT_RATIO_MIN, (prevMin, min) => {
-          console.log(
-            `%c[min] changed (${prevMin} --> ${min})`,
-            `color:#95a5a6;`,
-          )
-        })
-        .on(c.eventId.page.on.ON_ASPECT_RATIO_MAX, (prevMax, max) => {
-          console.log(
-            `%c[max] changed (${prevMax} --> ${max})`,
-            `color:#95a5a6;`,
-          )
-        })
-    }
-  },
-  resolve(node, component, { draw, global: globalMap, ndom, nui }) {
+  resolve(node, component, { ndom, nui }) {
     if (u.isFnc(node)) {
       // PLUGIN
       if (
@@ -111,7 +95,9 @@ const domComponentsResolver: Resolve.Config = {
           metadata.type === 'text/css'
         ) {
           pluginNode.type = metadata.type
-          pluginNode.tagName === 'STYLE' && (pluginNode.rel = 'stylesheet')
+          pluginNode instanceof HTMLLinkElement &&
+            (pluginNode.rel = 'stylesheet')
+
           component.on(
             'content',
             (content: string) => {
@@ -148,12 +134,14 @@ const domComponentsResolver: Resolve.Config = {
 
       // BUTTON
       if (Identify.component.button(component)) {
-        if (component.get('data-src')) {
-          node.style.overflow = 'hidden'
-          node.style.display = 'flex'
-          node.style.alignItems = 'center'
+        if (node) {
+          if (component.get('data-src')) {
+            node.style.overflow = 'hidden'
+            node.style.display = 'flex'
+            node.style.alignItems = 'center'
+          }
+          node.style.cursor = onClick ? 'pointer' : 'auto'
         }
-        node.style.cursor = onClick ? 'pointer' : 'auto'
       }
       // CANVAS
       else if (Identify.component.canvas(component)) {
@@ -241,34 +229,43 @@ const domComponentsResolver: Resolve.Config = {
           (u.isTextDoc(component) && 'text') ||
           (u.isWordDoc(component) && 'word-doc') ||
           'ecos'
-        const iframe = createEcosDocElement(node, component.get('ecosObj'))
+
+        const iframe = createEcosDocElement(
+          node as HTMLElement,
+          component.get('ecosObj'),
+        )
+
         iframe && (iframe.id = `${idLabel}-document-${component.id}`)
-        node.appendChild(iframe)
+        node?.appendChild(iframe)
       }
       // IMAGE
       else if (Identify.component.image(component)) {
-        if (onClick) node.style.cursor = 'pointer'
-        // If an image has children, we will assume it is some icon button overlapping
-        //    Ex: profile photos and showing pencil icon on top to change it
-        if (children) {
-          node.style.width = '100%'
-          node.style.height = '100%'
+        if (node) {
+          if (onClick) node.style.cursor = 'pointer'
+          // If an image has children, we will assume it is some icon button overlapping
+          //    Ex: profile photos and showing pencil icon on top to change it
+          if (children) {
+            node.style.width = '100%'
+            node.style.height = '100%'
+          }
         }
         component.on('path', (result: string) => {
           node && ((node as HTMLImageElement).src = result)
+          node && (node.dataset.src = result)
         })
         if (component.get('data-src')) {
           ;(node as HTMLImageElement).src = component.get('data-src')
+          node && (node.dataset.src = component.get('data-src'))
         }
 
         // load promise return to image
-        if (component.has('path=func')) {
+        if (component.blueprint?.['path=func']) {
           // ;(node as HTMLImageElement).src = '../waiting.png'
           component.get('data-src').then((path: any) => {
-            console.log("test path=func",path)
-            if(path){
+            console.log('test path=func', path)
+            if (path) {
               ;(node as HTMLImageElement).src = path
-            }else{
+            } else {
               ;(node as HTMLImageElement).src = component.get('data-src')
             }
           })
@@ -276,14 +273,16 @@ const domComponentsResolver: Resolve.Config = {
       }
       // LABEL
       else if (Identify.component.label(component)) {
-        if (component.get('data-value')) {
-          node.innerHTML = String(component.get('data-value'))
-        } else if (text) {
-          node.innerHTML = String(text)
-        } else if (component.get('data-placeholder')) {
-          node.innerHTML = String(component.get('data-placeholder'))
+        if (node) {
+          if (component.get('data-value')) {
+            node.innerHTML = String(component.get('data-value'))
+          } else if (text) {
+            node.innerHTML = String(text)
+          } else if (component.get('data-placeholder')) {
+            node.innerHTML = String(component.get('data-placeholder'))
+          }
+          onClick && (node.style.cursor = 'pointer')
         }
-        onClick && (node.style.cursor = 'pointer')
       }
       // LIST
       else if (Identify.component.listLike(component)) {
@@ -293,7 +292,7 @@ const domComponentsResolver: Resolve.Config = {
       else if (Identify.component.page(component)) {
         const src = component.get('data-src') || ''
         // TODO - Finish http implementation
-        if (src.startsWith('http')) {
+        if (process.env.NODE_ENV !== 'test' && src.startsWith('http')) {
           let nuiPage = component.get('page')
           let ndomPage = ndom.findPage(nuiPage) as NDOMPage
 
@@ -309,59 +308,161 @@ const domComponentsResolver: Resolve.Config = {
           ndomPage.rootNode = node as HTMLIFrameElement
           ndomPage.rootNode.src = src
         } else {
-          const listen = (nuiPage?: NUIPage) => {
-            component.on('page-components', () => {
-              !nuiPage && (nuiPage = component.get('page') as NUIPage)
+          const getPageChildIds = (c: NUIComponent.Instance) =>
+            c.children?.reduce(
+              (acc, child) =>
+                acc.concat(
+                  flatten(child).map((c) =>
+                    c?.id == '0' ? c.id : c?.id || '',
+                  ),
+                ),
+              [] as string[],
+            )
+
+          component.set('ids', getPageChildIds(component))
+
+          const getOrCreateNDOMPage = (component: NUIComponent.Instance) => {
+            if (!component.get('page')) {
+              console.log(
+                `%cA page component is missing its NUIPage in the DOM resolver!`,
+                `color:#ec0000;`,
+                component,
+              )
+            } else {
               let ndomPage = [
-                ndom.findPage(nuiPage),
+                ndom.findPage(component.get('page')),
                 ndom.findPage(component.id),
               ].find(Boolean) as NDOMPage
 
               if (!ndomPage) {
-                const currentPage = component.get('path')
-                if (currentPage && u.isStr(currentPage)) {
-                  ndomPage = ndom.findPage(currentPage)
-                }
                 try {
-                  !ndomPage && (ndomPage = ndom.createPage(nuiPage))
+                  ndomPage = ndom.createPage(
+                    component.get('page') || { id: component.id },
+                  )
                 } catch (error) {
                   console.error(error)
+                  if (error instanceof Error) throw error
+                  else throw new Error(error.message)
                 }
               }
 
-              if (ndomPage.rootNode !== node) {
-                ndomPage.rootNode?.parentElement?.removeChild?.(
-                  ndomPage.rootNode,
-                )
-                ndomPage.rootNode = node as HTMLIFrameElement
-              }
+              return ndomPage
+            }
+          }
 
-              const pageComponents = nui.resolveComponents.call(nui, {
-                components: ndomPage.components,
-                page: nuiPage,
-              }) as NUIComponent.Instance[]
+          const listen = () => {
+            let ndomPage = getOrCreateNDOMPage(component) as NDOMPage
 
-              for (const pageComponent of pageComponents) {
-                const pageComponentNode = ndom.draw(
-                  pageComponent,
-                  ndomPage.rootNode,
-                  ndomPage,
-                  { node: ndomPage.rootNode },
-                )
-                if (pageComponentNode) {
-                  ;(
-                    ndomPage.rootNode as HTMLIFrameElement
-                  )?.contentDocument?.body?.appendChild(
-                    pageComponentNode as HTMLElement,
+            component.on(
+              nuiEvent.component.page.PAGE_COMPONENTS,
+              ({ page: nuiPage, type }) => {
+                const childreNUIPage = component.get('page') as NUIPage
+                ndomPage = ndom.findPage(childreNUIPage)
+
+                if (type === 'init') {
+                  ndomPage.rootNode?.parentElement?.removeChild?.(
+                    ndomPage.rootNode,
+                  )
+                  ndomPage.rootNode = node as HTMLIFrameElement
+                } else {
+                  component.set('ids', getPageChildIds(component))
+                  const prevChildIds = component.get('ids')
+                  if (!prevChildIds?.length) {
+                    console.log(
+                      `%cNo previous page children component ids to remove`,
+                      `color:#95a5a6;`,
+                      { component, prevChildIds },
+                    )
+                  } else {
+                    const ids = component.get('ids') || []
+                    ids.forEach((id: string) => {
+                      ndom.cache.component.remove(
+                        ndom.cache.component.get(id)?.component,
+                      )
+                      console.log(
+                        `%cRemoved "${id}" from page "${component.id}" (${nuiPage.page})`,
+                        `color:#95a5a6;`,
+                      )
+                    })
+                    component.set('ids', [])
+                  }
+
+                  if (ndomPage.rootNode.contentDocument) {
+                    // ndomPage.rootNode.contentDocument.body.innerHTML = ''
+                  } else {
+                    console.log(
+                      `%cA document body for a page component was not available after a page component update`,
+                      `color:#ec0000;`,
+                      { component, nuiPage: childreNUIPage, ndomPage },
+                    )
+                  }
+                }
+
+                if (ndomPage.rootNode.contentDocument) {
+                  // ndomPage.rootNode.contentDocument.body.innerHTML = ''
+                } else {
+                  console.log(
+                    `%cA document body for a page component was not available`,
+                    `color:#ec0000;`,
+                    { component, nuiPage: childreNUIPage, ndomPage },
                   )
                 }
-              }
-            })
+
+                // component.clear('children')
+
+                const children = u.array(
+                  nui.resolveComponents({
+                    components: childreNUIPage.components.map((obj) =>
+                      component.createChild(
+                        nui.createComponent(obj, childreNUIPage),
+                      ),
+                    ),
+                    page: childreNUIPage,
+                  }),
+                )
+
+                const renderChildren = (children: NUIComponent.Instance[]) => {
+                  children?.forEach((child) => {
+                    if (childreNUIPage) {
+                      const cachedObj = cache.component.get(child)
+                      if (cachedObj) {
+                        if (cachedObj.page !== childreNUIPage.page) {
+                          cachedObj.page = childreNUIPage.page
+                        }
+                      }
+                    }
+
+                    const childNode = ndom.draw(
+                      child,
+                      ndomPage.rootNode,
+                      ndomPage,
+                    )
+
+                    if (childNode instanceof HTMLElement) {
+                      if (ndomPage.rootNode?.contentDocument?.body) {
+                        if (
+                          !ndomPage.rootNode.contentDocument.body.contains(
+                            childNode,
+                          )
+                        ) {
+                          ndomPage.rootNode.contentDocument.body.appendChild(
+                            childNode,
+                          )
+                        }
+                      }
+                    }
+
+                    child?.length && renderChildren(child.children)
+                  })
+                }
+
+                renderChildren(children)
+              },
+            )
           }
+
           if (!component.get('page')) {
-            component.on('page-created', (nuiPage: NUIPage) => {
-              listen(nuiPage)
-            })
+            component.on(nuiEvent.component.page.PAGE_CREATED, listen)
           } else {
             listen()
           }
@@ -416,7 +517,7 @@ const domComponentsResolver: Resolve.Config = {
                 `%cA component cannot have a "text" and "textBoard" property ` +
                   `because they both overlap. The "text" will take precedence.`,
                 `color:#ec0000;`,
-                component.snapshot(),
+                component.toJSON(),
               )
             }
 
@@ -451,7 +552,7 @@ const domComponentsResolver: Resolve.Config = {
               `%cExpected textBoard to be an array but received "${typeof textBoard}". ` +
                 `This part of the component will not be included in the output`,
               `color:#ec0000;`,
-              { component: component.snapshot(), textBoard },
+              { component: component.toJSON(), textBoard },
             )
           }
         }
@@ -461,7 +562,7 @@ const domComponentsResolver: Resolve.Config = {
       -------------------------------------------------------- */
       // TEXTVIEW
       else if (Identify.component.textView(component)) {
-        if (component.has('isEditable')) {
+        if (component.blueprint?.['isEditable']) {
           const isEditable = component.get('isEditable')
           const isDisabled = Identify.isBooleanFalse(isEditable)
           ;(node as HTMLTextAreaElement).disabled = isDisabled
@@ -469,12 +570,12 @@ const domComponentsResolver: Resolve.Config = {
       }
       // textField
       else if (Identify.component.textField(component)) {
-        if (component.has('isEditable')) {
+        if (component.blueprint?.isEditable) {
           const isEditable = component.get('isEditable')
           const isDisabled = Identify.isBooleanFalse(isEditable)
           ;(node as HTMLTextAreaElement).disabled = isDisabled
         }
-        if (component.has('autocomplete')) {
+        if (component.blueprint?.autocomplete) {
           const autocomplete = component.get('autocomplete')
           ;(node as HTMLTextAreaElement).setAttribute(
             'autocomplete',
@@ -489,7 +590,7 @@ const domComponentsResolver: Resolve.Config = {
         let notSupportedEl: HTMLParagraphElement
         videoEl.controls = Identify.isBooleanTrue(controls)
         if (poster) videoEl.setAttribute('poster', component.get('poster'))
-        if (component.has('path')) {
+        if (component.blueprint?.['path']) {
           component.on('path', (res) => {
             sourceEl = document.createElement('source')
             notSupportedEl = document.createElement('p')
@@ -503,18 +604,7 @@ const domComponentsResolver: Resolve.Config = {
             videoEl.appendChild(notSupportedEl)
           })
         }
-        if (component.get('data-src')) {
-          // sourceEl = document.createElement('source')
-          // notSupportedEl = document.createElement('p')
-          // if (videoType) sourceEl.setAttribute('type', videoType)
-          // sourceEl.setAttribute('src', component.get('data-src'))
-          // notSupportedEl.style.textAlign = 'center'
-          // // This text will not appear unless the browser isn't able to play the video
-          // notSupportedEl.innerHTML =
-          //   "Sorry, your browser doesn's support embedded videos."
-          // videoEl.appendChild(sourceEl)
-          // videoEl.appendChild(notSupportedEl)
-        }
+
         videoEl.style.objectFit = 'contain'
       }
     }

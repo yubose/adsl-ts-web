@@ -20,7 +20,7 @@ const resolveAttributes: Resolve.Config = {
       /* -------------------------------------------------------
         ---- ELEMENT TO ELEMENT BINDINGS
       -------------------------------------------------------- */
-      if (component.has('videoStream')) {
+      if (component.blueprint?.['videoStream']) {
         if (Identify.isBooleanTrue(component.get('videoStream'))) {
           const resolve = ndom
             .resolvers()
@@ -40,7 +40,7 @@ const resolveAttributes: Resolve.Config = {
           }
         }
       }
-      if (component.has('audioStream')) {
+      if (component.blueprint?.['audioStream']) {
         if (Identify.isBooleanTrue(component.get('audioStream'))) {
           const resolve = ndom
             .resolvers()
@@ -157,7 +157,7 @@ const resolveAttributes: Resolve.Config = {
       if (component.type === 'scrollView') {
         u.addClassName('scroll-view', node)
       }
-      if (component.has('textBoard')) {
+      if (component?.blueprint?.['textBoard']) {
         u.addClassName('text-board', node)
       }
     } else {

@@ -1,4 +1,4 @@
-import { GlobalCssResourceRecord } from '../global'
+import { GlobalCssResourceRecord } from '../global/index'
 
 function isCssResourceRecord(value: unknown): value is GlobalCssResourceRecord {
   return (

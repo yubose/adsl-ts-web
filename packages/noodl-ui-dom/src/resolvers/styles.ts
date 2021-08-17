@@ -49,6 +49,6 @@ export default {
     is.component.popUp(component) && addClassName('popup', node)
     is.component.scrollView(component) && addClassName('scroll-view', node)
     component.has?.('global') && addClassName('global', node)
-    component.has?.('textBoard') && addClassName('text-board', node)
+    component.blueprint?.['textBoard'] && addClassName('text-board', node)
   },
 } as RegisterOptions

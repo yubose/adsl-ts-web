@@ -469,7 +469,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
 
-        if (component.has('onBlur')) {
+        if (component.blueprint?.onBlur) {
           node.addEventListener(
             'blur',
             getOnChange({
