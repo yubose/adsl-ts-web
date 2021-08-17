@@ -400,6 +400,7 @@ class App {
             `The page is unnecessarily rendering twice to the DOM`,
           `color:#ec0000;`,
         )
+        // return { aborted: true }
         // debugger
         // return { aborted: true }
       }

@@ -1,13 +1,15 @@
 import SignaturePad from 'signature_pad'
 import has from 'lodash/has'
-import { Identify } from 'noodl-types'
+import { ComponentObject, Identify } from 'noodl-types'
 import {
   createComponent,
   flatten,
   formatColor,
   event as nuiEvent,
   NUIComponent,
+  Page as NUIPage,
   SelectOption,
+  Plugin,
 } from 'noodl-ui'
 import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
@@ -20,7 +22,7 @@ import { cache } from '../nui'
 const domComponentsResolver: Resolve.Config = {
   name: `[noodl-ui-dom] components`,
   cond: (n, c) => !!(n && c),
-  resolve(node, component, { ndom, nui }) {
+  resolve(node, component, { ndom, nui, page }) {
     if (u.isFnc(node)) {
       // PLUGIN
       if (
@@ -31,89 +33,159 @@ const domComponentsResolver: Resolve.Config = {
           Identify.component.pluginBodyTail,
         ].some((cond) => cond(component))
       ) {
-        // !NOTE - We passed the node argument as a function that expects our
-        // resolved node instead
-        // This is specific for these plugin components but may be extended to be used more later
-        function getMetadata(component: NUIComponent.Instance) {
-          const path = String(
-            component.get('plugin')?.path ||
-              component.blueprint?.path ||
-              component.get('path') ||
-              '',
-          )
-          const isLib = component?.contentType === 'library'
-          const metadata = {} as { type: string; tagName: string }
+        let path = (component.get('path') || component.blueprint.path) as string
+        let plugin = component.get('plugin') as Plugin.Object
+        let tagName = '' // 'div', etc
+        let type = '' // text/html, etc
 
-          if (path.endsWith('.css')) {
-            metadata.type = 'text/css'
-            metadata.tagName = 'STYLE'
-          } else if (path.endsWith('.html')) {
-            metadata.type = 'text/html'
-            metadata.tagName = 'DIV'
-          } else if (path.endsWith('.js') || isLib) {
-            metadata.type = 'text/javascript'
-            metadata.tagName = 'SCRIPT'
-          } else {
-            metadata.type = component.blueprint?.mimeType || 'text/plain'
-            metadata.tagName = 'SCRIPT'
-          }
-          return metadata
+        if (path.endsWith('.css')) {
+          type = 'text/css'
+          tagName = 'style'
+        } else if (path.endsWith('.html')) {
+          tagName = 'iframe'
+        } else if (path.endsWith('.js')) {
+          type = 'text/javascript'
+          tagName = 'script'
+        } else {
+          type = 'text/plain'
+          tagName = 'script'
         }
 
-        const metadata = getMetadata(component)
-        const pluginNode = document.createElement(
-          metadata.tagName.toLowerCase(),
-        ) as HTMLScriptElement
-
-        pluginNode.type = metadata.type
-
-        if (metadata.type === 'text/javascript') {
-          pluginNode.onload = function onLoadJsPluginDOMNode(evt) {
-            const location = component.get('plugin')?.location || ''
-            if (location) {
-              try {
-                if (location === 'head') {
-                  document.head.appendChild(pluginNode)
-                } else if (location === 'body-top') {
-                  document.body.insertBefore(
-                    pluginNode,
-                    document.body.childNodes[0],
-                  )
-                } else if (location === 'body-bottom') {
-                  document.body.appendChild(pluginNode)
-                } else {
-                  document.body.appendChild(pluginNode)
-                }
-              } catch (error) {
-                console.error(error)
-              }
-            }
-          }
-          pluginNode.src = component.get('data-src')
-        } else if (
-          metadata.type === 'text/html' ||
-          metadata.type === 'text/css'
-        ) {
-          pluginNode.type = metadata.type
-          pluginNode instanceof HTMLLinkElement &&
-            (pluginNode.rel = 'stylesheet')
-
-          component.on(
-            'content',
-            (content: string) => {
-              pluginNode && (pluginNode.innerHTML += content)
-            },
-            'content',
-          )
-        }
-
+        let pluginNode = getPluginElem(tagName) as any
         // If the node is a function then it is expecting us to decide what node to use
         u.isFnc(node) && node(pluginNode)
+
+        function getPluginElem(tagName: 'link'): HTMLLinkElement
+        function getPluginElem(tagName: 'script'): HTMLScriptElement
+        function getPluginElem(tagName: 'style'): HTMLStyleElement
+        function getPluginElem(tagName: 'iframe'): HTMLIFrameElement
+        function getPluginElem(tagName: string): HTMLElement | null
+        function getPluginElem<T extends string>(tagName: T) {
+          switch (tagName as T) {
+            case 'link':
+              const node = document.createElement('link')
+              node.rel = 'stylesheet'
+              return node
+            case 'iframe':
+              return document.createElement('div')
+            case 'script':
+              return document.createElement('script')
+            case 'style':
+              return document.createElement('style')
+            default:
+              return null
+          }
+        }
+
+        function loadAttribs(
+          component: NUIComponent.Instance,
+          elem: HTMLLinkElement | null,
+          data: any,
+        ): HTMLLinkElement
+        function loadAttribs(
+          component: NUIComponent.Instance,
+          elem: HTMLScriptElement | null,
+          data: any,
+        ): HTMLScriptElement
+        function loadAttribs(
+          component: NUIComponent.Instance,
+          elem: HTMLStyleElement | null,
+          data: any,
+        ): HTMLStyleElement
+        function loadAttribs(
+          component: NUIComponent.Instance,
+          elem: HTMLIFrameElement | null,
+          data: any,
+        ): HTMLIFrameElement
+        function loadAttribs<
+          N extends
+            | HTMLLinkElement
+            | HTMLScriptElement
+            | HTMLStyleElement
+            | HTMLIFrameElement,
+        >(component: NUIComponent.Instance, elem: N | null, data: any) {
+          if (!elem) return elem
+          elem.id = component.id
+          if (elem instanceof HTMLLinkElement) {
+            elem.innerHTML = String(data)
+            elem.rel = 'stylesheet'
+          } else if (elem instanceof HTMLScriptElement) {
+            elem.innerHTML = String(data)
+            elem.type = type
+            // eval(data)
+          } else if (elem instanceof HTMLStyleElement) {
+            elem.innerHTML = String(data)
+          } else if (elem instanceof HTMLIFrameElement) {
+            // elem.onload = (evt) => {
+            //   elem.contentDocument.documentElement.innerHTML = data
+            //   debugger
+            // }
+            const parentNode = elem.parentNode || page.rootNode || document.body
+
+            elem.innerHTML += data
+
+            if (parentNode.children.length) {
+              parentNode.insertBefore(elem, parentNode.childNodes[0])
+            } else {
+              parentNode.appendChild(elem)
+            }
+          }
+          return elem
+        }
+
+        component.on(
+          'content',
+          (content: string) => {
+            loadAttribs(component, pluginNode, content)
+          },
+          'content',
+        )
+
         try {
-          pluginNode && document.body.appendChild(pluginNode)
+          if (pluginNode) {
+            const insert = (
+              node: HTMLElement | null,
+              location: Plugin.Location | undefined,
+            ) => {
+              const appendChild = (
+                page: NDOMPage,
+                childNode: HTMLElement,
+                top = true,
+              ) => {
+                const parentNode = node || page.rootNode || document.body
+
+                if (top) {
+                  if (parentNode.children.length) {
+                    parentNode.insertBefore(childNode, parentNode.childNodes[0])
+                  } else parentNode.appendChild(childNode)
+                } else parentNode.appendChild(childNode)
+              }
+
+              if (node) {
+                if (
+                  node instanceof HTMLIFrameElement ||
+                  node instanceof HTMLDivElement
+                ) {
+                  appendChild(page, node)
+                } else if (node instanceof HTMLLinkElement) {
+                  if (page.rootNode instanceof HTMLIFrameElement) {
+                    page.rootNode.contentDocument?.head.appendChild(node)
+                  } else {
+                    document.head.appendChild(node)
+                  }
+                } else if (node instanceof HTMLScriptElement) {
+                  appendChild(page, node, location === 'body-bottom')
+                }
+              }
+            }
+
+            insert(pluginNode, component.get('plugin')?.location)
+          }
+          // document.body.appendChild(pluginNode)
         } catch (error) {
           console.error(error)
         }
+
         return pluginNode
       }
     } else {
@@ -304,7 +376,7 @@ const domComponentsResolver: Resolve.Config = {
             }
           }
 
-          ndomPage.rootNode?.parentElement?.removeChild?.(ndomPage.rootNode)
+          ndomPage.rootNode?.parentNode?.removeChild?.(ndomPage.rootNode)
           ndomPage.rootNode = node as HTMLIFrameElement
           ndomPage.rootNode.src = src
         } else {
@@ -356,11 +428,11 @@ const domComponentsResolver: Resolve.Config = {
             component.on(
               nuiEvent.component.page.PAGE_COMPONENTS,
               ({ page: nuiPage, type }) => {
-                const childreNUIPage = component.get('page') as NUIPage
-                ndomPage = ndom.findPage(childreNUIPage)
+                const childrensNUIPage = component.get('page') as NUIPage
+                ndomPage = ndom.findPage(childrensNUIPage)
 
                 if (type === 'init') {
-                  ndomPage.rootNode?.parentElement?.removeChild?.(
+                  ndomPage.rootNode?.parentNode?.removeChild?.(
                     ndomPage.rootNode,
                   )
                   ndomPage.rootNode = node as HTMLIFrameElement
@@ -393,7 +465,7 @@ const domComponentsResolver: Resolve.Config = {
                     console.log(
                       `%cA document body for a page component was not available after a page component update`,
                       `color:#ec0000;`,
-                      { component, nuiPage: childreNUIPage, ndomPage },
+                      { component, nuiPage: childrensNUIPage, ndomPage },
                     )
                   }
                 }
@@ -404,7 +476,7 @@ const domComponentsResolver: Resolve.Config = {
                   console.log(
                     `%cA document body for a page component was not available`,
                     `color:#ec0000;`,
-                    { component, nuiPage: childreNUIPage, ndomPage },
+                    { component, nuiPage: childrensNUIPage, ndomPage },
                   )
                 }
 
@@ -412,22 +484,28 @@ const domComponentsResolver: Resolve.Config = {
 
                 const children = u.array(
                   nui.resolveComponents({
-                    components: childreNUIPage.components.map((obj) =>
-                      component.createChild(
-                        nui.createComponent(obj, childreNUIPage),
-                      ),
-                    ),
-                    page: childreNUIPage,
+                    components:
+                      childrensNUIPage.components?.map?.(
+                        (obj: ComponentObject) => {
+                          let child = nui.createComponent(obj, childrensNUIPage)
+                          child = component.createChild(child)
+                          return child
+                        },
+                      ) || [],
+                    page: childrensNUIPage,
                   }),
                 )
 
-                const renderChildren = (children: NUIComponent.Instance[]) => {
+                const renderChildren = (
+                  nuiPage: NUIPage,
+                  children: NUIComponent.Instance[],
+                ) => {
                   children?.forEach((child) => {
-                    if (childreNUIPage) {
+                    if (nuiPage) {
                       const cachedObj = cache.component.get(child)
                       if (cachedObj) {
-                        if (cachedObj.page !== childreNUIPage.page) {
-                          cachedObj.page = childreNUIPage.page
+                        if (cachedObj.page !== nuiPage.page) {
+                          cachedObj.page = nuiPage.page
                         }
                       }
                     }
@@ -452,11 +530,11 @@ const domComponentsResolver: Resolve.Config = {
                       }
                     }
 
-                    child?.length && renderChildren(child.children)
+                    child?.length && renderChildren(nuiPage, child.children)
                   })
                 }
 
-                renderChildren(children)
+                renderChildren(childrensNUIPage, children)
               },
             )
           }

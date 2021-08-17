@@ -36,6 +36,7 @@ setupResolver.setResolver((component, { cache, getRoot, page }, next) => {
             }
             return originalGet(key, styleKey)
           }
+
           Object.defineProperty(component, 'get', {
             configurable: true,
             enumerable: true,
@@ -47,26 +48,26 @@ setupResolver.setResolver((component, { cache, getRoot, page }, next) => {
           if (u.isObj(getDataObject())) {
             let currentValue = getDataObject()?.[datapath] as string
             let isPageComponent = Identify.component.page(component)
-            // Object.defineProperty(getDataObject(), datapath, {
-            //   configurable: true,
-            //   enumerable: true,
-            //   get() {
-            //     return currentValue
-            //   },
-            // set(newValue: string) {
-            //   // debugger
-            //   if (isPageComponent) {
-            //     const cacheObj = cache.page.get(component.id)
-            //     if (cacheObj?.page) {
-            //       if (cacheObj.page.page !== currentValue) {
-            //         cacheObj.page.page = currentValue
-            //         // debugger
-            //       }
-            //     }
-            //   }
-            //   currentValue = newValue
-            // },
-            // })
+            Object.defineProperty(getDataObject(), datapath, {
+              configurable: true,
+              enumerable: true,
+              get() {
+                return currentValue
+              },
+              set(newValue: string) {
+                // debugger
+                if (isPageComponent) {
+                  const cacheObj = cache.page.get(component.id)
+                  if (cacheObj?.page) {
+                    if (cacheObj.page.page !== currentValue) {
+                      cacheObj.page.page = currentValue
+                      // debugger
+                    }
+                  }
+                }
+                currentValue = newValue
+              },
+            })
           }
         }
       }

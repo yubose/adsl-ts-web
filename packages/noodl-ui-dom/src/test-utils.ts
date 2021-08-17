@@ -227,14 +227,9 @@ export function createRender<Opts extends MockRenderOptions>(
     getPageObject,
     getPages: () => [pageRequesting],
     getPreloadPages: () => [],
-    getRoot: () => ({
-      ...root,
-      [pageRequesting]: pageObject,
-    }),
+    getRoot: () => ({ ...root, [pageRequesting]: pageObject }),
     resource,
-    transaction: {
-      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: getPageObject,
-    },
+    transaction: { [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: getPageObject },
   }
 
   // @ts-expect-error

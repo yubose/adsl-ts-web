@@ -224,11 +224,9 @@ componentResolver.setResolver((component, options, next) => {
                 `Error attempting to get the page object for a page component]: ${err.message}`,
               err,
             )
-            debugger
           }
         })()
       } else {
-        debugger
       }
 
       let viewport = nuiPage.viewport || new VP()
@@ -297,10 +295,10 @@ componentResolver.setResolver((component, options, next) => {
         if (src) return window.fetch?.(src)
       })
       .then((res) => {
-        const contentType = res?.headers?.get?.('Content-Type')
-        if (u.isStr(contentType)) {
-          if (contentType.includes(`text/`)) return res?.text?.()
-        }
+        const headers = res?.headers
+        const contentType = headers?.get?.('Content-Type') || ''
+        const url = res?.url
+        if (/(text|javascript)/i.test(contentType)) return res?.text?.()
         return res?.json?.()
       })
       .then((content) => {

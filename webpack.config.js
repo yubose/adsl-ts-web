@@ -73,6 +73,7 @@ const devServerOptions = {
   clientLogLevel: 'info',
   compress: false,
   contentBase: [publicPath],
+  disableHostCheck: true,
   host: '127.0.0.1',
   hot: true,
   liveReload: true,
@@ -86,7 +87,7 @@ const devServerOptions = {
   before(app, server, compiler) {
     //
   },
-  // https: true,
+  https: true,
   stats: { chunks: true },
   historyApiFallback: true,
 }

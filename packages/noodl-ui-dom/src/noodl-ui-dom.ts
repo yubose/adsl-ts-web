@@ -286,14 +286,22 @@ class NDOM extends NDOMInternal {
   removeComponent(component: NUIComponent.Instance | undefined | null) {
     if (!component) return
     const remove = (c: NUIComponent.Instance) => {
+      if (!c) debugger
+
       console.log(`%cRemoving ${c.type} component: ${c.id}`, `color:#00b406;`)
-      c.has?.('global') && c
-      this.removeGlobal('component', c.get('data-globalid'))
+
+      if (c.has?.('global') || c.blueprint?.global) {
+        this.removeGlobal('component', c.get('data-globalid'))
+      }
+
       c?.setParent?.(null)
       c?.parent?.removeChild(c)
+
       c.children?.forEach?.(remove)
+
       this.cache.component.remove(c)
-      if (c.has('page')) c.remove('page')
+
+      // if (c.has('page')) c.remove('page')
       c.clear?.()
     }
     remove(component)
@@ -545,7 +553,14 @@ class NDOM extends NDOMInternal {
     let page: NDOMPage = pageProp || this.page
 
     if (component) {
-      if (Identify.component.plugin(component)) {
+      if (
+        [
+          Identify.component.plugin,
+          Identify.component.pluginHead,
+          Identify.component.pluginBodyTop,
+          Identify.component.pluginBodyTail,
+        ].some((cond) => cond(component))
+      ) {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem || node)
         // @ts-expect-error
@@ -703,6 +718,7 @@ class NDOM extends NDOMInternal {
                 page,
               })
             } else {
+              this.#R.run(node as t.NOODLDOMElement, component)
               component.children?.forEach?.((child: NUIComponent.Instance) => {
                 node?.appendChild(
                   this.draw(child, node, page, options) as HTMLElement,
@@ -710,7 +726,6 @@ class NDOM extends NDOMInternal {
               })
             }
           }
-          this.#R.run(node as t.NOODLDOMElement, component)
         } else {
           this.#R.run(node, component)
           component.children?.forEach?.((child: NUIComponent.Instance) => {
@@ -785,6 +800,7 @@ class NDOM extends NDOMInternal {
     if (node) {
       if (newComponent) {
         const parentNode = node.parentNode || (document.body as any)
+        parentNode?.contains?.(node) && (node.textContent = '')
 
         this.removeNode(node)
         // let prevNode = node

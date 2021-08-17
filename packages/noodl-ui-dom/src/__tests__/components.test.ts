@@ -33,6 +33,7 @@ import {
 import NDOM from '../noodl-ui-dom'
 import { findByClassName, findByElementId, getFirstByElementId } from '../utils'
 import { cache, nui } from '../nui'
+import { findBySelector } from '../../dist'
 
 describe(nc.coolGold('components'), () => {
   describe(nc.italic(`Page`), () => {
@@ -226,37 +227,40 @@ describe(nc.coolGold('components'), () => {
       expect(u.keys(ndom.pages)).to.have.lengthOf(cache.page.length)
     })
 
-    it(`should immediately re-render if its page name is set to a different one and PAGE_CHANGED is emitted`, async () => {
-      const getPageElem = () =>
-        getFirstByElementId('page123') as HTMLIFrameElement
-      const getPageElemBody = () =>
-        getPageElem().contentDocument?.body as HTMLBodyElement
-      const { render } = createRender()
-      await render()
-      await waitFor(() => {
-        expect(getPageElemBody()?.childElementCount).to.be.greaterThan(0)
-        expect(getPageElemBody().children[0]).to.eq(
+    it(
+      `should immediately re-render if its page name is set to a different ` +
+        `one and PAGE_CHANGED is emitted`,
+      async () => {
+        const getPageElem = () =>
+          document.getElementsByClassName('page')[0] as HTMLIFrameElement
+        const getPageElemBody = () =>
+          getPageElem().contentDocument?.body as HTMLBodyElement
+        const { render } = createRender()
+        console.info(ndom.pages)
+        await render()
+        await waitForPageChildren()
+        expect(getPageElemBody().children[0].children[0]).to.eq(
           getFirstByElementId('donutInput'),
         )
-      })
-      const component = cache.component.get('page123').component
-      const page = component.get('page') as NUIPage
-      page.page = 'Cereal'
-      ndom.findPage(page).requesting = 'Cereal'
-      component.emit(nuiEvent.component.page.PAGE_CHANGED)
-      await waitFor(() => {
-        expect(getPageElemBody()).to.have.property('childElementCount', 1)
-      })
-      await waitFor(() => {
-        expect(getPageElemBody().children[0] as HTMLElement)
-          .to.have.property('tagName')
-          .not.to.eq('INPUT')
-        expect(getPageElemBody()).to.have.property('children').with.lengthOf(1)
-        expect(getPageElemBody().children[0])
-          .to.have.property('children')
-          .with.lengthOf(3)
-      })
-    })
+        const component = cache.component.get('page123').component
+        const page = component.get('page') as NUIPage
+        page.page = 'Cereal'
+        ndom.findPage(page).requesting = 'Cereal'
+        component.emit(nuiEvent.component.page.PAGE_CHANGED)
+        await waitForPageChildren()
+        expect(getPageElemBody())
+          .to.have.property('childElementCount')
+          .greaterThan(0)
+        await waitFor(() => {
+          expect(getPageElemBody().children[0] as HTMLElement)
+            .to.have.property('tagName')
+            .not.to.eq('INPUT')
+          expect(getPageElemBody().children[0])
+            .to.have.property('children')
+            .with.lengthOf(4)
+        })
+      },
+    )
 
     describe(nc.italic('component cache'), () => {
       let _counter = 0
