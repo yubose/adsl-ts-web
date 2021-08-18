@@ -1,12 +1,7 @@
 import { expect } from 'chai'
-import { prettyDOM, waitFor } from '@testing-library/dom'
-import fs from 'fs-extra'
-import path from 'path'
+import { waitFor } from '@testing-library/dom'
 import {
   ComponentObject,
-  EmitObject,
-  EmitObjectFold,
-  Identify,
   PageComponentObject,
   PageObject,
   ViewComponentObject,
@@ -14,26 +9,17 @@ import {
 import { flatten as flattenComponents, Page as NUIPage } from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 import * as nc from 'noodl-common'
-import {
-  event as nuiEvent,
-  isPage as isNUIPage,
-  NUI,
-  NUIComponent,
-} from 'noodl-ui'
-import isNDOMPage from '../utils/isPage'
+import { event as nuiEvent, NUI, NUIComponent } from 'noodl-ui'
 import {
   _defaults,
   createRender as _createRender,
   getPageComponentChildIds,
   ui,
   ndom,
-  viewport,
   waitForPageChildren,
 } from '../test-utils'
-import NDOM from '../noodl-ui-dom'
-import { findByClassName, findByElementId, getFirstByElementId } from '../utils'
-import { cache, nui } from '../nui'
-import { findBySelector } from '../../dist'
+import { findByElementId, findBySelector, getFirstByElementId } from '../utils'
+import { cache } from '../nui'
 
 describe(nc.coolGold('components'), () => {
   describe(nc.italic(`Page`), () => {
@@ -130,7 +116,7 @@ describe(nc.coolGold('components'), () => {
       })
       viewComponentObject = ui.view({
         children: [pageComponentObject],
-      })
+      }) as any
     })
 
     function createRender(
@@ -143,7 +129,7 @@ describe(nc.coolGold('components'), () => {
       const currentRoot = { Cereal, Donut, Hello }
       const renderer = _createRender({
         ...opts,
-        root: u.isFnc(opts?.root) ? opts.root(currentRoot) : currentRoot,
+        root: u.isFnc(opts?.root) ? opts?.root(currentRoot) : currentRoot,
       })
       renderer.nui.use({
         getPages: () => u.keys(renderer.getRoot()),
@@ -205,9 +191,8 @@ describe(nc.coolGold('components'), () => {
       })
       await render()
       await waitFor(() => {
-        const pageElem = getFirstByElementId('page123') as HTMLIFrameElement
-        const pageElemBody = pageElem?.contentDocument?.body
-        expect(pageElemBody?.childElementCount).to.eq(0)
+        const pageElem = findBySelector('page') as HTMLIFrameElement
+        expect(pageElem?.contentDocument?.body).to.exist
       })
     })
 
@@ -236,7 +221,6 @@ describe(nc.coolGold('components'), () => {
         const getPageElemBody = () =>
           getPageElem().contentDocument?.body as HTMLBodyElement
         const { render } = createRender()
-        console.info(ndom.pages)
         await render()
         await waitForPageChildren()
         expect(getPageElemBody().children[0].children[0]).to.eq(
@@ -374,8 +358,8 @@ describe(nc.coolGold('components'), () => {
       })
 
       it(`should be in sync with the component cache`, async () => {
-        const pageComponentObject = ui.page({ id: 'page123', path: 'Cereal' })
-        const { render } = createRender({
+        const pageComponentObject = ui.page('Cereal')
+        const { ndom, pageObject, render } = createRender({
           pageName: 'Hello',
           root: (c) => ({
             ...c,
@@ -392,12 +376,13 @@ describe(nc.coolGold('components'), () => {
 
         await render()
 
+        const view = cache.component.get('p1').component
         const view2 = cache.component.get('p2').component
-
-        let [_, { contentDocument, body }] = await waitForPageChildren()
-
         const pageComponent = view2.child()
         const nuiPage = pageComponent.get('page') as NUIPage
+
+        await waitForPageChildren()
+
         const expectedCurrentComponentCount = 16
 
         expect(cache.component.length).to.eq(expectedCurrentComponentCount)
@@ -418,7 +403,11 @@ describe(nc.coolGold('components'), () => {
         pageComponent.emit(nuiEvent.component.page.PAGE_CHANGED)
 
         await waitFor(() => {
-          expect(contentDocument?.getElementById('tigerButton')).to.exist
+          expect(
+            findBySelector('page').contentDocument?.getElementById(
+              'tigerButton',
+            ),
+          ).to.exist
         })
 
         const oldPageChildrenIds = pageChildrenIds
@@ -434,7 +423,7 @@ describe(nc.coolGold('components'), () => {
         )
 
         expect(
-          cache.component.get(getPageElem().id).component,
+          cache.component.get(findBySelector('page').id).component,
         ).to.have.length.greaterThan(0)
 
         expect(pageChildrenIds).to.satisfy(
@@ -479,11 +468,13 @@ describe(nc.coolGold('components'), () => {
         ndom.findPage(nuiPage).requesting = 'Tiger'
         pageComponent.emit(nuiEvent.component.page.PAGE_CHANGED)
         await waitForPageChildren()
-        expect(getPageComponentChildIds(pageComponent)).to.have.all.members([
-          'tigerView',
-          'tigerScrollView',
-          'tigerButton',
-        ])
+        await waitFor(() => {
+          expect(getPageComponentChildIds(pageComponent)).to.have.all.members([
+            'tigerView',
+            'tigerScrollView',
+            'tigerButton',
+          ])
+        })
       })
     })
 

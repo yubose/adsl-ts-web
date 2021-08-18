@@ -6,6 +6,7 @@ import { screen, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta, white } from 'noodl-common'
 import { createRender, ndom } from '../test-utils'
+import { nui } from '../nui'
 import NOODLDOM from '../noodl-ui-dom'
 import * as u from '../utils/internal'
 import * as n from '../utils'
@@ -345,7 +346,7 @@ describe.skip(italic(`plugin`), () => {
       // @ts-expect-error
       window.fetch = () => Promise.resolve(html)
       const noodlComponent = { type: 'plugin', path: 'abc.html' }
-      const component = NOODLDOM._nui.resolveComponents(noodlComponent)
+      const component = nui.resolveComponents(noodlComponent)
       const node = ndom.draw(component)
       await waitFor(() => {
         expect(document.body.contains(node)).to.be.true

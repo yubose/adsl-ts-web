@@ -1,19 +1,17 @@
 import invariant from 'invariant'
-import { ComponentObject, Identify, PageObject } from 'noodl-types'
+import { Identify, PageObject } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import {
-  Component,
+  ConsumerOptions,
   createComponent,
   findIteratorVar,
+  isComponent,
   isPage as isNUIPage,
   NUI,
-  Page as NUIPage,
   NUIComponent,
-  publish,
-  Store,
   nuiEmitTransaction,
-  isComponent,
-  ConsumerOptions,
+  Page as NUIPage,
+  Store,
 } from 'noodl-ui'
 import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
 import {
@@ -48,14 +46,11 @@ class NDOM extends NDOMInternal {
   global = new NDOMGlobal()
   page: NDOMPage // This is the main (root) page. All other pages are stored in this.global.pages
 
-  static _nui: typeof NUI
-
-  constructor(nuiProp = nui) {
+  constructor() {
     super()
     this.#R = createResolver(this)
     this.#R.use(this)
     u.values(defaultResolvers).forEach(this.#R.use.bind(this.#R))
-    NDOM._nui = nuiProp
   }
 
   get actions() {
@@ -108,10 +103,10 @@ class NDOM extends NDOMInternal {
       if ('page' in args) {
         page = this.findPage(args.page) || new NDOMPage(args.page)
       } else {
-        page = new NDOMPage(NDOM._nui.createPage(args) as NUIPage)
+        page = new NDOMPage(nui.createPage(args) as NUIPage)
       }
     } else {
-      page = new NDOMPage(NDOM._nui.createPage() as NUIPage)
+      page = new NDOMPage(nui.createPage() as NUIPage)
     }
 
     if (page) {
@@ -272,7 +267,7 @@ class NDOM extends NDOMInternal {
    */
   removePage(page: NDOMPage | undefined | null) {
     if (page) {
-      NDOM._nui.clean(page.getNuiPage(), console.log)
+      nui.clean(page.getNuiPage(), console.log)
       page.remove()
       // if (page.id in this.global.pages) delete this.global.pages[page.id]
       page = null
@@ -286,9 +281,8 @@ class NDOM extends NDOMInternal {
   removeComponent(component: NUIComponent.Instance | undefined | null) {
     if (!component) return
     const remove = (c: NUIComponent.Instance) => {
-      if (!c) debugger
-
       console.log(`%cRemoving ${c.type} component: ${c.id}`, `color:#00b406;`)
+      this.cache.component.remove(c)
 
       if (c.has?.('global') || c.blueprint?.global) {
         this.removeGlobal('component', c.get('data-globalid'))
@@ -297,11 +291,9 @@ class NDOM extends NDOMInternal {
       c?.setParent?.(null)
       c?.parent?.removeChild(c)
 
-      c.children?.forEach?.(remove)
+      c.children?.forEach?.((_c) => remove(_c))
 
-      this.cache.component.remove(c)
-
-      // if (c.has('page')) c.remove('page')
+      if (c.has('page')) c.remove('page')
       c.clear?.()
     }
     remove(component)
@@ -342,7 +334,7 @@ class NDOM extends NDOMInternal {
   /**
    * Removes the node from the DOM
    */
-  removeNode(node: t.NOODLDOMElement) {
+  removeNode(node: t.NDOMElement) {
     if (node) {
       try {
         node.parentNode?.removeChild?.(node)
@@ -467,7 +459,7 @@ class NDOM extends NDOMInternal {
 
     const nuiPage = page.getNuiPage()
     const components = u.array(
-      NDOM._nui.resolveComponents.call(NDOM._nui, {
+      nui.resolveComponents.call(nui, {
         // components: page.components.map((o) =>
         //   nui.createComponent(o, page.getNuiPage()),
         // ),
@@ -532,7 +524,7 @@ class NDOM extends NDOMInternal {
    */
   draw<C extends NUIComponent.Instance>(
     component: C,
-    container?: t.NOODLDOMElement | null,
+    container?: t.NDOMElement | null,
     pageProp?: NDOMPage,
     options?: {
       callback?: ConsumerOptions['callback']
@@ -549,7 +541,7 @@ class NDOM extends NDOMInternal {
       }): void
     },
   ) {
-    let node: t.NOODLDOMElement | null = null
+    let node: t.NDOMElement | null = null
     let page: NDOMPage = pageProp || this.page
 
     if (component) {
@@ -711,6 +703,7 @@ class NDOM extends NDOMInternal {
         if (node.tagName === 'IFRAME') {
           node.onload = (evt) => {
             if (Identify.component.page(component)) {
+              this.#R.run(node as t.NDOMElement, component)
               options?.onPageComponentLoad?.({
                 event: evt,
                 node: node as HTMLIFrameElement,
@@ -718,7 +711,7 @@ class NDOM extends NDOMInternal {
                 page,
               })
             } else {
-              this.#R.run(node as t.NOODLDOMElement, component)
+              this.#R.run(node as t.NDOMElement, component)
               component.children?.forEach?.((child: NUIComponent.Instance) => {
                 node?.appendChild(
                   this.draw(child, node, page, options) as HTMLElement,
@@ -744,7 +737,7 @@ class NDOM extends NDOMInternal {
   }
 
   redraw<C extends NUIComponent.Instance>(
-    node: t.NOODLDOMElement | null, // ex: li (dom node)
+    node: t.NDOMElement | null, // ex: li (dom node)
     component: C, // ex: listItem (component instance)
     pageProp?: NDOMPage,
     options?: Parameters<NDOM['draw']>[3],
@@ -777,10 +770,7 @@ class NDOM extends NDOMInternal {
         page,
       })
 
-      newComponent = createComponent({
-        ...component.blueprint,
-        id: component.id,
-      })
+      newComponent = createComponent(component.blueprint)
 
       if (parent) {
         newComponent.setParent(parent)
@@ -789,7 +779,7 @@ class NDOM extends NDOMInternal {
 
       this.removeComponent(component)
 
-      newComponent = NDOM._nui.resolveComponents?.({
+      newComponent = nui.resolveComponents?.({
         callback: options?.callback,
         components: newComponent,
         page: page.getNuiPage(),
@@ -803,7 +793,6 @@ class NDOM extends NDOMInternal {
         parentNode?.contains?.(node) && (node.textContent = '')
 
         this.removeNode(node)
-        // let prevNode = node
 
         node = this.draw(newComponent, parentNode, page, {
           ...options,
@@ -839,14 +828,6 @@ class NDOM extends NDOMInternal {
             }
           },
         })
-
-        // if (parentNode) {
-        //   if (parentNode.contains(prevNode) && node) {
-        //     parentNode.replaceChild(node, prevNode)
-        //   } else if (node) {
-        //     parentNode.insertBefore(node, parentNode.childNodes[0])
-        //   }
-        // }
       }
     }
 
@@ -862,7 +843,7 @@ class NDOM extends NDOMInternal {
     if ('resolve' in obj) {
       this.#R.use(obj)
     } else if ('actionType' in obj || 'funcName' in obj) {
-      NDOM._nui.use({ [obj.actionType]: obj })
+      nui.use({ [obj.actionType]: obj })
     }
     return this
   }
@@ -907,11 +888,11 @@ class NDOM extends NDOMInternal {
     page?: NDOMPage,
   ) {
     const resetActions = () => {
-      NDOM._nui.cache.actions.clear()
-      NDOM._nui.cache.actions.reset()
+      nui.cache.actions.clear()
+      nui.cache.actions.reset()
     }
     const resetComponentCache = () => {
-      NDOM._nui.cache.component.clear(page?.requesting || page?.page)
+      nui.cache.component.clear(page?.requesting || page?.page)
     }
     const resetPages = () => {
       this.page = undefined as any
@@ -919,9 +900,9 @@ class NDOM extends NDOMInternal {
         delete this.pages[pageName]
         page?.reset?.()
       })
-      NDOM._nui.cache.page.clear()
+      nui.cache.page.clear()
     }
-    const resetRegisters = () => NDOM._nui.cache.register.clear()
+    const resetRegisters = () => nui.cache.register.clear()
     const resetResolvers = () => void (this.resolvers().length = 0)
     const resetGlobal = () => {
       resetPages()
@@ -959,7 +940,7 @@ class NDOM extends NDOMInternal {
       })
     }
     const resetTransactions = () => {
-      NDOM._nui.cache.transactions.clear()
+      nui.cache.transactions.clear()
     }
 
     if (key !== undefined) {
@@ -1023,7 +1004,7 @@ class NDOM extends NDOMInternal {
     if (transaction) {
       u.eachEntries(transaction, (id, val) => {
         if (id === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
-          NDOM._nui.use({
+          nui.use({
             transaction: {
               [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (
                 nuiPage: NUIPage,
@@ -1052,12 +1033,12 @@ class NDOM extends NDOMInternal {
             },
           })
         } else {
-          NDOM._nui.use({ transaction: { [id]: val } })
+          nui.use({ transaction: { [id]: val } })
         }
       })
     }
 
-    NDOM._nui.use(rest)
+    nui.use(rest)
     return this
   }
 }

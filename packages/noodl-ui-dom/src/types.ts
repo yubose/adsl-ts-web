@@ -3,14 +3,14 @@ import { OrArray, OrPromise } from '@jsmanifest/typefest'
 import { ComponentObject, ComponentType } from 'noodl-types'
 import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
 import MiddlewareUtils from './MiddlewareUtils'
-import NOODLDOM from './noodl-ui-dom'
+import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import createResolver from './createResolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import GlobalCssResourceRecord from './global/GlobalCssResourceRecord'
 import GlobalJsResourceRecord from './global/GlobalJsResourceRecord'
 import GlobalTimers from './global/Timers'
-import { eventId, dataAttributes } from './constants'
+import { eventId } from './constants'
 import { resourceTypes } from './utils/internal'
 
 export interface IGlobalObject<T extends string = string> {
@@ -76,22 +76,6 @@ export interface GlobalJsResourceObject extends GlobalResourceObjectBase<'js'> {
   [key: string]: any
 }
 
-export interface GlobalComponentRecordObject {
-  type: 'component'
-  record: GlobalComponentRecord
-}
-
-export interface GlobalPageRecordObject {
-  type: 'page'
-  record: NDOMPage
-}
-
-export type GlobalStoreRecordObject =
-  | GlobalComponentRecordObject
-  | GlobalPageRecordObject
-
-export type GlobalRecordType = GlobalStoreRecordObject['type']
-
 export interface Hooks {
   onRedrawStart(args: {
     parent: NUIComponent.Instance | null
@@ -110,56 +94,62 @@ export type DOMNodeInput =
   | HTMLElement[]
   | null
 
-export type NOODLDOMDataAttribute = typeof dataAttributes[number]
-export type NOODLDOMDataValueElement =
-  | HTMLInputElement
-  | HTMLSelectElement
-  | HTMLTextAreaElement
-export type NOODLDOMElement = Extract<
-  NOODLDOMElements[NOODLDOMElementTypes],
-  HTMLElement
->
-export type NOODLDOMElements = Pick<
-  HTMLElementTagNameMap,
-  | 'br'
-  | 'button'
-  | 'canvas'
-  | 'div'
-  | 'footer'
-  | 'img'
-  | 'input'
-  | 'iframe'
-  | 'label'
-  | 'li'
-  | 'link'
-  | 'ol'
-  | 'option'
-  // | 'script'
-  | 'select'
-  | 'span'
-  | 'textarea'
-  | 'ul'
-  | 'video'
->
-
-export type NOODLDOMElementTypes = keyof NOODLDOMElements
+export type NDOMElement<T extends string = string> = T extends 'button'
+  ? HTMLButtonElement
+  : T extends 'canvas'
+  ? HTMLCanvasElement
+  : T extends 'chart'
+  ? HTMLDivElement
+  : T extends 'chatList'
+  ? HTMLUListElement
+  : T extends 'divider'
+  ? HTMLHRElement
+  : T extends 'ecosDoc'
+  ? HTMLDivElement
+  : T extends 'footer'
+  ? HTMLDivElement
+  : T extends 'header'
+  ? HTMLDivElement
+  : T extends 'label'
+  ? HTMLDivElement
+  : T extends 'map'
+  ? HTMLDivElement
+  : T extends 'iframe' | 'page'
+  ? HTMLIFrameElement
+  : T extends 'plugin' | 'pluginHead' | 'pluginBodyTop' | 'pluginBodyTail'
+  ? HTMLDivElement | HTMLScriptElement | HTMLLinkElement | HTMLStyleElement
+  : T extends 'popUp'
+  ? HTMLDivElement
+  : T extends 'image'
+  ? HTMLImageElement
+  : T extends 'textField'
+  ? HTMLInputElement
+  : T extends 'list'
+  ? HTMLUListElement
+  : T extends 'listItem'
+  ? HTMLLIElement
+  : T extends 'register'
+  ? HTMLElement
+  : T extends 'stylesheet'
+  ? HTMLLinkElement
+  : T extends 'script'
+  ? HTMLScriptElement
+  : T extends 'select'
+  ? HTMLSelectElement
+  : T extends 'style'
+  ? HTMLStyleElement
+  : T extends 'textView'
+  ? HTMLTextAreaElement
+  : T extends 'video'
+  ? HTMLVideoElement
+  : T extends 'view'
+  ? HTMLDivElement
+  : HTMLElement
 
 export type ElementBinding = Map<
   'audioStream' | 'videoStream',
   (component: NUIComponent.Instance) => HTMLElement | null
 >
-
-/**
- * Type utility/factory to construct node resolver func types. Node resolver
- * funcs in noodl-ui-dom are any functions that take a DOM node as the first
- * argument and a component instance as the second, at its base structure
- */
-
-export interface Parse<C extends Component = any> {
-  (component: C, container?: NOODLDOMElement | null): NOODLDOMElement | null
-}
-
-export type Redraw = any
 
 export namespace Resolve {
   export type BaseArgs = [node: HTMLElement, component: Component]
@@ -183,19 +173,18 @@ export namespace Resolve {
   }
 
   export interface Hooks {
-    onResource?: Record<string, ResourceOnLoadHook>
-  }
-
-  export interface ResourceOnLoadHook {
-    (options: {
-      node: HTMLElement | null
-      component: NUIComponent.Instance
-      options: Resolve.Options
-      resource: {
+    onResource?: Record<
+      string,
+      (options: {
         node: HTMLElement | null
-        record: GlobalResourceRecord
-      }
-    }): Promise<void> | void
+        component: NUIComponent.Instance
+        options: Resolve.Options
+        resource: {
+          node: HTMLElement | null
+          record: GlobalResourceRecord
+        }
+      }) => Promise<void> | void
+    >
   }
 
   export interface LifeCycle {
@@ -223,9 +212,6 @@ export namespace Render {
 
 export type RegisterOptions = Resolve.Config
 
-/* -------------------------------------------------------
-  ---- PAGE TYPES
--------------------------------------------------------- */
 export namespace Page {
   export type HookEvent = keyof Hook
 
@@ -246,8 +232,8 @@ export namespace Page {
     [eventId.page.on.ON_OUTBOUND_REDIRECT](snapshot: Snapshot): void
     [eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE](rootNode: HTMLElement): void
     [eventId.page.on.ON_DOM_CLEANUP](args: {
-      global: NOODLDOM['global']
-      rootNode: NOODLDOM['page']['rootNode']
+      global: NDOM['global']
+      rootNode: NDOM['page']['rootNode']
     }): void
     [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
       snapshot: Snapshot & { components: NUIComponent.Instance[] },
@@ -312,6 +298,6 @@ export interface UseObject
     component: NUIComponent.Instance,
   ): HTMLElement | null | void
   resolver?: Resolve.Config
-  resource?: OrArray<Parameters<NOODLDOM['createResource']>[0]>
+  resource?: OrArray<Parameters<NDOM['createResource']>[0]>
   transaction?: Partial<NDOMTransaction>
 }

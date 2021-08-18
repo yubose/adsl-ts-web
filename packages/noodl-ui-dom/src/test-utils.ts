@@ -1,4 +1,6 @@
 import * as u from '@jsmanifest/utils'
+import { expect } from 'chai'
+import { waitFor } from '@testing-library/dom'
 import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
 import { OrArray } from '@jsmanifest/typefest'
 import isNil from 'lodash/isNil'
@@ -15,11 +17,12 @@ import {
 import {
   GlobalCssResourceObject,
   GlobalJsResourceObject,
-  NOODLDOMElement,
+  NDOMElement,
   Resolve,
   UseObject,
 } from './types'
 import { array, keys, isStr, isUnd } from './utils/internal'
+import { nui } from './nui'
 import NOODLDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import * as defaultResolvers from './resolvers'
@@ -58,7 +61,7 @@ export const _defaults = {
 
 export const baseUrl = _defaults.baseUrl
 export const assetsUrl = _defaults.assetsUrl
-export let ndom = new NOODLDOM(NUI)
+export let ndom = new NOODLDOM()
 export const viewport = new Viewport({ width: 375, height: 667 })
 
 const defaultResolversKeys = keys(
@@ -317,21 +320,21 @@ export function stubInvariant() {
 }
 
 export function toDOM<
-  N extends NOODLDOMElement = NOODLDOMElement,
+  N extends NDOMElement = NDOMElement,
   C extends NUIComponent.Instance = NUIComponent.Instance,
 >(props: any) {
   let node: N | null = null
   let component: C | undefined
   let page = ndom.page
-  !ndom && (ndom = new NOODLDOM(NUI))
+  !ndom && (ndom = new NOODLDOM())
   !page && (page = ndom.createPage())
   if (typeof props?.props === 'function') {
     node = ndom.draw(props as any) as N
     component = props as any
   } else if (u.isObj(props)) {
-    component = NOODLDOM._nui.resolveComponents({
+    component = nui.resolveComponents({
       components: [props as ComponentObject],
-      page: NOODLDOM._nui.getRootPage(),
+      page: nui.getRootPage(),
     }) as any
     node = ndom.draw(component as C, ndom.page.rootNode) as N
   }
@@ -339,38 +342,16 @@ export function toDOM<
   return [node, component] as [NonNullable<N>, C]
 }
 
-export function waitForPageChildren(
-  getPageElem = () =>
-    document.getElementsByClassName('page')?.[0] as HTMLIFrameElement,
-  interval = 35,
-): Promise<
-  [
-    HTMLIFrameElement,
-    {
-      contentDocument: HTMLIFrameElement['contentDocument']
-      body: HTMLBodyElement
-    },
-  ]
-> {
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      clearInterval(ref)
-      reject(new Error(`[waitForPageChildren] timed out after 2 seconds`))
-    }, 2000)
-
-    const ref = setInterval(() => {
-      const pageElem = getPageElem()
-      const pageBodyElem = pageElem?.contentDocument?.body as HTMLBodyElement
-
-      if (pageBodyElem?.children?.length) {
-        clearTimeout(timeout)
-        clearInterval(ref)
-        resolve([
-          pageElem,
-          { contentDocument: pageElem.contentDocument, body: pageBodyElem },
-        ])
-      }
-    }, interval)
+export async function waitForPageChildren(
+  getPageElem = () => findBySelector('page'),
+) {
+  await waitFor(() => {
+    const pageElem = getPageElem()
+    const pageBodyElem = pageElem?.contentDocument?.body as HTMLBodyElement
+    expect(pageBodyElem, 'expected page HTMLBodyElement to exist').to.exist
+    expect(pageBodyElem, 'expected page HTMLBodyElement to have children')
+      .to.have.property('children')
+      .with.length.greaterThan(0)
   })
 }
 
@@ -380,8 +361,7 @@ export function getAllElementCount(selector = '') {
 
 export function getPageComponentChildIds(component: NUIComponent.Instance) {
   const pageName = component.get('page').page
-  return ndom.cache.component.reduce(
-    (acc, obj) => (obj.page === pageName ? acc.concat(obj.component.id) : acc),
-    [] as string[],
-  )
+  return ndom.cache.component.reduce((acc, obj) => {
+    return obj.page === pageName ? acc.concat(obj.component.id) : acc
+  }, [] as string[])
 }

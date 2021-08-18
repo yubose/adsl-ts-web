@@ -376,7 +376,6 @@ const domComponentsResolver: Resolve.Config = {
           // ndomPage.rootNode = node as HTMLIFrameElement
           ndomPage.rootNode.src = src
           ndomPage.rootNode.style.border = '1px solid cyan'
-          debugger
         } else {
           const getPageChildIds = (c: NUIComponent.Instance) =>
             c.children?.reduce(
@@ -422,7 +421,6 @@ const domComponentsResolver: Resolve.Config = {
 
           const listen = () => {
             let ndomPage = getOrCreateNDOMPage(component) as NDOMPage
-
             component.on(
               nuiEvent.component.page.PAGE_COMPONENTS,
               ({ page: nuiPage, type }) => {
@@ -643,6 +641,11 @@ const domComponentsResolver: Resolve.Config = {
           const isDisabled = Identify.isBooleanFalse(isEditable)
           ;(node as HTMLTextAreaElement).disabled = isDisabled
         }
+        node?.addEventListener('change', function (this: HTMLTextAreaElement) {
+          this.dataset.value = this.value
+          component.edit('data-value', this.value)
+          component.emit('data-value', this.value)
+        })
       }
       // textField
       else if (Identify.component.textField(component)) {
@@ -658,6 +661,11 @@ const domComponentsResolver: Resolve.Config = {
             autocomplete,
           )
         }
+        node?.addEventListener('change', function (this: HTMLInputElement) {
+          this.dataset.value = this.value
+          component.edit('data-value', this.value)
+          component.emit('data-value', this.value)
+        })
       }
       // VIDEO
       else if (Identify.component.video(component)) {

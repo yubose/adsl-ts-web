@@ -11,9 +11,9 @@ import {
   NameField,
 } from 'noodl-types'
 import { classes } from '../constants'
-import NDOM from '../noodl-ui-dom'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import { getFirstByElementId } from '../utils'
+import { nui } from '../nui'
 import { createRender, createDataKeyReference, ndom } from '../test-utils'
 import * as c from '../constants'
 
@@ -46,7 +46,7 @@ function getEcosDocRenderResults<N extends NameField = NameField>({
   ecosObj?: EcosDocument<N>
   node?: HTMLElement
 } = {}) {
-  const component = NDOM._nui.resolveComponents(componentProp)
+  const component = nui.resolveComponents(componentProp)
   node.id = component.id
   const iframe = getEcosDocElement(component)
   document.body.appendChild(node)

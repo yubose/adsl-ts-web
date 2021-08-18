@@ -79,7 +79,7 @@ class App {
     noodl,
     notification,
     nui = NUI,
-    ndom = new NOODLDOM(nui),
+    ndom = new NOODLDOM(),
     viewport = new VP(),
   }: t.AppConstructorOptions = {}) {
     this.getStatus = getStatus
@@ -389,10 +389,7 @@ class App {
       const pageRequesting = page.requesting
       const currentPage = page.page
       log.func('getPageObject')
-      log.grey(
-        `Running noodl.initPage for page "${pageRequesting}"`,
-        page.snapshot(),
-      )
+      log.grey(`Running noodl.initPage for page "${pageRequesting}"`)
 
       if (pageRequesting === currentPage) {
         console.log(
@@ -400,9 +397,6 @@ class App {
             `The page is unnecessarily rendering twice to the DOM`,
           `color:#ec0000;`,
         )
-        // return { aborted: true }
-        // debugger
-        // return { aborted: true }
       }
 
       let self = this
@@ -430,14 +424,7 @@ class App {
                 )
               : undefined,
             checkField: self.builtIns.get('checkField')?.find(Boolean)?.fn,
-            goto: (...args) => {
-              // debugger
-              return self.builtIns
-                .get('goto')
-                ?.find(Boolean)
-                ?.fn(...args)
-            },
-            // goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
+            goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
             hide: self.builtIns.get('hide')?.find(Boolean)?.fn,
             show: self.builtIns.get('show')?.find(Boolean)?.fn,
             redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
