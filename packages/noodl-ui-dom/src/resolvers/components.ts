@@ -364,21 +364,19 @@ const domComponentsResolver: Resolve.Config = {
       else if (Identify.component.page(component)) {
         const src = component.get('data-src') || ''
         // TODO - Finish http implementation
-        if (process.env.NODE_ENV !== 'test' && src.startsWith('http')) {
+        if (
+          process.env.NODE_ENV !== 'test' &&
+          ['.css', '.html', '.js'].some((ext) => src.endsWith(ext))
+        ) {
           let nuiPage = component.get('page')
-          let ndomPage = ndom.findPage(nuiPage) as NDOMPage
+          let ndomPage = ndom.findPage(nuiPage) || ndom.createPage(nuiPage)
 
-          if (!ndomPage) {
-            try {
-              ndomPage = ndom.createPage(nuiPage)
-            } catch (error) {
-              console.error(error)
-            }
-          }
-
-          ndomPage.rootNode?.parentNode?.removeChild?.(ndomPage.rootNode)
-          ndomPage.rootNode = node as HTMLIFrameElement
+          // ndomPage.rootNode?.parentNode?.removeChild?.(ndomPage.rootNode)
+          ndomPage.rootNode.parentElement?.replaceChild(node, ndomPage.rootNode)
+          // ndomPage.rootNode = node as HTMLIFrameElement
           ndomPage.rootNode.src = src
+          ndomPage.rootNode.style.border = '1px solid cyan'
+          debugger
         } else {
           const getPageChildIds = (c: NUIComponent.Instance) =>
             c.children?.reduce(
