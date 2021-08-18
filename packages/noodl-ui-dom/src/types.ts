@@ -2,7 +2,6 @@ import { LiteralUnion } from 'type-fest'
 import { OrArray, OrPromise } from '@jsmanifest/typefest'
 import { ComponentObject, ComponentType } from 'noodl-types'
 import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
-import MiddlewareUtils from './MiddlewareUtils'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import createResolver from './createResolver'
@@ -200,10 +199,6 @@ export namespace Resolve {
   >
 }
 
-export namespace Middleware {
-  export type Utils = MiddlewareUtils
-}
-
 export namespace Render {
   export interface Func {
     (components: ComponentObject | ComponentObject[]): Component[]
@@ -225,11 +220,9 @@ export namespace Page {
       newPageRequesting: string
       snapshot: Snapshot
     }): void
-    [eventId.page.on.ON_NAVIGATE_ABORT](snapshot: Snapshot): void
     [eventId.page.on.ON_NAVIGATE_ERROR](
       snapshot: Snapshot & { error: Error },
     ): void
-    [eventId.page.on.ON_OUTBOUND_REDIRECT](snapshot: Snapshot): void
     [eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE](rootNode: HTMLElement): void
     [eventId.page.on.ON_DOM_CLEANUP](args: {
       global: NDOM['global']
@@ -272,7 +265,6 @@ export namespace Page {
         [key: string]: any
       }
     }
-    render: {}
     status: Status
     rootNode: boolean
   }

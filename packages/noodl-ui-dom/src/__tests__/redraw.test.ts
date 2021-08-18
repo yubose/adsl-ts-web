@@ -1,7 +1,6 @@
 import sinon from 'sinon'
 import * as mock from 'noodl-ui-test-utils'
 import * as u from '@jsmanifest/utils'
-import * as nu from 'noodl-utils'
 import * as nc from 'noodl-common'
 import { expect } from 'chai'
 import { ComponentObject, EmitObjectFold, PageObject } from 'noodl-types'
@@ -258,7 +257,7 @@ describe(nc.coolGold(`redraw`), () => {
     view.createChild(list)
     list.setParent(view)
     ndom.draw(view)
-    const listItem = list.child() as ListItem
+    const listItem = list.child()
     const liNode = document.getElementById(listItem?.id || '')
     const [newLiNode, newListItem] = ndom.redraw(liNode, listItem)
     expect(newListItem?.parent).to.eq(list)
@@ -310,50 +309,6 @@ describe(nc.coolGold(`redraw`), () => {
     expect(ulNode.contains(liNode)).to.be.false
     expect(ulNode.children).to.have.length.greaterThan(0)
     expect(newNode?.parentNode).to.eq(ulNode)
-  })
-
-  it('should use every component\'s "shape" as their redraw blueprint', async () => {
-    const list = await createRender({
-      components: [ui.list({ listObject: mock.getGenderListObject() })],
-    }).render()
-    const createIsEqual =
-      (noodlComponent: ComponentObject, newInstance: Component) =>
-      (prop: string) =>
-        noodlComponent[prop] === newInstance.get(prop)
-    const node = ndom.draw(list)
-    const [newNode, newComponent] = ndom.redraw(node, list)
-    const isEqual = createIsEqual(list.original, newComponent)
-    u.keys(list.original).forEach((prop) => {
-      if (prop === 'children') {
-        expect(list.original?.children).to.deep.eq(list?.original?.children)
-      } else {
-        expect(isEqual(prop as string)).to.be.true
-      }
-    })
-  })
-
-  it('should accept a component resolver to redraw all of its children', async () => {
-    const listComponentObject = ui.list({
-      listObject: mock.getGenderListObject(),
-    })
-    const { render } = createRender({ components: [listComponentObject] })
-    const list = await render()
-    const createIsEqual =
-      (noodlComponent: ComponentObject, newInstance: Component) =>
-      (prop: string) =>
-        noodlComponent[prop] === newInstance.get(prop)
-    const node = ndom.draw(list)
-    const [newNode, newComponent] = ndom.redraw(node, list)
-    const isEqual = createIsEqual(list.original, newComponent)
-    u.keys(list.original).forEach((prop) => {
-      if (prop === 'children') {
-        expect(list.original.children).to.deep.eq(
-          newComponent.original.children,
-        )
-      } else {
-        expect(isEqual(prop as string)).to.be.true
-      }
-    })
   })
 
   describe('when using path emits after redrawing', () => {

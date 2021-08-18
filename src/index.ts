@@ -18,12 +18,12 @@ import {
   findByUX,
   findWindow,
   findWindowDocument,
+  Page as NDOMPage,
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
 import { copyToClipboard, getVcodeElem, toast } from './utils/dom'
 import AppNotification from './app/Notifications'
 import App from './App'
-import { isIOS } from './utils/common'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
 
@@ -175,37 +175,9 @@ window.addEventListener('load', async (e) => {
     !attachDebugUtilsToWindow.attached && attachDebugUtilsToWindow(app)
   }
 
-  /**
-   * Disable user gesture / pinch zoom events for iOS devices (mainly safari)
-   * since they break the layout
-   */
-  // if (isIOS()) {
-  //   document.addEventListener(
-  //     'touchmove',
-  //     (evt) => {
-  //       // @ts-expect-error
-  //       if (Number(evt?.scale) != 1) evt.preventDefault()
-  //       // console.log(`[touchmove] default prevented`, e)
-  //     },
-  //     { passive: false },
-  //   )
-  // }
-  document.addEventListener('gesturestart', (e) => {
-    e.preventDefault()
-    // log.func('gesturestart')
-    // log.orange(`fired`, e)
-  })
-  document.addEventListener('gestureend', (e) => {
-    e.preventDefault()
-    // log.func('gestureend')
-    // log.orange(`fired`, e)
-  })
-
-  document.addEventListener('gesturechange', (e) => {
-    e.preventDefault()
-    // log.func('gesturechange')
-    // log.orange(`fired`, e)
-  })
+  document.addEventListener('gesturestart', (e) => e.preventDefault())
+  document.addEventListener('gestureend', (e) => e.preventDefault())
+  document.addEventListener('gesturechange', (e) => e.preventDefault())
 
   app.ndom.on(
     'onRedrawStart',
@@ -279,6 +251,38 @@ function attachDebugUtilsToWindow(app: App) {
       }
     }
     console.log(pageComponentCount)
+  }
+
+  // @ts-expect-error
+  window.getNDOMPagesByName = (name: string) =>
+    u.values(app.ndom.pages).filter((page) => page.page === name)
+  // @ts-expect-error
+  window.getNUIPagesByName = (name: string) =>
+    [...app.cache.page.get().values()].reduce(
+      (acc, { page }) => (page.page === name ? acc.concat(page) : acc),
+      [] as lib.Page[],
+    )
+  // @ts-expect-error
+  window.getPageTable = () => {
+    const result = {} as Record<string, { ndom: any[]; nui: any[] }>
+    const getKey = (page: NDOMPage | lib.Page) =>
+      page.page === '' ? 'unknown' : page.page
+
+    for (const { page } of app.cache.page.get().values()) {
+      const key = getKey(page)
+      if (!(key in result)) {
+        result[key] = { ndom: [], nui: [] }
+      }
+      result[key].nui.push(page)
+    }
+
+    for (const page of u.values(app.ndom.pages)) {
+      const key = getKey(page)
+      if (!(key in result)) {
+        result[key] = { ndom: [], nui: [] }
+      }
+      result[key].ndom.push(page)
+    }
   }
 
   attachDebugUtilsToWindow.attached = true

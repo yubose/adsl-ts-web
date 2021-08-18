@@ -1,13 +1,7 @@
+import * as u from '@jsmanifest/utils'
 import { Page as NUIPage, Viewport } from 'noodl-ui'
 import { BASE_PAGE_URL, eventId } from './constants'
-import * as u from './utils/internal'
 import * as T from './types'
-
-const getDefaultRenderState = (
-  initialState?: Record<string, any>,
-): T.Page.State['render'] => ({
-  ...initialState,
-})
 
 class Page {
   #nuiPage: NUIPage
@@ -22,7 +16,6 @@ class Page {
     },
     status: eventId.page.status.IDLE as T.Page.Status,
     rootNode: false,
-    render: getDefaultRenderState(),
   }
   #hooks = u
     .values(eventId.page.on)
@@ -52,6 +45,7 @@ class Page {
 
   clearRootNode() {
     if (!this.rootNode) {
+      // @ts-expect-error
       this.rootNode = (document.getElementById(String(this.id)) ||
         document.createElement('div')) as HTMLDivElement
       this.rootNode.id = this.id as string
@@ -134,6 +128,10 @@ class Page {
   set requesting(pageName: string) {
     if (pageName === '') this.#state.modifiers = {}
     this.#state.requesting = pageName || ''
+  }
+
+  get tagName() {
+    return this.rootNode?.tagName?.toLowerCase?.() || ''
   }
 
   get viewport() {
@@ -265,26 +263,6 @@ class Page {
 
   remove() {
     try {
-      if (this.rootNode.parentElement) {
-        // this.rootNode.innerHTML = ''
-        // console.log(
-        //   `%c[Page] Cleared all child content from rootNode for page "${this.page}"`,
-        //   `color:#00b406;`,
-        // )
-      } else {
-        try {
-          this.rootNode.parentElement?.removeChild?.(this.rootNode)
-          this.rootNode.remove?.()
-          console.log(
-            `%c[Page] Removed rootNode from parentNode for page "${this.page}"`,
-            `color:#00b406;`,
-          )
-        } catch (error) {
-          console.error(error)
-          throw error
-        }
-      }
-
       this.#nuiPage.viewport = null as any
       u.isArr(this.components) && (this.components.length = 0)
       u.values(this.#hooks).forEach((v) => v && (v.length = 0))
@@ -295,9 +273,7 @@ class Page {
 
   reset<K extends keyof T.Page.State = keyof T.Page.State>(slice?: K) {
     if (slice) {
-      if (slice === 'render') this.#state.render = getDefaultRenderState()
     } else {
-      this.#state.render = getDefaultRenderState()
       this.remove()
     }
   }

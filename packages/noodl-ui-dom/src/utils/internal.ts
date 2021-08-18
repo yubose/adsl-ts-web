@@ -1,46 +1,14 @@
+/**
+ * Internal utilities (not exported)
+ */
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { ComponentObject, EcosDocument, NameField } from 'noodl-types'
-import { NUIComponent } from 'noodl-ui'
+import { NUIComponent, Page as NUIPage } from 'noodl-ui'
+import { GlobalComponentRecord } from '../global/index'
+import NDOM from '../noodl-ui-dom'
+import NDOMPage from '../Page'
 import * as t from '../types'
-
-export const array = <O extends any[], P extends O[number]>(o: P | P[]): P[] =>
-  isArr(o) ? o : [o]
-export const arrayEach = <O extends any[], P extends O[number]>(
-  obj: P | P[],
-  fn: (o: P) => void,
-) => void array(obj).forEach(fn)
-export const assign = (
-  v: Record<string, any>,
-  ...rest: (Record<string, any> | undefined)[]
-) => Object.assign(v, ...rest)
-export const entries = (v: any) => (isObj(v) ? Object.entries(v) : [])
-export const isArr = (v: any): v is any[] => Array.isArray(v)
-export const isBool = (v: any): v is boolean => typeof v === 'boolean'
-export const isObj = (v: any): v is { [key: string]: any } =>
-  !!v && !isArr(v) && typeof v === 'object'
-export const isNum = (v: any): v is number => typeof v === 'number'
-export const isStr = (v: any): v is string => typeof v === 'string'
-export const isUnd = (v: any): v is undefined => typeof v === 'undefined'
-export const isNull = (v: any): v is null => v === null
-export const isNil = (v: any): v is null | undefined => isNull(v) && isUnd(v)
-export const isFnc = <V extends (...args: any[]) => any>(v: any): v is V =>
-  typeof v === 'function'
-export const keys = (v: any) => Object.keys(v)
-
-export const eachEntries = <O extends Record<string, any> | Map<string, any>>(
-  fn: (key: string, value: any) => void,
-  obj: O | null | undefined,
-) => {
-  if (obj instanceof Map) {
-    for (const [key, value] of obj) fn(key, value)
-  } else if (isObj(obj)) {
-    entries(obj).forEach(([k, v]) => fn(k, v))
-  }
-}
-export const values = <O extends Record<string, any>, K extends keyof O>(
-  v: O,
-): O[K][] => Object.values(v)
 
 export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
@@ -73,7 +41,7 @@ function _createDocIdentifier(
    * @param { string } key
    */
   function _pick(obj: any, key: string, defaultValue?: any) {
-    if (!isObj(obj)) return obj
+    if (!u.isObj(obj)) return obj
     let result
     if (key === 'name.type') {
       if (obj?.name?.type) {
@@ -81,16 +49,18 @@ function _createDocIdentifier(
         if (val !== undefined && !val) return false
       }
     }
-    isFnc(obj.get) && (result = obj.get(key))
-    isUnd(result) && (result = get(obj, key))
-    isUnd(result) && (result = get(obj.blueprint, key))
+    u.isFnc(obj.get) && (result = obj.get(key))
+    u.isUnd(result) && (result = get(obj, key))
+    u.isUnd(result) && (result = get(obj.blueprint, key))
     return result || defaultValue
   }
   // TODO - Docx files is being detected as PDF -- which prompts downloading
   // TODO - Read possible feat. for viewing docx files https://stackoverflow.com/questions/27957766/how-do-i-render-a-word-document-doc-docx-in-the-browser-using-javascript
   function identifyDoc(obj: CreateDocIdentifierArg) {
-    const flags = isStr(regexStr) ? 'i' : regexStr.flags
-    const regex = isStr(regexStr) ? new RegExp(regexStr, flags) : regexStr.value
+    const flags = u.isStr(regexStr) ? 'i' : regexStr.flags
+    const regex = u.isStr(regexStr)
+      ? new RegExp(regexStr, flags)
+      : regexStr.value
 
     if (regexStr === '') {
       _pick(obj, 'subtype.mediaType') === '' ||
@@ -122,13 +92,13 @@ export const isMarkdownDoc = _createDocIdentifier(8, 'markdown')
 export const isNoteDoc = _createDocIdentifier(1, 'json')
 export const isPdfDoc = _createDocIdentifier(1, 'pdf')
 export const isTextDoc = (obj: Record<string, any>) => {
-  const isTxt = (s: string) => (isStr(s) && /text/i.test(s)) || s === ''
-  if (isFnc(obj?.get)) {
+  const isTxt = (s: string) => (u.isStr(s) && /text/i.test(s)) || s === ''
+  if (u.isFnc(obj?.get)) {
     if (obj?.has?.('ecosObj')) {
       const type = get(obj?.get?.('ecosObj'), 'name.type')
       const mediaType = get(obj?.get?.('ecosObj'), 'subtype.mediaType')
-      if (isStr(type) && isTxt(type)) return true
-      if (isNum(mediaType) && mediaType === 8) return true
+      if (u.isStr(type) && isTxt(type)) return true
+      if (u.isNum(mediaType) && mediaType === 8) return true
     }
   }
   // Assume plain objects at this point
@@ -143,9 +113,108 @@ export const isWordDoc = _createDocIdentifier(
   1,
   '(office|wordprocessingml|vnl.)',
 )
-// export const isVideoDoc = _createDocIdentifier(0, '')
 
 export const xKeys = ['width', 'left']
 export const yKeys = ['height', 'top']
 export const posKeys = [...xKeys, ...yKeys]
 export const resourceTypes = ['css', 'js'] as const
+
+export function handleDrawGlobalComponent(
+  this: NDOM,
+  node: HTMLElement,
+  component: NUIComponent.Instance,
+  page: NDOMPage,
+) {
+  let globalRecord: GlobalComponentRecord
+  let globalId = component.get('data-globalid')
+
+  const attachOnClick = (n: HTMLElement | null, globalId: string) => {
+    if (n) {
+      const onClick = () => {
+        n.removeEventListener('click', onClick)
+        this.removeNode(n)
+        this.removeGlobal('component', globalId)
+      }
+      n.addEventListener('click', onClick)
+    }
+  }
+
+  if (this.global.components.has(globalId)) {
+    globalRecord = this.global.components.get(globalId) as GlobalComponentRecord
+  } else {
+    globalRecord = this.createGlobalRecord({
+      type: 'component',
+      id: globalId,
+      component,
+      node,
+      page,
+    }) as GlobalComponentRecord
+    this.global.components.set(globalId, globalRecord)
+    attachOnClick(node, globalId)
+  }
+
+  if (globalRecord) {
+    component.edit({ 'data-globalid': globalId, globalId })
+    // Check mismatchings and recover from them
+
+    const publishMismatchMsg = (
+      type: 'node' | 'component',
+      extendedText?: string,
+    ) => {
+      const id =
+        type === 'node'
+          ? node?.id || `<Missing node id (component id is "${component.id}")>`
+          : type === 'component'
+          ? component.id
+          : '<Missing ID>'
+      console.log(
+        `%cThe ${type} with id "${id}" is different than the one in the global object.${
+          extendedText || ''
+        }`,
+        `color:#CCCD17`,
+        { globalObject: globalRecord },
+      )
+    }
+
+    if (globalRecord.componentId !== component.id) {
+      publishMismatchMsg('component')
+      this.removeComponent(
+        this.cache.component.get(globalRecord.componentId)?.component,
+      )
+      globalRecord.componentId = component.id
+    }
+
+    if (node) {
+      if (!node.id) node.id = component.id
+      if (globalRecord.nodeId) {
+        if (globalRecord.nodeId !== node.id) {
+          publishMismatchMsg(
+            'node',
+            `The old node will be ` + `replaced with the incoming node's id`,
+          )
+          const _prevNode = document.getElementById(globalRecord.nodeId)
+          if (_prevNode) {
+            this.removeNode(_prevNode)
+          }
+          globalRecord.nodeId = node.id
+          node.dataset.globalid = globalId
+        }
+      } else {
+        globalRecord.nodeId = node.id
+        node.dataset.globalid = globalId
+      }
+    }
+
+    if (globalRecord.pageId !== page.id) {
+      console.log(
+        `%cPage ID for global object with id "${component.get(
+          'data-globalid',
+        )}" does not match with the page that is drawing for component "${
+          component.id
+        }"`,
+        `color:#FF5722;`,
+        globalRecord,
+      )
+    }
+  }
+}

@@ -12,7 +12,6 @@ import {
   NUI,
   Page as NUIPage,
   Viewport,
-  ComponentCacheObject,
 } from 'noodl-ui'
 import {
   GlobalCssResourceObject,
@@ -21,11 +20,9 @@ import {
   Resolve,
   UseObject,
 } from './types'
-import { array, keys, isStr, isUnd } from './utils/internal'
 import { nui } from './nui'
 import NOODLDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
-import * as defaultResolvers from './resolvers'
 import { findBySelector } from './utils'
 
 export const ui = { ...actionFactory, ...componentFactory }
@@ -64,14 +61,7 @@ export const assetsUrl = _defaults.assetsUrl
 export let ndom = new NOODLDOM()
 export const viewport = new Viewport({ width: 375, height: 667 })
 
-const defaultResolversKeys = keys(
-  defaultResolvers,
-) as (keyof typeof defaultResolvers)[]
-
-type MockDrawResolver =
-  | Resolve.Config
-  | keyof typeof defaultResolvers
-  | (Resolve.Config | keyof typeof defaultResolvers)[]
+type MockDrawResolver = Resolve.Config
 
 interface MockRenderOptions {
   components?: OrArray<ComponentObject>
@@ -80,7 +70,6 @@ interface MockRenderOptions {
   page?: NDOMPage
   pageName?: string
   pageObject?: Partial<PageObject>
-  resolver?: MockDrawResolver
   resource?: UseObject['resource']
   root?: Record<string, PageObject>
 }
@@ -149,7 +138,6 @@ export function createRender<Opts extends MockRenderOptions>(
   let page: NDOMPage | undefined
   let pageObject: Partial<PageObject> = {}
   let root = _defaults.root
-  let resolver: OrArray<MockDrawResolver> | undefined
   let resource: Opts['resource'] | undefined
 
   if (u.isArr(opts) || 'type' in (opts || {})) {
@@ -161,7 +149,6 @@ export function createRender<Opts extends MockRenderOptions>(
     opts.pageObject && u.assign(pageObject, opts.pageObject)
     opts.page && (page = page)
     opts.root && (root = opts.root)
-    opts.resolver && (resolver = opts.resolver)
     opts.resource && (resource = opts.resource)
 
     !pageRequesting && (pageRequesting = _defaults.pageRequesting)
@@ -188,19 +175,8 @@ export function createRender<Opts extends MockRenderOptions>(
   !page && (page = ndom.page || ndom.createPage(pageRequesting))
   currentPage && (page.page = currentPage)
   pageRequesting && (page.requesting = pageRequesting)
-  !resolver && (resolver = defaultResolversKeys)
 
-  array(resolver).forEach(
-    (r: Resolve.Config | typeof defaultResolversKeys[number]) => {
-      if (isStr(r)) {
-        defaultResolvers[r] && ndom.register(defaultResolvers[r])
-      } else {
-        r && ndom.register(r)
-      }
-    },
-  )
-
-  if (isUnd(page?.viewport.width) || isUnd(page?.viewport.height)) {
+  if (u.isUnd(page?.viewport.width) || u.isUnd(page?.viewport.height)) {
     page.viewport.width = page.viewport.width || 375
     page.viewport.height = page.viewport.height || 667
   }

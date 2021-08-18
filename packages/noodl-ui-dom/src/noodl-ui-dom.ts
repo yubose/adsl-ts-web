@@ -19,7 +19,6 @@ import {
   GlobalCssResourceRecord,
   GlobalJsResourceRecord,
 } from './global/index'
-import { resourceTypes } from './utils/internal'
 import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
 import createResourceObject from './utils/createResourceObject'
@@ -30,7 +29,9 @@ import NDOMInternal from './Internal'
 import NDOMGlobal from './Global'
 import NDOMPage from './Page'
 import { cache as nuiCache, nui } from './nui'
-import * as defaultResolvers from './resolvers'
+import attributeResolver from './resolvers/attributes'
+import componentResolver from './resolvers/components'
+import * as i from './utils/internal'
 import * as c from './constants'
 import * as t from './types'
 
@@ -50,7 +51,7 @@ class NDOM extends NDOMInternal {
     super()
     this.#R = createResolver(this)
     this.#R.use(this)
-    u.values(defaultResolvers).forEach(this.#R.use.bind(this.#R))
+    ;[attributeResolver, componentResolver].forEach(this.#R.use.bind(this.#R))
   }
 
   get actions() {
@@ -160,10 +161,10 @@ class NDOM extends NDOMInternal {
     let resourceObject = createResourceObject(resource)
 
     invariant(
-      resourceTypes.includes(resourceObject.type),
+      i.resourceTypes.includes(resourceObject.type),
       `"${
         resourceObject.type
-      }" is not a supported resource type yet. Supported types are: ${resourceTypes.join(
+      }" is not a supported resource type yet. Supported types are: ${i.resourceTypes.join(
         ', ',
       )}`,
     )
@@ -283,16 +284,12 @@ class NDOM extends NDOMInternal {
     const remove = (c: NUIComponent.Instance) => {
       console.log(`%cRemoving ${c.type} component: ${c.id}`, `color:#00b406;`)
       this.cache.component.remove(c)
-
       if (c.has?.('global') || c.blueprint?.global) {
         this.removeGlobal('component', c.get('data-globalid'))
       }
-
       c?.setParent?.(null)
       c?.parent?.removeChild(c)
-
       c.children?.forEach?.((_c) => remove(_c))
-
       if (c.has('page')) c.remove('page')
       c.clear?.()
     }
@@ -317,13 +314,7 @@ class NDOM extends NDOMInternal {
             this.global.components.delete(globalId)
             if (nodeId) {
               const node = getFirstByGlobalId(globalId)
-              if (node) {
-                console.log(
-                  `%c[removeGlobal] Removing global DOM node with globalId "${globalId}"`,
-                  `color:#95a5a6;`,
-                )
-                this.removeNode(node)
-              }
+              node && this.removeNode(node)
             }
           }
         }
@@ -360,21 +351,13 @@ class NDOM extends NDOMInternal {
       // This is needed for the consumer to run any operations prior to working
       // with the components (ex: processing the "init" in page objects)
       await this.transact(nuiEmitTransaction.REQUEST_PAGE_OBJECT, page)
-      /**
-       * Clean up inactive / aborted pages that remain in the memory
-       */
 
       const ndomPageIds = u.keys(this.global.pages)
 
       if (ndomPageIds.length !== this.cache.page.length) {
-        // // debugger
         console.log(
           `%cThe number of NDOM pages is ${ndomPageIds.length} and NUI pages is ${this.cache.page.length}. They should be in sync`,
           `color:#ec0000;`,
-          {
-            ndomPages: u.entries(this.global.pages),
-            nuiPages: Array.from(this.cache.page.get()),
-          },
         )
       }
 
@@ -390,13 +373,11 @@ class NDOM extends NDOMInternal {
             await cb()
           } else if (page.requesting) {
             console.log(
-              `%cAborting this navigate request to ${pageRequesting} because a more ` +
-                `recent request for "${page.requesting}" was instantiated`,
+              `%cAborting this navigate request to ${pageRequesting} because` +
+                `a more recent request for "${page.requesting}" was instantiated`,
               `color:#FF5722;`,
               { pageAborting: pageRequesting, pageRequesting: page.requesting },
             )
-            await page.emitAsync(pageEvt.on.ON_NAVIGATE_ABORT, page.snapshot())
-            // Remove the page modifiers so they don't propagate to subsequent navigates
             delete page.modifiers[pageRequesting]
             return console.error(
               `A more recent request from "${pageRequesting}" to "${page.requesting}" was called`,
@@ -411,7 +392,6 @@ class NDOM extends NDOMInternal {
 
       // Outside link
       if (pageRequesting.startsWith('http')) {
-        await page.emitAsync(pageEvt.on.ON_OUTBOUND_REDIRECT, page.snapshot())
         await action(() => void (page.requesting = ''))
         return openOutboundURL(pageRequesting)
       }
@@ -429,10 +409,8 @@ class NDOM extends NDOMInternal {
         page.requesting = ''
       })
     } catch (error) {
-      if (pageRequesting === page.requesting) {
-        page.requesting = ''
-      }
-      throw error
+      if (pageRequesting === page.requesting) page.requesting = ''
+      throw error instanceof Error ? error : new Error(error)
     }
 
     return {
@@ -450,7 +428,6 @@ class NDOM extends NDOMInternal {
    */
   render(page: NDOMPage, callback?: ConsumerOptions['callback']) {
     // REMINDER: The value of this page's "requesting" is empty at this moment
-    page.reset('render')
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
@@ -460,9 +437,6 @@ class NDOM extends NDOMInternal {
     const nuiPage = page.getNuiPage()
     const components = u.array(
       nui.resolveComponents.call(nui, {
-        // components: page.components.map((o) =>
-        //   nui.createComponent(o, page.getNuiPage()),
-        // ),
         callback,
         components: page.components,
         page: nuiPage,
@@ -503,8 +477,8 @@ class NDOM extends NDOMInternal {
     components.forEach((component) =>
       this.draw(
         component,
-        page.rootNode?.tagName === 'IFRAME'
-          ? (page.rootNode as HTMLIFrameElement).contentDocument?.body
+        page.tagName === 'iframe'
+          ? page.rootNode.contentDocument?.body
           : page.rootNode,
         page,
       ),
@@ -577,118 +551,8 @@ class NDOM extends NDOMInternal {
         !node && (node = document.createElement(getElementTag(component)))
       }
 
-      const attachOnClick = (n: HTMLElement | null, globalId: string) => {
-        if (n) {
-          const onClick = () => {
-            n.removeEventListener('click', onClick)
-            this.removeNode(n)
-            this.removeGlobal('component', globalId)
-          }
-          n.addEventListener('click', onClick)
-        }
-      }
-
       if (component.has?.('global')) {
-        let globalRecord: GlobalComponentRecord
-        let globalId = component.get('data-globalid')
-
-        if (this.global.components.has(globalId)) {
-          globalRecord = this.global.components.get(
-            globalId,
-          ) as GlobalComponentRecord
-        } else {
-          globalRecord = this.createGlobalRecord({
-            type: 'component',
-            id: globalId,
-            component,
-            node,
-            page,
-          }) as GlobalComponentRecord
-          this.global.components.set(globalId, globalRecord)
-          attachOnClick(node, globalId)
-        }
-
-        if (globalRecord) {
-          component.edit({ 'data-globalid': globalId, globalId })
-          // Check mismatchings and recover from them
-
-          const publishMismatchMsg = (
-            type: 'node' | 'component',
-            extendedText?: string,
-          ) => {
-            const id =
-              type === 'node'
-                ? node?.id ||
-                  `<Missing node id (component id is "${component.id}")>`
-                : type === 'component'
-                ? component.id
-                : '<Missing ID>'
-            console.log(
-              `%cThe ${type} with id "${id}" is different than the one in the global object.${
-                extendedText || ''
-              }`,
-              `color:#CCCD17`,
-              { globalObject: globalRecord },
-            )
-          }
-
-          if (globalRecord.componentId !== component.id) {
-            publishMismatchMsg('component')
-            this.removeComponent(
-              this.cache.component.get(globalRecord.componentId)?.component,
-            )
-            globalRecord.componentId = component.id
-          }
-
-          if (node) {
-            if (!node.id) node.id = component.id
-            if (globalRecord.nodeId) {
-              if (globalRecord.nodeId !== node.id) {
-                publishMismatchMsg(
-                  'node',
-                  `The old node will be ` +
-                    `replaced with the incoming node's id`,
-                )
-                const _prevNode = document.getElementById(globalRecord.nodeId)
-                if (_prevNode) {
-                  console.log(
-                    `%cRemoving previous node using id "${globalRecord.nodeId}"`,
-                    `color:#95a5a6;`,
-                  )
-                  this.removeNode(_prevNode)
-                } else {
-                  console.log(
-                    `%cDid not remove previous node with id "${globalRecord.nodeId}" ` +
-                      `because it did not exist`,
-                    `color:#95a5a6;`,
-                  )
-                }
-                globalRecord.nodeId = node.id
-                node.dataset.globalid = globalId
-                console.log(
-                  `%cReplaced nodeId "${globalRecord.nodeId}" with "${node.id} on the global ` +
-                    `component record`,
-                  globalRecord,
-                )
-              }
-            } else {
-              globalRecord.nodeId = node.id
-              node.dataset.globalid = globalId
-            }
-          }
-
-          if (globalRecord.pageId !== page.id) {
-            console.log(
-              `%cPage ID for global object with id "${component.get(
-                'data-globalid',
-              )}" does not match with the page that is drawing for component "${
-                component.id
-              }"`,
-              `color:#FF5722;`,
-              globalRecord,
-            )
-          }
-        }
+        i.handleDrawGlobalComponent.call(this, node, component, page)
       }
 
       if (node) {
@@ -969,7 +833,7 @@ class NDOM extends NDOMInternal {
     resetGlobal()
     resetPages()
     resetRegisters()
-    resetResolvers()
+    // resetResolvers()
     resetTransactions()
     return this
   }

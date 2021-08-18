@@ -1,114 +1,79 @@
+import * as u from '@jsmanifest/utils'
+import startOfDay from 'date-fns/startOfDay'
 import { Identify, userEvent } from 'noodl-types'
 import { dataAttributes } from 'noodl-ui'
-import { isActionChain } from 'noodl-action-chain'
-import { Resolve, UseObject } from '../types'
-import { isTextFieldLike, normalizeEventName } from '../utils'
-import * as u from '../utils/internal'
+import { Resolve } from '../types'
+import { isDisplayable, isTextFieldLike, normalizeEventName } from '../utils'
+import * as i from '../utils/internal'
+import * as c from '../constants'
 
-/* -------------------------------------------------------
-  ---- DEFAULT RESOLVERS
--------------------------------------------------------- */
+const is = Identify
 
 const resolveAttributes: Resolve.Config = {
   name: `[noodl-ui-dom] Default Common Resolvers`,
-  resolve(node, component, { ndom }) {
-    const original = component?.blueprint || {}
-    const { contentType, text, placeholder, path } = original
+  before(node, component) {
+    if (node) {
+      if (component) {
+        node.id = component.id || ''
 
-    if (component && node && !u.isFnc(node)) {
-      node.id = component.id
-      /* -------------------------------------------------------
-        ---- ELEMENT TO ELEMENT BINDINGS
-      -------------------------------------------------------- */
-      if (component.blueprint?.['videoStream']) {
-        if (Identify.isBooleanTrue(component.get('videoStream'))) {
-          const resolve = ndom
-            .resolvers()
-            .find((obj) =>
-              /videoStream/i.test(obj.name || ''),
-            ) as UseObject['createElementBinding']
-
-          if (u.isFnc(resolve)) {
-            const childNode = resolve(component)
-            if (childNode) {
-              node.appendChild(childNode)
-              console.log(`%cBound videoStream to a node`, `color:#95a5a6;`, {
-                node,
-                boundNode: childNode,
-              })
-            }
+        if (node instanceof HTMLScriptElement) {
+          if (component.has('global')) {
+            component.on('image', (src) => {
+              node && (node.style.backgroundImage = `url("${src}")`)
+            })
           }
         }
       }
-      if (component.blueprint?.['audioStream']) {
-        if (Identify.isBooleanTrue(component.get('audioStream'))) {
-          const resolve = ndom
-            .resolvers()
-            .find((obj) =>
-              /audioStream/i.test(obj.name || ''),
-            ) as UseObject['createElementBinding']
+    }
+  },
+  resolve(node, component, { global: globalMap, ndom, page }) {
+    if (node) {
+      if (component) {
+        const { path, placeholder, style } = component.blueprint || {}
 
-          if (u.isFnc(resolve)) {
-            const childNode = resolve(component)
-            if (childNode) {
-              node.appendChild(childNode)
-              console.log(`%cBound audioStream to a node`, `color:#95a5a6;`, {
-                node,
-                boundNode: childNode,
-              })
-            }
+        /* -------------------------------------------------------
+          ---- GENERAL / COMMON DOM NODES
+        -------------------------------------------------------- */
+        if (!node.innerHTML.trim()) {
+          if (isDisplayable(component.get(c.DATA_VALUE))) {
+            node.innerHTML = `${component.get(c.DATA_VALUE)}`
+          } else if (isDisplayable(component.get('text'))) {
+            node.innerHTML = `${component.get('text')}`
           }
         }
-      }
-      /* -------------------------------------------------------
-        ---- DATA ATTRIBUTES
-      -------------------------------------------------------- */
-      dataAttributes.forEach(
-        (key) =>
-          !u.isUnd(original[key]) &&
-          (node.dataset[key.replace('data-', '')] = original[key]),
-      )
-      // NON-INPUT FIELDS DISPLAYABLE VALUES (ex: label, p, span, etc)
-      if (!isTextFieldLike(node)) {
-        if (text || placeholder || original['data-value']) {
-          const dataValue = original['data-value']
-          let textVal = u.isStr(dataValue) ? dataValue : text || text || ''
-          if (!textVal && placeholder) textVal = placeholder
-          if (!textVal) textVal = ''
-          if (textVal && node) node.innerHTML = `${textVal}`
-        }
-      }
-      // INPUT FIELDS DISPLAYABLE VALUES (ex: input, textarea, select, etc)
-      if (component.get('data-placeholder')) {
-        if (Identify.folds.emit(original.placeholder)) {
-          component.on('placeholder', (src: string) => {
-            setTimeout(
-              () => node && ((node as HTMLInputElement).placeholder = src),
+
+        /* -------------------------------------------------------
+          ---- DATA-ATTRIBUTES
+        -------------------------------------------------------- */
+        dataAttributes.forEach((key) => {
+          if (component?.get?.(key)) {
+            node.dataset[key.replace('data-', '')] = component.get(key) || ''
+            if ('value' in node && key === c.DATA_VALUE) {
+              ;(node as HTMLInputElement).value = component.get(key)
+            }
+          }
+        })
+
+        /* -------------------------------------------------------
+          ---- EVENTS
+        -------------------------------------------------------- */
+        userEvent.forEach((eventType: string) => {
+          if (u.isFnc(component.get?.(eventType)?.execute)) {
+            /**
+             * Putting a setTimeout here helps to avoid the race condition in
+             * where the emitted action handlers are being called before local
+             * root object gets their data values updated.
+             */
+            node.addEventListener(normalizeEventName(eventType), (e) =>
+              setTimeout(() => component.get(eventType)?.execute?.(e)),
             )
-          })
-        } else {
-          ;(node as HTMLInputElement).placeholder =
-            component.get('data-placeholder')
-        }
-      }
-      // MEDIA (images / videos)
-      if (path && component.get('data-src')) {
-        // Images
-        if (node.tagName !== 'VIDEO' && node.tagName !== 'IFRAME') {
-          ;(node as HTMLImageElement).src = component.get('data-src') || ''
-        }
-      }
-      // TEXTFUNC ('text=func') [date components most likely]
-      if (u.isFnc(original['text=func']) && contentType === 'timer') {
-        node.textContent = component.get('data-value') || ''
-      }
-      /* -------------------------------------------------------
-        ---- USER EVENTS
-      -------------------------------------------------------- */
-      // Jump to next input field when user presses their enter key
-      if (node.tagName === 'INPUT') {
-        node.onkeypress = function onKeyPress(keyboardEvent: KeyboardEvent) {
-          if (keyboardEvent.key === 'Enter') {
+          }
+        })
+        /* -------------------------------------------------------
+          ---- ENTER KEY FOR INPUTS
+        -------------------------------------------------------- */
+        node.onkeypress = (e: KeyboardEvent) => {
+          if (e.key === 'Enter') {
             const inputs = document.querySelectorAll('input')
             const currentIndex = [...inputs].findIndex((el) =>
               node.isEqualNode(el),
@@ -117,51 +82,148 @@ const resolveAttributes: Resolve.Config = {
             if (currentIndex + 1 < inputs.length) inputs[targetIndex]?.focus?.()
           }
         }
-      }
 
-      // Attach event handlers on user events (ex: onClick, onHover, etc)
-      userEvent.forEach((eventType) => {
-        const actionChain = component.get(eventType)
-        if (isActionChain(actionChain)) {
-          // Putting a setTimeout here helps to avoid the race condition in where
-          // the emitted action handlers are being called before local root object
-          // gets their data values updated.
-          // TODO - Unit test + think of a better solution
-          node.addEventListener(
-            normalizeEventName(eventType),
-            async function onClickEvent(mouseEvent) {
-              if (!isActionChain(actionChain)) {
-                console.log(
-                  `%cUser event for "${eventType}" was not an ActionChain. ` +
-                    `This will not take any effect`,
-                  `color:#ec0000;`,
-                  { actionChain, node, component, mouseEvent },
-                )
-              }
-              await actionChain?.execute?.(mouseEvent)
-            },
-          )
+        /* -------------------------------------------------------
+          ---- NON TEXTFIELDS
+        -------------------------------------------------------- */
+        if (!isTextFieldLike(node)) {
+          if (
+            ['text', c.DATA_PLACEHOLDER, c.DATA_VALUE].some((key) =>
+              component.get(key),
+            )
+          ) {
+            let dataValue = component.get(c.DATA_VALUE)
+            let placeholder = component.get(c.DATA_PLACEHOLDER)
+            let text = component.get('text')
+            text = (u.isStr(dataValue) ? dataValue : text) || text || ''
+            !text && placeholder && (text = placeholder)
+            !text && (text = '')
+            text && node && (node.innerHTML = `${text}`)
+          }
         }
-      })
-      /* -------------------------------------------------------
-        ---- STYLES
-      -------------------------------------------------------- */
-      if (node.tagName !== 'SCRIPT') {
-        if (u.isObj(component.style) && node.style) {
-          for (const [key, value] of Object.entries(component.style)) {
-            node.style[key] = value
+
+        /* -------------------------------------------------------
+          ---- PATHS (non videos)
+        -------------------------------------------------------- */
+        if (
+          path &&
+          !(node instanceof HTMLVideoElement) &&
+          !(node instanceof HTMLIFrameElement)
+        ) {
+          if (component.get(c.DATA_SRC) && 'src' in (node as any)) {
+            node.dataset.src = component.get(c.DATA_SRC)
+            ;(node as HTMLImageElement).src = component.get(c.DATA_SRC)
+            component.on('path', (result) => {
+              ;(node as HTMLImageElement).src = result
+              node.dataset && (node.dataset.src = result)
+            })
+          }
+        }
+
+        /* -------------------------------------------------------
+          ---- PLACEHOLDERS
+        -------------------------------------------------------- */
+        if (placeholder) {
+          const value = component.get('data-placeholder') || placeholder || ''
+          if (Identify.folds.emit(value)) {
+            component.on('placeholder', (result) => {
+              setTimeout(() => {
+                ;(node as HTMLInputElement).placeholder = result
+                node.dataset.placeholder = result
+              })
+            })
+          } else {
+            ;(node as HTMLInputElement).placeholder = value
+            node.dataset.placeholder = value
+          }
+        }
+
+        /* -------------------------------------------------------
+          ---- STYLES
+        -------------------------------------------------------- */
+        if (!(node instanceof HTMLScriptElement) && u.isObj(style)) {
+          u.isObj(style.textAlign) && delete component.style.textAlign
+
+          for (const [k, v] of u.entries(component.style)) {
+            if (Number.isFinite(Number(k))) break
+            node.style && (node.style[k] = String(v))
+          }
+
+          if (
+            !('marginTop' in component.style) ||
+            !('marginTop' in (style || {}))
+          ) {
+            component.style.marginTop = '0px'
+          }
+
+          if (Identify.component.canvas(component)) {
+            if (node.parentElement) {
+              const parentWidth = node.parentElement.style.width
+              const parentHeight = node.parentElement.style.height
+              ;(node as HTMLCanvasElement).width = Number(
+                parentWidth.replace(/[a-zA-Z]+/g, ''),
+              )
+              ;(node as HTMLCanvasElement).height = Number(
+                parentHeight.replace(/[a-zA-Z]+/g, ''),
+              )
+              node.style.width = parentWidth
+              node.style.height = parentHeight
+            }
+          }
+        }
+
+        /* -------------------------------------------------------
+          ---- TEMP - Experimenting CSS
+        -------------------------------------------------------- */
+        is.component.canvas(component) && i.addClassName('canvas', node)
+        is.component.page(component) && i.addClassName('page', node)
+        is.component.popUp(component) && i.addClassName('popup', node)
+        is.component.scrollView(component) &&
+          i.addClassName('scroll-view', node)
+        component.has?.('global') && i.addClassName('global', node)
+        component.blueprint?.['textBoard'] && i.addClassName('text-board', node)
+
+        /* -------------------------------------------------------
+          ---- TEXT=FUNC
+        -------------------------------------------------------- */
+        if (component.has('text=func')) {
+          if (component.contentType === 'timer') {
+            const dataKey = component.blueprint?.dataKey as string
+            // TODO - Refactor a better way to get the initial value since the
+            // call order isn't guaranteed
+            component.on('timer:init', (initialValue?: Date) => {
+              const timer =
+                globalMap.timers.get(dataKey) ||
+                globalMap.timers.set(dataKey, {
+                  initialValue: initialValue || startOfDay(new Date()),
+                  pageName: page.page,
+                })
+
+              if (initialValue && timer.value !== initialValue) {
+                timer.value = initialValue
+              }
+
+              timer.pageName !== page.page && (timer.pageName = page.page)
+
+              timer.on('increment', (value) => {
+                // @ts-expect-error
+                component.emit('timer:interval', value)
+              })
+              // @ts-expect-error
+              component.emit('timer:ref', timer)
+
+              ndom.page.once(c.eventId.page.on.ON_DOM_CLEANUP, () => {
+                timer.clear()
+                timer.onClear = undefined
+                timer.onIncrement = undefined
+                component.clear('hooks')
+              })
+            })
+          } else {
+            node && (node.textContent = component.get('data-value') || '')
           }
         }
       }
-      // TEMP - Experimenting CSS
-      if (component.type === 'scrollView') {
-        u.addClassName('scroll-view', node)
-      }
-      if (component?.blueprint?.['textBoard']) {
-        u.addClassName('text-board', node)
-      }
-    } else {
-      // Plugins
     }
   },
 }

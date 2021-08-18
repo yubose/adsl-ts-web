@@ -1,5 +1,8 @@
 import * as u from '@jsmanifest/utils'
-import { GlobalCssResourceRecord, GlobalJsResourceRecord } from '../global'
+import {
+  GlobalCssResourceRecord,
+  GlobalJsResourceRecord,
+} from '../global/index'
 import * as t from '../types'
 
 const resourceFactory = function () {

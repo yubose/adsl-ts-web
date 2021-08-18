@@ -154,7 +154,7 @@ export namespace NUIComponent {
     path(src: string): void
     placeholder(src: string): void
   } & Partial<
-    Record<TimerHook<'init'>, (fn: (initialTimer: Date) => void) => void> &
+    Record<TimerHook<'init'>, (initialValue?: Date) => void> &
       Record<
         TimerHook<'interval'>,
         (args: {

@@ -1,19 +1,18 @@
 import * as u from '@jsmanifest/utils'
 import SignaturePad from 'signature_pad'
 import { Identify } from 'noodl-types'
-import { Component, NUI } from 'noodl-ui'
-import { isArr, isFnc, isStr } from './utils/internal'
+import { Component } from 'noodl-ui'
 import { getPageAncestor } from './utils'
 import { nui } from './nui'
-import NOODLDOM from './noodl-ui-dom'
-import NUIDOMInternal from './Internal'
+import NDOM from './noodl-ui-dom'
+import NDOMInternal from './Internal'
 import renderResource from './utils/renderResource'
 import * as T from './types'
 
-const createResolver = function _createResolver(ndom: NOODLDOM) {
+const createResolver = function _createResolver(ndom: NDOM) {
   const _internal: {
     objs: T.Resolve.Config[]
-    ndom: NOODLDOM
+    ndom: NDOM
   } = {
     objs: [],
     ndom,
@@ -40,11 +39,11 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
             { remove }: { remove?: string | string[] | false } = {},
           ) {
             styles && component?.edit?.(() => ({ style: styles }))
-            if (isArr(remove)) {
+            if (u.isArr(remove)) {
               remove.forEach(
                 (styleKey) => styleKey && delete component.style[styleKey],
               )
-            } else if (remove && isStr(remove)) delete component.style[remove]
+            } else if (remove && u.isStr(remove)) delete component.style[remove]
           }
           return editComponentStyles
         }
@@ -72,10 +71,10 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
     args: T.Resolve.BaseArgs,
     callback: () => void,
   ) {
-    if (isStr(cond)) {
+    if (u.isStr(cond)) {
       // If they passed in a resolver strictly for this node/component
       cond === args[1]?.type && callback()
-    } else if (isFnc(cond)) {
+    } else if (u.isFnc(cond)) {
       // If they only want this resolver depending on a certain condition
       if (cond(...args, util.options(...args))) callback()
     } else {
@@ -179,9 +178,9 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
       return o
     },
     get: _get,
-    use(value: T.Resolve.Config | typeof NUI | NUIDOMInternal) {
-      if (value instanceof NUIDOMInternal) {
-        ndom = value as NOODLDOM
+    use(value: T.Resolve.Config | typeof nui | NDOMInternal) {
+      if (value instanceof NDOMInternal) {
+        ndom = value as NDOM
       } else if (value) {
         o.register(value)
       }

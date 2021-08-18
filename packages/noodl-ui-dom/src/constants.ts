@@ -42,8 +42,6 @@ export const eventId = {
       ON_STATUS_CHANGE: 'ON_STATUS_CHANGE',
       ON_NAVIGATE_START: 'ON_NAVIGATE_START',
       ON_NAVIGATE_STALE: 'ON_NAVIGATE_STALE',
-      ON_NAVIGATE_ABORT: 'ON_NAVIGATE_ABORT',
-      ON_OUTBOUND_REDIRECT: 'ON_OUTBOUND_REDIRECT',
       ON_DOM_CLEANUP: 'ON_DOM_CLEANUP',
       ON_BEFORE_RENDER_COMPONENTS: 'ON_BEFORE_RENDER_COMPONENTS',
       ON_APPEND_NODE: 'ON_APPEND_NODE',
@@ -68,3 +66,14 @@ export const eventId = {
 } as const
 
 export const CREATE_GLOBAL_ID = 'CREATE_GLOBAL_ID'
+
+export const DATA_KEY = 'data-key'
+export const DATA_VALUE = 'data-value'
+export const DATA_NAME = 'data-name'
+export const DATA_SRC = 'data-src'
+export const DATA_GLOBALID = 'data-globalid'
+export const DATA_LISTID = 'data-listid'
+export const DATA_OPTIONS = 'data-options'
+export const DATA_PLACEHOLDER = 'data-placeholder'
+export const DATA_VIEWTAG = 'data-viewtag'
+export const DATA_UX = 'data-ux'

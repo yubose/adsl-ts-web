@@ -627,14 +627,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           }
           const ndomPage = pickNDOMPageFromOptions(options)
           app.ndom.redraw(_node, _component, ndomPage, { context: ctx })
-          // const pageComponent = findChild(redrawed[1], Identify.component.page)
-          // pageComponent && pageComponents.push(pageComponent)
-          // app.cache.component.add(redrawed[1], ndomPage.getNuiPage())
         }
         startCount++
       }
-
-      console.log(`%cREDRAW ENDED`, `color:#00b406;`)
     } catch (error) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })

@@ -1150,7 +1150,6 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
         // Set the initial value
-        // @ts-expect-error
         component.emit('timer:init', initialValue)
       },
     },

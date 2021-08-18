@@ -605,22 +605,6 @@ class App {
         this.ndom.render(this.mainPage)
       }
     }
-
-    // document.addEventListener('gesturechange', (args) => {
-    //   if (
-    //     args.width !== args.previousWidth ||
-    //     args.height !== args.previousHeight
-    //   ) {
-    //     if (this.currentPage === 'VideoChat') return
-    //     this.aspectRatio = aspectRatio
-    //     refreshWidthAndHeight()
-    //     document.body.style.width = `${args.width}px`
-    //     document.body.style.height = `${args.height}px`
-    //     this.mainPage.rootNode.style.width = `${args.width}px`
-    //     this.mainPage.rootNode.style.height = `${args.height}px`
-    //     this.ndom.render(this.mainPage)
-    //   }
-    // })
   }
 
   observePages(page: NOODLDOMPage) {
