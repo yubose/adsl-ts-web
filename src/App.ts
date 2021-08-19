@@ -445,7 +445,7 @@ class App {
               if (
                 !has(
                   location === 'local' ? this.root[pageRequesting] : this.root,
-                  datapath,
+                  datapath.split('.'),
                 )
               ) {
                 log.func(`${pageRequesting} init`)
@@ -652,21 +652,21 @@ class App {
       (snapshot: any) => {
         log.func('onBeforRenderComponents')
         log.grey(`onBeforRenderComponents`, snapshot)
-        const pageIds = []
-        const currentPageNames = []
+        // const pageIds = []
+        // const currentPageNames = []
 
-        for (const ndomPage of u.values(this.ndom.pages)) {
-          pageIds.push(ndomPage.id)
-          currentPageNames.push(ndomPage.page)
-        }
+        // for (const ndomPage of u.values(this.ndom.pages)) {
+        //   pageIds.push(ndomPage.id)
+        //   currentPageNames.push(ndomPage.page)
+        // }
 
-        for (const obj of this.cache.component) {
-          if (obj) {
-            if (!currentPageNames.includes(obj.page)) {
-              // this.cache.component.remove(obj.component)
-            }
-          }
-        }
+        // for (const obj of this.cache.component) {
+        //   if (obj) {
+        //     if (!currentPageNames.includes(obj.page)) {
+        //       this.cache.component.remove(obj.component)
+        //     }
+        //   }
+        // }
       }
 
     const onComponentsRendered = (page: NOODLDOMPage) => {

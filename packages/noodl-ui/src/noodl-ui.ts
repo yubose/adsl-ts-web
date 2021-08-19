@@ -726,7 +726,8 @@ const NUI = (function _NUI() {
         }
       } else if (u.isObj(args)) {
         args.name && (name = args.name)
-        args.id && (id = args.id)
+        if (isComponent(args.component)) args.id = args.component.id
+        else id = args.id || id || ''
         if (args?.viewport) {
           if (isViewport(args.viewport)) viewport = args.viewport
           else if (u.isObj(args.viewport)) viewport = new VP(args.viewport)
@@ -738,30 +739,38 @@ const NUI = (function _NUI() {
       if (name) {
         for (const obj of o.cache.page) {
           if (obj) {
-            const [pageId, { page: _prevPage }] = obj
+            const [_, { page: _prevPage }] = obj
             if (_prevPage.page === name) {
               page = _prevPage
               isPreexistent = true
-
-              let totalStaleComponents = 0
-              let totalStaleComponentIds = [] as string[]
 
               // Delete the cached components from the page since it will be
               // re-rerendered
               for (const obj of o.cache.component) {
                 if (obj && obj.page === page.page) {
-                  totalStaleComponentIds.push(obj.component.id)
                   o.cache.component.remove(obj.component)
-                  totalStaleComponents++
                 }
               }
             }
           }
         }
       }
+
       if (!isPreexistent) {
         page = cache.page.create({ id, viewport: viewport }) as NUIPage
+        if (!u.isStr(args) && isComponent(args?.component)) {
+          /**
+           * Transfer the page from page component to be stored in the WeakMap
+           * Page components being stored in Map are @deprecated because of
+           * caching issues, whereas WeakMap will garbage collect by itself
+           * in a more aggressive way
+           */
+          cache.page.remove(page)
+          const component = args?.component as t.NUIComponent.Instance
+          page = cache.page.create(component, page)
+        }
       }
+
       name && page && (page.page = name)
       ;(page as NUIPage).use(() => NUI.getRoot()[page?.page || '']?.components)
 

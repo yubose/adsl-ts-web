@@ -418,38 +418,50 @@ class NDOM extends NDOMInternal {
                   },
                 )
               } else {
-                node.addEventListener(
-                  'load',
-                  (evt) => {
-                    console.log(`Page component loaded`, evt)
-                    let nuiPage = component.get('page') as NUIPage
-                    let ndomPage = (this.findPage(nuiPage) ||
-                      this.createPage(nuiPage)) as NDOMPage
-                    let src = component.get(c.DATA_SRC) || ''
+                /**
+                 * Setting this iframe's cookie allows for 3rd party
+                 * resources to be loaded in our app
+                 * https://web.dev/schemeful-samesite/?utm_source=devtools
+                 */
+                if (node.contentWindow?.document) {
+                  node.ownerDocument.cookie = `SameSite=None;Secure`
+                  node.contentWindow.document.cookie = `SameSite=None;Secure`
+                  console.log({
+                    ownerDocument: node.ownerDocument.cookie,
+                    contentWindowDocument: node.contentWindow.document.cookie,
+                  })
+                }
+                const onLoad = () => {
+                  console.log(`Page component loaded`)
+                  let nuiPage = component.get('page') as NUIPage
+                  let ndomPage = (this.findPage(nuiPage) ||
+                    this.createPage(nuiPage)) as NDOMPage
+                  let src = component.get(c.DATA_SRC) || ''
 
-                    if (node) {
-                      if (
-                        ndomPage.id !== 'root' &&
-                        ndomPage.rootNode !== node
-                      ) {
-                        try {
-                          i._removeNode(ndomPage.rootNode)
-                          ndomPage.rootNode = node as HTMLIFrameElement
-                        } catch (error) {
-                          console.error(error)
-                        }
+                  if (node) {
+                    if (ndomPage.id !== 'root' && ndomPage.rootNode !== node) {
+                      try {
+                        // i._removeNode(ndomPage.rootNode)
+                        ndomPage.rootNode.remove?.()
+                        ndomPage.rootNode = node as HTMLIFrameElement
+                      } catch (error) {
+                        console.error(error)
                       }
-                      this.#R.run({ node: ndomPage.rootNode, component })
-                      if (!src) {
-                        // TODO
-                      }
-                      ;(node as HTMLIFrameElement).src = src
-                    } else {
-                      // TODO
                     }
-                  },
-                  { once: true },
-                )
+                    this.#R.run({ node: ndomPage.rootNode, component })
+                    if (!src) {
+                      // TODO
+                      if (ndomPage.page.startsWith('http')) src = ndomPage.page
+                    }
+                    ;(node as HTMLIFrameElement).src = src
+                    !node.src &&
+                      node.setAttribute('src', src || component.get(c.DATA_SRC))
+                  } else {
+                    // TODO
+                  }
+                }
+                if (component.get(c.DATA_SRC)) onLoad()
+                else node.addEventListener('load', onLoad, { once: true })
 
                 node?.addEventListener('error', console.error, { once: true })
               }
@@ -551,11 +563,22 @@ class NDOM extends NDOMInternal {
           context,
           onPageComponentLoad: async (args) => {
             try {
+              console.log(
+                `%conPageComponentLoad fired in a redraw`,
+                `color:#95a5a6;`,
+              )
               if (args.node && args.component) {
                 const pageObject = (await this.transact(
                   'REQUEST_PAGE_OBJECT',
                   args.page,
                 )) as PageObject
+
+                console.log(
+                  `%cReceived page object containing ${
+                    pageObject.components?.length || 0
+                  } top level components`,
+                  `color:#95a5a6;`,
+                )
 
                 u.array(pageObject.components).forEach((childObject) => {
                   const child = nui.resolveComponents({
@@ -571,8 +594,27 @@ class NDOM extends NDOMInternal {
                     context,
                   })
 
-                  childNode && args.node?.appendChild(childNode)
+                  if (childNode) {
+                    args.node?.appendChild(childNode)
+                    console.log(
+                      `%cAppended a descendant page child of "${childNode.tagName}" to a ${args.node?.tagName} element`,
+                      `color:#95a5a6;`,
+                      { childNode, args },
+                    )
+                  } else {
+                    console.log(
+                      `%cNo child node was found when drawing for a "${args.component?.type}" component when redrawing`,
+                      `color:#ec0000;`,
+                      args,
+                    )
+                  }
                 })
+              } else {
+                console.log(
+                  `%cDid not receive a DOM node and component inside the call to ` +
+                    `onPageComponentLoad while redrawing`,
+                  `color:#ec0000;`,
+                )
               }
             } catch (error) {
               console.error(error)

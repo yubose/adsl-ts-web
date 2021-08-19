@@ -19,6 +19,7 @@ import {
 } from '../utils/noodl'
 import type { ConsumerOptions, NUIComponent } from '../types'
 import * as c from '../constants'
+import * as i from '../utils/internal'
 
 const componentResolver = new Resolver('resolveComponents')
 
@@ -159,9 +160,8 @@ componentResolver.setResolver((component, options, next) => {
           console.log(
             `%cThe page component does not have its page name resolved yet`,
             `color:#ec0000;`,
-            { component, options },
+            component,
           )
-          return
         }
         ;(async () => {
           try {
@@ -191,7 +191,11 @@ componentResolver.setResolver((component, options, next) => {
                 nuiPage.page = pageName
                 component.edit('page', nuiPage)
               } else {
-                // TODO
+                console.log(
+                  `%cRemote link for a page component is not an HTML page. ` +
+                    `Only HTML pages are supported when loading third party interfaces`,
+                  `color:#95a5a6;`,
+                )
               }
             }
           } catch (err) {
@@ -204,6 +208,11 @@ componentResolver.setResolver((component, options, next) => {
           }
         })()
       } else {
+        console.log(
+          `%cCould not resolve the nuiPage for a page component after several attempts`,
+          `color:#ec0000;`,
+          component.toJSON(),
+        )
       }
 
       let viewport = nuiPage.viewport || new VP()
@@ -227,6 +236,12 @@ componentResolver.setResolver((component, options, next) => {
           }),
         )
       }
+    } else {
+      console.log(
+        `%cThe pageName was not a string when resolving the page name for a page component`,
+        `color:#ec0000;`,
+        component.toJSON(),
+      )
     }
   }
 

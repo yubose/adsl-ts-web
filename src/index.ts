@@ -93,9 +93,13 @@ async function initializeApp(
 async function initializeNoodlPluginRefresher() {
   ws = new WebSocket(`ws://127.0.0.1:3002`)
 
-  ws.addEventListener('open', (event) => {
-    // console.log(`[noodl refresher] started`, event)
-  })
+  ws.addEventListener(
+    'open',
+    (event) => {
+      // console.log(`[noodl refresher] started`, event)
+    },
+    { once: true },
+  )
 
   ws.addEventListener('message', (msg) => {
     let data
@@ -106,13 +110,21 @@ async function initializeNoodlPluginRefresher() {
     } catch (error) {}
   })
 
-  ws.addEventListener('error', (err) => {
-    console.log(`%c[noodl reloader error]`, `color:#ec0000;`, err)
-  })
+  ws.addEventListener(
+    'error',
+    (err) => {
+      // console.log(`%c[noodl reloader error]`, `color:#ec0000;`, err)
+    },
+    { once: true },
+  )
 
-  ws.addEventListener('close', (event) => {
-    console.log(`%c[noodl reloader] closed`, `color:#FF5722;`, event)
-  })
+  ws.addEventListener(
+    'close',
+    (event) => {
+      // console.log(`%c[noodl reloader] closed`, `color:#FF5722;`, event)
+    },
+    { once: true },
+  )
 
   return ws
 }
@@ -120,6 +132,7 @@ async function initializeNoodlPluginRefresher() {
 window.addEventListener('load', async (e) => {
   try {
     log.func('onload')
+    log.green('Hello', e)
 
     const { Account } = await import('@aitmed/cadl')
     const { default: noodl } = await import('./app/noodl')
@@ -178,50 +191,6 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gesturestart', (e) => e.preventDefault())
   document.addEventListener('gestureend', (e) => e.preventDefault())
   document.addEventListener('gesturechange', (e) => e.preventDefault())
-
-  app.ndom.on(
-    'onRedrawStart',
-    function onRedrawStart({ context, component, node, page, parent }) {
-      // console.table({
-      //   page: page?.page || '',
-      //   [`component [redrawing]`]: component?.type
-      //     ? `[${component.type}] ${component.id}`
-      //     : '<No component>',
-      //   parentComponent: parent?.type
-      //     ? `[${parent.type}] ${parent.id}`
-      //     : '<No parent>',
-      //   [`node [redrawing]`]: node?.tagName
-      //     ? `[${node.tagName?.toLowerCase?.()}] ${node.id}`
-      //     : '<No node>',
-      //   parentNode: node?.parentElement
-      //     ? `[${node.parentElement.tagName.toLowerCase?.()}] ${
-      //         node.parentElement.id
-      //       }`
-      //     : '<No parent node>',
-      // })
-      // const activePages = [] as string[]
-      // for (const obj of app.cache.component) {
-      //   if (obj) {
-      //     if (obj.page && !activePages.includes(obj.page)) {
-      //       activePages.push(obj.page)
-      //     }
-      //   }
-      // }
-      // for (const obj of app.cache.page) {
-      //   if (obj) {
-      //     const [id, { page }] = obj
-      //     if (!page.page || !activePages.includes(page.page)) {
-      //       console.log(
-      //         `%cRemoving ${!page.page ? 'empty' : 'inactive'} page from NUI`,
-      //         `color:#00b406;`,
-      //         page.toJSON(),
-      //       )
-      //       app.cache.page.remove(page)
-      //     }
-      //   }
-      // }
-    },
-  )
 })
 
 if (module.hot) {
@@ -271,7 +240,7 @@ function attachDebugUtilsToWindow(app: App) {
     },
     pageTable: {
       get() {
-        const result = {} as { page: string; ndom: number; nui: number }[]
+        const result = [] as { page: string; ndom: number; nui: number }[]
         const getKey = (page: NDOMPage | lib.Page) =>
           page.page === '' ? 'unknown' : page.page
         const pagesList = [] as string[]
@@ -281,6 +250,7 @@ function attachDebugUtilsToWindow(app: App) {
           const index = pagesList.indexOf(page.page)
           const obj = result[index]
           const pageKey = getKey(page) as keyof typeof result[number]
+
           if (!obj) {
             result[index] = {
               ndom: 0,
@@ -295,10 +265,10 @@ function attachDebugUtilsToWindow(app: App) {
         const ndomPagesEntries = u.entries(app.ndom.pages)
 
         for (let index = 0; index < ndomPagesEntries.length; index++) {
-          const [id, ndomPage] = ndomPagesEntries[index]
+          const [_, ndomPage] = ndomPagesEntries[index]
           const pageKey = getKey(ndomPage) as keyof typeof result[number]
-          if (!pagesList.includes(pageKey)) pagesList.push(pageKey)
           const obj = result[index]
+          if (!pagesList.includes(pageKey)) pagesList.push(pageKey)
           if (!obj) {
             result[index] = {
               ndom: 0,
@@ -309,6 +279,22 @@ function attachDebugUtilsToWindow(app: App) {
           result[index].ndom++
           result[index].page = pageKey
         }
+
+        // for (const obj of app.cache.component) {
+        //   if (obj?.component?.type === 'page') {
+        //     const page = app.cache.page.get(obj.component)?.page
+        //     if (page) {
+        //       const pageKey = getKey(page)
+        //       const resultObject = result.find((r) => r.page === pageKey)
+        //       if (resultObject) {
+        //         resultObject.nui++
+        //         debugger
+        //         const ndomPage = app.ndom.findPage(page)
+        //         if (ndomPage) resultObject.ndom++
+        //       }
+        //     }
+        //   }
+        // }
 
         return result
       },

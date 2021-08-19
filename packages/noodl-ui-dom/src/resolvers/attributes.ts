@@ -111,11 +111,13 @@ const resolveAttributes: Resolve.Config = {
           path &&
           ['IFRAME', 'VIDEO'].every((tagName) => node.tagName !== tagName)
         ) {
-          if (component.get(c.DATA_SRC) && 'src' in (node as any)) {
+          if (component.get(c.DATA_SRC)) {
             node.dataset.src = component.get(c.DATA_SRC)
-            ;(node as HTMLImageElement).src = component.get(c.DATA_SRC)
+            node.setAttribute('src', component.get(c.DATA_SRC))
+            if (!node.getAttribute('src')) node.src = component.get(c.DATA_SRC)
             component.on('path', (result) => {
-              ;(node as HTMLImageElement).src = result
+              node.setAttribute('src', result)
+              if (!node.getAttribute('src')) node.src = result
               node.dataset && (node.dataset.src = result)
             })
           }

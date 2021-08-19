@@ -68,25 +68,48 @@ if (mode === 'production') {
   }
 }
 
+const commonHeaders = {
+  'Access-Control-Allow-Credentials': true,
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+  'Access-Control-Allow-Methods': ['GET', 'DELETE', 'HEAD', 'OPTIONS'],
+}
+
+/** @param { import('express').Response } resp */
+const setHeadersOnResp = (resp) => {
+  for (const [key, value] of Object.entries(commonHeaders)) {
+    resp.setHeader(key, value)
+  }
+  return resp
+}
+
 /** @type { import('webpack-dev-server').Configuration } */
 const devServerOptions = {
+  allowedHosts: ['localhost', '127.0.0.1', 'aitmed.com', 'aitmed.io'],
   clientLogLevel: 'info',
   compress: false,
   contentBase: [publicPath],
   host: '127.0.0.1',
   hot: true,
   liveReload: true,
-  headers: {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers':
-      'Origin, X-Requested-With, Content-Type, Accept',
-    'X-Content-Type-Options': 'nosniff',
-  },
-  allowedHosts: ['localhost', '127.0.0.1', 'aitmed.com', 'aitmed.io'],
-  before(app, server, compiler) {
-    //
-  },
-  // https: true,
+  headers: commonHeaders,
+  // after(app, server, compiler) {
+  //   app.use((req, resp, next) => {
+  //     console.log({ headers: req.headers, path: app.path, params: app.param })
+  //     setHeadersOnResp(resp)
+  //     next()
+  //   })
+  // },
+  overlay: true,
+  // staticOptions: {
+  //   setHeaders(resp, path, stat) {
+  //     console.log(`New response for file: ${path}`, stat)
+  //     console.log(`Headers: ${resp.getHeaders()}`)
+  //     setHeadersOnResp(resp)
+  //   },
+  // },
+  https: true,
   stats: { chunks: true },
   historyApiFallback: true,
 }
