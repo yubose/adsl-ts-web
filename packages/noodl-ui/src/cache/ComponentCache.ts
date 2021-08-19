@@ -1,5 +1,4 @@
 import * as u from '@jsmanifest/utils'
-import isComponent from '../utils/isComponent'
 import isNUIPage from '../utils/isPage'
 import type { ComponentCacheObject, NUIComponent } from '../types'
 import type NUIPage from '../Page'

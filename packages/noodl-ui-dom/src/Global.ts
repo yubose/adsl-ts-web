@@ -1,6 +1,4 @@
-import * as u from '@jsmanifest/utils'
 import Timers from './global/Timers'
-import * as c from './constants'
 import * as t from './types'
 
 let _global: NDOMGlobal

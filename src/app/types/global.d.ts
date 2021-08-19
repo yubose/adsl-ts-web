@@ -8,7 +8,6 @@ import type {
 import type NOODLDOM from 'noodl-ui-dom'
 import type echarts from '@types/echarts'
 import type Modal from 'components/NOODLModal'
-import type { Calendar } from '@fullcalendar/core'
 import type Meeting from '../../meeting'
 import type { App } from '../../app'
 import type { TwilioVideo } from './twilio'
@@ -17,7 +16,7 @@ declare global {
   const echarts: echarts
   const gridjs: any
   export const FullCalendar: {
-    Calendar: typeof Calendar
+    Calendar: any
   }
   const mapboxgl: any
   export const self: DedicatedWorkerGlobalScope

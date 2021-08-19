@@ -8,18 +8,14 @@
  */
 
 import * as u from '@jsmanifest/utils'
-import { isAction } from 'noodl-action-chain'
-import { Identify } from 'noodl-types'
 import {
   ConsumerOptions,
-  createAction,
   NUIAction,
   NUIActionGroupedType,
   NUIActionObject,
   Store,
 } from 'noodl-ui'
 import App from '../App'
-import * as t from '../app/types'
 
 export type ActionKind = 'action' | 'builtIn'
 

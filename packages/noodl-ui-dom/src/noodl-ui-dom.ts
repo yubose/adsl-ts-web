@@ -14,17 +14,11 @@ import {
   Store,
 } from 'noodl-ui'
 import { getElementTag, openOutboundURL } from './utils'
-import {
-  GlobalComponentRecord,
-  GlobalCssResourceRecord,
-  GlobalJsResourceRecord,
-} from './global/index'
+import GlobalComponentRecord from './global/GlobalComponentRecord'
 import createAsyncImageElement from './utils/createAsyncImageElement'
 import createResolver from './createResolver'
-import createResourceObject from './utils/createResourceObject'
+import globalFactory from './factory/globalFactory'
 import isNDOMPage from './utils/isPage'
-import isCssResourceRecord from './utils/isCssResourceRecord'
-import renderResource from './utils/renderResource'
 import NDOMInternal from './Internal'
 import NDOMGlobal from './Global'
 import NDOMPage from './Page'
@@ -74,10 +68,6 @@ class NDOM extends NDOMInternal {
     return this.global.pages
   }
 
-  get resources() {
-    return u.values(this.global.resources)
-  }
-
   get transactions() {
     return this.cache.transactions
   }
@@ -118,106 +108,29 @@ class NDOM extends NDOMInternal {
     return page
   }
 
-  createGlobalRecord(
-    args:
-      | {
-          type: 'component'
-          component: NUIComponent.Instance
-          id?: string
-          node?: HTMLElement | null
-          page: NDOMPage
-        }
-      | { type: 'page' },
-  ) {
+  createGlobalRecord<T extends 'component'>(args: {
+    type: T
+    component: NUIComponent.Instance
+    node?: HTMLElement | null
+    page: NDOMPage
+  }) {
     switch (args.type) {
       case 'component': {
-        const { type, page, ...rest } = args
-        const record = new GlobalComponentRecord({
-          ...rest,
-          page: page || this.page,
+        const createResource = globalFactory.createResource(
+          GlobalComponentRecord,
+        )
+        const createRecord = createResource(args.type, (record) => {
+          this.global.components.set(record.globalId, record)
         })
-        this.global.components.set(record.globalId, record)
-        return record
+        return createRecord({
+          component: args.component,
+          node: args.node as HTMLElement,
+          page: args.page || this.page,
+        })
       }
-      case 'page':
-        break
       default:
         break
     }
-  }
-
-  /**
-   * Creates a resource record object to the global map. If `lazyLoad` is true, the element will not load to the DOM until `render` is called
-   * @param t.UseObjectGlobalResource resource
-   * @returns GlobalResourceRecord
-   */
-  createResource = <Type extends t.GlobalResourceType>(
-    resource:
-      | string
-      | (t.GetGlobalResourceObjectAlias<Type> & {
-          loadToDOM?: boolean
-        }),
-  ) => {
-    let resourceObject = createResourceObject(resource)
-
-    invariant(
-      i.resourceTypes.includes(resourceObject.type),
-      `"${
-        resourceObject.type
-      }" is not a supported resource type yet. Supported types are: ${i.resourceTypes.join(
-        ', ',
-      )}`,
-    )
-
-    const record =
-      resourceObject.type === 'css'
-        ? new GlobalCssResourceRecord(resourceObject)
-        : new GlobalJsResourceRecord(resourceObject)
-
-    const recordId = isCssResourceRecord(record) ? record.href : record.src
-
-    const globalResourceObject = {
-      record,
-      isActive: () => {
-        try {
-          if (resourceObject.type === 'css') {
-            return (
-              document.head.querySelector(`link[href="${recordId}"]`) != null
-            )
-          }
-          return document.getElementById(recordId) != null
-        } catch (error) {
-          console.error(`[Error in [get] active accessor]`, error)
-          return false
-        }
-      },
-    } as t.GlobalResourceObject<Type>
-
-    this.global.resources[record.resourceType][recordId] = globalResourceObject
-
-    if (u.isObj(resource)) {
-      for (const [key, value] of u.entries(resource)) {
-        if (key === 'onCreateRecord') {
-          globalResourceObject.onCreateRecord = resource.onCreateRecord
-          globalResourceObject.onCreateRecord?.(record)
-        } else if (key === 'onLoad') {
-          globalResourceObject.onLoad = resource.onLoad
-        } else {
-          globalResourceObject[key as keyof t.GlobalResourceObject<Type>] =
-            value
-        }
-      }
-
-      if (resource.loadToDOM === true) {
-        renderResource(
-          record,
-          globalResourceObject.onLoad &&
-            (({ node }) => globalResourceObject.onLoad?.({ node, record })),
-        )
-      }
-    }
-
-    return record as t.GetGlobalResourceRecordAlias<Type>
   }
 
   /**
@@ -388,17 +301,6 @@ class NDOM extends NDOMInternal {
       page.snapshot({ components }),
     )
 
-    // Handle high level (global) resources here so the component resolvers only worry about handling the more narrow (low level) ones
-    for (const globalResources of u.values(this.global.resources)) {
-      for (const { record, lazyLoad, onLoad, isActive } of u.values(
-        globalResources,
-      )) {
-        if (record && !lazyLoad && !isActive()) {
-          renderResource(record, ({ node }) => onLoad?.({ node, record }))
-        }
-      }
-    }
-
     components.forEach((component) =>
       this.draw(
         component,
@@ -540,7 +442,7 @@ class NDOM extends NDOMInternal {
                           console.error(error)
                         }
                       }
-                      this.#R.run({ node: ndomPage.rootNode, component, })
+                      this.#R.run({ node: ndomPage.rootNode, component })
                       if (!src) {
                         // TODO
                       }
@@ -751,15 +653,6 @@ class NDOM extends NDOMInternal {
           this.global.components.delete(record?.globalId as string)
         } else if (k === 'pages') {
           //
-        } else if (k === 'resources') {
-          u.keys(this.global.resources).forEach((resourceType) => {
-            u.entries(this.global.resources[resourceType]).forEach(
-              ([key, obj]) => {
-                u.keys(obj).forEach((k) => delete obj[k])
-                delete this.global.resources[resourceType][key]
-              },
-            )
-          })
         } else if (k === 'timers') {
           // TODO - check if there is a memory leak
           u.eachEntries(this.global.timers, (k) => {
@@ -777,14 +670,11 @@ class NDOM extends NDOMInternal {
         key.componentCache && resetComponentCache()
         key.global && resetGlobal()
         key.pages && resetPages()
-        key.resolvers && resetResolvers()
         key.transactions && resetTransactions()
       } else if (key === 'actions') {
         resetActions()
       } else if (key === 'componentCache') {
         resetComponentCache()
-      } else if (key === 'resolvers') {
-        resetResolvers()
       } else if (key === 'register') {
         resetRegisters()
       } else if (key === 'transactions') {
@@ -813,21 +703,11 @@ class NDOM extends NDOMInternal {
     if (!obj) return
     if (isNUIPage(obj)) return this.createPage(obj)
 
-    const {
-      createElementBinding,
-      register,
-      resource,
-      transaction,
-      resolver,
-      ...rest
-    } = obj
+    const { createElementBinding, register, transaction, resolver, ...rest } =
+      obj
 
     createElementBinding && (this.#createElementBinding = createElementBinding)
     resolver && this.register(resolver)
-
-    if (resource) {
-      u.array(resource).forEach((r) => this.createResource(r))
-    }
 
     if (transaction) {
       u.eachEntries(transaction, (id, val) => {

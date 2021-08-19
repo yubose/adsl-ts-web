@@ -7,7 +7,6 @@ import { getPageAncestor } from './utils'
 import { nui } from './nui'
 import NDOM from './noodl-ui-dom'
 import NDOMInternal from './Internal'
-import renderResource from './utils/renderResource'
 import * as t from './types'
 
 const createResolver = function _createResolver(ndom: NDOM) {
@@ -109,7 +108,6 @@ const createResolver = function _createResolver(ndom: NDOM) {
         if (obj.before) attach('before', acc, obj)
         if (obj.resolve) attach('resolve', acc, obj)
         if (obj.after) attach('after', acc, obj)
-        if (obj.resource) ndom.use({ resource: obj.resource })
         return acc
       },
       { before: [], resolve: [], after: [] } as t.Resolve.LifeCycle,
@@ -137,34 +135,6 @@ const createResolver = function _createResolver(ndom: NDOM) {
       const resolveFn = runners[index]
       if (u.isFnc(resolveFn)) {
         resolveFn(node, component, util.options(node, component))
-      } else if (u.isObj(resolveFn)) {
-        if (u.isObj(resolveFn.onResource)) {
-          for (const [resourceKey, resourceResolveFn] of u.entries(
-            resolveFn.onResource,
-          )) {
-            const regexp = new RegExp(resourceKey.trim(), 'i')
-            for (const resourceObjects of u.values(ndom.global.resources)) {
-              for (const [key, obj] of u.entries(resourceObjects)) {
-                if (regexp.test(key)) {
-                  const record = ndom.createResource(obj)
-                  if (obj && !obj.isActive()) {
-                    renderResource(record, ({ node: resourceNode }) => {
-                      resourceResolveFn({
-                        node,
-                        component,
-                        options: util.options(node, component),
-                        resource: {
-                          node: resourceNode,
-                          record,
-                        },
-                      })
-                    })
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     }
   }

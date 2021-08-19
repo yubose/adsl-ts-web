@@ -13,13 +13,7 @@ import {
   Page as NUIPage,
   Viewport,
 } from 'noodl-ui'
-import {
-  GlobalCssResourceObject,
-  GlobalJsResourceObject,
-  NDOMElement,
-  Resolve,
-  UseObject,
-} from './types'
+import { NDOMElement, Resolve } from './types'
 import { nui } from './nui'
 import NOODLDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
@@ -70,7 +64,6 @@ interface MockRenderOptions {
   page?: NDOMPage
   pageName?: string
   pageObject?: Partial<PageObject>
-  resource?: UseObject['resource']
   root?: Record<string, PageObject>
 }
 
@@ -138,7 +131,6 @@ export function createRender<Opts extends MockRenderOptions>(
   let page: NDOMPage | undefined
   let pageObject: Partial<PageObject> = {}
   let root = _defaults.root
-  let resource: Opts['resource'] | undefined
 
   if (u.isArr(opts) || 'type' in (opts || {})) {
     pageRequesting = _defaults.pageRequesting
@@ -149,7 +141,6 @@ export function createRender<Opts extends MockRenderOptions>(
     opts.pageObject && u.assign(pageObject, opts.pageObject)
     opts.page && (page = page)
     opts.root && (root = opts.root)
-    opts.resource && (resource = opts.resource)
 
     !pageRequesting && (pageRequesting = _defaults.pageRequesting)
 
@@ -207,7 +198,6 @@ export function createRender<Opts extends MockRenderOptions>(
     getPages: () => [pageRequesting],
     getPreloadPages: () => [],
     getRoot: () => ({ ...root, [pageRequesting]: pageObject }),
-    resource,
     transaction: { [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: getPageObject },
   }
 

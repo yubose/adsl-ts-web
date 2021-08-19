@@ -4,11 +4,12 @@
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { ComponentObject, EcosDocument, NameField } from 'noodl-types'
-import { NUIComponent, Page as NUIPage } from 'noodl-ui'
-import { GlobalComponentRecord } from '../global/index'
+import { NUIComponent } from 'noodl-ui'
+import GlobalComponentRecord from '../global/GlobalComponentRecord'
 import { nui } from '../nui'
 import NDOM from '../noodl-ui-dom'
 import NDOMPage from '../Page'
+import * as c from '../constants'
 import * as t from '../types'
 
 export function addClassName(className: string, node: HTMLElement) {
@@ -127,7 +128,7 @@ export function handleDrawGlobalComponent(
   page: NDOMPage,
 ) {
   let globalRecord: GlobalComponentRecord
-  let globalId = component.get('data-globalid')
+  let globalId = component.get(c.DATA_GLOBALID)
 
   const attachOnClick = (n: HTMLElement | null, globalId: string) => {
     if (n) {
@@ -145,7 +146,6 @@ export function handleDrawGlobalComponent(
   } else {
     globalRecord = this.createGlobalRecord({
       type: 'component',
-      id: globalId,
       component,
       node,
       page,
@@ -155,30 +155,14 @@ export function handleDrawGlobalComponent(
   }
 
   if (globalRecord) {
-    component.edit({ 'data-globalid': globalId, globalId })
-    // Check mismatchings and recover from them
-
-    const publishMismatchMsg = (
-      type: 'node' | 'component',
-      extendedText?: string,
-    ) => {
-      const id =
-        type === 'node'
-          ? node?.id || `<Missing node id (component id is "${component.id}")>`
-          : type === 'component'
-          ? component.id
-          : '<Missing ID>'
-      console.log(
-        `%cThe ${type} with id "${id}" is different than the one in the global object.${
-          extendedText || ''
-        }`,
-        `color:#CCCD17`,
-        { globalObject: globalRecord },
-      )
-    }
-
+    component.edit({ [c.DATA_GLOBALID]: globalId, globalId })
     if (globalRecord.componentId !== component.id) {
-      publishMismatchMsg('component')
+      console.log(
+        `%cThe component with id "${component.id || '<Missing ID>'}" ` +
+          `is different than the one in the global object.`,
+        `color:#CCCD17`,
+        globalRecord,
+      )
       _removeComponent(
         this.cache.component.get(globalRecord.componentId)?.component,
       )
@@ -186,13 +170,9 @@ export function handleDrawGlobalComponent(
     }
 
     if (node) {
-      if (!node.id) node.id = component.id
+      !node.id && (node.id = component.id)
       if (globalRecord.nodeId) {
         if (globalRecord.nodeId !== node.id) {
-          publishMismatchMsg(
-            'node',
-            `The old node will be ` + `replaced with the incoming node's id`,
-          )
           const _prevNode = document.getElementById(globalRecord.nodeId)
           if (_prevNode) {
             _removeNode(_prevNode)
@@ -209,8 +189,8 @@ export function handleDrawGlobalComponent(
     if (globalRecord.pageId !== page.id) {
       console.log(
         `%cPage ID for global object with id "${component.get(
-          'data-globalid',
-        )}" does not match with the page that is drawing for component "${
+          c.DATA_GLOBALID,
+        )}" does not match with the page that is currently drawing for component "${
           component.id
         }"`,
         `color:#FF5722;`,
@@ -228,16 +208,16 @@ export function _removeComponent(
   component: NUIComponent.Instance | undefined | null,
 ) {
   if (!component) return
-  const remove = (c: NUIComponent.Instance) => {
-    this.cache.component.remove(c)
-    if (c.has?.('global') || c.blueprint?.global) {
-      _removeGlobalComponent(c.get('data-globalid'))
+  const remove = (_c: NUIComponent.Instance) => {
+    this.cache.component.remove(_c)
+    if (_c.has?.('global') || _c.blueprint?.global) {
+      _removeGlobalComponent(_c.get(c.DATA_GLOBALID))
     }
-    c?.setParent?.(null)
-    c?.parent?.removeChild(c)
-    c.children?.forEach?.((_c) => remove(_c))
-    if (c.has('page')) c.remove('page')
-    c.clear?.()
+    _c?.setParent?.(null)
+    _c?.parent?.removeChild(_c)
+    _c.children?.forEach?.((_c) => remove(_c))
+    if (_c.has('page')) _c.remove('page')
+    _c.clear?.()
   }
   remove(component)
 }

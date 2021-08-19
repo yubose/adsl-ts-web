@@ -2,23 +2,20 @@
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
     "declaration": true,
     "declarationDir": "dist",
     "esModuleInterop": true,
     "keyofStringsOnly": true,
     "lib": ["dom", "dom.iterable", "esnext"],
-    "listEmittedFiles": false,
     "module": "esnext",
     "moduleResolution": "node",
     "noEmitOnError": false,
     "outDir": "dist",
-    "noImplicitAny": false,
     "sourceMap": true,
     "strictNullChecks": true,
     "skipLibCheck": true,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es6"
+    "target": "es2017"
   },
   "exclude": ["node_modules/**/*", "src/**/*.test.ts"],
   "include": ["src/**/*"]
