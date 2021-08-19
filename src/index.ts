@@ -238,52 +238,82 @@ if (module.hot) {
 }
 
 function attachDebugUtilsToWindow(app: App) {
-  // @ts-expect-error
-  window.componentStats = () => {
-    const pageComponentCount = {} as Record<string, number>
-    for (const obj of app.cache.component) {
-      if (obj) {
-        const pageName = obj.page
-        if (!(pageName in pageComponentCount)) {
-          pageComponentCount[pageName] = 0
+  Object.defineProperties(window, {
+    componentStats: {
+      get() {
+        const pageComponentCount = {} as Record<string, number>
+        for (const obj of app.cache.component) {
+          if (obj) {
+            const pageName = obj.page
+            if (!(pageName in pageComponentCount)) {
+              pageComponentCount[pageName] = 0
+            }
+            pageComponentCount[pageName]++
+          }
         }
-        pageComponentCount[pageName]++
-      }
-    }
-    console.log(pageComponentCount)
-  }
+        return pageComponentCount
+      },
+    },
+    ndomPages: {
+      get() {
+        return (name: string) =>
+          u.values(app.ndom.pages).filter((page) => page.page === name)
+      },
+    },
+    nuiPages: {
+      get() {
+        return (name: string) =>
+          [...app.cache.page.get().values()].reduce(
+            (acc, { page }) => (page.page === name ? acc.concat(page) : acc),
+            [] as lib.Page[],
+          )
+      },
+    },
+    pageTable: {
+      get() {
+        const result = {} as { page: string; ndom: number; nui: number }[]
+        const getKey = (page: NDOMPage | lib.Page) =>
+          page.page === '' ? 'unknown' : page.page
+        const pagesList = [] as string[]
 
-  // @ts-expect-error
-  window.getNDOMPagesByName = (name: string) =>
-    u.values(app.ndom.pages).filter((page) => page.page === name)
-  // @ts-expect-error
-  window.getNUIPagesByName = (name: string) =>
-    [...app.cache.page.get().values()].reduce(
-      (acc, { page }) => (page.page === name ? acc.concat(page) : acc),
-      [] as lib.Page[],
-    )
-  // @ts-expect-error
-  window.getPageTable = () => {
-    const result = {} as Record<string, { ndom: any[]; nui: any[] }>
-    const getKey = (page: NDOMPage | lib.Page) =>
-      page.page === '' ? 'unknown' : page.page
+        for (const { page } of app.cache.page.get().values()) {
+          if (!pagesList.includes(page.page)) pagesList.push(page.page)
+          const index = pagesList.indexOf(page.page)
+          const obj = result[index]
+          const pageKey = getKey(page) as keyof typeof result[number]
+          if (!obj) {
+            result[index] = {
+              ndom: 0,
+              nui: 0,
+              page: pageKey,
+            }
+          }
+          result[index].nui++
+          result[index].page = pageKey
+        }
 
-    for (const { page } of app.cache.page.get().values()) {
-      const key = getKey(page)
-      if (!(key in result)) {
-        result[key] = { ndom: [], nui: [] }
-      }
-      result[key].nui.push(page)
-    }
+        const ndomPagesEntries = u.entries(app.ndom.pages)
 
-    for (const page of u.values(app.ndom.pages)) {
-      const key = getKey(page)
-      if (!(key in result)) {
-        result[key] = { ndom: [], nui: [] }
-      }
-      result[key].ndom.push(page)
-    }
-  }
+        for (let index = 0; index < ndomPagesEntries.length; index++) {
+          const [id, ndomPage] = ndomPagesEntries[index]
+          const pageKey = getKey(ndomPage) as keyof typeof result[number]
+          if (!pagesList.includes(pageKey)) pagesList.push(pageKey)
+          const obj = result[index]
+          if (!obj) {
+            result[index] = {
+              ndom: 0,
+              nui: 0,
+              page: pageKey,
+            }
+          }
+          result[index].ndom++
+          result[index].page = pageKey
+        }
+
+        return result
+      },
+    },
+  })
 
   attachDebugUtilsToWindow.attached = true
 }

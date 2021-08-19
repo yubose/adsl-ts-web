@@ -1,8 +1,9 @@
 import NUIPage from '../Page'
 import type Viewport from '../Viewport'
-import type { ICache, IPage } from '../types'
+import type { ICache, IPage, NUIComponent } from '../types'
 
 class PageCache implements ICache {
+  #cache = new WeakMap<NUIComponent.Instance, NUIPage>()
   #pages = new Map() as Map<IPage['id'], { page: NUIPage }>
 
   static _inst: PageCache;
@@ -36,9 +37,8 @@ class PageCache implements ICache {
   }
 
   create({ id, viewport }: { id?: string; viewport?: Viewport } = {}) {
-    const page = new NUIPage(viewport, {
-      id: id || (!this.#pages.size ? 'root' : undefined),
-    })
+    id = id || (!this.#pages.size ? 'root' : undefined)
+    const page = new NUIPage(viewport, { id })
     this.#pages.set(page.id, { page })
     return this.#pages.get(page.id)?.page as NUIPage
   }
