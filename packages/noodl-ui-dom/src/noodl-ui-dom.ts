@@ -526,7 +526,7 @@ class NDOM extends NDOMInternal {
                     let nuiPage = component.get('page') as NUIPage
                     let ndomPage = (this.findPage(nuiPage) ||
                       this.createPage(nuiPage)) as NDOMPage
-                    let src = component.get('data-src') || ''
+                    let src = component.get(c.DATA_SRC) || ''
 
                     if (node) {
                       if (
@@ -534,24 +534,13 @@ class NDOM extends NDOMInternal {
                         ndomPage.rootNode !== node
                       ) {
                         try {
-                          const parentElement = ndomPage.rootNode?.parentElement
-                          if (parentElement) {
-                            parentElement.replaceChild(
-                              node as HTMLElement,
-                              ndomPage.rootNode,
-                            )
-                          } else {
-                            ndomPage.rootNode = node as HTMLIFrameElement
-                          }
+                          i._removeNode(ndomPage.rootNode)
+                          ndomPage.rootNode = node as HTMLIFrameElement
                         } catch (error) {
                           console.error(error)
                         }
                       }
-                      this.#R.run({
-                        node,
-                        component,
-                        resolvers: [attributeResolvers, componentResolvers],
-                      })
+                      this.#R.run({ node: ndomPage.rootNode, component, })
                       if (!src) {
                         // TODO
                       }

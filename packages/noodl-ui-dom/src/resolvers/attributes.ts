@@ -90,8 +90,8 @@ const resolveAttributes: Resolve.Config = {
         -------------------------------------------------------- */
         if (!isTextFieldLike(node)) {
           if (
-            ['text', c.DATA_PLACEHOLDER, c.DATA_VALUE].some((key) =>
-              component.get(key),
+            ['text', c.DATA_PLACEHOLDER, c.DATA_VALUE].some(
+              (key) => !!component.get(key),
             )
           ) {
             let dataValue = component.get(c.DATA_VALUE)
@@ -125,7 +125,7 @@ const resolveAttributes: Resolve.Config = {
           ---- PLACEHOLDERS
         -------------------------------------------------------- */
         if (placeholder) {
-          const value = component.get('data-placeholder') || placeholder || ''
+          const value = component.get(c.DATA_PLACEHOLDER) || placeholder || ''
           if (Identify.folds.emit(value)) {
             component.on('placeholder', (result) => {
               setTimeout(() => {
