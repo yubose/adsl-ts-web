@@ -13,7 +13,7 @@ import {
   Page as NUIPage,
   Store,
 } from 'noodl-ui'
-import { getFirstByGlobalId, getElementTag, openOutboundURL } from './utils'
+import { getElementTag, openOutboundURL } from './utils'
 import {
   GlobalComponentRecord,
   GlobalCssResourceRecord,
@@ -29,8 +29,8 @@ import NDOMInternal from './Internal'
 import NDOMGlobal from './Global'
 import NDOMPage from './Page'
 import { cache as nuiCache, nui } from './nui'
-import attributeResolver from './resolvers/attributes'
-import componentResolver from './resolvers/components'
+import attributeResolvers from './resolvers/attributes'
+import componentResolvers from './resolvers/components'
 import * as i from './utils/internal'
 import * as c from './constants'
 import * as t from './types'
@@ -51,7 +51,7 @@ class NDOM extends NDOMInternal {
     super()
     this.#R = createResolver(this)
     this.#R.use(this)
-    ;[attributeResolver, componentResolver].forEach(this.#R.use.bind(this.#R))
+    ;[attributeResolvers, componentResolvers].forEach((r) => this.#R.use(r))
   }
 
   get actions() {
@@ -264,81 +264,6 @@ class NDOM extends NDOMInternal {
   }
 
   /**
-   * Removes the NDOMPage from the {@link GlobalMap}
-   */
-  removePage(page: NDOMPage | undefined | null) {
-    if (page) {
-      nui.clean(page.getNuiPage(), console.log)
-      page.remove()
-      // if (page.id in this.global.pages) delete this.global.pages[page.id]
-      page = null
-    }
-  }
-
-  /**
-   * Removes the component from the {@link ComponentCache} and all parent/child
-   * references
-   */
-  removeComponent(component: NUIComponent.Instance | undefined | null) {
-    if (!component) return
-    const remove = (c: NUIComponent.Instance) => {
-      console.log(`%cRemoving ${c.type} component: ${c.id}`, `color:#00b406;`)
-      this.cache.component.remove(c)
-      if (c.has?.('global') || c.blueprint?.global) {
-        this.removeGlobal('component', c.get('data-globalid'))
-      }
-      c?.setParent?.(null)
-      c?.parent?.removeChild(c)
-      c.children?.forEach?.((_c) => remove(_c))
-      if (c.has('page')) c.remove('page')
-      c.clear?.()
-    }
-    remove(component)
-  }
-
-  removeGlobal(type: 'component', globalId: string | undefined) {
-    if (globalId) {
-      if (type === 'component') {
-        if (this.global.components.has(globalId)) {
-          const globalComponentObj = this.global.components.get(globalId)
-          const obj = globalComponentObj?.toJSON()
-          if (obj) {
-            const { componentId, nodeId } = obj
-            if (componentId) {
-              if (this.cache.component.has(componentId)) {
-                this.removeComponent(
-                  this.cache.component.get(componentId)?.component,
-                )
-              }
-            }
-            this.global.components.delete(globalId)
-            if (nodeId) {
-              const node = getFirstByGlobalId(globalId)
-              node && this.removeNode(node)
-            }
-          }
-        }
-      }
-    }
-  }
-
-  /**
-   * Removes the node from the DOM
-   */
-  removeNode(node: t.NDOMElement) {
-    if (node) {
-      try {
-        node.parentNode?.removeChild?.(node)
-        node.remove?.()
-      } catch (error) {
-        console.error(error)
-      }
-    }
-
-    return this
-  }
-
-  /**
    * Initiates a request to the parameters set in Page.
    * The page.requesting value should be set prior to calling this method unless
    * pageRequesting is provided. If it is provided, it will be set automatically
@@ -530,7 +455,7 @@ class NDOM extends NDOMInternal {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem || node)
         // @ts-expect-error
-        this.#R.run(getNode, component)
+        this.#R.run({ node: getNode, component })
         return node
       } else if (Identify.component.image(component)) {
         if (this.#createElementBinding) {
@@ -564,27 +489,88 @@ class NDOM extends NDOMInternal {
         // not be able to access their parent during the resolver calls
         !parent.contains(node) && parent.appendChild(node)
 
-        if (node.tagName === 'IFRAME') {
-          node.onload = (evt) => {
-            if (Identify.component.page(component)) {
-              this.#R.run(node as t.NDOMElement, component)
-              options?.onPageComponentLoad?.({
-                event: evt,
-                node: node as HTMLIFrameElement,
-                component,
-                page,
+        if (node instanceof HTMLIFrameElement) {
+          if (Identify.component.page(component)) {
+            if (options?.onPageComponentLoad) {
+              node.addEventListener('load', function (evt) {
+                options?.onPageComponentLoad?.({
+                  event: evt,
+                  node: node as HTMLIFrameElement,
+                  component,
+                  page,
+                })
               })
             } else {
-              this.#R.run(node as t.NDOMElement, component)
-              component.children?.forEach?.((child: NUIComponent.Instance) => {
-                node?.appendChild(
-                  this.draw(child, node, page, options) as HTMLElement,
+              if (
+                !['.html'].some((ext) => component.get('path')?.endsWith?.(ext))
+              ) {
+                this.#R.run({ node, component })
+                component.children?.forEach?.(
+                  (child: NUIComponent.Instance) => {
+                    if (node instanceof HTMLIFrameElement) {
+                      node.contentDocument?.body.appendChild(
+                        this.draw(child, node, page, options) as HTMLElement,
+                      )
+                    } else {
+                      node?.appendChild(
+                        this.draw(child, node, page, options) as HTMLElement,
+                      )
+                    }
+                  },
                 )
-              })
+              } else {
+                node.addEventListener(
+                  'load',
+                  (evt) => {
+                    console.log(`Page component loaded`, evt)
+                    let nuiPage = component.get('page') as NUIPage
+                    let ndomPage = (this.findPage(nuiPage) ||
+                      this.createPage(nuiPage)) as NDOMPage
+                    let src = component.get('data-src') || ''
+
+                    if (node) {
+                      if (
+                        ndomPage.id !== 'root' &&
+                        ndomPage.rootNode !== node
+                      ) {
+                        try {
+                          const parentElement = ndomPage.rootNode?.parentElement
+                          if (parentElement) {
+                            parentElement.replaceChild(
+                              node as HTMLElement,
+                              ndomPage.rootNode,
+                            )
+                          } else {
+                            ndomPage.rootNode = node as HTMLIFrameElement
+                          }
+                        } catch (error) {
+                          console.error(error)
+                        }
+                      }
+                      this.#R.run({
+                        node,
+                        component,
+                        resolvers: [attributeResolvers, componentResolvers],
+                      })
+                      if (!src) {
+                        // TODO
+                      }
+                      ;(node as HTMLIFrameElement).src = src
+                    } else {
+                      // TODO
+                    }
+                  },
+                  { once: true },
+                )
+
+                node?.addEventListener('error', function (err) {
+                  console.error(err)
+                })
+              }
             }
           }
         } else {
-          this.#R.run(node, component)
+          this.#R.run({ node, component })
           component.children?.forEach?.((child: NUIComponent.Instance) => {
             const childNode = this.draw(
               child,
@@ -641,7 +627,7 @@ class NDOM extends NDOMInternal {
         parent.createChild(newComponent)
       }
 
-      this.removeComponent(component)
+      i._removeComponent(component)
 
       newComponent = nui.resolveComponents?.({
         callback: options?.callback,
@@ -656,7 +642,7 @@ class NDOM extends NDOMInternal {
         const parentNode = node.parentNode || (document.body as any)
         parentNode?.contains?.(node) && (node.textContent = '')
 
-        this.removeNode(node)
+        i._removeNode(node)
 
         node = this.draw(newComponent, parentNode, page, {
           ...options,
@@ -722,17 +708,9 @@ class NDOM extends NDOMInternal {
     global?: boolean
     pages?: boolean
     register?: boolean
-    resolvers?: boolean
     transactions?: boolean
   }): this
-  reset(
-    key?:
-      | 'actions'
-      | 'componentCache'
-      | 'register'
-      | 'resolvers'
-      | 'transactions',
-  ): this
+  reset(key?: 'actions' | 'componentCache' | 'register' | 'transactions'): this
   reset(
     key?:
       | {
@@ -741,13 +719,11 @@ class NDOM extends NDOMInternal {
           global?: boolean
           pages?: boolean
           register?: boolean
-          resolvers?: boolean
           transactions?: boolean
         }
       | 'actions'
       | 'componentCache'
       | 'register'
-      | 'resolvers'
       | 'transactions',
     page?: NDOMPage,
   ) {
@@ -778,7 +754,7 @@ class NDOM extends NDOMInternal {
               document.getElementById(record.nodeId)?.remove?.()
             }
             if (this.cache.component.has(record.componentId)) {
-              this.removeComponent(
+              i._removeComponent(
                 this.cache.component.get(record.componentId)?.component,
               )
             }
@@ -833,7 +809,6 @@ class NDOM extends NDOMInternal {
     resetGlobal()
     resetPages()
     resetRegisters()
-    // resetResolvers()
     resetTransactions()
     return this
   }

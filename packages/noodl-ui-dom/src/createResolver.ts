@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import SignaturePad from 'signature_pad'
+import { OrArray } from '@jsmanifest/typefest'
 import { Identify } from 'noodl-types'
 import { Component } from 'noodl-ui'
 import { getPageAncestor } from './utils'
@@ -7,11 +8,11 @@ import { nui } from './nui'
 import NDOM from './noodl-ui-dom'
 import NDOMInternal from './Internal'
 import renderResource from './utils/renderResource'
-import * as T from './types'
+import * as t from './types'
 
 const createResolver = function _createResolver(ndom: NDOM) {
   const _internal: {
-    objs: T.Resolve.Config[]
+    objs: t.Resolve.Config[]
     ndom: NDOM
   } = {
     objs: [],
@@ -20,19 +21,7 @@ const createResolver = function _createResolver(ndom: NDOM) {
 
   const util = (function () {
     return {
-      actionsContext(...args: T.Resolve.BaseArgs) {
-        const otherProps = {} as Record<string, any>
-        if (Identify.component.canvas(args[1])) {
-          args[1].edit(
-            'signaturePad',
-            new SignaturePad(args[0] as HTMLCanvasElement, {
-              dotSize: 0.2,
-            }),
-          )
-        }
-        return otherProps
-      },
-      options(...args: T.Resolve.BaseArgs) {
+      options(...args: t.Resolve.BaseArgs) {
         function createStyleEditor(component: Component) {
           function editComponentStyles(
             styles: Record<string, any> | undefined,
@@ -48,8 +37,16 @@ const createResolver = function _createResolver(ndom: NDOM) {
           return editComponentStyles
         }
 
+        if (Identify.component.canvas(args[1])) {
+          args[1].edit(
+            'signaturePad',
+            new SignaturePad(args[0] as HTMLCanvasElement, {
+              dotSize: 0.2,
+            }),
+          )
+        }
+
         const options = {
-          ...util.actionsContext(...args),
           editStyle: createStyleEditor(args[1]),
           original: args[1].blueprint,
           global: ndom.global,
@@ -67,8 +64,8 @@ const createResolver = function _createResolver(ndom: NDOM) {
   })()
 
   function _onPassingCond(
-    cond: T.Resolve.Config['cond'],
-    args: T.Resolve.BaseArgs,
+    cond: t.Resolve.Config['cond'],
+    args: t.Resolve.BaseArgs,
     callback: () => void,
   ) {
     if (u.isStr(cond)) {
@@ -82,33 +79,40 @@ const createResolver = function _createResolver(ndom: NDOM) {
     }
   }
 
-  function _getRunners(...args: T.Resolve.BaseArgs) {
+  function _getRunners(
+    ...[node, component, resolvers]: [
+      t.Resolve.BaseArgs[0],
+      t.Resolve.BaseArgs[1],
+      OrArray<t.Resolve.Config>,
+    ]
+  ) {
     const attach = (
-      lifeCycleEvent: T.Resolve.LifeCycleEvent,
-      acc: T.Resolve.LifeCycle,
-      obj: T.Resolve.Config,
+      lifeCycleEvent: t.Resolve.LifeCycleEvent,
+      acc: t.Resolve.LifeCycle,
+      obj: t.Resolve.Config,
     ) => {
-      _onPassingCond(obj.cond, args, () => {
+      _onPassingCond(obj.cond, [node, component], () => {
         if (lifeCycleEvent === 'resolve') {
           if (u.isFnc(obj.resolve)) {
-            acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.Resolve.Func)
+            acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as t.Resolve.Func)
           } else if (u.isObj(obj.resolve)) {
-            acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.Resolve.Hooks)
+            acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as t.Resolve.Hooks)
           }
         } else {
-          acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as T.Resolve.Func)
+          acc[lifeCycleEvent]?.push(obj[lifeCycleEvent] as t.Resolve.Func)
         }
       })
     }
-    return _internal.objs.reduce(
+    return u.array(resolvers).reduce(
       (acc, obj) => {
+        if (!obj) return acc
         if (obj.before) attach('before', acc, obj)
         if (obj.resolve) attach('resolve', acc, obj)
         if (obj.after) attach('after', acc, obj)
         if (obj.resource) ndom.use({ resource: obj.resource })
         return acc
       },
-      { before: [], resolve: [], after: [] } as T.Resolve.LifeCycle,
+      { before: [], resolve: [], after: [] } as t.Resolve.LifeCycle,
     )
   }
 
@@ -116,11 +120,60 @@ const createResolver = function _createResolver(ndom: NDOM) {
     return _internal.objs
   }
 
+  function _run<
+    T extends string = string,
+    N extends t.NDOMElement<T> = t.NDOMElement<T>,
+  >({ node, component, resolvers }: t.Resolve.Args<T, N>) {
+    resolvers = u.array(resolvers || _internal.objs)
+
+    const { before, resolve, after } = _getRunners(node, component, resolvers)
+    const runners = [...before, ...resolve, ...after] as (
+      | t.Resolve.Func
+      | t.Resolve.Hooks
+    )[]
+    const total = runners.length
+    // TODO - feat. consumer return value
+    for (let index = 0; index < total; index++) {
+      const resolveFn = runners[index]
+      if (u.isFnc(resolveFn)) {
+        resolveFn(node, component, util.options(node, component))
+      } else if (u.isObj(resolveFn)) {
+        if (u.isObj(resolveFn.onResource)) {
+          for (const [resourceKey, resourceResolveFn] of u.entries(
+            resolveFn.onResource,
+          )) {
+            const regexp = new RegExp(resourceKey.trim(), 'i')
+            for (const resourceObjects of u.values(ndom.global.resources)) {
+              for (const [key, obj] of u.entries(resourceObjects)) {
+                if (regexp.test(key)) {
+                  const record = ndom.createResource(obj)
+                  if (obj && !obj.isActive()) {
+                    renderResource(record, ({ node: resourceNode }) => {
+                      resourceResolveFn({
+                        node,
+                        component,
+                        options: util.options(node, component),
+                        resource: {
+                          node: resourceNode,
+                          record,
+                        },
+                      })
+                    })
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   const o = {
     get utils() {
       return util
     },
-    register(obj: T.Resolve.Config) {
+    register(obj: t.Resolve.Config) {
       if (!_internal.objs.includes(obj)) {
         _internal.objs.push(obj)
       }
@@ -129,56 +182,13 @@ const createResolver = function _createResolver(ndom: NDOM) {
     /**
      * Runs the DOM resolvers on the node (args[0]) and component (args[1])
      */
-    run: (...args: T.Resolve.BaseArgs) => {
-      const { before, resolve, after } = _getRunners(...args)
-      const runners = [...before, ...resolve, ...after] as (
-        | T.Resolve.Func
-        | T.Resolve.Hooks
-      )[]
-      const total = runners.length
-      // TODO - feat. consumer return value
-      for (let index = 0; index < total; index++) {
-        const resolveFn = runners[index]
-        if (u.isFnc(resolveFn)) {
-          resolveFn(...args, util.options(...args))
-        } else if (u.isObj(resolveFn)) {
-          if (u.isObj(resolveFn.onResource)) {
-            for (const [resourceKey, resourceResolveFn] of u.entries(
-              resolveFn.onResource,
-            )) {
-              const regexp = new RegExp(resourceKey.trim(), 'i')
-              for (const resourceObjects of u.values(ndom.global.resources)) {
-                for (const [key, obj] of u.entries(resourceObjects)) {
-                  if (regexp.test(key)) {
-                    const record = ndom.createResource(obj)
-                    if (obj && !obj.isActive()) {
-                      renderResource(record, ({ node: resourceNode }) => {
-                        resourceResolveFn({
-                          node: args[0],
-                          component: args[1],
-                          options: util.options(args[0], args[1]),
-                          resource: {
-                            node: resourceNode,
-                            record,
-                          },
-                        })
-                      })
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      return this
-    },
+    run: _run,
     clear() {
       _internal.objs.length = 0
       return o
     },
     get: _get,
-    use(value: T.Resolve.Config | typeof nui | NDOMInternal) {
+    use(value: t.Resolve.Config | NDOMInternal) {
       if (value instanceof NDOMInternal) {
         ndom = value as NDOM
       } else if (value) {

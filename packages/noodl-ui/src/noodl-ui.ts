@@ -762,9 +762,9 @@ const NUI = (function _NUI() {
       if (!isPreexistent) {
         page = cache.page.create({ id, viewport: viewport }) as NUIPage
       }
-
       name && page && (page.page = name)
       ;(page as NUIPage).use(() => NUI.getRoot()[page?.page || '']?.components)
+
       return page
     },
     createPlugin(

@@ -6,6 +6,7 @@ import get from 'lodash/get'
 import { ComponentObject, EcosDocument, NameField } from 'noodl-types'
 import { NUIComponent, Page as NUIPage } from 'noodl-ui'
 import { GlobalComponentRecord } from '../global/index'
+import { nui } from '../nui'
 import NDOM from '../noodl-ui-dom'
 import NDOMPage from '../Page'
 import * as t from '../types'
@@ -132,8 +133,8 @@ export function handleDrawGlobalComponent(
     if (n) {
       const onClick = () => {
         n.removeEventListener('click', onClick)
-        this.removeNode(n)
-        this.removeGlobal('component', globalId)
+        _removeNode(n)
+        _removeGlobalComponent(this.global, globalId)
       }
       n.addEventListener('click', onClick)
     }
@@ -178,7 +179,7 @@ export function handleDrawGlobalComponent(
 
     if (globalRecord.componentId !== component.id) {
       publishMismatchMsg('component')
-      this.removeComponent(
+      _removeComponent(
         this.cache.component.get(globalRecord.componentId)?.component,
       )
       globalRecord.componentId = component.id
@@ -194,7 +195,7 @@ export function handleDrawGlobalComponent(
           )
           const _prevNode = document.getElementById(globalRecord.nodeId)
           if (_prevNode) {
-            this.removeNode(_prevNode)
+            _removeNode(_prevNode)
           }
           globalRecord.nodeId = node.id
           node.dataset.globalid = globalId
@@ -216,5 +217,79 @@ export function handleDrawGlobalComponent(
         globalRecord,
       )
     }
+  }
+}
+
+/**
+ * Removes the component from the {@link ComponentCache} and all parent/child
+ * references
+ */
+export function _removeComponent(
+  component: NUIComponent.Instance | undefined | null,
+) {
+  if (!component) return
+  const remove = (c: NUIComponent.Instance) => {
+    this.cache.component.remove(c)
+    if (c.has?.('global') || c.blueprint?.global) {
+      _removeGlobalComponent(c.get('data-globalid'))
+    }
+    c?.setParent?.(null)
+    c?.parent?.removeChild(c)
+    c.children?.forEach?.((_c) => remove(_c))
+    if (c.has('page')) c.remove('page')
+    c.clear?.()
+  }
+  remove(component)
+}
+
+export function _removeGlobalComponent(globalMap: t.GlobalMap, globalId = '') {
+  if (globalId) {
+    if (globalMap.components.has(globalId)) {
+      const globalComponentObj = globalMap.components.get(globalId)
+      const obj = globalComponentObj?.toJSON()
+      if (obj) {
+        const { componentId, nodeId } = obj
+        if (componentId) {
+          if (this.cache.component.has(componentId)) {
+            this.removeComponent(
+              this.cache.component.get(componentId)?.component,
+            )
+          }
+        }
+        this.global.components.delete(globalId)
+        if (nodeId) {
+          const node = document.querySelector(
+            `[data-key="${globalId}"]`,
+          ) as HTMLElement
+          node && _removeNode(node)
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Removes the node from the DOM by parent/child references
+ */
+export function _removeNode(node: t.NDOMElement) {
+  if (node) {
+    try {
+      node.parentNode?.removeChild?.(node)
+      node.remove?.()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+}
+
+/**
+ * Removes the NDOMPage from the {@link GlobalMap}
+ */
+export function _removePage(page: NDOMPage | undefined | null) {
+  if (page) {
+    nui.clean(page.getNuiPage(), console.log)
+    page.remove()
+    // if (page.id in this.global.pages) delete this.global.pages[page.id]
+    page = null
   }
 }

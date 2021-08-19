@@ -10,7 +10,8 @@ import * as c from '../constants'
 const is = Identify
 
 const resolveAttributes: Resolve.Config = {
-  name: `[noodl-ui-dom] Default Common Resolvers`,
+  name: `[noodl-ui-dom] attributes`,
+  cond: (n, c) => !!(n && c),
   before(node, component) {
     if (node) {
       if (component) {
@@ -29,7 +30,8 @@ const resolveAttributes: Resolve.Config = {
   resolve(node, component, { global: globalMap, ndom, page }) {
     if (node) {
       if (component) {
-        const { path, placeholder, style } = component.blueprint || {}
+        const { path, placeholder, style, textBoard } =
+          component.blueprint || {}
 
         /* -------------------------------------------------------
           ---- GENERAL / COMMON DOM NODES
@@ -72,7 +74,7 @@ const resolveAttributes: Resolve.Config = {
         /* -------------------------------------------------------
           ---- ENTER KEY FOR INPUTS
         -------------------------------------------------------- */
-        node.onkeypress = (e: KeyboardEvent) => {
+        node.addEventListener('keypress', function (e: KeyboardEvent) {
           if (e.key === 'Enter') {
             const inputs = document.querySelectorAll('input')
             const currentIndex = [...inputs].findIndex((el) =>
@@ -81,7 +83,7 @@ const resolveAttributes: Resolve.Config = {
             const targetIndex = (currentIndex + 1) % inputs.length
             if (currentIndex + 1 < inputs.length) inputs[targetIndex]?.focus?.()
           }
-        }
+        })
 
         /* -------------------------------------------------------
           ---- NON TEXTFIELDS
@@ -107,8 +109,7 @@ const resolveAttributes: Resolve.Config = {
         -------------------------------------------------------- */
         if (
           path &&
-          !(node instanceof HTMLVideoElement) &&
-          !(node instanceof HTMLIFrameElement)
+          ['IFRAME', 'VIDEO'].every((tagName) => node.tagName !== tagName)
         ) {
           if (component.get(c.DATA_SRC) && 'src' in (node as any)) {
             node.dataset.src = component.get(c.DATA_SRC)
@@ -142,18 +143,18 @@ const resolveAttributes: Resolve.Config = {
           ---- STYLES
         -------------------------------------------------------- */
         if (!(node instanceof HTMLScriptElement) && u.isObj(style)) {
-          u.isObj(style.textAlign) && delete component.style.textAlign
-
-          for (const [k, v] of u.entries(component.style)) {
-            if (Number.isFinite(Number(k))) break
-            node.style && (node.style[k] = String(v))
-          }
+          u.isObj(component.style.textAlign) && delete component.style.textAlign
 
           if (
             !('marginTop' in component.style) ||
             !('marginTop' in (style || {}))
           ) {
             component.style.marginTop = '0px'
+          }
+
+          for (const [k, v] of u.entries(component.style)) {
+            if (Number.isFinite(Number(k))) continue
+            node.style && (node.style[k] = String(v))
           }
 
           if (Identify.component.canvas(component)) {
@@ -173,20 +174,9 @@ const resolveAttributes: Resolve.Config = {
         }
 
         /* -------------------------------------------------------
-          ---- TEMP - Experimenting CSS
-        -------------------------------------------------------- */
-        is.component.canvas(component) && i.addClassName('canvas', node)
-        is.component.page(component) && i.addClassName('page', node)
-        is.component.popUp(component) && i.addClassName('popup', node)
-        is.component.scrollView(component) &&
-          i.addClassName('scroll-view', node)
-        component.has?.('global') && i.addClassName('global', node)
-        component.blueprint?.['textBoard'] && i.addClassName('text-board', node)
-
-        /* -------------------------------------------------------
           ---- TEXT=FUNC
         -------------------------------------------------------- */
-        if (component.has('text=func')) {
+        if (component.blueprint?.['text=func']) {
           if (component.contentType === 'timer') {
             const dataKey = component.blueprint?.dataKey as string
             // TODO - Refactor a better way to get the initial value since the
@@ -223,14 +213,20 @@ const resolveAttributes: Resolve.Config = {
             node && (node.textContent = component.get('data-value') || '')
           }
         }
+
+        /* -------------------------------------------------------
+          ---- TEMP - Experimenting CSS
+        -------------------------------------------------------- */
+        is.component.canvas(component) && i.addClassName('canvas', node)
+        is.component.page(component) && i.addClassName('page', node)
+        is.component.popUp(component) && i.addClassName('popup', node)
+        is.component.scrollView(component) &&
+          i.addClassName('scroll-view', node)
+        component.has?.('global') && i.addClassName('global', node)
+        textBoard && i.addClassName('text-board', node)
       }
     }
   },
 }
 
-const createResolveAttributes: Resolve.Func =
-  function _createResolverAttributes(ndom) {
-    return resolveAttributes
-  }
-
-export default createResolveAttributes
+export default resolveAttributes

@@ -1,11 +1,11 @@
 import * as u from '@jsmanifest/utils'
 import { Page as NUIPage, Viewport } from 'noodl-ui'
 import { BASE_PAGE_URL, eventId } from './constants'
-import * as T from './types'
+import * as t from './types'
 
 class Page {
   #nuiPage: NUIPage
-  #state: T.Page.State = {
+  #state: t.Page.State = {
     aspectRatio: 1,
     aspectRatioMin: 1,
     aspectRatioMax: 1,
@@ -14,14 +14,14 @@ class Page {
     modifiers: {} as {
       [pageName: string]: { reload?: boolean } & Record<string, any>
     },
-    status: eventId.page.status.IDLE as T.Page.Status,
+    status: eventId.page.status.IDLE as t.Page.Status,
     rootNode: false,
   }
   #hooks = u
     .values(eventId.page.on)
     .reduce((acc, key) => u.assign(acc, { [key]: [] }), {}) as Record<
-    T.Page.HookEvent,
-    T.Page.HookDescriptor[]
+    t.Page.HookEvent,
+    t.Page.HookDescriptor[]
   >
   pageUrl: string = BASE_PAGE_URL
   rootNode: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement;
@@ -39,7 +39,6 @@ class Page {
     if (this.id === 'root' && !document.body.contains(this.rootNode)) {
       document.body.appendChild(this.rootNode)
     } else {
-      // debugger
     }
   }
 
@@ -204,28 +203,28 @@ class Page {
     return snapshot as typeof snapshot & OtherProps
   }
 
-  on<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+  on<K extends t.Page.HookEvent>(evt: K, fn: t.Page.Hook[K]) {
     if (this.hooks[evt] && !this.hooks[evt].some((o) => o.id === evt)) {
       this.hooks[evt].push({ id: evt, fn })
     }
     return this
   }
 
-  off<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+  off<K extends t.Page.HookEvent>(evt: K, fn: t.Page.Hook[K]) {
     const index = this.hooks[evt]?.findIndex?.((o) => o.fn === fn) || -1
     if (index !== -1) this.hooks[evt].splice(index, 1)
     return this
   }
 
-  once<Evt extends T.Page.HookEvent>(evt: Evt, fn: T.Page.Hook[Evt]) {
-    const descriptor: T.Page.HookDescriptor<Evt> = { id: evt, once: true, fn }
+  once<Evt extends t.Page.HookEvent>(evt: Evt, fn: t.Page.Hook[Evt]) {
+    const descriptor: t.Page.HookDescriptor<Evt> = { id: evt, once: true, fn }
     this.hooks[evt].push(descriptor)
     return this
   }
 
-  async emitAsync<K extends T.Page.HookEvent>(
+  async emitAsync<K extends t.Page.HookEvent>(
     evt: K,
-    ...args: Parameters<T.Page.Hook[K]>
+    ...args: Parameters<t.Page.Hook[K]>
   ) {
     let results
     if (u.isArr(this.hooks[evt])) {
@@ -236,9 +235,9 @@ class Page {
     return results ? results.find(Boolean) : results
   }
 
-  emitSync<K extends T.Page.HookEvent>(
+  emitSync<K extends t.Page.HookEvent>(
     evt: K,
-    ...args: Parameters<T.Page.Hook[K]>
+    ...args: Parameters<t.Page.Hook[K]>
   ) {
     this.hooks[evt]?.forEach?.((d, index) => {
       d.fn?.call?.(this, ...args)
@@ -247,7 +246,7 @@ class Page {
     return this
   }
 
-  setStatus(status: T.Page.Status) {
+  setStatus(status: t.Page.Status) {
     this.#state.status = status
     if (status === eventId.page.status.IDLE) this.requesting = ''
     else if (status === eventId.page.status.NAVIGATE_ERROR) this.requesting = ''
@@ -271,7 +270,7 @@ class Page {
     }
   }
 
-  reset<K extends keyof T.Page.State = keyof T.Page.State>(slice?: K) {
+  reset<K extends keyof t.Page.State = keyof t.Page.State>(slice?: K) {
     if (slice) {
     } else {
       this.remove()

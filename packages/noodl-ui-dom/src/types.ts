@@ -152,6 +152,11 @@ export type ElementBinding = Map<
 
 export namespace Resolve {
   export type BaseArgs = [node: HTMLElement, component: Component]
+  export interface Args<T extends string, N extends NDOMElement<T>> {
+    node: N
+    component: NUIComponent.Instance
+    resolvers?: OrArray<Resolve.Config>
+  }
 
   export interface Config {
     name?: string

@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import SignaturePad from 'signature_pad'
 import has from 'lodash/has'
 import { ComponentObject, Identify } from 'noodl-types'
@@ -15,9 +16,9 @@ import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import NDOMPage from '../Page'
-import * as u from '../utils/internal'
-import * as c from '../constants'
 import { cache } from '../nui'
+import * as i from '../utils/internal'
+import * as c from '../constants'
 
 const domComponentsResolver: Resolve.Config = {
   name: `[noodl-ui-dom] components`,
@@ -116,14 +117,8 @@ const domComponentsResolver: Resolve.Config = {
           } else if (elem instanceof HTMLStyleElement) {
             elem.innerHTML = String(data)
           } else if (elem instanceof HTMLIFrameElement) {
-            // elem.onload = (evt) => {
-            //   elem.contentDocument.documentElement.innerHTML = data
-            //   debugger
-            // }
             const parentNode = elem.parentNode || page.rootNode || document.body
-
             elem.innerHTML += data
-
             if (parentNode.children.length) {
               parentNode.insertBefore(elem, parentNode.childNodes[0])
             } else {
@@ -181,7 +176,6 @@ const domComponentsResolver: Resolve.Config = {
 
             insert(pluginNode, component.get('plugin')?.location)
           }
-          // document.body.appendChild(pluginNode)
         } catch (error) {
           console.error(error)
         }
@@ -195,6 +189,7 @@ const domComponentsResolver: Resolve.Config = {
         children,
         contentType,
         controls,
+        dataKey,
         mimeType,
         onClick,
         options: selectOptions,
@@ -207,7 +202,7 @@ const domComponentsResolver: Resolve.Config = {
       // BUTTON
       if (Identify.component.button(component)) {
         if (node) {
-          if (component.get('data-src')) {
+          if (component.get(c.DATA_SRC)) {
             node.style.overflow = 'hidden'
             node.style.display = 'flex'
             node.style.alignItems = 'center'
@@ -217,10 +212,9 @@ const domComponentsResolver: Resolve.Config = {
       }
       // CANVAS
       else if (Identify.component.canvas(component)) {
-        const dataKey = (component.get('data-key') ||
-          original.dataKey) as string
+        const _dataKey = (component.get(c.DATA_KEY) || dataKey) as string
 
-        if (dataKey) {
+        if (_dataKey) {
           const signaturePad = component.get('signaturePad') as SignaturePad
           if (signaturePad) {
             signaturePad.onEnd = (evt) => {
@@ -244,14 +238,14 @@ const domComponentsResolver: Resolve.Config = {
                       return false
                     }
 
-                    let dataObject = isRootDataKey(dataKey)
+                    let dataObject = isRootDataKey(_dataKey)
                       ? nui.getRoot()
                       : nui.getRoot()?.[ndom?.page?.page || '']
-                    if (has(dataObject, dataKey)) {
+                    if (has(dataObject, _dataKey)) {
                       // set(dataObject, dataKey, blob)
                     } else {
                       console.log(
-                        `%cTried to set a signature blob using path "${dataKey}" ` +
+                        `%cTried to set a signature blob using path "${_dataKey}" ` +
                           `but it was not found in the root or local root object. ` +
                           `It will be created now.`,
                         `color:#ec0000;`,
@@ -282,7 +276,6 @@ const domComponentsResolver: Resolve.Config = {
               { node, component, signaturePad },
             )
           }
-          window['pad'] = signaturePad
         } else {
           console.log(
             `%cInvalid data key "${dataKey}" for a canvas component. ` +
@@ -295,11 +288,11 @@ const domComponentsResolver: Resolve.Config = {
       // ECOSDOC
       else if (Identify.component.ecosDoc(component)) {
         const idLabel =
-          (u.isImageDoc(component) && 'image') ||
-          (u.isMarkdownDoc(component) && 'markdown') ||
+          (i.isImageDoc(component) && 'image') ||
+          (i.isMarkdownDoc(component) && 'markdown') ||
           (Identify.ecosObj.doc(component) && 'doc') ||
-          (u.isTextDoc(component) && 'text') ||
-          (u.isWordDoc(component) && 'word-doc') ||
+          (i.isTextDoc(component) && 'text') ||
+          (i.isWordDoc(component) && 'word-doc') ||
           'ecos'
 
         const iframe = createEcosDocElement(
@@ -325,20 +318,20 @@ const domComponentsResolver: Resolve.Config = {
           node && ((node as HTMLImageElement).src = result)
           node && (node.dataset.src = result)
         })
-        if (component.get('data-src')) {
-          ;(node as HTMLImageElement).src = component.get('data-src')
-          node && (node.dataset.src = component.get('data-src'))
+        if (component.get(c.DATA_SRC)) {
+          ;(node as HTMLImageElement).src = component.get(c.DATA_SRC)
+          node && (node.dataset.src = component.get(c.DATA_SRC))
         }
 
         // load promise return to image
         if (component.blueprint?.['path=func']) {
           // ;(node as HTMLImageElement).src = '../waiting.png'
-          component.get('data-src').then((path: any) => {
+          component.get(c.DATA_SRC).then((path: any) => {
             console.log('test path=func', path)
             if (path) {
               ;(node as HTMLImageElement).src = path
             } else {
-              ;(node as HTMLImageElement).src = component.get('data-src')
+              ;(node as HTMLImageElement).src = component.get(c.DATA_SRC)
             }
           })
         }
@@ -346,12 +339,12 @@ const domComponentsResolver: Resolve.Config = {
       // LABEL
       else if (Identify.component.label(component)) {
         if (node) {
-          if (component.get('data-value')) {
-            node.innerHTML = String(component.get('data-value'))
+          if (component.get(c.DATA_VALUE)) {
+            node.innerHTML = String(component.get(c.DATA_VALUE))
           } else if (text) {
             node.innerHTML = String(text)
-          } else if (component.get('data-placeholder')) {
-            node.innerHTML = String(component.get('data-placeholder'))
+          } else if (component.get(c.DATA_PLACEHOLDER)) {
+            node.innerHTML = String(component.get(c.DATA_PLACEHOLDER))
           }
           onClick && (node.style.cursor = 'pointer')
         }
@@ -362,20 +355,13 @@ const domComponentsResolver: Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(component)) {
-        const src = component.get('data-src') || ''
+        const src = component.get(c.DATA_SRC) || ''
         // TODO - Finish http implementation
         if (
           process.env.NODE_ENV !== 'test' &&
           ['.css', '.html', '.js'].some((ext) => src.endsWith(ext))
         ) {
-          let nuiPage = component.get('page')
-          let ndomPage = ndom.findPage(nuiPage) || ndom.createPage(nuiPage)
-
-          // ndomPage.rootNode?.parentNode?.removeChild?.(ndomPage.rootNode)
-          ndomPage.rootNode.parentElement?.replaceChild(node, ndomPage.rootNode)
-          // ndomPage.rootNode = node as HTMLIFrameElement
-          ndomPage.rootNode.src = src
-          ndomPage.rootNode.style.border = '1px solid cyan'
+          //
         } else {
           const getPageChildIds = (c: NUIComponent.Instance) =>
             c.children?.reduce(
@@ -434,7 +420,9 @@ const domComponentsResolver: Resolve.Config = {
                   ndomPage.rootNode = node as HTMLIFrameElement
                 } else {
                   component.set('ids', getPageChildIds(component))
+
                   const prevChildIds = component.get('ids')
+
                   if (!prevChildIds?.length) {
                     console.log(
                       `%cNo previous page children component ids to remove`,
@@ -452,31 +440,10 @@ const domComponentsResolver: Resolve.Config = {
                         `color:#95a5a6;`,
                       )
                     })
+
                     component.set('ids', [])
                   }
-
-                  if (ndomPage.rootNode.contentDocument) {
-                    // ndomPage.rootNode.contentDocument.body.innerHTML = ''
-                  } else {
-                    console.log(
-                      `%cA document body for a page component was not available after a page component update`,
-                      `color:#ec0000;`,
-                      { component, nuiPage: childrensNUIPage, ndomPage },
-                    )
-                  }
                 }
-
-                if (ndomPage.rootNode.contentDocument) {
-                  // ndomPage.rootNode.contentDocument.body.innerHTML = ''
-                } else {
-                  console.log(
-                    `%cA document body for a page component was not available`,
-                    `color:#ec0000;`,
-                    { component, nuiPage: childrensNUIPage, ndomPage },
-                  )
-                }
-
-                // component.clear('children')
 
                 const children = u.array(
                   nui.resolveComponents({
@@ -560,7 +527,7 @@ const domComponentsResolver: Resolve.Config = {
             optionNode.id = option.key
             optionNode.value = option.value
             optionNode.textContent = option.label
-            if (option?.value === component.props['data-value']) {
+            if (option?.value === component.props[c.DATA_VALUE]) {
               // Default to the selected index if the user already has a state set before
               _node.selectedIndex = index
               _node.dataset.value = option.value
@@ -643,8 +610,8 @@ const domComponentsResolver: Resolve.Config = {
         }
         node?.addEventListener('change', function (this: HTMLTextAreaElement) {
           this.dataset.value = this.value
-          component.edit('data-value', this.value)
-          component.emit('data-value', this.value)
+          component.edit(c.DATA_VALUE, this.value)
+          component.emit(c.DATA_VALUE, this.value)
         })
       }
       // textField
@@ -663,8 +630,8 @@ const domComponentsResolver: Resolve.Config = {
         }
         node?.addEventListener('change', function (this: HTMLInputElement) {
           this.dataset.value = this.value
-          component.edit('data-value', this.value)
-          component.emit('data-value', this.value)
+          component.edit(c.DATA_VALUE, this.value)
+          component.emit(c.DATA_VALUE, this.value)
         })
       }
       // VIDEO

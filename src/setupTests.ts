@@ -10,7 +10,6 @@ import chaiAsPromised from 'chai-as-promised'
 import noop from 'lodash/noop'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
-import { defaultResolvers } from 'noodl-ui-dom'
 import { getMostRecentApp, ndom } from './utils/test-utils'
 
 chai.use(sinonChai)
@@ -35,8 +34,6 @@ afterEach(() => {
   } else ndom.reset()
   document.head.textContent = ''
   document.body.textContent = ''
-  // TODO - Put this in noodl-ui-dom's reset func
-  Object.values(defaultResolvers).forEach((r) => ndom.register(r))
 })
 
 after(() => {

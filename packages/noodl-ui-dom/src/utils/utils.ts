@@ -1,5 +1,4 @@
 import { OrArray } from '@jsmanifest/typefest'
-import { ComponentType } from 'noodl-types'
 import {
   DataAttribute,
   findParent,
@@ -120,52 +119,6 @@ export function makeFindByAttr(attr: LiteralUnion<DataAttribute, string>) {
 
   return findByAttr
 }
-
-export function findBySelector<T extends 'button'>(
-  tag: LiteralUnion<T, string>,
-): HTMLButtonElement
-
-export function findBySelector<T extends 'canvas'>(
-  tag: LiteralUnion<T, string>,
-): HTMLCanvasElement
-
-export function findBySelector<T extends 'chart'>(
-  tag: LiteralUnion<T, string>,
-): HTMLDivElement
-
-export function findBySelector<T extends 'divider' | 'hr'>(
-  tag: LiteralUnion<T, string>,
-): HTMLHRElement
-
-export function findBySelector<T extends 'image' | 'img'>(
-  tag: LiteralUnion<T, string>,
-): HTMLImageElement
-
-export function findBySelector<T extends 'list' | 'chatList'>(
-  tag: LiteralUnion<T, string>,
-): HTMLUListElement
-
-export function findBySelector<T extends 'listItem'>(
-  tag: LiteralUnion<T, string>,
-): HTMLLIElement
-
-export function findBySelector<T extends 'ecosDoc' | 'iframe' | 'page'>(
-  tag: LiteralUnion<T, string>,
-): HTMLIFrameElement
-
-export function findBySelector<T extends 'input' | 'textField'>(
-  tag: LiteralUnion<T, string>,
-): HTMLInputElement
-
-export function findBySelector<T extends 'map'>(tag: T): OrArray<HTMLDivElement>
-
-export function findBySelector<T extends 'textarea' | 'textView'>(
-  tag: LiteralUnion<T, string>,
-): HTMLTextAreaElement
-
-export function findBySelector<T extends 'video'>(
-  tag: LiteralUnion<T, string>,
-): HTMLVideoElement
 
 export function findBySelector<T extends string>(
   selector: LiteralUnion<T, string>,

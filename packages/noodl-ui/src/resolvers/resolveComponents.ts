@@ -15,7 +15,6 @@ import {
   findListDataObject,
   isListConsumer,
   isListLike,
-  publish,
   resolveAssetUrl,
 } from '../utils/noodl'
 import type { ConsumerOptions, NUIComponent } from '../types'
@@ -121,29 +120,6 @@ componentResolver.setResolver((component, options, next) => {
       c.nuiEvent.component.list.ADD_DATA_OBJECT,
     )
 
-    // Removes list items when their data object is removed
-    // component.on(
-    //   c.nuiEvent.component.list.DELETE_DATA_OBJECT,
-    //   (args) => {
-    //     const listItem = component?.children?.find(
-    //       (child) => child.get(iteratorVar) === args.dataObject,
-    //     )
-    //     if (listItem) {
-    //       const liProps = listItem.props
-    //       liProps[iteratorVar] = ''
-    //       if (listItem) {
-    //         component.removeChild(listItem)
-    //         cache.component.remove(listItem)
-    //         publish(listItem, (c) => {
-    //           console.log(`%cRemoving from cache: ${c.id}`, `color:#00b406`)
-    //           cache.component.remove(c)
-    //         })
-    //       }
-    //     }
-    //   },
-    //   'DELETE_DATA_OBJECT',
-    // )
-
     // Removes the placeholder (first child)
     component.clear('children')
 
@@ -213,6 +189,7 @@ componentResolver.setResolver((component, options, next) => {
                   pageName = resolveAssetUrl(pageName, getAssetsUrl())
                 }
                 nuiPage.page = pageName
+                component.edit('page', nuiPage)
               } else {
                 // TODO
               }
