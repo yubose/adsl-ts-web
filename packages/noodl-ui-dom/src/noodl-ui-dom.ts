@@ -462,6 +462,11 @@ class NDOM extends NDOMInternal {
           }
         } else {
           this.#R.run({ node, component })
+
+          let container = Identify.component.list(component)
+            ? document.createDocumentFragment()
+            : node
+
           component.children?.forEach?.((child: NUIComponent.Instance) => {
             const childNode = this.draw(
               child,
@@ -469,8 +474,14 @@ class NDOM extends NDOMInternal {
               page,
               options,
             ) as HTMLElement
-            childNode && node?.appendChild(childNode)
+            childNode && container?.appendChild(childNode)
           })
+
+          if (container.nodeType === container.DOCUMENT_FRAGMENT_NODE) {
+            node.appendChild(container)
+          }
+
+          container = null as any
         }
       }
     }

@@ -303,13 +303,9 @@ const createExtendedDOMResolvers = function (app: App) {
                       element.timeLength = duration / 60
                       element.title = element.patientName
                       element.name = element.visitReason
-
-                      // element.name = element.patientName
                       delete element.stime
                       delete element.etime
                       delete element.visitReason
-                      // delete element.patientName
-                      // delete element.visitType
                     })
                   } else {
                     defaultData = {}
@@ -317,12 +313,13 @@ const createExtendedDOMResolvers = function (app: App) {
                   let calendar = new FullCalendar.Calendar(node, {
                     dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
-                    height: 'auto',
+                    height: '83vh',
                     allDaySlot: false, // 是否显示表头的全天事件栏
-                    initialView: 'timeGridWeek',
+                    initialView: 'timeGridDay',
                     //locale: 'zh-cn',             // 区域本地化
                     firstDay: 0, // 每周的第一天： 0:周日
                     nowIndicator: true, // 是否显示当前时间的指示条
+                    
                     slotLabelFormat: [
                       {
                         hour: 'numeric',
@@ -388,16 +385,13 @@ const createExtendedDOMResolvers = function (app: App) {
                         duration: [0, 0],
                       })
                     },
-
                     //eventColor: 'red',
-
                     eventClick: function (event: {
                       event: { _def: { publicId: any } }
                     }) {
                       if (event.event._def) {
                         dataValue.response = event.event._def.publicId
                       }
-                      console.log(event)
                     },
                   })
                   calendar.render()

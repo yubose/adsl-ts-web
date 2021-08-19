@@ -1,9 +1,8 @@
 import * as u from '@jsmanifest/utils'
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
-import { prettyDOM } from '@testing-library/dom'
 import { NUIComponent, createComponent, flatten } from 'noodl-ui'
-import { screen, waitFor } from '@testing-library/dom'
+import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta, white } from 'noodl-common'
 import { createRender, ndom, ui } from '../test-utils'
@@ -453,7 +452,7 @@ describe(italic(`styles`), () => {
       )
 
       it(`should set marginTop to "0px" if it is missing`, async () => {
-        const { render } = createRender(ui.list())
+        const { render } = createRender({ type: 'list', style: {} })
         const component = await render()
         expect(component.style).to.have.property('marginTop').to.eq('0px')
       })

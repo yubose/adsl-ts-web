@@ -6,7 +6,7 @@ import get from 'lodash/get'
 import { ComponentObject, EcosDocument, NameField } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
 import GlobalComponentRecord from '../global/GlobalComponentRecord'
-import { nui } from '../nui'
+import { cache, nui } from '../nui'
 import NDOM from '../noodl-ui-dom'
 import NDOMPage from '../Page'
 import * as c from '../constants'
@@ -135,7 +135,7 @@ export function handleDrawGlobalComponent(
       const onClick = () => {
         n.removeEventListener('click', onClick)
         _removeNode(n)
-        _removeGlobalComponent(this.global, globalId)
+        _removeGlobalComponent.call(this, this.global, globalId)
       }
       n.addEventListener('click', onClick)
     }
@@ -163,7 +163,8 @@ export function handleDrawGlobalComponent(
         `color:#CCCD17`,
         globalRecord,
       )
-      _removeComponent(
+      _removeComponent.call(
+        this,
         this.cache.component.get(globalRecord.componentId)?.component,
       )
       globalRecord.componentId = component.id
@@ -205,13 +206,14 @@ export function handleDrawGlobalComponent(
  * references
  */
 export function _removeComponent(
+  this: NDOM,
   component: NUIComponent.Instance | undefined | null,
 ) {
   if (!component) return
   const remove = (_c: NUIComponent.Instance) => {
-    this.cache.component.remove(_c)
+    cache.component.remove(_c)
     if (_c.has?.('global') || _c.blueprint?.global) {
-      _removeGlobalComponent(_c.get(c.DATA_GLOBALID))
+      _removeGlobalComponent.call(this, _c.get(c.DATA_GLOBALID))
     }
     _c?.setParent?.(null)
     _c?.parent?.removeChild(_c)
@@ -222,7 +224,11 @@ export function _removeComponent(
   remove(component)
 }
 
-export function _removeGlobalComponent(globalMap: t.GlobalMap, globalId = '') {
+export function _removeGlobalComponent(
+  this: NDOM,
+  globalMap: t.GlobalMap,
+  globalId = '',
+) {
   if (globalId) {
     if (globalMap.components.has(globalId)) {
       const globalComponentObj = globalMap.components.get(globalId)
@@ -230,9 +236,10 @@ export function _removeGlobalComponent(globalMap: t.GlobalMap, globalId = '') {
       if (obj) {
         const { componentId, nodeId } = obj
         if (componentId) {
-          if (this.cache.component.has(componentId)) {
-            this.removeComponent(
-              this.cache.component.get(componentId)?.component,
+          if (cache.component.has(componentId)) {
+            _removeComponent.call(
+              this,
+              cache.component.get(componentId)?.component,
             )
           }
         }
