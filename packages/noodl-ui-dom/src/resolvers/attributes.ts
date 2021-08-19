@@ -17,7 +17,7 @@ const resolveAttributes: Resolve.Config = {
       if (component) {
         node.id = component.id || ''
 
-        if (node instanceof HTMLScriptElement) {
+        if (node.tagName === 'SCRIPT') {
           if (component.has('global')) {
             component.on('image', (src) => {
               node && (node.style.backgroundImage = `url("${src}")`)
@@ -142,7 +142,7 @@ const resolveAttributes: Resolve.Config = {
         /* -------------------------------------------------------
           ---- STYLES
         -------------------------------------------------------- */
-        if (!(node instanceof HTMLScriptElement) && u.isObj(style)) {
+        if (!i._isScriptEl(node) && u.isObj(style)) {
           u.isObj(component.style.textAlign) && delete component.style.textAlign
 
           if (

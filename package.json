@@ -11,7 +11,6 @@
   },
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
-    "docs": "",
     "prebuild": "rm -rf dist build",
     "build": "npm run lib:build && webpack --mode=production",
     "build:stable": "cross-env ECOS_ENV=stable NODE_ENV=production DEPLOYING=true npm run build",
@@ -22,7 +21,7 @@
     "build:deploy:chinaServer": "npm run build:test && bash chinaServer.sh",
     "deploy:stable": "bash s3Deploy.sh build",
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
-    "deploy:cadltest": "bash s3Deploy.sh build cadltest.aitmed.com",
+    "deploy:noodltest": "bash s3Deploy.sh build cadltest.aitmed.com",
     "start": "webpack serve --port 3000 --mode=development",
     "start:stable": "cross-env NODE_ENV=production HMR=true ECOS_ENV=stable webpack serve --port 3000",
     "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start",
@@ -256,5 +255,6 @@
     "singleQuote": true,
     "tabWidth": 2,
     "trailingComma": "all"
-  }
+  },
+  "_id": "aitmed-noodl-web@1.0.1"
 }

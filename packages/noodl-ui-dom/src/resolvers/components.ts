@@ -26,14 +26,7 @@ const domComponentsResolver: Resolve.Config = {
   resolve(node, component, { ndom, nui, page }) {
     if (u.isFnc(node)) {
       // PLUGIN
-      if (
-        [
-          Identify.component.plugin,
-          Identify.component.pluginHead,
-          Identify.component.pluginBodyTop,
-          Identify.component.pluginBodyTail,
-        ].some((cond) => cond(component))
-      ) {
+      if (i._isPluginComponent(component)) {
         let path = (component.get('path') || component.blueprint.path) as string
         let plugin = component.get('plugin') as Plugin.Object
         let tagName = '' // 'div', etc
@@ -107,16 +100,16 @@ const domComponentsResolver: Resolve.Config = {
         >(component: NUIComponent.Instance, elem: N | null, data: any) {
           if (!elem) return elem
           elem.id = component.id
-          if (elem instanceof HTMLLinkElement) {
+          if (i._isLinkEl(elem)) {
             elem.innerHTML = String(data)
             elem.rel = 'stylesheet'
-          } else if (elem instanceof HTMLScriptElement) {
+          } else if (i._isScriptEl(elem)) {
             elem.innerHTML = String(data)
             elem.type = type
             // eval(data)
-          } else if (elem instanceof HTMLStyleElement) {
+          } else if (i._isStyleEl(elem)) {
             elem.innerHTML = String(data)
-          } else if (elem instanceof HTMLIFrameElement) {
+          } else if (i._isIframeEl(elem)) {
             const parentNode = elem.parentNode || page.rootNode || document.body
             elem.innerHTML += data
             if (parentNode.children.length) {
@@ -157,18 +150,15 @@ const domComponentsResolver: Resolve.Config = {
               }
 
               if (node) {
-                if (
-                  node instanceof HTMLIFrameElement ||
-                  node instanceof HTMLDivElement
-                ) {
+                if (i._isIframeEl(node) || i._isDivEl(node)) {
                   appendChild(page, node)
-                } else if (node instanceof HTMLLinkElement) {
-                  if (page.rootNode instanceof HTMLIFrameElement) {
+                } else if (i._isLinkEl(node)) {
+                  if (i._isIframeEl(page.rootNode)) {
                     page.rootNode.contentDocument?.head.appendChild(node)
                   } else {
                     document.head.appendChild(node)
                   }
-                } else if (node instanceof HTMLScriptElement) {
+                } else if (i._isScriptEl(node)) {
                   appendChild(page, node, location === 'body-bottom')
                 }
               }
@@ -301,6 +291,15 @@ const domComponentsResolver: Resolve.Config = {
         )
 
         iframe && (iframe.id = `${idLabel}-document-${component.id}`)
+
+        iframe.addEventListener(
+          'error',
+          function (err) {
+            console.error(`[ERROR]: In ecosDoc component: ${err.message}`, err)
+          },
+          { once: true },
+        )
+
         node?.appendChild(iframe)
       }
       // IMAGE
@@ -479,7 +478,7 @@ const domComponentsResolver: Resolve.Config = {
                       ndomPage,
                     )
 
-                    if (childNode instanceof HTMLElement) {
+                    if (childNode) {
                       if (ndomPage.rootNode?.contentDocument?.body) {
                         if (
                           !ndomPage.rootNode.contentDocument.body.contains(

@@ -346,14 +346,7 @@ class NDOM extends NDOMInternal {
     let page: NDOMPage = pageProp || this.page
 
     if (component) {
-      if (
-        [
-          Identify.component.plugin,
-          Identify.component.pluginHead,
-          Identify.component.pluginBodyTop,
-          Identify.component.pluginBodyTail,
-        ].some((cond) => cond(component))
-      ) {
+      if (i._isPluginComponent(component)) {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem || node)
         // @ts-expect-error
@@ -391,17 +384,21 @@ class NDOM extends NDOMInternal {
         // not be able to access their parent during the resolver calls
         !parent.contains(node) && parent.appendChild(node)
 
-        if (node instanceof HTMLIFrameElement) {
+        if (i._isIframeEl(node)) {
           if (Identify.component.page(component)) {
             if (options?.onPageComponentLoad) {
-              node.addEventListener('load', function (evt) {
-                options?.onPageComponentLoad?.({
-                  event: evt,
-                  node: node as HTMLIFrameElement,
-                  component,
-                  page,
-                })
-              })
+              node.addEventListener(
+                'load',
+                function (evt) {
+                  options?.onPageComponentLoad?.({
+                    event: evt,
+                    node: node as HTMLIFrameElement,
+                    component,
+                    page,
+                  })
+                },
+                { once: true },
+              )
             } else {
               if (
                 !['.html'].some((ext) => component.get('path')?.endsWith?.(ext))
@@ -409,7 +406,7 @@ class NDOM extends NDOMInternal {
                 this.#R.run({ node, component })
                 component.children?.forEach?.(
                   (child: NUIComponent.Instance) => {
-                    if (node instanceof HTMLIFrameElement) {
+                    if (i._isIframeEl(node)) {
                       node.contentDocument?.body.appendChild(
                         this.draw(child, node, page, options) as HTMLElement,
                       )
@@ -454,15 +451,18 @@ class NDOM extends NDOMInternal {
                   { once: true },
                 )
 
-                node?.addEventListener('error', function (err) {
-                  console.error(err)
-                })
+                node?.addEventListener('error', console.error, { once: true })
               }
             }
           }
         } else {
           this.#R.run({ node, component })
 
+          /**
+           * Creating a document fragment and appending children to them is a
+           * minor improvement in first contentful paint on initial loading
+           * https://web.dev/first-contentful-paint/
+           */
           let container = Identify.component.list(component)
             ? document.createDocumentFragment()
             : node
@@ -529,7 +529,7 @@ class NDOM extends NDOMInternal {
         parent.createChild(newComponent)
       }
 
-      i._removeComponent(component)
+      i._removeComponent.call(this, component)
 
       newComponent = nui.resolveComponents?.({
         callback: options?.callback,
@@ -645,31 +645,26 @@ class NDOM extends NDOMInternal {
       nui.cache.page.clear()
     }
     const resetRegisters = () => nui.cache.register.clear()
-    const resetResolvers = () => void (this.resolvers().length = 0)
     const resetGlobal = () => {
       resetPages()
-      u.keys(this.global).forEach((k) => {
-        if (k === 'components') {
-          const record = this.global.components.get(k)
-          if (record) {
-            if (record.nodeId) {
-              document.getElementById(record.nodeId)?.remove?.()
-            }
-            if (this.cache.component.has(record.componentId)) {
-              i._removeComponent(
-                this.cache.component.get(record.componentId)?.component,
-              )
-            }
-          }
-          this.global.components.delete(record?.globalId as string)
-        } else if (k === 'pages') {
-          //
-        } else if (k === 'timers') {
-          // TODO - check if there is a memory leak
-          u.eachEntries(this.global.timers, (k) => {
-            delete this.global.timers[k]
-          })
+      // Global components
+      for (const record of this.global.components.values()) {
+        if (record.nodeId) {
+          document.getElementById(record.nodeId)?.remove?.()
         }
+        if (this.cache.component.has(record.componentId)) {
+          i._removeComponent.call(
+            this,
+            this.cache.component.get(record.componentId)?.component,
+          )
+        }
+        i._removeGlobalComponent.call(this, this.global, record.globalId)
+      }
+
+      // Global timers
+      // TODO - check if there is a memory leak
+      u.eachEntries(this.global.timers, (k) => {
+        delete this.global.timers[k]
       })
     }
     const resetTransactions = () => {

@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import * as mock from 'noodl-ui-test-utils'
+import { prettyDOM } from '@testing-library/dom'
 import sinon from 'sinon'
 import { NUIComponent, createComponent, flatten } from 'noodl-ui'
 import { waitFor } from '@testing-library/dom'
@@ -12,6 +13,18 @@ import * as i from '../utils/internal'
 import * as n from '../utils'
 import * as c from '../constants'
 import Timer from '../global/Timer'
+
+after(() => {
+  console.info(ndom.cache.component.length)
+  console.info(ndom.cache.page.length)
+  console.info(u.keys(ndom.pages).length)
+  console.info(ndom.cache.plugin.length)
+  console.info(ndom.cache.actions.length)
+  console.info(ndom.cache.actions.builtIn.size)
+  console.info(ndom.cache.component.length)
+  console.info(ndom.cache.register.get().size)
+  console.info(ndom.cache.transactions.get().size)
+})
 
 describe(coolGold(`resolvers`), () => {
   it(`should attach the component id as the element id`, async () => {
@@ -138,8 +151,7 @@ describe(italic(`ecosDoc`), () => {
   describe(`pdf`, () => {
     it(`should render pdf documents`, async () => {
       const componentObject = ui.ecosDocComponent({
-        id: 'hello',
-        ecosObj: mock.getEcosDocObject('pdf'),
+        ecosObj: ui.ecosDoc('pdf'),
       })
       const { render } = createRender(componentObject)
       const component = await render()
@@ -497,7 +509,7 @@ describe(italic(`styles`), () => {
 describe(italic(`text=func`), () => {
   it(`[lists] should use the dataKey to get the value and pass as args to the text=func func`, async () => {
     const date = new Date().toISOString()
-    const spy = sinon.spy((v) => date)
+    const spy = sinon.spy(() => date)
     const ctime = 'abc'
     const { render } = createRender(
       ui.list({
@@ -509,7 +521,7 @@ describe(italic(`text=func`), () => {
               ui.label({
                 dataKey: 'itemObject.ctime',
                 'text=func': spy,
-              }),
+              } as any),
             ],
           }),
         ],
@@ -527,7 +539,9 @@ describe(italic(`text=func`), () => {
       currentPage: 'Hello',
       pageName: 'Hello',
       pageObject: {
-        components: [ui.label({ dataKey: 'formData.ctime', 'text=func': spy })],
+        components: [
+          ui.label({ dataKey: 'formData.ctime', 'text=func': spy } as any),
+        ],
         formData: { ctime: date },
       },
     })

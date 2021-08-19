@@ -3,7 +3,7 @@
  */
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
-import { ComponentObject, EcosDocument, NameField } from 'noodl-types'
+import { ComponentObject, EcosDocument, Identify, NameField } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
 import GlobalComponentRecord from '../global/GlobalComponentRecord'
 import { cache, nui } from '../nui'
@@ -81,6 +81,15 @@ function _createDocIdentifier(
   return identifyDoc
 }
 
+export function _isPluginComponent(component: NUIComponent.Instance) {
+  return [
+    Identify.component.plugin,
+    Identify.component.pluginHead,
+    Identify.component.pluginBodyTop,
+    Identify.component.pluginBodyTail,
+  ].some((fn) => fn(component))
+}
+
 export function isCssResourceLink(value = '') {
   return value.endsWith('.css')
 }
@@ -116,6 +125,25 @@ export const isWordDoc = _createDocIdentifier(
   '(office|wordprocessingml|vnl.)',
 )
 
+export function _isElemFactory<N extends HTMLElement>(
+  arg: string | ((node: HTMLElement) => node is N),
+) {
+  const pred = u.isStr(arg) ? (node: HTMLElement) => node.tagName === arg : arg
+  return (node: HTMLElement): node is N => {
+    return node !== null && typeof node === 'object' && pred(node)
+  }
+}
+
+export const _isButtonEl = _isElemFactory<HTMLButtonElement>('BUTTON')
+export const _isDivEl = _isElemFactory<HTMLDivElement>('DIV')
+export const _isImageEl = _isElemFactory<HTMLImageElement>('IMG')
+export const _isInputEl = _isElemFactory<HTMLInputElement>('INPUT')
+export const _isIframeEl = _isElemFactory<HTMLIFrameElement>('IFRAME')
+export const _isLinkEl = _isElemFactory<HTMLLinkElement>('LINK')
+export const _isListEl = _isElemFactory<HTMLUListElement>('UL')
+export const _isScriptEl = _isElemFactory<HTMLScriptElement>('SCRIPT')
+export const _isStyleEl = _isElemFactory<HTMLStyleElement>('STYLE')
+
 export const xKeys = ['width', 'left']
 export const yKeys = ['height', 'top']
 export const posKeys = [...xKeys, ...yKeys]
@@ -134,7 +162,7 @@ export function handleDrawGlobalComponent(
     if (n) {
       const onClick = () => {
         n.removeEventListener('click', onClick)
-        _removeNode(n)
+        _removeNode.call(this, n)
         _removeGlobalComponent.call(this, this.global, globalId)
       }
       n.addEventListener('click', onClick)
@@ -175,9 +203,7 @@ export function handleDrawGlobalComponent(
       if (globalRecord.nodeId) {
         if (globalRecord.nodeId !== node.id) {
           const _prevNode = document.getElementById(globalRecord.nodeId)
-          if (_prevNode) {
-            _removeNode(_prevNode)
-          }
+          if (_prevNode) _removeNode(_prevNode)
           globalRecord.nodeId = node.id
           node.dataset.globalid = globalId
         }
