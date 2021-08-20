@@ -24,6 +24,7 @@ import { findReferences } from 'noodl-utils'
 import { copyToClipboard, getVcodeElem, toast } from './utils/dom'
 import AppNotification from './app/Notifications'
 import App from './App'
+import './spinner/three-dots.css'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
 
@@ -130,6 +131,8 @@ async function initializeNoodlPluginRefresher() {
 }
 
 window.addEventListener('load', async (e) => {
+  // const rootEl = document.getElementById('root')
+  // document.body?.classList.add('dot-spin')
   try {
     log.func('onload')
     log.green('Hello', e)

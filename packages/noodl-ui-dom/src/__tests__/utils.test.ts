@@ -2,7 +2,7 @@ import * as mock from 'noodl-ui-test-utils'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { createRender } from '../test-utils'
+import { createRender, ui } from '../test-utils'
 import { dataAttributes } from '../constants'
 import NDOM from '../noodl-ui-dom'
 import findElement from '../utils/findElement'
@@ -14,8 +14,8 @@ describe(coolGold(`utils`), () => {
     xit(``, async () => {
       const { request } = createRender({
         components: [
-          mock.getListItemComponent({
-            children: [mock.getLabelComponent({ dataKey: 'abc.fruit' as any })],
+          ui.listItem({
+            children: [ui.label({ dataKey: 'abc.fruit' as any })],
           }),
         ],
       })
@@ -31,8 +31,8 @@ describe(coolGold(`utils`), () => {
     it(`should return an array of nodes if there are multiple nodes matched`, async () => {
       const { request } = createRender({
         components: [
-          mock.getButtonComponent({ viewTag: 'helloTag' }),
-          mock.getTextFieldComponent({ viewTag: 'helloTag' }),
+          ui.button({ viewTag: 'helloTag' }),
+          ui.textField({ viewTag: 'helloTag' }),
         ],
       })
       const req = await request('Hello')
@@ -40,7 +40,7 @@ describe(coolGold(`utils`), () => {
       const result = findElement((doc) =>
         doc?.querySelectorAll(`[data-viewtag]`),
       ) as HTMLElement[]
-      expect(result).to.be.an('array').with.lengthOf(2)
+      await waitFor(() => expect(result).to.be.an('array').with.lengthOf(2))
     })
   })
 })
@@ -51,10 +51,7 @@ describe(italic(`findByDataAttrib`), () => {
       key,
     )}"`, async () => {
       const { request } = createRender({
-        components: [
-          mock.getButtonComponent({ [key]: key }),
-          mock.getTextFieldComponent({ [key]: key }),
-        ],
+        components: [ui.button({ [key]: key }), ui.textField({ [key]: key })],
       })
       const req = await request('Hello')
       req?.render()
@@ -68,40 +65,40 @@ describe(italic(`findByDataAttrib`), () => {
 
   describe(`isImageDoc`, () => {
     it(`should return true`, () => {
-      const ecosObj = mock.getEcosDocObject('image')
+      const ecosObj = ui.ecosDoc('image')
       expect(u.isImageDoc(ecosObj)).to.be.true
     })
 
     it(`should return false`, () => {
-      expect(u.isImageDoc(mock.getEcosDocObject('pdf'))).to.be.false
-      expect(u.isImageDoc(mock.getEcosDocObject('text'))).to.be.false
-      expect(u.isImageDoc(mock.getEcosDocObject('video'))).to.be.false
+      expect(u.isImageDoc(ui.ecosDoc('pdf'))).to.be.false
+      expect(u.isImageDoc(ui.ecosDoc('text'))).to.be.false
+      expect(u.isImageDoc(ui.ecosDoc('video'))).to.be.false
     })
   })
 
   describe(`isPdfDoc`, () => {
     it(`should return true`, () => {
-      const ecosObj = mock.getEcosDocObject('pdf')
+      const ecosObj = ui.ecosDoc('pdf')
       expect(u.isPdfDoc(ecosObj)).to.be.true
     })
 
     it(`should return false`, () => {
-      expect(u.isPdfDoc(mock.getEcosDocObject('image'))).to.be.false
-      expect(u.isPdfDoc(mock.getEcosDocObject('text'))).to.be.false
-      expect(u.isPdfDoc(mock.getEcosDocObject('video'))).to.be.false
+      expect(u.isPdfDoc(ui.ecosDoc('image'))).to.be.false
+      expect(u.isPdfDoc(ui.ecosDoc('text'))).to.be.false
+      expect(u.isPdfDoc(ui.ecosDoc('video'))).to.be.false
     })
   })
 
   describe(`isTextDoc`, () => {
     it(`should return true`, () => {
-      const ecosObj = mock.getEcosDocObject('text')
+      const ecosObj = ui.ecosDoc('text')
       expect(u.isTextDoc(ecosObj)).to.be.true
     })
 
     xit(`should return false`, () => {
-      expect(u.isTextDoc(mock.getEcosDocObject('image'))).to.be.false
-      expect(u.isTextDoc(mock.getEcosDocObject('pdf'))).to.be.false
-      expect(u.isTextDoc(mock.getEcosDocObject('video'))).to.be.false
+      expect(u.isTextDoc(ui.ecosDoc('image'))).to.be.false
+      expect(u.isTextDoc(ui.ecosDoc('pdf'))).to.be.false
+      expect(u.isTextDoc(ui.ecosDoc('video'))).to.be.false
     })
   })
 

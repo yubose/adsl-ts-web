@@ -16,7 +16,7 @@ import {
   findByDataKey,
   getFirstByElementId,
   isTextFieldLike,
-  NOODLDOMDataValueElement,
+  NDOMElement,
   Resolve,
 } from 'noodl-ui-dom'
 import { excludeIteratorVar } from 'noodl-utils'
@@ -28,7 +28,8 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
-import { ToolbarInput } from '@fullcalendar/core'
+
+type ToolbarInput = any
 // import { isArray } from 'lodash'
 
 const log = Logger.create('dom.ts')
@@ -37,7 +38,7 @@ const createExtendedDOMResolvers = function (app: App) {
   const getOnChange = function _getOnChangeFn(args: {
     component: NUIComponent.Instance
     dataKey: string
-    node: NOODLDOMDataValueElement
+    node: NDOMElement
     evtName: string
     iteratorVar: string
   }) {
@@ -130,7 +131,7 @@ const createExtendedDOMResolvers = function (app: App) {
     return onChange
   }
 
-  const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
+  const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
       cond: 'chart',
       // resource: [
@@ -151,7 +152,7 @@ const createExtendedDOMResolvers = function (app: App) {
       //     lazyLoad: true,
       //   },
       // ],
-      resolve(node, component) {
+      resolve({ node, component }) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           node.style.width = component.style.width as string
@@ -319,7 +320,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     //locale: 'zh-cn',             // 区域本地化
                     firstDay: 0, // 每周的第一天： 0:周日
                     nowIndicator: true, // 是否显示当前时间的指示条
-                    
+
                     slotLabelFormat: [
                       {
                         hour: 'numeric',
@@ -422,8 +423,8 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] data-value': {
-      cond: (node) => isTextFieldLike(node),
-      before(node, component) {
+      cond: ({ node }) => isTextFieldLike(node),
+      before({ node, component }) {
         ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
@@ -433,7 +434,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
       },
-      resolve(node, component) {
+      resolve({ node, component }) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
@@ -444,7 +445,7 @@ const createExtendedDOMResolvers = function (app: App) {
               component,
               dataKey,
               evtName: 'onChange',
-              node: node as NOODLDOMDataValueElement,
+              node: node as NDOMElement,
               iteratorVar,
             }),
           )
@@ -456,7 +457,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 component,
                 dataKey,
                 evtName: 'onInput',
-                node: node as NOODLDOMDataValueElement,
+                node: node as NDOMElement,
                 iteratorVar,
               }),
             )
@@ -467,7 +468,7 @@ const createExtendedDOMResolvers = function (app: App) {
           node.addEventListener(
             'blur',
             getOnChange({
-              node: node as NOODLDOMDataValueElement,
+              node: node as NDOMElement,
               component,
               dataKey,
               evtName: 'onBlur',
@@ -479,7 +480,7 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] image': {
       cond: 'image',
-      async resolve(node, component) {
+      async resolve({ node, component }) {
         const img = node as HTMLImageElement
         const parent = component.parent
         const pageObject = app.root[app.currentPage || ''] || {}
@@ -497,8 +498,8 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] Hover': {
-      cond: (n, c) => c.has('hover'),
-      resolve(node, component) {
+      cond: ({ component }) => component.has('hover'),
+      resolve({ node, component }) {
         if (component?.blueprint?.hover) {
           node?.addEventListener('mouseover', function (e) {
             u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
@@ -523,7 +524,7 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] dropDown': {
       cond: 'textField',
-      resolve(node, component) {
+      resolve({ node, component }) {
         if (component.contentType === 'dropDown') {
           const iteratorVar = findIteratorVar(component)
           const dataKey =
@@ -694,7 +695,7 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] Map': {
       cond: 'map',
-      resolve(node, component) {
+      resolve({ node, component }) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           const parent = component.parent
@@ -958,8 +959,8 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] Meeting': {
-      cond: (node, component) => !!(node && component),
-      resolve: function onMeetingComponent(node, component) {
+      cond: ({ node, component }) => !!(node && component),
+      resolve: function onMeetingComponent({ node, component }) {
         const viewTag = component.blueprint?.viewTag || ''
         const setImportantStream = (label: 'mainStream' | 'selfStream') => {
           if (!app[label].isSameElement(node)) {
@@ -1019,7 +1020,7 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] Password textField': {
       cond: 'textField',
-      resolve(node, component) {
+      resolve({ node, component }) {
         // Password inputs
         if (component.contentType === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
@@ -1105,8 +1106,9 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] VideoChat Timer': {
-      cond: (n, c) => c.has('text=func') && c.contentType === 'timer',
-      resolve: (node, component) => {
+      cond: ({ component: c }) =>
+        c.has('text=func') && c.contentType === 'timer',
+      resolve: ({ node, component }) => {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         const textFunc = component.get('text=func') || ((x: any) => x)

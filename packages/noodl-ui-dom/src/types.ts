@@ -4,7 +4,7 @@ import { ComponentObject, ComponentType } from 'noodl-types'
 import { Component, NUIComponent, UseArg as NUIUseObject } from 'noodl-ui'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
-import createResolver from './createResolver'
+import NDOMResolver from './Resolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import GlobalTimers from './global/Timers'
 import { eventId } from './constants'
@@ -95,43 +95,38 @@ export type ElementBinding = Map<
 >
 
 export namespace Resolve {
-  export type BaseArgs = [node: HTMLElement, component: Component]
-  export interface Args<T extends string, N extends NDOMElement<T>> {
+  export interface BaseOptions<
+    T extends string = string,
+    N extends NDOMElement<T> = NDOMElement<T>,
+  > {
     node: N
     component: NUIComponent.Instance
-    resolvers?: OrArray<Resolve.Config>
+    page?: NDOMPage
   }
 
-  export interface Config {
+  export interface Config<
+    T extends string = string,
+    N extends NDOMElement<T> = NDOMElement<T>,
+  > {
     name?: string
-    cond?: LiteralUnion<ComponentType, string> | Resolve.Func
-    init?: Resolve.Func
-    before?: Resolve.Func
-    resolve?: Resolve.Func | Resolve.Hooks
-    after?: Resolve.Func
+    cond?: LiteralUnion<ComponentType, string> | Resolve.Func<T, N>
+    init?: Resolve.Func<T, N>
+    before?: Resolve.Func<T, N>
+    resolve?: Resolve.Func<T, N>
+    after?: Resolve.Func<T, N>
   }
 
-  export interface Func<RT = any> {
-    (
-      node: HTMLElement | null,
-      component: NUIComponent.Instance,
-      options: Resolve.Options,
-    ): RT | void | Promise<RT | void>
+  export interface Func {
+    (options: ReturnType<NDOMResolver['getOptions']>): void
   }
-
-  export interface Hooks {}
 
   export interface LifeCycle {
-    before: Resolve.Func[]
-    resolve: (Resolve.Func | Resolve.Hooks)[]
-    after: Resolve.Func[]
+    before: Resolve.Config[]
+    resolve: Resolve.Config[]
+    after: Resolve.Config[]
   }
 
   export type LifeCycleEvent = 'before' | 'resolve' | 'after'
-
-  export type Options = ReturnType<
-    ReturnType<typeof createResolver>['utils']['options']
-  >
 }
 
 export namespace Render {

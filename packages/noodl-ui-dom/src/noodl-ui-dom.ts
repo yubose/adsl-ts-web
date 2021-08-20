@@ -16,7 +16,6 @@ import {
 import { getElementTag, openOutboundURL } from './utils'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import createAsyncImageElement from './utils/createAsyncImageElement'
-import createResolver from './createResolver'
 import globalFactory from './factory/globalFactory'
 import isNDOMPage from './utils/isPage'
 import NDOMInternal from './Internal'
@@ -25,27 +24,28 @@ import NDOMPage from './Page'
 import { cache as nuiCache, nui } from './nui'
 import attributeResolvers from './resolvers/attributes'
 import componentResolvers from './resolvers/components'
+import Resolver from './Resolver'
 import * as i from './utils/internal'
 import * as c from './constants'
 import * as t from './types'
 
 const pageEvt = c.eventId.page
+const defaultResolvers = [attributeResolvers, componentResolvers]
 
 class NDOM extends NDOMInternal {
-  #R: ReturnType<typeof createResolver>
+  #R: Resolver
   #createElementBinding = undefined as t.UseObject['createElementBinding']
   #hooks = { onRedrawStart: [] } as Record<
     keyof t.Hooks,
     t.Hooks[keyof t.Hooks][]
   >
+  consumerResolvers = [] as t.Resolve.Config[]
   global = new NDOMGlobal()
   page: NDOMPage // This is the main (root) page. All other pages are stored in this.global.pages
 
   constructor() {
     super()
-    this.#R = createResolver(this)
-    this.#R.use(this)
-    ;[attributeResolvers, componentResolvers].forEach((r) => this.#R.use(r))
+    this.#R = new Resolver()
   }
 
   get actions() {
@@ -66,6 +66,10 @@ class NDOM extends NDOMInternal {
 
   get pages() {
     return this.global.pages
+  }
+
+  get resolvers() {
+    return defaultResolvers.concat(this.consumerResolvers)
   }
 
   get transactions() {
@@ -349,8 +353,13 @@ class NDOM extends NDOMInternal {
       if (i._isPluginComponent(component)) {
         // We will delegate the role of the node creation to the consumer
         const getNode = (elem: HTMLElement) => (node = elem || node)
-        // @ts-expect-error
-        this.#R.run({ node: getNode, component })
+        this.#R.run({
+          ndom: this,
+          node: getNode,
+          component,
+          page,
+          resolvers: this.resolvers,
+        })
         return node
       } else if (Identify.component.image(component)) {
         if (this.#createElementBinding) {
@@ -403,7 +412,13 @@ class NDOM extends NDOMInternal {
               if (
                 !['.html'].some((ext) => component.get('path')?.endsWith?.(ext))
               ) {
-                this.#R.run({ node, component })
+                this.#R.run({
+                  ndom: this,
+                  node,
+                  component,
+                  page,
+                  resolvers: this.resolvers,
+                })
                 component.children?.forEach?.(
                   (child: NUIComponent.Instance) => {
                     if (i._isIframeEl(node)) {
@@ -448,7 +463,13 @@ class NDOM extends NDOMInternal {
                         console.error(error)
                       }
                     }
-                    this.#R.run({ node: ndomPage.rootNode, component })
+                    this.#R.run({
+                      ndom: this,
+                      node: ndomPage.rootNode,
+                      component,
+                      page,
+                      resolvers: this.resolvers,
+                    })
                     if (!src) {
                       // TODO
                       if (ndomPage.page.startsWith('http')) src = ndomPage.page
@@ -468,7 +489,13 @@ class NDOM extends NDOMInternal {
             }
           }
         } else {
-          this.#R.run({ node, component })
+          this.#R.run({
+            ndom: this,
+            node,
+            component,
+            page,
+            resolvers: this.resolvers,
+          })
 
           /**
            * Creating a document fragment and appending children to them is a
@@ -630,20 +657,11 @@ class NDOM extends NDOMInternal {
 
   register(obj: Store.ActionObject): this
   register(obj: Store.BuiltInObject): this
-  register(obj: t.Resolve.Config): this
-  register(
-    obj: t.Resolve.Config | Store.ActionObject | Store.BuiltInObject,
-  ): this {
-    if ('resolve' in obj) {
-      this.#R.use(obj)
-    } else if ('actionType' in obj || 'funcName' in obj) {
+  register(obj: Store.ActionObject | Store.BuiltInObject): this {
+    if ('actionType' in obj || 'funcName' in obj) {
       nui.use({ [obj.actionType]: obj })
     }
     return this
-  }
-
-  resolvers() {
-    return this.#R.get()
   }
 
   reset(key: 'componentCache', page: NDOMPage): this
@@ -751,11 +769,11 @@ class NDOM extends NDOMInternal {
     if (!obj) return
     if (isNUIPage(obj)) return this.createPage(obj)
 
-    const { createElementBinding, register, transaction, resolver, ...rest } =
+    const { createElementBinding, register, resolver, transaction, ...rest } =
       obj
 
     createElementBinding && (this.#createElementBinding = createElementBinding)
-    resolver && this.register(resolver)
+    resolver && this.consumerResolvers.push(resolver)
 
     if (transaction) {
       u.eachEntries(transaction, (id, val) => {

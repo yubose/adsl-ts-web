@@ -6,6 +6,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
+const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
 const pkgJson = {
@@ -109,7 +110,7 @@ const devServerOptions = {
   //     setHeadersOnResp(resp)
   //   },
   // },
-  https: true,
+  // https: true,
   stats: { chunks: true },
   historyApiFallback: true,
 }
@@ -221,6 +222,10 @@ module.exports = {
     new HtmlWebpackHarddiskPlugin(),
     new InjectScriptsPlugin({
       path: 'public/libs.html',
+    }),
+    new InjectBodyPlugin({
+      content: `<div id="root"></div>`,
+      position: 'start',
     }),
     new CopyPlugin({
       patterns: [
