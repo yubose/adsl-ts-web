@@ -3,8 +3,10 @@ import has from 'lodash/has'
 import { Identify } from 'noodl-types'
 import {
   createComponent,
+  evalIf,
   formatColor,
   NUIComponent,
+  Page as NUIPage,
   SelectOption,
 } from 'noodl-ui'
 import { Resolve } from '../types'
@@ -290,6 +292,7 @@ const domComponentsResolver: Resolve.Config = {
       // PAGE
       else if (Identify.component.page(component)) {
         const src = component.get('data-src') || ''
+        // TODO - Finish http implementation
         if (src.startsWith('http')) {
           let nuiPage = component.get('page')
           let ndomPage = ndom.findPage(nuiPage) as NDOMPage
@@ -306,42 +309,62 @@ const domComponentsResolver: Resolve.Config = {
           ndomPage.rootNode = node as HTMLIFrameElement
           ndomPage.rootNode.src = src
         } else {
-          component.on('page-components', () => {
-            let nuiPage = component.get('page')
-            let ndomPage = ndom.findPage(nuiPage) as NDOMPage
+          const listen = (nuiPage?: NUIPage) => {
+            component.on('page-components', () => {
+              !nuiPage && (nuiPage = component.get('page') as NUIPage)
+              let ndomPage = [
+                ndom.findPage(nuiPage),
+                ndom.findPage(component.id),
+              ].find(Boolean) as NDOMPage
 
-            if (!ndomPage) {
-              try {
-                ndomPage = ndom.createPage(nuiPage)
-              } catch (error) {
-                console.error(error)
+              if (!ndomPage) {
+                const currentPage = component.get('path')
+                if (currentPage && u.isStr(currentPage)) {
+                  ndomPage = ndom.findPage(currentPage)
+                }
+                try {
+                  !ndomPage && (ndomPage = ndom.createPage(nuiPage))
+                } catch (error) {
+                  console.error(error)
+                }
               }
-            }
 
-            ndomPage.rootNode?.parentElement?.removeChild?.(ndomPage.rootNode)
-            ndomPage.rootNode = node as HTMLIFrameElement
-
-            const pageComponents = nui.resolveComponents.call(nui, {
-              components: ndomPage.components,
-              page: nuiPage,
-            }) as NUIComponent.Instance[]
-
-            for (const pageComponent of pageComponents) {
-              const pageComponentNode = ndom.draw(
-                pageComponent,
-                ndomPage.rootNode,
-                ndomPage,
-                { node: ndomPage.rootNode },
-              )
-              if (pageComponentNode) {
-                ;(
-                  ndomPage.rootNode as HTMLIFrameElement
-                )?.contentDocument?.body?.appendChild(
-                  pageComponentNode as HTMLElement,
+              if (ndomPage.rootNode !== node) {
+                ndomPage.rootNode?.parentElement?.removeChild?.(
+                  ndomPage.rootNode,
                 )
+                ndomPage.rootNode = node as HTMLIFrameElement
               }
-            }
-          })
+
+              const pageComponents = nui.resolveComponents.call(nui, {
+                components: ndomPage.components,
+                page: nuiPage,
+              }) as NUIComponent.Instance[]
+
+              for (const pageComponent of pageComponents) {
+                const pageComponentNode = ndom.draw(
+                  pageComponent,
+                  ndomPage.rootNode,
+                  ndomPage,
+                  { node: ndomPage.rootNode },
+                )
+                if (pageComponentNode) {
+                  ;(
+                    ndomPage.rootNode as HTMLIFrameElement
+                  )?.contentDocument?.body?.appendChild(
+                    pageComponentNode as HTMLElement,
+                  )
+                }
+              }
+            })
+          }
+          if (!component.get('page')) {
+            component.on('page-created', (nuiPage: NUIPage) => {
+              listen(nuiPage)
+            })
+          } else {
+            listen()
+          }
         }
       }
       // SELECT

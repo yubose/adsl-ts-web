@@ -210,47 +210,44 @@ window.addEventListener('load', async (e) => {
   app.ndom.on(
     'onRedrawStart',
     function onRedrawStart({ context, component, node, page, parent }) {
-      console.table({
-        page: page?.page || '',
-        [`component [redrawing]`]: component?.type
-          ? `[${component.type}] ${component.id}`
-          : '<No component>',
-        parentComponent: parent?.type
-          ? `[${parent.type}] ${parent.id}`
-          : '<No parent>',
-        [`node [redrawing]`]: node?.tagName
-          ? `[${node.tagName?.toLowerCase?.()}] ${node.id}`
-          : '<No node>',
-        parentNode: node?.parentElement
-          ? `[${node.parentElement.tagName.toLowerCase?.()}] ${
-              node.parentElement.id
-            }`
-          : '<No parent node>',
-      })
-
-      const activePages = [] as string[]
-
-      for (const obj of app.cache.component) {
-        if (obj) {
-          if (obj.page && !activePages.includes(obj.page)) {
-            activePages.push(obj.page)
-          }
-        }
-      }
-
-      for (const obj of app.cache.page) {
-        if (obj) {
-          const [id, { page }] = obj
-          if (!page.page || !activePages.includes(page.page)) {
-            console.log(
-              `%cRemoving ${!page.page ? 'empty' : 'inactive'} page from NUI`,
-              `color:#00b406;`,
-              page.toJSON(),
-            )
-            app.cache.page.remove(page)
-          }
-        }
-      }
+      // console.table({
+      //   page: page?.page || '',
+      //   [`component [redrawing]`]: component?.type
+      //     ? `[${component.type}] ${component.id}`
+      //     : '<No component>',
+      //   parentComponent: parent?.type
+      //     ? `[${parent.type}] ${parent.id}`
+      //     : '<No parent>',
+      //   [`node [redrawing]`]: node?.tagName
+      //     ? `[${node.tagName?.toLowerCase?.()}] ${node.id}`
+      //     : '<No node>',
+      //   parentNode: node?.parentElement
+      //     ? `[${node.parentElement.tagName.toLowerCase?.()}] ${
+      //         node.parentElement.id
+      //       }`
+      //     : '<No parent node>',
+      // })
+      // const activePages = [] as string[]
+      // for (const obj of app.cache.component) {
+      //   if (obj) {
+      //     if (obj.page && !activePages.includes(obj.page)) {
+      //       activePages.push(obj.page)
+      //     }
+      //   }
+      // }
+      // for (const obj of app.cache.page) {
+      //   if (obj) {
+      //     const [id, { page }] = obj
+      //     if (!page.page || !activePages.includes(page.page)) {
+      //       console.log(
+      //         `%cRemoving ${!page.page ? 'empty' : 'inactive'} page from NUI`,
+      //         `color:#00b406;`,
+      //         page.toJSON(),
+      //       )
+      //       app.cache.page.remove(page)
+      //     }
+      //   }
+      // }
     },
   )
 })

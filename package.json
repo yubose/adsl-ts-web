@@ -34,7 +34,7 @@
     "test:ndom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
     "test:ntil": "lerna exec --scope noodl-utils \"npm run test\"",
     "lib:build": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --parallel build",
-    "lib:start": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start",
+    "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-utils --parallel start",
     "updatesdk": "node scripts/update.js -u sdk -d",
     "updatenoodl": "node scripts/update.js -u noodl -d"
   },
@@ -57,7 +57,7 @@
     "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.350",
+    "@aitmed/cadl": "^1.0.353",
     "@aitmed/ecos-lvl2-sdk": "^1.4.154",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",

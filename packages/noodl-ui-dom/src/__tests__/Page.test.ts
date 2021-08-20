@@ -35,4 +35,8 @@ describe(coolGold(`Page`), () => {
     expect(page.pageUrl).to.eq(`${BASE_PAGE_URL}Abc`)
     expect(page.getPreviousPage('SignIn')).to.eq('Abc')
   })
+
+  xit(`should return the same id as its nuiPage id`, () => {
+    //
+  })
 })

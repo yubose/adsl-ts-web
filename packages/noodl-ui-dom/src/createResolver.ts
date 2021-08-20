@@ -51,7 +51,7 @@ const createResolver = function _createResolver(ndom: NOODLDOM) {
         const options = {
           ...util.actionsContext(...args),
           editStyle: createStyleEditor(args[1]),
-          original: args[1].original,
+          original: args[1].blueprint,
           global: ndom.global,
           ndom: ndom,
           nui: NUIDOMInternal._nui,

@@ -99,7 +99,6 @@ const createActions = function createActions(app: App) {
             const emitResult = u.array(
               await app.noodl.emitCall(emitParams as any),
             )
-
             log.grey(`Emitted`, {
               action: action?.snapshot?.(),
               emitParams,

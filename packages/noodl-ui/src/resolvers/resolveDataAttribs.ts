@@ -4,7 +4,7 @@
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
-import { excludeIteratorVar, findDataValue } from 'noodl-utils'
+import { excludeIteratorVar, findDataValue, trimReference } from 'noodl-utils'
 import {
   addDate,
   createGlobalComponentId,

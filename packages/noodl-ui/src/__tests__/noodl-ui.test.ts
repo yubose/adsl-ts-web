@@ -3,9 +3,9 @@ import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import sample from 'lodash/sample'
 import { waitFor } from '@testing-library/dom'
-import { ActionChain, isActionChain } from 'noodl-action-chain'
+import { isActionChain } from 'noodl-action-chain'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { ComponentObject, EmitObject, userEvent } from 'noodl-types'
+import { userEvent } from 'noodl-types'
 import { expect } from 'chai'
 import { createDataKeyReference, nui } from '../utils/test-utils'
 import {
@@ -66,7 +66,7 @@ describe(italic(`createActionChain`), () => {
         mock.getPageJumpAction(),
         mock.getFoldedEmitObject(),
         mock.getGotoObject(),
-        mock.getBuiltInAction({ funcName: 'too' }),
+        mock.getBuiltInAction({ funcName: 'too' } as any),
         mock.getRefreshAction(),
         mock.getSaveObjectAction(),
         mock.getUpdateObjectAction(),
@@ -92,10 +92,7 @@ describe(italic(`createActionChain`), () => {
     const page = nui.createPage()
     const ac = nui.createActionChain(
       'onHover',
-      [
-        mock.getBuiltInAction({ funcName: 'kitty' }),
-        mock.getBuiltInAction({ funcName: 'cereal' }),
-      ],
+      [mock.getBuiltInAction('kitty'), mock.getBuiltInAction('cereal')],
       {
         component: nui.resolveComponents({
           components: mock.getLabelComponent(),
@@ -140,7 +137,7 @@ describe(italic(`createActionChain`), () => {
           mock.getPageJumpAction(),
           mock.getFoldedEmitObject(),
           mock.getGotoObject(),
-          mock.getBuiltInAction({ funcName: 'too' }),
+          mock.getBuiltInAction('too'),
           mock.getRefreshAction(),
           mock.getSaveObjectAction(),
           mock.getUpdateObjectAction(),
@@ -159,13 +156,11 @@ describe(italic(`createActionChain`), () => {
       spies.forEach((s, i) => {
         expect(s).to.be.calledOnce
       })
-      // await ac.execute()
-      // spies.forEach((s) => expect(s).to.be.calledTwice)
     },
   )
 })
 
-describe.only(italic(`createComponent`), () => {
+describe(italic(`createComponent`), () => {
   it(`should add the component to the component cache`, () => {
     const component = nui.createComponent(mock.getButtonComponent())
     expect(nui.cache.component.has(component)).to.be.true
@@ -179,8 +174,8 @@ describe(italic(`createPage`), () => {
       viewport: { width: 375, height: 667 },
     })
     expect(page).to.be.instanceOf(Page)
-    expect(nui.cache.page.has(page.id)).to.be.true
-    expect(nui.cache.page.get(page.id).page).to.eq(page)
+    expect(nui.cache.page.has(page?.id || '')).to.be.true
+    expect(nui.cache.page.get(page?.id || '').page).to.eq(page)
   })
 })
 
@@ -248,7 +243,7 @@ describe(italic(`createSrc`), () => {
           children: [
             mock.getListItemComponent({
               cereal: '',
-              children: [mock.getImageComponent({ path })],
+              children: [mock.getImageComponent(path)],
             }),
           ],
         }),
@@ -273,7 +268,7 @@ describe(italic(`createSrc`), () => {
           children: [
             mock.getListItemComponent({
               cereal: '',
-              children: [mock.getImageComponent({ path })],
+              children: [mock.getImageComponent(path)],
             }),
           ],
         }),
@@ -366,16 +361,10 @@ describe(italic(`getBuiltIns`), () => {
     const builtIns = NUI.getBuiltIns()
     u.eachEntries(builtIn, (funcName, fn) => {
       expect(builtIns.has(funcName)).to.be.true
-      expect(builtIns.get(funcName)).to.satisfy((arr) =>
-        arr.some((obj) => obj.fn === fn),
+      expect(builtIns.get(funcName)).to.satisfy((arr: any) =>
+        arr.some((obj: any) => obj.fn === fn),
       )
     })
-  })
-})
-
-describe(italic(`getTransactions`), () => {
-  it(`should return the transactions`, () => {
-    expect(NUI.getTransactions()).to.eq(NUI.cache.transactions)
   })
 })
 
@@ -386,7 +375,7 @@ describe(italic(`getConsumerOptions`), () => {
       components: mock.getDividerComponent(),
       page,
     })
-    const consumerOptions = nui.getConsumerOptions({ component, page })
+    const consumerOptions = nui.getConsumerOptions({ component, page } as any)
     expect(consumerOptions).to.have.property('cache', nui.cache)
     expect(consumerOptions).to.have.property('component', component)
     expect(consumerOptions).to.have.property('context')
@@ -405,7 +394,7 @@ describe(italic(`getConsumerOptions`), () => {
     expect(consumerOptions).to.have.property('getRootPage')
     expect(consumerOptions).to.have.property('page', page)
     expect(consumerOptions).to.have.property('resolveComponents')
-    expect(consumerOptions).to.have.property('viewport', page.viewport)
+    expect(consumerOptions).to.have.property('viewport', page?.viewport)
   })
 })
 
@@ -418,7 +407,7 @@ describe(`when handling register objects`, () => {
         emit: mock.getEmitObject().emit as any,
       })
       nui.use({ register: component })
-      const obj = nui.cache.register.get(component.onEvent)
+      const obj = nui.cache.register.get(component.onEvent as string)
       obj.callbacks = Array(4).fill(undefined).map(spy) as any
       const results = await nui.emit({ type: 'register', event: 'helloEvent' })
       expect(spy).to.have.callCount(4)
@@ -468,8 +457,8 @@ describe(italic(`use`), () => {
         it(`should take { [${funcName}]: <function>[] }`, () => {
           NUI.use({ builtIn: builtIns })
           expect(NUI.cache.actions.builtIn.has(funcName)).to.be.true
-          expect(NUI.cache.actions.builtIn.get(funcName)).to.satisfy((arr) =>
-            arr.some((obj) => obj.fn === f),
+          expect(NUI.cache.actions.builtIn.get(funcName)).to.satisfy(
+            (arr: any) => arr.some((obj: any) => obj.fn === f),
           )
         })
       })
@@ -479,7 +468,7 @@ describe(italic(`use`), () => {
   describe(italic(`emit`), () => {
     const getEmits = () => NUI.getActions('emit')
 
-    nuiTriggers.forEach((trigger) => {
+    nuiTriggers.forEach((trigger: any) => {
       it(`should support { [${trigger}]: <function> }`, () => {
         const spy = sinon.spy(async () => 'hello') as any
         expect(getEmits().get(trigger)).to.have.lengthOf(0)
@@ -533,7 +522,7 @@ describe(italic(`use`), () => {
       async () => {
         const spy = sinon.spy()
         const component = NUI.resolveComponents(
-          mock.getPluginComponent({ path: 'coffee.js' }),
+          mock.getPluginComponent({ path: 'coffee.js' } as any),
         ).on('content', spy)
         const spy2 = sinon.spy(component, 'set')
         await waitFor(() => {
@@ -582,7 +571,7 @@ describe(italic(`use`), () => {
     it(`should add register components to the store`, () => {
       const component = mock.getRegisterComponent({ onEvent: 'helloEvent' })
       nui._experimental.register(component)
-      const storeObject = nui.cache.register.get(component.onEvent)
+      const storeObject = nui.cache.register.get(component.onEvent as string)
       expect(storeObject).to.have.property('name', 'helloEvent')
       expect(storeObject).to.have.property('fn').is.a('function')
       expect(storeObject).to.have.property('page', '_global')
@@ -606,27 +595,26 @@ describe(italic(`use`), () => {
       const componentObject = mock.getRegisterComponent('hello')
       nui.use({ register: componentObject })
       expect(nui.cache.register.has(componentObject.onEvent)).to.be.true
-      expect(nui.cache.register.get(componentObject.onEvent)).have.property(
-        'page',
-        '_global',
-      )
+      expect(
+        nui.cache.register.get(componentObject.onEvent || ''),
+      ).have.property('page', '_global')
     })
   })
 
   describe(italic(`transaction`), () => {
     it(`should add the transaction to the store`, () => {
       const spy = sinon.spy()
-      expect(nui.getTransactions().has(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
+      expect(nui.cache.transactions.has(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
         .to.be.false
       nui.use({
         transaction: {
           [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: spy,
         },
       })
-      expect(nui.getTransactions().get(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
+      expect(nui.cache.transactions.get(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
         .to.exist
       expect(
-        nui.getTransactions().get(nuiEmitTransaction.REQUEST_PAGE_OBJECT),
+        nui.cache.transactions.get(nuiEmitTransaction.REQUEST_PAGE_OBJECT),
       ).to.have.property('fn', spy)
     })
   })
@@ -727,7 +715,7 @@ describe(italic(`use`), () => {
           nui.use({ register: component })
           const obj = nui.cache.register.get(event)
           const did = 'docId123'
-          await nui.emit({ type: 'register', event, params: did })
+          await nui.emit({ type: 'register', event, params: did } as any)
         })
       })
     })

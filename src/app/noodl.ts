@@ -33,11 +33,11 @@ const CONFIG_URL = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
 // const CONFIG_URL = `https://public.ahmucel.com/config/${document.domain.split('.')[0]}.yml?`
 let noodl: NOODL | undefined
 
-const dbConfig = {
-  locateFile: (filename) => {
-    return `https://cdn.jsdelivr.net/npm/sql-wasm@1.1.4/dist/cjs/sql-wasm.min.js`
-  },
-}
+// const dbConfig = {
+//   locateFile: (filename) => {
+//     return `https://cdn.jsdelivr.net/npm/sql-wasm@1.1.4/dist/cjs/sql-wasm.min.js`
+//   },
+// }
 
 resetInstance()
 
@@ -50,7 +50,7 @@ export function resetInstance() {
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: CONFIG_URL,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
-    // dbConfig,
+    dbConfig: undefined,
   })
   return noodl
 }

@@ -9,7 +9,11 @@ import App from '../App'
 
 const log = Logger.create(`trackers`)
 
-function validateRef(app: App, key: string, page = app.pendingPage) {
+function validateRef(
+  app: App,
+  key: string,
+  page = app.pendingPage || app.currentPage,
+) {
   if (Identify.reference(key)) {
     const datapath = trimReference(key)
     const pathInSplits = datapath.split('.')
@@ -17,16 +21,16 @@ function validateRef(app: App, key: string, page = app.pendingPage) {
       if (!has(app.root?.[page], pathInSplits)) {
         const otherOpts = {} as Record<string, any>
         if (app.root?.[page]) otherOpts.snapshot = cloneDeep(app.root?.[page])
-        // debugger
+
         log.red(
           `The reference "${key}" is not found in the local root object for page "${page}"`,
           { datapath, key, page, pathInSplits, ...otherOpts },
         )
+        // if (key.startsWith('=..front_IDCard')) debugger
       }
       return get(app.root?.[page], pathInSplits)
     }
     if (!has(app.root, pathInSplits)) {
-      // debugger
       log.red(`The reference "${key}" is not found in the root object`, {
         datapath,
         key,
@@ -34,6 +38,7 @@ function validateRef(app: App, key: string, page = app.pendingPage) {
         snapshot: cloneDeep(app.root),
       })
     }
+
     return get(app.root, pathInSplits)
   }
 }
@@ -44,10 +49,10 @@ const validateObject = (
   page = app.pendingPage,
 ) => {
   for (const [key, value] of u.entries(obj)) {
-    Identify.reference(key) && validateRef(app, key)
-    Identify.reference(value) && validateRef(app, value)
+    Identify.reference(key) && validateRef(app, key, page)
+    Identify.reference(value) && validateRef(app, value, page)
     if (u.isObj(value)) {
-      validateObject(app, value)
+      validateObject(app, value, page)
     }
   }
 }
@@ -137,7 +142,7 @@ const trackProperty = function trackProperty({
                         if (u.isStr(v) && Identify.reference(v)) {
                           validateRef(app, v, pageName)
                         } else if (u.isArr(v)) {
-                          v.forEach((_) => validateObject(app, _))
+                          v.forEach((_) => validateObject(app, _, pageName))
                         } else if (u.isObj(v)) {
                           validateObject(app, v, pageName)
                         }

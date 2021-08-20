@@ -6,13 +6,13 @@ import isComponent from './isComponent'
 import { NUIComponent } from '../types'
 
 export function evalIf<O extends IfObject>(val: O) {
-  const [value, valOnTrue, valOnFalse] = val?.if || []
+  const [value, valTrue, valFalse] = val?.if || []
   if (Identify.isBoolean(value)) {
-    return Identify.isBooleanTrue(value) ? valOnTrue : valOnFalse
+    return Identify.isBooleanTrue(value) ? valTrue : valFalse
   }
-  if (u.isFnc(value)) return value() ? valOnTrue : valOnFalse
-  if (value) return valOnTrue
-  return valOnFalse
+  if (u.isFnc(value)) return value() ? valTrue : valFalse
+  if (value) return valTrue
+  return valFalse
 }
 
 /**

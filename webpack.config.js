@@ -30,6 +30,7 @@ const title = 'AiTmed: Start your E-health Journal Anywhere, Anytime'
 const productionOptions = {}
 const mode =
   process.env.NODE_ENV !== 'production' ? 'development' : 'production'
+const ECOS_ENV = process.env.ECOS_ENV
 
 if (mode === 'production') {
   /**
@@ -92,7 +93,7 @@ const devServerOptions = {
 
 const environmentPluginOptions = {
   BUILD: {
-    ecosEnv: process.env.ECOS_ENV,
+    ecosEnv: ECOS_ENV,
     nodeEnv: mode,
     packages: {
       '@aitmed/cadl': version.noodlSdk,
@@ -106,7 +107,7 @@ const environmentPluginOptions = {
   },
   // if process.env.DEPLOYING === true, this forces the config url in
   // src/app/noodl.ts to point to the public.aitmed.com host
-  ECOS_ENV: process.env.ECOS_ENV,
+  ECOS_ENV,
   NODE_ENV: mode,
   USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
 }
@@ -121,8 +122,6 @@ if (!u.isUnd(process.env.DEPLOYING)) {
 const environmentPlugin = new webpack.EnvironmentPlugin(
   environmentPluginOptions,
 )
-
-let ecosEnv = environmentPluginOptions.ECOS_ENV
 
 /**
  * @type { webpack.Configuration } webpackOptions
@@ -223,7 +222,7 @@ module.exports = {
 }
 
 const getEcosEnv = () =>
-  ecosEnv ? ecosEnv.toUpperCase() : '<Variable not set>'
+  ECOS_ENV ? ECOS_ENV.toUpperCase() : '<Variable not set>'
 
 const getNodeEnv = () => (mode ? mode.toUpperCase() : '<Variable not set>')
 
