@@ -16,6 +16,7 @@ import {
 import { getElementTag, openOutboundURL } from './utils'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import createAsyncImageElement from './utils/createAsyncImageElement'
+import componentFactory from './factory/componentFactory/componentFactory'
 import globalFactory from './factory/globalFactory'
 import isNDOMPage from './utils/isPage'
 import NDOMInternal from './Internal'
@@ -76,7 +77,8 @@ class NDOM extends NDOMInternal {
     return this.cache.transactions
   }
 
-  createPage(nuiPage?: NUIPage): NDOMPage
+  createPage(component: NUIComponent.Instance): NDOMPage
+  createPage(nuiPage: NUIPage): NDOMPage
   createPage(args: Parameters<typeof NUI['createPage']>[0]): NDOMPage
   createPage(args: {
     page: NUIPage
@@ -94,9 +96,45 @@ class NDOM extends NDOMInternal {
 
     if (isNUIPage(args)) {
       page = this.findPage(args) || new NDOMPage(args)
+    } else if (isComponent(args)) {
+      page = this.findPage(args.get('page'))
+
+      if (!page) {
+        console.log(
+          `%cNDOM page not found for a page component. Creating a new one now...`,
+          `color:#95a5a6;`,
+        )
+        page = componentFactory.createComponentPage(args.get('page'), {
+          onLoad: (evt, node) => {
+            console.log(
+              `%c[onLoad] NUIPage loaded for page "${page?.page}" on a page component`,
+              `color:#00b406;`,
+              { event: evt, node },
+            )
+          },
+          onError: (err) => {
+            console.log(
+              `%c[onError] Error creating an NDOM page for a page component: ${err.message}`,
+              `color:#ec0000;`,
+              err,
+            )
+          },
+        })
+      } else {
+        console.log(
+          `%cUsing existing NDOMPage for a page component`,
+          `color:#00b406;`,
+          arguments[0],
+        )
+      }
     } else if (u.isObj(args)) {
       if ('page' in args) {
         page = this.findPage(args.page) || new NDOMPage(args.page)
+      } else if ('component' in args) {
+        page = componentFactory.createComponentPage(
+          args.component?.get?.('page') || (nui.createPage(args) as NUIPage),
+        )
+        this.global.add(page)
       } else {
         page = new NDOMPage(nui.createPage(args) as NUIPage)
       }
@@ -105,7 +143,7 @@ class NDOM extends NDOMInternal {
     }
 
     if (page) {
-      this.global.pages[page.id] !== page && (this.global.pages[page.id] = page)
+      if (!(page.id in this.global.pages)) this.global.add(page)
       !this.page && (this.page = page)
     }
 
@@ -153,24 +191,30 @@ class NDOM extends NDOMInternal {
       const page = nuiPage.get('page') as NUIPage
       if (!page) {
         const pagePath = nuiPage.get('path')
-        if (u.isStr(pagePath) && pagePath) return this.findPage(pagePath)
+        if (pagePath && u.isStr(pagePath)) return this.findPage(pagePath)
+        return this.findPage(nuiPage.id)
       }
+      return this.findPage(page)
     } else if (isNUIPage(nuiPage)) {
       for (const page of u.values(this.global.pages)) {
-        if (page.getNuiPage() === nuiPage || page.page === nuiPage.page)
+        if (
+          page.getNuiPage() === nuiPage ||
+          (page.page && page.page === nuiPage.page) ||
+          page.id === nuiPage.id
+        ) {
           return page
+        }
       }
     } else if (isNDOMPage(nuiPage)) {
       return nuiPage
     } else if (u.isStr(nuiPage)) {
-      return u
-        .values(this.pages)
-        .find(
-          (page) =>
-            page.page === nuiPage ||
-            page.page === currentPage ||
-            page.id === nuiPage,
-        )
+      return u.values(this.pages).find((page) => {
+        if (page.id === nuiPage) return true
+        if (page.page && page.page === nuiPage) return true
+        if (currentPage === '' && page.page === '') return true
+        if (currentPage && currentPage === page.page) return true
+        return false
+      })
     }
     return null
   }
@@ -309,7 +353,7 @@ class NDOM extends NDOMInternal {
       this.draw(
         component,
         page.tagName === 'iframe'
-          ? page.rootNode.contentDocument?.body
+          ? page.rootNode.contentDocument?.body || page.rootNode
           : page.rootNode,
         page,
       ),
@@ -372,8 +416,6 @@ class NDOM extends NDOMInternal {
                 {},
               )
             : document.createElement('img'))
-      } else if (Identify.component.list(component)) {
-        node = document.createElement(getElementTag(component))
       } else {
         node = this.#createElementBinding?.(component) || null
         node && (node['isElementBinding'] = true)
@@ -393,100 +435,28 @@ class NDOM extends NDOMInternal {
         // not be able to access their parent during the resolver calls
         !parent.contains(node) && parent.appendChild(node)
 
-        if (i._isIframeEl(node)) {
-          if (Identify.component.page(component)) {
-            if (options?.onPageComponentLoad) {
-              node.addEventListener(
-                'load',
-                function (evt) {
-                  options?.onPageComponentLoad?.({
-                    event: evt,
-                    node: node as HTMLIFrameElement,
-                    component,
-                    page,
-                  })
-                },
-                { once: true },
-              )
-            } else {
-              if (
-                !['.html'].some((ext) => component.get('path')?.endsWith?.(ext))
-              ) {
-                this.#R.run({
-                  ndom: this,
-                  node,
+        if (Identify.component.page(component)) {
+          if (options?.onPageComponentLoad) {
+            node.addEventListener(
+              'load',
+              function (evt) {
+                options?.onPageComponentLoad?.({
+                  event: evt,
+                  node: node as HTMLIFrameElement,
                   component,
                   page,
-                  resolvers: this.resolvers,
                 })
-                component.children?.forEach?.(
-                  (child: NUIComponent.Instance) => {
-                    if (i._isIframeEl(node)) {
-                      node.contentDocument?.body.appendChild(
-                        this.draw(child, node, page, options) as HTMLElement,
-                      )
-                    } else {
-                      node?.appendChild(
-                        this.draw(child, node, page, options) as HTMLElement,
-                      )
-                    }
-                  },
-                )
-              } else {
-                /**
-                 * Setting this iframe's cookie allows for 3rd party
-                 * resources to be loaded in our app
-                 * https://web.dev/schemeful-samesite/?utm_source=devtools
-                 */
-                if (node.contentWindow?.document) {
-                  node.ownerDocument.cookie = `SameSite=None;Secure`
-                  node.contentWindow.document.cookie = `SameSite=None;Secure`
-                  console.log({
-                    ownerDocument: node.ownerDocument.cookie,
-                    contentWindowDocument: node.contentWindow.document.cookie,
-                  })
-                }
-                const onLoad = () => {
-                  console.log(`Page component loaded`)
-                  let nuiPage = component.get('page') as NUIPage
-                  let ndomPage = (this.findPage(nuiPage) ||
-                    this.createPage(nuiPage)) as NDOMPage
-                  let src = component.get(c.DATA_SRC) || ''
-
-                  if (node) {
-                    if (ndomPage.id !== 'root' && ndomPage.rootNode !== node) {
-                      try {
-                        // i._removeNode(ndomPage.rootNode)
-                        ndomPage.rootNode.remove?.()
-                        ndomPage.rootNode = node as HTMLIFrameElement
-                      } catch (error) {
-                        console.error(error)
-                      }
-                    }
-                    this.#R.run({
-                      ndom: this,
-                      node: ndomPage.rootNode,
-                      component,
-                      page,
-                      resolvers: this.resolvers,
-                    })
-                    if (!src) {
-                      // TODO
-                      if (ndomPage.page.startsWith('http')) src = ndomPage.page
-                    }
-                    ;(node as HTMLIFrameElement).src = src
-                    !node.src &&
-                      node.setAttribute('src', src || component.get(c.DATA_SRC))
-                  } else {
-                    // TODO
-                  }
-                }
-                if (component.get(c.DATA_SRC)) onLoad()
-                else node.addEventListener('load', onLoad, { once: true })
-
-                node?.addEventListener('error', console.error, { once: true })
-              }
-            }
+              },
+              { once: true },
+            )
+          } else {
+            this.#R.run({
+              ndom: this,
+              node,
+              component,
+              page,
+              resolvers: this.resolvers,
+            })
           }
         } else {
           this.#R.run({
@@ -769,11 +739,21 @@ class NDOM extends NDOMInternal {
     if (!obj) return
     if (isNUIPage(obj)) return this.createPage(obj)
 
-    const { createElementBinding, register, resolver, transaction, ...rest } =
-      obj
+    const {
+      createElementBinding,
+      emit,
+      register,
+      resolver,
+      transaction,
+      ...rest
+    } = obj
 
     createElementBinding && (this.#createElementBinding = createElementBinding)
     resolver && this.consumerResolvers.push(resolver)
+
+    if (emit) {
+      nui.use({ emit })
+    }
 
     if (transaction) {
       u.eachEntries(transaction, (id, val) => {

@@ -144,6 +144,15 @@ export const _isListEl = _isElemFactory<HTMLUListElement>('UL')
 export const _isScriptEl = _isElemFactory<HTMLScriptElement>('SCRIPT')
 export const _isStyleEl = _isElemFactory<HTMLStyleElement>('STYLE')
 
+export function _isHttpUrl(url = '') {
+  return url.startsWith('http')
+}
+
+export function _isRemotePageOrUrl(pageOrUrl: string | NDOMPage) {
+  const pageName = u.isStr(pageOrUrl) ? pageOrUrl : pageOrUrl?.page || ''
+  return pageName.endsWith('.html')
+}
+
 export const xKeys = ['width', 'left']
 export const yKeys = ['height', 'top']
 export const posKeys = [...xKeys, ...yKeys]

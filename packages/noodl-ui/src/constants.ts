@@ -5,7 +5,14 @@ import type { NUIActionType } from './types'
 export const lib = {
   actionTypes: ['anonymous', 'emit', 'goto', 'toast'],
   components: ['br'],
-  emitTriggers: ['dataKey', 'dataValue', 'path', 'placeholder', 'register'],
+  emitTriggers: [
+    'dataKey',
+    'dataValue',
+    'path',
+    'placeholder',
+    'postMessage',
+    'register',
+  ],
   dataAttributes: [
     'data-key',
     'data-listid',
@@ -22,7 +29,12 @@ export const lib = {
 
 export const actionTypes = [...noodlTypesActionTypes, ...lib.actionTypes]
 
-export const triggers = [...lib.emitTriggers, ...userEvent, 'onInput']
+export const triggers = [
+  ...lib.emitTriggers,
+  ...userEvent,
+  'onInput',
+  'postMessage',
+]
 
 export const groupedActionTypes = actionTypes.filter(
   (t) => !/(builtIn|emit|register)/i.test(t),
@@ -75,6 +87,7 @@ export const trigger = {
   DATA_VALUE: 'dataValue',
   PATH: 'path',
   PLACEHOLDER: 'placeholder',
+  POST_MESSAGE: 'postMessage',
   REGISTER: 'register',
   ON_BLUR: 'onBlur',
   ON_CLICK: 'onClick',

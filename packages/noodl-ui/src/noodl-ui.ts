@@ -20,7 +20,6 @@ import {
   trimReference,
 } from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
-import ComponentCache from './cache/ComponentCache'
 import createAction from './utils/createAction'
 import createActionChain from './utils/createActionChain'
 import createComponent from './utils/createComponent'
@@ -31,10 +30,6 @@ import isPage from './utils/isPage'
 import isViewport from './utils/isViewport'
 import NUIPage from './Page'
 import ActionsCache from './cache/ActionsCache'
-import PageCache from './cache/PageCache'
-import PluginCache from './cache/PluginCache'
-import RegisterCache from './cache/RegisterCache'
-import TransactionCache from './cache/TransactionsCache'
 import resolveAsync from './resolvers/resolveAsync'
 import resolveComponents from './resolvers/resolveComponents'
 import resolveStyles from './resolvers/resolveStyles'
@@ -50,28 +45,11 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import { groupedActionTypes, nuiEmitType } from './constants'
-import * as t from './types'
 import isNUIPage from './utils/isPage'
+import cache from './_cache'
+import * as t from './types'
 
-const NUI = (function _NUI() {
-  /** @type { object } cache */
-  const cache = {
-    actions: new ActionsCache() as ActionsCache &
-      Record<
-        t.NUIActionGroupedType,
-        t.Store.ActionObject<t.NUIActionGroupedType>[]
-      > & {
-        builtIn: Map<string, t.Store.BuiltInObject[]>
-        emit: Map<t.NUITrigger, t.Store.ActionObject[]>
-        register: Record<string, t.Register.Object[]>
-      },
-    component: new ComponentCache(),
-    page: new PageCache(),
-    plugin: new PluginCache(),
-    register: new RegisterCache(),
-    transactions: new TransactionCache(),
-  }
-
+const NUI = (function () {
   /**
    * Determining on the type of value, this performs necessary clean operations to ensure its resources that are bound to it are removed from memory
    * @param value
@@ -108,11 +86,12 @@ const NUI = (function _NUI() {
       | ComponentObject
       | null
       | undefined,
-    page = o.getRootPage(),
+    page,
   ) {
     if (isComponent(componentObject)) return componentObject
     const component = createComponent(componentObject as ComponentObject)
-    !cache.component.has(component) && cache.component.add(component, page)
+    !cache.component.has(component) &&
+      cache.component.add(component, page || o.getRootPage())
     return component
   }
 
@@ -241,6 +220,7 @@ const NUI = (function _NUI() {
     }
   }
 
+  // @ts-expect-error
   async function _emit<Evt extends string = string>(
     opts?: t.NUIEmit.EmitRegister<Evt>,
   ): Promise<any[]>
@@ -417,18 +397,24 @@ const NUI = (function _NUI() {
     page?: NUIPage
     components: C
     context?: Context
-    callback?: t.ResolveComponentCallback
+    callback?: (
+      component: t.NUIComponent.Instance,
+    ) => t.NUIComponent.Instance | void
   }): C extends C[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
 
   function _resolveComponents<C extends OrArray<t.NUIComponent.CreateType>>(
     page: NUIPage,
     component: C,
-    callback?: t.ResolveComponentCallback,
+    callback?: (
+      component: t.NUIComponent.Instance,
+    ) => t.NUIComponent.Instance | void,
   ): C extends C[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
 
   function _resolveComponents<C extends OrArray<t.NUIComponent.CreateType>>(
     component: C,
-    callback?: t.ResolveComponentCallback,
+    callback?: (
+      component: t.NUIComponent.Instance,
+    ) => t.NUIComponent.Instance | void,
   ): C extends C[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
 
   function _resolveComponents<C extends OrArray<t.NUIComponent.CreateType>>(
@@ -439,17 +425,23 @@ const NUI = (function _NUI() {
           page?: NUIPage
           components: C
           context?: Record<string, any>
-          callback?: t.ResolveComponentCallback
+          callback?: (
+            component: t.NUIComponent.Instance,
+          ) => t.NUIComponent.Instance | void
         },
-    componentsProp?: C | t.ResolveComponentCallback,
-    callbackProp?: t.ResolveComponentCallback,
+    componentsProp?:
+      | C
+      | ((
+          component: t.NUIComponent.Instance,
+        ) => t.NUIComponent.Instance | void),
+    callbackProp?: (component: C) => C | void,
   ) {
     let isArr = true
     let resolvedComponents: t.NUIComponent.Instance[] = []
     let components: t.NUIComponent.CreateType[] = []
     let page: NUIPage
     let context: Record<string, any> = {}
-    let callback: t.ResolveComponentCallback | undefined
+    let callback: ((component: C) => C | void) | undefined
 
     if (isPage(pageProp)) {
       page = pageProp
@@ -480,7 +472,9 @@ const NUI = (function _NUI() {
 
     function xform(
       c: t.NUIComponent.Instance,
-      cb?: t.ResolveComponentCallback,
+      cb?: (
+        component: t.NUIComponent.Instance,
+      ) => t.NUIComponent.Instance | void,
     ) {
       const options = o.getConsumerOptions({
         callback: cb,
@@ -544,7 +538,7 @@ const NUI = (function _NUI() {
     }
 
     components.forEach((c) => {
-      resolvedComponents.push(xform(o.createComponent(c), callback))
+      resolvedComponents.push(xform(o.createComponent(c, page)))
     })
 
     return isArr ? resolvedComponents : resolvedComponents[0]
@@ -683,7 +677,9 @@ const NUI = (function _NUI() {
   }
 
   const _experimental = {
-    register: _experimental_Register,
+    get register() {
+      return _experimental_Register
+    },
   }
 
   const o = {
@@ -696,10 +692,18 @@ const NUI = (function _NUI() {
         get: u.isFnc(opts) ? () => opts : () => opts.get,
       })
     },
-    cache,
-    clean: _clean,
-    createGetter: _createGetter,
-    createComponent: _createComponent,
+    get cache() {
+      return cache
+    },
+    get clean() {
+      return _clean
+    },
+    get createGetter() {
+      return _createGetter
+    },
+    get createComponent() {
+      return _createComponent
+    },
     createPage(
       args?:
         | string
@@ -747,7 +751,7 @@ const NUI = (function _NUI() {
               // Delete the cached components from the page since it will be
               // re-rerendered
               for (const obj of o.cache.component) {
-                if (obj && obj.page === page.page) {
+                if (obj && obj.page === page?.page) {
                   o.cache.component.remove(obj.component)
                 }
               }
@@ -772,7 +776,7 @@ const NUI = (function _NUI() {
       }
 
       name && page && (page.page = name)
-      ;(page as NUIPage).use(() => NUI.getRoot()[page?.page || '']?.components)
+      ;(page as NUIPage).use(() => o.getRoot()[page?.page || '']?.components)
 
       return page
     },
@@ -821,7 +825,7 @@ const NUI = (function _NUI() {
     },
     createActionChain(
       trigger: t.NUITrigger,
-      actions: t.NUIActionObjectInput | t.NUIActionObjectInput[],
+      actions: OrArray<t.NUIActionObjectInput>,
       opts?: {
         component?: t.NUIComponent.Instance
         context?: Record<string, any>
@@ -943,8 +947,12 @@ const NUI = (function _NUI() {
 
       return actionChain
     },
-    createSrc: _createSrc,
-    emit: _emit,
+    get createSrc() {
+      return _createSrc
+    },
+    get emit() {
+      return _emit
+    },
     getAssetsUrl: () => '',
     getActions: _getActions,
     getBuiltIns: () => cache.actions.builtIn,
@@ -974,7 +982,7 @@ const NUI = (function _NUI() {
       page,
       context,
     }: {
-      callback?: t.ResolveComponentCallback<C>
+      callback?(component: C): C | void
       component?: C
       page: NUIPage
       context?: Record<string, any>
@@ -1003,13 +1011,16 @@ const NUI = (function _NUI() {
             page,
           })
         },
-        get createPlugin() {
-          return o.createPlugin
+        get createSrc() {
+          return _createSrc
         },
-        createSrc: _createSrc,
-        emit: _emit,
+        get emit() {
+          return _emit
+        },
         get: _createGetter(page),
-        getBaseStyles: (c: t.NUIComponent.Instance) => o.getBaseStyles?.(c),
+        get getBaseStyles() {
+          return o.getBaseStyles
+        },
         get getQueryObjects() {
           return _getQueryObjects
         },
@@ -1022,17 +1033,27 @@ const NUI = (function _NUI() {
         },
       }
     },
-    getPlugins: (location?: t.Plugin.Location) => cache.plugin.get(location),
-    getPages: () => [] as string[],
-    getPreloadPages: () => [] as string[],
-    getRoot: () => ({} as Record<string, any>),
+    getPlugins(location?: t.Plugin.Location) {
+      return cache.plugin.get(location)
+    },
+    getPages() {
+      return [] as string[]
+    },
+    getPreloadPages() {
+      return [] as string[]
+    },
+    getRoot() {
+      return {} as Record<string, any>
+    },
     getRootPage() {
       if (!cache.page.has('root')) {
         return cache.page.create({ viewport: new VP() })
       }
       return u.array(cache.page.get('root'))[0]?.page as NUIPage
     },
-    resolveComponents: _resolveComponents,
+    get resolveComponents() {
+      return _resolveComponents
+    },
     reset(
       filter?:
         | (

@@ -102,6 +102,7 @@ const devServerOptions = {
   //     next()
   //   })
   // },
+  https: true,
   overlay: true,
   // staticOptions: {
   //   setHeaders(resp, path, stat) {

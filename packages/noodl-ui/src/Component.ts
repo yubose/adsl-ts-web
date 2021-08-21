@@ -302,7 +302,7 @@ class Component<C extends ComponentObject = ComponentObject> {
     eventName: Evt,
     ...args: Parameters<NonNullable<t.NUIComponent.Hook[Evt]>>
   ) {
-    this.#hooks[eventName]?.forEach((cb) => (cb as any)(...args))
+    this.#hooks[eventName]?.forEach((cb) => (cb as any)?.(...args))
     return this
   }
 

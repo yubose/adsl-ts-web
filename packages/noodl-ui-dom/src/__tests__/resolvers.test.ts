@@ -14,18 +14,6 @@ import * as n from '../utils'
 import * as c from '../constants'
 import Timer from '../global/Timer'
 
-after(() => {
-  console.info(ndom.cache.component.length)
-  console.info(ndom.cache.page.length)
-  console.info(u.keys(ndom.pages).length)
-  console.info(ndom.cache.plugin.length)
-  console.info(ndom.cache.actions.length)
-  console.info(ndom.cache.actions.builtIn.size)
-  console.info(ndom.cache.component.length)
-  console.info(ndom.cache.register.get().size)
-  console.info(ndom.cache.transactions.get().size)
-})
-
 describe(coolGold(`resolvers`), () => {
   it(`should attach the component id as the element id`, async () => {
     const { render } = createRender(ui.label())

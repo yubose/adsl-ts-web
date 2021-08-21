@@ -135,7 +135,6 @@ window.addEventListener('load', async (e) => {
   // document.body?.classList.add('dot-spin')
   try {
     log.func('onload')
-    log.green('Hello', e)
 
     const { Account } = await import('@aitmed/cadl')
     const { default: noodl } = await import('./app/noodl')
@@ -185,6 +184,14 @@ window.addEventListener('load', async (e) => {
     })
 
     window.addEventListener('popstate', createOnPopState(app))
+    window.addEventListener('message', function (evt) {
+      log.func('message')
+      log.green(`New message from a window: ${evt.data}`, evt)
+    })
+    window.addEventListener('messageerror', function (evt) {
+      log.func(`messageerror`)
+      log.red(`Error receiving message from window: ${evt.data}`, evt)
+    })
   } catch (error) {
     console.error(error)
   } finally {

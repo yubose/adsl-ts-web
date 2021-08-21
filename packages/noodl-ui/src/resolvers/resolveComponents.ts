@@ -18,6 +18,7 @@ import {
   resolveAssetUrl,
 } from '../utils/noodl'
 import type { ConsumerOptions, NUIComponent } from '../types'
+import cache from '../_cache'
 import * as c from '../constants'
 import * as i from '../utils/internal'
 
@@ -26,7 +27,6 @@ const componentResolver = new Resolver('resolveComponents')
 componentResolver.setResolver((component, options, next) => {
   const {
     callback,
-    cache,
     context,
     createComponent,
     createPage,

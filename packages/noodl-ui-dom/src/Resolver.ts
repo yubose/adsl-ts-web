@@ -5,6 +5,9 @@ import { Identify } from 'noodl-types'
 import { Component } from 'noodl-ui'
 import { getPageAncestor } from './utils'
 import { cache, nui } from './nui'
+import attributesResolver from './resolvers/attributes'
+import componentsResolver from './resolvers/components'
+import componentFactory from './factory/componentFactory/componentFactory'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import * as t from './types'
@@ -41,6 +44,7 @@ export default class NDOMResolver {
     return {
       cache,
       component: args.component,
+      // createPage: args.ndom.createPage.bind(args.ndom),
       createPage: args.ndom.createPage.bind(args.ndom),
       draw: args.ndom.draw.bind(args.ndom),
       editStyle: this.createStyleEditor(args.component),
@@ -53,13 +57,19 @@ export default class NDOMResolver {
         args.ndom.findPage(getPageAncestor(args.component)?.get?.('page')) ||
         args.ndom.page,
       redraw: args.ndom.redraw.bind(args.ndom),
+      /**
+       * REMINDER: This intentionally does not include componentsResolver due to
+       * circular references or infinite loops
+       */
+      resolvers: [attributesResolver].concat(args.ndom.consumerResolvers),
       elementType: args.node?.tagName || '',
       componentType: args.component?.type || '',
       setAttr: <K extends keyof t.NDOMElement>(k: K, v: any) =>
         args.node?.setAttribute?.(k, v),
       setDataAttr: <K extends string>(dataAttr: K, v: string) =>
         args.node?.dataset &&
-        (args.node.dataset[dataAttr.replace('data-', '')] = v),
+        dataAttr &&
+        (args.node.dataset[dataAttr.replace?.('data-', '')] = v),
       setStyleAttr: <K extends keyof t.NDOMElement['style']>(k: K, v: any) =>
         args.node && (args.node.style[k] = v),
     }
@@ -74,10 +84,10 @@ export default class NDOMResolver {
     component,
     page,
     resolvers,
-  }: Pick<t.Resolve.Options<T, N>, 'node' | 'component'> & {
+  }: Pick<t.Resolve.BaseOptions<T, N>, 'node' | 'component'> & {
     ndom: NDOM
     page?: NDOMPage
-    resolvers: OrArray<t.Resolve.Config>
+    resolvers: OrArray<t.Resolve.Config<T, N>>
   }) {
     const options = this.getOptions({ ndom, node, component, page })
     const runners = u.array(resolvers)

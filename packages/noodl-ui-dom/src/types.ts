@@ -1,13 +1,18 @@
 import { LiteralUnion } from 'type-fest'
 import { OrArray, OrPromise } from '@jsmanifest/typefest'
 import { ComponentObject, ComponentType } from 'noodl-types'
-import { Component, NUIComponent, UseArg as NUIUseObject } from 'noodl-ui'
+import {
+  Component,
+  NUIComponent,
+  Store,
+  UseArg as NUIUseObject,
+} from 'noodl-ui'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import NDOMResolver from './Resolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import GlobalTimers from './global/Timers'
-import { eventId } from './constants'
+import { eventId, triggers } from './constants'
 
 export interface IGlobalObject<T extends string = string> {
   type: T
@@ -109,15 +114,22 @@ export namespace Resolve {
     N extends NDOMElement<T> = NDOMElement<T>,
   > {
     name?: string
-    cond?: LiteralUnion<ComponentType, string> | Resolve.Func<T, N>
+    cond?: LiteralUnion<ComponentType, string> | Resolve.Func<T, N, boolean>
     init?: Resolve.Func<T, N>
     before?: Resolve.Func<T, N>
     resolve?: Resolve.Func<T, N>
     after?: Resolve.Func<T, N>
   }
 
-  export interface Func {
-    (options: ReturnType<NDOMResolver['getOptions']>): void
+  export interface Func<
+    T extends string = string,
+    N extends NDOMElement<T> = NDOMElement<T>,
+    RT = void,
+  > {
+    (
+      options: ReturnType<NDOMResolver['getOptions']> &
+        Resolve.BaseOptions<T, N>,
+    ): RT
   }
 
   export interface LifeCycle {
@@ -211,14 +223,19 @@ export interface NDOMTransaction {
 
 export type NDOMTransactionId = keyof NDOMTransaction
 
+export type NDOMTrigger = typeof triggers[number]
+
 export interface UseObject
   extends Omit<
     NUIUseObject<NDOMTransaction, NDOMTransactionId>,
-    'transaction'
+    'emit' | 'transaction'
   > {
   createElementBinding?(
     component: NUIComponent.Instance,
   ): HTMLElement | null | void
+  emit: Partial<
+    Record<NDOMTrigger, OrArray<Store.ActionObject<'emit', NDOMTrigger>['fn']>>
+  >
   resolver?: Resolve.Config
   transaction?: Partial<NDOMTransaction>
 }

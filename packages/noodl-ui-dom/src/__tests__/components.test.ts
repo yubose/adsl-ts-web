@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { waitFor } from '@testing-library/dom'
+import { prettyDOM, waitFor } from '@testing-library/dom'
 import {
   ComponentObject,
   PageComponentObject,
@@ -197,7 +197,7 @@ describe(nc.coolGold('components'), () => {
     })
 
     it(`should still set the NDOM page to global pages if path is an empty string`, async () => {
-      const { render } = createRender({
+      const { nui, page, render } = createRender({
         root: (currentRoot) => {
           currentRoot.Hello.components[0].children[1].children[0].path = ''
           return currentRoot
@@ -209,7 +209,10 @@ describe(nc.coolGold('components'), () => {
         const pageElemBody = pageElem?.contentDocument?.body
         expect(pageElemBody?.childElementCount).to.eq(0)
       })
-      expect(u.keys(ndom.pages)).to.have.lengthOf(cache.page.length)
+      console.info(page.components[0].children[1])
+      await waitFor(() =>
+        expect(ndom.global.pageIds).to.have.lengthOf(cache.page.length),
+      )
     })
 
     it(
@@ -537,6 +540,54 @@ describe(nc.coolGold('components'), () => {
       //   input.dispatchEvent(new Event('change'))
       //   expect(donutPageObject.formData).to.have.property('password', 'abc123')
       // })
+    })
+
+    describe(`when rendering through absolute/remote urls (http*)`, () => {
+      xit(`should create an NDOM page using the PageComponent`, () => {
+        //
+      })
+
+      xit(`should create a new NDOM PageComponent if not created yet`, () => {
+        //
+      })
+
+      xit(`should reuse existing NDOM PageComponent if the URL is the same as one found in the global map`, () => {
+        //
+      })
+
+      xit(`should not reuse but create a new NDOM PageComponent if rendering additional components with the same URL`, () => {
+        //
+      })
+
+      xit(`should listen for postMessage messages`, () => {
+        //
+      })
+
+      xit(`should be able to receive messages from inside the iframe`, () => {
+        //
+      })
+
+      xit(`should be able to send messages to the parent window from within the iframe`, () => {
+        //
+      })
+
+      describe(`when using postMessage emit`, () => {
+        xit(`should use the object received from postMessage as the data object`, () => {
+          //
+        })
+
+        xit(`should invoke the postMessage action chain when receiving a message inside of the remote page`, () => {
+          //
+        })
+      })
+
+      xit(`should listen on the onload event if it is not loaded yet`, () => {
+        //
+      })
+
+      xit(`should immediately fire custom onload events if the element is already loaded into the DOM`, () => {
+        //
+      })
     })
   })
 

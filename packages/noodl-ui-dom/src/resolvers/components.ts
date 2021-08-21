@@ -12,10 +12,11 @@ import {
   SelectOption,
   Plugin,
 } from 'noodl-ui'
-import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
 import createEcosDocElement from '../utils/createEcosDocElement'
+import NDOM from '../noodl-ui-dom'
 import NDOMPage from '../Page'
+import * as t from '../types'
 import * as i from '../utils/internal'
 import * as c from '../constants'
 
@@ -365,152 +366,281 @@ export default {
       }
       // PAGE
       else if (Identify.component.page(args.component)) {
-        const src = args.component.get(c.DATA_SRC) || ''
-        // TODO - Finish http implementation
-        if (
-          process.env.NODE_ENV !== 'test' &&
-          ['.css', '.html', '.js'].some((ext) => src.endsWith(ext))
-        ) {
-          //
-        } else {
-          const getPageChildIds = (c: NUIComponent.Instance) =>
-            c.children?.reduce(
-              (acc, child) =>
-                acc.concat(
-                  flatten(child).map((c) =>
-                    c?.id == '0' ? c.id : c?.id || '',
-                  ),
-                ),
-              [] as string[],
-            )
-
-          args.component.set('ids', getPageChildIds(args.component))
-
-          const getOrCreateNDOMPage = (component: NUIComponent.Instance) => {
-            if (!args.component.get('page')) {
-              console.log(
-                `%cA page component is missing its NUIPage in the DOM resolver!`,
-                `color:#ec0000;`,
-                component,
+        if (i._isIframeEl(args.node)) {
+          if (i._isRemotePageOrUrl(String(args.component.get('path')))) {
+            const path = (args.component.get('path') || '') as string
+            const src = (args.component.get(c.DATA_SRC) || '') as string
+            /**
+             * Page components loading content through remote URLs
+             * (https links or anything that is an html file)
+             */
+            if (args.node) {
+              args.node.contentWindow?.addEventListener(
+                'message',
+                function (evt) {
+                  console.log(`%c[noodl-ui-dom] Message`, `color:#e50087;`, evt)
+                },
               )
-            } else {
-              let ndomPage = [
-                findPage(args.component.get('page')),
-                findPage(component.id),
-              ].find(Boolean) as NDOMPage
-
-              if (!ndomPage) {
-                try {
-                  ndomPage = createPage(
-                    args.component.get('page') || { id: component.id },
+              args.node.contentWindow?.addEventListener(
+                'messageerror',
+                function (evt) {
+                  console.log(
+                    `%c[noodl-ui-dom] Message error`,
+                    `color:#e50087;`,
+                    evt,
                   )
-                } catch (error) {
-                  console.error(error)
-                  if (error instanceof Error) throw error
-                  else throw new Error(error.message)
-                }
-              }
-
-              return ndomPage
+                },
+                { once: true },
+              )
             }
-          }
 
-          const listen = () => {
-            let ndomPage = getOrCreateNDOMPage(args.component) as NDOMPage
-            args.component.on(
-              nuiEvent.component.page.PAGE_COMPONENTS,
-              ({ page: nuiPage, type }) => {
-                const childrensNUIPage = args.component.get('page') as NUIPage
-                ndomPage = findPage(childrensNUIPage)
+            function onLoad(opts: {
+              event?: Event
+              node: t.NDOMElement<'page'>
+              component: NUIComponent.Instance
+              createPage: NDOM['createPage']
+              findPage: NDOM['findPage']
+              resolvers: NDOM['resolvers']
+            }) {
+              console.log(`Page component loaded`)
 
-                if (type === 'init') {
-                  ndomPage.rootNode?.parentNode?.removeChild?.(
-                    ndomPage.rootNode,
-                  )
-                  ndomPage.rootNode = args.node as HTMLIFrameElement
-                } else {
-                  args.component.set('ids', getPageChildIds(args.component))
+              let src = opts.component.get(c.DATA_SRC) || ''
+              let nuiPage = opts.component.get('page') as NUIPage
+              let ndomPage = (opts.findPage(nuiPage) ||
+                opts.createPage({ component: opts.component })) as NDOMPage
 
-                  const prevChildIds = args.component.get('ids')
-
-                  if (!prevChildIds?.length) {
-                    console.log(
-                      `%cNo previous page children component ids to remove`,
-                      `color:#95a5a6;`,
-                      { component: args.component, prevChildIds },
-                    )
-                  } else {
-                    const ids = args.component.get('ids') || []
-                    ids.forEach((id: string) => {
-                      cache.component.remove(cache.component.get(id)?.component)
-                      console.log(
-                        `%cRemoved "${id}" from page "${args.component.id}" (${nuiPage.page})`,
-                        `color:#95a5a6;`,
+              if (opts.node) {
+                if (ndomPage.id !== 'root' && ndomPage.rootNode !== opts.node) {
+                  try {
+                    if (ndomPage.rootNode?.parentElement) {
+                      ndomPage.rootNode.parentElement.replaceChild(
+                        opts.node,
+                        ndomPage.rootNode,
                       )
-                    })
-
-                    args.component.set('ids', [])
+                      console.log(
+                        `%cReplacing old rootNode with new node`,
+                        `color:#95a5a6;`,
+                        { ...opts, ndomPage },
+                      )
+                    } else {
+                      i._removeNode(ndomPage.rootNode)
+                      ndomPage.rootNode = opts.node
+                      console.log(
+                        `%cRemoved old rootNode for new node`,
+                        `color:#95a5a6;`,
+                        { ...opts, ndomPage },
+                      )
+                    }
+                  } catch (error) {
+                    console.error(error)
                   }
                 }
 
-                const children = u.array(
-                  nui.resolveComponents({
-                    components:
-                      childrensNUIPage.components?.map?.(
-                        (obj: ComponentObject) => {
-                          let child = nui.createComponent(obj, childrensNUIPage)
-                          child = args.component.createChild(child)
-                          return child
-                        },
-                      ) || [],
-                    page: childrensNUIPage,
-                  }),
+                opts.node.src = src
+              } else {
+                console.log(
+                  `%cIframe element is empty inside a page component`,
+                  `color:#ec0000;`,
+                  opts,
                 )
+              }
+            }
 
-                const renderChildren = (
-                  nuiPage: NUIPage,
-                  children: NUIComponent.Instance[],
-                ) => {
-                  children?.forEach((child) => {
-                    if (nuiPage) {
-                      const cachedObj = cache.component.get(child)
-                      if (cachedObj) {
-                        if (cachedObj.page !== nuiPage.page) {
-                          cachedObj.page = nuiPage.page
-                        }
-                      }
-                    }
+            if (src) {
+              onLoad(args.component)
+            } else {
+              args.node.addEventListener(
+                'load',
+                (evt) =>
+                  onLoad({
+                    event: evt,
+                    createPage: args.createPage,
+                    component: args.component,
+                    node: args.node as HTMLIFrameElement,
+                    findPage: args.findPage,
+                    resolvers: args.resolvers,
+                  }),
+                { once: true },
+              )
+            }
 
-                    const childNode = draw(child, ndomPage.rootNode, ndomPage)
+            args.node?.addEventListener('error', console.error, { once: true })
+          } else {
+            const getOrCreateNDOMPage = (component: NUIComponent.Instance) => {
+              if (!component.get('page')) {
+                console.log(
+                  `%cA page component is missing its NUIPage in the DOM resolver`,
+                  `color:#ec0000;`,
+                  component,
+                )
+              } else {
+                let ndomPage = [
+                  findPage(component),
+                  findPage(component.id),
+                ].find(Boolean) as NDOMPage
 
-                    if (childNode) {
-                      if (ndomPage.rootNode?.contentDocument?.body) {
-                        if (
-                          !ndomPage.rootNode.contentDocument.body.contains(
-                            childNode,
-                          )
-                        ) {
-                          ndomPage.rootNode.contentDocument.body.appendChild(
-                            childNode,
-                          )
-                        }
-                      }
-                    }
-
-                    child?.length && renderChildren(nuiPage, child.children)
-                  })
+                if (!ndomPage) {
+                  try {
+                    let nuiPage = component.get('page')
+                    console.info(
+                      `%cCould not find an NDOM page associated to a NUIPage of id "${nuiPage.id}" with the page of "${nuiPage.page}"`,
+                      `color:#ec0000;`,
+                      component,
+                    )
+                    ndomPage = createPage(nuiPage || component)
+                  } catch (error) {
+                    console.error(error)
+                    if (error instanceof Error) throw error
+                    else throw new Error(error.message)
+                  }
                 }
 
-                renderChildren(childrensNUIPage, children)
+                return ndomPage
+              }
+            }
+
+            const getPageChildIds = (c: NUIComponent.Instance) =>
+              c.children?.reduce(
+                (acc, child) =>
+                  acc.concat(
+                    flatten(child).map((c) =>
+                      c?.id == '0' ? c.id : c?.id || '',
+                    ),
+                  ),
+                [] as string[],
+              )
+
+            args.component.set('ids', getPageChildIds(args.component))
+
+            const listen = () => {
+              let ndomPage = getOrCreateNDOMPage(args.component) as NDOMPage
+
+              args.component.on(
+                nuiEvent.component.page.PAGE_COMPONENTS,
+                ({ page: nuiPage, type }) => {
+                  const childrensNUIPage = args.component.get('page') as NUIPage
+                  ndomPage = findPage(childrensNUIPage)
+
+                  if (type === 'init') {
+                    ndomPage.rootNode?.parentNode?.removeChild?.(
+                      ndomPage.rootNode,
+                    )
+                    ndomPage.rootNode = args.node as HTMLIFrameElement
+                  } else {
+                    args.component.set('ids', getPageChildIds(args.component))
+
+                    const prevChildIds = args.component.get('ids')
+
+                    if (!prevChildIds?.length) {
+                      console.log(
+                        `%cNo previous page children component ids to remove`,
+                        `color:#95a5a6;`,
+                        { component: args.component, prevChildIds },
+                      )
+                    } else {
+                      const ids = args.component.get('ids') || []
+                      ids.forEach((id: string) => {
+                        cache.component.remove(
+                          cache.component.get(id)?.component,
+                        )
+                        console.log(
+                          `%cRemoved "${id}" from page "${args.component.id}" (${nuiPage.page})`,
+                          `color:#95a5a6;`,
+                        )
+                      })
+
+                      args.component.set('ids', [])
+                    }
+                  }
+
+                  const children = u.array(
+                    nui.resolveComponents({
+                      components:
+                        childrensNUIPage.components?.map?.(
+                          (obj: ComponentObject) => {
+                            let child = nui.createComponent(
+                              obj,
+                              childrensNUIPage,
+                            )
+                            child = args.component.createChild(child)
+                            return child
+                          },
+                        ) || [],
+                      page: childrensNUIPage,
+                    }),
+                  )
+
+                  const renderChildren = (
+                    nuiPage: NUIPage,
+                    children: NUIComponent.Instance[],
+                  ) => {
+                    children?.forEach((child) => {
+                      if (nuiPage) {
+                        const cachedObj = cache.component.get(child)
+                        if (cachedObj) {
+                          if (cachedObj.page !== nuiPage.page) {
+                            cachedObj.page = nuiPage.page
+                          }
+                        }
+                      }
+
+                      const childNode = draw(child, ndomPage.rootNode, ndomPage)
+
+                      if (childNode) {
+                        if (ndomPage.rootNode?.contentDocument?.body) {
+                          if (
+                            !ndomPage.rootNode.contentDocument.body.contains(
+                              childNode,
+                            )
+                          ) {
+                            ndomPage.rootNode.contentDocument.body.appendChild(
+                              childNode,
+                            )
+                          }
+                        }
+                      }
+
+                      child?.length && renderChildren(nuiPage, child.children)
+                    })
+                  }
+
+                  renderChildren(childrensNUIPage, children)
+                },
+              )
+            }
+
+            if (!args.component.get('page')) {
+              args.component.on(nuiEvent.component.page.PAGE_CREATED, listen)
+            } else {
+              // Still create a ComponentPage even if the page name is empty to
+              // be in sync with the NUIPage
+              if (args.component.get('page')?.page === '') {
+                console.info(args.component.toJSON())
+                const ndomPage = getOrCreateNDOMPage(args.component)
+              }
+              listen()
+            }
+
+            args.component.children?.forEach?.(
+              (child: NUIComponent.Instance) => {
+                if (i._isIframeEl(args.node)) {
+                  args.node.contentDocument?.body.appendChild(
+                    this.draw(child, args.node, args.page, args) as HTMLElement,
+                  )
+                } else {
+                  args.node?.appendChild(
+                    this.draw(child, args.node, args.page, args) as HTMLElement,
+                  )
+                }
               },
             )
           }
-
-          if (!args.component.get('page')) {
-            args.component.on(nuiEvent.component.page.PAGE_CREATED, listen)
-          } else {
-            listen()
-          }
+        } else {
+          console.info(
+            `%cEncountered a page component with a rootNode that is not an iframe. This is not being handled`,
+            `color:#FF5722;`,
+            args,
+          )
         }
       }
       // SELECT
@@ -666,4 +796,4 @@ export default {
       }
     }
   },
-} as Resolve.Config
+} as t.Resolve.Config

@@ -1,4 +1,5 @@
 import Timers from './global/Timers'
+import NDOMPage from './Page'
 import * as t from './types'
 
 let _global: NDOMGlobal
@@ -29,8 +30,16 @@ export class NDOMGlobal {
     return this.#pages
   }
 
+  get pageIds() {
+    return Object.keys(this.#pages)
+  }
+
   get timers() {
     return this.#timers
+  }
+
+  add(page: NDOMPage) {
+    this.pages[page.id] = page
   }
 }
 

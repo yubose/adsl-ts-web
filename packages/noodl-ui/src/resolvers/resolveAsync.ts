@@ -11,7 +11,7 @@ async function resolveAsync(
 ) {
   try {
     const original = component.blueprint || {}
-    const { dataValue, path, placeholder } = original
+    const { dataValue, path, placeholder, postMessage } = original
 
     /* -------------------------------------------------------
       ---- DATAVALUE
@@ -73,14 +73,14 @@ asyncResolver.setResolver((component, options, next) => {
     ---- USER EVENTS (onClick, onHover, onBlur, etc)
   -------------------------------------------------------- */
 
-  userEvent.forEach((eventType) => {
+  userEvent.concat('postMessage').forEach((eventType) => {
     if (original[eventType]) {
       const actionChain = createActionChain(
         eventType,
         original[eventType] as NUIActionObject[],
       )
       component.edit({ [eventType]: actionChain })
-      component.style.cursor = 'pointer'
+      eventType !== 'postMessage' && (component.style.cursor = 'pointer')
     }
 
     if (original.onTextChange) {
@@ -88,6 +88,18 @@ asyncResolver.setResolver((component, options, next) => {
       component.edit({ ['onInput']: actionChain })
     }
   })
+
+  /* -------------------------------------------------------
+      ---- POST MESSAGE (From page component)
+    -------------------------------------------------------- */
+
+  // if (Identify.folds.emit(original?.postMessage?.emit)) {
+  //   component.edit({
+  //     postMessage: createActionChain('postMessage', [
+  //       { emit: original.postMessage.emit, actionType: 'emit' },
+  //     ]),
+  //   })
+  // }
 
   resolveAsync(component, options)
 

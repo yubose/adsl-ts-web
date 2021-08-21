@@ -3,11 +3,12 @@ import * as nu from 'noodl-utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import Resolver from '../Resolver'
+import cache from '../_cache'
 import * as n from '../utils/noodl'
 
 const setupResolver = new Resolver('resolveSetup')
 
-setupResolver.setResolver((component, { cache, getRoot, page }, next) => {
+setupResolver.setResolver((component, { getRoot, page }, next) => {
   const { path } = component.blueprint || {}
   // if (Identify.if(path)) {
   // Override the NUI getter for 'path' if the if object evaluates to a

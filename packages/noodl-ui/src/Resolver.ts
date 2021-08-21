@@ -72,13 +72,7 @@ class ComponentResolver<
   }
 
   resolve(component: NUIComponent.Instance, options: ConsumerOptions) {
-    if (!component) {
-      console.log(`Component is null or undefined`, {
-        ...options,
-        componentResolverId: this.name,
-      })
-      return
-    }
+    if (!component) return
     const resolveNext = function _resolveNext(
       this: ComponentResolver<Func>,
       opts?: Record<string, any>,

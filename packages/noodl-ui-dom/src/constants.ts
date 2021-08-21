@@ -1,4 +1,7 @@
-import { dataAttributes as noodluiDataAttributes } from 'noodl-ui'
+import {
+  dataAttributes as noodluiDataAttributes,
+  trigger as nuiTrigger,
+} from 'noodl-ui'
 
 export const BASE_PAGE_URL = 'index.html?'
 export const classes = {
@@ -77,3 +80,6 @@ export const DATA_OPTIONS = 'data-options'
 export const DATA_PLACEHOLDER = 'data-placeholder'
 export const DATA_VIEWTAG = 'data-viewtag'
 export const DATA_UX = 'data-ux'
+
+export const trigger = { ...nuiTrigger, POST_MESSAGE: 'postMessage' } as const
+export const triggers = Object.values(trigger)

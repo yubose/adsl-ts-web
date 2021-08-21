@@ -709,7 +709,8 @@ const createExtendedDOMResolvers = function (app: App) {
           //Austin Yu 8/6/2021
           // link.href = 'https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
           // link.href = 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
-          link.href = 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.1.1/dist/mapbox-gl.css'
+          link.href =
+            'https://cdn.jsdelivr.net/npm/mapbox-gl@2.1.1/dist/mapbox-gl.css'
           link.rel = 'stylesheet'
           document.head.appendChild(link)
           if (dataValue.mapType == 1) {
@@ -1019,6 +1020,53 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    // TODO - Move to default noodl-ui-dom lib implementation
+    '[App] Page component': {
+      cond: ({ component, elementType }) =>
+        elementType === 'IFRAME' &&
+        String(component?.blueprint?.path)?.endsWith('.html'),
+      resolve({ component, node }) {
+        const iframeEl = node as HTMLIFrameElement
+        // try {
+        //   iframeEl.addEventListener('message', function (msg) {
+        //     const postMessage = component.get('postMessage') as NUIActionChain
+        //     const dataObject = msg.data
+        //     log.func('postMessage (iframeEl)')
+        //     log.green(`%cReceived message in page component`, {
+        //       dataObject,
+        //       message: msg,
+        //       postMessage,
+        //     })
+        //     postMessage.data.set('someData', dataObject)
+        //     postMessage?.execute?.(msg)
+        //   })
+        // } catch (error) {
+        //   console.error(error)
+        // }
+
+        iframeEl.addEventListener(
+          'load',
+          function (evt) {
+            log.func('load')
+            log.grey(`Entered onload event for page remote (http) component`)
+          },
+          { once: true },
+        )
+
+        iframeEl.contentWindow?.addEventListener('message', function (msg) {
+          const postMessage = component.get('postMessage') as NUIActionChain
+          const dataObject = msg.data
+          log.func('postMessage (parent)')
+          log.green(`%cReceived message in page component`, {
+            dataObject,
+            message: msg,
+            postMessage,
+          })
+          postMessage.data.set('someData', dataObject)
+          postMessage?.execute?.(msg)
+        })
+      },
+    },
     '[App] Password textField': {
       cond: 'textField',
       resolve({ node, component }) {
@@ -1161,43 +1209,3 @@ const createExtendedDOMResolvers = function (app: App) {
 }
 
 export default createExtendedDOMResolvers
-
-if (module.hot) {
-  module.hot.accept()
-
-  if (module.hot.status() === 'apply') {
-    console.log(
-      `%c[apply-dom] Module hot data`,
-      `color:#e50087;`,
-      module.hot.data,
-    )
-    module.hot.data.fruits = ['apple']
-    console.log(
-      `%c[apply-dom] Module hot data now`,
-      `color:#e50087;`,
-      module.hot.data,
-    )
-    // module.hot?.data.app.reset()
-    // app = module.hot?.data.app
-  }
-
-  if (module.hot.status() === 'idle') {
-    console.log(
-      `%c[idle-dom] Module hot data`,
-      `color:#00b406;`,
-      module.hot.data,
-    )
-  }
-
-  if (module.hot.status() === 'prepare') {
-    console.log(
-      `%c[prepare-dom] Module hot data`,
-      `color:#3498db;`,
-      module.hot.data,
-    )
-  }
-
-  if (module.hot.status() === 'watch') {
-    console.log(`%c[watch-dom]`, `color:#FF5722;`, module.hot.data)
-  }
-}
