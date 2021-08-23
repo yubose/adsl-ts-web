@@ -321,6 +321,13 @@ componentResolver.setResolver((component, options, next) => {
            * fontSize----> fontSize
            * fontWeight---> normal | bold | number
            */
+           if(item?.dataKey){
+            const dataObject = findDataValue(
+              [() => getRoot(), () => getRoot()[page.page]],
+              item?.dataKey,
+            )
+            item.text = u.isObj(dataObject) ? get(dataObject, item?.datKey) : dataObject
+          }
           const text = createComponent({
             type: 'label',
             style: {
