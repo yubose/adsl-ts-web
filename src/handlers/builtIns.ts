@@ -458,7 +458,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
     if (destination.startsWith('http')) {
       // This is for testing in mobile mode to prevent the auto-redirection to google play store
-      return
+      // return
     }
 
     if (id) {
@@ -605,11 +605,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           components,
           nodes: components.map((c) => getFirstByElementId(c)),
         })
-        
       }
 
       let startCount = 0
-      
 
       while (startCount < numComponents) {
         const _component = components[startCount]
