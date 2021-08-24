@@ -32,6 +32,8 @@ export interface Hooks {
     node: HTMLElement | null
     page: NDOMPage
   }): OrPromise<void>
+  onBeforeRequestPageObject(page: NDOMPage): void
+  onAfterRequestPageObject(page: NDOMPage): void
 }
 
 export type DOMNodeInput =

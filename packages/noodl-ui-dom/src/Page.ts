@@ -44,9 +44,9 @@ class Page {
 
   clearRootNode() {
     if (!this.rootNode) {
-      // @ts-expect-error
-      this.rootNode = (document.getElementById(String(this.id)) ||
-        document.createElement('div')) as HTMLDivElement
+      this.rootNode =
+        document.getElementById(String(this.id)) ||
+        document.createElement('div')
       this.rootNode.id = this.id as string
     }
     this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.rootNode)
@@ -91,12 +91,16 @@ class Page {
     return this.#nuiPage?.components
   }
 
+  get created() {
+    return this.#nuiPage?.created
+  }
+
   get hooks() {
     return this.#hooks
   }
 
   get id() {
-    return this.#nuiPage.id as string
+    return this.#nuiPage?.id as string
   }
 
   get modifiers() {
@@ -134,7 +138,7 @@ class Page {
   }
 
   get viewport() {
-    return this.#nuiPage.viewport as Viewport
+    return this.#nuiPage?.viewport as Viewport
   }
 
   set viewport(viewport) {
@@ -180,6 +184,7 @@ class Page {
     opts?: OtherProps,
   ) {
     const snapshot = {
+      created: this.created,
       id: this.id,
       components: this.components,
       modifiers: this.modifiers,
@@ -196,8 +201,10 @@ class Page {
         id: this.rootNode.id,
         width: this.rootNode.style.width,
         height: this.rootNode.style.height,
-        childrenCount: this.rootNode.children?.length || 0,
+        childElementCount: this.rootNode.childElementCount,
+        tagName: this.rootNode.tagName,
       },
+      tagName: this.tagName,
       ...opts,
     }
     return snapshot as typeof snapshot & OtherProps
@@ -262,7 +269,7 @@ class Page {
 
   remove() {
     try {
-      this.#nuiPage.viewport = null as any
+      this.#nuiPage?.viewport && (this.#nuiPage.viewport = null as any)
       u.isArr(this.components) && (this.components.length = 0)
       u.values(this.#hooks).forEach((v) => v && (v.length = 0))
     } catch (error) {
@@ -270,11 +277,8 @@ class Page {
     }
   }
 
-  reset<K extends keyof t.Page.State = keyof t.Page.State>(slice?: K) {
-    if (slice) {
-    } else {
-      this.remove()
-    }
+  reset() {
+    this.remove()
   }
 }
 

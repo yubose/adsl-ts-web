@@ -245,7 +245,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
       })
       expect(page.previous).to.eq('')
       expect(page.requesting).to.eq(pageName)
-      expect(page.page).to.eq('')
+      expect(page.page).not.to.eq(newPage)
       page.page = newPage
       expect(page.page).to.eq(newPage)
       await ndom.request(page)

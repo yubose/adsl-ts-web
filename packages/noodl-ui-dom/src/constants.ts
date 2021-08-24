@@ -3,7 +3,11 @@ import {
   trigger as nuiTrigger,
 } from 'noodl-ui'
 
+export const ARIA_LABELLEDBY = 'aria-labelledby'
+export const ARIA_HIDDEN = 'aria-hidden'
+export const ARIA_LABEL = 'aria-label'
 export const BASE_PAGE_URL = 'index.html?'
+export const CONTENT_SECURITY_POLICY = 'Content-Security-Policy'
 export const classes = {
   ECOS_DOC: 'ecosdoc',
   ECOS_DOC_IMAGE: 'ecosdoc-image',
@@ -30,6 +34,17 @@ export const classes = {
   SCROLL_VIEW: 'scroll-view',
   TEXT_BOARD: 'text-board',
 } as const
+export const CREATE_GLOBAL_ID = 'CREATE_GLOBAL_ID'
+export const DATA_KEY = 'data-key'
+export const DATA_VALUE = 'data-value'
+export const DATA_NAME = 'data-name'
+export const DATA_SRC = 'data-src'
+export const DATA_GLOBALID = 'data-globalid'
+export const DATA_LISTID = 'data-listid'
+export const DATA_OPTIONS = 'data-options'
+export const DATA_PLACEHOLDER = 'data-placeholder'
+export const DATA_VIEWTAG = 'data-viewtag'
+export const DATA_UX = 'data-ux'
 
 export const dataAttributes = [
   ...noodluiDataAttributes,
@@ -37,6 +52,12 @@ export const dataAttributes = [
 ] as const
 
 export const eventId = {
+  componentPage: {
+    on: {
+      ON_LOAD: 'ON_LOAD',
+      ON_ERROR: 'ON_ERROR',
+    },
+  },
   page: {
     /** Sorted by order of occurrence */
     on: {
@@ -67,19 +88,6 @@ export const eventId = {
     },
   },
 } as const
-
-export const CREATE_GLOBAL_ID = 'CREATE_GLOBAL_ID'
-
-export const DATA_KEY = 'data-key'
-export const DATA_VALUE = 'data-value'
-export const DATA_NAME = 'data-name'
-export const DATA_SRC = 'data-src'
-export const DATA_GLOBALID = 'data-globalid'
-export const DATA_LISTID = 'data-listid'
-export const DATA_OPTIONS = 'data-options'
-export const DATA_PLACEHOLDER = 'data-placeholder'
-export const DATA_VIEWTAG = 'data-viewtag'
-export const DATA_UX = 'data-ux'
 
 export const trigger = { ...nuiTrigger, POST_MESSAGE: 'postMessage' } as const
 export const triggers = Object.values(trigger)

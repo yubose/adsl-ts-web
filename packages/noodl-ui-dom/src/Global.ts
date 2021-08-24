@@ -12,7 +12,7 @@ export class NDOMGlobal {
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       components: this.components,
-      pags: this.pages,
+      pages: this.pages,
       timers: this.timers,
     }
   }
@@ -32,6 +32,14 @@ export class NDOMGlobal {
 
   get pageIds() {
     return Object.keys(this.#pages)
+  }
+
+  get pageNames() {
+    return Object.values(this.#pages).reduce(
+      (acc, page) =>
+        typeof page.page === 'string' ? acc.concat(page.page) : acc,
+      [] as string[],
+    )
   }
 
   get timers() {

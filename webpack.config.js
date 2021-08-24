@@ -1,4 +1,5 @@
 const u = require('@jsmanifest/utils')
+const fs = require('fs-extra')
 const path = require('path')
 const webpack = require('webpack')
 const singleLog = require('single-line-log').stdout
@@ -74,7 +75,6 @@ const commonHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
     'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-  'Access-Control-Allow-Methods': ['GET', 'DELETE', 'HEAD', 'OPTIONS'],
 }
 
 /** @param { import('express').Response } resp */
@@ -87,7 +87,15 @@ const setHeadersOnResp = (resp) => {
 
 /** @type { import('webpack-dev-server').Configuration } */
 const devServerOptions = {
-  allowedHosts: ['localhost', '127.0.0.1', 'aitmed.com', 'aitmed.io'],
+  allowedHosts: [
+    'localhost',
+    '127.0.0.1',
+    '127.0.0.1:3000',
+    'https://127.0.0.1',
+    'https://127.0.0.1:3000',
+    'aitmed.com',
+    'aitmed.io',
+  ],
   clientLogLevel: 'info',
   compress: false,
   contentBase: [publicPath],
@@ -102,7 +110,12 @@ const devServerOptions = {
   //     next()
   //   })
   // },
-  https: true,
+  // http2: true,
+  // https: {
+  //   ca: fs.readFileSync(path.resolve(path.join(__dirname, './dev/key.pem'))),
+  //   cert: fs.readFileSync(path.resolve(path.join(__dirname, './dev/cert.pem'))),
+  //   key: fs.readFileSync(path.resolve(path.join(__dirname, './dev/key.pem'))),
+  // },
   overlay: true,
   // staticOptions: {
   //   setHeaders(resp, path, stat) {

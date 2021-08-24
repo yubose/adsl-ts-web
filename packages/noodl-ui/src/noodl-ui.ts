@@ -771,12 +771,12 @@ const NUI = (function () {
            */
           cache.page.remove(page)
           const component = args?.component as t.NUIComponent.Instance
-          page = cache.page.create(component, page)
+          page = cache.page.create({ id: component.id })
         }
       }
 
       name && page && (page.page = name)
-      ;(page as NUIPage).use(() => o.getRoot()[page?.page || '']?.components)
+      ;(page as NUIPage)?.use(() => o.getRoot()[page?.page || '']?.components)
 
       return page
     },

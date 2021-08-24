@@ -18,8 +18,11 @@ import {
   ndom,
   waitForPageChildren,
 } from '../test-utils'
+import type NDOMPage from '../Page'
 import { findByElementId, findBySelector, getFirstByElementId } from '../utils'
 import { cache } from '../nui'
+import * as i from '../utils/internal'
+import ComponentPage from '../factory/componentFactory/ComponentPage'
 
 describe(nc.coolGold('components'), () => {
   describe(nc.italic(`Page`), () => {
@@ -137,6 +140,10 @@ describe(nc.coolGold('components'), () => {
       return renderer
     }
 
+    xit(`should set tagName as iframe by default`, () => {
+      //
+    })
+
     xit(`should create an NDOM page if it hasn't already been created`, () => {
       //
     })
@@ -172,18 +179,31 @@ describe(nc.coolGold('components'), () => {
     })
 
     it(`should have the same pages in NDOM global as the amount of pages in the NUI page cache`, async () => {
-      const { render } = createRender()
-      await render()
+      const { ndom, render } = _createRender({
+        pageName: 'Hello',
+        root: {
+          Donut: {
+            components: [ui.view({ children: [ui.button(), ui.label()] })],
+          },
+          Hello: { components: [ui.view({ children: [ui.page('Donut')] })] },
+        },
+      })
+      ndom.use({ getPages: () => ['Donut', 'Hello'] })
+      const view = await render()
+      const pageComponent = view.child()
+
       await waitFor(() => {
-        const pageElem = getFirstByElementId('page123') as HTMLIFrameElement
-        const pageElemBody = pageElem?.contentDocument?.body
-        expect(pageElemBody?.childElementCount).to.be.greaterThan(0)
+        const componentPage = ndom.findPage(pageComponent)
+        expect(componentPage?.body).to.exist
+        expect(componentPage.body)
+          .to.have.property('children')
+          .to.have.length.greaterThan(0)
       })
       expect(u.keys(ndom.pages)).to.have.lengthOf(cache.page.length)
     })
 
     it(`should still render an empty iframe if path is an empty string`, async () => {
-      const { render, pageObject } = createRender({
+      const { render } = createRender({
         root: (currentRoot) => {
           currentRoot.Hello.components[0].children[1].children[0].path = ''
           return currentRoot
@@ -197,7 +217,7 @@ describe(nc.coolGold('components'), () => {
     })
 
     it(`should still set the NDOM page to global pages if path is an empty string`, async () => {
-      const { nui, page, render } = createRender({
+      const { render } = createRender({
         root: (currentRoot) => {
           currentRoot.Hello.components[0].children[1].children[0].path = ''
           return currentRoot
@@ -205,11 +225,10 @@ describe(nc.coolGold('components'), () => {
       })
       await render()
       await waitFor(() => {
-        const pageElem = getFirstByElementId('page123') as HTMLIFrameElement
+        const pageElem = findBySelector('page') as HTMLIFrameElement
         const pageElemBody = pageElem?.contentDocument?.body
         expect(pageElemBody?.childElementCount).to.eq(0)
       })
-      console.info(page.components[0].children[1])
       await waitFor(() =>
         expect(ndom.global.pageIds).to.have.lengthOf(cache.page.length),
       )
@@ -230,9 +249,9 @@ describe(nc.coolGold('components'), () => {
           getFirstByElementId('donutInput'),
         )
         const component = cache.component.get('page123').component
-        const page = component.get('page') as NUIPage
-        page.page = 'Cereal'
-        ndom.findPage(page).requesting = 'Cereal'
+        const ndomPage = ndom.findPage(component.get('page') as NUIPage)
+        ndomPage.page = 'Tiger'
+        ndomPage.requesting = 'Tiger'
         component.emit(nuiEvent.component.page.PAGE_CHANGED)
         await waitForPageChildren()
         expect(getPageElemBody())
@@ -331,163 +350,112 @@ describe(nc.coolGold('components'), () => {
         return { ...obj, id: _counter } as ComponentObject
       }
 
-      xit(`should return all the component ids that are currently active in the DOM`, async () => {
-        const view1Obj = { type: 'view', children: [ui.label()] }
-        const view2Obj = {
-          type: 'view',
-          children: [ui.page({ id: 'page123', path: 'Cereal' })],
+      describe(`syncing with component cache`, () => {
+        function getCreateRenderOptions({
+          targetPage = 'Cereal',
+          ...opts
+        }: Record<string, any> = {}) {
+          return {
+            pageName: 'Hello',
+            root: (c) => ({
+              ...c,
+              ...getRoot({
+                Hello: {
+                  components: [
+                    { id: 'p1', type: 'view', children: [ui.label()] },
+                    { id: 'p2', type: 'view', children: [ui.page(targetPage)] },
+                  ],
+                },
+              }),
+            }),
+            ...opts,
+          }
         }
-        const { render } = createRender({
-          components: [view1Obj, view2Obj],
-          root: getRoot,
-        })
 
-        await render('Hello')
+        function changeToTigerPage(
+          ndomPage: NDOMPage,
+          component: NUIComponent.Instance,
+        ) {
+          ndomPage.page = 'Tiger'
+          ndomPage.requesting = 'Tiger'
+          component.emit(nuiEvent.component.page.PAGE_CHANGED)
+        }
 
-        const { component: pageComponent } = cache.component.get('page123')
-        const flattenedComponents = flattenComponents(pageComponent)
-
-        const allIds = flattenedComponents
-          .map(({ id }) => id)
-          .sort((a, b) => (a < b ? -1 : 0))
-
-        await waitFor(() => {
-          const pageElem = getPageElem()
-          expect(pageElem).to.exist
-          expect(pageElem.contentDocument?.body)
-            .to.have.property('children')
-            .to.have.lengthOf(1)
-        })
-      })
-
-      it(`should be in sync with the component cache`, async () => {
-        const pageComponentObject = ui.page('Cereal')
-        const { ndom, pageObject, render } = createRender({
-          pageName: 'Hello',
-          root: (c) => ({
-            ...c,
-            ...getRoot({
-              Hello: {
-                components: [
-                  { id: 'p1', type: 'view', children: [ui.label()] },
-                  { id: 'p2', type: 'view', children: [pageComponentObject] },
-                ],
-              },
-            }),
-          }),
-        })
-
-        await render()
-
-        const view = cache.component.get('p1').component
-        const view2 = cache.component.get('p2').component
-        const pageComponent = view2.child()
-        const nuiPage = pageComponent.get('page') as NUIPage
-
-        await waitForPageChildren()
-
-        const expectedCurrentComponentCount = 16
-
-        expect(cache.component.length).to.eq(expectedCurrentComponentCount)
-
-        let pageChildrenIds = pageComponent.get('ids') as string[]
-        let cachedComponentIds = [
-          ...Array.from(cache.component.get().values()).map(
+        it(`should add all the page descendant children to the component cache`, async () => {
+          const { render } = createRender(getCreateRenderOptions())
+          await render()
+          const view2 = cache.component.get('p2').component
+          const pageComponent = view2.child()
+          await waitForPageChildren()
+          const expectedCurrentComponentCount = 16
+          expect(cache.component.length).to.eq(expectedCurrentComponentCount)
+          const pageChildrenIds = i._getDescendantIds(pageComponent)
+          const cachedComponentIds = [...cache.component.get().values()].map(
             (obj) => obj.component.id,
-          ),
-        ]
-        expect(pageChildrenIds).to.satisfy(
-          () => pageChildrenIds.every((id) => cachedComponentIds.includes(id)),
-          `All page components (${pageChildrenIds.length}) should be in the component cache`,
-        )
+          )
+          expect(pageChildrenIds).to.satisfy(() =>
+            pageChildrenIds.every((id) => cachedComponentIds.includes(id)),
+          )
+        })
 
-        nuiPage.page = 'Tiger'
-        ndom.findPage(nuiPage).requesting = 'Tiger'
-        pageComponent.emit(nuiEvent.component.page.PAGE_CHANGED)
+        xit(`should remove all the previous descendant page children from the component cache`, async () => {
+          const { ndom, render } = createRender(getCreateRenderOptions())
+          await render()
+          const pageComponent = cache.component.get('p2').component.child()
+          await waitForPageChildren()
+          const oldPageChildrenIds = i._getDescendantIds(pageComponent)
+          const componentPage = ndom.findPage(
+            pageComponent.get('page') as NUIPage,
+          ) as ComponentPage
+          oldPageChildrenIds.forEach((id) => {
+            expect(cache.component.get(id)).to.exist
+          })
 
-        await waitFor(() => {
-          expect(
-            findBySelector('page').contentDocument?.getElementById(
+          console.info(
+            `
+oldIds: ${oldPageChildrenIds}
+newIds: ${i._getDescendantIds(pageComponent)}
+            `,
+          )
+          changeToTigerPage(componentPage, pageComponent)
+          await waitForPageChildren()
+          console.info(`PAGE COMPONENT`, pageComponent)
+          console.info(
+            `
+oldIds: ${oldPageChildrenIds}
+newIds: ${i._getDescendantIds(pageComponent)}
+            `,
+          )
+
+          await waitFor(() => {
+            oldPageChildrenIds.forEach((id) => {
+              expect(cache.component.get(id)).to.not.exist
+            })
+          })
+        })
+
+        it(`should not have additional components in the cache that have their page set to the page component's target page after resolving`, async () => {
+          let { render } = createRender(
+            getCreateRenderOptions({ targetPage: 'Tiger' }),
+          )
+          await render()
+          await waitForPageChildren()
+          let pageComponent = cache.component.get('p2').component.child()
+          let ndomPage = ndom.findPage(pageComponent.get('page') as NUIPage)
+          changeToTigerPage(ndomPage, pageComponent)
+          await waitForPageChildren()
+          pageComponent = cache.component.get('p2').component.child()
+
+          await waitFor(() => {
+            const ids = i._getDescendantIds(pageComponent)
+            expect(ids).to.have.lengthOf(3)
+            expect(ids).to.have.all.members([
+              'tigerView',
+              'tigerScrollView',
               'tigerButton',
-            ),
-          ).to.exist
+            ])
+          })
         })
-
-        const oldPageChildrenIds = pageChildrenIds
-
-        pageChildrenIds = pageComponent.get('ids') as string[]
-        cachedComponentIds = Array.from(cache.component.get().values()).map(
-          (obj) => obj?.component?.id,
-        )
-
-        expect(oldPageChildrenIds).to.satisfy(
-          () => oldPageChildrenIds.every((id) => !cache.component.get(id)),
-          'All components from the previous page should be removed from the cache',
-        )
-
-        expect(
-          cache.component.get(findBySelector('page').id).component,
-        ).to.have.length.greaterThan(0)
-
-        expect(pageChildrenIds).to.satisfy(
-          () => pageChildrenIds.every((id) => cache.component.has(id)),
-          'All components from the Tiger page should be in the cache',
-        )
-        const helloPageComponents = Array.from(cache.component.get()).reduce(
-          (acc, [id, { component, page }]) => {
-            if (page === 'Hello') acc.push(component)
-            return acc
-          },
-          [] as NUIComponent.Instance[],
-        )
-        expect(helloPageComponents).to.satisfy(
-          () => helloPageComponents.every(({ id }) => cache.component.has(id)),
-          'All components from the parent (Hello) page should still be in the cache',
-        )
-        expect(helloPageComponents).to.have.lengthOf(4)
-      })
-
-      it(`should not have additional components in the cache that have their page set to the page component's target page after resolving`, async () => {
-        const pageComponentObject = ui.page({ id: 'page123', path: 'Cereal' })
-        const { render } = createRender({
-          pageName: 'Hello',
-          root: (c) => ({
-            ...c,
-            ...getRoot({
-              Hello: {
-                components: [
-                  { id: 'p1', type: 'view', children: [ui.label()] },
-                  { id: 'p2', type: 'view', children: [pageComponentObject] },
-                ],
-              },
-            }),
-          }),
-        })
-        await render()
-        const pageComponent = cache.component.get('p2').component.child()
-        const nuiPage = pageComponent.get('page') as NUIPage
-        await waitForPageChildren()
-        nuiPage.page = 'Tiger'
-        ndom.findPage(nuiPage).requesting = 'Tiger'
-        pageComponent.emit(nuiEvent.component.page.PAGE_CHANGED)
-        await waitForPageChildren()
-        await waitFor(() => {
-          expect(getPageComponentChildIds(pageComponent)).to.have.all.members([
-            'tigerView',
-            'tigerScrollView',
-            'tigerButton',
-          ])
-        })
-      })
-    })
-
-    xit(`should receive the NUIPage instance on its 'page' prop in the resolve function`, async () => {
-      const { render } = createRender()
-      const view = await render()
-      await waitFor(() => {
-        expect(view.child()).to.have.property('type', 'page')
-        expect(view.child().get('page')).to.exist
-        // expect(isNUIPage(view.child().get('page'))).to.be.true
       })
     })
 
@@ -499,20 +467,92 @@ describe(nc.coolGold('components'), () => {
       //
     })
 
-    xit(`should not duplicate any children`, async () => {
-      const view = await render()
-      const pageNode = findByElementId(view.child().id) as HTMLIFrameElement
+    it(`should render normally as with non page components`, async () => {
+      const listObject = [
+        { greeting: 'good morning', btnText: 'Click' },
+        { greeting: 'good bye', btnText: 'Dont click' },
+      ]
+      const { render } = createRender({
+        root: (currRoot) => ({
+          ...currRoot,
+          Donut: {
+            components: [
+              ui.view({
+                id: 'container',
+                children: [
+                  ui.divider(),
+                  ui.list({
+                    iteratorVar: 'itemObject',
+                    listObject,
+                    children: [
+                      ui.listItem({
+                        children: [
+                          ui.textField('itemObject.greeting'),
+                          ui.label({ dataKey: 'itemObject.btnText' }),
+                        ],
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          },
+        }),
+        components: [ui.view({ children: [ui.page('Donut')] })],
+      })
+      const viewComponent = await render()
+      const pageComponent = viewComponent.child()
+      let pageEl = getFirstByElementId(pageComponent) as HTMLIFrameElement
+      let pageBodyEl: HTMLBodyElement
+
+      expect(pageEl).to.exist
+      expect(pageEl).to.be.instanceOf(HTMLIFrameElement)
+
       await waitFor(() => {
-        const childrenList = Array.from(
-          pageNode.contentDocument?.body.children as HTMLCollection,
+        expect((pageBodyEl = pageEl.contentDocument.body as HTMLBodyElement))
+          .to.have.property('children')
+          .with.lengthOf(1)
+      })
+
+      const containerEl = pageBodyEl.firstChild as HTMLDivElement
+      expect(containerEl).to.have.property('children').with.lengthOf(2)
+      expect(containerEl.firstChild).to.have.property('tagName', 'HR')
+      expect(containerEl.childNodes.item(1)).to.have.property('tagName', 'UL')
+      const listEl = containerEl.querySelector('ul') as HTMLUListElement
+      expect(listEl).to.have.property('children').lengthOf(listObject.length)
+      listObject.forEach((obj, index) => {
+        const listItemEl = listEl.childNodes.item(index) as HTMLLIElement
+        expect(listItemEl).to.have.property('children').lengthOf(2)
+        expect(listItemEl.firstChild).to.have.property('tagName', 'INPUT')
+        expect(listItemEl.lastChild).to.have.property('tagName', 'DIV')
+        const inputEl = listItemEl.querySelector('input') as HTMLInputElement
+        const labelEl = listItemEl.querySelector('div') as HTMLDivElement
+        expect(inputEl).to.have.property('value', obj.greeting)
+        expect(labelEl).to.have.property('innerHTML', obj.btnText)
+      })
+    })
+
+    it(`should not duplicate any children`, async () => {
+      const { getRoot, page, pageObject, render } = createRender({
+        components: [ui.view({ children: [ui.page('Donut')] })],
+      })
+      const view = await render()
+      const pageComponent = view.child()
+      await waitFor(() => {
+        const pageNode = getFirstByElementId(pageComponent) as HTMLIFrameElement
+        const pageBody = pageNode?.contentDocument?.body
+        expect(pageBody).to.exist
+        expect(pageBody.childElementCount).to.eq(
+          getRoot().Donut.components.length,
         )
-        expect(childrenList).to.have.length.greaterThan(0)
-        expect(childrenList).to.have.length(1)
+        expect(pageBody)
+          .to.have.property('childNodes')
+          .to.have.length(getRoot().Donut.components.length)
       })
     })
 
     xit(`should update the root object which should also reflect in the root page`, async () => {
-      const { getRoot, render: renderProp, nui } = await render((opts) => opts)
+      const { getRoot, render: renderProp, nui } = createRender()
       nui.use({
         emit: {
           onChange: async () =>

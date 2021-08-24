@@ -36,6 +36,16 @@ export const triggers = [
   'postMessage',
 ]
 
+export const cache = {
+  page: {
+    hooks: {
+      PAGE_CREATED: 'PAGE_CREATED',
+      PAGE_REMOVED: 'PAGE_REMOVED',
+      PAGE_UPDATED: 'PAGE_UPDATED',
+    },
+  },
+} as const
+
 export const groupedActionTypes = actionTypes.filter(
   (t) => !/(builtIn|emit|register)/i.test(t),
 ) as Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>[]

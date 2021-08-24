@@ -26,9 +26,11 @@ afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
   ndom.reset()
+  // _syncPages.call(ndom)
 })
 
 after(() => {
   logStub.restore()
   // invariantStub.restore()
+  console.info(ndom)
 })

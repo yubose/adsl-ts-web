@@ -6,8 +6,6 @@ import { Component } from 'noodl-ui'
 import { getPageAncestor } from './utils'
 import { cache, nui } from './nui'
 import attributesResolver from './resolvers/attributes'
-import componentsResolver from './resolvers/components'
-import componentFactory from './factory/componentFactory/componentFactory'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import * as t from './types'
@@ -44,7 +42,6 @@ export default class NDOMResolver {
     return {
       cache,
       component: args.component,
-      // createPage: args.ndom.createPage.bind(args.ndom),
       createPage: args.ndom.createPage.bind(args.ndom),
       draw: args.ndom.draw.bind(args.ndom),
       editStyle: this.createStyleEditor(args.component),
@@ -59,13 +56,18 @@ export default class NDOMResolver {
       redraw: args.ndom.redraw.bind(args.ndom),
       /**
        * REMINDER: This intentionally does not include componentsResolver due to
-       * circular references or infinite loops
+       * circular references/infinite loops
        */
       resolvers: [attributesResolver].concat(args.ndom.consumerResolvers),
       elementType: args.node?.tagName || '',
       componentType: args.component?.type || '',
-      setAttr: <K extends keyof t.NDOMElement>(k: K, v: any) =>
-        args.node?.setAttribute?.(k, v),
+      setAttr: <K extends keyof t.NDOMElement>(k: K, v: any) => {
+        if (/(innerHTML|innerText|textContent)/i.test(k)) {
+          args.node[k] = v
+        } else {
+          args.node?.setAttribute?.(k, v)
+        }
+      },
       setDataAttr: <K extends string>(dataAttr: K, v: string) =>
         args.node?.dataset &&
         dataAttr &&
@@ -116,7 +118,7 @@ export default class NDOMResolver {
     options: ReturnType<NDOMResolver['getOptions']>,
     callback: (options: ReturnType<NDOMResolver['getOptions']>) => void,
   ) {
-    if (u.isStr(cond)) {
+    if (cond && u.isStr(cond)) {
       // If they passed in a resolver strictly for this node/component
       if (cond === options.component?.type) return callback(options)
     } else if (u.isFnc(cond)) {

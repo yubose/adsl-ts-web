@@ -1,18 +1,21 @@
 import invariant from 'invariant'
 import { Identify, PageObject } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
-import {
+import type {
   ConsumerOptions,
+  NUIComponent,
+  Page as NUIPage,
+  Store,
+} from 'noodl-ui'
+import {
   createComponent,
   findIteratorVar,
   isComponent,
   isPage as isNUIPage,
   NUI,
-  NUIComponent,
   nuiEmitTransaction,
-  Page as NUIPage,
-  Store,
 } from 'noodl-ui'
+import type { ComponentPage } from './factory/componentFactory'
 import { getElementTag, openOutboundURL } from './utils'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import createAsyncImageElement from './utils/createAsyncImageElement'
@@ -29,6 +32,7 @@ import Resolver from './Resolver'
 import * as i from './utils/internal'
 import * as c from './constants'
 import * as t from './types'
+import isComponentPage from './utils/isComponentPage'
 
 const pageEvt = c.eventId.page
 const defaultResolvers = [attributeResolvers, componentResolvers]
@@ -36,17 +40,34 @@ const defaultResolvers = [attributeResolvers, componentResolvers]
 class NDOM extends NDOMInternal {
   #R: Resolver
   #createElementBinding = undefined as t.UseObject['createElementBinding']
-  #hooks = { onRedrawStart: [] } as Record<
-    keyof t.Hooks,
-    t.Hooks[keyof t.Hooks][]
-  >
+  #hooks = {
+    onRedrawStart: [],
+    onBeforeRequestPageObject: [],
+    onAfterRequestPageObject: [],
+  } as Record<keyof t.Hooks, t.Hooks[keyof t.Hooks][]>
   consumerResolvers = [] as t.Resolve.Config[]
   global = new NDOMGlobal()
-  page: NDOMPage // This is the main (root) page. All other pages are stored in this.global.pages
+  page: NDOMPage; // This is the main (root) page. All other pages are stored in this.global.pages
+
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return {
+      consumerResolvers: this.consumerResolvers,
+      global: {
+        components: this.global.components,
+        pages: this.global.pages,
+        pageIds: this.global.pageIds,
+        pageNames: this.global.pageNames,
+        timers: this.global.timers,
+      },
+      hooks: this.hooks,
+      resolvers: this.resolvers,
+    }
+  }
 
   constructor() {
     super()
     this.#R = new Resolver()
+    i._syncPages.call(this)
   }
 
   get actions() {
@@ -59,6 +80,10 @@ class NDOM extends NDOMInternal {
 
   get cache() {
     return nuiCache
+  }
+
+  get hooks() {
+    return this.#hooks
   }
 
   get length() {
@@ -77,74 +102,94 @@ class NDOM extends NDOMInternal {
     return this.cache.transactions
   }
 
-  createPage(component: NUIComponent.Instance): NDOMPage
-  createPage(nuiPage: NUIPage): NDOMPage
-  createPage(args: Parameters<typeof NUI['createPage']>[0]): NDOMPage
+  createPage(component: NUIComponent.Instance): ComponentPage
+  createPage(nuiPage: NUIPage): NDOMPage | ComponentPage
+  createPage(
+    args: Parameters<typeof NUI['createPage']>[0],
+  ): NDOMPage | ComponentPage
   createPage(args: {
     page: NUIPage
     viewport?: { width?: number; height?: number }
-  }): NDOMPage
+  }): ComponentPage | NDOMPage
   createPage(name: string): NDOMPage
   createPage(
     args?:
+      | NUIComponent.Instance
       | NUIPage
       | Parameters<typeof NUI['createPage']>[0]
       | { page: NUIPage; viewport?: { width?: number; height?: number } }
       | string,
   ) {
-    let page: NDOMPage | undefined
+    let page: NDOMPage | ComponentPage | undefined
 
-    if (isNUIPage(args)) {
-      page = this.findPage(args) || new NDOMPage(args)
-    } else if (isComponent(args)) {
-      page = this.findPage(args.get('page'))
+    const createComponentPage = (arg: NUIPage | NUIComponent.Instance) => {
+      if (arg?.id === 'root') {
+        if (!isNUIPage(arg)) {
+          console.log(
+            `%cA root NDOMPage is being instantiated but the argument given was not a NUIPage`,
+            `color:#ec0000;`,
+            arg,
+          )
+        }
+        return new NDOMPage(arg as NUIPage)
+      }
 
-      if (!page) {
-        console.log(
-          `%cNDOM page not found for a page component. Creating a new one now...`,
-          `color:#95a5a6;`,
-        )
-        page = componentFactory.createComponentPage(args.get('page'), {
+      return componentFactory.createComponentPage(
+        arg as NUIComponent.Instance,
+        {
           onLoad: (evt, node) => {
-            console.log(
+            console.info(
               `%c[onLoad] NUIPage loaded for page "${page?.page}" on a page component`,
               `color:#00b406;`,
               { event: evt, node },
             )
           },
           onError: (err) => {
-            console.log(
+            console.info(
               `%c[onError] Error creating an NDOM page for a page component: ${err.message}`,
               `color:#ec0000;`,
               err,
             )
           },
-        })
-      } else {
-        console.log(
-          `%cUsing existing NDOMPage for a page component`,
-          `color:#00b406;`,
-          arguments[0],
-        )
-      }
-    } else if (u.isObj(args)) {
-      if ('page' in args) {
-        page = this.findPage(args.page) || new NDOMPage(args.page)
-      } else if ('component' in args) {
-        page = componentFactory.createComponentPage(
-          args.component?.get?.('page') || (nui.createPage(args) as NUIPage),
-        )
-        this.global.add(page)
-      } else {
-        page = new NDOMPage(nui.createPage(args) as NUIPage)
-      }
-    } else {
-      page = new NDOMPage(nui.createPage() as NUIPage)
+        },
+      )
     }
 
-    if (page) {
-      if (!(page.id in this.global.pages)) this.global.add(page)
-      !this.page && (this.page = page)
+    if (isNUIPage(args)) {
+      return this.findPage(args) || createComponentPage(args)
+    } else if (isComponent(args)) {
+      return this.findPage(args) || createComponentPage(args)
+    } else if (u.isObj(args)) {
+      if ('page' in args) {
+        return this.createPage(args.page)
+      } else if ('component' in args) {
+        return this.createPage(args.component)
+      } else {
+        args.id && (page = this.findPage(args.id))
+        if (!page) return createComponentPage(nui.createPage(args) as NUIPage)
+      }
+    } else if (u.isStr(args) || u.isNum(args)) {
+      if (args === '') {
+        page = this.findPage('')
+        // Dispose the old one for the new one since we only support 1 loading
+        // page at a time
+        if (page) {
+          if (page.id !== 'root') {
+            i._removePage.call(this, page)
+            return this.createPage('')
+          }
+        } else {
+          return createComponentPage(nui.createPage() as NUIPage)
+        }
+      } else {
+        page = this.findPage(args)
+        return (
+          this.findPage(args) ||
+          createComponentPage(nui.createPage({ name: args }) as NUIPage)
+        )
+      }
+    } else {
+      return createComponentPage(nui.createPage({ name: args }) as NUIPage)
     }
 
     return page
@@ -181,36 +226,48 @@ class NDOM extends NDOMInternal {
    * @returns NDOMPage | null
    */
   findPage(nuiPage: NUIPage | NDOMPage | string): NDOMPage
-  findPage(pageComponent: NUIComponent.Instance, currentPage: string): NDOMPage
+  findPage(
+    pageComponent: NUIComponent.Instance,
+    currentPage?: string,
+  ): ComponentPage
   findPage(
     nuiPage: NUIComponent.Instance | NUIPage | NDOMPage | string,
     currentPage?: string,
   ) {
-    // TODO - Finish this isComponent block
     if (isComponent(nuiPage)) {
-      const page = nuiPage.get('page') as NUIPage
-      if (!page) {
-        const pagePath = nuiPage.get('path')
-        if (pagePath && u.isStr(pagePath)) return this.findPage(pagePath)
-        return this.findPage(nuiPage.id)
-      }
-      return this.findPage(page)
+      if (this.global.pages?.[nuiPage?.id]) return this.global.pages[nuiPage.id]
+      let component = nuiPage
+      let _nuiPage = component.get('page') as NUIPage
+      let pagePath = component.get('path') as string
+      if (isNUIPage(_nuiPage)) return this.findPage(_nuiPage)
+      if (u.isStr(pagePath)) return this.findPage(pagePath)
     } else if (isNUIPage(nuiPage)) {
       for (const page of u.values(this.global.pages)) {
-        if (
-          page.getNuiPage() === nuiPage ||
-          (page.page && page.page === nuiPage.page) ||
-          page.id === nuiPage.id
-        ) {
+        if (page.getNuiPage() === nuiPage) return page
+        if (page.getNuiPage().created === nuiPage.created) return page
+        if (this.findPage(page.id)?.getNuiPage?.() === nuiPage) return page
+        if (this.findPage(page.page)?.getNuiPage?.() === nuiPage) return page
+        if (this.findPage(page.requesting)?.getNuiPage?.() === nuiPage) {
           return page
         }
       }
+      return this.findPage(nuiPage.id as string)
     } else if (isNDOMPage(nuiPage)) {
       return nuiPage
-    } else if (u.isStr(nuiPage)) {
+    } else if (u.isStr(nuiPage) || u.isNum(nuiPage)) {
+      let value = nuiPage
+      if (value in this.global.pages) return this.global.pages[value]
       return u.values(this.pages).find((page) => {
-        if (page.id === nuiPage) return true
-        if (page.page && page.page === nuiPage) return true
+        if (value === '') {
+          if (page.id !== 'root') {
+            // Page that is still loading
+            if (page.page === '') return true
+            if (page.requesting === '') return true
+          }
+        } else if (value) {
+          if (page.requesting === value) return true
+          if (page.page === value) return true
+        }
         if (currentPage === '' && page.page === '') return true
         if (currentPage && currentPage === page.page) return true
         return false
@@ -340,7 +397,7 @@ class NDOM extends NDOMInternal {
      * Page components use NDOMPage instances that use their rootNode as an
      * HTMLIFrameElement. They will have their own way of clearing their tree
      */
-    if (page.rootNode.tagName !== 'IFRAME') page.clearRootNode()
+    !i._isIframeEl(page.rootNode) && page.clearRootNode()
 
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
 
@@ -425,39 +482,31 @@ class NDOM extends NDOMInternal {
       if (component.has?.('global')) {
         i.handleDrawGlobalComponent.call(this, node, component, page)
       }
+    }
 
-      if (node) {
-        const parent = component.has?.('global')
-          ? document.body
-          : container || document.body
+    if (node) {
+      const parent = component.has?.('global')
+        ? document.body
+        : container || document.body
 
-        // NOTE: This needs to stay above the code below or the children will
-        // not be able to access their parent during the resolver calls
-        !parent.contains(node) && parent.appendChild(node)
+      // NOTE: This needs to stay above the code below or the children will
+      // not be able to access their parent during the resolver calls
+      !parent.contains(node) && parent.appendChild(node)
 
-        if (Identify.component.page(component)) {
-          if (options?.onPageComponentLoad) {
-            node.addEventListener(
-              'load',
-              function (evt) {
-                options?.onPageComponentLoad?.({
-                  event: evt,
-                  node: node as HTMLIFrameElement,
-                  component,
-                  page,
-                })
-              },
-              { once: true },
-            )
-          } else {
-            this.#R.run({
-              ndom: this,
-              node,
-              component,
-              page,
-              resolvers: this.resolvers,
-            })
-          }
+      if (Identify.component.page(component)) {
+        if (options?.onPageComponentLoad) {
+          node.addEventListener(
+            'load',
+            function (evt) {
+              options?.onPageComponentLoad?.({
+                event: evt,
+                node: node as HTMLIFrameElement,
+                component,
+                page,
+              })
+            },
+            { once: true },
+          )
         } else {
           this.#R.run({
             ndom: this,
@@ -466,34 +515,39 @@ class NDOM extends NDOMInternal {
             page,
             resolvers: this.resolvers,
           })
-
-          /**
-           * Creating a document fragment and appending children to them is a
-           * minor improvement in first contentful paint on initial loading
-           * https://web.dev/first-contentful-paint/
-           */
-          let container = Identify.component.list(component)
-            ? document.createDocumentFragment()
-            : node
-
-          component.children?.forEach?.((child: NUIComponent.Instance) => {
-            const childNode = this.draw(
-              child,
-              node,
-              page,
-              options,
-            ) as HTMLElement
-            childNode && container?.appendChild(childNode)
-          })
-
-          if (container.nodeType === container.DOCUMENT_FRAGMENT_NODE) {
-            node.appendChild(container)
-          }
-
-          container = null as any
+          if (!component.length) return node
         }
+      } else {
+        this.#R.run({
+          ndom: this,
+          node,
+          component,
+          page,
+          resolvers: this.resolvers,
+        })
+
+        /**
+         * Creating a document fragment and appending children to them is a
+         * minor improvement in first contentful paint on initial loading
+         * https://web.dev/first-contentful-paint/
+         */
+        let container = Identify.component.list(component)
+          ? document.createDocumentFragment()
+          : node
+
+        component.children?.forEach?.((child: NUIComponent.Instance) => {
+          const childNode = this.draw(child, node, page, options) as HTMLElement
+          childNode && container?.appendChild(childNode)
+        })
+
+        if (container.nodeType === container.DOCUMENT_FRAGMENT_NODE) {
+          node.appendChild(container)
+        }
+
+        container = null as any
       }
     }
+
     return node || null
   }
 
@@ -543,7 +597,7 @@ class NDOM extends NDOMInternal {
       newComponent = nui.resolveComponents?.({
         callback: options?.callback,
         components: newComponent,
-        page: page.getNuiPage(),
+        page: page?.getNuiPage?.(),
         context,
       })
     }
@@ -649,12 +703,14 @@ class NDOM extends NDOMInternal {
           actions?: boolean
           componentCache?: boolean
           global?: boolean
+          hooks?: boolean
           pages?: boolean
           register?: boolean
           transactions?: boolean
         }
       | 'actions'
       | 'componentCache'
+      | 'hooks'
       | 'register'
       | 'transactions',
     page?: NDOMPage,
@@ -668,9 +724,10 @@ class NDOM extends NDOMInternal {
     }
     const resetPages = () => {
       this.page = undefined as any
-      u.eachEntries(this.pages, (pageName, page: NDOMPage) => {
-        delete this.pages[pageName]
+      u.eachEntries(this.pages, (id, page: NDOMPage | ComponentPage) => {
         page?.reset?.()
+        isComponentPage(page) && page?.clear?.()
+        delete this.pages[id]
       })
       nui.cache.page.clear()
     }
@@ -697,6 +754,9 @@ class NDOM extends NDOMInternal {
         delete this.global.timers[k]
       })
     }
+    const resetHooks = () => {
+      u.values(this.hooks).forEach((arr) => (arr.length = 0))
+    }
     const resetTransactions = () => {
       nui.cache.transactions.clear()
     }
@@ -705,12 +765,15 @@ class NDOM extends NDOMInternal {
       if (u.isObj(key)) {
         key.componentCache && resetComponentCache()
         key.global && resetGlobal()
+        key.hooks && resetHooks()
         key.pages && resetPages()
         key.transactions && resetTransactions()
       } else if (key === 'actions') {
         resetActions()
       } else if (key === 'componentCache') {
         resetComponentCache()
+      } else if (key === 'hooks') {
+        resetHooks()
       } else if (key === 'register') {
         resetRegisters()
       } else if (key === 'transactions') {
@@ -722,6 +785,7 @@ class NDOM extends NDOMInternal {
     resetActions()
     resetComponentCache()
     resetGlobal()
+    resetHooks()
     resetPages()
     resetRegisters()
     resetTransactions()
@@ -732,28 +796,30 @@ class NDOM extends NDOMInternal {
     transaction: Tid,
     ...args: Parameters<t.NDOMTransaction[Tid]>
   ) {
-    return this.cache.transactions.get(transaction)?.['fn' as any]?.(...args)
+    if (transaction === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
+      this.#hooks.onBeforeRequestPageObject.forEach((fn) => fn?.(args[0]))
+    }
+
+    const result = this.cache.transactions
+      .get(transaction)
+      ?.['fn' as any]?.(...args)
+
+    if (transaction === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
+      this.#hooks.onAfterRequestPageObject.forEach((fn) => fn?.(args[0]))
+    }
+
+    return result
   }
 
   use(obj: NUIPage | Partial<t.UseObject>) {
     if (!obj) return
-    if (isNUIPage(obj)) return this.createPage(obj)
+    if (isNUIPage(obj)) return this.findPage(obj) || this.createPage(obj)
 
-    const {
-      createElementBinding,
-      emit,
-      register,
-      resolver,
-      transaction,
-      ...rest
-    } = obj
+    const { createElementBinding, register, resolver, transaction, ...rest } =
+      obj
 
     createElementBinding && (this.#createElementBinding = createElementBinding)
     resolver && this.consumerResolvers.push(resolver)
-
-    if (emit) {
-      nui.use({ emit })
-    }
 
     if (transaction) {
       u.eachEntries(transaction, (id, val) => {

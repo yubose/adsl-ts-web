@@ -358,13 +358,41 @@ export function find(
  * @param { function } cb
  */
 export function publish(
+  cb: (child: NUIComponent.Instance) => void,
+  component: NUIComponent.Instance | undefined,
+): void
+export function publish(
   component: NUIComponent.Instance | undefined,
   cb: (child: NUIComponent.Instance) => void,
+): void
+export function publish(
+  component:
+    | NUIComponent.Instance
+    | ((child: NUIComponent.Instance) => void)
+    | undefined,
+  cb:
+    | ((child: NUIComponent.Instance) => void)
+    | NUIComponent.Instance
+    | undefined,
 ) {
-  component?.children?.forEach?.((child: NUIComponent.Instance) => {
-    cb(child)
-    publish(child, cb)
+  let _component: NUIComponent.Instance | undefined
+  let _cb: ((child: NUIComponent.Instance) => void) | undefined
+
+  if (u.isFnc(component)) {
+    _component = cb as NUIComponent.Instance
+    _cb = component
+  } else {
+    _component = component
+    _cb = cb as (child: NUIComponent.Instance) => void
+  }
+
+  _component?.children?.forEach?.((child: NUIComponent.Instance) => {
+    _cb?.(child)
+    _cb && publish(child, _cb)
   })
+
+  _component = undefined
+  _cb = undefined
 }
 
 // TODO - This overload doesn't work when doing resolveAssetUrl("SquarePayment.html", { assetsUrl: getAssetsUrl() })

@@ -1,10 +1,9 @@
 import * as u from '@jsmanifest/utils'
+import isNil from 'lodash/isNil'
 import { expect } from 'chai'
 import { waitFor } from '@testing-library/dom'
 import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
 import { OrArray } from '@jsmanifest/typefest'
-import isNil from 'lodash/isNil'
-import sinon from 'sinon'
 import { ComponentObject, PageObject, userEvent } from 'noodl-types'
 import {
   nuiEmitTransaction,
@@ -13,10 +12,9 @@ import {
   Page as NUIPage,
   Viewport,
 } from 'noodl-ui'
-import { NDOMElement, Resolve } from './types'
-import { nui } from './nui'
 import NOODLDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
+import { _syncPages } from './utils/internal'
 import { findBySelector } from './utils'
 
 export const ui = { ...actionFactory, ...componentFactory }
@@ -52,10 +50,8 @@ export const _defaults = {
 
 export const baseUrl = _defaults.baseUrl
 export const assetsUrl = _defaults.assetsUrl
-export let ndom = new NOODLDOM()
+export const ndom = new NOODLDOM()
 export const viewport = new Viewport({ width: 375, height: 667 })
-
-type MockDrawResolver = Resolve.Config
 
 interface MockRenderOptions {
   components?: OrArray<ComponentObject>
@@ -125,6 +121,7 @@ export function createRender<Opts extends MockRenderOptions>(
   opts: OrArray<ComponentObject> | Opts,
 ) {
   ndom.reset()
+  _syncPages.call(ndom)
 
   let currentPage = ''
   let pageRequesting = ''
@@ -145,14 +142,12 @@ export function createRender<Opts extends MockRenderOptions>(
     !pageRequesting && (pageRequesting = _defaults.pageRequesting)
 
     if (opts.root?.[pageRequesting]) {
-      u.assign(pageObject, {
-        ...opts.root[pageRequesting],
-        components: u.array(opts.root[pageRequesting].components),
-      })
+      u.assign(pageObject, opts.root[pageRequesting])
+      if (opts.root[pageRequesting].components) {
+        pageObject.components = u.array(opts.root[pageRequesting].components)
+      }
     }
-    if (opts.pageObject) {
-      u.assign(pageObject, opts.pageObject)
-    }
+    if (opts.pageObject) u.assign(pageObject, opts.pageObject)
     if (opts.components) {
       pageObject.components = u.array(opts.components)
       if (!root[pageRequesting]) root[pageRequesting] = {} as PageObject
@@ -161,10 +156,8 @@ export function createRender<Opts extends MockRenderOptions>(
   }
 
   root?.[pageRequesting] && (root[pageRequesting] = pageObject as PageObject)
-
-  page = ndom.page || ndom.createPage(pageRequesting)
   !page && (page = ndom.page || ndom.createPage(pageRequesting))
-  currentPage && (page.page = currentPage)
+  currentPage ? (page.page = currentPage) : (page.page = '')
   pageRequesting && (page.requesting = pageRequesting)
 
   if (u.isUnd(page?.viewport.width) || u.isUnd(page?.viewport.height)) {
@@ -178,8 +171,8 @@ export function createRender<Opts extends MockRenderOptions>(
       setTimeout(() =>
         resolve(
           use.getRoot()[
-            u.isStr(page)
-              ? page
+            u.isStr(pageProp)
+              ? pageProp
               : (pageProp as NDOMPage)?.requesting ||
                 (pageProp as NDOMPage)?.page ||
                 ''
@@ -231,91 +224,18 @@ export function createRender<Opts extends MockRenderOptions>(
 
 createRender.userEvents = userEvent.slice()
 
-userEvent.slice().forEach((evt) => {
-  createRender[evt] = function (this: NUIComponent.Instance) {
-    //
-  }
-})
-
-export function createMockCssResource({
-  href = 'https://some-mock-link.com/chart.min.css',
-  ...rest
-}: Partial<GlobalCssResourceObject> = {}) {
-  return { ...rest, type: 'css', href } as GlobalCssResourceObject
-}
-
-export function createMockJsResource({
-  src = 'https://some-mock-link.com/chart.min.js',
-  ...rest
-}: Partial<GlobalJsResourceObject> = {}) {
-  return { ...rest, type: 'js', src } as GlobalJsResourceObject
-}
-
-export function createPageComponentRootObjectHelper<
-  InitPage = any,
-  NextPage = any,
->(args: {
-  initialPage: {
-    data?: Record<string, any>
-    name: string
-    components: OrArray<ComponentObject>
-  }
-  nextPage: {
-    data?: Record<string, any>
-    name: string
-    components: OrArray<ComponentObject>
-  }
-}) {
-  const { initialPage, nextPage } = args
-
-  return {
-    [initialPage.name]: {
-      ...args.initialPage.data,
-      components: u.array(initialPage.components).filter(Boolean),
-    },
-    [nextPage.name]: {
-      ...nextPage.data,
-      components: u.array(nextPage.components).filter(Boolean),
-    },
-  }
-}
-
-export function stubInvariant() {
-  const stub = sinon.stub(global.console, 'error').callsFake(() => {})
-  return stub
-}
-
-export function toDOM<
-  N extends NDOMElement = NDOMElement,
-  C extends NUIComponent.Instance = NUIComponent.Instance,
->(props: any) {
-  let node: N | null = null
-  let component: C | undefined
-  let page = ndom.page
-  !ndom && (ndom = new NOODLDOM())
-  !page && (page = ndom.createPage())
-  if (typeof props?.props === 'function') {
-    node = ndom.draw(props as any) as N
-    component = props as any
-  } else if (u.isObj(props)) {
-    component = nui.resolveComponents({
-      components: [props as ComponentObject],
-      page: nui.getRootPage(),
-    }) as any
-    node = ndom.draw(component as C, ndom.page.rootNode) as N
-  }
-  if (node) document.body.appendChild(node as any)
-  return [node, component] as [NonNullable<N>, C]
-}
-
 export async function waitForPageChildren(
   getPageElem = () => findBySelector('page'),
 ) {
   await waitFor(() => {
-    const pageElem = getPageElem()
+    const pageElem = getPageElem() as HTMLIFrameElement
     const pageBodyElem = pageElem?.contentDocument?.body as HTMLBodyElement
-    expect(pageBodyElem, 'expected page HTMLBodyElement to exist').to.exist
-    expect(pageBodyElem, 'expected page HTMLBodyElement to have children')
+    expect(pageBodyElem, "expected page component's HTMLBodyElement to exist")
+      .to.exist
+    expect(
+      pageBodyElem,
+      "expected page component's HTMLBodyElement to have children",
+    )
       .to.have.property('children')
       .with.length.greaterThan(0)
   })
@@ -326,7 +246,7 @@ export function getAllElementCount(selector = '') {
 }
 
 export function getPageComponentChildIds(component: NUIComponent.Instance) {
-  const pageName = component.get('page').page
+  const pageName = component.get('page')?.page
   return ndom.cache.component.reduce((acc, obj) => {
     return obj.page === pageName ? acc.concat(obj.component.id) : acc
   }, [] as string[])

@@ -8,6 +8,7 @@ import {
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
+import { Identify } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import { LiteralUnion } from 'type-fest'
 import findElement from './findElement'
@@ -253,7 +254,7 @@ export function getPageAncestor(
 ) {
   if (isComponent(component)) {
     if (component.type === 'page') return component
-    return findParent(component, (parent) => parent?.type === 'page')
+    return findParent(component, Identify.component.page)
   }
   return null
 }

@@ -113,7 +113,7 @@ class ComponentCache {
     }
 
     for (const obj of this.#cache.values()) {
-      if (page) page === obj.page && remove(obj)
+      if (page !== undefined) page === obj.page && remove(obj)
       else remove(obj)
     }
 
@@ -134,7 +134,7 @@ class ComponentCache {
   }
 
   has(component: NUIComponent.Instance | string | undefined) {
-    if (!component) return false
+    if (u.isNil(component)) return false
     return this.#cache.has(!u.isObj(component) ? component : component.id || '')
   }
 

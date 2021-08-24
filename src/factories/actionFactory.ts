@@ -44,7 +44,7 @@ class Middleware {
   #run: MiddlewareObject['fn']
 
   constructor(middleware: MiddlewareObject) {
-    this.#id = middleware.id
+    this.#id = middleware?.id
     this.#middleware = middleware
     this.#run = middleware.fn
   }

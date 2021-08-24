@@ -2,13 +2,17 @@
  * Internal utilities (not exported)
  */
 import * as u from '@jsmanifest/utils'
+import flowRight from 'lodash/flowRight'
 import get from 'lodash/get'
 import { ComponentObject, EcosDocument, Identify, NameField } from 'noodl-types'
-import { NUIComponent } from 'noodl-ui'
-import GlobalComponentRecord from '../global/GlobalComponentRecord'
+import { isPage as isNUIPage, publish } from 'noodl-ui'
+import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
+import type { ComponentPage } from '../factory/componentFactory'
+import type GlobalComponentRecord from '../global/GlobalComponentRecord'
+import type NDOM from '../noodl-ui-dom'
+import type NDOMPage from '../Page'
+import isComponentPage from './isComponentPage'
 import { cache, nui } from '../nui'
-import NDOM from '../noodl-ui-dom'
-import NDOMPage from '../Page'
 import * as c from '../constants'
 import * as t from '../types'
 
@@ -79,6 +83,31 @@ function _createDocIdentifier(
     )
   }
   return identifyDoc
+}
+
+export function _getDescendantIds(component: NUIComponent.Instance): string[] {
+  const ids = [] as string[]
+  publish(component, (child) => ids.push(child.id))
+  return ids
+}
+
+export function _getOrCreateComponentPage(
+  componentOrNUIPage: NUIComponent.Instance | NUIPage,
+  createPage: NDOM['createPage'],
+  findPage: NDOM['findPage'],
+) {
+  if (isNUIPage(componentOrNUIPage)) {
+    return (findPage(componentOrNUIPage) ||
+      createPage(componentOrNUIPage)) as ComponentPage
+  }
+  return findPage(componentOrNUIPage) || createPage(componentOrNUIPage)
+}
+
+/**
+ * Returns a random 7-character string
+ */
+export function _getRandomKey() {
+  return `_${Math.random().toString(36).substr(2, 9)}`
 }
 
 export function _isPluginComponent(component: NUIComponent.Instance) {
@@ -307,11 +336,151 @@ export function _removeNode(node: t.NDOMElement) {
 /**
  * Removes the NDOMPage from the {@link GlobalMap}
  */
-export function _removePage(page: NDOMPage | undefined | null) {
+export function _removePage(
+  this: NDOM | undefined,
+  page: NDOMPage | undefined | null,
+) {
   if (page) {
-    nui.clean(page.getNuiPage(), console.log)
+    const id = page.id
+    nui.clean(page.getNuiPage(), console.info)
     page.remove()
-    // if (page.id in this.global.pages) delete this.global.pages[page.id]
+    if (this?.global?.pages) {
+      if (id in this.global.pages) delete this.global.pages[id]
+    }
+    try {
+      if (isComponentPage(page)) {
+        page.clear()
+      } else {
+        page.remove()
+        page?.rootNode?.remove?.()
+      }
+    } catch (error) {
+      console.error(error)
+    }
     page = null
   }
+}
+
+export function _syncPages(this: NDOM) {
+  const _state = new Map<
+    number,
+    { initiated: boolean; fetching: boolean; initialPageValue: string }
+  >()
+
+  const initSlice = (page: NUIPage) => ({
+    fetching: false,
+    initiated: false,
+    initialPageValue: page.page,
+  })
+
+  const removePage = (page: NUIPage) => {
+    const id = page.id || ''
+    this.cache.component.clear(page.page)
+    this.cache.page.remove(page)
+    const ndomPage = this.findPage(page)
+    if (ndomPage && ndomPage.getNuiPage() === page) {
+      ndomPage.remove()
+      isComponentPage(ndomPage) && ndomPage.clear()
+    }
+    id in this.global.pages && delete this.global.pages[id]
+  }
+
+  const start = (updateType: 'PAGE_CREATED' | 'PAGE_REMOVED') => {
+    return (page: NUIPage) => {
+      if (updateType === 'PAGE_CREATED') {
+        if (!_state.has(page.created)) {
+          _state.set(page.created, initSlice(page))
+        }
+
+        let ndomPage = this.findPage(page)
+        let pageRequesting = ndomPage?.requesting
+        let stateSlice = _state.get(page.created) || initSlice(page)
+
+        if (!ndomPage) {
+          ndomPage = this.createPage(page)
+          pageRequesting = ndomPage.requesting
+        }
+
+        console.info(
+          `[PAGE_CREATED] ${(pageRequesting || page.page || '') && ' '}${
+            page.id
+          }`,
+        )
+
+        !this.global.pageIds.includes(ndomPage.id) && this.global.add(ndomPage)
+
+        if (ndomPage.getNuiPage() === page) {
+          //
+        } else {
+          //
+        }
+
+        if (isComponentPage(ndomPage)) {
+          stateSlice.initiated = !!ndomPage.initialized
+        }
+
+        if (page.page === '') {
+          for (const [createTime, stateSlice] of _state.entries()) {
+            if (stateSlice.initialPageValue === '') {
+              if (stateSlice.fetching) {
+                if (page.created !== createTime) {
+                  // Cleanup previously loading page
+                  // This can happen when the user clicks too quickly to several pages
+                  const nuiPage = this.cache.page
+                    .get()
+                    .find((obj) => obj?.page?.created === createTime)?.page
+
+                  if (nuiPage && nuiPage.id !== 'root') {
+                    removePage(nuiPage)
+                  }
+                }
+              } else {
+                //
+              }
+
+              if (!stateSlice.initiated && createTime < page.created) {
+                const prevNDOMPage = u
+                  .values(this.global.pages)
+                  .find((p) => p.created === createTime)
+
+                if (prevNDOMPage) {
+                  // removePage(prevNDOMPage.getNuiPage())
+                }
+              }
+            }
+          }
+        }
+      } else if (updateType === 'PAGE_REMOVED') {
+        console.info(`[PAGE_REMOVED] ${page.page || ''} ${page.id}`)
+
+        const isRemoved = _state.delete(page.created)
+        if (isRemoved) {
+          //
+        }
+      }
+    }
+  }
+
+  // prettier-ignore
+  this.cache.page
+      .on('PAGE_CREATED', start('PAGE_CREATED'))
+      .on('PAGE_REMOVED', start('PAGE_REMOVED'))
+
+  this.on('onBeforeRequestPageObject', (page) => {
+    if (_state.has(page.created)) {
+      const stateSlice = _state.get(page.created)
+      stateSlice && (stateSlice.fetching = true)
+    }
+  })
+
+  this.on('onAfterRequestPageObject', (page) => {
+    if (_state.has(page.created)) {
+      const stateSlice = _state.get(page.created)
+      stateSlice && (stateSlice.fetching = false)
+    }
+  })
+
+  return function unsubscribe(this: NDOM) {
+    u.values(this.hooks).forEach((arr) => (arr.length = 0))
+  }.bind(this)
 }

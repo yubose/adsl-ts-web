@@ -3,6 +3,7 @@ import * as mock from 'noodl-ui-test-utils'
 import * as u from '@jsmanifest/utils'
 import * as nc from 'noodl-common'
 import { expect } from 'chai'
+import { prettyDOM } from '@testing-library/dom'
 import { ComponentObject, EmitObjectFold, PageObject } from 'noodl-types'
 import { waitFor } from '@testing-library/dom'
 import {
@@ -351,7 +352,7 @@ describe(nc.coolGold(`redraw`), () => {
   })
 
   describe('when user types something on a redrawed input node that had an onChange emit', () => {
-    it('should still be emitting and updating the DOM', async () => {
+    it.only('should still be emitting and updating the DOM', async () => {
       const mockOnChangeEmit = async (action, { component }) => {
         const node = getFirstByElementId(component)
         node.setAttribute('placeholder', component.get('data-value'))
@@ -372,18 +373,21 @@ describe(nc.coolGold(`redraw`), () => {
       expect(input.dataset.value).to.eq('mypassword')
       expect(input.value).to.eq('mypassword')
       ndom.redraw(viewElem, view)
-      input = getFirstByDataKey('formData.password') as HTMLInputElement
-      expect(input.dataset.value).to.eq('mypassword')
-      expect(input.value).to.eq('mypassword')
-      input.dataset.value = ''
-      input.value = ''
-      expect(input.dataset.value).to.eq('')
-      expect(input.value).to.eq('')
-      input.select()
-      input.value = 'hello'
-      input.dispatchEvent(new Event('change'))
-      expect(input.dataset.value).to.eq('hello')
-      expect(input.value).to.eq('hello')
+      await waitFor(() => {
+        console.info(prettyDOM())
+        input = getFirstByDataKey('formData.password') as HTMLInputElement
+        expect(input.dataset.value).to.eq('mypassword')
+      })
+      // expect(input.value).to.eq('mypassword')
+      // input.dataset.value = ''
+      // input.value = ''
+      // expect(input.dataset.value).to.eq('')
+      // expect(input.value).to.eq('')
+      // input.select()
+      // input.value = 'hello'
+      // input.dispatchEvent(new Event('change'))
+      // expect(input.dataset.value).to.eq('hello')
+      // expect(input.value).to.eq('hello')
     })
   })
 
