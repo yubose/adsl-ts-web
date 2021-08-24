@@ -422,7 +422,7 @@ class App {
 
   async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
     let spinnerRef = setTimeout(() => {
-      this.#spinner.spin(this.mainPage.rootNode)
+      this.#spinner.spin(page?.rootNode || this.mainPage?.rootNode)
     }, 350)
 
     try {
