@@ -606,6 +606,27 @@ export default {
       }
       // SELECT
       else if (Identify.component.select(original)) {
+        if(component.get('size')){
+          const size = component.get('size')
+          const select = node as HTMLTextAreaElement
+          let height = component?.style?.height
+          const initHeight = typeof height == 'string'?parseFloat(height.replace('px','')):height
+          const sizeHeight = typeof initHeight == 'number'? initHeight*size:0
+          select.onmouseup= function(){
+            select.setAttribute('size',size)
+            select.style.height = sizeHeight+"px"
+            
+          }
+          select.onblur = function(){
+            select.removeAttribute('size')
+            select.style.height = initHeight+"px"
+          }
+          select.onchange = function(){
+            select.removeAttribute('size')
+            select.style.height = initHeight+"px"
+          }
+          
+        }
         function clearOptions(_node: HTMLSelectElement) {
           const numOptions = _node.options
           for (let index = 0; index < numOptions.length; index++) {
