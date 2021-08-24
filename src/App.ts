@@ -339,28 +339,53 @@ class App {
 
       const ls = window.localStorage
 
-      if (!ls.getItem('tempConfigKey') && ls.getItem('config')) {
-        ls.setItem(
-          'tempConfigKey',
-          JSON.parse(ls.getItem('config') || '')?.timestamp,
-        )
+      const hasLocalConfig = () => !!ls.getItem('config')
+      const getStoredConfig = () => {
+        if (hasLocalConfig()) {
+          try {
+            let cfg = ls.getItem('config')
+            if (u.isStr(cfg)) return JSON.parse(cfg)
+            return cfg
+          } catch (error) {
+            console.error(error)
+          }
+        }
       }
+      const getTimestampKey = () => {
+        const cfg = getStoredConfig()
+        if (u.isObj(cfg) && 'timestamp' in cfg) return String(cfg.timestamp)
+        return ''
+      }
+      const getStoredTimestamp = () => ls.getItem(getTimestampKey())
+      const getCurrentTimestamp = () => getStoredConfig()?.timestamp
+      // Intentionally not strictly equal === to allow coercion
+      const isTimestampEqual = () =>
+        getStoredTimestamp() == getCurrentTimestamp()
+      const cacheTimestamp = () =>
+        ls.setItem(getTimestampKey(), getCurrentTimestamp())
+
+      if (getTimestampKey() == null && hasLocalConfig()) cacheTimestamp()
 
       if (this.mainPage && location.href) {
         let { startPage } = this.noodl.cadlEndpoint
         const urlParts = location.href.split('/')
         const pathname = urlParts[urlParts.length - 1]
-        const localConfig = JSON.parse(ls.getItem('config') || '{}') || {}
-        const tempConfigKey = ls.getItem('tempConfigKey')
 
-        if (
-          tempConfigKey &&
-          tempConfigKey !== JSON.stringify(localConfig.timestamp)
-        ) {
+        console.log(`%cConfig evaluation`, `color:#e50087;`, {
+          storedConfig: getStoredConfig(),
+          hasLocalConfig: hasLocalConfig(),
+          timestampKey: getTimestampKey(),
+          timestampNow: getCurrentTimestamp(),
+          storedTimestamp: getStoredTimestamp(),
+          isTimestampEqual: isTimestampEqual(),
+        })
+
+        if (!isTimestampEqual()) {
           // Set the URL / cached pages to their base state
           ls.setItem('CACHED_PAGES', JSON.stringify([]))
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
+          cacheTimestamp()
         } else if (!pathname?.startsWith(BASE_PAGE_URL)) {
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
