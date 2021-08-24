@@ -76,6 +76,16 @@ async function initializeApp(
       notification,
       getStatus: Account?.getStatus?.bind(Account),
     }) as App
+    u.assign(app.spinner.opts, {
+      lines: 13, // The number of lines to draw
+      length: 38, // The length of each line
+      width: 17, // The line thickness
+      radius: 45, // The radius of the inner circle
+      animation: 'spinner-line-shrink', // The CSS animation name for the lines
+      color: '#000', // CSS color or array of colors
+      zIndex: 2000000000, // The z-index (defaults to 2e9)
+    })
+    app.spinner.spin(document.getElementById('root'))
   }
   /* -------------------------------------------------------
     ---- Testing tracker
@@ -128,7 +138,9 @@ window.addEventListener('load', async (e) => {
     await initializeNoodlPluginRefresher()
 
     log.grey('Initializing [App] instance')
+
     app = await initializeApp({ noodl, Account })
+
     log.func('onload')
     log.grey('Initialized [App] instance')
 

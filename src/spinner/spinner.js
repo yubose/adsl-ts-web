@@ -18,13 +18,13 @@ var __assign =
     return __assign.apply(this, arguments)
   }
 var defaults = {
-  lines: 12,
+  lines: 30,
   length: 7,
   width: 5,
   radius: 10,
   scale: 1.0,
   corners: 1,
-  color: '#000',
+  color: '#333',
   fadeColor: 'transparent',
   animation: 'spinner-line-fade-default',
   rotate: 0,

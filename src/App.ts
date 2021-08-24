@@ -30,6 +30,7 @@ import createPickNDOMPage from './utils/createPickNDOMPage'
 import createResources from './handlers/resources'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
+import Spinner from './spinner'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
 import * as t from './app/types'
@@ -47,6 +48,7 @@ class App {
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
   #parser: nu.Parser
+  #spinner: InstanceType<typeof Spinner>
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
@@ -92,6 +94,7 @@ class App {
     this.#notification = notification
     this.#ndom = ndom
     this.#nui = nui
+    this.#spinner = new Spinner()
 
     noodl && (this.#noodl = noodl)
     this.#parser = new nu.Parser()
@@ -123,6 +126,10 @@ class App {
 
   get cache() {
     return this.nui.cache
+  }
+
+  get spinner() {
+    return this.#spinner
   }
 
   get pendingPage() {
@@ -408,10 +415,16 @@ class App {
     } catch (error) {
       console.error(error)
       throw error
+    } finally {
+      this.#spinner.stop()
     }
   }
 
   async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
+    let spinnerRef = setTimeout(() => {
+      this.#spinner.spin(this.mainPage.rootNode)
+    }, 350)
+
     try {
       const pageRequesting = page.requesting
       const currentPage = page.page
@@ -571,6 +584,9 @@ class App {
     } catch (error) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
+    } finally {
+      clearTimeout(spinnerRef)
+      this.#spinner.stop()
     }
   }
 
