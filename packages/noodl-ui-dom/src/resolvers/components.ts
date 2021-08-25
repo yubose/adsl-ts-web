@@ -415,7 +415,7 @@ const componentsResolver: t.Resolve.Config = {
                 findPage: NDOM['findPage']
                 resolvers: NDOM['resolvers']
               }) {
-                let src = opts.component.get(c.DATA_SRC) || ''
+                let src = opts.component.get('page')?.page || ''
                 let ndomPage = opts.findPage(opts.component) as ComponentPage
 
                 if (!ndomPage) {
@@ -470,20 +470,23 @@ const componentsResolver: t.Resolve.Config = {
                   resolvers: args.resolvers,
                 })
               } else {
-                args.node.addEventListener(
-                  'load',
-                  (evt) =>
-                    onLoad({
-                      event: evt,
-                      createPage: args.createPage,
-                      component: args.component,
-                      node: args.node as HTMLIFrameElement,
-                      findPage: args.findPage,
-                      resolvers: args.resolvers,
-                    }),
-                  { once: true },
-                )
               }
+
+              args.node.addEventListener(
+                'load',
+                (evt) =>
+                  onLoad({
+                    event: evt,
+                    createPage: args.createPage,
+                    component: args.component,
+                    node: args.node as HTMLIFrameElement,
+                    findPage: args.findPage,
+                    resolvers: args.resolvers,
+                  }),
+                { once: true },
+              )
+
+              args.node.src = args.component.get('page')?.page || ''
 
               args.node?.addEventListener('error', console.error, {
                 once: true,

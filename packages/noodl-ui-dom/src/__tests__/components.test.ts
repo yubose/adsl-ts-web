@@ -408,7 +408,7 @@ describe(nc.coolGold('components'), () => {
           )
         })
 
-        it.only(`should remove all the previous descendant page children from the component cache`, async () => {
+        xit(`should remove all the previous descendant page children from the component cache`, async () => {
           const { ndom, render } = createRender(getCreateRenderOptions())
           await render()
           const pageComponent = cache.component.get('p2').component.child()
