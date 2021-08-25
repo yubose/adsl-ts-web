@@ -213,11 +213,6 @@ class App {
       let _page: NOODLDOMPage
       let _pageRequesting = ''
 
-      console.log('test',{
-        page,
-        pageRequesting
-      })
-
       const ls = window.localStorage
       let pageUrl = pageRequesting?pageRequesting:page
       let params:any = pageUrl.split("&")
@@ -226,9 +221,7 @@ class App {
         let tempParams:any = ls.getItem('tempParams')
         let urlkeys = ''
         params = params?params:[]
-        console.log('test1')
         tempParams = typeof tempParams == 'string'?JSON.parse(tempParams):{}
-        console.log('test2')
         pageRequesting = pageRequesting?params[0]:pageRequesting
         page = page?params[0]:page
 
