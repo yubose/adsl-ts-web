@@ -267,7 +267,7 @@ resolveStyles.setResolver(
       ---- SIZES
     -------------------------------------------------------- */
 
-    const { width, height,maxHeight,maxWidth,miniHeight,miniWidth} = originalStyles
+    const { width, height,maxHeight,maxWidth,minHeight,minWidth} = originalStyles
 
     if (!isNil(width)) {
       edit({ width: String(util.getSize(width as any, viewport.width)) })
@@ -290,16 +290,16 @@ resolveStyles.setResolver(
 
     //maxHeight,maxWidth,miniHeight,miniWidth
     if(!isNil(maxHeight)){
-      edit({ maxHeight: String(util.getSize(maxHeight as any, viewport.width)) })
+      edit({ maxHeight: String(util.getSize(maxHeight as any, viewport.height)) })
     }
     if(!isNil(maxWidth)){
       edit({ maxWidth: String(util.getSize(maxWidth as any, viewport.width)) })
     }
-    if(!isNil(miniHeight)){
-      edit({ miniHeight: String(util.getSize(miniHeight as any, viewport.width)) })
+    if(!isNil(minHeight)){
+      edit({ minHeight: String(util.getSize(minHeight as any, viewport.height)) })
     }
-    if(!isNil(miniWidth)){
-      edit({ miniWidth: String(util.getSize(miniWidth as any, viewport.width)) })
+    if(!isNil(minWidth)){
+      edit({ minWidth: String(util.getSize(minWidth as any, viewport.width)) })
     }
 
 
