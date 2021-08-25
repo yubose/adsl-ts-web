@@ -30,6 +30,7 @@ import createPickNDOMPage from './utils/createPickNDOMPage'
 import createResources from './handlers/resources'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
+import Spinner from './spinner'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
 import * as t from './app/types'
@@ -48,6 +49,7 @@ class App {
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
   #parser: nu.Parser
+  #spinner: InstanceType<typeof Spinner>
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
@@ -93,6 +95,7 @@ class App {
     this.#notification = notification
     this.#ndom = ndom
     this.#nui = nui
+    this.#spinner = new Spinner()
 
     noodl && (this.#noodl = noodl)
     this.#parser = new nu.Parser()
@@ -124,6 +127,10 @@ class App {
 
   get cache() {
     return this.nui.cache
+  }
+
+  get spinner() {
+    return this.#spinner
   }
 
   get pendingPage() {
@@ -374,28 +381,53 @@ class App {
 
       const ls = window.localStorage
 
-      if (!ls.getItem('tempConfigKey') && ls.getItem('config')) {
-        ls.setItem(
-          'tempConfigKey',
-          JSON.parse(ls.getItem('config') || '')?.timestamp,
-        )
+      const hasLocalConfig = () => !!ls.getItem('config')
+      const getStoredConfig = () => {
+        if (hasLocalConfig()) {
+          try {
+            let cfg = ls.getItem('config')
+            if (u.isStr(cfg)) return JSON.parse(cfg)
+            return cfg
+          } catch (error) {
+            console.error(error)
+          }
+        }
       }
+      const getTimestampKey = () => {
+        const cfg = getStoredConfig()
+        if (u.isObj(cfg) && 'timestamp' in cfg) return String(cfg.timestamp)
+        return ''
+      }
+      const getStoredTimestamp = () => ls.getItem(getTimestampKey())
+      const getCurrentTimestamp = () => getStoredConfig()?.timestamp
+      // Intentionally not strictly equal === to allow coercion
+      const isTimestampEqual = () =>
+        getStoredTimestamp() == getCurrentTimestamp()
+      const cacheTimestamp = () =>
+        ls.setItem(getTimestampKey(), getCurrentTimestamp())
+
+      if (getTimestampKey() == null && hasLocalConfig()) cacheTimestamp()
 
       if (this.mainPage && location.href) {
         let { startPage } = this.noodl.cadlEndpoint
         const urlParts = location.href.split('/')
         const pathname = urlParts[urlParts.length - 1]
-        const localConfig = JSON.parse(ls.getItem('config') || '{}') || {}
-        const tempConfigKey = ls.getItem('tempConfigKey')
 
-        if (
-          tempConfigKey &&
-          tempConfigKey !== JSON.stringify(localConfig.timestamp)
-        ) {
+        console.log(`%cConfig evaluation`, `color:#e50087;`, {
+          storedConfig: getStoredConfig(),
+          hasLocalConfig: hasLocalConfig(),
+          timestampKey: getTimestampKey(),
+          timestampNow: getCurrentTimestamp(),
+          storedTimestamp: getStoredTimestamp(),
+          isTimestampEqual: isTimestampEqual(),
+        })
+
+        if (!isTimestampEqual()) {
           // Set the URL / cached pages to their base state
           ls.setItem('CACHED_PAGES', JSON.stringify([]))
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
+          cacheTimestamp()
         } else if (!pathname?.startsWith(BASE_PAGE_URL)) {
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
@@ -418,10 +450,16 @@ class App {
     } catch (error) {
       console.error(error)
       throw error
+    } finally {
+      this.#spinner.stop()
     }
   }
 
   async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
+    let spinnerRef = setTimeout(() => {
+      this.#spinner.spin(page?.rootNode || this.mainPage?.rootNode)
+    }, 350)
+
     try {
       const pageRequesting = page.requesting
       const currentPage = page.page
@@ -581,6 +619,9 @@ class App {
     } catch (error) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
+    } finally {
+      clearTimeout(spinnerRef)
+      this.#spinner.stop()
     }
   }
 
