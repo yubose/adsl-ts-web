@@ -9,6 +9,7 @@ import { waitFor } from '@testing-library/dom'
 import {
   Component,
   createComponent,
+  findListDataObject,
   flatten,
   NUIActionObjectInput,
 } from 'noodl-ui'
@@ -36,16 +37,23 @@ describe(nc.coolGold(`redraw`), () => {
     let pageObject = {} as PageObject
 
     beforeEach(() => {
-      emitObject = mock.getFoldedEmitObject({
+      currentCount = 0
+      emitObject = ui.emitObject({
         emit: { dataKey: { var1: 'hey' }, actions: [] },
       })
       onClick = [emitObject]
-      componentObject = mock.getLabelComponent({
+      componentObject = ui.label({
         id,
-        text: String(currentCount),
+        text: null,
+        dataKey: '..currentCount',
         onClick: onClick as any,
       })
-      pageObject = { components: [componentObject] }
+      pageObject = {
+        components: [componentObject],
+        get currentCount() {
+          return currentCount
+        },
+      }
     })
 
     it(`should still be executing the same action chains normally`, async () => {
@@ -68,14 +76,15 @@ describe(nc.coolGold(`redraw`), () => {
       node.click()
       node.click()
       await waitFor(() => expect(node.textContent).to.eq('1'))
-      let [_, newComp] = ndom.redraw(node, component)
+      let [_, newComp] = await ndom.redraw(node, component)
       node = _ as any
       node?.click()
       await waitFor(() => expect(node?.textContent).to.eq('2'))
       node?.click()
       node?.click()
       node?.click()
-      let pair = ndom.redraw(node, newComp)
+      await waitFor(() => expect(node?.textContent).to.eq('3'))
+      let pair = await ndom.redraw(node, newComp)
       node = pair[0]
       newComp = pair[1]
       await waitFor(() => expect(node?.textContent).to.eq('5'))
@@ -94,7 +103,7 @@ describe(nc.coolGold(`redraw`), () => {
     component.children.forEach(
       (child) => expect(ndom.cache.component.has(child)).to.be.true,
     )
-    ndom.redraw(node, component)
+    await ndom.redraw(node, component)
     idsToBeRemoved.forEach(
       (id) => expect(ndom.cache.component.has(id)).to.be.false,
     )
@@ -104,14 +113,14 @@ describe(nc.coolGold(`redraw`), () => {
     const { ndom, render } = createRender({
       components: [
         ui.list({ listObject: mock.getGenderListObject() }),
-        mock.getLabelComponent(),
+        ui.label(),
       ],
     })
     const list = await render()
     const node = getFirstByElementId(list)
     const idsToBeRemoved = flatten(list).map((c) => c.id)
     const idsToBeRemovedLengthBefore = idsToBeRemoved.length
-    const [_, newComp] = ndom.redraw(node, list)
+    const [_, newComp] = await ndom.redraw(node, list)
     expect(flatten(newComp).map((c) => c.id)).to.have.length(
       idsToBeRemovedLengthBefore,
     )
@@ -157,11 +166,11 @@ describe(nc.coolGold(`redraw`), () => {
     expect(getAllElementCount(`[data-key="${iteratorVar}.key"]`)).to.eq(3)
     expect(getAllElementCount(`[data-key="${iteratorVar}.value"]`)).to.eq(3)
     expect(getAllElementCount(`[data-key="formData.password"]`)).to.eq(1)
-    ndom.redraw(getContainerElem(), container)
-    ndom.redraw(getContainerElem(), container)
-    ndom.redraw(getContainerElem(), container)
-    ndom.redraw(getContainerElem(), container)
-    ndom.redraw(getContainerElem(), container)
+    await ndom.redraw(getContainerElem(), container)
+    await ndom.redraw(getContainerElem(), container)
+    await ndom.redraw(getContainerElem(), container)
+    await ndom.redraw(getContainerElem(), container)
+    await ndom.redraw(getContainerElem(), container)
     expect(getAllElementCount(`[data-viewtag=container]`)).to.eq(1)
     expect(getAllElementCount('ul')).to.eq(1)
     expect(getAllElementCount('li')).to.eq(listObject.length)
@@ -182,7 +191,7 @@ describe(nc.coolGold(`redraw`), () => {
           listObject,
           children: [ui.listItem({ [iteratorVar]: '' })],
         }),
-        mock.getLabelComponent(),
+        ui.label(),
       ])
       let list = await render()
       let componentCacheLengthBefore = ndom.cache.component.length
@@ -191,12 +200,12 @@ describe(nc.coolGold(`redraw`), () => {
       await waitFor(() => {
         expect(listElem.querySelectorAll('li')).to.have.lengthOf(3)
       })
-      let pair = ndom.redraw(getFirstByElementId(list), list)
+      let pair = await ndom.redraw(getFirstByElementId(list), list)
       expect(list.blueprint.listObject).to.have.lengthOf(3)
-      pair = ndom.redraw(pair[0], pair[1])
-      pair = ndom.redraw(pair[0], pair[1])
-      pair = ndom.redraw(pair[0], pair[1])
-      pair = ndom.redraw(pair[0], pair[1])
+      pair = await ndom.redraw(pair[0], pair[1])
+      pair = await ndom.redraw(pair[0], pair[1])
+      pair = await ndom.redraw(pair[0], pair[1])
+      pair = await ndom.redraw(pair[0], pair[1])
       expect(ndom.cache.component.length).to.eq(componentCacheLengthBefore)
     },
   )
@@ -219,9 +228,9 @@ describe(nc.coolGold(`redraw`), () => {
     ])
     let list = await render()
     expect(findBySelector('li')).to.have.lengthOf(3)
-    ndom.redraw(getFirstByElementId(list), list)
-    ndom.redraw(getFirstByElementId(list), list)
-    ndom.redraw(getFirstByElementId(list), list)
+    await ndom.redraw(getFirstByElementId(list), list)
+    await ndom.redraw(getFirstByElementId(list), list)
+    await ndom.redraw(getFirstByElementId(list), list)
     expect(u.array(findBySelector('li'))).to.have.lengthOf(3)
     expect(u.array(findBySelector('input'))).to.have.lengthOf(3)
     expect(u.array(findBySelector('hr'))).to.have.lengthOf(3)
@@ -240,7 +249,7 @@ describe(nc.coolGold(`redraw`), () => {
         expect(optionNode.value).to.eq(options[index]),
       )
       options.push(...otherOptions)
-      let result = ndom.redraw(node, component)
+      let result = await ndom.redraw(node, component)
       node = result[0] as HTMLSelectElement
       component = result[1]
       expect(node.options).to.have.lengthOf(4)
@@ -260,7 +269,7 @@ describe(nc.coolGold(`redraw`), () => {
     ndom.draw(view)
     const listItem = list.child()
     const liNode = document.getElementById(listItem?.id || '')
-    const [newLiNode, newListItem] = ndom.redraw(liNode, listItem)
+    const [newLiNode, newListItem] = await ndom.redraw(liNode, listItem)
     expect(newListItem?.parent).to.eq(list)
   })
 
@@ -278,8 +287,8 @@ describe(nc.coolGold(`redraw`), () => {
     list.setParent(view)
     ndom.draw(view)
     const listItem = list.child()
-    const [empty, newListItem] = ndom.redraw(null, listItem)
-    ndom.redraw(null, newListItem)
+    const [empty, newListItem] = await ndom.redraw(null, listItem)
+    await ndom.redraw(null, newListItem)
     expect(list.children.includes(newListItem)).to.be.true
   })
 
@@ -290,7 +299,7 @@ describe(nc.coolGold(`redraw`), () => {
     }).render()
     const listItem = list.child()
     const liNode = document.getElementById(listItem?.id || '')
-    const [newLiNode, newListItem] = ndom.redraw(liNode, listItem)
+    const [newLiNode, newListItem] = await ndom.redraw(liNode, listItem)
     expect(newLiNode).to.have.property('id').that.is.eq(newListItem.id)
   })
 
@@ -306,7 +315,7 @@ describe(nc.coolGold(`redraw`), () => {
     const liNode = document.getElementById(listItem?.id || '')
     const ulNode = liNode?.parentNode as HTMLUListElement
     expect(ulNode.contains(liNode)).to.be.true
-    const [newNode] = ndom.redraw(liNode, listItem)
+    const [newNode] = await ndom.redraw(liNode, listItem)
     expect(ulNode.contains(liNode)).to.be.false
     expect(ulNode.children).to.have.length.greaterThan(0)
     expect(newNode?.parentNode).to.eq(ulNode)
@@ -322,26 +331,28 @@ describe(nc.coolGold(`redraw`), () => {
         imgPath = imgPath === 'selectOn.png' ? 'selectOff.png' : 'selectOn.png'
         return ['']
       })
-      const { ndom, render } = createRender({
-        type: 'view',
-        children: [
-          ui.image({
-            id: 'img123',
-            path: ui.emitObject(),
-            onClick: [ui.emitObject()],
-          }),
-        ],
-      })
+      const { ndom, render } = createRender(
+        ui.view({
+          children: [
+            ui.image({
+              id: 'img123',
+              path: ui.emitObject(),
+              onClick: [ui.emitObject()],
+            }),
+          ],
+        }),
+      )
       ndom.use({ emit: { onClick: onClickSpy, path: pathSpy } })
       const view = await render()
       const image = view.child()
+      expect(getFirstByElementId('img123')).to.exist
       getFirstByElementId('img123').click()
       await waitFor(() => {
         expect(onClickSpy).to.be.calledOnce
         expect(pathSpy).to.be.calledOnce
         expect(onClickSpy).to.be.calledOnce
       })
-      ndom.redraw(getFirstByElementId('img123'), image)
+      await ndom.redraw(getFirstByElementId('img123'), image)
       getFirstByElementId('img123').click()
       await waitFor(() => {
         const newImg = getFirstByElementId('img123') as HTMLImageElement
@@ -352,7 +363,7 @@ describe(nc.coolGold(`redraw`), () => {
   })
 
   describe('when user types something on a redrawed input node that had an onChange emit', () => {
-    it.only('should still be emitting and updating the DOM', async () => {
+    it('should still be emitting and updating the DOM', async () => {
       const mockOnChangeEmit = async (action, { component }) => {
         const node = getFirstByElementId(component)
         node.setAttribute('placeholder', component.get('data-value'))
@@ -372,9 +383,8 @@ describe(nc.coolGold(`redraw`), () => {
       let input = getFirstByDataKey('formData.password') as HTMLInputElement
       expect(input.dataset.value).to.eq('mypassword')
       expect(input.value).to.eq('mypassword')
-      ndom.redraw(viewElem, view)
+      await ndom.redraw(viewElem, view)
       await waitFor(() => {
-        console.info(prettyDOM())
         input = getFirstByDataKey('formData.password') as HTMLInputElement
         expect(input.dataset.value).to.eq('mypassword')
       })
@@ -398,7 +408,7 @@ describe(nc.coolGold(`redraw`), () => {
       { fruit: 'orange', color: 'blue', path: 'wire.png' },
     ]
 
-    const { getAssetsUrl, ndom, pageObject, render } = createRender({
+    const { getAssetsUrl, getRoot, ndom, pageObject, render } = createRender({
       root: {
         Hello: {
           formData: { password: 'mypassword', outerImagePath: 'abc.png' },
@@ -417,12 +427,10 @@ describe(nc.coolGold(`redraw`), () => {
                       onClick: [ui.emitObject()],
                       children: [
                         ui.textField(`${iteratorVar}.fruit`),
-                        mock.getLabelComponent({
-                          dataKey: `${iteratorVar}.color`,
-                        }),
+                        ui.label({ dataKey: `${iteratorVar}.color` }),
                         ui.image({
                           viewTag: 'listItemImageTag',
-                          path: mock.getFoldedEmitObject({
+                          path: ui.emitObject({
                             dataKey: `${iteratorVar}.path`,
                           }),
                         }),
@@ -446,7 +454,7 @@ describe(nc.coolGold(`redraw`), () => {
                           viewTag: 'redrawTag',
                           text: 'Redraw',
                           onClick: [
-                            mock.getBuiltInAction({
+                            ui.builtIn({
                               funcName: 'redraw',
                               viewTag: 'containerTag',
                             }),
@@ -469,8 +477,14 @@ describe(nc.coolGold(`redraw`), () => {
           const viewTag = action.original.viewTag
           const node = getFirstByViewTag(viewTag)
           const component = cache.component.get(node?.id).component
+          console.info(`Changing outerImagePath to brown.png`)
           pageObject.formData.outerImagePath = 'brown.png'
-          ndom.redraw(node, component)
+          try {
+            await ndom.redraw(node, component, ndom.findPage(opts.page))
+          } catch (error) {
+            console.error(error)
+          }
+          console.info(`Changed outerImagePath to brown.png`)
         },
       },
       emit: {
@@ -627,7 +641,7 @@ describe(nc.coolGold(`redraw`), () => {
                 ui.listItem({
                   children: [
                     ui.textField({ dataKey: 'formData.password' }),
-                    mock.getLabelComponent({ dataKey: `${iteratorVar}.fruit` }),
+                    ui.label({ dataKey: `${iteratorVar}.fruit` }),
                     ui.image({
                       path: ui.emitObject(),
                       onClick: [ui.emitObject()],
@@ -653,7 +667,7 @@ describe(nc.coolGold(`redraw`), () => {
     await waitFor(() => {
       expect(findFirstBySelector('input').dataset.value).to.eq('mypassword')
     })
-    ndom.redraw(
+    await ndom.redraw(
       findFirstBySelector('li'),
       ndom.cache.component.get(componentId).component,
     )

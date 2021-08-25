@@ -298,12 +298,15 @@ class Component<C extends ComponentObject = ComponentObject> {
     return this
   }
 
-  emit<Evt extends t.NUIComponent.HookEvent>(
+  async emit<Evt extends t.NUIComponent.HookEvent>(
     eventName: Evt,
     ...args: Parameters<NonNullable<t.NUIComponent.Hook[Evt]>>
   ) {
-    this.#hooks[eventName]?.forEach((cb) => (cb as any)?.(...args))
-    return this
+    if (u.isArr(this.#hooks[eventName])) {
+      return Promise.allSettled(
+        this.#hooks[eventName].map((cb) => (cb as any)?.(...args)),
+      )
+    }
   }
 
   clear(filter?: OrArray<'children' | 'hooks'>) {

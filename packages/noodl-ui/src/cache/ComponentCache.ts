@@ -81,8 +81,7 @@ class ComponentCache {
     evt: Evt,
     ...args: Parameters<ComponentCacheHook[Evt]>
   ) {
-    this.#observers[evt]?.forEach?.((fn: any) => fn(...args))
-    return this
+    return this.#observers[evt]?.map?.((fn: any) => fn(...args)) || []
   }
 
   add(
@@ -109,7 +108,7 @@ class ComponentCache {
     let remove = (obj: ComponentCacheObject) => {
       const id = obj?.component?.id || ''
       removed[id] = obj
-      this.#cache.delete(id)
+      this.remove(obj.component)
     }
 
     for (const obj of this.#cache.values()) {

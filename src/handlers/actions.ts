@@ -61,10 +61,7 @@ const createActions = function createActions(app: App) {
     (app.pickNDOMPage(options.page) || app.mainPage) as NDOMPage
 
   const emit = triggers.reduce(
-    (
-      acc: Partial<Record<NDOMTrigger, Store.ActionObject<'emit'>['fn']>>,
-      trigger,
-    ) =>
+    (acc: Partial<Record<string, Store.ActionObject<'emit'>['fn']>>, trigger) =>
       u.assign(acc, {
         [trigger]: async function (
           action: EmitAction,

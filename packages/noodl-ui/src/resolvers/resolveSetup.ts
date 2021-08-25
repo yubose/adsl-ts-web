@@ -8,7 +8,7 @@ import * as n from '../utils/noodl'
 
 const setupResolver = new Resolver('resolveSetup')
 
-setupResolver.setResolver((component, { getRoot, page }, next) => {
+setupResolver.setResolver(async (component, { getRoot, page }, next) => {
   const { path } = component.blueprint || {}
   // if (Identify.if(path)) {
   // Override the NUI getter for 'path' if the if object evaluates to a
@@ -73,10 +73,39 @@ setupResolver.setResolver((component, { getRoot, page }, next) => {
         }
       }
     }
+  } else if (
+    u.isStr(component.get('path')) &&
+    Identify.reference(component.get('path'))
+  ) {
+    // const reference = component.get('path')
+    // const datapath = nu.trimReference(reference)
+    // const originalGet = component?.get?.bind(component)
+    // const isLocal = Identify.localKey(datapath)
+    // if ((isLocal && page?.page) || !isLocal) {
+    //   const getDataObject = () =>
+    //     isLocal ? getRoot()[page?.page || ''] : getRoot()
+    //   const wrapGetter = (key: string, styleKey?: string) => {
+    //     if (key === 'path') {
+    //       let value =
+    //         n.resolveAssetUrl(get(getDataObject(), datapath), {
+    //           assetsUrl: getAssetsUrl(),
+    //         }) || ''
+    //       return value
+    //     }
+    //     return originalGet(key, styleKey)
+    //   }
+    //   Object.defineProperty(component, 'get', {
+    //     configurable: true,
+    //     enumerable: true,
+    //     get() {
+    //       return wrapGetter
+    //     },
+    //   })
+    // }
   }
   // }
 
-  next?.()
+  return next?.()
 })
 
 export default setupResolver

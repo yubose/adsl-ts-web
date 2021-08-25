@@ -47,6 +47,7 @@ import {
 import { groupedActionTypes, nuiEmitType } from './constants'
 import isNUIPage from './utils/isPage'
 import cache from './_cache'
+import * as c from './constants'
 import * as t from './types'
 
 const NUI = (function () {
@@ -82,11 +83,12 @@ const NUI = (function () {
 
   function _createComponent(
     componentObject:
+      | t.NUIComponentType
       | t.NUIComponent.Instance
       | ComponentObject
       | null
       | undefined,
-    page,
+    page?: NUIPage,
   ) {
     if (isComponent(componentObject)) return componentObject
     const component = createComponent(componentObject as ComponentObject)
@@ -99,20 +101,20 @@ const NUI = (function () {
    *  Create a url
    * @param { function } createSrc
    */
-  function _createSrc(args: {
+  async function _createSrc(args: {
     component: t.NUIComponent.Instance
     page: NUIPage
   }): Promise<string>
-  function _createSrc(
+  async function _createSrc(
     path: EmitObjectFold,
     opts?: {
       component: t.NUIComponent.Instance
       context?: Record<string, any>
     },
   ): Promise<string>
-  function _createSrc(path: IfObject): string
-  function _createSrc(path: string): string
-  function _createSrc(
+  async function _createSrc(path: IfObject): Promise<string>
+  async function _createSrc(path: string): Promise<string>
+  async function _createSrc(
     args:
       | EmitObjectFold
       | IfObject
@@ -127,7 +129,7 @@ const NUI = (function () {
       context?: Record<string, any>
     },
   ) {
-    let component: t.NUIComponent.Instance
+    let component: t.NUIComponent.Instance | undefined
     let page: NUIPage = o.getRootPage()
 
     if (u.isStr(args)) {
@@ -135,7 +137,7 @@ const NUI = (function () {
       // ex: path: "LeftPage"
       if ([...o.getPages(), ...o.getPreloadPages()].includes(args)) {
         const pageLink = o.getBaseUrl() + args + '_en.yml'
-        setTimeout(() => component?.emit('path', pageLink))
+        component?.emit?.('path', pageLink)
         return pageLink
       }
       return resolveAssetUrl(args, o.getAssetsUrl())
@@ -167,7 +169,7 @@ const NUI = (function () {
             )
             if (!callbacks.length) return ''
             const result = await Promise.race(
-              callbacks.map((obj: t.Store.ActionObject) =>
+              callbacks.map(async (obj: t.Store.ActionObject) =>
                 obj.fn?.(
                   emitAction,
                   o.getConsumerOptions({ component, page, path: args }),
@@ -177,30 +179,16 @@ const NUI = (function () {
             return (u.isArr(result) ? result[0] : result) || ''
           }
           // Result returned should be a string type
-          let result = emitAction.execute(args) as string | Promise<string>
-          let finalizedRes = ''
+          let result = (await emitAction.execute(args)) as
+            | string
+            | Promise<string>
 
-          if (isPromise(result)) {
-            return result
-              .then((res) => {
-                if (u.isStr(res) && res.startsWith('http')) {
-                  finalizedRes = res
-                } else {
-                  finalizedRes = resolveAssetUrl(String(res), o.getAssetsUrl())
-                }
-                component?.emit('path', finalizedRes)
-                return finalizedRes
-              })
-              .catch((err) => Promise.reject(err))
-          }
-          if (result) {
-            if (u.isStr(result) && result.startsWith('http')) {
-              finalizedRes = result
-              component?.emit('path', finalizedRes)
-              return result
+          if (u.isStr(result)) {
+            if (!result.startsWith('http')) {
+              result = resolveAssetUrl(result, o.getAssetsUrl())
             }
-            finalizedRes = resolveAssetUrl(result, o.getAssetsUrl())
-            component?.emit('path', finalizedRes)
+            component?.emit?.('path', result)
+            return result
           }
         }
       } else if (Identify.if(args)) {
@@ -390,7 +378,7 @@ const NUI = (function () {
 
   const _transform = _transformers[0].resolve.bind(_transformers[0])
 
-  function _resolveComponents<
+  async function _resolveComponents<
     C extends OrArray<t.NUIComponent.CreateType>,
     Context extends Record<string, any>,
   >(opts: {
@@ -400,24 +388,36 @@ const NUI = (function () {
     callback?: (
       component: t.NUIComponent.Instance,
     ) => t.NUIComponent.Instance | void
-  }): C extends C[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+  }): Promise<
+    C extends any[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+  >
 
-  function _resolveComponents<C extends OrArray<t.NUIComponent.CreateType>>(
+  async function _resolveComponents<
+    C extends OrArray<t.NUIComponent.CreateType>,
+  >(
     page: NUIPage,
     component: C,
     callback?: (
       component: t.NUIComponent.Instance,
     ) => t.NUIComponent.Instance | void,
-  ): C extends C[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+  ): Promise<
+    C extends any[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+  >
 
-  function _resolveComponents<C extends OrArray<t.NUIComponent.CreateType>>(
+  async function _resolveComponents<
+    C extends OrArray<t.NUIComponent.CreateType>,
+  >(
     component: C,
     callback?: (
       component: t.NUIComponent.Instance,
     ) => t.NUIComponent.Instance | void,
-  ): C extends C[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+  ): Promise<
+    C extends any[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+  >
 
-  function _resolveComponents<C extends OrArray<t.NUIComponent.CreateType>>(
+  async function _resolveComponents<
+    C extends OrArray<t.NUIComponent.CreateType>,
+  >(
     pageProp:
       | NUIPage
       | C
@@ -439,7 +439,7 @@ const NUI = (function () {
     let isArr = true
     let resolvedComponents: t.NUIComponent.Instance[] = []
     let components: t.NUIComponent.CreateType[] = []
-    let page: NUIPage
+    let page: NUIPage | undefined
     let context: Record<string, any> = {}
     let callback: ((component: C) => C | void) | undefined
 
@@ -470,7 +470,7 @@ const NUI = (function () {
       }
     }
 
-    function xform(
+    async function xform(
       c: t.NUIComponent.Instance,
       cb?: (
         component: t.NUIComponent.Instance,
@@ -479,10 +479,10 @@ const NUI = (function () {
       const options = o.getConsumerOptions({
         callback: cb,
         component: c,
-        page,
+        page: page as NUIPage,
         context,
       })
-      _transform(c, options)
+      await _transform(c, options)
       const iteratorVar = options?.context?.iteratorVar || ''
       const isListConsumer =
         iteratorVar && u.isObj(options?.context?.dataObject)
@@ -537,11 +537,13 @@ const NUI = (function () {
       return c
     }
 
-    components.forEach((c) => {
-      resolvedComponents.push(xform(o.createComponent(c, page)))
-    })
+    resolvedComponents = await Promise.all(
+      u.array(components).map(async (c) => xform(o.createComponent(c, page))),
+    )
 
-    return isArr ? resolvedComponents : resolvedComponents[0]
+    return (
+      isArr ? resolvedComponents : resolvedComponents[0]
+    ) as C extends any[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
   }
 
   function _getActions(): ActionsCache
@@ -652,7 +654,7 @@ const NUI = (function () {
                     if (isActionChain(cb)) {
                       return cb?.execute?.call(cb, obj, params)
                     }
-                    return u.isFnc(cb) ? cb(obj, params) : cb
+                    return u.isFnc(cb) ? await cb(obj, params) : cb
                   }) || [],
                 )
               }
@@ -707,18 +709,27 @@ const NUI = (function () {
     createPage(
       args?:
         | string
+        /**
+         * If a component instance is given, we must set its page id to the component id, emit the PAGE_CREATED component event and set the "page" prop using the page instance
+         */
+        | t.NUIComponent.Instance
         | {
             name?: string
             component?: t.NUIComponent.Instance
             id?: string
+            onChange?(prev: string, next: string): void
             viewport?: VP | { width?: number; height?: number }
           },
       opts:
-        | { viewport?: VP | { width?: number; height?: number } }
+        | {
+            onChange?(prev: string, next: string): void
+            viewport?: VP | { width?: number; height?: number }
+          }
         | never = {},
     ) {
       let name: string = ''
       let id: string | undefined = undefined
+      let onChange: ((prev: string, next: string) => void) | undefined
       let page: NUIPage | undefined
       let viewport: VP | undefined
 
@@ -728,8 +739,14 @@ const NUI = (function () {
           if (opts.viewport instanceof VP) viewport = opts.viewport
           else if (u.isObj(opts.viewport)) viewport = new VP(opts.viewport)
         }
+      } else if (isComponent(args)) {
+        id = args.id
+        page = args.get('page') || cache.page.get(args.id)?.page
+        name = String(args.get('path') || '')
+        page && args.get('page') !== page && args.edit('page', page)
       } else if (u.isObj(args)) {
         args.name && (name = args.name)
+        args.onChange && (onChange = args.onChange)
         if (isComponent(args.component)) args.id = args.component.id
         else id = args.id || id || ''
         if (args?.viewport) {
@@ -761,8 +778,16 @@ const NUI = (function () {
       }
 
       if (!isPreexistent) {
-        page = cache.page.create({ id, viewport: viewport }) as NUIPage
-        if (!u.isStr(args) && isComponent(args?.component)) {
+        page = cache.page.create({
+          id,
+          onChange,
+          viewport,
+        }) as NUIPage
+        if (isComponent(args)) {
+          page.page = name
+          args.edit('page', page)
+          args.emit(c.nuiEvent.component.page.PAGE_CREATED, page)
+        } else if (!u.isStr(args) && isComponent(args?.component)) {
           /**
            * Transfer the page from page component to be stored in the WeakMap
            * Page components being stored in Map are @deprecated because of
@@ -771,7 +796,7 @@ const NUI = (function () {
            */
           cache.page.remove(page)
           const component = args?.component as t.NUIComponent.Instance
-          page = cache.page.create({ id: component.id })
+          page = cache.page.create({ id: component.id, onChange })
         }
       }
 
@@ -840,11 +865,10 @@ const NUI = (function () {
           actions,
           (acc: t.NUIActionObject[], obj) => {
             const errors = getActionObjectErrors(obj)
-            if (errors.length) {
+            errors.length &&
               errors.forEach((errMsg) =>
                 console.log(`%c${errMsg}`, `color:#ec0000;`, obj),
               )
-            }
             if (u.isObj(obj) && !('actionType' in obj)) {
               obj = { ...obj, actionType: getActionType(obj) }
             } else if (u.isFnc(obj)) {
@@ -865,14 +889,13 @@ const NUI = (function () {
               let results = [] as (Error | any)[]
               if (fns.length) {
                 const callbacks = fns.map(
-                  async (obj: t.Store.ActionObject | t.Store.BuiltInObject) => {
-                    return obj.fn?.(action as any, {
+                  async (obj: t.Store.ActionObject | t.Store.BuiltInObject) =>
+                    obj.fn?.(action as any, {
                       ...options,
                       component: opts?.component,
                       event,
                       ref: actionChain,
-                    })
-                  },
+                    }),
                 )
                 results = await promiseAllSafely(
                   callbacks,
@@ -1024,7 +1047,9 @@ const NUI = (function () {
         get getQueryObjects() {
           return _getQueryObjects
         },
-        page,
+        get page() {
+          return page || o.getRootPage()
+        },
         get resolveComponents() {
           return _resolveComponents
         },

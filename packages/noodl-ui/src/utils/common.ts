@@ -36,13 +36,14 @@ export async function promiseAllSafely(
   const results = [] as any[]
 
   for (let index = 0; index < promises.length; index++) {
-    const promise = promises[index]
     try {
-      const result = await promise
-      results.push(getResult ? getResult(null, result) : result)
+      let result = await promises[index]
+      result = getResult ? getResult(null, result) : result
+      results.push(result)
     } catch (error) {
       const err = new Error(error.message)
-      results.push(getResult ? getResult(err, undefined) : err)
+      const result = getResult ? getResult(err, undefined) : err
+      results.push(result)
     }
   }
 

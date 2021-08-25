@@ -35,12 +35,20 @@ class Page implements IPage {
     return this.#get()
   }
 
+  get onChange() {
+    return this.#onChange
+  }
+
+  set onChange(onChange) {
+    this.#onChange = onChange
+  }
+
   get page() {
     return this.#page
   }
 
   set page(name: string) {
-    const prev = name
+    const prev = this.#page
     this.#page = name
     this.#onChange?.(prev, name)
   }
@@ -69,7 +77,7 @@ class Page implements IPage {
       this.#get = getComponents
     } else if (typeof getComponents === 'object') {
       if ('onChange' in getComponents) {
-        this.#onChange = getComponents.onChange
+        this.onChange = getComponents.onChange
       }
     }
     return this

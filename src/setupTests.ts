@@ -6,14 +6,12 @@ jsdom(undefined, {
 })
 // @ts-expect-error
 import MutationObserver from 'mutation-observer'
-import chaiAsPromised from 'chai-as-promised'
 import noop from 'lodash/noop'
 import chai from 'chai'
 import sinonChai from 'sinon-chai'
 import { getMostRecentApp, ndom } from './utils/test-utils'
 
 chai.use(sinonChai)
-chai.use(chaiAsPromised)
 
 let logStub: sinon.SinonStub
 let invariantStub: sinon.SinonStub<any>

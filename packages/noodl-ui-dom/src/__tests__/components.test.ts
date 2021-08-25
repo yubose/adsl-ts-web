@@ -191,9 +191,9 @@ describe(nc.coolGold('components'), () => {
       ndom.use({ getPages: () => ['Donut', 'Hello'] })
       const view = await render()
       const pageComponent = view.child()
-
       await waitFor(() => {
         const componentPage = ndom.findPage(pageComponent)
+        expect(componentPage).to.exist
         expect(componentPage?.body).to.exist
         expect(componentPage.body)
           .to.have.property('children')
@@ -250,8 +250,8 @@ describe(nc.coolGold('components'), () => {
         )
         const component = cache.component.get('page123').component
         const ndomPage = ndom.findPage(component.get('page') as NUIPage)
-        ndomPage.page = 'Tiger'
-        ndomPage.requesting = 'Tiger'
+        ndomPage && (ndomPage.page = 'Tiger')
+        ndomPage && (ndomPage.requesting = 'Tiger')
         component.emit(nuiEvent.component.page.PAGE_CHANGED)
         await waitForPageChildren()
         expect(getPageElemBody())
@@ -372,13 +372,14 @@ describe(nc.coolGold('components'), () => {
           }
         }
 
-        function changeToTigerPage(
+        async function changeToTigerPage(
           ndomPage: NDOMPage,
           component: NUIComponent.Instance,
         ) {
+          if (!ndomPage) return
           ndomPage.page = 'Tiger'
           ndomPage.requesting = 'Tiger'
-          component.emit(nuiEvent.component.page.PAGE_CHANGED)
+          return component.emit(nuiEvent.component.page.PAGE_CHANGED)
         }
 
         it(`should add all the page descendant children to the component cache`, async () => {
@@ -388,6 +389,15 @@ describe(nc.coolGold('components'), () => {
           const pageComponent = view2.child()
           await waitForPageChildren()
           const expectedCurrentComponentCount = 16
+
+          await waitFor(() => {
+            expect(
+              getFirstByElementId(pageComponent).contentDocument.body.children,
+            )
+              .to.have.property('length')
+              .greaterThan(0)
+          })
+
           expect(cache.component.length).to.eq(expectedCurrentComponentCount)
           const pageChildrenIds = i._getDescendantIds(pageComponent)
           const cachedComponentIds = [...cache.component.get().values()].map(
@@ -398,7 +408,7 @@ describe(nc.coolGold('components'), () => {
           )
         })
 
-        xit(`should remove all the previous descendant page children from the component cache`, async () => {
+        it.only(`should remove all the previous descendant page children from the component cache`, async () => {
           const { ndom, render } = createRender(getCreateRenderOptions())
           await render()
           const pageComponent = cache.component.get('p2').component.child()
@@ -411,22 +421,21 @@ describe(nc.coolGold('components'), () => {
             expect(cache.component.get(id)).to.exist
           })
 
-          console.info(
-            `
-oldIds: ${oldPageChildrenIds}
-newIds: ${i._getDescendantIds(pageComponent)}
-            `,
-          )
-          changeToTigerPage(componentPage, pageComponent)
+          //           console.info(
+          //             `
+          // oldIds: ${oldPageChildrenIds}
+          // newIds: ${i._getDescendantIds(pageComponent)}
+          //             `,
+          //           )
+          await changeToTigerPage(componentPage, pageComponent)
           await waitForPageChildren()
-          console.info(`PAGE COMPONENT`, pageComponent)
-          console.info(
-            `
-oldIds: ${oldPageChildrenIds}
-newIds: ${i._getDescendantIds(pageComponent)}
-            `,
-          )
-
+          //           console.info(`PAGE COMPONENT`, pageComponent)
+          //           console.info(
+          //             `
+          // oldIds: ${oldPageChildrenIds}
+          // newIds: ${i._getDescendantIds(pageComponent)}
+          //             `,
+          //           )
           await waitFor(() => {
             oldPageChildrenIds.forEach((id) => {
               expect(cache.component.get(id)).to.not.exist
@@ -442,12 +451,13 @@ newIds: ${i._getDescendantIds(pageComponent)}
           await waitForPageChildren()
           let pageComponent = cache.component.get('p2').component.child()
           let ndomPage = ndom.findPage(pageComponent.get('page') as NUIPage)
-          changeToTigerPage(ndomPage, pageComponent)
+          await changeToTigerPage(ndomPage, pageComponent)
           await waitForPageChildren()
           pageComponent = cache.component.get('p2').component.child()
 
           await waitFor(() => {
             const ids = i._getDescendantIds(pageComponent)
+            console.info(ids)
             expect(ids).to.have.lengthOf(3)
             expect(ids).to.have.all.members([
               'tigerView',

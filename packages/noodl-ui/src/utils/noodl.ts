@@ -386,10 +386,12 @@ export function publish(
     _cb = cb as (child: NUIComponent.Instance) => void
   }
 
-  _component?.children?.forEach?.((child: NUIComponent.Instance) => {
-    _cb?.(child)
-    _cb && publish(child, _cb)
-  })
+  if (_component && u.isArr(_component.children)) {
+    for (const child of _component.children) {
+      _cb?.(child)
+      _cb && publish(child, _cb)
+    }
+  }
 
   _component = undefined
   _cb = undefined

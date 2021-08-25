@@ -8,9 +8,6 @@ import {
   findIteratorVar,
   getDataValues,
   NUIComponent,
-  Page as NUIPage,
-  publish,
-  findChild,
   Store,
   Viewport as VP,
   isListConsumer,
@@ -46,7 +43,6 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
-import { trimReference } from 'noodl-utils'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -626,7 +622,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             dataObject && (ctx.dataObject = dataObject)
           }
           const ndomPage = pickNDOMPageFromOptions(options)
-          app.ndom.redraw(_node, _component, ndomPage, { context: ctx })
+          await app.ndom.redraw(_node, _component, ndomPage, { context: ctx })
         }
         startCount++
       }

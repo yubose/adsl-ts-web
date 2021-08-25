@@ -1,0 +1,53 @@
+{
+  "listObject": [
+    {
+      "key": "Gender",
+      "value": "Male"
+    }
+  ],
+  "contentType": "listObject",
+  "iteratorVar": "iceCream",
+  "children": [
+    {
+      "style": {
+        "left": "0",
+        "border": {
+          "style": "1"
+        }
+      },
+      "children": [
+        {
+          "children": [
+            {
+              "type": "select",
+              "options": [],
+              "style": {
+                "position": "relative",
+                "outline": "none"
+              },
+              "id": "_87gaot58v",
+              "parentId": "_dqs1db02a",
+              "children": []
+            }
+          ],
+          "type": "view",
+          "style": {},
+          "id": "_dqs1db02a",
+          "parentId": "_awvzwthai"
+        }
+      ],
+      "iceCream": {
+        "key": "Gender",
+        "value": "Male"
+      },
+      "type": "listItem",
+      "index": 0,
+      "id": "_awvzwthai",
+      "parentId": "_ijrsxkmgu"
+    }
+  ],
+  "type": "list",
+  "style": {},
+  "id": "_ijrsxkmgu",
+  "parentId": null
+}

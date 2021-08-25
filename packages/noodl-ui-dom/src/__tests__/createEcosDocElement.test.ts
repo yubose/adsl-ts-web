@@ -1,4 +1,3 @@
-import * as mock from 'noodl-ui-test-utils'
 import * as u from '@jsmanifest/utils'
 import { NUIComponent } from 'noodl-ui'
 import { prettyDOM, waitFor } from '@testing-library/dom'
@@ -14,29 +13,28 @@ import { classes } from '../constants'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import { getFirstByElementId } from '../utils'
 import { nui } from '../nui'
-import { createRender, createDataKeyReference, ndom } from '../test-utils'
+import { createRender, createDataKeyReference, ndom, ui } from '../test-utils'
 import * as c from '../constants'
 
-function getEcosDocElement(
+async function getEcosDocLoadResult(
   componentObject:
     | NUIComponent.Instance
     | ComponentObject
     | undefined
-    | null = mock.getEcosDocComponent(),
+    | null = ui.ecosDocComponent(),
   container = document.body,
 ) {
-  const node = createEcosDocElement(
+  return createEcosDocElement(
     container,
     u.isFnc(componentObject?.get)
       ? componentObject?.get('ecosObj')
       : componentObject?.['ecosObj'],
-  ) as HTMLIFrameElement
-  return node
+  )
 }
 
-function getEcosDocRenderResults<N extends NameField = NameField>({
-  ecosObj = mock.getEcosDocObject(),
-  component: componentProp = mock.getEcosDocComponent({
+async function getEcosDocRenderResults<N extends NameField = NameField>({
+  ecosObj = ui.ecosDoc(),
+  component: componentProp = ui.ecosDocComponent({
     id: 'hello',
     ecosObj,
   }),
@@ -46,9 +44,9 @@ function getEcosDocRenderResults<N extends NameField = NameField>({
   ecosObj?: EcosDocument<N>
   node?: HTMLElement
 } = {}) {
-  const component = nui.resolveComponents(componentProp)
+  const component = await nui.resolveComponents(componentProp)
   node.id = component.id
-  const iframe = getEcosDocElement(component)
+  const { iframe } = await getEcosDocLoadResult(component)
   document.body.appendChild(node)
   return {
     componentObject: componentProp,
@@ -60,40 +58,26 @@ function getEcosDocRenderResults<N extends NameField = NameField>({
 }
 
 describe(coolGold(`createEcosDocElement`), async () => {
-  it(`should create an iframe element`, () => {
-    const iframe = getEcosDocElement()
+  it(`should create an iframe element`, async () => {
+    const { iframe } = await getEcosDocLoadResult()
     expect(iframe).to.have.property('tagName', 'IFRAME')
     expect(iframe).to.be.instanceOf(HTMLIFrameElement)
   })
 
-  it(
-    `should not append the iframe to the node so that the parent can decide ` +
-      `when to append to its children instead`,
-    async () => {
-      const { iframe, node } = getEcosDocRenderResults()
-      expect(iframe.parentElement).not.to.exist
-      expect(node.contains(iframe)).to.be.false
-      node.appendChild(iframe)
-      expect(iframe.parentElement).to.exist
-      expect(node.contains(iframe)).not.to.be.false
-    },
-  )
-
   describe(italic('Rendering'), () => {
     describe(white(`image documents`), () => {
       it(`should render the image element into its body and set the src`, async () => {
-        const customEcosObj = mock.getEcosDocObject({
+        const customEcosObj = ui.ecosDoc({
           name: {
             data: 'blob:https://www.google.com/abc.png',
             type: 'image/png',
           },
           subtype: { mediaType: 4 },
         })
-        const componentObject = mock.getEcosDocComponent({
+        const componentObject = ui.ecosDocComponent({
           ecosObj: customEcosObj,
         })
-        const iframe = getEcosDocElement(componentObject)
-        document.body.appendChild(iframe)
+        const { iframe } = await getEcosDocLoadResult(componentObject)
         await waitFor(() => {
           const body = iframe.contentDocument?.body
           expect(body?.classList.contains(c.classes.ECOS_DOC_IMAGE)).to.be.true
@@ -108,12 +92,12 @@ describe(coolGold(`createEcosDocElement`), async () => {
 
     xdescribe(white(`pdf documents`), () => {
       it(`should render the pdf element into its body and set the src`, async () => {
-        const ecosObj = mock.getEcosDocObject('pdf')
-        const { iframe, node } = getEcosDocRenderResults({
-          component: mock.getEcosDocComponent({ ecosObj }),
+        const ecosObj = ui.ecosDoc('pdf')
+        const { iframe, node } = await getEcosDocRenderResults({
+          component: ui.ecosDocComponent({ ecosObj }),
           ecosObj,
+          node: document.body,
         })
-        node.appendChild(iframe)
         await waitFor(() => {
           expect(ecosObj.name?.data).to.exist
           expect(iframe).to.have.property('src', ecosObj.name?.data)
@@ -126,7 +110,7 @@ describe(coolGold(`createEcosDocElement`), async () => {
 
       describe(white(`plain text`), async () => {
         it(`should show the title and content`, async () => {
-          const customEcosObj = mock.getEcosDocObject({
+          const customEcosObj = ui.ecosDoc({
             name: {
               type: 'text/plain',
               title: 'my title',
@@ -136,11 +120,10 @@ describe(coolGold(`createEcosDocElement`), async () => {
               mediaType: 0,
             },
           })
-          const { iframe, node } = getEcosDocRenderResults({
-            component: mock.getEcosDocComponent({ ecosObj: customEcosObj }),
+          const { iframe, node } = await getEcosDocRenderResults({
+            component: ui.ecosDocComponent({ ecosObj: customEcosObj }),
             ecosObj: customEcosObj,
           })
-          node.appendChild(iframe)
           await waitFor(() => {
             const body = iframe.contentDocument?.body
             const title = body?.getElementsByClassName(
@@ -163,14 +146,18 @@ describe(coolGold(`createEcosDocElement`), async () => {
 
   describe(italic(`Classes`), () => {
     it(`should attach the class name "${c.classes.ECOS_DOC}" on the iframe`, async () => {
-      expect(getEcosDocElement().classList.contains(c.classes.ECOS_DOC)).to.be
-        .true
+      expect(
+        (await getEcosDocLoadResult()).iframe.classList.contains(
+          c.classes.ECOS_DOC,
+        ),
+      ).to.be.true
     })
 
     describe(white(`image`), () => {
       it(`should attach the class name "${c.classes.ECOS_DOC_IMAGE}"`, async () => {
-        const iframe = getEcosDocElement(mock.getEcosDocComponent('image'))
-        document.body.appendChild(iframe)
+        const { iframe } = await getEcosDocLoadResult(
+          ui.ecosDocComponent('image'),
+        )
         await waitFor(() => {
           expect(
             iframe.contentDocument?.body?.classList.contains(
@@ -186,10 +173,9 @@ describe(coolGold(`createEcosDocElement`), async () => {
         `should attach the class name "${c.classes.ECOS_DOC_NOTE_TITLE}" on ` +
           `note title elements that explicitly reference it`,
         async () => {
-          const ecosObj = mock.getEcosDocObject('note')
-          // @ts-expect-error
+          const ecosObj = ui.ecosDoc('note')
           ecosObj.name.title = `SignIn.gender.key`
-          const components = [{ ...mock.getEcosDocComponent({ ecosObj }) }]
+          const components = [{ ...ui.ecosDocComponent({ ecosObj }) }]
           const { render } = createRender({ components })
           createDataKeyReference({
             pageName: 'SignIn',
@@ -212,9 +198,12 @@ describe(coolGold(`createEcosDocElement`), async () => {
           `elements`,
         async () => {
           let iframe: HTMLIFrameElement
-          document.body.appendChild(
-            (iframe = getEcosDocElement(mock.getEcosDocComponent('note'))),
-          )
+          iframe = (
+            await getEcosDocLoadResult(
+              ui.ecosDocComponent('note'),
+              document.body,
+            )
+          ).iframe
           await waitFor(() => {
             expect(
               iframe.contentDocument?.getElementsByClassName(
@@ -229,13 +218,13 @@ describe(coolGold(`createEcosDocElement`), async () => {
         `should attach the class name "${c.classes.ECOS_DOC_NOTE_DATA}" on ` +
           `note body elements`,
         async () => {
-          let iframe: HTMLIFrameElement
-          document.body.appendChild(
-            (iframe = getEcosDocElement(mock.getEcosDocComponent('note'))),
+          let loadResult = await getEcosDocLoadResult(
+            ui.ecosDocComponent('note'),
+            document.body,
           )
           await waitFor(() => {
             expect(
-              iframe.contentDocument?.getElementsByClassName(
+              loadResult.iframe.contentDocument?.getElementsByClassName(
                 c.classes.ECOS_DOC_NOTE_DATA,
               )[0],
             ).to.exist
@@ -249,12 +238,13 @@ describe(coolGold(`createEcosDocElement`), async () => {
         `should attach the class name "${c.classes.ECOS_DOC_PDF}" on ` +
           `the iframe`,
         async () => {
-          let iframe: HTMLIFrameElement
-          document.body.appendChild(
-            (iframe = getEcosDocElement(mock.getEcosDocComponent('pdf'))),
+          let loadResult = await getEcosDocLoadResult(
+            ui.ecosDocComponent('pdf'),
+            document.body,
           )
           await waitFor(() => {
-            expect(iframe.classList.contains(c.classes.ECOS_DOC_PDF)).to.be.true
+            expect(loadResult.iframe.classList.contains(c.classes.ECOS_DOC_PDF))
+              .to.be.true
           })
         },
       )

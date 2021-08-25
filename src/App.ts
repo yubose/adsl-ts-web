@@ -235,7 +235,7 @@ class App {
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       const req = await this.ndom.request(_page)
       if (req) {
-        const components = req.render()
+        const components = await req.render()
         window.pcomponents = components
       }
     } catch (error) {
@@ -640,7 +640,7 @@ class App {
         document.body.style.height = `${args.height}px`
         this.mainPage.rootNode.style.width = `${args.width}px`
         this.mainPage.rootNode.style.height = `${args.height}px`
-        this.ndom.render(this.mainPage)
+        await this.ndom.render(this.mainPage)
       }
     }
   }

@@ -13,7 +13,6 @@ describe(nc.coolGold(`internal (utilities)`), () => {
         const page1 = ndom.createPage('SignIn')
         const page2 = ndom.createPage('About')
         i._removePage.call(ndom, page1)
-        console.info(ndom.global.pageIds)
       })
     })
 
@@ -35,14 +34,23 @@ describe(nc.coolGold(`internal (utilities)`), () => {
 
     describe(`when there is an existing page component with an empty string as the page`, () => {
       it(`should dispose the old one and all its associated references to replace with the new ones`, async () => {
+        ndom.reset().resync()
         ndom.createPage('SignIn')
         const page2 = ndom.createPage('')
         expect(ndom.global.pageIds).to.have.lengthOf(2)
         const page3 = ndom.createPage('')
+        ndom.createPage('')
+        ndom.createPage('')
+        ndom.createPage('')
+        ndom.createPage('')
+        ndom.createPage('')
+        ndom.createPage('')
+        ndom.createPage('')
+        ndom.createPage('')
         expect(page2).to.not.eq(page3)
         expect(ndom.global.pageIds).to.have.lengthOf(2)
         expect(ndom.global.pageIds).not.to.include(page2.id)
-        expect(ndom.global.pageIds).to.include(page3.id)
+        expect(ndom.global.pageIds).not.to.include(page3.id)
         expect(ndom.global.pages).not.to.have.property(page2.id)
         expect(ndom.global.pageNames).to.have.lengthOf(2)
         expect(u.values(ndom.global.pages)).to.have.lengthOf(2)

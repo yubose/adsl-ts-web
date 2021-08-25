@@ -1,12 +1,16 @@
 import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
 import NUIPage from '../Page'
+import isComponent from '../utils/isComponent'
 import type Viewport from '../Viewport'
-import type { ICache, IPage } from '../types'
+import type { ICache, IPage, NUIComponent } from '../types'
 import * as c from '../constants'
 
 export interface PageCacheHooks {
-  [c.cache.page.hooks.PAGE_CREATED](page: NUIPage): void
+  [c.cache.page.hooks.PAGE_CREATED](args: {
+    component?: NUIComponent.Instance
+    page: NUIPage
+  }): void
   [c.cache.page.hooks.PAGE_REMOVED](page: NUIPage): void
 }
 
@@ -53,7 +57,7 @@ class PageCache implements ICache {
     if (PageCache._inst) return PageCache._inst
     PageCache._inst = this
 
-    this.on('PAGE_CREATED', (page) => {
+    this.on('PAGE_CREATED', ({ page }) => {
       this.state.created.set(page.created, {
         startPage: page.page,
         endPage: '',
@@ -91,17 +95,33 @@ class PageCache implements ICache {
   }
 
   // create(component: NUIComponent.Instance, page?: NUIPage): NUIPage
-  create(args: { id?: string; viewport?: Viewport }): NUIPage
-  create(args: { id?: string; viewport?: Viewport } = {}) {
+  create(
+    args: {
+      // If component is passed in it must be treated as a page component.
+      component?: NUIComponent.Instance
+      id?: string
+      onChange?: (prev: string, next: string) => void
+      viewport?: Viewport
+    } = {},
+  ) {
     let { id, viewport } = args
     id = id || (!this.#pages.size ? 'root' : undefined)
     const page = new NUIPage(viewport, { id })
+    args.onChange && page.use({ onChange: args.onChange })
     this.#pages.set(page.id, { page })
-    this.#emit(c.cache.page.hooks.PAGE_CREATED, page)
+    const emitArgs = { page } as {
+      component?: NUIComponent.Instance
+      page: NUIPage
+    }
+    if (isComponent(args.component)) emitArgs.component = args.component
+    this.#emit(c.cache.page.hooks.PAGE_CREATED, emitArgs)
     return this.#pages.get(page.id)?.page as NUIPage
   }
 
-  #emit = <Evt extends keyof PageCacheHooks>(evt: Evt, page: NUIPage) => {
+  #emit = <Evt extends keyof PageCacheHooks>(
+    evt: Evt,
+    page: NUIPage | { component?: NUIComponent.Instance; page: NUIPage },
+  ) => {
     this.#hooks[evt]?.forEach?.((fn) => fn?.(page))
   }
 

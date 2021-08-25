@@ -24,14 +24,14 @@ function attachDataAttrs<N extends t.NDOMElement>(
   setAttr: ReturnType<NDOMResolver['getOptions']>['setAttr'],
   setDataAttr: ReturnType<NDOMResolver['getOptions']>['setDataAttr'],
 ) {
-  dataAttributes.forEach((key) => {
+  for (const key of dataAttributes) {
     if (component?.get?.(key)) {
       setDataAttr(key, component.get(key) || '')
       'value' in node &&
         key === c.DATA_VALUE &&
         setAttr('value' as any, component.get(key))
     }
-  })
+  }
 }
 
 function attachUserEvents<N extends t.NDOMElement>(
@@ -66,19 +66,22 @@ function handleKeyPress<N extends t.NDOMElement>(node: N) {
 
 const attributesResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] attributes`,
-  before({ elementType, component, node, setAttr, setStyleAttr }) {
+  async before({ elementType, component, node, setAttr, setStyleAttr }) {
     if (node && component) {
       setAttr('id', component.id || '')
       if (elementType === 'SCRIPT') {
         if (component.has('global')) {
-          component.on('image', (src: string) =>
-            setStyleAttr('backgroundImage', `url("${src}")`),
-          )
+          if (!component.get('data-src')) {
+            component.on('image', (src: string) =>
+              setStyleAttr('backgroundImage', `url("${src}")`),
+            )
+          }
+          setStyleAttr('backgroundImage', `url("${component.get('data-src')}")`)
         }
       }
     }
   },
-  resolve(args) {
+  async resolve(args) {
     const { elementType, setAttr, setDataAttr, setStyleAttr } = args
 
     if (args.node) {
@@ -146,13 +149,10 @@ const attributesResolver: t.Resolve.Config = {
             args.component.get(c.DATA_PLACEHOLDER) || placeholder || ''
 
           if (Identify.folds.emit(value)) {
-            args.component.on('placeholder', (result) => {
-              setTimeout(() => {
-                ;[setAttr, setDataAttr].forEach((fn) =>
-                  fn('placeholder', result),
-                )
-              })
-            })
+            ;[setAttr, setDataAttr].forEach((fn) => fn('placeholder', value))
+            args.component.on('placeholder', (result) =>
+              [setAttr, setDataAttr].forEach((fn) => fn('placeholder', result)),
+            )
           } else {
             ;[setAttr, setDataAttr].forEach((fn) => fn('placeholder', value))
           }

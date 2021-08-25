@@ -1,4 +1,3 @@
-import * as mock from 'noodl-ui-test-utils'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
@@ -36,7 +35,7 @@ describe(coolGold(`utils`), () => {
         ],
       })
       const req = await request('Hello')
-      req?.render()
+      await req?.render()
       const result = findElement((doc) =>
         doc?.querySelectorAll(`[data-viewtag]`),
       ) as HTMLElement[]

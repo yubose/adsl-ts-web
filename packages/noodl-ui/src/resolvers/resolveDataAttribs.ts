@@ -16,7 +16,7 @@ import { NUIComponent } from '../types'
 
 const dataAttribsResolver = new Resolver('resolveDataAttribs')
 
-dataAttribsResolver.setResolver((component, options, next) => {
+dataAttribsResolver.setResolver(async (component, options, next) => {
   const original = component.blueprint || {}
   const { context, getAssetsUrl, getQueryObjects, getRoot, page } = options
   const {
@@ -210,7 +210,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
           if (src.startsWith('..')) {
             // Local
             src = src.substring(2)
-            src = get(getRoot()[page?.page], src)
+            src = get(getRoot()[options?.page?.page], src)
           } else if (src.startsWith('.')) {
             // Root
             src = src.substring(1)
@@ -260,6 +260,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
     if (dataOptions) {
       component.set('data-options', dataOptions || [])
+      // setTimeout(() => component.emit('options', component.get('data-options')))
       setTimeout(() => component.emit('options', component.get('data-options')))
     } else {
       console.log(
@@ -289,7 +290,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     }
   }
 
-  next?.()
+  return next?.()
 })
 
 export default dataAttribsResolver

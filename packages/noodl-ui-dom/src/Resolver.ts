@@ -6,6 +6,7 @@ import { Component } from 'noodl-ui'
 import { getPageAncestor } from './utils'
 import { cache, nui } from './nui'
 import attributesResolver from './resolvers/attributes'
+import componentsResolver from './resolvers/components'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import * as t from './types'
@@ -49,16 +50,23 @@ export default class NDOMResolver {
       global: args.ndom.global,
       node: args.node,
       nui,
-      page:
-        args.page ||
-        args.ndom.findPage(getPageAncestor(args.component)?.get?.('page')) ||
-        args.ndom.page,
+      get page() {
+        return (
+          args.page ||
+          args.ndom.findPage(getPageAncestor(args.component)?.get?.('page')) ||
+          args.ndom.page
+        )
+      },
       redraw: args.ndom.redraw.bind(args.ndom),
       /**
        * REMINDER: This intentionally does not include componentsResolver due to
        * circular references/infinite loops
        */
-      resolvers: [attributesResolver].concat(args.ndom.consumerResolvers),
+      resolvers: [
+        ...args.ndom.consumerResolvers,
+        attributesResolver,
+        componentsResolver,
+      ],
       elementType: args.node?.tagName || '',
       componentType: args.component?.type || '',
       setAttr: <K extends keyof t.NDOMElement>(k: K, v: any) => {
@@ -77,7 +85,7 @@ export default class NDOMResolver {
     }
   }
 
-  run<
+  async run<
     T extends string = string,
     N extends t.NDOMElement<T> = t.NDOMElement<T>,
   >({
@@ -97,11 +105,11 @@ export default class NDOMResolver {
 
     // TODO - feat. consumer return value
     for (let index = 0; index < total; index++) {
-      this.resolve(runners[index], options)
+      await this.resolve(runners[index], options)
     }
   }
 
-  resolve<
+  async resolve<
     T extends string = string,
     N extends t.NDOMElement<T> = t.NDOMElement<T>,
   >(
@@ -109,11 +117,11 @@ export default class NDOMResolver {
     options: ReturnType<NDOMResolver['getOptions']>,
   ) {
     for (const fn of [config.before, config.resolve, config.after]) {
-      fn && this.resolveCond(config.cond, options, fn)
+      fn && (await this.resolveCond(config.cond, options, fn))
     }
   }
 
-  resolveCond(
+  async resolveCond(
     cond: t.Resolve.Config['cond'],
     options: ReturnType<NDOMResolver['getOptions']>,
     callback: (options: ReturnType<NDOMResolver['getOptions']>) => void,

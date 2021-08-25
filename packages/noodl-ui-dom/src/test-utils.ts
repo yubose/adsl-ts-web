@@ -100,7 +100,7 @@ export interface CreateRenderResult {
   page: NDOMPage
   pageObject: PageObject
   request(pgName?: string): Promise<{
-    render: () => NUIComponent.Instance[]
+    render: () => Promise<NUIComponent.Instance[]>
   }>
   render(pgName?: string): Promise<NUIComponent.Instance>
 }
@@ -121,7 +121,7 @@ export function createRender<Opts extends MockRenderOptions>(
   opts: OrArray<ComponentObject> | Opts,
 ) {
   ndom.reset()
-  _syncPages.call(ndom)
+  ndom.resync()
 
   let currentPage = ''
   let pageRequesting = ''
@@ -168,17 +168,16 @@ export function createRender<Opts extends MockRenderOptions>(
   const getPageObject = (pageProp = page as NDOMPage | string) => {
     return new Promise((resolve) => {
       // Simulate a real world request delay
-      setTimeout(() =>
-        resolve(
-          use.getRoot()[
-            u.isStr(pageProp)
-              ? pageProp
-              : (pageProp as NDOMPage)?.requesting ||
-                (pageProp as NDOMPage)?.page ||
-                ''
-          ] as PageObject,
-        ),
-      )
+      setTimeout(() => {
+        const result = use.getRoot()[
+          u.isStr(pageProp)
+            ? pageProp
+            : (pageProp as NDOMPage)?.requesting ||
+              (pageProp as NDOMPage)?.page ||
+              ''
+        ] as PageObject
+        resolve(result)
+      })
     })
   }
 
@@ -207,15 +206,13 @@ export function createRender<Opts extends MockRenderOptions>(
     get pageObject() {
       return use.getRoot()[pageRequesting] as PageObject
     },
-    request: (pgName = '') => {
+    request: async (pgName = '') => {
       pgName && page && (page.requesting = pgName)
-      return ndom.request(page) as Promise<{
-        render: () => NUIComponent.Instance[]
-      }>
+      return ndom.request(page)
     },
     render: async (pgName = ''): Promise<NUIComponent.Instance> => {
       const req = await o.request(pgName || page?.requesting)
-      return req?.render?.()[0] as NUIComponent.Instance
+      return u.array(await req?.render?.())?.[0] as NUIComponent.Instance
     },
   } as CreateRenderResult
 

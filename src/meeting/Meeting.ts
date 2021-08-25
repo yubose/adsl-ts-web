@@ -192,7 +192,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * @param { RemoteParticipant } participant
      * @param { object } options - This is temporarily used for debugging
      */
-    addRemoteParticipant(
+    async addRemoteParticipant(
       participant: t.RoomParticipant,
       {
         force = false,
@@ -219,7 +219,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           // Just set the participant as the mainStream  since it's open
           if (!o.mainStream.hasParticipant()) {
             o.mainStream.setParticipant(participant)
-            app.meeting.onAddRemoteParticipant?.(
+            await app.meeting.onAddRemoteParticipant?.(
               participant as t.RemoteParticipant,
               o.mainStream,
             )
@@ -232,12 +232,12 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = o.subStreams.blueprint
-              const node = app.ndom.draw(
+              const node = (await app.ndom.draw(
                 // TODO - Replace this resolver call and do a cleaner
-                o.subStreams.resolver?.(props) || props,
+                (await o.subStreams.resolver?.(props)) || props,
                 undefined,
                 app.mainPage,
-              ) as any
+              )) as any
               const subStream = o.subStreams
                 .create({
                   node,

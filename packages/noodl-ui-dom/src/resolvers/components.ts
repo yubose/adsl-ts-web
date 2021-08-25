@@ -15,28 +15,21 @@ import {
   Plugin,
 } from 'noodl-ui'
 import { toSelectOption } from '../utils'
-import copyAttributes from '../utils/copyAttributes'
+import { ComponentPage } from '../factory/componentFactory'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import NDOM from '../noodl-ui-dom'
 import NDOMPage from '../Page'
 import * as t from '../types'
 import * as i from '../utils/internal'
 import * as c from '../constants'
-import { ComponentPage } from '../factory/componentFactory'
+import copyStyles from '../utils/copyStyles'
+import applyStyles from '../utils/applyStyles'
+import { OrArray } from '@jsmanifest/typefest'
 
-export default {
+const componentsResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] components`,
-  resolve(args) {
-    const {
-      cache,
-      createPage,
-      draw,
-      findPage,
-      nui,
-      setAttr,
-      setDataAttr,
-      setStyleAttr,
-    } = args
+  async resolve(args) {
+    const { cache, draw, nui, setAttr, setDataAttr, setStyleAttr } = args
 
     if (u.isFnc(args.node)) {
       // PLUGIN
@@ -137,11 +130,13 @@ export default {
           return elem
         }
 
+        if (args.component.has('content')) {
+          loadAttribs(args.component, pluginNode, args.component.get('content'))
+        }
+
         args.component.on(
           'content',
-          (content: string) => {
-            loadAttribs(args.component, pluginNode, content)
-          },
+          (content: string) => loadAttribs(args.component, pluginNode, content),
           'content',
         )
 
@@ -303,10 +298,18 @@ export default {
           (i.isWordDoc(args.component) && 'word-doc') ||
           'ecos'
 
-        const iframe = createEcosDocElement(
-          args.node as HTMLElement,
-          args.component.get('ecosObj'),
-        )
+        let iframe: HTMLIFrameElement | undefined
+
+        try {
+          const loadResult = await createEcosDocElement(
+            args.node as HTMLElement,
+            args.component.get('ecosObj'),
+          )
+          iframe = loadResult.iframe
+        } catch (error) {
+          console.error(error)
+          iframe = document.createElement('iframe')
+        }
 
         iframe && (iframe.id = `${idLabel}-document-${args.component.id}`)
 
@@ -331,24 +334,23 @@ export default {
             setStyleAttr('height', '100%')
           }
         }
+        if (args.component.get(c.DATA_SRC)) {
+          setAttr('src', args.component.get(c.DATA_SRC))
+          setDataAttr('src', args.component.get(c.DATA_SRC))
+        }
         args.component.on('path', (result: string) => {
           if (args.node) {
             setAttr('src', result)
             setDataAttr('src', result)
           }
         })
-        if (args.component.get(c.DATA_SRC)) {
-          setAttr('src', args.component.get(c.DATA_SRC))
-          setDataAttr('src', args.component.get(c.DATA_SRC))
-        }
 
         // load promise return to image
         if (args.component.blueprint?.['path=func']) {
           // ;(node as HTMLImageElement).src = '../waiting.png'
-          args.component.get(c.DATA_SRC).then((path: any) => {
-            console.log('test path=func', path)
-            setAttr('src', path || args.component.get(c.DATA_SRC))
-          })
+          const path = await args.component.get(c.DATA_SRC)
+          console.log('test path=func', path)
+          setAttr('src', path)
         }
       }
       // LABEL
@@ -414,15 +416,10 @@ export default {
                 resolvers: NDOM['resolvers']
               }) {
                 let src = opts.component.get(c.DATA_SRC) || ''
-                let nuiPage = opts.component.get('page') as NUIPage
-                let ndomPage = opts.findPage(nuiPage) as ComponentPage
+                let ndomPage = opts.findPage(opts.component) as ComponentPage
 
                 if (!ndomPage) {
-                  return console.log(
-                    `%cNDOMPage was not found for a remote (http) page component`,
-                    `color:#ec0000;`,
-                    { nuiPage, src, ...opts },
-                  )
+                  ndomPage = opts.createPage(opts.component)
                 }
 
                 if (opts.node) {
@@ -492,13 +489,85 @@ export default {
                 once: true,
               })
             } else {
+              // const copiedStyles = copyStyles(args.page.rootNode)
+              // console.log(copiedStyles)
+              // console.log(copiedStyles)
+              // console.log(copiedStyles)
+              // console.log(copiedStyles)
               /**
                * If this page component is not remote, it is loading a page
                * from the "page" list from a noodl app config
                */
 
+              const renderComponentPage = async (
+                _args: typeof args,
+                componentPage: ComponentPage,
+              ) => {
+                const getChildrenComponents = async (
+                  parent: NUIComponent.Instance,
+                  componentObjects: OrArray<ComponentObject>,
+                ): Promise<NUIComponent.Instance[]> => {
+                  return Promise.all(
+                    componentObjects.map(async (obj: ComponentObject) => {
+                      const child = await nui.resolveComponents({
+                        components: parent.createChild(
+                          nui.createComponent(obj),
+                        ),
+                        page: componentPage.getNuiPage(),
+                        // callback: (comp) => {
+                        //   if (cache.component.get(child).page !== nuiPage.page) {
+                        //     cache.component.get(child).page = nuiPage.page
+                        //   }
+                        // }
+                      })
+                      // if (child.length) {
+
+                      // }
+                      // if (obj.children?.length) {
+                      //   await getChildrenComponents(
+                      //     child,
+                      //     child.blueprint.children,
+                      //   )
+                      // }
+                      return child
+                    }),
+                  )
+                }
+
+                const resolvedChildren = await getChildrenComponents(
+                  _args.component,
+                  componentPage.components,
+                )
+
+                for (const resolvedChild of resolvedChildren) {
+                  componentPage.appendChild(
+                    await _args.draw(
+                      resolvedChild,
+                      componentPage.body,
+                      componentPage.getNuiPage(),
+                    ),
+                  )
+                }
+
+                // if (componentPage.getNuiPage() && cache.component.get(child)) {
+                //   if (cache.component.get(child).page !== nuiPage.page) {
+                //     cache.component.get(child).page = nuiPage.page
+                //   }
+                // }
+
+                /**
+                 * Clean up inactive components if any remain from
+                 * previous renders
+                 */
+                i._getDescendantIds(_args.component).forEach((id) => {
+                  // _args.cache.component.remove(
+                  //   _args.cache.component.get(id)?.component,
+                  // )
+                })
+              }
+
               const onPageComponents = curry(
-                (
+                async (
                   _args: typeof args,
                   {
                     /**
@@ -509,11 +578,12 @@ export default {
                     type,
                   }: Parameters<NUIComponent.Hook['PAGE_COMPONENTS']>[0],
                 ) => {
+                  const currPage = nuiPage.page
                   const ndomPage = i._getOrCreateComponentPage(
                     _args.component,
                     _args.createPage,
                     _args.findPage,
-                  )
+                  ) as ComponentPage
 
                   /**
                    * Initiation / first time rendering
@@ -522,72 +592,59 @@ export default {
                     if (ndomPage.rootNode !== _args.node) {
                       ndomPage.replaceNode(_args.node as HTMLIFrameElement)
                     }
-                  } else {
-                    /**
-                     * Clean up inactive components if any remain from
-                     * previous renders
-                     */
-                    i._getDescendantIds(_args.component).forEach((id) => {
-                      _args.cache.component.remove(
-                        _args.cache.component.get(id)?.component,
-                      )
-                    })
+                  }
+                  /**
+                   * Clean up inactive components if any remain from
+                   * previous renders
+                   */
+                  if (ndomPage.requesting && ndomPage.page) {
+                    _args.cache.component.clear(ndomPage.requesting)
+                    // i._getDescendantIds(_args.component).forEach((id) => {
+                    //   _args.cache.component.remove(
+                    //     _args.cache.component.get(id)?.component,
+                    //   )
+                    // })
                   }
 
-                  const children = u.array(
-                    nui.resolveComponents({
-                      components:
-                        nuiPage.components?.map?.((obj: ComponentObject) => {
-                          let child = nui.createComponent(obj, nuiPage)
-                          child = _args.component.createChild(child)
-                          return child
-                        }) || [],
-                      page: nuiPage,
-                    }),
-                  )
+                  console.info(nuiPage.components)
 
-                  console.info(_args.cache.component.length)
-
-                  children.forEach((child) => {
-                    const nuiPage = _args.page?.getNuiPage?.()
-                    if (nuiPage && cache.component.get(child)) {
-                      if (cache.component.get(child).page !== nuiPage.page) {
-                        cache.component.get(child).page = nuiPage.page
-                      }
-                    }
-                    ndomPage.appendChild(draw(child, _args.node, ndomPage))
-                    if (!_args.cache.component.has(child)) {
-                      // _args.cache.component.add(child, nuiPage)
-                    }
-                  })
+                  renderComponentPage(_args, ndomPage)
                 },
               )
 
-              if (!args.component.get('page')) {
-                args.component.on(nuiEvent.component.page.PAGE_CREATED, () =>
-                  args.component.on(
-                    nuiEvent.component.page.PAGE_COMPONENTS,
-                    onPageComponents(args),
-                  ),
+              if (args.component.has('page')) {
+                args.node.addEventListener(
+                  'load',
+                  async function (evt) {
+                    console.info(`ComponentPage ELEMENT ONLOAD`, evt)
+                    await onPageComponents(args, {
+                      page: args.component.get('page'),
+                      type: 'init',
+                    })
+                  },
+                  { once: true },
                 )
               } else {
-                // Still create a ComponentPage even if the page name is empty
-                // to be in sync with the NUIPage
-                if (
-                  args.component.get('page')?.page === '' &&
-                  !args.findPage(args.component.get('page'))
-                ) {
-                  i._getOrCreateComponentPage(
-                    args.component,
-                    args.createPage,
-                    args.findPage,
-                  )
-                }
-                args.component.on(
-                  nuiEvent.component.page.PAGE_COMPONENTS,
-                  onPageComponents(args),
-                )
+                console.info(`PAGE COMPONENT DID NOT HAVE ITS NUIPAGE`)
               }
+
+              // Still create a ComponentPage even if the page name is empty
+              // to be in sync with the NUIPage
+              // if (
+              //   args.component.get('page')?.page === '' &&
+              //   !args.findPage(args.component.get('page'))
+              // ) {
+              //   i._getOrCreateComponentPage(
+              //     args.component,
+              //     args.createPage,
+              //     args.findPage,
+              //   )
+              // }
+
+              args.component.on(
+                nuiEvent.component.page.PAGE_COMPONENTS,
+                onPageComponents(args),
+              )
             }
           } else {
             console.log(
@@ -606,26 +663,28 @@ export default {
       }
       // SELECT
       else if (Identify.component.select(original)) {
-        if(component.get('size')){
-          const size = component.get('size')
-          const select = node as HTMLTextAreaElement
-          let height = component?.style?.height
-          const initHeight = typeof height == 'string'?parseFloat(height.replace('px','')):height
-          const sizeHeight = typeof initHeight == 'number'? initHeight*size:0
-          select.onmouseup= function(){
-            select.setAttribute('size',size)
-            select.style.height = sizeHeight+"px"
-            
+        if (args.component.get('size')) {
+          const size = args.component.get('size')
+          const select = args.node as HTMLTextAreaElement
+          let height = args.component?.style?.height
+          const initHeight =
+            typeof height == 'string'
+              ? parseFloat(height.replace('px', ''))
+              : height
+          const sizeHeight =
+            typeof initHeight == 'number' ? initHeight * size : 0
+          select.onmouseup = function () {
+            select.setAttribute('size', size)
+            select.style.height = sizeHeight + 'px'
           }
-          select.onblur = function(){
+          select.onblur = function () {
             select.removeAttribute('size')
-            select.style.height = initHeight+"px"
+            select.style.height = initHeight + 'px'
           }
-          select.onchange = function(){
+          select.onchange = function () {
             select.removeAttribute('size')
-            select.style.height = initHeight+"px"
+            select.style.height = initHeight + 'px'
           }
-          
         }
         function clearOptions(_node: HTMLSelectElement) {
           const numOptions = _node.options
@@ -778,4 +837,6 @@ export default {
       }
     }
   },
-} as t.Resolve.Config
+}
+
+export default componentsResolver

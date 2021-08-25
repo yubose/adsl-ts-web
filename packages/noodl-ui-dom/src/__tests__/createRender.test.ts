@@ -4,7 +4,7 @@ import * as util from '../utils'
 import { createRender, ui } from '../test-utils'
 
 describe(nc.coolGold(`createRender`), () => {
-  it(`should be a  ble to render to the DOM with just 1 or more components`, async () => {
+  it(`should be able to render to the DOM with just 1 or more components`, async () => {
     const node = util.findByElementId(await createRender(ui.button()).render())
     expect(node).to.exist
     expect(node).to.have.property('tagName').to.eq('BUTTON')

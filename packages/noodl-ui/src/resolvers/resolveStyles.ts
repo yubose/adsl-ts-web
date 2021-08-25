@@ -27,7 +27,7 @@ function createStyleEditor(component: NUIComponent.Instance) {
 
 const resolveStyles = new ComponentResolver('resolveStyles')
 
-resolveStyles.setResolver((component, options, next) => {
+resolveStyles.setResolver(async (component, options, next) => {
   const { context, getBaseStyles, viewport, getRoot, page } = options
   const edit = createStyleEditor(component)
 
@@ -248,9 +248,9 @@ resolveStyles.setResolver((component, options, next) => {
     util.posKeys.forEach((posKey) => {
       if (!isNil(component.blueprint?.style?.[posKey])) {
         const result = util.getPositionProps(
-          component.blueprint.style,
+          component.blueprint?.style,
           posKey as any,
-          viewport[util.xKeys.includes(posKey as any) ? 'width' : 'height'],
+          viewport?.[util.xKeys.includes(posKey as any) ? 'width' : 'height'],
         )
         result && u.assign(component.style, result)
       }
@@ -419,7 +419,7 @@ resolveStyles.setResolver((component, options, next) => {
     }
   })
 
-  next?.()
+  return next?.()
 })
 
 export default resolveStyles

@@ -1,17 +1,16 @@
-import * as mock from 'noodl-ui-test-utils'
 import * as nc from 'noodl-common'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { flatten, NUI, nuiEmitTransaction } from 'noodl-ui'
 import { getFirstByGlobalId } from '../utils'
-import { ndom, createRender } from '../test-utils'
+import { ndom, createRender, ui } from '../test-utils'
 import GlobalComponentRecord from '../global/GlobalComponentRecord'
 
 describe(nc.coolGold(`noodl-ui-dom`), () => {
   describe(nc.italic(`createGlobalRecord`), () => {
     it(`should add the GlobalComponentRecord to the global store`, async () => {
       const { render } = createRender({
-        components: [mock.getPopUpComponent({ global: true })],
+        components: [ui.popUpComponent({ global: true })],
       })
       const component = await render()
       const globalId = component.get('data-globalid')
@@ -24,23 +23,25 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
 
   describe(nc.italic(`createPage`), () => {
     it(`should set the base/main "page" property if it is empty`, () => {
+      ndom.reset().resync()
       expect(ndom.page).to.be.undefined
-      const page = ndom.createPage()
+      const page = ndom.createPage('')
       expect(ndom.page).to.eq(page)
     })
 
-    it(`should also add this to its object of pages in the global store`, () => {
+    it(`should also add to the global store of pages`, () => {
+      ndom.reset().resync()
       expect(ndom.page).to.be.undefined
-      const page = ndom.createPage()
+      const page = ndom.createPage('')
       expect(ndom.global.pages[page.id]).to.exist
     })
 
     describe(`when passing a NUIPage instance`, () => {
-      it(
+      xit(
         `should not create a new NOODLDOMPage instance if it already ` +
           `exists, and returns that instance instead`,
         () => {
-          const nuiPage = NUI.createPage()
+          const nuiPage = ndom.createPage('SignIn')
           const ndomPage = ndom.createPage(nuiPage)
           const anotherNdomPage = ndom.createPage(nuiPage) as any
           expect(ndomPage === anotherNdomPage).to.be.true
@@ -52,13 +53,13 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
   describe(nc.italic(`draw`), () => {
     it(`should have all components in the component cache`, async () => {
       const rawComponents = [
-        mock.getListComponent({
+        ui.list({
           children: [
-            mock.getListItemComponent({
+            ui.listItem({
               children: [
-                mock.getLabelComponent({ text: 'red' }),
-                mock.getTextFieldComponent(),
-                mock.getLabelComponent({ text: 'blue' }),
+                ui.label({ text: 'red' }),
+                ui.textField(),
+                ui.label({ text: 'blue' }),
               ],
             }),
           ],
@@ -76,7 +77,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           `doesn't exist`,
         async () => {
           const pageName = 'Hello'
-          const popUpComponentObj = mock.getPopUpComponent({
+          const popUpComponentObj = ui.popUpComponent({
             popUpView: 'cerealView',
             global: true,
           })
@@ -106,7 +107,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           const { ndom, render } = createRender({
             pageName: 'Abc',
             components: [
-              mock.getPopUpComponent({
+              ui.popUpComponent({
                 popUpView: 'cerealView',
                 global: true,
               }),
@@ -142,7 +143,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
         `should update the componentId and nodeId in the global object it if ` +
           `drawing the same global component`,
         async () => {
-          const globalPopUpComponent = mock.getPopUpComponent({
+          const globalPopUpComponent = ui.popUpComponent({
             popUpView: 'cerealView',
             global: true,
           })
@@ -150,11 +151,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           const { page, ndom, request, render } = createRender({
             pageName,
             pageObject: {
-              components: [
-                mock.getSelectComponent(),
-                mock.getButtonComponent(),
-                globalPopUpComponent,
-              ],
+              components: [ui.select(), ui.button(), globalPopUpComponent],
             },
           })
           const req = await request()
@@ -165,7 +162,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           expect(globalRecord).to.have.property('componentId', popUp.id)
           expect(globalRecord).to.have.property('nodeId', globalPopUpNode.id)
           page.components = [
-            mock.getPopUpComponent({
+            ui.popUpComponent({
               popUpView: 'cerealView',
               global: true,
             }),
@@ -184,7 +181,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
         `should remove the old nodes/components from the DOM/cache and replace ` +
           `them with the new one if encountering the same global component object`,
         async () => {
-          const globalPopUpComponent = mock.getPopUpComponent({
+          const globalPopUpComponent = ui.popUpComponent({
             popUpView: 'cerealView',
             global: true,
           })
@@ -192,11 +189,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           const { page, ndom, request, render } = createRender({
             pageName,
             pageObject: {
-              components: [
-                mock.getSelectComponent(),
-                mock.getButtonComponent(),
-                globalPopUpComponent,
-              ],
+              components: [ui.select(), ui.button(), globalPopUpComponent],
             },
           })
           const req = await request()
@@ -205,7 +198,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           expect(document.body.contains(globalPopUpNode)).to.be.true
           expect(ndom.cache.component.has(popUp)).to.be.true
           page.components = [
-            mock.getPopUpComponent({
+            ui.popUpComponent({
               popUpView: 'cerealView',
               global: true,
             }),
@@ -225,12 +218,12 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
     xit(
       `should throw if the ${nuiEmitTransaction.REQUEST_PAGE_OBJECT} transaction ` +
         `doesn't exist`,
-      () => {
+      async () => {
         const { page, ndom } = createRender({
-          components: mock.getTextFieldComponent(),
+          components: ui.textField(),
         })
         ndom.reset('transactions')
-        return expect(ndom.request(page)).to.eventually.be.rejectedWith(
+        return expect(await ndom.request(page)).to.be.rejectedWith(
           /transaction/i,
         )
       },
@@ -241,7 +234,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
       const newPage = 'Cereal'
       const { page, ndom } = createRender({
         pageName,
-        components: [mock.getPopUpComponent()],
+        components: [ui.popUpComponent()],
       })
       expect(page.previous).to.eq('')
       expect(page.requesting).to.eq(pageName)
@@ -258,13 +251,13 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
   describe(nc.italic(`redraw`), () => {
     xit(`should delete all components involved in the redraw from the component cache`, async () => {
       const rawComponents = [
-        mock.getListComponent({
+        ui.list({
           children: [
-            mock.getListItemComponent({
+            ui.listItem({
               children: [
-                mock.getLabelComponent({ text: 'red' }),
-                mock.getTextFieldComponent(),
-                mock.getLabelComponent({ text: 'blue' }),
+                ui.label({ text: 'red' }),
+                ui.textField(),
+                ui.label({ text: 'blue' }),
               ],
             }),
           ],
@@ -290,12 +283,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
   describe(nc.italic(`render`), () => {
     it(`should render noodl components to the DOM`, async () => {
       const { render } = createRender({
-        components: [
-          mock.getButtonComponent(),
-          mock.getTextFieldComponent(),
-          mock.getSelectComponent(),
-          mock.getVideoComponent(),
-        ],
+        components: [ui.button(), ui.textField(), ui.select(), ui.video()],
       })
       const elemTypes = ['input', 'button', 'select', 'video']
       elemTypes.forEach((t) => {
@@ -315,10 +303,10 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
         pageObject: {
           formData: { password: 'hello123' },
           components: [
-            mock.getButtonComponent(),
-            mock.getTextFieldComponent(),
-            mock.getSelectComponent(),
-            mock.getVideoComponent({ global: true }),
+            ui.button(),
+            ui.textField(),
+            ui.select(),
+            ui.video({ global: true }),
           ],
         },
       })

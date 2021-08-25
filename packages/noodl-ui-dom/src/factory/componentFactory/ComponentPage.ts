@@ -1,7 +1,9 @@
 import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
 import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
+import { isPage as isNUIPage } from 'noodl-ui'
 import NDOMPage from '../../Page'
+import isNDOMPage from '../../utils/isPage'
 import copyAttributes from '../../utils/copyAttributes'
 import * as c from '../../constants'
 import * as t from '../../types'
@@ -29,6 +31,7 @@ class ComponentPage<
   } as ComponentPageHooks
   #onLoad: OnLoad | undefined
   #onError: OnError | undefined
+  #nuiPage: NUIPage
   #initialized = false
   #error: Error | null = null
   rootNode: N;
@@ -62,14 +65,12 @@ class ComponentPage<
     component: NUIComponent.Instance,
     hooks?: { onLoad?: OnLoad; onError?: OnError },
   ) {
-    super(
-      (component?.get?.('page') as NUIPage) || {
-        id: component?.id || _getRandomKey(),
-      },
-    )
-
+    let nuiPage = component?.get?.('page')
+    if (isNDOMPage(nuiPage)) nuiPage = nuiPage.getNuiPage()
+    super(nuiPage || component)
     this.#component = component
     this.rootNode = super.rootNode as N
+    window.pg = this
 
     if (this.rootNode) {
       if (this.rootNode.tagName !== 'IFRAME') {
@@ -275,6 +276,14 @@ class ComponentPage<
       )
     }
     return this
+  }
+
+  getNuiPage() {
+    const nuiPage = this.#component?.get?.('page') as NUIPage
+    if (nuiPage) {
+      if (this.#nuiPage !== nuiPage) this.#nuiPage = nuiPage
+    }
+    return this.#nuiPage
   }
 
   on<
