@@ -33,6 +33,7 @@ import Spinner from './spinner'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
 import * as t from './app/types'
+import { lstat } from 'fs-extra'
 
 const log = Logger.create('App.ts')
 
@@ -217,6 +218,40 @@ class App {
     try {
       let _page: NOODLDOMPage
       let _pageRequesting = ''
+
+      console.log('test',{
+        page,
+        pageRequesting
+      })
+
+      const ls = window.localStorage
+      let pageUrl = pageRequesting?pageRequesting:page
+      let params:any = pageUrl.split("&")
+      if(params.length >= 2){
+        const ls = window.localStorage
+        let tempParams:any = ls.getItem('tempParams')
+        let urlkeys = ''
+        params = params?params:[]
+        console.log('test1')
+        tempParams = typeof tempParams == 'string'?JSON.parse(tempParams):{}
+        console.log('test2')
+        pageRequesting = pageRequesting?params[0]:pageRequesting
+        page = page?params[0]:page
+
+        for(let i=1;i<params.length;i++){
+            let param = params[i].split('=')
+            tempParams[param[0]] = param[1]
+        }
+
+        let keys = Object.keys(tempParams)
+        for(let i=0;i<keys.length;i++){
+          urlkeys = urlkeys+'&'+keys[i]+'='+tempParams[keys[i]]
+        }
+
+        ls.setItem('tempParams', JSON.stringify(tempParams))
+      }else{
+        ls.removeItem('tempParams')
+      }
 
       if (isNOODLDOMPage(page)) {
         _page = page

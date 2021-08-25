@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar } from 'noodl-utils'
-import type { NUIComponent, ConsumerOptions } from '../types'
+import type { NUIComponent } from '../types'
 import { presets } from '../constants'
 import { findListDataObject, findIteratorVar } from '../utils/noodl'
 import ComponentResolver from '../Resolver'
@@ -263,7 +263,8 @@ resolveStyles.setResolver(async (component, options, next) => {
       ---- SIZES
     -------------------------------------------------------- */
 
-  const { width, height } = originalStyles
+  const { width, height, maxHeight, maxWidth, miniHeight, miniWidth } =
+    originalStyles
 
   if (!isNil(width)) {
     edit({ width: String(util.getSize(width as any, viewport.width)) })
@@ -282,6 +283,22 @@ resolveStyles.setResolver(async (component, options, next) => {
         })
       }
     }
+  }
+
+  //maxHeight,maxWidth,miniHeight,miniWidth
+  if (!isNil(maxHeight)) {
+    edit({ maxHeight: String(util.getSize(maxHeight as any, viewport.width)) })
+  }
+  if (!isNil(maxWidth)) {
+    edit({ maxWidth: String(util.getSize(maxWidth as any, viewport.width)) })
+  }
+  if (!isNil(miniHeight)) {
+    edit({
+      miniHeight: String(util.getSize(miniHeight as any, viewport.width)),
+    })
+  }
+  if (!isNil(miniWidth)) {
+    edit({ miniWidth: String(util.getSize(miniWidth as any, viewport.width)) })
   }
 
   /* -------------------------------------------------------

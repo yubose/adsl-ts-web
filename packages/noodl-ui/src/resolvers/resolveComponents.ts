@@ -5,7 +5,7 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import type { ComponentObject, EcosDocument } from 'noodl-types'
 import { Identify } from 'noodl-types'
-import { findDataValue } from 'noodl-utils'
+import { excludeIteratorVar, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import type NUIPage from '../Page'
 import VP from '../Viewport'
@@ -283,13 +283,19 @@ componentResolver.setResolver(async (component, options, next) => {
            * fontWeight---> normal | bold | number
            */
           if (item?.dataKey) {
-            const dataObject = findDataValue(
-              [() => getRoot(), () => getRoot()[page.page]],
-              item?.dataKey,
-            )
-            item.text = u.isObj(dataObject)
-              ? get(dataObject, item?.datKey)
-              : dataObject
+            if (iteratorVar && item?.dataKey.startsWith(iteratorVar)) {
+              const dataObject = findListDataObject(component)
+              const dataKey = excludeIteratorVar(item?.dataKey, iteratorVar)
+              item.text = dataKey ? get(dataObject, dataKey) : dataObject
+            } else {
+              const dataObject = findDataValue(
+                [() => getRoot(), () => getRoot()[page.page]],
+                item?.dataKey,
+              )
+              item.text = u.isObj(dataObject)
+                ? get(dataObject, item?.datKey)
+                : dataObject
+            }
           }
           const text = createComponent(
             {
