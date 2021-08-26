@@ -49,10 +49,13 @@ const getDefaultState = () =>
     >,
   )
 
-class ActionsCache implements ICache {
+class ActionsCache<ETrigger extends string = string> implements ICache {
   #actions: ActionsStore<OtherActionTypes, Store.ActionObject>
   #builtIns: ActionsStore<'builtIn', Store.BuiltInObject>
-  #emits: ActionsStore<LiteralUnion<NUITrigger, string>, Store.ActionObject[]>
+  #emits: ActionsStore<
+    LiteralUnion<NUITrigger | ETrigger, string>,
+    Store.ActionObject[]
+  >
   state = getDefaultState();
 
   [Symbol.iterator]() {

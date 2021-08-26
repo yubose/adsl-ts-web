@@ -27,7 +27,6 @@ import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
-import createResources from './handlers/resources'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
 import Spinner from './spinner'
@@ -82,7 +81,7 @@ class App {
     noodl,
     notification,
     nui = NUI,
-    ndom = new NOODLDOM(nui),
+    ndom = new NOODLDOM(),
     viewport = new VP(),
   }: t.AppConstructorOptions = {}) {
     this.getStatus = getStatus
@@ -275,12 +274,10 @@ class App {
         _page.requesting = ''
         return void (window.location.href = _pageRequesting)
       }
-      // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside
-      // our init() method. Page.components should also contain the components retrieved from
-      // that page object
+      // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       const req = await this.ndom.request(_page)
       if (req) {
-        const components = req.render()
+        const components = await req.render()
         window.pcomponents = components
       }
     } catch (error) {
@@ -347,13 +344,11 @@ class App {
       const doms = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
       const middlewares = createMiddleware(this)
-      const resources = createResources(this)
       const transactions = createTransactions(this)
 
       this.ndom.use(actions)
       this.ndom.use({ builtIn: builtIns })
       this.ndom.use({ plugin: plugins })
-      this.ndom.use({ resource: resources })
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
 
@@ -471,10 +466,15 @@ class App {
       const pageRequesting = page.requesting
       const currentPage = page.page
       log.func('getPageObject')
-      log.grey(
-        `Running noodl.initPage for page "${pageRequesting}"`,
-        page.snapshot(),
-      )
+      log.grey(`Running noodl.initPage for page "${pageRequesting}"`)
+
+      if (pageRequesting === currentPage) {
+        console.log(
+          `%cYou are already on the "${pageRequesting}" page. ` +
+            `The page is unnecessarily rendering twice to the DOM`,
+          `color:#ec0000;`,
+        )
+      }
 
       let self = this
 
@@ -501,14 +501,7 @@ class App {
                 )
               : undefined,
             checkField: self.builtIns.get('checkField')?.find(Boolean)?.fn,
-            goto: (...args) => {
-              // debugger
-              return self.builtIns
-                .get('goto')
-                ?.find(Boolean)
-                ?.fn(...args)
-            },
-            // goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
+            goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
             hide: self.builtIns.get('hide')?.find(Boolean)?.fn,
             show: self.builtIns.get('show')?.find(Boolean)?.fn,
             redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
@@ -532,7 +525,7 @@ class App {
               if (
                 !has(
                   location === 'local' ? this.root[pageRequesting] : this.root,
-                  datapath,
+                  datapath.split('.'),
                 )
               ) {
                 log.func(`${pageRequesting} init`)
@@ -575,33 +568,6 @@ class App {
             if (err) throw err
             log.func('onAfterInit')
             log.grey('', { err, init, page: pageRequesting })
-
-            const activePages = [] as string[]
-
-            for (const obj of this.cache.component) {
-              if (obj) {
-                if (obj.page && !activePages.includes(obj.page)) {
-                  activePages.push(obj.page)
-                }
-              }
-            }
-
-            for (const obj of this.cache.page) {
-              if (obj) {
-                const [id, { page }] = obj
-                if (!page.page || !activePages.includes(page.page)) {
-                  console.log(
-                    `%cRemoving ${
-                      !page.page ? 'empty' : 'inactive'
-                    } page from NUI`,
-                    `color:#00b406;`,
-                    page.toJSON(),
-                  )
-                  // debugger
-                  this.cache.page.remove(page)
-                }
-              }
-            }
           },
         })
       )?.aborted
@@ -716,25 +682,9 @@ class App {
         document.body.style.height = `${args.height}px`
         this.mainPage.rootNode.style.width = `${args.width}px`
         this.mainPage.rootNode.style.height = `${args.height}px`
-        this.ndom.render(this.mainPage)
+        await this.ndom.render(this.mainPage)
       }
     }
-
-    // document.addEventListener('gesturechange', (args) => {
-    //   if (
-    //     args.width !== args.previousWidth ||
-    //     args.height !== args.previousHeight
-    //   ) {
-    //     if (this.currentPage === 'VideoChat') return
-    //     this.aspectRatio = aspectRatio
-    //     refreshWidthAndHeight()
-    //     document.body.style.width = `${args.width}px`
-    //     document.body.style.height = `${args.height}px`
-    //     this.mainPage.rootNode.style.width = `${args.width}px`
-    //     this.mainPage.rootNode.style.height = `${args.height}px`
-    //     this.ndom.render(this.mainPage)
-    //   }
-    // })
   }
 
   observePages(page: NOODLDOMPage) {
@@ -785,21 +735,21 @@ class App {
       (snapshot: any) => {
         log.func('onBeforRenderComponents')
         log.grey(`onBeforRenderComponents`, snapshot)
-        const pageIds = []
-        const currentPageNames = []
+        // const pageIds = []
+        // const currentPageNames = []
 
-        for (const ndomPage of u.values(this.ndom.pages)) {
-          pageIds.push(ndomPage.id)
-          currentPageNames.push(ndomPage.page)
-        }
+        // for (const ndomPage of u.values(this.ndom.pages)) {
+        //   pageIds.push(ndomPage.id)
+        //   currentPageNames.push(ndomPage.page)
+        // }
 
-        for (const obj of this.cache.component) {
-          if (obj) {
-            if (!currentPageNames.includes(obj.page)) {
-              this.cache.component.remove(obj.component)
-            }
-          }
-        }
+        // for (const obj of this.cache.component) {
+        //   if (obj) {
+        //     if (!currentPageNames.includes(obj.page)) {
+        //       this.cache.component.remove(obj.component)
+        //     }
+        //   }
+        // }
       }
 
     const onComponentsRendered = (page: NOODLDOMPage) => {

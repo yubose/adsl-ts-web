@@ -1,4 +1,3 @@
-import path from 'path'
 import { RollupOptions } from 'rollup'
 import { DEFAULT_EXTENSIONS } from '@babel/core'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
@@ -88,18 +87,6 @@ const configs = [
       // }),
     ],
   },
-  // {
-  //   input: './src/index.ts',
-  //   output: [
-  //     {
-  //       file: './dist/index.d.ts',
-  //       exports: 'named',
-  //       format: 'es',
-  //       sourcemap: true,
-  //     },
-  //   ],
-  //   plugins: [progress(), dts()],
-  // },
 ]
 
 export default configs

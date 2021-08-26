@@ -1,7 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import { Identify, PageObject } from 'noodl-types'
-// import { Room } from 'twilio-video'
 import {
   createAction,
   EmitAction,
@@ -44,7 +43,7 @@ function createRegisters(app: App) {
   }
 
   const registrees = {
-    FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
+    async FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
       log.func('FCMOnTokenReceive')
 
       componentObject.eventId = 'FCMOnTokenReceive'
@@ -54,9 +53,9 @@ function createRegisters(app: App) {
         trigger: 'register',
       }) as EmitAction
 
-      const component = app.nui?.resolveComponents(
+      const component = (await app.nui?.resolveComponents(
         componentObject,
-      ) as NUIComponent.Instance
+      )) as NUIComponent.Instance
 
       componentObject.onEvent = async function FCMOnTokenReceive(
         token: string,
@@ -88,7 +87,7 @@ function createRegisters(app: App) {
         })
         .catch((err) => log.red(`[Error]: ${err.message}`))
     },
-    onNewEcosDoc(componentObject: GlobalRegisterComponent) {
+    async onNewEcosDoc(componentObject: GlobalRegisterComponent) {
       log.func('onNewEcosDoc')
 
       componentObject.eventId = 'onNewEcosDoc'
@@ -98,9 +97,9 @@ function createRegisters(app: App) {
         trigger: 'register',
       }) as EmitAction
 
-      const component = app.nui?.resolveComponents(
+      const component = (await app.nui?.resolveComponents(
         componentObject,
-      ) as NUIComponent.Instance
+      )) as NUIComponent.Instance
 
       componentObject.onEvent = async function onNewEcosDoc(did: string) {
         log.func('onNewEcosDoc onEvent')
@@ -246,7 +245,7 @@ function createRegisters(app: App) {
   if (u.isFnc(app.listen)) {
     app.listen('onInitPage', onInitPage)
   } else {
-    console.info(
+    console.log(
       `%cThe "listen" method on App was skipped because it was undefined`,
       'color:red;font-weight:bold',
     )

@@ -1,7 +1,7 @@
-import { Identify } from 'noodl-types'
 import { NUIComponent } from 'noodl-ui'
 import GlobalRecord from './GlobalRecord'
 import Page from '../Page'
+import { DATA_GLOBALID } from '../constants'
 
 export interface GlobalComponentMapOptions {
   component: NUIComponent.Instance
@@ -24,11 +24,7 @@ class GlobalComponentRecord extends GlobalRecord<'component'> {
     super()
 
     if (!id) {
-      // const suffix = Identify.component.popUp(component)
-      //   ? component.get('popUpView') || component.get('viewTag') || component.id
-      //   : ''
-      // this.#id = `${page.page}:${suffix}`
-      this.#id = component?.get?.('data-globalid')
+      this.#id = component?.get?.(DATA_GLOBALID)
     } else {
       this.#id = id
     }
@@ -40,11 +36,6 @@ class GlobalComponentRecord extends GlobalRecord<'component'> {
 
   get globalId() {
     return this.#id
-  }
-
-  // TODO - Think about removing this in favor of immutable global component objects
-  set globalId(globalId) {
-    this.#id = globalId
   }
 
   toJSON() {

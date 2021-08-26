@@ -4,7 +4,7 @@ import inRange from 'lodash/inRange'
 import last from 'lodash/last'
 import { ComponentObject } from 'noodl-types'
 import { NUI } from 'noodl-ui'
-import { NOODLDOMElement } from 'noodl-ui-dom'
+import { NDOMElement } from 'noodl-ui-dom'
 import Stream from './Stream'
 import * as t from '../app/types'
 
@@ -14,15 +14,15 @@ const log = Logger.create('Substreams.ts')
 class MeetingSubstreams {
   #subStreams: Stream[] = []
   blueprint: ComponentObject
-  container: NOODLDOMElement | null
-  resolver: typeof NUI.resolveComponents = (c: any) => c;
+  container: NDOMElement | null
+  resolver: typeof NUI.resolveComponents = async (c: any) => c;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.snapshot()
   }
 
   constructor(
-    container: NOODLDOMElement,
+    container: NDOMElement,
     opts?: {
       blueprint?: ComponentObject
       resolver?: typeof NUI.resolveComponents
@@ -105,9 +105,9 @@ class MeetingSubstreams {
   /**
    * Returns true if the element is already bound to a subStream in the
    * collection
-   * @param { NOODLDOMElement } node
+   * @param { NDOMElement } node
    */
-  elementExists(node: NOODLDOMElement) {
+  elementExists(node: NDOMElement) {
     return this.#subStreams.some((subStream: Stream) => {
       return subStream.isSameElement(node)
     })

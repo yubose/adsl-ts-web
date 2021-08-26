@@ -47,7 +47,7 @@ export const getMostRecentApp = () => _app
 export const baseUrl = 'https://aitmed.com/'
 export const assetsUrl = `${baseUrl}assets/`
 export const nui = NUI
-export const ndom = new NOODLDOM(nui)
+export const ndom = new NOODLDOM()
 export const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
 export const viewport = new Viewport({
   width: deviceSize.iphone6.width,
@@ -278,7 +278,7 @@ export async function initializeApp(
   appOpts.getStatus = noodl.getStatus.bind(noodl) as any
   appOpts.noodl = noodl as any
   appOpts.ndom = ndom
-  appOpts.nui = NOODLDOM._nui
+  appOpts.nui = nui
   appOpts.viewport = viewport
 
   if (root) u.assign(noodl.root, root)

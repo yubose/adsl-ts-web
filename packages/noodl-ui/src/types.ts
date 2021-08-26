@@ -22,6 +22,7 @@ import type {
   PluginComponentObject,
   PluginHeadComponentObject,
   PluginBodyTailComponentObject,
+  PluginBodyTopComponentObject,
 } from 'noodl-types'
 import type { Action, ActionChain } from 'noodl-action-chain'
 import type { LiteralUnion } from 'type-fest'
@@ -140,9 +141,12 @@ export namespace NUIComponent {
       dataObject: any
       index: number
     }): void
-    [nuiEvent.component.page.PAGE_COMPONENTS](
-      components: ComponentObject[],
-    ): void
+    [nuiEvent.component.page.PAGE_CREATED](page: NUIPage): void
+    [nuiEvent.component.page.PAGE_CHANGED](): void
+    [nuiEvent.component.page.PAGE_COMPONENTS](options: {
+      page: NUIPage
+      type: 'init' | 'update'
+    }): void
     content(pluginContent: string): void
     'data-value'(dataValue: any): void
     'data-src'(src: string): void
@@ -151,7 +155,7 @@ export namespace NUIComponent {
     path(src: string): void
     placeholder(src: string): void
   } & Partial<
-    Record<TimerHook<'init'>, (fn: (initialTimer: Date) => void) => void> &
+    Record<TimerHook<'init'>, (initialValue?: Date) => void> &
       Record<
         TimerHook<'interval'>,
         (args: {
@@ -190,6 +194,7 @@ export namespace Plugin {
   export type ComponentObject =
     | PluginComponentObject
     | PluginHeadComponentObject
+    | PluginBodyTopComponentObject
     | PluginBodyTailComponentObject
 
   export type Location = 'head' | 'body-top' | 'body-bottom'
@@ -203,13 +208,13 @@ export namespace Plugin {
   }
 }
 
-export type ConsumerOptions = Omit<
+export type ConsumerOptions<Trig extends string = string> = Omit<
   ReturnType<typeof NUI.getConsumerOptions>,
   'createActionChain' | 'getBaseStyles'
 > & {
   createActionChain(
-    trigger: NUITrigger,
-    actions: NUIActionObject | NUIActionObject[],
+    trigger: LiteralUnion<NUITrigger | Trig, string>,
+    actions: OrArray<NUIActionObject>,
     opts?: { loadQueue?: boolean },
   ): NUIActionChain
   event?: Event
@@ -253,19 +258,19 @@ export namespace Register {
 export namespace Store {
   export interface ActionObject<
     AType extends NUIActionType = NUIActionType,
-    ATrigger extends NUITrigger = NUITrigger,
+    ATrigger extends string = string,
   > {
     actionType: AType
     fn(
       action: AType extends 'emit' ? EmitAction : Action<AType, ATrigger>,
       options: ConsumerOptions,
     ): Promise<any[] | void>
-    trigger?: ATrigger
+    trigger?: LiteralUnion<NUITrigger | ATrigger, string>
   }
 
   export interface BuiltInObject<
     FuncName extends string = string,
-    ATrigger extends NUITrigger = NUITrigger,
+    ATrigger extends string = string,
   > {
     actionType: 'builtIn'
     fn(action: Action<'builtIn', ATrigger>, options: any): Promise<any[] | void>
@@ -294,15 +299,9 @@ export interface UseArg<
   TObj extends Record<string, any> = Record<string, any>,
   TName extends TransactionId = TransactionId,
 > extends Partial<
-    Record<
-      NUIActionGroupedType,
-      Store.ActionObject['fn'] | Store.ActionObject['fn'][]
-    >
+    Record<NUIActionGroupedType, OrArray<Store.ActionObject['fn']>>
   > {
-  builtIn?: Record<
-    string,
-    Store.BuiltInObject['fn'] | Store.BuiltInObject['fn'][]
-  >
+  builtIn?: Record<string, OrArray<Store.BuiltInObject['fn']>>
   emit?: Partial<
     Record<
       NUITrigger,
@@ -314,7 +313,7 @@ export interface UseArg<
   getPages?: () => string[]
   getPreloadPages?: () => string[]
   getRoot?: () => Record<string, any>
-  plugin?: ComponentObject | ComponentObject[]
+  plugin?: OrArray<ComponentObject>
   register?:
     | Record<string, Register.Object['fn']>
     | OrArray<

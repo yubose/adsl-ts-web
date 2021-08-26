@@ -38,7 +38,6 @@ describe(coolGold(`history`), () => {
       const page = app.mainPage
       const node = getFirstByElementId('hi')
       node.click()
-      console.info(page)
       page.previous = 'Cereal'
       page.page = ''
       // console.info(app.mainPage.pageUrl)

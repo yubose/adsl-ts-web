@@ -333,7 +333,8 @@ export function pullFromComponent(
   return (
     component.get(key) ||
     component[key] ||
-    (component.has(key) && component.blueprint?.[key]) ||
+    ((component.has(key) || component.props?.[key]) &&
+      component.blueprint?.[key]) ||
     null
   )
 }
@@ -357,13 +358,43 @@ export function find(
  * @param { function } cb
  */
 export function publish(
+  cb: (child: NUIComponent.Instance) => void,
+  component: NUIComponent.Instance | undefined,
+): void
+export function publish(
   component: NUIComponent.Instance | undefined,
   cb: (child: NUIComponent.Instance) => void,
+): void
+export function publish(
+  component:
+    | NUIComponent.Instance
+    | ((child: NUIComponent.Instance) => void)
+    | undefined,
+  cb:
+    | ((child: NUIComponent.Instance) => void)
+    | NUIComponent.Instance
+    | undefined,
 ) {
-  component?.children?.forEach?.((child: NUIComponent.Instance) => {
-    cb(child)
-    publish(child, cb)
-  })
+  let _component: NUIComponent.Instance | undefined
+  let _cb: ((child: NUIComponent.Instance) => void) | undefined
+
+  if (u.isFnc(component)) {
+    _component = cb as NUIComponent.Instance
+    _cb = component
+  } else {
+    _component = component
+    _cb = cb as (child: NUIComponent.Instance) => void
+  }
+
+  if (_component && u.isArr(_component.children)) {
+    for (const child of _component.children) {
+      _cb?.(child)
+      _cb && publish(child, _cb)
+    }
+  }
+
+  _component = undefined
+  _cb = undefined
 }
 
 // TODO - This overload doesn't work when doing resolveAssetUrl("SquarePayment.html", { assetsUrl: getAssetsUrl() })
@@ -409,17 +440,20 @@ export function resolveAssetUrl(
     // TODO - Fix this
     src = pathValue || ''
     let { dataObject, iteratorVar = '' } = options
-    if (u.isObj(dataObject) && u.isStr(src) && u.isStr(iteratorVar)) {
-      if (iteratorVar && src.startsWith(iteratorVar)) {
-        src = excludeIteratorVar(src, iteratorVar) || ''
+    if (u.isStr(src)) {
+      if (src.startsWith('http')) return src
+      if (u.isObj(dataObject) && u.isStr(iteratorVar)) {
+        if (iteratorVar && src.startsWith(iteratorVar)) {
+          src = excludeIteratorVar(src, iteratorVar) || ''
+        }
+        src = get(dataObject, src)
+        if (u.isStr(src)) {
+          if (/^(http|blob)/i.test(src)) src = src
+          else if (src.startsWith('~/')) {
+            // Should be handled by an SDK
+          } else src = `${assetsUrl}${src}`
+        } else src = `${assetsUrl}${src}`
       }
-      src = get(dataObject, src)
-      if (u.isStr(src)) {
-        if (/^(http|blob)/i.test(src)) src = src
-        else if (src.startsWith('~/')) {
-          // Should be handled by an SDK
-        } else src = assetsUrl + src
-      } else src = `${assetsUrl}${src}`
     }
   }
 

@@ -1,3 +1,4 @@
+import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
 import NUI from '../noodl-ui'
 import NUIPage from '../Page'
 import Viewport from '../Viewport'
@@ -5,6 +6,7 @@ import Viewport from '../Viewport'
 export const assetsUrl = 'https://something.com/assets/'
 export const nui = NUI
 export const viewport = new Viewport()
+export const ui = { ...actionFactory, ...componentFactory }
 
 const isNil = (v: any) => v === null || v === undefined || v === ''
 

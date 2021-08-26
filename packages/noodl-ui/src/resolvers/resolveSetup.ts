@@ -1,12 +1,14 @@
 import * as u from '@jsmanifest/utils'
 import * as nu from 'noodl-utils'
+import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import Resolver from '../Resolver'
+import cache from '../_cache'
 import * as n from '../utils/noodl'
 
 const setupResolver = new Resolver('resolveSetup')
 
-setupResolver.setResolver((component, { cache, getRoot, page }, next) => {
+setupResolver.setResolver(async (component, { getRoot, page }, next) => {
   const { path } = component.blueprint || {}
   // if (Identify.if(path)) {
   // Override the NUI getter for 'path' if the if object evaluates to a
@@ -14,7 +16,7 @@ setupResolver.setResolver((component, { cache, getRoot, page }, next) => {
   // binding and resolves the if object correctly whenever path is being
   // accessed.
 
-  if (!component.get('path') || Identify.if(component.get('path'))) {
+  if (Identify.if(component.get('path'))) {
     const resolvedPath = n.evalIf(path)
 
     if (u.isStr(resolvedPath)) {
@@ -23,18 +25,19 @@ setupResolver.setResolver((component, { cache, getRoot, page }, next) => {
         const datapath = nu.trimReference(reference)
         const originalGet = component?.get?.bind(component)
         const isLocal = Identify.localKey(datapath)
-        const currentPage = page?.page || ''
 
-        if ((isLocal && currentPage) || !isLocal) {
+        if ((isLocal && page?.page) || !isLocal) {
           const getDataObject = () =>
-            isLocal ? getRoot()[currentPage] : getRoot()
+            isLocal ? getRoot()[page?.page || ''] : getRoot()
 
           const wrapGetter = (key: string, styleKey?: string) => {
             if (key === 'path') {
-              return getDataObject()?.[datapath]
+              let value = get(getDataObject(), datapath) || ''
+              return value
             }
             return originalGet(key, styleKey)
           }
+
           Object.defineProperty(component, 'get', {
             configurable: true,
             enumerable: true,
@@ -70,10 +73,39 @@ setupResolver.setResolver((component, { cache, getRoot, page }, next) => {
         }
       }
     }
+  } else if (
+    u.isStr(component.get('path')) &&
+    Identify.reference(component.get('path'))
+  ) {
+    // const reference = component.get('path')
+    // const datapath = nu.trimReference(reference)
+    // const originalGet = component?.get?.bind(component)
+    // const isLocal = Identify.localKey(datapath)
+    // if ((isLocal && page?.page) || !isLocal) {
+    //   const getDataObject = () =>
+    //     isLocal ? getRoot()[page?.page || ''] : getRoot()
+    //   const wrapGetter = (key: string, styleKey?: string) => {
+    //     if (key === 'path') {
+    //       let value =
+    //         n.resolveAssetUrl(get(getDataObject(), datapath), {
+    //           assetsUrl: getAssetsUrl(),
+    //         }) || ''
+    //       return value
+    //     }
+    //     return originalGet(key, styleKey)
+    //   }
+    //   Object.defineProperty(component, 'get', {
+    //     configurable: true,
+    //     enumerable: true,
+    //     get() {
+    //       return wrapGetter
+    //     },
+    //   })
+    // }
   }
   // }
 
-  next?.()
+  return next?.()
 })
 
 export default setupResolver

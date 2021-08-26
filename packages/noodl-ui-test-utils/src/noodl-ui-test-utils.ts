@@ -55,6 +55,9 @@ import ecosPdfDoc from './fixtures/pdf.json'
 import ecosPngDoc from './fixtures/png.json'
 import ecosTextDoc from './fixtures/text.json'
 
+export { default as actionFactory } from './factories/action'
+export { default as componentFactory } from './factories/component'
+
 export function getBuiltInAction(obj?: string | Partial<BuiltInActionObject>) {
   u.isStr(obj) && (obj = { funcName: obj } as BuiltInActionObject)
   return createActionObject_next('builtIn')({
@@ -355,16 +358,14 @@ export const getLabelComponent = createComponentObject<
   'text',
 )
 
-export function getListComponent(
-  {
-    iteratorVar = 'itemObject',
-    ...rest
-  }: ComponentProps<Partial<ListComponentObject>> & {
-    contentType?: string
-    iteratorVar?: string
-    listObject?: any[]
-  } = {} as ComponentProps<Partial<ListComponentObject>>,
-): ListComponentObject {
+export function getListComponent<O extends ListComponentObject>({
+  iteratorVar = 'itemObject',
+  ...rest
+}: Partial<O> & {
+  contentType?: string
+  iteratorVar?: string
+  listObject?: any[]
+} = {}): ListComponentObject {
   return {
     listObject: getGenderListObject(),
     contentType: 'listObject',
@@ -406,10 +407,16 @@ export function getListItemComponent(
   }
 }
 
-export const getPageComponent = createComponentObject<PageComponentObject>(
-  { type: 'page', path: 'SignIn' },
-  'path',
-)
+export function getPageComponent<O extends PageComponentObject>(
+  props: string | Partial<O>,
+) {
+  u.isStr(props) && (props = { path: props } as O)
+  return {
+    ...props,
+    type: 'page',
+    path: props.path || 'Cereal',
+  }
+}
 
 export function getPluginComponent(
   props?: ComponentProps<Partial<PluginComponentObject>> & { path?: string },

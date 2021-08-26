@@ -5,11 +5,19 @@ import type { NUIActionType } from './types'
 export const lib = {
   actionTypes: ['anonymous', 'emit', 'goto', 'toast'],
   components: ['br'],
-  emitTriggers: ['dataKey', 'dataValue', 'path', 'placeholder', 'register'],
+  emitTriggers: [
+    'dataKey',
+    'dataValue',
+    'path',
+    'placeholder',
+    'postMessage',
+    'register',
+  ],
   dataAttributes: [
     'data-key',
     'data-listid',
     'data-name',
+    'data-globalid',
     'data-options',
     'data-placeholder',
     'data-src',
@@ -21,7 +29,22 @@ export const lib = {
 
 export const actionTypes = [...noodlTypesActionTypes, ...lib.actionTypes]
 
-export const triggers = [...lib.emitTriggers, ...userEvent, 'onInput']
+export const triggers = [
+  ...lib.emitTriggers,
+  ...userEvent,
+  'onInput',
+  'postMessage',
+]
+
+export const cache = {
+  page: {
+    hooks: {
+      PAGE_CREATED: 'PAGE_CREATED',
+      PAGE_REMOVED: 'PAGE_REMOVED',
+      PAGE_UPDATED: 'PAGE_UPDATED',
+    },
+  },
+} as const
 
 export const groupedActionTypes = actionTypes.filter(
   (t) => !/(builtIn|emit|register)/i.test(t),
@@ -46,10 +69,13 @@ export const presets = {
 export const nuiEvent = {
   component: {
     list: {
-      ADD_DATA_OBJECT: 'add-data-object',
+      ADD_DATA_OBJECT: 'ADD_DATA_OBJECT',
+      DELETE_DATA_OBJECT: 'DELETE_DATA_OBJECT',
     },
     page: {
-      PAGE_COMPONENTS: 'page-components',
+      PAGE_CREATED: 'PAGE_CREATED',
+      PAGE_CHANGED: 'PAGE_CHANGED',
+      PAGE_COMPONENTS: 'PAGE_COMPONENTS',
     },
     textField: {
       placeholder: 'PLACEHOLDER',
@@ -71,6 +97,7 @@ export const trigger = {
   DATA_VALUE: 'dataValue',
   PATH: 'path',
   PLACEHOLDER: 'placeholder',
+  POST_MESSAGE: 'postMessage',
   REGISTER: 'register',
   ON_BLUR: 'onBlur',
   ON_CLICK: 'onClick',

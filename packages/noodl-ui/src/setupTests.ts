@@ -1,12 +1,10 @@
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
 import { assetsUrl } from './utils/test-utils'
 import NUI from './noodl-ui'
 
 chai.use(sinonChai)
-chai.use(chaiAsPromised)
 
 let logSpy: sinon.SinonStub
 let invariantStub: sinon.SinonStub

@@ -16,7 +16,7 @@ import {
   findByDataKey,
   getFirstByElementId,
   isTextFieldLike,
-  NOODLDOMDataValueElement,
+  NDOMElement,
   Resolve,
 } from 'noodl-ui-dom'
 import { excludeIteratorVar } from 'noodl-utils'
@@ -28,7 +28,8 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
-import { ToolbarInput } from '@fullcalendar/core'
+
+type ToolbarInput = any
 // import { isArray } from 'lodash'
 
 const log = Logger.create('dom.ts')
@@ -37,7 +38,7 @@ const createExtendedDOMResolvers = function (app: App) {
   const getOnChange = function _getOnChangeFn(args: {
     component: NUIComponent.Instance
     dataKey: string
-    node: NOODLDOMDataValueElement
+    node: NDOMElement
     evtName: string
     iteratorVar: string
   }) {
@@ -130,7 +131,7 @@ const createExtendedDOMResolvers = function (app: App) {
     return onChange
   }
 
-  const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
+  const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
       cond: 'chart',
       // resource: [
@@ -151,7 +152,7 @@ const createExtendedDOMResolvers = function (app: App) {
       //     lazyLoad: true,
       //   },
       // ],
-      resolve(node, component) {
+      resolve({ node, component }) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           node.style.width = component.style.width as string
@@ -319,7 +320,7 @@ const createExtendedDOMResolvers = function (app: App) {
                     //locale: 'zh-cn',             // 区域本地化
                     firstDay: 0, // 每周的第一天： 0:周日
                     nowIndicator: true, // 是否显示当前时间的指示条
-                    
+
                     slotLabelFormat: [
                       {
                         hour: 'numeric',
@@ -422,8 +423,8 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] data-value': {
-      cond: (node) => isTextFieldLike(node),
-      before(node, component) {
+      cond: ({ node }) => isTextFieldLike(node),
+      before({ node, component }) {
         ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
@@ -433,7 +434,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
       },
-      resolve(node, component) {
+      resolve({ node, component }) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
@@ -444,7 +445,7 @@ const createExtendedDOMResolvers = function (app: App) {
               component,
               dataKey,
               evtName: 'onChange',
-              node: node as NOODLDOMDataValueElement,
+              node: node as NDOMElement,
               iteratorVar,
             }),
           )
@@ -456,18 +457,18 @@ const createExtendedDOMResolvers = function (app: App) {
                 component,
                 dataKey,
                 evtName: 'onInput',
-                node: node as NOODLDOMDataValueElement,
+                node: node as NDOMElement,
                 iteratorVar,
               }),
             )
           }
         }
 
-        if (component.has('onBlur')) {
+        if (component.blueprint?.onBlur) {
           node.addEventListener(
             'blur',
             getOnChange({
-              node: node as NOODLDOMDataValueElement,
+              node: node as NDOMElement,
               component,
               dataKey,
               evtName: 'onBlur',
@@ -479,7 +480,7 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] image': {
       cond: 'image',
-      async resolve(node, component) {
+      async resolve({ node, component }) {
         const img = node as HTMLImageElement
         const parent = component.parent
         const pageObject = app.root[app.currentPage || ''] || {}
@@ -497,8 +498,8 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] Hover': {
-      cond: (n, c) => c.has('hover'),
-      resolve(node, component) {
+      cond: ({ component }) => component.has('hover'),
+      resolve({ node, component }) {
         if (component?.blueprint?.hover) {
           node?.addEventListener('mouseover', function (e) {
             u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
@@ -542,7 +543,7 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] dropDown': {
       cond: 'textField',
-      resolve(node, component) {
+      resolve({ node, component }) {
         if (component.contentType === 'dropDown') {
           const iteratorVar = findIteratorVar(component)
           const dataKey =
@@ -713,7 +714,7 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] Map': {
       cond: 'map',
-      resolve(node, component) {
+      resolve({ node, component }) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           const parent = component.parent
@@ -724,9 +725,11 @@ const createExtendedDOMResolvers = function (app: App) {
           // script.appendChild(document.createTextNode("https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.js"))
           // document.head.appendChild(script)
           let link = document.createElement('link')
+          //Austin Yu 8/6/2021
+          // link.href = 'https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
+          // link.href = 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
           link.href =
-            'https://cdn.jsdelivr.net/npm/mapbox-gl@2.4.0/dist/mapbox-gl.min.css'
-          // not accessible from outside China 8/6/2021 link.href = 'https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
+            'https://cdn.jsdelivr.net/npm/mapbox-gl@2.1.1/dist/mapbox-gl.css'
           link.rel = 'stylesheet'
           document.head.appendChild(link)
           if (dataValue.mapType == 1) {
@@ -977,8 +980,8 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] Meeting': {
-      cond: (node, component) => !!(node && component),
-      resolve: function onMeetingComponent(node, component) {
+      cond: ({ node, component }) => !!(node && component),
+      resolve: function onMeetingComponent({ node, component }) {
         const viewTag = component.blueprint?.viewTag || ''
         const setImportantStream = (label: 'mainStream' | 'selfStream') => {
           if (!app[label].isSameElement(node)) {
@@ -1036,9 +1039,56 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    // TODO - Move to default noodl-ui-dom lib implementation
+    '[App] Page component': {
+      cond: ({ component, elementType }) =>
+        elementType === 'IFRAME' &&
+        String(component?.blueprint?.path)?.endsWith('.html'),
+      resolve({ component, node }) {
+        const iframeEl = node as HTMLIFrameElement
+        // try {
+        //   iframeEl.addEventListener('message', function (msg) {
+        //     const postMessage = component.get('postMessage') as NUIActionChain
+        //     const dataObject = msg.data
+        //     log.func('postMessage (iframeEl)')
+        //     log.green(`%cReceived message in page component`, {
+        //       dataObject,
+        //       message: msg,
+        //       postMessage,
+        //     })
+        //     postMessage.data.set('someData', dataObject)
+        //     postMessage?.execute?.(msg)
+        //   })
+        // } catch (error) {
+        //   console.error(error)
+        // }
+
+        iframeEl.addEventListener(
+          'load',
+          function (evt) {
+            log.func('load')
+            log.grey(`Entered onload event for page remote (http) component`)
+          },
+          { once: true },
+        )
+
+        iframeEl.contentWindow?.addEventListener('message', function (msg) {
+          const postMessage = component.get('postMessage') as NUIActionChain
+          const dataObject = msg.data
+          log.func('postMessage (parent)')
+          log.green(`%cReceived message in page component`, {
+            dataObject,
+            message: msg,
+            postMessage,
+          })
+          postMessage.data.set('someData', dataObject)
+          postMessage?.execute?.(msg)
+        })
+      },
+    },
     '[App] Password textField': {
       cond: 'textField',
-      resolve(node, component) {
+      resolve({ node, component }) {
         // Password inputs
         if (component.contentType === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
@@ -1124,8 +1174,9 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] VideoChat Timer': {
-      cond: (n, c) => c.has('text=func') && c.contentType === 'timer',
-      resolve: (node, component) => {
+      cond: ({ component: c }) =>
+        c.has('text=func') && c.contentType === 'timer',
+      resolve: ({ node, component }) => {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         const textFunc = component.get('text=func') || ((x: any) => x)
@@ -1163,7 +1214,6 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
         // Set the initial value
-        // @ts-expect-error
         component.emit('timer:init', initialValue)
       },
     },
@@ -1178,43 +1228,3 @@ const createExtendedDOMResolvers = function (app: App) {
 }
 
 export default createExtendedDOMResolvers
-
-if (module.hot) {
-  module.hot.accept()
-
-  if (module.hot.status() === 'apply') {
-    console.log(
-      `%c[apply-dom] Module hot data`,
-      `color:#e50087;`,
-      module.hot.data,
-    )
-    module.hot.data.fruits = ['apple']
-    console.log(
-      `%c[apply-dom] Module hot data now`,
-      `color:#e50087;`,
-      module.hot.data,
-    )
-    // module.hot?.data.app.reset()
-    // app = module.hot?.data.app
-  }
-
-  if (module.hot.status() === 'idle') {
-    console.log(
-      `%c[idle-dom] Module hot data`,
-      `color:#00b406;`,
-      module.hot.data,
-    )
-  }
-
-  if (module.hot.status() === 'prepare') {
-    console.log(
-      `%c[prepare-dom] Module hot data`,
-      `color:#3498db;`,
-      module.hot.data,
-    )
-  }
-
-  if (module.hot.status() === 'watch') {
-    console.log(`%c[watch-dom]`, `color:#FF5722;`, module.hot.data)
-  }
-}

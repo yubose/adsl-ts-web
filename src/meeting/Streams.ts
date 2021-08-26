@@ -1,6 +1,6 @@
 import { ComponentObject } from 'noodl-types'
 import { NUI } from 'noodl-ui'
-import { NOODLDOMElement } from 'noodl-ui-dom'
+import { NDOMElement } from 'noodl-ui-dom'
 import { RoomParticipant } from '../app/types'
 import Stream from '../meeting/Stream'
 import Substreams from '../meeting/Substreams'
@@ -38,7 +38,7 @@ class MeetingStreams {
   }
 
   createSubStreamsContainer(
-    container: NOODLDOMElement,
+    container: NDOMElement,
     opts?: {
       blueprint?: ComponentObject
       resolver?: typeof NUI.resolveComponents

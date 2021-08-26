@@ -1,7 +1,10 @@
 import * as u from '@jsmanifest/utils'
 import type { NUIComponent, ConsumerOptions } from './types'
 
-export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
+export interface IResolver<
+  Func extends (...args: any[]) => Promise<void>,
+  Inst = any,
+> {
   next: Inst | null
   resolver: Func
 }
@@ -9,10 +12,10 @@ export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
 type ResolverArgs = [
   component: NUIComponent.Instance,
   options: ConsumerOptions,
-  next: (opts?: Record<string, any>) => void,
+  next: (opts?: Record<string, any>) => Promise<void>,
 ]
 
-class Resolver<Func extends (...args: any[]) => any, Inst = any>
+class Resolver<Func extends (...args: any[]) => Promise<void>, Inst = any>
   implements IResolver<Func>
 {
   #resolve = {} as IResolver<Func>['resolver']
@@ -36,9 +39,9 @@ class Resolver<Func extends (...args: any[]) => any, Inst = any>
 }
 
 class ComponentResolver<
-  Func extends (...args: ResolverArgs) => void = (
+  Func extends (...args: ResolverArgs) => Promise<void> = (
     ...args: ResolverArgs
-  ) => void,
+  ) => Promise<void>,
 > extends Resolver<Func, ComponentResolver<Func>> {
   #isInternal: boolean = false
   #name: string
@@ -71,25 +74,17 @@ class ComponentResolver<
     return this
   }
 
-  resolve(component: NUIComponent.Instance, options: ConsumerOptions) {
-    if (!component) {
-      console.log(`Component is null or undefined`, {
-        ...options,
-        componentResolverId: this.name,
-      })
-      return
-    }
-    const resolveNext = function _resolveNext(
+  async resolve(component: NUIComponent.Instance, options: ConsumerOptions) {
+    if (!component) return
+    const resolveNext = async function _resolveNext(
       this: ComponentResolver<Func>,
       opts?: Record<string, any>,
     ) {
       if (u.isObj(opts)) options = { ...options, ...opts }
-      this.next?.resolve?.(component, options)
+      await this.next?.resolve?.(component, options)
     }.bind(this)
 
-    this.resolver?.(component, options, resolveNext)
-
-    return this
+    await this.resolver?.(component, options, resolveNext)
   }
 
   toString() {
@@ -118,19 +113,15 @@ export class InternalComponentResolver {
     resolver: (
       component: NUIComponent.Instance,
       consumerOptions: ConsumerOptions,
-      next?: () => void,
-    ) => void,
+      next?: () => Promise<void>,
+    ) => Promise<void>,
   ) {
     this.#resolver = resolver.bind(this)
     return this
   }
 
-  resolve(
-    component: NUIComponent.Instance,
-    options: ConsumerOptions,
-    ref: any,
-  ) {
-    this.#resolver?.(component, options, ref)
+  async resolve(component: NUIComponent.Instance, options: ConsumerOptions) {
+    await this.#resolver?.(component, options)
     return this
   }
 

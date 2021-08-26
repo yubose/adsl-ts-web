@@ -1,24 +1,28 @@
 /**
  * Creates an image element that loads asynchronously
  * @param { HTMLElement } container - Element to attach the image in
- * @param { function | undefined } opts.append - Overrides the "insertBefore" function with a custom child inserter
- * @param { function | undefined } opts.onLoad - Callback called after inserting to children
  */
 function createAsyncImageElement(
-  container: HTMLElement | null,
-  opts?: {
-    append?(args: { event: Event; node: HTMLImageElement }): void
-    onLoad?(args: { event: Event; node: HTMLImageElement }): void
-  },
-) {
-  let node = new Image()
-  node.onload = (event) => {
-    if (!container) container = document.body
-    if (opts?.append) opts.append({ event, node })
-    else container.insertBefore(node, container.childNodes[0])
-    opts?.onLoad?.({ event, node })
-  }
-  return node
+  container = document.body,
+  onBeforeLoad?: (node: HTMLImageElement) => void,
+): Promise<{
+  event: Event
+  node: HTMLImageElement
+}> {
+  return new Promise((resolve, reject) => {
+    let node = new Image()
+    onBeforeLoad?.(node)
+    node.addEventListener('load', (event) => resolve({ event, node }))
+    node.addEventListener('error', reject)
+    try {
+      container?.appendChild?.(node)
+    } catch (error) {
+      console.error(error)
+      reject(error)
+    } finally {
+      node.dispatchEvent(new Event('load'))
+    }
+  })
 }
 
 export default createAsyncImageElement

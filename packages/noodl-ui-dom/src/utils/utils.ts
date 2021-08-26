@@ -1,4 +1,6 @@
+import { OrArray } from '@jsmanifest/typefest'
 import {
+  DataAttribute,
   findParent,
   isComponent,
   NUIComponent,
@@ -6,11 +8,12 @@ import {
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
-import { LiteralUnion } from 'type-fest'
+import { Identify } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
+import { LiteralUnion } from 'type-fest'
 import findElement from './findElement'
-import { DOMNodeInput, NOODLDOMDataAttribute } from '../types'
 import { dataAttributes } from '../constants'
+import * as t from '../types'
 
 export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
@@ -22,7 +25,7 @@ export function addClassName(className: string, node: HTMLElement) {
  * Normalizes the queried nodes to an HTMLElement or an array of HTMLElement
  * @param { NodeList | HTMLCollection | HTMLElement } nodes
  */
-export function asHtmlElement(nodes: DOMNodeInput) {
+export function asHtmlElement(nodes: t.DOMNodeInput) {
   if (nodes instanceof NodeList || nodes instanceof HTMLCollection) {
     if (nodes.length === 0) return null
     if (nodes.length === 1) return nodes.item(0) as HTMLElement
@@ -99,17 +102,13 @@ getElementTag.prototype.elementMap = {
  * useful for page consumer components
  * @param { string } attr
  */
-export function makeFindByAttr(
-  attr: LiteralUnion<NOODLDOMDataAttribute, string>,
-) {
+export function makeFindByAttr(attr: LiteralUnion<DataAttribute, string>) {
   const findByAttr = function findByAttr(
-    component?:
-      | NUIComponent.Instance
-      | LiteralUnion<NOODLDOMDataAttribute, string>,
+    component?: NUIComponent.Instance | LiteralUnion<DataAttribute, string>,
   ) {
     if (component === undefined) return findBySelector(`[${attr}]`)
     else if (!component) return null
-    return dataAttributes.includes(attr as NOODLDOMDataAttribute)
+    return dataAttributes.includes(attr as DataAttribute)
       ? findByDataAttrib(
           attr,
           isComponent(component)
@@ -122,18 +121,54 @@ export function makeFindByAttr(
   return findByAttr
 }
 
-export function findBySelector(selector: string | undefined) {
+export function findBySelector<T extends string>(
+  selector: LiteralUnion<T, string>,
+): OrArray<t.NDOMElement<T> | HTMLElement> | null {
+  const mapper = {
+    button: 'button',
+    canvas: 'canvas',
+    chart: '.chart',
+    chatList: 'ul',
+    divider: 'hr',
+    ecosDoc: '.ecosDoc',
+    footer: '.footer',
+    header: '.header',
+    label: '.label',
+    map: '.map',
+    page: '.page',
+    plugin: '.plugin',
+    pluginHead: '.plugin-head',
+    pluginBodyTop: '.plugin-body-top',
+    pluginBodyTail: '.plugin-body-bottom',
+    popUp: '.popUp',
+    image: 'img',
+    textField: 'input',
+    list: 'ul',
+    listItem: 'li',
+    select: 'select',
+    textView: 'textarea',
+    video: 'video',
+  } as const
+
   return selector
     ? findElement((doc) => {
-        let nodes = doc?.querySelectorAll?.(selector)
+        const nodes = doc?.querySelectorAll?.(
+          mapper[selector as keyof typeof mapper] || selector,
+        )
         if (nodes?.length) return nodes
         return null
       })
     : null
 }
 
+export function findFirstBySelector(
+  ...args: Parameters<typeof findBySelector>
+) {
+  return u.array(findBySelector(...args)).find(Boolean) as HTMLElement
+}
+
 export function findByDataAttrib(
-  dataAttrib: LiteralUnion<NOODLDOMDataAttribute, string> | undefined,
+  dataAttrib: LiteralUnion<DataAttribute, string> | undefined,
   value?: string,
 ) {
   return findBySelector(
@@ -219,13 +254,13 @@ export function getPageAncestor(
 ) {
   if (isComponent(component)) {
     if (component.type === 'page') return component
-    return findParent(component, (parent) => parent?.type === 'page')
+    return findParent(component, Identify.component.page)
   }
   return null
 }
 
 export function makeElemFn(fn: (node: HTMLElement) => void) {
-  const onNodes = function _onNodes(nodes: DOMNodeInput, cb?: typeof fn) {
+  const onNodes = function _onNodes(nodes: t.DOMNodeInput, cb?: typeof fn) {
     let count = 0
     u.array(asHtmlElement(nodes)).forEach((node) => {
       if (node) {

@@ -19,12 +19,12 @@ function validateRef(
     const pathInSplits = datapath.split('.')
     if (Identify.localKey(datapath)) {
       if (!has(app.root?.[page], pathInSplits)) {
-        const otherOpts = {} as Record<string, any>
-        if (app.root?.[page]) otherOpts.snapshot = cloneDeep(app.root?.[page])
+        // const otherOpts = {} as Record<string, any>
+        // if (app.root?.[page]) otherOpts.snapshot = cloneDeep(app.root?.[page])
 
         log.red(
           `The reference "${key}" is not found in the local root object for page "${page}"`,
-          { datapath, key, page, pathInSplits, ...otherOpts },
+          { datapath, key, page, pathInSplits },
         )
         // if (key.startsWith('=..front_IDCard')) debugger
       }
@@ -35,7 +35,7 @@ function validateRef(
         datapath,
         key,
         pathInSplits,
-        snapshot: cloneDeep(app.root),
+        // snapshot: cloneDeep(app.root),
       })
     }
 
