@@ -222,24 +222,37 @@ class App {
 
       const ls = window.localStorage
       let pageUrl = pageRequesting?pageRequesting:page
-      let params:any = pageUrl.split("&")
-      if(params.length >= 2){
+
+      if(isNOODLDOMPage(pageUrl)){
+        pageUrl = pageUrl.page
+      }
+
+      let index = pageUrl.indexOf('&')!=-1?pageUrl.indexOf('&'):pageUrl.length
+      let startPage = pageUrl.slice(0,index)
+      pageRequesting = typeof pageRequesting == 'string'?startPage:pageRequesting
+      page = typeof page == 'string'?startPage:page
+      
+      if(index != pageUrl.length){
         const ls = window.localStorage
+        let endKeys = pageUrl.slice(pageUrl.indexOf('&'))
+        let params:any = endKeys.split('=')
         let tempParams:any = ls.getItem('tempParams')
-        let urlkeys = ''
+        let value 
+        let key
+        
         params = params?params:[]
         tempParams = typeof tempParams == 'string'?JSON.parse(tempParams):{}
-        pageRequesting = pageRequesting?params[0]:pageRequesting
-        page = page?params[0]:page
 
-        for(let i=1;i<params.length;i++){
-            let param = params[i].split('=')
-            tempParams[param[0]] = param[1]
-        }
-
-        let keys = Object.keys(tempParams)
-        for(let i=0;i<keys.length;i++){
-          urlkeys = urlkeys+'&'+keys[i]+'='+tempParams[keys[i]]
+        for(let i=0;i<params.length-1;i++){
+            index = params[i].lastIndexOf('&')!=-1?params[i].lastIndexOf('&'):0
+            key = params[i].slice(index+1)
+            if(i+1 == params.length-1){
+              value = params[i+1]
+            }else{
+              index = params[i+1].lastIndexOf('&')!=-1?params[i+1].lastIndexOf('&'):params[i+1].length
+              value = params[i+1].slice(0,index)
+            }
+            tempParams[key] = value
         }
 
         ls.setItem('tempParams', JSON.stringify(tempParams))
