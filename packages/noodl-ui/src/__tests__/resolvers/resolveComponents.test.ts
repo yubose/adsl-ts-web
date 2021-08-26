@@ -1,17 +1,35 @@
 import * as mock from 'noodl-ui-test-utils'
+import * as u from '@jsmanifest/utils'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { waitFor } from '@testing-library/dom'
 import { ComponentObject } from 'noodl-types'
-import { nuiEmitTransaction } from '../../constants'
+import { ui } from '../../utils/test-utils'
 import NUI from '../../noodl-ui'
 import NUIPage from '../../Page'
 import Viewport from '../../Viewport'
+import * as c from '../../constants'
 
-function resolveComponent(component: ComponentObject) {
+const getRoot = (args?: Record<string, any>) => ({
+  Hello: { components: [mock.getButtonComponent()] },
+  ...args,
+})
+
+const getPages = () => ['Hello', 'Cereal', 'SignIn']
+
+async function resolveComponent(component: ComponentObject) {
+  const pageName = 'Hello'
+  const pageObject = { components: u.array(component) }
+  NUI.use({
+    getPages,
+    getRoot: () => getRoot({ [pageName]: pageObject }),
+    transaction: {
+      [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
+    },
+  })
   const page = NUI.createPage({
-    name: 'Hello',
+    name: pageName,
     viewport: { width: 375, height: 667 },
   })
   return NUI.resolveComponents({ components: component, page })
@@ -34,8 +52,8 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     it(
       `should generate the same amount of children as the length of ` +
         `its listObject`,
-      () => {
-        const component = resolveComponent(componentObject)
+      async () => {
+        const component = await resolveComponent(componentObject)
         expect(component)
           .to.have.property('children')
           .lengthOf(listObject.length)
@@ -47,8 +65,8 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         `it as the value to a property that is taken from value of ${magenta(
           'iteratorVar',
         )}`,
-      () => {
-        const component = resolveComponent(componentObject)
+      async () => {
+        const component = await resolveComponent(componentObject)
         const iteratorVar = component.get('iteratorVar') || ''
         component
           .get('listObject')
@@ -63,24 +81,42 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
   })
 
   describe(italic(`page`), () => {
-    let componentObject: ReturnType<typeof mock.getPageComponent>
+    let componentObject: ReturnType<typeof ui.page>
 
     beforeEach(() => {
-      componentObject = mock.getPageComponent('Cereal')
+      componentObject = ui.page('Cereal')
     })
 
-    it(`should set "page" on the component that is an instance of NUIPage`, () => {
-      expect(resolveComponent(componentObject).get('page')).to.be.instanceOf(
-        NUIPage,
+    async function resolveComponent(component: ComponentObject) {
+      const pageObject = { components: u.array(component) }
+      NUI.use({
+        getPages,
+        getRoot: () => getRoot({ Cereal: pageObject }),
+        transaction: {
+          [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
+        },
+      })
+      const page = NUI.createPage({
+        name: 'Hello',
+        viewport: { width: 375, height: 667 },
+      })
+      return NUI.resolveComponents({ components: component, page })
+    }
+
+    it(`should set "page" on the component that is an instance of NUIPage`, async () => {
+      expect(
+        (await resolveComponent(componentObject)).get('page'),
+      ).to.be.instanceOf(NUIPage)
+    })
+
+    it(`should set its current page name to its "path" value`, async () => {
+      expect((await resolveComponent(componentObject)).get('page').page).to.eq(
+        'Cereal',
       )
     })
 
-    it(`should set its current page name to its "path" value`, () => {
-      expect(resolveComponent(componentObject).get('page').page).to.eq('Cereal')
-    })
-
-    it(`should have created its own Viewport inside the Page`, () => {
-      expect(resolveComponent(componentObject).get('page'))
+    it(`should have created its own Viewport inside the Page`, async () => {
+      expect((await resolveComponent(componentObject)).get('page'))
         .to.have.property('viewport')
         .to.be.instanceOf(Viewport)
     })
@@ -88,8 +124,8 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     it(
       `should have set the Viewport's width/height as the same as the ` +
         `component if it was provided`,
-      () => {
-        const component = resolveComponent({
+      async () => {
+        const component = await resolveComponent({
           ...componentObject,
           style: { width: '0.2', height: '0.5', top: '0' },
         })
@@ -117,7 +153,10 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       `should have set the Viewport's width/height to the root page's viewport's ` +
         `width/height if it was not provided`,
       async () => {
-        const component = resolveComponent({ ...componentObject, style: {} })
+        const component = await resolveComponent({
+          ...componentObject,
+          style: {},
+        })
         const page = component.get('page') as NUIPage
         const rootPage = NUI.getRootPage()
         expect(page.viewport.width).to.eq(rootPage.viewport.width)
@@ -126,18 +165,66 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     )
 
     it(
-      `should emit the "page-components" hook after receiving the resolved ` +
+      `should emit the ${c.nuiEvent.component.page.PAGE_COMPONENTS} whenever it receives a new page object` +
         `components`,
       async () => {
+        const Cereal = {
+          components: ui.page({
+            path: 'Hello',
+            children: [ui.label('Hi all')],
+          }),
+        }
         const spy = sinon.spy()
-        const component = resolveComponent({ ...componentObject, style: {} })
-        component.on('page-components', spy)
-        await waitFor(() => expect(spy).to.be.calledOnce)
+        NUI.use({
+          getRoot: () => getRoot({ Cereal }),
+          getPages: () => ['Cereal', 'Hello'],
+          transaction: {
+            [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => Cereal,
+          },
+        })
+        const component = await NUI.resolveComponents(Cereal.components)
+        component.on(c.nuiEvent.component.page.PAGE_COMPONENTS, spy)
+        await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+        expect(spy).to.be.calledOnce
+        await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+        await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+        await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+        expect(spy).to.have.callCount(4)
       },
     )
 
-    xit(`should `, () => {
-      //
+    it(`should rerun the fetch components function and emit PAGE_COMPONENTS with the new components when PAGE_CHANGED is emitted`, async () => {
+      const dividerComponent = ui.divider({ id: 'divider' })
+      const Cereal = {
+        components: ui.page({ path: 'Hello', children: [ui.label('Hi all')] }),
+      }
+      const spy = sinon.spy()
+      NUI.use({
+        getRoot: () =>
+          getRoot({ Cereal, Tiger: { components: [dividerComponent] } }),
+        getPages: () => ['Cereal', 'Hello', 'Tiger'],
+        transaction: {
+          [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (p) =>
+            p.page === 'Tiger' ? NUI.getRoot().Tiger : Cereal,
+        },
+      })
+      const component = await NUI.resolveComponents(Cereal.components)
+      component.on(c.nuiEvent.component.page.PAGE_COMPONENTS, spy)
+      expect(component.get('page')).to.be.instanceOf(NUIPage)
+      const page = component.get('page') as NUIPage
+      page.page = 'Tiger'
+      await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+      await waitFor(() => expect(spy).to.be.calledOnce)
+      expect(component.get('page')).to.have.property('page', 'Tiger')
+      expect(component.get('page'))
+        .to.have.property('components')
+        .to.deep.eq([dividerComponent])
+    })
+
+    describe(`when passing in remote urls (http**/*)`, () => {
+      xit(``, () => {
+        //
+      })
     })
   })
 
@@ -146,8 +233,8 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       `should emit the ${magenta(`content`)} event with the content when ` +
         `contents are fetched`,
       async () => {
-        const component = NUI.resolveComponents({
-          components: mock.getPluginBodyTailComponent({ path: 'abc.html' }),
+        const component = await NUI.resolveComponents({
+          components: ui.pluginBodyTail({ path: 'abc.html' }),
         })
         const spy = sinon.spy(async () => 'hello123')
         component.on('content', spy)
@@ -158,14 +245,12 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     )
 
     xit(`should set this "content" property with the data received as its value`, async () => {
-      const component = NUI.resolveComponents({
-        components: mock.getPluginHeadComponent({ path: 'abc.html' }),
+      const component = await NUI.resolveComponents({
+        components: ui.pluginHead({ path: 'abc.html' }),
       })
       const contents = 'hello123'
       global.fetch = (f) => f
-      const spy = sinon
-        .stub(global, 'fetch')
-        .returns(() => Promise.resolve(contents))
+      const spy = sinon.stub(global, 'fetch').returns(async () => contents)
       global.fetch = spy
       component.on('content', spy)
       await waitFor(() => {
@@ -182,6 +267,19 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
 
   describe(italic(`scrollView`), () => {
     //
+  })
+
+  describe(italic(`textField`), () => {
+    it(`should set the data-value from local root`, async () => {
+      const pageObject = {
+        formData: { password: 'mypassword' },
+        components: [ui.textField('formData.password')],
+      }
+      NUI.use({ getRoot: () => ({ Hello: pageObject }) })
+      const component = (await NUI.resolveComponents(pageObject.components))[0]
+      const value = component.get('data-value')
+      expect(value).to.eq(pageObject.formData.password)
+    })
   })
 
   describe(italic(`textBoard`), () => {

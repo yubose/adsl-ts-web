@@ -13,6 +13,7 @@ import {
   findByDataAttrib,
   findByUX,
   isPageConsumer,
+  NDOMTrigger,
   Page as NDOMPage,
   SignaturePad,
   getFirstByDataKey,
@@ -24,7 +25,6 @@ import {
   findIteratorVar,
   getActionObjectErrors,
   isComponent,
-  NUITrigger,
   parseReference,
   Page as NUIPage,
   Store,
@@ -61,10 +61,7 @@ const createActions = function createActions(app: App) {
     (app.pickNDOMPage(options.page) || app.mainPage) as NDOMPage
 
   const emit = triggers.reduce(
-    (
-      acc: Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn']>>,
-      trigger,
-    ) =>
+    (acc: Partial<Record<string, Store.ActionObject<'emit'>['fn']>>, trigger) =>
       u.assign(acc, {
         [trigger]: async function (
           action: EmitAction,
@@ -539,6 +536,7 @@ const createActions = function createActions(app: App) {
             `was null or undefined`,
           { action: action?.snapshot?.(), popUpView },
         )
+        debugger
       }
     })
   }

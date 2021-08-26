@@ -1,6 +1,2 @@
-import { NUI } from 'noodl-ui'
-
-class NUIDOMInternal {
-  static _nui = NUI
-}
+class NUIDOMInternal {}
 export default NUIDOMInternal

@@ -1,17 +1,11 @@
+import * as u from '@jsmanifest/utils'
 import { Page as NUIPage, Viewport } from 'noodl-ui'
 import { BASE_PAGE_URL, eventId } from './constants'
-import * as u from './utils/internal'
-import * as T from './types'
-
-const getDefaultRenderState = (
-  initialState?: Record<string, any>,
-): T.Page.State['render'] => ({
-  ...initialState,
-})
+import * as t from './types'
 
 class Page {
   #nuiPage: NUIPage
-  #state: T.Page.State = {
+  #state: t.Page.State = {
     aspectRatio: 1,
     aspectRatioMin: 1,
     aspectRatioMax: 1,
@@ -20,18 +14,17 @@ class Page {
     modifiers: {} as {
       [pageName: string]: { reload?: boolean } & Record<string, any>
     },
-    status: eventId.page.status.IDLE as T.Page.Status,
+    status: eventId.page.status.IDLE as t.Page.Status,
     rootNode: false,
-    render: getDefaultRenderState(),
   }
   #hooks = u
     .values(eventId.page.on)
     .reduce((acc, key) => u.assign(acc, { [key]: [] }), {}) as Record<
-    T.Page.HookEvent,
-    T.Page.HookDescriptor[]
+    t.Page.HookEvent,
+    t.Page.HookDescriptor[]
   >
   pageUrl: string = BASE_PAGE_URL
-  rootNode: HTMLDivElement;
+  rootNode: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -45,15 +38,15 @@ class Page {
     this.clearRootNode()
     if (this.id === 'root' && !document.body.contains(this.rootNode)) {
       document.body.appendChild(this.rootNode)
-    } else {
-      // debugger
     }
   }
 
   clearRootNode() {
     if (!this.rootNode) {
-      this.rootNode = (document.getElementById(String(this.id)) ||
-        document.createElement('div')) as HTMLDivElement
+      // @ts-expect-error
+      this.rootNode =
+        document.getElementById(String(this.id)) ||
+        document.createElement('div')
       this.rootNode.id = this.id as string
     }
     this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.rootNode)
@@ -98,12 +91,16 @@ class Page {
     return this.#nuiPage?.components
   }
 
+  get created() {
+    return this.#nuiPage?.created
+  }
+
   get hooks() {
     return this.#hooks
   }
 
   get id() {
-    return this.#nuiPage.id as string
+    return this.#nuiPage?.id as string
   }
 
   get modifiers() {
@@ -136,8 +133,12 @@ class Page {
     this.#state.requesting = pageName || ''
   }
 
+  get tagName() {
+    return this.rootNode?.tagName?.toLowerCase?.() || ''
+  }
+
   get viewport() {
-    return this.#nuiPage.viewport as Viewport
+    return this.#nuiPage?.viewport as Viewport
   }
 
   set viewport(viewport) {
@@ -153,9 +154,9 @@ class Page {
   }
 
   clearCbs() {
-    u.values(this.hooks).forEach((arr) => {
+    u.forEach((arr) => {
       while (arr.length) arr.pop()
-    })
+    }, u.values(this.hooks))
     return this
   }
 
@@ -183,6 +184,7 @@ class Page {
     opts?: OtherProps,
   ) {
     const snapshot = {
+      created: this.created,
       id: this.id,
       components: this.components,
       modifiers: this.modifiers,
@@ -199,57 +201,59 @@ class Page {
         id: this.rootNode.id,
         width: this.rootNode.style.width,
         height: this.rootNode.style.height,
-        childrenCount: this.rootNode.children?.length || 0,
+        childElementCount: this.rootNode.childElementCount,
+        tagName: this.rootNode.tagName,
       },
+      tagName: this.tagName,
       ...opts,
     }
     return snapshot as typeof snapshot & OtherProps
   }
 
-  on<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+  on<K extends t.Page.HookEvent>(evt: K, fn: t.Page.Hook[K]) {
     if (this.hooks[evt] && !this.hooks[evt].some((o) => o.id === evt)) {
       this.hooks[evt].push({ id: evt, fn })
     }
     return this
   }
 
-  off<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+  off<K extends t.Page.HookEvent>(evt: K, fn: t.Page.Hook[K]) {
     const index = this.hooks[evt]?.findIndex?.((o) => o.fn === fn) || -1
     if (index !== -1) this.hooks[evt].splice(index, 1)
     return this
   }
 
-  once<Evt extends T.Page.HookEvent>(evt: Evt, fn: T.Page.Hook[Evt]) {
-    const descriptor: T.Page.HookDescriptor<Evt> = { id: evt, once: true, fn }
+  once<Evt extends t.Page.HookEvent>(evt: Evt, fn: t.Page.Hook[Evt]) {
+    const descriptor: t.Page.HookDescriptor<Evt> = { id: evt, once: true, fn }
     this.hooks[evt].push(descriptor)
     return this
   }
 
-  async emitAsync<K extends T.Page.HookEvent>(
+  async emitAsync<K extends t.Page.HookEvent>(
     evt: K,
-    ...args: Parameters<T.Page.Hook[K]>
+    ...args: Parameters<t.Page.Hook[K]>
   ) {
     let results
     if (u.isArr(this.hooks[evt])) {
       results = await Promise.all(
-        this.hooks[evt].map((o) => (o.fn as any)(...args)),
+        u.map((o) => (o.fn as any)(...args), this.hooks[evt]),
       )
     }
     return results ? results.find(Boolean) : results
   }
 
-  emitSync<K extends T.Page.HookEvent>(
+  emitSync<K extends t.Page.HookEvent>(
     evt: K,
-    ...args: Parameters<T.Page.Hook[K]>
+    ...args: Parameters<t.Page.Hook[K]>
   ) {
-    this.hooks[evt]?.forEach?.((d, index) => {
+    u.forEach?.((d, index) => {
       d.fn?.call?.(this, ...args)
       if (d.once) this.hooks[evt].splice(index, 1)
-    })
+    }, this.hooks[evt])
     return this
   }
 
-  setStatus(status: T.Page.Status) {
+  setStatus(status: t.Page.Status) {
     this.#state.status = status
     if (status === eventId.page.status.IDLE) this.requesting = ''
     else if (status === eventId.page.status.NAVIGATE_ERROR) this.requesting = ''
@@ -265,41 +269,16 @@ class Page {
 
   remove() {
     try {
-      if (this.rootNode.parentElement) {
-        this.rootNode.innerHTML = ''
-        console.log(
-          `%c[Page] Cleared all child content from rootNode for page "${this.page}"`,
-          `color:#00b406;`,
-        )
-      } else {
-        try {
-          // this.rootNode.parentElement?.removeChild?.(this.rootNode)
-          this.rootNode.remove?.()
-          console.log(
-            `%c[Page] Removed rootNode from parentNode for page "${this.page}"`,
-            `color:#00b406;`,
-          )
-        } catch (error) {
-          console.error(error)
-          throw error
-        }
-      }
-
-      this.#nuiPage.viewport = null as any
+      this.#nuiPage?.viewport && (this.#nuiPage.viewport = null as any)
       u.isArr(this.components) && (this.components.length = 0)
-      u.values(this.#hooks).forEach((v) => v && (v.length = 0))
+      u.forEach((v) => v && (v.length = 0), u.values(this.#hooks))
     } catch (error) {
       console.error(error)
     }
   }
 
-  reset<K extends keyof T.Page.State = keyof T.Page.State>(slice?: K) {
-    if (slice) {
-      if (slice === 'render') this.#state.render = getDefaultRenderState()
-    } else {
-      this.#state.render = getDefaultRenderState()
-      this.remove()
-    }
+  reset() {
+    this.remove()
   }
 }
 

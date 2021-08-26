@@ -8,9 +8,6 @@ import {
   findIteratorVar,
   getDataValues,
   NUIComponent,
-  Page as NUIPage,
-  publish,
-  findChild,
   Store,
   Viewport as VP,
   isListConsumer,
@@ -46,7 +43,6 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
-import { trimReference } from 'noodl-utils'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -651,54 +647,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           if (isListConsumer(_component)) {
             const dataObject = findListDataObject(_component)
             dataObject && (ctx.dataObject = dataObject)
-          } else {
-            // const pageChild = findChild(_component, Identify.component.page)
-            // if (pageChild) {
-            //   const componentPage = pageChild.get('page')
-            //   if (!componentPage) {
-            //     console.log(
-            //       `Page is missing in a page component. Attempting to set one now`,
-            //       pageChild,
-            //     )
-            //     const pagePath = pageChild.get('path')
-            //     if (pagePath && u.isStr(pagePath)) {
-            //       console.log(
-            //         `%cResolved a nested redrawed component's page path to "${pagePath}"`,
-            //         `color:#00b406;`,
-            //         pageChild,
-            //       )
-            //       const nuiPage = app.cache.page.get(component.id)
-            //       if (nuiPage?.page) {
-            //         nuiPage.page.page = pagePath
-            //         pageChild.set('page', nuiPage)
-            //       }
-            //     } else {
-            //       console.log(
-            //         `%cCould not resolve page path of "${pagePath}" for a page component in the nested tree of a redraw component`,
-            //         `color:#ec0000;`,
-            //         pageChild,
-            //       )
-            //     }
-            //   }
-            //   console.log(`Encountered page component in redraw loop`, {
-            //     parent:
-            //       _component === pageChild ? _component?.parent : _component,
-            //     parentElement: _node,
-            //     component: pageChild,
-            //     page: pageChild.get('page'),
-            //   })
-            // }
           }
           const ndomPage = pickNDOMPageFromOptions(options)
-          const redrawed = app.ndom.redraw(_node, _component, ndomPage, {
-            context: ctx,
-          })
-          app.cache.component.add(redrawed[1], ndomPage.getNuiPage())
+          await app.ndom.redraw(_node, _component, ndomPage, { context: ctx })
         }
         startCount++
       }
-
-      console.log(`%cREDRAW ENDED`, `color:#00b406;`)
     } catch (error) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })

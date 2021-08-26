@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import { OrArray } from '@jsmanifest/typefest'
 import invariant from 'invariant'
 import merge from 'lodash/merge'
 import get from 'lodash/get'
@@ -19,7 +20,6 @@ import {
   trimReference,
 } from 'noodl-utils'
 import EmitAction from './actions/EmitAction'
-import ComponentCache from './cache/ComponentCache'
 import createAction from './utils/createAction'
 import createActionChain from './utils/createActionChain'
 import createComponent from './utils/createComponent'
@@ -30,10 +30,6 @@ import isPage from './utils/isPage'
 import isViewport from './utils/isViewport'
 import NUIPage from './Page'
 import ActionsCache from './cache/ActionsCache'
-import PageCache from './cache/PageCache'
-import PluginCache from './cache/PluginCache'
-import RegisterCache from './cache/RegisterCache'
-import TransactionCache from './cache/TransactionsCache'
 import resolveAsync from './resolvers/resolveAsync'
 import resolveComponents from './resolvers/resolveComponents'
 import resolveStyles from './resolvers/resolveStyles'
@@ -49,27 +45,12 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import { groupedActionTypes, nuiEmitType } from './constants'
+import isNUIPage from './utils/isPage'
+import cache from './_cache'
+import * as c from './constants'
 import * as t from './types'
 
-const NUI = (function _NUI() {
-  /** @type { object } cache */
-  const cache = {
-    actions: new ActionsCache() as ActionsCache &
-      Record<
-        t.NUIActionGroupedType,
-        t.Store.ActionObject<t.NUIActionGroupedType>[]
-      > & {
-        builtIn: Map<string, t.Store.BuiltInObject[]>
-        emit: Map<t.NUITrigger, t.Store.ActionObject[]>
-        register: Record<string, t.Register.Object[]>
-      },
-    component: new ComponentCache(),
-    page: new PageCache(),
-    plugin: new PluginCache(),
-    register: new RegisterCache(),
-    transactions: new TransactionCache(),
-  }
-
+const NUI = (function () {
   /**
    * Determining on the type of value, this performs necessary clean operations to ensure its resources that are bound to it are removed from memory
    * @param value
@@ -102,15 +83,17 @@ const NUI = (function _NUI() {
 
   function _createComponent(
     componentObject:
+      | t.NUIComponentType
       | t.NUIComponent.Instance
       | ComponentObject
       | null
       | undefined,
-    page = o.getRootPage(),
+    page?: NUIPage,
   ) {
     if (isComponent(componentObject)) return componentObject
     const component = createComponent(componentObject as ComponentObject)
-    cache.component.add(component, page)
+    !cache.component.has(component) &&
+      cache.component.add(component, page || o.getRootPage())
     return component
   }
 
@@ -118,20 +101,20 @@ const NUI = (function _NUI() {
    *  Create a url
    * @param { function } createSrc
    */
-  function _createSrc(args: {
+  async function _createSrc(args: {
     component: t.NUIComponent.Instance
     page: NUIPage
   }): Promise<string>
-  function _createSrc(
+  async function _createSrc(
     path: EmitObjectFold,
     opts?: {
       component: t.NUIComponent.Instance
       context?: Record<string, any>
     },
   ): Promise<string>
-  function _createSrc(path: IfObject): string
-  function _createSrc(path: string): string
-  function _createSrc(
+  async function _createSrc(path: IfObject): Promise<string>
+  async function _createSrc(path: string): Promise<string>
+  async function _createSrc(
     args:
       | EmitObjectFold
       | IfObject
@@ -146,7 +129,7 @@ const NUI = (function _NUI() {
       context?: Record<string, any>
     },
   ) {
-    let component: t.NUIComponent.Instance
+    let component: t.NUIComponent.Instance | undefined
     let page: NUIPage = o.getRootPage()
 
     if (u.isStr(args)) {
@@ -154,7 +137,7 @@ const NUI = (function _NUI() {
       // ex: path: "LeftPage"
       if ([...o.getPages(), ...o.getPreloadPages()].includes(args)) {
         const pageLink = o.getBaseUrl() + args + '_en.yml'
-        setTimeout(() => component?.emit('path', pageLink))
+        component?.emit?.('path', pageLink)
         return pageLink
       }
       return resolveAssetUrl(args, o.getAssetsUrl())
@@ -186,7 +169,7 @@ const NUI = (function _NUI() {
             )
             if (!callbacks.length) return ''
             const result = await Promise.race(
-              callbacks.map((obj: t.Store.ActionObject) =>
+              callbacks.map(async (obj: t.Store.ActionObject) =>
                 obj.fn?.(
                   emitAction,
                   o.getConsumerOptions({ component, page, path: args }),
@@ -196,30 +179,16 @@ const NUI = (function _NUI() {
             return (u.isArr(result) ? result[0] : result) || ''
           }
           // Result returned should be a string type
-          let result = emitAction.execute(args) as string | Promise<string>
-          let finalizedRes = ''
+          let result = (await emitAction.execute(args)) as
+            | string
+            | Promise<string>
 
-          if (isPromise(result)) {
-            return result
-              .then((res) => {
-                if (u.isStr(res) && res.startsWith('http')) {
-                  finalizedRes = res
-                } else {
-                  finalizedRes = resolveAssetUrl(String(res), o.getAssetsUrl())
-                }
-                component?.emit('path', finalizedRes)
-                return finalizedRes
-              })
-              .catch((err) => Promise.reject(err))
-          }
-          if (result) {
-            if (u.isStr(result) && result.startsWith('http')) {
-              finalizedRes = result
-              component?.emit('path', finalizedRes)
-              return result
+          if (u.isStr(result)) {
+            if (!result.startsWith('http')) {
+              result = resolveAssetUrl(result, o.getAssetsUrl())
             }
-            finalizedRes = resolveAssetUrl(result, o.getAssetsUrl())
-            component?.emit('path', finalizedRes)
+            component?.emit?.('path', result)
+            return result
           }
         }
       } else if (Identify.if(args)) {
@@ -239,6 +208,7 @@ const NUI = (function _NUI() {
     }
   }
 
+  // @ts-expect-error
   async function _emit<Evt extends string = string>(
     opts?: t.NUIEmit.EmitRegister<Evt>,
   ): Promise<any[]>
@@ -278,7 +248,6 @@ const NUI = (function _NUI() {
               `%cA handler object did not exist. A default function will be used that calls the functions in the callbacks list by default`,
               `color:#95a5a6;`,
             )
-            console.log(obj)
             // TODO - Refactor this awkward code
             return obj.fn?.(obj, params as t.Register.ParamsObject)
           }
@@ -409,63 +378,91 @@ const NUI = (function _NUI() {
 
   const _transform = _transformers[0].resolve.bind(_transformers[0])
 
-  function _resolveComponents(opts: {
+  async function _resolveComponents<
+    C extends OrArray<t.NUIComponent.CreateType>,
+    Context extends Record<string, any>,
+  >(opts: {
     page?: NUIPage
-    components: t.NUIComponent.CreateType
-    context?: Record<string, any>
-  }): t.NUIComponent.Instance
-  function _resolveComponents(opts: {
-    page: NUIPage
-    components: t.NUIComponent.CreateType[]
-    context?: Record<string, any>
-  }): t.NUIComponent.Instance[]
-  function _resolveComponents(
+    components: C
+    context?: Context
+    callback?: (
+      component: t.NUIComponent.Instance,
+    ) => t.NUIComponent.Instance | void
+  }): Promise<
+    C extends any[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+  >
+
+  async function _resolveComponents<
+    C extends OrArray<t.NUIComponent.CreateType>,
+  >(
     page: NUIPage,
-    component: t.NUIComponent.CreateType,
-  ): t.NUIComponent.Instance
-  function _resolveComponents(
-    page: NUIPage,
-    components: t.NUIComponent.CreateType[],
-  ): t.NUIComponent.Instance[]
-  function _resolveComponents(
-    component: t.NUIComponent.CreateType,
-  ): t.NUIComponent.Instance
-  function _resolveComponents(
-    components: t.NUIComponent.CreateType[],
-  ): t.NUIComponent.Instance[]
-  function _resolveComponents(
+    component: C,
+    callback?: (
+      component: t.NUIComponent.Instance,
+    ) => t.NUIComponent.Instance | void,
+  ): Promise<
+    C extends any[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+  >
+
+  async function _resolveComponents<
+    C extends OrArray<t.NUIComponent.CreateType>,
+  >(
+    component: C,
+    callback?: (
+      component: t.NUIComponent.Instance,
+    ) => t.NUIComponent.Instance | void,
+  ): Promise<
+    C extends any[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
+  >
+
+  async function _resolveComponents<
+    C extends OrArray<t.NUIComponent.CreateType>,
+  >(
     pageProp:
       | NUIPage
-      | t.NUIComponent.CreateType
-      | t.NUIComponent.CreateType[]
+      | C
       | {
           page?: NUIPage
-          components: t.NUIComponent.CreateType | t.NUIComponent.CreateType[]
+          components: C
           context?: Record<string, any>
+          callback?: (
+            component: t.NUIComponent.Instance,
+          ) => t.NUIComponent.Instance | void
         },
-    componentsProp?: t.NUIComponent.CreateType | t.NUIComponent.CreateType[],
+    componentsProp?:
+      | C
+      | ((
+          component: t.NUIComponent.Instance,
+        ) => t.NUIComponent.Instance | void),
+    callbackProp?: (component: C) => C | void,
   ) {
     let isArr = true
     let resolvedComponents: t.NUIComponent.Instance[] = []
     let components: t.NUIComponent.CreateType[] = []
-    let page: NUIPage
+    let page: NUIPage | undefined
     let context: Record<string, any> = {}
+    let callback: ((component: C) => C | void) | undefined
 
     if (isPage(pageProp)) {
       page = pageProp
-      components = u.array(componentsProp) as t.NUIComponent.CreateType[]
+      if (!u.isFnc(componentsProp)) {
+        components = u.array(componentsProp) as t.NUIComponent.CreateType[]
+      }
       isArr = u.isArr(componentsProp)
     } else if (u.isArr(pageProp)) {
       components = pageProp
-      // Missing page. Default to root page
-      page = o.getRootPage()
+      u.isFnc(callbackProp) && (callback = callbackProp)
+      if (isNUIPage(componentsProp)) page = componentsProp
+      else page = o.getRootPage()
     } else if (u.isObj(pageProp)) {
       // Missing page. Default to root page
       if ('type' in pageProp || 'children' in pageProp || 'style' in pageProp) {
         components = [pageProp]
-        page = o.getRootPage()
+        u.isFnc(callbackProp) && (callback = callbackProp)
+        page = isNUIPage(componentsProp) ? componentsProp : o.getRootPage()
         isArr = false
       } else {
+        callback = pageProp.callback
         components = u.array(pageProp.components)
         page = 'page' in pageProp ? pageProp.page : o.getRootPage()
         context = pageProp.context || context
@@ -473,9 +470,19 @@ const NUI = (function _NUI() {
       }
     }
 
-    function xform(c: t.NUIComponent.Instance) {
-      const options = o.getConsumerOptions({ component: c, page, context })
-      _transform(c, options)
+    async function xform(
+      c: t.NUIComponent.Instance,
+      cb?: (
+        component: t.NUIComponent.Instance,
+      ) => t.NUIComponent.Instance | void,
+    ) {
+      const options = o.getConsumerOptions({
+        callback: cb,
+        component: c,
+        page: page as NUIPage,
+        context,
+      })
+      await _transform(c, options)
       const iteratorVar = options?.context?.iteratorVar || ''
       const isListConsumer =
         iteratorVar && u.isObj(options?.context?.dataObject)
@@ -530,12 +537,13 @@ const NUI = (function _NUI() {
       return c
     }
 
-    components.forEach((c: t.NUIComponent.Instance, i) => {
-      const component = o.createComponent(c)
-      resolvedComponents.push(xform(component))
-    })
+    resolvedComponents = await Promise.all(
+      u.array(components).map(async (c) => xform(o.createComponent(c, page))),
+    )
 
-    return isArr ? resolvedComponents : resolvedComponents[0]
+    return (
+      isArr ? resolvedComponents : resolvedComponents[0]
+    ) as C extends any[] ? t.NUIComponent.Instance[] : t.NUIComponent.Instance
   }
 
   function _getActions(): ActionsCache
@@ -646,7 +654,7 @@ const NUI = (function _NUI() {
                     if (isActionChain(cb)) {
                       return cb?.execute?.call(cb, obj, params)
                     }
-                    return u.isFnc(cb) ? cb(obj, params) : cb
+                    return u.isFnc(cb) ? await cb(obj, params) : cb
                   }) || [],
                 )
               }
@@ -671,7 +679,9 @@ const NUI = (function _NUI() {
   }
 
   const _experimental = {
-    register: _experimental_Register,
+    get register() {
+      return _experimental_Register
+    },
   }
 
   const o = {
@@ -684,24 +694,42 @@ const NUI = (function _NUI() {
         get: u.isFnc(opts) ? () => opts : () => opts.get,
       })
     },
-    cache,
-    clean: _clean,
-    createGetter: _createGetter,
-    createComponent: _createComponent,
+    get cache() {
+      return cache
+    },
+    get clean() {
+      return _clean
+    },
+    get createGetter() {
+      return _createGetter
+    },
+    get createComponent() {
+      return _createComponent
+    },
     createPage(
       args?:
         | string
+        /**
+         * If a component instance is given, we must set its page id to the component id, emit the PAGE_CREATED component event and set the "page" prop using the page instance
+         */
+        | t.NUIComponent.Instance
         | {
             name?: string
+            component?: t.NUIComponent.Instance
             id?: string
+            onChange?(prev: string, next: string): void
             viewport?: VP | { width?: number; height?: number }
           },
       opts:
-        | { viewport?: VP | { width?: number; height?: number } }
+        | {
+            onChange?(prev: string, next: string): void
+            viewport?: VP | { width?: number; height?: number }
+          }
         | never = {},
     ) {
       let name: string = ''
       let id: string | undefined = undefined
+      let onChange: ((prev: string, next: string) => void) | undefined
       let page: NUIPage | undefined
       let viewport: VP | undefined
 
@@ -711,9 +739,16 @@ const NUI = (function _NUI() {
           if (opts.viewport instanceof VP) viewport = opts.viewport
           else if (u.isObj(opts.viewport)) viewport = new VP(opts.viewport)
         }
+      } else if (isComponent(args)) {
+        id = args.id
+        page = args.get('page') || cache.page.get(args.id)?.page
+        name = String(args.get('path') || '')
+        page && args.get('page') !== page && args.edit('page', page)
       } else if (u.isObj(args)) {
         args.name && (name = args.name)
-        args.id && (id = args.id)
+        args.onChange && (onChange = args.onChange)
+        if (isComponent(args.component)) args.id = args.component.id
+        else id = args.id || id || ''
         if (args?.viewport) {
           if (isViewport(args.viewport)) viewport = args.viewport
           else if (u.isObj(args.viewport)) viewport = new VP(args.viewport)
@@ -725,33 +760,49 @@ const NUI = (function _NUI() {
       if (name) {
         for (const obj of o.cache.page) {
           if (obj) {
-            const [pageId, { page: _prevPage }] = obj
+            const [_, { page: _prevPage }] = obj
             if (_prevPage.page === name) {
               page = _prevPage
               isPreexistent = true
 
-              let totalStaleComponents = 0
-              let totalStaleComponentIds = [] as string[]
-
               // Delete the cached components from the page since it will be
               // re-rerendered
               for (const obj of o.cache.component) {
-                if (obj && obj.page === page.page) {
-                  totalStaleComponentIds.push(obj.component.id)
+                if (obj && obj.page === page?.page) {
                   o.cache.component.remove(obj.component)
-                  totalStaleComponents++
                 }
               }
             }
           }
         }
       }
+
       if (!isPreexistent) {
-        page = cache.page.create({ id, viewport: viewport }) as NUIPage
+        page = cache.page.create({
+          id,
+          onChange,
+          viewport,
+        }) as NUIPage
+        if (isComponent(args)) {
+          page.page = name
+          args.edit('page', page)
+          args.emit(c.nuiEvent.component.page.PAGE_CREATED, page)
+        } else if (!u.isStr(args) && isComponent(args?.component)) {
+          /**
+           * Transfer the page from page component to be stored in the WeakMap
+           * Page components being stored in Map are @deprecated because of
+           * caching issues, whereas WeakMap will garbage collect by itself
+           * in a more aggressive way
+           */
+          cache.page.remove(page)
+          const component = args?.component as t.NUIComponent.Instance
+          page = cache.page.create({ id: component.id, onChange })
+        }
       }
 
       name && page && (page.page = name)
-      ;(page as NUIPage).use(() => NUI.getRoot()[page?.page || '']?.components)
+      ;(page as NUIPage)?.use(() => o.getRoot()[page?.page || '']?.components)
+
       return page
     },
     createPlugin(
@@ -799,7 +850,7 @@ const NUI = (function _NUI() {
     },
     createActionChain(
       trigger: t.NUITrigger,
-      actions: t.NUIActionObjectInput | t.NUIActionObjectInput[],
+      actions: OrArray<t.NUIActionObjectInput>,
       opts?: {
         component?: t.NUIComponent.Instance
         context?: Record<string, any>
@@ -814,11 +865,10 @@ const NUI = (function _NUI() {
           actions,
           (acc: t.NUIActionObject[], obj) => {
             const errors = getActionObjectErrors(obj)
-            if (errors.length) {
+            errors.length &&
               errors.forEach((errMsg) =>
                 console.log(`%c${errMsg}`, `color:#ec0000;`, obj),
               )
-            }
             if (u.isObj(obj) && !('actionType' in obj)) {
               obj = { ...obj, actionType: getActionType(obj) }
             } else if (u.isFnc(obj)) {
@@ -839,14 +889,13 @@ const NUI = (function _NUI() {
               let results = [] as (Error | any)[]
               if (fns.length) {
                 const callbacks = fns.map(
-                  async (obj: t.Store.ActionObject | t.Store.BuiltInObject) => {
-                    return obj.fn?.(action as any, {
+                  async (obj: t.Store.ActionObject | t.Store.BuiltInObject) =>
+                    obj.fn?.(action as any, {
                       ...options,
                       component: opts?.component,
                       event,
                       ref: actionChain,
-                    })
-                  },
+                    }),
                 )
                 results = await promiseAllSafely(
                   callbacks,
@@ -887,6 +936,7 @@ const NUI = (function _NUI() {
                 action,
                 callbacks,
                 o.getConsumerOptions({
+                  context: opts?.context,
                   component: opts?.component,
                   page: opts?.page as NUIPage,
                 }),
@@ -905,6 +955,7 @@ const NUI = (function _NUI() {
                 ? o.cache.actions.goto
                 : o.cache.actions[obj.actionType] || [],
               o.getConsumerOptions({
+                context: opts?.context,
                 component: opts?.component,
                 page: opts?.page as NUIPage,
               }),
@@ -919,8 +970,12 @@ const NUI = (function _NUI() {
 
       return actionChain
     },
-    createSrc: _createSrc,
-    emit: _emit,
+    get createSrc() {
+      return _createSrc
+    },
+    get emit() {
+      return _emit
+    },
     getAssetsUrl: () => '',
     getActions: _getActions,
     getBuiltIns: () => cache.actions.builtIn,
@@ -944,17 +999,20 @@ const NUI = (function _NUI() {
         styles,
       )
     },
-    getConsumerOptions({
+    getConsumerOptions<C extends t.NUIComponent.Instance>({
+      callback,
       component,
       page,
       context,
     }: {
-      component?: t.NUIComponent.Instance
+      callback?(component: C): C | void
+      component?: C
       page: NUIPage
       context?: Record<string, any>
     } & { [key: string]: any }) {
       return {
         ...o,
+        callback,
         cache,
         component,
         context, // Internal context during component resolving
@@ -976,17 +1034,22 @@ const NUI = (function _NUI() {
             page,
           })
         },
-        get createPlugin() {
-          return o.createPlugin
+        get createSrc() {
+          return _createSrc
         },
-        createSrc: _createSrc,
-        emit: _emit,
+        get emit() {
+          return _emit
+        },
         get: _createGetter(page),
-        getBaseStyles: (c: t.NUIComponent.Instance) => o.getBaseStyles?.(c),
+        get getBaseStyles() {
+          return o.getBaseStyles
+        },
         get getQueryObjects() {
           return _getQueryObjects
         },
-        page,
+        get page() {
+          return page || o.getRootPage()
+        },
         get resolveComponents() {
           return _resolveComponents
         },
@@ -995,17 +1058,27 @@ const NUI = (function _NUI() {
         },
       }
     },
-    getPlugins: (location?: t.Plugin.Location) => cache.plugin.get(location),
-    getPages: () => [] as string[],
-    getPreloadPages: () => [] as string[],
-    getRoot: () => ({} as Record<string, any>),
+    getPlugins(location?: t.Plugin.Location) {
+      return cache.plugin.get(location)
+    },
+    getPages() {
+      return [] as string[]
+    },
+    getPreloadPages() {
+      return [] as string[]
+    },
+    getRoot() {
+      return {} as Record<string, any>
+    },
     getRootPage() {
       if (!cache.page.has('root')) {
         return cache.page.create({ viewport: new VP() })
       }
       return u.array(cache.page.get('root'))[0]?.page as NUIPage
     },
-    resolveComponents: _resolveComponents,
+    get resolveComponents() {
+      return _resolveComponents
+    },
     reset(
       filter?:
         | (

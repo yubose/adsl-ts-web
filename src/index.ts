@@ -18,12 +18,13 @@ import {
   findByUX,
   findWindow,
   findWindowDocument,
+  Page as NDOMPage,
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
 import { copyToClipboard, getVcodeElem, toast } from './utils/dom'
 import AppNotification from './app/Notifications'
 import App from './App'
-import { isIOS } from './utils/common'
+import './spinner/three-dots.css'
 import 'vercel-toast/dist/vercel-toast.css'
 import './styles.css'
 
@@ -103,9 +104,13 @@ async function initializeApp(
 async function initializeNoodlPluginRefresher() {
   ws = new WebSocket(`ws://127.0.0.1:3002`)
 
-  ws.addEventListener('open', (event) => {
-    // console.log(`[noodl refresher] started`, event)
-  })
+  ws.addEventListener(
+    'open',
+    (event) => {
+      // console.log(`[noodl refresher] started`, event)
+    },
+    { once: true },
+  )
 
   ws.addEventListener('message', (msg) => {
     let data
@@ -116,18 +121,28 @@ async function initializeNoodlPluginRefresher() {
     } catch (error) {}
   })
 
-  ws.addEventListener('error', (err) => {
-    console.log(`%c[noodl reloader error]`, `color:#ec0000;`, err)
-  })
+  ws.addEventListener(
+    'error',
+    (err) => {
+      // console.log(`%c[noodl reloader error]`, `color:#ec0000;`, err)
+    },
+    { once: true },
+  )
 
-  ws.addEventListener('close', (event) => {
-    console.log(`%c[noodl reloader] closed`, `color:#FF5722;`, event)
-  })
+  ws.addEventListener(
+    'close',
+    (event) => {
+      // console.log(`%c[noodl reloader] closed`, `color:#FF5722;`, event)
+    },
+    { once: true },
+  )
 
   return ws
 }
 
 window.addEventListener('load', async (e) => {
+  // const rootEl = document.getElementById('root')
+  // document.body?.classList.add('dot-spin')
   try {
     log.func('onload')
 
@@ -181,87 +196,23 @@ window.addEventListener('load', async (e) => {
     })
 
     window.addEventListener('popstate', createOnPopState(app))
+    window.addEventListener('message', function (evt) {
+      log.func('message')
+      log.green(`New message from a window: ${evt.data}`, evt)
+    })
+    window.addEventListener('messageerror', function (evt) {
+      log.func(`messageerror`)
+      log.red(`Error receiving message from window: ${evt.data}`, evt)
+    })
   } catch (error) {
     console.error(error)
   } finally {
     !attachDebugUtilsToWindow.attached && attachDebugUtilsToWindow(app)
   }
 
-  /**
-   * Disable user gesture / pinch zoom events for iOS devices (mainly safari)
-   * since they break the layout
-   */
-  // if (isIOS()) {
-  //   document.addEventListener(
-  //     'touchmove',
-  //     (evt) => {
-  //       // @ts-expect-error
-  //       if (Number(evt?.scale) != 1) evt.preventDefault()
-  //       // console.log(`[touchmove] default prevented`, e)
-  //     },
-  //     { passive: false },
-  //   )
-  // }
-  document.addEventListener('gesturestart', (e) => {
-    e.preventDefault()
-    // log.func('gesturestart')
-    // log.orange(`fired`, e)
-  })
-  document.addEventListener('gestureend', (e) => {
-    e.preventDefault()
-    // log.func('gestureend')
-    // log.orange(`fired`, e)
-  })
-
-  document.addEventListener('gesturechange', (e) => {
-    e.preventDefault()
-    // log.func('gesturechange')
-    // log.orange(`fired`, e)
-  })
-
-  app.ndom.on(
-    'onRedrawStart',
-    function onRedrawStart({ context, component, node, page, parent }) {
-      // console.table({
-      //   page: page?.page || '',
-      //   [`component [redrawing]`]: component?.type
-      //     ? `[${component.type}] ${component.id}`
-      //     : '<No component>',
-      //   parentComponent: parent?.type
-      //     ? `[${parent.type}] ${parent.id}`
-      //     : '<No parent>',
-      //   [`node [redrawing]`]: node?.tagName
-      //     ? `[${node.tagName?.toLowerCase?.()}] ${node.id}`
-      //     : '<No node>',
-      //   parentNode: node?.parentElement
-      //     ? `[${node.parentElement.tagName.toLowerCase?.()}] ${
-      //         node.parentElement.id
-      //       }`
-      //     : '<No parent node>',
-      // })
-      // const activePages = [] as string[]
-      // for (const obj of app.cache.component) {
-      //   if (obj) {
-      //     if (obj.page && !activePages.includes(obj.page)) {
-      //       activePages.push(obj.page)
-      //     }
-      //   }
-      // }
-      // for (const obj of app.cache.page) {
-      //   if (obj) {
-      //     const [id, { page }] = obj
-      //     if (!page.page || !activePages.includes(page.page)) {
-      //       console.log(
-      //         `%cRemoving ${!page.page ? 'empty' : 'inactive'} page from NUI`,
-      //         `color:#00b406;`,
-      //         page.toJSON(),
-      //       )
-      //       app.cache.page.remove(page)
-      //     }
-      //   }
-      // }
-    },
-  )
+  document.addEventListener('gesturestart', (e) => e.preventDefault())
+  document.addEventListener('gestureend', (e) => e.preventDefault())
+  document.addEventListener('gesturechange', (e) => e.preventDefault())
 })
 
 if (module.hot) {
@@ -278,20 +229,99 @@ if (module.hot) {
 }
 
 function attachDebugUtilsToWindow(app: App) {
-  // @ts-expect-error
-  window.componentStats = () => {
-    const pageComponentCount = {} as Record<string, number>
-    for (const obj of app.cache.component) {
-      if (obj) {
-        const pageName = obj.page
-        if (!(pageName in pageComponentCount)) {
-          pageComponentCount[pageName] = 0
+  Object.defineProperties(window, {
+    componentStats: {
+      get() {
+        const pageComponentCount = {} as Record<string, number>
+        for (const obj of app.cache.component) {
+          if (obj) {
+            const pageName = obj.page
+            if (!(pageName in pageComponentCount)) {
+              pageComponentCount[pageName] = 0
+            }
+            pageComponentCount[pageName]++
+          }
         }
-        pageComponentCount[pageName]++
-      }
-    }
-    console.log(pageComponentCount)
-  }
+        return pageComponentCount
+      },
+    },
+    ndomPages: {
+      get() {
+        return (name: string) =>
+          u.values(app.ndom.pages).filter((page) => page.page === name)
+      },
+    },
+    nuiPages: {
+      get() {
+        return (name: string) =>
+          [...app.cache.page.get().values()].reduce(
+            (acc, { page }) => (page.page === name ? acc.concat(page) : acc),
+            [] as lib.Page[],
+          )
+      },
+    },
+    pageTable: {
+      get() {
+        const result = [] as { page: string; ndom: number; nui: number }[]
+        const getKey = (page: NDOMPage | lib.Page) =>
+          page.page === '' ? 'unknown' : page.page
+        const pagesList = [] as string[]
+
+        for (const { page } of app.cache.page.get().values()) {
+          if (!pagesList.includes(page.page)) pagesList.push(page.page)
+          const index = pagesList.indexOf(page.page)
+          const obj = result[index]
+          const pageKey = getKey(page) as keyof typeof result[number]
+
+          if (!obj) {
+            result[index] = {
+              ndom: 0,
+              nui: 0,
+              page: pageKey,
+            }
+          }
+          result[index].nui++
+          result[index].page = pageKey
+        }
+
+        const ndomPagesEntries = u.entries(app.ndom.pages)
+
+        for (let index = 0; index < ndomPagesEntries.length; index++) {
+          const [_, ndomPage] = ndomPagesEntries[index]
+          const pageKey = getKey(ndomPage) as keyof typeof result[number]
+          const obj = result[index]
+          if (!pagesList.includes(pageKey)) pagesList.push(pageKey)
+          if (!obj) {
+            result[index] = {
+              ndom: 0,
+              nui: 0,
+              page: pageKey,
+            }
+          }
+          result[index].ndom++
+          result[index].page = pageKey
+        }
+
+        // for (const obj of app.cache.component) {
+        //   if (obj?.component?.type === 'page') {
+        //     const page = app.cache.page.get(obj.component)?.page
+        //     if (page) {
+        //       const pageKey = getKey(page)
+        //       const resultObject = result.find((r) => r.page === pageKey)
+        //       if (resultObject) {
+        //         resultObject.nui++
+        //         debugger
+        //         const ndomPage = app.ndom.findPage(page)
+        //         if (ndomPage) resultObject.ndom++
+        //       }
+        //     }
+        //   }
+        // }
+
+        return result
+      },
+    },
+  })
 
   attachDebugUtilsToWindow.attached = true
 }

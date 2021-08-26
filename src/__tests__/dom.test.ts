@@ -80,7 +80,6 @@ describe(coolGold('DOM'), () => {
     })
     await render()
     const node = getFirstByElementId('t') as HTMLInputElement
-    console.info(node)
     await waitFor(() => {
       expect(node.dataset.value).to.eq(value)
       expect(node.value).to.eq(value)

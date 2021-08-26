@@ -4,7 +4,6 @@
   },
   "compilerOptions": {
     "module": "commonjs",
-    "strict": false,
     "target": "es2017"
   },
   "extends": "./tsconfig.json",

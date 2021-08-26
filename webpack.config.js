@@ -1,4 +1,5 @@
 const u = require('@jsmanifest/utils')
+const fs = require('fs-extra')
 const path = require('path')
 const webpack = require('webpack')
 const singleLog = require('single-line-log').stdout
@@ -6,6 +7,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
+const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
 const pkgJson = {
@@ -68,24 +70,60 @@ if (mode === 'production') {
   }
 }
 
+const commonHeaders = {
+  'Access-Control-Allow-Credentials': true,
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers':
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+}
+
+/** @param { import('express').Response } resp */
+const setHeadersOnResp = (resp) => {
+  for (const [key, value] of Object.entries(commonHeaders)) {
+    resp.setHeader(key, value)
+  }
+  return resp
+}
+
 /** @type { import('webpack-dev-server').Configuration } */
 const devServerOptions = {
+  allowedHosts: [
+    'localhost',
+    '127.0.0.1',
+    '127.0.0.1:3000',
+    'https://127.0.0.1',
+    'https://127.0.0.1:3000',
+    'aitmed.com',
+    'aitmed.io',
+  ],
   clientLogLevel: 'info',
   compress: false,
   contentBase: [publicPath],
   host: '127.0.0.1',
   hot: true,
   liveReload: true,
-  headers: {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers':
-      'Origin, X-Requested-With, Content-Type, Accept',
-    'X-Content-Type-Options': 'nosniff',
-  },
-  allowedHosts: ['localhost', '127.0.0.1', 'aitmed.com', 'aitmed.io'],
-  before(app, server, compiler) {
-    //
-  },
+  headers: commonHeaders,
+  // after(app, server, compiler) {
+  //   app.use((req, resp, next) => {
+  //     console.log({ headers: req.headers, path: app.path, params: app.param })
+  //     setHeadersOnResp(resp)
+  //     next()
+  //   })
+  // },
+  // http2: true,
+  // https: {
+  //   ca: fs.readFileSync(path.resolve(path.join(__dirname, './dev/key.pem'))),
+  //   cert: fs.readFileSync(path.resolve(path.join(__dirname, './dev/cert.pem'))),
+  //   key: fs.readFileSync(path.resolve(path.join(__dirname, './dev/key.pem'))),
+  // },
+  overlay: true,
+  // staticOptions: {
+  //   setHeaders(resp, path, stat) {
+  //     console.log(`New response for file: ${path}`, stat)
+  //     console.log(`Headers: ${resp.getHeaders()}`)
+  //     setHeadersOnResp(resp)
+  //   },
+  // },
   // https: true,
   stats: { chunks: true },
   historyApiFallback: true,
@@ -198,6 +236,10 @@ module.exports = {
     new HtmlWebpackHarddiskPlugin(),
     new InjectScriptsPlugin({
       path: 'public/libs.html',
+    }),
+    new InjectBodyPlugin({
+      content: `<div id="root"></div>`,
+      position: 'start',
     }),
     new CopyPlugin({
       patterns: [

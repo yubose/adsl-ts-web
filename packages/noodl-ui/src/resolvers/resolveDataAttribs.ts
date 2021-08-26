@@ -4,7 +4,7 @@
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
-import { excludeIteratorVar, findDataValue, trimReference } from 'noodl-utils'
+import { excludeIteratorVar, findDataValue } from 'noodl-utils'
 import {
   addDate,
   createGlobalComponentId,
@@ -12,10 +12,11 @@ import {
 } from '../utils/internal'
 import Resolver from '../Resolver'
 import * as n from '../utils/noodl'
+import { NUIComponent } from '../types'
 
 const dataAttribsResolver = new Resolver('resolveDataAttribs')
 
-dataAttribsResolver.setResolver((component, options, next) => {
+dataAttribsResolver.setResolver(async (component, options, next) => {
   const original = component.blueprint || {}
   const { context, getAssetsUrl, getQueryObjects, getRoot, page } = options
   const {
@@ -91,12 +92,14 @@ dataAttribsResolver.setResolver((component, options, next) => {
             excludeIteratorVar(dataKey, iteratorVar) as string,
           )
         }
-      } else {
+      }
+
+      // Attempt a second round of querying in case its a local/root reference
+      if (u.isUnd(result)) {
         result = findDataValue(
           getQueryObjects({
             component,
             page,
-            listDataObject: context?.dataObject,
           }),
           excludeIteratorVar(dataKey, iteratorVar),
         )
@@ -114,7 +117,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
       //path=func
       if (Identify.component.image(component)) {
         let src: any
-        if (component.has('path=func')) {
+        if (component.blueprint?.['path=func']) {
           src = component.get('path=func')?.(result)
           component.edit({ 'data-src': src })
           path && component.emit('path', src)
@@ -128,7 +131,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     // TODO - Deprecate this logic below for an easier implementation
     let fieldParts = dataKey?.split?.('.')
     let field = fieldParts?.shift?.() || ''
-    let fieldValue = getRoot()?.[page.page]?.[field]
+    let fieldValue = getRoot()?.[page?.page]?.[field]
 
     if (fieldParts?.length) {
       while (fieldParts.length) {
@@ -159,11 +162,11 @@ dataAttribsResolver.setResolver((component, options, next) => {
         if (key === 'style') {
           u.assign(
             component.style,
-            n.parseReference(value, { page: page.page, root: getRoot() }),
+            n.parseReference(value, { page: page?.page, root: getRoot() }),
           )
         } else {
           component.edit(
-            n.parseReference(value, { page: page.page, root: getRoot() }),
+            n.parseReference(value, { page: page?.page, root: getRoot() }),
           )
         }
       }
@@ -207,7 +210,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
           if (src.startsWith('..')) {
             // Local
             src = src.substring(2)
-            src = get(getRoot()[page.page], src)
+            src = get(getRoot()[options?.page?.page], src)
           } else if (src.startsWith('.')) {
             // Root
             src = src.substring(1)
@@ -240,11 +243,24 @@ dataAttribsResolver.setResolver((component, options, next) => {
     iteratorVar &&
     selectOptions.startsWith(iteratorVar)
   ) {
-    const dataObject = n.findListDataObject(component)
-    if (dataObject) {
-      const dataKey = excludeIteratorVar(selectOptions, iteratorVar)
-      const dataOptions = dataKey ? get(dataObject, dataKey) : dataObject
+    const getOptions = (c: NUIComponent.Instance, dataObject: any) => {
+      if (
+        u.isStr(c.blueprint?.options) &&
+        c.blueprint.options.startsWith(iteratorVar)
+      ) {
+        const dataKey = excludeIteratorVar(c.blueprint.options, iteratorVar)
+        const dataOptions = dataKey ? get(dataObject, dataKey) : dataObject
+        return dataOptions
+      } else if (u.isArr(selectOptions)) {
+        return selectOptions
+      }
+    }
+
+    const dataOptions = getOptions(component, n.findListDataObject(component))
+
+    if (dataOptions) {
       component.set('data-options', dataOptions || [])
+      // setTimeout(() => component.emit('options', component.get('data-options')))
       setTimeout(() => component.emit('options', component.get('data-options')))
     } else {
       console.log(
@@ -274,7 +290,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     }
   }
 
-  next?.()
+  return next?.()
 })
 
 export default dataAttribsResolver

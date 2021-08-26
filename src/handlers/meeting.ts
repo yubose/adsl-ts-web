@@ -75,7 +75,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     ),
   } as const
 
-  function onConnected(room: Meeting['room']) {
+  async function onConnected(room: Meeting['room']) {
     room.on('participantConnected', onRoomEvent.participantConnected)
     room.on('participantDisconnected', onRoomEvent.participantDisconnected)
     room.on('participantReconnecting', onRoomEvent.participantReconnecting)
@@ -110,7 +110,7 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       log.grey(`Bound local participant to selfStream`, app.selfStream)
     }
     for (const participant of room.participants.values()) {
-      app.meeting.addRemoteParticipant(participant)
+      await app.meeting.addRemoteParticipant(participant)
     }
   }
 

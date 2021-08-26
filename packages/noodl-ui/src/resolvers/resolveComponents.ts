@@ -5,35 +5,34 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import type { ComponentObject, EcosDocument } from 'noodl-types'
 import { Identify } from 'noodl-types'
-import { excludeIteratorVar,findDataValue } from 'noodl-utils'
+import { excludeIteratorVar, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import type NUIPage from '../Page'
-import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
-import { formatColor, isPromise } from '../utils/common'
+import { formatColor } from '../utils/common'
 import {
-  evalIf,
   findIteratorVar,
   findListDataObject,
   isListConsumer,
   isListLike,
-  publish,
   resolveAssetUrl,
 } from '../utils/noodl'
-import type { ConsumerOptions, NUIComponent } from '../types'
+import type { NUIComponent } from '../types'
+import cache from '../_cache'
 import * as c from '../constants'
+import * as i from '../utils/internal'
 
 const componentResolver = new Resolver('resolveComponents')
 
-componentResolver.setResolver((component, options, next) => {
+componentResolver.setResolver(async (component, options, next) => {
   const {
-    cache,
+    callback,
     context,
+    createComponent,
     createPage,
     createPlugin,
     createSrc,
     emit,
-    get: enhancedGet, // A more optimized getter. TODO: Replace regular get func calls with this one
     getAssetsUrl,
     getPages,
     getRoot,
@@ -41,7 +40,6 @@ componentResolver.setResolver((component, options, next) => {
     page,
     resolveComponents,
   } = options
-
 
   const original = component.blueprint || {}
   const originalStyle = original.style || {}
@@ -65,14 +63,14 @@ componentResolver.setResolver((component, options, next) => {
         console.log(
           `%cAn ecosObj was received with a "name" field that was not an object. ` +
             `This will rely on the subtype to determine the type of document ` +
-            `to generate the metadata for`,
+            `to determine the metadata`,
           `color:#FF5722;`,
           { component, ecosObj },
         )
       }
     } else {
       console.log(
-        `%cAn ecosDoc component did not have a valid "ecosObj" value`,
+        `%cAn ecosDoc component had an empty "ecosObj" value`,
         `color:#ec0000;`,
         component,
       )
@@ -90,11 +88,9 @@ componentResolver.setResolver((component, options, next) => {
       return component.type === 'chatList' ? 'chatItem' : 'children'
     }
 
+    /** Filter invalid values (0 is a valid value)  */
     function getListObject() {
-      if (u.isArr(component.blueprint.listObject)) {
-        return component.blueprint.listObject
-      }
-      return []
+      return u.array(component.blueprint.listObject).filter(Boolean)
     }
 
     function getRawBlueprint(component: NUIComponent.Instance) {
@@ -107,42 +103,25 @@ componentResolver.setResolver((component, options, next) => {
       return blueprint as ComponentObject
     }
 
-    // Creates list items as new data objects are added
-    component.on(
-      c.nuiEvent.component.list.ADD_DATA_OBJECT,
-      ({ index, dataObject }) => {
-        const ctx = { index, iteratorVar, dataObject }
-        let listItem = component.createChild(createComponent(listItemBlueprint))
-        listItem.edit({ index, [iteratorVar]: dataObject })
-        listItem = resolveComponents({
-          components: listItem,
-          context: ctx,
-          page,
-        })
-        cache.component.add(listItem, page)
-        const numGeneratedChildren = listItem.length
-        const expectedNumChildren = listItem.blueprint?.children?.length
-        if (listItem.length > (listItem.blueprint?.children?.length || 0)) {
-          console.log(
-            `%cA listItem has more children (${numGeneratedChildren}) than what its blueprint represents (${expectedNumChildren})`,
-            `color:#ec0000;`,
-            { list: component, listItem, dataObject, index },
-          )
-        }
-      },
-      'ADD_DATA_OBJECT',
-    )
-
     // Removes the placeholder (first child)
     component.clear('children')
 
     // Customly create the listItem children using a dataObject as the data source
-    getListObject().forEach((dataObject: any, index: number) => {
-      component.emit(c.nuiEvent.component.list.ADD_DATA_OBJECT, {
-        index,
-        dataObject,
+    const dataObjects = getListObject()
+    const numDataObjects = dataObjects.length
+    for (let index = 0; index < numDataObjects; index++) {
+      const dataObject = dataObjects[index]
+      const ctx = { index, iteratorVar, dataObject }
+      let listItem = createComponent(listItemBlueprint, page)
+      listItem = component.createChild(listItem)
+      listItem.edit({ index, [iteratorVar]: dataObject })
+      listItem = await resolveComponents({
+        callback,
+        components: listItem,
+        context: { ...context, ...ctx },
+        page,
       })
-    })
+    }
   }
 
   /* -------------------------------------------------------
@@ -150,68 +129,61 @@ componentResolver.setResolver((component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.page(component)) {
-    let nuiPage = cache.page.get(component.id)?.page
     let pageName = component.get('path') || ''
+    let nuiPage = createPage(component) as NUIPage
+
+    component.edit('page', nuiPage)
 
     if (u.isStr(pageName)) {
-      if (!nuiPage) {
-        nuiPage = createPage({
-          id: component.id,
-          component,
-          name: pageName,
-        }) as NUIPage
-        component.emit('page-created', nuiPage)
+      if (nuiPage?.page === '') {
+        console.log(
+          `%cThe page component does not have its page name resolved yet`,
+          `color:#ec0000;`,
+          component.toJSON(),
+        )
       }
-
-      if (pageName && nuiPage.page !== pageName) {
-        nuiPage.page = pageName
-      }
-
-      if (nuiPage?.page) {
-        ;(async () => {
-          try {
-            // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window
-            if (getPages().includes(pageName)) {
-              const pageObject = await emit({
-                type: c.nuiEmitType.TRANSACTION,
-                transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-                params: nuiPage,
-              })
-              component.edit('page', nuiPage)
-              component.emit(
-                c.nuiEvent.component.page.PAGE_COMPONENTS,
-                pageObject.components || nuiPage.components || [],
-              )
+      try {
+        // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
+        if (getPages().includes(pageName)) {
+          const onPageChange = async (initializing = false) => {
+            await emit({
+              type: c.nuiEmitType.TRANSACTION,
+              transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+              params: nuiPage,
+            })
+            component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, {
+              page: nuiPage,
+              type: initializing ? 'init' : 'update',
+            })
+          }
+          component.on(c.nuiEvent.component.page.PAGE_CHANGED, onPageChange)
+          await onPageChange(true)
+        } else {
+          // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
+          if (pageName.endsWith('.html')) {
+            if (!pageName.startsWith('http')) {
+              nuiPage.page = resolveAssetUrl(pageName, getAssetsUrl())
             } else {
-              // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
-
-              if (pageName.endsWith('.html')) {
-                if (!pageName.startsWith('http')) {
-                  pageName = resolveAssetUrl(pageName, getAssetsUrl())
-                }
-                nuiPage.page = pageName
-              } else {
-                // TODO
-              }
+              nuiPage.page = pageName
             }
-          } catch (err) {
-            // TODO - handle this. Maybe cleanup?
-            console.error(
-              `[Page component] ` +
-                `Error attempting to get the page object for a page component]: ${err.message}`,
-              err,
+          } else {
+            console.log(
+              `%cRemote link for a page component is not an HTML page. ` +
+                `Only HTML pages are supported when loading third party interfaces`,
+              `color:#95a5a6;`,
             )
           }
-        })()
-      } else {
-        console.log(
-          `%cCould not resolve the page name for a page component`,
-          `color:#ec0000;`,
-          { component, options },
+        }
+      } catch (err) {
+        // TODO - handle this. Maybe cleanup?
+        console.error(
+          `[Page component] ` +
+            `Error attempting to get the page object for a page component]: ${err.message}`,
+          err.stack?.() || new Error(err),
         )
       }
 
-      let viewport = nuiPage.viewport || new VP()
+      let viewport = nuiPage?.viewport || new VP()
 
       if (VP.isNil(originalStyle.width)) {
         viewport.width = getRootPage().viewport.width
@@ -232,6 +204,12 @@ componentResolver.setResolver((component, options, next) => {
           }),
         )
       }
+    } else {
+      console.log(
+        `%cThe pageName was not a string when resolving the page name for a page component`,
+        `color:#ec0000;`,
+        component.toJSON(),
+      )
     }
   }
 
@@ -245,51 +223,33 @@ componentResolver.setResolver((component, options, next) => {
     Identify.component.pluginBodyTop(component) ||
     Identify.component.pluginBodyTail(component)
   ) {
-    /**
-     * Resolves the path, returning the final url
-     * @param { string } path - Image path
-     * @param { string } assetsUrl - Assets url
-     * @param { function } createSrc
-     */
-    async function getPluginUrl(
-      path: string,
-      assetsUrl: string,
-      createSrc: ConsumerOptions['createSrc'],
-    ) {
-      let url = createSrc(path)
-      if (isPromise(url)) {
-        const finalizedUrl = await url
-        url = resolveAssetUrl(finalizedUrl, assetsUrl)
-      }
-      return url
-    }
-
     if (cache.plugin.has(path)) return
 
     const plugin = createPlugin(component)
     component.set('plugin', plugin)
 
-    getPluginUrl(path, getAssetsUrl(), createSrc)
-      .then((src) => {
-        // src is also being resolved in the resolveDataAttrs resolver
-        // so we don't need to handle setting the data-src and emitting the
-        // path event here
-        if (src) return window.fetch?.(src)
-      })
-      .then((res) => {
-        const contentType = res?.headers?.get?.('Content-Type')
-        if (u.isStr(contentType)) {
-          if (contentType.includes(`text/`)) return res?.text?.()
-        }
-        return res?.json?.()
-      })
-      .then((content) => {
-        plugin && (plugin.content = content)
-        component.set('content', content)
-        component.emit('content', content || '')
-      })
-      .catch((err) => console.error(`[${err.name}]: ${err.message}`, err))
-      .finally(() => (plugin.initiated = true))
+    try {
+      // src is also being resolved in the resolveDataAttrs resolver
+      // so we don't need to handle setting the data-src and emitting the
+      // path event here
+      const src = resolveAssetUrl(await createSrc(path), getAssetsUrl())
+      const res = await window.fetch?.(src)
+      const headers = res?.headers
+      const contentType = headers?.get?.('Content-Type') || ''
+      const url = res?.url
+      if (/(text|javascript)/i.test(contentType)) {
+        component.edit('content', await res?.text?.())
+      } else {
+        component.edit('content', await res?.json?.())
+      }
+      const content = await res?.json?.()
+      plugin && (plugin.content = component.get('content'))
+      setTimeout(() => component.emit('content', content || ''))
+    } catch (err) {
+      console.error(`[${err.name}]: ${err.message}`, err)
+    } finally {
+      plugin.initiated = true
+    }
   }
 
   /* -------------------------------------------------------
@@ -309,7 +269,7 @@ componentResolver.setResolver((component, options, next) => {
 
       textBoard.forEach((item) => {
         if (Identify.textBoardItem(item)) {
-          component.createChild(createComponent('br'))
+          component.createChild(createComponent('br', page))
         } else {
           /**
            * NOTE: Normally in the return type we would return the child
@@ -322,54 +282,59 @@ componentResolver.setResolver((component, options, next) => {
            * fontSize----> fontSize
            * fontWeight---> normal | bold | number
            */
-          if(item?.dataKey){
-            if(iteratorVar && item?.dataKey.startsWith(iteratorVar)){
+          if (item?.dataKey) {
+            if (iteratorVar && item?.dataKey.startsWith(iteratorVar)) {
               const dataObject = findListDataObject(component)
               const dataKey = excludeIteratorVar(item?.dataKey, iteratorVar)
               item.text = dataKey ? get(dataObject, dataKey) : dataObject
-            }else{
+            } else {
               const dataObject = findDataValue(
                 [() => getRoot(), () => getRoot()[page.page]],
                 item?.dataKey,
               )
-              item.text = u.isObj(dataObject) ? get(dataObject, item?.datKey) : dataObject
+              item.text = u.isObj(dataObject)
+                ? get(dataObject, item?.datKey)
+                : dataObject
             }
           }
-          const text = createComponent({
-            type: 'label',
-            style: {
-              display: 'inline-block',
-              ...('color' in item
-                ? { color: formatColor(item.color || '') }
-                : undefined),
-              ...('fontSize' in item
-                ? {
-                    fontSize:
-                      item.fontSize.search(/[a-z]/gi) != -1
-                        ? item.fontSize
-                        : item.fontSize + 'px',
-                  }
-                : undefined),
-              ...('fontWeight' in item
-                ? { fontWeight: item.fontWeight }
-                : undefined),
-              ...('left' in item
-                ? {
-                    marginLeft: item.left.includes('px')
-                      ? item.left
-                      : `${item.left}px`,
-                  }
-                : undefined),
-              ...('top' in item
-                ? {
-                    marginTop: item.top.includes('px')
-                      ? item.top
-                      : `${item.top}px`,
-                  }
-                : undefined),
+          const text = createComponent(
+            {
+              type: 'label',
+              style: {
+                display: 'inline-block',
+                ...('color' in item
+                  ? { color: formatColor(item.color || '') }
+                  : undefined),
+                ...('fontSize' in item
+                  ? {
+                      fontSize:
+                        item.fontSize.search(/[a-z]/gi) != -1
+                          ? item.fontSize
+                          : item.fontSize + 'px',
+                    }
+                  : undefined),
+                ...('fontWeight' in item
+                  ? { fontWeight: item.fontWeight }
+                  : undefined),
+                ...('left' in item
+                  ? {
+                      marginLeft: item.left.includes('px')
+                        ? item.left
+                        : `${item.left}px`,
+                    }
+                  : undefined),
+                ...('top' in item
+                  ? {
+                      marginTop: item.top.includes('px')
+                        ? item.top
+                        : `${item.top}px`,
+                    }
+                  : undefined),
+              },
+              text: 'text' in item ? item.text : '',
             },
-            text: 'text' in item ? item.text : '',
-          })
+            page,
+          )
           component.createChild(text)
         }
       })
@@ -442,21 +407,27 @@ componentResolver.setResolver((component, options, next) => {
     ---- CHILDREN 
   -------------------------------------------------------- */
 
-  // Children of list components are created by the lib. All other children
-  // are handled here
+  // Children of list components are created by the lib.
+  // All other children are handled here
   if (!isListLike(component) && !Identify.component.page(component)) {
-    component.blueprint?.children?.forEach?.(
-      (childObject: ComponentObject, i) => {
-        let child = createComponent(childObject)
+    if (u.isArr(component.blueprint?.children)) {
+      for (const childObject of component.blueprint.children) {
+        let child = createComponent(childObject, page)
         child = component.createChild(child)
-        child = resolveComponents({ components: child, context, page })
+        child = await resolveComponents({
+          callback,
+          components: child,
+          context,
+          page,
+        })
         !cache.component.has(child) && cache.component.add(child, page)
-      },
-    )
+      }
+    }
   }
+
   !cache.component.has(component) && cache.component.add(component, page)
 
-  next?.()
+  return next?.()
 })
 
 export default componentResolver

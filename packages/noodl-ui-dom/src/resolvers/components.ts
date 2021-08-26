@@ -1,172 +1,227 @@
+import * as u from '@jsmanifest/utils'
+import { OrArray } from '@jsmanifest/typefest'
 import SignaturePad from 'signature_pad'
+import curry from 'lodash/curry'
 import has from 'lodash/has'
-import { Identify } from 'noodl-types'
+import { ComponentObject, Identify } from 'noodl-types'
 import {
   createComponent,
-  evalIf,
   formatColor,
+  event as nuiEvent,
+  NUI,
   NUIComponent,
-  Page as NUIPage,
   SelectOption,
+  Plugin,
 } from 'noodl-ui'
-import { Resolve } from '../types'
 import { toSelectOption } from '../utils'
+import { ComponentPage } from '../factory/componentFactory'
 import createEcosDocElement from '../utils/createEcosDocElement'
+import NDOM from '../noodl-ui-dom'
 import NDOMPage from '../Page'
-import * as u from '../utils/internal'
+import * as t from '../types'
+import * as i from '../utils/internal'
 import * as c from '../constants'
 
-const domComponentsResolver: Resolve.Config = {
+const componentsResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] components`,
-  cond: (n, c) => !!(n && c),
-  before(node, component, { nui, page, draw }) {
-    if (Identify.component.canvas(component)) {
-      page
-        .on(c.eventId.page.on.ON_ASPECT_RATIO_MIN, (prevMin, min) => {
-          console.log(
-            `%c[min] changed (${prevMin} --> ${min})`,
-            `color:#95a5a6;`,
-          )
-        })
-        .on(c.eventId.page.on.ON_ASPECT_RATIO_MAX, (prevMax, max) => {
-          console.log(
-            `%c[max] changed (${prevMax} --> ${max})`,
-            `color:#95a5a6;`,
-          )
-        })
-    }
-  },
-  resolve(node, component, { draw, global: globalMap, ndom, nui }) {
-    if (u.isFnc(node)) {
-      // PLUGIN
-      if (
-        [
-          Identify.component.plugin,
-          Identify.component.pluginHead,
-          Identify.component.pluginBodyTop,
-          Identify.component.pluginBodyTail,
-        ].some((cond) => cond(component))
-      ) {
-        // !NOTE - We passed the node argument as a function that expects our
-        // resolved node instead
-        // This is specific for these plugin components but may be extended to be used more later
-        function getMetadata(component: NUIComponent.Instance) {
-          const path = String(
-            component.get('plugin')?.path ||
-              component.blueprint?.path ||
-              component.get('path') ||
-              '',
-          )
-          const isLib = component?.contentType === 'library'
-          const metadata = {} as { type: string; tagName: string }
+  async resolve(args) {
+    const { nui, setAttr, setDataAttr, setStyleAttr } = args
 
-          if (path.endsWith('.css')) {
-            metadata.type = 'text/css'
-            metadata.tagName = 'STYLE'
-          } else if (path.endsWith('.html')) {
-            metadata.type = 'text/html'
-            metadata.tagName = 'DIV'
-          } else if (path.endsWith('.js') || isLib) {
-            metadata.type = 'text/javascript'
-            metadata.tagName = 'SCRIPT'
-          } else {
-            metadata.type = component.blueprint?.mimeType || 'text/plain'
-            metadata.tagName = 'SCRIPT'
-          }
-          return metadata
+    if (u.isFnc(args.node)) {
+      // PLUGIN
+      if (i._isPluginComponent(args.component)) {
+        let path = (args.component.get('path') ||
+          args.component.blueprint.path) as string
+        let plugin = args.component.get('plugin') as Plugin.Object
+        let tagName = '' // 'div', etc
+        let type = '' // text/html, etc
+
+        if (path.endsWith('.css')) {
+          type = 'text/css'
+          tagName = 'style'
+        } else if (path.endsWith('.html')) {
+          tagName = 'iframe'
+        } else if (path.endsWith('.js')) {
+          type = 'text/javascript'
+          tagName = 'script'
+        } else {
+          type = 'text/plain'
+          tagName = 'script'
         }
 
-        const metadata = getMetadata(component)
-        const pluginNode = document.createElement(
-          metadata.tagName.toLowerCase(),
-        ) as HTMLScriptElement
+        let pluginNode = getPluginElem(tagName) as any
+        // If the node is a function then it is expecting us to decide what node to use
+        u.isFnc(args.node) && args.node(pluginNode)
 
-        pluginNode.type = metadata.type
+        function getPluginElem(tagName: 'link'): HTMLLinkElement
+        function getPluginElem(tagName: 'script'): HTMLScriptElement
+        function getPluginElem(tagName: 'style'): HTMLStyleElement
+        function getPluginElem(tagName: 'iframe'): HTMLIFrameElement
+        function getPluginElem(tagName: string): HTMLElement | null
+        function getPluginElem<T extends string>(tagName: T) {
+          switch (tagName as T) {
+            case 'link':
+              const node = document.createElement('link')
+              node.rel = 'stylesheet'
+              return node
+            case 'iframe':
+              return document.createElement('div')
+            case 'script':
+              return document.createElement('script')
+            case 'style':
+              return document.createElement('style')
+            default:
+              return null
+          }
+        }
 
-        if (metadata.type === 'text/javascript') {
-          pluginNode.onload = function onLoadJsPluginDOMNode(evt) {
-            const location = component.get('plugin')?.location || ''
-            if (location) {
-              try {
-                if (location === 'head') {
-                  document.head.appendChild(pluginNode)
-                } else if (location === 'body-top') {
-                  document.body.insertBefore(
-                    pluginNode,
-                    document.body.childNodes[0],
-                  )
-                } else if (location === 'body-bottom') {
-                  document.body.appendChild(pluginNode)
-                } else {
-                  document.body.appendChild(pluginNode)
-                }
-              } catch (error) {
-                console.error(error)
-              }
+        function loadAttribs(
+          component: NUIComponent.Instance,
+          elem: HTMLLinkElement | null,
+          data: any,
+        ): HTMLLinkElement
+        function loadAttribs(
+          component: NUIComponent.Instance,
+          elem: HTMLScriptElement | null,
+          data: any,
+        ): HTMLScriptElement
+        function loadAttribs(
+          component: NUIComponent.Instance,
+          elem: HTMLStyleElement | null,
+          data: any,
+        ): HTMLStyleElement
+        function loadAttribs(
+          component: NUIComponent.Instance,
+          elem: HTMLIFrameElement | null,
+          data: any,
+        ): HTMLIFrameElement
+        function loadAttribs<
+          N extends
+            | HTMLLinkElement
+            | HTMLScriptElement
+            | HTMLStyleElement
+            | HTMLIFrameElement,
+        >(component: NUIComponent.Instance, elem: N | null, data: any) {
+          if (!elem) return elem
+          elem.id = component.id
+          if (i._isLinkEl(elem)) {
+            elem.innerHTML = String(data)
+            elem.rel = 'stylesheet'
+          } else if (i._isScriptEl(elem)) {
+            elem.innerHTML = String(data)
+            elem.type = type
+            // eval(data)
+          } else if (i._isStyleEl(elem)) {
+            elem.innerHTML = String(data)
+          } else if (i._isIframeEl(elem)) {
+            const parentNode =
+              elem.parentNode || args.page.rootNode || document.body
+            elem.innerHTML += data
+            if (parentNode.children.length) {
+              parentNode.insertBefore(elem, parentNode.childNodes[0])
+            } else {
+              parentNode.appendChild(elem)
             }
           }
-          pluginNode.src = component.get('data-src')
-        } else if (
-          metadata.type === 'text/html' ||
-          metadata.type === 'text/css'
-        ) {
-          pluginNode.type = metadata.type
-          pluginNode.tagName === 'STYLE' && (pluginNode.rel = 'stylesheet')
-          component.on(
-            'content',
-            (content: string) => {
-              pluginNode && (pluginNode.innerHTML += content)
-            },
-            'content',
-          )
+          return elem
         }
 
-        // If the node is a function then it is expecting us to decide what node to use
-        u.isFnc(node) && node(pluginNode)
+        if (args.component.has('content')) {
+          loadAttribs(args.component, pluginNode, args.component.get('content'))
+        }
+
+        args.component.on(
+          'content',
+          (content: string) => loadAttribs(args.component, pluginNode, content),
+          'content',
+        )
+
         try {
-          pluginNode && document.body.appendChild(pluginNode)
+          if (pluginNode) {
+            const insert = (
+              node: HTMLElement | null,
+              location: Plugin.Location | undefined,
+            ) => {
+              const appendChild = (
+                page: NDOMPage,
+                childNode: HTMLElement,
+                top = true,
+              ) => {
+                const parentNode = node || page.rootNode || document.body
+
+                if (top) {
+                  if (parentNode.children.length) {
+                    parentNode.insertBefore(childNode, parentNode.childNodes[0])
+                  } else parentNode.appendChild(childNode)
+                } else parentNode.appendChild(childNode)
+              }
+
+              if (node) {
+                if (i._isIframeEl(node) || i._isDivEl(node))
+                  appendChild(args.page, node)
+                else if (i._isLinkEl(node)) {
+                  if (i._isIframeEl(args.page.rootNode)) {
+                    args.page.rootNode.contentDocument?.head.appendChild(node)
+                  } else {
+                    document.head.appendChild(node)
+                  }
+                } else if (i._isScriptEl(node)) {
+                  appendChild(args.page, node, location === 'body-bottom')
+                }
+              }
+            }
+            insert(pluginNode, args.component.get('plugin')?.location)
+          }
         } catch (error) {
           console.error(error)
         }
+
         return pluginNode
       }
-    } else {
-      const original = component.blueprint || {}
+    } else if (args.node) {
+      const original = args.component.blueprint || {}
 
       const {
         children,
-        contentType,
         controls,
-        mimeType,
+        dataKey,
         onClick,
         options: selectOptions,
-        plugin,
         poster,
         text,
         videoType,
       } = original
 
       // BUTTON
-      if (Identify.component.button(component)) {
-        if (component.get('data-src')) {
-          node.style.overflow = 'hidden'
-          node.style.display = 'flex'
-          node.style.alignItems = 'center'
+      if (Identify.component.button(args.component)) {
+        if (args.node) {
+          if (args.component.get(c.DATA_SRC)) {
+            u.forEach(
+              ([k, v]) => setStyleAttr(k as any, v),
+              [
+                ['overflow', 'hidden'],
+                ['display', 'flex'],
+                ['alignItems', 'center'],
+              ],
+            )
+          }
+          setStyleAttr('cursor', onClick ? 'pointer' : 'auto')
         }
-        node.style.cursor = onClick ? 'pointer' : 'auto'
       }
       // CANVAS
-      else if (Identify.component.canvas(component)) {
-        const dataKey = (component.get('data-key') ||
-          original.dataKey) as string
+      else if (Identify.component.canvas(args.component)) {
+        const _dataKey = (args.component.get(c.DATA_KEY) || dataKey) as string
 
-        if (dataKey) {
-          const signaturePad = component.get('signaturePad') as SignaturePad
+        if (_dataKey) {
+          const signaturePad = args.component.get(
+            'signaturePad',
+          ) as SignaturePad
+
           if (signaturePad) {
-            signaturePad.onEnd = (evt) => {
+            signaturePad.onEnd = () => {
               const dataUrl = signaturePad.toDataURL()
               const mimeType = dataUrl.split(';')[0].split(':')[1] || ''
-              ;(node as HTMLCanvasElement).toBlob(
+              ;(args.node as HTMLCanvasElement).toBlob(
                 (blob) => {
                   if (nui) {
                     // TEMP - Remove this when "isRootDataKey" is not giving the "not a function" error
@@ -184,21 +239,21 @@ const domComponentsResolver: Resolve.Config = {
                       return false
                     }
 
-                    let dataObject = isRootDataKey(dataKey)
+                    let dataObject = isRootDataKey(_dataKey)
                       ? nui.getRoot()
-                      : nui.getRoot()?.[ndom?.page?.page || '']
-                    if (has(dataObject, dataKey)) {
+                      : nui.getRoot()?.[args.page?.page || '']
+                    if (has(dataObject, _dataKey)) {
                       // set(dataObject, dataKey, blob)
                     } else {
                       console.log(
-                        `%cTried to set a signature blob using path "${dataKey}" ` +
+                        `%cTried to set a signature blob using path "${_dataKey}" ` +
                           `but it was not found in the root or local root object. ` +
                           `It will be created now.`,
                         `color:#ec0000;`,
                         {
                           blob,
-                          currentPage: ndom?.page?.page,
-                          node,
+                          currentPage: args?.page?.page,
+                          node: args.node,
                           root: nui.getRoot(),
                         },
                       )
@@ -219,176 +274,343 @@ const domComponentsResolver: Resolve.Config = {
             console.log(
               `%cSignature pad is missing from a canvas component!`,
               `color:#ec0000;`,
-              { node, component, signaturePad },
+              args,
             )
           }
-          window['pad'] = signaturePad
         } else {
           console.log(
             `%cInvalid data key "${dataKey}" for a canvas component. ` +
               `There may be unexpected behavior`,
             `color:#ec0000;`,
-            component,
+            args,
           )
         }
       }
       // ECOSDOC
-      else if (Identify.component.ecosDoc(component)) {
+      else if (Identify.component.ecosDoc(args.component)) {
         const idLabel =
-          (u.isImageDoc(component) && 'image') ||
-          (u.isMarkdownDoc(component) && 'markdown') ||
-          (Identify.ecosObj.doc(component) && 'doc') ||
-          (u.isTextDoc(component) && 'text') ||
-          (u.isWordDoc(component) && 'word-doc') ||
+          (i.isImageDoc(args.component) && 'image') ||
+          (i.isMarkdownDoc(args.component) && 'markdown') ||
+          (Identify.ecosObj.doc(args.component) && 'doc') ||
+          (i.isTextDoc(args.component) && 'text') ||
+          (i.isWordDoc(args.component) && 'word-doc') ||
           'ecos'
-        const iframe = createEcosDocElement(node, component.get('ecosObj'))
-        iframe && (iframe.id = `${idLabel}-document-${component.id}`)
-        node.appendChild(iframe)
+
+        let iframe: HTMLIFrameElement | undefined
+
+        try {
+          const loadResult = await createEcosDocElement(
+            args.node as HTMLElement,
+            args.component.get('ecosObj'),
+          )
+          iframe = loadResult.iframe
+        } catch (error) {
+          console.error(error)
+          iframe = document.createElement('iframe')
+        }
+        iframe && (iframe.id = `${idLabel}-document-${args.component.id}`)
+        iframe.addEventListener('error', (err) =>
+          console.error(`[ERROR]: In ecosDoc component: ${err.message}`, err),
+        )
+        args.node?.appendChild(iframe)
       }
       // IMAGE
-      else if (Identify.component.image(component)) {
-        if (onClick) node.style.cursor = 'pointer'
-        // If an image has children, we will assume it is some icon button overlapping
-        //    Ex: profile photos and showing pencil icon on top to change it
-        if (children) {
-          node.style.width = '100%'
-          node.style.height = '100%'
+      else if (Identify.component.image(args.component)) {
+        if (args.node) {
+          if (onClick) setStyleAttr('cursor', 'pointer')
+          // If an image has children, we will assume it is some icon button overlapping
+          //    Ex: profile photos and showing pencil icon on top to change it
+          if (children) {
+            setStyleAttr('width', '100%')
+            setStyleAttr('height', '100%')
+          }
         }
-        component.on('path', (result: string) => {
-          node && ((node as HTMLImageElement).src = result)
+        if (args.component.get(c.DATA_SRC)) {
+          setAttr('src', args.component.get(c.DATA_SRC))
+          setDataAttr('src', args.component.get(c.DATA_SRC))
+        }
+        args.component.on('path', (result: string) => {
+          if (args.node) {
+            setAttr('src', result)
+            setDataAttr('src', result)
+          }
         })
-        if (component.get('data-src')) {
-          ;(node as HTMLImageElement).src = component.get('data-src')
-        }
 
         // load promise return to image
-        if (component.has('path=func')) {
+        if (args.component.blueprint?.['path=func']) {
           // ;(node as HTMLImageElement).src = '../waiting.png'
-          component.get('data-src').then((path: any) => {
-            console.log("test path=func",path)
-            if(path){
-              ;(node as HTMLImageElement).src = path
-            }else{
-              ;(node as HTMLImageElement).src = component.get('data-src')
-            }
-          })
+          const path = await args.component.get(c.DATA_SRC)
+          console.log('test path=func', path)
+          setAttr('src', path)
         }
       }
       // LABEL
-      else if (Identify.component.label(component)) {
-        if (component.get('data-value')) {
-          node.innerHTML = String(component.get('data-value'))
-        } else if (text) {
-          node.innerHTML = String(text)
-        } else if (component.get('data-placeholder')) {
-          node.innerHTML = String(component.get('data-placeholder'))
+      else if (Identify.component.label(args.component)) {
+        if (args.node) {
+          if (args.component.get(c.DATA_VALUE)) {
+            setAttr('innerHTML', String(args.component.get(c.DATA_VALUE)))
+          } else if (text) {
+            setAttr('innerHTML', String(text))
+          } else if (args.component.get(c.DATA_PLACEHOLDER)) {
+            setAttr('innerHTML', String(args.component.get(c.DATA_PLACEHOLDER)))
+          }
+          onClick && setStyleAttr('cursor', 'pointer')
         }
-        onClick && (node.style.cursor = 'pointer')
       }
       // LIST
-      else if (Identify.component.listLike(component)) {
+      else if (Identify.component.listLike(args.component)) {
         //
       }
       // PAGE
-      else if (Identify.component.page(component)) {
-        const src = component.get('data-src') || ''
-        // TODO - Finish http implementation
-        if (src.startsWith('http')) {
-          let nuiPage = component.get('page')
-          let ndomPage = ndom.findPage(nuiPage) as NDOMPage
+      else if (Identify.component.page(args.component)) {
+        if (u.isStr(args.component.get('path'))) {
+          if (i._isIframeEl(args.node)) {
+            const path = args.component.get('path')
+            const remote = i._isRemotePageOrUrl(String(path))
 
-          if (!ndomPage) {
-            try {
-              ndomPage = ndom.createPage(nuiPage)
-            } catch (error) {
-              console.error(error)
-            }
-          }
-
-          ndomPage.rootNode?.parentElement?.removeChild?.(ndomPage.rootNode)
-          ndomPage.rootNode = node as HTMLIFrameElement
-          ndomPage.rootNode.src = src
-        } else {
-          const listen = (nuiPage?: NUIPage) => {
-            component.on('page-components', () => {
-              !nuiPage && (nuiPage = component.get('page') as NUIPage)
-              let ndomPage = [
-                ndom.findPage(nuiPage),
-                ndom.findPage(component.id),
-              ].find(Boolean) as NDOMPage
-
-              if (!ndomPage) {
-                const currentPage = component.get('path')
-                if (currentPage && u.isStr(currentPage)) {
-                  ndomPage = ndom.findPage(currentPage)
-                }
-                try {
-                  !ndomPage && (ndomPage = ndom.createPage(nuiPage))
-                } catch (error) {
-                  console.error(error)
-                }
+            if (remote) {
+              const src = (args.component.get(c.DATA_SRC) || '') as string
+              /**
+               * Page components loading content through remote URLs
+               * (https links or anything that is an html file)
+               */
+              if (args.node) {
+                args.node.contentWindow?.addEventListener('message', (evt) =>
+                  console.log(
+                    `%c[noodl-ui-dom] Message`,
+                    `color:#e50087;`,
+                    evt,
+                  ),
+                )
+                args.node.contentWindow?.addEventListener(
+                  'messageerror',
+                  (evt) =>
+                    console.log(
+                      `%c[noodl-ui-dom] Message error`,
+                      `color:#e50087;`,
+                      evt,
+                    ),
+                )
               }
 
-              if (ndomPage.rootNode !== node) {
-                ndomPage.rootNode?.parentElement?.removeChild?.(
-                  ndomPage.rootNode,
-                )
-                ndomPage.rootNode = node as HTMLIFrameElement
-              }
+              function onLoad(opts: {
+                event?: Event
+                node: t.NDOMElement<'page'>
+                component: NUIComponent.Instance
+                createPage: NDOM['createPage']
+                findPage: NDOM['findPage']
+                resolvers: NDOM['resolvers']
+              }) {
+                let src = opts.component.get('page')?.page || ''
+                let ndomPage = opts.findPage(opts.component) as ComponentPage
 
-              const pageComponents = nui.resolveComponents.call(nui, {
-                components: ndomPage.components,
-                page: nuiPage,
-              }) as NUIComponent.Instance[]
+                !ndomPage && (ndomPage = opts.createPage(opts.component))
 
-              for (const pageComponent of pageComponents) {
-                const pageComponentNode = ndom.draw(
-                  pageComponent,
-                  ndomPage.rootNode,
-                  ndomPage,
-                  { node: ndomPage.rootNode },
-                )
-                if (pageComponentNode) {
-                  ;(
-                    ndomPage.rootNode as HTMLIFrameElement
-                  )?.contentDocument?.body?.appendChild(
-                    pageComponentNode as HTMLElement,
+                if (opts.node) {
+                  if (
+                    ndomPage.id !== 'root' &&
+                    ndomPage.rootNode !== opts.node
+                  ) {
+                    try {
+                      if (ndomPage?.parentElement) {
+                        ndomPage.parentElement.replaceChild(
+                          opts.node,
+                          ndomPage.rootNode,
+                        )
+                        console.log(
+                          `%cReplacing old rootNode with new node`,
+                          `color:#95a5a6;`,
+                          { ...opts, ndomPage },
+                        )
+                      } else {
+                        ndomPage.replaceNode(opts.node)
+                        console.log(
+                          `%cRemoved old rootNode for new node`,
+                          `color:#95a5a6;`,
+                          { ...opts, ndomPage },
+                        )
+                      }
+                    } catch (error) {
+                      console.error(error)
+                    }
+                  }
+
+                  opts.node.src = src
+                } else {
+                  console.log(
+                    `%cIframe element is empty inside a page component`,
+                    `color:#ec0000;`,
+                    opts,
                   )
                 }
               }
-            })
-          }
-          if (!component.get('page')) {
-            component.on('page-created', (nuiPage: NUIPage) => {
-              listen(nuiPage)
-            })
+
+              if (src) {
+                onLoad({
+                  component: args.component,
+                  createPage: args.createPage,
+                  findPage: args.findPage,
+                  node: args.node,
+                  resolvers: args.resolvers,
+                })
+              }
+
+              args.node.addEventListener('load', (evt) =>
+                onLoad({
+                  event: evt,
+                  createPage: args.createPage,
+                  component: args.component,
+                  node: args.node as HTMLIFrameElement,
+                  findPage: args.findPage,
+                  resolvers: args.resolvers,
+                }),
+              )
+
+              args.node.src = args.component.get('page')?.page || ''
+              args.node?.addEventListener('error', console.error)
+            } else {
+              /**
+               * If this page component is not remote, it is loading a page
+               * from the "page" list from a noodl app config
+               */
+
+              const renderComponentPage = async (
+                _args: typeof args,
+                componentPage: ComponentPage,
+              ) => {
+                const getChildrenComponents = async (
+                  parent: NUIComponent.Instance,
+                  componentObjects: OrArray<ComponentObject>,
+                ): Promise<NUIComponent.Instance[]> =>
+                  Promise.all(
+                    componentObjects.map(async (obj: ComponentObject) =>
+                      nui.resolveComponents({
+                        components: parent.createChild(
+                          nui.createComponent(obj),
+                        ),
+                        page: componentPage.getNuiPage(),
+                      }),
+                    ),
+                  )
+
+                await Promise.all(
+                  (
+                    await getChildrenComponents(
+                      _args.component,
+                      componentPage.components,
+                    )
+                  ).map(async (rc) =>
+                    componentPage.appendChild(
+                      await _args.draw(
+                        rc,
+                        componentPage.body,
+                        componentPage.getNuiPage(),
+                      ),
+                    ),
+                  ),
+                )
+              }
+
+              const onPageComponents = curry(
+                async (
+                  _args: typeof args,
+                  {
+                    /**
+                     * By now this nuiPage should be the same reference
+                     * as _args.component.get('page')
+                     */
+                    page: nuiPage,
+                    type,
+                  }: Parameters<NUIComponent.Hook['PAGE_COMPONENTS']>[0],
+                ) => {
+                  const ndomPage = i._getOrCreateComponentPage(
+                    _args.component,
+                    _args.createPage,
+                    _args.findPage,
+                  ) as ComponentPage
+
+                  /**
+                   * Initiation / first time rendering
+                   */
+                  if (type === 'init') {
+                    if (ndomPage.rootNode !== _args.node) {
+                      ndomPage.replaceNode(_args.node as HTMLIFrameElement)
+                    }
+                  }
+                  /**
+                   * Clean up inactive components if any remain from
+                   * previous renders
+                   */
+                  if (ndomPage.requesting && ndomPage.page) {
+                    _args.cache.component.clear(ndomPage.requesting)
+                  }
+
+                  console.info(nuiPage.components)
+
+                  renderComponentPage(_args, ndomPage)
+                },
+              )
+
+              if (args.component.has('page')) {
+                args.node.addEventListener(
+                  'load',
+                  async function (evt) {
+                    console.info(`ComponentPage ELEMENT ONLOAD`, evt)
+                    await onPageComponents(args, {
+                      page: args.component.get('page'),
+                      type: 'init',
+                    })
+                  },
+                  { once: true },
+                )
+              } else {
+                console.info(`PAGE COMPONENT DID NOT HAVE ITS NUIPAGE`)
+              }
+
+              args.component.on(
+                nuiEvent.component.page.PAGE_COMPONENTS,
+                onPageComponents(args),
+              )
+            }
           } else {
-            listen()
+            console.log(
+              `%cEncountered a page component with a rootNode that is not an iframe. This is not being handled`,
+              `color:#FF5722;`,
+              args,
+            )
           }
+        } else {
+          console.log(
+            `%cA page component did not receive its NUIPage instance`,
+            `color:#ec0000;`,
+            args,
+          )
         }
       }
       // SELECT
       else if (Identify.component.select(original)) {
-        if(component.get('size')){
-          const size = component.get('size')
-          const select = node as HTMLTextAreaElement
-          let height = component?.style?.height
-          const initHeight = typeof height == 'string'?parseFloat(height.replace('px','')):height
-          const sizeHeight = typeof initHeight == 'number'? initHeight*size:0
-          select.onmouseup= function(){
-            select.setAttribute('size',size)
-            select.style.height = sizeHeight+"px"
-            
+        if (args.component.get('size')) {
+          const size = args.component.get('size')
+          const select = args.node as HTMLTextAreaElement
+          let height = args.component?.style?.height
+          const initHeight =
+            typeof height == 'string'
+              ? parseFloat(height.replace('px', ''))
+              : height
+          const sizeHeight =
+            typeof initHeight == 'number' ? initHeight * size : 0
+          select.onmouseup = function () {
+            select.setAttribute('size', size)
+            select.style.height = sizeHeight + 'px'
           }
-          select.onblur = function(){
+          select.onblur = function () {
             select.removeAttribute('size')
-            select.style.height = initHeight+"px"
+            select.style.height = initHeight + 'px'
           }
-          select.onchange = function(){
+          select.onchange = function () {
             select.removeAttribute('size')
-            select.style.height = initHeight+"px"
+            select.style.height = initHeight + 'px'
           }
-          
         }
         function clearOptions(_node: HTMLSelectElement) {
           const numOptions = _node.options
@@ -406,7 +628,7 @@ const domComponentsResolver: Resolve.Config = {
             optionNode.id = option.key
             optionNode.value = option.value
             optionNode.textContent = option.label
-            if (option?.value === component.props['data-value']) {
+            if (option?.value === args.component.props[c.DATA_VALUE]) {
               // Default to the selected index if the user already has a state set before
               _node.selectedIndex = index
               _node.dataset.value = option.value
@@ -415,36 +637,36 @@ const domComponentsResolver: Resolve.Config = {
           })
         }
 
-        clearOptions(node as HTMLSelectElement)
+        clearOptions(args.node as HTMLSelectElement)
 
         if (u.isArr(selectOptions)) {
-          setSelectOptions(node as HTMLSelectElement, selectOptions)
+          setSelectOptions(args.node as HTMLSelectElement, selectOptions)
         } else if (u.isStr(selectOptions)) {
           // Retrieved through reference
-          component.on('options', (dataOptions: any[]) => {
-            setSelectOptions(node as HTMLSelectElement, dataOptions)
+          args.component.on('options', (dataOptions: any[]) => {
+            setSelectOptions(args.node as HTMLSelectElement, dataOptions)
           })
         }
         // Default to the first item if the user did not previously set their state
-        // @ts-expect-error
-        if (node?.selectedIndex === -1) node.selectedIndex = 0
+        if ((args.node as HTMLSelectElement)?.selectedIndex === -1)
+          (args.node as HTMLSelectElement).selectedIndex = 0
       } else if (Identify.textBoard(original)) {
-        const { textBoard, text } = component.props
-        if (u.isArr(component)) {
+        const { textBoard, text } = args.component.props
+        if (u.isArr(args.component)) {
           if (u.isArr(textBoard)) {
             if (u.isStr(text)) {
               console.log(
                 `%cA component cannot have a "text" and "textBoard" property ` +
                   `because they both overlap. The "text" will take precedence.`,
                 `color:#ec0000;`,
-                component.snapshot(),
+                args.component.toJSON(),
               )
             }
 
             textBoard.forEach((item) => {
               if (Identify.textBoardItem(item)) {
                 const br = createComponent('view')
-                component.createChild(br as any)
+                args.component.createChild(br as any)
               } else {
                 /**
                  * NOTE: Normally in the return type we would return the child
@@ -464,7 +686,7 @@ const domComponentsResolver: Resolve.Config = {
                   },
                   text: item.text,
                 })
-                component.createChild(text as any)
+                args.component.createChild(text as any)
               }
             })
           } else {
@@ -472,7 +694,7 @@ const domComponentsResolver: Resolve.Config = {
               `%cExpected textBoard to be an array but received "${typeof textBoard}". ` +
                 `This part of the component will not be included in the output`,
               `color:#ec0000;`,
-              { component: component.snapshot(), textBoard },
+              { component: args.component.toJSON(), textBoard },
             )
           }
         }
@@ -481,37 +703,50 @@ const domComponentsResolver: Resolve.Config = {
         ---- DISABLING / ENABLING
       -------------------------------------------------------- */
       // TEXTVIEW
-      else if (Identify.component.textView(component)) {
-        if (component.has('isEditable')) {
-          const isEditable = component.get('isEditable')
+      else if (Identify.component.textView(args.component)) {
+        if (args.component.blueprint?.['isEditable']) {
+          const isEditable = args.component.get('isEditable')
           const isDisabled = Identify.isBooleanFalse(isEditable)
-          ;(node as HTMLTextAreaElement).disabled = isDisabled
+          setAttr('disabled', isDisabled)
         }
+        args.node?.addEventListener(
+          'change',
+          function (this: HTMLTextAreaElement) {
+            this.dataset.value = this.value
+            args.component.edit(c.DATA_VALUE, this.value)
+            args.component.emit(c.DATA_VALUE, this.value)
+          },
+        )
       }
       // textField
-      else if (Identify.component.textField(component)) {
-        if (component.has('isEditable')) {
-          const isEditable = component.get('isEditable')
+      else if (Identify.component.textField(args.component)) {
+        if (args.component.blueprint?.isEditable) {
+          const isEditable = args.component.get('isEditable')
           const isDisabled = Identify.isBooleanFalse(isEditable)
-          ;(node as HTMLTextAreaElement).disabled = isDisabled
+          setAttr('disabled', isDisabled)
         }
-        if (component.has('autocomplete')) {
-          const autocomplete = component.get('autocomplete')
-          ;(node as HTMLTextAreaElement).setAttribute(
-            'autocomplete',
-            autocomplete,
-          )
+        if (args.component.blueprint?.autocomplete) {
+          const autocomplete = args.component.get('autocomplete')
+          setAttr('autocomplete', autocomplete)
         }
+        args.node?.addEventListener(
+          'change',
+          function (this: HTMLInputElement) {
+            this.dataset.value = this.value
+            args.component.edit(c.DATA_VALUE, this.value)
+            args.component.emit(c.DATA_VALUE, this.value)
+          },
+        )
       }
       // VIDEO
-      else if (Identify.component.video(component)) {
-        const videoEl = node as HTMLVideoElement
+      else if (Identify.component.video(args.component)) {
+        const videoEl = args.node as HTMLVideoElement
         let sourceEl: HTMLSourceElement
         let notSupportedEl: HTMLParagraphElement
         videoEl.controls = Identify.isBooleanTrue(controls)
-        if (poster) videoEl.setAttribute('poster', component.get('poster'))
-        if (component.has('path')) {
-          component.on('path', (res) => {
+        if (poster) videoEl.setAttribute('poster', args.component.get('poster'))
+        if (args.component.blueprint?.['path']) {
+          args.component.on('path', (res) => {
             sourceEl = document.createElement('source')
             notSupportedEl = document.createElement('p')
             if (videoType) sourceEl.setAttribute('type', videoType)
@@ -524,22 +759,11 @@ const domComponentsResolver: Resolve.Config = {
             videoEl.appendChild(notSupportedEl)
           })
         }
-        if (component.get('data-src')) {
-          // sourceEl = document.createElement('source')
-          // notSupportedEl = document.createElement('p')
-          // if (videoType) sourceEl.setAttribute('type', videoType)
-          // sourceEl.setAttribute('src', component.get('data-src'))
-          // notSupportedEl.style.textAlign = 'center'
-          // // This text will not appear unless the browser isn't able to play the video
-          // notSupportedEl.innerHTML =
-          //   "Sorry, your browser doesn's support embedded videos."
-          // videoEl.appendChild(sourceEl)
-          // videoEl.appendChild(notSupportedEl)
-        }
+
         videoEl.style.objectFit = 'contain'
       }
     }
   },
 }
 
-export default domComponentsResolver
+export default componentsResolver

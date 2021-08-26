@@ -1,7 +1,5 @@
 import * as u from '@jsmanifest/utils'
 import _get from 'lodash/get'
-import { Identify, PageObject } from 'noodl-types'
-import { excludeIteratorVar } from 'noodl-utils'
 import { NUIComponent } from '../types'
 
 interface Duration {
