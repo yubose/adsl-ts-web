@@ -88,19 +88,21 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.func('copy')
     log.grey('', action?.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
-    let node:HTMLElement = findByViewTag(viewTag)
+    const node:any = findByViewTag(viewTag)
     !node && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
     try{
-      let range = document.createRange();
-      range.selectNode(node);
-      let select = window.getSelection()
-      if(select){
-        select.removeAllRanges();
-        select.addRange(range);
-        document.execCommand('copy');
-        select.removeAllRanges();
-        log.grey(`Copy successfully in viewTag "${viewTag}"`)
-        // toast('Copy successfully')
+      if(node){
+        const range = document.createRange();
+        range.selectNode(node);
+        const select = window.getSelection()
+        if(select){
+          select.removeAllRanges();
+          select.addRange(range);
+          document.execCommand('copy');
+          select.removeAllRanges();
+          log.grey(`Copy successfully in viewTag "${viewTag}"`)
+          // toast('Copy successfully')
+      }
       }else{
         log.red(`Copy failed in viewTag "${viewTag}"`)
       }
