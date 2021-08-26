@@ -10,6 +10,7 @@ import componentsResolver from './resolvers/components'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import * as t from './types'
+import { LiteralUnion } from 'prettier'
 
 export default class NDOMResolver {
   createStyleEditor(component: Component) {
@@ -19,9 +20,7 @@ export default class NDOMResolver {
     ) {
       styles && component?.edit?.(() => ({ style: styles }))
       if (u.isArr(remove)) {
-        remove.forEach(
-          (styleKey) => styleKey && delete component.style[styleKey],
-        )
+        u.forEach((k) => k && delete component.style[k], remove)
       } else if (remove && u.isStr(remove)) delete component.style[remove]
     }
     return editComponentStyles
@@ -69,14 +68,20 @@ export default class NDOMResolver {
       ],
       elementType: args.node?.tagName || '',
       componentType: args.component?.type || '',
-      setAttr: <K extends keyof t.NDOMElement>(k: K, v: any) => {
+      setAttr: <K extends keyof t.NDOMElement>(
+        k: LiteralUnion<K, string>,
+        v: any,
+      ) => {
         if (/(innerHTML|innerText|textContent)/i.test(k)) {
           args.node[k] = v
         } else {
           args.node?.setAttribute?.(k, v)
         }
       },
-      setDataAttr: <K extends string>(dataAttr: K, v: string) =>
+      setDataAttr: <K extends string>(
+        dataAttr: LiteralUnion<K, string>,
+        v: string,
+      ) =>
         args.node?.dataset &&
         dataAttr &&
         (args.node.dataset[dataAttr.replace?.('data-', '')] = v),
@@ -101,12 +106,7 @@ export default class NDOMResolver {
   }) {
     const options = this.getOptions({ ndom, node, component, page })
     const runners = u.array(resolvers)
-    const total = runners.length
-
-    // TODO - feat. consumer return value
-    for (let index = 0; index < total; index++) {
-      await this.resolve(runners[index], options)
-    }
+    await Promise.all(runners.map((r) => this.resolve(r, options)))
   }
 
   async resolve<
@@ -116,9 +116,11 @@ export default class NDOMResolver {
     config: t.Resolve.Config<T, N>,
     options: ReturnType<NDOMResolver['getOptions']>,
   ) {
-    for (const fn of [config.before, config.resolve, config.after]) {
-      fn && (await this.resolveCond(config.cond, options, fn))
-    }
+    await Promise.all(
+      [config.before, config.resolve, config.after].map(
+        (fn) => fn && this.resolveCond(config.cond, options, fn),
+      ),
+    )
   }
 
   async resolveCond(

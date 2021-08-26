@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import { OrArray } from '@jsmanifest/typefest'
 import SignaturePad from 'signature_pad'
 import curry from 'lodash/curry'
 import has from 'lodash/has'
@@ -9,8 +10,6 @@ import {
   event as nuiEvent,
   NUI,
   NUIComponent,
-  isPage as isNUIPage,
-  Page as NUIPage,
   SelectOption,
   Plugin,
 } from 'noodl-ui'
@@ -22,14 +21,11 @@ import NDOMPage from '../Page'
 import * as t from '../types'
 import * as i from '../utils/internal'
 import * as c from '../constants'
-import copyStyles from '../utils/copyStyles'
-import applyStyles from '../utils/applyStyles'
-import { OrArray } from '@jsmanifest/typefest'
 
 const componentsResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] components`,
   async resolve(args) {
-    const { cache, draw, nui, setAttr, setDataAttr, setStyleAttr } = args
+    const { nui, setAttr, setDataAttr, setStyleAttr } = args
 
     if (u.isFnc(args.node)) {
       // PLUGIN
@@ -161,9 +157,9 @@ const componentsResolver: t.Resolve.Config = {
               }
 
               if (node) {
-                if (i._isIframeEl(node) || i._isDivEl(node)) {
+                if (i._isIframeEl(node) || i._isDivEl(node))
                   appendChild(args.page, node)
-                } else if (i._isLinkEl(node)) {
+                else if (i._isLinkEl(node)) {
                   if (i._isIframeEl(args.page.rootNode)) {
                     args.page.rootNode.contentDocument?.head.appendChild(node)
                   } else {
@@ -174,7 +170,6 @@ const componentsResolver: t.Resolve.Config = {
                 }
               }
             }
-
             insert(pluginNode, args.component.get('plugin')?.location)
           }
         } catch (error) {
@@ -188,13 +183,10 @@ const componentsResolver: t.Resolve.Config = {
 
       const {
         children,
-        contentType,
         controls,
         dataKey,
-        mimeType,
         onClick,
         options: selectOptions,
-        plugin,
         poster,
         text,
         videoType,
@@ -204,9 +196,14 @@ const componentsResolver: t.Resolve.Config = {
       if (Identify.component.button(args.component)) {
         if (args.node) {
           if (args.component.get(c.DATA_SRC)) {
-            setStyleAttr('overflow', 'hidden')
-            setStyleAttr('display', 'flex')
-            setStyleAttr('alignItems', 'center')
+            u.forEach(
+              ([k, v]) => setStyleAttr(k as any, v),
+              [
+                ['overflow', 'hidden'],
+                ['display', 'flex'],
+                ['alignItems', 'center'],
+              ],
+            )
           }
           setStyleAttr('cursor', onClick ? 'pointer' : 'auto')
         }
@@ -219,8 +216,9 @@ const componentsResolver: t.Resolve.Config = {
           const signaturePad = args.component.get(
             'signaturePad',
           ) as SignaturePad
+
           if (signaturePad) {
-            signaturePad.onEnd = (evt) => {
+            signaturePad.onEnd = () => {
               const dataUrl = signaturePad.toDataURL()
               const mimeType = dataUrl.split(';')[0].split(':')[1] || ''
               ;(args.node as HTMLCanvasElement).toBlob(
@@ -310,17 +308,10 @@ const componentsResolver: t.Resolve.Config = {
           console.error(error)
           iframe = document.createElement('iframe')
         }
-
         iframe && (iframe.id = `${idLabel}-document-${args.component.id}`)
-
-        iframe.addEventListener(
-          'error',
-          function (err) {
-            console.error(`[ERROR]: In ecosDoc component: ${err.message}`, err)
-          },
-          { once: true },
+        iframe.addEventListener('error', (err) =>
+          console.error(`[ERROR]: In ecosDoc component: ${err.message}`, err),
         )
-
         args.node?.appendChild(iframe)
       }
       // IMAGE
@@ -384,26 +375,21 @@ const componentsResolver: t.Resolve.Config = {
                * (https links or anything that is an html file)
                */
               if (args.node) {
-                args.node.contentWindow?.addEventListener(
-                  'message',
-                  function (evt) {
-                    console.log(
-                      `%c[noodl-ui-dom] Message`,
-                      `color:#e50087;`,
-                      evt,
-                    )
-                  },
+                args.node.contentWindow?.addEventListener('message', (evt) =>
+                  console.log(
+                    `%c[noodl-ui-dom] Message`,
+                    `color:#e50087;`,
+                    evt,
+                  ),
                 )
                 args.node.contentWindow?.addEventListener(
                   'messageerror',
-                  function (evt) {
+                  (evt) =>
                     console.log(
                       `%c[noodl-ui-dom] Message error`,
                       `color:#e50087;`,
                       evt,
-                    )
-                  },
-                  { once: true },
+                    ),
                 )
               }
 
@@ -418,9 +404,7 @@ const componentsResolver: t.Resolve.Config = {
                 let src = opts.component.get('page')?.page || ''
                 let ndomPage = opts.findPage(opts.component) as ComponentPage
 
-                if (!ndomPage) {
-                  ndomPage = opts.createPage(opts.component)
-                }
+                !ndomPage && (ndomPage = opts.createPage(opts.component))
 
                 if (opts.node) {
                   if (
@@ -469,34 +453,22 @@ const componentsResolver: t.Resolve.Config = {
                   node: args.node,
                   resolvers: args.resolvers,
                 })
-              } else {
               }
 
-              args.node.addEventListener(
-                'load',
-                (evt) =>
-                  onLoad({
-                    event: evt,
-                    createPage: args.createPage,
-                    component: args.component,
-                    node: args.node as HTMLIFrameElement,
-                    findPage: args.findPage,
-                    resolvers: args.resolvers,
-                  }),
-                { once: true },
+              args.node.addEventListener('load', (evt) =>
+                onLoad({
+                  event: evt,
+                  createPage: args.createPage,
+                  component: args.component,
+                  node: args.node as HTMLIFrameElement,
+                  findPage: args.findPage,
+                  resolvers: args.resolvers,
+                }),
               )
 
               args.node.src = args.component.get('page')?.page || ''
-
-              args.node?.addEventListener('error', console.error, {
-                once: true,
-              })
+              args.node?.addEventListener('error', console.error)
             } else {
-              // const copiedStyles = copyStyles(args.page.rootNode)
-              // console.log(copiedStyles)
-              // console.log(copiedStyles)
-              // console.log(copiedStyles)
-              // console.log(copiedStyles)
               /**
                * If this page component is not remote, it is loading a page
                * from the "page" list from a noodl app config
@@ -509,64 +481,34 @@ const componentsResolver: t.Resolve.Config = {
                 const getChildrenComponents = async (
                   parent: NUIComponent.Instance,
                   componentObjects: OrArray<ComponentObject>,
-                ): Promise<NUIComponent.Instance[]> => {
-                  return Promise.all(
-                    componentObjects.map(async (obj: ComponentObject) => {
-                      const child = await nui.resolveComponents({
+                ): Promise<NUIComponent.Instance[]> =>
+                  Promise.all(
+                    componentObjects.map(async (obj: ComponentObject) =>
+                      nui.resolveComponents({
                         components: parent.createChild(
                           nui.createComponent(obj),
                         ),
                         page: componentPage.getNuiPage(),
-                        // callback: (comp) => {
-                        //   if (cache.component.get(child).page !== nuiPage.page) {
-                        //     cache.component.get(child).page = nuiPage.page
-                        //   }
-                        // }
-                      })
-                      // if (child.length) {
-
-                      // }
-                      // if (obj.children?.length) {
-                      //   await getChildrenComponents(
-                      //     child,
-                      //     child.blueprint.children,
-                      //   )
-                      // }
-                      return child
-                    }),
-                  )
-                }
-
-                const resolvedChildren = await getChildrenComponents(
-                  _args.component,
-                  componentPage.components,
-                )
-
-                for (const resolvedChild of resolvedChildren) {
-                  componentPage.appendChild(
-                    await _args.draw(
-                      resolvedChild,
-                      componentPage.body,
-                      componentPage.getNuiPage(),
+                      }),
                     ),
                   )
-                }
 
-                // if (componentPage.getNuiPage() && cache.component.get(child)) {
-                //   if (cache.component.get(child).page !== nuiPage.page) {
-                //     cache.component.get(child).page = nuiPage.page
-                //   }
-                // }
-
-                /**
-                 * Clean up inactive components if any remain from
-                 * previous renders
-                 */
-                i._getDescendantIds(_args.component).forEach((id) => {
-                  // _args.cache.component.remove(
-                  //   _args.cache.component.get(id)?.component,
-                  // )
-                })
+                await Promise.all(
+                  (
+                    await getChildrenComponents(
+                      _args.component,
+                      componentPage.components,
+                    )
+                  ).map(async (rc) =>
+                    componentPage.appendChild(
+                      await _args.draw(
+                        rc,
+                        componentPage.body,
+                        componentPage.getNuiPage(),
+                      ),
+                    ),
+                  ),
+                )
               }
 
               const onPageComponents = curry(
@@ -581,7 +523,6 @@ const componentsResolver: t.Resolve.Config = {
                     type,
                   }: Parameters<NUIComponent.Hook['PAGE_COMPONENTS']>[0],
                 ) => {
-                  const currPage = nuiPage.page
                   const ndomPage = i._getOrCreateComponentPage(
                     _args.component,
                     _args.createPage,
@@ -602,11 +543,6 @@ const componentsResolver: t.Resolve.Config = {
                    */
                   if (ndomPage.requesting && ndomPage.page) {
                     _args.cache.component.clear(ndomPage.requesting)
-                    // i._getDescendantIds(_args.component).forEach((id) => {
-                    //   _args.cache.component.remove(
-                    //     _args.cache.component.get(id)?.component,
-                    //   )
-                    // })
                   }
 
                   console.info(nuiPage.components)
@@ -630,19 +566,6 @@ const componentsResolver: t.Resolve.Config = {
               } else {
                 console.info(`PAGE COMPONENT DID NOT HAVE ITS NUIPAGE`)
               }
-
-              // Still create a ComponentPage even if the page name is empty
-              // to be in sync with the NUIPage
-              // if (
-              //   args.component.get('page')?.page === '' &&
-              //   !args.findPage(args.component.get('page'))
-              // ) {
-              //   i._getOrCreateComponentPage(
-              //     args.component,
-              //     args.createPage,
-              //     args.findPage,
-              //   )
-              // }
 
               args.component.on(
                 nuiEvent.component.page.PAGE_COMPONENTS,
@@ -725,7 +648,8 @@ const componentsResolver: t.Resolve.Config = {
           })
         }
         // Default to the first item if the user did not previously set their state
-        if (args.node?.selectedIndex === -1) args.node.selectedIndex = 0
+        if ((args.node as HTMLSelectElement)?.selectedIndex === -1)
+          (args.node as HTMLSelectElement).selectedIndex = 0
       } else if (Identify.textBoard(original)) {
         const { textBoard, text } = args.component.props
         if (u.isArr(args.component)) {

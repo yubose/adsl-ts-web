@@ -38,12 +38,12 @@ class Page {
     this.clearRootNode()
     if (this.id === 'root' && !document.body.contains(this.rootNode)) {
       document.body.appendChild(this.rootNode)
-    } else {
     }
   }
 
   clearRootNode() {
     if (!this.rootNode) {
+      // @ts-expect-error
       this.rootNode =
         document.getElementById(String(this.id)) ||
         document.createElement('div')
@@ -154,9 +154,9 @@ class Page {
   }
 
   clearCbs() {
-    u.values(this.hooks).forEach((arr) => {
+    u.forEach((arr) => {
       while (arr.length) arr.pop()
-    })
+    }, u.values(this.hooks))
     return this
   }
 
@@ -236,7 +236,7 @@ class Page {
     let results
     if (u.isArr(this.hooks[evt])) {
       results = await Promise.all(
-        this.hooks[evt].map((o) => (o.fn as any)(...args)),
+        u.map((o) => (o.fn as any)(...args), this.hooks[evt]),
       )
     }
     return results ? results.find(Boolean) : results
@@ -246,10 +246,10 @@ class Page {
     evt: K,
     ...args: Parameters<t.Page.Hook[K]>
   ) {
-    this.hooks[evt]?.forEach?.((d, index) => {
+    u.forEach?.((d, index) => {
       d.fn?.call?.(this, ...args)
       if (d.once) this.hooks[evt].splice(index, 1)
-    })
+    }, this.hooks[evt])
     return this
   }
 
@@ -271,7 +271,7 @@ class Page {
     try {
       this.#nuiPage?.viewport && (this.#nuiPage.viewport = null as any)
       u.isArr(this.components) && (this.components.length = 0)
-      u.values(this.#hooks).forEach((v) => v && (v.length = 0))
+      u.forEach((v) => v && (v.length = 0), u.values(this.#hooks))
     } catch (error) {
       console.error(error)
     }

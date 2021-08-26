@@ -134,10 +134,10 @@ const attributesResolver: t.Resolve.Config = {
         if (path && !['IFRAME', 'VIDEO'].includes(elementType)) {
           if (args.component.get(c.DATA_SRC)) {
             const src = args.component.get(c.DATA_SRC)
-            ;[setAttr, setDataAttr].forEach((fn) => fn('src', src))
-            args.component.on('path', (result) => {
-              ;[setAttr, setDataAttr].forEach((fn) => fn('src', result))
-            })
+            u.forEach((fn) => fn('src', src), [setAttr, setDataAttr])
+            args.component.on('path', (result) =>
+              u.forEach((fn) => fn('src', result), [setAttr, setDataAttr]),
+            )
           }
         }
 
@@ -149,12 +149,12 @@ const attributesResolver: t.Resolve.Config = {
             args.component.get(c.DATA_PLACEHOLDER) || placeholder || ''
 
           if (Identify.folds.emit(value)) {
-            ;[setAttr, setDataAttr].forEach((fn) => fn('placeholder', value))
-            args.component.on('placeholder', (result) =>
-              [setAttr, setDataAttr].forEach((fn) => fn('placeholder', result)),
+            u.forEach((fn) => fn('placeholder', value), [setAttr, setDataAttr])
+            args.component.on('placeholder', (val) =>
+              u.forEach((fn) => fn('placeholder', val), [setAttr, setDataAttr]),
             )
           } else {
-            ;[setAttr, setDataAttr].forEach((fn) => fn('placeholder', value))
+            u.forEach((fn) => fn('placeholder', value), [setAttr, setDataAttr])
           }
         }
 
@@ -174,7 +174,7 @@ const attributesResolver: t.Resolve.Config = {
 
           for (const [k, v] of u.entries(args.component.style)) {
             if (Number.isFinite(Number(k))) continue
-            args.node.style && setStyleAttr(k, String(v))
+            args.node.style && setStyleAttr(k as any, String(v))
           }
 
           if (Identify.component.canvas(args.component)) {
@@ -198,23 +198,23 @@ const attributesResolver: t.Resolve.Config = {
             // TODO - Refactor a better way to get the initial value since the
             // call order isn't guaranteed
             args.component.on('timer:init', (initialValue?: Date) => {
+              const pageName = args.page.page
               const timer =
                 args.global.timers.get(dataKey) ||
                 args.global.timers.set(dataKey, {
                   initialValue: initialValue || startOfDay(new Date()),
-                  pageName: args.page.page,
+                  pageName,
                 })
 
               if (initialValue && timer.value !== initialValue) {
                 timer.value = initialValue
               }
 
-              timer.pageName !== args.page.page &&
-                (timer.pageName = args.page.page)
+              timer.pageName !== pageName && (timer.pageName = pageName)
 
-              timer.on('increment', (value) => {
-                args.component.emit('timer:interval', value)
-              })
+              timer.on('increment', (v: any) =>
+                args.component.emit('timer:interval', v),
+              )
               args.component.emit('timer:ref', timer)
 
               args.page.once(c.eventId.page.on.ON_DOM_CLEANUP, () => {
@@ -233,14 +233,31 @@ const attributesResolver: t.Resolve.Config = {
         /* -------------------------------------------------------
           ---- TEMP - Experimenting CSS
         -------------------------------------------------------- */
-        is.component.canvas(args.component) &&
-          i.addClassName('canvas', args.node)
-        is.component.page(args.component) && i.addClassName('page', args.node)
-        is.component.popUp(args.component) && i.addClassName('popup', args.node)
-        is.component.scrollView(args.component) &&
-          i.addClassName('scroll-view', args.node)
-        args.component.has?.('global') && i.addClassName('global', args.node)
-        textBoard && i.addClassName('text-board', args.node)
+        const classes = {
+          canvas: 'canvas',
+          global: {
+            identify: (c: NUIComponent.Instance) => c.has('global'),
+            className: 'global',
+          },
+          page: 'page',
+          popUp: 'popup',
+          scrollView: 'scroll-view',
+          textBoard: 'text-board',
+        } as const
+
+        u.forEach(
+          ([name, className]) =>
+            [is.component[name] || classes[name]?.['identify']].find(u.isFnc)?.(
+              args.component,
+            ) &&
+            i.addClassName(
+              u.isStr(className)
+                ? className
+                : classes[name]?.['className'] || '',
+              args.node,
+            ),
+          u.entries(classes),
+        )
       }
     }
   },

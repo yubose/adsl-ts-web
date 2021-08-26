@@ -11,7 +11,6 @@ import {
   createComponent,
   findIteratorVar,
   isComponent,
-  isPage as isNUIPage,
   NUI,
   nuiEmitTransaction,
 } from 'noodl-ui'
@@ -71,7 +70,7 @@ class NDOM extends NDOMInternal {
   }
 
   get actions() {
-    return this.cache.actions
+    return nuiCache.actions
   }
 
   get builtIns() {
@@ -99,7 +98,7 @@ class NDOM extends NDOMInternal {
   }
 
   get transactions() {
-    return this.cache.transactions
+    return nuiCache.transactions
   }
 
   createPage(component: NUIComponent.Instance): ComponentPage
@@ -177,7 +176,7 @@ class NDOM extends NDOMInternal {
           if (page.id === 'root') {
             if (!this.page) this.page = page
           } else {
-            i._removePage.call(this, page)
+            this.removePage(page)
             return this.createPage('')
           }
         } else {
@@ -224,8 +223,6 @@ class NDOM extends NDOMInternal {
           page: args.page || this.page,
         })
       }
-      default:
-        break
     }
   }
 
@@ -284,21 +281,10 @@ class NDOM extends NDOMInternal {
   async request(page = this.page, pageRequesting = '') {
     // Cache the currently requesting page to detect for newer requests during the call
     pageRequesting = pageRequesting || page.requesting || ''
-
     try {
       // This is needed for the consumer to run any operations prior to working
       // with the components (ex: processing the "init" in page objects)
       await this.transact(nuiEmitTransaction.REQUEST_PAGE_OBJECT, page)
-
-      const ndomPageIds = u.keys(this.global.pages)
-
-      if (ndomPageIds.length !== this.cache.page.length) {
-        console.log(
-          `%cThe number of NDOM pages is ${ndomPageIds.length} and NUI pages is ${this.cache.page.length}. They should be in sync`,
-          `color:#ec0000;`,
-        )
-      }
-
       /**
        * TODO - Move this to an official location when we have time
        */
@@ -336,9 +322,7 @@ class NDOM extends NDOMInternal {
 
       await action(() => {
         page.emitSync(pageEvt.on.ON_NAVIGATE_START, page)
-        if (process.env.NODE_ENV !== 'test') {
-          history.pushState({}, '', page.pageUrl)
-        }
+        !i._TEST_ && history.pushState({}, '', page.pageUrl)
       })
 
       await action(() => {
@@ -352,8 +336,7 @@ class NDOM extends NDOMInternal {
     }
 
     return {
-      render: async (callback?: ConsumerOptions['callback']) =>
-        this.render(page, callback),
+      render: this.render.bind(this, page),
     }
   }
 
@@ -369,9 +352,7 @@ class NDOM extends NDOMInternal {
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
-
     this.reset('componentCache', page)
-
     const nuiPage = page.getNuiPage()
     const components = u.array(
       await nui.resolveComponents({
@@ -380,43 +361,23 @@ class NDOM extends NDOMInternal {
         page: nuiPage,
       }),
     ) as NUIComponent.Instance[]
-
     page.setStatus(c.eventId.page.status.COMPONENTS_RECEIVED)
-
     page.emitSync(c.eventId.page.on.ON_DOM_CLEANUP, {
       global: this.global,
       rootNode: page.rootNode,
     })
-
     /**
      * Page components use NDOMPage instances that use their rootNode as an
      * HTMLIFrameElement. They will have their own way of clearing their tree
      */
     !i._isIframeEl(page.rootNode) && page.clearRootNode()
-
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
-
     page.emitSync(
       pageEvt.on.ON_BEFORE_RENDER_COMPONENTS,
       page.snapshot({ components }),
     )
-
-    for (const component of components) {
-      await this.draw(component, page.rootNode, page)
-    }
-
-    // components.forEach((component) =>
-    //   this.draw(
-    //     component,
-    //     page.tagName === 'iframe'
-    //       ? page.rootNode.contentDocument?.body || page.rootNode
-    //       : page.rootNode,
-    //     page,
-    //   ),
-    // )
-
+    await Promise.all(components.map((c) => this.draw(c, page.rootNode, page)))
     page.emitSync(c.eventId.page.on.ON_COMPONENTS_RENDERED, page)
-
     page.setStatus(c.eventId.page.status.COMPONENTS_RENDERED)
 
     return components as NUIComponent.Instance[]
@@ -451,10 +412,11 @@ class NDOM extends NDOMInternal {
 
     if (component) {
       if (i._isPluginComponent(component)) {
-        // We will delegate the role of the node creation to the consumer
+        // We will delegate the role of the node creation to the consumer (only enabled for plugin components for now)
         const getNode = (elem: HTMLElement) => (node = elem || node)
         await this.#R.run({
           ndom: this,
+          // @ts-expect-error
           node: getNode,
           component,
           page,
@@ -470,14 +432,14 @@ class NDOM extends NDOMInternal {
           if (Identify.folds.emit(component.blueprint?.path)) {
             try {
               node = (await createAsyncImageElement()).node
-              node.src = component.get(c.DATA_SRC)
+              ;(node as HTMLImageElement).src = component.get(c.DATA_SRC)
             } catch (error) {
               console.error(error)
             }
           }
-          !node && (node = document.createElement('img'))
         } catch (error) {
           console.error(error)
+        } finally {
           !node && (node = document.createElement('img'))
         }
       } else {
@@ -559,7 +521,6 @@ class NDOM extends NDOMInternal {
         ) {
           node.appendChild(childrenContainer)
         }
-
         childrenContainer = null as any
       }
     }
@@ -605,7 +566,7 @@ class NDOM extends NDOMInternal {
         parent.createChild(newComponent)
       }
 
-      i._removeComponent.call(this, component)
+      this.removeComponent(component)
 
       newComponent = await nui.resolveComponents?.({
         callback: options?.callback,
@@ -620,7 +581,7 @@ class NDOM extends NDOMInternal {
         const parentNode = node.parentNode || (document.body as any)
         parentNode?.contains?.(node) && (node.textContent = '')
 
-        i._removeNode(node)
+        this.removeNode(node)
 
         node = await this.draw(newComponent, parentNode, page, {
           ...options,
@@ -728,78 +689,62 @@ class NDOM extends NDOMInternal {
       | 'transactions',
     page?: NDOMPage,
   ) {
-    const resetActions = () => {
-      nui.cache.actions.clear()
-      nui.cache.actions.reset()
-    }
-    const resetComponentCache = () => {
-      nui.cache.component.clear(page?.requesting || page?.page || undefined)
-    }
+    const _pageName = page?.requesting || page?.page
+
+    const resetActions = u.callAll(
+      nuiCache.actions.clear.bind(nuiCache.actions),
+      nuiCache.actions.reset.bind(nuiCache.actions),
+    )
+    const resetComponentCache = nuiCache.component.clear.bind(
+      nuiCache.component,
+    )
+    const resetHooks = () => u.forEach(u.clearArr, u.values(this.hooks))
     const resetPages = () => {
       this.page = undefined as any
-      u.eachEntries(this.pages, (id, page: NDOMPage | ComponentPage) => {
-        i._removePage.call(this, page)
-      })
-      nui.cache.page.clear()
+      u.forEach((p) => this.removePage(p), u.values(this.pages))
+      nuiCache.page.clear()
     }
-    const resetRegisters = () => nui.cache.register.clear()
+    const resetRegisters = nuiCache.register.clear.bind(nuiCache.register)
+    const resetTransactions = nuiCache.transactions.clear.bind(
+      nuiCache.transactions,
+    )
     const resetGlobal = () => {
-      resetPages()
       // Global components
-      for (const record of this.global.components.values()) {
-        if (record.nodeId) {
-          document.getElementById(record.nodeId)?.remove?.()
-        }
-        if (this.cache.component.has(record.componentId)) {
-          i._removeComponent.call(
-            this,
-            this.cache.component.get(record.componentId)?.component,
-          )
-        }
-        i._removeGlobalComponent.call(this, this.global, record.globalId)
-      }
-
+      u.forEach(
+        (c) => this.removeGlobalRecord(c),
+        [...this.global.components.values()],
+      )
       // Global timers
-      // TODO - check if there is a memory leak
-      u.eachEntries(this.global.timers, (k) => {
-        delete this.global.timers[k]
-      })
-    }
-    const resetHooks = () => {
-      u.values(this.hooks).forEach((arr) => (arr.length = 0))
-    }
-    const resetTransactions = () => {
-      nui.cache.transactions.clear()
+      // TODO - check if there is a memory leak here
+      u.forEach((k) => delete this.global.timers[k], u.keys(this.global.timers))
+      resetPages()
     }
 
     if (key !== undefined) {
       if (u.isObj(key)) {
-        key.componentCache && resetComponentCache()
+        key.componentCache && resetComponentCache(_pageName)
         key.global && resetGlobal()
         key.hooks && resetHooks()
         key.pages && resetPages()
         key.transactions && resetTransactions()
-      } else if (key === 'actions') {
-        resetActions()
-      } else if (key === 'componentCache') {
-        resetComponentCache()
-      } else if (key === 'hooks') {
-        resetHooks()
-      } else if (key === 'register') {
-        resetRegisters()
-      } else if (key === 'transactions') {
-        resetTransactions()
-      }
+      } else if (key === 'actions') resetActions()
+      else if (key === 'componentCache') resetComponentCache(_pageName)
+      else if (key === 'hooks') resetHooks()
+      else if (key === 'register') resetRegisters()
+      else if (key === 'transactions') resetTransactions()
       return this
     }
     // The operations below is equivalent to a "full reset"
-    resetActions()
-    resetComponentCache()
-    resetGlobal()
-    resetHooks()
-    resetPages()
-    resetRegisters()
-    resetTransactions()
+    u.callAll(
+      resetActions,
+      resetComponentCache,
+      resetGlobal,
+      resetHooks,
+      resetPages,
+      resetRegisters,
+      resetTransactions,
+    )()
+
     return this
   }
 
@@ -812,18 +757,108 @@ class NDOM extends NDOMInternal {
     ...args: Parameters<t.NDOMTransaction[Tid]>
   ) {
     if (transaction === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
-      this.#hooks.onBeforeRequestPageObject.forEach((fn) => fn?.(args[0]))
+      u.forEach(
+        (fn) => fn?.(args[0] as any),
+        this.#hooks.onBeforeRequestPageObject,
+      )
     }
-
-    const result = this.cache.transactions
-      .get(transaction)
-      ?.['fn' as any]?.(...args)
-
+    // @ts-expect-error
+    const result = nuiCache.transactions.get(transaction)?.['fn']?.(...args)
     if (transaction === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
-      this.#hooks.onAfterRequestPageObject.forEach((fn) => fn?.(args[0]))
+      u.forEach(
+        (fn) => fn?.(args[0] as any),
+        this.#hooks.onAfterRequestPageObject,
+      )
     }
-
     return result
+  }
+
+  removeComponent(component: NUIComponent.Instance | undefined | null) {
+    if (!component) return
+    const remove = (_c: NUIComponent.Instance) => {
+      nuiCache.component.remove(_c)
+      ;(_c.has?.('global') || _c.blueprint?.global) &&
+        this.removeGlobalComponent(_c.get(c.DATA_GLOBALID))
+      _c?.setParent?.(null)
+      _c?.parent?.removeChild(_c)
+      _c.children?.forEach?.((_c) => remove(_c))
+      _c.has('page') && _c.remove('page')
+      _c.clear?.()
+    }
+    remove(component)
+  }
+
+  removeGlobalComponent(globalMap: t.GlobalMap, globalId = '') {
+    if (globalId) {
+      if (globalMap.components.has(globalId)) {
+        const globalComponentObj = globalMap.components.get(globalId)
+        const obj = globalComponentObj?.toJSON()
+        if (obj) {
+          const { componentId, nodeId } = obj
+          if (componentId) {
+            if (nuiCache.component.has(componentId)) {
+              this.removeComponent(
+                nuiCache.component.get(componentId)?.component,
+              )
+            }
+          }
+          this.global.components.delete(globalId)
+          if (nodeId) {
+            const node = document.querySelector(
+              `[data-key="${globalId}"]`,
+            ) as HTMLElement
+            node && this.removeNode(node)
+          }
+        }
+      }
+    }
+  }
+
+  removeGlobalRecord({ componentId, globalId, nodeId }: GlobalComponentRecord) {
+    nodeId && document.getElementById(nodeId)?.remove?.()
+    if (nuiCache.component.has(componentId)) {
+      this.removeComponent(nuiCache.component.get(componentId)?.component)
+    }
+    this.removeGlobalComponent(this.global, globalId)
+  }
+
+  /**
+   * Removes the node from the DOM by parent/child references
+   */
+  removeNode(node: t.NDOMElement) {
+    if (node) {
+      try {
+        node.parentNode?.removeChild?.(node)
+        node.remove?.()
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }
+
+  /**
+   * Removes the NDOMPage from the {@link GlobalMap}
+   */
+  removePage(page: NDOMPage | undefined | null) {
+    if (page) {
+      const id = page.id
+      nui.clean(page.getNuiPage(), console.log)
+      page.remove()
+      if (this?.global?.pages) {
+        if (id in this.global.pages) delete this.global.pages[id]
+      }
+      try {
+        if (isComponentPage(page)) {
+          page.clear()
+        } else {
+          page.remove()
+          page?.rootNode?.remove?.()
+        }
+      } catch (error) {
+        console.error(error)
+      }
+      page = null
+    }
   }
 
   use(obj: NUIPage | Partial<t.UseObject>) {
@@ -848,22 +883,16 @@ class NDOM extends NDOMInternal {
                   u.isFnc(transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT]),
                   `Missing transaction: ${nuiEmitTransaction.REQUEST_PAGE_OBJECT}`,
                 )
-
-                let pageObject: PageObject | undefined
                 let page = this.findPage(nuiPage)
-
                 if (page) {
                   !page.requesting && (page.requesting = nuiPage?.page || '')
                 } else {
                   page = this.createPage(nuiPage)
                   page.requesting = nuiPage.page
                 }
-
-                pageObject = await transaction[
-                  nuiEmitTransaction.REQUEST_PAGE_OBJECT
-                ]?.(page)
-
-                return pageObject
+                return transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT]?.(
+                  page,
+                )
               },
             },
           })

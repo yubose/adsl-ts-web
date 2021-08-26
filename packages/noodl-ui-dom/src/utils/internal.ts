@@ -12,9 +12,12 @@ import type NDOM from '../noodl-ui-dom'
 import type NDOMPage from '../Page'
 import isComponentPage from './isComponentPage'
 import isNDOMPage from './isPage'
-import { cache, nui } from '../nui'
+import { cache } from '../nui'
 import * as c from '../constants'
 import * as t from '../types'
+
+export const _DEV_ = process.env.NODE_ENV === 'development'
+export const _TEST_ = process.env.NODE_ENV === 'test'
 
 export function addClassName(className: string, node: HTMLElement) {
   if (!node.classList.contains(className)) {
@@ -204,8 +207,8 @@ export function handleDrawGlobalComponent(
     if (n) {
       const onClick = () => {
         n.removeEventListener('click', onClick)
-        _removeNode.call(this, n)
-        _removeGlobalComponent.call(this, this.global, globalId)
+        this.removeNode(n)
+        this.removeGlobalComponent(this.global, globalId)
       }
       n.addEventListener('click', onClick)
     }
@@ -233,9 +236,8 @@ export function handleDrawGlobalComponent(
         `color:#CCCD17`,
         globalRecord,
       )
-      _removeComponent.call(
-        this,
-        this.cache.component.get(globalRecord.componentId)?.component,
+      this.removeComponent(
+        cache.component.get(globalRecord.componentId)?.component,
       )
       globalRecord.componentId = component.id
     }
@@ -245,7 +247,7 @@ export function handleDrawGlobalComponent(
       if (globalRecord.nodeId) {
         if (globalRecord.nodeId !== node.id) {
           const _prevNode = document.getElementById(globalRecord.nodeId)
-          if (_prevNode) _removeNode(_prevNode)
+          if (_prevNode) this.removeNode(_prevNode)
           globalRecord.nodeId = node.id
           node.dataset.globalid = globalId
         }
@@ -269,102 +271,6 @@ export function handleDrawGlobalComponent(
   }
 }
 
-/**
- * Removes the component from the {@link ComponentCache} and all parent/child
- * references
- */
-export function _removeComponent(
-  this: NDOM,
-  component: NUIComponent.Instance | undefined | null,
-) {
-  if (!component) return
-  const remove = (_c: NUIComponent.Instance) => {
-    cache.component.remove(_c)
-    if (_c.has?.('global') || _c.blueprint?.global) {
-      _removeGlobalComponent.call(this, _c.get(c.DATA_GLOBALID))
-    }
-    _c?.setParent?.(null)
-    _c?.parent?.removeChild(_c)
-    _c.children?.forEach?.((_c) => remove(_c))
-    if (_c.has('page')) _c.remove('page')
-    _c.clear?.()
-  }
-  remove(component)
-}
-
-export function _removeGlobalComponent(
-  this: NDOM,
-  globalMap: t.GlobalMap,
-  globalId = '',
-) {
-  if (globalId) {
-    if (globalMap.components.has(globalId)) {
-      const globalComponentObj = globalMap.components.get(globalId)
-      const obj = globalComponentObj?.toJSON()
-      if (obj) {
-        const { componentId, nodeId } = obj
-        if (componentId) {
-          if (cache.component.has(componentId)) {
-            _removeComponent.call(
-              this,
-              cache.component.get(componentId)?.component,
-            )
-          }
-        }
-        this.global.components.delete(globalId)
-        if (nodeId) {
-          const node = document.querySelector(
-            `[data-key="${globalId}"]`,
-          ) as HTMLElement
-          node && _removeNode(node)
-        }
-      }
-    }
-  }
-}
-
-/**
- * Removes the node from the DOM by parent/child references
- */
-export function _removeNode(node: t.NDOMElement) {
-  if (node) {
-    try {
-      node.parentNode?.removeChild?.(node)
-      node.remove?.()
-    } catch (error) {
-      console.error(error)
-    }
-  }
-}
-
-/**
- * Removes the NDOMPage from the {@link GlobalMap}
- */
-export function _removePage(
-  this: NDOM | undefined,
-  page: NDOMPage | undefined | null,
-) {
-  if (page) {
-    const id = page.id
-    nui.clean(page.getNuiPage(), console.info)
-    page.remove()
-    if (this?.global?.pages) {
-      if (id in this.global.pages) delete this.global.pages[id]
-    }
-    try {
-      if (isComponentPage(page)) {
-        page.clear()
-      } else {
-        page.remove()
-        page?.rootNode?.remove?.()
-      }
-    } catch (error) {
-      console.error(error)
-    }
-    page = null
-  }
-}
-
 export const _syncPages = (function () {
   const _state = new Map<
     number,
@@ -380,8 +286,8 @@ export const _syncPages = (function () {
 
     const removePage = (page: NUIPage) => {
       const id = page.id || ''
-      this.cache.component.clear(page.page)
-      this.cache.page.remove(page)
+      cache.component.clear(page.page)
+      cache.page.remove(page)
       const ndomPage = this.findPage(page)
       if (ndomPage && ndomPage.getNuiPage() === page) {
         ndomPage.remove()
@@ -389,24 +295,6 @@ export const _syncPages = (function () {
       }
       id in this.global.pages && delete this.global.pages[id]
     }
-
-    // this.cache.component.on('add', (component) => {
-    //   if (component) {
-    //     console.info(
-    //       `${component.type} component was added to cache`,
-    //       component.toJSON(),
-    //     )
-    //   }
-    // })
-
-    // this.cache.component.on('remove', (snapshot) => {
-    //   if (snapshot) {
-    //     console.info(
-    //       `${snapshot.type} component from page "${snapshot.page}" was removed from cache`,
-    //       snapshot,
-    //     )
-    //   }
-    // })
 
     const start = <U extends 'PAGE_CREATED' | 'PAGE_REMOVED'>(
       updateType: U,
@@ -432,16 +320,16 @@ export const _syncPages = (function () {
 
           if (!page.onChange) {
             page.onChange = (prev: string, next: string) => {
-              console.info(`${label} Page changed from "${prev}" to "${next}"`)
+              console.log(`${label} Page changed from "${prev}" to "${next}"`)
             }
           }
 
-          console.info(label)
+          console.log(label)
 
           if (updateType === 'PAGE_CREATED') {
             // Incoming page still in the loading state
             // Remove all previous loading pages since we only support 1 loading page right now
-            for (const _page of [...this.cache.page.get().values()]) {
+            for (const _page of [...cache.page.get().values()]) {
               const nuiPage = _page?.page
               nuiPage &&
                 nuiPage !== page &&
@@ -462,14 +350,14 @@ export const _syncPages = (function () {
               if (component) {
                 ndomPage = this.createPage(component)
                 component.id === undefined &&
-                  console.info(
+                  console.log(
                     `Tried to add a new component page to global pages using a component but its id was undefined`,
                     ndomPage,
                   )
               } else {
                 ndomPage = this.createPage(page)
                 page.id === undefined &&
-                  console.info(
+                  console.log(
                     `Tried to add a new component page to global pages using a NUIPage but its id was undefined`,
                     ndomPage,
                   )
@@ -479,19 +367,13 @@ export const _syncPages = (function () {
 
             if (ndomPage.id === undefined) {
               // TODO - Bug
-              console.info(
+              console.log(
                 `Tried to add a new component page to global pages but its id was undefined`,
                 ndomPage,
               )
             } else {
               !this.global.pageIds.includes(ndomPage.id) &&
                 this.global.add(ndomPage)
-            }
-
-            if (ndomPage.getNuiPage() === page) {
-              //
-            } else {
-              //
             }
 
             if (isComponentPage(ndomPage)) {
@@ -505,7 +387,7 @@ export const _syncPages = (function () {
                   if (createTime < page.created) {
                     // Cleanup previously loading page
                     // This can happen when the user clicks too quickly to several pages
-                    const nuiPage = this.cache.page
+                    const nuiPage = cache.page
                       .get()
                       .find(
                         (obj) =>
@@ -518,35 +400,22 @@ export const _syncPages = (function () {
                   // } else {
                   //   //
                   // }
-
-                  // if (!stateSlice.initiated && createTime < page.created) {
-                  //   const prevNDOMPage = u
-                  //     .values(this.global.pages)
-                  //     .find((p) => p.created === createTime)
-
-                  //   if (prevNDOMPage) {
-                  //     removePage(prevNDOMPage.getNuiPage())
-                  //   }
-                  // }
                 }
               }
             }
           } else if (updateType === 'PAGE_REMOVED') {
-            const isRemoved = _state.delete(page.created)
-            if (isRemoved) {
-              //
-            }
+            _state.delete(page.created)
           }
         }
 
         if (page && page.id === 'root' && !this.page) {
-          if (this.global.pages.root) this.page = this.global.pages.root
+          this.global.pages.root && (this.page = this.global.pages.root)
         }
       }
     }
 
     // prettier-ignore
-    this.cache.page
+    cache.page
       .on('PAGE_CREATED', start('PAGE_CREATED'))
       .on('PAGE_REMOVED', start('PAGE_REMOVED'))
 
@@ -563,16 +432,7 @@ export const _syncPages = (function () {
         stateSlice && (stateSlice.fetching = false)
       }
     })
-
-    return function unsubscribe(this: NDOM) {
-      u.values(this.hooks).forEach((arr) => (arr.length = 0))
-    }.bind(this)
   }
-
   syncPages._state = _state
-  syncPages._getHooks = function (this: NDOM) {
-    return this?.hooks
-  }
-
   return syncPages
 })()
