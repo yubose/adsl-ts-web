@@ -85,6 +85,33 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       })
     }
   }
+  const copy: Store.BuiltInObject['fn'] = async function onCopy(
+    action,
+    options,
+  ){
+    log.func('copy')
+    log.grey('', action?.snapshot?.())
+    const viewTag = _pick(action, 'viewTag')
+    let node:HTMLElement = findByViewTag(viewTag)
+    !node && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    try{
+      let range = document.createRange();
+      range.selectNode(node);
+      let select = window.getSelection()
+      if(select){
+        select.removeAllRanges();
+        select.addRange(range);
+        document.execCommand('copy');
+        select.removeAllRanges();
+        log.grey(`Copy successfully in viewTag "${viewTag}"`)
+        // toast('Copy successfully')
+      }else{
+        log.red(`Copy failed in viewTag "${viewTag}"`)
+      }
+    }catch (e) {
+      log.red(`Copy failed in viewTag "${viewTag}"`)
+    }
+  }
 
   const checkField: Store.BuiltInObject['fn'] = async function onCheckField(
     action,
@@ -693,6 +720,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     logout,
     goto,
     redraw,
+    copy,
   }
 
   /** Shared common logic for both lock/logout logic */
