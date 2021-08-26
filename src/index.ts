@@ -141,8 +141,6 @@ async function initializeNoodlPluginRefresher() {
 }
 
 window.addEventListener('load', async (e) => {
-  // const rootEl = document.getElementById('root')
-  // document.body?.classList.add('dot-spin')
   try {
     log.func('onload')
 

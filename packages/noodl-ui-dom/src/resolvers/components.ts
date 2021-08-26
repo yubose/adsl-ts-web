@@ -5,6 +5,7 @@ import curry from 'lodash/curry'
 import has from 'lodash/has'
 import { ComponentObject, Identify } from 'noodl-types'
 import {
+  createAction,
   createComponent,
   formatColor,
   event as nuiEvent,
@@ -12,6 +13,8 @@ import {
   NUIComponent,
   SelectOption,
   Plugin,
+  NUIActionChain,
+  Store,
 } from 'noodl-ui'
 import { toSelectOption } from '../utils'
 import { ComponentPage } from '../factory/componentFactory'
@@ -363,13 +366,35 @@ const componentsResolver: t.Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(args.component)) {
+        const getTokenInput = () => {
+          const componentPage = i._getOrCreateComponentPage(
+            args.component,
+            args.findPage,
+            args.createPage,
+          )
+          const input = componentPage.document?.getElementById('token')
+          return input as HTMLInputElement
+        }
+        const getTokenValue = () => getTokenInput()?.value || ''
+        const getComponentPage = () =>
+          i._getOrCreateComponentPage(
+            args.component,
+            args.findPage,
+            args.createPage,
+          )
+
+        window.getTokenInput = getTokenInput
+        window.getTokenValue = getTokenValue
+
         if (u.isStr(args.component.get('path'))) {
           if (i._isIframeEl(args.node)) {
+            const nuiPage = args.component.get('page')
             const path = args.component.get('path')
             const remote = i._isRemotePageOrUrl(String(path))
 
             if (remote) {
-              const src = (args.component.get(c.DATA_SRC) || '') as string
+              const src = nuiPage.page
+              // const src = (args.component.get(c.DATA_SRC) || '') as string
               /**
                * Page components loading content through remote URLs
                * (https links or anything that is an html file)
@@ -435,7 +460,7 @@ const componentsResolver: t.Resolve.Config = {
                     }
                   }
 
-                  opts.node.src = src
+                  src && opts.node.src !== src && (opts.node.src = src)
                 } else {
                   console.log(
                     `%cIframe element is empty inside a page component`,
@@ -453,120 +478,148 @@ const componentsResolver: t.Resolve.Config = {
                   node: args.node,
                   resolvers: args.resolvers,
                 })
+              } else {
+                args.node.addEventListener('load', (evt) =>
+                  onLoad({
+                    event: evt,
+                    createPage: args.createPage,
+                    component: args.component,
+                    node: args.node as HTMLIFrameElement,
+                    findPage: args.findPage,
+                    resolvers: args.resolvers,
+                  }),
+                )
               }
 
-              args.node.addEventListener('load', (evt) =>
-                onLoad({
-                  event: evt,
-                  createPage: args.createPage,
-                  component: args.component,
-                  node: args.node as HTMLIFrameElement,
-                  findPage: args.findPage,
-                  resolvers: args.resolvers,
-                }),
-              )
-
-              args.node.src = args.component.get('page')?.page || ''
+              // args.node.src = args.component.get('page')?.page || ''
               args.node?.addEventListener('error', console.error)
             } else {
+              const componentPage = getComponentPage()
+
               /**
                * If this page component is not remote, it is loading a page
                * from the "page" list from a noodl app config
                */
 
-              const renderComponentPage = async (
-                _args: typeof args,
-                componentPage: ComponentPage,
-              ) => {
-                const getChildrenComponents = async (
-                  parent: NUIComponent.Instance,
-                  componentObjects: OrArray<ComponentObject>,
-                ): Promise<NUIComponent.Instance[]> =>
-                  Promise.all(
-                    componentObjects.map(async (obj: ComponentObject) =>
-                      nui.resolveComponents({
-                        components: parent.createChild(
-                          nui.createComponent(obj),
-                        ),
-                        page: componentPage.getNuiPage(),
-                      }),
-                    ),
-                  )
-
-                await Promise.all(
-                  (
-                    await getChildrenComponents(
-                      _args.component,
-                      componentPage.components,
-                    )
-                  ).map(async (rc) =>
-                    componentPage.appendChild(
-                      await _args.draw(
-                        rc,
-                        componentPage.body,
-                        componentPage.getNuiPage(),
-                      ),
-                    ),
-                  ),
-                )
-              }
-
               const onPageComponents = curry(
                 async (
                   _args: typeof args,
-                  {
-                    /**
-                     * By now this nuiPage should be the same reference
-                     * as _args.component.get('page')
-                     */
-                    page: nuiPage,
-                    type,
-                  }: Parameters<NUIComponent.Hook['PAGE_COMPONENTS']>[0],
+                  { type }: Parameters<NUIComponent.Hook['PAGE_COMPONENTS']>[0],
                 ) => {
-                  const ndomPage = i._getOrCreateComponentPage(
-                    _args.component,
-                    _args.createPage,
-                    _args.findPage,
-                  ) as ComponentPage
+                  const componentPage = getComponentPage()
 
                   /**
                    * Initiation / first time rendering
                    */
                   if (type === 'init') {
-                    if (ndomPage.rootNode !== _args.node) {
-                      ndomPage.replaceNode(_args.node as HTMLIFrameElement)
+                    if (componentPage.rootNode !== _args.node) {
+                      componentPage.replaceNode(_args.node as HTMLIFrameElement)
                     }
                   }
                   /**
                    * Clean up inactive components if any remain from
                    * previous renders
                    */
-                  if (ndomPage.requesting && ndomPage.page) {
-                    _args.cache.component.clear(ndomPage.requesting)
+                  if (componentPage.requesting && componentPage.page) {
+                    _args.cache.component.clear(componentPage.requesting)
                   }
 
-                  console.info(nuiPage.components)
+                  const getChildrenComponents = async (
+                    parent: NUIComponent.Instance,
+                    componentObjects: OrArray<ComponentObject>,
+                  ): Promise<NUIComponent.Instance[]> =>
+                    Promise.all(
+                      componentObjects.map(async (obj: ComponentObject) =>
+                        nui.resolveComponents({
+                          components: parent.createChild(
+                            nui.createComponent(obj),
+                          ),
+                          page: componentPage.getNuiPage(),
+                        }),
+                      ),
+                    )
 
-                  renderComponentPage(_args, ndomPage)
+                  await Promise.all(
+                    (
+                      await getChildrenComponents(
+                        _args.component,
+                        componentPage.components,
+                      )
+                    ).map(async (rc) =>
+                      componentPage.appendChild(
+                        await _args.draw(
+                          rc,
+                          componentPage.body,
+                          componentPage.getNuiPage(),
+                        ),
+                      ),
+                    ),
+                  )
                 },
               )
 
               if (args.component.has('page')) {
-                args.node.addEventListener(
-                  'load',
-                  async function (evt) {
-                    console.info(`ComponentPage ELEMENT ONLOAD`, evt)
-                    await onPageComponents(args, {
-                      page: args.component.get('page'),
-                      type: 'init',
-                    })
-                  },
-                  { once: true },
-                )
+                window.addEventListener('message', function (msg) {
+                  console.log(`%cMessage received`, `color:#e50087;`, {
+                    thisValue: this,
+                    msg,
+                  })
+                })
+
+                window.addEventListener('messageerror', function (evt) {
+                  console.log(
+                    `%cMessage received an error`,
+                    `color:#ec0000;`,
+                    evt,
+                  )
+                })
+
+                args.node.addEventListener('load', function onIframeLoad() {
+                  onPageComponents(args, {
+                    page: args.component.get('page'),
+                    type: 'init',
+                  })
+                })
               } else {
-                console.info(`PAGE COMPONENT DID NOT HAVE ITS NUIPAGE`)
+                console.log(
+                  `%cA page component is missing its NUIPage. No children will be rendered`,
+                  `color:#ec0000;`,
+                  args,
+                )
               }
 
+              args.node.contentWindow?.addEventListener(
+                'message',
+                function (evt) {
+                  console.log(
+                    `%cNew message from parent origin ${evt.origin}`,
+                    `color:#00b406;`,
+                    evt,
+                  )
+                },
+              )
+
+              args.node.contentWindow?.addEventListener(
+                'messageerror',
+                function (err) {
+                  console.log(
+                    `%cMessage error from parent origin ${err.origin}`,
+                    `color:#00b406;`,
+                    err,
+                  )
+                },
+              )
+              ;(args.component.get('postMessage') as NUIActionChain)?.use({
+                onExecuteStart(...args) {
+                  console.log(this)
+                  console.log(args)
+                  debugger
+                },
+              })
+
+              /**
+               * This is used to keep the component up-to-date with changes in the DOM
+               */
               args.component.on(
                 nuiEvent.component.page.PAGE_COMPONENTS,
                 onPageComponents(args),
@@ -574,7 +627,8 @@ const componentsResolver: t.Resolve.Config = {
             }
           } else {
             console.log(
-              `%cEncountered a page component with a rootNode that is not an iframe. This is not being handled`,
+              `%cEncountered a page component with a rootNode that is not an iframe. ` +
+                `This is not being handled`,
               `color:#FF5722;`,
               args,
             )

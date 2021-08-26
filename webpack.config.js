@@ -1,5 +1,6 @@
 const u = require('@jsmanifest/utils')
 const fs = require('fs-extra')
+const meow = require('meow')
 const path = require('path')
 const webpack = require('webpack')
 const singleLog = require('single-line-log').stdout
@@ -9,6 +10,9 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
+
+const cli = meow('', { flags: { sample: { alias: 's', type: 'string' } } })
+console.info('SAMPLE: ' + process.env.SAMPLE)
 
 const pkgJson = {
   root: require('./package.json'),
@@ -77,14 +81,6 @@ const commonHeaders = {
     'Origin, X-Requested-With, Content-Type, Accept, Authorization',
 }
 
-/** @param { import('express').Response } resp */
-const setHeadersOnResp = (resp) => {
-  for (const [key, value] of Object.entries(commonHeaders)) {
-    resp.setHeader(key, value)
-  }
-  return resp
-}
-
 /** @type { import('webpack-dev-server').Configuration } */
 const devServerOptions = {
   allowedHosts: [
@@ -117,14 +113,6 @@ const devServerOptions = {
   //   key: fs.readFileSync(path.resolve(path.join(__dirname, './dev/key.pem'))),
   // },
   overlay: true,
-  // staticOptions: {
-  //   setHeaders(resp, path, stat) {
-  //     console.log(`New response for file: ${path}`, stat)
-  //     console.log(`Headers: ${resp.getHeaders()}`)
-  //     setHeadersOnResp(resp)
-  //   },
-  // },
-  // https: true,
   stats: { chunks: true },
   historyApiFallback: true,
 }
@@ -166,7 +154,7 @@ const environmentPlugin = new webpack.EnvironmentPlugin(
  */
 module.exports = {
   entry: {
-    main: ['./src/index.ts'],
+    main: [process.env.SAMPLE ? './src/sample.ts' : './src/index.ts'],
   },
   output: {
     clean: true,
