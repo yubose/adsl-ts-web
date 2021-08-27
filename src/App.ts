@@ -225,38 +225,39 @@ class App {
       if(isNOODLDOMPage(pageUrl)){
         pageUrl = pageUrl.page
       }
-
-      let index = pageUrl.indexOf('&')!=-1?pageUrl.indexOf('&'):pageUrl.length
-      let startPage = pageUrl.slice(0,index)
-      pageRequesting = typeof pageRequesting == 'string'?startPage:pageRequesting
-      page = typeof page == 'string'?startPage:page
-      
-      if(index != pageUrl.length){
-        const ls = window.localStorage
-        let endKeys = pageUrl.slice(pageUrl.indexOf('&'))
-        let params:any = endKeys.split('=')
-        let tempParams:any = ls.getItem('tempParams')
-        let value 
-        let key
+      if(pageUrl){
+        let index = pageUrl.indexOf('&')!=-1?pageUrl.indexOf('&'):pageUrl.length
+        let startPage = pageUrl.slice(0,index)
+        pageRequesting = typeof pageRequesting == 'string'?startPage:pageRequesting
+        page = typeof page == 'string'?startPage:page
         
-        params = params?params:[]
-        tempParams = typeof tempParams == 'string'?JSON.parse(tempParams):{}
+        if(index != pageUrl.length){
+          const ls = window.localStorage
+          let endKeys = pageUrl.slice(pageUrl.indexOf('&'))
+          let params:any = endKeys.split('=')
+          let tempParams:any = ls.getItem('tempParams')
+          let value 
+          let key
+          
+          params = params?params:[]
+          tempParams = typeof tempParams == 'string'?JSON.parse(tempParams):{}
 
-        for(let i=0;i<params.length-1;i++){
-            index = params[i].lastIndexOf('&')!=-1?params[i].lastIndexOf('&'):0
-            key = params[i].slice(index+1)
-            if(i+1 == params.length-1){
-              value = params[i+1]
-            }else{
-              index = params[i+1].lastIndexOf('&')!=-1?params[i+1].lastIndexOf('&'):params[i+1].length
-              value = params[i+1].slice(0,index)
-            }
-            tempParams[key] = value
+          for(let i=0;i<params.length-1;i++){
+              index = params[i].lastIndexOf('&')!=-1?params[i].lastIndexOf('&'):0
+              key = params[i].slice(index+1)
+              if(i+1 == params.length-1){
+                value = params[i+1]
+              }else{
+                index = params[i+1].lastIndexOf('&')!=-1?params[i+1].lastIndexOf('&'):params[i+1].length
+                value = params[i+1].slice(0,index)
+              }
+              tempParams[key] = value
+          }
+
+          ls.setItem('tempParams', JSON.stringify(tempParams))
+        }else{
+          ls.removeItem('tempParams')
         }
-
-        ls.setItem('tempParams', JSON.stringify(tempParams))
-      }else{
-        ls.removeItem('tempParams')
       }
 
       if (isNOODLDOMPage(page)) {
@@ -423,7 +424,10 @@ class App {
           isTimestampEqual: isTimestampEqual(),
         })
 
-        if (!isTimestampEqual()) {
+        const keyParts = pathname.split('=')
+        let isParameters = keyParts.length > 1 ? true : false
+
+        if (!isTimestampEqual() && !isParameters) {
           // Set the URL / cached pages to their base state
           ls.setItem('CACHED_PAGES', JSON.stringify([]))
           this.mainPage.pageUrl = BASE_PAGE_URL
