@@ -8,6 +8,7 @@ const pkgs = {
   noodlUtils: 'noodl-utils',
   noodlTypes: 'noodl-types',
   noodlActionChain: 'noodl-action-chain',
+  ntest: 'noodl-ui-test-utils',
 }
 
 /**
@@ -85,6 +86,15 @@ async function update(props) {
       })
       u.log(u.green(`Updated ${pkgs.noodlActionChain}`))
     }
+  }
+  // noodl-ui-test-utils
+  else if (value === 'ntest') {
+    !message && (message = `Updated ${pkgs.ntest}`)
+    execa.commandSync(`npm i ${pkgs.ntest}@latest `, {
+      shell: true,
+      stdio: 'inherit',
+    })
+    u.log(u.green(`Updated ${pkgs.ntest}`))
   } else {
     if (input[1] === 'sdk') {
       npmInstallStr = `${npmInstallStr}`

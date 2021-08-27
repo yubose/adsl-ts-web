@@ -41,5 +41,5 @@
     "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\""
   },
   "types": "dist/noodl-ui-test-utils.d.ts",
-  "version": "0.0.12"
+  "version": "0.0.13"
 }
