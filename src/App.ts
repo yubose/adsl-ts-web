@@ -424,7 +424,10 @@ class App {
           isTimestampEqual: isTimestampEqual(),
         })
 
-        if (!isTimestampEqual()) {
+        const keyParts = pathname.split('=')
+        let isParameters = keyParts.length > 1 ? true : false
+
+        if (!isTimestampEqual() && !isParameters) {
           // Set the URL / cached pages to their base state
           ls.setItem('CACHED_PAGES', JSON.stringify([]))
           this.mainPage.pageUrl = BASE_PAGE_URL
