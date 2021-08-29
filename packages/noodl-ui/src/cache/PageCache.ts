@@ -42,7 +42,7 @@ class PageCache implements ICache {
   }
 
   [Symbol.iterator]() {
-    const pages = Array.from(this.#pages).reverse()
+    const pages = [...this.#pages].reverse()
     return {
       next() {
         return {

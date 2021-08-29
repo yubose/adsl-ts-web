@@ -1,14 +1,11 @@
 import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
 import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
-import { isPage as isNUIPage } from 'noodl-ui'
 import NDOMPage from '../../Page'
 import isNDOMPage from '../../utils/isPage'
 import copyAttributes from '../../utils/copyAttributes'
 import * as c from '../../constants'
 import * as t from '../../types'
-
-const _getRandomKey = () => `_${Math.random().toString(36).substr(2, 9)}`
 
 export type ComponentPageEvent =
   typeof c.eventId.componentPage.on[keyof typeof c.eventId.componentPage.on]
@@ -16,10 +13,12 @@ export type ComponentPageEvent =
 export interface ComponentPageHooks {
   [c.eventId.componentPage.on.ON_LOAD]: OnLoad[]
   [c.eventId.componentPage.on.ON_ERROR]: OnError[]
+  [c.eventId.componentPage.on.ON_MESSAGE]: OnMessage[]
 }
 
 export type OnLoad = (evt: Event, node: HTMLIFrameElement) => void
 export type OnError = (error: ErrorEvent) => void
+export type OnMessage = (evt: MessageEvent) => void
 
 class ComponentPage<
   N extends HTMLIFrameElement = HTMLIFrameElement,
@@ -30,12 +29,10 @@ class ComponentPage<
     [c.eventId.componentPage.on.ON_ERROR]: [],
     [c.eventId.componentPage.on.ON_MESSAGE]: [],
   } as ComponentPageHooks
-  #onLoad: OnLoad | undefined
-  #onError: OnError | undefined
   #nuiPage: NUIPage
   #initialized = false
   #error: Error | null = null
-  rootNode: N;
+  origin = '';
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -43,22 +40,6 @@ class ComponentPage<
       error: this.error,
       initialized: this.#initialized,
       component: this.component?.toJSON(),
-    }
-  }
-
-  [Symbol.iterator]() {
-    return {
-      next() {
-        let component: NUIComponent.Instance
-        let node: t.NDOMElement
-
-        // while ()
-
-        return {
-          // value: ,
-          done: false,
-        }
-      },
     }
   }
 
@@ -71,7 +52,7 @@ class ComponentPage<
     super(nuiPage || component)
     this.#component = component
     this.rootNode = super.rootNode as N
-    window.pg = this
+    this.origin = window.origin
 
     if (this.rootNode) {
       if (this.rootNode.tagName !== 'IFRAME') {
@@ -86,21 +67,11 @@ class ComponentPage<
         u.assign(this.rootNode, attributes)
       }
     } else {
-      this.rootNode = document.createElement('iframe') as N
+      this.rootNode = document.createElement('iframe')
     }
 
-    this.rootNode.addEventListener(
-      'load',
-      (evt) => {
-        this.#initialized = true
-        this.#onLoad?.(evt, this.rootNode)
-      },
-      { once: true },
-    )
-
-    this.rootNode.addEventListener('error', (err) => this.#onError?.(err), {
-      once: true,
-    })
+    window?.addEventListener('message', this.#onparentmessage)
+    window?.addEventListener('messageerror', this.#onparentmessageerror)
 
     this.configure({
       allow: '*',
@@ -115,7 +86,8 @@ class ComponentPage<
   }
 
   get window() {
-    return this.rootNode?.contentWindow || null
+    return ((this.rootNode as HTMLIFrameElement)?.contentWindow ||
+      null) as Window
   }
 
   get document() {
@@ -142,6 +114,20 @@ class ComponentPage<
     return this.rootNode?.parentElement || null
   }
 
+  #onparentmessage = (evt: MessageEvent) => {
+    console.log(`%c[ComponentPage] Received message`, `color:#0047ff;`, evt)
+    this.#hooks
+    this.emitSync(c.eventId.componentPage.on.ON_MESSAGE, evt.data)
+  }
+
+  #onparentmessageerror = (evt: MessageEvent) => {
+    console.log(
+      `%c[ComponentPage] Received message error `,
+      `color:#0047ff;`,
+      evt,
+    )
+  }
+
   appendChild<N extends HTMLElement>(childNode: N) {
     try {
       this.body?.appendChild?.(childNode)
@@ -152,11 +138,9 @@ class ComponentPage<
   }
 
   clear() {
-    this.reset()
+    this.remove()
     this.rootNode?.remove?.()
-    // @ts-expect-error
-    this.rootNode = null
-    u.values(this.#hooks).forEach((arr) => (arr.length = 0))
+    u.forEach(u.clearArr, u.values(this.#hooks))
     this.#component = null as any
   }
 
@@ -225,7 +209,7 @@ class ComponentPage<
       obj.allowVideos && (value += addKeyPair('media-src', '*'))
       obj.allowScripts && (value += addKeyPair('script-src', obj.allowScripts))
       cspElem.setAttribute('content', value)
-      this.rootNode.contentDocument?.head.appendChild(cspElem)
+      this.rootNode?.contentDocument?.head.appendChild(cspElem)
     }
 
     opts.onLoad && this.on(c.eventId.componentPage.on.ON_LOAD, opts.onLoad)
@@ -267,13 +251,15 @@ class ComponentPage<
         evt as typeof c.eventId.page.on[keyof typeof c.eventId.page.on],
         ...(args as Parameters<NDOMPage['emitSync']>),
       )
-    } else {
-      this.hooks[evt as ComponentPageEvent].forEach((fn) =>
-        (fn as any)?.(
-          ...(args as Parameters<
-            ComponentPageHooks[ComponentPageEvent][number]
-          >),
-        ),
+    } else if (evt in this.#hooks) {
+      u.forEach?.(
+        (fn) =>
+          (fn as any)?.(
+            ...(args as Parameters<
+              ComponentPageHooks[ComponentPageEvent][number]
+            >),
+          ),
+        this.#hooks[evt as ComponentPageEvent],
       )
     }
     return this
@@ -320,6 +306,16 @@ class ComponentPage<
       console.error(error)
       throw error
     }
+  }
+
+  sendMessage(message: any, origin = '*', transfer?: Transferable[]) {
+    console.log(
+      `%c[ComponentPage] Sending message to origin: ${origin}`,
+      `color:#95a5a6;`,
+      message,
+    )
+    // window.parent.postMessage(message, origin)
+    this.window.postMessage(message, origin)
   }
 }
 

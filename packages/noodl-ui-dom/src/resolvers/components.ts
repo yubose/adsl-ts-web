@@ -1,4 +1,6 @@
 import * as u from '@jsmanifest/utils'
+import { isActionChain } from 'noodl-action-chain'
+import { createEmitDataKey } from 'noodl-utils'
 import { OrArray } from '@jsmanifest/typefest'
 import SignaturePad from 'signature_pad'
 import curry from 'lodash/curry'
@@ -15,9 +17,9 @@ import {
   Plugin,
   NUIActionChain,
   Store,
+  EmitAction,
 } from 'noodl-ui'
 import { toSelectOption } from '../utils'
-import { ComponentPage } from '../factory/componentFactory'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import NDOM from '../noodl-ui-dom'
 import NDOMPage from '../Page'
@@ -366,16 +368,6 @@ const componentsResolver: t.Resolve.Config = {
       }
       // PAGE
       else if (Identify.component.page(args.component)) {
-        const getTokenInput = () => {
-          const componentPage = i._getOrCreateComponentPage(
-            args.component,
-            args.findPage,
-            args.createPage,
-          )
-          const input = componentPage.document?.getElementById('token')
-          return input as HTMLInputElement
-        }
-        const getTokenValue = () => getTokenInput()?.value || ''
         const getComponentPage = () =>
           i._getOrCreateComponentPage(
             args.component,
@@ -383,40 +375,58 @@ const componentsResolver: t.Resolve.Config = {
             args.createPage,
           )
 
-        window.getTokenInput = getTokenInput
-        window.getTokenValue = getTokenValue
-
         if (u.isStr(args.component.get('path'))) {
           if (i._isIframeEl(args.node)) {
+            const componentPage = getComponentPage()
             const nuiPage = args.component.get('page')
             const path = args.component.get('path')
+            const src = nuiPage.page
             const remote = i._isRemotePageOrUrl(String(path))
 
             if (remote) {
-              const src = nuiPage.page
-              // const src = (args.component.get(c.DATA_SRC) || '') as string
               /**
                * Page components loading content through remote URLs
                * (https links or anything that is an html file)
                */
-              if (args.node) {
-                args.node.contentWindow?.addEventListener('message', (evt) =>
-                  console.log(
-                    `%c[noodl-ui-dom] Message`,
-                    `color:#e50087;`,
-                    evt,
-                  ),
-                )
-                args.node.contentWindow?.addEventListener(
-                  'messageerror',
-                  (evt) =>
+              componentPage.on(
+                c.eventId.componentPage.on.ON_MESSAGE,
+                async (dataObject: Record<string, any>) => {
+                  if (isActionChain(args.component.get('postMessage'))) {
+                    const actionChain = args.component.get(
+                      'postMessage',
+                    ) as NUIActionChain
+
+                    const postMessageAction = actionChain.queue.find(
+                      (action) => action.trigger === 'postMessage',
+                    ) as EmitAction
+
+                    if (postMessageAction) {
+                      postMessageAction.dataKey = createEmitDataKey(
+                        postMessageAction.original?.emit?.dataKey,
+                        dataObject,
+                      )
+                    } else {
+                      console.log(
+                        `%cCould not find a postMessage emit action inside a postMessage action chain`,
+                        `color:#ec0000;`,
+                        { ...args, dataObject },
+                      )
+                    }
+
+                    // TODO - Migrate all actions to use this way of working with their data objects
+                    // actionChain.data.set('dataObject', dataObject)
+                    await actionChain.execute()
+                  } else {
                     console.log(
-                      `%c[noodl-ui-dom] Message error`,
-                      `color:#e50087;`,
-                      evt,
-                    ),
-                )
-              }
+                      `%cReceived a message from a child of a page component and expected an action chain but received "${typeof args.component.get(
+                        'postMessage',
+                      )}"`,
+                      `color:#ec0000;`,
+                      { ...args, dataObject },
+                    )
+                  }
+                },
+              )
 
               function onLoad(opts: {
                 event?: Event
@@ -427,47 +437,20 @@ const componentsResolver: t.Resolve.Config = {
                 resolvers: NDOM['resolvers']
               }) {
                 let src = opts.component.get('page')?.page || ''
-                let ndomPage = opts.findPage(opts.component) as ComponentPage
+                let componentPage = getComponentPage()
 
-                !ndomPage && (ndomPage = opts.createPage(opts.component))
-
-                if (opts.node) {
-                  if (
-                    ndomPage.id !== 'root' &&
-                    ndomPage.rootNode !== opts.node
-                  ) {
-                    try {
-                      if (ndomPage?.parentElement) {
-                        ndomPage.parentElement.replaceChild(
-                          opts.node,
-                          ndomPage.rootNode,
-                        )
-                        console.log(
-                          `%cReplacing old rootNode with new node`,
-                          `color:#95a5a6;`,
-                          { ...opts, ndomPage },
-                        )
-                      } else {
-                        ndomPage.replaceNode(opts.node)
-                        console.log(
-                          `%cRemoved old rootNode for new node`,
-                          `color:#95a5a6;`,
-                          { ...opts, ndomPage },
-                        )
-                      }
-                    } catch (error) {
-                      console.error(error)
-                    }
+                if (
+                  componentPage.id !== 'root' &&
+                  componentPage.rootNode !== opts.node
+                ) {
+                  try {
+                    componentPage.replaceNode(opts.node)
+                  } catch (error) {
+                    console.error(error)
                   }
-
-                  src && opts.node.src !== src && (opts.node.src = src)
-                } else {
-                  console.log(
-                    `%cIframe element is empty inside a page component`,
-                    `color:#ec0000;`,
-                    opts,
-                  )
                 }
+
+                src && opts.node.src !== src && (opts.node.src = src)
               }
 
               if (src) {
@@ -479,7 +462,7 @@ const componentsResolver: t.Resolve.Config = {
                   resolvers: args.resolvers,
                 })
               } else {
-                args.node.addEventListener('load', (evt) =>
+                componentPage.window?.addEventListener('load', (evt) =>
                   onLoad({
                     event: evt,
                     createPage: args.createPage,
@@ -492,10 +475,8 @@ const componentsResolver: t.Resolve.Config = {
               }
 
               // args.node.src = args.component.get('page')?.page || ''
-              args.node?.addEventListener('error', console.error)
+              componentPage.rootNode?.addEventListener('error', console.error)
             } else {
-              const componentPage = getComponentPage()
-
               /**
                * If this page component is not remote, it is loading a page
                * from the "page" list from a noodl app config
@@ -588,35 +569,6 @@ const componentsResolver: t.Resolve.Config = {
                 )
               }
 
-              args.node.contentWindow?.addEventListener(
-                'message',
-                function (evt) {
-                  console.log(
-                    `%cNew message from parent origin ${evt.origin}`,
-                    `color:#00b406;`,
-                    evt,
-                  )
-                },
-              )
-
-              args.node.contentWindow?.addEventListener(
-                'messageerror',
-                function (err) {
-                  console.log(
-                    `%cMessage error from parent origin ${err.origin}`,
-                    `color:#00b406;`,
-                    err,
-                  )
-                },
-              )
-              ;(args.component.get('postMessage') as NUIActionChain)?.use({
-                onExecuteStart(...args) {
-                  console.log(this)
-                  console.log(args)
-                  debugger
-                },
-              })
-
               /**
                * This is used to keep the component up-to-date with changes in the DOM
                */
@@ -627,8 +579,7 @@ const componentsResolver: t.Resolve.Config = {
             }
           } else {
             console.log(
-              `%cEncountered a page component with a rootNode that is not an iframe. ` +
-                `This is not being handled`,
+              `%cEncountered a page component with a rootNode that is not an iframe. This is not supported yet`,
               `color:#FF5722;`,
               args,
             )

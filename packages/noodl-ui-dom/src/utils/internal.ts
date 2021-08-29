@@ -4,7 +4,7 @@
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { ComponentObject, EcosDocument, Identify, NameField } from 'noodl-types'
-import { isPage as isNUIPage, publish } from 'noodl-ui'
+import { isPage as isNUIPage, event as nuiEvt, publish } from 'noodl-ui'
 import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
 import type { ComponentPage } from '../factory/componentFactory'
 import type GlobalComponentRecord from '../global/GlobalComponentRecord'
@@ -296,11 +296,11 @@ export const _syncPages = (function () {
       id in this.global.pages && delete this.global.pages[id]
     }
 
-    const start = <U extends 'PAGE_CREATED' | 'PAGE_REMOVED'>(
+    const start = <U extends typeof c.PAGE_CREATED | typeof c.PAGE_REMOVED>(
       updateType: U,
     ) => {
       return (
-        args: U extends 'PAGE_CREATED'
+        args: U extends typeof c.PAGE_CREATED
           ? { component?: NUIComponent.Instance; page: NUIPage }
           : NUIPage,
       ) => {
@@ -326,10 +326,10 @@ export const _syncPages = (function () {
 
           console.log(label)
 
-          if (updateType === 'PAGE_CREATED') {
+          if (updateType === c.PAGE_CREATED) {
             // Incoming page still in the loading state
             // Remove all previous loading pages since we only support 1 loading page right now
-            for (const _page of [...cache.page.get().values()]) {
+            for (const _page of cache.page.get().values()) {
               const nuiPage = _page?.page
               nuiPage &&
                 nuiPage !== page &&
@@ -343,37 +343,15 @@ export const _syncPages = (function () {
             }
 
             let ndomPage = this.findPage(page)
-            let pageRequesting = ndomPage?.requesting
             let stateSlice = _state.get(page.created) || initSlice(page)
 
             if (!ndomPage) {
-              if (component) {
-                ndomPage = this.createPage(component)
-                component.id === undefined &&
-                  console.log(
-                    `Tried to add a new component page to global pages using a component but its id was undefined`,
-                    ndomPage,
-                  )
-              } else {
-                ndomPage = this.createPage(page)
-                page.id === undefined &&
-                  console.log(
-                    `Tried to add a new component page to global pages using a NUIPage but its id was undefined`,
-                    ndomPage,
-                  )
-              }
-              pageRequesting = ndomPage.requesting
+              if (component) ndomPage = this.createPage(component)
+              else ndomPage = this.createPage(page)
             }
 
-            if (ndomPage.id === undefined) {
-              // TODO - Bug
-              console.log(
-                `Tried to add a new component page to global pages but its id was undefined`,
-                ndomPage,
-              )
-            } else {
-              !this.global.pageIds.includes(ndomPage.id) &&
-                this.global.add(ndomPage)
+            if (!this.global.pageIds.includes(ndomPage.id)) {
+              this.global.add(ndomPage)
             }
 
             if (isComponentPage(ndomPage)) {
@@ -403,7 +381,7 @@ export const _syncPages = (function () {
                 }
               }
             }
-          } else if (updateType === 'PAGE_REMOVED') {
+          } else if (updateType === c.PAGE_REMOVED) {
             _state.delete(page.created)
           }
         }
@@ -416,8 +394,8 @@ export const _syncPages = (function () {
 
     // prettier-ignore
     cache.page
-      .on('PAGE_CREATED', start('PAGE_CREATED'))
-      .on('PAGE_REMOVED', start('PAGE_REMOVED'))
+      .on(c.PAGE_CREATED, start(c.PAGE_CREATED))
+      .on(c.PAGE_REMOVED, start(c.PAGE_REMOVED))
 
     this.on('onBeforeRequestPageObject', (page) => {
       if (_state.has(page.created)) {
@@ -433,6 +411,7 @@ export const _syncPages = (function () {
       }
     })
   }
+
   syncPages._state = _state
   return syncPages
 })()

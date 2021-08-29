@@ -446,15 +446,6 @@ class NDOM extends NDOMInternal {
         node = this.#createElementBinding?.(component) || null
         node && (node['isElementBinding'] = true)
         !node && (node = document.createElement(getElementTag(component)))
-
-        if (i._isIframeEl(node)) {
-          node.setAttribute('allow', '*')
-          node.setAttribute(
-            'sandbox',
-            'allow-scripts allow-same-origin allow-top-navigation allow-downloads allow-forms',
-          )
-          node.setAttribute('referrerPolicy', 'unsafe-url')
-        }
       }
 
       if (component.has?.('global')) {

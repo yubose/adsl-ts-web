@@ -19,7 +19,7 @@ const createPage = ({ pageUrl }: { pageUrl?: OrArray<string> } = {}) => {
 }
 
 afterEach(() => {
-  ndom.page?.reset()
+  ndom.page?.remove()
 })
 
 describe(coolGold(`Page`), () => {

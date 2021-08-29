@@ -28,6 +28,7 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
+import { ComponentPage } from '../../packages/noodl-ui-dom/dist/factory/componentFactory'
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -1044,8 +1045,9 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: ({ component, elementType }) =>
         elementType === 'IFRAME' &&
         String(component?.blueprint?.path)?.endsWith('.html'),
-      resolve({ component, node }) {
+      resolve({ component, node, findPage }) {
         // const iframeEl = node as HTMLIFrameElement
+        // const componentPage = findPage(component) as ComponentPage
         // try {
         //   iframeEl.addEventListener('message', function (msg) {
         //     const postMessage = component.get('postMessage') as NUIActionChain
@@ -1062,28 +1064,36 @@ const createExtendedDOMResolvers = function (app: App) {
         // } catch (error) {
         //   console.error(error)
         // }
-
-        iframeEl.addEventListener(
-          'load',
-          function (evt) {
-            log.func('load')
-            log.grey(`Entered onload event for page remote (http) component`)
-          },
-          { once: true },
-        )
-
-        iframeEl.contentWindow?.addEventListener('message', function (msg) {
-          const postMessage = component.get('postMessage') as NUIActionChain
-          const dataObject = msg.data
-          log.func('postMessage (parent)')
-          log.green(`%cReceived message in page component`, {
-            dataObject,
-            message: msg,
-            postMessage,
-          })
-          postMessage.data.set('someData', dataObject)
-          postMessage?.execute?.(msg)
-        })
+        // iframeEl.addEventListener('load', function (evt) {
+        //   log.func('load')
+        //   log.grey(`Entered onload event for page remote (http) component`)
+        //   log.grey('', this)
+        //   log.green(
+        //     `[ComponentPage] Attaching MutationObserver to body element`,
+        //     { componentPage, thisValue: this, window: this.contentWindow },
+        //   )
+        // const obs = new MutationObserver((mutations) => {
+        //   console.log(`[ComponentPage] Mutations`, mutations)
+        // })
+        // obs.observe(this, {
+        //   attributes: true,
+        //   childList: true,
+        //   subtree: true,
+        //   characterData: true,
+        // })
+        // this.contentWindow.addEventListener('message', function (msg) {
+        //   const postMessage = component.get('postMessage') as NUIActionChain
+        //   const dataObject = msg.data
+        //   log.func('postMessage (parent)')
+        //   log.green(`%cReceived message in page component`, {
+        //     dataObject,
+        //     message: msg,
+        //     postMessage,
+        //   })
+        //   postMessage.data.set('someData', dataObject)
+        //   postMessage?.execute?.(msg)
+        // })
+        // })
       },
     },
     '[App] Password textField': {

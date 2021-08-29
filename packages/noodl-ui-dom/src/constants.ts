@@ -74,6 +74,7 @@ export const eventId = {
       ON_REDRAW_BEFORE_CLEANUP: 'ON_REDRAW_BEFORE_CLEANUP',
       ON_COMPONENTS_RENDERED: 'ON_COMPONENTS_RENDERED',
       ON_NAVIGATE_ERROR: 'ON_NAVIGATE_ERROR',
+      ON_SET_ROOT_NODE: 'ON_SET_ROOT_NODE',
     },
     /** Sorted by order of occurrence */
     status: {
@@ -89,6 +90,10 @@ export const eventId = {
     },
   },
 } as const
+
+export const PAGE_CREATED = 'PAGE_CREATED'
+export const PAGE_CHANGED = 'PAGE_CHANGED'
+export const PAGE_REMOVED = 'PAGE_REMOVED'
 
 export const trigger = { ...nuiTrigger, POST_MESSAGE: 'postMessage' } as const
 export const triggers = Object.values(trigger)

@@ -1,12 +1,16 @@
 import * as u from '@jsmanifest/utils'
-import isNUIPage from '../utils/isPage'
+import type { LiteralUnion } from 'type-fest'
 import type { ComponentCacheObject, NUIComponent } from '../types'
 import type NUIPage from '../Page'
+import isNUIPage from '../utils/isPage'
 
 type ComponentCacheHookEvent = 'add' | 'clear' | 'remove'
 
 interface ComponentCacheHook {
-  add(component: NUIComponent.Instance): void
+  add(args: {
+    component: NUIComponent.Instance
+    page: LiteralUnion<'unknown', string>
+  }): void
   clear(components: { [id: string]: NUIComponent.Instance }): void
   remove(component: ReturnType<NUIComponent.Instance['toJSON']>): void
 }
@@ -89,16 +93,14 @@ class ComponentCache {
     page: NUIPage | string | undefined,
   ): ComponentCacheObject {
     if (component) {
-      this.#cache.set(component.id, {
-        component,
-        page:
-          (isNUIPage(page)
-            ? page.page
-            : u.isObj(page)
-            ? page.page || ''
-            : page) || '',
-      })
-      this.emit('add', component)
+      const pageName = isNUIPage(page)
+        ? page.page
+        : u.isObj(page)
+        ? page.page || ''
+        : page || ''
+      const value = { component, page: pageName }
+      this.#cache.set(component.id, value)
+      this.emit('add', value)
     }
     return this.get(component)
   }
@@ -140,15 +142,13 @@ class ComponentCache {
   remove(component: NUIComponent.Instance | string) {
     if (!u.isObj(component)) {
       if (this.#cache.has(component)) {
-        const snapshot = this.#cache.get(component)?.component?.toJSON?.()
         this.#cache.delete(component)
-        this.emit('remove', snapshot)
+        this.emit('remove', this.#cache.get(component)?.component?.toJSON?.())
       }
     } else if (component) {
       if (this.#cache.has(component.id)) {
-        const snapshot = component.toJSON?.()
         this.#cache.delete(component.id)
-        this.emit('remove', snapshot)
+        this.emit('remove', component.toJSON?.())
       }
     }
     return this
@@ -168,15 +168,15 @@ class ComponentCache {
   }
 
   forEach(cb: (obj: ComponentCacheObject) => void) {
-    for (const obj of this.get().values()) cb(obj)
+    for (const obj of this) obj && cb(obj)
   }
 
   map(cb: <V>(obj: ComponentCacheObject) => V) {
-    return [...this.get().values()].map(cb)
+    return [...this].map(cb)
   }
 
   reduce<A>(cb: (acc: A, obj: ComponentCacheObject) => A, initialValue: A) {
-    return u.reduce([...this.get().values()], cb, initialValue)
+    return u.reduce([...this], cb, initialValue)
   }
 }
 

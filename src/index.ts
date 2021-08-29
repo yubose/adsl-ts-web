@@ -97,7 +97,6 @@ async function initializeApp(
   window.app = app
   ////////////////////////////////////////////////////////////
   await app.initialize()
-
   return app
 }
 
@@ -183,25 +182,16 @@ window.addEventListener('load', async (e) => {
       phone: {
         get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
       },
-      ...u
-        .entries(getWindowHelpers())
-        .reduce(
-          (acc, [key, fn]) =>
-            u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
-          {},
-        ),
+      ...u.reduce(
+        u.entries(getWindowHelpers()),
+        (acc, [key, fn]) =>
+          u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
+        {},
+      ),
       toYml: { configurable: true, get: () => yaml.stringify.bind(yaml) },
     })
 
     window.addEventListener('popstate', createOnPopState(app))
-    window.addEventListener('message', function (evt) {
-      log.func('message')
-      log.green(`New message from a window: ${evt.data}`, evt)
-    })
-    window.addEventListener('messageerror', function (evt) {
-      log.func(`messageerror`)
-      log.red(`Error receiving message from window: ${evt.data}`, evt)
-    })
   } catch (error) {
     console.error(error)
   } finally {

@@ -190,6 +190,9 @@ export namespace Page {
       node: HTMLElement | null
       page: NDOMPage
     }): void
+    [eventId.page.on.ON_SET_ROOT_NODE](args: {
+      rootNode: HTMLDivElement | HTMLIFrameElement | null
+    }): void
   }
 
   export interface HookDescriptor<Evt extends Page.HookEvent = Page.HookEvent> {

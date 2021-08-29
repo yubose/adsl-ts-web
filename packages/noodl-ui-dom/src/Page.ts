@@ -23,8 +23,8 @@ class Page {
     t.Page.HookEvent,
     t.Page.HookDescriptor[]
   >
-  pageUrl: string = BASE_PAGE_URL
-  rootNode: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement;
+  #rootNode: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement
+  pageUrl: string = BASE_PAGE_URL;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -131,6 +131,15 @@ class Page {
   set requesting(pageName: string) {
     if (pageName === '') this.#state.modifiers = {}
     this.#state.requesting = pageName || ''
+  }
+
+  get rootNode() {
+    return this.#rootNode
+  }
+
+  set rootNode(rootNode) {
+    this.#rootNode = rootNode
+    this.emitSync(eventId.page.on.ON_SET_ROOT_NODE, { rootNode })
   }
 
   get tagName() {
@@ -249,7 +258,7 @@ class Page {
     u.forEach?.((d, index) => {
       d.fn?.call?.(this, ...args)
       if (d.once) this.hooks[evt].splice(index, 1)
-    }, this.hooks[evt])
+    }, this.hooks[evt] || [])
     return this
   }
 
@@ -275,10 +284,6 @@ class Page {
     } catch (error) {
       console.error(error)
     }
-  }
-
-  reset() {
-    this.remove()
   }
 }
 
