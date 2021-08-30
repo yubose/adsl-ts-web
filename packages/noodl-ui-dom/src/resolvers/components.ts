@@ -339,9 +339,13 @@ const componentsResolver: t.Resolve.Config = {
         // load promise return to image
         if (args.component.blueprint?.['path=func']) {
           // ;(node as HTMLImageElement).src = '../waiting.png'
-          const path = await args.component.get(c.DATA_SRC)
-          console.log('test path=func', path)
-          setAttr('src', path)
+          setAttr('src', args.component.get(c.DATA_SRC))
+          args.component.get(c.DATA_SRC).then((path:any)=>{
+            if(path){
+              console.log('load path',path)
+              setAttr('src', path)
+            }
+          })
         }
       }
       // LABEL
