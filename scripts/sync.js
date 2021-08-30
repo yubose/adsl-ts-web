@@ -49,10 +49,13 @@ async function split() {
     )
   }
 
-  await execa.command(`cd ../cadl && git pull && cd ../cadl2 && git pull`, {
-    shell: true,
-    stdio: 'inherit',
-  })
+  await execa.command(
+    `cd ../cadl && git reset --hard origin/master && git pull -f && cd ../cadl2 && git reset --hard origin/master && git pull -f`,
+    {
+      shell: true,
+      stdio: 'inherit',
+    },
+  )
 
   for (const obj of dirsToSync) {
     let { configPath, folder, pathname, to, toFolder } = obj

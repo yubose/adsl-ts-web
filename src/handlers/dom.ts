@@ -523,23 +523,23 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] QRCode': {
-      cond:  'view',
+      cond: 'view',
       resolve(node, component) {
-        if(node && component && component.contentType === 'QRCode'){
+        if (node && component && component.contentType === 'QRCode') {
           const dataValue = component.get('data-value') || '' || 'dataKey'
           let text = JSON.stringify(dataValue)
-          let width = parseInt(node.style.width.replace("px",""))
-          let height = parseInt(node.style.height.replace("px",""))
+          let width = parseInt(node.style.width.replace('px', ''))
+          let height = parseInt(node.style.height.replace('px', ''))
           new QRCode(node, {
             text: text,
             width: width,
             height: height,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H,
           })
         }
-    }
+      },
     },
     '[App] dropDown': {
       cond: 'textField',
@@ -1045,7 +1045,7 @@ const createExtendedDOMResolvers = function (app: App) {
         elementType === 'IFRAME' &&
         String(component?.blueprint?.path)?.endsWith('.html'),
       resolve({ component, node }) {
-        const iframeEl = node as HTMLIFrameElement
+        // const iframeEl = node as HTMLIFrameElement
         // try {
         //   iframeEl.addEventListener('message', function (msg) {
         //     const postMessage = component.get('postMessage') as NUIActionChain

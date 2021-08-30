@@ -28,6 +28,7 @@ class ComponentPage<
   #hooks = {
     [c.eventId.componentPage.on.ON_LOAD]: [],
     [c.eventId.componentPage.on.ON_ERROR]: [],
+    [c.eventId.componentPage.on.ON_MESSAGE]: [],
   } as ComponentPageHooks
   #onLoad: OnLoad | undefined
   #onError: OnError | undefined
