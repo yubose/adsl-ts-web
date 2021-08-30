@@ -1,12 +1,10 @@
-import {
-  init,
-  attributesModule,
-  classModule,
-  datasetModule,
-  eventListenersModule,
-  propsModule,
-  styleModule,
-} from 'snabbdom'
+import { init } from 'snabbdom'
+import attributesModule from 'snabbdom/modules/attributes'
+import classModule from 'snabbdom/modules/class'
+import datasetModule from 'snabbdom/modules/dataset'
+import eventListenersModule from 'snabbdom/modules/eventlisteners'
+import propsModule from 'snabbdom/modules/props'
+import styleModule from 'snabbdom/modules/style'
 
 const patch = init([
   attributesModule,

@@ -259,6 +259,25 @@ export function getPageAncestor(
   return null
 }
 
+/**
+ * Returns the index from the parent's children.
+ * Returns -1 if it the node is not a child of the parent
+ * @param node
+ * @returns { number }
+ */
+export function getNodeIndex<N extends t.NDOMElement>(
+  node: N | null | undefined,
+) {
+  if (node?.parentElement || node?.parentNode) {
+    if (node.childElementCount === 1) return 0
+    if (node.childElementCount > 1) {
+      return [...node.children].findIndex((n) => n === node)
+    }
+    debugger
+  }
+  return -1
+}
+
 export function makeElemFn(fn: (node: HTMLElement) => void) {
   const onNodes = function _onNodes(nodes: t.DOMNodeInput, cb?: typeof fn) {
     let count = 0

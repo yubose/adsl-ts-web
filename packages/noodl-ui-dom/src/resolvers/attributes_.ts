@@ -96,16 +96,13 @@ const attributesResolver: t.Resolve_.Config = {
 
     if (args.vnode) {
       if (elementType === 'SCRIPT') {
-        if (args.component.has('global')) {
-          if (!args.component.get('data-src')) {
-            args.component.on('image', (src: string) => {
+        if (component.has('global')) {
+          if (!component.get('data-src')) {
+            component.on('image', (src: string) => {
               setStyleAttr('backgroundImage', `url("${src}")`)
             })
           }
-          setStyleAttr(
-            'backgroundImage',
-            `url("${args.component.get('data-src')}")`,
-          )
+          setStyleAttr('backgroundImage', `url("${component.get('data-src')}")`)
         }
       }
 

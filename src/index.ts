@@ -97,6 +97,7 @@ async function initializeApp(
   window.app = app
   ////////////////////////////////////////////////////////////
   await app.initialize()
+  // app.navigate('VisitQuestionnaire')
   return app
 }
 

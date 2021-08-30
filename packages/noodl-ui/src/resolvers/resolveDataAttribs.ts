@@ -4,7 +4,7 @@
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
-import { excludeIteratorVar, findDataValue } from 'noodl-utils'
+import { excludeIteratorVar, findDataValue, trimReference } from 'noodl-utils'
 import {
   addDate,
   createGlobalComponentId,
@@ -237,37 +237,44 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
     ---- SELECT
   -------------------------------------------------------- */
 
-  if (
-    Identify.component.select(component) &&
-    u.isStr(selectOptions) &&
-    iteratorVar &&
-    selectOptions.startsWith(iteratorVar)
-  ) {
-    const getOptions = (c: NUIComponent.Instance, dataObject: any) => {
-      if (
-        u.isStr(c.blueprint?.options) &&
-        c.blueprint.options.startsWith(iteratorVar)
-      ) {
-        const dataKey = excludeIteratorVar(c.blueprint.options, iteratorVar)
-        const dataOptions = dataKey ? get(dataObject, dataKey) : dataObject
-        return dataOptions
-      } else if (u.isArr(selectOptions)) {
-        return selectOptions
+  if (Identify.component.select(component)) {
+    const isUsingDataKey = !!(
+      (dataKey && u.isStr(dataKey)) ||
+      u.isStr(selectOptions)
+    )
+    // Receiving their options by reference
+    if (isUsingDataKey) {
+      let dataPath = dataKey && u.isStr(dataKey) ? dataKey : selectOptions
+      let dataOptions = selectOptions
+      let isListPath = !!(iteratorVar && dataPath.startsWith(iteratorVar))
+
+      if (!u.isArr(dataOptions)) {
+        if (isListPath) {
+          dataPath = excludeIteratorVar(dataPath, iteratorVar)
+          dataOptions = dataPath
+            ? get(n.findListDataObject(component), dataKey)
+            : n.findListDataObject(component)
+        } else {
+          dataPath = trimReference(dataPath)
+          dataOptions = get(
+            Identify.localKey(dataPath) ? getRoot()[page.page] : getRoot(),
+            dataPath,
+          )
+        }
       }
-    }
 
-    const dataOptions = getOptions(component, n.findListDataObject(component))
-
-    if (dataOptions) {
-      component.set('data-options', dataOptions || [])
-      // setTimeout(() => component.emit('options', component.get('data-options')))
-      setTimeout(() => component.emit('options', component.get('data-options')))
-    } else {
-      console.log(
-        `%cCould not find the list of options for a select component using the path "${selectOptions}"`,
-        `color:#ec0000;`,
-        component,
-      )
+      if (dataOptions) {
+        component.set('data-options', dataOptions || [])
+        setTimeout(() =>
+          component.emit('options', component.get('data-options')),
+        )
+      } else {
+        console.log(
+          `%cCould not find the list of options for a select component using the path "${selectOptions}"`,
+          `color:#ec0000;`,
+          component,
+        )
+      }
     }
   }
 

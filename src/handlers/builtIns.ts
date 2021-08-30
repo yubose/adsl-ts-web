@@ -84,29 +84,29 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const copy: Store.BuiltInObject['fn'] = async function onCopy(
     action,
     options,
-  ){
+  ) {
     log.func('copy')
     log.grey('', action?.snapshot?.())
     const viewTag = _pick(action, 'viewTag')
-    const node:any = findByViewTag(viewTag)
+    const node: any = findByViewTag(viewTag)
     !node && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
-    try{
-      if(node){
-        const range = document.createRange();
-        range.selectNode(node);
+    try {
+      if (node) {
+        const range = document.createRange()
+        range.selectNode(node)
         const select = window.getSelection()
-        if(select){
-          select.removeAllRanges();
-          select.addRange(range);
-          document.execCommand('copy');
-          select.removeAllRanges();
+        if (select) {
+          select.removeAllRanges()
+          select.addRange(range)
+          document.execCommand('copy')
+          select.removeAllRanges()
           log.grey(`Copy successfully in viewTag "${viewTag}"`)
           // toast('Copy successfully')
-      }
-      }else{
+        }
+      } else {
         log.red(`Copy failed in viewTag "${viewTag}"`)
       }
-    }catch (e) {
+    } catch (e) {
       log.red(`Copy failed in viewTag "${viewTag}"`)
     }
   }
@@ -632,29 +632,29 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         })
       }
 
-      let startCount = 0
+      await Promise.all(
+        components.map((_component) => {
+          const _node = getFirstByElementId(_component)
 
-      while (startCount < numComponents) {
-        const _component = components[startCount]
-        const _node = getFirstByElementId(_component)
-
-        if (!_node) {
-          log.func('redraw')
-          log.red(
-            `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
-            { component: _component, node: _node },
-          )
-        } else {
-          const ctx = {} as any
-          if (isListConsumer(_component)) {
-            const dataObject = findListDataObject(_component)
-            dataObject && (ctx.dataObject = dataObject)
+          if (!_node) {
+            log.func('redraw')
+            log.red(
+              `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+              { component: _component, node: _node },
+            )
+          } else {
+            const ctx = {} as any
+            if (isListConsumer(_component)) {
+              const dataObject = findListDataObject(_component)
+              dataObject && (ctx.dataObject = dataObject)
+            }
+            const ndomPage = pickNDOMPageFromOptions(options)
+            return app.ndom.redraw(_node, _component, ndomPage, {
+              context: ctx,
+            })
           }
-          const ndomPage = pickNDOMPageFromOptions(options)
-          await app.ndom.redraw(_node, _component, ndomPage, { context: ctx })
-        }
-        startCount++
-      }
+        }),
+      )
     } catch (error) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })

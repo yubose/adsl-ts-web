@@ -600,7 +600,6 @@ const componentsResolver: t.Resolve.Config = {
       }
       // SELECT
       else if (Identify.component.select(original)) {
-        let dataKey = original.dataKey
         if (args.component.get('size')) {
           const size = args.component.get('size')
           const select = args.node as HTMLTextAreaElement
@@ -653,29 +652,15 @@ const componentsResolver: t.Resolve.Config = {
 
         if (u.isArr(selectOptions)) {
           setSelectOptions(args.node as HTMLSelectElement, selectOptions)
-        } else if (u.isStr(selectOptions) || (dataKey && u.isStr(dataKey))) {
+        } else if (u.isStr(selectOptions)) {
           // Retrieved through reference
+          args.component.on('options', (dataOptions: any[]) => {
+            setSelectOptions(args.node as HTMLSelectElement, dataOptions)
+          })
         }
-
-        args.component.on('options', (dataOptions: any[]) => {
-          setSelectOptions(args.node as HTMLSelectElement, dataOptions)
-        })
-
         // Default to the first item if the user did not previously set their state
-        if (
-          args.component.get(c.DATA_VALUE) != undefined &&
-          u.isArr(selectOptions)
-        ) {
-          const index = selectOptions.indexOf(args.component.get(c.DATA_VALUE))
-          if (
-            index !== -1 &&
-            (args.node as HTMLSelectElement).selectedIndex !== index
-          ) {
-            ;(args.node as HTMLSelectElement).selectedIndex = index
-          }
-        } else if ((args.node as HTMLSelectElement)?.selectedIndex === -1) {
-          ;(args.node as HTMLSelectElement).selectedIndex = 0
-        }
+        if ((args.node as HTMLSelectElement)?.selectedIndex === -1)
+          (args.node as HTMLSelectElement).selectedIndex = 0
       } else if (Identify.textBoard(original)) {
         const { textBoard, text } = args.component.props
         if (u.isArr(args.component)) {

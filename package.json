@@ -54,7 +54,8 @@
     "signature_pad": "^3.0.0-beta.4",
     "tippy.js": "^6.3.1",
     "util": "^0.12.3",
-    "vercel-toast": "^1.5.3"
+    "vercel-toast": "^1.5.3",
+    "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
     "@aitmed/cadl": "^1.0.362",
@@ -79,6 +80,7 @@
     "@types/node": "^15.14.0",
     "@types/sinon": "^10.0.0",
     "@types/sinon-chai": "^3.2.5",
+    "@types/virtual-dom": "^2.1.1",
     "@types/webpack-dev-server": "^3.11.3",
     "@types/webpack-env": "^1.16.1",
     "@typescript-eslint/eslint-plugin": "^4.29.2",
@@ -92,6 +94,7 @@
     "crypto-browserify": "^3.12.0",
     "css-loader": "^5.2.6",
     "del": "^4.1.1",
+    "dom-delegator": "^13.1.0",
     "dotenv": "^10.0.0",
     "esbuild": "^0.12.6",
     "esbuild-loader": "^2.13.1",
@@ -130,7 +133,7 @@
     "single-line-log": "^1.1.2",
     "sinon": "^10.0.0",
     "sinon-chai": "^3.6.0",
-    "snabbdom": "^3.0.3",
+    "snabbdom": "^0.7.2",
     "stream-browserify": "^3.0.0",
     "style-loader": "^2.0.0",
     "ts-loader": "^9.2.2",

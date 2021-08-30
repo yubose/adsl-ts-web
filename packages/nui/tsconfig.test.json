@@ -3,10 +3,9 @@
     "transpileOnly": true
   },
   "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2017"
+    "emitDeclarationOnly": false
   },
   "extends": "./tsconfig.json",
   "exclude": ["node_modules"],
-  "include": ["src/**/*.test.ts"]
+  "include": ["./src/**/*.test.ts"]
 }
