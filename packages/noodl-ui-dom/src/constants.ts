@@ -56,6 +56,7 @@ export const eventId = {
     on: {
       ON_LOAD: 'ON_LOAD',
       ON_ERROR: 'ON_ERROR',
+      ON_MESSAGE: 'ON_MESSAGE',
     },
   },
   page: {

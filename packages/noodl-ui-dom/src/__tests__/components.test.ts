@@ -13,7 +13,6 @@ import { event as nuiEvent, NUI, NUIComponent } from 'noodl-ui'
 import {
   _defaults,
   createRender as _createRender,
-  getPageComponentChildIds,
   ui,
   ndom,
   waitForPageChildren,
