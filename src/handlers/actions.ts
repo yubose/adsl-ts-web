@@ -627,6 +627,7 @@ const createActions = function createActions(app: App) {
           const component = app.cache.component.get(node.id)?.component
           if (isComponent(component)) {
             const signaturePad = component.get('signaturePad') as SignaturePad
+            console.log('test',signaturePad)
             if (signaturePad) {
               signaturePad.clear()
               log.grey(
@@ -652,7 +653,7 @@ const createActions = function createActions(app: App) {
         toast((error as Error).message, { type: 'error' })
       }
     }
-
+    
   const saveSignature: Store.ActionObject['fn'] = function onSaveSignature(
     action,
     options,
@@ -667,6 +668,7 @@ const createActions = function createActions(app: App) {
         if (component) {
           const signaturePad = component.get('signaturePad') as SignaturePad
           if (signaturePad) {
+            let isEmpty = _pick(action, 'isEmpty')
             let dataKey = _pick(action, 'dataKey')
             let dataObject = isRootDataKey(dataKey)
               ? app.root
@@ -675,6 +677,9 @@ const createActions = function createActions(app: App) {
             let mimeType = dataUrl.split(';')[0].split(':')[1] || ''
             if (has(dataObject, dataKey)) {
               getBlobFromCanvas(node, mimeType).then((blob) => {
+                if(isEmpty){
+                  set(dataObject, isEmpty, signaturePad._isEmpty)
+                }
                 set(dataObject, dataKey, blob)
                 log.func('saveSignature')
                 log.grey(`Saved blob to "${dataKey}"`, {
