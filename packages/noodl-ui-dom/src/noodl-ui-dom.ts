@@ -1,6 +1,20 @@
 import invariant from 'invariant'
 import { Identify, PageObject } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
+import {
+  init,
+  classModule,
+  propsModule,
+  styleModule,
+  eventListenersModule,
+  h,
+  toVNode,
+} from 'snabbdom'
+import diff from 'virtual-dom/diff'
+import createElement from 'virtual-dom/create-element'
+import patch from 'virtual-dom/patch'
+import VNode from 'virtual-dom/vnode/vnode'
+import VText from 'virtual-dom/vnode/vtext'
 import type {
   ConsumerOptions,
   NUIComponent,
@@ -381,6 +395,139 @@ class NDOM extends NDOMInternal {
     page.setStatus(c.eventId.page.status.COMPONENTS_RENDERED)
 
     return components as NUIComponent.Instance[]
+  }
+
+  async draw_<C extends NUIComponent.Instance>(
+    component: C,
+    container?: t.NDOMElement | null,
+    pageProp?: NDOMPage,
+    options?: {
+      callback?: ConsumerOptions['callback']
+      context?: Record<string, any>
+      /**
+       * Callback called when a page component finishes loading its element in the DOM. The resolvers are run on the page node before this callback fires. The caller is responsible for handling the page component's children
+       * @param options
+       */
+      onPageComponentLoad?(options: {
+        event: Event
+        node: HTMLIFrameElement
+        component: C
+        page: NDOMPage
+      }): void
+    },
+  ) {
+    let node: t.NDOMElement | null = null
+    let vnode: t.VNode | null = null
+    let page: NDOMPage = pageProp || this.page
+
+    if (component) {
+      const vnode = h(getElementTag(component), {}, [])
+      if (i._isPluginComponent(component)) {
+        vnode = h(getElementTag(component), {}, [])
+        // We will delegate the role of the node creation to the consumer (only enabled for plugin components for now)
+        // const getNode = (elem: HTMLElement) => (node = elem)
+        await this.#R.run({
+          ndom: this,
+          vnode,
+          component,
+          page,
+          resolvers: this.resolvers,
+        })
+        return createElement(vnode)
+      } else if (Identify.component.image(component)) {
+        if (this.#createElementBinding) {
+          vnode = this.#createElementBinding(component)
+        }
+
+        if (!vnode) {
+          try {
+            if (Identify.folds.emit(component.blueprint?.path)) {
+              try {
+                vnode = h('img', { src: component.get(c.DATA_SRC) }, [])
+              } catch (error) {
+                console.error(error)
+              }
+            }
+          } catch (error) {
+            console.error(error)
+          }
+        }
+        !vnode && (vnode = h('img', {}, []))
+      } else {
+        node = this.#createElementBinding?.(component) || null
+        vnode && (vnode.properties.attributes['isElementBinding'] = true)
+        !vnode && (vnode = h(getElementTag(component), {}, []))
+      }
+
+      if (component.has?.('global')) {
+        i.handleDrawGlobalComponent.call(this, vnode, component, page)
+      }
+    }
+
+    if (vnode) {
+      const parent = component.has?.('global')
+        ? document.body
+        : container || document.body
+
+      // NOTE: This needs to stay above the code below or the children will
+      // not be able to access their parent during the resolver calls
+      // !parent.contains(node) && parent.appendChild(node)
+
+      if (Identify.component.page(component)) {
+        if (options?.onPageComponentLoad) {
+          vnode['ev-load'] = function (evt: Event) {
+            return options?.onPageComponentLoad?.({
+              event: evt,
+              node: node as HTMLIFrameElement,
+              component,
+              page,
+            })
+          }
+        } else {
+          await this.#R.run({
+            ndom: this,
+            vnode,
+            component,
+            page,
+            resolvers: this.resolvers,
+          })
+          if (!component.length) return createElement(vnode)
+        }
+      } else {
+        await this.#R.run({
+          ndom: this,
+          vnode,
+          component,
+          page,
+          resolvers: this.resolvers,
+        })
+
+        node = createElement(vnode)
+
+        /**
+         * Creating a document fragment and appending children to them is a
+         * minor improvement in first contentful paint on initial loading
+         * https://web.dev/first-contentful-paint/
+         */
+        let childrenContainer = Identify.component.list(component)
+          ? document.createDocumentFragment()
+          : createElement(vnode)
+
+        for (const child of component.children) {
+          const childNode = await this.draw(child, node, page, options)
+
+          childNode && childrenContainer?.appendChild(childNode)
+        }
+
+        if (
+          childrenContainer.nodeType ===
+          childrenContainer.DOCUMENT_FRAGMENT_NODE
+        ) {
+          node && node.appendChild(childrenContainer)
+        }
+        childrenContainer = null as any
+      }
+    }
   }
 
   /**

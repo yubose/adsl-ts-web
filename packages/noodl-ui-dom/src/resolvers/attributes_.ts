@@ -5,6 +5,7 @@ import createElement from 'virtual-dom/create-element'
 import patch from 'virtual-dom/patch'
 import VNode from 'virtual-dom/vnode/vnode'
 import VText from 'virtual-dom/vnode/vtext'
+import Delegator from 'dom-delegator'
 import startOfDay from 'date-fns/startOfDay'
 import { Identify, userEvent } from 'noodl-types'
 import { dataAttributes, NUIComponent } from 'noodl-ui'
@@ -70,27 +71,41 @@ function handleKeyPress<N extends t.NDOMElement>(node: N) {
   node.addEventListener('keypress', onKeyPress.bind(null, node))
 }
 
-const attributesResolver: t.Resolve.Config = {
-  name: `[noodl-ui-dom] attributes`,
-  async before({ elementType, component, node, setAttr, setStyleAttr }) {
-    if (node && component) {
-      setAttr('id', component.id || '')
-      if (elementType === 'SCRIPT') {
-        if (component.has('global')) {
-          if (!component.get('data-src')) {
-            component.on('image', (src: string) =>
-              setStyleAttr('backgroundImage', `url("${src}")`),
-            )
-          }
-          setStyleAttr('backgroundImage', `url("${component.get('data-src')}")`)
+const attributesResolver: t.Resolve_.Config = {
+  name: `[ndom] attributes`,
+  async before({ elementType, component, vnode, setAttr, setStyleAttr }) {
+    const props = { id: component.id || '' } as Record<string, any>
+    const styles = {} as Record<string, any>
+
+    if (elementType === 'SCRIPT') {
+      if (component.has('global')) {
+        if (!component.get('data-src')) {
+          component.on('image', (src: string) => {
+            setStyleAttr('backgroundImage', `url("${src}")`)
+          })
         }
+        setStyleAttr('backgroundImage', `url("${component.get('data-src')}")`)
       }
+    }
+    return {
+      id: component.id || '',
     }
   },
   async resolve(args) {
     const { elementType, setAttr, setDataAttr, setStyleAttr } = args
 
-    if (args.node) {
+    if (args.vnode) {
+      if (elementType === 'SCRIPT') {
+        if (component.has('global')) {
+          if (!component.get('data-src')) {
+            component.on('image', (src: string) => {
+              setStyleAttr('backgroundImage', `url("${src}")`)
+            })
+          }
+          setStyleAttr('backgroundImage', `url("${component.get('data-src')}")`)
+        }
+      }
+
       if (args.component) {
         const { path, placeholder, style, textBoard } =
           args.component.blueprint || {}
@@ -99,22 +114,22 @@ const attributesResolver: t.Resolve.Config = {
           ---- GENERAL / COMMON DOM NODES
         -------------------------------------------------------- */
         attachText(
-          args.node,
+          args.vnode,
           args.component?.get?.(c.DATA_VALUE),
           args.component?.blueprint?.text,
         )
         /* -------------------------------------------------------
           ---- DATA-ATTRIBUTES
         -------------------------------------------------------- */
-        attachDataAttrs(args.node, args.component, setAttr, setDataAttr)
+        attachDataAttrs(args.vnode, args.component, setAttr, setDataAttr)
         /* -------------------------------------------------------
           ---- EVENTS
         -------------------------------------------------------- */
-        attachUserEvents(args.node, args.component)
+        attachUserEvents(args.vnode, args.component)
         /* -------------------------------------------------------
           ---- ENTER KEY FOR INPUTS
         -------------------------------------------------------- */
-        elementType === 'INPUT' && handleKeyPress(args.node)
+        elementType === 'INPUT' && handleKeyPress(args.vnode)
         /* -------------------------------------------------------
           ---- NON TEXTFIELDS
         -------------------------------------------------------- */
@@ -130,7 +145,7 @@ const attributesResolver: t.Resolve.Config = {
             text = (u.isStr(dataValue) ? dataValue : text) || text || ''
             !text && placeholder && (text = placeholder)
             !text && (text = '')
-            text && args.node && setAttr('innerHTML', `${text}`)
+            text && args.vnode && setAttr('innerHTML', `${text}`)
           }
         }
 
@@ -167,7 +182,7 @@ const attributesResolver: t.Resolve.Config = {
         /* -------------------------------------------------------
           ---- STYLES
         -------------------------------------------------------- */
-        if (!i._isScriptEl(args.node) && u.isObj(style)) {
+        if (!i._isScriptEl(args.vnode) && u.isObj(style)) {
           u.isObj(args.component.style.textAlign) &&
             delete args.component.style.textAlign
 
@@ -180,13 +195,13 @@ const attributesResolver: t.Resolve.Config = {
 
           for (const [k, v] of u.entries(args.component.style)) {
             if (Number.isFinite(Number(k))) continue
-            args.node.style && setStyleAttr(k as any, String(v))
+            args.vnode.style && setStyleAttr(k as any, String(v))
           }
 
           if (Identify.component.canvas(args.component)) {
-            if (args.node.parentElement) {
-              const parentWidth = args.node.parentElement.style.width
-              const parentHeight = args.node.parentElement.style.height
+            if (args.vnode.parentElement) {
+              const parentWidth = args.vnode.parentElement.style.width
+              const parentHeight = args.vnode.parentElement.style.height
               setAttr('width', Number(parentWidth.replace(/[a-zA-Z]+/g, '')))
               setAttr('height', Number(parentHeight.replace(/[a-zA-Z]+/g, '')))
               setStyleAttr('width', parentWidth)
@@ -231,7 +246,7 @@ const attributesResolver: t.Resolve.Config = {
               })
             })
           } else {
-            args.node &&
+            args.vnode &&
               setAttr('textContent', args.component.get('data-value') || '')
           }
         }
@@ -260,7 +275,7 @@ const attributesResolver: t.Resolve.Config = {
               u.isStr(className)
                 ? className
                 : classes[name]?.['className'] || '',
-              args.node,
+              args.vnode,
             ),
           u.entries(classes),
         )

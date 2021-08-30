@@ -7,12 +7,18 @@ import {
   Store,
   UseArg as NUIUseObject,
 } from 'noodl-ui'
+import { VProperties, VNode as _VNode, VText as _VText } from 'virtual-dom'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
-import NDOMResolver from './Resolver'
+import NDOMResolver, { NDOMResolver_ } from './Resolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import GlobalTimers from './global/Timers'
 import { eventId, triggers } from './constants'
+
+export type VNode = _VNode
+export type VNodeAttributes = Record<string, any>
+export type VNodeStyle = keyof CSSStyleDeclaration
+export type VText = _VText
 
 export interface IGlobalObject<T extends string = string> {
   type: T
@@ -100,6 +106,38 @@ export type ElementBinding = Map<
   'audioStream' | 'videoStream',
   (component: NUIComponent.Instance) => HTMLElement | null
 >
+
+export namespace Resolve_ {
+  export interface BaseOptions<N extends VNode> {
+    vnode: N
+    component: NUIComponent.Instance
+    page?: NDOMPage
+  }
+
+  export interface Config<N extends VNode = VNode> {
+    name?: string
+    cond?: LiteralUnion<ComponentType, string> | Resolve_.Func<N, boolean>
+    init?: Resolve_.Func<N>
+    before?: Resolve_.Func<N>
+    resolve?: Resolve_.Func<N>
+    after?: Resolve_.Func<N>
+  }
+
+  export interface Func<N extends VNode, RT = void> {
+    (
+      options: ReturnType<NDOMResolver_['getOptions']> &
+        Resolve_.BaseOptions<N>,
+    ): RT
+  }
+
+  export interface LifeCycle {
+    before: Resolve_.Config[]
+    resolve: Resolve_.Config[]
+    after: Resolve_.Config[]
+  }
+
+  export type LifeCycleEvent = 'before' | 'resolve' | 'after'
+}
 
 export namespace Resolve {
   export interface BaseOptions<

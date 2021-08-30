@@ -1,6 +1,1 @@
-{
-  "@aitmed/web-common-utils": {
-    "prefix": "aitutils",
-    "body": "const u = require('@aitmed/web-common-utils')"
-  }
-}
+{}

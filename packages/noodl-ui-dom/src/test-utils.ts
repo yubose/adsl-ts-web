@@ -16,6 +16,8 @@ import NOODLDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import { _syncPages } from './utils/internal'
 import { findBySelector } from './utils'
+import { nui } from './nui'
+import * as t from './types'
 
 export const ui = { ...actionFactory, ...componentFactory }
 
@@ -247,4 +249,39 @@ export function getPageComponentChildIds(component: NUIComponent.Instance) {
   return ndom.cache.component.reduce((acc, obj) => {
     return obj.page === pageName ? acc.concat(obj.component.id) : acc
   }, [] as string[])
+}
+
+export function render(components: ComponentObject[]): Promise<t.NDOMElement[]>
+export function render(component: ComponentObject): Promise<t.NDOMElement>
+export async function render(options: ComponentObject | ComponentObject[]) {
+  let components: ComponentObject[] = []
+  let isArr = false
+  let page = ndom.createPage(nui.createPage({ id: 'root' }) as NUIPage)
+  page.requesting = _defaults.pageName || ''
+  let pageObject = { ..._defaults.root[page.requesting] }
+  let root = { ..._defaults.root }
+  page.requesting && (root[page.requesting] = { ...pageObject })
+
+  if (u.isArr(options)) {
+    isArr = true
+    components.push(...(await nui.resolveComponents(options)))
+  } else if (u.isObj(options)) {
+    if ('type' in options) {
+      components.push(await nui.resolveComponents(options))
+    }
+  }
+
+  ndom.use({
+    getAssetsUrl: () => _defaults.assetsUrl,
+    getBaseUrl: () => _defaults.baseUrl,
+    getPages: () => [page.requesting],
+    getPreloadPages: () => [],
+    getRoot: () => ({ ...root, [page.requesting]: root[_defaults.pageName] }),
+    transaction: {
+      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (page) =>
+        root[page.requesting],
+    },
+  })
+
+  return isArr ? u.array(await ndom.render(page)) : await ndom.render(page)
 }

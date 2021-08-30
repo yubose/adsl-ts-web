@@ -263,7 +263,8 @@ resolveStyles.setResolver(async (component, options, next) => {
       ---- SIZES
     -------------------------------------------------------- */
 
-    const { width, height,maxHeight,maxWidth,minHeight,minWidth} = originalStyles
+  const { width, height, maxHeight, maxWidth, minHeight, minWidth } =
+    originalStyles
 
   if (!isNil(width)) {
     edit({ width: String(util.getSize(width as any, viewport.width)) })
@@ -284,20 +285,19 @@ resolveStyles.setResolver(async (component, options, next) => {
     }
   }
 
-    //maxHeight,maxWidth,miniHeight,miniWidth
-    if(!isNil(maxHeight)){
-      edit({ maxHeight: String(util.getSize(maxHeight as any, viewport.height)) })
-    }
-    if(!isNil(maxWidth)){
-      edit({ maxWidth: String(util.getSize(maxWidth as any, viewport.width)) })
-    }
-    if(!isNil(minHeight)){
-      edit({ minHeight: String(util.getSize(minHeight as any, viewport.height)) })
-    }
-    if(!isNil(minWidth)){
-      edit({ minWidth: String(util.getSize(minWidth as any, viewport.width)) })
-    }
-
+  //maxHeight,maxWidth,miniHeight,miniWidth
+  if (!isNil(maxHeight)) {
+    edit({ maxHeight: String(util.getSize(maxHeight as any, viewport.height)) })
+  }
+  if (!isNil(maxWidth)) {
+    edit({ maxWidth: String(util.getSize(maxWidth as any, viewport.width)) })
+  }
+  if (!isNil(minHeight)) {
+    edit({ minHeight: String(util.getSize(minHeight as any, viewport.height)) })
+  }
+  if (!isNil(minWidth)) {
+    edit({ minWidth: String(util.getSize(minWidth as any, viewport.width)) })
+  }
 
   /* -------------------------------------------------------
     ---- COMPONENTS
