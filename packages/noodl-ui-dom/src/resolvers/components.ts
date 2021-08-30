@@ -513,7 +513,7 @@ const componentsResolver: t.Resolve.Config = {
 
                   const getChildrenComponents = async (
                     parent: NUIComponent.Instance,
-                    componentObjects: OrArray<ComponentObject>,
+                    componentObjects: OrArray<ComponentObject> = [],
                   ): Promise<NUIComponent.Instance[]> =>
                     Promise.all(
                       componentObjects.map(async (obj: ComponentObject) =>
@@ -524,7 +524,7 @@ const componentsResolver: t.Resolve.Config = {
                           page: componentPage.getNuiPage(),
                         }),
                       ),
-                    )
+                    ) || []
 
                   await Promise.all(
                     (
