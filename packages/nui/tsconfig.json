@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "dist",
+    "esModuleInterop": true,
+    "keyofStringsOnly": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmitOnError": false,
+    "outDir": "dist",
+    "sourceMap": true,
+    "strictNullChecks": true,
+    "skipLibCheck": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "esnext"
+  },
+  "exclude": ["node_modules/**/*"],
+  "include": ["src/**/*"]
+}
