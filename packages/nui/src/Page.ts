@@ -1,7 +1,9 @@
 import type { LiteralUnion } from 'type-fest'
 import type { VNode } from 'snabbdom/vnode'
 import { h, init } from 'snabbdom'
+import dom from 'snabbdom/htmldomapi'
 import tovnode from 'snabbdom/tovnode'
+import thunk from 'snabbdom/thunk'
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import { getRandomKey } from './utils/internal'
@@ -12,9 +14,9 @@ import * as c from './constants'
 import * as i from './utils/internal'
 import * as t from './types'
 
-type OnChangeFn = (prevPage: string, newPage: string) => void
-interface ConstructorOptions {
+export interface ConstructorOptions<N extends HTMLElement = HTMLElement> {
   container?: HTMLElement
+  node?: N | (() => N)
   width?: number
   height?: number
   id?: NuiPage['id']
@@ -25,6 +27,7 @@ let rootInstantiated = false
 
 class NuiPage {
   #id: LiteralUnion<'root', string>
+  #node: HTMLElement
   #vnode: VNode
   #page = ''
   #viewport: NuiViewport
@@ -40,6 +43,7 @@ class NuiPage {
       created: this.created,
       defaults: this.defaults,
       id: this.id,
+      vnode: this.#vnode,
       page: this.page,
       viewport: this.viewport,
     }
@@ -60,7 +64,7 @@ class NuiPage {
     let _id = ''
     let _container: HTMLElement | null = null
 
-    if (options === undefined) {
+    if (options === undefined || !arguments.length) {
       this.#viewport = new NuiViewport()
     } else if (isNuiViewport(options)) {
       this.#viewport = options
@@ -73,6 +77,8 @@ class NuiPage {
     } else {
       options.container && (_container = options.container)
       options.id && (_id = options.id)
+      if (u.isFnc(options.node)) this.#node = options.node()
+      else if (options.node) this.#node = options.node
       isNuiViewport(options.viewport) && (this.#viewport = options.viewport)
       if ('width' in options || 'height' in options) {
         if (!isNuiViewport(options.viewport)) this.#viewport = new NuiViewport()
@@ -82,20 +88,17 @@ class NuiPage {
         })
       }
     }
-
     this.#id = !rootInstantiated ? 'root' : _id || getRandomKey()
-    this.#vnode = tovnode(document.createElement('div'))
+    !this.#node && (this.#node = document.createElement('div'))
+    this.#node.id = this.id
+    _container = _container || document.body
+    !_container.contains(this.#node) && _container.appendChild(this.#node)
     this.created = Date.now()
-    const newVnode = patch(this.vnode, h(`div#${this.#id}`, { id: this.#id }))
-    newVnode.elm && (_container || document.body).appendChild(newVnode.elm)
+    this.#vnode = patch(this.#node, h(`div#${this.#id}`, { id: this.#id }))
   }
 
-  get elem() {
-    return this.vnode.elm
-  }
-
-  get vnode() {
-    return this.#vnode
+  get node() {
+    return this.#node
   }
 
   get id() {
@@ -120,27 +123,24 @@ class NuiPage {
     return this.#viewport || null
   }
 
-  draw(component: nt.ComponentObject, container = this.elem as HTMLElement) {
-    return container
-      ? patch(
-          container,
-          h(i.getElementType(this.defaults.componentMap, component)),
-        )
-      : null
+  draw(component: nt.ComponentObject, container = this.node) {
+    return patch(
+      container,
+      h(i.getElementType(this.defaults.componentMap, component)),
+    )
   }
 
-  render(component: nt.ComponentObject, container = this.elem) {
+  render(component: nt.ComponentObject, container = this.node) {
     const vnode = this.draw(component)
     console.log(vnode)
 
     if (vnode?.elm) {
-      container && patch(container, vnode)
+      container && (this.#vnode = patch(container, vnode))
     } else {
-      console.log(`%cNo element found for vnode`, `color:#ec0000;`, {
-        component,
-        vnode,
-      })
+      console.log(`%cNo element found for vnode`, `color:#ec0000;`)
     }
+
+    return vnode
   }
 
   // toJSON() {

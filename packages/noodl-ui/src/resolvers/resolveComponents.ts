@@ -142,9 +142,10 @@ componentResolver.setResolver(async (component, options, next) => {
           component.toJSON(),
         )
       }
+
       try {
         // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
-        if (getPages().includes(pageName)) {
+        if (getPages().includes(pageName) || pageName === '') {
           const onPageChange = async (initializing = false) => {
             await emit({
               type: c.nuiEmitType.TRANSACTION,
@@ -157,21 +158,13 @@ componentResolver.setResolver(async (component, options, next) => {
             })
           }
           component.on(c.nuiEvent.component.page.PAGE_CHANGED, onPageChange)
-          await onPageChange(true)
-        } else {
+          getPages().includes(pageName) && (await onPageChange(true))
+        } else if (pageName.endsWith('.html')) {
           // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
-          if (pageName.endsWith('.html')) {
-            if (!pageName.startsWith('http')) {
-              nuiPage.page = resolveAssetUrl(pageName, getAssetsUrl())
-            } else {
-              nuiPage.page = pageName
-            }
+          if (!pageName.startsWith('http')) {
+            nuiPage.page = resolveAssetUrl(pageName, getAssetsUrl())
           } else {
-            console.log(
-              `%cRemote link for a page component is not an HTML page. ` +
-                `Only HTML pages are supported when loading third party interfaces`,
-              `color:#95a5a6;`,
-            )
+            nuiPage.page = pageName
           }
         }
       } catch (err) {

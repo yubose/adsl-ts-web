@@ -560,7 +560,7 @@ describe(nc.coolGold('components'), () => {
       })
     })
 
-    xit(`should update the root object which should also reflect in the root page`, async () => {
+    it.only(`should update the root object which should also reflect in the root page`, async () => {
       const { getRoot, render: renderProp, nui } = createRender()
       nui.use({
         emit: {

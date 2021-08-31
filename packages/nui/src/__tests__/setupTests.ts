@@ -1,7 +1,12 @@
+import JSDOM from 'jsdom-global'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import chai from 'chai'
-import Nui from '../nui'
+
+JSDOM('', {
+  resources: 'usable',
+  runScripts: 'dangerously',
+})
 
 chai.use(sinonChai)
 
@@ -28,6 +33,8 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  document.body.textContent = ''
+  document.head.innerHTML = ''
+  document.body.innerHTML = ''
+  console.log(document)
   // Nui.reset()
 })

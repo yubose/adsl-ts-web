@@ -633,7 +633,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       await Promise.all(
-        components.map((_component) => {
+        components.map(async (_component) => {
           const _node = getFirstByElementId(_component)
 
           if (!_node) {
