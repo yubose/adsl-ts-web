@@ -40,7 +40,7 @@ describe(nc.coolGold('components'), () => {
 
     beforeEach(() => {
       Donut = {
-        formData,
+        formData: { ...formData, fullName: 'Mark Twain' },
         components: [
           {
             type: 'view',
@@ -552,7 +552,7 @@ describe(nc.coolGold('components'), () => {
       })
     })
 
-    xit(`should update the root object which should also reflect in the root page`, async () => {
+    it.only(`should update the root object which should also reflect in the root page`, async () => {
       const {
         getRoot,
         render: renderProp,
@@ -583,20 +583,21 @@ describe(nc.coolGold('components'), () => {
         getPages: () => ['SignIn', 'Donut', 'Hello'],
       })
       const view = await renderProp()
+      const textField = view.child()
       const page = view.child(1)
       expect(getRoot().Donut.formData).to.have.property('password', 'fruits')
 
       await waitFor(() => {
         const pageNode = findBySelector('page') as HTMLIFrameElement
-        const children = pageNode?.contentDocument?.body
-        expect(children).to.exist
+        const pageBody = pageNode?.contentDocument?.body
+        expect(pageBody).to.exist
         // const componentPage = page.get('page') as ComponentPage
         // expect(componentPage?.rootNode).to.exist
         // // expect(componentPage?.body).to.exist
         // // console.info(prettyDOM(pageNode.contentDocument.body))
-        const childNodes = pageNode.childNodes
-        expect(childNodes).to.exist
-        expect(childNodes).to.have.lengthOf(1)
+        const children = pageBody?.children
+        expect(children).to.exist
+        expect(children).to.have.lengthOf(1)
         // const input = childNodes.item(0) as HTMLInputElement
         // expect(input).to.be.instanceOf(HTMLInputElement)
         // input.dispatchEvent(new Event('change'))
