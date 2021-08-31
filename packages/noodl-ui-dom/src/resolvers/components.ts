@@ -655,11 +655,11 @@ const componentsResolver: t.Resolve.Config = {
 
         clearOptions(args.node as HTMLSelectElement)
 
-        if (u.isArr(selectOptions)) {
-          setSelectOptions(args.node as HTMLSelectElement, selectOptions)
-        } else if (u.isStr(selectOptions) || (dataKey && u.isStr(dataKey))) {
-          // Retrieved through reference
-        }
+        // if (u.isArr(selectOptions)) {
+        //   setSelectOptions(args.node as HTMLSelectElement, selectOptions)
+        // } else if (u.isStr(selectOptions) || (dataKey && u.isStr(dataKey))) {
+        //   // Retrieved through reference
+        // }
 
         args.component.on('options', (dataOptions: any[]) => {
           setSelectOptions(args.node as HTMLSelectElement, dataOptions)
