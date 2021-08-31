@@ -22,20 +22,32 @@ class Translators {
     this.translators.set(key, curr)
   }
 
-  remove(translator: string | t.Resolve.TranslateConfig) {
-    if (u.isStr(translator)) {
-      //
-    } else {
-      if (this.#translators.includes(translator)) {
-        this.#translators.splice(this.#translators.indexOf(translator), 1)
-      }
-    }
-  }
+  // remove(translator: string | t.Resolve.TranslateConfig) {
+  //   if (u.isStr(translator)) {
+  //     //
+  //   } else {
+  //     if (this.#translators.includes(translator)) {
+  //       this.#translators.splice(this.#translators.indexOf(translator), 1)
+  //     }
+  //   }
+  // }
 
   execute<K extends string = string>(key: K) {
-    for (const translate of this.#translators) {
-      translate.execute(key)
+    for (const translators of this.#translators.values()) {
+      for (const tconfig of translators) {
+        if (tconfig.key === key) {
+        }
+      }
     }
+    return u.reduce(
+      [...this.translators.values()],
+      (acc, tconfig) => {
+        if (tconfig === key) {
+        }
+        return acc
+      },
+      [],
+    )
   }
 }
 
