@@ -161,4 +161,28 @@ NUI.emit({
 
 - Wrapped ndom func
   - `onRequestPageObject` (transactions.ts)
-    - `getPageObject` (App.ts)
+    - `getPageObject` (Ap
+
+## Doc object
+
+- Flags:
+  - read (bit #2)
+  - write (bit #3)
+- Trash
+- Sent
+- Folder
+  - creating (3840)
+    - can create a tag (3589)
+- Create
+- bvid --> evid (creates message)
+  - e10002
+    - encryption key is placed here
+    - doc msg type: d128
+- Tag (3584)
+  - Can be used to resolve conflicts (ex: person deletes the doc but the other person didnt)
+  - uses fid to find folder tag
+  - uses reid to find
+- Draft
+  - Goes in root notebook (since it is a personal file)
+- There are now 2 notebooks (root and)
+  - e10002 bvid --> evid

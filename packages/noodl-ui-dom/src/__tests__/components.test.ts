@@ -40,7 +40,7 @@ describe(nc.coolGold('components'), () => {
 
     beforeEach(() => {
       Donut = {
-        formData,
+        formData: { ...formData, fullName: 'Mark Twain' },
         components: [
           {
             type: 'view',
@@ -468,14 +468,6 @@ describe(nc.coolGold('components'), () => {
       })
     })
 
-    xit(`should set its rootNode to the node that is rendering`, () => {
-      //
-    })
-
-    xit(`should eventually receive the page components`, () => {
-      //
-    })
-
     it(`should render normally as with non page components`, async () => {
       const listObject = [
         { greeting: 'good morning', btnText: 'Click' },
@@ -560,31 +552,59 @@ describe(nc.coolGold('components'), () => {
       })
     })
 
-    xit(`should update the root object which should also reflect in the root page`, async () => {
-      const { getRoot, render: renderProp, nui } = createRender()
+    it.only(`should update the root object which should also reflect in the root page`, async () => {
+      const {
+        getRoot,
+        render: renderProp,
+        nui,
+      } = createRender({
+        pageName: 'Hello',
+        pageObject: {
+          formData: { password: 'fruits' },
+          infoPage: 'Donut',
+          components: [
+            ui.view({
+              children: [
+                ui.textField('formData.password'),
+                ui.page({
+                  id: 'page123',
+                  path: { if: [true, '..infoPage', '..infoPage'] },
+                }),
+              ],
+            }),
+          ],
+        },
+      })
       nui.use({
         emit: {
           onChange: async () =>
-            void (donutPageObject.formData.password = 'abc123'),
+            void (getRoot().Donut.formData.password = 'abc123'),
         },
         getPages: () => ['SignIn', 'Donut', 'Hello'],
       })
       const view = await renderProp()
+      const textField = view.child()
+      const page = view.child(1)
       expect(getRoot().Donut.formData).to.have.property('password', 'fruits')
-      const page = view.child()
 
       await waitFor(() => {
-        const pageNode = findByElementId(page.id || '') as HTMLIFrameElement
-        const pageChildren = pageNode?.contentDocument?.body
-        expect(pageNode).to.exist
-        expect(pageChildren).to.exist
-        // const input = pageChildrenNodes.item(0) as HTMLInputElement
+        const pageNode = findBySelector('page') as HTMLIFrameElement
+        const pageBody = pageNode?.contentDocument?.body
+        expect(pageBody).to.exist
+        // const componentPage = page.get('page') as ComponentPage
+        // expect(componentPage?.rootNode).to.exist
+        // // expect(componentPage?.body).to.exist
+        // // console.info(prettyDOM(pageNode.contentDocument.body))
+        const children = pageBody?.children
+        expect(children).to.exist
+        expect(children).to.have.lengthOf(1)
+        // const input = childNodes.item(0) as HTMLInputElement
         // expect(input).to.be.instanceOf(HTMLInputElement)
         // input.dispatchEvent(new Event('change'))
         // expect(donutPageObject.formData).to.have.property('password', 'abc123')
       })
       // await waitFor(() => {
-      //   const input = pageChildrenNodes.item(0) as HTMLInputElement
+      //   const input = childNodes.item(0) as HTMLInputElement
       //   expect(input).to.be.instanceOf(HTMLInputElement)
       //   input.dispatchEvent(new Event('change'))
       //   expect(donutPageObject.formData).to.have.property('password', 'abc123')

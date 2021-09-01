@@ -3,16 +3,22 @@
   "description": "eCOS client-side NOODL JavaScript library",
   "devDependencies": {
     "esbuild": "^0.12.24",
-    "esbuild-node-externals": "^1.3.0"
+    "esbuild-node-externals": "^1.3.0",
+    "ts-node": "^10.2.1"
   },
   "directories": {
     "dist": "dist",
     "test": "__tests__"
   },
+  "engines": {
+    "node": ">=14",
+    "npm": ">=6"
+  },
   "files": [
     "dist"
   ],
   "homepage": "",
+  "jsnext:main": "dist/nui.js",
   "keywords": [
     "noodl",
     "ecos",
@@ -23,7 +29,17 @@
   ],
   "license": "ISC",
   "main": "dist/nui.js",
+  "module": "dist/nui.js",
   "name": "nui",
+  "prettier": {
+    "arrowParens": "always",
+    "endOfLine": "lf",
+    "printWidth": 80,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all"
+  },
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
@@ -32,8 +48,9 @@
     "build": "cross-env NODE_ENV=production node esbuild.config.js",
     "prebuild": "rm -rf dist",
     "start": "cross-env NODE_ENV=development node esbuild.config.js",
-    "test": "npm run test:file \"src/**/*.test.ts\"",
+    "test": "cross-env NODE_ENV=test TS_NODE_PROJECT=\"tsconfig.test.json\" ts-mocha -p tsconfig.test.json -r jsdom-global/register --file src/__tests__/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\"",
     "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --file src/__tests__/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\""
   },
+  "typings": "dist/nui.d.ts",
   "version": "0.0.1"
 }

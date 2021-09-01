@@ -273,7 +273,6 @@ export function getNodeIndex<N extends t.NDOMElement>(
     if (node.childElementCount > 1) {
       return [...node.children].findIndex((n) => n === node)
     }
-    debugger
   }
   return -1
 }

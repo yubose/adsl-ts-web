@@ -240,10 +240,11 @@ describe(nc.coolGold(`redraw`), () => {
     it('should render more option children if the data has more items', async () => {
       let options = ['00:00', '00:10']
       let otherOptions = ['00:20', '00:30']
-      let { render } = createRender(mock.getSelectComponent({ options }))
+      let { render } = createRender(ui.select({ options }))
       let component = await render()
       let node = getFirstByElementId(component) as HTMLSelectElement
       let optionsNodes = Array.from(node.options)
+      console.info(prettyDOM(node))
       expect(node.options).to.have.lengthOf(2)
       optionsNodes.forEach((optionNode, index) =>
         expect(optionNode.value).to.eq(options[index]),

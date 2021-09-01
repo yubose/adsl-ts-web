@@ -1,12 +1,9 @@
 {
-  "ts-node": {
-    "transpileOnly": true
-  },
   "compilerOptions": {
+    "allowJs": false,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationDir": "dist",
-    "emitDeclarationOnly": true,
     "esModuleInterop": true,
     "keyofStringsOnly": true,
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -20,6 +17,6 @@
     "suppressImplicitAnyIndexErrors": true,
     "target": "es2017"
   },
-  "exclude": ["node_modules/**/*"],
+  "exclude": ["node_modules/**/*", "src/**/*.test.ts"],
   "include": ["src/**/*"]
 }

@@ -622,17 +622,13 @@ class NDOM extends NDOMInternal {
 
       if (Identify.component.page(component)) {
         if (options?.onPageComponentLoad) {
-          node.addEventListener(
-            'load',
-            function (evt) {
-              return options?.onPageComponentLoad?.({
-                event: evt,
-                node: node as HTMLIFrameElement,
-                component,
-                page,
-              })
-            },
-            { once: true },
+          node.addEventListener('load', (event) =>
+            options?.onPageComponentLoad?.({
+              event,
+              node: node as HTMLIFrameElement,
+              component,
+              page,
+            }),
           )
         } else {
           await this.#R.run({
@@ -762,13 +758,17 @@ class NDOM extends NDOMInternal {
                 )
 
                 for (const childObject of pageObject.components) {
-                  const child = await nui.resolveComponents({
+                  let child = args.component.createChild(
+                    nui.createComponent(
+                      childObject,
+                      args.page.getNuiPage() || v,
+                    ),
+                  )
+                  child = await nui.resolveComponents({
                     callback: options?.callback,
-                    components: childObject,
+                    components: child,
                     page: args.page.getNuiPage() || args.component.get('page'),
                   })
-
-                  args.component.createChild(child)
 
                   const childNode = await this.draw(child, args.node, page, {
                     ...options,
@@ -790,6 +790,14 @@ class NDOM extends NDOMInternal {
                     )
                   }
                 }
+
+                await this.#R.run({
+                  ndom: this,
+                  node: args.node,
+                  component: args.component,
+                  page: args.page,
+                  resolvers: this.resolvers,
+                })
               } else {
                 console.log(
                   `%cDid not receive a DOM node and component inside the call to ` +
