@@ -2,12 +2,6 @@ import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
 import { createEmitDataKey } from 'noodl-utils'
 import { OrArray } from '@jsmanifest/typefest'
-import h from 'virtual-dom/h'
-import diff from 'virtual-dom/diff'
-import createElement from 'virtual-dom/create-element'
-import patch from 'virtual-dom/patch'
-import VNode from 'virtual-dom/vnode/vnode'
-import VText from 'virtual-dom/vnode/vtext'
 import SignaturePad from 'signature_pad'
 import curry from 'lodash/curry'
 import has from 'lodash/has'
@@ -351,9 +345,9 @@ const componentsResolver: t.Resolve.Config = {
         if (args.component.blueprint?.['path=func']) {
           // ;(node as HTMLImageElement).src = '../waiting.png'
           setAttr('src', args.component.get(c.DATA_SRC))
-          args.component.get(c.DATA_SRC).then((path:any)=>{
-            if(path){
-              console.log('load path',path)
+          args.component.get(c.DATA_SRC).then((path: any) => {
+            if (path) {
+              console.log('load path', path)
               setAttr('src', path)
             }
           })
@@ -497,14 +491,21 @@ const componentsResolver: t.Resolve.Config = {
                   _args: typeof args,
                   { type }: Parameters<NUIComponent.Hook['PAGE_COMPONENTS']>[0],
                 ) => {
+                  const isPrevInitialized = !!_args.component.get('initialized')
                   const componentPage = getComponentPage()
 
                   /**
                    * Initiation / first time rendering
                    */
                   if (type === 'init') {
-                    if (componentPage.rootNode !== _args.node) {
-                      componentPage.replaceNode(_args.node as HTMLIFrameElement)
+                    if (!isPrevInitialized) {
+                      _args.component.set('initialized', true)
+
+                      if (componentPage.rootNode !== _args.node) {
+                        componentPage.replaceNode(
+                          _args.node as HTMLIFrameElement,
+                        )
+                      }
                     }
                   }
                   /**
@@ -577,6 +578,13 @@ const componentsResolver: t.Resolve.Config = {
                   `color:#ec0000;`,
                   args,
                 )
+              }
+
+              if (u.isStr(args.component.get('path'))) {
+                onPageComponents(args)({
+                  type: 'init',
+                  page: args.component.get('page') || args.page,
+                })
               }
 
               /**
@@ -655,13 +663,14 @@ const componentsResolver: t.Resolve.Config = {
 
         clearOptions(args.node as HTMLSelectElement)
 
-        // if (u.isArr(selectOptions)) {
-        //   setSelectOptions(args.node as HTMLSelectElement, selectOptions)
-        // } else if (u.isStr(selectOptions) || (dataKey && u.isStr(dataKey))) {
-        //   // Retrieved through reference
-        // }
+        if (u.isArr(selectOptions)) {
+          setSelectOptions(args.node as HTMLSelectElement, selectOptions)
+        } else if (u.isStr(selectOptions) || (dataKey && u.isStr(dataKey))) {
+          // Retrieved through reference
+        }
 
         args.component.on('options', (dataOptions: any[]) => {
+          clearOptions(args.node as HTMLSelectElement)
           setSelectOptions(args.node as HTMLSelectElement, dataOptions)
         })
 

@@ -117,7 +117,14 @@ class ComponentPage<
   #onparentmessage = (evt: MessageEvent) => {
     console.log(`%c[ComponentPage] Received message`, `color:#0047ff;`, evt)
     this.#hooks
-    this.emitSync(c.eventId.componentPage.on.ON_MESSAGE, evt.data)
+    let data
+    try {
+      if (u.isObj(evt.data)) data = evt.data
+      else if (u.isStr(evt.data)) data = JSON.parse(evt.data)
+    } catch (error) {
+      console.error(error)
+    }
+    this.emitSync(c.eventId.componentPage.on.ON_MESSAGE, data)
   }
 
   #onparentmessageerror = (evt: MessageEvent) => {

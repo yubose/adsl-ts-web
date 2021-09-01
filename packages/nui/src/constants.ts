@@ -1,94 +1,94 @@
-import { actionTypes as noodlTypesActionTypes, userEvent } from 'noodl-types'
-import type { NUIActionType } from './types'
+import {
+  actionTypes as noodlTypesActionTypes,
+  componentTypes as noodlTypesComponentTypes,
+  userEvent,
+} from 'noodl-types'
+import type { NuiActionType } from './types'
 
-// Extended constants from this lib
-export const lib = {
-  actionTypes: ['anonymous', 'emit', 'goto', 'toast'],
-  components: ['br'],
-  emitTriggers: [
-    'dataKey',
-    'dataValue',
-    'path',
-    'placeholder',
-    'postMessage',
-    'register',
-  ],
-  dataAttributes: [
-    'data-key',
-    'data-listid',
-    'data-name',
-    'data-globalid',
-    'data-options',
-    'data-placeholder',
-    'data-src',
-    'data-value',
-    'data-viewtag',
-    'data-ux',
-  ],
-} as const
+export const actionTypes = [
+  ...noodlTypesActionTypes,
+  'anonymous',
+  'emit',
+  'goto',
+  'toast',
+] as const
 
-export const actionTypes = [...noodlTypesActionTypes, ...lib.actionTypes]
+export const componentTypes = [...noodlTypesComponentTypes, 'br'] as const
+
+export const emitTriggers = [
+  'dataKey',
+  'dataValue',
+  'path',
+  'placeholder',
+  'postMessage',
+  'register',
+] as const
+
+export const dataAttrs = [
+  'data-key',
+  'data-listid',
+  'data-name',
+  'data-globalid',
+  'data-options',
+  'data-placeholder',
+  'data-src',
+  'data-value',
+  'data-viewtag',
+  'data-ux',
+] as const
 
 export const triggers = [
-  ...lib.emitTriggers,
+  ...emitTriggers,
   ...userEvent,
   'onInput',
   'postMessage',
-]
+] as const
 
-export const cache = {
-  page: {
-    hooks: {
-      PAGE_CREATED: 'PAGE_CREATED',
-      PAGE_REMOVED: 'PAGE_REMOVED',
-      PAGE_UPDATED: 'PAGE_UPDATED',
-    },
-  },
+export const pageCacheHooks = {
+  PAGE_CREATED: 'PAGE_CREATED',
+  PAGE_REMOVED: 'PAGE_REMOVED',
+  PAGE_UPDATED: 'PAGE_UPDATED',
 } as const
 
 export const groupedActionTypes = actionTypes.filter(
   (t) => !/(builtIn|emit|register)/i.test(t),
-) as Exclude<NUIActionType, 'builtIn' | 'emit' | 'register'>[]
+) as Exclude<NuiActionType, 'builtIn' | 'emit' | 'register'>[]
 
-export const presets = {
-  border: {
-    '1': { borderStyle: 'none', borderRadius: '0px' },
-    '2': {
-      borderRadius: '0px',
-      borderStyle: 'none',
-      borderBottomStyle: 'solid',
-    },
-    '3': { borderStyle: 'solid' },
-    '4': { borderStyle: 'dashed', borderRadius: '0px' },
-    '5': { borderStyle: 'none' },
-    '6': { borderStyle: 'solid', borderRadius: '0px' },
-    '7': { borderBottomStyle: 'solid', borderRadius: '0px' },
+export const borderPresets = {
+  '1': { borderStyle: 'none', borderRadius: '0px' },
+  '2': {
+    borderRadius: '0px',
+    borderStyle: 'none',
+    borderBottomStyle: 'solid',
   },
-}
+  '3': { borderStyle: 'solid' },
+  '4': { borderStyle: 'dashed', borderRadius: '0px' },
+  '5': { borderStyle: 'none' },
+  '6': { borderStyle: 'solid', borderRadius: '0px' },
+  '7': { borderBottomStyle: 'solid', borderRadius: '0px' },
+} as const
 
-export const nuiEvent = {
-  component: {
-    list: {
-      ADD_DATA_OBJECT: 'ADD_DATA_OBJECT',
-      DELETE_DATA_OBJECT: 'DELETE_DATA_OBJECT',
-    },
-    page: {
-      PAGE_CREATED: 'PAGE_CREATED',
-      PAGE_CHANGED: 'PAGE_CHANGED',
-      PAGE_COMPONENTS: 'PAGE_COMPONENTS',
-    },
-    textField: {
-      placeholder: 'PLACEHOLDER',
-    },
+export const component = {
+  list: {
+    ADD_DATA_OBJECT: 'ADD_DATA_OBJECT',
+    DELETE_DATA_OBJECT: 'DELETE_DATA_OBJECT',
+  },
+  page: {
+    PAGE_CREATED: 'PAGE_CREATED',
+    PAGE_CHANGED: 'PAGE_CHANGED',
+    PAGE_COMPONENTS: 'PAGE_COMPONENTS',
+  },
+  textField: {
+    placeholder: 'PLACEHOLDER',
   },
 } as const
 
-export const nuiEmitType = {
+export const emitType = {
   REGISTER: 'register',
   TRANSACTION: 'transaction',
 } as const
 
-export const nuiEmitTransaction = {
+export const transaction = {
   REQUEST_PAGE_OBJECT: 'REQUEST_PAGE_OBJECT',
 } as const
 

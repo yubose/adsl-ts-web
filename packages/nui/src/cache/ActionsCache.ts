@@ -1,12 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import type { LiteralUnion } from 'type-fest'
 import type { NuiActionType, NuiTrigger, Store } from '../types'
-import { inspect } from '../utils/internal'
-import {
-  actionTypes as allActionTypes,
-  groupedActionTypes,
-  triggers,
-} from '../constants'
+import { groupedActionTypes, triggers } from '../constants'
 
 type OtherActionTypes = Exclude<
   LiteralUnion<NuiActionType, string>,
@@ -26,37 +21,13 @@ type ActionsStore<AType extends string, StoreObj = any> = Map<
   StoreObj[]
 >
 
-const getDefaultState = () =>
-  allActionTypes.reduce(
-    (acc, type) => {
-      acc[type] = {
-        executor: {
-          calls: { count: 0, timestamps: [] },
-        },
-      }
-      return acc
-    },
-    {} as Record<
-      NuiActionType,
-      {
-        executor: {
-          calls: {
-            count: number
-            timestamps: { id: number; timestamp: string }[]
-          }
-        }
-      }
-    >,
-  )
-
 class ActionsCache<ETrigger extends string = string> {
   #actions: ActionsStore<OtherActionTypes, Store.ActionObject>
   #builtIns: ActionsStore<'builtIn', Store.BuiltInObject>
   #emits: ActionsStore<
     LiteralUnion<NuiTrigger | ETrigger, string>,
     Store.ActionObject[]
-  >
-  state = getDefaultState();
+  >;
 
   [Symbol.iterator]() {
     const items = [
@@ -69,7 +40,7 @@ class ActionsCache<ETrigger extends string = string> {
     }
   }
 
-  [inspect]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       ...this,
       length: this.length,
@@ -108,7 +79,6 @@ class ActionsCache<ETrigger extends string = string> {
     this.#actions.clear()
     this.#builtIns.clear()
     this.#emits.clear()
-    this.state = getDefaultState()
   }
 
   exists(fn: Store.ActionObject['fn'] | Store.BuiltInObject['fn']) {

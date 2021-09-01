@@ -97,7 +97,7 @@ async function initializeApp(
   window.app = app
   ////////////////////////////////////////////////////////////
   await app.initialize()
-  // app.navigate('VisitQuestionnaire')
+  app.navigate('ScheduleManagementRoom')
   return app
 }
 
