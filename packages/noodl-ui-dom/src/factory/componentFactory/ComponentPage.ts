@@ -72,6 +72,12 @@ class ComponentPage<
 
     window?.addEventListener('message', this.#onparentmessage)
     window?.addEventListener('messageerror', this.#onparentmessageerror)
+    window?.addEventListener?.('unload', (evt) =>
+      console.info(`UNLOADING FROM COMPONENT PAGE ${this.id}`, {
+        event: evt,
+        instance: this,
+      }),
+    )
 
     this.configure({
       allow: '*',
@@ -299,6 +305,12 @@ class ComponentPage<
       this.#hooks[evt as ComponentPageEvent].push(fn as any)
     }
     return this
+  }
+
+  patch(nuiPage: NUIPage) {
+    if (nuiPage.page !== this.page) this.page = nuiPage.page
+    this.#nuiPage = nuiPage
+    this.#component?.set?.('page', nuiPage)
   }
 
   replaceNode<NN extends N>(node: NN) {

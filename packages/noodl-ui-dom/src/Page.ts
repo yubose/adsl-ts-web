@@ -95,6 +95,10 @@ class Page {
     return this.#nuiPage?.created
   }
 
+  get history() {
+    return this.getNuiPage()?.history || []
+  }
+
   get hooks() {
     return this.#hooks
   }

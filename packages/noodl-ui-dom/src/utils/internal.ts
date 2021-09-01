@@ -320,11 +320,12 @@ export const _syncPages = (function () {
 
           if (!page.onChange) {
             page.onChange = (prev: string, next: string) => {
-              console.log(`${label} Page changed from "${prev}" to "${next}"`)
+              // if (prev !== '' && next === '') console.trace()
+              console.info(`${label} Page changed from "${prev}" to "${next}"`)
             }
           }
 
-          console.log(label)
+          console.info(label)
 
           if (updateType === c.PAGE_CREATED) {
             // Incoming page still in the loading state

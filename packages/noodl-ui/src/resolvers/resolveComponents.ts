@@ -130,17 +130,50 @@ componentResolver.setResolver(async (component, options, next) => {
 
   if (Identify.component.page(component)) {
     let pageName = component.get('path') || ''
-    let nuiPage = createPage(component) as NUIPage
+    let page = (component.get('page') || createPage(component)) as NUIPage
 
-    component.edit('page', nuiPage)
+    if (!component.has('parentPage')) {
+      component.edit(
+        'parentPage',
+        options?.page?.page || options.getRootPage().page,
+      )
+    }
+
+    console.info({
+      blueprint: component.blueprint,
+      props: component.props,
+      propsPath: component.props.path,
+      page,
+      'component.get(page)': component.get('page'),
+      'component.get(path)': component.get('path'),
+      pageName,
+      'page.page': page.page,
+      root: getRoot(),
+      pageNamePageObject: getRoot()[pageName],
+      'page.pagePageObejct': getRoot()[page.page],
+    })
+
+    page !== component.get('page') && component.edit('page', page)
 
     if (u.isStr(pageName)) {
-      if (nuiPage?.page === '') {
-        console.log(
-          `%cThe page component does not have its page name resolved yet`,
-          `color:#ec0000;`,
-          component.toJSON(),
-        )
+      const isEqual = page.page === pageName
+      if (isEqual) return
+
+      if (page.page === '' && pageName) {
+        // Assuming it was loading its page object and just received it
+      } else if (page.page && pageName === '') {
+        // Assuming it was active but is now entering in its idle/closing state
+      } else if (!isEqual) {
+        // Transitioning from a previous page to a new page
+        if (!component.get('page')) {
+          if (cache.page.has(component.id)) {
+            component.set('page', cache.page.get(component.id).page)
+          }
+        }
+      }
+
+      if (!isEqual) {
+        page.page = pageName
       }
 
       try {
@@ -150,21 +183,21 @@ componentResolver.setResolver(async (component, options, next) => {
             await emit({
               type: c.nuiEmitType.TRANSACTION,
               transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-              params: nuiPage,
+              params: page,
             })
             component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, {
-              page: nuiPage,
+              page,
               type: initializing ? 'init' : 'update',
             })
           }
           component.on(c.nuiEvent.component.page.PAGE_CHANGED, onPageChange)
-          getPages().includes(pageName) && (await onPageChange(true))
+          getPages().includes(page.page) && (await onPageChange(true))
         } else if (pageName.endsWith('.html')) {
           // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
           if (!pageName.startsWith('http')) {
-            nuiPage.page = resolveAssetUrl(pageName, getAssetsUrl())
+            page.page = resolveAssetUrl(pageName, getAssetsUrl())
           } else {
-            nuiPage.page = pageName
+            page.page = pageName
           }
         }
       } catch (err) {
@@ -176,7 +209,7 @@ componentResolver.setResolver(async (component, options, next) => {
         )
       }
 
-      let viewport = nuiPage?.viewport || new VP()
+      let viewport = page?.viewport || new VP()
 
       if (VP.isNil(originalStyle.width)) {
         viewport.width = getRootPage().viewport.width
@@ -397,7 +430,7 @@ componentResolver.setResolver(async (component, options, next) => {
   }
 
   /* -------------------------------------------------------
-    ---- CHILDREN 
+    ---- CHILDREN
   -------------------------------------------------------- */
 
   // Children of list components are created by the lib.

@@ -14,6 +14,7 @@ import {
   NUI,
   NUIComponent,
   SelectOption,
+  Page as NuiPage,
   Plugin,
   NUIActionChain,
   Store,
@@ -26,6 +27,7 @@ import NDOMPage from '../Page'
 import * as t from '../types'
 import * as i from '../utils/internal'
 import * as c from '../constants'
+import { ComponentPage } from '../factory/componentFactory'
 
 const componentsResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] components`,
@@ -385,7 +387,7 @@ const componentsResolver: t.Resolve.Config = {
             const nuiPage = args.component.get('page')
             const path = args.component.get('path')
             const src = nuiPage.page
-            const remote = i._isRemotePageOrUrl(String(path))
+            const remote = i._isRemotePageOrUrl(path)
 
             if (remote) {
               /**
@@ -489,103 +491,102 @@ const componentsResolver: t.Resolve.Config = {
               const onPageComponents = curry(
                 async (
                   _args: typeof args,
-                  { type }: Parameters<NUIComponent.Hook['PAGE_COMPONENTS']>[0],
+                  {
+                    page: nuiPage,
+                    type,
+                  }: Parameters<NUIComponent.Hook['PAGE_COMPONENTS']>[0],
                 ) => {
                   const isPrevInitialized = !!_args.component.get('initialized')
-                  const componentPage = getComponentPage()
+                  const componentPage = i._getOrCreateComponentPage(
+                    _args.component,
+                    _args.createPage,
+                    _args.findPage,
+                  )
 
-                  /**
-                   * Initiation / first time rendering
-                   */
+                  if (!nuiPage) {
+                    nuiPage = componentPage.getNuiPage() as NuiPage
+                    if (!nuiPage) {
+                      nuiPage = args.cache.page.get(args.component.id).page
+                      nuiPage && componentPage.patch(nuiPage)
+                      try {
+                        console.info({
+                          globalEq:
+                            _args.global.pages[nuiPage?.id] === componentPage,
+                          globalPage: _args.global.pages[nuiPage?.id],
+                          page: nuiPage,
+                          pageName: componentPage.requesting,
+                          path: _args.component.get('path'),
+                          type: !componentPage.initialized ? 'init' : 'update',
+                          getNuiPage: componentPage.getNuiPage(),
+                        })
+                      } catch (error) {
+                        console.error(error)
+                      }
+                    }
+                  }
+
+                  /** Initiation / first time rendering */
                   if (type === 'init') {
                     if (!isPrevInitialized) {
                       _args.component.set('initialized', true)
 
                       if (componentPage.rootNode !== _args.node) {
-                        componentPage.replaceNode(
-                          _args.node as HTMLIFrameElement,
-                        )
+                        _args.node = componentPage.body
+                        // componentPage.replaceNode(
+                        //   _args.node as HTMLIFrameElement,
+                        // )
                       }
                     }
                   }
+
                   /**
                    * Clean up inactive components if any remain from
                    * previous renders
                    */
                   if (componentPage.requesting && componentPage.page) {
+                    console.info(
+                      `Clearing components from page "${componentPage.requesting}" from the component cache`,
+                    )
                     _args.cache.component.clear(componentPage.requesting)
                   }
 
-                  const getChildrenComponents = async (
-                    parent: NUIComponent.Instance,
-                    componentObjects: OrArray<ComponentObject> = [],
-                  ): Promise<NUIComponent.Instance[]> =>
-                    Promise.all(
-                      componentObjects.map(async (obj: ComponentObject) =>
-                        nui.resolveComponents({
-                          components: parent.createChild(
-                            nui.createComponent(obj),
-                          ),
+                  const children = await Promise.all(
+                    componentPage.components.map(
+                      async (obj: ComponentObject) => {
+                        // let child = nui.createComponent(obj)
+                        // child = _args.component.createChild(child)
+                        let child = await nui.resolveComponents({
+                          components: obj,
                           page: componentPage.getNuiPage(),
-                        }),
-                      ),
-                    ) || []
-
-                  await Promise.all(
-                    (
-                      await getChildrenComponents(
-                        _args.component,
-                        componentPage.components,
-                      )
-                    ).map(async (rc) =>
-                      componentPage.appendChild(
-                        await _args.draw(
-                          rc,
-                          componentPage.body,
-                          componentPage.getNuiPage(),
-                        ),
-                      ),
+                        })
+                        componentPage.appendChild(
+                          await _args.draw(
+                            child,
+                            componentPage.body,
+                            componentPage,
+                          ),
+                        )
+                        return child
+                      },
                     ),
                   )
                 },
               )
 
-              if (args.component.has('page')) {
-                window.addEventListener('message', function (msg) {
-                  console.log(`%cMessage received`, `color:#e50087;`, {
-                    thisValue: this,
-                    msg,
-                  })
-                })
-
-                window.addEventListener('messageerror', function (evt) {
-                  console.log(
-                    `%cMessage received an error`,
-                    `color:#ec0000;`,
-                    evt,
-                  )
-                })
-
-                args.node.addEventListener('load', function onIframeLoad() {
-                  onPageComponents(args, {
-                    page: args.component.get('page'),
-                    type: 'init',
-                  })
-                })
-              } else {
-                console.log(
-                  `%cA page component is missing its NUIPage. No children will be rendered`,
-                  `color:#ec0000;`,
-                  args,
-                )
-              }
-
-              if (u.isStr(args.component.get('path'))) {
-                onPageComponents(args)({
+              args.node.addEventListener('load', async () => {
+                if (
+                  args.component !==
+                  args.cache.component.get(args.component.id).component
+                ) {
+                  args.component = args.cache.component.get(
+                    args.component.id,
+                  ).component
+                }
+                await onPageComponents(args, {
+                  page: componentPage.getNuiPage(),
                   type: 'init',
-                  page: args.component.get('page') || args.page,
                 })
-              }
+              })
 
               /**
                * This is used to keep the component up-to-date with changes in the DOM

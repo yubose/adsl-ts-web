@@ -738,78 +738,78 @@ class NDOM extends NDOMInternal {
           ...options,
           context,
           nodeIndex: currentIndex,
-          onPageComponentLoad: async (args) => {
-            try {
-              console.log(
-                `%conPageComponentLoad fired in a redraw`,
-                `color:#95a5a6;`,
-              )
-              if (args.node && args.component) {
-                const pageObject = (await this.transact(
-                  'REQUEST_PAGE_OBJECT',
-                  args.page,
-                )) as PageObject
+          // onPageComponentLoad: async (args) => {
+          //   try {
+          //     console.log(
+          //       `%conPageComponentLoad fired in a redraw`,
+          //       `color:#95a5a6;`,
+          //     )
+          //     if (args.node && args.component) {
+          //       const pageObject = (await this.transact(
+          //         'REQUEST_PAGE_OBJECT',
+          //         args.page,
+          //       )) as PageObject
 
-                console.log(
-                  `%cReceived page object containing ${
-                    pageObject.components?.length || 0
-                  } top level components`,
-                  `color:#95a5a6;`,
-                )
+          //       console.log(
+          //         `%cReceived page object containing ${
+          //           pageObject.components?.length || 0
+          //         } top level components`,
+          //         `color:#95a5a6;`,
+          //       )
 
-                for (const childObject of pageObject.components) {
-                  let child = args.component.createChild(
-                    nui.createComponent(
-                      childObject,
-                      args.page.getNuiPage() || v,
-                    ),
-                  )
-                  child = await nui.resolveComponents({
-                    callback: options?.callback,
-                    components: child,
-                    page: args.page.getNuiPage() || args.component.get('page'),
-                  })
+          //       for (const childObject of pageObject.components) {
+          //         let child = args.component.createChild(
+          //           nui.createComponent(
+          //             childObject,
+          //             args.page.getNuiPage() || v,
+          //           ),
+          //         )
+          //         child = await nui.resolveComponents({
+          //           callback: options?.callback,
+          //           components: child,
+          //           page: args.page.getNuiPage() || args.component.get('page'),
+          //         })
 
-                  const childNode = await this.draw(child, args.node, page, {
-                    ...options,
-                    context,
-                  })
+          //         const childNode = await this.draw(child, args.node, page, {
+          //           ...options,
+          //           context,
+          //         })
 
-                  if (childNode) {
-                    args.node?.appendChild(childNode)
-                    console.log(
-                      `%cAppended a descendant page child of "${childNode.tagName}" to a ${args.node?.tagName} element`,
-                      `color:#95a5a6;`,
-                      { childNode, args },
-                    )
-                  } else {
-                    console.log(
-                      `%cNo child node was found when drawing for a "${args.component?.type}" component when redrawing`,
-                      `color:#ec0000;`,
-                      args,
-                    )
-                  }
-                }
+          //         if (childNode) {
+          //           args.node?.appendChild(childNode)
+          //           console.log(
+          //             `%cAppended a descendant page child of "${childNode.tagName}" to a ${args.node?.tagName} element`,
+          //             `color:#95a5a6;`,
+          //             { childNode, args },
+          //           )
+          //         } else {
+          //           console.log(
+          //             `%cNo child node was found when drawing for a "${args.component?.type}" component when redrawing`,
+          //             `color:#ec0000;`,
+          //             args,
+          //           )
+          //         }
+          //       }
 
-                await this.#R.run({
-                  ndom: this,
-                  node: args.node,
-                  component: args.component,
-                  page: args.page,
-                  resolvers: this.resolvers,
-                })
-              } else {
-                console.log(
-                  `%cDid not receive a DOM node and component inside the call to ` +
-                    `onPageComponentLoad while redrawing`,
-                  `color:#ec0000;`,
-                )
-              }
-            } catch (error) {
-              console.error(error)
-              throw error
-            }
-          },
+          //       await this.#R.run({
+          //         ndom: this,
+          //         node: args.node,
+          //         component: args.component,
+          //         page: args.page,
+          //         resolvers: this.resolvers,
+          //       })
+          //     } else {
+          //       console.log(
+          //         `%cDid not receive a DOM node and component inside the call to ` +
+          //           `onPageComponentLoad while redrawing`,
+          //         `color:#ec0000;`,
+          //       )
+          //     }
+          //   } catch (error) {
+          //     console.error(error)
+          //     throw error
+          //   }
+          // },
         })
         if (parentNode) {
           parentNode.replaceChild(newNode, node)

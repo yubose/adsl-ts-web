@@ -108,6 +108,7 @@ NUI.emit({
 | app     | phone #    | password    |
 | ------- | ---------- | ----------- |
 | admin   | 8882005050 | password    |
+| admin   | 7144480995 | Baby2020!   |
 | admin2  | 8885509773 | 123         |
 | admind2 | 8886006001 | password    |
 | admind2 | 8886006002 | password    |
