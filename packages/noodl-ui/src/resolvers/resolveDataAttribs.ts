@@ -252,7 +252,7 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
         if (isListPath) {
           dataPath = excludeIteratorVar(dataPath, iteratorVar)
           dataOptions = dataPath
-            ? get(n.findListDataObject(component), dataKey)
+            ? get(n.findListDataObject(component), dataPath)
             : n.findListDataObject(component)
         } else {
           dataPath = trimReference(dataPath)
