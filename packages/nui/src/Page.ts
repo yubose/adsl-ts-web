@@ -1,9 +1,18 @@
 import type { LiteralUnion } from 'type-fest'
 import type { VNode } from 'snabbdom/vnode'
-import { h, init } from 'snabbdom'
-import dom from 'snabbdom/htmldomapi'
-import tovnode from 'snabbdom/tovnode'
-import thunk from 'snabbdom/thunk'
+import {
+  attributesModule,
+  htmlDomApi as dom,
+  init,
+  h,
+  classModule,
+  datasetModule,
+  propsModule,
+  styleModule,
+  eventListenersModule,
+  thunk,
+  toVNode,
+} from 'snabbdom'
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import { getRandomKey } from './utils/internal'

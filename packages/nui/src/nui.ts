@@ -1,13 +1,11 @@
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import invariant from 'invariant'
-import toVNode from 'snabbdom/tovnode'
-import dom from 'snabbdom/htmldomapi'
-import { h, init } from 'snabbdom'
+import { htmlDomApi as dom, init, h, toVNode } from 'snabbdom'
 import cache from './cache'
 import translators from './translators'
+import resolvers, { NuiResolver } from './Resolver'
 import NuiPage, { ConstructorOptions as PageConstructorOptions } from './Page'
-import NuiResolver from './Resolver'
 import NuiViewport from './Viewport'
 import * as c from './constants'
 import * as t from './types'
@@ -31,10 +29,9 @@ const nui = (function () {
     const resolver = new NuiResolver()
   }
 
-  function draw({ component, vnode }: t.Store.Options) {
+  function draw({ component, vprops }: t.Resolve.ResolverFnOptions) {
     for (const [key, value] of u.entries(component)) {
       translators.execute(key)
-      vnode.data.props
     }
   }
 

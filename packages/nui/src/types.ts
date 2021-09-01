@@ -26,10 +26,17 @@ import type {
 import type { Action, ActionChain } from 'noodl-action-chain'
 import type { LiteralUnion } from 'type-fest'
 import type { VNode } from 'snabbdom/vnode'
+import type { Attrs } from 'snabbdom/modules/attributes'
+import type { Hooks, Key } from 'snabbdom'
+import type { Classes } from 'snabbdom/modules/class'
+import type { Dataset } from 'snabbdom/modules/dataset'
+import type { On } from 'snabbdom/modules/eventlisteners'
+import type { VNodeStyle } from 'snabbdom/modules/style'
 import type EmitAction from './actions/EmitAction'
 import type NuiPage from './Page'
 import nui from './nui'
 import * as c from './constants'
+import NuiViewport from './Viewport'
 
 export type ElementType = keyof HTMLElementTagNameMap
 
@@ -40,7 +47,7 @@ export type NuiTrigger = EventType | typeof c.emitTriggers[number]
 export type NuiDataAttribute = typeof c.dataAttrs[number]
 
 /* -------------------------------------------------------
-  ---- ACTIONS 
+  ---- ACTIONS
 -------------------------------------------------------- */
 export type NuiActionChain = ActionChain<NuiActionObject, NuiTrigger>
 // With ensured actionType appended
@@ -163,6 +170,34 @@ export namespace Resolve {
     key: K
     value: any
     remove?: boolean
+  }
+
+  export interface ResolverFn {
+    (options: Resolve.ResolverFnOptions): void
+  }
+
+  export interface ResolverFnOptions {
+    component: ComponentObject
+    vprops: {
+      attrs: Attrs
+      classes: Classes
+      dataset: Dataset
+      hooks: Hooks
+      key: Key
+      on: On
+      style: VNodeStyle
+    }
+    viewport: NuiViewport
+  }
+
+  export interface TranslateFn<V = any, RT = any> {
+    (value: V, helpers: TranslateFnHelpers): RT | void | never | undefined
+  }
+
+  export interface TranslateFnHelpers {
+    component?: ComponentObject
+    // vprops:
+    viewport: { width: number | undefined; height: number | undefined }
   }
 }
 

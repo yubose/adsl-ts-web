@@ -100,7 +100,7 @@ class NuiViewport {
           result = value.replace(/[a-zA-Z]+/gi, '')
         }
       } else if (u.isNum(value)) {
-        if (hasDecimal(value)) {
+        if (hasDecimal(String(value))) {
           result = value * vpSize
         } else {
           result = value

@@ -1,11 +1,14 @@
 import {
   attributesModule,
+  htmlDomApi as dom,
   init,
+  h,
   classModule,
   datasetModule,
   propsModule,
   styleModule,
   eventListenersModule,
+  toVNode,
 } from 'snabbdom'
 
 const patch = init([
@@ -17,4 +20,6 @@ const patch = init([
   eventListenersModule, // attaches event listeners
 ])
 
-export default patch
+window.addEventListener('load', function (evt) {
+  console.log(patch)
+})
