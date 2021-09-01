@@ -1,13 +1,14 @@
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
+import flowRight from 'lodash/flowRight'
+import wrap from 'lodash/wrap'
+import { h } from 'snabbdom'
 import { hasDecimal, hasLetter } from './utils/common'
 import VP from './Viewport'
 import * as c from './constants'
 import * as t from './types'
 import * as i from './utils/internal'
-
-const map = (fn) => (step) => (acc) => step(acc, fn(v))
-const step = (acc, fn) => acc(fn)
+import { ComponentObject } from 'noodl-types'
 
 class Translators {
   compose() {
@@ -28,14 +29,33 @@ class Translators {
     this.translators.set(key, fn)
   }
 
-  execute<K extends string = string>(options: t.Resolve.ResolverFnOptions) {
-    return u.reduce(
-      [...this.translators.values()],
-      (acc, fn) => {
-        return acc
+  execute<K extends string = string>({
+    component,
+  }: t.Resolve.ResolverFnOptions) {
+    const options = {
+      component,
+      viewport: new VP({ width: 375, height: 667 }),
+      vprops: {
+        attrs: {},
+        classes: {},
+        dataset: {},
+        hooks: {},
+        on: {},
+        style: {},
       },
-      {},
+    } as t.Resolve.ResolverFnOptions
+
+    const fns = u.reduce(
+      [...this.#translators],
+      (acc, [key, fn]) =>
+        key in options.component ? acc(wrap(fn, options.component[key])) : acc,
+      (x: (options: t.Resolve.ResolverFnOptions) => Record<string, any>) => x,
     )
+
+    const transform = fns((x) => x)
+    const result = transform(options.component)
+
+    console.log(`Result`, result)
   }
 }
 
@@ -233,12 +253,6 @@ const button = {
   },
 }
 
-const transform = translators.compose()
-const result = [button].reduce(
-  (acc, v) => ({ ...acc, ...transform(acc, v) }),
-  {},
-)
-
-console.log(result)
+translators.execute({ component: button })
 
 export default translators
