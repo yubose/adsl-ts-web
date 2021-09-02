@@ -11,14 +11,6 @@ import * as i from './utils/internal'
 import { ComponentObject } from 'noodl-types'
 
 class Translators {
-  compose() {
-    return u.reduce(
-      [...this.#translators.values()],
-      (acc, fn) => step(acc, map(fn)),
-      (x) => x,
-    )
-  }
-
   #translators = new Map<string, t.Resolve.TranslateFn>()
 
   get translators() {
@@ -29,9 +21,7 @@ class Translators {
     this.translators.set(key, fn)
   }
 
-  execute<K extends string = string>({
-    component,
-  }: t.Resolve.ResolverFnOptions) {
+  execute({ component }: t.Resolve.ResolverFnOptions) {
     const options = {
       component,
       viewport: new VP({ width: 375, height: 667 }),
@@ -45,15 +35,13 @@ class Translators {
       },
     } as t.Resolve.ResolverFnOptions
 
-    const fns = u.reduce(
-      [...this.#translators],
-      (acc, [key, fn]) =>
-        key in options.component ? acc(wrap(fn, options.component[key])) : acc,
-      (x: (options: t.Resolve.ResolverFnOptions) => Record<string, any>) => x,
+    const translators = u.reduce(
+      flowRight(...this.#translators),
+      (acc, [key, fn]) => acc(fn),
+      (x: (...args: any[]) => any) => x,
     )
-
-    const transform = fns((x) => x)
-    const result = transform(options.component)
+    const transform = translators((x) => x)
+    const result = transform(component)
 
     console.log(`Result`, result)
   }

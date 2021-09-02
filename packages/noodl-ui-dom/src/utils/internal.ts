@@ -3,8 +3,9 @@
  */
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
-import { ComponentObject, EcosDocument, Identify, NameField } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import { isPage as isNUIPage, event as nuiEvt, publish } from 'noodl-ui'
+import type { ComponentObject, EcosDocument, NameField } from 'noodl-types'
 import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
 import type { ComponentPage } from '../factory/componentFactory'
 import type GlobalComponentRecord from '../global/GlobalComponentRecord'
