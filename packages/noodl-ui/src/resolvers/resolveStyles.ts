@@ -264,39 +264,45 @@ resolveStyles.setResolver(async (component, options, next) => {
     -------------------------------------------------------- */
 
   const { width, height, maxHeight, maxWidth, minHeight, minWidth } =
-    originalStyles
+    originalStyles || {}
 
-  if (!isNil(width)) {
-    edit({ width: String(util.getSize(width as any, viewport.width)) })
-  }
+  if (viewport) {
+    if (!isNil(width)) {
+      edit({ width: String(util.getSize(width as any, viewport.width)) })
+    }
 
-  if (!isNil(height)) {
-    // When the value needs to change whenever the viewport height changes
-    if (util.isNoodlUnit(height)) {
-      edit({ height: String(util.getSize(height, viewport.height)) })
-    } else {
-      if (height == 1 || height == '1') {
+    if (!isNil(height)) {
+      // When the value needs to change whenever the viewport height changes
+      if (util.isNoodlUnit(height)) {
         edit({ height: String(util.getSize(height, viewport.height)) })
       } else {
-        edit({
-          height: String(util.getSize(height as any, viewport.height)),
-        })
+        if (height == 1 || height == '1') {
+          edit({ height: String(util.getSize(height, viewport.height)) })
+        } else {
+          edit({
+            height: String(util.getSize(height as any, viewport.height)),
+          })
+        }
       }
     }
-  }
 
-  //maxHeight,maxWidth,miniHeight,miniWidth
-  if (!isNil(maxHeight)) {
-    edit({ maxHeight: String(util.getSize(maxHeight as any, viewport.height)) })
-  }
-  if (!isNil(maxWidth)) {
-    edit({ maxWidth: String(util.getSize(maxWidth as any, viewport.width)) })
-  }
-  if (!isNil(minHeight)) {
-    edit({ minHeight: String(util.getSize(minHeight as any, viewport.height)) })
-  }
-  if (!isNil(minWidth)) {
-    edit({ minWidth: String(util.getSize(minWidth as any, viewport.width)) })
+    //maxHeight,maxWidth,miniHeight,miniWidth
+    if (!isNil(maxHeight)) {
+      edit({
+        maxHeight: String(util.getSize(maxHeight as any, viewport.height)),
+      })
+    }
+    if (!isNil(maxWidth)) {
+      edit({ maxWidth: String(util.getSize(maxWidth as any, viewport.width)) })
+    }
+    if (!isNil(minHeight)) {
+      edit({
+        minHeight: String(util.getSize(minHeight as any, viewport.height)),
+      })
+    }
+    if (!isNil(minWidth)) {
+      edit({ minWidth: String(util.getSize(minWidth as any, viewport.width)) })
+    }
   }
 
   /* -------------------------------------------------------

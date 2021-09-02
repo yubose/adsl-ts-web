@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
 import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
-import { isPage as isNUIPage } from 'noodl-ui'
+import { isComponent, isPage as isNUIPage } from 'noodl-ui'
 import NDOMPage from '../../Page'
 import isNDOMPage from '../../utils/isPage'
 import copyAttributes from '../../utils/copyAttributes'
@@ -359,10 +359,19 @@ class ComponentPage<
     return this
   }
 
-  patch(nuiPage: NUIPage) {
-    if (nuiPage.page !== this.page) this.page = nuiPage.page
-    this.#nuiPage = nuiPage
-    this.#component?.set?.('page', nuiPage)
+  patch(nuiPage: NUIPage | NUIComponent.Instance) {
+    if (isNUIPage(nuiPage)) {
+      if (nuiPage.page !== this.page) this.page = nuiPage.page
+      this.#nuiPage = nuiPage
+      this.#component?.set?.('page', nuiPage)
+    } else if (isComponent(nuiPage)) {
+      this.#component = nuiPage
+      if (this.#nuiPage && !nuiPage.get('page')) {
+        this.#component.edit('page', this.#nuiPage)
+      } else if (!this.#nuiPage && nuiPage.get('page')) {
+        this.#nuiPage = nuiPage.get('page')
+      }
+    }
   }
 
   replaceNode<NN extends N>(node: NN) {

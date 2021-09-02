@@ -20,7 +20,12 @@ import {
   Store,
   EmitAction,
 } from 'noodl-ui'
-import { findFirstByElementId, toSelectOption } from '../utils'
+import {
+  findFirstByElementId,
+  isComponentPage,
+  isPage as isNDOMPage,
+  toSelectOption,
+} from '../utils'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import applyStyles from '../utils/applyStyles'
 import copyAttributes from '../utils/copyAttributes'
@@ -379,12 +384,45 @@ const componentsResolver: t.Resolve.Config = {
       // PAGE
       else if (Identify.component.page(args.component)) {
         if (u.isStr(args.component.get('path'))) {
+          const componentPage = i._getOrCreateComponentPage(
+            args.component,
+            args.findPage,
+            args.createPage,
+          )
+
+          if (componentPage) {
+            const nuiPage = args.cache.page.get(componentPage.id)?.page
+            if (nuiPage) {
+              if (
+                args.component &&
+                componentPage.component !== args.component
+              ) {
+                componentPage.patch(args.component)
+              }
+
+              if (!componentPage.hasNuiPage && nuiPage) {
+                componentPage.patch(nuiPage)
+              } else if (nuiPage && nuiPage !== componentPage.getNuiPage()) {
+                componentPage.patch(nuiPage)
+              }
+            }
+            const pageName = componentPage.requesting || componentPage.page
+            if (pageName) {
+              if (!(pageName in nui.getRoot())) {
+                console.log(
+                  `%cPage "${pageName}" is not in the root. Fetching it now`,
+                  `color:#00b406;`,
+                  componentPage,
+                )
+                const pageObject = await args.transact(
+                  'REQUEST_PAGE_OBJECT',
+                  componentPage,
+                )
+              }
+            }
+          }
+
           if (i._isIframeEl(args.node)) {
-            const componentPage = i._getOrCreateComponentPage(
-              args.component,
-              args.findPage,
-              args.createPage,
-            )
             const nuiPage = args.component.get('page')
             const path = args.component.get('path')
             const remote = i._isRemotePageOrUrl(path)
@@ -493,115 +531,143 @@ const componentsResolver: t.Resolve.Config = {
                * from the "page" list from a noodl app config
                */
 
-              const onPageComponents = curry(
-                async (
-                  _args: typeof args,
-                  {
-                    page: nuiPage,
-                  }: Parameters<NUIComponent.Hook['PAGE_COMPONENTS']>[0],
-                ) => {
-                  const isPrevInitialized = !!_args.component.get('initialized')
-                  const componentPage = i._getOrCreateComponentPage(
-                    _args.component,
-                    _args.createPage,
-                    _args.findPage,
-                  )
+              const onPageComponents = curry(async (_args: typeof args) => {
+                const isPrevInitialized = !!_args.component.get('initialized')
+                const componentPage = i._getOrCreateComponentPage(
+                  _args.component,
+                  _args.createPage,
+                  _args.findPage,
+                )
 
-                  if (!nuiPage) {
-                    if (!componentPage.hasNuiPage) {
-                      nuiPage = args.cache.page.get(args.component.id).page
-                      nuiPage && componentPage.patch(nuiPage)
+                if (componentPage) {
+                  const nuiPage = args.cache.page.get(componentPage.id)?.page
+                  if (nuiPage) {
+                    if (
+                      args.component &&
+                      componentPage.component !== args.component
+                    ) {
+                      componentPage.patch(args.component)
                     }
-                  } else if (nuiPage !== componentPage.getNuiPage()) {
-                    if (componentPage.hasNuiPage) {
-                      nuiPage = componentPage.getNuiPage()
-                    } else {
+
+                    if (!componentPage.hasNuiPage && nuiPage) {
+                      componentPage.patch(nuiPage)
+                    } else if (
+                      nuiPage &&
+                      nuiPage !== componentPage.getNuiPage()
+                    ) {
                       componentPage.patch(nuiPage)
                     }
                   }
-
-                  // console.info({
-                  //   ['_args.page']: _args.page,
-                  //   ['args.page']: args.page,
-                  //   cachedPages: [..._args.cache.page.get().values()].map(
-                  //     ({ page }) => page,
-                  //   ),
-                  //   componentPage,
-                  //   findPage: _args.findPage(_args.component),
-                  //   globalPages: _args.global.pages,
-                  //   globalPageIds: _args.global.pageIds,
-                  //   nuiPage,
-                  //   nuiPageFromCache: _args.cache.page.get(_args.component.id)
-                  //     ?.page,
-                  //   currentPathValue: _args.component.get('path'),
-                  //   componentHooks: _args.component?.hooks,
-                  //   componentPageComponentHooks: componentPage.component?.hooks,
-                  // })
-
-                  /** Initiation / first time rendering */
-                  // if (type === 'init') {
-                  if (!isPrevInitialized) {
-                    _args.component.set('initialized', true)
-                    if (componentPage.rootNode !== _args.node) {
-                      const currentStyles = copyStyles(_args.node)
-                      componentPage.replaceNode(_args.node as HTMLIFrameElement)
-                      _args.node = componentPage.rootNode
+                  const pageName =
+                    componentPage.requesting || componentPage.page
+                  if (pageName) {
+                    if (!(pageName in nui.getRoot())) {
+                      console.log(
+                        `%cPage "${pageName}" is not in the root. Fetching it now`,
+                        `color:#00b406;`,
+                        componentPage,
+                      )
+                      const pageObject = await args.transact(
+                        'REQUEST_PAGE_OBJECT',
+                        componentPage,
+                      )
                     }
                   }
-                  // }
+                }
 
-                  /**
-                   * Clean up inactive components if any remain from
-                   * previous renders
-                   */
-                  if (componentPage.requesting && componentPage.page) {
-                    console.info(
-                      `Clearing components from page "${componentPage.requesting}" ` +
-                        `from the component cache`,
-                    )
-                    _args.cache.component.clear(componentPage.requesting)
+                // if (!nuiPage) {
+                //   if (!componentPage.hasNuiPage) {
+                //     nuiPage = args.cache.page.get(args.component.id).page
+                //     nuiPage && componentPage.patch(nuiPage)
+                //   }
+                // } else if (nuiPage !== componentPage.getNuiPage()) {
+                //   if (componentPage.hasNuiPage) {
+                //     nuiPage = componentPage.getNuiPage()
+                //   } else {
+                //     componentPage.patch(nuiPage)
+                //   }
+                // }
+
+                // console.info({
+                //   ['_args.page']: _args.page,
+                //   ['args.page']: args.page,
+                //   cachedPages: [..._args.cache.page.get().values()].map(
+                //     ({ page }) => page,
+                //   ),
+                //   componentPage,
+                //   findPage: _args.findPage(_args.component),
+                //   globalPages: _args.global.pages,
+                //   globalPageIds: _args.global.pageIds,
+                //   nuiPage,
+                //   nuiPageFromCache: _args.cache.page.get(_args.component.id)
+                //     ?.page,
+                //   currentPathValue: _args.component.get('path'),
+                //   componentHooks: _args.component?.hooks,
+                //   componentPageComponentHooks: componentPage.component?.hooks,
+                // })
+
+                /** Initiation / first time rendering */
+                // if (type === 'init') {
+                if (!isPrevInitialized) {
+                  _args.component.set('initialized', true)
+                  if (componentPage.rootNode !== _args.node) {
+                    const currentStyles = copyStyles(_args.node)
+                    componentPage.replaceNode(_args.node as HTMLIFrameElement)
+                    _args.node = componentPage.rootNode
                   }
+                }
+                // }
 
-                  const descendentIds = i._getDescendantIds(_args.component)
+                /**
+                 * Clean up inactive components if any remain from
+                 * previous renders
+                 */
+                if (componentPage.requesting && componentPage.page) {
+                  // console.info(
+                  //   `Clearing components from page "${componentPage.requesting}" ` +
+                  //     `from the component cache`,
+                  // )
+                  // _args.cache.component.clear(componentPage.requesting)
+                }
 
-                  for (const id of descendentIds) {
-                    _args.cache.component.remove(id)
-                    findFirstByElementId?.(id)?.remove?.()
-                  }
+                const descendentIds = i._getDescendantIds(_args.component)
 
-                  _args.component.clear('children')
-                  componentPage.component?.clear?.('children')
+                for (const id of descendentIds) {
+                  _args.cache.component.remove(id)
+                  findFirstByElementId?.(id)?.remove?.()
+                }
 
-                  const children = await Promise.all(
-                    componentPage.components.map(
-                      async (obj: ComponentObject) => {
-                        let child = await nui.resolveComponents({
-                          components: obj,
-                          page: nuiPage,
-                        })
+                _args.component.clear('children')
+                componentPage.component?.clear?.('children')
 
-                        let childNode = await _args.draw(
-                          child,
-                          componentPage.body,
-                          componentPage,
-                        )
+                const children = await Promise.all(
+                  componentPage.components?.map(
+                    async (obj: ComponentObject) => {
+                      let child = await nui.resolveComponents({
+                        components: obj,
+                        page: nuiPage,
+                      })
 
-                        componentPage.appendChild(childNode)
-                        // TODO - We might not need this line
-                        _args.component.createChild(child)
-                        return child
-                      },
-                    ),
-                  )
+                      let childNode = await _args.draw(
+                        child,
+                        componentPage.body,
+                        componentPage,
+                      )
 
-                  console.info(
-                    [...componentPage.body.children].map((c) => c.id),
-                  )
-                },
-              )
+                      childNode && componentPage.appendChild(childNode)
+                      // TODO - We might not need this line
+                      _args.component.createChild(child)
+                      return child
+                    },
+                  ),
+                )
 
-              args.node.addEventListener('load', async () => {
-                debugger
+                console.info(
+                  [...(componentPage.body?.children || [])].map((c) => c.id),
+                )
+              })
+
+              args.node.addEventListener('load', async function () {
                 if (
                   args.component !==
                   args.cache.component.get(args.component.id).component

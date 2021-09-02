@@ -164,10 +164,10 @@ export default class NDOMResolver {
     return {
       cache,
       component: args.component,
-      createPage: args.ndom.createPage.bind(args.ndom),
-      draw: args.ndom.draw.bind(args.ndom),
+      createPage: args.ndom.createPage.bind(args.ndom) as NDOM['createPage'],
+      draw: args.ndom.draw.bind(args.ndom) as NDOM['draw'],
       editStyle: this.createStyleEditor(args.component),
-      findPage: args.ndom.findPage.bind(args.ndom),
+      findPage: args.ndom.findPage.bind(args.ndom) as NDOM['findPage'],
       global: args.ndom.global,
       node: args.node,
       nui,
@@ -178,8 +178,8 @@ export default class NDOMResolver {
           args.ndom.page
         )
       },
-      redraw: args.ndom.redraw.bind(args.ndom),
-      renderPage: args.ndom.render.bind(args.ndom),
+      redraw: args.ndom.redraw.bind(args.ndom) as NDOM['redraw'],
+      renderPage: args.ndom.render.bind(args.ndom) as NDOM['render'],
       /**
        * REMINDER: This intentionally does not include componentsResolver due to
        * circular references/infinite loops
@@ -190,7 +190,7 @@ export default class NDOMResolver {
         componentsResolver,
       ],
       elementType: args.node?.tagName || '',
-      componentType: args.component?.type || '',
+      componentType: (args.component?.type || '') as string,
       setAttr: <K extends keyof t.NDOMElement>(
         k: LiteralUnion<K, string>,
         v: any,
@@ -210,6 +210,7 @@ export default class NDOMResolver {
         (args.node.dataset[dataAttr.replace?.('data-', '')] = v),
       setStyleAttr: <K extends keyof t.NDOMElement['style']>(k: K, v: any) =>
         args.node && (args.node.style[k] = v),
+      transact: args.ndom.transact.bind(args.ndom) as NDOM['transact'],
     }
   }
 
