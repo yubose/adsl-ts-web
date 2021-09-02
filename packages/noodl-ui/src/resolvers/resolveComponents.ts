@@ -110,11 +110,11 @@ componentResolver.setResolver(async (component, options, next) => {
     // Customly create the listItem children using a dataObject as the data source
     
     let dataObjects = getListObject()
-    if(dataObjects.length == 1 && isStr(dataObjects[0])){
-      let dataKey:any= dataObjects[0].toString()
-      dataKey = excludeIteratorVar(dataKey, iteratorVar)
-      dataObjects = get(findListDataObject(component), dataKey)
-    }
+    // if(dataObjects.length == 1 && isStr(dataObjects[0])){
+    //   let dataKey:any= dataObjects[0].toString()
+    //   dataKey = excludeIteratorVar(dataKey, iteratorVar)
+    //   dataObjects = get(findListDataObject(component), dataKey)
+    // }
     const numDataObjects = dataObjects.length
     for (let index = 0; index < numDataObjects; index++) {
       const dataObject = dataObjects[index]
