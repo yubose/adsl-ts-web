@@ -97,7 +97,7 @@ async function initializeApp(
   window.app = app
   ////////////////////////////////////////////////////////////
   await app.initialize()
-  // app.navigate('ScheduleManagementRoom')
+  // app.navigate('PaymentTest')
   return app
 }
 

@@ -465,11 +465,12 @@ class NDOM extends NDOMInternal {
             try {
               node = (await createAsyncImageElement(container as HTMLElement))
                 .node
+              node &&
+                ((node as HTMLImageElement).src = component.get(c.DATA_SRC))
             } catch (error) {
               console.error(error)
             }
           }
-          node && ((node as HTMLImageElement).src = component.get(c.DATA_SRC))
         } catch (error) {
           console.error(error)
         } finally {

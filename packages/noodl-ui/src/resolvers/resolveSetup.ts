@@ -37,7 +37,6 @@ setupResolver.setResolver(
             const wrapGetter = function (key: string, styleKey?: string) {
               if (key === 'path') {
                 let value = get(getDataObject(), datapath) || ''
-                if (value === 'PatientInfo') debugger
                 if (Identify.component.page(this)) {
                   const nuiPage = this.get('page')
                   if (isNUIPage(nuiPage)) {

@@ -543,6 +543,7 @@ const componentsResolver: t.Resolve.Config = {
                   if (!isPrevInitialized) {
                     _args.component.set('initialized', true)
                     if (componentPage.rootNode !== _args.node) {
+                      const currentStyles = copyStyles(_args.node)
                       componentPage.replaceNode(_args.node as HTMLIFrameElement)
                       _args.node = componentPage.rootNode
                     }
@@ -600,6 +601,7 @@ const componentsResolver: t.Resolve.Config = {
               )
 
               args.node.addEventListener('load', async () => {
+                debugger
                 if (
                   args.component !==
                   args.cache.component.get(args.component.id).component
