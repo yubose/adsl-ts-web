@@ -1,15 +1,15 @@
+import * as u from '@jsmanifest/utils'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { coolGold, italic, magenta } from 'noodl-common'
 import { createRender, ui } from '../test-utils'
 import { dataAttributes } from '../constants'
 import NDOM from '../noodl-ui-dom'
 import findElement from '../utils/findElement'
-import * as u from '../utils/internal'
+import * as i from '../utils/internal'
 import * as n from '../utils'
 
-describe(coolGold(`utils`), () => {
-  describe(italic(`findByDataKey`), () => {
+describe(u.yellow(`utils`), () => {
+  describe(u.italic(`findByDataKey`), () => {
     xit(``, async () => {
       const { request } = createRender({
         components: [
@@ -26,7 +26,7 @@ describe(coolGold(`utils`), () => {
     })
   })
 
-  describe(italic(`findElement`), () => {
+  describe(u.italic(`findElement`), () => {
     it(`should return an array of nodes if there are multiple nodes matched`, async () => {
       const { request } = createRender({
         components: [
@@ -44,9 +44,9 @@ describe(coolGold(`utils`), () => {
   })
 })
 
-describe(italic(`findByDataAttrib`), () => {
+describe(u.italic(`findByDataAttrib`), () => {
   dataAttributes.forEach((key) => {
-    it(`should be able to find a node with the data attribute "${magenta(
+    it(`should be able to find a node with the data attribute "${u.magenta(
       key,
     )}"`, async () => {
       const { request } = createRender({
@@ -65,39 +65,39 @@ describe(italic(`findByDataAttrib`), () => {
   describe(`isImageDoc`, () => {
     it(`should return true`, () => {
       const ecosObj = ui.ecosDoc('image')
-      expect(u.isImageDoc(ecosObj)).to.be.true
+      expect(i.isImageDoc(ecosObj)).to.be.true
     })
 
     it(`should return false`, () => {
-      expect(u.isImageDoc(ui.ecosDoc('pdf'))).to.be.false
-      expect(u.isImageDoc(ui.ecosDoc('text'))).to.be.false
-      expect(u.isImageDoc(ui.ecosDoc('video'))).to.be.false
+      expect(i.isImageDoc(ui.ecosDoc('pdf'))).to.be.false
+      expect(i.isImageDoc(ui.ecosDoc('text'))).to.be.false
+      expect(i.isImageDoc(ui.ecosDoc('video'))).to.be.false
     })
   })
 
   describe(`isPdfDoc`, () => {
     it(`should return true`, () => {
       const ecosObj = ui.ecosDoc('pdf')
-      expect(u.isPdfDoc(ecosObj)).to.be.true
+      expect(i.isPdfDoc(ecosObj)).to.be.true
     })
 
     it(`should return false`, () => {
-      expect(u.isPdfDoc(ui.ecosDoc('image'))).to.be.false
-      expect(u.isPdfDoc(ui.ecosDoc('text'))).to.be.false
-      expect(u.isPdfDoc(ui.ecosDoc('video'))).to.be.false
+      expect(i.isPdfDoc(ui.ecosDoc('image'))).to.be.false
+      expect(i.isPdfDoc(ui.ecosDoc('text'))).to.be.false
+      expect(i.isPdfDoc(ui.ecosDoc('video'))).to.be.false
     })
   })
 
   describe(`isTextDoc`, () => {
     it(`should return true`, () => {
       const ecosObj = ui.ecosDoc('text')
-      expect(u.isTextDoc(ecosObj)).to.be.true
+      expect(i.isTextDoc(ecosObj)).to.be.true
     })
 
     xit(`should return false`, () => {
-      expect(u.isTextDoc(ui.ecosDoc('image'))).to.be.false
-      expect(u.isTextDoc(ui.ecosDoc('pdf'))).to.be.false
-      expect(u.isTextDoc(ui.ecosDoc('video'))).to.be.false
+      expect(i.isTextDoc(ui.ecosDoc('image'))).to.be.false
+      expect(i.isTextDoc(ui.ecosDoc('pdf'))).to.be.false
+      expect(i.isTextDoc(ui.ecosDoc('video'))).to.be.false
     })
   })
 
@@ -109,5 +109,26 @@ describe(italic(`findByDataAttrib`), () => {
     xit(`should return false`, () => {
       //
     })
+  })
+})
+
+describe(u.italic(`findWindow`), () => {
+  it(`should return the main window`, () => {
+    expect(n.findWindow(() => true)).to.eq(window)
+  })
+
+  it(`should be able to pick and return a nested window`, () => {
+    const iframe = document.createElement('iframe')
+    const ecosDoc = document.createElement('iframe')
+    iframe.id = 'hello'
+    ecosDoc.id = 'goodbye'
+    iframe.appendChild(ecosDoc)
+    document.body.appendChild(iframe)
+    const mainWindow = window
+    const iframeWindow = iframe.contentWindow
+    const ecosDocWindow = ecosDoc.contentWindow
+    expect(window).to.eq(mainWindow)
+    expect(n.findWindow((win) => win === iframeWindow)).to.eq(iframeWindow)
+    expect(n.findWindow((win) => win === ecosDocWindow)).to.eq(ecosDocWindow)
   })
 })

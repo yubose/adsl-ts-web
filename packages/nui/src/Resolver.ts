@@ -1,12 +1,22 @@
 import * as u from '@jsmanifest/utils'
+import * as nt from 'noodl-types'
 import SignaturePad from 'signature_pad'
-import { VNode } from 'snabbdom/vnode'
-import toVNode from 'snabbdom/tovnode'
-import dom from 'snabbdom/htmldomapi'
-import { h, init } from 'snabbdom'
+import {
+  attributesModule,
+  htmlDomApi as dom,
+  init,
+  h,
+  classModule,
+  datasetModule,
+  propsModule,
+  styleModule,
+  eventListenersModule,
+  toVNode,
+} from 'snabbdom'
 import { LiteralUnion } from 'type-fest'
 import { OrArray } from '@jsmanifest/typefest'
-import { Identify } from 'noodl-types'
+import { hasDecimal, hasLetter } from './utils/common'
+import VP from './Viewport'
 import * as t from './types'
 
 export class NuiResolver {
@@ -19,7 +29,7 @@ export class NuiResolver {
   }
 
   options<N extends VNode>(args: t.Resolve.BaseOptions<N> & { ndom: NDOM }) {
-    if (Identify.component.canvas(args.component)) {
+    if (nt.Identify.component.canvas(args.component)) {
       args.component.edit(
         'signaturePad',
         new SignaturePad(
@@ -103,4 +113,102 @@ export class NuiResolver {
   }
 }
 
-export default NuiResolver
+const resolvers = new NuiResolver()
+
+const resolvePositioning: t.Resolve.ResolverFn = function ({
+  component,
+  vprops,
+  viewport,
+}) {
+  const xKeys = <const>['width', 'left']
+  const yKeys = <const>['height', 'top', 'marginTop']
+  const posKeys = <const>[...xKeys, ...yKeys]
+
+  function getPositionProps(
+    styleObj: nt.StyleObject | undefined,
+    key: string, // 'marginTop' | 'top' | 'height' | 'width' | 'left' | 'fontSize'
+    viewportSize: number,
+  ) {
+    if (!styleObj) return
+    const value = styleObj?.[key]
+    // String
+    if (u.isStr(value)) {
+      if (value == '0') vprops.style[key] = '0x'
+      else if (value == '1') vprops.style[key] = `${viewportSize}px`
+      if (!hasLetter(value)) {
+        vprops.style[key] = getViewportRatio(viewportSize, value) + 'px'
+      }
+    }
+    // Number
+    else if (hasDecimal(styleObj?.[key])) {
+      vprops.style[key] = getViewportRatio(viewportSize, value) + 'px'
+    }
+
+    return undefined
+  }
+
+  /**
+   * Returns a ratio (in pixels) computed from a total given viewport size
+   * @param { number } viewportSize - Size (in pixels) in the viewport (represents width or height)
+   * @param { string | number } size - Size (raw decimal value from NOODL response) most likely in decimals. Strings are converted to numbers to evaluate the value. Numbers that aren't decimals are used as a fraction of the viewport size.
+   */
+  function getViewportRatio(viewportSize: number, size: string | number) {
+    if (u.isStr(size) || u.isNum(size)) {
+      return viewportSize * Number(size)
+    }
+    return viewportSize
+  }
+
+  if (!component?.style) return
+
+  for (const key of posKeys) {
+    const value = component.style[key]
+    if (
+      viewport &&
+      !u.isNil(value) &&
+      u.isNum(viewport.width) &&
+      u.isNum(viewport.height)
+    ) {
+      return getPositionProps(
+        component.style,
+        key,
+        viewport[xKeys.includes(key as any) ? 'width' : 'height'],
+      )
+    }
+  }
+}
+
+const resolveSizes: t.Resolve.ResolverFn = function ({
+  component,
+  vprops,
+  viewport,
+}) {
+  let { width, height } = component.style || {}
+
+  if (!u.isNil(width) && u.isNum(viewport?.width)) {
+    vprops.style.width = String(VP.getSize(width, viewport.width))
+  }
+
+  if (VP.isNoodlUnit(height) && u.isNum(viewport?.height)) {
+    vprops.style.height = String(VP.getSize(height, viewport.height))
+  }
+
+  for (const key of ['maxHeight', 'maxWidth', 'minHeight', 'minWidth']) {
+    const value = component?.style?.[key]
+    switch (typeof value) {
+      case 'string':
+      case 'number':
+        vprops.style[key] = String(
+          VP.getSize(
+            value,
+            /width/i.test(key)
+              ? (viewport?.width as number)
+              : (viewport?.height as number),
+          ),
+        )
+        break
+    }
+  }
+}
+
+export default resolvers

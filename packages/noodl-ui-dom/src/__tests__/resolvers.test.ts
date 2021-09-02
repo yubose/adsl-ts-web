@@ -149,7 +149,7 @@ describe(italic(`ecosDoc`), () => {
         expect(iframe).to.exist
         expect(iframe).to.have.property(
           'src',
-          '',
+          'http://localhost:3000/',
           // componentObject.ecosObj.name.data,
         )
         expect(iframe.classList.contains(c.classes.ECOS_DOC_PDF)).to.be.true

@@ -25,6 +25,7 @@ import {
   createComponent,
   findIteratorVar,
   isComponent,
+  isPage as isNUIPage,
   NUI,
   nuiEmitTransaction,
 } from 'noodl-ui'
@@ -384,13 +385,30 @@ class NDOM extends NDOMInternal {
      * Page components use NDOMPage instances that use their rootNode as an
      * HTMLIFrameElement. They will have their own way of clearing their tree
      */
-    !i._isIframeEl(page.rootNode) && page.clearRootNode()
+    // !i._isIframeEl(page.rootNode) && page.clearRootNode()
+    page.clearRootNode()
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
     page.emitSync(
       pageEvt.on.ON_BEFORE_RENDER_COMPONENTS,
       page.snapshot({ components }),
     )
-    await Promise.all(components.map((c) => this.draw(c, page.rootNode, page)))
+
+    await Promise.all(
+      components.map((c) => {
+        let containerEl = page.rootNode as HTMLElement
+
+        if (Identify.component.page(c)) {
+          const componentPage = this.findPage(c)
+          if (i._isIframeEl(componentPage.rootNode)) {
+            if (componentPage.body) containerEl = componentPage.body
+          }
+        }
+
+        !containerEl && (containerEl = page.rootNode)
+        return this.draw(c, containerEl, page)
+      }),
+    )
+
     page.emitSync(c.eventId.page.on.ON_COMPONENTS_RENDERED, page)
     page.setStatus(c.eventId.page.status.COMPONENTS_RENDERED)
 
@@ -575,7 +593,6 @@ class NDOM extends NDOMInternal {
         if (this.#createElementBinding) {
           node = this.#createElementBinding(component) as HTMLElement
         }
-
         try {
           if (Identify.folds.emit(component.blueprint?.path)) {
             try {
@@ -620,35 +637,17 @@ class NDOM extends NDOMInternal {
         }
       }
 
-      if (Identify.component.page(component)) {
-        if (options?.onPageComponentLoad) {
-          node.addEventListener('load', (event) =>
-            options?.onPageComponentLoad?.({
-              event,
-              node: node as HTMLIFrameElement,
-              component,
-              page,
-            }),
-          )
-        } else {
-          await this.#R.run({
-            ndom: this,
-            node,
-            component,
-            page,
-            resolvers: this.resolvers,
-          })
-          if (!component.length) return node
-        }
-      } else {
-        await this.#R.run({
-          ndom: this,
-          node,
-          component,
-          page,
-          resolvers: this.resolvers,
-        })
+      await this.#R.run({
+        ndom: this,
+        node,
+        component,
+        page,
+        resolvers: this.resolvers,
+      })
 
+      if (Identify.component.page(component)) {
+        if (!component.length) return node
+      } else {
         /**
          * Creating a document fragment and appending children to them is a
          * minor improvement in first contentful paint on initial loading
@@ -668,7 +667,6 @@ class NDOM extends NDOMInternal {
 
           childNode && childrenContainer?.appendChild(childNode)
         }
-
         if (
           childrenContainer.nodeType ===
           childrenContainer.DOCUMENT_FRAGMENT_NODE
@@ -738,84 +736,9 @@ class NDOM extends NDOMInternal {
           ...options,
           context,
           nodeIndex: currentIndex,
-          onPageComponentLoad: async (args) => {
-            try {
-              console.log(
-                `%conPageComponentLoad fired in a redraw`,
-                `color:#95a5a6;`,
-              )
-              if (args.node && args.component) {
-                const pageObject = (await this.transact(
-                  'REQUEST_PAGE_OBJECT',
-                  args.page,
-                )) as PageObject
-
-                console.log(
-                  `%cReceived page object containing ${
-                    pageObject.components?.length || 0
-                  } top level components`,
-                  `color:#95a5a6;`,
-                )
-
-                for (const childObject of pageObject.components) {
-                  let child = args.component.createChild(
-                    nui.createComponent(
-                      childObject,
-                      args.page.getNuiPage() || v,
-                    ),
-                  )
-                  child = await nui.resolveComponents({
-                    callback: options?.callback,
-                    components: child,
-                    page: args.page.getNuiPage() || args.component.get('page'),
-                  })
-
-                  const childNode = await this.draw(child, args.node, page, {
-                    ...options,
-                    context,
-                  })
-
-                  if (childNode) {
-                    args.node?.appendChild(childNode)
-                    console.log(
-                      `%cAppended a descendant page child of "${childNode.tagName}" to a ${args.node?.tagName} element`,
-                      `color:#95a5a6;`,
-                      { childNode, args },
-                    )
-                  } else {
-                    console.log(
-                      `%cNo child node was found when drawing for a "${args.component?.type}" component when redrawing`,
-                      `color:#ec0000;`,
-                      args,
-                    )
-                  }
-                }
-
-                await this.#R.run({
-                  ndom: this,
-                  node: args.node,
-                  component: args.component,
-                  page: args.page,
-                  resolvers: this.resolvers,
-                })
-              } else {
-                console.log(
-                  `%cDid not receive a DOM node and component inside the call to ` +
-                    `onPageComponentLoad while redrawing`,
-                  `color:#ec0000;`,
-                )
-              }
-            } catch (error) {
-              console.error(error)
-              throw error
-            }
-          },
         })
-        if (parentNode) {
-          parentNode.replaceChild(newNode, node)
-        } else {
-          node.remove()
-        }
+        if (parentNode) parentNode.replaceChild(newNode, node)
+        else node.remove()
         node = newNode
         newNode = null
         parentNode = null

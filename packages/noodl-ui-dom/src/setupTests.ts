@@ -2,12 +2,12 @@ import JSDOM from 'jsdom-global'
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import { ndom } from './test-utils'
 import { _syncPages } from './utils/internal'
 
 JSDOM('', {
   resources: 'usable',
   runScripts: 'dangerously',
+  url: 'http://localhost:3000',
 })
 
 chai.use(sinonChai)

@@ -33,7 +33,6 @@ import Spinner from './spinner'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
 import * as t from './app/types'
-import { lstat } from 'fs-extra'
 
 const log = Logger.create('App.ts')
 
@@ -220,42 +219,49 @@ class App {
       let _pageRequesting = ''
 
       const ls = window.localStorage
-      let pageUrl = pageRequesting?pageRequesting:page
+      let pageUrl = pageRequesting ? pageRequesting : page
 
-      if(isNOODLDOMPage(pageUrl)){
+      if (isNOODLDOMPage(pageUrl)) {
         pageUrl = pageUrl.page
       }
-      if(pageUrl){
-        let index = pageUrl.indexOf('&')!=-1?pageUrl.indexOf('&'):pageUrl.length
-        let startPage = pageUrl.slice(0,index)
-        pageRequesting = typeof pageRequesting == 'string'?startPage:pageRequesting
-        page = typeof page == 'string'?startPage:page
-        
-        if(index != pageUrl.length){
+      if (pageUrl) {
+        let index =
+          pageUrl.indexOf('&') != -1 ? pageUrl.indexOf('&') : pageUrl.length
+        let startPage = pageUrl.slice(0, index)
+        pageRequesting =
+          typeof pageRequesting == 'string' ? startPage : pageRequesting
+        page = typeof page == 'string' ? startPage : page
+
+        if (index != pageUrl.length) {
           const ls = window.localStorage
           let endKeys = pageUrl.slice(pageUrl.indexOf('&'))
-          let params:any = endKeys.split('=')
-          let tempParams:any = ls.getItem('tempParams')
-          let value 
+          let params: any = endKeys.split('=')
+          let tempParams: any = ls.getItem('tempParams')
+          let value
           let key
-          
-          params = params?params:[]
-          tempParams = typeof tempParams == 'string'?JSON.parse(tempParams):{}
 
-          for(let i=0;i<params.length-1;i++){
-              index = params[i].lastIndexOf('&')!=-1?params[i].lastIndexOf('&'):0
-              key = params[i].slice(index+1)
-              if(i+1 == params.length-1){
-                value = params[i+1]
-              }else{
-                index = params[i+1].lastIndexOf('&')!=-1?params[i+1].lastIndexOf('&'):params[i+1].length
-                value = params[i+1].slice(0,index)
-              }
-              tempParams[key] = value
+          params = params ? params : []
+          tempParams =
+            typeof tempParams == 'string' ? JSON.parse(tempParams) : {}
+
+          for (let i = 0; i < params.length - 1; i++) {
+            index =
+              params[i].lastIndexOf('&') != -1 ? params[i].lastIndexOf('&') : 0
+            key = params[i].slice(index + 1)
+            if (i + 1 == params.length - 1) {
+              value = params[i + 1]
+            } else {
+              index =
+                params[i + 1].lastIndexOf('&') != -1
+                  ? params[i + 1].lastIndexOf('&')
+                  : params[i + 1].length
+              value = params[i + 1].slice(0, index)
+            }
+            tempParams[key] = value
           }
 
           ls.setItem('tempParams', JSON.stringify(tempParams))
-        }else{
+        } else {
           ls.removeItem('tempParams')
         }
       }
@@ -470,6 +476,14 @@ class App {
       const currentPage = page.page
       log.func('getPageObject')
       log.grey(`Running noodl.initPage for page "${pageRequesting}"`)
+
+      if (pageRequesting && !(pageRequesting in this.noodl.root)) {
+        console.log(
+          `%cThe page "${pageRequesting}" does not exist in the root object`,
+          `color:#ec0000;`,
+          this.root,
+        )
+      }
 
       if (pageRequesting === currentPage) {
         console.log(
@@ -805,6 +819,7 @@ class App {
           delete currentRoot[currentPage]
           this.#noodl = resetSdk()
           await this.#noodl.init()
+
           u.assign(this.#noodl.root, currentRoot)
           this.cache.component.clear()
           this.mainPage.page = this.mainPage.getPreviousPage(this.startPage)

@@ -63,7 +63,7 @@ export function addDays(dirtyDate: Date, dirtyAmount: number): Date {
 /**
  * Taken from https://github.com/date-fns/date-fns/blob/2005427a6c50967d7b50830fb33e753bb2df39a8/src/addMonths/index.ts#L27
  */
-export default function addMonths(dirtyDate: Date, dirtyAmount: number): Date {
+export function addMonths(dirtyDate: Date, dirtyAmount: number): Date {
   const date = new Date(dirtyDate.getTime())
   const amount = toInteger(dirtyAmount)
   if (isNaN(amount)) return new Date(NaN)

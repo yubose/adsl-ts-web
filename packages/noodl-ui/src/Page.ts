@@ -12,6 +12,7 @@ class Page implements IPage {
   #id: IPage['id']
   #page = ''
   created: number
+  history = [] as string[]
   viewport: Viewport;
 
   [inspect]() {
@@ -32,7 +33,7 @@ class Page implements IPage {
   }
 
   get components() {
-    return this.#get()
+    return this.#get() || []
   }
 
   get onChange() {
@@ -48,8 +49,13 @@ class Page implements IPage {
   }
 
   set page(name: string) {
+    if (this.#page === name) return
     const prev = this.#page
     this.#page = name
+    this.history.push(name)
+    if (this.history.length > 10) {
+      while (this.history.length > 10) this.history.shift()
+    }
     this.#onChange?.(prev, name)
   }
 
@@ -58,6 +64,7 @@ class Page implements IPage {
       created: this.created,
       components: this.components,
       currentPage: this.page,
+      history: this.history,
       id: this.#id,
       viewport: {
         width: this.viewport?.width || null,

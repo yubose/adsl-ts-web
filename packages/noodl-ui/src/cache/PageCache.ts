@@ -1,9 +1,9 @@
 import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
-import NUIPage from '../Page'
-import isComponent from '../utils/isComponent'
 import type Viewport from '../Viewport'
 import type { ICache, IPage, NUIComponent } from '../types'
+import NUIPage from '../Page'
+import isComponent from '../utils/isComponent'
 import * as c from '../constants'
 
 export interface PageCacheHooks {
@@ -87,10 +87,10 @@ class PageCache implements ICache {
 
   clear() {
     for (const [id, { page }] of this.#pages) {
-      Array.isArray(page.components) && (page.components.length = 0)
+      u.isArr(page.components) && (page.components.length = 0)
       this.#pages.delete(id)
     }
-    u.values(this.#hooks).forEach((fns) => (fns.length = 0))
+    u.forEach((fns) => (fns.length = 0), u.values(this.#hooks))
     return this
   }
 
@@ -128,7 +128,7 @@ class PageCache implements ICache {
   get(id: IPage['id']): { page: NUIPage }
   get(id?: never): [{ page: NUIPage }]
   get(id?: IPage['id']) {
-    if (!id) return Array.from(this.#pages.values())
+    if (!id) return [...this.#pages.values()]
     return this.#pages.get(id)
   }
 
@@ -140,12 +140,10 @@ class PageCache implements ICache {
     fn: (
       page: { page: NUIPage },
       index: IPage['id'],
-      collection: Map<IPage['id'], { page: NUIPage }>,
+      collection: { page: NUIPage }[],
     ) => void,
   ) {
-    this.#pages.forEach((obj, key, collection) => {
-      fn(obj, key, collection)
-    })
+    u.forEach(fn, [...this.#pages.values()])
   }
 
   on<Evt extends keyof PageCacheHooks>(evt: Evt, fn: PageCacheHooks[Evt]) {
@@ -154,7 +152,7 @@ class PageCache implements ICache {
   }
 
   remove(page: NUIPage) {
-    if (page === undefined || page === null) return this
+    if (u.isNil(page)) return this
     if (this.#pages.has(page.id)) {
       const isRemoved = this.#pages.delete(page.id)
       isRemoved && this.#emit(c.cache.page.hooks.PAGE_REMOVED, page)

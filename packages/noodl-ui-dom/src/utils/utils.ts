@@ -1,3 +1,4 @@
+import curry from 'lodash/curry'
 import { OrArray } from '@jsmanifest/typefest'
 import {
   DataAttribute,
@@ -161,12 +162,6 @@ export function findBySelector<T extends string>(
     : null
 }
 
-export function findFirstBySelector(
-  ...args: Parameters<typeof findBySelector>
-) {
-  return u.array(findBySelector(...args)).find(Boolean) as HTMLElement
-}
-
 export function findByDataAttrib(
   dataAttrib: LiteralUnion<DataAttribute, string> | undefined,
   value?: string,
@@ -191,6 +186,41 @@ export function findByClassName(className: string | undefined) {
 export function findByElementId(c: NUIComponent.Instance | string | undefined) {
   return findElement((doc) => doc?.getElementById(u.isStr(c) ? c : c?.id || ''))
 }
+
+export interface FindFunc<Arg = any> {
+  (document: Document, arg: Arg): HTMLElement | null
+}
+
+export function makeFindFirstBy<Arg = any>(
+  fn: FindFunc<Arg>,
+): (arg: Arg) => HTMLElement {
+  return function (arg) {
+    return u.filter(
+      Boolean,
+      u.array(findElement((doc) => doc && fn(doc, arg))),
+    )[0] as HTMLElement
+  }
+}
+
+export const findFirstBySelector = makeFindFirstBy<string>((doc, selector) =>
+  doc.querySelector(selector),
+)
+
+export const findFirstByDataKey = makeFindFirstBy<string>((doc, dataKey) =>
+  doc.querySelector(`[data-key="${dataKey}"]`),
+)
+
+export const findFirstByViewTag = makeFindFirstBy<string>((doc, viewTag) =>
+  doc.querySelector(`[data-viewtag="${viewTag}"]`),
+)
+
+export const findFirstByElementId = makeFindFirstBy<
+  NUIComponent.Instance | string
+>((doc, c) => doc.getElementById(u.isStr(c) ? c : c?.id))
+
+export const findFirstByClassName = makeFindFirstBy<string>(
+  (doc, className) => doc.getElementsByClassName(className)?.[0] as HTMLElement,
+)
 
 export function getFirstByClassName<N extends HTMLElement = HTMLElement>(
   c: Parameters<typeof findByClassName>[0],

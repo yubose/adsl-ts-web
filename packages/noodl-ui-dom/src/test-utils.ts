@@ -107,6 +107,8 @@ export interface CreateRenderResult {
   render(pgName?: string): Promise<NUIComponent.Instance>
 }
 
+export function createRender(fn: () => CreateRenderResult): CreateRenderResult
+
 /**
  * A helper that tests a noodl-ui-dom DOM resolver. This helps to automatically prepare
  * the noodl-ui client when testing resolvers. The root object automatically
@@ -120,7 +122,10 @@ export function createRender(
 export function createRender(opts: MockRenderOptions): CreateRenderResult
 
 export function createRender<Opts extends MockRenderOptions>(
-  opts: OrArray<ComponentObject> | Opts,
+  opts:
+    | OrArray<ComponentObject>
+    | Opts
+    | ((opts: CreateRenderResult) => CreateRenderResult),
 ) {
   ndom.reset()
   ndom.resync()
@@ -131,7 +136,9 @@ export function createRender<Opts extends MockRenderOptions>(
   let pageObject: Partial<PageObject> = {}
   let root = _defaults.root
 
-  if (u.isArr(opts) || 'type' in (opts || {})) {
+  if (u.isFnc(opts)) {
+    pageRequesting = _defaults.pageRequesting
+  } else if (u.isArr(opts) || 'type' in (opts || {})) {
     pageRequesting = _defaults.pageRequesting
     pageObject.components = u.array(opts) as PageObject['components']
   } else {
@@ -217,6 +224,8 @@ export function createRender<Opts extends MockRenderOptions>(
       return u.array(await req?.render?.())?.[0] as NUIComponent.Instance
     },
   } as CreateRenderResult
+
+  if (u.isFnc(opts)) return opts(o)
 
   return o
 }
