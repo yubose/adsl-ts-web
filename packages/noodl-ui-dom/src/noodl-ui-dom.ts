@@ -606,7 +606,7 @@ class NDOM extends NDOMInternal {
           nodeIndex: currentIndex,
         })
         if (parentNode) parentNode.replaceChild(newNode, node)
-        else node.remove()
+        else node?.remove?.()
         node = newNode
         newNode = null
         parentNode = null

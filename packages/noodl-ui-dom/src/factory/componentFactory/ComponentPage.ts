@@ -50,7 +50,7 @@ class ComponentPage<
   ) {
     let nuiPage = component?.get?.('page')
     if (isNDOMPage(nuiPage)) nuiPage = nuiPage.getNuiPage()
-    super(nuiPage || component)
+    super(nuiPage)
     this.#component = component
     this.rootNode = super.rootNode as N
     this.origin = window.origin
@@ -76,22 +76,22 @@ class ComponentPage<
     this.rootNode?.addEventListener(
       'load',
       (evt) => {
-        console.info(`UNLOADING FROM COMPONENT PAGE ${this.id}`, {
+        console.info(`LOADED FROM COMPONENT PAGE ${this?.id}`, {
           event: evt,
           instance: this,
         })
-        const observe = () => {
-          const observer = new MutationObserver((mutations) => {
-            console.info(`Mutations`, mutations)
-          })
+        // const observe = () => {
+        //   const observer = new MutationObserver((mutations) => {
+        //     console.info(`Mutations`, mutations)
+        //   })
 
-          observer.observe(this.body)
-        }
+        //   observer.observe(this.body)
+        // }
 
-        this.body.addEventListener('load', (evt) => {
-          console.info(`OBSERVING BODY`, this.body)
-          observe()
-        })
+        // this.body.addEventListener('load', (evt) => {
+        //   console.info(`OBSERVING BODY`, this.body)
+        //   observe()
+        // })
       },
       { once: true },
     )
@@ -363,7 +363,7 @@ class ComponentPage<
     if (isNUIPage(nuiPage)) {
       if (nuiPage.page !== this.page) this.page = nuiPage.page
       this.#nuiPage = nuiPage
-      this.#component?.set?.('page', nuiPage)
+      this.#component?.edit?.('page', nuiPage)
     } else if (isComponent(nuiPage)) {
       this.#component = nuiPage
       if (this.#nuiPage && !nuiPage.get('page')) {
