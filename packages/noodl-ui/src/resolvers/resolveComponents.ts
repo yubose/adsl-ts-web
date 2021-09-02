@@ -21,6 +21,7 @@ import type { NUIComponent } from '../types'
 import cache from '../_cache'
 import * as c from '../constants'
 import * as i from '../utils/internal'
+import { isStr } from '@jsmanifest/utils'
 
 const componentResolver = new Resolver('resolveComponents')
 
@@ -107,7 +108,13 @@ componentResolver.setResolver(async (component, options, next) => {
     component.clear('children')
 
     // Customly create the listItem children using a dataObject as the data source
-    const dataObjects = getListObject()
+    
+    let dataObjects = getListObject()
+    // if(dataObjects.length == 1 && isStr(dataObjects[0])){
+    //   let dataKey:any= dataObjects[0].toString()
+    //   dataKey = excludeIteratorVar(dataKey, iteratorVar)
+    //   dataObjects = get(findListDataObject(component), dataKey)
+    // }
     const numDataObjects = dataObjects.length
     for (let index = 0; index < numDataObjects; index++) {
       const dataObject = dataObjects[index]

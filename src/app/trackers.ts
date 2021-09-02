@@ -185,13 +185,13 @@ const trackProperty = function trackProperty({
 
 export const trackSdk = function trackSdk(app: App) {
   const keysToTrack = [
-    'dispatch',
+    // 'dispatch',
     'emitCall',
     'handleEvalFunction',
     // 'handleEvalObject',
     // 'handleEvalString',
     'newDispatch',
-    'setFromLocalStorage',
+    // 'setFromLocalStorage',
     'updateObject',
     // 'set-api-buffer',
   ] as const
