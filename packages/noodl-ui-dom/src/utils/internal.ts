@@ -321,6 +321,7 @@ export const _syncPages = (function () {
           if (!page.onChange) {
             page.onChange = (prev: string, next: string) => {
               // if (prev !== '' && next === '') console.trace()
+              if (prev === 'Donut' && next === 'Cereal') console.trace()
               console.info(`${label} Page changed from "${prev}" to "${next}"`)
             }
           }

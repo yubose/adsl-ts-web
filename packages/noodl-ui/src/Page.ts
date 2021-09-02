@@ -33,7 +33,7 @@ class Page implements IPage {
   }
 
   get components() {
-    return this.#get()
+    return this.#get() || []
   }
 
   get onChange() {

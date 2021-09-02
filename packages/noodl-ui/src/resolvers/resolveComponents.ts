@@ -139,21 +139,34 @@ componentResolver.setResolver(async (component, options, next) => {
       )
     }
 
-    console.info({
-      blueprint: component.blueprint,
-      props: component.props,
-      propsPath: component.props.path,
-      page,
-      'component.get(page)': component.get('page'),
-      'component.get(path)': component.get('path'),
-      pageName,
-      'page.page': page.page,
-      root: getRoot(),
-      pageNamePageObject: getRoot()[pageName],
-      'page.pagePageObejct': getRoot()[page.page],
-    })
-
     page !== component.get('page') && component.edit('page', page)
+
+    let viewport = page?.viewport
+
+    if (!viewport) {
+      viewport = new VP()
+      page.viewport = viewport
+    }
+
+    if (VP.isNil(originalStyle.width)) {
+      viewport.width = getRootPage().viewport.width
+    } else {
+      viewport.width = Number(
+        VP.getSize(originalStyle.width, options.viewport?.width, {
+          toFixed: 2,
+        }),
+      )
+    }
+
+    if (VP.isNil(originalStyle.height)) {
+      viewport.height = getRootPage().viewport.height
+    } else {
+      viewport.height = Number(
+        VP.getSize(originalStyle.height, options.viewport?.height, {
+          toFixed: 2,
+        }),
+      )
+    }
 
     if (u.isStr(pageName)) {
       const isEqual = page.page === pageName
@@ -172,64 +185,44 @@ componentResolver.setResolver(async (component, options, next) => {
         }
       }
 
+      const onPageChange = async (initializing = false) => {
+        await emit({
+          type: c.nuiEmitType.TRANSACTION,
+          transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+          params: page,
+        })
+        component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, {
+          page,
+          type: initializing ? 'init' : 'update',
+        })
+      }
+
       if (!isEqual) {
         page.page = pageName
-      }
 
-      try {
-        // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
-        if (getPages().includes(pageName) || pageName === '') {
-          const onPageChange = async (initializing = false) => {
-            await emit({
-              type: c.nuiEmitType.TRANSACTION,
-              transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-              params: page,
-            })
-            component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, {
-              page,
-              type: initializing ? 'init' : 'update',
-            })
+        try {
+          // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
+          if (getPages().includes(pageName) || pageName === '') {
+            getPages().includes(page.page) && (await onPageChange(true))
+          } else if (pageName.endsWith('.html')) {
+            // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
+            if (!pageName.startsWith('http')) {
+              page.page = resolveAssetUrl(pageName, getAssetsUrl())
+            } else {
+              page.page = pageName
+            }
           }
-          component.on(c.nuiEvent.component.page.PAGE_CHANGED, onPageChange)
-          getPages().includes(page.page) && (await onPageChange(true))
-        } else if (pageName.endsWith('.html')) {
-          // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
-          if (!pageName.startsWith('http')) {
-            page.page = resolveAssetUrl(pageName, getAssetsUrl())
-          } else {
-            page.page = pageName
-          }
+        } catch (err) {
+          // TODO - handle this. Maybe cleanup?
+          console.error(
+            `[Page component] ` +
+              `Error attempting to get the page object for a page component]: ${err.message}`,
+            err.stack?.() || new Error(err),
+          )
         }
-      } catch (err) {
-        // TODO - handle this. Maybe cleanup?
-        console.error(
-          `[Page component] ` +
-            `Error attempting to get the page object for a page component]: ${err.message}`,
-          err.stack?.() || new Error(err),
-        )
       }
 
-      let viewport = page?.viewport || new VP()
-
-      if (VP.isNil(originalStyle.width)) {
-        viewport.width = getRootPage().viewport.width
-      } else {
-        viewport.width = Number(
-          VP.getSize(originalStyle.width, options.viewport?.width, {
-            toFixed: 2,
-          }),
-        )
-      }
-
-      if (VP.isNil(originalStyle.height)) {
-        viewport.height = getRootPage().viewport.height
-      } else {
-        viewport.height = Number(
-          VP.getSize(originalStyle.height, options.viewport?.height, {
-            toFixed: 2,
-          }),
-        )
-      }
+      component.on(c.nuiEvent.component.page.PAGE_CHANGED, onPageChange)
     } else {
       console.log(
         `%cThe pageName was not a string when resolving the page name for a page component`,

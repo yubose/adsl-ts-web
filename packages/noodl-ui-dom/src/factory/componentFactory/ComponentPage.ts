@@ -1,6 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
 import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
+import { isPage as isNUIPage } from 'noodl-ui'
 import NDOMPage from '../../Page'
 import isNDOMPage from '../../utils/isPage'
 import copyAttributes from '../../utils/copyAttributes'
@@ -72,11 +73,44 @@ class ComponentPage<
 
     window?.addEventListener('message', this.#onparentmessage)
     window?.addEventListener('messageerror', this.#onparentmessageerror)
-    window?.addEventListener?.('unload', (evt) =>
-      console.info(`UNLOADING FROM COMPONENT PAGE ${this.id}`, {
-        event: evt,
-        instance: this,
-      }),
+    this.rootNode?.addEventListener(
+      'load',
+      (evt) => {
+        console.info(`UNLOADING FROM COMPONENT PAGE ${this.id}`, {
+          event: evt,
+          instance: this,
+        })
+        const observe = () => {
+          const observer = new MutationObserver((mutations) => {
+            console.info(`Mutations`, mutations)
+          })
+
+          observer.observe(this.body)
+        }
+
+        this.body.addEventListener('load', (evt) => {
+          console.info(`OBSERVING BODY`, this.body)
+          observe()
+        })
+      },
+      { once: true },
+    )
+    this.rootNode?.addEventListener?.(
+      'unload',
+      (evt) => {
+        console.info(`UNLOADING FROM COMPONENT PAGE ${this.id}`, {
+          event: evt,
+          instance: this,
+        })
+        try {
+          this.body.innerHTML = ''
+          this.body.remove()
+          this.rootNode.remove()
+        } catch (error) {
+          console.error(`[Error from unload ComponentPage]`, error)
+        }
+      },
+      { once: true },
     )
 
     this.configure({
@@ -89,6 +123,10 @@ class ComponentPage<
 
   get component() {
     return this.#component
+  }
+
+  get hasNuiPage() {
+    return isNUIPage(this.getNuiPage())
   }
 
   get window() {
@@ -281,7 +319,21 @@ class ComponentPage<
   getNuiPage() {
     const nuiPage = this.#component?.get?.('page') as NUIPage
     if (nuiPage) {
-      if (this.#nuiPage !== nuiPage) this.#nuiPage = nuiPage
+      if (this.#nuiPage !== nuiPage) {
+        this.#nuiPage = nuiPage
+        // const origSetter = Object.getOwnPropertyDescriptor(
+        //   this.#nuiPage,
+        //   'page',
+        // )
+        // if (origSetter) {
+        //   Object.defineProperty(this.#nuiPage, 'page', {
+        //     set(value) {
+        //       origSetter.set?.(value)
+        //       console.info(`getNuiPage`, { thisValue: this, value })
+        //     },
+        //   })
+        // }
+      }
     }
     return this.#nuiPage
   }
@@ -317,8 +369,6 @@ class ComponentPage<
     try {
       if (this.parentElement) {
         this.parentElement.replaceChild(node, this.rootNode)
-      } else {
-        this.rootNode?.remove?.()
       }
       this.rootNode = node as NN
     } catch (error) {

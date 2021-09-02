@@ -52,6 +52,7 @@ export class NDOMResolver_ {
        * REMINDER: This intentionally does not include componentsResolver due to
        * circular references/infinite loops
        */
+      renderPage: args.ndom.render.bind(args.ndom),
       resolvers: [
         ...args.ndom.consumerResolvers,
         attributesResolver,
@@ -178,6 +179,7 @@ export default class NDOMResolver {
         )
       },
       redraw: args.ndom.redraw.bind(args.ndom),
+      renderPage: args.ndom.render.bind(args.ndom),
       /**
        * REMINDER: This intentionally does not include componentsResolver due to
        * circular references/infinite loops

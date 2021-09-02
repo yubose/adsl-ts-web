@@ -17,6 +17,7 @@ import {
   ui,
   ndom,
   waitForPageChildren,
+  assetsUrl,
 } from '../test-utils'
 import type NDOMPage from '../Page'
 import {
@@ -24,6 +25,9 @@ import {
   findByElementId,
   findBySelector,
   findByViewTag,
+  findFirstByElementId,
+  findFirstBySelector,
+  findFirstByViewTag,
   getFirstByElementId,
 } from '../utils'
 import { cache } from '../nui'
@@ -35,8 +39,6 @@ describe(nc.coolGold('components'), () => {
     let Donut: PageObject
     let Cereal: PageObject
     let Hello: PageObject
-    let viewComponentObject: ViewComponentObject
-    let pageComponentObject: PageComponentObject
     let formData = { password: 'fruits' }
     let submitMessage = 'Press submit to proceed'
     let listData = [
@@ -83,7 +85,7 @@ describe(nc.coolGold('components'), () => {
             viewTag: 'cerealView',
             children: [
               ui.image('abc.png'),
-              ui.label({ dataKey: '..submitMessage' }),
+              ui.label({ dataKey: 'submitMessage' }),
               ui.button({ text: 'Submit' }),
             ],
           }),
@@ -118,14 +120,6 @@ describe(nc.coolGold('components'), () => {
           },
         ],
       }
-      pageComponentObject = ui.page({
-        type: 'page',
-        path: { if: [true, '..thePageName', '..thePageName'] },
-        style: { width: '0.5', height: '0.5' },
-      })
-      viewComponentObject = ui.view({
-        children: [pageComponentObject],
-      }) as any
     })
 
     function createRender(
@@ -146,7 +140,7 @@ describe(nc.coolGold('components'), () => {
       return renderer
     }
 
-    it.only(`should clear all old elements from the DOM and render all new elements to the DOM from the page object`, async () => {
+    it(`should clear all old elements from the DOM and render all new elements to the DOM from the page object`, async () => {
       const redrawSpy = sinon.spy()
       const {
         getRoot,
@@ -187,6 +181,7 @@ describe(nc.coolGold('components'), () => {
           },
         },
       })
+
       nui.use({
         builtIn: {
           redraw: async (a, o) => {
@@ -203,13 +198,12 @@ describe(nc.coolGold('components'), () => {
         },
         getPages: () => ['Cereal', 'Donut', 'Hello'],
       })
-      const view = await renderProp()
-      const componentPage = ndom.pages.page123
 
+      await renderProp()
       expect(getRoot().Donut.formData).to.have.property('password', 'fruits')
 
       const getHelloPageElems = () => {
-        const container = findByViewTag('containerTag') as HTMLElement
+        const container = findFirstByViewTag('containerTag') as HTMLElement
         const scrollViewEl = container?.firstElementChild
         const textFieldEl = scrollViewEl?.firstElementChild
         const pageEl = textFieldEl?.nextElementSibling as HTMLIFrameElement
@@ -217,7 +211,7 @@ describe(nc.coolGold('components'), () => {
       }
 
       const getDonutPageElems = () => {
-        const container = findByViewTag('donutContainerTag') as HTMLElement
+        const container = findFirstByViewTag('donutContainerTag') as HTMLElement
         const textFieldEl = container?.firstElementChild as HTMLInputElement
         const buttonEl = textFieldEl?.nextElementSibling as HTMLElement
         const dividerEl = buttonEl?.nextElementSibling as HTMLElement
@@ -226,7 +220,7 @@ describe(nc.coolGold('components'), () => {
       }
 
       const getCerealPageElems = () => {
-        const container = findByViewTag('cerealView') as HTMLElement
+        const container = findFirstByViewTag('cerealView') as HTMLElement
         const imgEl = container?.firstElementChild as HTMLImageElement
         const labelEl = imgEl?.nextElementSibling as HTMLElement
         const buttonEl = labelEl?.nextElementSibling as HTMLButtonElement
@@ -249,45 +243,21 @@ describe(nc.coolGold('components'), () => {
         let pageComp = cache.component.get(helloPageElems.pageEl.id).component
         expect(redrawSpy).to.be.calledOnce
         expect(pageComp.get('path')).to.eq('Cereal')
-        u.values(donutPageElems).forEach(
-          (elem) =>
-            expect(helloPageElems.pageEl.contentDocument.body.contains(elem)).to
-              .be.false,
-        )
       })
 
       await waitFor(() => {
         cerealPageElems = getCerealPageElems()
-        // console.info(prettyDOM(findBySelector('page').contentDocument.body))
         u.values(cerealPageElems).forEach((elem) => expect(elem).to.exist)
+        expect(cerealPageElems.imgEl.dataset).to.have.property(
+          'src',
+          `${assetsUrl}abc.png`,
+        )
+        expect(cerealPageElems.imgEl).to.have.property(
+          'src',
+          `${assetsUrl}abc.png`,
+        )
+        expect(cerealPageElems.labelEl.textContent).to.eq(submitMessage)
       })
-
-      // await waitFor(() => {
-      //   const pageNode = findBySelector('page') as HTMLIFrameElement
-      //   const pageBody = pageNode?.contentDocument?.body
-      //   expect(pageBody).to.exist
-      //   const children = pageBody?.children
-      //   expect(children).to.exist
-      //   expect(children).to.have.lengthOf(1)
-      //   const input = children.item(0).children[0] as HTMLInputElement
-      //   expect(input).to.be.instanceOf(HTMLInputElement)
-      //   input.dispatchEvent(new Event('change'))
-      //   expect(getRoot().Donut.formData).to.have.property('password', 'abc123')
-      // })
-
-      // getRoot().Donut.password = 'selfDefense'
-      // await waitFor(() => {
-      //   const viewNode = findByViewTag('containerTag')
-      // })
-      // await waitFor(() => {
-      //   const componentPage = page.get('page') as ComponentPage
-      //   const input = componentPage?.body?.querySelector(
-      //     `input`,
-      //   ) as HTMLInputElement
-      //   expect(input).to.exist
-      //   expect(input).to.have.property('value', 'selfDefense')
-      //   // expect(input.dataset).to.have.property('value', 'selfDefense')
-      // })
     })
 
     xit(`should set tagName as iframe by default`, () => {
@@ -339,17 +309,17 @@ describe(nc.coolGold('components'), () => {
         },
       })
       ndom.use({ getPages: () => ['Donut', 'Hello'] })
-      const view = await render()
-      const pageComponent = view.child()
+      await render()
+      // const pageComponent = view.child()
       await waitFor(() => {
-        const componentPage = ndom.findPage(pageComponent)
-        expect(componentPage).to.exist
-        expect(componentPage?.body).to.exist
-        expect(componentPage.body)
-          .to.have.property('children')
-          .to.have.length.greaterThan(0)
+        // const componentPage = ndom.findPage(pageComponent)
+        // expect(componentPage).to.exist
+        // expect(componentPage?.body).to.exist
+        // expect(componentPage.body)
+        //   .to.have.property('children')
+        //   .to.have.length.greaterThan(0)
+        expect(u.keys(ndom.pages)).to.have.lengthOf(cache.page.length)
       })
-      expect(u.keys(ndom.pages)).to.have.lengthOf(cache.page.length)
     })
 
     it(`should still render an empty iframe if path is an empty string`, async () => {
@@ -593,29 +563,32 @@ describe(nc.coolGold('components'), () => {
           })
         })
 
-        it(`should not have additional components in the cache that have their page set to the page component's target page after resolving`, async () => {
-          let { render } = createRender(
-            getCreateRenderOptions({ targetPage: 'Tiger' }),
-          )
-          await render()
-          await waitForPageChildren()
-          let pageComponent = cache.component.get('p2').component.child()
-          let ndomPage = ndom.findPage(pageComponent.get('page') as NUIPage)
-          await changeToTigerPage(ndomPage, pageComponent)
-          await waitForPageChildren()
-          pageComponent = cache.component.get('p2').component.child()
+        it(
+          `should not have additional components in the cache that have ` +
+            `their page set to the page component's target page after resolving`,
+          async () => {
+            let { getRoot, render } = createRender(
+              getCreateRenderOptions({ targetPage: 'Tiger' }),
+            )
+            await render()
+            await waitForPageChildren()
+            let pageComponent = cache.component.get('p2').component.child()
+            let ndomPage = ndom.findPage(pageComponent.get('page') as NUIPage)
+            await changeToTigerPage(ndomPage, pageComponent)
+            await waitForPageChildren()
+            pageComponent = cache.component.get('p2').component.child()
 
-          await waitFor(() => {
-            const ids = i._getDescendantIds(pageComponent)
-            console.info(ids)
-            expect(ids).to.have.lengthOf(3)
-            expect(ids).to.have.all.members([
-              'tigerView',
-              'tigerScrollView',
-              'tigerButton',
-            ])
-          })
-        })
+            await waitFor(() => {
+              const ids = i._getDescendantIds(pageComponent)
+              expect(ids).to.have.lengthOf(3)
+              expect(ids).to.have.all.members([
+                'tigerView',
+                'tigerScrollView',
+                'tigerButton',
+              ])
+            })
+          },
+        )
       })
     })
 
@@ -652,9 +625,9 @@ describe(nc.coolGold('components'), () => {
         }),
         components: [ui.view({ children: [ui.page('Donut')] })],
       })
-      const viewComponent = await render()
-      const pageComponent = viewComponent.child()
-      let pageEl = getFirstByElementId(pageComponent) as HTMLIFrameElement
+      let viewComponent = await render()
+      let pageComponent = viewComponent.child()
+      let pageEl = findFirstByElementId(pageComponent) as HTMLIFrameElement
       let pageBodyEl: HTMLBodyElement
 
       expect(pageEl).to.exist

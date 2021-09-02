@@ -18,11 +18,13 @@ import {
   eventId as ndomEventId,
   findByViewTag,
   findByUX,
+  findFirstBySelector,
   findWindow,
   getByDataUX,
   getFirstByElementId,
   isPageConsumer,
   Page as NDOMPage,
+  findByElementId,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import Logger from 'logsnap'
@@ -628,13 +630,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       } else {
         log.grey(`Redrawing ${numComponents} components`, {
           components,
-          nodes: components.map((c) => getFirstByElementId(c)),
+          nodes: components.map((c) => findFirstBySelector(`#${c?.id}`)),
         })
       }
 
       await Promise.all(
         components.map(async (_component) => {
-          const _node = getFirstByElementId(_component)
+          const _node = findFirstBySelector(`#${_component?.id}`)
+          console.info(`_node`, _node)
 
           if (!_node) {
             log.func('redraw')

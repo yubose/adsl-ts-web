@@ -4,6 +4,8 @@ import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import Resolver from '../Resolver'
 import cache from '../_cache'
+import isNUIPage from '../utils/isPage'
+import * as c from '../constants'
 import * as n from '../utils/noodl'
 
 const setupResolver = new Resolver('resolveSetup')
@@ -11,8 +13,7 @@ const setupResolver = new Resolver('resolveSetup')
 setupResolver.setResolver(
   async (component, { getAssetsUrl, getRoot, page }, next) => {
     const { path } = component.blueprint || {}
-    // if (Identify.if(path)) {
-    // Override the NUI getter for 'path' if the if object evaluates to a
+    // Overrides the NUI getter for 'path' if the if object evaluates to a
     // reference string. This ensures that JavaScript keeps an implicit
     // binding and resolves the if object correctly whenever path is being
     // accessed.
@@ -20,11 +21,11 @@ setupResolver.setResolver(
     if (Identify.if(path)) {
       const parentPage = page.page
       // Should be in the form of a reference (ex: '..infoPage)
-      const resolvedPath = n.evalIf(path)
+      const evaluatedPath = n.evalIf(path)
 
-      if (u.isStr(resolvedPath)) {
-        if (Identify.reference(resolvedPath)) {
-          const reference = resolvedPath
+      if (u.isStr(evaluatedPath)) {
+        if (Identify.reference(evaluatedPath)) {
+          const reference = evaluatedPath
           const datapath = nu.trimReference(reference)
           const originalGet = component?.get?.bind(component)
           const isLocal = Identify.localKey(datapath)
@@ -33,17 +34,24 @@ setupResolver.setResolver(
             const getDataObject = () =>
               isLocal ? getRoot()[parentPage || ''] : getRoot()
 
-            const wrapGetter = (key: string, styleKey?: string) => {
+            const wrapGetter = function (key: string, styleKey?: string) {
               if (key === 'path') {
                 let value = get(getDataObject(), datapath) || ''
-                console.info(`[if path]: Getter`, {
-                  parentPage,
-                  datapath,
-                  currentPage: page.page,
-                  pageObject: getDataObject(),
-                  infoPage: get(getDataObject(), datapath),
-                  value,
-                })
+                if (value === 'PatientInfo') debugger
+                if (Identify.component.page(this)) {
+                  const nuiPage = this.get('page')
+                  if (isNUIPage(nuiPage)) {
+                    if (nuiPage.page !== value) {
+                      nuiPage.page = value
+                      // TODO - Make this emit a different event that has a
+                      // more accurate reason for this emit
+                      this.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, {
+                        page: nuiPage,
+                        type: 'update',
+                      })
+                    }
+                  }
+                }
                 return value
               }
               return originalGet(key, styleKey)
@@ -58,7 +66,7 @@ setupResolver.setResolver(
             })
 
             if (u.isObj(getDataObject())) {
-              let currentValue = getDataObject()?.[datapath] as string
+              let currentValue = get(getDataObject(), datapath) as string
               let isPageComponent = Identify.component.page(component)
               Object.defineProperty(getDataObject(), datapath, {
                 configurable: true,
@@ -67,7 +75,6 @@ setupResolver.setResolver(
                   return currentValue
                 },
                 set(newValue: string) {
-                  // debugger
                   if (isPageComponent) {
                     const cacheObj = cache.page.get(component.id)
                     if (cacheObj?.page) {
@@ -84,37 +91,7 @@ setupResolver.setResolver(
           }
         }
       }
-    } else if (
-      u.isStr(component.get('path')) &&
-      Identify.reference(component.get('path'))
-    ) {
-      const reference = component.get('path')
-      const datapath = nu.trimReference(reference)
-      const originalGet = component?.get?.bind(component)
-      const isLocal = Identify.localKey(datapath)
-      if ((isLocal && page?.page) || !isLocal) {
-        const getDataObject = () =>
-          isLocal ? getRoot()[page?.page || ''] : getRoot()
-        const wrapGetter = (key: string, styleKey?: string) => {
-          if (key === 'path') {
-            let value =
-              n.resolveAssetUrl(get(getDataObject(), datapath), {
-                assetsUrl: getAssetsUrl(),
-              }) || ''
-            return value
-          }
-          return originalGet(key, styleKey)
-        }
-        Object.defineProperty(component, 'get', {
-          configurable: true,
-          enumerable: true,
-          get() {
-            return wrapGetter
-          },
-        })
-      }
     }
-    // }
 
     return next?.()
   },

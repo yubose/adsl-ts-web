@@ -124,6 +124,20 @@ class ComponentCache {
     return this
   }
 
+  find(kind: 'page', pageName: string): ComponentCacheObject
+  find(
+    cb: (obj: ComponentCacheObject) => boolean | null | undefined,
+  ): ComponentCacheObject
+  find(
+    cbOrKind:
+      | 'page'
+      | ((obj: ComponentCacheObject) => boolean | null | undefined),
+    pageName = '',
+  ) {
+    if (u.isFnc(cbOrKind)) return [...this].find(cbOrKind)
+    return [...this].find((obj) => obj?.page === pageName)
+  }
+
   get(): Map<string, ComponentCacheObject>
   get(
     component: NUIComponent.Instance | string | undefined,
@@ -154,6 +168,11 @@ class ComponentCache {
     return this
   }
 
+  /**
+   * Filter results by page name (if cb is a string) or callback (if by function)
+   * @param cb Page name or callback function
+   * @returns { ComponentCacheObject[] }
+   */
   filter(cb: string | ((obj: ComponentCacheObject) => boolean)) {
     if (u.isStr(cb)) {
       return this.reduce(
