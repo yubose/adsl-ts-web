@@ -428,10 +428,7 @@ const createActions = function createActions(app: App) {
           break
         case 'canceled':
           await options?.ref?.abort?.('File input window was closed')
-          return log.red(
-            `File was not selected for action "${name}" and the operation was aborted`,
-            action?.snapshot?.(),
-          )
+          break
         case 'error':
           return void log.red(`An error occurred for action "${name}"`, {
             action: action?.snapshot?.(),
@@ -627,7 +624,7 @@ const createActions = function createActions(app: App) {
           const component = app.cache.component.get(node.id)?.component
           if (isComponent(component)) {
             const signaturePad = component.get('signaturePad') as SignaturePad
-            console.log('test',signaturePad)
+            console.log('test', signaturePad)
             if (signaturePad) {
               signaturePad.clear()
               log.grey(
@@ -653,7 +650,7 @@ const createActions = function createActions(app: App) {
         toast((error as Error).message, { type: 'error' })
       }
     }
-    
+
   const saveSignature: Store.ActionObject['fn'] = function onSaveSignature(
     action,
     options,
@@ -677,7 +674,7 @@ const createActions = function createActions(app: App) {
             let mimeType = dataUrl.split(';')[0].split(':')[1] || ''
             if (has(dataObject, dataKey)) {
               getBlobFromCanvas(node, mimeType).then((blob) => {
-                if(isEmpty){
+                if (isEmpty) {
                   set(dataObject, isEmpty, signaturePad._isEmpty)
                 }
                 set(dataObject, dataKey, blob)

@@ -748,30 +748,9 @@ class App {
       }
     }
 
-    const onBeforRenderComponents: NOODLDOMPage['hooks']['ON_BEFORE_RENDER_COMPONENTS'][number]['fn'] =
-      (snapshot: any) => {
-        log.func('onBeforRenderComponents')
-        log.grey(`onBeforRenderComponents`, snapshot)
-        // const pageIds = []
-        // const currentPageNames = []
-
-        // for (const ndomPage of u.values(this.ndom.pages)) {
-        //   pageIds.push(ndomPage.id)
-        //   currentPageNames.push(ndomPage.page)
-        // }
-
-        // for (const obj of this.cache.component) {
-        //   if (obj) {
-        //     if (!currentPageNames.includes(obj.page)) {
-        //       this.cache.component.remove(obj.component)
-        //     }
-        //   }
-        // }
-      }
-
     const onComponentsRendered = (page: NOODLDOMPage) => {
       log.func('onComponentsRendered')
-      log.grey(`Done rendering DOM nodes for ${page.page}`, page.snapshot())
+      log.grey(`Done rendering DOM nodes for ${page.page}`)
       if (page.page === 'VideoChat') {
         if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
           this.meeting.onConnected(this.meeting.room)
@@ -798,10 +777,6 @@ class App {
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
       .on(eventId.page.on.ON_NAVIGATE_STALE, onNavigateStale)
       .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearRootNode)
-      .on(
-        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
-        onBeforRenderComponents as any,
-      )
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 

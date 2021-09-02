@@ -317,10 +317,12 @@ const componentsResolver: t.Resolve.Config = {
           console.error(error)
           iframe = document.createElement('iframe')
         }
+
         iframe && (iframe.id = `${idLabel}-document-${args.component.id}`)
         iframe.addEventListener('error', (err) =>
           console.error(`[ERROR]: In ecosDoc component: ${err.message}`, err),
         )
+
         args.node?.appendChild(iframe)
       }
       // IMAGE
@@ -518,23 +520,23 @@ const componentsResolver: t.Resolve.Config = {
                     }
                   }
 
-                  console.info({
-                    ['_args.page']: _args.page,
-                    ['args.page']: args.page,
-                    cachedPages: [..._args.cache.page.get().values()].map(
-                      ({ page }) => page,
-                    ),
-                    componentPage,
-                    findPage: _args.findPage(_args.component),
-                    globalPages: _args.global.pages,
-                    globalPageIds: _args.global.pageIds,
-                    nuiPage,
-                    nuiPageFromCache: _args.cache.page.get(_args.component.id)
-                      ?.page,
-                    currentPathValue: _args.component.get('path'),
-                    componentHooks: _args.component?.hooks,
-                    componentPageComponentHooks: componentPage.component?.hooks,
-                  })
+                  // console.info({
+                  //   ['_args.page']: _args.page,
+                  //   ['args.page']: args.page,
+                  //   cachedPages: [..._args.cache.page.get().values()].map(
+                  //     ({ page }) => page,
+                  //   ),
+                  //   componentPage,
+                  //   findPage: _args.findPage(_args.component),
+                  //   globalPages: _args.global.pages,
+                  //   globalPageIds: _args.global.pageIds,
+                  //   nuiPage,
+                  //   nuiPageFromCache: _args.cache.page.get(_args.component.id)
+                  //     ?.page,
+                  //   currentPathValue: _args.component.get('path'),
+                  //   componentHooks: _args.component?.hooks,
+                  //   componentPageComponentHooks: componentPage.component?.hooks,
+                  // })
 
                   /** Initiation / first time rendering */
                   // if (type === 'init') {

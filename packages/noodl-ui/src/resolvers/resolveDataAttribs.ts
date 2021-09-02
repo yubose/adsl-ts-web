@@ -194,6 +194,18 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
 
     // Path emits are handled in resolveActions
     if (u.isStr(src)) {
+      if (Identify.reference(src)) {
+        if (src.startsWith('..')) {
+          // Local
+          src = src.substring(2)
+          src = get(getRoot()[options?.page?.page], src)
+        } else if (src.startsWith('.')) {
+          // Root
+          src = src.substring(1)
+          src = get(getRoot(), src)
+        }
+      }
+
       if (iteratorVar && src.startsWith(iteratorVar)) {
         src = excludeIteratorVar(src, iteratorVar) || ''
         src = get(context?.dataObject, src) || ''
@@ -206,19 +218,8 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
         path && component.emit('path', src)
         image && component.emit('image', src)
       } else {
-        if (Identify.reference(src)) {
-          if (src.startsWith('..')) {
-            // Local
-            src = src.substring(2)
-            src = get(getRoot()[options?.page?.page], src)
-          } else if (src.startsWith('.')) {
-            // Root
-            src = src.substring(1)
-            src = get(getRoot(), src)
-          }
-        }
-
         if (src) {
+          component.edit({ 'data-src': src, path: src })
           // Wrapping this in a setTimeout allows DOM elements to subscribe
           // their callbacks before this fires
           setTimeout(() => {
