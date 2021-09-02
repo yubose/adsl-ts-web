@@ -696,6 +696,7 @@ const componentsResolver: t.Resolve.Config = {
 
         args.component.on('options', (dataOptions: any[]) => {
           clearOptions(args.node as HTMLSelectElement)
+          clearOptions(args.node as HTMLSelectElement)
           setSelectOptions(args.node as HTMLSelectElement, dataOptions)
         })
 
