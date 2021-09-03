@@ -36,7 +36,7 @@ class Translators {
     } as t.Resolve.ResolverFnOptions
 
     const translators = u.reduce(
-      flowRight(...this.#translators),
+      flowRight(...[...this.#translators.values()]),
       (acc, [key, fn]) => acc(fn),
       (x: (...args: any[]) => any) => x,
     )
