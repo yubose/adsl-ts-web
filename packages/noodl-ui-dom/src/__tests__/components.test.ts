@@ -563,7 +563,7 @@ describe(nc.coolGold('components'), () => {
           })
         })
 
-        it(
+        it.only(
           `should not have additional components in the cache that have ` +
             `their page set to the page component's target page after resolving`,
           async () => {
