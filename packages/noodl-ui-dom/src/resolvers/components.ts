@@ -129,7 +129,7 @@ const componentsResolver: t.Resolve.Config = {
             elem.innerHTML = String(data)
           } else if (i._isIframeEl(elem)) {
             const parentNode =
-              elem.parentNode || args.page.rootNode || document.body
+              elem.parentNode || args.page.node || document.body
             elem.innerHTML += data
             if (parentNode.children.length) {
               parentNode.insertBefore(elem, parentNode.childNodes[0])
@@ -161,7 +161,7 @@ const componentsResolver: t.Resolve.Config = {
                 childNode: HTMLElement,
                 top = true,
               ) => {
-                const parentNode = node || page.rootNode || document.body
+                const parentNode = node || page.node || document.body
 
                 if (top) {
                   if (parentNode.children.length) {
@@ -174,8 +174,8 @@ const componentsResolver: t.Resolve.Config = {
                 if (i._isIframeEl(node) || i._isDivEl(node))
                   appendChild(args.page, node)
                 else if (i._isLinkEl(node)) {
-                  if (i._isIframeEl(args.page.rootNode)) {
-                    args.page.rootNode.contentDocument?.head.appendChild(node)
+                  if (i._isIframeEl(args.page.node)) {
+                    args.page.node.contentDocument?.head.appendChild(node)
                   } else {
                     document.head.appendChild(node)
                   }
@@ -392,9 +392,9 @@ const componentsResolver: t.Resolve.Config = {
 
           if (componentPage) {
             const nuiPage = args.cache.page.get(componentPage?.id)?.page
-
             if (nuiPage) {
               console.info(`nuiPage exists on initial handling`)
+              debugger
               if (args.component !== componentPage.component) {
                 if (!componentPage.component) {
                   console.info(
@@ -430,6 +430,7 @@ const componentsResolver: t.Resolve.Config = {
             } else {
               console.info(`nuiPage did not exist on initial handling`)
             }
+            debugger
             const pageName = componentPage.requesting || componentPage.page
             if (pageName) {
               if (!(pageName in nui.getRoot())) {
@@ -438,10 +439,8 @@ const componentsResolver: t.Resolve.Config = {
                   `color:#00b406;`,
                   componentPage,
                 )
-                const pageObject = await args.transact(
-                  'REQUEST_PAGE_OBJECT',
-                  componentPage,
-                )
+                debugger
+                // await args.transact('REQUEST_PAGE_OBJECT', componentPage)
               }
             }
           } else {
@@ -516,7 +515,7 @@ const componentsResolver: t.Resolve.Config = {
 
                 if (
                   componentPage.id !== 'root' &&
-                  componentPage.rootNode !== opts.node
+                  componentPage.node !== opts.node
                 ) {
                   try {
                     componentPage.replaceNode(opts.node)
@@ -550,85 +549,20 @@ const componentsResolver: t.Resolve.Config = {
               }
 
               // args.node.src = args.component.get('page')?.page || ''
-              componentPage.rootNode?.addEventListener('error', console.error)
+              componentPage.node?.addEventListener('error', console.error)
             } else {
               /**
                * If this page component is not remote, it is loading a page
                * from the "page" list from a noodl app config
                */
+              const componentPage = i._getOrCreateComponentPage(
+                args.component,
+                args.createPage,
+                args.findPage,
+              )
 
               const onPageComponents = curry(async (_args: typeof args) => {
                 try {
-                  const componentPage = i._getOrCreateComponentPage(
-                    _args.component,
-                    _args.createPage,
-                    _args.findPage,
-                  )
-
-                  if (componentPage) {
-                    const nuiPage = args.cache.page.get(componentPage?.id)?.page
-
-                    if (nuiPage) {
-                      console.info(`nuiPage exists on initial handling`)
-                      if (args.component !== componentPage.component) {
-                        if (!componentPage.component) {
-                          console.info(
-                            `Replacing empty component in ComponentPage with incoming component`,
-                          )
-                          componentPage.patch(args.component)
-                        } else {
-                          console.info(
-                            `Replacing existing component in ComponentPage with incoming component because they are different`,
-                            {
-                              'componentPage.component':
-                                componentPage.component.toJSON(),
-                              'args.component': args.component.toJSON(),
-                            },
-                          )
-                          componentPage.patch(args.component)
-                        }
-                      }
-
-                      if (!componentPage.hasNuiPage) {
-                        if (nuiPage) {
-                          console.info(
-                            `Replacing empty nuiPage in ComponentPage with incoming nuiPage`,
-                          )
-                          componentPage.patch(nuiPage)
-                        }
-                      } else if (
-                        nuiPage &&
-                        componentPage.getNuiPage() !== nuiPage
-                      ) {
-                        console.info(
-                          `Replacing nuiPage in ComponentPage with incoming nuiPage because they are differeent`,
-                        )
-                        componentPage.patch(nuiPage)
-                      }
-                    } else {
-                      console.info(`nuiPage did not exist on initial handling`)
-                    }
-                    const pageName =
-                      componentPage.requesting || componentPage.page
-                    if (pageName) {
-                      if (!(pageName in nui.getRoot())) {
-                        console.info(
-                          `%cPage "${pageName}" is not in the root. Fetching it now`,
-                          `color:#00b406;`,
-                          componentPage,
-                        )
-                        const pageObject = await args.transact(
-                          'REQUEST_PAGE_OBJECT',
-                          componentPage,
-                        )
-                      }
-                    }
-                  } else {
-                    console.info(
-                      `ComponentPage did not exist in initial handling`,
-                    )
-                  }
-
                   // if (componentPage) {
                   //   const nuiPage = args.cache.page.get(componentPage.id)?.page
                   //   if (nuiPage) {
@@ -716,12 +650,11 @@ const componentsResolver: t.Resolve.Config = {
                   // if (type === 'init') {
                   if (!componentPage.initialized) {
                     componentPage.initialized = true
-                    if (componentPage.rootNode !== _args.node) {
-                      const currentStyles = copyStyles(_args.node)
-                      debugger
+                    if (componentPage.node !== _args.node) {
+                      // const currentStyles = copyStyles(_args.node)
                       componentPage.replaceNode(_args.node as HTMLIFrameElement)
-                      _args.node = componentPage.rootNode
-                      applyStyles(componentPage.rootNode, currentStyles)
+                      _args.node = componentPage.node
+                      // applyStyles(_args.node, currentStyles)
                     }
                   }
                   // }
@@ -731,11 +664,12 @@ const componentsResolver: t.Resolve.Config = {
                    * previous renders
                    */
                   if (componentPage.requesting && componentPage.page) {
-                    // console.info(
-                    //   `Clearing components from page "${componentPage.requesting}" ` +
-                    //     `from the component cache`,
-                    // )
-                    _args.cache.component.clear(componentPage.page)
+                    console.info(
+                      `Clearing components from page "${componentPage.requesting}" ` +
+                        `from the component cache`,
+                    )
+                    debugger
+                    // _args.cache.component.clear(componentPage.page)
                     _args.cache.component.clear(componentPage.requesting)
                   }
 
@@ -750,13 +684,15 @@ const componentsResolver: t.Resolve.Config = {
                     )
                     for (const id of descendentIds) {
                       // _args.cache.component.remove(id)
-                      findFirstByElementId?.(id)?.remove?.()
+                      // findFirstByElementId?.(id)?.remove?.()
                     }
                   }
 
-                  args.component.clear('children')
-                  _args.component.clear('children')
-                  componentPage.component?.clear?.('children')
+                  // args.component.clear('children')
+                  // _args.component.clear('children')
+                  // componentPage.component?.clear?.('children')
+
+                  debugger
 
                   console.info(componentPage.components)
 
@@ -779,7 +715,7 @@ const componentsResolver: t.Resolve.Config = {
                         _args.component.createChild(child)
                         return child
                       },
-                    ),
+                    ) || [],
                   )
 
                   console.info(
@@ -790,28 +726,32 @@ const componentsResolver: t.Resolve.Config = {
                 }
               })
 
-              args.node.addEventListener('load', async function () {
-                console.info(`Iframe (ComponentPage) loaded`)
-                // try {
-                //   if (
-                //     args.component !==
-                //     args.cache.component.get(args.component.id).component
-                //   ) {
-                //     console.info(
-                //       `Incoming component is different than the one in the ComponentCache. Replacing now...`,
-                //     )
-                //     args.component = args.cache.component.get(
-                //       args.component.id,
-                //     ).component
-                //   }
-                await onPageComponents(args, {
-                  page: componentPage.getNuiPage(),
-                  type: 'init',
-                })
-                // } catch (error) {
-                //   console.error(error)
-                // }
-              })
+              args.node.addEventListener(
+                'load',
+                async function () {
+                  console.info(`Iframe (ComponentPage) loaded`)
+                  try {
+                    //   if (
+                    //     args.component !==
+                    //     args.cache.component.get(args.component.id).component
+                    //   ) {
+                    //     console.info(
+                    //       `Incoming component is different than the one in the ComponentCache. Replacing now...`,
+                    //     )
+                    //     args.component = args.cache.component.get(
+                    //       args.component.id,
+                    //     ).component
+                    //   }
+                    // await onPageComponents(args, {
+                    //   page: componentPage.getNuiPage(),
+                    //   type: 'init',
+                    // })
+                  } catch (error) {
+                    console.error(error)
+                  }
+                },
+                { once: true },
+              )
 
               /**
                * This is used to keep the component up-to-date with changes in the DOM
@@ -823,7 +763,7 @@ const componentsResolver: t.Resolve.Config = {
             }
           } else {
             console.log(
-              `%cEncountered a page component with a rootNode that is not an iframe. This is not supported yet`,
+              `%cEncountered a page component with a node that is not an iframe. This is not supported yet`,
               `color:#FF5722;`,
               args,
             )

@@ -31,15 +31,15 @@ class ComponentPage<
     [c.eventId.componentPage.on.ON_MESSAGE]: [],
   } as ComponentPageHooks
   #nuiPage: NUIPage
-  #initialized = false
   #error: Error | null = null
+  initialized = false
   origin = '';
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       ...this.snapshot(),
       error: this.error,
-      initialized: this.#initialized,
+      initialized: this.initialized,
       component: this.component?.toJSON(),
     }
   }
@@ -52,28 +52,28 @@ class ComponentPage<
     if (isNDOMPage(nuiPage)) nuiPage = nuiPage.getNuiPage()
     super(nuiPage)
     this.#component = component
-    this.rootNode = super.rootNode as N
+    this.node = super.node as N
     this.origin = window.origin
 
-    if (this.rootNode) {
-      if (this.rootNode.tagName !== 'IFRAME') {
-        const attributes = copyAttributes(this.rootNode)
-        if (this.rootNode.parentElement) {
-          this.rootNode.parentElement.removeChild(this.rootNode)
+    if (this.node) {
+      if (this.node.tagName !== 'IFRAME') {
+        const attributes = copyAttributes(this.node)
+        if (this.node.parentElement) {
+          this.node.parentElement.removeChild(this.node)
         } else {
-          this.rootNode.remove()
+          this.node.remove()
         }
-        this.rootNode = document.createElement('iframe') as N
-        this.rootNode.id = component.id
-        u.assign(this.rootNode, attributes)
+        this.node = document.createElement('iframe') as N
+        this.node.id = component.id
+        u.assign(this.node, attributes)
       }
     } else {
-      this.rootNode = document.createElement('iframe')
+      this.node = document.createElement('iframe')
     }
 
     window?.addEventListener('message', this.#onparentmessage)
     window?.addEventListener('messageerror', this.#onparentmessageerror)
-    this.rootNode?.addEventListener(
+    this.node?.addEventListener(
       'load',
       (evt) => {
         console.info(`LOADED FROM COMPONENT PAGE ${this?.id}`, {
@@ -95,7 +95,7 @@ class ComponentPage<
       },
       { once: true },
     )
-    this.rootNode?.addEventListener?.(
+    this.node?.addEventListener?.(
       'unload',
       (evt) => {
         console.info(`UNLOADING FROM COMPONENT PAGE ${this.id}`, {
@@ -105,7 +105,7 @@ class ComponentPage<
         try {
           this.body.innerHTML = ''
           this.body.remove()
-          this.rootNode.remove()
+          this.node.remove()
         } catch (error) {
           console.error(`[Error from unload ComponentPage]`, error)
         }
@@ -130,8 +130,7 @@ class ComponentPage<
   }
 
   get window() {
-    return ((this.rootNode as HTMLIFrameElement)?.contentWindow ||
-      null) as Window
+    return ((this.node as HTMLIFrameElement)?.contentWindow || null) as Window
   }
 
   get document() {
@@ -150,12 +149,8 @@ class ComponentPage<
     return this.#error || null
   }
 
-  get initialized() {
-    return this.#initialized
-  }
-
   get parentElement() {
-    return this.rootNode?.parentElement || null
+    return this.node?.parentElement || null
   }
 
   #onparentmessage = (evt: MessageEvent) => {
@@ -190,7 +185,7 @@ class ComponentPage<
 
   clear() {
     this.remove()
-    this.rootNode?.remove?.()
+    this.node?.remove?.()
     u.forEach(u.clearArr, u.values(this.#hooks))
     this.#component = null as any
   }
@@ -235,11 +230,11 @@ class ComponentPage<
     srcDoc?: string
     title?: string
   }) {
-    opts.allowPaymentRequest && (this.rootNode.allowPaymentRequest = true)
-    opts.className && this.rootNode.classList.add(opts.className)
-    opts.width && (this.rootNode.width = opts.width)
-    opts.height && (this.rootNode.height = opts.height)
-    opts.name && (this.rootNode.name = opts.name)
+    opts.allowPaymentRequest && (this.node.allowPaymentRequest = true)
+    opts.className && this.node.classList.add(opts.className)
+    opts.width && (this.node.width = opts.width)
+    opts.height && (this.node.height = opts.height)
+    opts.name && (this.node.name = opts.name)
 
     if (opts.contentSecurityPolicy) {
       const addKeyPair = (k: string, v: OrArray<string> | boolean) => {
@@ -260,7 +255,7 @@ class ComponentPage<
       obj.allowVideos && (value += addKeyPair('media-src', '*'))
       obj.allowScripts && (value += addKeyPair('script-src', obj.allowScripts))
       cspElem.setAttribute('content', value)
-      this.rootNode?.contentDocument?.head.appendChild(cspElem)
+      this.node?.contentDocument?.head.appendChild(cspElem)
     }
 
     opts.onLoad && this.on(c.eventId.componentPage.on.ON_LOAD, opts.onLoad)
@@ -377,9 +372,9 @@ class ComponentPage<
   replaceNode<NN extends N>(node: NN) {
     try {
       if (this.parentElement) {
-        this.parentElement.replaceChild(node, this.rootNode)
+        this.parentElement.replaceChild(node, this.node)
       }
-      this.rootNode = node as NN
+      this.node = node as NN
     } catch (error) {
       console.error(error)
       throw error

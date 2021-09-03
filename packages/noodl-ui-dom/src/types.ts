@@ -205,10 +205,10 @@ export namespace Page {
     [eventId.page.on.ON_NAVIGATE_ERROR](
       snapshot: Snapshot & { error: Error },
     ): void
-    [eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE](rootNode: HTMLElement): void
+    [eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE](node: HTMLElement): void
     [eventId.page.on.ON_DOM_CLEANUP](args: {
       global: NDOM['global']
-      rootNode: NDOM['page']['rootNode']
+      node: NDOM['page']['node']
     }): void
     [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
       snapshot: Snapshot & { components: NUIComponent.Instance[] },
@@ -229,7 +229,7 @@ export namespace Page {
       page: NDOMPage
     }): void
     [eventId.page.on.ON_SET_ROOT_NODE](args: {
-      rootNode: HTMLDivElement | HTMLIFrameElement | null
+      node: HTMLDivElement | HTMLIFrameElement | null
     }): void
   }
 
@@ -251,7 +251,7 @@ export namespace Page {
       }
     }
     status: Status
-    rootNode: boolean
+    node: boolean
   }
 
   export type Status =

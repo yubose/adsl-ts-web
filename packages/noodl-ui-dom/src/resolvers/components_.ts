@@ -126,7 +126,7 @@ const componentsResolver: t.Resolve.Config = {
             elem.innerHTML = String(data)
           } else if (i._isIframeEl(elem)) {
             const parentNode =
-              elem.parentNode || args.page.rootNode || document.body
+              elem.parentNode || args.page.node || document.body
             elem.innerHTML += data
             if (parentNode.children.length) {
               parentNode.insertBefore(elem, parentNode.childNodes[0])
@@ -158,7 +158,7 @@ const componentsResolver: t.Resolve.Config = {
                 childNode: HTMLElement,
                 top = true,
               ) => {
-                const parentNode = node || page.rootNode || document.body
+                const parentNode = node || page.node || document.body
 
                 if (top) {
                   if (parentNode.children.length) {
@@ -171,8 +171,8 @@ const componentsResolver: t.Resolve.Config = {
                 if (i._isIframeEl(node) || i._isDivEl(node))
                   appendChild(args.page, node)
                 else if (i._isLinkEl(node)) {
-                  if (i._isIframeEl(args.page.rootNode)) {
-                    args.page.rootNode.contentDocument?.head.appendChild(node)
+                  if (i._isIframeEl(args.page.node)) {
+                    args.page.node.contentDocument?.head.appendChild(node)
                   } else {
                     document.head.appendChild(node)
                   }
@@ -447,7 +447,7 @@ const componentsResolver: t.Resolve.Config = {
 
                 if (
                   componentPage.id !== 'root' &&
-                  componentPage.rootNode !== opts.node
+                  componentPage.node !== opts.node
                 ) {
                   try {
                     componentPage.replaceNode(opts.node)
@@ -481,7 +481,7 @@ const componentsResolver: t.Resolve.Config = {
               }
 
               // args.node.src = args.component.get('page')?.page || ''
-              componentPage.rootNode?.addEventListener('error', console.error)
+              componentPage.node?.addEventListener('error', console.error)
             } else {
               /**
                * If this page component is not remote, it is loading a page
@@ -499,7 +499,7 @@ const componentsResolver: t.Resolve.Config = {
                    * Initiation / first time rendering
                    */
                   if (type === 'init') {
-                    if (componentPage.rootNode !== _args.node) {
+                    if (componentPage.node !== _args.node) {
                       componentPage.replaceNode(_args.node as HTMLIFrameElement)
                     }
                   }
@@ -585,7 +585,7 @@ const componentsResolver: t.Resolve.Config = {
             }
           } else {
             console.log(
-              `%cEncountered a page component with a rootNode that is not an iframe. This is not supported yet`,
+              `%cEncountered a page component with a node that is not an iframe. This is not supported yet`,
               `color:#FF5722;`,
               args,
             )

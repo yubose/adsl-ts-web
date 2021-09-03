@@ -13,6 +13,7 @@ export default function copyStyles(elem: HTMLElement | null) {
       (acc, [k, v]) => {
         if (
           Object.getOwnPropertyDescriptor(elem.style, k)?.writable &&
+          v !== '' &&
           k !== 'length' &&
           k !== 'parentRule'
         ) {

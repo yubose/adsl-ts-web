@@ -1,4 +1,11 @@
 {
+  "ts-node": {
+    "transpileOnly": true,
+    "compilerOptions": {
+      "module": "commonjs",
+      "target": "es2017"
+    }
+  },
   "compilerOptions": {
     "allowJs": false,
     "allowSyntheticDefaultImports": true,

@@ -468,7 +468,7 @@ class App {
 
   async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
     let spinnerRef = setTimeout(() => {
-      this.#spinner.spin(page?.rootNode || this.mainPage?.rootNode)
+      this.#spinner.spin(page?.node || this.mainPage?.node)
     }, 350)
 
     try {
@@ -697,8 +697,8 @@ class App {
         refreshWidthAndHeight()
         document.body.style.width = `${args.width}px`
         document.body.style.height = `${args.height}px`
-        this.mainPage.rootNode.style.width = `${args.width}px`
-        this.mainPage.rootNode.style.height = `${args.height}px`
+        this.mainPage.node.style.width = `${args.width}px`
+        this.mainPage.node.style.height = `${args.height}px`
         await this.ndom.render(this.mainPage)
       }
     }
@@ -731,9 +731,9 @@ class App {
       }
     }
 
-    const onBeforeClearRootNode = () => {
+    const onBeforeClearnode = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
-        log.func('onBeforeClearRootNode')
+        log.func('onBeforeClearnode')
         const _log = (label: 'selfStream' | 'mainStream' | 'subStreams') => {
           const getSnapshot = () => this[label]?.snapshot()
           const before = getSnapshot()
@@ -776,7 +776,7 @@ class App {
     page
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
       .on(eventId.page.on.ON_NAVIGATE_STALE, onNavigateStale)
-      .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearRootNode)
+      .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearnode)
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 

@@ -15,7 +15,7 @@ class Page {
       [pageName: string]: { reload?: boolean } & Record<string, any>
     },
     status: eventId.page.status.IDLE as t.Page.Status,
-    rootNode: false,
+    node: false,
   }
   #hooks = u
     .values(eventId.page.on)
@@ -23,7 +23,7 @@ class Page {
     t.Page.HookEvent,
     t.Page.HookDescriptor[]
   >
-  #rootNode: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement
+  #node: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement
   pageUrl: string = BASE_PAGE_URL;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
@@ -35,26 +35,26 @@ class Page {
 
   constructor(nuiPage: NUIPage) {
     this.#nuiPage = nuiPage
-    this.clearRootNode()
-    if (this.id === 'root' && !document.body.contains(this.rootNode)) {
-      document.body.appendChild(this.rootNode)
+    this.clearnode()
+    if (this.id === 'root' && !document.body.contains(this.node)) {
+      document.body.appendChild(this.node)
     }
   }
 
-  clearRootNode() {
-    if (!this.rootNode) {
+  clearnode() {
+    if (!this.node) {
       // @ts-expect-error
-      this.rootNode =
+      this.node =
         document.getElementById(String(this.id)) ||
         document.createElement('div')
-      this.rootNode.id = this.id as string
+      this.node.id = this.id as string
     }
-    this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.rootNode)
-    this.rootNode.textContent = ''
-    this.rootNode.style.cssText = ''
-    this.rootNode.style.position = 'absolute'
-    this.rootNode.style.width = '100%'
-    this.rootNode.style.height = '100%'
+    this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.node)
+    this.node.textContent = ''
+    this.node.style.cssText = ''
+    this.node.style.position = 'absolute'
+    this.node.style.width = '100%'
+    this.node.style.height = '100%'
 
     return this
   }
@@ -137,17 +137,17 @@ class Page {
     this.#state.requesting = pageName || ''
   }
 
-  get rootNode() {
-    return this.#rootNode
+  get node() {
+    return this.#node
   }
 
-  set rootNode(rootNode) {
-    this.#rootNode = rootNode
-    this.emitSync(eventId.page.on.ON_SET_ROOT_NODE, { rootNode })
+  set node(node) {
+    this.#node = node
+    this.emitSync(eventId.page.on.ON_SET_ROOT_NODE, { node })
   }
 
   get tagName() {
-    return this.rootNode?.tagName?.toLowerCase?.() || ''
+    return this.node?.tagName?.toLowerCase?.() || ''
   }
 
   get viewport() {
@@ -210,12 +210,12 @@ class Page {
         width: this.viewport?.width,
         height: this.viewport?.height,
       },
-      rootNode: {
-        id: this.rootNode.id,
-        width: this.rootNode.style.width,
-        height: this.rootNode.style.height,
-        childElementCount: this.rootNode.childElementCount,
-        tagName: this.rootNode.tagName,
+      node: {
+        id: this.node.id,
+        width: this.node.style.width,
+        height: this.node.style.height,
+        childElementCount: this.node.childElementCount,
+        tagName: this.node.tagName,
       },
       tagName: this.tagName,
       ...opts,

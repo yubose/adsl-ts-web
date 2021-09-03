@@ -566,12 +566,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
         window.location.href = urlToGoToInstead
       } else {
-        if (
-          ndomPage.rootNode &&
-          ndomPage.rootNode instanceof HTMLIFrameElement
-        ) {
-          if (ndomPage.rootNode.contentDocument?.body) {
-            ndomPage.rootNode.contentDocument.body.textContent = ''
+        if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+          if (ndomPage.node.contentDocument?.body) {
+            ndomPage.node.contentDocument.body.textContent = ''
           }
         }
 

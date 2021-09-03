@@ -49,12 +49,12 @@ window.addEventListener('load', async function (evt) {
   const leftNode = h('div', {})
   const rightNode = h('input', {})
 
-  let rootNode = createElement(leftNode)
+  let node = createElement(leftNode)
 
-  this.document.body.appendChild(rootNode)
+  this.document.body.appendChild(node)
 
   const patches = diff(leftNode, rightNode)
-  patch(rootNode, patches)
+  patch(node, patches)
 
   console.log(patches)
 
@@ -76,14 +76,14 @@ window.addEventListener('load', async function (evt) {
 
   let count = 0
   let tree = render(count)
-  let _rootNode = createElement(tree)
-  document.body.appendChild(_rootNode)
+  let _node = createElement(tree)
+  document.body.appendChild(_node)
 
   this.setInterval(function () {
     count++
     let newTree = render(count)
     let _patches = diff(tree, newTree)
-    _rootNode = patch(_rootNode, _patches)
+    _node = patch(_node, _patches)
     tree = newTree
   }, 500)
 

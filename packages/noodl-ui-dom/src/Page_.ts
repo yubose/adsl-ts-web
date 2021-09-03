@@ -21,7 +21,7 @@ class Page {
       [pageName: string]: { reload?: boolean } & Record<string, any>
     },
     status: eventId.page.status.IDLE as t.Page.Status,
-    rootNode: false,
+    node: false,
   }
   #hooks = u
     .values(eventId.page.on)
@@ -29,8 +29,8 @@ class Page {
     t.Page.HookEvent,
     t.Page.HookDescriptor[]
   >
-  #rootNode: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement
-  #vrootNode: t.VNode
+  #node: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement
+  #vnode: t.VNode
   pageUrl: string = BASE_PAGE_URL;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
@@ -42,9 +42,9 @@ class Page {
 
   constructor(nuiPage: NUIPage) {
     this.#nuiPage = nuiPage
-    this.clearRootNode()
-    if (this.id === 'root' && !document.body.contains(this.rootNode)) {
-      document.body.appendChild(this.rootNode)
+    this.clearnode()
+    if (this.id === 'root' && !document.body.contains(this.node)) {
+      document.body.appendChild(this.node)
     }
   }
 
@@ -60,18 +60,18 @@ class Page {
     }
   }
 
-  clearRootNode() {
-    if (!this.#vrootNode) {
-      this.#vrootNode = h(`div#${this.id}`, this.defaultProps, [])
+  clearnode() {
+    if (!this.#vnode) {
+      this.#vnode = h(`div#${this.id}`, this.defaultProps, [])
     }
-    if (!this.rootNode) {
-      this.rootNode = createElement(this.#vrootNode) as Page['rootNode']
+    if (!this.node) {
+      this.node = createElement(this.#vnode) as Page['node']
     }
     patch(
-      this.rootNode,
-      diff(this.#vrootNode, h(`div#${this.id}`, this.defaultProps, [])),
+      this.node,
+      diff(this.#vnode, h(`div#${this.id}`, this.defaultProps, [])),
     )
-    this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.rootNode)
+    this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.node)
     return this
   }
 
@@ -149,21 +149,21 @@ class Page {
     this.#state.requesting = pageName || ''
   }
 
-  get rootNode() {
-    return this.#rootNode
+  get node() {
+    return this.#node
   }
 
-  set rootNode(rootNode) {
-    this.#rootNode = rootNode
-    this.emitSync(eventId.page.on.ON_SET_ROOT_NODE, { rootNode })
+  set node(node) {
+    this.#node = node
+    this.emitSync(eventId.page.on.ON_SET_ROOT_NODE, { node })
   }
 
-  get vrootNode() {
-    return this.#vrootNode
+  get vnode() {
+    return this.#vnode
   }
 
   get tagName() {
-    return this.rootNode?.tagName?.toLowerCase?.() || ''
+    return this.node?.tagName?.toLowerCase?.() || ''
   }
 
   get viewport() {
@@ -219,12 +219,12 @@ class Page {
         width: this.viewport?.width,
         height: this.viewport?.height,
       },
-      rootNode: {
-        id: this.rootNode.id,
-        width: this.rootNode.style.width,
-        height: this.rootNode.style.height,
-        childElementCount: this.rootNode.childElementCount,
-        tagName: this.rootNode.tagName,
+      node: {
+        id: this.node.id,
+        width: this.node.style.width,
+        height: this.node.style.height,
+        childElementCount: this.node.childElementCount,
+        tagName: this.node.tagName,
       },
       tagName: this.tagName,
       ...opts,

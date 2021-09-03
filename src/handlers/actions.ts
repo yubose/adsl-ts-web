@@ -346,12 +346,9 @@ const createActions = function createActions(app: App) {
         log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
       } else {
         // TODO - Move this to an official location in noodl-ui-dom
-        if (
-          ndomPage.rootNode &&
-          ndomPage.rootNode instanceof HTMLIFrameElement
-        ) {
-          if (ndomPage.rootNode.contentDocument?.body) {
-            ndomPage.rootNode.contentDocument.body.textContent = ''
+        if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+          if (ndomPage.node.contentDocument?.body) {
+            ndomPage.node.contentDocument.body.textContent = ''
           }
         }
       }
@@ -368,12 +365,9 @@ const createActions = function createActions(app: App) {
     })
 
     if (!isSamePage) {
-      if (
-        ndomPage?.rootNode &&
-        ndomPage.rootNode instanceof HTMLIFrameElement
-      ) {
-        if (ndomPage.rootNode.contentDocument?.body) {
-          ndomPage.rootNode.contentDocument.body.textContent = ''
+      if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
+        if (ndomPage.node.contentDocument?.body) {
+          ndomPage.node.contentDocument.body.textContent = ''
         }
       }
 

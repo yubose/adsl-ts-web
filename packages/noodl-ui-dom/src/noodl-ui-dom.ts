@@ -1,20 +1,6 @@
 import invariant from 'invariant'
 import { Identify, PageObject } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
-import {
-  init,
-  classModule,
-  propsModule,
-  styleModule,
-  eventListenersModule,
-  h,
-  toVNode,
-} from 'snabbdom'
-import diff from 'virtual-dom/diff'
-import createElement from 'virtual-dom/create-element'
-import patch from 'virtual-dom/patch'
-import VNode from 'virtual-dom/vnode/vnode'
-import VText from 'virtual-dom/vnode/vtext'
 import type {
   ConsumerOptions,
   NUIComponent,
@@ -29,6 +15,7 @@ import {
   NUI,
   nuiEmitTransaction,
 } from 'noodl-ui'
+import { createMachine, interpret } from 'xstate'
 import type { ComponentPage } from './factory/componentFactory'
 import { getElementTag, getNodeIndex, openOutboundURL } from './utils'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
@@ -379,14 +366,14 @@ class NDOM extends NDOMInternal {
     page.setStatus(c.eventId.page.status.COMPONENTS_RECEIVED)
     page.emitSync(c.eventId.page.on.ON_DOM_CLEANUP, {
       global: this.global,
-      rootNode: page.rootNode,
+      node: page.node,
     })
     /**
-     * Page components use NDOMPage instances that use their rootNode as an
+     * Page components use NDOMPage instances that use their node as an
      * HTMLIFrameElement. They will have their own way of clearing their tree
      */
-    // !i._isIframeEl(page.rootNode) && page.clearRootNode()
-    page.clearRootNode()
+    // !i._isIframeEl(page.node) && page.clearnode()
+    page.clearnode()
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
     page.emitSync(
       pageEvt.on.ON_BEFORE_RENDER_COMPONENTS,
@@ -395,16 +382,16 @@ class NDOM extends NDOMInternal {
 
     await Promise.all(
       components.map((c) => {
-        let containerEl = page.rootNode as HTMLElement
+        let containerEl = page.node as HTMLElement
 
         if (Identify.component.page(c)) {
           const componentPage = this.findPage(c)
-          if (i._isIframeEl(componentPage.rootNode)) {
+          if (i._isIframeEl(componentPage.node)) {
             if (componentPage.body) containerEl = componentPage.body
           }
         }
 
-        !containerEl && (containerEl = page.rootNode)
+        !containerEl && (containerEl = page.node)
         return this.draw(c, containerEl, page)
       }),
     )
@@ -815,7 +802,7 @@ class NDOM extends NDOMInternal {
           page.clear()
         } else {
           page.remove()
-          page?.rootNode?.remove?.()
+          page?.node?.remove?.()
         }
       } catch (error) {
         console.error(error)

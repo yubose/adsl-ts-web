@@ -9,24 +9,56 @@ import { waitFor } from '@testing-library/dom'
 import {
   Component,
   createComponent,
-  findListDataObject,
   flatten,
   NUIActionObjectInput,
 } from 'noodl-ui'
 import { createRender, getAllElementCount, ndom, ui } from '../test-utils'
-import {
-  findBySelector,
-  findFirstBySelector,
-  getFirstByDataKey,
-  getFirstByElementId,
-} from '../utils'
 import { cache, nui } from '../nui'
-import { getFirstByViewTag } from '../../dist'
+import * as n from '../utils'
 
 let view: Component
 
-describe(nc.coolGold(`redraw`), () => {
-  describe(nc.italic(`events`), () => {
+describe.only(u.cyan(`redraw`), () => {
+  describe.only(u.italic('state'), () => {
+    let { getRoot, ndom, page, pageObject, render } = createRender({
+      pageName: 'Hello',
+      root: {
+        Cereal: {
+          formData: { username: 'moodle' },
+          components: [
+            ui.view({
+              children: [
+                ui.label({ dataKey: 'formData.username' }),
+                ui.textField({
+                  dataKey: 'formData.username',
+                  placeholder: 'Edit username',
+                }),
+              ],
+            }),
+          ],
+        },
+        Hello: {
+          components: [
+            ui.view({
+              children: [
+                ui.button(),
+                ui.textField({ placeholder: 'Enter name' }),
+                ui.page('Cereal'),
+              ],
+            }),
+          ],
+        },
+      },
+    })
+
+    it(`xstate`, async () => {
+      let view = await render()
+      let [label, textField] = view.children
+      console.info(prettyDOM())
+    })
+  })
+
+  describe(u.italic(`events`), () => {
     let id = 'hello'
     let componentObject: ComponentObject | undefined
     let currentCount = 0
@@ -38,9 +70,7 @@ describe(nc.coolGold(`redraw`), () => {
 
     beforeEach(() => {
       currentCount = 0
-      emitObject = ui.emitObject({
-        emit: { dataKey: { var1: 'hey' }, actions: [] },
-      })
+      emitObject = ui.emitObject()
       onClick = [emitObject]
       componentObject = ui.label({
         id,
@@ -48,12 +78,7 @@ describe(nc.coolGold(`redraw`), () => {
         dataKey: '..currentCount',
         onClick: onClick as any,
       })
-      pageObject = {
-        components: [componentObject],
-        get currentCount() {
-          return currentCount
-        },
-      }
+      pageObject = { components: [componentObject], currentCount }
     })
 
     it(`should still be executing the same action chains normally`, async () => {
@@ -65,13 +90,13 @@ describe(nc.coolGold(`redraw`), () => {
       ndom.use({
         emit: {
           onClick: async () => {
-            const node = getFirstByElementId(id)
+            const node = n.getFirstByElementId(id)
             node.innerHTML = String(increment())
           },
         },
       })
       let component = await render()
-      let node = getFirstByElementId(id)
+      let node = n.getFirstByElementId(id)
       // TODO - fix this so that it works with only 1 click
       node.click()
       node.click()
@@ -96,7 +121,7 @@ describe(nc.coolGold(`redraw`), () => {
       components: ui.list({ listObject: mock.getGenderListObject() }),
     })
     const component = await render()
-    const node = getFirstByElementId(component)
+    const node = n.getFirstByElementId(component)
     const idsToBeRemoved = flatten(component).map((c) => c.id)
     expect(idsToBeRemoved).to.have.length.greaterThan(0)
     expect(ndom.cache.component).to.have.lengthOf(idsToBeRemoved.length)
@@ -117,7 +142,7 @@ describe(nc.coolGold(`redraw`), () => {
       ],
     })
     const list = await render()
-    const node = getFirstByElementId(list)
+    const node = n.getFirstByElementId(list)
     const idsToBeRemoved = flatten(list).map((c) => c.id)
     const idsToBeRemovedLengthBefore = idsToBeRemoved.length
     const [_, newComp] = await ndom.redraw(node, list)
@@ -158,7 +183,7 @@ describe(nc.coolGold(`redraw`), () => {
     })
     const container = await render()
     const getContainerElem = () =>
-      findBySelector('[data-viewtag=container]') as HTMLElement
+      n.findBySelector('[data-viewtag=container]') as HTMLElement
 
     expect(getAllElementCount(`[data-viewtag=container]`)).to.eq(1)
     expect(getAllElementCount('ul')).to.eq(1)
@@ -195,12 +220,12 @@ describe(nc.coolGold(`redraw`), () => {
       ])
       let list = await render()
       let componentCacheLengthBefore = ndom.cache.component.length
-      let listElem = getFirstByElementId(list)
+      let listElem = n.getFirstByElementId(list)
 
       await waitFor(() => {
         expect(listElem.querySelectorAll('li')).to.have.lengthOf(3)
       })
-      let pair = await ndom.redraw(getFirstByElementId(list), list)
+      let pair = await ndom.redraw(n.getFirstByElementId(list), list)
       expect(list.blueprint.listObject).to.have.lengthOf(3)
       pair = await ndom.redraw(pair[0], pair[1])
       pair = await ndom.redraw(pair[0], pair[1])
@@ -227,13 +252,13 @@ describe(nc.coolGold(`redraw`), () => {
       ui.label(),
     ])
     let list = await render()
-    expect(findBySelector('li')).to.have.lengthOf(3)
-    await ndom.redraw(getFirstByElementId(list), list)
-    await ndom.redraw(getFirstByElementId(list), list)
-    await ndom.redraw(getFirstByElementId(list), list)
-    expect(u.array(findBySelector('li'))).to.have.lengthOf(3)
-    expect(u.array(findBySelector('input'))).to.have.lengthOf(3)
-    expect(u.array(findBySelector('hr'))).to.have.lengthOf(3)
+    expect(n.findBySelector('li')).to.have.lengthOf(3)
+    await ndom.redraw(n.getFirstByElementId(list), list)
+    await ndom.redraw(n.getFirstByElementId(list), list)
+    await ndom.redraw(n.getFirstByElementId(list), list)
+    expect(u.array(n.findBySelector('li'))).to.have.lengthOf(3)
+    expect(u.array(n.findBySelector('input'))).to.have.lengthOf(3)
+    expect(u.array(n.findBySelector('hr'))).to.have.lengthOf(3)
   })
 
   describe(nc.italic(`select components`), () => {
@@ -242,9 +267,8 @@ describe(nc.coolGold(`redraw`), () => {
       let otherOptions = ['00:20', '00:30']
       let { render } = createRender(ui.select({ options }))
       let component = await render()
-      let node = getFirstByElementId(component) as HTMLSelectElement
+      let node = n.getFirstByElementId(component) as HTMLSelectElement
       let optionsNodes = Array.from(node.options)
-      console.info(prettyDOM(node))
       expect(node.options).to.have.lengthOf(2)
       optionsNodes.forEach((optionNode, index) =>
         expect(optionNode.value).to.eq(options[index]),
@@ -346,17 +370,17 @@ describe(nc.coolGold(`redraw`), () => {
       ndom.use({ emit: { onClick: onClickSpy, path: pathSpy } })
       const view = await render()
       const image = view.child()
-      expect(getFirstByElementId('img123')).to.exist
-      getFirstByElementId('img123').click()
+      expect(n.getFirstByElementId('img123')).to.exist
+      n.getFirstByElementId('img123').click()
       await waitFor(() => {
         expect(onClickSpy).to.be.calledOnce
         expect(pathSpy).to.be.calledOnce
         expect(onClickSpy).to.be.calledOnce
       })
-      await ndom.redraw(getFirstByElementId('img123'), image)
-      getFirstByElementId('img123').click()
+      await ndom.redraw(n.getFirstByElementId('img123'), image)
+      n.getFirstByElementId('img123').click()
       await waitFor(() => {
-        const newImg = getFirstByElementId('img123') as HTMLImageElement
+        const newImg = n.getFirstByElementId('img123') as HTMLImageElement
         const expectedSrc = nui.getAssetsUrl() + imgPath
         expect(newImg.src).to.eq(expectedSrc)
       })
@@ -366,7 +390,7 @@ describe(nc.coolGold(`redraw`), () => {
   describe('when user types something on a redrawed input node that had an onChange emit', () => {
     it('should still be emitting and updating the DOM', async () => {
       const mockOnChangeEmit = async (action, { component }) => {
-        const node = getFirstByElementId(component)
+        const node = n.getFirstByElementId(component)
         node.setAttribute('placeholder', component.get('data-value'))
       }
       const { ndom, render } = createRender({
@@ -380,13 +404,13 @@ describe(nc.coolGold(`redraw`), () => {
       })
       ndom.use({ emit: { onChange: mockOnChangeEmit } })
       const view = await render()
-      const viewElem = getFirstByElementId(view)
-      let input = getFirstByDataKey('formData.password') as HTMLInputElement
+      const viewElem = n.getFirstByElementId(view)
+      let input = n.getFirstByDataKey('formData.password') as HTMLInputElement
       expect(input.dataset.value).to.eq('mypassword')
       expect(input.value).to.eq('mypassword')
       await ndom.redraw(viewElem, view)
       await waitFor(() => {
-        input = getFirstByDataKey('formData.password') as HTMLInputElement
+        input = n.getFirstByDataKey('formData.password') as HTMLInputElement
         expect(input.dataset.value).to.eq('mypassword')
       })
       // expect(input.value).to.eq('mypassword')
@@ -476,16 +500,14 @@ describe(nc.coolGold(`redraw`), () => {
       builtIn: {
         redraw: async (action, opts) => {
           const viewTag = action.original.viewTag
-          const node = getFirstByViewTag(viewTag)
+          const node = n.getFirstByViewTag(viewTag)
           const component = cache.component.get(node?.id).component
-          console.info(`Changing outerImagePath to brown.png`)
           pageObject.formData.outerImagePath = 'brown.png'
           try {
             await ndom.redraw(node, component, ndom.findPage(opts.page))
           } catch (error) {
             console.error(error)
           }
-          console.info(`Changed outerImagePath to brown.png`)
         },
       },
       emit: {
@@ -546,11 +568,11 @@ describe(nc.coolGold(`redraw`), () => {
       },
     }
 
-    let containerElem = getFirstByElementId(view.id) as HTMLDivElement
-    let listItemElems = findBySelector('li') as HTMLLIElement[]
+    let containerElem = n.getFirstByElementId(view.id) as HTMLDivElement
+    let listItemElems = n.findBySelector('li') as HTMLLIElement[]
     let [liElem1] = listItemElems
-    let redrawButtonElem = getFirstByViewTag('redrawTag')
-    let containerImageElem = getFirstByElementId('abcId')
+    let redrawButtonElem = n.getFirstByViewTag('redrawTag')
+    let containerImageElem = n.getFirstByElementId('abcId')
 
     const getListItemDataElems = (liElem: HTMLLIElement) => ({
       textField: liElem.querySelector('input'),
@@ -572,7 +594,7 @@ describe(nc.coolGold(`redraw`), () => {
       )
       for (let index = 0; index < 2; index++) {
         const children = getListItemDataElems(
-          (findBySelector('li') as HTMLLIElement[])[index],
+          (n.findBySelector('li') as HTMLLIElement[])[index],
         )
         expect(children.textField).to.have.property(
           'value',
@@ -599,13 +621,13 @@ describe(nc.coolGold(`redraw`), () => {
     expect(listItemElems).to.have.lengthOf(listObject.length)
 
     await waitFor(() => {
-      expect(getFirstByElementId('abcId')).to.have.property(
+      expect(n.getFirstByElementId('abcId')).to.have.property(
         'src',
         getAssetsUrl() + 'brown.png',
       )
       for (let index = 0; index < 2; index++) {
         const children = getListItemDataElems(
-          (findBySelector('li') as HTMLLIElement[])[index],
+          (n.findBySelector('li') as HTMLLIElement[])[index],
         )
         expect(children.textField).to.have.property(
           'value',
@@ -660,25 +682,25 @@ describe(nc.coolGold(`redraw`), () => {
     ndom.use({ emit: { path: pathSpy as any, onClick: onClickSpy } })
     await render()
 
-    expect(findBySelector('ul')).to.be.instanceOf(HTMLUListElement)
-    expect(findBySelector('li')).to.have.lengthOf(2)
-    expect(findBySelector('img')).to.have.lengthOf(2)
-    expect(findBySelector('input')).to.have.lengthOf(2)
-    const componentId = findFirstBySelector('li').id
+    expect(n.findBySelector('ul')).to.be.instanceOf(HTMLUListElement)
+    expect(n.findBySelector('li')).to.have.lengthOf(2)
+    expect(n.findBySelector('img')).to.have.lengthOf(2)
+    expect(n.findBySelector('input')).to.have.lengthOf(2)
+    const componentId = n.findFirstBySelector('li').id
     await waitFor(() => {
-      expect(findFirstBySelector('input').dataset.value).to.eq('mypassword')
+      expect(n.findFirstBySelector('input').dataset.value).to.eq('mypassword')
     })
     await ndom.redraw(
-      findFirstBySelector('li'),
+      n.findFirstBySelector('li'),
       ndom.cache.component.get(componentId).component,
     )
-    expect(u.array(findBySelector('ul'))).to.have.lengthOf(1)
+    expect(u.array(n.findBySelector('ul'))).to.have.lengthOf(1)
     await waitFor(() => {
-      expect(u.array(findBySelector('li'))).to.have.lengthOf(2)
+      expect(u.array(n.findBySelector('li'))).to.have.lengthOf(2)
     })
-    expect(u.array(findBySelector('img'))).to.have.lengthOf(2)
-    expect(u.array(findBySelector('input'))).to.have.lengthOf(2)
-    expect(findFirstBySelector('input').dataset).to.have.property(
+    expect(u.array(n.findBySelector('img'))).to.have.lengthOf(2)
+    expect(u.array(n.findBySelector('input'))).to.have.lengthOf(2)
+    expect(n.findFirstBySelector('input').dataset).to.have.property(
       'value',
       'mypassword',
     )
