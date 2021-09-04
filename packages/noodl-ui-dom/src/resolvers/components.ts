@@ -577,18 +577,18 @@ const componentsResolver: t.Resolve.Config = {
                         componentPage.requesting || componentPage.page
 
                       if (nui.getPages().includes(pageName)) {
-                        if (!(pageName in nui.getRoot())) {
-                          console.info(
-                            `%cPage "${pageName}" is not in the root. Fetching it now`,
-                            `color:#00b406;`,
-                            componentPage,
-                          )
-                          // args.cache.component.clear()
-                          await args.transact(
-                            'REQUEST_PAGE_OBJECT',
-                            componentPage,
-                          )
-                        }
+                        // if (!(pageName in nui.getRoot())) {
+                        // console.info(
+                        //   `%cPage "${pageName}" is not in the root. Fetching it now`,
+                        //   `color:#00b406;`,
+                        //   componentPage,
+                        // )
+                        // args.cache.component.clear()
+                        await args.transact(
+                          'REQUEST_PAGE_OBJECT',
+                          componentPage,
+                        )
+                        // }
                       }
                     } else {
                       console.info(
