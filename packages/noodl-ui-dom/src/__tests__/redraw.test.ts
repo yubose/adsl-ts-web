@@ -18,8 +18,8 @@ import * as n from '../utils'
 
 let view: Component
 
-describe.only(u.cyan(`redraw`), () => {
-  describe.only(u.italic('state'), () => {
+describe(u.cyan(`redraw`), () => {
+  xdescribe(u.italic('state'), () => {
     let { getRoot, ndom, page, pageObject, render } = createRender({
       pageName: 'Hello',
       root: {
@@ -53,8 +53,8 @@ describe.only(u.cyan(`redraw`), () => {
 
     it(`xstate`, async () => {
       let view = await render()
-      let [label, textField] = view.children
-      console.info(prettyDOM())
+      // let [label, textField] = view.children
+      // console.info(prettyDOM())
     })
   })
 

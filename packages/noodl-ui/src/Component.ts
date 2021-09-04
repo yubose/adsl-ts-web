@@ -325,7 +325,10 @@ class Component<C extends ComponentObject = ComponentObject> {
       }
     }
     const _clearHooks = () =>
-      u.keys(this.#hooks).forEach((evt) => (this.#hooks[evt].length = 0))
+      u.keys(this.#hooks).forEach((evt) => {
+        if (!['PAGE_COMPONENTS', 'PAGE_CHANGED', 'PAGE_CREATED'].includes(evt))
+          this.#hooks[evt].length = 0
+      })
     if (filter) {
       u.arrayEach(filter, (s) =>
         s === 'children' ? _clearChildren(this.#children) : _clearHooks(),

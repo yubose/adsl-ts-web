@@ -88,11 +88,11 @@ class Page {
   }
 
   get components() {
-    return this.#nuiPage?.components
+    return this.#nuiPage?.components || null
   }
 
   get created() {
-    return this.#nuiPage?.created
+    return this.#nuiPage?.created || null
   }
 
   get history() {
@@ -104,7 +104,7 @@ class Page {
   }
 
   get id() {
-    return this.#nuiPage?.id as string
+    return (this.#nuiPage?.id as string) || null
   }
 
   get modifiers() {
@@ -117,7 +117,7 @@ class Page {
   }
 
   set page(page: string) {
-    this.#nuiPage.page = page || ''
+    this.#nuiPage && (this.#nuiPage.page = page || '')
   }
 
   get previous() {

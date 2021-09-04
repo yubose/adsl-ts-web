@@ -103,7 +103,7 @@ class NDOM extends NDOMInternal {
     return nuiCache.transactions
   }
 
-  createPage(component: NUIComponent.Instance): ComponentPage
+  createPage(component: NUIComponent.Instance, node?: any): ComponentPage
   createPage(nuiPage: NUIPage): NDOMPage | ComponentPage
   createPage(
     args: Parameters<typeof NUI['createPage']>[0],
@@ -120,6 +120,7 @@ class NDOM extends NDOMInternal {
       | Parameters<typeof NUI['createPage']>[0]
       | { page: NUIPage; viewport?: { width?: number; height?: number } }
       | string,
+    node?: any,
   ) {
     let page: NDOMPage | ComponentPage | undefined
 
@@ -132,15 +133,17 @@ class NDOM extends NDOMInternal {
             arg,
           )
         }
+
         return new NDOMPage(arg as NUIPage)
       }
 
       return componentFactory.createComponentPage(
         arg as NUIComponent.Instance,
         {
+          node,
           onLoad: (evt, node) => {
             console.log(
-              `%c[onLoad] NUIPage loaded for page "${page?.page}" on a page component`,
+              `%c[onLoad] NuiPage loaded for page "${page?.page}" on a page component`,
               `color:#00b406;`,
               { event: evt, node },
             )
@@ -184,7 +187,7 @@ class NDOM extends NDOMInternal {
         } else {
           page = createComponentPage(
             nui.createPage({
-              id: this.global.pageIds.includes('root') ? args : 'root',
+              id: this.global.pageIds.includes('root') ? args || '' : 'root',
               name: '',
             }) as NUIPage,
           )
@@ -233,13 +236,13 @@ class NDOM extends NDOMInternal {
    * @param NUIPage nuiPage
    * @returns NDOMPage | null
    */
-  findPage(nuiPage: NUIPage | NDOMPage | string): NDOMPage
+  findPage(nuiPage: NUIPage | NDOMPage | string | null): NDOMPage
   findPage(
     pageComponent: NUIComponent.Instance,
     currentPage?: string,
   ): ComponentPage
   findPage(
-    nuiPage: NUIComponent.Instance | NUIPage | NDOMPage | string,
+    nuiPage: NUIComponent.Instance | NUIPage | NDOMPage | string | null,
     currentPage?: string,
   ) {
     if (isComponent(nuiPage)) {
@@ -380,21 +383,7 @@ class NDOM extends NDOMInternal {
       page.snapshot({ components }),
     )
 
-    await Promise.all(
-      components.map((c) => {
-        let containerEl = page.node as HTMLElement
-
-        if (Identify.component.page(c)) {
-          const componentPage = this.findPage(c)
-          if (i._isIframeEl(componentPage.node)) {
-            if (componentPage.body) containerEl = componentPage.body
-          }
-        }
-
-        !containerEl && (containerEl = page.node)
-        return this.draw(c, containerEl, page)
-      }),
-    )
+    await Promise.all(components.map((c) => this.draw(c, page.node, page)))
 
     page.emitSync(c.eventId.page.on.ON_COMPONENTS_RENDERED, page)
     page.setStatus(c.eventId.page.status.COMPONENTS_RENDERED)
@@ -430,106 +419,123 @@ class NDOM extends NDOMInternal {
     let node: t.NDOMElement | null = null
     let page: NDOMPage = pageProp || this.page
 
-    if (component) {
-      if (i._isPluginComponent(component)) {
-        // We will delegate the role of the node creation to the consumer (only enabled for plugin components for now)
-        const getNode = (elem: HTMLElement) => (node = elem || node)
+    try {
+      if (component) {
+        if (i._isPluginComponent(component)) {
+          // We will delegate the role of the node creation to the consumer (only enabled for plugin components for now)
+          const getNode = (elem: HTMLElement) => (node = elem || node)
+          await this.#R.run({
+            ndom: this,
+            // @ts-expect-error
+            node: getNode,
+            component,
+            page,
+            resolvers: this.resolvers,
+          })
+          return node
+        } else if (Identify.component.image(component)) {
+          if (this.#createElementBinding) {
+            node = this.#createElementBinding(component) as HTMLElement
+          }
+          try {
+            if (Identify.folds.emit(component.blueprint?.path)) {
+              try {
+                node = (await createAsyncImageElement(container as HTMLElement))
+                  .node
+                node &&
+                  ((node as HTMLImageElement).src = component.get(c.DATA_SRC))
+              } catch (error) {
+                console.error(error)
+              }
+            }
+          } catch (error) {
+            console.error(error)
+          } finally {
+            if (!node) {
+              node = document.createElement('img')
+              ;(node as HTMLImageElement).src = component.get(c.DATA_SRC)
+            }
+          }
+        } else if (Identify.component.page(component)) {
+          const componentPage = i._getOrCreateComponentPage(
+            component,
+            this.createPage.bind(this),
+            this.findPage.bind(this),
+          )
+          node = document.createElement(getElementTag(component))
+          componentPage.replaceNode(node as HTMLIFrameElement)
+          componentPage.patch(component)
+          node.style.position = 'absolute'
+          node.style.width = '100%'
+          node.style.height = '100%'
+        } else {
+          node = this.#createElementBinding?.(component) || null
+          node && (node['isElementBinding'] = true)
+          !node && (node = document.createElement(getElementTag(component)))
+        }
+
+        if (component.has?.('global')) {
+          i.handleDrawGlobalComponent.call(this, node, component, page)
+        }
+      }
+
+      if (node) {
+        const parent = component.has?.('global')
+          ? document.body
+          : container || document.body
+
+        // NOTE: This needs to stay above the code below or the children will
+        // not be able to access their parent during the resolver calls
+        if (!parent.contains(node)) {
+          if (u.isObj(options) && u.isNum(options.nodeIndex)) {
+            parent.insertBefore(node, parent.children.item(options.nodeIndex))
+          } else {
+            parent.appendChild(node)
+          }
+        }
+
         await this.#R.run({
           ndom: this,
-          // @ts-expect-error
-          node: getNode,
+          node,
           component,
           page,
           resolvers: this.resolvers,
         })
-        return node
-      } else if (Identify.component.image(component)) {
-        if (this.#createElementBinding) {
-          node = this.#createElementBinding(component) as HTMLElement
-        }
-        try {
-          if (Identify.folds.emit(component.blueprint?.path)) {
-            try {
-              node = (await createAsyncImageElement(container as HTMLElement))
-                .node
-              node &&
-                ((node as HTMLImageElement).src = component.get(c.DATA_SRC))
-            } catch (error) {
-              console.error(error)
-            }
-          }
-        } catch (error) {
-          console.error(error)
-        } finally {
-          if (!node) {
-            node = document.createElement('img')
-            ;(node as HTMLImageElement).src = component.get(c.DATA_SRC)
-          }
-        }
-      } else {
-        node = this.#createElementBinding?.(component) || null
-        node && (node['isElementBinding'] = true)
-        !node && (node = document.createElement(getElementTag(component)))
-      }
 
-      if (component.has?.('global')) {
-        i.handleDrawGlobalComponent.call(this, node, component, page)
-      }
-    }
-
-    if (node) {
-      const parent = component.has?.('global')
-        ? document.body
-        : container || document.body
-
-      // NOTE: This needs to stay above the code below or the children will
-      // not be able to access their parent during the resolver calls
-      if (!parent.contains(node)) {
-        if (u.isObj(options) && u.isNum(options.nodeIndex)) {
-          parent.insertBefore(node, parent.children.item(options.nodeIndex))
+        if (Identify.component.page(component)) {
+          if (!component.length) return node
         } else {
-          parent.appendChild(node)
+          /**
+           * Creating a document fragment and appending children to them is a
+           * minor improvement in first contentful paint on initial loading
+           * https://web.dev/first-contentful-paint/
+           */
+          let childrenContainer = Identify.component.list(component)
+            ? document.createDocumentFragment()
+            : node
+
+          for (const child of component.children) {
+            const childNode = (await this.draw(
+              child,
+              node,
+              page,
+              options,
+            )) as HTMLElement
+
+            childNode && childrenContainer?.appendChild(childNode)
+          }
+          if (
+            childrenContainer.nodeType ===
+            childrenContainer.DOCUMENT_FRAGMENT_NODE
+          ) {
+            node.appendChild(childrenContainer)
+          }
+          childrenContainer = null as any
         }
       }
-
-      await this.#R.run({
-        ndom: this,
-        node,
-        component,
-        page,
-        resolvers: this.resolvers,
-      })
-
-      if (Identify.component.page(component)) {
-        if (!component.length) return node
-      } else {
-        /**
-         * Creating a document fragment and appending children to them is a
-         * minor improvement in first contentful paint on initial loading
-         * https://web.dev/first-contentful-paint/
-         */
-        let childrenContainer = Identify.component.list(component)
-          ? document.createDocumentFragment()
-          : node
-
-        for (const child of component.children) {
-          const childNode = (await this.draw(
-            child,
-            node,
-            page,
-            options,
-          )) as HTMLElement
-
-          childNode && childrenContainer?.appendChild(childNode)
-        }
-        if (
-          childrenContainer.nodeType ===
-          childrenContainer.DOCUMENT_FRAGMENT_NODE
-        ) {
-          node.appendChild(childrenContainer)
-        }
-        childrenContainer = null as any
-      }
+    } catch (error) {
+      console.error(error)
+      throw error
     }
 
     return node || null
@@ -546,58 +552,64 @@ class NDOM extends NDOMInternal {
     let newComponent: NUIComponent.Instance | undefined
     let page =
       pageProp || (isPageComponent && this.findPage(component)) || this.page
-    let parent = component.parent
+    let parent = component?.parent
 
-    if (component) {
-      if (Identify.component.listItem(component)) {
-        const iteratorVar = findIteratorVar(component)
-        if (iteratorVar) {
-          context = { ...context }
-          context.index = component.get('index') || 0
-          context.dataObject = context?.dataObject || component.get(iteratorVar)
-          context.iteratorVar = iteratorVar
+    try {
+      if (component) {
+        if (Identify.component.listItem(component)) {
+          const iteratorVar = findIteratorVar(component)
+          if (iteratorVar) {
+            context = { ...context }
+            context.index = component.get('index') || 0
+            context.dataObject =
+              context?.dataObject || component.get(iteratorVar)
+            context.iteratorVar = iteratorVar
+          }
+        }
+        page?.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, {
+          parent: component?.parent as NUIComponent.Instance,
+          component,
+          context,
+          node,
+          page,
+        })
+
+        newComponent = createComponent(component.blueprint)
+
+        if (parent) {
+          newComponent.setParent(parent)
+          parent.createChild(newComponent)
+        }
+
+        this.removeComponent(component)
+
+        newComponent = await nui.resolveComponents?.({
+          callback: options?.callback,
+          components: newComponent,
+          page: page?.getNuiPage?.(),
+          context,
+        })
+      }
+
+      if (node) {
+        if (newComponent) {
+          let parentNode = node.parentNode || (document.body as any)
+          let currentIndex = getNodeIndex(node)
+          let newNode = await this.draw(newComponent, parentNode, page, {
+            ...options,
+            context,
+            nodeIndex: currentIndex,
+          })
+          if (parentNode) parentNode.replaceChild(newNode, node)
+          else node?.remove?.()
+          node = newNode
+          newNode = null
+          parentNode = null
         }
       }
-      page?.emitSync(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, {
-        parent: component?.parent as NUIComponent.Instance,
-        component,
-        context,
-        node,
-        page,
-      })
-
-      newComponent = createComponent(component.blueprint)
-
-      if (parent) {
-        newComponent.setParent(parent)
-        parent.createChild(newComponent)
-      }
-
-      this.removeComponent(component)
-
-      newComponent = await nui.resolveComponents?.({
-        callback: options?.callback,
-        components: newComponent,
-        page: page?.getNuiPage?.(),
-        context,
-      })
-    }
-
-    if (node) {
-      if (newComponent) {
-        let parentNode = node.parentNode || (document.body as any)
-        let currentIndex = getNodeIndex(node)
-        let newNode = await this.draw(newComponent, parentNode, page, {
-          ...options,
-          context,
-          nodeIndex: currentIndex,
-        })
-        if (parentNode) parentNode.replaceChild(newNode, node)
-        else node?.remove?.()
-        node = newNode
-        newNode = null
-        parentNode = null
-      }
+    } catch (error) {
+      console.error(error)
+      throw new Error(error)
     }
 
     return [node, newComponent] as [typeof node, typeof component]

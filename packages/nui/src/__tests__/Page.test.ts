@@ -17,7 +17,6 @@ beforeEach(() => {
 describe(nc.coolGold(`NuiPage`), () => {
   it(nc.italic(`should render elements to the DOM`), () => {
     page.render(ui.button({ id: 'f' }))
-    console.info(prettyDOM())
     // expect(document.querySelector('button')).to.exist
   })
 })

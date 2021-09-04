@@ -36,7 +36,7 @@ import resolveStyles from './resolvers/resolveStyles'
 import resolveSetup from './resolvers/resolveSetup'
 import resolveDataAttribs from './resolvers/resolveDataAttribs'
 import VP from './Viewport'
-import { isPromise, promiseAllSafely } from './utils/common'
+import { promiseAllSafely } from './utils/common'
 import {
   findIteratorVar,
   findListDataObject,
@@ -769,6 +769,7 @@ const NUI = (function () {
               // re-rerendered
               for (const obj of o.cache.component) {
                 if (obj && obj.page === page?.page) {
+                  if (Identify.component.page(obj.component)) continue
                   o.cache.component.remove(obj.component)
                 }
               }
@@ -800,7 +801,7 @@ const NUI = (function () {
         }
       }
 
-      name && page && (page.page = name)
+      name && page && page.page !== name && (page.page = name)
       ;(page as NUIPage)?.use(() => o.getRoot()[page?.page || '']?.components)
 
       return page

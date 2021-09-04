@@ -26,6 +26,7 @@ export interface IGlobalObject<T extends string = string> {
 
 export interface GlobalMap {
   components: Map<string, GlobalComponentRecord>
+  hooks: Map<string, Record<string, ((...args: any[]) => any)[]>>
   pages: Record<string, NDOMPage>
   timers: GlobalTimers
 }

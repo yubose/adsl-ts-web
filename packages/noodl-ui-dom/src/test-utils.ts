@@ -15,7 +15,7 @@ import {
 import NOODLDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import { _syncPages } from './utils/internal'
-import { findBySelector } from './utils'
+import { findBySelector, findFirstByClassName } from './utils'
 import { nui } from './nui'
 import * as t from './types'
 
@@ -233,7 +233,7 @@ export function createRender<Opts extends MockRenderOptions>(
 createRender.userEvents = userEvent.slice()
 
 export async function waitForPageChildren(
-  getPageElem = () => findBySelector('page'),
+  getPageElem = () => findFirstByClassName('page'),
 ) {
   await waitFor(() => {
     const pageElem = getPageElem() as HTMLIFrameElement

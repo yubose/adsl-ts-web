@@ -2,12 +2,18 @@ import type { ComponentObject } from 'noodl-types'
 import { getRandomKey, inspect } from './utils/internal'
 import type { IPage } from './types'
 import Viewport from './Viewport'
+import * as c from './constants'
+import * as t from './types'
 
 type OnChangeFn = (prevPage: string, newPage: string) => void
+type NuiPageHooks = {
+  PAGE_CHANGED: ((...args: any[]) => any)[]
+}
 
 class Page implements IPage {
   static _id: IPage['id'] = 'root'
   #get: () => ComponentObject[] = () => []
+  #hooks = { PAGE_CHANGED: [] } as NuiPageHooks
   #onChange: OnChangeFn | undefined
   #id: IPage['id']
   #page = ''
@@ -41,7 +47,7 @@ class Page implements IPage {
   }
 
   set onChange(onChange) {
-    this.#onChange = onChange
+    this.#onChange = onChange ? this.#wrapOnChange(onChange) : onChange
   }
 
   get page() {
@@ -57,6 +63,30 @@ class Page implements IPage {
       while (this.history.length > 10) this.history.shift()
     }
     this.#onChange?.(prev, name)
+  }
+
+  #wrapOnChange = (fn: OnChangeFn): OnChangeFn => {
+    return (prevPage, newPage) => {
+      Promise.all(
+        this.#hooks.PAGE_CHANGED?.map?.((fn) => fn?.(prevPage, newPage)),
+      )
+      return fn(prevPage, newPage)
+    }
+  }
+
+  emit<Evt extends typeof c.nuiEvent.component.page.PAGE_CHANGED>(
+    evt: Evt,
+    ...args: Parameters<t.NUIComponent.Hook[Evt]>
+  ) {
+    this.#hooks[evt]?.forEach?.((fn) => fn?.(...args))
+  }
+
+  on<Evt extends typeof c.nuiEvent.component.page.PAGE_CHANGED>(
+    evt: Evt,
+    fn: t.NUIComponent.Hook[Evt],
+  ) {
+    fn && this.#hooks[evt].push(fn)
+    return this
   }
 
   toJSON() {

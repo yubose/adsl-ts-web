@@ -32,6 +32,7 @@ import {
 } from '../utils'
 import { cache } from '../nui'
 import * as i from '../utils/internal'
+import * as n from '../utils'
 import ComponentPage from '../factory/componentFactory/ComponentPage'
 
 describe(nc.coolGold('components'), () => {
@@ -113,6 +114,13 @@ describe(nc.coolGold('components'), () => {
                     id: 'page123',
                     path: 'Donut',
                     children: [],
+                    style: {
+                      fontColor: '0x555555',
+                      width: '0.2',
+                      height: '0.2',
+                      left: '0',
+                      top: '0.2',
+                    },
                   }),
                 ],
               },
@@ -139,6 +147,25 @@ describe(nc.coolGold('components'), () => {
       })
       return renderer
     }
+
+    it(`should set the component id to global pages`, async () => {
+      const { ndom, render } = createRender()
+      await render()
+      await waitForPageChildren()
+      const node = n.findFirstByClassName('page') as HTMLIFrameElement
+      const component = ndom.cache.component.get(node.id).component
+      expect(ndom.global.pages).to.have.property(component.id)
+      expect(ndom.global.pages[component.id]).to.be.instanceOf(ComponentPage)
+    })
+
+    it(`should attach the component styles onto the iframe`, async () => {
+      const { render } = createRender()
+      await render()
+      await waitForPageChildren()
+      const node = n.findFirstByClassName('page') as HTMLIFrameElement
+      expect(node.style).to.have.property('left', '0px')
+      expect(node.style).to.have.property('margin-top', '0px')
+    })
 
     it(`should clear all old elements from the DOM and render all new elements to the DOM from the page object`, async () => {
       const redrawSpy = sinon.spy()
@@ -185,16 +212,27 @@ describe(nc.coolGold('components'), () => {
       nui.use({
         builtIn: {
           redraw: async (a, o) => {
-            const el = findByViewTag(a.original.viewTag) as HTMLElement
-            const comp = cache.component.get(el.id).component
-            getRoot().Hello.infoPage = 'Cereal'
-            redrawSpy(a, o)
-            await ndom.redraw(el, comp)
+            try {
+              const el = findByViewTag(a.original.viewTag) as HTMLElement
+              const comp = cache.component.get(el.id).component
+              getRoot().Hello.infoPage = 'Cereal'
+              redrawSpy(a, o)
+              await ndom.redraw(el, comp)
+            } catch (error) {
+              console.error(error)
+              throw error
+            }
           },
         },
         emit: {
-          onChange: async () =>
-            void (getRoot().Donut.formData.password = 'abc123'),
+          onChange: async () => {
+            try {
+              getRoot().Donut.formData.password = 'abc123'
+            } catch (error) {
+              console.error(error)
+              throw error
+            }
+          },
         },
         getPages: () => ['Cereal', 'Donut', 'Hello'],
       })
@@ -247,7 +285,8 @@ describe(nc.coolGold('components'), () => {
 
       await waitFor(() => {
         cerealPageElems = getCerealPageElems()
-        u.values(cerealPageElems).forEach((elem) => expect(elem).to.exist)
+        expect(cerealPageElems.container).to.exist
+        u.forEach((elem) => expect(elem).to.exist, u.values(cerealPageElems))
         expect(cerealPageElems.imgEl.dataset).to.have.property(
           'src',
           `${assetsUrl}abc.png`,
@@ -260,20 +299,14 @@ describe(nc.coolGold('components'), () => {
       })
     })
 
-    xit(`should set tagName as iframe by default`, () => {
-      //
-    })
-
-    xit(`should create an NDOM page if it hasn't already been created`, () => {
-      //
-    })
-
-    xit(`should return the same id as the associated NUIPage`, () => {
-      //
-    })
-
-    xit(`should return the same page name as the associated NUIPage`, () => {
-      //
+    xit(`should set initialized to true when 'load' event is fired`, async () => {
+      const { render } = createRender()
+      await render()
+      await waitFor(() => {
+        expect(
+          n.findFirstByClassName('page') as HTMLIFrameElement,
+        ).to.be.instanceOf(HTMLIFrameElement)
+      })
     })
 
     it(`should be an iframe and in the DOM`, async () => {
@@ -370,7 +403,6 @@ describe(nc.coolGold('components'), () => {
         )
         const component = cache.component.get('page123').component
         const ndomPage = ndom.findPage(component.get('page') as NUIPage)
-        ndomPage && (ndomPage.page = 'Tiger')
         ndomPage && (ndomPage.requesting = 'Tiger')
         component.emit(nuiEvent.component.page.PAGE_CHANGED)
         await waitForPageChildren()
@@ -540,22 +572,7 @@ describe(nc.coolGold('components'), () => {
           oldPageChildrenIds.forEach((id) => {
             expect(cache.component.get(id)).to.exist
           })
-
-          //           console.info(
-          //             `
-          // oldIds: ${oldPageChildrenIds}
-          // newIds: ${i._getDescendantIds(pageComponent)}
-          //             `,
-          //           )
-          await changeToTigerPage(componentPage, pageComponent)
-          await waitForPageChildren()
-          //           console.info(`PAGE COMPONENT`, pageComponent)
-          //           console.info(
-          //             `
-          // oldIds: ${oldPageChildrenIds}
-          // newIds: ${i._getDescendantIds(pageComponent)}
-          //             `,
-          //           )
+          await render('Tiger')
           await waitFor(() => {
             oldPageChildrenIds.forEach((id) => {
               expect(cache.component.get(id)).to.not.exist
@@ -563,7 +580,7 @@ describe(nc.coolGold('components'), () => {
           })
         })
 
-        it.only(
+        it(
           `should not have additional components in the cache that have ` +
             `their page set to the page component's target page after resolving`,
           async () => {

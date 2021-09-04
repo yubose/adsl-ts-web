@@ -176,9 +176,12 @@ componentResolver.setResolver(async (component, options, next) => {
         )
       }
 
+      const isRemote = (str = '') =>
+        str.startsWith('http') || str.endsWith('.html')
+
       if (u.isStr(pageName)) {
         const isEqual = page.page === pageName
-        // if (isEqual) return
+        if (isEqual && !isRemote(pageName)) return
 
         if (page.page === '' && pageName) {
           // Assuming it was loading its page object and just received it
@@ -193,27 +196,28 @@ componentResolver.setResolver(async (component, options, next) => {
           }
         }
 
-        const onPageChange = async (initializing = false) => {
-          await emit({
-            type: c.nuiEmitType.TRANSACTION,
-            transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-            params: page,
-          })
-          component.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, {
-            page,
-            type: initializing ? 'init' : 'update',
-          })
-        }
-
         if (!isEqual) {
           page.page = pageName
+        }
+
+        const onPageChange = async (initializing = false) => {
+          try {
+            await emit({
+              type: c.nuiEmitType.TRANSACTION,
+              transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+              params: page,
+            })
+            page.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+          } catch (error) {
+            console.error(error)
+          }
         }
 
         try {
           // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
           if (getPages().includes(pageName) || pageName === '') {
             getPages().includes(page.page) && (await onPageChange(true))
-          } else if (pageName.endsWith('.html')) {
+          } else {
             // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
             if (!pageName.startsWith('http')) {
               page.page = resolveAssetUrl(pageName, getAssetsUrl())
@@ -230,7 +234,7 @@ componentResolver.setResolver(async (component, options, next) => {
           )
         }
 
-        component.on(c.nuiEvent.component.page.PAGE_CHANGED, onPageChange)
+        page.on(c.nuiEvent.component.page.PAGE_CHANGED, onPageChange)
       } else {
         console.log(
           `%cThe pageName was not a string when resolving the page name for a page component`,

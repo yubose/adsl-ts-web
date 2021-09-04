@@ -21,14 +21,9 @@ export const createOnPopState = curry(
       app.startPage !== 'SignIn' &&
       app.previousPage !== app.startPage
     ) {
-      // app.mainPage.requesting = app.startPage
-      log.grey(`Received the "goBack" page as ${app.previousPage}`, event)
-      // log.grey(
-      //   `Received the "goBack" page as ${app.previousPage} (B) but modified to start page "${app.startPage}"`,
-      //   event,
-      // )
+      log.grey(`Received the "goBack" page as ${app.previousPage}`)
     } else {
-      log.grey(`Received the "goBack" page as ${app.previousPage}`, event)
+      log.grey(`Received the "goBack" page as ${app.previousPage}`)
     }
     if (parts.length > 1) {
       popped = parts.pop()

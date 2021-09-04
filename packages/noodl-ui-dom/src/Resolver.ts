@@ -186,8 +186,8 @@ export default class NDOMResolver {
        */
       resolvers: [
         ...args.ndom.consumerResolvers,
-        attributesResolver,
         componentsResolver,
+        attributesResolver,
       ],
       elementType: args.node?.tagName || '',
       componentType: (args.component?.type || '') as string,

@@ -99,12 +99,13 @@ export function _getOrCreateComponentPage(
   componentOrNUIPage: NUIComponent.Instance | NUIPage,
   createPage: NDOM['createPage'],
   findPage: NDOM['findPage'],
+  node?: any,
 ) {
   if (_isNUIPage(componentOrNUIPage)) {
     return (findPage(componentOrNUIPage) ||
-      createPage(componentOrNUIPage)) as ComponentPage
+      createPage(componentOrNUIPage, node)) as ComponentPage
   }
-  return findPage(componentOrNUIPage) || createPage(componentOrNUIPage)
+  return findPage(componentOrNUIPage) || createPage(componentOrNUIPage, node)
 }
 
 /**
@@ -187,7 +188,7 @@ export function _isHttpUrl(url = '') {
 
 export function _isRemotePageOrUrl(pageOrUrl: string | NDOMPage) {
   const pageName = u.isStr(pageOrUrl) ? pageOrUrl : pageOrUrl?.page || ''
-  return pageName.endsWith('.html')
+  return pageName.endsWith('.html') || _isHttpUrl(pageName)
 }
 
 export const xKeys = ['width', 'left']
@@ -321,8 +322,6 @@ export const _syncPages = (function () {
 
           if (!page.onChange) {
             page.onChange = (prev: string, next: string) => {
-              // if (prev !== '' && next === '') console.trace()
-              // if (prev === 'Donut' && next === 'Cereal') console.trace()
               console.log(`${label} Page changed from "${prev}" to "${next}"`)
             }
           }
@@ -350,10 +349,28 @@ export const _syncPages = (function () {
 
             if (!ndomPage) {
               if (component) ndomPage = this.createPage(component)
-              else ndomPage = this.createPage(page)
+              else {
+                if (page.id) {
+                  const pageComponent = this.cache.component?.get?.(
+                    page.id as string,
+                  )?.component
+
+                  if (pageComponent) {
+                    if (pageComponent.get('page') !== page) {
+                      pageComponent.edit('page', page)
+                    }
+                    ndomPage = this.createPage(pageComponent)
+                  }
+                }
+
+                !ndomPage && (ndomPage = this.createPage(page))
+              }
             }
 
-            if (!this.global.pageIds.includes(ndomPage.id)) {
+            if (
+              // !u.isNil(ndomPage?.id) &&
+              !this.global.pageIds.includes(ndomPage.id)
+            ) {
               this.global.add(ndomPage)
             }
 
@@ -387,10 +404,6 @@ export const _syncPages = (function () {
           } else if (updateType === c.PAGE_REMOVED) {
             _state.delete(page.created)
           }
-        }
-
-        if (page && page.id === 'root' && !this.page) {
-          this.global.pages.root && (this.page = this.global.pages.root)
         }
       }
     }

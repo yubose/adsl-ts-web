@@ -42,12 +42,23 @@ setupResolver.setResolver(
                   if (isNUIPage(nuiPage)) {
                     if (nuiPage.page !== value) {
                       nuiPage.page = value
-                      // TODO - Make this emit a different event that has a
-                      // more accurate reason for this emit
-                      this.emit(c.nuiEvent.component.page.PAGE_COMPONENTS, {
-                        page: nuiPage,
-                        type: 'update',
-                      })
+                      const pageComponent = cache.component.get(
+                        nuiPage.id as string,
+                      )?.component
+                      if (pageComponent) {
+                        pageComponent.hooks?.PAGE_COMPONENTS?.forEach?.((fn) =>
+                          fn?.({ page: nuiPage }),
+                        )
+                        // TODO - Make this emit a different event that has a
+                        // more accurate reason for this emit
+                        pageComponent.emit(
+                          c.nuiEvent.component.page.PAGE_COMPONENTS,
+                          {
+                            page: nuiPage,
+                            type: 'update',
+                          },
+                        )
+                      }
                     }
                   }
                 }

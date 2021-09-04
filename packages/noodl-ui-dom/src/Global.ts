@@ -1,11 +1,13 @@
 import Timers from './global/Timers'
 import NDOMPage from './Page'
+import { ComponentPage } from './factory/componentFactory'
 import * as t from './types'
 
 let _global: NDOMGlobal
 
 export class NDOMGlobal {
   #components: t.GlobalMap['components'] = new Map()
+  #hooks: t.GlobalMap['hooks'] = new Map()
   #pages = {} as t.GlobalMap['pages']
   #timers: t.GlobalMap['timers'] = new Timers();
 
@@ -24,6 +26,10 @@ export class NDOMGlobal {
 
   get components() {
     return this.#components
+  }
+
+  get hooks() {
+    return this.#hooks
   }
 
   get pages() {
@@ -46,7 +52,7 @@ export class NDOMGlobal {
     return this.#timers
   }
 
-  add(page: NDOMPage) {
+  add(page: NDOMPage | ComponentPage) {
     this.pages[page.id] = page
   }
 }

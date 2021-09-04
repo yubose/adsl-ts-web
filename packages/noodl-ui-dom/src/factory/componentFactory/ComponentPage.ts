@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
 import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
-import { isComponent, isPage as isNUIPage } from 'noodl-ui'
+import { isComponent, isPage as isNuiPage } from 'noodl-ui'
 import NDOMPage from '../../Page'
 import isNDOMPage from '../../utils/isPage'
 import copyAttributes from '../../utils/copyAttributes'
@@ -46,13 +46,13 @@ class ComponentPage<
 
   constructor(
     component: NUIComponent.Instance,
-    hooks?: { onLoad?: OnLoad; onError?: OnError },
+    options?: { onLoad?: OnLoad; onError?: OnError; node?: any },
   ) {
     let nuiPage = component?.get?.('page')
     if (isNDOMPage(nuiPage)) nuiPage = nuiPage.getNuiPage()
     super(nuiPage)
     this.#component = component
-    this.node = super.node as N
+    this.node = options?.node || super.node
     this.origin = window.origin
 
     if (this.node) {
@@ -61,7 +61,7 @@ class ComponentPage<
         if (this.node.parentElement) {
           this.node.parentElement.removeChild(this.node)
         } else {
-          this.node.remove()
+          this.node?.remove?.()
         }
         this.node = document.createElement('iframe') as N
         this.node.id = component.id
@@ -73,60 +73,54 @@ class ComponentPage<
 
     window?.addEventListener('message', this.#onparentmessage)
     window?.addEventListener('messageerror', this.#onparentmessageerror)
-    this.node?.addEventListener(
-      'load',
-      (evt) => {
-        console.info(`LOADED FROM COMPONENT PAGE ${this?.id}`, {
-          event: evt,
-          instance: this,
-        })
-        // const observe = () => {
-        //   const observer = new MutationObserver((mutations) => {
-        //     console.info(`Mutations`, mutations)
-        //   })
-
-        //   observer.observe(this.body)
-        // }
-
-        // this.body.addEventListener('load', (evt) => {
-        //   console.info(`OBSERVING BODY`, this.body)
-        //   observe()
-        // })
-      },
-      { once: true },
-    )
-    this.node?.addEventListener?.(
-      'unload',
-      (evt) => {
-        console.info(`UNLOADING FROM COMPONENT PAGE ${this.id}`, {
-          event: evt,
-          instance: this,
-        })
-        try {
-          this.body.innerHTML = ''
-          this.body.remove()
-          this.node.remove()
-        } catch (error) {
-          console.error(`[Error from unload ComponentPage]`, error)
-        }
-      },
-      { once: true },
-    )
+    this.node?.addEventListener('load', (evt) => {
+      console.log(`[ComponentPage] DOM loaded`, {
+        event: evt,
+        instance: this,
+        id: this.id,
+      })
+    })
+    this.node.addEventListener('error', (evt) => {
+      console.error(`[ComponentPage] Error`, evt)
+    })
+    this.node?.addEventListener?.('unload', (evt) => {
+      try {
+        this.body.innerHTML = ''
+        this.body.remove()
+        this.node.remove()
+      } catch (error) {
+        console.error(`[ComponentPage] Unload error`, error)
+      }
+    })
 
     this.configure({
       allow: '*',
       name: this.page,
-      onLoad: hooks?.onLoad,
-      onError: hooks?.onError,
+      onLoad: options?.onLoad,
+      onError: options?.onError,
     })
+  }
+
+  get created() {
+    if (!super.created) {
+      // TODO - This should never be a NuiPage but just use this for now
+      if (isNuiPage(this.component)) {
+        return this.component.created
+      }
+    }
+    return super.created
   }
 
   get component() {
     return this.#component
   }
 
+  get hasComponent() {
+    return isComponent(this.component)
+  }
+
   get hasNuiPage() {
-    return isNUIPage(this.getNuiPage())
+    return isNuiPage(this.getNuiPage())
   }
 
   get window() {
@@ -151,6 +145,13 @@ class ComponentPage<
 
   get parentElement() {
     return this.node?.parentElement || null
+  }
+
+  get remote() {
+    return (
+      String(this.page).startsWith('http') ||
+      String(this.page).endsWith('.html')
+    )
   }
 
   #onparentmessage = (evt: MessageEvent) => {
@@ -316,18 +317,6 @@ class ComponentPage<
     if (nuiPage) {
       if (this.#nuiPage !== nuiPage) {
         this.#nuiPage = nuiPage
-        // const origSetter = Object.getOwnPropertyDescriptor(
-        //   this.#nuiPage,
-        //   'page',
-        // )
-        // if (origSetter) {
-        //   Object.defineProperty(this.#nuiPage, 'page', {
-        //     set(value) {
-        //       origSetter.set?.(value)
-        //       console.info(`getNuiPage`, { thisValue: this, value })
-        //     },
-        //   })
-        // }
       }
     }
     return this.#nuiPage
@@ -354,17 +343,27 @@ class ComponentPage<
     return this
   }
 
-  patch(nuiPage: NUIPage | NUIComponent.Instance) {
-    if (isNUIPage(nuiPage)) {
-      if (nuiPage.page !== this.page) this.page = nuiPage.page
-      this.#nuiPage = nuiPage
-      this.#component?.edit?.('page', nuiPage)
-    } else if (isComponent(nuiPage)) {
-      this.#component = nuiPage
-      if (this.#nuiPage && !nuiPage.get('page')) {
-        this.#component.edit('page', this.#nuiPage)
-      } else if (!this.#nuiPage && nuiPage.get('page')) {
-        this.#nuiPage = nuiPage.get('page')
+  patch(value: NUIPage | NUIComponent.Instance) {
+    if (isNuiPage(value)) {
+      // Update our current page to be in sync
+      if (value.page !== this.page) this.page = value.page
+      this.#nuiPage = value
+      if (isComponent(this.component)) {
+        if (this.component?.get?.('page') !== value) {
+          this.component?.edit?.('page', value)
+        }
+      } else if (isNuiPage(this.component)) {
+        console.error(
+          `Received a NuiPage in the "component" property of a ComponentPage`,
+          this.component,
+        )
+      }
+    } else if (isComponent(value)) {
+      this.#component = value
+      if (this.#nuiPage && !value.get('page')) {
+        this.component.edit('page', value)
+      } else if (!this.#nuiPage && isNuiPage(value.get('page'))) {
+        this.#nuiPage = value.get('page') as NUIPage
       }
     }
   }

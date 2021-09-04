@@ -51,9 +51,11 @@ describe(nc.coolGold(`internal (utilities)`), () => {
         expect(ndom.global.pageIds).to.have.lengthOf(2)
         expect(ndom.global.pageIds).not.to.include(page2.id)
         expect(ndom.global.pageIds).not.to.include(page3.id)
-        expect(ndom.global.pages).not.to.have.property(page2.id)
-        expect(ndom.global.pageNames).to.have.lengthOf(2)
-        expect(u.values(ndom.global.pages)).to.have.lengthOf(2)
+        await waitFor(() => {
+          expect(ndom.global.pages).not.to.have.property(page2.id || '')
+          expect(ndom.global.pageNames).to.have.lengthOf(2)
+          expect(u.values(ndom.global.pages)).to.have.lengthOf(2)
+        })
       })
 
       xit(`should remove all components associated with the old one`, () => {
@@ -62,7 +64,6 @@ describe(nc.coolGold(`internal (utilities)`), () => {
         expect(ndom.global.pageIds).to.have.lengthOf(2)
         const page3 = ndom.createPage('')
         expect(ndom.global.pageIds).to.have.lengthOf(2)
-        console.info(page2 === page3)
         // expect(ndom.global.pages).not.to.have.property(page2.id)
         // expect(ndom.global.pages).to.have.property(page3.id)
         // expect(ndom.global.pageIds).to.include.members([page3.id])
