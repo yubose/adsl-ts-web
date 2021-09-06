@@ -383,11 +383,16 @@ const componentsResolver: t.Resolve.Config = {
           if (args.component.blueprint?.['path=func']) {
             // ;(node as HTMLImageElement).src = '../waiting.png'
             setAttr('src', args.component?.get?.(c.DATA_SRC))
-            args.component?.get?.(c.DATA_SRC).then?.((path: any) => {
+            args.component?.get?.(c.DATA_VALUE).then?.((path: any) => {
               if (path) {
                 console.log('load path', path)
                 setAttr('src', path)
+              }else{
+                setAttr('src', args.component?.get?.(c.DATA_SRC))
               }
+            }).catch((error:any)=>{
+              console.log(error)
+              setAttr('src', args.component?.get?.(c.DATA_SRC))
             })
           }
         }
