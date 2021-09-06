@@ -701,6 +701,7 @@ const componentsResolver: t.Resolve.Config = {
               const option = _node.options[index]
               option.remove()
             }
+            _node.options.length = 0
           }
 
           function setSelectOptions(_node: HTMLSelectElement, opts: any[]) {
@@ -729,7 +730,7 @@ const componentsResolver: t.Resolve.Config = {
           }
 
           args.component.on('options', (dataOptions: any[]) => {
-            clearOptions(args.node as HTMLSelectElement)
+            // clearOptions(args.node as HTMLSelectElement)
             clearOptions(args.node as HTMLSelectElement)
             setSelectOptions(args.node as HTMLSelectElement, dataOptions)
           })

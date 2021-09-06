@@ -758,4 +758,84 @@ describe(nc.coolGold('components'), () => {
       expect(input).to.have.property('value', 'pw123')
     })
   })
+
+  describe(nc.italic(`select`), () => {
+    it(`should not have an extra item in options`, async () => {
+      const genders = ['2020','2021','2022']
+      const { render } = _createRender({
+        pageName: 'F',
+        components: ui.select({options: ['2020','2021','2022'],viewTag: 'selectTag' }),
+      })
+      const component = await render()
+      const node = getFirstByElementId(component)
+      const select = document.getElementById(node.id)
+      await waitFor(() => {
+        expect(select.childNodes.length).to.equal(3)
+      })
+
+    })
+  })
+
+  describe(nc.italic(`list`), () => {
+    it(`load double list`, async () => {
+      const listData = [
+        {key: 'A',data:[{key: 'apple'},{key: 'appointment'}]},
+        {key: 'B',data:[{key: 'banana'},{key: 'banner'}]},
+        {key: 'C',data:[{key: 'China'},{key: 'chaos'}]},
+      ]
+      const { render } = _createRender({
+        root: {
+          Hello: {
+            formData: {
+              listData,
+            },
+            components: [
+              ui.view({
+                children:[
+                  ui.list({
+                    iteratorVar: 'itemObject',
+                    contentType: 'listObject',
+                    listObject: [
+                      {key: 'A',data:[{key: 'apple'},{key: 'appointment'}]},
+                      {key: 'B',data:[{key: 'banana'},{key: 'banner'}]},
+                      {key: 'C',data:[{key: 'China'},{key: 'chaos'}]},
+                    ],
+                    children:[
+                      ui.listItem({
+                        itemObject: '',
+                        children: [
+                          ui.label({dataKey: 'itemObject.key'}),
+                          ui.list({
+                            iteratorVar: 'itemObject',
+                            contentType: 'listObject',
+                            listObject: 'itemObject.data',
+                            // viewTag: 'secondListTag',
+                            children:[
+                              ui.listItem({
+                                itemObject: '',
+                                children: [
+                                  ui.label({dataKey: 'itemObject.key'}),
+                                ]
+                              })
+                            ]
+                          }),
+                        ]
+                      })
+                    ]
+                  })
+                ]
+              })
+            ],
+          },
+        },
+      })
+      const component = await render()
+      const node = getFirstByElementId(component)
+      const ulList = node.getElementsByTagName('ul')
+      await waitFor(() => {
+        expect(ulList.length).to.eq(4)
+      })
+    })
+  })
+
 })
