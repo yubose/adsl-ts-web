@@ -613,7 +613,7 @@ const componentsResolver: t.Resolve.Config = {
                     }
 
                     //Ensure that the margin of the body is 0
-                    if(componentPage?.body){
+                    if(args.node){
                       const iframe = args.node as HTMLIFrameElement
                       const iwindow = iframe.contentWindow
                       if(iwindow){
