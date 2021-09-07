@@ -383,11 +383,16 @@ const componentsResolver: t.Resolve.Config = {
           if (args.component.blueprint?.['path=func']) {
             // ;(node as HTMLImageElement).src = '../waiting.png'
             setAttr('src', args.component?.get?.(c.DATA_SRC))
-            args.component?.get?.(c.DATA_SRC).then?.((path: any) => {
+            args.component?.get?.(c.DATA_VALUE).then?.((path: any) => {
               if (path) {
                 console.log('load path', path)
                 setAttr('src', path)
+              }else{
+                setAttr('src', args.component?.get?.(c.DATA_SRC))
               }
+            }).catch((error:any)=>{
+              console.log(error)
+              setAttr('src', args.component?.get?.(c.DATA_SRC))
             })
           }
         }
@@ -424,7 +429,6 @@ const componentsResolver: t.Resolve.Config = {
             if (i._isIframeEl(args.node)) {
               const nuiPage = args.component.get('page')
               const src = nuiPage.page
-
               if (componentPage.remote) {
                 /**
                  * Page components loading content through remote URLs
@@ -485,7 +489,6 @@ const componentsResolver: t.Resolve.Config = {
                     args.findPage,
                     args.node,
                   )
-
                   if (
                     componentPage.id !== 'root' &&
                     componentPage.node !== opts.node
@@ -528,7 +531,6 @@ const componentsResolver: t.Resolve.Config = {
                  * If this page component is not remote, it is loading a page
                  * from the "page" list from a noodl app config
                  */
-
                 const onPageComponents = async () => {
                   try {
                     const componentPage = i._getOrCreateComponentPage(
@@ -608,6 +610,16 @@ const componentsResolver: t.Resolve.Config = {
                     if (componentPage.requesting) {
                       // args.cache.component.clear(componentPage.page)
                       args.cache.component.clear(componentPage.requesting)
+                    }
+
+                    //Ensure that the margin of the body is 0
+                    if(args.node){
+                      const iframe = args.node as HTMLIFrameElement
+                      const iwindow = iframe.contentWindow
+                      if(iwindow){
+                        const idoc = iwindow.document
+                        idoc.body.style.margin = '0px'
+                      }
                     }
 
                     if (componentPage?.component) {
@@ -701,6 +713,7 @@ const componentsResolver: t.Resolve.Config = {
               const option = _node.options[index]
               option.remove()
             }
+            _node.options.length = 0
           }
 
           function setSelectOptions(_node: HTMLSelectElement, opts: any[]) {
@@ -729,7 +742,7 @@ const componentsResolver: t.Resolve.Config = {
           }
 
           args.component.on('options', (dataOptions: any[]) => {
-            clearOptions(args.node as HTMLSelectElement)
+            // clearOptions(args.node as HTMLSelectElement)
             clearOptions(args.node as HTMLSelectElement)
             setSelectOptions(args.node as HTMLSelectElement, dataOptions)
           })

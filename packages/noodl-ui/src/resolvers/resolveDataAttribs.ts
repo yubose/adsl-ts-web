@@ -118,10 +118,7 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
       if (Identify.component.image(component)) {
         let src: any
         if (component.blueprint?.['path=func']) {
-          src = component.get('path=func')?.(result)
-          component.edit({ 'data-src': src })
-          path && component.emit('path', src)
-          image && component.emit('image', src)
+          result = component.get('path=func')?.(result)
         }
       }
 
