@@ -429,7 +429,6 @@ const componentsResolver: t.Resolve.Config = {
             if (i._isIframeEl(args.node)) {
               const nuiPage = args.component.get('page')
               const src = nuiPage.page
-
               if (componentPage.remote) {
                 /**
                  * Page components loading content through remote URLs
@@ -490,7 +489,6 @@ const componentsResolver: t.Resolve.Config = {
                     args.findPage,
                     args.node,
                   )
-
                   if (
                     componentPage.id !== 'root' &&
                     componentPage.node !== opts.node
@@ -533,7 +531,6 @@ const componentsResolver: t.Resolve.Config = {
                  * If this page component is not remote, it is loading a page
                  * from the "page" list from a noodl app config
                  */
-
                 const onPageComponents = async () => {
                   try {
                     const componentPage = i._getOrCreateComponentPage(
@@ -613,6 +610,16 @@ const componentsResolver: t.Resolve.Config = {
                     if (componentPage.requesting) {
                       // args.cache.component.clear(componentPage.page)
                       args.cache.component.clear(componentPage.requesting)
+                    }
+
+                    //Ensure that the margin of the body is 0
+                    if(componentPage?.body){
+                      const iframe = args.node as HTMLIFrameElement
+                      const iwindow = iframe.contentWindow
+                      if(iwindow){
+                        const idoc = iwindow.document
+                        idoc.body.style.margin = '0px'
+                      }
                     }
 
                     if (componentPage?.component) {
