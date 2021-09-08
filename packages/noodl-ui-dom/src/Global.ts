@@ -7,6 +7,7 @@ let _global: NDOMGlobal
 
 export class NDOMGlobal {
   #components: t.GlobalMap['components'] = new Map()
+  #draw: t.GlobalMap['draw'] = new Map()
   #hooks: t.GlobalMap['hooks'] = new Map()
   #pages = {} as t.GlobalMap['pages']
   #timers: t.GlobalMap['timers'] = new Timers();

@@ -2,9 +2,15 @@
  * Internal utilities (not exported)
  */
 import * as u from '@jsmanifest/utils'
+import curry from 'lodash/curry'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
-import { isPage as isNUIPage, event as nuiEvt, publish } from 'noodl-ui'
+import {
+  isPage as isNUIPage,
+  event as nuiEvt,
+  publish,
+  isComponent,
+} from 'noodl-ui'
 import type { ComponentObject, EcosDocument, NameField } from 'noodl-types'
 import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
 import type { ComponentPage } from '../factory/componentFactory'
@@ -87,6 +93,13 @@ function _createDocIdentifier(
     )
   }
   return identifyDoc
+}
+
+export function _getComponentFromCache(
+  idOrComp: string | NUIComponent.Instance,
+) {
+  let id = isComponent(idOrComp) ? idOrComp.id : String(idOrComp)
+  return (cache.component.get(id)?.component || null) as NUIComponent.Instance
 }
 
 export function _getDescendantIds(component: NUIComponent.Instance): string[] {
@@ -273,11 +286,48 @@ export function handleDrawGlobalComponent(
   }
 }
 
+export const _resetActions = u.callAll(
+  cache.actions.clear.bind(cache.actions),
+  cache.actions.reset.bind(cache.actions),
+)
+
+export const _resetComponentCache = cache.component.clear.bind(cache.component)
+
+export const _resetRegisters = cache.register.clear.bind(cache.register)
+
+export const _resetTransactions = cache.transactions.clear.bind(
+  cache.transactions,
+)
+
 export const _syncPages = (function () {
-  const _state = new Map<
+  const _pageState = new Map<
     number,
     { initiated: boolean; fetching: boolean; initialPageValue: string }
   >()
+
+  const _componentTable = new Map<string, string[]>()
+  const _emptyLabel_ = '<empty or loading>'
+  const _emptyKey_ = '_EMPTY_'
+  const _getKey = (pageName = '') => pageName || _emptyKey_
+
+  cache.component
+    .on('add', ({ component, page }) => {
+      // console.info(
+      //   `[componentTable] Added "${component?.type} component" for page "${
+      //     page || _emptyLabel_
+      //   }"`,
+      // )
+      const pageKey = _getKey(page)
+      if (!_componentTable.has(pageKey)) _componentTable.set(pageKey, [])
+      let ids = _componentTable.get(pageKey) as string[]
+      !u.isArr(ids) && (ids = u.array(ids))
+      !ids.includes(component.id) && ids.push(component.id)
+    })
+    .on('remove', ({ id, page }) => {
+      // console.info(
+      //   `[componentTable] Removed "${id}" from page "${_getKey(page)}"`,
+      // )
+    })
 
   function syncPages(this: NDOM) {
     const initSlice = (page: NUIPage) => ({
@@ -317,35 +367,40 @@ export const _syncPages = (function () {
           page = args.page
         }
 
+        if (page?.id !== 'root') debugger
         if (page) {
           label = `[${updateType} #${page.id}]`
 
           if (!page.onChange) {
             page.onChange = (prev: string, next: string) => {
-              console.log(`${label} Page changed from "${prev}" to "${next}"`)
+              console.info(`${label} Page changed from "${prev}" to "${next}"`)
             }
           }
 
-          console.log(label)
+          console.info(label)
 
           if (updateType === c.PAGE_CREATED) {
             // Incoming page still in the loading state
             // Remove all previous loading pages since we only support 1 loading page right now
             for (const _page of cache.page.get().values()) {
               const nuiPage = _page?.page
-              nuiPage &&
+              if (
+                nuiPage &&
                 nuiPage !== page &&
                 nuiPage.page === page.page &&
-                nuiPage.id !== 'root' &&
+                nuiPage.id !== 'root'
+              ) {
+                // console.info(`REMOVING PAGE`, { page, _page, nuiPage })
                 removePage(nuiPage)
+              }
             }
 
-            if (!_state.has(page.created)) {
-              _state.set(page.created, initSlice(page))
+            if (!_pageState.has(page.created)) {
+              _pageState.set(page.created, initSlice(page))
             }
 
             let ndomPage = this.findPage(page)
-            let stateSlice = _state.get(page.created) || initSlice(page)
+            let stateSlice = _pageState.get(page.created) || initSlice(page)
 
             if (!ndomPage) {
               if (component) ndomPage = this.createPage(component)
@@ -379,9 +434,8 @@ export const _syncPages = (function () {
             }
 
             if (page.page === '') {
-              for (const [createTime, stateSlice] of _state.entries()) {
+              for (const [createTime, stateSlice] of _pageState.entries()) {
                 if (stateSlice.initialPageValue === '') {
-                  // if (stateSlice.fetching) {
                   if (createTime < page.created) {
                     // Cleanup previously loading page
                     // This can happen when the user clicks too quickly to several pages
@@ -395,39 +449,49 @@ export const _syncPages = (function () {
 
                     nuiPage && removePage(nuiPage)
                   }
-                  // } else {
-                  //   //
-                  // }
                 }
               }
             }
           } else if (updateType === c.PAGE_REMOVED) {
-            _state.delete(page.created)
+            _pageState.delete(page.created)
+            // cache.component.remove(page)
+            // const pageKey = _getKey(page.page)
+            // if (_componentTable.has(pageKey)) {
+            //   const ids = _componentTable.get(pageKey)
+            //   if (u.isArr(ids)) {
+            //     u.forEach((id) => {
+            // console.info(
+            //   `Removing ${
+            //     componentIds.length
+            //   } components from the component cache from page "${_getKey(
+            //     pageName,
+            //   )}"`,
+            // )
+            //       cache.component.remove(id)
+            //     }, ids)
+            //   }
+            // }
           }
         }
       }
     }
 
-    // prettier-ignore
     cache.page
       .on(c.PAGE_CREATED, start(c.PAGE_CREATED))
       .on(c.PAGE_REMOVED, start(c.PAGE_REMOVED))
 
-    this.on('onBeforeRequestPageObject', (page) => {
-      if (_state.has(page.created)) {
-        const stateSlice = _state.get(page.created)
-        stateSlice && (stateSlice.fetching = true)
+    const updateFetching = curry((fetchValue: boolean, page: NUIPage) => {
+      if (!page?.created) return null
+      if (_pageState.has(page.created)) {
+        const stateSlice = _pageState.get(page.created)
+        stateSlice && (stateSlice.fetching = fetchValue)
       }
     })
 
-    this.on('onAfterRequestPageObject', (page) => {
-      if (_state.has(page.created)) {
-        const stateSlice = _state.get(page.created)
-        stateSlice && (stateSlice.fetching = false)
-      }
-    })
+    this.on('onBeforeRequestPageObject', updateFetching(true))
+    this.on('onAfterRequestPageObject', updateFetching(false))
   }
 
-  syncPages._state = _state
+  syncPages._pageState = _pageState
   return syncPages
 })()

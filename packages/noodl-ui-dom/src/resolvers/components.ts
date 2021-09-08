@@ -5,23 +5,18 @@ import SignaturePad from 'signature_pad'
 import has from 'lodash/has'
 import { ComponentObject, Identify } from 'noodl-types'
 import {
-  createComponent,
   formatColor,
   isComponent,
-  NUI,
   NUIComponent,
   SelectOption,
-  Page as NuiPage,
   Plugin,
   NUIActionChain,
-  Store,
   EmitAction,
 } from 'noodl-ui'
 import { findFirstByElementId, toSelectOption } from '../utils'
 import { ComponentPage } from '../factory/componentFactory'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import applyStyles from '../utils/applyStyles'
-import copyAttributes from '../utils/copyAttributes'
 import copyStyles from '../utils/copyStyles'
 import NDOM from '../noodl-ui-dom'
 import NDOMPage from '../Page'
@@ -383,17 +378,20 @@ const componentsResolver: t.Resolve.Config = {
           if (args.component.blueprint?.['path=func']) {
             // ;(node as HTMLImageElement).src = '../waiting.png'
             setAttr('src', args.component?.get?.(c.DATA_SRC))
-            args.component?.get?.(c.DATA_VALUE).then?.((path: any) => {
-              if (path) {
-                console.log('load path', path)
-                setAttr('src', path)
-              }else{
+            args.component
+              ?.get?.(c.DATA_VALUE)
+              .then?.((path: any) => {
+                if (path) {
+                  console.log('load path', path)
+                  setAttr('src', path)
+                } else {
+                  setAttr('src', args.component?.get?.(c.DATA_SRC))
+                }
+              })
+              .catch((error: any) => {
+                console.log(error)
                 setAttr('src', args.component?.get?.(c.DATA_SRC))
-              }
-            }).catch((error:any)=>{
-              console.log(error)
-              setAttr('src', args.component?.get?.(c.DATA_SRC))
-            })
+              })
           }
         }
         // LABEL
@@ -504,23 +502,29 @@ const componentsResolver: t.Resolve.Config = {
                 }
 
                 if (src) {
-                  onLoad({
-                    component: args.component,
-                    createPage: args.createPage,
-                    findPage: args.findPage,
-                    node: args.node,
-                    resolvers: args.resolvers,
-                  })
-                } else {
-                  componentPage.window?.addEventListener('load', (evt) =>
-                    onLoad({
-                      event: evt,
-                      createPage: args.createPage,
+                  onLoad(
+                    {
                       component: args.component,
-                      node: args.node as HTMLIFrameElement,
+                      createPage: args.createPage,
                       findPage: args.findPage,
+                      node: args.node,
                       resolvers: args.resolvers,
-                    }),
+                    },
+                    { once: true },
+                  )
+                } else {
+                  componentPage.window?.addEventListener(
+                    'load',
+                    (evt) =>
+                      onLoad({
+                        event: evt,
+                        createPage: args.createPage,
+                        component: args.component,
+                        node: args.node as HTMLIFrameElement,
+                        findPage: args.findPage,
+                        resolvers: args.resolvers,
+                      }),
+                    { once: true },
                   )
                 }
 
@@ -531,7 +535,7 @@ const componentsResolver: t.Resolve.Config = {
                  * If this page component is not remote, it is loading a page
                  * from the "page" list from a noodl app config
                  */
-                const onPageComponents = async () => {
+                async function onPageComponents() {
                   try {
                     const componentPage = i._getOrCreateComponentPage(
                       args.component,
@@ -542,7 +546,7 @@ const componentsResolver: t.Resolve.Config = {
 
                     if (componentPage) {
                       const nuiPage = args.cache.page.get(
-                        componentPage.id,
+                        componentPage.id as string,
                       )?.page
                       if (nuiPage) {
                         if (
@@ -579,21 +583,13 @@ const componentsResolver: t.Resolve.Config = {
                         componentPage.requesting || componentPage.page
 
                       if (nui.getPages().includes(pageName)) {
-                        // if (!(pageName in nui.getRoot())) {
-                        // console.info(
-                        //   `%cPage "${pageName}" is not in the root. Fetching it now`,
-                        //   `color:#00b406;`,
-                        //   componentPage,
-                        // )
-                        // args.cache.component.clear()
                         await args.transact(
                           'REQUEST_PAGE_OBJECT',
                           componentPage,
                         )
-                        // }
                       }
                     } else {
-                      console.info(
+                      console.log(
                         `ComponentPage is null or undefined inside onPageComponents`,
                       )
                     }
@@ -613,12 +609,12 @@ const componentsResolver: t.Resolve.Config = {
                     }
 
                     //Ensure that the margin of the body is 0
-                    if(args.node){
+                    if (args.node) {
                       const iframe = args.node as HTMLIFrameElement
                       const iwindow = iframe.contentWindow
-                      if(iwindow){
+                      if (iwindow) {
                         const idoc = iwindow.document
-                        idoc.body.style.margin = '0px'
+                        idoc?.body?.style && (idoc.body.style.margin = '0px')
                       }
                     }
 
@@ -635,7 +631,7 @@ const componentsResolver: t.Resolve.Config = {
                     args.component.clear('children')
                     componentPage.component?.clear?.('children')
 
-                    const children = await Promise.all(
+                    await Promise.all(
                       componentPage.components?.map(
                         async (obj: ComponentObject) => {
                           let child = await nui.resolveComponents({
@@ -779,7 +775,10 @@ const componentsResolver: t.Resolve.Config = {
 
               textBoard.forEach((item) => {
                 if (Identify.textBoardItem(item)) {
-                  const br = createComponent('view')
+                  const br = args.nui.createComponent(
+                    'view',
+                    args.page.getNuiPage(),
+                  )
                   args.component.createChild(br as any)
                 } else {
                   /**
@@ -790,16 +789,19 @@ const componentsResolver: t.Resolve.Config = {
                    * TODO: Instead of a resolverComponent, we should make a resolveStyles
                    * to get around this issue. For now we'll hard code known props like "color"
                    */
-                  const text = createComponent({
-                    type: 'label',
-                    style: {
-                      display: 'inline-block',
-                      ...(item.color
-                        ? { color: formatColor(item.color) }
-                        : undefined),
+                  const text = args.nui.createComponent(
+                    {
+                      type: 'label',
+                      style: {
+                        display: 'inline-block',
+                        ...(item.color
+                          ? { color: formatColor(item.color) }
+                          : undefined),
+                      },
+                      text: item.text,
                     },
-                    text: item.text,
-                  })
+                    args.page.getNuiPage(),
+                  )
                   args.component.createChild(text as any)
                 }
               })
@@ -814,8 +816,8 @@ const componentsResolver: t.Resolve.Config = {
           }
         }
         /* -------------------------------------------------------
-        ---- DISABLING / ENABLING
-      -------------------------------------------------------- */
+          ---- DISABLING / ENABLING
+        -------------------------------------------------------- */
         // TEXTVIEW
         else if (Identify.component.textView(args.component)) {
           if (args.component.blueprint?.['isEditable']) {
@@ -878,6 +880,8 @@ const componentsResolver: t.Resolve.Config = {
           videoEl.style.objectFit = 'contain'
         }
       }
+
+      return args.node
     } catch (error) {
       console.error(error)
       throw error

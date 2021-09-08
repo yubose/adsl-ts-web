@@ -100,7 +100,7 @@ const attributesResolver: t.Resolve.Config = {
       if (args.node) {
         if (args.component) {
           if (Identify.component.page(args.component)) {
-            console.info(`PAGE COMPONENT`, args.global.pages)
+            // console.info(`PAGE COMPONENT`, args.global.pages)
           }
           const { path, placeholder, style, textBoard } =
             args.component.blueprint || {}

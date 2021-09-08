@@ -7,12 +7,13 @@ import {
   Store,
   UseArg as NUIUseObject,
 } from 'noodl-ui'
-import { VProperties, VNode as _VNode, VText as _VText } from 'virtual-dom'
+import { VNode as _VNode, VText as _VText } from 'virtual-dom'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
 import NDOMResolver, { NDOMResolver_ } from './Resolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import GlobalTimers from './global/Timers'
+import { ComponentPage } from './factory/componentFactory'
 import { eventId, triggers } from './constants'
 
 export type VNode = _VNode
@@ -27,7 +28,15 @@ export interface IGlobalObject<T extends string = string> {
 export interface GlobalMap {
   components: Map<string, GlobalComponentRecord>
   hooks: Map<string, Record<string, ((...args: any[]) => any)[]>>
-  pages: Record<string, NDOMPage>
+  mapping: Map<
+    string,
+    {
+      componentId: string
+      pageId: string
+      children: { componentId: string; pageId: string }[]
+    }[]
+  >
+  pages: Record<string, NDOMPage | ComponentPage>
   timers: GlobalTimers
 }
 

@@ -40,6 +40,7 @@ class App {
   #state = {
     authStatus: '' as AuthStatus | '',
     initialized: false,
+    loadingPages: {} as Record<string, { id: string; init: boolean }[]>,
   }
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
@@ -146,6 +147,10 @@ class App {
   get globalRegister() {
     return this.noodl.root?.Global?.globalRegister as
       | t.GlobalRegisterComponent[]
+  }
+
+  get loadingPages() {
+    return this.#state.loadingPages
   }
 
   get initialized() {
@@ -474,16 +479,28 @@ class App {
     try {
       const pageRequesting = page.requesting
       const currentPage = page.page
-      log.func('getPageObject')
-      log.grey(`Running noodl.initPage for page "${pageRequesting}"`)
+      const loadingState = this.#state.loadingPages?.[pageRequesting] || []
 
-      if (pageRequesting && !(pageRequesting in this.noodl.root)) {
-        console.log(
-          `%cThe page "${pageRequesting}" does not exist in the root object`,
-          `color:#ec0000;`,
-          this.root,
-        )
+      if (!(pageRequesting in this.loadingPages)) {
+        this.loadingPages[pageRequesting] = loadingState
       }
+
+      const currentIndex = loadingState.findIndex((o) => o.id === page.id)
+
+      if (currentIndex === -1) {
+        loadingState.push({ id: page.id as string, init: true })
+      }
+
+      log.func('getPageObject')
+      log.teal(`Running noodl.initPage for page "${pageRequesting}"`)
+
+      // if (pageRequesting && !(pageRequesting in this.noodl.root)) {
+      //   console.log(
+      //     `%cThe page "${pageRequesting}" does not exist in the root object`,
+      //     `color:#ec0000;`,
+      //     this.root,
+      //   )
+      // }
 
       if (pageRequesting === currentPage) {
         console.log(
@@ -494,8 +511,10 @@ class App {
       }
 
       let self = this
+      let isAborted = false
+      let isAbortedFromSDK = false as boolean | undefined
 
-      const isAborted = (
+      isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, [], {
           ...(page.modifiers[pageRequesting] as any),
           builtIn: {
@@ -573,33 +592,63 @@ class App {
               for (const [key, value] of u.entries(obj)) {
                 Identify.reference(key) && validateReference(key)
                 Identify.reference(value) && validateReference(value)
-                if (u.isObj(value)) {
-                  validateObject(value)
-                }
+                if (u.isObj(value)) validateObject(value)
               }
             }
 
             u.isObj(current) && validateObject(current)
+
+            if (!isAborted) {
+              let currentIndex = this.loadingPages[pageRequesting]?.findIndex?.(
+                (o) => o.id === page.id,
+              )
+              if (currentIndex > -1) {
+                if (currentIndex > 0) {
+                  isAborted = true
+                  this.loadingPages[pageRequesting].splice(currentIndex, 1)
+                } else {
+                  this.loadingPages[pageRequesting].shift()
+                }
+              }
+            }
           },
           onAfterInit: (err, init) => {
             if (err) throw err
             log.func('onAfterInit')
             log.grey('', { err, init, page: pageRequesting })
+            let currentIndex = this.loadingPages[pageRequesting]?.findIndex?.(
+              (o) => o.id === page.id,
+            )
+            if (currentIndex > -1) {
+              if (currentIndex > 0) {
+                isAborted = true
+                this.loadingPages[pageRequesting].splice(currentIndex, 1)
+              } else {
+                this.loadingPages[pageRequesting].shift()
+              }
+            }
           },
         })
       )?.aborted
 
       log.func('createPreparePage')
-      log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
+      log.salmon(`Ran noodl.initPage on page "${pageRequesting}"`, {
         pageRequesting,
         pageModifiers: page.modifiers,
         pageObject: this?.root[pageRequesting],
         snapshot: page.snapshot(),
       })
 
-      if (isAborted) {
-        log.grey(
+      if (isAbortedFromSDK) {
+        log.hotpink(
           `Aborting from ${pageRequesting} due to abort request from lvl3`,
+        )
+        return { aborted: true }
+      }
+
+      if (isAborted) {
+        log.hotpink(
+          `Aborting from ${pageRequesting} because a newer call was instantiated`,
         )
         return { aborted: true }
       }

@@ -14,9 +14,19 @@ import {
 } from 'noodl-ui'
 import { createRender, getAllElementCount, ndom, ui } from '../test-utils'
 import { cache, nui } from '../nui'
+import * as i from '../utils/internal'
 import * as n from '../utils'
 
 let view: Component
+let genderListObject: { key: string; value: string }[]
+
+beforeEach(() => {
+  genderListObject = [
+    { key: 'Gender', value: 'Female' },
+    { key: 'Gender', value: 'Male' },
+    { key: 'Gender', value: 'Other' },
+  ]
+})
 
 describe(u.cyan(`redraw`), () => {
   xdescribe(u.italic('state'), () => {
@@ -50,15 +60,9 @@ describe(u.cyan(`redraw`), () => {
         },
       },
     })
-
-    it(`xstate`, async () => {
-      let view = await render()
-      // let [label, textField] = view.children
-      // console.info(prettyDOM())
-    })
   })
 
-  describe(u.italic(`events`), () => {
+  describe(`events`, () => {
     let id = 'hello'
     let componentObject: ComponentObject | undefined
     let currentCount = 0
@@ -81,7 +85,7 @@ describe(u.cyan(`redraw`), () => {
       pageObject = { components: [componentObject], currentCount }
     })
 
-    it(`should still be executing the same action chains normally`, async () => {
+    it(`should still be executing action chains with the same behavior`, async () => {
       const { ndom, render } = createRender({
         pageName,
         pageObject,
@@ -90,13 +94,13 @@ describe(u.cyan(`redraw`), () => {
       ndom.use({
         emit: {
           onClick: async () => {
-            const node = n.getFirstByElementId(id)
+            const node = n.findFirstByElementId(id)
             node.innerHTML = String(increment())
           },
         },
       })
       let component = await render()
-      let node = n.getFirstByElementId(id)
+      let node = n.findFirstByElementId(id)
       // TODO - fix this so that it works with only 1 click
       node.click()
       node.click()
@@ -116,33 +120,32 @@ describe(u.cyan(`redraw`), () => {
     })
   })
 
-  it(`should remove the redrawing components from the component cache`, async () => {
-    const { ndom, render } = createRender({
-      components: ui.list({ listObject: mock.getGenderListObject() }),
-    })
+  it(`should remove the components being redrawed from the component cache`, async () => {
+    const { ndom, render } = createRender(
+      ui.list({ listObject: genderListObject }),
+    )
     const component = await render()
-    const node = n.getFirstByElementId(component)
+    const node = n.findFirstByElementId(component)
     const idsToBeRemoved = flatten(component).map((c) => c.id)
     expect(idsToBeRemoved).to.have.length.greaterThan(0)
     expect(ndom.cache.component).to.have.lengthOf(idsToBeRemoved.length)
-    component.children.forEach(
+    u.forEach(
       (child) => expect(ndom.cache.component.has(child)).to.be.true,
+      component.children,
     )
     await ndom.redraw(node, component)
-    idsToBeRemoved.forEach(
+    u.forEach(
       (id) => expect(ndom.cache.component.has(id)).to.be.false,
+      idsToBeRemoved,
     )
   })
 
   it(`the amount of descendants should remain the same in the components`, async () => {
     const { ndom, render } = createRender({
-      components: [
-        ui.list({ listObject: mock.getGenderListObject() }),
-        ui.label(),
-      ],
+      components: [ui.list({ listObject: genderListObject }), ui.label()],
     })
     const list = await render()
-    const node = n.getFirstByElementId(list)
+    const node = n.findFirstByElementId(list)
     const idsToBeRemoved = flatten(list).map((c) => c.id)
     const idsToBeRemovedLengthBefore = idsToBeRemoved.length
     const [_, newComp] = await ndom.redraw(node, list)
@@ -153,7 +156,6 @@ describe(u.cyan(`redraw`), () => {
 
   it(`the DOM should structurally remain identical`, async () => {
     const iteratorVar = 'itemObject'
-    const listObject = mock.getGenderListObject()
     const { ndom, render } = createRender({
       pageObject: {
         formData: { password: 'mypw' },
@@ -163,7 +165,7 @@ describe(u.cyan(`redraw`), () => {
             children: [
               ui.list({
                 iteratorVar,
-                listObject,
+                listObject: genderListObject,
                 children: [
                   ui.listItem({
                     [iteratorVar]: '',
@@ -184,113 +186,110 @@ describe(u.cyan(`redraw`), () => {
     const container = await render()
     const getContainerElem = () =>
       n.findBySelector('[data-viewtag=container]') as HTMLElement
-
     expect(getAllElementCount(`[data-viewtag=container]`)).to.eq(1)
     expect(getAllElementCount('ul')).to.eq(1)
-    expect(getAllElementCount('li')).to.eq(listObject.length)
+    expect(getAllElementCount('li')).to.eq(genderListObject.length)
     expect(getAllElementCount(`[data-key="${iteratorVar}.key"]`)).to.eq(3)
     expect(getAllElementCount(`[data-key="${iteratorVar}.value"]`)).to.eq(3)
     expect(getAllElementCount(`[data-key="formData.password"]`)).to.eq(1)
     await ndom.redraw(getContainerElem(), container)
     await ndom.redraw(getContainerElem(), container)
-    await ndom.redraw(getContainerElem(), container)
-    await ndom.redraw(getContainerElem(), container)
-    await ndom.redraw(getContainerElem(), container)
     expect(getAllElementCount(`[data-viewtag=container]`)).to.eq(1)
     expect(getAllElementCount('ul')).to.eq(1)
-    expect(getAllElementCount('li')).to.eq(listObject.length)
+    expect(getAllElementCount('li')).to.eq(genderListObject.length)
     expect(getAllElementCount(`[data-key="${iteratorVar}.key"]`)).to.eq(3)
     expect(getAllElementCount(`[data-key="${iteratorVar}.value"]`)).to.eq(3)
     expect(getAllElementCount(`[data-key="formData.password"]`)).to.eq(1)
   })
 
-  it(
-    `the size of the component cache should always remain the same no ` +
-      `matter how many times redraw is called`,
-    async () => {
-      const iteratorVar = 'itemObject'
-      const listObject = mock.getGenderListObject()
-      let { ndom, render } = createRender([
-        ui.list({
-          iteratorVar,
-          listObject,
-          children: [ui.listItem({ [iteratorVar]: '' })],
-        }),
-        ui.label(),
-      ])
-      let list = await render()
-      let componentCacheLengthBefore = ndom.cache.component.length
-      let listElem = n.getFirstByElementId(list)
-
-      await waitFor(() => {
-        expect(listElem.querySelectorAll('li')).to.have.lengthOf(3)
-      })
-      let pair = await ndom.redraw(n.getFirstByElementId(list), list)
-      expect(list.blueprint.listObject).to.have.lengthOf(3)
-      pair = await ndom.redraw(pair[0], pair[1])
-      pair = await ndom.redraw(pair[0], pair[1])
-      pair = await ndom.redraw(pair[0], pair[1])
-      pair = await ndom.redraw(pair[0], pair[1])
-      expect(ndom.cache.component.length).to.eq(componentCacheLengthBefore)
-    },
-  )
-
-  it(`should still have the same amount of children as the previous listObject if the data remained the same`, async () => {
+  it(`the size of the component cache should always remain the same`, async () => {
     const iteratorVar = 'itemObject'
-    const listObject = mock.getGenderListObject()
+    const listObject = genderListObject
     let { ndom, render } = createRender([
       ui.list({
         iteratorVar,
         listObject,
-        children: [
-          ui.listItem({
-            [iteratorVar]: '',
-            children: [ui.textField(), ui.divider()],
-          }),
-        ],
+        children: [ui.listItem({ [iteratorVar]: '' })],
       }),
       ui.label(),
     ])
     let list = await render()
-    expect(n.findBySelector('li')).to.have.lengthOf(3)
-    await ndom.redraw(n.getFirstByElementId(list), list)
-    await ndom.redraw(n.getFirstByElementId(list), list)
-    await ndom.redraw(n.getFirstByElementId(list), list)
-    expect(u.array(n.findBySelector('li'))).to.have.lengthOf(3)
-    expect(u.array(n.findBySelector('input'))).to.have.lengthOf(3)
-    expect(u.array(n.findBySelector('hr'))).to.have.lengthOf(3)
+    let componentCacheLengthBefore = ndom.cache.component.length
+    let listElem = n.findFirstByElementId(list)
+    await waitFor(() =>
+      expect(listElem.querySelectorAll('li')).to.have.lengthOf(3),
+    )
+    let pair = await ndom.redraw(n.findFirstByElementId(list), list)
+    expect(list.blueprint.listObject).to.have.lengthOf(3)
+    pair = await ndom.redraw(pair[0], pair[1])
+    pair = await ndom.redraw(pair[0], pair[1])
+    expect(ndom.cache.component.length).to.eq(componentCacheLengthBefore)
   })
 
-  describe(nc.italic(`select components`), () => {
-    it('should render more option children if the data has more items', async () => {
-      let options = ['00:00', '00:10']
-      let otherOptions = ['00:20', '00:30']
-      let { render } = createRender(ui.select({ options }))
-      let component = await render()
-      let node = n.getFirstByElementId(component) as HTMLSelectElement
-      let optionsNodes = Array.from(node.options)
-      expect(node.options).to.have.lengthOf(2)
-      optionsNodes.forEach((optionNode, index) =>
-        expect(optionNode.value).to.eq(options[index]),
-      )
-      options.push(...otherOptions)
-      let result = await ndom.redraw(node, component)
-      node = result[0] as HTMLSelectElement
-      component = result[1]
-      expect(node.options).to.have.lengthOf(4)
-      for (let index = 0; index < node.options.length; index++) {
-        expect(node.options[index].value).to.eq(options[index])
-      }
-    })
+  it(
+    `should still have the same amount of children as the previous listObject` +
+      ` if the data remained the same`,
+    async () => {
+      const iteratorVar = 'itemObject'
+      const listObject = genderListObject
+      let { ndom, render } = createRender([
+        ui.list({
+          iteratorVar,
+          listObject,
+          children: [
+            ui.listItem({
+              [iteratorVar]: '',
+              children: [ui.textField(), ui.divider()],
+            }),
+          ],
+        }),
+        ui.label(),
+      ])
+      let list = await render()
+      expect(n.findBySelector('li')).to.have.lengthOf(3)
+      await ndom.redraw(n.findFirstByElementId(list), list)
+      await ndom.redraw(n.findFirstByElementId(list), list)
+      await ndom.redraw(n.findFirstByElementId(list), list)
+      expect(u.array(n.findBySelector('li'))).to.have.lengthOf(3)
+      expect(u.array(n.findBySelector('input'))).to.have.lengthOf(3)
+      expect(u.array(n.findBySelector('hr'))).to.have.lengthOf(3)
+    },
+  )
+
+  describe(`when redrawing select components`, () => {
+    it(
+      `should render more option children if the data has more items ` +
+        `after redrawing`,
+      async () => {
+        let options = ['00:00', '00:10']
+        let otherOptions = ['00:20', '00:30']
+        let { render } = createRender(ui.select({ options }))
+        let component = await render()
+        let node = n.findFirstByElementId(component) as HTMLSelectElement
+        let optionsNodes = [...node.options]
+        expect(node.options).to.have.lengthOf(2)
+        u.forEach(
+          (optionNode, index) => expect(optionNode.value).to.eq(options[index]),
+          optionsNodes,
+        )
+        options.push(...otherOptions)
+        let result = await ndom.redraw(node, component)
+        node = result[0] as HTMLSelectElement
+        component = result[1]
+        expect(node.options).to.have.lengthOf(4)
+        for (let index = 0; index < node.options.length; index++) {
+          expect(node.options[index].value).to.eq(options[index])
+        }
+      },
+    )
   })
 
   it('should set the original parent as the parent of the new redrawee component', async () => {
     const view = createComponent('view')
-    const list = await createRender({
-      components: [ui.list({ listObject: mock.getGenderListObject() })],
-    }).render()
+    const list = await createRender(
+      ui.list({ listObject: genderListObject }),
+    ).render()
     view.createChild(list)
-    list.setParent(view)
     ndom.draw(view)
     const listItem = list.child()
     const liNode = document.getElementById(listItem?.id || '')
@@ -303,13 +302,12 @@ describe(u.cyan(`redraw`), () => {
     const list = await createRender({
       components: [
         ui.list({
-          listObject: mock.getGenderListObject(),
+          listObject: genderListObject,
           children: [ui.listItem({ children: [ui.label()] })],
         }),
       ],
     }).render()
     view.createChild(list)
-    list.setParent(view)
     ndom.draw(view)
     const listItem = list.child()
     const [empty, newListItem] = await ndom.redraw(null, listItem)
@@ -317,24 +315,23 @@ describe(u.cyan(`redraw`), () => {
     expect(list.children.includes(newListItem)).to.be.true
   })
 
-  it('the redrawing component + node should hold the same ID', async () => {
+  it('the redrawing component + node should have a matching id', async () => {
     ndom.draw(view)
     const list = await createRender({
-      components: [ui.list({ listObject: mock.getGenderListObject() })],
+      components: [ui.list({ listObject: genderListObject })],
     }).render()
     const listItem = list.child()
     const liNode = document.getElementById(listItem?.id || '')
     const [newLiNode, newListItem] = await ndom.redraw(liNode, listItem)
-    expect(newLiNode).to.have.property('id').that.is.eq(newListItem.id)
+    expect(newLiNode).to.have.property('id').eq(newListItem.id)
   })
 
   it('should attach to the original parentNode as the new childNode', async () => {
     const view = createComponent('view')
     const list = await createRender({
-      components: [ui.list({ listObject: mock.getGenderListObject() })],
+      components: [ui.list({ listObject: genderListObject })],
     }).render()
     view.createChild(list)
-    list.setParent(view)
     ndom.draw(view)
     const listItem = list.child()
     const liNode = document.getElementById(listItem?.id || '')
@@ -346,7 +343,7 @@ describe(u.cyan(`redraw`), () => {
     expect(newNode?.parentNode).to.eq(ulNode)
   })
 
-  describe('when using path emits after redrawing', () => {
+  describe('when processing path emits after redrawing', () => {
     it('should still be able to emit and update the DOM', async () => {
       let imgPath = 'selectOn.png'
       const pathSpy = sinon.spy(async () => [
@@ -370,28 +367,30 @@ describe(u.cyan(`redraw`), () => {
       ndom.use({ emit: { onClick: onClickSpy, path: pathSpy } })
       const view = await render()
       const image = view.child()
-      expect(n.getFirstByElementId('img123')).to.exist
-      n.getFirstByElementId('img123').click()
+      expect(n.findFirstByElementId('img123')).to.exist
+      n.findFirstByElementId('img123').click()
       await waitFor(() => {
         expect(onClickSpy).to.be.calledOnce
         expect(pathSpy).to.be.calledOnce
         expect(onClickSpy).to.be.calledOnce
       })
-      await ndom.redraw(n.getFirstByElementId('img123'), image)
-      n.getFirstByElementId('img123').click()
+      await ndom.redraw(n.findFirstByElementId('img123'), image)
+      n.findFirstByElementId('img123').click()
       await waitFor(() => {
-        const newImg = n.getFirstByElementId('img123') as HTMLImageElement
+        const newImg = n.findFirstByElementId('img123') as HTMLImageElement
         const expectedSrc = nui.getAssetsUrl() + imgPath
         expect(newImg.src).to.eq(expectedSrc)
       })
     })
   })
 
-  describe('when user types something on a redrawed input node that had an onChange emit', () => {
+  describe('when user types something on an input node using onChange emit', () => {
     it('should still be emitting and updating the DOM', async () => {
       const mockOnChangeEmit = async (action, { component }) => {
-        const node = n.getFirstByElementId(component)
-        node.setAttribute('placeholder', component.get('data-value'))
+        n.findFirstByElementId(component).setAttribute(
+          'placeholder',
+          component.get('data-value'),
+        )
       }
       const { ndom, render } = createRender({
         pageName: 'Abc',
@@ -404,29 +403,21 @@ describe(u.cyan(`redraw`), () => {
       })
       ndom.use({ emit: { onChange: mockOnChangeEmit } })
       const view = await render()
-      const viewElem = n.getFirstByElementId(view)
-      let input = n.getFirstByDataKey('formData.password') as HTMLInputElement
+      const viewElem = n.findFirstByElementId(view)
+      let input = n.findFirstByDataKey('formData.password') as HTMLInputElement
       expect(input.dataset.value).to.eq('mypassword')
       expect(input.value).to.eq('mypassword')
       await ndom.redraw(viewElem, view)
       await waitFor(() => {
-        input = n.getFirstByDataKey('formData.password') as HTMLInputElement
-        expect(input.dataset.value).to.eq('mypassword')
+        expect(
+          (n.findFirstByDataKey('formData.password') as HTMLInputElement)
+            .dataset.value,
+        ).to.eq('mypassword')
       })
-      // expect(input.value).to.eq('mypassword')
-      // input.dataset.value = ''
-      // input.value = ''
-      // expect(input.dataset.value).to.eq('')
-      // expect(input.value).to.eq('')
-      // input.select()
-      // input.value = 'hello'
-      // input.dispatchEvent(new Event('change'))
-      // expect(input.dataset.value).to.eq('hello')
-      // expect(input.value).to.eq('hello')
     })
   })
 
-  it('should deeply resolve the entire noodl-ui component tree down', async () => {
+  it('should deeply resolve the component tree down', async () => {
     const iteratorVar = 'cookie'
     const listObject = [
       { fruit: 'apple', color: 'red', path: 'flower.png' },
@@ -511,7 +502,7 @@ describe(u.cyan(`redraw`), () => {
         },
       },
       emit: {
-        onClick: async (action, opts) => {
+        onClick: async (_, opts) => {
           const orig = opts.component?.blueprint as ComponentObject
           const viewTag = orig.viewTag as string
           const pageObject = opts.getRoot().Hello as PageObject
@@ -526,7 +517,7 @@ describe(u.cyan(`redraw`), () => {
             pageObject.formData.password = 'updatedPassword'
           }
         },
-        path: async (action, opts) => {
+        path: async (_, opts) => {
           const orig = opts.component?.blueprint as ComponentObject
           const viewTag = orig.viewTag as string
           if (viewTag === 'listItemImageTag') {
@@ -568,11 +559,11 @@ describe(u.cyan(`redraw`), () => {
       },
     }
 
-    let containerElem = n.getFirstByElementId(view.id) as HTMLDivElement
+    let containerElem = n.findFirstByElementId(view.id) as HTMLDivElement
     let listItemElems = n.findBySelector('li') as HTMLLIElement[]
     let [liElem1] = listItemElems
     let redrawButtonElem = n.getFirstByViewTag('redrawTag')
-    let containerImageElem = n.getFirstByElementId('abcId')
+    let containerImageElem = n.findFirstByElementId('abcId')
 
     const getListItemDataElems = (liElem: HTMLLIElement) => ({
       textField: liElem.querySelector('input'),
@@ -621,7 +612,7 @@ describe(u.cyan(`redraw`), () => {
     expect(listItemElems).to.have.lengthOf(listObject.length)
 
     await waitFor(() => {
-      expect(n.getFirstByElementId('abcId')).to.have.property(
+      expect(n.findFirstByElementId('abcId')).to.have.property(
         'src',
         getAssetsUrl() + 'brown.png',
       )
@@ -649,17 +640,13 @@ describe(u.cyan(`redraw`), () => {
     const pathSpy = sinon.spy(async () => 'food.png')
     const onClickSpy = sinon.spy(async () => [''])
     const iteratorVar = 'hello'
-    const listObject = [
-      { fruit: 'apple', color: 'red' },
-      { fruit: 'orange', color: 'blue' },
-    ]
     const pageObject = {
       formData: { password: 'mypassword' },
       components: [
         ui.view({
           children: [
             ui.list({
-              listObject,
+              listObject: genderListObject,
               children: [
                 ui.listItem({
                   children: [
@@ -683,9 +670,9 @@ describe(u.cyan(`redraw`), () => {
     await render()
 
     expect(n.findBySelector('ul')).to.be.instanceOf(HTMLUListElement)
-    expect(n.findBySelector('li')).to.have.lengthOf(2)
-    expect(n.findBySelector('img')).to.have.lengthOf(2)
-    expect(n.findBySelector('input')).to.have.lengthOf(2)
+    expect(n.findBySelector('li')).to.have.lengthOf(3)
+    expect(n.findBySelector('img')).to.have.lengthOf(3)
+    expect(n.findBySelector('input')).to.have.lengthOf(3)
     const componentId = n.findFirstBySelector('li').id
     await waitFor(() => {
       expect(n.findFirstBySelector('input').dataset.value).to.eq('mypassword')
@@ -696,13 +683,137 @@ describe(u.cyan(`redraw`), () => {
     )
     expect(u.array(n.findBySelector('ul'))).to.have.lengthOf(1)
     await waitFor(() => {
-      expect(u.array(n.findBySelector('li'))).to.have.lengthOf(2)
+      expect(u.array(n.findBySelector('li'))).to.have.lengthOf(3)
     })
-    expect(u.array(n.findBySelector('img'))).to.have.lengthOf(2)
-    expect(u.array(n.findBySelector('input'))).to.have.lengthOf(2)
+    expect(u.array(n.findBySelector('img'))).to.have.lengthOf(3)
+    expect(u.array(n.findBySelector('input'))).to.have.lengthOf(3)
     expect(n.findFirstBySelector('input').dataset).to.have.property(
       'value',
       'mypassword',
     )
+  })
+
+  describe(`when redrawing page components`, () => {
+    let root: {
+      Apple: PageObject
+      Cereal: PageObject
+      Hello: PageObject
+      Keychain: PageObject
+      Tiger: PageObject
+      Zoo: PageObject
+    }
+
+    beforeEach(() => {
+      root = {
+        Apple: { components: [ui.divider(), ui.button('Click me')] },
+        Cereal: {
+          formData: { password: '123' },
+          components: [
+            ui.image('abc.png'),
+            ui.label({ dataKey: 'formData.password' }),
+            ui.popUpComponent('cerealPopUpView'),
+          ],
+        },
+        Keychain: {
+          myData: { firstName: 'Athena' },
+          components: [
+            ui.label('where is my keychain?'),
+            ui.button({ text: 'Click', viewTag: 'keychainButtonTag' }),
+          ],
+        },
+        Hello: {
+          pageName: 'Tiger',
+          components: [
+            ui.view({
+              viewTag: 'abcTag',
+              children: [
+                ui.page({ path: { if: [true, '..pageName', '..pageName'] } }),
+              ],
+            }),
+            ui.button({
+              id: 'redrawButton',
+              onClick: [ui.builtIn({ funcName: 'redraw', viewTag: 'abcTag' })],
+            }),
+          ],
+        },
+        Tiger: { components: [ui.popUpComponent('myPopUpView')] },
+        Zoo: { components: [ui.view({ children: [ui.scrollView()] })] },
+      }
+    })
+
+    xit(`should not be `, () => {
+      //
+    })
+
+    it.only(
+      `should remove elements from a previous redraw when ` +
+        `redrawing simultaneously`,
+      async function () {
+        const { getRoot, ndom, render } = createRender({
+          pageName: 'Hello',
+          root,
+        })
+
+        const rerender = (pageName = '', keychainDataKeyVal = '') => {
+          getRoot().Hello.pageName = pageName
+          keychainDataKeyVal && (getRoot().Keychain.myData = keychainDataKeyVal)
+          redrawButton.click()
+        }
+
+        ndom.use({
+          builtIn: {
+            redraw: async (_) => {
+              setTimeout(() => {
+                let viewTag = _.original.viewTag
+                let node = n.findFirstByViewTag(viewTag)
+                ndom.redraw(node, i._getComponentFromCache(node.id))
+              }, 50)
+            },
+          },
+          evalObject: async () => {},
+          saveObject: () => new Promise((r) => setTimeout(r, 100)),
+          getPages: () => ['Apple', 'Cereal', 'Hello', 'Keychain', 'Tiger'],
+        })
+
+        let pageEl: HTMLIFrameElement
+        let redrawButton: HTMLButtonElement
+
+        await render()
+        redrawButton = n.getFirstByElementId('redrawButton')
+        rerender('Apple')
+        rerender('Cereal', 'fruit')
+        rerender('Keychain')
+        rerender('Zoo')
+        rerender('Apple', 'paper')
+        rerender('Apple')
+        rerender('Zoo', 'worldwideweb')
+        rerender('Keychain')
+
+        await waitFor(() => {
+          pageEl = n.findFirstByClassName('page') as HTMLIFrameElement
+          const pageBody = pageEl.contentDocument.body
+          expect(pageBody).to.have.property('children').to.have.lengthOf(2)
+        })
+
+        await waitFor(() => {
+          const labelEl = n.findFirstByDataKey('myData.firstName')
+          expect(labelEl).to.exist
+          const buttonEl = n.findFirstByViewTag('keychainButtonTag')
+          expect(buttonEl).to.exist
+        })
+      },
+    )
+
+    xit(
+      `should abort rendering to the DOM of the previous redraw when ` +
+        `redrawing the same page twice`,
+      async function () {
+        //
+      },
+    )
+
+    xit(`should not leak any page component elements to the root DOOM`, async function () {
+      //
+    })
   })
 })

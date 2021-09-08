@@ -13,7 +13,7 @@ interface ComponentCacheHook {
     page: LiteralUnion<'unknown', string>
   }): void
   clear(components: { [id: string]: NUIComponent.Instance }): void
-  remove(component: ReturnType<NUIComponent.Instance['toJSON']>): void
+  remove(args: { id: string | undefined; page: string | undefined }): void
 }
 
 class ComponentCache {
@@ -157,13 +157,17 @@ class ComponentCache {
   remove(component: NUIComponent.Instance | string) {
     if (!u.isObj(component)) {
       if (this.#cache.has(component)) {
-        this.#cache.delete(component)
-        this.emit('remove', this.#cache.get(component)?.component?.toJSON?.())
+        const id = component
+        const pageName = this.#cache.get(id)?.page
+        this.#cache.delete(id)
+        this.emit('remove', { id, page: pageName })
       }
     } else if (component) {
       if (this.#cache.has(component.id)) {
+        const id = component.id
+        const pageName = this.#cache.get(component.id)?.page
         this.#cache.delete(component.id)
-        this.emit('remove', component.toJSON?.())
+        this.emit('remove', { id, page: pageName })
       }
     }
     return this
