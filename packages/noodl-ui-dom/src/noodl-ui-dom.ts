@@ -539,8 +539,6 @@ class NDOM extends NDOMInternal {
           ? document.body
           : container || document.body
 
-        if (parent === document.body) debugger
-
         // NOTE: This needs to stay above the code below or the children will
         // not be able to access their parent during the resolver calls
         if (!parent.contains(node)) {
