@@ -367,7 +367,6 @@ export const _syncPages = (function () {
           page = args.page
         }
 
-        if (page?.id !== 'root') debugger
         if (page) {
           label = `[${updateType} #${page.id}]`
 

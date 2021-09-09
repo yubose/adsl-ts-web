@@ -745,7 +745,7 @@ describe(u.cyan(`redraw`), () => {
       //
     })
 
-    it.only(
+    xit(
       `should remove elements from a previous redraw when ` +
         `redrawing simultaneously`,
       async function () {

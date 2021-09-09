@@ -582,6 +582,15 @@ const componentsResolver: t.Resolve.Config = {
                       const pageName =
                         componentPage.requesting || componentPage.page
 
+                      if (
+                        u.isStr(componentPage.id) &&
+                        componentPage.id in args.renderState.draw.loading
+                      ) {
+                        const renderState =
+                          args.renderState.draw.loading[componentPage.id]
+                        if (renderState) return args.node
+                      }
+
                       if (nui.getPages().includes(pageName)) {
                         await args.transact(
                           'REQUEST_PAGE_OBJECT',
@@ -634,21 +643,37 @@ const componentsResolver: t.Resolve.Config = {
                     await Promise.all(
                       componentPage.components?.map(
                         async (obj: ComponentObject) => {
-                          let child = await nui.resolveComponents({
-                            components: obj,
-                            page: nuiPage,
+                          return new Promise(async (resolve, reject) => {
+                            let child = await nui.resolveComponents({
+                              components: obj,
+                              page: nuiPage,
+                            })
+
+                            // TODO - We might not need this line
+                            args.component.createChild(child)
+
+                            if (componentPage.body == null) {
+                              componentPage.on('ON_LOAD', async () => {
+                                let childNode = await args.draw(
+                                  child,
+                                  componentPage.body,
+                                  componentPage,
+                                )
+                                childNode &&
+                                  componentPage.appendChild(childNode)
+                                resolve(child)
+                                debugger
+                              })
+                            } else {
+                              let childNode = await args.draw(
+                                child,
+                                componentPage.body,
+                                componentPage,
+                              )
+                              childNode && componentPage.appendChild(childNode)
+                              resolve(child)
+                            }
                           })
-
-                          let childNode = await args.draw(
-                            child,
-                            componentPage.body,
-                            componentPage,
-                          )
-
-                          childNode && componentPage.appendChild(childNode)
-                          // TODO - We might not need this line
-                          args.component.createChild(child)
-                          return child
                         },
                       ) || [],
                     )

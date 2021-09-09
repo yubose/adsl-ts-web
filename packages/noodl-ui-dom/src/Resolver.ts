@@ -60,6 +60,9 @@ export class NDOMResolver_ {
       ],
       elementType: args.vnode?.tagName || '',
       componentType: args.component?.type || '',
+      get renderState() {
+        return args.ndom.renderState as NDOM['renderState']
+      },
       setAttr: <K extends keyof t.VNodeAttributes>(
         k: LiteralUnion<K, string>,
         v: any,
@@ -184,6 +187,9 @@ export default class NDOMResolver {
        * REMINDER: This intentionally does not include componentsResolver due to
        * circular references/infinite loops
        */
+      get renderState() {
+        return args.ndom.renderState as NDOM['renderState']
+      },
       resolvers: [
         ...args.ndom.consumerResolvers,
         componentsResolver,

@@ -46,7 +46,14 @@ class NDOM extends NDOMInternal {
     onAfterRequestPageObject: [],
   } as Record<keyof t.Hooks, t.Hooks[keyof t.Hooks][]>
   #renderState = {
-    draw: {} as Record<string, { type: string; id: string; page: string }>,
+    draw: {
+      active: {} as {
+        [pageId: string]: { pageName: string; timestamp: Number | null }
+      },
+      loading: {} as {
+        [pageId: string]: { pageName: string; timestamp: Number | null }
+      },
+    },
   }
   consumerResolvers = [] as t.Resolve.Config[]
   global = new NDOMGlobal()
@@ -101,7 +108,7 @@ class NDOM extends NDOMInternal {
     return [...defaultResolvers, ...this.consumerResolvers]
   }
 
-  get state() {
+  get renderState() {
     return this.#renderState
   }
 
@@ -433,6 +440,40 @@ class NDOM extends NDOMInternal {
     let node: t.NDOMElement | null = null
     let page: NDOMPage = pageProp || this.page
 
+    if (page.id) {
+      if (page.requesting === '') {
+        if (this.renderState.draw.active[page.id]) {
+          delete this.renderState.draw.active[page.id]
+        }
+        if (!this.renderState.draw.loading[page.id]) {
+          this.renderState.draw.loading[page.id] = {
+            pageName: '',
+            timestamp: Date.now(),
+          }
+        }
+        if (
+          this.renderState.draw.loading[page.id].pageName !== page.requesting
+        ) {
+          this.renderState.draw.loading[page.id].pageName = page.requesting
+        }
+      } else if (page.requesting) {
+        if (this.renderState.draw.loading[page.id]) {
+          delete this.renderState.draw.loading[page.id]
+        }
+        if (!this.renderState.draw.active[page.id]) {
+          this.renderState.draw.active[page.id] = {
+            pageName: page.requesting,
+            timestamp: Date.now(),
+          }
+        }
+        if (
+          this.renderState.draw.active[page.id].pageName !== page.requesting
+        ) {
+          this.renderState.draw.active[page.id].pageName = page.requesting
+        }
+      }
+    }
+
     try {
       if (component) {
         if (i._isPluginComponent(component)) {
@@ -498,6 +539,8 @@ class NDOM extends NDOMInternal {
           ? document.body
           : container || document.body
 
+        if (parent === document.body) debugger
+
         // NOTE: This needs to stay above the code below or the children will
         // not be able to access their parent during the resolver calls
         if (!parent.contains(node)) {
@@ -560,6 +603,11 @@ class NDOM extends NDOMInternal {
     } catch (error) {
       console.error(error)
       throw error
+    } finally {
+      if (u.isStr(page.id)) {
+        delete this.renderState.draw.active[page.id]
+        delete this.renderState.draw.loading[page.id]
+      }
     }
 
     return node || null
@@ -600,8 +648,6 @@ class NDOM extends NDOMInternal {
           node,
           page,
         })
-
-        console.info(`page`, page)
 
         newComponent = nui.createComponent(
           component.blueprint,

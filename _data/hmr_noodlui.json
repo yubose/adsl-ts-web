@@ -1,0 +1,6 @@
+{
+  "type": "accepted",
+  "moduleId": "./packages/noodl-ui/dist/index.js",
+  "outdatedModules": ["./packages/noodl-ui/dist/index.js"],
+  "outdatedDependencies": {}
+}
