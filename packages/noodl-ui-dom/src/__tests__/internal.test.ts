@@ -37,7 +37,7 @@ describe(nc.coolGold(`internal (utilities)`), () => {
         ndom.reset().resync()
         ndom.createPage('SignIn')
         const page2 = ndom.createPage('')
-        expect(ndom.global.pageIds).to.have.lengthOf(2)
+        await waitFor(() => expect(ndom.global.pageIds).to.have.lengthOf(2))
         const page3 = ndom.createPage('')
         ndom.createPage('')
         ndom.createPage('')

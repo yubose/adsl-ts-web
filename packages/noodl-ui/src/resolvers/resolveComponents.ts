@@ -111,11 +111,15 @@ componentResolver.setResolver(async (component, options, next) => {
       // Customly create the listItem children using a dataObject as the data source
 
       let dataObjects = getListObject()
-      if(dataObjects.length == 1 && isStr(dataObjects[0]) && dataObjects[0].startsWith('itemObject')){
-        let dataKey:any= dataObjects[0].toString()
+      if (
+        dataObjects.length == 1 &&
+        isStr(dataObjects[0]) &&
+        dataObjects[0].startsWith('itemObject')
+      ) {
+        let dataKey: any = dataObjects[0].toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
         dataObjects = get(findListDataObject(component), dataKey)
-      }  
+      }
       const numDataObjects = dataObjects.length
       for (let index = 0; index < numDataObjects; index++) {
         const dataObject = dataObjects[index]
@@ -138,7 +142,17 @@ componentResolver.setResolver(async (component, options, next) => {
 
     if (Identify.component.page(component)) {
       let pageName = component.get('path') || ''
-      let page = (component.get('page') || createPage(component)) as NUIPage
+      let page = component.get('page') as NUIPage
+
+      if (!page) {
+        if (pageName) {
+          page = [...cache.page.get().values()].find(
+            (obj) => obj?.page === pageName,
+          )?.page as NUIPage
+        } else {
+          page = createPage(component) as NUIPage
+        }
+      }
 
       if (!component.has('parentPage')) {
         component.edit(
@@ -146,6 +160,8 @@ componentResolver.setResolver(async (component, options, next) => {
           options?.page?.page || options.getRootPage().page,
         )
       }
+
+      if (!page) page = createPage(component) as NUIPage
 
       page !== component.get('page') && component.edit('page', page)
 

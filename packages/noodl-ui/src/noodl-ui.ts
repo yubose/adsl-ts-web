@@ -88,10 +88,14 @@ const NUI = (function () {
       | ComponentObject
       | null
       | undefined,
-    page?: NUIPage,
+    page: NUIPage,
   ) {
-    if (isComponent(componentObject)) return componentObject
-    const component = createComponent(componentObject as ComponentObject)
+    let component: t.NUIComponent.Instance
+    if (isComponent(componentObject)) {
+      component = componentObject
+    } else {
+      component = createComponent(componentObject as ComponentObject)
+    }
     !cache.component.has(component) &&
       cache.component.add(component, page || o.getRootPage())
     return component

@@ -676,7 +676,10 @@ const componentsResolver: t.Resolve.Config = {
 
             textBoard.forEach((item) => {
               if (Identify.textBoardItem(item)) {
-                const br = createComponent('view')
+                const br = args.nui.createComponent(
+                  'view',
+                  args.page.getNuiPage(),
+                )
                 args.component.createChild(br as any)
               } else {
                 /**

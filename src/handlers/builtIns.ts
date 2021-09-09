@@ -632,7 +632,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       await Promise.all(
-        components.map(async (_component) => {
+        components.map(async function redrawComponents(_component) {
           const _node = findFirstBySelector(`#${_component?.id}`)
           if (!_node) {
             log.func('redraw')
