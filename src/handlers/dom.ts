@@ -540,14 +540,14 @@ const createExtendedDOMResolvers = function (app: App) {
           let text = JSON.stringify(dataValue)
           let width = parseInt(node.style.width.replace('px', ''))
           let height = parseInt(node.style.height.replace('px', ''))
-          new QRCode(node, {
-            text: text,
-            width: width,
-            height: height,
-            colorDark: '#000000',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H,
-          })
+          // new QRCode(node, {
+          //   text: text,
+          //   width: width,
+          //   height: height,
+          //   colorDark: '#000000',
+          //   colorLight: '#ffffff',
+          //   correctLevel: QRCode.CorrectLevel.H,
+          // })
         }
       },
     },
