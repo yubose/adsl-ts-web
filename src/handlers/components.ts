@@ -1,6 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject'
 import { ComponentObject } from 'noodl-types'
-import { ComponentInstance, ConsumerOptions } from 'noodl-ui'
+import { NuiComponent, ConsumerOptions } from 'noodl-ui'
 import App from '../App'
 
 const createComponentResolver = function _createComponentResolver(app: App) {
@@ -8,12 +8,12 @@ const createComponentResolver = function _createComponentResolver(app: App) {
     parent,
     component,
   }: {
-    parent: ComponentInstance | null
-    component: ComponentInstance
+    parent: NuiComponent.Instance | null
+    component: NuiComponent.Instance
     transform: (
-      component: ComponentInstance,
+      component: NuiComponent.Instance,
       options: ConsumerOptions,
-    ) => ComponentInstance
+    ) => NuiComponent.Instance
   } & ConsumerOptions) {
     const original = component.blueprint || {}
     let { listObject, iteratorVar = '' } = original
@@ -26,7 +26,7 @@ const createComponentResolver = function _createComponentResolver(app: App) {
       return original.listObject || []
     }
 
-    function getRawBlueprint(component: ComponentInstance) {
+    function getRawBlueprint(component: NuiComponent.Instance) {
       const childrenKey = getChildrenKey()
       const children = component.blueprint?.[childrenKey]
       const blueprint = Array.isArray(children)

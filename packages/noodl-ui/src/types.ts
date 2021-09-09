@@ -1,4 +1,4 @@
-import { OrArray } from '@jsmanifest/typefest'
+import { OrArray, OrPromise } from '@jsmanifest/typefest'
 import type {
   ActionObject,
   ActionType,
@@ -23,6 +23,8 @@ import type {
   PluginHeadComponentObject,
   PluginBodyTailComponentObject,
   PluginBodyTopComponentObject,
+  ReferenceString,
+  IfObject,
 } from 'noodl-types'
 import type { Action, ActionChain } from 'noodl-action-chain'
 import type { LiteralUnion } from 'type-fest'
@@ -43,7 +45,7 @@ import {
 
 export type NUIActionType = ActionType | typeof lib.actionTypes[number]
 export type NUIActionGroupedType = typeof groupedActionTypes[number]
-export type NUIComponentType = ComponentType | typeof lib.components[number]
+export type NuiComponentType = ComponentType | typeof lib.components[number]
 export type NUITrigger = EventType | typeof lib.emitTriggers[number]
 export type DataAttribute = typeof lib.dataAttributes[number]
 
@@ -61,7 +63,7 @@ export type NUIActionObjectInput =
   | ToastObject
 
 export interface ComponentCacheObject {
-  component: NUIComponent.Instance
+  component: NuiComponent.Instance
   page: string
 }
 
@@ -127,8 +129,8 @@ export interface IPage {
   viewport: Viewport
 }
 
-export namespace NUIComponent {
-  export type CreateType = ComponentObject | NUIComponent.Instance
+export namespace NuiComponent {
+  export type CreateType = ComponentObject | NuiComponent.Instance
 
   export interface EditResolutionOptions {
     remove?: string | string[] | Record<string, () => boolean>
@@ -160,7 +162,7 @@ export namespace NUIComponent {
         TimerHook<'interval'>,
         (args: {
           value: Date | undefined
-          component: NUIComponent.Instance
+          component: NuiComponent.Instance
           node: HTMLElement
         }) => void
       > &
@@ -180,14 +182,14 @@ export namespace NUIComponent {
       | ((args: {
           value: Date | undefined
           node: HTMLElement
-          component: NUIComponent.Instance
+          component: NuiComponent.Instance
         }) => void)
       | null
   }
 
   export type Instance = ComponentBase
 
-  export type Type = NUIComponentType
+  export type Type = NuiComponentType
 }
 
 export namespace Plugin {
@@ -219,7 +221,7 @@ export type ConsumerOptions<Trig extends string = string> = Omit<
   ): NUIActionChain
   event?: Event
   getBaseStyles(
-    component: NUIComponent.Instance,
+    component: NuiComponent.Instance,
   ): StyleObject & { [key: string]: any }
   ref?: NUIActionChain
 }
@@ -253,6 +255,31 @@ export namespace Register {
   }
 
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
+}
+
+export interface ResolveComponentOptions {
+  callback?(
+    component: NuiComponent.Instance,
+  ): NuiComponent.Instance | null | undefined
+  page?: NUIPage
+  on?: {
+    page?(page: NUIPage): OrPromise<void>
+    setup?(component: NuiComponent.Instance): OrPromise<void>
+    create?(
+      component: NuiComponent.Instance,
+      args: {
+        parent: NuiComponent.Instance | null
+        index?: number
+        iteratorVar?: number
+        dataObject?: number
+      },
+    ): OrPromise<void>
+    if?(ifObject: IfObject): OrPromise<any>
+    emit?(emitObject: EmitObjectFold): OrPromise<any>
+    reference?<S extends string = string>(
+      value: ReferenceString<S>,
+    ): OrPromise<any>
+  }
 }
 
 export namespace Store {

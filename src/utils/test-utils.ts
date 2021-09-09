@@ -14,7 +14,7 @@ import {
   nuiEmitTransaction,
   NUI,
   NUIActionType,
-  NUIComponent,
+  NuiComponent,
   NUITrigger,
   NUIActionGroupedType,
   NUIActionObjectInput,
@@ -163,10 +163,10 @@ export function createRender(opts: MockRenderOptions) {
       pgName && page && (page.requesting = pgName)
       return ndom.request(page)
     },
-    render: async (pgName?: string): Promise<NUIComponent.Instance> => {
+    render: async (pgName?: string): Promise<NuiComponent.Instance> => {
       const req = await o.request(pgName)
       // @ts-expect-error
-      return req && (req?.render()[0] as NUIComponent.Instance)
+      return req && (req?.render()[0] as NuiComponent.Instance)
     },
   }
 
@@ -400,7 +400,7 @@ export async function initializeApp(
       for (const component of _app.cache.component) {
         if (component?.id === id) return component
       }
-      return {} as NUIComponent.Instance
+      return {} as NuiComponent.Instance
     },
     triggerAction({
       action,
@@ -411,7 +411,7 @@ export async function initializeApp(
     }: {
       action: NUIActionObjectInput
       args?: any
-      component: NUIComponent.Instance | undefined
+      component: NuiComponent.Instance | undefined
       page?: NUIPage
       trigger?: NUITrigger
     }) {

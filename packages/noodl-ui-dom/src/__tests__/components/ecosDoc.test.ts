@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
-import { NUIComponent } from 'noodl-ui'
+import { NuiComponent } from 'noodl-ui'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { classes } from '../../constants'

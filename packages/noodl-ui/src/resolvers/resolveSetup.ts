@@ -10,101 +10,102 @@ import * as n from '../utils/noodl'
 
 const setupResolver = new Resolver('resolveSetup')
 
-setupResolver.setResolver(
-  async (component, { getAssetsUrl, getRoot, page }, next) => {
-    const { path } = component.blueprint || {}
-    // Overrides the NUI getter for 'path' if the if object evaluates to a
-    // reference string. This ensures that JavaScript keeps an implicit
-    // binding and resolves the if object correctly whenever path is being
-    // accessed.
+setupResolver.setResolver(async function setupResolver(
+  component,
+  { getRoot, page },
+  next,
+) {
+  const { path } = component.blueprint || {}
+  // Overrides the NUI getter for 'path' if the if object evaluates to a
+  // reference string. This ensures that JavaScript keeps an implicit
+  // binding and resolves the if object correctly whenever path is being
+  // accessed.
 
-    if (Identify.if(path)) {
-      const parentPage = page.page
-      // Should be in the form of a reference (ex: '..infoPage)
-      const evaluatedPath = n.evalIf(path)
+  if (Identify.if(path)) {
+    const parentPage = page.page
+    // Should be in the form of a reference (ex: '..infoPage)
+    const evaluatedPath = n.evalIf(path)
 
-      if (u.isStr(evaluatedPath)) {
-        if (Identify.reference(evaluatedPath)) {
-          const reference = evaluatedPath
-          const datapath = nu.trimReference(reference)
-          const originalGet = component?.get?.bind(component)
-          const isLocal = Identify.localKey(datapath)
+    if (u.isStr(evaluatedPath)) {
+      if (Identify.reference(evaluatedPath)) {
+        const reference = evaluatedPath
+        const datapath = nu.trimReference(reference)
+        const originalGet = component?.get?.bind(component)
+        const isLocal = Identify.localKey(datapath)
 
-          if ((isLocal && page?.page) || !isLocal) {
-            const getDataObject = () =>
-              isLocal ? getRoot()[parentPage || ''] : getRoot()
+        if ((isLocal && page?.page) || !isLocal) {
+          const getDataObject = () =>
+            isLocal ? getRoot()[parentPage || ''] : getRoot()
 
-            const wrapGetter = function (key: string, styleKey?: string) {
-              if (key === 'path') {
-                let value = get(getDataObject(), datapath) || ''
-                if (Identify.component.page(this)) {
-                  const nuiPage = this.get('page')
-                  if (isNUIPage(nuiPage)) {
-                    if (nuiPage.page !== value) {
-                      nuiPage.page = value
-                      const pageComponent = cache.component.get(
-                        nuiPage.id as string,
-                      )?.component
-                      if (pageComponent) {
-                        pageComponent.hooks?.PAGE_COMPONENTS?.forEach?.((fn) =>
-                          fn?.({ page: nuiPage }),
-                        )
-                        // TODO - Make this emit a different event that has a
-                        // more accurate reason for this emit
-                        pageComponent.emit(
-                          c.nuiEvent.component.page.PAGE_COMPONENTS,
-                          {
-                            page: nuiPage,
-                            type: 'update',
-                          },
-                        )
-                      }
+          const wrapGetter = function (key: string, styleKey?: string) {
+            if (key === 'path') {
+              let value = get(getDataObject(), datapath) || ''
+              if (Identify.component.page(this)) {
+                const nuiPage = this.get('page')
+                if (isNUIPage(nuiPage)) {
+                  if (nuiPage.page !== value) {
+                    nuiPage.page = value
+                    const pageComponent = cache.component.get(
+                      nuiPage.id as string,
+                    )?.component
+                    if (pageComponent) {
+                      pageComponent.hooks?.PAGE_COMPONENTS?.forEach?.((fn) =>
+                        fn?.({ page: nuiPage }),
+                      )
+                      // TODO - Make this emit a different event that has a
+                      // more accurate reason for this emit
+                      pageComponent.emit(
+                        c.nuiEvent.component.page.PAGE_COMPONENTS,
+                        {
+                          page: nuiPage,
+                          type: 'update',
+                        },
+                      )
                     }
                   }
                 }
-                return value
               }
-              return originalGet(key, styleKey)
+              return value
             }
+            return originalGet(key, styleKey)
+          }
 
-            Object.defineProperty(component, 'get', {
+          Object.defineProperty(component, 'get', {
+            configurable: true,
+            enumerable: true,
+            get() {
+              return wrapGetter
+            },
+          })
+
+          if (u.isObj(getDataObject())) {
+            let currentValue = get(getDataObject(), datapath) as string
+            let isPageComponent = Identify.component.page(component)
+            Object.defineProperty(getDataObject(), datapath, {
               configurable: true,
               enumerable: true,
               get() {
-                return wrapGetter
+                return currentValue
               },
-            })
-
-            if (u.isObj(getDataObject())) {
-              let currentValue = get(getDataObject(), datapath) as string
-              let isPageComponent = Identify.component.page(component)
-              Object.defineProperty(getDataObject(), datapath, {
-                configurable: true,
-                enumerable: true,
-                get() {
-                  return currentValue
-                },
-                set(newValue: string) {
-                  if (isPageComponent) {
-                    const cacheObj = cache.page.get(component.id)
-                    if (cacheObj?.page) {
-                      if (cacheObj.page.page !== currentValue) {
-                        cacheObj.page.page = currentValue
-                        // debugger
-                      }
+              set(newValue: string) {
+                if (isPageComponent) {
+                  const cacheObj = cache.page.get(component.id)
+                  if (cacheObj?.page) {
+                    if (cacheObj.page.page !== currentValue) {
+                      cacheObj.page.page = currentValue
                     }
                   }
-                  currentValue = newValue
-                },
-              })
-            }
+                }
+                currentValue = newValue
+              },
+            })
           }
         }
       }
     }
+  }
 
-    return next?.()
-  },
-)
+  return next?.()
+})
 
 export default setupResolver

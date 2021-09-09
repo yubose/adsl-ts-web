@@ -1,5 +1,7 @@
 import * as mock from 'noodl-ui-test-utils'
 import * as u from '@jsmanifest/utils'
+import fs from 'fs-extra'
+import path from 'path'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
@@ -36,6 +38,75 @@ async function resolveComponent(component: ComponentObject) {
 }
 
 describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
+  it.only(`should call the callback on every resolved child in order of creation time`, async () => {
+    const spy = sinon.spy((f) =>
+      console.info(
+        `[${f.type}] ${
+          f.blueprint.viewTag || f.blueprint.dataKey || f.blueprint.contentType
+        }`,
+      ),
+    )
+    const listObject = [{ fruit: 'apple' }, { fruit: 'berry' }]
+    const iteratorVar = 'itemObject'
+    const pageObject = {
+      components: [
+        ui.view({
+          children: [
+            ui.label({ viewTag: 'labelTagAboveList' }),
+            ui.list({
+              iteratorVar,
+              listObject,
+              contentType: 'listObject',
+              children: [
+                ui.listItem({
+                  viewTag: `listItemTag`,
+                  [iteratorVar]: '',
+                  children: [
+                    ui.label({ dataKey: `${iteratorVar}.fruit` }),
+                    ui.textField({
+                      dataKey: `${iteratorVar}.fruit`,
+                      placeholder: 'Edit fruit',
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+        ui.button({ viewTag: 'submitTag', text: 'Submit' }),
+        ui.button({ viewTag: 'closeTag', text: 'Close' }),
+      ],
+    }
+    const HelloPg = NUI.getRoot().Hello
+    NUI.use({ getRoot: () => ({ Hello: HelloPg, Sam: pageObject }) })
+    const page = NUI.getRootPage()
+    page.page = 'Sam'
+    const components = await NUI.resolveComponents({
+      components: pageObject.components,
+      page,
+      callback: spy,
+    })
+    await fs.writeJson('calls.json', spy.getCalls(), { spaces: 2 })
+    const expectedCalls = [
+      { type: 'view' },
+      { type: 'label' },
+      { type: 'list' },
+      { type: 'listItem' },
+      { type: 'label' },
+      { type: 'textField' },
+      { type: 'listItem' },
+      { type: 'label' },
+      { type: 'textField' },
+      { type: 'button' },
+      { type: 'button' },
+    ]
+    // console.info(spy.getCalls())
+    expect(spy).to.have.property('callCount').to.eq(expectedCalls.length)
+    expectedCalls.forEach((res) => {
+      //
+    })
+  })
+
   describe(italic(`list`), () => {
     let listObject: ReturnType<typeof mock.getGenderListObject>
     let componentObject: ReturnType<typeof mock.getListComponent>
@@ -164,35 +235,6 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       },
     )
 
-    it(
-      `should emit the ${c.nuiEvent.component.page.PAGE_COMPONENTS} whenever it receives a new page object` +
-        `components`,
-      async () => {
-        const Cereal = {
-          components: ui.page({
-            path: 'Hello',
-            children: [ui.label('Hi all')],
-          }),
-        }
-        const spy = sinon.spy()
-        NUI.use({
-          getRoot: () => getRoot({ Cereal }),
-          getPages: () => ['Cereal', 'Hello'],
-          transaction: {
-            [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => Cereal,
-          },
-        })
-        const component = await NUI.resolveComponents(Cereal.components)
-        component.on(c.nuiEvent.component.page.PAGE_COMPONENTS, spy)
-        await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
-        expect(spy).to.be.calledOnce
-        await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
-        await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
-        await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
-        expect(spy).to.have.callCount(4)
-      },
-    )
-
     it(`should rerun the fetch components function and emit PAGE_COMPONENTS with the new components when PAGE_CHANGED is emitted`, async () => {
       const dividerComponent = ui.divider({ id: 'divider' })
       const Cereal = {
@@ -209,11 +251,11 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         },
       })
       const component = await NUI.resolveComponents(Cereal.components)
-      component.on(c.nuiEvent.component.page.PAGE_COMPONENTS, spy)
       expect(component.get('page')).to.be.instanceOf(NUIPage)
       const page = component.get('page') as NUIPage
+      page?.on(c.nuiEvent.component.page.PAGE_CHANGED, spy)
       page.page = 'Tiger'
-      await component.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+      page.emit(c.nuiEvent.component.page.PAGE_CHANGED)
       await waitFor(() => expect(spy).to.be.calledOnce)
       expect(component.get('page')).to.have.property('page', 'Tiger')
       expect(component.get('page'))

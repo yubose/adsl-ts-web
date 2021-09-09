@@ -1,8 +1,8 @@
-import { NUIComponent } from 'noodl-ui'
+import { NuiComponent } from 'noodl-ui'
 import { getElementTag } from './utils'
 
 function createElement(
-  component: NUIComponent.Instance | NUIComponent.Type | undefined,
+  component: NuiComponent.Instance | NuiComponent.Type | undefined,
 ) {
   return document.createElement(
     (component && getElementTag(component)) || 'div',

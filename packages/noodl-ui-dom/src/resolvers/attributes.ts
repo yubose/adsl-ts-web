@@ -1,13 +1,8 @@
 import * as u from '@jsmanifest/utils'
 import startOfDay from 'date-fns/startOfDay'
 import { Identify, userEvent } from 'noodl-types'
-import { dataAttributes, NUIComponent } from 'noodl-ui'
-import {
-  applyStyles,
-  copyStyles,
-  isDisplayable,
-  normalizeEventName,
-} from '../utils'
+import { dataAttributes, NuiComponent } from 'noodl-ui'
+import { isDisplayable, normalizeEventName } from '../utils'
 import NDOMResolver from '../Resolver'
 import * as t from '../types'
 import * as i from '../utils/internal'
@@ -25,7 +20,7 @@ function attachText<N extends t.NDOMElement>(node: N, ...text: string[]) {
 
 function attachDataAttrs<N extends t.NDOMElement>(
   node: N,
-  component: NUIComponent.Instance,
+  component: NuiComponent.Instance,
   setAttr: ReturnType<NDOMResolver['getOptions']>['setAttr'],
   setDataAttr: ReturnType<NDOMResolver['getOptions']>['setDataAttr'],
 ) {
@@ -41,7 +36,7 @@ function attachDataAttrs<N extends t.NDOMElement>(
 
 function attachUserEvents<N extends t.NDOMElement>(
   node: N,
-  component: NUIComponent.Instance,
+  component: NuiComponent.Instance,
 ) {
   userEvent.forEach((eventType: string) => {
     if (u.isFnc(component.get?.(eventType)?.execute)) {
@@ -264,7 +259,7 @@ const attributesResolver: t.Resolve.Config = {
           const classes = {
             canvas: 'canvas',
             global: {
-              identify: (c: NUIComponent.Instance) => c.has('global'),
+              identify: (c: NuiComponent.Instance) => c.has('global'),
               className: 'global',
             },
             page: 'page',

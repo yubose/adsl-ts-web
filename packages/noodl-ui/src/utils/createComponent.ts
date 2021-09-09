@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import { ComponentObject } from 'noodl-types'
-import { NUIComponentType } from '../types'
+import { NuiComponentType } from '../types'
 import isComponent from './isComponent'
 import Component from '../Component'
 
@@ -20,22 +20,22 @@ interface Options {
  * @param { string | object | Component } component - NOODL component type, a component object, or a Component instance
  * @param { object | function | undefined } props = Component args passed to the constructor
  */
-function createComponent<K extends NUIComponentType = NUIComponentType>(
+function createComponent<K extends NuiComponentType = NuiComponentType>(
   type: K,
   options?: Options,
 ): Component
 
-function createComponent<K extends NUIComponentType = NUIComponentType>(
+function createComponent<K extends NuiComponentType = NuiComponentType>(
   value: PropsOptionObj,
   options?: Options,
 ): Component
 
-function createComponent<K extends NUIComponentType = NUIComponentType>(
+function createComponent<K extends NuiComponentType = NuiComponentType>(
   component: Component,
   options?: Options,
 ): Component
 
-function createComponent<K extends NUIComponentType = NUIComponentType>(
+function createComponent<K extends NuiComponentType = NuiComponentType>(
   value: K | PropsOptionObj | Component,
   options?: Options,
 ): Component {

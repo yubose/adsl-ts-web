@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import type { LiteralUnion } from 'type-fest'
-import type { ComponentCacheObject, NUIComponent } from '../types'
+import type { ComponentCacheObject, NuiComponent } from '../types'
 import type NUIPage from '../Page'
 import isNUIPage from '../utils/isPage'
 
@@ -9,10 +9,10 @@ type ComponentCacheHookEvent = 'add' | 'clear' | 'remove'
 
 interface ComponentCacheHook {
   add(args: {
-    component: NUIComponent.Instance
+    component: NuiComponent.Instance
     page: LiteralUnion<'unknown', string>
   }): void
-  clear(components: { [id: string]: NUIComponent.Instance }): void
+  clear(components: { [id: string]: NuiComponent.Instance }): void
   remove(args: { id: string | undefined; page: string | undefined }): void
 }
 
@@ -90,7 +90,7 @@ class ComponentCache {
   }
 
   add(
-    component: NUIComponent.Instance,
+    component: NuiComponent.Instance,
     page: NUIPage | string | undefined,
   ): ComponentCacheObject {
     if (component) {
@@ -141,20 +141,20 @@ class ComponentCache {
 
   get(): Map<string, ComponentCacheObject>
   get(
-    component: NUIComponent.Instance | string | undefined,
+    component: NuiComponent.Instance | string | undefined,
   ): ComponentCacheObject
-  get(component?: NUIComponent.Instance | string | undefined) {
+  get(component?: NuiComponent.Instance | string | undefined) {
     if (u.isObj(component)) return this.#cache.get(component.id)
     if (component) return this.#cache.get(component)
     return this.#cache
   }
 
-  has(component: NUIComponent.Instance | string | undefined) {
+  has(component: NuiComponent.Instance | string | undefined) {
     if (u.isNil(component)) return false
     return this.#cache.has(!u.isObj(component) ? component : component.id || '')
   }
 
-  remove(component: NUIComponent.Instance | string) {
+  remove(component: NuiComponent.Instance | string) {
     if (!u.isObj(component)) {
       if (this.#cache.has(component)) {
         const id = component

@@ -1,10 +1,10 @@
-import { NUIComponent } from 'noodl-ui'
+import { NuiComponent } from 'noodl-ui'
 import GlobalRecord from './GlobalRecord'
 import Page from '../Page'
 import { DATA_GLOBALID } from '../constants'
 
 export interface GlobalComponentMapOptions {
-  component: NUIComponent.Instance
+  component: NuiComponent.Instance
   id?: string
   node?: HTMLElement | null
   page: Page

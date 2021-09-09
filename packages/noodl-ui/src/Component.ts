@@ -6,8 +6,8 @@ import isComponent from './utils/isComponent'
 import * as t from './types'
 
 type Hooks = Record<
-  t.NUIComponent.HookEvent,
-  t.NUIComponent.Hook[t.NUIComponent.HookEvent][]
+  t.NuiComponent.HookEvent,
+  t.NuiComponent.Hook[t.NuiComponent.HookEvent][]
 >
 
 class Component<C extends ComponentObject = ComponentObject> {
@@ -15,12 +15,12 @@ class Component<C extends ComponentObject = ComponentObject> {
   #hooks = {} as Hooks
   #hookCbIds: string[] = []
   #component: ComponentObject
-  #children: t.NUIComponent.Instance[] = []
+  #children: t.NuiComponent.Instance[] = []
   #id = ''
-  #parent: t.NUIComponent.Instance | null = null
+  #parent: t.NuiComponent.Instance | null = null
   type: C['type']
 
-  static isComponent(component: unknown): component is t.NUIComponent.Instance {
+  static isComponent(component: unknown): component is t.NuiComponent.Instance {
     return isComponent(component)
   }
 
@@ -218,7 +218,7 @@ class Component<C extends ComponentObject = ComponentObject> {
     return JSON.stringify(this.toJSON(), null, spaces)
   }
 
-  setParent(parent: t.NUIComponent.Instance | null) {
+  setParent(parent: t.NuiComponent.Instance | null) {
     this.#parent = parent
     return this
   }
@@ -238,7 +238,7 @@ class Component<C extends ComponentObject = ComponentObject> {
    * Creates and appends the new child instance to the childrens list
    * @param { IComponentType } props
    */
-  createChild<C extends t.NUIComponent.Instance>(child: C): C {
+  createChild<C extends t.NuiComponent.Instance>(child: C): C {
     child?.setParent?.(this)
     this.#children.push(child)
     return child
@@ -248,15 +248,15 @@ class Component<C extends ComponentObject = ComponentObject> {
    * Removes a child from its children. You can pass in either the instance
    * directly, the index leading to the child, the component's id, or leave the args empty to
    * remove the first child by default
-   * @param { t.NUIComponent.Instance | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
+   * @param { t.NuiComponent.Instance | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
    */
-  removeChild(index: number): t.NUIComponent.Instance | undefined
-  removeChild(id: string): t.NUIComponent.Instance | undefined
+  removeChild(index: number): t.NuiComponent.Instance | undefined
+  removeChild(id: string): t.NuiComponent.Instance | undefined
   removeChild(
-    child: t.NUIComponent.Instance,
-  ): t.NUIComponent.Instance | undefined
-  removeChild(): t.NUIComponent.Instance | undefined
-  removeChild(child?: t.NUIComponent.Instance | number | string) {
+    child: t.NuiComponent.Instance,
+  ): t.NuiComponent.Instance | undefined
+  removeChild(): t.NuiComponent.Instance | undefined
+  removeChild(child?: t.NuiComponent.Instance | number | string) {
     if (child == undefined) {
       return this.children.shift()
     } else if (u.isNum(child)) {
@@ -269,9 +269,9 @@ class Component<C extends ComponentObject = ComponentObject> {
     }
   }
 
-  on<Evt extends t.NUIComponent.HookEvent>(
+  on<Evt extends t.NuiComponent.HookEvent>(
     eventName: Evt,
-    cb: t.NUIComponent.Hook[Evt],
+    cb: t.NuiComponent.Hook[Evt],
     id = '',
   ) {
     if (id) {
@@ -284,9 +284,9 @@ class Component<C extends ComponentObject = ComponentObject> {
     return this
   }
 
-  off<Evt extends t.NUIComponent.HookEvent>(
+  off<Evt extends t.NuiComponent.HookEvent>(
     eventName: Evt,
-    cb: t.NUIComponent.Hook[Evt],
+    cb: t.NuiComponent.Hook[Evt],
   ) {
     if (!u.isArr(this.hooks[eventName])) return this
     if (this.hooks[eventName]?.includes(cb)) {
@@ -298,9 +298,9 @@ class Component<C extends ComponentObject = ComponentObject> {
     return this
   }
 
-  async emit<Evt extends t.NUIComponent.HookEvent>(
+  async emit<Evt extends t.NuiComponent.HookEvent>(
     eventName: Evt,
-    ...args: Parameters<NonNullable<t.NUIComponent.Hook[Evt]>>
+    ...args: Parameters<NonNullable<t.NuiComponent.Hook[Evt]>>
   ) {
     if (u.isArr(this.#hooks[eventName])) {
       return Promise.allSettled(
@@ -311,7 +311,7 @@ class Component<C extends ComponentObject = ComponentObject> {
 
   clear(filter?: OrArray<'children' | 'hooks'>) {
     const _clearChildren = (
-      children: t.NUIComponent.Instance[] | undefined,
+      children: t.NuiComponent.Instance[] | undefined,
     ) => {
       if (u.isArr(children)) {
         children.forEach?.((child) => {
@@ -348,7 +348,7 @@ class Component<C extends ComponentObject = ComponentObject> {
   edit(fn: (props: ComponentObject) => ComponentObject | undefined | void): void
   edit(
     prop: Record<string, any>,
-    opts?: t.NUIComponent.EditResolutionOptions,
+    opts?: t.NuiComponent.EditResolutionOptions,
   ): void
   edit(prop: string, value: any): void
   edit(
@@ -356,7 +356,7 @@ class Component<C extends ComponentObject = ComponentObject> {
       | Record<string, any>
       | string
       | ((props: ComponentObject) => ComponentObject | undefined | void),
-    value?: t.NUIComponent.EditResolutionOptions,
+    value?: t.NuiComponent.EditResolutionOptions,
   ) {
     if (u.isFnc(fn)) {
       const props = fn(this.props)

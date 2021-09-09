@@ -1,14 +1,14 @@
 import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
 import type Viewport from '../Viewport'
-import type { ICache, IPage, NUIComponent } from '../types'
+import type { ICache, IPage, NuiComponent } from '../types'
 import NUIPage from '../Page'
 import isComponent from '../utils/isComponent'
 import * as c from '../constants'
 
 export interface PageCacheHooks {
   [c.cache.page.hooks.PAGE_CREATED](args: {
-    component?: NUIComponent.Instance
+    component?: NuiComponent.Instance
     page: NUIPage
   }): void
   [c.cache.page.hooks.PAGE_REMOVED](page: NUIPage): void
@@ -94,11 +94,11 @@ class PageCache implements ICache {
     return this
   }
 
-  // create(component: NUIComponent.Instance, page?: NUIPage): NUIPage
+  // create(component: NuiComponent.Instance, page?: NUIPage): NUIPage
   create(
     args: {
       // If component is passed in it must be treated as a page component.
-      component?: NUIComponent.Instance
+      component?: NuiComponent.Instance
       id?: string
       onChange?: (prev: string, next: string) => void
       viewport?: Viewport
@@ -110,7 +110,7 @@ class PageCache implements ICache {
     args.onChange && page.use({ onChange: args.onChange })
     this.#pages.set(page.id, { page })
     const emitArgs = { page } as {
-      component?: NUIComponent.Instance
+      component?: NuiComponent.Instance
       page: NUIPage
     }
     if (isComponent(args.component)) emitArgs.component = args.component
@@ -120,7 +120,7 @@ class PageCache implements ICache {
 
   #emit = <Evt extends keyof PageCacheHooks>(
     evt: Evt,
-    page: NUIPage | { component?: NUIComponent.Instance; page: NUIPage },
+    page: NUIPage | { component?: NuiComponent.Instance; page: NUIPage },
   ) => {
     this.#hooks[evt]?.forEach?.((fn) => fn?.(page))
   }

@@ -9,7 +9,6 @@
     "dist"
   ],
   "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
-  "jsnext:main": "dist/index.js",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.js",

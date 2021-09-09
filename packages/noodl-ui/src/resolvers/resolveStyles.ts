@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar } from 'noodl-utils'
-import type { NUIComponent } from '../types'
+import type { NuiComponent } from '../types'
 import { presets } from '../constants'
 import { findListDataObject, findIteratorVar } from '../utils/noodl'
 import ComponentResolver from '../Resolver'
@@ -12,7 +12,7 @@ import * as util from '../utils/style'
 
 const isNil = (v: any) => u.isNull(v) || u.isUnd(v)
 
-function createStyleEditor(component: NUIComponent.Instance) {
+function createStyleEditor(component: NuiComponent.Instance) {
   function editComponentStyles(
     styles: Record<string, any> | undefined,
     { remove }: { remove?: string | string[] | false } = {},

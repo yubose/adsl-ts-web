@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import { NUIComponent } from 'noodl-ui'
+import { NuiComponent } from 'noodl-ui'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta, white } from 'noodl-common'
@@ -18,7 +18,7 @@ import * as c from '../constants'
 
 async function getEcosDocLoadResult(
   componentObject:
-    | NUIComponent.Instance
+    | NuiComponent.Instance
     | ComponentObject
     | undefined
     | null = ui.ecosDocComponent(),

@@ -6,7 +6,7 @@ import {
   ComponentObject,
   UncommonActionObjectProps,
 } from 'noodl-types'
-import { NUIAction, NUIActionObjectInput, NUIComponent, Store } from 'noodl-ui'
+import { NUIAction, NUIActionObjectInput, NuiComponent, Store } from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
 import { ActionMetadata } from '../app/types'
 
@@ -17,7 +17,7 @@ export function getActionMetadata<PKey extends string = string>(
     pickKeys,
     ...other
   }: {
-    component?: NUIComponent.Instance | ComponentObject
+    component?: NuiComponent.Instance | ComponentObject
     pickKeys?: PKey | PKey[]
   } & Partial<Record<string, any>> = {},
 ) {

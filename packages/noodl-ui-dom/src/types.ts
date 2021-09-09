@@ -3,23 +3,17 @@ import { OrArray, OrPromise } from '@jsmanifest/typefest'
 import { ComponentObject, ComponentType } from 'noodl-types'
 import {
   Component,
-  NUIComponent,
+  NuiComponent,
   Store,
   UseArg as NUIUseObject,
 } from 'noodl-ui'
-import { VNode as _VNode, VText as _VText } from 'virtual-dom'
 import NDOM from './noodl-ui-dom'
 import NDOMPage from './Page'
-import NDOMResolver, { NDOMResolver_ } from './Resolver'
+import NDOMResolver from './Resolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
 import GlobalTimers from './global/Timers'
 import { ComponentPage } from './factory/componentFactory'
 import { eventId, triggers } from './constants'
-
-export type VNode = _VNode
-export type VNodeAttributes = Record<string, any>
-export type VNodeStyle = keyof CSSStyleDeclaration
-export type VText = _VText
 
 export interface IGlobalObject<T extends string = string> {
   type: T
@@ -42,8 +36,8 @@ export interface GlobalMap {
 
 export interface Hooks {
   onRedrawStart(args: {
-    parent: NUIComponent.Instance | null
-    component: NUIComponent.Instance
+    parent: NuiComponent.Instance | null
+    component: NuiComponent.Instance
     context?: { dataObject?: any }
     node: HTMLElement | null
     page: NDOMPage
@@ -114,40 +108,8 @@ export type NDOMElement<T extends string = string> = T extends 'button'
 
 export type ElementBinding = Map<
   'audioStream' | 'videoStream',
-  (component: NUIComponent.Instance) => HTMLElement | null
+  (component: NuiComponent.Instance) => HTMLElement | null
 >
-
-export namespace Resolve_ {
-  export interface BaseOptions<N extends VNode> {
-    vnode: N
-    component: NUIComponent.Instance
-    page?: NDOMPage
-  }
-
-  export interface Config<N extends VNode = VNode> {
-    name?: string
-    cond?: LiteralUnion<ComponentType, string> | Resolve_.Func<N, boolean>
-    init?: Resolve_.Func<N>
-    before?: Resolve_.Func<N>
-    resolve?: Resolve_.Func<N>
-    after?: Resolve_.Func<N>
-  }
-
-  export interface Func<N extends VNode, RT = void> {
-    (
-      options: ReturnType<NDOMResolver_['getOptions']> &
-        Resolve_.BaseOptions<N>,
-    ): RT
-  }
-
-  export interface LifeCycle {
-    before: Resolve_.Config[]
-    resolve: Resolve_.Config[]
-    after: Resolve_.Config[]
-  }
-
-  export type LifeCycleEvent = 'before' | 'resolve' | 'after'
-}
 
 export namespace Resolve {
   export interface BaseOptions<
@@ -155,7 +117,7 @@ export namespace Resolve {
     N extends NDOMElement<T> = NDOMElement<T>,
   > {
     node: N
-    component: NUIComponent.Instance
+    component: NuiComponent.Instance
     page?: NDOMPage
   }
 
@@ -221,7 +183,7 @@ export namespace Page {
       node: NDOM['page']['node']
     }): void
     [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
-      snapshot: Snapshot & { components: NUIComponent.Instance[] },
+      snapshot: Snapshot & { components: NuiComponent.Instance[] },
     ): void
     [eventId.page.on.ON_COMPONENTS_RENDERED](page: NDOMPage): void
     [eventId.page.on.ON_APPEND_NODE](args: {
@@ -232,8 +194,8 @@ export namespace Page {
     }): void
     // Redraw events
     [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](args: {
-      parent: NUIComponent.Instance | null
-      component: NUIComponent.Instance
+      parent: NuiComponent.Instance | null
+      component: NuiComponent.Instance
       context?: { dataObject?: any }
       node: HTMLElement | null
       page: NDOMPage
@@ -284,7 +246,7 @@ export interface UseObject
     'emit' | 'transaction'
   > {
   createElementBinding?(
-    component: NUIComponent.Instance,
+    component: NuiComponent.Instance,
   ): HTMLElement | null | void
   emit: Partial<
     Record<NDOMTrigger, OrArray<Store.ActionObject<'emit', NDOMTrigger>['fn']>>

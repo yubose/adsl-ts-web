@@ -12,7 +12,6 @@ import {
 } from '../utils/internal'
 import Resolver from '../Resolver'
 import * as n from '../utils/noodl'
-import { NUIComponent } from '../types'
 
 const dataAttribsResolver = new Resolver('resolveDataAttribs')
 

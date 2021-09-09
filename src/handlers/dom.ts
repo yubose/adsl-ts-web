@@ -24,7 +24,7 @@ import {
   findIteratorVar,
   findListDataObject,
   NUIActionChain,
-  NUIComponent,
+  NuiComponent,
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
@@ -36,7 +36,7 @@ const log = Logger.create('dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
   const getOnChange = function _getOnChangeFn(args: {
-    component: NUIComponent.Instance
+    component: NuiComponent.Instance
     dataKey: string
     node: NDOMElement
     evtName: string
