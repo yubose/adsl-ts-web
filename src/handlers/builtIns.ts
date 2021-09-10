@@ -7,7 +7,7 @@ import {
   findListDataObject,
   findIteratorVar,
   getDataValues,
-  NUIComponent,
+  NuiComponent,
   Store,
   Viewport as VP,
   isListConsumer,
@@ -589,14 +589,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     action,
     options,
   ) {
-    const component = options?.component as NUIComponent.Instance
+    const component = options?.component as NuiComponent.Instance
     const metadata = getActionMetadata(action, {
       component,
       pickKeys: 'viewTag',
     })
     const { viewTag } = metadata
 
-    let components = [] as NUIComponent.Instance[]
+    let components = [] as NuiComponent.Instance[]
     let numComponents = 0
 
     for (const obj of app.cache.component) {

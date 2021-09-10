@@ -17,32 +17,31 @@ import {
   isListLike,
   resolveAssetUrl,
 } from '../utils/noodl'
-import type { NUIComponent } from '../types'
+import type { NuiComponent } from '../types'
 import cache from '../_cache'
 import * as c from '../constants'
 import * as i from '../utils/internal'
-import { isStr } from '@jsmanifest/utils'
 
 const componentResolver = new Resolver('resolveComponents')
 
 componentResolver.setResolver(async (component, options, next) => {
-  try {
-    const {
-      callback,
-      context,
-      createComponent,
-      createPage,
-      createPlugin,
-      createSrc,
-      emit,
-      getAssetsUrl,
-      getPages,
-      getRoot,
-      getRootPage,
-      page,
-      resolveComponents,
-    } = options
+  const {
+    callback,
+    context,
+    createComponent,
+    createPage,
+    createPlugin,
+    createSrc,
+    emit,
+    getAssetsUrl,
+    getPages,
+    getRoot,
+    getRootPage,
+    page,
+    resolveComponents,
+  } = options
 
+  try {
     const original = component.blueprint || {}
     const originalStyle = original.style || {}
     const { contentType, dataKey, path, text, textBoard } = original
@@ -86,7 +85,7 @@ componentResolver.setResolver(async (component, options, next) => {
     if (isListLike(component)) {
       const listItemBlueprint = getRawBlueprint(component)
 
-      function getChildrenKey(component: NUIComponent.Instance) {
+      function getChildrenKey(component: NuiComponent.Instance) {
         return component.type === 'chatList' ? 'chatItem' : 'children'
       }
 
@@ -95,7 +94,7 @@ componentResolver.setResolver(async (component, options, next) => {
         return u.array(component.blueprint.listObject).filter(Boolean)
       }
 
-      function getRawBlueprint(component: NUIComponent.Instance) {
+      function getRawBlueprint(component: NuiComponent.Instance) {
         const childrenKey = getChildrenKey(component)
         const children = component.blueprint.children
         const blueprint = cloneDeep(u.isArr(children) ? children[0] : children)
@@ -113,7 +112,7 @@ componentResolver.setResolver(async (component, options, next) => {
       let dataObjects = getListObject()
       if (
         dataObjects.length == 1 &&
-        isStr(dataObjects[0]) &&
+        u.isStr(dataObjects[0]) &&
         dataObjects[0].startsWith('itemObject')
       ) {
         let dataKey: any = dataObjects[0].toString()
@@ -270,7 +269,10 @@ componentResolver.setResolver(async (component, options, next) => {
       Identify.component.pluginBodyTop(component) ||
       Identify.component.pluginBodyTail(component)
     ) {
-      if (cache.plugin.has(path)) return
+      if (cache.plugin.has(path)) {
+        callback?.(component)
+        return
+      }
 
       const plugin = createPlugin(component)
       component.set('plugin', plugin)
@@ -477,6 +479,7 @@ componentResolver.setResolver(async (component, options, next) => {
     console.error(error)
   }
 
+  callback?.(component)
   return next?.()
 })
 

@@ -3,7 +3,7 @@ import { evalIf as _evalIf, excludeIteratorVar } from 'noodl-utils'
 import { ComponentObject, Identify, IfObject, PageObject } from 'noodl-types'
 import get from 'lodash/get'
 import isComponent from './isComponent'
-import { NUIComponent } from '../types'
+import { NuiComponent } from '../types'
 
 export function evalIf<O extends IfObject>(val: O) {
   const [value, valTrue, valFalse] = val?.if || []
@@ -19,21 +19,21 @@ export function evalIf<O extends IfObject>(val: O) {
  * Traverses the children hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned child
- * @param { NUIComponent.Instance } component
+ * @param { NuiComponent.Instance } component
  * @param { function } fn - Comparator function
  */
-export function findChild<C extends NUIComponent.Instance>(
+export function findChild<C extends NuiComponent.Instance>(
   component: C,
-  fn: (child: NUIComponent.Instance) => boolean,
-): NUIComponent.Instance | null {
-  let child: NUIComponent.Instance | null | undefined
+  fn: (child: NuiComponent.Instance) => boolean,
+): NuiComponent.Instance | null {
+  let child: NuiComponent.Instance | null | undefined
   let children = component?.children?.slice?.() || []
 
   if (isComponent(component) && component.length) {
     child = children.shift()
     while (child) {
       if (fn(child)) return child
-      child.children?.forEach((c: NUIComponent.Instance) => children.push(c))
+      child.children?.forEach((c: NuiComponent.Instance) => children.push(c))
       child = children.pop()
     }
   }
@@ -44,25 +44,25 @@ export function findChild<C extends NUIComponent.Instance>(
  * Traverses the parent hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned parent
- * @param { NUIComponent.Instance } component
+ * @param { NuiComponent.Instance } component
  * @param { function } fn
  */
-export function findParent<C extends NUIComponent.Instance>(
+export function findParent<C extends NuiComponent.Instance>(
   component: C | undefined,
-  fn: (parent: NUIComponent.Instance | null) => boolean,
+  fn: (parent: NuiComponent.Instance | null) => boolean,
 ) {
   if (!component) return null
-  let parent = component?.parent as NUIComponent.Instance
+  let parent = component?.parent as NuiComponent.Instance
   if (fn(parent)) return parent
   while (parent) {
     if (fn(parent.parent)) return parent.parent
-    parent = parent.parent as NUIComponent.Instance
+    parent = parent.parent as NuiComponent.Instance
   }
   return parent || null
 }
 
 export function findListDataObject(
-  component: NUIComponent.Instance | undefined,
+  component: NuiComponent.Instance | undefined,
 ) {
   if (!isComponent(component) || !isListConsumer(component)) return null
 
@@ -104,7 +104,7 @@ export function findListDataObject(
 }
 
 export function findIteratorVar(
-  component: NUIComponent.Instance | undefined,
+  component: NuiComponent.Instance | undefined,
 ): string {
   if (isComponent(component)) {
     if (Identify.component.list(component)) {
@@ -119,10 +119,10 @@ export function findIteratorVar(
 }
 
 export function flatten(
-  component: NUIComponent.Instance | undefined,
-): NUIComponent.Instance[] {
+  component: NuiComponent.Instance | undefined,
+): NuiComponent.Instance[] {
   if (!component) return []
-  const children = [component] as NUIComponent.Instance[]
+  const children = [component] as NuiComponent.Instance[]
   publish(component, (child) => children.push(child))
   return children
 }
@@ -261,7 +261,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
 }
 
 export function getPluginLocation(
-  obj: NUIComponent.Instance | ComponentObject | string | undefined,
+  obj: NuiComponent.Instance | ComponentObject | string | undefined,
 ) {
   let type: string | undefined
   // if (typeof obj === 'string') type = obj
@@ -277,9 +277,9 @@ export function getPluginLocation(
   return 'head'
 }
 
-export function getRootParent(component: NUIComponent.Instance) {
+export function getRootParent(component: NuiComponent.Instance) {
   if (!component.parent) return component
-  const temp = [] as NUIComponent.Instance[]
+  const temp = [] as NuiComponent.Instance[]
   findParent(component, (p) => {
     p && temp.push(p)
     return false
@@ -289,9 +289,9 @@ export function getRootParent(component: NUIComponent.Instance) {
   return rootParent
 }
 
-export function getLast(component: NUIComponent.Instance | undefined) {
+export function getLast(component: NuiComponent.Instance | undefined) {
   if (!component?.length) return component
-  const temp = [] as NUIComponent.Instance[]
+  const temp = [] as NuiComponent.Instance[]
   publish(component, (c) => void temp.push(c))
   const last = temp.length ? temp[temp.length - 1] : null
   temp.length = 0
@@ -300,12 +300,12 @@ export function getLast(component: NUIComponent.Instance | undefined) {
 
 export function isListConsumer(
   component: unknown,
-): component is NUIComponent.Instance {
+): component is NuiComponent.Instance {
   if (!isComponent(component)) return false
   return !!findIteratorVar(component)
 }
 
-export function isListLike(component: NUIComponent.Instance) {
+export function isListLike(component: NuiComponent.Instance) {
   return component.type === 'chatList' || component.type === 'list'
 }
 
@@ -327,7 +327,7 @@ export function parseReference(
 
 export function pullFromComponent(
   key: string | undefined,
-  component: NUIComponent.Instance | undefined | null,
+  component: NuiComponent.Instance | undefined | null,
 ) {
   if (!key || !isComponent(component)) return null
   return (
@@ -341,7 +341,7 @@ export function pullFromComponent(
 
 export function find(
   key: string | string[] | undefined,
-  component: NUIComponent.Instance | null | undefined,
+  component: NuiComponent.Instance | null | undefined,
 ) {
   const keys = u.array(key)
   const numKeys = keys.length
@@ -354,36 +354,36 @@ export function find(
 
 /**
  * Recursively invokes the provided callback on each child.
- * @param { NUIComponent.Instance } component
+ * @param { NuiComponent.Instance } component
  * @param { function } cb
  */
 export function publish(
-  cb: (child: NUIComponent.Instance) => void,
-  component: NUIComponent.Instance | undefined,
+  cb: (child: NuiComponent.Instance) => void,
+  component: NuiComponent.Instance | undefined,
 ): void
 export function publish(
-  component: NUIComponent.Instance | undefined,
-  cb: (child: NUIComponent.Instance) => void,
+  component: NuiComponent.Instance | undefined,
+  cb: (child: NuiComponent.Instance) => void,
 ): void
 export function publish(
   component:
-    | NUIComponent.Instance
-    | ((child: NUIComponent.Instance) => void)
+    | NuiComponent.Instance
+    | ((child: NuiComponent.Instance) => void)
     | undefined,
   cb:
-    | ((child: NUIComponent.Instance) => void)
-    | NUIComponent.Instance
+    | ((child: NuiComponent.Instance) => void)
+    | NuiComponent.Instance
     | undefined,
 ) {
-  let _component: NUIComponent.Instance | undefined
-  let _cb: ((child: NUIComponent.Instance) => void) | undefined
+  let _component: NuiComponent.Instance | undefined
+  let _cb: ((child: NuiComponent.Instance) => void) | undefined
 
   if (u.isFnc(component)) {
-    _component = cb as NUIComponent.Instance
+    _component = cb as NuiComponent.Instance
     _cb = component
   } else {
     _component = component
-    _cb = cb as (child: NUIComponent.Instance) => void
+    _cb = cb as (child: NuiComponent.Instance) => void
   }
 
   if (_component && u.isArr(_component.children)) {

@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import _get from 'lodash/get'
-import { NUIComponent } from '../types'
+import { NuiComponent } from '../types'
 
 interface Duration {
   years?: number
@@ -85,7 +85,7 @@ export default function addMonths(dirtyDate: Date, dirtyAmount: number): Date {
 }
 
 export function createGlobalComponentId(
-  component: NUIComponent.Instance | string | undefined,
+  component: NuiComponent.Instance | string | undefined,
 ) {
   return !u.isUnd(component)
     ? u.isStr(component)

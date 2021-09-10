@@ -76,14 +76,14 @@ class Page implements IPage {
 
   emit<Evt extends typeof c.nuiEvent.component.page.PAGE_CHANGED>(
     evt: Evt,
-    ...args: Parameters<t.NUIComponent.Hook[Evt]>
+    ...args: Parameters<t.NuiComponent.Hook[Evt]>
   ) {
     this.#hooks[evt]?.forEach?.((fn) => fn?.(...args))
   }
 
   on<Evt extends typeof c.nuiEvent.component.page.PAGE_CHANGED>(
     evt: Evt,
-    fn: t.NUIComponent.Hook[Evt],
+    fn: t.NuiComponent.Hook[Evt],
   ) {
     fn && this.#hooks[evt].push(fn)
     return this

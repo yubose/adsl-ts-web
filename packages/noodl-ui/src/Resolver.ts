@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import type { NUIComponent, ConsumerOptions } from './types'
+import type { NuiComponent, ConsumerOptions } from './types'
 
 export interface IResolver<
   Func extends (...args: any[]) => Promise<void>,
@@ -10,7 +10,7 @@ export interface IResolver<
 }
 
 type ResolverArgs = [
-  component: NUIComponent.Instance,
+  component: NuiComponent.Instance,
   options: ConsumerOptions,
   next: (opts?: Record<string, any>) => Promise<void>,
 ]
@@ -74,7 +74,7 @@ class ComponentResolver<
     return this
   }
 
-  async resolve(component: NUIComponent.Instance, options: ConsumerOptions) {
+  async resolve(component: NuiComponent.Instance, options: ConsumerOptions) {
     if (!component) return
     const resolveNext = async function _resolveNext(
       this: ComponentResolver<Func>,
@@ -111,7 +111,7 @@ export class InternalComponentResolver {
 
   setResolver(
     resolver: (
-      component: NUIComponent.Instance,
+      component: NuiComponent.Instance,
       consumerOptions: ConsumerOptions,
       next?: () => Promise<void>,
     ) => Promise<void>,
@@ -120,7 +120,7 @@ export class InternalComponentResolver {
     return this
   }
 
-  async resolve(component: NUIComponent.Instance, options: ConsumerOptions) {
+  async resolve(component: NuiComponent.Instance, options: ConsumerOptions) {
     await this.#resolver?.(component, options)
     return this
   }

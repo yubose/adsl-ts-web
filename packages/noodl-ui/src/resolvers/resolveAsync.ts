@@ -1,16 +1,16 @@
 import { Identify, userEvent } from 'noodl-types'
-import type { ConsumerOptions, NUIComponent, NUIActionObject } from '../types'
+import type { ConsumerOptions, NuiComponent, NUIActionObject } from '../types'
 import { resolveAssetUrl } from '../utils/noodl'
 import Resolver from '../Resolver'
 
 const asyncResolver = new Resolver('resolveAsync')
 
 async function resolveAsync(
-  component: NUIComponent.Instance,
+  component: NuiComponent.Instance,
   { createActionChain, getAssetsUrl }: ConsumerOptions,
 ) {
   const original = component.blueprint || {}
-  const { dataValue, path, placeholder, postMessage } = original
+  const { dataValue, path, placeholder } = original
 
   /* -------------------------------------------------------
       ---- DATAVALUE
@@ -107,7 +107,7 @@ export default asyncResolver
 export const asyncResolver_ = new Resolver('resolveAsync')
 
 async function resolveAsync_(
-  component: NUIComponent.Instance,
+  component: NuiComponent.Instance,
   { createActionChain, getAssetsUrl }: ConsumerOptions,
 ) {
   const original = component.blueprint || {}

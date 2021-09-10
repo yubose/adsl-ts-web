@@ -10,7 +10,6 @@
 import * as u from '@jsmanifest/utils'
 import { OrArray } from '@jsmanifest/typefest'
 import ComponentPage from './ComponentPage'
-import NDOMPage from '../../Page'
 import * as c from '../../constants'
 import * as t from '../../types'
 

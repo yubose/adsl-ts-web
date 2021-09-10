@@ -1,20 +1,13 @@
 import invariant from 'invariant'
-import { Identify, PageObject } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import type {
   ConsumerOptions,
-  NUIComponent,
+  NuiComponent,
   Page as NUIPage,
   Store,
 } from 'noodl-ui'
-import {
-  findIteratorVar,
-  isComponent,
-  isPage as isNUIPage,
-  NUI,
-  nuiEmitTransaction,
-} from 'noodl-ui'
-import { createMachine, interpret } from 'xstate'
+import { findIteratorVar, isComponent, NUI, nuiEmitTransaction } from 'noodl-ui'
 import type { ComponentPage } from './factory/componentFactory'
 import { getElementTag, getNodeIndex, openOutboundURL } from './utils'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
@@ -117,7 +110,7 @@ class NDOM extends NDOMInternal {
   }
 
   createPage(nuiPage: NUIPage): NDOMPage | ComponentPage
-  createPage(component: NUIComponent.Instance, node?: any): ComponentPage
+  createPage(component: NuiComponent.Instance, node?: any): ComponentPage
   createPage(
     args: Parameters<typeof NUI['createPage']>[0],
   ): NDOMPage | ComponentPage
@@ -128,7 +121,7 @@ class NDOM extends NDOMInternal {
   createPage(name: string): NDOMPage
   createPage(
     args?:
-      | NUIComponent.Instance
+      | NuiComponent.Instance
       | NUIPage
       | Parameters<typeof NUI['createPage']>[0]
       | { page: NUIPage; viewport?: { width?: number; height?: number } }
@@ -137,7 +130,7 @@ class NDOM extends NDOMInternal {
   ) {
     let page: NDOMPage | ComponentPage | undefined
 
-    const createComponentPage = (arg: NUIPage | NUIComponent.Instance) => {
+    const createComponentPage = (arg: NUIPage | NuiComponent.Instance) => {
       if (arg?.id === 'root') {
         if (!i._isNUIPage(arg)) {
           console.log(
@@ -150,7 +143,7 @@ class NDOM extends NDOMInternal {
       }
 
       return componentFactory.createComponentPage(
-        arg as NUIComponent.Instance,
+        arg as NuiComponent.Instance,
         {
           node,
           onLoad: (evt, node) => {
@@ -222,7 +215,7 @@ class NDOM extends NDOMInternal {
 
   createGlobalRecord<T extends 'component'>(args: {
     type: T
-    component: NUIComponent.Instance
+    component: NuiComponent.Instance
     node?: HTMLElement | null
     page: NDOMPage
   }) {
@@ -250,11 +243,11 @@ class NDOM extends NDOMInternal {
    */
   findPage(nuiPage: NUIPage | NDOMPage | string | null): NDOMPage
   findPage(
-    pageComponent: NUIComponent.Instance,
+    pageComponent: NuiComponent.Instance,
     currentPage?: string,
   ): ComponentPage
   findPage(
-    nuiPage: NUIComponent.Instance | NUIPage | NDOMPage | string | null,
+    nuiPage: NuiComponent.Instance | NUIPage | NDOMPage | string | null,
     currentPage?: string,
   ) {
     if (isComponent(nuiPage)) {
@@ -371,7 +364,7 @@ class NDOM extends NDOMInternal {
    * DOM nodes and appends to the DOM
    *
    * @param { NDOMPage } page
-   * @returns NUIComponent.Instance
+   * @returns NuiComponent.Instance
    */
   async render(page: NDOMPage, callback?: ConsumerOptions['callback']) {
     // REMINDER: The value of this page's "requesting" is empty at this moment
@@ -386,7 +379,7 @@ class NDOM extends NDOMInternal {
         components: page.components,
         page: nuiPage,
       }),
-    ) as NUIComponent.Instance[]
+    ) as NuiComponent.Instance[]
     page.setStatus(c.eventId.page.status.COMPONENTS_RECEIVED)
     page.emitSync(c.eventId.page.on.ON_DOM_CLEANUP, {
       global: this.global,
@@ -409,7 +402,7 @@ class NDOM extends NDOMInternal {
     page.emitSync(c.eventId.page.on.ON_COMPONENTS_RENDERED, page)
     page.setStatus(c.eventId.page.status.COMPONENTS_RENDERED)
 
-    return components as NUIComponent.Instance[]
+    return components as NuiComponent.Instance[]
   }
 
   /**
@@ -417,7 +410,7 @@ class NDOM extends NDOMInternal {
    * resolves its children hieararchy until there are none left
    * @param { Component } props
    */
-  async draw<C extends NUIComponent.Instance>(
+  async draw<C extends NuiComponent.Instance>(
     component: C,
     container?: t.NDOMElement | null,
     pageProp?: NDOMPage,
@@ -539,8 +532,6 @@ class NDOM extends NDOMInternal {
           ? document.body
           : container || document.body
 
-        if (parent === document.body) debugger
-
         // NOTE: This needs to stay above the code below or the children will
         // not be able to access their parent during the resolver calls
         if (!parent.contains(node)) {
@@ -613,7 +604,7 @@ class NDOM extends NDOMInternal {
     return node || null
   }
 
-  async redraw<C extends NUIComponent.Instance>(
+  async redraw<C extends NuiComponent.Instance>(
     node: t.NDOMElement | null, // ex: li (dom node)
     component: C, // ex: listItem (component instance)
     pageProp?: NDOMPage,
@@ -621,12 +612,12 @@ class NDOM extends NDOMInternal {
   ) {
     let context: any = options?.context
     let isPageComponent = Identify.component.page(component)
-    let newComponent: NUIComponent.Instance | undefined
+    let newComponent: NuiComponent.Instance | undefined
     let page =
       pageProp ||
       (isPageComponent && this.findPage(component)) ||
       this.page ||
-      this.createPage(component.id || node.id)
+      this.createPage(component?.id || node?.id)
     let parent = component?.parent
 
     try {
@@ -642,7 +633,7 @@ class NDOM extends NDOMInternal {
           }
         }
         page?.emitSync?.(c.eventId.page.on.ON_REDRAW_BEFORE_CLEANUP, {
-          parent: component?.parent as NUIComponent.Instance,
+          parent: component?.parent as NuiComponent.Instance,
           component,
           context,
           node,
@@ -808,9 +799,9 @@ class NDOM extends NDOMInternal {
     return result
   }
 
-  removeComponent(component: NUIComponent.Instance | undefined | null) {
+  removeComponent(component: NuiComponent.Instance | undefined | null) {
     if (!component) return
-    const remove = (_c: NUIComponent.Instance) => {
+    const remove = (_c: NuiComponent.Instance) => {
       nuiCache.component.remove(_c)
       ;(_c.has?.('global') || _c.blueprint?.global) &&
         this.removeGlobalComponent(_c.get(c.DATA_GLOBALID))

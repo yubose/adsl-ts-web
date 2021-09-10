@@ -24,11 +24,10 @@ import {
   findIteratorVar,
   findListDataObject,
   NUIActionChain,
-  NUIComponent,
+  NuiComponent,
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
-import { ComponentPage } from '../../packages/noodl-ui-dom/dist/factory/componentFactory'
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -37,7 +36,7 @@ const log = Logger.create('dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
   const getOnChange = function _getOnChangeFn(args: {
-    component: NUIComponent.Instance
+    component: NuiComponent.Instance
     dataKey: string
     node: NDOMElement
     evtName: string
@@ -321,7 +320,6 @@ const createExtendedDOMResolvers = function (app: App) {
                     //locale: 'zh-cn',             // 区域本地化
                     firstDay: 0, // 每周的第一天： 0:周日
                     nowIndicator: true, // 是否显示当前时间的指示条
-
                     slotLabelFormat: [
                       {
                         hour: 'numeric',
@@ -342,6 +340,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
+                    viewDidMount(mountArg) {},
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -396,7 +395,17 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                     },
                   })
+
                   calendar.render()
+
+                  // This is to fix the issue of calendar being blank when switching back from
+                  // display: none to display: block
+                  Object.defineProperty(calendar.el.style, 'display', {
+                    set(value) {
+                      if (value === 'none') return
+                      this.display = value
+                    },
+                  })
                 }
 
                 // script.src =
@@ -502,7 +511,7 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: ({ component }) => component.has('hover'),
       resolve({ node, component }) {
         if (component?.blueprint?.hover) {
-          node?.addEventListener('mouseover', ()=>{
+          node?.addEventListener('mouseover', () => {
             u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
               value = value.substring(2)
               node.style[key] = '#' + value
@@ -531,14 +540,14 @@ const createExtendedDOMResolvers = function (app: App) {
           let text = JSON.stringify(dataValue)
           let width = parseInt(node.style.width.replace('px', ''))
           let height = parseInt(node.style.height.replace('px', ''))
-          new QRCode(node, {
-            text: text,
-            width: width,
-            height: height,
-            colorDark: '#000000',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H,
-          })
+          // new QRCode(node, {
+          //   text: text,
+          //   width: width,
+          //   height: height,
+          //   colorDark: '#000000',
+          //   colorLight: '#ffffff',
+          //   correctLevel: QRCode.CorrectLevel.H,
+          // })
         }
       },
     },

@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import * as mock from 'noodl-ui-test-utils'
 import { prettyDOM } from '@testing-library/dom'
 import sinon from 'sinon'
-import { NUIComponent, createComponent, flatten } from 'noodl-ui'
+import { NuiComponent, createComponent, flatten } from 'noodl-ui'
 import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta, white } from 'noodl-common'
@@ -282,7 +282,7 @@ describe(italic(`list`), () => {
 describe(italic(`page`), () => {
   let result: ReturnType<typeof createRender>
   let node: HTMLIFrameElement
-  let component: NUIComponent.Instance
+  let component: NuiComponent.Instance
 
   it(``, () => {
     //

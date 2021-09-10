@@ -5,7 +5,7 @@ import { coolGold, italic } from 'noodl-common'
 import { Identify, PageObject } from 'noodl-types'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { getFirstByElementId, getFirstByViewTag } from 'noodl-ui-dom'
-import { NUIComponent, createAction } from 'noodl-ui'
+import { NuiComponent, createAction } from 'noodl-ui'
 import { getApp } from '../utils/test-utils'
 import { isVisible } from '../utils/dom'
 import getVideoChatPageObject, {
@@ -239,7 +239,7 @@ describe(coolGold(`builtIn`), () => {
     })
 
     it(`should still rerender normally when given a plain object as the first arg`, async () => {
-      let button: NUIComponent.Instance | undefined
+      let button: NuiComponent.Instance | undefined
       let viewTag = 'helloTag'
       let redrawObject = mock.getBuiltInAction({
         funcName: 'redraw',

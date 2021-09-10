@@ -5,14 +5,9 @@ import * as u from '@jsmanifest/utils'
 import curry from 'lodash/curry'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
-import {
-  isPage as isNUIPage,
-  event as nuiEvt,
-  publish,
-  isComponent,
-} from 'noodl-ui'
+import { isPage as isNuiPage, publish, isComponent } from 'noodl-ui'
 import type { ComponentObject, EcosDocument, NameField } from 'noodl-types'
-import type { NUIComponent, Page as NUIPage } from 'noodl-ui'
+import type { NuiComponent, Page as NUIPage } from 'noodl-ui'
 import type { ComponentPage } from '../factory/componentFactory'
 import type GlobalComponentRecord from '../global/GlobalComponentRecord'
 import type NDOM from '../noodl-ui-dom'
@@ -33,7 +28,7 @@ export function addClassName(className: string, node: HTMLElement) {
 }
 
 type CreateDocIdentifierArg =
-  | NUIComponent.Instance
+  | NuiComponent.Instance
   | ComponentObject
   | EcosDocument<NameField>
   | null
@@ -53,7 +48,7 @@ function _createDocIdentifier(
 ) {
   /**
    * A helper to grab a value from key from a component or action
-   * @param { NUIComponent | ComponentObject | NUIAction | NUIActionObjectInput } obj
+   * @param { NuiComponent | ComponentObject | NUIAction | NUIActionObjectInput } obj
    * @param { string } key
    */
   function _pick(obj: any, key: string, defaultValue?: any) {
@@ -96,20 +91,20 @@ function _createDocIdentifier(
 }
 
 export function _getComponentFromCache(
-  idOrComp: string | NUIComponent.Instance,
+  idOrComp: string | NuiComponent.Instance,
 ) {
   let id = isComponent(idOrComp) ? idOrComp.id : String(idOrComp)
-  return (cache.component.get(id)?.component || null) as NUIComponent.Instance
+  return (cache.component.get(id)?.component || null) as NuiComponent.Instance
 }
 
-export function _getDescendantIds(component: NUIComponent.Instance): string[] {
+export function _getDescendantIds(component: NuiComponent.Instance): string[] {
   const ids = [] as string[]
   publish(component, (child) => ids.push(child.id))
   return ids
 }
 
 export function _getOrCreateComponentPage(
-  componentOrNUIPage: NUIComponent.Instance | NUIPage,
+  componentOrNUIPage: NuiComponent.Instance | NUIPage,
   createPage: NDOM['createPage'],
   findPage: NDOM['findPage'],
   node?: any,
@@ -129,10 +124,10 @@ export function _getRandomKey() {
 }
 
 export function _isNUIPage(value: unknown): value is NUIPage {
-  return !!(value && isNUIPage(value) && !isNDOMPage(value))
+  return !!(value && isNuiPage(value) && !isNDOMPage(value))
 }
 
-export function _isPluginComponent(component: NUIComponent.Instance) {
+export function _isPluginComponent(component: NuiComponent.Instance) {
   return [
     Identify.component.plugin,
     Identify.component.pluginHead,
@@ -212,7 +207,7 @@ export const resourceTypes = ['css', 'js'] as const
 export function handleDrawGlobalComponent(
   this: NDOM,
   node: HTMLElement,
-  component: NUIComponent.Instance,
+  component: NuiComponent.Instance,
   page: NDOMPage,
 ) {
   let globalRecord: GlobalComponentRecord
@@ -312,7 +307,7 @@ export const _syncPages = (function () {
 
   cache.component
     .on('add', ({ component, page }) => {
-      // console.info(
+      // console.log(
       //   `[componentTable] Added "${component?.type} component" for page "${
       //     page || _emptyLabel_
       //   }"`,
@@ -324,7 +319,7 @@ export const _syncPages = (function () {
       !ids.includes(component.id) && ids.push(component.id)
     })
     .on('remove', ({ id, page }) => {
-      // console.info(
+      // console.log(
       //   `[componentTable] Removed "${id}" from page "${_getKey(page)}"`,
       // )
     })
@@ -353,14 +348,14 @@ export const _syncPages = (function () {
     ) => {
       return (
         args: U extends typeof c.PAGE_CREATED
-          ? { component?: NUIComponent.Instance; page: NUIPage }
+          ? { component?: NuiComponent.Instance; page: NUIPage }
           : NUIPage,
       ) => {
         let page: NUIPage | undefined
-        let component: NUIComponent.Instance | undefined
+        let component: NuiComponent.Instance | undefined
         let label = ''
 
-        if (isNUIPage(args)) {
+        if (isNuiPage(args)) {
           page = args
         } else if ('page' in args) {
           component = args.component
@@ -372,11 +367,11 @@ export const _syncPages = (function () {
 
           if (!page.onChange) {
             page.onChange = (prev: string, next: string) => {
-              console.info(`${label} Page changed from "${prev}" to "${next}"`)
+              console.log(`${label} Page changed from "${prev}" to "${next}"`)
             }
           }
 
-          console.info(label)
+          console.log(label)
 
           if (updateType === c.PAGE_CREATED) {
             // Incoming page still in the loading state
@@ -389,7 +384,7 @@ export const _syncPages = (function () {
                 nuiPage.page === page.page &&
                 nuiPage.id !== 'root'
               ) {
-                // console.info(`REMOVING PAGE`, { page, _page, nuiPage })
+                // console.log(`REMOVING PAGE`, { page, _page, nuiPage })
                 removePage(nuiPage)
               }
             }
@@ -459,7 +454,7 @@ export const _syncPages = (function () {
             //   const ids = _componentTable.get(pageKey)
             //   if (u.isArr(ids)) {
             //     u.forEach((id) => {
-            // console.info(
+            // console.log(
             //   `Removing ${
             //     componentIds.length
             //   } components from the component cache from page "${_getKey(

@@ -4,8 +4,8 @@ import {
   DataAttribute,
   findParent,
   isComponent,
-  NUIComponent,
-  NUIComponentType,
+  NuiComponent,
+  NuiComponentType,
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
@@ -39,10 +39,10 @@ export function asHtmlElement(nodes: t.DOMNodeInput) {
 
 /**
  * Returns the DOM element tag name for the NOODL component
- * @param { NUIComponent.Instance | NUIComponentType } component
+ * @param { NuiComponent.Instance | NuiComponentType } component
  */
 export function getElementTag(
-  component: NUIComponent.Instance | NUIComponentType | undefined,
+  component: NuiComponent.Instance | NuiComponentType | undefined,
 ): keyof HTMLElementTagNameMap {
   const componentType = u.isStr(component) ? component : component?.type || ''
   const tagName = getElementTag.prototype.elementMap[componentType]
@@ -105,7 +105,7 @@ getElementTag.prototype.elementMap = {
  */
 export function makeFindByAttr(attr: LiteralUnion<DataAttribute, string>) {
   const findByAttr = function findByAttr(
-    component?: NUIComponent.Instance | LiteralUnion<DataAttribute, string>,
+    component?: NuiComponent.Instance | LiteralUnion<DataAttribute, string>,
   ) {
     if (component === undefined) return findBySelector(`[${attr}]`)
     else if (!component) return null
@@ -183,7 +183,7 @@ export function findByClassName(className: string | undefined) {
   )
 }
 
-export function findByElementId(c: NUIComponent.Instance | string | undefined) {
+export function findByElementId(c: NuiComponent.Instance | string | undefined) {
   return findElement((doc) => doc?.getElementById(u.isStr(c) ? c : c?.id || ''))
 }
 
@@ -215,7 +215,7 @@ export const findFirstByViewTag = makeFindFirstBy<string>((doc, viewTag) =>
 )
 
 export const findFirstByElementId = makeFindFirstBy<
-  NUIComponent.Instance | string
+  NuiComponent.Instance | string
 >((doc, c) => doc.getElementById(u.isStr(c) ? c : c?.id))
 
 export const findFirstByClassName = makeFindFirstBy<string>(
@@ -277,10 +277,10 @@ export function getByDataUX(key: string) {
 
 /**
  * Returns the component instance of type: page if it exists in the parent ancestry tree
- * @param { NUIComponent.Instance } component
+ * @param { NuiComponent.Instance } component
  */
 export function getPageAncestor(
-  component: NUIComponent.Instance | null | undefined,
+  component: NuiComponent.Instance | null | undefined,
 ) {
   if (isComponent(component)) {
     if (component.type === 'page') return component
@@ -333,7 +333,7 @@ export function isDisplayable(value: unknown): value is string | number {
 
 /**
  * Returns true if the component is a descendant of a component of type: "page"
- * @param { NUIComponent.Instance } component
+ * @param { NuiComponent.Instance } component
  */
 export function isPageConsumer(component: any): boolean {
   return isComponent(component)

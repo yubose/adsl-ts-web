@@ -4,7 +4,7 @@ import { Identify, PageObject } from 'noodl-types'
 import {
   createAction,
   EmitAction,
-  NUIComponent,
+  NuiComponent,
   Register,
   Store,
 } from 'noodl-ui'
@@ -55,7 +55,7 @@ function createRegisters(app: App) {
 
       const component = (await app.nui?.resolveComponents(
         componentObject,
-      )) as NUIComponent.Instance
+      )) as NuiComponent.Instance
 
       componentObject.onEvent = async function FCMOnTokenReceive(
         token: string,
@@ -99,7 +99,7 @@ function createRegisters(app: App) {
 
       const component = (await app.nui?.resolveComponents(
         componentObject,
-      )) as NUIComponent.Instance
+      )) as NuiComponent.Instance
 
       componentObject.onEvent = async function onNewEcosDoc(did: string) {
         log.func('onNewEcosDoc onEvent')

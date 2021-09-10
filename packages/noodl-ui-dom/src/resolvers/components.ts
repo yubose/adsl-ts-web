@@ -7,7 +7,7 @@ import { ComponentObject, Identify } from 'noodl-types'
 import {
   formatColor,
   isComponent,
-  NUIComponent,
+  NuiComponent,
   SelectOption,
   Plugin,
   NUIActionChain,
@@ -104,22 +104,22 @@ const componentsResolver: t.Resolve.Config = {
           }
 
           function loadAttribs(
-            component: NUIComponent.Instance,
+            component: NuiComponent.Instance,
             elem: HTMLLinkElement | null,
             data: any,
           ): HTMLLinkElement
           function loadAttribs(
-            component: NUIComponent.Instance,
+            component: NuiComponent.Instance,
             elem: HTMLScriptElement | null,
             data: any,
           ): HTMLScriptElement
           function loadAttribs(
-            component: NUIComponent.Instance,
+            component: NuiComponent.Instance,
             elem: HTMLStyleElement | null,
             data: any,
           ): HTMLStyleElement
           function loadAttribs(
-            component: NUIComponent.Instance,
+            component: NuiComponent.Instance,
             elem: HTMLIFrameElement | null,
             data: any,
           ): HTMLIFrameElement
@@ -129,7 +129,7 @@ const componentsResolver: t.Resolve.Config = {
               | HTMLScriptElement
               | HTMLStyleElement
               | HTMLIFrameElement,
-          >(component: NUIComponent.Instance, elem: N | null, data: any) {
+          >(component: NuiComponent.Instance, elem: N | null, data: any) {
             if (!elem) return elem
             elem.id = component.id
             if (i._isLinkEl(elem)) {
@@ -475,7 +475,7 @@ const componentsResolver: t.Resolve.Config = {
                 function onLoad(opts: {
                   event?: Event
                   node: t.NDOMElement<'page'>
-                  component: NUIComponent.Instance
+                  component: NuiComponent.Instance
                   createPage: NDOM['createPage']
                   findPage: NDOM['findPage']
                   resolvers: NDOM['resolvers']
@@ -502,29 +502,23 @@ const componentsResolver: t.Resolve.Config = {
                 }
 
                 if (src) {
-                  onLoad(
-                    {
-                      component: args.component,
-                      createPage: args.createPage,
-                      findPage: args.findPage,
-                      node: args.node,
-                      resolvers: args.resolvers,
-                    },
-                    { once: true },
-                  )
+                  onLoad({
+                    component: args.component,
+                    createPage: args.createPage,
+                    findPage: args.findPage,
+                    node: args.node,
+                    resolvers: args.resolvers,
+                  })
                 } else {
-                  componentPage.window?.addEventListener(
-                    'load',
-                    (evt) =>
-                      onLoad({
-                        event: evt,
-                        createPage: args.createPage,
-                        component: args.component,
-                        node: args.node as HTMLIFrameElement,
-                        findPage: args.findPage,
-                        resolvers: args.resolvers,
-                      }),
-                    { once: true },
+                  componentPage.window?.addEventListener('load', (evt) =>
+                    onLoad({
+                      event: evt,
+                      createPage: args.createPage,
+                      component: args.component,
+                      node: args.node as HTMLIFrameElement,
+                      findPage: args.findPage,
+                      resolvers: args.resolvers,
+                    }),
                   )
                 }
 
@@ -640,11 +634,14 @@ const componentsResolver: t.Resolve.Config = {
                     args.component.clear('children')
                     componentPage.component?.clear?.('children')
 
+                    const cs = []
+
                     await Promise.all(
                       componentPage.components?.map(
                         async (obj: ComponentObject) => {
                           return new Promise(async (resolve, reject) => {
                             let child = await nui.resolveComponents({
+                              callback: (c) => void cs.push(c),
                               components: obj,
                               page: nuiPage,
                             })
@@ -662,7 +659,6 @@ const componentsResolver: t.Resolve.Config = {
                                 childNode &&
                                   componentPage.appendChild(childNode)
                                 resolve(child)
-                                debugger
                               })
                             } else {
                               let childNode = await args.draw(
@@ -677,6 +673,10 @@ const componentsResolver: t.Resolve.Config = {
                         },
                       ) || [],
                     )
+                    // const { default: fs } = await import('fs-extra')
+                    // await fs.writeJson('resolvedComponents.json', cs, {
+                    //   spaces: 2,
+                    // })
                   } catch (error) {
                     console.error(error)
                   }

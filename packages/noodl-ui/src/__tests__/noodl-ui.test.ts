@@ -704,4 +704,42 @@ describe(italic(`use`), () => {
       })
     })
   })
+
+  describe(italic('hooks'), () => {
+    describe('page', () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe('setup', () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe('create', () => {
+      xit(`should transform the return value to a NuiComponent`, () => {
+        //
+      })
+    })
+
+    describe('if', () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe('emit', () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe('reference', () => {
+      xit(``, () => {
+        //
+      })
+    })
+  })
 })

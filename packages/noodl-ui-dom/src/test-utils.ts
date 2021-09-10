@@ -7,7 +7,7 @@ import { OrArray } from '@jsmanifest/typefest'
 import { ComponentObject, PageObject, userEvent } from 'noodl-types'
 import {
   nuiEmitTransaction,
-  NUIComponent,
+  NuiComponent,
   NUI,
   Page as NUIPage,
   Viewport,
@@ -102,9 +102,9 @@ export interface CreateRenderResult {
   page: NDOMPage
   pageObject: PageObject
   request(pgName?: string): Promise<{
-    render: () => Promise<NUIComponent.Instance[]>
+    render: () => Promise<NuiComponent.Instance[]>
   }>
-  render(pgName?: string): Promise<NUIComponent.Instance>
+  render(pgName?: string): Promise<NuiComponent.Instance>
 }
 
 export function createRender(fn: () => CreateRenderResult): CreateRenderResult
@@ -219,9 +219,9 @@ export function createRender<Opts extends MockRenderOptions>(
       pgName && page && (page.requesting = pgName)
       return ndom.request(page)
     },
-    render: async (pgName = ''): Promise<NUIComponent.Instance> => {
+    render: async (pgName = ''): Promise<NuiComponent.Instance> => {
       const req = await o.request(pgName || page?.requesting)
-      return u.array(await req?.render?.())?.[0] as NUIComponent.Instance
+      return u.array(await req?.render?.())?.[0] as NuiComponent.Instance
     },
   } as CreateRenderResult
 
@@ -253,7 +253,7 @@ export function getAllElementCount(selector = '') {
   return u.array(findBySelector(selector)).filter(Boolean).length
 }
 
-export function getPageComponentChildIds(component: NUIComponent.Instance) {
+export function getPageComponentChildIds(component: NuiComponent.Instance) {
   const pageName = component.get('page')?.page
   return ndom.cache.component.reduce((acc, obj) => {
     return obj.page === pageName ? acc.concat(obj.component.id) : acc
