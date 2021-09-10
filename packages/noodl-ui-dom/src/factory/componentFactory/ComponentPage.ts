@@ -313,11 +313,7 @@ class ComponentPage<
 
   getNuiPage() {
     const nuiPage = this.#component?.get?.('page') as NUIPage
-    if (nuiPage) {
-      if (this.#nuiPage !== nuiPage) {
-        this.#nuiPage = nuiPage
-      }
-    }
+    nuiPage && this.#nuiPage !== nuiPage && (this.#nuiPage = nuiPage)
     return this.#nuiPage
   }
 
@@ -371,6 +367,8 @@ class ComponentPage<
     try {
       if (this.parentElement) {
         this.parentElement.replaceChild(node, this.node)
+      } else {
+        this.node.remove()
       }
       this.node = node as NN
     } catch (error) {

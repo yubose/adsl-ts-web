@@ -66,7 +66,14 @@ function handleKeyPress<N extends t.NDOMElement>(node: N) {
 
 const attributesResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] attributes`,
-  async before({ elementType, component, node, setAttr, setStyleAttr }) {
+  async before({
+    componentType,
+    elementType,
+    component,
+    node,
+    setAttr,
+    setStyleAttr,
+  }) {
     try {
       if (node && component) {
         setAttr('id', component.id || '')
@@ -82,6 +89,11 @@ const attributesResolver: t.Resolve.Config = {
               `url("${component.get('data-src')}")`,
             )
           }
+        } else if (componentType === 'page' && elementType === 'IFRAME') {
+          // Set default values now but can be overriden when we go over the style resolvers
+          node.style.position = 'absolute'
+          node.style.width = '100%'
+          node.style.height = '100%'
         }
       }
     } catch (error) {
@@ -97,6 +109,7 @@ const attributesResolver: t.Resolve.Config = {
           if (Identify.component.page(args.component)) {
             // console.info(`PAGE COMPONENT`, args.global.pages)
           }
+
           const { path, placeholder, style, textBoard } =
             args.component.blueprint || {}
 

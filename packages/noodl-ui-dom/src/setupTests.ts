@@ -1,8 +1,10 @@
+import * as u from '@jsmanifest/utils'
 import JSDOM from 'jsdom-global'
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { _syncPages } from './utils/internal'
+import { ndom } from './test-utils'
 
 JSDOM('', {
   resources: 'usable',
@@ -28,6 +30,10 @@ afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
   // ndom.reset()
+  // console.info(`[${u.yellow('afterEach')}] cleanup start`)
+  ndom.reset()
+  ndom.resync()
+  // console.info(`[${u.yellow('afterEach')}] cleanup end`)
 })
 
 after(() => {

@@ -727,7 +727,16 @@ describe(u.cyan(`redraw`), () => {
             ui.view({
               viewTag: 'abcTag',
               children: [
-                ui.page({ path: { if: [true, '..pageName', '..pageName'] } }),
+                ui.page({
+                  path: { if: [true, '..pageName', '..pageName'] },
+                  style: {
+                    width: '0.2',
+                    height: '0.2',
+                    top: '0.1',
+                    right: '0.1',
+                    shadow: 'true',
+                  },
+                }),
               ],
             }),
             ui.button({
@@ -741,8 +750,16 @@ describe(u.cyan(`redraw`), () => {
       }
     })
 
-    xit(`should not be `, () => {
-      //
+    it.skip(`should not be resetting the iframe's styles`, async () => {
+      const { getRoot, ndom, render } = createRender({
+        pageName: 'Hello',
+        root,
+      })
+      await render()
+      let redrawButton = n.findFirstByElementId('redrawButton')
+      let pageEl = n.findFirstByClassName('page')
+
+      // console.info(pageEl.contentDocument.body.style)
     })
 
     xit(

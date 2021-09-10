@@ -35,13 +35,13 @@ class Page {
 
   constructor(nuiPage: NUIPage) {
     this.#nuiPage = nuiPage
-    this.clearnode()
+    this.clearNode()
     if (this.id === 'root' && !document.body.contains(this.node)) {
       document.body.appendChild(this.node)
     }
   }
 
-  clearnode() {
+  clearNode() {
     if (!this.node) {
       // @ts-expect-error
       this.node =

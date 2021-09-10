@@ -127,9 +127,6 @@ export function createRender<Opts extends MockRenderOptions>(
     | Opts
     | ((opts: CreateRenderResult) => CreateRenderResult),
 ) {
-  ndom.reset()
-  ndom.resync()
-
   let currentPage = ''
   let pageRequesting = ''
   let page: NDOMPage | undefined
@@ -165,7 +162,8 @@ export function createRender<Opts extends MockRenderOptions>(
   }
 
   root?.[pageRequesting] && (root[pageRequesting] = pageObject as PageObject)
-  !page && (page = ndom.page || ndom.createPage(pageRequesting))
+  !page &&
+    (page = ndom.page || ndom.pages.root || ndom.createPage(pageRequesting))
   currentPage ? (page.page = currentPage) : (page.page = '')
   pageRequesting && (page.requesting = pageRequesting)
 

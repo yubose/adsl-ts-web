@@ -100,6 +100,7 @@ describe(nc.coolGold('components'), () => {
           {
             id: 'container',
             type: 'view',
+            style: { shadow: 'true' },
             children: [
               ui.textField({
                 id: 'tf',
@@ -120,6 +121,7 @@ describe(nc.coolGold('components'), () => {
                       height: '0.2',
                       left: '0',
                       top: '0.2',
+                      shadow: 'true',
                     },
                   }),
                 ],
@@ -159,15 +161,31 @@ describe(nc.coolGold('components'), () => {
     })
 
     it(`should attach the component styles onto the iframe`, async () => {
-      const { render } = createRender()
-      await render()
+      const { getRoot, nui, ndom, render } = _createRender({
+        pageName: 'Hello',
+        pageObject: Hello,
+        root: { Cereal, Donut, Hello },
+      })
+      nui.use({
+        getPages: () => ['Cereal', 'Donut', 'Hello'],
+      })
+      const viewComponent = await render()
+      const pageComponent = viewComponent.child(1).child()
       await waitForPageChildren()
       const node = n.findFirstByClassName('page') as HTMLIFrameElement
+      expect(node.style).to.have.property('fontColor', '#555555')
+      expect(node.style).to.have.property(
+        'boxShadow',
+        '5px 5px 10px 3px rgba(0, 0, 0, 0.015)',
+      )
+      expect(node.style).to.have.property('width', '75px')
+      expect(node.style).to.have.property('height', '133.4px')
+      expect(node.style).to.have.property('top', '133.4px')
       expect(node.style).to.have.property('left', '0px')
       expect(node.style).to.have.property('margin-top', '0px')
     })
 
-    it.only(`should clear all old elements from the DOM and render all new elements to the DOM from the page object`, async () => {
+    xit(`should clear all old elements from the DOM and render all new elements to the DOM from the page object`, async () => {
       const redrawSpy = sinon.spy()
       const {
         getRoot,

@@ -196,7 +196,7 @@ componentResolver.setResolver(async (component, options, next) => {
 
       if (u.isStr(pageName)) {
         const isEqual = page.page === pageName
-        if (isEqual && !isRemote(pageName)) return
+        if (isEqual && !isRemote(pageName)) return next?.()
 
         if (page.page === '' && pageName) {
           // Assuming it was loading its page object and just received it

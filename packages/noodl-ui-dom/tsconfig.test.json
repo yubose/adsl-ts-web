@@ -3,11 +3,11 @@
     "transpileOnly": true
   },
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "es2019"],
     "module": "commonjs",
-    "target": "es2017"
+    "target": "es2020"
   },
-  "extends": "./tsconfig.json",
+  "extends": "../../tsconfig.json",
   "exclude": ["node_modules"],
   "include": ["src/**/*.test.ts"]
 }

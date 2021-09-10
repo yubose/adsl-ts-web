@@ -389,8 +389,7 @@ class NDOM extends NDOMInternal {
      * Page components use NDOMPage instances that use their node as an
      * HTMLIFrameElement. They will have their own way of clearing their tree
      */
-    // !i._isIframeEl(page.node) && page.clearnode()
-    page.clearnode()
+    !i._isIframeEl(page.node) && page.clearNode()
     page.setStatus(c.eventId.page.status.RENDERING_COMPONENTS)
     page.emitSync(
       pageEvt.on.ON_BEFORE_RENDER_COMPONENTS,
@@ -512,10 +511,6 @@ class NDOM extends NDOMInternal {
           )
           node = document.createElement(getElementTag(component))
           componentPage.replaceNode(node as HTMLIFrameElement)
-          componentPage.patch(component)
-          node.style.position = 'absolute'
-          node.style.width = '100%'
-          node.style.height = '100%'
         } else {
           node = this.#createElementBinding?.(component) || null
           node && (node['isElementBinding'] = true)
@@ -553,7 +548,6 @@ class NDOM extends NDOMInternal {
             page: childrenPage || page,
             resolvers: this.resolvers,
           })
-          if (!component.length) return node
         } else {
           await this.#R.run({
             ndom: this,
@@ -868,7 +862,7 @@ class NDOM extends NDOMInternal {
   removePage(page: NDOMPage | undefined | null) {
     if (page) {
       const id = page.id
-      nui.clean(page.getNuiPage(), console.log)
+      nui.clean(page.getNuiPage())
       page.remove()
       if (this?.global?.pages) {
         if (id in this.global.pages) delete this.global.pages[id]

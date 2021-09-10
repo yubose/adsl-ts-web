@@ -451,6 +451,34 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
       })
     })
 
+    describe(magenta('page'), () => {
+      it(`should have its styles parsed like others`, async () => {
+        const components = await NUI.resolveComponents([
+          ui.view({
+            style: { shadow: 'true' },
+            children: [
+              ui.page({
+                path: 'Abc',
+                style: {
+                  shadow: 'true',
+                  width: '0.2',
+                  top: '0.1',
+                },
+              }),
+            ],
+          }),
+        ])
+        const [viewComponent] = components
+        const pageComponent = viewComponent.child()
+        expect(pageComponent.style).to.have.property(
+          'boxShadow',
+          '5px 5px 10px 3px rgba(0, 0, 0, 0.015)',
+        )
+        expect(pageComponent.style).to.have.property('width')
+        expect(pageComponent.style).to.have.property('top')
+      })
+    })
+
     describe(magenta(`popUp`), () => {
       it(`should set the visibility to hidden`, async () => {
         expect(

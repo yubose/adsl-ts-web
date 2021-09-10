@@ -77,6 +77,7 @@ const NUI = (function () {
         }
         onClean?.({ componentsRemoved })
       }
+      // console.info(`[noodl-ui] _clean - Removing page "${value.id}"`)
       cache.page.remove(value)
     }
   }
@@ -809,6 +810,7 @@ const NUI = (function () {
            * caching issues, whereas WeakMap will garbage collect by itself
            * in a more aggressive way
            */
+          console.info(`[noodl-ui] isPreexistent - Removing page "${page.id}"`)
           cache.page.remove(page)
           const component = args?.component as t.NuiComponent.Instance
           page = cache.page.create({ id: component.id, onChange })

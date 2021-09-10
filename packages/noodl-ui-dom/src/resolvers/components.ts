@@ -634,14 +634,14 @@ const componentsResolver: t.Resolve.Config = {
                     args.component.clear('children')
                     componentPage.component?.clear?.('children')
 
-                    const cs = []
+                    // const cs = []
 
                     await Promise.all(
                       componentPage.components?.map(
                         async (obj: ComponentObject) => {
                           return new Promise(async (resolve, reject) => {
                             let child = await nui.resolveComponents({
-                              callback: (c) => void cs.push(c),
+                              // callback: (c) => void cs.push(c),
                               components: obj,
                               page: nuiPage,
                             })

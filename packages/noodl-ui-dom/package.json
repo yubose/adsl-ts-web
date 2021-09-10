@@ -1,17 +1,13 @@
 {
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "dependencies": {
-    "noodl-types": "^1.0.149",
     "noodl-utils": "^0.0.65"
   },
   "description": "",
   "devDependencies": {
     "nock": "^13.1.0",
     "noodl-ui": "file:../noodl-ui",
-    "noodl-ui-test-utils": "file:../noodl-ui-test-utils",
-    "ts-node": "^9.1.1",
-    "ts-node-dev": "^1.1.8",
-    "tslib": "^2.3.1"
+    "noodl-ui-test-utils": "file:../noodl-ui-test-utils"
   },
   "engines": {
     "node": ">=14",
@@ -21,9 +17,7 @@
     "dist"
   ],
   "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
-  "jsnext:main": "dist/index.js",
   "keywords": [],
-  "license": "ISC",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "name": "noodl-ui-dom",
