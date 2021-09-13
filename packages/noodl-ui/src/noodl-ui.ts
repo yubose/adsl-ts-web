@@ -432,13 +432,13 @@ const NUI = (function () {
           context?: Record<string, any>
           callback?: (
             component: t.NuiComponent.Instance,
-          ) => t.NuiComponent.Instance | void
+          ) => t.NuiComponent.Instance | undefined
         },
     componentsProp?:
       | C
       | ((
           component: t.NuiComponent.Instance,
-        ) => t.NuiComponent.Instance | void),
+        ) => t.NuiComponent.Instance | undefined),
     callbackProp?: (
       component: t.NuiComponent.Instance,
     ) => t.NuiComponent.Instance | undefined,
