@@ -368,6 +368,19 @@ resolveStyles.setResolver(async (component, options, next) => {
   // HANDLING ARTBITRARY STYLES
   u.eachEntries(originalStyles, (styleKey, value) => {
     if (u.isStr(value)) {
+
+      if(value.endsWith('vw')){
+        value = value.substring(0,value.length-2)
+        let valueNum = parseFloat(value)/100
+        edit({ [styleKey]: String(util.getSize(valueNum, viewport.width)) })
+      }
+
+      if(value.endsWith('vh')){
+        value = value.substring(0,value.length-2)
+        let valueNum = parseFloat(value)/100
+        edit({ [styleKey]: String(util.getSize(valueNum, viewport.height)) })
+      }
+
       // Cache this value to the variable so it doesn't get mutated inside this func since there are moments when value is changing before this func ends
       // If the value is a path of a list item data object
       const isListPath = iteratorVar && value.startsWith(iteratorVar)

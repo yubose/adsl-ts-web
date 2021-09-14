@@ -848,10 +848,12 @@ const componentsResolver: t.Resolve.Config = {
         -------------------------------------------------------- */
         // TEXTVIEW
         else if (Identify.component.textView(args.component)) {
-          if (args.component.blueprint?.['isEditable']) {
+          if (args.component.has('isEditable')) {
             const isEditable = args.component.get('isEditable')
             const isDisabled = Identify.isBooleanFalse(isEditable)
-            setAttr('disabled', isDisabled)
+            if(isDisabled){
+              setAttr('disabled', isDisabled)
+            }
           }
           args.node?.addEventListener(
             'change',
@@ -864,10 +866,12 @@ const componentsResolver: t.Resolve.Config = {
         }
         // textField
         else if (Identify.component.textField(args.component)) {
-          if (args.component.blueprint?.isEditable) {
+          if (args.component.has('isEditable')) {
             const isEditable = args.component.get('isEditable')
             const isDisabled = Identify.isBooleanFalse(isEditable)
-            setAttr('disabled', isDisabled)
+            if(isDisabled){
+              setAttr('disabled', isDisabled)
+            }
           }
           if (args.component.blueprint?.autocomplete) {
             const autocomplete = args.component.get('autocomplete')
