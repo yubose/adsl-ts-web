@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import { isAction } from 'noodl-action-chain'
+import { isAction, isActionChain } from 'noodl-action-chain'
 import { createAction } from 'noodl-ui'
 import Logger from 'logsnap'
 import App from '../../App'
@@ -62,6 +62,10 @@ const registerMiddleware = function (app: App) {
 
     if (isAction(args[0])) {
       args[1] = { ...args[1], snapshot: args[0].snapshot() }
+    }
+
+    if ('ref' in args[1] || isActionChain(args[1]?.ref)) {
+      // debugger
     }
 
     return args

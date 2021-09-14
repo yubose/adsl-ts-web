@@ -6,6 +6,7 @@ import { isAction } from 'noodl-action-chain'
 import {
   findListDataObject,
   findIteratorVar,
+  findParent,
   getDataValues,
   NuiComponent,
   Store,
@@ -443,6 +444,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       id = destProps.id || id
       isSamePage = !!destProps.isSamePage
       duration = destProps.duration || duration
+      // ndomPage = app.ndom.findPage(
+      //   findParent(options?.component, Identify.component.page),
+      // )
     } else if ('targetPage' in destProps) {
       destination = destProps.targetPage || ''
       id = destProps.viewTag || ''
@@ -571,7 +575,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             ndomPage.node.contentDocument.body.textContent = ''
           }
         }
-
         await app.navigate(ndomPage, destination)
       }
 

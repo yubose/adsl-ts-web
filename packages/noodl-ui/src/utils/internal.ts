@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import * as nt from 'noodl-types'
 import _get from 'lodash/get'
 import { NuiComponent } from '../types'
 
@@ -123,4 +124,15 @@ export function mapKeysToOwnArrays<K extends string, A = any>(keys: K[]) {
     (acc, key) => u.assign(acc, { [key]: [] }),
     {} as Record<K, A[]>,
   )
+}
+
+/**
+ * Fallback "if" resolver if a custom resolver was not provided in hooks
+ * @param ifObject
+ * @returns
+ */
+export function defaultResolveIf(ifObject: nt.IfObject) {
+  const [cond, valOnTrue, valOnFalse] = ifObject.if || []
+  if (u.isFnc(cond)) return cond?.() ? valOnTrue : valOnFalse
+  return !!cond ? valOnTrue : valOnFalse
 }

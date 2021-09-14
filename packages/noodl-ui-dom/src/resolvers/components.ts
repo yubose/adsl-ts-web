@@ -635,7 +635,7 @@ const componentsResolver: t.Resolve.Config = {
                     componentPage.component?.clear?.('children')
 
                     // const cs = []
-
+                    console.log({ args })
                     await Promise.all(
                       componentPage.components?.map(
                         async (obj: ComponentObject) => {
@@ -644,6 +644,7 @@ const componentsResolver: t.Resolve.Config = {
                               // callback: (c) => void cs.push(c),
                               components: obj,
                               page: nuiPage,
+                              on: args.hooks,
                             })
 
                             // TODO - We might not need this line
@@ -655,6 +656,7 @@ const componentsResolver: t.Resolve.Config = {
                                   child,
                                   componentPage.body,
                                   componentPage,
+                                  { on: args.hooks },
                                 )
                                 childNode &&
                                   componentPage.appendChild(childNode)
@@ -665,6 +667,7 @@ const componentsResolver: t.Resolve.Config = {
                                 child,
                                 componentPage.body,
                                 componentPage,
+                                { on: args.hooks },
                               )
                               childNode && componentPage.appendChild(childNode)
                               resolve(child)

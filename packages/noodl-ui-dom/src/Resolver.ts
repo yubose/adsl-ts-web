@@ -3,7 +3,7 @@ import * as nt from 'noodl-types'
 import SignaturePad from 'signature_pad'
 import type { LiteralUnion } from 'type-fest'
 import type { OrArray } from '@jsmanifest/typefest'
-import type { Component } from 'noodl-ui'
+import type { Component, ResolveComponentOptions } from 'noodl-ui'
 import { getPageAncestor } from './utils'
 import { cache, nui } from './nui'
 import attributesResolver from './resolvers/attributes'
@@ -29,7 +29,12 @@ export default class NDOMResolver {
   getOptions<
     T extends string = string,
     N extends t.NDOMElement<T> = t.NDOMElement<T>,
-  >(args: t.Resolve.BaseOptions<T, N> & { ndom: NDOM }) {
+  >(
+    args: t.Resolve.BaseOptions<T, N> & {
+      hooks?: ResolveComponentOptions<any>['on']
+      ndom: NDOM
+    },
+  ) {
     if (nt.Identify.component.canvas(args.component)) {
       args.component.edit(
         'signaturePad',
@@ -47,6 +52,7 @@ export default class NDOMResolver {
       editStyle: this.createStyleEditor(args.component),
       findPage: args.ndom.findPage.bind(args.ndom) as NDOM['findPage'],
       global: args.ndom.global,
+      hooks: args.hooks || args.ndom.renderState.options.hooks,
       node: args.node,
       nui,
       get page() {
@@ -99,17 +105,19 @@ export default class NDOMResolver {
     T extends string = string,
     N extends t.NDOMElement<T> = t.NDOMElement<T>,
   >({
+    hooks,
     ndom,
     node,
     component,
     page,
     resolvers,
   }: Pick<t.Resolve.BaseOptions<T, N>, 'node' | 'component'> & {
+    hooks?: ResolveComponentOptions<any>['on']
     ndom: NDOM
     page?: NDOMPage
     resolvers: OrArray<t.Resolve.Config<T, N>>
   }) {
-    const options = this.getOptions({ ndom, node, component, page })
+    const options = this.getOptions({ hooks, ndom, node, component, page })
     const runners = u.array(resolvers)
     await Promise.all(runners.map((r) => this.resolve(r, options)))
   }

@@ -12,6 +12,7 @@ import NUI from '../../noodl-ui'
 import NUIPage from '../../Page'
 import Viewport from '../../Viewport'
 import * as c from '../../constants'
+import { ActionChain } from 'noodl-action-chain'
 
 const getRoot = (args?: Record<string, any>) => ({
   Hello: { components: [mock.getButtonComponent()] },
@@ -38,7 +39,7 @@ async function resolveComponent(component: ComponentObject) {
 }
 
 describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
-  it.only(`should call the callback on every resolved child in order of creation time`, async () => {
+  it(`should call the callback on every resolved child in order of creation time`, async () => {
     const spy = sinon.spy((f) =>
       console.info(
         `[${f.type}] ${
@@ -87,7 +88,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       callback: spy,
     })
     await fs.writeJson('calls.json', spy.getCalls(), { spaces: 2 })
-    const expectedCalls = [
+    const expectedCallsInOrder = [
       { type: 'view' },
       { type: 'label' },
       { type: 'list' },
@@ -100,10 +101,60 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       { type: 'button' },
       { type: 'button' },
     ]
-    // console.info(spy.getCalls())
-    expect(spy).to.have.property('callCount').to.eq(expectedCalls.length)
-    expectedCalls.forEach((res) => {
-      //
+    expect(spy).to.have.property('callCount').to.eq(expectedCallsInOrder.length)
+    const calls = spy.getCalls()
+    expectedCallsInOrder.forEach((res, index) => {
+      expect(res.type).to.eq(calls[index]?.args?.[0]?.type)
+    })
+  })
+
+  describe('hooks', () => {
+    describe(`if`, () => {
+      it(`should pass in the key and value`, async () => {
+        const spy = sinon.spy(() => true)
+        const ifObj = { if: [{}, 'hello', 'bye'] }
+        ;(
+          await NUI.resolveComponents({
+            components: ui.button({
+              text: ifObj,
+              onClick: [ui.emitObject()],
+              style: { border: { style: '2' }, shadow: 'true' },
+            }),
+            on: { if: spy },
+          })
+        ).get('text')
+        const args = spy.args[0][0]
+        expect(spy).to.be.calledOnce
+        expect(args).to.have.property('key', 'text')
+        expect(args).to.have.property('value', ifObj)
+      })
+
+      it(`should resolve using the if in hooks when provided`, async () => {
+        expect(
+          (
+            await NUI.resolveComponents({
+              components: ui.button({
+                text: { if: [{}, 'hello', 'bye'] },
+                onClick: [ui.emitObject()],
+                style: { border: { style: '2' }, shadow: 'true' },
+              }),
+              on: { if: () => true },
+            })
+          ).get('text'),
+        ).to.eq('hello')
+        expect(
+          (
+            await NUI.resolveComponents({
+              components: ui.button({
+                text: { if: [{}, 'hello', 'bye'] },
+                onClick: [ui.emitObject()],
+                style: { border: { style: '2' }, shadow: 'true' },
+              }),
+              on: { if: () => false },
+            })
+          ).get('text'),
+        ).to.eq('bye')
+      })
     })
   })
 
