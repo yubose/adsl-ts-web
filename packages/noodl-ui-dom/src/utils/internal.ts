@@ -448,23 +448,7 @@ export const _syncPages = (function () {
             }
           } else if (updateType === c.PAGE_REMOVED) {
             _pageState.delete(page.created)
-            // cache.component.remove(page)
-            // const pageKey = _getKey(page.page)
-            // if (_componentTable.has(pageKey)) {
-            //   const ids = _componentTable.get(pageKey)
-            //   if (u.isArr(ids)) {
-            //     u.forEach((id) => {
-            // console.log(
-            //   `Removing ${
-            //     componentIds.length
-            //   } components from the component cache from page "${_getKey(
-            //     pageName,
-            //   )}"`,
-            // )
-            //       cache.component.remove(id)
-            //     }, ids)
-            //   }
-            // }
+         
           }
         }
       }

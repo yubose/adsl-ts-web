@@ -24,6 +24,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "skipLibCheck": true,
+    "noLib": true,
     "strict": true,
     "strictNullChecks": true,
     "target": "es2017"
