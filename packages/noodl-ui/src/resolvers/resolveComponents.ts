@@ -41,6 +41,8 @@ componentResolver.setResolver(async (component, options, next) => {
     resolveComponents,
   } = options
 
+  callback?.(component)
+
   try {
     const original = component.blueprint || {}
     const originalStyle = original.style || {}
@@ -270,7 +272,7 @@ componentResolver.setResolver(async (component, options, next) => {
       Identify.component.pluginBodyTail(component)
     ) {
       if (cache.plugin.has(path)) {
-        callback?.(component)
+        // callback?.(component)
         return
       }
 
@@ -281,7 +283,10 @@ componentResolver.setResolver(async (component, options, next) => {
         // src is also being resolved in the resolveDataAttrs resolver
         // so we don't need to handle setting the data-src and emitting the
         // path event here
-        const src = resolveAssetUrl(await createSrc(path), getAssetsUrl())
+        const src = resolveAssetUrl(
+          await createSrc(path, { component, key: 'path', page }),
+          getAssetsUrl(),
+        )
         const res = await window.fetch?.(src)
         const headers = res?.headers
         const contentType = headers?.get?.('Content-Type') || ''
@@ -318,7 +323,9 @@ componentResolver.setResolver(async (component, options, next) => {
 
         textBoard.forEach((item) => {
           if (Identify.textBoardItem(item)) {
-            component.createChild(createComponent('br', page))
+            const child = createComponent('br', page)
+            callback?.(child)
+            component.createChild(child)
           } else {
             /**
              * NOTE: Normally in the return type we would return the child
@@ -385,6 +392,7 @@ componentResolver.setResolver(async (component, options, next) => {
               page,
             )
             component.createChild(text)
+            callback?.(text)
           }
         })
       } else {
@@ -479,7 +487,6 @@ componentResolver.setResolver(async (component, options, next) => {
     console.error(error)
   }
 
-  callback?.(component)
   return next?.()
 })
 

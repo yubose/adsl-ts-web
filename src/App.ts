@@ -11,7 +11,7 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import * as nu from 'noodl-utils'
-import { Identify, PageObject } from 'noodl-types'
+import { Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
@@ -288,8 +288,8 @@ class App {
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       const req = await this.ndom.request(_page)
       if (req) {
-        const components = await req.render()
-        window.pcomponents = components
+        const components = await this.render(_page)
+        window.pcomponents = components as any
       }
     } catch (error) {
       console.error(error)
@@ -552,7 +552,7 @@ class App {
             log.grey('', { current, index, init, page: pageRequesting })
 
             const validateReference = (ref: string) => {
-              const datapath = nu.trimReference(ref)
+              const datapath = nu.trimReference(ref as ReferenceString)
               const location = ref.startsWith(`=.builtIn`)
                 ? 'root'
                 : Identify.localKey(datapath)
@@ -748,7 +748,7 @@ class App {
         document.body.style.height = `${args.height}px`
         this.mainPage.node.style.width = `${args.width}px`
         this.mainPage.node.style.height = `${args.height}px`
-        await this.ndom.render(this.mainPage)
+        await this.render(this.mainPage)
       }
     }
   }
@@ -829,6 +829,63 @@ class App {
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 
+  async render(page: NOODLDOMPage) {
+    try {
+      if (!page) {
+        if (arguments.length) {
+          log.func('render')
+          log.red(
+            `The page instance passed to App.render is null or undefined. The root page be used instead`,
+          )
+        }
+        page = this.mainPage
+      }
+      return this.ndom.render(page, {
+        on: {
+          actionChain: {
+            onBeforeInject: function (action) {
+              debugger
+            },
+          },
+          if: ({ page, value }) => {
+            debugger
+            if (u.isStr(value) && Identify.reference(value)) {
+              const datapath = nu.trimReference(value)
+              // debugger
+              if (Identify.localKey(datapath)) {
+                if (page?.page) {
+                  return get(this.root?.[page.page], datapath)
+                }
+              } else {
+                return get(this.root, datapath)
+              }
+            }
+          },
+          reference: (args) => {
+            debugger
+            log.func('on [reference]')
+            log.grey('', args)
+            const { page, value } = args
+            if (Identify.reference(value)) {
+              const datapath = nu.trimReference(value)
+              if (Identify.localKey(datapath)) {
+                if (page?.page) {
+                  return get(this.root?.[page.page], datapath)
+                }
+              } else {
+                return get(this.root, datapath)
+              }
+            }
+          },
+        },
+      })
+    } catch (error) {
+      console.error(error)
+      if (error instanceof Error) toast(`[${error.name}] ${error.message}`)
+      else if (error) toast(`[Error] ${String(error)}`)
+    }
+  }
+
   reset(soft?: boolean): Promise<void>
   reset(): this
   reset(soft?: boolean) {
@@ -863,7 +920,7 @@ class App {
           this.cache.page.length
             ? this.nui.getRootPage()
             : this.nui.createPage({ viewport: this.viewport }),
-        ) as NOODLDOMPage
+        )
         this.ndom.page = this.mainPage
       }
       has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) &&

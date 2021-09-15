@@ -23,6 +23,7 @@ import {
   EmitAction,
   findListDataObject,
   findIteratorVar,
+  findParent,
   getActionObjectErrors,
   isComponent,
   parseReference,
@@ -140,6 +141,7 @@ const createActions = function createActions(app: App) {
         const result = await object()
         if (result) {
           const { ref: actionChain } = options
+
           if (u.isObj(result)) {
             getActionObjectErrors(result).forEach((errMsg: string) =>
               log.red(errMsg, result),
@@ -180,6 +182,20 @@ const createActions = function createActions(app: App) {
               const isPossiblyGoto = 'goto' in result || 'destination' in result
 
               if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
+                if (isPossiblyGoto) {
+                  const destination = result.goto || result.destination || ''
+                  const pageComponentParent = findParent(
+                    options?.component,
+                    Identify.component.page,
+                  )
+                  if (pageComponentParent && pageComponentParent.get('page')) {
+                    const ndomPage = app.ndom.findPage(pageComponentParent)
+                    if (ndomPage && ndomPage.requesting !== destination) {
+                      ndomPage.requesting = destination
+                    }
+                  }
+                }
+
                 log.grey(
                   `An evalObject action is injecting a new object to the chain`,
                   {

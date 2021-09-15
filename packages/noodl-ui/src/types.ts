@@ -26,7 +26,11 @@ import type {
   ReferenceString,
   IfObject,
 } from 'noodl-types'
-import type { Action, ActionChain } from 'noodl-action-chain'
+import type {
+  Action,
+  ActionChain,
+  ActionChainObserver,
+} from 'noodl-action-chain'
 import type { LiteralUnion } from 'type-fest'
 import type ComponentBase from './Component'
 import type _ComponentCache from './cache/ComponentCache'
@@ -226,6 +230,34 @@ export type ConsumerOptions<Trig extends string = string> = Omit<
   ref?: NUIActionChain
 }
 
+export interface On {
+  actionChain?: ActionChainObserver
+  page?(page: NUIPage): OrPromise<void>
+  setup?(component: NuiComponent.Instance): OrPromise<void>
+  createComponent?(
+    component: NuiComponent.Instance,
+    args: {
+      parent: NuiComponent.Instance | null
+      index?: number
+      iteratorVar?: number
+      dataObject?: number
+    },
+  ): OrPromise<void>
+  if?(args: {
+    component?: NuiComponent.Instance
+    page?: NUIPage
+    key: string
+    value: IfObject
+  }): OrPromise<boolean | null | undefined>
+  emit?(emitObject: EmitObjectFold): OrPromise<NUIActionChain>
+  reference?<S extends string = string>(args: {
+    component?: NuiComponent.Instance
+    page?: NUIPage
+    key: string
+    value: ReferenceString<S>
+  }): OrPromise<any>
+}
+
 export namespace Register {
   export interface Object<N extends string = string> {
     name: N
@@ -257,29 +289,15 @@ export namespace Register {
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
 }
 
-export interface ResolveComponentOptions {
-  callback?(
-    component: NuiComponent.Instance,
-  ): NuiComponent.Instance | null | undefined
+export interface ResolveComponentOptions<
+  C extends OrArray<NuiComponent.CreateType>,
+  Context extends Record<string, any> = Record<string, any>,
+> {
+  components: C
+  callback?(component: NuiComponent.Instance): NuiComponent.Instance | undefined
+  context?: Context
   page?: NUIPage
-  on?: {
-    page?(page: NUIPage): OrPromise<void>
-    setup?(component: NuiComponent.Instance): OrPromise<void>
-    create?(
-      component: NuiComponent.Instance,
-      args: {
-        parent: NuiComponent.Instance | null
-        index?: number
-        iteratorVar?: number
-        dataObject?: number
-      },
-    ): OrPromise<void>
-    if?(ifObject: IfObject): OrPromise<any>
-    emit?(emitObject: EmitObjectFold): OrPromise<any>
-    reference?<S extends string = string>(
-      value: ReferenceString<S>,
-    ): OrPromise<any>
-  }
+  on?: On
 }
 
 export namespace Store {
@@ -340,6 +358,7 @@ export interface UseArg<
   getPages?: () => string[]
   getPreloadPages?: () => string[]
   getRoot?: () => Record<string, any>
+  on?: On
   plugin?: OrArray<ComponentObject>
   register?:
     | Record<string, Register.Object['fn']>

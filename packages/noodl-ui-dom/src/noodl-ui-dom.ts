@@ -5,6 +5,7 @@ import type {
   ConsumerOptions,
   NuiComponent,
   Page as NUIPage,
+  ResolveComponentOptions,
   Store,
 } from 'noodl-ui'
 import { findIteratorVar, isComponent, NUI, nuiEmitTransaction } from 'noodl-ui'
@@ -47,6 +48,7 @@ class NDOM extends NDOMInternal {
         [pageId: string]: { pageName: string; timestamp: Number | null }
       },
     },
+    options: { hooks: {} as NonNullable<ResolveComponentOptions<any>['on']> },
   }
   consumerResolvers = [] as t.Resolve.Config[]
   global = new NDOMGlobal()
@@ -366,7 +368,23 @@ class NDOM extends NDOMInternal {
    * @param { NDOMPage } page
    * @returns NuiComponent.Instance
    */
-  async render(page: NDOMPage, callback?: ConsumerOptions['callback']) {
+  async render<Context = any>(
+    page: NDOMPage,
+    options?:
+      | ResolveComponentOptions<any, Context>['callback']
+      | Omit<ResolveComponentOptions<any, Context>, 'components' | 'page'>,
+  ) {
+    const resolveOptions = u.isFnc(options) ? { callback: options } : options
+    if (resolveOptions?.on) {
+      const hooks = resolveOptions.on
+      const currentHooks = this.renderState.options.hooks
+      hooks.actionChain && (currentHooks.actionChain = hooks.actionChain)
+      hooks.create && (currentHooks.create = hooks.create)
+      hooks.emit && (currentHooks.emit = hooks.emit)
+      hooks.if && (currentHooks.if = hooks.if)
+      hooks.reference && (currentHooks.reference = hooks.reference)
+      hooks.setup && (currentHooks.setup = hooks.setup)
+    }
     // REMINDER: The value of this page's "requesting" is empty at this moment
     // Create the root node where we will be placing DOM nodes inside.
     // The root node is a direct child of document.body
@@ -375,9 +393,9 @@ class NDOM extends NDOMInternal {
     const nuiPage = page.getNuiPage()
     const components = u.array(
       await nui.resolveComponents({
-        callback,
         components: page.components,
         page: nuiPage,
+        ...resolveOptions,
       }),
     ) as NuiComponent.Instance[]
     page.setStatus(c.eventId.page.status.COMPONENTS_RECEIVED)
@@ -396,7 +414,11 @@ class NDOM extends NDOMInternal {
       page.snapshot({ components }),
     )
 
-    await Promise.all(components.map((c) => this.draw(c, page.node, page)))
+    const numComponents = components.length
+
+    for (let index = 0; index < numComponents; index++) {
+      await this.draw(components[index], page.node, page, resolveOptions)
+    }
 
     page.emitSync(c.eventId.page.on.ON_COMPONENTS_RENDERED, page)
     page.setStatus(c.eventId.page.status.COMPONENTS_RENDERED)
@@ -409,13 +431,14 @@ class NDOM extends NDOMInternal {
    * resolves its children hieararchy until there are none left
    * @param { Component } props
    */
-  async draw<C extends NuiComponent.Instance>(
-    component: C,
+  async draw<Context = any>(
+    component: NuiComponent.Instance,
     container?: t.NDOMElement | null,
     pageProp?: NDOMPage,
-    options?: {
-      callback?: ConsumerOptions['callback']
-      context?: Record<string, any>
+    options?: Pick<
+      Partial<ResolveComponentOptions<any, Context>>,
+      'callback' | 'context' | 'on'
+    > & {
       nodeIndex?: number
       /**
        * Callback called when a page component finishes loading its element in the DOM. The resolvers are run on the page node before this callback fires. The caller is responsible for handling the page component's children
@@ -424,13 +447,24 @@ class NDOM extends NDOMInternal {
       onPageComponentLoad?(options: {
         event: Event
         node: HTMLIFrameElement
-        component: C
+        component: NuiComponent.Instance
         page: NDOMPage
       }): void
     },
   ) {
+    let hooks = options?.on
     let node: t.NDOMElement | null = null
     let page: NDOMPage = pageProp || this.page
+
+    if (hooks) {
+      const currentHooks = this.renderState.options.hooks
+      hooks.actionChain && (currentHooks.actionChain = hooks.actionChain)
+      hooks.create && (currentHooks.create = hooks.create)
+      hooks.emit && (currentHooks.emit = hooks.emit)
+      hooks.if && (currentHooks.if = hooks.if)
+      hooks.reference && (currentHooks.reference = hooks.reference)
+      hooks.setup && (currentHooks.setup = hooks.setup)
+    }
 
     if (page.id) {
       if (page.requesting === '') {
@@ -472,6 +506,7 @@ class NDOM extends NDOMInternal {
           // We will delegate the role of the node creation to the consumer (only enabled for plugin components for now)
           const getNode = (elem: HTMLElement) => (node = elem || node)
           await this.#R.run({
+            hooks,
             ndom: this,
             // @ts-expect-error
             node: getNode,
@@ -542,6 +577,7 @@ class NDOM extends NDOMInternal {
           const childrenPage = this.findPage(pagePath)
 
           await this.#R.run({
+            hooks,
             ndom: this,
             node,
             component,
@@ -550,6 +586,7 @@ class NDOM extends NDOMInternal {
           })
         } else {
           await this.#R.run({
+            hooks,
             ndom: this,
             node,
             component,
@@ -566,12 +603,10 @@ class NDOM extends NDOMInternal {
             : node
 
           for (const child of component.children) {
-            const childNode = (await this.draw(
-              child,
-              node,
-              page,
-              options,
-            )) as HTMLElement
+            const childNode = (await this.draw(child, node, page, {
+              ...options,
+              on: hooks,
+            })) as HTMLElement
 
             childNode && childrenContainer?.appendChild(childNode)
           }
@@ -651,6 +686,7 @@ class NDOM extends NDOMInternal {
           components: newComponent,
           page: page?.getNuiPage?.(),
           context,
+          on: options?.on || this.renderState.options.hooks,
         })
       }
 
@@ -660,6 +696,7 @@ class NDOM extends NDOMInternal {
           let currentIndex = getNodeIndex(node)
           let newNode = await this.draw(newComponent, parentNode, page, {
             ...options,
+            on: options?.on || this.renderState.options.hooks,
             context,
             nodeIndex: currentIndex,
           })

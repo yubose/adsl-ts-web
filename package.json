@@ -39,7 +39,7 @@
     "updatenoodl": "node scripts/update.js -u noodl -d"
   },
   "dependencies": {
-    "@jsmanifest/utils": "^1.0.16",
+    "@jsmanifest/utils": "^1.0.17",
     "axios": "^0.21.1",
     "date-fns": "^2.21.2",
     "firebase": "^8.7.0",
@@ -58,7 +58,7 @@
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.371",
+    "@aitmed/cadl": "^1.0.372",
     "@aitmed/ecos-lvl2-sdk": "^1.4.154",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",

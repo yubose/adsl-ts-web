@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import type { ActionChainObserver } from 'noodl-action-chain'
 import { OrArray } from '@jsmanifest/typefest'
 import invariant from 'invariant'
 import merge from 'lodash/merge'
@@ -10,6 +11,7 @@ import type {
   EmitObjectFold,
   IfObject,
   PageObject,
+  Path,
   RegisterComponentObject,
 } from 'noodl-types'
 import { Identify } from 'noodl-types'
@@ -30,11 +32,7 @@ import isPage from './utils/isPage'
 import isViewport from './utils/isViewport'
 import NUIPage from './Page'
 import ActionsCache from './cache/ActionsCache'
-import resolveAsync from './resolvers/resolveAsync'
-import resolveComponents from './resolvers/resolveComponents'
-import resolveStyles from './resolvers/resolveStyles'
-import resolveSetup from './resolvers/resolveSetup'
-import resolveDataAttribs from './resolvers/resolveDataAttribs'
+import Transformer from './Transformer'
 import VP from './Viewport'
 import { promiseAllSafely } from './utils/common'
 import {
@@ -51,6 +49,8 @@ import * as c from './constants'
 import * as t from './types'
 
 const NUI = (function () {
+  const _hooks = new Map<keyof t.On, t.On[keyof t.On][]>()
+
   /**
    * Determining on the type of value, this performs necessary clean operations to ensure its resources that are bound to it are removed from memory
    * @param value
@@ -107,17 +107,25 @@ const NUI = (function () {
    * @param { function } createSrc
    */
   async function _createSrc(args: {
+    key: string
+    value: Path
     component: t.NuiComponent.Instance
     page: NUIPage
   }): Promise<string>
   async function _createSrc(
-    path: EmitObjectFold,
+    path: Path,
     opts?: {
       component: t.NuiComponent.Instance
       context?: Record<string, any>
     },
   ): Promise<string>
-  async function _createSrc(path: IfObject): Promise<string>
+  async function _createSrc(
+    path: IfObject,
+    opts?: {
+      component?: t.NuiComponent.Instance
+      page?: NUIPage
+    },
+  ): Promise<string>
   async function _createSrc(path: string): Promise<string>
   async function _createSrc(
     args:
@@ -129,10 +137,18 @@ const NUI = (function () {
           page: NUIPage
         }
       | string,
-    opts?: {
-      component?: t.NuiComponent.Instance
-      context?: Record<string, any>
-    },
+    opts?:
+      | {
+          component?: t.NuiComponent.Instance
+          context?: Record<string, any>
+          page?: NUIPage
+        }
+      | {
+          on: NonNullable<t.ResolveComponentOptions<any>['on']>
+          key?: string
+          component?: t.NuiComponent.Instance
+          page?: NUIPage
+        },
   ) {
     let component: t.NuiComponent.Instance | undefined
     let page: NUIPage = o.getRootPage()
@@ -177,7 +193,12 @@ const NUI = (function () {
               callbacks.map(async (obj: t.Store.ActionObject) =>
                 obj.fn?.(
                   emitAction,
-                  o.getConsumerOptions({ component, page, path: args }),
+                  o.getConsumerOptions({
+                    component,
+                    on: opts?.on,
+                    page,
+                    path: args,
+                  }),
                 ),
               ),
             )
@@ -197,6 +218,14 @@ const NUI = (function () {
           }
         }
       } else if (Identify.if(args)) {
+        if (u.isObj(opts) && 'on' in opts && opts.on.if) {
+          return opts.on?.if({
+            key: opts.key || '',
+            component: opts.component,
+            page: opts.page || page,
+            value: args,
+          })
+        }
         return resolveAssetUrl(
           evalIf((val: any) => {
             if (Identify.isBoolean(val)) return Identify.isBooleanTrue(val)
@@ -365,135 +394,138 @@ const NUI = (function () {
     return queries
   }
 
-  const _transformers = [
-    resolveSetup,
-    resolveAsync,
-    resolveComponents,
-    resolveStyles,
-    resolveDataAttribs,
-  ]
-
-  let index = 0
-  let resolver = _transformers[index]
-
-  while (resolver) {
-    resolver.next = _transformers[++index]
-    resolver = resolver.next
-  }
-
-  const _transform = _transformers[0].resolve.bind(_transformers[0])
+  const _transformer = new Transformer()
 
   async function _resolveComponents<
     C extends OrArray<t.NuiComponent.CreateType>,
-    Context extends Record<string, any>,
-  >(opts: {
-    page?: NUIPage
-    components: C
-    context?: Context
-    callback?: (
-      component: t.NuiComponent.Instance,
-    ) => t.NuiComponent.Instance | void
-  }): Promise<
-    C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
-  >
-
-  async function _resolveComponents<
-    C extends OrArray<t.NuiComponent.CreateType>,
+    Context extends Record<string, any> = Record<string, any>,
   >(
-    page: NUIPage,
-    component: C,
-    callback?: (
-      component: t.NuiComponent.Instance,
-    ) => t.NuiComponent.Instance | void,
+    opts: t.ResolveComponentOptions<C, Context>,
   ): Promise<
     C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
   >
 
   async function _resolveComponents<
     C extends OrArray<t.NuiComponent.CreateType>,
+    Context extends Record<string, any> = Record<string, any>,
   >(
     component: C,
-    callback?: (
-      component: t.NuiComponent.Instance,
-    ) => t.NuiComponent.Instance | void,
+    page?: NUIPage,
+    callback?:
+      | t.ResolveComponentOptions<C, Context>['callback']
+      | t.ResolveComponentOptions<C, Context>,
   ): Promise<
     C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
   >
 
   async function _resolveComponents<
     C extends OrArray<t.NuiComponent.CreateType>,
+    Context extends Record<string, any> = Record<string, any>,
   >(
-    pageProp:
+    component: C,
+    callback?: t.ResolveComponentOptions<C, Context>['callback'],
+  ): Promise<
+    C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
+  >
+
+  async function _resolveComponents<
+    C extends OrArray<t.NuiComponent.CreateType>,
+    Context extends Record<string, any> = Record<string, any>,
+  >(
+    component: C,
+    options?: Omit<t.ResolveComponentOptions<C, Context>, 'component'>,
+  ): Promise<
+    C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
+  >
+
+  async function _resolveComponents<
+    C extends OrArray<t.NuiComponent.CreateType>,
+    Context extends Record<string, any> = Record<string, any>,
+  >(
+    arg1: C | t.ResolveComponentOptions<C, Context>,
+    arg2?:
       | NUIPage
-      | C
-      | {
-          page?: NUIPage
-          components: t.NuiComponent.Instance
-          context?: Record<string, any>
-          callback?: (
-            component: t.NuiComponent.Instance,
-          ) => t.NuiComponent.Instance | void
-        },
-    componentsProp?:
-      | C
-      | ((
-          component: t.NuiComponent.Instance,
-        ) => t.NuiComponent.Instance | void),
-    callbackProp?: (
-      component: t.NuiComponent.Instance,
-    ) => t.NuiComponent.Instance | undefined,
+      | t.ResolveComponentOptions<C, Context>['callback']
+      | Omit<t.ResolveComponentOptions<C, Context>, 'component'>,
+    arg3?:
+      | Omit<t.ResolveComponentOptions<C, Context>, 'component'>
+      | t.ResolveComponentOptions<C, Context>['callback'],
   ) {
     let isArr = true
     let resolvedComponents: t.NuiComponent.Instance[] = []
     let components: t.NuiComponent.CreateType[] = []
     let page: NUIPage | undefined
     let context: Record<string, any> = {}
-    let callback:
-      | ((
-          component: t.NuiComponent.Instance,
-        ) => t.NuiComponent.Instance | undefined)
-      | undefined
+    let callback: t.ResolveComponentOptions<C, Context>['callback'] | undefined
+    let on: t.ResolveComponentOptions<C, Context>['on'] | undefined
 
-    if (isPage(pageProp)) {
-      page = pageProp
-      if (!u.isFnc(componentsProp)) {
-        components = u.array(componentsProp) as t.NuiComponent.CreateType[]
+    if (u.isArr(arg1)) {
+      components = arg1
+      if (u.isFnc(arg2)) {
+        callback = arg2
+        if (isNuiPage(arg3)) page = arg3
+        else page = o.getRootPage()
+      } else if (isNuiPage(arg2)) {
+        page = arg2
+      } else if (u.isObj(arg2)) {
+        arg2.callback && (callback = arg2.callback)
+        arg2.context && (context = arg2.context)
+        arg2.page && (page = arg2.page)
+        arg2.on && (on = arg2.on)
       }
-      isArr = u.isArr(componentsProp)
-    } else if (u.isArr(pageProp)) {
-      components = pageProp
-      u.isFnc(callbackProp) && (callback = callbackProp)
-      if (isNuiPage(componentsProp)) page = componentsProp
-      else page = o.getRootPage()
-    } else if (u.isObj(pageProp)) {
-      // Missing page. Default to root page
-      if ('type' in pageProp || 'children' in pageProp || 'style' in pageProp) {
-        components = [pageProp]
-        u.isFnc(callbackProp) && (callback = callbackProp)
-        page = isNuiPage(componentsProp) ? componentsProp : o.getRootPage()
+      if (u.isFnc(arg3)) {
+        callback = arg3
+      } else if (u.isObj(arg3)) {
+        arg3.on && (on = arg3.on)
+        arg3.callback && (callback = arg3.callback)
+        arg3.context && (context = arg3.context)
+        isNuiPage(arg3.page) && (page = arg3.page)
+      }
+    } else if (u.isObj(arg1)) {
+      if ('type' in arg1 || 'children' in arg1 || 'style' in arg1) {
+        components = [arg1]
+        if (u.isFnc(arg2)) {
+          callback = arg2
+        } else if (isNuiPage(arg2)) {
+          page = arg2
+        } else if (u.isObj(arg2)) {
+          isNuiPage(arg2.page) && (page = arg2.page)
+          arg2.context && (context = arg2.context)
+          arg2.callback && (callback = arg2.callback)
+          arg2.on && (on = arg2.on)
+        }
+        if (u.isFnc(arg3)) {
+          callback = arg3
+        } else if (u.isObj(arg3)) {
+          isNuiPage(arg3.page) && (page = arg3.page)
+          arg3.context && (context = arg3.context)
+          arg3.callback && (callback = arg3.callback)
+          arg3.on && (on = arg3.on)
+        }
         isArr = false
       } else {
-        callback = pageProp.callback
-        components = u.array(pageProp.components)
-        page = 'page' in pageProp ? pageProp.page : o.getRootPage()
-        context = pageProp.context || context
-        isArr = u.isArr(pageProp.components)
+        arg1.callback && (callback = arg1.callback)
+        arg1.context && u.assign(context, arg1.context)
+        arg1.page && (page = arg1.page)
+        arg1.on && (on = arg1.on)
+        components = u.array(arg1.components)
+        isArr = u.isArr(arg1.components)
       }
     }
 
     async function xform(
       c: t.NuiComponent.Instance,
-      cb?: (
-        component: t.NuiComponent.Instance,
-      ) => t.NuiComponent.Instance | undefined,
+      cb?: t.ResolveComponentOptions<C, Context>['callback'],
+      on?: t.ResolveComponentOptions<C, Context>['on'],
     ) {
       const options = o.getConsumerOptions({
         callback: cb,
         component: c,
+        on,
         page: page as NUIPage,
         context,
       })
-      await _transform(c, options)
+      await _transformer.transform(c, options)
       const iteratorVar = options?.context?.iteratorVar || ''
       const isListConsumer =
         iteratorVar && u.isObj(options?.context?.dataObject)
@@ -548,13 +580,20 @@ const NUI = (function () {
       return c
     }
 
-    resolvedComponents = await Promise.all(
-      u
-        .array(components)
-        .map(async (c) =>
-          xform(o.createComponent(c, page as NUIPage), callback),
+    !page && (page = o.getRootPage())
+
+    const componentsList = u.array(components)
+    const numComponents = componentsList.length
+
+    for (let index = 0; index < numComponents; index++) {
+      resolvedComponents.push(
+        await xform(
+          o.createComponent(componentsList[index], page as NUIPage),
+          callback,
+          on,
         ),
-    )
+      )
+    }
 
     return (
       isArr ? resolvedComponents : resolvedComponents[0]
@@ -868,9 +907,10 @@ const NUI = (function () {
     createActionChain(
       trigger: t.NUITrigger,
       actions: OrArray<t.NUIActionObjectInput>,
-      opts?: {
+      opts?: ActionChainObserver & {
         component?: t.NuiComponent.Instance
         context?: Record<string, any>
+        on?: t.ResolveComponentOptions<any, any>['on']
         loadQueue?: boolean
         page?: NUIPage
       },
@@ -955,6 +995,7 @@ const NUI = (function () {
                 o.getConsumerOptions({
                   context: opts?.context,
                   component: opts?.component,
+                  on: opts?.on,
                   page: opts?.page as NUIPage,
                 }),
               )
@@ -974,6 +1015,7 @@ const NUI = (function () {
               o.getConsumerOptions({
                 context: opts?.context,
                 component: opts?.component,
+                on: opts?.on,
                 page: opts?.page as NUIPage,
               }),
             )
@@ -984,6 +1026,7 @@ const NUI = (function () {
       })
 
       opts?.loadQueue && actionChain.loadQueue()
+      opts?.on?.actionChain && actionChain.use(opts.on.actionChain)
 
       return actionChain
     },
@@ -1019,6 +1062,7 @@ const NUI = (function () {
     getConsumerOptions({
       callback,
       component,
+      on,
       page,
       context,
     }: {
@@ -1026,6 +1070,7 @@ const NUI = (function () {
         component: t.NuiComponent.Instance,
       ): t.NuiComponent.Instance | undefined
       component?: t.NuiComponent.Instance
+      on?: t.ResolveComponentOptions<any>['on']
       page: NUIPage
       context?: Record<string, any>
     } & { [key: string]: any }) {
@@ -1050,11 +1095,17 @@ const NUI = (function () {
             loadQueue,
             context: { ...context, ...contextProp },
             component,
+            on,
             page,
           })
         },
-        get createSrc() {
-          return _createSrc
+        createSrc(key: string, value: string | IfObject | EmitObjectFold) {
+          return _createSrc({
+            key,
+            value,
+            component,
+            page,
+          })
         },
         get emit() {
           return _emit
@@ -1065,6 +1116,9 @@ const NUI = (function () {
         },
         get getQueryObjects() {
           return _getQueryObjects
+        },
+        get on() {
+          return on
         },
         get page() {
           return page || o.getRootPage()
@@ -1205,6 +1259,32 @@ const NUI = (function () {
             })
           },
         )
+      }
+
+      if (args.on) {
+        for (const [key, value] of u.entries(args.on)) {
+          if (!_hooks.has(key)) {
+            _hooks.set(key, [])
+          }
+
+          if (key === 'actionChain') {
+            //
+          } else if (key === 'createComponent') {
+            //
+          } else if (key === 'if') {
+            //
+          } else if (key === 'emit') {
+            //
+          } else if (key === 'page') {
+            //
+          } else if (key === 'reference') {
+            //
+          } else if (key === 'setup') {
+            //
+          }
+
+          _hooks.get(key)?.push?.(value)
+        }
       }
 
       if ('plugin' in args) {
