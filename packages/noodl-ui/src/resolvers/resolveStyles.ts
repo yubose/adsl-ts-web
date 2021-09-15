@@ -369,16 +369,10 @@ resolveStyles.setResolver(async (component, options, next) => {
   u.eachEntries(originalStyles, (styleKey, value) => {
     if (u.isStr(value)) {
 
-      if(value.endsWith('vw')){
-        value = value.substring(0,value.length-2)
-        let valueNum = parseFloat(value)/100
-        edit({ [styleKey]: String(util.getSize(valueNum, viewport.width)) })
-      }
-
-      if(value.endsWith('vh')){
-        value = value.substring(0,value.length-2)
-        let valueNum = parseFloat(value)/100
-        edit({ [styleKey]: String(util.getSize(valueNum, viewport.height)) })
+      // Resolve vm and vh units
+       if(value.endsWith('vw') || value.endsWith('vh')){
+        const valueNum = parseFloat(value.substring(0,value.length-2))/100
+        edit({ [styleKey]: String(util.getSize(valueNum, viewport?.[value.endsWith('vw')?'width':'height'])) })
       }
 
       // Cache this value to the variable so it doesn't get mutated inside this func since there are moments when value is changing before this func ends
