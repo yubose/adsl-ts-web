@@ -379,7 +379,8 @@ class NDOM extends NDOMInternal {
       const hooks = resolveOptions.on
       const currentHooks = this.renderState.options.hooks
       hooks.actionChain && (currentHooks.actionChain = hooks.actionChain)
-      hooks.create && (currentHooks.create = hooks.create)
+      hooks.createComponent &&
+        (currentHooks.createComponent = hooks.createComponent)
       hooks.emit && (currentHooks.emit = hooks.emit)
       hooks.if && (currentHooks.if = hooks.if)
       hooks.reference && (currentHooks.reference = hooks.reference)
@@ -459,7 +460,8 @@ class NDOM extends NDOMInternal {
     if (hooks) {
       const currentHooks = this.renderState.options.hooks
       hooks.actionChain && (currentHooks.actionChain = hooks.actionChain)
-      hooks.create && (currentHooks.create = hooks.create)
+      hooks.createComponent &&
+        (currentHooks.createComponent = hooks.createComponent)
       hooks.emit && (currentHooks.emit = hooks.emit)
       hooks.if && (currentHooks.if = hooks.if)
       hooks.reference && (currentHooks.reference = hooks.reference)
@@ -506,7 +508,7 @@ class NDOM extends NDOMInternal {
           // We will delegate the role of the node creation to the consumer (only enabled for plugin components for now)
           const getNode = (elem: HTMLElement) => (node = elem || node)
           await this.#R.run({
-            hooks,
+            on: hooks,
             ndom: this,
             // @ts-expect-error
             node: getNode,
@@ -577,7 +579,7 @@ class NDOM extends NDOMInternal {
           const childrenPage = this.findPage(pagePath)
 
           await this.#R.run({
-            hooks,
+            on: hooks,
             ndom: this,
             node,
             component,
@@ -586,7 +588,7 @@ class NDOM extends NDOMInternal {
           })
         } else {
           await this.#R.run({
-            hooks,
+            on: hooks,
             ndom: this,
             node,
             component,

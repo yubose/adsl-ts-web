@@ -5,15 +5,14 @@ import { isStable } from 'noodl-utils'
 const BASE = 'https://public.aitmed.com/config'
 export const CONFIG_KEY = 'testpage'
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
+// const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
 
 function getConfigEndpoint(name: string) {
   let path = ''
   const isLocal = process.env.NODE_ENV === 'development'
   const isLocalExplicit = process.env.USE_DEV_PATHS
-  if (isLocal || isLocalExplicit) {
-    path = `/${name}.yml`
-  }
+  if (isLocal || isLocalExplicit) path = `/${name}.yml`
   return BASE + path
 }
 

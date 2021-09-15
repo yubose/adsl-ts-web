@@ -31,7 +31,7 @@ export default class NDOMResolver {
     N extends t.NDOMElement<T> = t.NDOMElement<T>,
   >(
     args: t.Resolve.BaseOptions<T, N> & {
-      hooks?: ResolveComponentOptions<any>['on']
+      on?: ResolveComponentOptions<any>['on']
       ndom: NDOM
     },
   ) {
@@ -52,7 +52,7 @@ export default class NDOMResolver {
       editStyle: this.createStyleEditor(args.component),
       findPage: args.ndom.findPage.bind(args.ndom) as NDOM['findPage'],
       global: args.ndom.global,
-      hooks: args.hooks || args.ndom.renderState.options.hooks,
+      on: args.on || args.ndom.renderState.options.on,
       node: args.node,
       nui,
       get page() {
@@ -105,19 +105,19 @@ export default class NDOMResolver {
     T extends string = string,
     N extends t.NDOMElement<T> = t.NDOMElement<T>,
   >({
-    hooks,
+    on,
     ndom,
     node,
     component,
     page,
     resolvers,
   }: Pick<t.Resolve.BaseOptions<T, N>, 'node' | 'component'> & {
-    hooks?: ResolveComponentOptions<any>['on']
+    on?: ResolveComponentOptions<any>['on']
     ndom: NDOM
     page?: NDOMPage
     resolvers: OrArray<t.Resolve.Config<T, N>>
   }) {
-    const options = this.getOptions({ hooks, ndom, node, component, page })
+    const options = this.getOptions({ on, ndom, node, component, page })
     const runners = u.array(resolvers)
     await Promise.all(runners.map((r) => this.resolve(r, options)))
   }

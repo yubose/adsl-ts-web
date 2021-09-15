@@ -7,7 +7,7 @@ const asyncResolver = new Resolver('resolveAsync')
 
 async function resolveAsync(
   component: NuiComponent.Instance,
-  { createActionChain, getAssetsUrl, hooks }: ConsumerOptions,
+  { createActionChain, getAssetsUrl, on }: ConsumerOptions,
 ) {
   const original = component.blueprint || {}
   const { dataValue, path, placeholder } = original
@@ -20,7 +20,7 @@ async function resolveAsync(
     const ac = createActionChain('dataValue', [
       { emit: dataValue.emit, actionType: 'emit' },
     ])
-    hooks?.actionChain && ac.use(hooks.actionChain)
+    on?.actionChain && ac.use(on.actionChain)
     const results = await ac?.execute?.()
     const result = results.find((val) => !!val?.result)?.result
     component.edit({ 'data-value': result })
@@ -35,7 +35,7 @@ async function resolveAsync(
     const ac = createActionChain('path', [
       { emit: path.emit, actionType: 'emit' },
     ])
-    hooks?.actionChain && ac.use(hooks.actionChain)
+    on?.actionChain && ac.use(on.actionChain)
     const results = await ac.execute()
     let result = results?.find((val) => !!val?.result)?.result
     if (Identify.component.page(component)) {
@@ -52,7 +52,7 @@ async function resolveAsync(
     const ac = createActionChain('placeholder', [
       { emit: placeholder.emit, actionType: 'emit' },
     ])
-    hooks?.actionChain && ac.use(hooks.actionChain)
+    on?.actionChain && ac.use(on.actionChain)
     const results = await ac.execute?.()
     const result = results?.find((v) => !!v.result)?.result
     component.edit({ 'data-placeholder': result })
@@ -63,7 +63,7 @@ async function resolveAsync(
 asyncResolver.setResolver(async (component, options, next) => {
   try {
     const original = component.blueprint || {}
-    const { createActionChain, hooks } = options
+    const { createActionChain, on } = options
 
     /* -------------------------------------------------------
     ---- USER EVENTS (onClick, onHover, onBlur, etc)
@@ -75,7 +75,7 @@ asyncResolver.setResolver(async (component, options, next) => {
           eventType,
           original[eventType] as NUIActionObject[],
         )
-        hooks?.actionChain && actionChain.use(hooks.actionChain)
+        on?.actionChain && actionChain.use(on.actionChain)
         component.edit({ [eventType]: actionChain })
         eventType !== 'postMessage' && (component.style.cursor = 'pointer')
       }
@@ -83,7 +83,7 @@ asyncResolver.setResolver(async (component, options, next) => {
       if (original.onTextChange) {
         const actionChain = createActionChain('onInput', original.onTextChange)
         component.edit({ ['onInput']: actionChain })
-        hooks?.actionChain && actionChain.use(hooks.actionChain)
+        on?.actionChain && actionChain.use(on.actionChain)
       }
     })
 

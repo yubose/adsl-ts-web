@@ -1028,6 +1028,8 @@ const NUI = (function () {
       opts?.loadQueue && actionChain.loadQueue()
       opts?.on?.actionChain && actionChain.use(opts.on.actionChain)
 
+      window.ac?.push?.(actionChain)
+
       return actionChain
     },
     get createSrc() {
@@ -1074,6 +1076,18 @@ const NUI = (function () {
       page: NUIPage
       context?: Record<string, any>
     } & { [key: string]: any }) {
+      const getPage = (page: NUIPage, component?: t.NuiComponent.Instance) => {
+        if (component?.parent && Identify.component.page(component.parent)) {
+          if (component.parent?.get?.('page')) {
+            return component.parent?.get?.('page')
+          }
+          if (cache.page.has(component.id)) {
+            return cache.page.get(component.id).page
+          }
+        }
+        return page || o.getRootPage()
+      }
+
       return {
         ...o,
         callback,
@@ -1096,7 +1110,7 @@ const NUI = (function () {
             context: { ...context, ...contextProp },
             component,
             on,
-            page,
+            page: getPage(page, component),
           })
         },
         createSrc(key: string, value: string | IfObject | EmitObjectFold) {
@@ -1104,7 +1118,7 @@ const NUI = (function () {
             key,
             value,
             component,
-            page,
+            page: getPage(page, component),
           })
         },
         get emit() {
@@ -1121,13 +1135,13 @@ const NUI = (function () {
           return on
         },
         get page() {
-          return page || o.getRootPage()
+          return getPage(page, component)
         },
         get resolveComponents() {
           return _resolveComponents
         },
         get viewport() {
-          return page?.viewport
+          return getPage(page, component)?.viewport
         },
       }
     },

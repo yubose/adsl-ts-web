@@ -142,6 +142,7 @@ async function initializeNoodlPluginRefresher() {
 
 window.addEventListener('load', async (e) => {
   try {
+    window.ac = []
     log.func('onload')
 
     const { Account } = await import('@aitmed/cadl')

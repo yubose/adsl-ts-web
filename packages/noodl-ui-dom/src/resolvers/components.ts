@@ -644,7 +644,7 @@ const componentsResolver: t.Resolve.Config = {
                               // callback: (c) => void cs.push(c),
                               components: obj,
                               page: nuiPage,
-                              on: args.hooks,
+                              on: args.on,
                             })
 
                             // TODO - We might not need this line
@@ -656,7 +656,7 @@ const componentsResolver: t.Resolve.Config = {
                                   child,
                                   componentPage.body,
                                   componentPage,
-                                  { on: args.hooks },
+                                  { on: args.on },
                                 )
                                 childNode &&
                                   componentPage.appendChild(childNode)
@@ -667,7 +667,7 @@ const componentsResolver: t.Resolve.Config = {
                                 child,
                                 componentPage.body,
                                 componentPage,
-                                { on: args.hooks },
+                                { on: args.on },
                               )
                               childNode && componentPage.appendChild(childNode)
                               resolve(child)
@@ -851,7 +851,7 @@ const componentsResolver: t.Resolve.Config = {
           if (args.component.has('isEditable')) {
             const isEditable = args.component.get('isEditable')
             const isDisabled = Identify.isBooleanFalse(isEditable)
-            if(isDisabled){
+            if (isDisabled) {
               setAttr('disabled', isDisabled)
             }
           }
@@ -869,7 +869,7 @@ const componentsResolver: t.Resolve.Config = {
           if (args.component.has('isEditable')) {
             const isEditable = args.component.get('isEditable')
             const isDisabled = Identify.isBooleanFalse(isEditable)
-            if(isDisabled){
+            if (isDisabled) {
               setAttr('disabled', isDisabled)
             }
           }

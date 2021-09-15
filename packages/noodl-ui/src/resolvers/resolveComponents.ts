@@ -132,6 +132,7 @@ componentResolver.setResolver(async (component, options, next) => {
           callback,
           components: listItem,
           context: { ...context, ...ctx },
+          on: options.on,
           page,
         })
       }
@@ -469,20 +470,24 @@ componentResolver.setResolver(async (component, options, next) => {
     if (!isListLike(component) && !Identify.component.page(component)) {
       if (u.isArr(component.blueprint?.children)) {
         for (const childObject of component.blueprint.children) {
-          let child = createComponent(childObject, page)
+          let _page = Identify.component.page(component.parent)
+            ? component.parent.get('page')
+            : page || page
+          let child = createComponent(childObject, _page)
           child = component.createChild(child)
           child = await resolveComponents({
             callback,
             components: child,
             context,
-            page,
+            page: _page,
+            on: options.on,
           })
-          !cache.component.has(child) && cache.component.add(child, page)
+          !cache.component.has(child) && cache.component.add(child, _page)
         }
       }
     }
 
-    !cache.component.has(component) && cache.component.add(component, page)
+    !cache.component.has(component) && cache.component.add(component, _page)
   } catch (error) {
     console.error(error)
   }

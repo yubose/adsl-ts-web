@@ -843,12 +843,22 @@ class App {
       return this.ndom.render(page, {
         on: {
           actionChain: {
-            onBeforeInject: function (action) {
+            onExecuteStart() {
               debugger
+            },
+            onExecuteEnd() {
+              debugger
+            },
+            onBeforeInject: function (action) {
+              const isPossiblyGoto = (action: string | Record<string, any>) =>
+                u.isStr(action) || (u.isObj(action) && 'goto' in action)
+              // debugger
+              if (isPossiblyGoto(action)) {
+              }
             },
           },
           if: ({ page, value }) => {
-            debugger
+            // debugger
             if (u.isStr(value) && Identify.reference(value)) {
               const datapath = nu.trimReference(value)
               // debugger
@@ -862,7 +872,7 @@ class App {
             }
           },
           reference: (args) => {
-            debugger
+            // debugger
             log.func('on [reference]')
             log.grey('', args)
             const { page, value } = args

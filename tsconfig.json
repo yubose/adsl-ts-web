@@ -24,12 +24,11 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "skipLibCheck": true,
-    "noLib": true,
     "strict": true,
     "strictNullChecks": true,
     "target": "es2017"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "packages/**/*/src/**/*"],
   "exclude": [
     "_data",
     "docs",
