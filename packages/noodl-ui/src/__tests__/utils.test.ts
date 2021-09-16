@@ -1,10 +1,10 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
+import { waitFor } from '@testing-library/dom'
 import { coolGold, italic } from 'noodl-common'
 import * as n from '../utils/noodl'
 import { createDataKeyReference, ui } from '../utils/test-utils'
 import NUI from '../noodl-ui'
-import { waitFor } from '@testing-library/dom'
 
 /** REMINDER: Total components created should be 9 for this func */
 const getResolvedListComponentPreset = async () =>

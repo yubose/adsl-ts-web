@@ -41,7 +41,7 @@ export async function promiseAllSafely(
       result = getResult ? getResult(null, result) : result
       results.push(result)
     } catch (error) {
-      const err = new Error(error.message)
+      const err = error instanceof Error ? error : new Error(String(error))
       const result = getResult ? getResult(err, undefined) : err
       results.push(result)
     }

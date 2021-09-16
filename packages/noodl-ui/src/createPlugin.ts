@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
 import isComponent from './utils/isComponent'
 import * as t from './types'

@@ -40,7 +40,6 @@
     "updatenoodl": "node scripts/update.js -u noodl -d"
   },
   "dependencies": {
-    "@aitmed/cadl": "^1.0.374",
     "@jsmanifest/utils": "^1.0.17",
     "axios": "^0.21.1",
     "date-fns": "^2.21.2",
@@ -60,6 +59,7 @@
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
+    "@aitmed/cadl": "^1.0.375",
     "@aitmed/ecos-lvl2-sdk": "^1.4.154",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
@@ -96,6 +96,7 @@
     "crypto-browserify": "^3.12.0",
     "css-loader": "^5.2.6",
     "del": "^4.1.1",
+    "docusaurus": "^1.14.7",
     "dom-delegator": "^13.1.0",
     "dotenv": "^10.0.0",
     "esbuild": "^0.12.6",
@@ -103,6 +104,7 @@
     "eslint": "^7.28.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-prettier": "^3.4.0",
     "esm": "^3.2.25",
     "execa": "^5.1.1",
@@ -126,7 +128,7 @@
     "noodl-ui-test-utils": "file:packages/noodl-ui-test-utils",
     "noodl-webpack-plugin": "^0.0.13",
     "prettier": "^2.3.1",
-    "rollup": "^2.52.7",
+    "rollup": "^2.56.3",
     "rollup-plugin-filesize": "^9.0.2",
     "rollup-plugin-node-polyfills": "^0.2.1",
     "rollup-plugin-peer-deps-external": "^2.2.2",
@@ -139,6 +141,7 @@
     "snabbdom": "^0.7.2",
     "stream-browserify": "^3.0.0",
     "style-loader": "^2.0.0",
+    "testdouble": "^3.16.2",
     "ts-loader": "^9.2.2",
     "ts-mocha": "^8.0.0",
     "ts-node": "^10.0.0",
@@ -157,6 +160,7 @@
     "xstate": "^4.23.3",
     "yaml": "^2.0.0-5"
   },
+  "type": "module",
   "eslintConfig": {
     "globals": {
       "echarts": "readonly",
@@ -165,7 +169,7 @@
     "root": true,
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
-      "ecmaVersion": 7,
+      "ecmaVersion": 2021,
       "project": "./tsconfig.json",
       "sourceType": "module"
     },
@@ -175,7 +179,16 @@
       "prettier",
       "prettier/@typescript-eslint"
     ],
+    "ignorePatterns": [
+      "**/*.js",
+      "**/*.js.map",
+      "build",
+      "dist",
+      "generated",
+      "node_modules"
+    ],
     "plugins": [
+      "@typescript-eslint",
       "prettier"
     ],
     "env": {

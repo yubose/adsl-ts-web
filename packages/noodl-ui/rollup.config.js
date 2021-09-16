@@ -1,4 +1,3 @@
-import { RollupOptions } from 'rollup'
 import { DEFAULT_EXTENSIONS } from '@babel/core'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
@@ -14,14 +13,14 @@ const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 const _DEV_ = process.env.NODE_ENV === 'development'
 
 /**
- * @typedef { RollupOptions[] }
+ * @typedef { import('rollup').RollupOptions[] }
  */
 const configs = [
   {
     input: 'src/index.ts',
     output: [
       {
-        dir: 'dist',
+        dir: './dist',
         exports: 'named',
         format: 'umd',
         name: 'noodlui',

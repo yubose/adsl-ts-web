@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
@@ -5,7 +6,7 @@ import cache from './_cache'
 import isComponent from './utils/isComponent'
 import isViewport from './utils/isViewport'
 import NuiViewport from './Viewport'
-import NuiPage from './page'
+import NuiPage from './Page'
 import * as c from './constants'
 import * as t from './types'
 

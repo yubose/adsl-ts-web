@@ -1,11 +1,11 @@
 import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
+import { waitFor } from '@testing-library/dom'
 import { ComponentObject } from 'noodl-types'
 import { expect } from 'chai'
 import { coolGold } from 'noodl-common'
 import { ui } from '../../utils/test-utils'
 import NUI from '../../noodl-ui'
-import { waitFor } from '@testing-library/dom'
 
 async function resolveComponent(component: ComponentObject) {
   const page = NUI.createPage({

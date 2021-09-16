@@ -168,7 +168,7 @@ const NUI = (function () {
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = o.cache.actions.emit.get('path')?.[0]
         const iteratorVar =
-          opts?.context?.iteratorVar || findIteratorVar(component)
+          (opts as any)?.context?.iteratorVar || findIteratorVar(component)
         if (u.isFnc(obj?.fn)) {
           const emitAction = new EmitAction('path', args)
           if ('dataKey' in args.emit) {
@@ -177,7 +177,7 @@ const NUI = (function () {
               _getQueryObjects({
                 component,
                 page,
-                listDataObject: opts?.context?.dataObject,
+                listDataObject: (opts as any)?.dataObject,
               }),
               { iteratorVar },
             )
@@ -195,7 +195,7 @@ const NUI = (function () {
                   emitAction,
                   o.getConsumerOptions({
                     component,
-                    on: opts?.on,
+                    on: (opts as any)?.on,
                     page,
                     path: args,
                   }),
@@ -706,6 +706,7 @@ const NUI = (function () {
                 return Promise.all(
                   o.cache.register.get(event)?.callbacks?.map(async (cb) => {
                     if (isActionChain(cb)) {
+                      // @ts-expect-error
                       return cb?.execute?.call(cb, obj, params)
                     }
                     return u.isFnc(cb) ? await cb(obj, params) : cb
@@ -728,7 +729,9 @@ const NUI = (function () {
 
       return cache.register.set(event, register as t.Register.Object)
     } catch (error) {
-      console.error(`[${error.name}] ${error.message}`)
+      if (error instanceof Error) {
+        console.error(`[${error.name}] ${error.message}`)
+      } else console.error(error)
     }
   }
 
@@ -1026,6 +1029,7 @@ const NUI = (function () {
             return action
           })
         },
+        // @ts-expect-error
         _id,
       })
 
@@ -1124,6 +1128,7 @@ const NUI = (function () {
           )
         },
         createSrc(key: string, value: string | IfObject | EmitObjectFold) {
+          // @ts-expect-error
           return _createSrc({
             key,
             value,

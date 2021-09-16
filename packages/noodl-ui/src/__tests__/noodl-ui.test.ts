@@ -162,6 +162,7 @@ describe(italic(`createActionChain`), () => {
 
 describe(italic(`createComponent`), () => {
   it(`should add the component to the component cache`, () => {
+    // @ts-expect-error
     const component = nui.createComponent(ui.button())
     expect(nui.cache.component.has(component)).to.be.true
   })
@@ -497,22 +498,22 @@ describe(italic(`use`), () => {
     it(`should set the plugin id`, async () => {
       expect(
         (
-          await NUI.resolveComponents(ui.pluginBodyTail({ path: 'coffee.js' }))
+          await NUI.resolveComponents(ui.pluginBodyTail({ path: 'coffee' }))
         ).get('plugin'),
-      ).to.have.property('id', 'coffee.js')
+      ).to.have.property('id', 'coffee')
     })
 
     it(`should not do anything if the plugin was previously added`, async () => {
       expect(NUI.getPlugins('body-bottom').size).to.eq(0)
-      await NUI.resolveComponents(ui.pluginBodyTail({ path: 'coffee.js' }))
+      await NUI.resolveComponents(ui.pluginBodyTail({ path: 'coffee' }))
       expect(NUI.getPlugins('body-bottom').size).to.eq(1)
-      await NUI.resolveComponents(ui.pluginBodyTail({ path: 'coffee.js' }))
+      await NUI.resolveComponents(ui.pluginBodyTail({ path: 'coffee' }))
       expect(NUI.getPlugins('body-bottom').size).to.eq(1)
     })
 
     it(`should set the fetched plugin contents on the "content" property`, async () => {
       const component = await NUI.resolveComponents(
-        ui.plugin({ path: 'coffee.js' } as any),
+        ui.plugin({ path: 'coffee' } as any),
       )
       expect(component.has('content')).to.be.true
     })

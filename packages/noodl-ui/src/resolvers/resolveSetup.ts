@@ -40,7 +40,11 @@ setupResolver.setResolver(async function setupResolver(
           const getDataObject = () =>
             isLocal ? getRoot()[parentPage || ''] : getRoot()
 
-          const wrapGetter = function (key: string, styleKey?: string) {
+          const wrapGetter = function (
+            this: t.NuiComponent.Instance,
+            key: string,
+            styleKey?: string,
+          ) {
             if (key === 'path') {
               let value = get(getDataObject(), datapath) || ''
               if (nt.Identify.component.page(this)) {
@@ -52,7 +56,7 @@ setupResolver.setResolver(async function setupResolver(
                       nuiPage.id as string,
                     )?.component
                     if (pageComponent) {
-                      pageComponent.on?.PAGE_COMPONENTS?.forEach?.((fn) =>
+                      pageComponent.on?.['PAGE_COMPONENTS']?.forEach?.((fn) =>
                         fn?.({ page: nuiPage }),
                       )
                       // TODO - Make this emit a different event that has a

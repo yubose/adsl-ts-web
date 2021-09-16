@@ -1,13 +1,9 @@
 {
-  "ts-node": {
-    "transpileOnly": true
-  },
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "es2019"],
     "module": "commonjs",
-    "target": "es2020"
+    "target": "es2017"
   },
-  "extends": "../../tsconfig.json",
-  "exclude": ["node_modules"],
+  "extends": "./tsconfig.json",
   "include": ["src/**/*.test.ts"]
 }
