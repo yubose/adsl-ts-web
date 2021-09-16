@@ -42,6 +42,7 @@ const actionFactory = (function () {
     !obj && (obj = { actionType: 'evalObject', object: ifObject() })
     !('actionType' in obj) &&
       (obj = { actionType: 'evalObject', object: obj['object'] })
+    // @ts-expect-error
     return createActionObject_next('evalObject')({
       ...obj,
       object: obj['object'],

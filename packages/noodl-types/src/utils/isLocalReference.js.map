@@ -1,1 +1,0 @@
-{"version":3,"file":"isLocalReference.js","sourceRoot":"","sources":["isLocalReference.ts"],"names":[],"mappings":"AAEA;;;;;;GAMG;AAEH,MAAM,CAAC,OAAO,UAAU,gBAAgB,CACvC,CAAC,GAAG,EAAE;IAEN,IAAI,CAAC,CAAC,UAAU,CAAC,IAAI,CAAC;QAAE,OAAO,IAAI,CAAA;IACnC,IAAI,CAAC,CAAC,UAAU,CAAC,KAAK,CAAC;QAAE,OAAO,IAAI,CAAA;IACpC,OAAO,KAAK,CAAA;AACb,CAAC"}

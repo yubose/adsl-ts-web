@@ -1,9 +1,10 @@
 {
-  "packages": ["packages/*"],
-  "version": "independent",
   "command": {
     "bootstrap": {
       "hoist": true
     }
-  }
+  },
+  "ignore": ["docs", "nui", "noodl-ui-test-utils"],
+  "packages": ["packages/*"],
+  "version": "independent"
 }

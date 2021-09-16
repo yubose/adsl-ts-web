@@ -2,8 +2,9 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "declarationDir": "./dist",
-    "outDir": "./dist"
+    "module": "commonjs",
+    "outDir": "./dist",
+    "target": "es2017"
   },
-  "exclude": ["./src/**/*.test.ts"],
-  "include": ["./src/**/*"]
+  "include": ["./src"]
 }
