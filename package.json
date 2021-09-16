@@ -22,6 +22,7 @@
     "deploy:stable": "bash s3Deploy.sh build",
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "deploy:noodltest": "bash s3Deploy.sh build cadltest.aitmed.com",
+    "editor": "lerna exec --scope noodl-editor 'npm run start'",
     "start": "webpack serve --port 3000 --mode=development",
     "start:sample": "cross-env SAMPLE=true NODE_ENV=development HMR=true ECOS_ENV=TEST USE_DEV_PATHS=true webpack serve --port 3000 --mode=development",
     "start:stable": "cross-env NODE_ENV=production HMR=true ECOS_ENV=stable webpack serve --port 3000",
