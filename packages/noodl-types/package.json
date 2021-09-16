@@ -9,12 +9,12 @@
     "@types/lodash.get": "^4.4.6",
     "@types/lodash.has": "^4.5.6"
   },
-  "directories": {
-    "dist": "./dist"
-  },
   "engines": {
     "node": "14.x"
   },
+  "files": [
+    "./dist"
+  ],
   "gitHead": "c6d5712c14cedf5faf330797187ffff96b9ce6ee",
   "homepage": "",
   "license": "ISC",
@@ -44,5 +44,5 @@
     }
   },
   "typings": "./dist/index.d.ts",
-  "version": "1.0.186"
+  "version": "1.0.187"
 }
