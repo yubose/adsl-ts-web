@@ -29,10 +29,11 @@
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
   },
   "scripts": {
+    "prebuild": "rm -rf dist",
     "build": "tsc",
     "build:cjs": "tsc --outDir dist/cjs --project tsconfig.cjs.json",
     "build:esm": "tsc --outDir dist --project tsconfig.json",
-    "start": "rm -rf dist && tsc --watch",
+    "start": "tsc --watch",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r source-map-support/register --extensions ts --watch --watch-files src \"src/**/*.test.ts\""
   },
   "typesVersions": {
@@ -43,5 +44,5 @@
     }
   },
   "typings": "./dist/index.d.ts",
-  "version": "1.0.185"
+  "version": "1.0.186"
 }
