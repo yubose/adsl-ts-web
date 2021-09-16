@@ -1,27 +1,27 @@
-// const u = require('@jsmanifest/utils')
-// const fs = require('fs-extra')
-// const meow = require('meow')
-// const path = require('path')
-// const webpack = require('webpack')
-// const singleLog = require('single-line-log').stdout
-// const CircularDependencyPlugin = require('circular-dependency-plugin')
-// const CopyPlugin = require('copy-webpack-plugin')
-// const HtmlWebpackPlugin = require('html-webpack-plugin')
-// const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
-// const InjectBodyPlugin = require('inject-body-webpack-plugin').default
-// const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
-import webpack from 'webpack'
-import { createRequire } from 'module'
-import * as u from '@jsmanifest/utils'
-import meow from 'meow'
-import path from 'path'
-import singleLog from 'single-line-log'
-import CircularDependencyPlugin from 'circular-dependency-plugin'
-import CopyPlugin from 'copy-webpack-plugin'
-import HtmlWebpackPlugin from 'html-webpack-plugin'
-import HtmlWebpackHarddiskPlugin from 'html-webpack-harddisk-plugin'
-import InjectBodyWebpackPlugin from 'inject-body-webpack-plugin'
-import { InjectScriptsPlugin } from './scripts/InjectScriptsPlugin.js'
+const u = require('@jsmanifest/utils')
+const fs = require('fs-extra')
+const meow = require('meow')
+const path = require('path')
+const webpack = require('webpack')
+const singleLog = require('single-line-log').stdout
+const CircularDependencyPlugin = require('circular-dependency-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
+const InjectBodyPlugin = require('inject-body-webpack-plugin').default
+const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
+// import webpack from 'webpack'
+// import { createRequire } from 'module'
+// import * as u from '@jsmanifest/utils'
+// import meow from 'meow'
+// import path from 'path'
+// import singleLog from 'single-line-log'
+// import CircularDependencyPlugin from 'circular-dependency-plugin'
+// import CopyPlugin from 'copy-webpack-plugin'
+// import HtmlWebpackPlugin from 'html-webpack-plugin'
+// import HtmlWebpackHarddiskPlugin from 'html-webpack-harddisk-plugin'
+// import InjectBodyWebpackPlugin from 'inject-body-webpack-plugin'
+// import { InjectScriptsPlugin } from './scripts/InjectScriptsPlugin.js'
 
 const { default: InjectBodyPlugin } = InjectBodyWebpackPlugin
 const require = createRequire(import.meta.url)

@@ -1,11 +1,11 @@
 // Imported by webpack.config.js
-import HtmlWebpackPlugin from 'html-webpack-plugin'
-import fs from 'fs-extra'
-import path from 'path'
-// const { Compiler } = require('webpack')
-// const HtmlWebpackPlugin = require('html-webpack-plugin')
-// const fs = require('fs-extra')
-// const path = require('path')
+// import HtmlWebpackPlugin from 'html-webpack-plugin'
+// import fs from 'fs-extra'
+// import path from 'path'
+const { Compiler } = require('webpack')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const fs = require('fs-extra')
+const path = require('path')
 
 const pluginName = 'InjectScriptsPlugin'
 
