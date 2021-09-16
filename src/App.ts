@@ -12,7 +12,13 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { Identify, PageObject, ReferenceString } from 'noodl-types'
-import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
+import {
+  NUI,
+  NUIAction,
+  NUIActionChain,
+  Page as NUIPage,
+  Viewport as VP,
+} from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
@@ -30,6 +36,8 @@ import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
 import Spinner from './spinner'
+import { getSdkHelpers } from './handlers/sdk'
+import { NuiActionChain } from '../packages/nui/src'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
 import * as t from './app/types'
@@ -49,6 +57,7 @@ class App {
   #ndom: t.AppConstructorOptions['ndom']
   #parser: nu.Parser
   #spinner: InstanceType<typeof Spinner>
+  #sdkHelpers = getSdkHelpers(this)
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
@@ -510,39 +519,13 @@ class App {
         )
       }
 
-      let self = this
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
 
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, [], {
           ...(page.modifiers[pageRequesting] as any),
-          builtIn: {
-            EcosObj: {
-              download: extendedSdkBuiltIns.download.bind(this),
-            },
-            FCMOnTokenReceive: async (options?: any) => {
-              const token = await this.nui.emit({
-                type: 'register',
-                event: 'FCMOnTokenReceive',
-                params: options,
-              })
-              log.func('FCMOnTokenReceive')
-              log.grey(token)
-              return token
-            },
-            FCMOnTokenRefresh: this.notification?.supported
-              ? this.notification.messaging?.onTokenRefresh.bind(
-                  this.notification.messaging,
-                )
-              : undefined,
-            checkField: self.builtIns.get('checkField')?.find(Boolean)?.fn,
-            goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
-            hide: self.builtIns.get('hide')?.find(Boolean)?.fn,
-            show: self.builtIns.get('show')?.find(Boolean)?.fn,
-            redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
-            videoChat: extendedSdkBuiltIns.videoChat.bind(this),
-          },
+          builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
             log.func('onBeforeInit')
             log.grey('', { init, page: pageRequesting })
@@ -840,28 +823,14 @@ class App {
         }
         page = this.mainPage
       }
+
       return this.ndom.render(page, {
         on: {
-          actionChain: {
-            onExecuteStart() {
-              debugger
-            },
-            onExecuteEnd() {
-              debugger
-            },
-            onBeforeInject: function (action) {
-              const isPossiblyGoto = (action: string | Record<string, any>) =>
-                u.isStr(action) || (u.isObj(action) && 'goto' in action)
-              // debugger
-              if (isPossiblyGoto(action)) {
-              }
-            },
-          },
+          actionChain: {},
           if: ({ page, value }) => {
-            // debugger
+            debugger
             if (u.isStr(value) && Identify.reference(value)) {
               const datapath = nu.trimReference(value)
-              // debugger
               if (Identify.localKey(datapath)) {
                 if (page?.page) {
                   return get(this.root?.[page.page], datapath)
@@ -872,9 +841,9 @@ class App {
             }
           },
           reference: (args) => {
-            // debugger
             log.func('on [reference]')
             log.grey('', args)
+            debugger
             const { page, value } = args
             if (Identify.reference(value)) {
               const datapath = nu.trimReference(value)

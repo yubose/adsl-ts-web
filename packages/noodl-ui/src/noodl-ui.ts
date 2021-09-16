@@ -912,10 +912,13 @@ const NUI = (function () {
         context?: Record<string, any>
         on?: t.ResolveComponentOptions<any, any>['on']
         loadQueue?: boolean
+        id?: string
         page?: NUIPage
       },
+      id?: string,
     ) {
       if (!u.isArr(actions)) actions = [actions]
+      const _id = id || opts?.id || opts?.component?.id
 
       const actionChain = createActionChain({
         actions: u.reduce(
@@ -1023,12 +1026,11 @@ const NUI = (function () {
             return action
           })
         },
+        _id,
       })
 
       opts?.loadQueue && actionChain.loadQueue()
       opts?.on?.actionChain && actionChain.use(opts.on.actionChain)
-
-      window.ac?.push?.(actionChain)
 
       return actionChain
     },
@@ -1104,14 +1106,22 @@ const NUI = (function () {
             context: contextProp,
             loadQueue = true,
           }: { context?: Record<string, any>; loadQueue?: boolean } = {},
+          id?: string,
         ) {
-          return o.createActionChain(trigger, actions, {
-            loadQueue,
-            context: { ...context, ...contextProp },
-            component,
-            on,
-            page: getPage(page, component),
-          })
+          const _id = u.isStr(id) && id ? id || component?.id : component?.id
+          return o.createActionChain(
+            trigger,
+            actions,
+            {
+              context: { ...context, ...contextProp },
+              component,
+              loadQueue,
+              id: _id,
+              on,
+              page: getPage(page, component),
+            },
+            _id,
+          )
         },
         createSrc(key: string, value: string | IfObject | EmitObjectFold) {
           return _createSrc({

@@ -1,9 +1,9 @@
 import * as u from '@jsmanifest/utils'
 import { isAction, isActionChain } from 'noodl-action-chain'
 import { createAction } from 'noodl-ui'
+import { ActionHandlerArgs, MiddlewareFn } from '../../factories/actionFactory'
 import Logger from 'logsnap'
 import App from '../../App'
-import { ActionHandlerArgs, MiddlewareFn } from '../../factories/actionFactory'
 
 /**
  * This file contains middleware functions wrapping functions from
@@ -32,6 +32,7 @@ const registerMiddleware = function (app: App) {
         action: { actionType: 'goto', goto: args[0] },
         trigger: 'onClick',
       })
+
       log.func('handleInjections')
       log.green(
         `A goto destination of "${prevArgs[0]}" was dynamically injected into an action chain`,
@@ -39,6 +40,7 @@ const registerMiddleware = function (app: App) {
       )
     } else if (u.isObj(args[0]) && !isAction(args[0])) {
       const prevArgs = [...args]
+
       if ('destination' in args[0]) {
         // Dynamically injected plain objects as potential actions from lvl 2
         args[0] = createAction({

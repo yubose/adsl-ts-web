@@ -1,21 +1,53 @@
+import * as u from '@jsmanifest/utils'
+import Logger from 'logsnap'
 import App from '../App'
-import { onVideoChatBuiltIn } from './builtIns'
+import { extendedSdkBuiltIns } from './builtIns'
 
-export const createSdkBuiltIns = (app: App) => {
-  const o = {
-    FCMOnTokenReceive: app.registers.fn.FCMOnTokenReceive,
-    FCMOnTokenRefresh: app.registers.fn.FCMOnTokenRefresh,
+const log = Logger.create('sdk.ts')
+
+export function getSdkHelpers(app: App) {
+  const initPageBuiltIns = {
+    EcosObj: {
+      get download() {
+        return extendedSdkBuiltIns.download
+      },
+    },
+    async FCMOnTokenReceive(params?: any) {
+      // Returns the token
+      return app.nui.emit({
+        type: 'register',
+        event: 'FCMOnTokenReceive',
+        params,
+      })
+    },
+    get FCMOnTokenRefresh() {
+      return app.notification?.supported
+        ? app.notification.messaging?.onTokenRefresh.bind(
+            app.notification.messaging,
+          )
+        : undefined
+    },
     get checkField() {
-      return app.noodlui.getBuiltIns()?.checkField?.find?.(Boolean)?.fn
+      return app.builtIns.get('checkField')?.find(Boolean)?.fn
     },
     get goto() {
-      return app.noodlui.getBuiltIns()?.goto?.find?.(Boolean)?.fn
+      return app.builtIns.get('goto')?.find(Boolean)?.fn
     },
-    onNewMessageDisplay: app.getEnabledServices().firebase
-      ? app.messaging?.onMessage.bind(app.messaging)
-      : undefined,
-    videoChat: onVideoChatBuiltIn({ joinRoom: app.meeting.join }),
+    get hide() {
+      return app.builtIns.get('hide')?.find(Boolean)?.fn
+    },
+    get show() {
+      return app.builtIns.get('show')?.find(Boolean)?.fn
+    },
+    get redraw() {
+      return app.builtIns.get('redraw')?.find(Boolean)?.fn
+    },
+    get videoChat() {
+      return extendedSdkBuiltIns.videoChat.bind(app)
+    },
   }
 
-  return o
+  return {
+    initPageBuiltIns,
+  }
 }
