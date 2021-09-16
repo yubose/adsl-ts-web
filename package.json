@@ -39,7 +39,7 @@
     "updatenoodl": "node scripts/update.js -u noodl -d"
   },
   "dependencies": {
-    "@aitmed/cadl": "^1.0.374",
+    "@aitmed/cadl": "^1.0.375",
     "@jsmanifest/utils": "^1.0.17",
     "axios": "^0.21.1",
     "date-fns": "^2.21.2",
