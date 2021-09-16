@@ -9,7 +9,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
-const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
+const {InjectScriptsPlugin} = require('./scripts/InjectScriptsPlugin')
 // import webpack from 'webpack'
 // import { createRequire } from 'module'
 // import * as u from '@jsmanifest/utils'
@@ -23,8 +23,8 @@ const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 // import InjectBodyWebpackPlugin from 'inject-body-webpack-plugin'
 // import { InjectScriptsPlugin } from './scripts/InjectScriptsPlugin.js'
 
-const { default: InjectBodyPlugin } = InjectBodyWebpackPlugin
-const require = createRequire(import.meta.url)
+// const { default: InjectBodyPlugin } = InjectBodyWebpackPlugin
+// const require = createRequire(import.meta.url)
 
 // const { default: InjectScriptsPlugin } = _InjectScriptsPlugin_
 
@@ -169,7 +169,7 @@ const environmentPlugin = new webpack.EnvironmentPlugin(
 /**
  * @type { webpack.Configuration } webpackOptions
  */
-export default {
+module.exports = {
   entry: {
     main: [process.env.SAMPLE ? './src/sample.ts' : './src/index.ts'],
   },

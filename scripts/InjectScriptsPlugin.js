@@ -61,5 +61,5 @@ class InjectScriptsPlugin {
 
 // module.exports = InjectScriptsPlugin
 // exports.InjectScriptsPlugin = InjectScriptsPlugin
-export default InjectScriptsPlugin
-export { InjectScriptsPlugin }
+// export default InjectScriptsPlugin
+exports.InjectScriptsPlugin = InjectScriptsPlugin
