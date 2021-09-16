@@ -368,7 +368,9 @@ resolveStyles.setResolver(async (component, options, next) => {
   // HANDLING ARTBITRARY STYLES
   u.eachEntries(originalStyles, (styleKey, value) => {
     if (u.isStr(value)) {
-
+      if(styleKey==='bottom'){
+        edit({ [styleKey]: String(util.getSize(value, viewport.height)) })
+      }
       // Resolve vm and vh units
        if(value.endsWith('vw') || value.endsWith('vh')){
         const valueNum = parseFloat(value.substring(0,value.length-2))/100
