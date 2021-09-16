@@ -12,7 +12,6 @@ import NUI from '../../noodl-ui'
 import NUIPage from '../../Page'
 import Viewport from '../../Viewport'
 import * as c from '../../constants'
-import { ActionChain } from 'noodl-action-chain'
 
 const getRoot = (args?: Record<string, any>) => ({
   Hello: { components: [mock.getButtonComponent()] },
@@ -87,7 +86,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       page,
       callback: spy,
     })
-    await fs.writeJson('calls.json', spy.getCalls(), { spaces: 2 })
+    await fs.writeJson('callson', spy.getCalls(), { spaces: 2 })
     const expectedCallsInOrder = [
       { type: 'view' },
       { type: 'label' },

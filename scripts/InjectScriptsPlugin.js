@@ -1,8 +1,11 @@
 // Imported by webpack.config.js
-const { Compiler } = require('webpack')
-const HtmlWebpackPlugin = require('html-webpack-plugin')
-const fs = require('fs-extra')
-const path = require('path')
+import HtmlWebpackPlugin from 'html-webpack-plugin'
+import fs from 'fs-extra'
+import path from 'path'
+// const { Compiler } = require('webpack')
+// const HtmlWebpackPlugin = require('html-webpack-plugin')
+// const fs = require('fs-extra')
+// const path = require('path')
 
 const pluginName = 'InjectScriptsPlugin'
 
@@ -32,7 +35,7 @@ class InjectScriptsPlugin {
     this.path = pathProp
   }
 
-  /** @param { Compiler } compiler */
+  /** @param { import('webpack').Compiler } compiler */
   apply(compiler) {
     compiler.hooks.compilation.tap(
       InjectScriptsPlugin.pluginName,
@@ -56,4 +59,7 @@ class InjectScriptsPlugin {
   }
 }
 
-module.exports = InjectScriptsPlugin
+// module.exports = InjectScriptsPlugin
+// exports.InjectScriptsPlugin = InjectScriptsPlugin
+export default InjectScriptsPlugin
+export { InjectScriptsPlugin }

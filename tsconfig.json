@@ -1,4 +1,7 @@
 {
+  "ts-node": {
+    "transpileOnly": true
+  },
   "typedocOptions": {
     "entryPoints": [
       "./packages/noodl-ui/tsconfig.json",
