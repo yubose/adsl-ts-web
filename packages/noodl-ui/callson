@@ -1,0 +1,1622 @@
+[
+  {
+    "args": [
+      {
+        "children": [
+          {
+            "viewTag": "labelTagAboveList",
+            "text": "Hello",
+            "type": "label",
+            "style": {
+              "position": "relative",
+              "outline": "none",
+              "height": "auto"
+            },
+            "data-viewtag": "labelTagAboveList",
+            "data-ux": "labelTagAboveList",
+            "id": "_zfpso7ha2",
+            "parentId": "_hqt48hv84",
+            "children": []
+          },
+          {
+            "listObject": [
+              {
+                "fruit": "apple"
+              },
+              {
+                "fruit": "berry"
+              }
+            ],
+            "contentType": "listObject",
+            "iteratorVar": "itemObject",
+            "children": [
+              {
+                "style": {
+                  "left": "0px",
+                  "position": "relative",
+                  "outline": "none",
+                  "height": "auto",
+                  "borderStyle": "none",
+                  "borderRadius": "0px",
+                  "listStyle": "none",
+                  "padding": 0
+                },
+                "children": [
+                  {
+                    "text": "Hello",
+                    "type": "label",
+                    "style": {
+                      "position": "relative",
+                      "outline": "none",
+                      "height": "auto"
+                    },
+                    "data-value": "apple",
+                    "data-key": "itemObject.fruit",
+                    "data-name": "fruit",
+                    "id": "_yl6ewrlab",
+                    "parentId": "_mogun7ghl",
+                    "children": []
+                  },
+                  {
+                    "placeholder": "Edit fruit",
+                    "type": "textField",
+                    "style": {
+                      "position": "relative",
+                      "outline": "none",
+                      "height": "auto"
+                    },
+                    "data-value": "apple",
+                    "data-key": "itemObject.fruit",
+                    "data-name": "fruit",
+                    "id": "_4iweluj5r",
+                    "parentId": "_mogun7ghl",
+                    "children": []
+                  }
+                ],
+                "viewTag": "listItemTag",
+                "itemObject": {
+                  "fruit": "apple"
+                },
+                "type": "listItem",
+                "index": 0,
+                "data-viewtag": "listItemTag",
+                "data-ux": "listItemTag",
+                "id": "_mogun7ghl",
+                "parentId": "_nwkeckjkz"
+              },
+              {
+                "style": {
+                  "left": "0px",
+                  "position": "relative",
+                  "outline": "none",
+                  "height": "auto",
+                  "borderStyle": "none",
+                  "borderRadius": "0px",
+                  "listStyle": "none",
+                  "padding": 0
+                },
+                "children": [
+                  {
+                    "text": "Hello",
+                    "type": "label",
+                    "style": {
+                      "position": "relative",
+                      "outline": "none",
+                      "height": "auto"
+                    },
+                    "data-value": "berry",
+                    "data-key": "itemObject.fruit",
+                    "data-name": "fruit",
+                    "id": "_mawqaer4q",
+                    "parentId": "_zdkq9ahs8",
+                    "children": []
+                  },
+                  {
+                    "placeholder": "Edit fruit",
+                    "type": "textField",
+                    "style": {
+                      "position": "relative",
+                      "outline": "none",
+                      "height": "auto"
+                    },
+                    "data-value": "berry",
+                    "data-key": "itemObject.fruit",
+                    "data-name": "fruit",
+                    "id": "_3d56rpc6h",
+                    "parentId": "_zdkq9ahs8",
+                    "children": []
+                  }
+                ],
+                "viewTag": "listItemTag",
+                "itemObject": {
+                  "fruit": "berry"
+                },
+                "type": "listItem",
+                "index": 1,
+                "data-viewtag": "listItemTag",
+                "data-ux": "listItemTag",
+                "id": "_zdkq9ahs8",
+                "parentId": "_nwkeckjkz"
+              }
+            ],
+            "type": "list",
+            "style": {
+              "position": "relative",
+              "outline": "none",
+              "height": "auto",
+              "display": "block",
+              "listStyle": "none",
+              "padding": "0px"
+            },
+            "data-listid": "_nwkeckjkz",
+            "id": "_nwkeckjkz",
+            "parentId": "_hqt48hv84"
+          }
+        ],
+        "type": "view",
+        "style": {
+          "position": "relative",
+          "outline": "none",
+          "height": "auto"
+        },
+        "id": "_hqt48hv84",
+        "parentId": null
+      }
+    ],
+    "firstArg": {
+      "children": [
+        {
+          "viewTag": "labelTagAboveList",
+          "text": "Hello",
+          "type": "label",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-viewtag": "labelTagAboveList",
+          "data-ux": "labelTagAboveList",
+          "id": "_zfpso7ha2",
+          "parentId": "_hqt48hv84",
+          "children": []
+        },
+        {
+          "listObject": [
+            {
+              "fruit": "apple"
+            },
+            {
+              "fruit": "berry"
+            }
+          ],
+          "contentType": "listObject",
+          "iteratorVar": "itemObject",
+          "children": [
+            {
+              "style": {
+                "left": "0px",
+                "position": "relative",
+                "outline": "none",
+                "height": "auto",
+                "borderStyle": "none",
+                "borderRadius": "0px",
+                "listStyle": "none",
+                "padding": 0
+              },
+              "children": [
+                {
+                  "text": "Hello",
+                  "type": "label",
+                  "style": {
+                    "position": "relative",
+                    "outline": "none",
+                    "height": "auto"
+                  },
+                  "data-value": "apple",
+                  "data-key": "itemObject.fruit",
+                  "data-name": "fruit",
+                  "id": "_yl6ewrlab",
+                  "parentId": "_mogun7ghl",
+                  "children": []
+                },
+                {
+                  "placeholder": "Edit fruit",
+                  "type": "textField",
+                  "style": {
+                    "position": "relative",
+                    "outline": "none",
+                    "height": "auto"
+                  },
+                  "data-value": "apple",
+                  "data-key": "itemObject.fruit",
+                  "data-name": "fruit",
+                  "id": "_4iweluj5r",
+                  "parentId": "_mogun7ghl",
+                  "children": []
+                }
+              ],
+              "viewTag": "listItemTag",
+              "itemObject": {
+                "fruit": "apple"
+              },
+              "type": "listItem",
+              "index": 0,
+              "data-viewtag": "listItemTag",
+              "data-ux": "listItemTag",
+              "id": "_mogun7ghl",
+              "parentId": "_nwkeckjkz"
+            },
+            {
+              "style": {
+                "left": "0px",
+                "position": "relative",
+                "outline": "none",
+                "height": "auto",
+                "borderStyle": "none",
+                "borderRadius": "0px",
+                "listStyle": "none",
+                "padding": 0
+              },
+              "children": [
+                {
+                  "text": "Hello",
+                  "type": "label",
+                  "style": {
+                    "position": "relative",
+                    "outline": "none",
+                    "height": "auto"
+                  },
+                  "data-value": "berry",
+                  "data-key": "itemObject.fruit",
+                  "data-name": "fruit",
+                  "id": "_mawqaer4q",
+                  "parentId": "_zdkq9ahs8",
+                  "children": []
+                },
+                {
+                  "placeholder": "Edit fruit",
+                  "type": "textField",
+                  "style": {
+                    "position": "relative",
+                    "outline": "none",
+                    "height": "auto"
+                  },
+                  "data-value": "berry",
+                  "data-key": "itemObject.fruit",
+                  "data-name": "fruit",
+                  "id": "_3d56rpc6h",
+                  "parentId": "_zdkq9ahs8",
+                  "children": []
+                }
+              ],
+              "viewTag": "listItemTag",
+              "itemObject": {
+                "fruit": "berry"
+              },
+              "type": "listItem",
+              "index": 1,
+              "data-viewtag": "listItemTag",
+              "data-ux": "listItemTag",
+              "id": "_zdkq9ahs8",
+              "parentId": "_nwkeckjkz"
+            }
+          ],
+          "type": "list",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto",
+            "display": "block",
+            "listStyle": "none",
+            "padding": "0px"
+          },
+          "data-listid": "_nwkeckjkz",
+          "id": "_nwkeckjkz",
+          "parentId": "_hqt48hv84"
+        }
+      ],
+      "type": "view",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "id": "_hqt48hv84",
+      "parentId": null
+    },
+    "lastArg": {
+      "children": [
+        {
+          "viewTag": "labelTagAboveList",
+          "text": "Hello",
+          "type": "label",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-viewtag": "labelTagAboveList",
+          "data-ux": "labelTagAboveList",
+          "id": "_zfpso7ha2",
+          "parentId": "_hqt48hv84",
+          "children": []
+        },
+        {
+          "listObject": [
+            {
+              "fruit": "apple"
+            },
+            {
+              "fruit": "berry"
+            }
+          ],
+          "contentType": "listObject",
+          "iteratorVar": "itemObject",
+          "children": [
+            {
+              "style": {
+                "left": "0px",
+                "position": "relative",
+                "outline": "none",
+                "height": "auto",
+                "borderStyle": "none",
+                "borderRadius": "0px",
+                "listStyle": "none",
+                "padding": 0
+              },
+              "children": [
+                {
+                  "text": "Hello",
+                  "type": "label",
+                  "style": {
+                    "position": "relative",
+                    "outline": "none",
+                    "height": "auto"
+                  },
+                  "data-value": "apple",
+                  "data-key": "itemObject.fruit",
+                  "data-name": "fruit",
+                  "id": "_yl6ewrlab",
+                  "parentId": "_mogun7ghl",
+                  "children": []
+                },
+                {
+                  "placeholder": "Edit fruit",
+                  "type": "textField",
+                  "style": {
+                    "position": "relative",
+                    "outline": "none",
+                    "height": "auto"
+                  },
+                  "data-value": "apple",
+                  "data-key": "itemObject.fruit",
+                  "data-name": "fruit",
+                  "id": "_4iweluj5r",
+                  "parentId": "_mogun7ghl",
+                  "children": []
+                }
+              ],
+              "viewTag": "listItemTag",
+              "itemObject": {
+                "fruit": "apple"
+              },
+              "type": "listItem",
+              "index": 0,
+              "data-viewtag": "listItemTag",
+              "data-ux": "listItemTag",
+              "id": "_mogun7ghl",
+              "parentId": "_nwkeckjkz"
+            },
+            {
+              "style": {
+                "left": "0px",
+                "position": "relative",
+                "outline": "none",
+                "height": "auto",
+                "borderStyle": "none",
+                "borderRadius": "0px",
+                "listStyle": "none",
+                "padding": 0
+              },
+              "children": [
+                {
+                  "text": "Hello",
+                  "type": "label",
+                  "style": {
+                    "position": "relative",
+                    "outline": "none",
+                    "height": "auto"
+                  },
+                  "data-value": "berry",
+                  "data-key": "itemObject.fruit",
+                  "data-name": "fruit",
+                  "id": "_mawqaer4q",
+                  "parentId": "_zdkq9ahs8",
+                  "children": []
+                },
+                {
+                  "placeholder": "Edit fruit",
+                  "type": "textField",
+                  "style": {
+                    "position": "relative",
+                    "outline": "none",
+                    "height": "auto"
+                  },
+                  "data-value": "berry",
+                  "data-key": "itemObject.fruit",
+                  "data-name": "fruit",
+                  "id": "_3d56rpc6h",
+                  "parentId": "_zdkq9ahs8",
+                  "children": []
+                }
+              ],
+              "viewTag": "listItemTag",
+              "itemObject": {
+                "fruit": "berry"
+              },
+              "type": "listItem",
+              "index": 1,
+              "data-viewtag": "listItemTag",
+              "data-ux": "listItemTag",
+              "id": "_zdkq9ahs8",
+              "parentId": "_nwkeckjkz"
+            }
+          ],
+          "type": "list",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto",
+            "display": "block",
+            "listStyle": "none",
+            "padding": "0px"
+          },
+          "data-listid": "_nwkeckjkz",
+          "id": "_nwkeckjkz",
+          "parentId": "_hqt48hv84"
+        }
+      ],
+      "type": "view",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "id": "_hqt48hv84",
+      "parentId": null
+    },
+    "callId": 42963,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "viewTag": "labelTagAboveList",
+        "text": "Hello",
+        "type": "label",
+        "style": {
+          "position": "relative",
+          "outline": "none",
+          "height": "auto"
+        },
+        "data-viewtag": "labelTagAboveList",
+        "data-ux": "labelTagAboveList",
+        "id": "_zfpso7ha2",
+        "parentId": "_hqt48hv84",
+        "children": []
+      }
+    ],
+    "firstArg": {
+      "viewTag": "labelTagAboveList",
+      "text": "Hello",
+      "type": "label",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-viewtag": "labelTagAboveList",
+      "data-ux": "labelTagAboveList",
+      "id": "_zfpso7ha2",
+      "parentId": "_hqt48hv84",
+      "children": []
+    },
+    "lastArg": {
+      "viewTag": "labelTagAboveList",
+      "text": "Hello",
+      "type": "label",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-viewtag": "labelTagAboveList",
+      "data-ux": "labelTagAboveList",
+      "id": "_zfpso7ha2",
+      "parentId": "_hqt48hv84",
+      "children": []
+    },
+    "callId": 42966,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "listObject": [
+          {
+            "fruit": "apple"
+          },
+          {
+            "fruit": "berry"
+          }
+        ],
+        "contentType": "listObject",
+        "iteratorVar": "itemObject",
+        "children": [
+          {
+            "style": {
+              "left": "0px",
+              "position": "relative",
+              "outline": "none",
+              "height": "auto",
+              "borderStyle": "none",
+              "borderRadius": "0px",
+              "listStyle": "none",
+              "padding": 0
+            },
+            "children": [
+              {
+                "text": "Hello",
+                "type": "label",
+                "style": {
+                  "position": "relative",
+                  "outline": "none",
+                  "height": "auto"
+                },
+                "data-value": "apple",
+                "data-key": "itemObject.fruit",
+                "data-name": "fruit",
+                "id": "_yl6ewrlab",
+                "parentId": "_mogun7ghl",
+                "children": []
+              },
+              {
+                "placeholder": "Edit fruit",
+                "type": "textField",
+                "style": {
+                  "position": "relative",
+                  "outline": "none",
+                  "height": "auto"
+                },
+                "data-value": "apple",
+                "data-key": "itemObject.fruit",
+                "data-name": "fruit",
+                "id": "_4iweluj5r",
+                "parentId": "_mogun7ghl",
+                "children": []
+              }
+            ],
+            "viewTag": "listItemTag",
+            "itemObject": {
+              "fruit": "apple"
+            },
+            "type": "listItem",
+            "index": 0,
+            "data-viewtag": "listItemTag",
+            "data-ux": "listItemTag",
+            "id": "_mogun7ghl",
+            "parentId": "_nwkeckjkz"
+          },
+          {
+            "style": {
+              "left": "0px",
+              "position": "relative",
+              "outline": "none",
+              "height": "auto",
+              "borderStyle": "none",
+              "borderRadius": "0px",
+              "listStyle": "none",
+              "padding": 0
+            },
+            "children": [
+              {
+                "text": "Hello",
+                "type": "label",
+                "style": {
+                  "position": "relative",
+                  "outline": "none",
+                  "height": "auto"
+                },
+                "data-value": "berry",
+                "data-key": "itemObject.fruit",
+                "data-name": "fruit",
+                "id": "_mawqaer4q",
+                "parentId": "_zdkq9ahs8",
+                "children": []
+              },
+              {
+                "placeholder": "Edit fruit",
+                "type": "textField",
+                "style": {
+                  "position": "relative",
+                  "outline": "none",
+                  "height": "auto"
+                },
+                "data-value": "berry",
+                "data-key": "itemObject.fruit",
+                "data-name": "fruit",
+                "id": "_3d56rpc6h",
+                "parentId": "_zdkq9ahs8",
+                "children": []
+              }
+            ],
+            "viewTag": "listItemTag",
+            "itemObject": {
+              "fruit": "berry"
+            },
+            "type": "listItem",
+            "index": 1,
+            "data-viewtag": "listItemTag",
+            "data-ux": "listItemTag",
+            "id": "_zdkq9ahs8",
+            "parentId": "_nwkeckjkz"
+          }
+        ],
+        "type": "list",
+        "style": {
+          "position": "relative",
+          "outline": "none",
+          "height": "auto",
+          "display": "block",
+          "listStyle": "none",
+          "padding": "0px"
+        },
+        "data-listid": "_nwkeckjkz",
+        "id": "_nwkeckjkz",
+        "parentId": "_hqt48hv84"
+      }
+    ],
+    "firstArg": {
+      "listObject": [
+        {
+          "fruit": "apple"
+        },
+        {
+          "fruit": "berry"
+        }
+      ],
+      "contentType": "listObject",
+      "iteratorVar": "itemObject",
+      "children": [
+        {
+          "style": {
+            "left": "0px",
+            "position": "relative",
+            "outline": "none",
+            "height": "auto",
+            "borderStyle": "none",
+            "borderRadius": "0px",
+            "listStyle": "none",
+            "padding": 0
+          },
+          "children": [
+            {
+              "text": "Hello",
+              "type": "label",
+              "style": {
+                "position": "relative",
+                "outline": "none",
+                "height": "auto"
+              },
+              "data-value": "apple",
+              "data-key": "itemObject.fruit",
+              "data-name": "fruit",
+              "id": "_yl6ewrlab",
+              "parentId": "_mogun7ghl",
+              "children": []
+            },
+            {
+              "placeholder": "Edit fruit",
+              "type": "textField",
+              "style": {
+                "position": "relative",
+                "outline": "none",
+                "height": "auto"
+              },
+              "data-value": "apple",
+              "data-key": "itemObject.fruit",
+              "data-name": "fruit",
+              "id": "_4iweluj5r",
+              "parentId": "_mogun7ghl",
+              "children": []
+            }
+          ],
+          "viewTag": "listItemTag",
+          "itemObject": {
+            "fruit": "apple"
+          },
+          "type": "listItem",
+          "index": 0,
+          "data-viewtag": "listItemTag",
+          "data-ux": "listItemTag",
+          "id": "_mogun7ghl",
+          "parentId": "_nwkeckjkz"
+        },
+        {
+          "style": {
+            "left": "0px",
+            "position": "relative",
+            "outline": "none",
+            "height": "auto",
+            "borderStyle": "none",
+            "borderRadius": "0px",
+            "listStyle": "none",
+            "padding": 0
+          },
+          "children": [
+            {
+              "text": "Hello",
+              "type": "label",
+              "style": {
+                "position": "relative",
+                "outline": "none",
+                "height": "auto"
+              },
+              "data-value": "berry",
+              "data-key": "itemObject.fruit",
+              "data-name": "fruit",
+              "id": "_mawqaer4q",
+              "parentId": "_zdkq9ahs8",
+              "children": []
+            },
+            {
+              "placeholder": "Edit fruit",
+              "type": "textField",
+              "style": {
+                "position": "relative",
+                "outline": "none",
+                "height": "auto"
+              },
+              "data-value": "berry",
+              "data-key": "itemObject.fruit",
+              "data-name": "fruit",
+              "id": "_3d56rpc6h",
+              "parentId": "_zdkq9ahs8",
+              "children": []
+            }
+          ],
+          "viewTag": "listItemTag",
+          "itemObject": {
+            "fruit": "berry"
+          },
+          "type": "listItem",
+          "index": 1,
+          "data-viewtag": "listItemTag",
+          "data-ux": "listItemTag",
+          "id": "_zdkq9ahs8",
+          "parentId": "_nwkeckjkz"
+        }
+      ],
+      "type": "list",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto",
+        "display": "block",
+        "listStyle": "none",
+        "padding": "0px"
+      },
+      "data-listid": "_nwkeckjkz",
+      "id": "_nwkeckjkz",
+      "parentId": "_hqt48hv84"
+    },
+    "lastArg": {
+      "listObject": [
+        {
+          "fruit": "apple"
+        },
+        {
+          "fruit": "berry"
+        }
+      ],
+      "contentType": "listObject",
+      "iteratorVar": "itemObject",
+      "children": [
+        {
+          "style": {
+            "left": "0px",
+            "position": "relative",
+            "outline": "none",
+            "height": "auto",
+            "borderStyle": "none",
+            "borderRadius": "0px",
+            "listStyle": "none",
+            "padding": 0
+          },
+          "children": [
+            {
+              "text": "Hello",
+              "type": "label",
+              "style": {
+                "position": "relative",
+                "outline": "none",
+                "height": "auto"
+              },
+              "data-value": "apple",
+              "data-key": "itemObject.fruit",
+              "data-name": "fruit",
+              "id": "_yl6ewrlab",
+              "parentId": "_mogun7ghl",
+              "children": []
+            },
+            {
+              "placeholder": "Edit fruit",
+              "type": "textField",
+              "style": {
+                "position": "relative",
+                "outline": "none",
+                "height": "auto"
+              },
+              "data-value": "apple",
+              "data-key": "itemObject.fruit",
+              "data-name": "fruit",
+              "id": "_4iweluj5r",
+              "parentId": "_mogun7ghl",
+              "children": []
+            }
+          ],
+          "viewTag": "listItemTag",
+          "itemObject": {
+            "fruit": "apple"
+          },
+          "type": "listItem",
+          "index": 0,
+          "data-viewtag": "listItemTag",
+          "data-ux": "listItemTag",
+          "id": "_mogun7ghl",
+          "parentId": "_nwkeckjkz"
+        },
+        {
+          "style": {
+            "left": "0px",
+            "position": "relative",
+            "outline": "none",
+            "height": "auto",
+            "borderStyle": "none",
+            "borderRadius": "0px",
+            "listStyle": "none",
+            "padding": 0
+          },
+          "children": [
+            {
+              "text": "Hello",
+              "type": "label",
+              "style": {
+                "position": "relative",
+                "outline": "none",
+                "height": "auto"
+              },
+              "data-value": "berry",
+              "data-key": "itemObject.fruit",
+              "data-name": "fruit",
+              "id": "_mawqaer4q",
+              "parentId": "_zdkq9ahs8",
+              "children": []
+            },
+            {
+              "placeholder": "Edit fruit",
+              "type": "textField",
+              "style": {
+                "position": "relative",
+                "outline": "none",
+                "height": "auto"
+              },
+              "data-value": "berry",
+              "data-key": "itemObject.fruit",
+              "data-name": "fruit",
+              "id": "_3d56rpc6h",
+              "parentId": "_zdkq9ahs8",
+              "children": []
+            }
+          ],
+          "viewTag": "listItemTag",
+          "itemObject": {
+            "fruit": "berry"
+          },
+          "type": "listItem",
+          "index": 1,
+          "data-viewtag": "listItemTag",
+          "data-ux": "listItemTag",
+          "id": "_zdkq9ahs8",
+          "parentId": "_nwkeckjkz"
+        }
+      ],
+      "type": "list",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto",
+        "display": "block",
+        "listStyle": "none",
+        "padding": "0px"
+      },
+      "data-listid": "_nwkeckjkz",
+      "id": "_nwkeckjkz",
+      "parentId": "_hqt48hv84"
+    },
+    "callId": 42969,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "style": {
+          "left": "0px",
+          "position": "relative",
+          "outline": "none",
+          "height": "auto",
+          "borderStyle": "none",
+          "borderRadius": "0px",
+          "listStyle": "none",
+          "padding": 0
+        },
+        "children": [
+          {
+            "text": "Hello",
+            "type": "label",
+            "style": {
+              "position": "relative",
+              "outline": "none",
+              "height": "auto"
+            },
+            "data-value": "apple",
+            "data-key": "itemObject.fruit",
+            "data-name": "fruit",
+            "id": "_yl6ewrlab",
+            "parentId": "_mogun7ghl",
+            "children": []
+          },
+          {
+            "placeholder": "Edit fruit",
+            "type": "textField",
+            "style": {
+              "position": "relative",
+              "outline": "none",
+              "height": "auto"
+            },
+            "data-value": "apple",
+            "data-key": "itemObject.fruit",
+            "data-name": "fruit",
+            "id": "_4iweluj5r",
+            "parentId": "_mogun7ghl",
+            "children": []
+          }
+        ],
+        "viewTag": "listItemTag",
+        "itemObject": {
+          "fruit": "apple"
+        },
+        "type": "listItem",
+        "index": 0,
+        "data-viewtag": "listItemTag",
+        "data-ux": "listItemTag",
+        "id": "_mogun7ghl",
+        "parentId": "_nwkeckjkz"
+      }
+    ],
+    "firstArg": {
+      "style": {
+        "left": "0px",
+        "position": "relative",
+        "outline": "none",
+        "height": "auto",
+        "borderStyle": "none",
+        "borderRadius": "0px",
+        "listStyle": "none",
+        "padding": 0
+      },
+      "children": [
+        {
+          "text": "Hello",
+          "type": "label",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-value": "apple",
+          "data-key": "itemObject.fruit",
+          "data-name": "fruit",
+          "id": "_yl6ewrlab",
+          "parentId": "_mogun7ghl",
+          "children": []
+        },
+        {
+          "placeholder": "Edit fruit",
+          "type": "textField",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-value": "apple",
+          "data-key": "itemObject.fruit",
+          "data-name": "fruit",
+          "id": "_4iweluj5r",
+          "parentId": "_mogun7ghl",
+          "children": []
+        }
+      ],
+      "viewTag": "listItemTag",
+      "itemObject": {
+        "fruit": "apple"
+      },
+      "type": "listItem",
+      "index": 0,
+      "data-viewtag": "listItemTag",
+      "data-ux": "listItemTag",
+      "id": "_mogun7ghl",
+      "parentId": "_nwkeckjkz"
+    },
+    "lastArg": {
+      "style": {
+        "left": "0px",
+        "position": "relative",
+        "outline": "none",
+        "height": "auto",
+        "borderStyle": "none",
+        "borderRadius": "0px",
+        "listStyle": "none",
+        "padding": 0
+      },
+      "children": [
+        {
+          "text": "Hello",
+          "type": "label",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-value": "apple",
+          "data-key": "itemObject.fruit",
+          "data-name": "fruit",
+          "id": "_yl6ewrlab",
+          "parentId": "_mogun7ghl",
+          "children": []
+        },
+        {
+          "placeholder": "Edit fruit",
+          "type": "textField",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-value": "apple",
+          "data-key": "itemObject.fruit",
+          "data-name": "fruit",
+          "id": "_4iweluj5r",
+          "parentId": "_mogun7ghl",
+          "children": []
+        }
+      ],
+      "viewTag": "listItemTag",
+      "itemObject": {
+        "fruit": "apple"
+      },
+      "type": "listItem",
+      "index": 0,
+      "data-viewtag": "listItemTag",
+      "data-ux": "listItemTag",
+      "id": "_mogun7ghl",
+      "parentId": "_nwkeckjkz"
+    },
+    "callId": 42972,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "text": "Hello",
+        "type": "label",
+        "style": {
+          "position": "relative",
+          "outline": "none",
+          "height": "auto"
+        },
+        "data-value": "apple",
+        "data-key": "itemObject.fruit",
+        "data-name": "fruit",
+        "id": "_yl6ewrlab",
+        "parentId": "_mogun7ghl",
+        "children": []
+      }
+    ],
+    "firstArg": {
+      "text": "Hello",
+      "type": "label",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-value": "apple",
+      "data-key": "itemObject.fruit",
+      "data-name": "fruit",
+      "id": "_yl6ewrlab",
+      "parentId": "_mogun7ghl",
+      "children": []
+    },
+    "lastArg": {
+      "text": "Hello",
+      "type": "label",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-value": "apple",
+      "data-key": "itemObject.fruit",
+      "data-name": "fruit",
+      "id": "_yl6ewrlab",
+      "parentId": "_mogun7ghl",
+      "children": []
+    },
+    "callId": 42975,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "placeholder": "Edit fruit",
+        "type": "textField",
+        "style": {
+          "position": "relative",
+          "outline": "none",
+          "height": "auto"
+        },
+        "data-value": "apple",
+        "data-key": "itemObject.fruit",
+        "data-name": "fruit",
+        "id": "_4iweluj5r",
+        "parentId": "_mogun7ghl",
+        "children": []
+      }
+    ],
+    "firstArg": {
+      "placeholder": "Edit fruit",
+      "type": "textField",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-value": "apple",
+      "data-key": "itemObject.fruit",
+      "data-name": "fruit",
+      "id": "_4iweluj5r",
+      "parentId": "_mogun7ghl",
+      "children": []
+    },
+    "lastArg": {
+      "placeholder": "Edit fruit",
+      "type": "textField",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-value": "apple",
+      "data-key": "itemObject.fruit",
+      "data-name": "fruit",
+      "id": "_4iweluj5r",
+      "parentId": "_mogun7ghl",
+      "children": []
+    },
+    "callId": 42978,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "style": {
+          "left": "0px",
+          "position": "relative",
+          "outline": "none",
+          "height": "auto",
+          "borderStyle": "none",
+          "borderRadius": "0px",
+          "listStyle": "none",
+          "padding": 0
+        },
+        "children": [
+          {
+            "text": "Hello",
+            "type": "label",
+            "style": {
+              "position": "relative",
+              "outline": "none",
+              "height": "auto"
+            },
+            "data-value": "berry",
+            "data-key": "itemObject.fruit",
+            "data-name": "fruit",
+            "id": "_mawqaer4q",
+            "parentId": "_zdkq9ahs8",
+            "children": []
+          },
+          {
+            "placeholder": "Edit fruit",
+            "type": "textField",
+            "style": {
+              "position": "relative",
+              "outline": "none",
+              "height": "auto"
+            },
+            "data-value": "berry",
+            "data-key": "itemObject.fruit",
+            "data-name": "fruit",
+            "id": "_3d56rpc6h",
+            "parentId": "_zdkq9ahs8",
+            "children": []
+          }
+        ],
+        "viewTag": "listItemTag",
+        "itemObject": {
+          "fruit": "berry"
+        },
+        "type": "listItem",
+        "index": 1,
+        "data-viewtag": "listItemTag",
+        "data-ux": "listItemTag",
+        "id": "_zdkq9ahs8",
+        "parentId": "_nwkeckjkz"
+      }
+    ],
+    "firstArg": {
+      "style": {
+        "left": "0px",
+        "position": "relative",
+        "outline": "none",
+        "height": "auto",
+        "borderStyle": "none",
+        "borderRadius": "0px",
+        "listStyle": "none",
+        "padding": 0
+      },
+      "children": [
+        {
+          "text": "Hello",
+          "type": "label",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-value": "berry",
+          "data-key": "itemObject.fruit",
+          "data-name": "fruit",
+          "id": "_mawqaer4q",
+          "parentId": "_zdkq9ahs8",
+          "children": []
+        },
+        {
+          "placeholder": "Edit fruit",
+          "type": "textField",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-value": "berry",
+          "data-key": "itemObject.fruit",
+          "data-name": "fruit",
+          "id": "_3d56rpc6h",
+          "parentId": "_zdkq9ahs8",
+          "children": []
+        }
+      ],
+      "viewTag": "listItemTag",
+      "itemObject": {
+        "fruit": "berry"
+      },
+      "type": "listItem",
+      "index": 1,
+      "data-viewtag": "listItemTag",
+      "data-ux": "listItemTag",
+      "id": "_zdkq9ahs8",
+      "parentId": "_nwkeckjkz"
+    },
+    "lastArg": {
+      "style": {
+        "left": "0px",
+        "position": "relative",
+        "outline": "none",
+        "height": "auto",
+        "borderStyle": "none",
+        "borderRadius": "0px",
+        "listStyle": "none",
+        "padding": 0
+      },
+      "children": [
+        {
+          "text": "Hello",
+          "type": "label",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-value": "berry",
+          "data-key": "itemObject.fruit",
+          "data-name": "fruit",
+          "id": "_mawqaer4q",
+          "parentId": "_zdkq9ahs8",
+          "children": []
+        },
+        {
+          "placeholder": "Edit fruit",
+          "type": "textField",
+          "style": {
+            "position": "relative",
+            "outline": "none",
+            "height": "auto"
+          },
+          "data-value": "berry",
+          "data-key": "itemObject.fruit",
+          "data-name": "fruit",
+          "id": "_3d56rpc6h",
+          "parentId": "_zdkq9ahs8",
+          "children": []
+        }
+      ],
+      "viewTag": "listItemTag",
+      "itemObject": {
+        "fruit": "berry"
+      },
+      "type": "listItem",
+      "index": 1,
+      "data-viewtag": "listItemTag",
+      "data-ux": "listItemTag",
+      "id": "_zdkq9ahs8",
+      "parentId": "_nwkeckjkz"
+    },
+    "callId": 42981,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "text": "Hello",
+        "type": "label",
+        "style": {
+          "position": "relative",
+          "outline": "none",
+          "height": "auto"
+        },
+        "data-value": "berry",
+        "data-key": "itemObject.fruit",
+        "data-name": "fruit",
+        "id": "_mawqaer4q",
+        "parentId": "_zdkq9ahs8",
+        "children": []
+      }
+    ],
+    "firstArg": {
+      "text": "Hello",
+      "type": "label",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-value": "berry",
+      "data-key": "itemObject.fruit",
+      "data-name": "fruit",
+      "id": "_mawqaer4q",
+      "parentId": "_zdkq9ahs8",
+      "children": []
+    },
+    "lastArg": {
+      "text": "Hello",
+      "type": "label",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-value": "berry",
+      "data-key": "itemObject.fruit",
+      "data-name": "fruit",
+      "id": "_mawqaer4q",
+      "parentId": "_zdkq9ahs8",
+      "children": []
+    },
+    "callId": 42984,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "placeholder": "Edit fruit",
+        "type": "textField",
+        "style": {
+          "position": "relative",
+          "outline": "none",
+          "height": "auto"
+        },
+        "data-value": "berry",
+        "data-key": "itemObject.fruit",
+        "data-name": "fruit",
+        "id": "_3d56rpc6h",
+        "parentId": "_zdkq9ahs8",
+        "children": []
+      }
+    ],
+    "firstArg": {
+      "placeholder": "Edit fruit",
+      "type": "textField",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-value": "berry",
+      "data-key": "itemObject.fruit",
+      "data-name": "fruit",
+      "id": "_3d56rpc6h",
+      "parentId": "_zdkq9ahs8",
+      "children": []
+    },
+    "lastArg": {
+      "placeholder": "Edit fruit",
+      "type": "textField",
+      "style": {
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-value": "berry",
+      "data-key": "itemObject.fruit",
+      "data-name": "fruit",
+      "id": "_3d56rpc6h",
+      "parentId": "_zdkq9ahs8",
+      "children": []
+    },
+    "callId": 42987,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "type": "button",
+        "onClick": {
+          "data": {},
+          "trigger": "onClick"
+        },
+        "text": "Submit",
+        "viewTag": "submitTag",
+        "style": {
+          "cursor": "pointer",
+          "position": "relative",
+          "outline": "none",
+          "height": "auto"
+        },
+        "data-viewtag": "submitTag",
+        "data-ux": "submitTag",
+        "id": "_ggbz85yc9",
+        "parentId": null,
+        "children": []
+      }
+    ],
+    "firstArg": {
+      "type": "button",
+      "onClick": {
+        "data": {},
+        "trigger": "onClick"
+      },
+      "text": "Submit",
+      "viewTag": "submitTag",
+      "style": {
+        "cursor": "pointer",
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-viewtag": "submitTag",
+      "data-ux": "submitTag",
+      "id": "_ggbz85yc9",
+      "parentId": null,
+      "children": []
+    },
+    "lastArg": {
+      "type": "button",
+      "onClick": {
+        "data": {},
+        "trigger": "onClick"
+      },
+      "text": "Submit",
+      "viewTag": "submitTag",
+      "style": {
+        "cursor": "pointer",
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-viewtag": "submitTag",
+      "data-ux": "submitTag",
+      "id": "_ggbz85yc9",
+      "parentId": null,
+      "children": []
+    },
+    "callId": 42992,
+    "errorWithCallStack": {}
+  },
+  {
+    "args": [
+      {
+        "type": "button",
+        "onClick": {
+          "data": {},
+          "trigger": "onClick"
+        },
+        "text": "Close",
+        "viewTag": "closeTag",
+        "style": {
+          "cursor": "pointer",
+          "position": "relative",
+          "outline": "none",
+          "height": "auto"
+        },
+        "data-viewtag": "closeTag",
+        "data-ux": "closeTag",
+        "id": "_838jtsshm",
+        "parentId": null,
+        "children": []
+      }
+    ],
+    "firstArg": {
+      "type": "button",
+      "onClick": {
+        "data": {},
+        "trigger": "onClick"
+      },
+      "text": "Close",
+      "viewTag": "closeTag",
+      "style": {
+        "cursor": "pointer",
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-viewtag": "closeTag",
+      "data-ux": "closeTag",
+      "id": "_838jtsshm",
+      "parentId": null,
+      "children": []
+    },
+    "lastArg": {
+      "type": "button",
+      "onClick": {
+        "data": {},
+        "trigger": "onClick"
+      },
+      "text": "Close",
+      "viewTag": "closeTag",
+      "style": {
+        "cursor": "pointer",
+        "position": "relative",
+        "outline": "none",
+        "height": "auto"
+      },
+      "data-viewtag": "closeTag",
+      "data-ux": "closeTag",
+      "id": "_838jtsshm",
+      "parentId": null,
+      "children": []
+    },
+    "callId": 42997,
+    "errorWithCallStack": {}
+  }
+]

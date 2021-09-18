@@ -50,7 +50,7 @@ class App {
   #ndom: t.AppConstructorOptions['ndom']
   #parser: nu.Parser
   #spinner: InstanceType<typeof Spinner>
-  #sdkHelpers = getSdkHelpers(this)
+  #sdkHelpers: ReturnType<typeof getSdkHelpers>
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
@@ -96,6 +96,7 @@ class App {
     this.#notification = notification
     this.#ndom = ndom
     this.#nui = nui
+    this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
 
     noodl && (this.#noodl = noodl)
@@ -821,12 +822,15 @@ class App {
         on: {
           actionChain: {},
           if: ({ page, value }) => {
+            console.log({ page, value })
             debugger
             if (u.isStr(value) && Identify.reference(value)) {
               const datapath = nu.trimReference(value)
               if (Identify.localKey(datapath)) {
                 if (page?.page) {
-                  return get(this.root?.[page.page], datapath)
+                  let value = get(this.root?.[page.page], datapath)
+                  if (Identify.reference(value)) {
+                  }
                 }
               } else {
                 return get(this.root, datapath)

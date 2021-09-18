@@ -3,7 +3,6 @@ import sinon from 'sinon'
 import sample from 'lodash/sample'
 import { waitFor } from '@testing-library/dom'
 import { isActionChain } from 'noodl-action-chain'
-import { coolGold, italic, magenta } from 'noodl-common'
 import { userEvent } from 'noodl-types'
 import { expect } from 'chai'
 import { createDataKeyReference, nui, ui } from '../utils/test-utils'
@@ -17,14 +16,14 @@ import Component from '../Component'
 import Page from '../Page'
 import NUI from '../noodl-ui'
 
-describe(italic(`createActionChain`), () => {
+describe(u.italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {
     expect(isActionChain(nui.createActionChain('onBlur', [ui.divider()]))).to.be
       .true
   })
 
   userEvent.forEach((evt) => {
-    it(`should attach the ActionChain instance to ${magenta(evt)}`, () => {
+    it(`should attach the ActionChain instance to ${u.magenta(evt)}`, () => {
       const ac = nui.createActionChain(
         'onClick',
         ui.video({
@@ -160,7 +159,7 @@ describe(italic(`createActionChain`), () => {
   })
 })
 
-describe(italic(`createComponent`), () => {
+describe(u.italic(`createComponent`), () => {
   it(`should add the component to the component cache`, () => {
     // @ts-expect-error
     const component = nui.createComponent(ui.button())
@@ -168,7 +167,7 @@ describe(italic(`createComponent`), () => {
   })
 })
 
-describe(italic(`createPage`), () => {
+describe(u.italic(`createPage`), () => {
   it(`should create and return a new Page instance from the PageCache`, () => {
     const page = nui.createPage({
       name: 'Hello',
@@ -180,27 +179,27 @@ describe(italic(`createPage`), () => {
   })
 })
 
-describe(italic(`createPlugin`), () => {
-  it(`should add plugins of ${magenta('head')}`, () => {
+describe(u.italic(`createPlugin`), () => {
+  it(`should add plugins of ${u.magenta('head')}`, () => {
     let obj = { location: 'head', path: 'abc.html' } as any
     expect(NUI.cache.plugin.has(NUI.createPlugin('head', obj).id as string)).to
       .be.true
   })
 
-  it(`should add plugins of ${magenta('body-top')}`, () => {
+  it(`should add plugins of ${u.magenta('body-top')}`, () => {
     let obj = { location: 'body-top', path: 'abc.html' } as any
     expect(NUI.cache.plugin.has(nui.createPlugin('body-top', obj).id as string))
       .to.be.true
   })
 
-  it(`should add plugins of ${magenta('body-bottom')}`, () => {
+  it(`should add plugins of ${u.magenta('body-bottom')}`, () => {
     let obj = { location: 'body-bottom', path: 'abc.html' } as any
     const { id } = nui.createPlugin('body-bottom', obj)
     expect(NUI.cache.plugin.has(id as string)).to.be.true
   })
 })
 
-describe(italic(`createSrc`), () => {
+describe(u.italic(`createSrc`), () => {
   describe(`when passing in a string`, () => {
     it(`should just return the url untouched if it starts with http`, async () => {
       const url = `https://www.google.com/hello.jpeg`
@@ -285,8 +284,8 @@ describe(italic(`createSrc`), () => {
   })
 })
 
-describe(italic(`emit`), () => {
-  describe(`type: ${magenta(nuiEmitType.REGISTER)}`, () => {
+describe(u.italic(`emit`), () => {
+  describe(`type: ${u.magenta(nuiEmitType.REGISTER)}`, () => {
     it(`should pass the register object to the callback as args`, async () => {
       const spy = sinon.spy(() => Promise.resolve())
       const params = {}
@@ -323,7 +322,7 @@ describe(italic(`emit`), () => {
     })
   })
 
-  describe(`type: ${magenta(nuiEmitTransaction.REQUEST_PAGE_OBJECT)}`, () => {
+  describe(`type: ${u.magenta(nuiEmitTransaction.REQUEST_PAGE_OBJECT)}`, () => {
     it(`should call the function`, async () => {
       const cbSpy = sinon.spy()
       NUI.use({
@@ -340,13 +339,13 @@ describe(italic(`emit`), () => {
   })
 })
 
-describe(italic(`getActions`), () => {
+describe(u.italic(`getActions`), () => {
   it(`should return the map of non-builtIn actions`, () => {
     expect(NUI.getActions()).to.eq(NUI.cache.actions)
   })
 })
 
-describe(italic(`getBuiltIns`), () => {
+describe(u.italic(`getBuiltIns`), () => {
   it(`should return the map of builtIn actions`, () => {
     const spy1 = sinon.spy()
     const spy2 = sinon.spy()
@@ -367,7 +366,7 @@ describe(italic(`getBuiltIns`), () => {
   })
 })
 
-describe(italic(`getConsumerOptions`), () => {
+describe(u.italic(`getConsumerOptions`), () => {
   it(`should return the expected consumer options`, async () => {
     const page = nui.createPage()
     const component = await nui.resolveComponents({
@@ -416,7 +415,7 @@ describe(`when handling register objects`, () => {
   })
 })
 
-describe(italic(`resolveComponents`), () => {
+describe(u.italic(`resolveComponents`), () => {
   it(`should return component instances`, async () => {
     const page = nui.createPage({ name: 'Hello' })
     expect(
@@ -425,7 +424,7 @@ describe(italic(`resolveComponents`), () => {
   })
 })
 
-describe(italic(`use`), () => {
+describe(u.italic(`use`), () => {
   groupedActionTypes.forEach((actionType) => {
     it(`should take { [${actionType}]: <function> }`, () => {
       const spy = sinon.spy()
@@ -444,7 +443,7 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic(`builtIn`), () => {
+  describe(u.italic(`builtIn`), () => {
     const spy = sinon.spy()
     const builtIns = {
       hello: spy,
@@ -464,7 +463,7 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic(`emit`), () => {
+  describe(u.italic(`emit`), () => {
     const getEmits = () => NUI.getActions('emit')
 
     nuiTriggers.forEach((trigger: any) => {
@@ -494,7 +493,7 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic(`plugin`), () => {
+  describe(u.italic(`plugin`), () => {
     it(`should set the plugin id`, async () => {
       expect(
         (
@@ -552,7 +551,7 @@ describe(italic(`use`), () => {
     expect(nui.getRoot()).to.deep.eq(['apple'])
   })
 
-  describe(italic(`globalRegister`), () => {
+  describe(u.italic(`globalRegister`), () => {
     it(`should add register components to the store`, () => {
       const component = ui.register({ onEvent: 'helloEvent' })
       nui._experimental.register(component)
@@ -563,7 +562,7 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic(`register`), () => {
+  describe(u.italic(`register`), () => {
     it(`should support args: [<register event>, <function>]`, () => {
       const spy = sinon.spy()
       expect(NUI.cache.register.has('hello')).to.be.false
@@ -586,8 +585,9 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic(`transaction`), () => {
+  describe(u.italic(`transaction`), () => {
     it(`should add the transaction to the store`, () => {
+      nui.reset()
       const spy = sinon.spy()
       expect(nui.cache.transactions.has(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
         .to.be.false
@@ -604,8 +604,8 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic(coolGold(`_experimental`)), () => {
-    describe(magenta(`register`), () => {
+  describe(u.italic(u.yellow(`_experimental`)), () => {
+    describe(u.magenta(`register`), () => {
       it(`should remove the default "fn" if a handler fn was provided`, () => {
         const spy = sinon.spy()
         nui.use({ register: ui.register('hello') })
@@ -689,10 +689,10 @@ describe(italic(`use`), () => {
         expect(isActionChain(register.callbacks[0])).to.be.true
       })
 
-      xdescribe(`when handling register object's with ${magenta(
+      xdescribe(`when handling register object's with ${u.magenta(
         'onNewEcosDoc',
       )}`, () => {
-        it(`should pass the "${magenta(`did`)}" (${italic(
+        it(`should pass the "${u.magenta(`did`)}" (${u.italic(
           `ecos document id`,
         )}) received from onNewEcosDoc to the executor handler`, async () => {
           const event = 'helloAll'
@@ -706,7 +706,7 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic('hooks'), () => {
+  describe(u.italic('hooks'), () => {
     describe('page', () => {
       xit(``, () => {
         //

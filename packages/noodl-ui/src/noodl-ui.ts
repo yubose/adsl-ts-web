@@ -1,4 +1,6 @@
 import * as u from '@jsmanifest/utils'
+import * as nt from 'noodl-types'
+import unary from 'lodash/unary'
 import type { ActionChainObserver } from 'noodl-action-chain'
 import { OrArray } from '@jsmanifest/typefest'
 import invariant from 'invariant'
@@ -6,15 +8,6 @@ import merge from 'lodash/merge'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import { isActionChain } from 'noodl-action-chain'
-import type {
-  ComponentObject,
-  EmitObjectFold,
-  IfObject,
-  PageObject,
-  Path,
-  RegisterComponentObject,
-} from 'noodl-types'
-import { Identify } from 'noodl-types'
 import {
   createEmitDataKey,
   evalIf,
@@ -49,6 +42,8 @@ import * as c from './constants'
 import * as t from './types'
 
 const NUI = (function () {
+  let _getRoot: () => Record<string, any>
+
   const _hooks = new Map<keyof t.On, t.On[keyof t.On][]>()
 
   /**
@@ -86,7 +81,7 @@ const NUI = (function () {
     componentObject:
       | t.NuiComponentType
       | t.NuiComponent.Instance
-      | ComponentObject
+      | nt.ComponentObject
       | null
       | undefined,
     page: NUIPage,
@@ -95,12 +90,25 @@ const NUI = (function () {
     if (isComponent(componentObject)) {
       component = componentObject
     } else {
-      component = createComponent(componentObject as ComponentObject)
+      component = createComponent(componentObject as nt.ComponentObject)
     }
     !cache.component.has(component) &&
       cache.component.add(component, page || o.getRootPage())
     return component
   }
+
+  function _gotoFactory() {
+    const fns = [] as t.GotoFn[]
+    return (fn: t.GotoFn) => {
+      fns.push(fn)
+      return (args: Parameters<t.GotoFn>[0]) => {
+        console.log(`%c[_gotoFactory] fns`, `color:#c4a901;`, fns)
+        return fns.map((fn) => fn?.(args))
+      }
+    }
+  }
+
+  const _createGoto = _gotoFactory()
 
   /**
    *  Create a url
@@ -108,19 +116,19 @@ const NUI = (function () {
    */
   async function _createSrc(args: {
     key: string
-    value: Path
+    value: nt.Path
     component: t.NuiComponent.Instance
     page: NUIPage
   }): Promise<string>
   async function _createSrc(
-    path: Path,
+    path: nt.Path,
     opts?: {
       component: t.NuiComponent.Instance
       context?: Record<string, any>
     },
   ): Promise<string>
   async function _createSrc(
-    path: IfObject,
+    path: nt.IfObject,
     opts?: {
       component?: t.NuiComponent.Instance
       page?: NUIPage
@@ -129,8 +137,8 @@ const NUI = (function () {
   async function _createSrc(path: string): Promise<string>
   async function _createSrc(
     args:
-      | EmitObjectFold
-      | IfObject
+      | nt.EmitObjectFold
+      | nt.IfObject
       | {
           context?: Record<string, any>
           component: t.NuiComponent.Instance
@@ -163,7 +171,7 @@ const NUI = (function () {
       }
       return resolveAssetUrl(args, o.getAssetsUrl())
     } else if (u.isObj(args)) {
-      if (Identify.folds.emit(args)) {
+      if (nt.Identify.folds.emit(args)) {
         component = opts?.component as t.NuiComponent.Instance
         // TODO - narrow this query to avoid only using the first encountered obj
         const obj = o.cache.actions.emit.get('path')?.[0]
@@ -217,7 +225,7 @@ const NUI = (function () {
             return result
           }
         }
-      } else if (Identify.if(args)) {
+      } else if (nt.Identify.if(args)) {
         if (u.isObj(opts) && 'on' in opts && opts.on.if) {
           return opts.on?.if({
             key: opts.key || '',
@@ -228,13 +236,14 @@ const NUI = (function () {
         }
         return resolveAssetUrl(
           evalIf((val: any) => {
-            if (Identify.isBoolean(val)) return Identify.isBooleanTrue(val)
+            if (nt.Identify.isBoolean(val))
+              return nt.Identify.isBooleanTrue(val)
             if (u.isFnc(val)) {
               if (component) return val(findListDataObject(component))
               return val()
             }
             return !!val
-          }, args as IfObject),
+          }, args as nt.IfObject),
           o.getAssetsUrl(),
         )
       } else {
@@ -314,18 +323,18 @@ const NUI = (function () {
         dataObject?: any
         iteratorVar?: string
         page?: NUIPage
-        pageObject?: PageObject
+        pageObject?: nt.PageObject
       } = {},
     ) {
       let _path = key
       const pageName = priorityPage?.page || page?.page || ''
 
       if (u.isStr(_path)) {
-        if (Identify.reference(_path)) {
+        if (nt.Identify.reference(_path)) {
           _path = trimReference(_path)
-          if (Identify.localKey(_path)) {
+          if (nt.Identify.localKey(_path)) {
             return get(pageObject || o.getRoot()?.[pageName], _path)
-          } else if (Identify.rootKey(_path)) {
+          } else if (nt.Identify.rootKey(_path)) {
             return get(o.getRoot(), _path)
           }
         }
@@ -554,7 +563,7 @@ const NUI = (function () {
                         { component: c, possibleValue: styleValue },
                       )
                     }
-                  } else if (Identify.reference(value)) {
+                  } else if (nt.Identify.reference(value)) {
                     console.log(
                       `%cEncountered an unparsed style value "${value}" for style key "${key}"`,
                       `color:#ec0000;`,
@@ -567,7 +576,7 @@ const NUI = (function () {
             }
           }
         } else {
-          if (Identify.reference(value)) {
+          if (nt.Identify.reference(value)) {
             console.log(
               `%cEncountered an unparsed style value "${value}" for style key "${key}"`,
               `color:#ec0000;`,
@@ -637,12 +646,12 @@ const NUI = (function () {
   ): t.Register.Object
 
   function _experimental_Register(
-    registerComponent: RegisterComponentObject,
+    registerComponent: nt.RegisterComponentObject,
     options?: Partial<t.Register.Object> | t.Register.Object['fn'],
   ): t.Register.Object
 
   function _experimental_Register(
-    obj: RegisterComponentObject | string,
+    obj: nt.RegisterComponentObject | string,
     options: Partial<t.Register.Object> | t.Register.Object['fn'] = {},
     options2: Partial<t.Register.Object> = {},
   ) {
@@ -715,7 +724,7 @@ const NUI = (function () {
               }
             }
           }
-          if (Identify.folds.emit(obj)) {
+          if (nt.Identify.folds.emit(obj)) {
             const ac = o.createActionChain(
               'register',
               { emit: obj.emit, actionType: 'emit' },
@@ -759,6 +768,9 @@ const NUI = (function () {
     },
     get createGetter() {
       return _createGetter
+    },
+    get createGoto() {
+      return _createGoto
     },
     get createComponent() {
       return _createComponent
@@ -826,7 +838,7 @@ const NUI = (function () {
               // re-rerendered
               for (const obj of o.cache.component) {
                 if (obj && obj.page === page?.page) {
-                  if (Identify.component.page(obj.component)) continue
+                  if (nt.Identify.component.page(obj.component)) continue
                   o.cache.component.remove(obj.component)
                 }
               }
@@ -970,7 +982,7 @@ const NUI = (function () {
           }
 
           return objs.map((obj) => {
-            if (Identify.folds.emit(obj)) {
+            if (nt.Identify.folds.emit(obj)) {
               const action = createAction(trigger, obj)
               if (opts?.component) {
                 const iteratorVar =
@@ -1013,9 +1025,9 @@ const NUI = (function () {
 
             action.executor = __createExecutor(
               action,
-              Identify.action.builtIn(obj)
+              nt.Identify.action.builtIn(obj)
                 ? o.cache.actions.builtIn.get(obj.funcName as string)
-                : Identify.goto(obj)
+                : nt.Identify.goto(obj)
                 ? o.cache.actions.goto
                 : o.cache.actions[obj.actionType] || [],
               o.getConsumerOptions({
@@ -1083,7 +1095,7 @@ const NUI = (function () {
       context?: Record<string, any>
     } & { [key: string]: any }) {
       const getPage = (page: NUIPage, component?: t.NuiComponent.Instance) => {
-        if (component?.parent && Identify.component.page(component.parent)) {
+        if (component?.parent && nt.Identify.component.page(component.parent)) {
           if (component.parent?.get?.('page')) {
             return component.parent?.get?.('page')
           }
@@ -1103,7 +1115,7 @@ const NUI = (function () {
         get createPage() {
           return o.createPage
         },
-        createActionChain(
+        createActionChain<C extends t.NuiComponent.CreateType, Context = any>(
           trigger: t.NUITrigger,
           actions: t.NUIActionObject | t.NUIActionObject[],
           {
@@ -1122,12 +1134,15 @@ const NUI = (function () {
               loadQueue,
               id: _id,
               on,
-              page: getPage(page, component),
+              page,
             },
             _id,
           )
         },
-        createSrc(key: string, value: string | IfObject | EmitObjectFold) {
+        createSrc(
+          key: string,
+          value: string | nt.IfObject | nt.EmitObjectFold,
+        ) {
           // @ts-expect-error
           return _createSrc({
             key,
@@ -1181,54 +1196,14 @@ const NUI = (function () {
     get resolveComponents() {
       return _resolveComponents
     },
-    reset(
-      filter?:
-        | (
-            | 'actions'
-            | 'builtIns'
-            | 'components'
-            | 'pages'
-            | 'plugins'
-            | 'register'
-            | 'transactions'
-          )
-        | (
-            | 'actions'
-            | 'builtIns'
-            | 'components'
-            | 'pages'
-            | 'plugins'
-            | 'register'
-            | 'transactions'
-          )[],
-    ) {
-      if (filter) {
-        u.arrayEach(filter, (f: typeof filter) => {
-          if (f === 'actions') {
-            o.cache.actions.clear()
-          } else if (f === 'builtIns') {
-            o.cache.actions.builtIn.clear()
-          } else if (f === 'components') {
-            cache.component.clear()
-          } else if (f === 'pages') {
-            cache.page.clear()
-          } else if (f === 'plugins') {
-            cache.plugin.clear()
-          } else if (f === 'register') {
-            cache.register.clear()
-          } else if (f === 'transactions') {
-            cache.transactions.clear()
-          }
-        })
-      } else {
-        cache.actions.clear()
-        cache.actions.reset()
-        cache.component.clear()
-        cache.page.clear()
-        cache.plugin.clear()
-        cache.register.clear()
-        cache.transactions.clear()
-      }
+    reset() {
+      cache.actions.clear()
+      cache.actions.reset()
+      cache.component.clear()
+      cache.page.clear()
+      cache.plugin.clear()
+      cache.register.clear()
+      cache.transactions.clear()
       o._defineGetter('getAssetsUrl', () => '')
       o._defineGetter('getBaseUrl', () => '')
       o._defineGetter('getPages', () => [])
@@ -1238,55 +1213,47 @@ const NUI = (function () {
     use(args: t.UseArg) {
       for (const actionType of groupedActionTypes) {
         if (actionType in args) {
-          u.arrayEach(args[actionType], (fn) => {
+          u.forEach((fn) => {
             invariant(
               u.isFnc(fn),
               `fn is required for handling actionType "${actionType}"`,
             )
             cache.actions[actionType]?.push({ actionType, fn })
-          })
+          }, u.array(args[actionType]))
         }
       }
 
       if ('builtIn' in args) {
-        u.eachEntries(
-          args.builtIn,
-          (funcName, fn: t.Store.BuiltInObject['fn']) => {
-            u.arrayEach(fn, (f) => {
-              invariant(!!funcName, `"Missing funcName in a builtIn handler`)
-              invariant(
-                u.isFnc(f),
-                `fn is not a function for builtIn "${funcName}"`,
-              )
-              if (!cache.actions.builtIn.has(funcName)) {
-                cache.actions.builtIn.set(funcName, [])
-              }
-              cache.actions.builtIn.get(funcName)?.push({
-                actionType: 'builtIn',
-                funcName,
-                fn: f,
-              })
+        u.forEach(([funcName, fn]: [string, t.Store.BuiltInObject['fn']]) => {
+          u.forEach((f) => {
+            invariant(!!funcName, `"Missing funcName in a builtIn handler`)
+            if (!cache.actions.builtIn.has(funcName)) {
+              cache.actions.builtIn.set(funcName, [])
+            }
+            cache.actions.builtIn.get(funcName)?.push({
+              actionType: 'builtIn',
+              funcName,
+              fn: f,
             })
-          },
-        )
+          }, u.array(fn))
+        }, u.entries(args.builtIn as Record<string, any>))
       }
 
       if ('emit' in args) {
-        u.eachEntries(
-          args.emit,
-          (trigger: t.NUITrigger, func: (...args: any[]) => any) => {
-            u.arrayEach(func, (fn) => {
-              invariant(
-                u.isFnc(fn),
-                `Emit trigger "${trigger}" was provided with an invalid "fn"`,
-              )
+        u.forEach(
+          ([trigger, func]: [
+            t.NUITrigger,
+            t.Store.ActionObject<'emit'>['fn'],
+          ]) =>
+            u.forEach((fn) => {
               o.cache.actions.emit.get(trigger)?.push({
                 actionType: 'emit',
                 fn,
                 trigger,
               })
-            })
-          },
+            }, u.array(func)),
+          // @ts-expect-error
+          u.entries(args.emit),
         )
       }
 
@@ -1317,19 +1284,18 @@ const NUI = (function () {
       }
 
       if ('plugin' in args) {
-        u.arrayEach(args.plugin, (plugin) =>
-          o.createPlugin(getPluginLocation(plugin), plugin),
+        u.forEach(
+          (plugin) => o.createPlugin(getPluginLocation(plugin), plugin),
+          u.array(args.plugin),
         )
       }
 
       if ('register' in args) {
         if (
-          Identify.component.register(args.register) ||
+          nt.Identify.component.register(args.register) ||
           u.isArr(args.register)
         ) {
-          u.arrayEach(args.register, (component) => {
-            o._experimental.register(component)
-          })
+          u.forEach(unary(o._experimental.register), u.array(args.register))
         } else {
           u.eachEntries(args.register, (event, fn: t.Register.Object['fn']) => {
             u.isFnc(fn) && o._experimental.register(event, fn)
@@ -1357,6 +1323,12 @@ const NUI = (function () {
 
       return o
     },
+  }
+
+  function createRootFn(fn: (root: Record<string, any>) => any) {
+    return function () {
+      return fn(_getRoot())
+    }
   }
 
   return o

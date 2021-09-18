@@ -609,6 +609,7 @@ const componentsResolver: t.Resolve.Config = {
                     if (componentPage.requesting) {
                       // args.cache.component.clear(componentPage.page)
                       args.cache.component.clear(componentPage.requesting)
+                      console.info(args.cache.component.get())
                     }
 
                     //Ensure that the margin of the body is 0
@@ -635,34 +636,20 @@ const componentsResolver: t.Resolve.Config = {
                     componentPage.component?.clear?.('children')
 
                     // const cs = []
-                    console.log({ args })
                     await Promise.all(
-                      componentPage.components?.map(
-                        async (obj: ComponentObject) => {
-                          return new Promise(async (resolve, reject) => {
-                            let child = await nui.resolveComponents({
-                              // callback: (c) => void cs.push(c),
-                              components: obj,
-                              page: nuiPage,
-                              on: args.on,
-                            })
+                      componentPage.components?.map((obj: ComponentObject) => {
+                        return new Promise(async (resolve, reject) => {
+                          let child = await nui.resolveComponents({
+                            components: obj,
+                            page: nuiPage,
+                            on: args.on,
+                          })
 
-                            // TODO - We might not need this line
-                            args.component.createChild(child)
+                          // TODO - We might not need this line
+                          args.component.createChild(child)
 
-                            if (componentPage.body == null) {
-                              componentPage.on('ON_LOAD', async () => {
-                                let childNode = await args.draw(
-                                  child,
-                                  componentPage.body,
-                                  componentPage,
-                                  { on: args.on },
-                                )
-                                childNode &&
-                                  componentPage.appendChild(childNode)
-                                resolve(child)
-                              })
-                            } else {
+                          if (componentPage.body == null) {
+                            componentPage.on('ON_LOAD', async () => {
                               let childNode = await args.draw(
                                 child,
                                 componentPage.body,
@@ -671,10 +658,19 @@ const componentsResolver: t.Resolve.Config = {
                               )
                               childNode && componentPage.appendChild(childNode)
                               resolve(child)
-                            }
-                          })
-                        },
-                      ) || [],
+                            })
+                          } else {
+                            let childNode = await args.draw(
+                              child,
+                              componentPage.body,
+                              componentPage,
+                              { on: args.on },
+                            )
+                            childNode && componentPage.appendChild(childNode)
+                            resolve(child)
+                          }
+                        })
+                      }) || [],
                     )
                     // const { default: fs } = await import('fs-extra')
                     // await fs.writeJson('resolvedComponents.json', cs, {

@@ -12,6 +12,7 @@ import App from '../../App'
 
 const registerMiddleware = function (app: App) {
   const log = Logger.create('middlewares.ts')
+
   /**
    * Transforms abnormal args to the expected [action, options] structure
    * Useful to handle dynamically injected actions (goto strings for

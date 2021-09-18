@@ -365,13 +365,18 @@ export const _syncPages = (function () {
         if (page) {
           label = `[${updateType} #${page.id}]`
 
-          if (!page.onChange) {
-            page.onChange = (prev: string, next: string) => {
-              console.log(`${label} Page changed from "${prev}" to "${next}"`)
-            }
-          }
+          page.use({
+            onChange: {
+              id: 'syncPages',
+              fn: (prev: string, next: string) => {
+                console.info(
+                  `${label} Page changed from "${prev}" to "${next}"`,
+                )
+              },
+            },
+          })
 
-          console.log(label)
+          console.info(label)
 
           if (updateType === c.PAGE_CREATED) {
             // Incoming page still in the loading state
@@ -433,22 +438,20 @@ export const _syncPages = (function () {
                   if (createTime < page.created) {
                     // Cleanup previously loading page
                     // This can happen when the user clicks too quickly to several pages
-                    const nuiPage = cache.page
-                      .get()
-                      .find(
-                        (obj) =>
-                          obj?.page?.created === createTime &&
-                          obj?.page?.id !== 'root',
-                      )?.page
-
-                    nuiPage && removePage(nuiPage)
+                    // const nuiPage = cache.page
+                    //   .get()
+                    //   .find(
+                    //     (obj) =>
+                    //       obj?.page?.created === createTime &&
+                    //       obj?.page?.id !== 'root',
+                    //   )?.page
+                    // nuiPage && removePage(nuiPage)
                   }
                 }
               }
             }
           } else if (updateType === c.PAGE_REMOVED) {
             _pageState.delete(page.created)
-         
           }
         }
       }

@@ -274,7 +274,7 @@ componentResolver.setResolver(async (component, options, next) => {
     ) {
       if (cache.plugin.has(path)) {
         // callback?.(component)
-        return
+        return next?.()
       }
 
       const plugin = createPlugin(component)

@@ -126,7 +126,7 @@
     "node-polyfill-webpack-plugin": "^1.1.4",
     "nodemon": "^2.0.9",
     "noodl-common": "^0.0.45",
-    "noodl-types": "^1.0.173",
+    "noodl-types": "file:packages/noodl-types",
     "noodl-ui-test-utils": "file:packages/noodl-ui-test-utils",
     "noodl-webpack-plugin": "^0.0.13",
     "prettier": "^2.3.1",

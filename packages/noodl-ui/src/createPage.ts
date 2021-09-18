@@ -22,19 +22,21 @@ export default function createPage(
         name?: string
         component?: t.NuiComponent.Instance
         id?: string
-        onChange?(prev: string, next: string): void
+        onChange?: { id: string; onChange?(prev: string, next: string): void }
         viewport?: NuiViewport | { width?: number; height?: number }
       },
   opts:
     | {
-        onChange?(prev: string, next: string): void
+        onChange?: { id: string; onChange?(prev: string, next: string): void }
         viewport?: NuiViewport | { width?: number; height?: number }
       }
     | never = {},
 ) {
   let name: string = ''
   let id: string | undefined = undefined
-  let onChange: ((prev: string, next: string) => void) | undefined
+  let onChange:
+    | { id: string; onChange: (prev: string, next: string) => void }
+    | undefined
   let page: NuiPage | undefined
   let viewport: NuiViewport | undefined
 
