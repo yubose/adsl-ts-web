@@ -9,8 +9,8 @@ import { ReferenceString } from '../ecosTypes'
  */
 
 export default function isAwaitReference(
-	v = '',
+  v = '',
 ): v is ReferenceString<string, '@'> {
-	if (v.startsWith('@')) return true
-	return false
+  if (v.endsWith('@')) return true
+  return false
 }
