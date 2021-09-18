@@ -1,14 +1,14 @@
 {
   "name": "aitmed-noodl-web",
+  "bin": {
+    "nui": "./bin/cli.js"
+  },
   "version": "1.0.1",
   "author": "Christopher Tran<christopher@aitmed.com>",
   "description": "",
   "keywords": [],
   "license": "ISC",
   "private": true,
-  "bin": {
-    "op": "node ./op"
-  },
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "prebuild": "rm -rf dist build",

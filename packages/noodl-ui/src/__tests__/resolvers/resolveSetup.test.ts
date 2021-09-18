@@ -95,22 +95,23 @@ describe.only(u.yellow(`resolveSetup`), () => {
     describe(`reference`, () => {
       it(`should use the hook reference if found`, async () => {
         const spy = sinon.spy()
-        const component = await nui.resolveComponents({
-          components: ui.label({ text: '..formData.password' }),
-          on: { reference: spy },
-        })
-        component.get('text')
+        ;(
+          await nui.resolveComponents({
+            components: ui.label({ text: '..formData.password' }),
+            on: { reference: spy },
+          })
+        ).get('text')
         expect(spy).to.be.calledOnce
       })
 
       it(`should use the fallback reference resolver if no hook resolver is provided`, async () => {
-        const component = await nui.resolveComponents({
-          components: ui.label({ text: '..formData.password' }),
-        })
-        component.get('text')
-        expect(component.get('text')).to.eq(
-          nui.getRoot().Hello.formData.password,
-        )
+        expect(
+          (
+            await nui.resolveComponents({
+              components: ui.label({ text: '..formData.password' }),
+            })
+          ).get('text'),
+        ).to.eq(nui.getRoot().Hello.formData.password)
       })
     })
   })
