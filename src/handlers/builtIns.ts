@@ -9,6 +9,7 @@ import {
   findParent,
   getDataValues,
   NuiComponent,
+  resolvePageComponentUrl,
   Store,
   Viewport as VP,
   isListConsumer,
@@ -435,7 +436,18 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
 
-    destProps = app.parse.destination(destinationParam)
+    destProps = app.parse.destination(
+      Identify.pageComponentUrl(destinationParam)
+        ? resolvePageComponentUrl({
+            component: options?.component,
+            page: ndomPage.getNuiPage(),
+            localKey: ndomPage.page,
+            root: app.root,
+            key: 'goto',
+            value: destinationParam,
+          })
+        : destinationParam,
+    )
 
     /** PARSE FOR DESTINATION PROPS */
 

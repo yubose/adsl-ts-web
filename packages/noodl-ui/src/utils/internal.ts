@@ -2,8 +2,7 @@ import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
 import get from 'lodash/get'
-import type { NuiComponent, On } from '../types'
-import type NuiPage from '../Page'
+import type { NuiComponent } from '../types'
 
 interface Duration {
   years?: number
@@ -152,34 +151,4 @@ export function defaultResolveReference(
     ])
   }
   return get(u.isFnc(root) ? root() : root, datapath.split('.'))
-}
-
-export function resolveReference({
-  component,
-  key,
-  value,
-  page,
-  root,
-  localKey,
-  on,
-}: {
-  component?: NuiComponent.Instance
-  key?: string
-  value?: any
-  root: Record<string, any> | (() => Record<string, any>)
-  localKey: string | undefined
-  on: On | undefined | null
-  page?: NuiPage
-}) {
-  const getReference = (_value: any, on: On | null | undefined) => {
-    if (on?.reference) {
-      return on.reference({ component, page, key: key || '', value: _value })
-    }
-    return defaultResolveReference(root, localKey || page?.page, _value)
-  }
-  value = getReference(value, on)
-  while (u.isStr(value) && nt.Identify.reference(value)) {
-    value = getReference(value, on)
-  }
-  return value
 }

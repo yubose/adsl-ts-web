@@ -28,6 +28,7 @@ import {
   isComponent,
   parseReference,
   Page as NUIPage,
+  resolvePageComponentUrl,
   Store,
   triggers,
 } from 'noodl-ui'
@@ -273,7 +274,18 @@ const createActions = function createActions(app: App) {
         ? goto.destination || goto.dataIn?.destination || goto
         : '') || ''
 
-    destProps = app.parse.destination(destinationParam)
+    destProps = app.parse.destination(
+      Identify.pageComponentUrl(destinationParam)
+        ? resolvePageComponentUrl({
+            component: options?.component,
+            page: ndomPage.getNuiPage(),
+            localKey: ndomPage.page,
+            root: app.root,
+            key: 'goto',
+            value: destinationParam,
+          })
+        : destinationParam,
+    )
 
     let { destination, id = '', isSamePage, duration } = destProps
 

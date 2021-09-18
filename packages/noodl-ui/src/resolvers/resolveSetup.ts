@@ -1,13 +1,9 @@
 import * as u from '@jsmanifest/utils'
-import * as nu from 'noodl-utils'
 import * as nt from 'noodl-types'
-import get from 'lodash/get'
 import Resolver from '../Resolver'
-import cache from '../_cache'
-import isNUIPage from '../utils/isPage'
-import * as c from '../constants'
+import resolveReference from '../utils/resolveReference'
+import resolvePageComponentUrl from '../utils/resolvePageComponentUrl'
 import * as i from '../utils/internal'
-import * as n from '../utils/noodl'
 import * as t from '../types'
 
 const setupResolver = new Resolver('resolveSetup')
@@ -18,7 +14,6 @@ setupResolver.setResolver(async function setupResolver(
   next,
 ) {
   const { getRoot, on, page } = options
-  const { path } = component.blueprint || {}
   // Overrides the NUI getter for 'path' if the if object evaluates to a
   // reference string. This ensures that JavaScript keeps an implicit
   // binding and resolves the if object correctly whenever path is being
@@ -123,59 +118,19 @@ setupResolver.setResolver(async function setupResolver(
 
       if (u.isStr(value)) {
         if (nt.Identify.pageComponentUrl(value)) {
-          let { currentPage, targetPage, viewTag } =
-            new nu.Parser().destination(value)
-
-          if (on?.pageComponentUrl) {
-            return on?.pageComponentUrl({
-              component,
-              page,
-              key,
-              value,
-            })
-          }
-
-          if (nt.Identify.reference(currentPage)) {
-            currentPage = i.resolveReference({
-              component,
-              page,
-              key,
-              value: currentPage,
-              localKey: page?.page,
-              on,
-              root: getRoot,
-            })
-          }
-
-          if (nt.Identify.reference(targetPage)) {
-            targetPage = i.resolveReference({
-              component,
-              page,
-              key,
-              value: targetPage,
-              localKey: page?.page,
-              on,
-              root: getRoot,
-            })
-          }
-
-          if (nt.Identify.reference(viewTag)) {
-            viewTag = i.resolveReference({
-              component,
-              page,
-              key,
-              value: viewTag,
-              localKey: page?.page,
-              on,
-              root: getRoot,
-            })
-          }
-
-          return `${targetPage}@${currentPage}#${viewTag}`
+          return resolvePageComponentUrl({
+            component,
+            page,
+            key,
+            value,
+            localKey: page?.page,
+            on,
+            root: getRoot,
+          })
         }
 
         if (nt.Identify.reference(value)) {
-          return i.resolveReference({
+          return resolveReference({
             component,
             page,
             key,
@@ -192,7 +147,7 @@ setupResolver.setResolver(async function setupResolver(
             : value.if?.[2]
 
           if (nt.Identify.reference(value)) {
-            return i.resolveReference({
+            return resolveReference({
               component,
               page,
               key,
@@ -209,7 +164,7 @@ setupResolver.setResolver(async function setupResolver(
         value = i.defaultResolveIf(value)
 
         if (nt.Identify.reference(value)) {
-          return i.resolveReference({
+          return resolveReference({
             component,
             page,
             key,
