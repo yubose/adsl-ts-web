@@ -1,7 +1,8 @@
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
-import _get from 'lodash/get'
-import { NuiComponent } from '../types'
+import * as nu from 'noodl-utils'
+import get from 'lodash/get'
+import type { NuiComponent } from '../types'
 
 interface Duration {
   years?: number
@@ -135,4 +136,19 @@ export function defaultResolveIf(ifObject: nt.IfObject) {
   const [cond, valOnTrue, valOnFalse] = ifObject.if || []
   if (u.isFnc(cond)) return cond?.() ? valOnTrue : valOnFalse
   return !!cond ? valOnTrue : valOnFalse
+}
+
+export function defaultResolveReference(
+  root: Record<string, any> | (() => Record<string, any>),
+  localKey = '',
+  reference: nt.ReferenceString,
+) {
+  const datapath = nu.trimReference(reference)
+  if (nt.Identify.localKey(datapath)) {
+    return get(u.isFnc(root) ? root() : root, [
+      localKey,
+      ...datapath.split('.'),
+    ])
+  }
+  return get(u.isFnc(root) ? root() : root, datapath.split('.'))
 }

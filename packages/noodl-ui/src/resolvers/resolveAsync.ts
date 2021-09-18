@@ -69,6 +69,7 @@ asyncResolver.setResolver(async (component, options, next) => {
     ---- USER EVENTS (onClick, onHover, onBlur, etc)
   -------------------------------------------------------- */
 
+    // @ts-expect-error
     userEvent.concat('postMessage').forEach((eventType) => {
       if (original[eventType]) {
         const actionChain = createActionChain(
@@ -77,6 +78,7 @@ asyncResolver.setResolver(async (component, options, next) => {
         )
         on?.actionChain && actionChain.use(on.actionChain)
         component.edit({ [eventType]: actionChain })
+        // @ts-expect-error
         eventType !== 'postMessage' && (component.style.cursor = 'pointer')
       }
 

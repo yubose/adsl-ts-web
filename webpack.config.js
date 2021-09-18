@@ -9,7 +9,24 @@ const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
-const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
+const {InjectScriptsPlugin} = require('./scripts/InjectScriptsPlugin')
+// import webpack from 'webpack'
+// import { createRequire } from 'module'
+// import * as u from '@jsmanifest/utils'
+// import meow from 'meow'
+// import path from 'path'
+// import singleLog from 'single-line-log'
+// import CircularDependencyPlugin from 'circular-dependency-plugin'
+// import CopyPlugin from 'copy-webpack-plugin'
+// import HtmlWebpackPlugin from 'html-webpack-plugin'
+// import HtmlWebpackHarddiskPlugin from 'html-webpack-harddisk-plugin'
+// import InjectBodyWebpackPlugin from 'inject-body-webpack-plugin'
+// import { InjectScriptsPlugin } from './scripts/InjectScriptsPlugin.js'
+
+// const { default: InjectBodyPlugin } = InjectBodyWebpackPlugin
+// const require = createRequire(import.meta.url)
+
+// const { default: InjectScriptsPlugin } = _InjectScriptsPlugin_
 
 const cli = meow('', { flags: { sample: { alias: 's', type: 'string' } } })
 console.info('SAMPLE: ' + process.env.SAMPLE)
@@ -31,7 +48,7 @@ const version = {
 
 const favicon = 'public/favicon.ico'
 const filename = 'index.html'
-const publicPath = path.join(__dirname, 'public')
+const publicPath = path.join(process.cwd(), 'public')
 const title = 'AiTmed: Start your E-health Journal Anywhere, Anytime'
 const productionOptions = {}
 const mode =
@@ -108,9 +125,9 @@ const devServerOptions = {
   // },
   // http2: true,
   // https: {
-  //   ca: fs.readFileSync(path.resolve(path.join(__dirname, './dev/key.pem'))),
-  //   cert: fs.readFileSync(path.resolve(path.join(__dirname, './dev/cert.pem'))),
-  //   key: fs.readFileSync(path.resolve(path.join(__dirname, './dev/key.pem'))),
+  //   ca: fs.readFileSync(path.resolve(path.join(process.cwd(), './dev/key.pem'))),
+  //   cert: fs.readFileSync(path.resolve(path.join(process.cwd(), './dev/cert.pem'))),
+  //   key: fs.readFileSync(path.resolve(path.join(process.cwd(), './dev/key.pem'))),
   // },
   overlay: true,
   stats: { chunks: true },
@@ -159,7 +176,7 @@ module.exports = {
   output: {
     clean: true,
     filename: '[name].[contenthash].js',
-    path: path.resolve(__dirname, 'build'),
+    path: path.resolve(process.cwd(), 'build'),
   },
   mode,
   devServer: devServerOptions,
@@ -170,11 +187,11 @@ module.exports = {
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        include: path.resolve(__dirname, 'src'),
+        include: path.resolve(process.cwd(), 'src'),
         use: [
           {
             loader: 'esbuild-loader',
-            options: { loader: 'ts', target: 'es2016' },
+            options: { loader: 'ts', target: 'es2020' },
           },
         ],
       },

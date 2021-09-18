@@ -42,6 +42,7 @@ const actionFactory = (function () {
     !obj && (obj = { actionType: 'evalObject', object: ifObject() })
     !('actionType' in obj) &&
       (obj = { actionType: 'evalObject', object: obj['object'] })
+    // @ts-expect-error
     return createActionObject_next('evalObject')({
       ...obj,
       object: obj['object'],
@@ -197,18 +198,11 @@ const actionFactory = (function () {
     return obj as A
   }
 
-  function ifObject({ iteratorVar = 'itemObject' } = {}): IfObject {
+  function ifObject(value?: IfObject | IfObject['if']): IfObject {
+    if (u.isArr(value)) return { if: value }
+    if (u.isObj(value)) return value
     return {
-      if: [
-        {
-          '.builtIn.object.has': [
-            { object: '..formData' },
-            { key: `${iteratorVar}.key` },
-          ],
-        },
-        'selectOn.png',
-        'selectOff.png',
-      ],
+      if: [{}, 'selectOn.png', 'selectOff.png'],
     }
   }
 

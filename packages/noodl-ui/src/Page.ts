@@ -14,7 +14,7 @@ class Page implements IPage {
   static _id: IPage['id'] = 'root'
   #get: () => ComponentObject[] = () => []
   #hooks = { PAGE_CHANGED: [] } as NuiPageHooks
-  #onChange: OnChangeFn | undefined
+  #onChange = new Map<string, OnChangeFn>()
   #id: IPage['id']
   #page = ''
   created: number
@@ -46,10 +46,6 @@ class Page implements IPage {
     return this.#onChange
   }
 
-  set onChange(onChange) {
-    this.#onChange = onChange ? this.#wrapOnChange(onChange) : onChange
-  }
-
   get page() {
     return this.#page
   }
@@ -62,7 +58,7 @@ class Page implements IPage {
     if (this.history.length > 10) {
       while (this.history.length > 10) this.history.shift()
     }
-    this.#onChange?.(prev, name)
+    this.#onChange?.forEach?.((fn) => fn?.(prev, name))
   }
 
   #wrapOnChange = (fn: OnChangeFn): OnChangeFn => {
@@ -107,14 +103,24 @@ class Page implements IPage {
     return JSON.stringify(this.toJSON?.(), null, 2)
   }
 
-  use(options: { onChange: OnChangeFn }): void
+  use(options: { onChange: { id: string; fn: OnChangeFn } }): void
   use(getComponents: () => Page['components']): void
-  use(getComponents: (() => Page['components']) | { onChange: OnChangeFn }) {
+  use(
+    getComponents:
+      | (() => Page['components'])
+      | { onChange: { id: string; fn: OnChangeFn } },
+  ) {
     if (typeof getComponents === 'function') {
       this.#get = getComponents
     } else if (typeof getComponents === 'object') {
-      if ('onChange' in getComponents) {
-        this.onChange = getComponents.onChange
+      if (
+        'onChange' in getComponents &&
+        !this.#onChange.has(getComponents.onChange.id)
+      ) {
+        this.#onChange.set(
+          getComponents.onChange.id,
+          this.#wrapOnChange(getComponents.onChange.fn),
+        )
       }
     }
     return this

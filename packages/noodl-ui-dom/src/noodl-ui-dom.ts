@@ -2,7 +2,6 @@ import invariant from 'invariant'
 import { Identify } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import type {
-  ConsumerOptions,
   NuiComponent,
   Page as NUIPage,
   ResolveComponentOptions,

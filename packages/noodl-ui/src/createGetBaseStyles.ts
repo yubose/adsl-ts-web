@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
 import curry from 'lodash/curry'
 import merge from 'lodash/merge'

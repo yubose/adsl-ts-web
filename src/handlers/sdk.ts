@@ -1,9 +1,5 @@
-import * as u from '@jsmanifest/utils'
-import Logger from 'logsnap'
 import App from '../App'
 import { extendedSdkBuiltIns } from './builtIns'
-
-const log = Logger.create('sdk.ts')
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {

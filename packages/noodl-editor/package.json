@@ -1,0 +1,51 @@
+{
+	"name": "noodl-editor",
+	"version": "0.0.1",
+	"description": "eCOS NOODL Editor (WYSIWYG)",
+	"keywords": [
+		"ecos",
+		"noodl",
+		"wysiwyg",
+		"editor",
+		"toolbar"
+	],
+	"author": "christopher@aitmed.com <pfftdammitchris@gmail.com>",
+	"homepage": "",
+	"license": "ISC",
+	"exports": {
+		"import": "./dist/index.js",
+		"require": "./dist/cjs/index.js"
+	},
+	"files": [
+		"./dist"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/"
+	},
+	"scripts": {
+		"build": "snowpack build",
+		"build:cjs": "tsc --module commonjs --target es2018 --outDir ./dist/cjs --declaration --declarationDir ./dist/cjs",
+		"build:esm": "tsc --module es2020 --target es2020",
+		"prebuild": "rm -rf dist",
+		"start": "snowpack dev",
+		"start:esm": "cross-env NODE_ENV=development npm run build:esm -- --watch",
+		"start:cjs": "cross-env NODE_ENV=development npm run build:cjs -- --watch",
+		"test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --watch --watch-files \"src/**/*.ts\""
+	},
+	"type": "module",
+	"typesVersions": {
+		"*": {
+			"cli.d.ts": [
+				"./dist/index.d.ts"
+			]
+		}
+	},
+	"typings": "./dist/index.d.ts",
+	"devDependencies": {
+		"snowpack": "^3.8.8"
+	},
+	"dependencies": {
+		"react": "^17.0.2"
+	}
+}

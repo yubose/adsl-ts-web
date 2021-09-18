@@ -1,14 +1,54 @@
 import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
+import get from 'lodash/get'
+import * as u from '@jsmanifest/utils'
+import * as nu from 'noodl-utils'
+import * as nt from 'noodl-types'
 import NUI from '../noodl-ui'
 import NUIPage from '../Page'
 import Viewport from '../Viewport'
+import * as t from '../types'
 
-export const assetsUrl = 'https://something.com/assets/'
+export const baseUrl = 'https://google.com/'
+export const assetsUrl = `${baseUrl}assets/`
 export const nui = NUI
 export const viewport = new Viewport()
 export const ui = { ...actionFactory, ...componentFactory }
 
 const isNil = (v: any) => v === null || v === undefined || v === ''
+
+export function createOn(
+  getRoot = () => ({} as Record<string, Record<string, any>>),
+): t.On {
+  return {
+    if: ({ component, page, key, value }) => {
+      if (u.isStr(value) && nt.Identify.reference(value)) {
+        const datapath = nu.trimReference(value)
+        if (nt.Identify.localKey(datapath)) {
+          if (page?.page) {
+            let value = get(getRoot()?.[page.page], datapath)
+            if (nt.Identify.reference(value)) {
+            }
+          }
+        } else {
+          return get(getRoot(), datapath)
+        }
+      }
+    },
+    reference: (args) => {
+      const { page, value } = args
+      if (nt.Identify.reference(value)) {
+        const datapath = nu.trimReference(value)
+        if (nt.Identify.localKey(datapath)) {
+          if (page?.page) {
+            return get(getRoot()?.[page.page], datapath)
+          }
+        } else {
+          return get(getRoot(), datapath)
+        }
+      }
+    },
+  }
+}
 
 export function createDataKeyReference({
   page = NUI.getRootPage(),
@@ -29,4 +69,102 @@ export function createDataKeyReference({
   const root = { ...NUI.getRoot(), [pageName]: pageObject }
   NUI.use({ getRoot: () => root })
   return { page }
+}
+
+export function getPresetPageObjects() {
+  const getGenderListObject = () => [
+    { key: 'Gender', value: 'Male' },
+    { key: 'Gender', value: 'Female' },
+    { key: 'Gender', value: 'Other' },
+  ]
+
+  return {
+    get Cereal() {
+      const ifObject = {
+        if: [() => {}, '.Donut.thumbnail', '.HelloPage.icon'],
+      }
+      return {
+        components: [
+          ui.view({
+            style: { shadow: 'true' },
+            children: [
+              ui.image({ path: ifObject }),
+              ui.page({
+                path: 'Tiger',
+                style: {
+                  shadow: 'true',
+                  width: '0.2',
+                  top: '0.1',
+                },
+              }),
+            ],
+          }),
+        ],
+      }
+    },
+    get Donut() {
+      const formData = { password: 'fruits', fullName: 'Mark Twain' }
+      return {
+        formData,
+        thumbnail: 'red.png',
+        components: [
+          ui.view({
+            viewTag: 'donutContainer',
+            children: [
+              ui.textField({
+                onChange: [
+                  ui.emitObject({
+                    dataKey: 'Donut.formData.password',
+                  }),
+                ],
+              }),
+              ui.button({
+                text: `Go to Donut page`,
+                onClick: [ui.gotoObject('Donut')],
+              }),
+              ui.divider({ id: 'divider' }),
+              ui.label({
+                text: '..fullName',
+              }),
+            ],
+          }),
+        ],
+      }
+    },
+    get Hello() {
+      return { formData: { password: 'abc123', components: [] } }
+    },
+    get Tiger() {
+      const iteratorVar = 'pencil'
+      const listObject = getGenderListObject()
+      return {
+        icon: 'edit.svg',
+        components: [
+          ui.view({
+            children: [
+              ui.list({
+                contentType: 'listObject',
+                listObject,
+                iteratorVar,
+                children: [
+                  ui.listItem({
+                    [iteratorVar]: '',
+                    children: [
+                      ui.label({ dataKey: 'pencil.key' }),
+                      ui.select({ options: `${iteratorVar}.doc` } as any),
+                      ui.textField({ dataKey: 'pencil.value' }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+          ui.button({
+            text: 'Submit',
+            onClick: [ui.emitObject(), ui.evalObject(), ui.gotoObject('Abc')],
+          }),
+        ],
+      }
+    },
+  }
 }

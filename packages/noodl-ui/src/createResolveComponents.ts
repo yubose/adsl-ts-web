@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { OrArray } from '@jsmanifest/typefest'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'

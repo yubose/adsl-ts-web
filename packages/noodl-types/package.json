@@ -1,0 +1,41 @@
+{
+  "author": "Christopher Tran <christopher@aitmed.com>",
+  "dependencies": {
+    "lodash.get": "^4.4.2",
+    "lodash.has": "^4.5.2"
+  },
+  "description": "NOODL TypeScript Definitions",
+  "devDependencies": {
+    "@types/lodash.get": "^4.4.6",
+    "@types/lodash.has": "^4.5.6"
+  },
+  "engines": {
+    "node": ">=14",
+    "npm": ">=6"
+  },
+  "files": [
+    "dist"
+  ],
+  "gitHead": "c6d5712c14cedf5faf330797187ffff96b9ce6ee",
+  "homepage": "",
+  "license": "ISC",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "name": "noodl-types",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.json",
+    "build:cjs": "tsc --outDir dist/cjs --project tsconfig.cjs.json",
+    "build:esm": "tsc --outDir dist --project tsconfig.json",
+    "start": "tsc --watch",
+    "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r source-map-support/register --extensions ts --watch --watch-files src \"src/**/*.test.ts\""
+  },
+  "typings": "./dist/index.d.ts",
+  "version": "1.0.190"
+}

@@ -11,6 +11,7 @@ interface ComponentCacheHook {
   add(args: {
     component: NuiComponent.Instance
     page: LiteralUnion<'unknown', string>
+    pageId?: string
   }): void
   clear(components: { [id: string]: NuiComponent.Instance }): void
   remove(args: { id: string | undefined; page: string | undefined }): void
@@ -99,7 +100,12 @@ class ComponentCache {
         : u.isObj(page)
         ? page.page || ''
         : page || ''
-      const value = { component, page: pageName }
+      const value = { component, page: pageName } as {
+        component: NuiComponent.Instance
+        page: string
+        pageId?: string
+      }
+      isNUIPage(page) && (value.pageId = page.id as string)
       this.#cache.set(component.id, value)
       this.emit('add', value)
     }
@@ -115,8 +121,16 @@ class ComponentCache {
     }
 
     for (const obj of this.#cache.values()) {
-      if (page !== undefined) page === obj.page && remove(obj)
-      else remove(obj)
+      if (page !== undefined) {
+        if (page === obj.page) remove(obj)
+        else if (
+          obj.pageId &&
+          page?.startsWith('#') &&
+          obj.pageId === page.substring(1)
+        ) {
+          remove(obj)
+        }
+      } else remove(obj)
     }
 
     this.emit('clear', removed)

@@ -185,7 +185,7 @@ describe(nc.coolGold('components'), () => {
       expect(node.style).to.have.property('margin-top', '0px')
     })
 
-    xit(`should clear all old elements from the DOM and render all new elements to the DOM from the page object`, async () => {
+    it(`should clear all old elements from the DOM and render all new elements to the DOM from the page object`, async () => {
       const redrawSpy = sinon.spy()
       const {
         getRoot,
@@ -283,7 +283,7 @@ describe(nc.coolGold('components'), () => {
         return { container, imgEl, labelEl, buttonEl }
       }
 
-      let helloPageElems: ReturnType<typeof getHelloPageElems>
+      let helloPageElems: ReturnType<typeof getHelloPageElems> | undefined
       let donutPageElems: ReturnType<typeof getDonutPageElems>
       let cerealPageElems: ReturnType<typeof getCerealPageElems>
 
@@ -293,32 +293,32 @@ describe(nc.coolGold('components'), () => {
         donutPageElems = getDonutPageElems()
         u.values(donutPageElems).forEach((elem) => expect(elem).to.exist)
       })
-      ;(helloPageElems.scrollViewEl as HTMLElement).click()
+      ;(helloPageElems?.scrollViewEl as HTMLElement).click()
 
       await waitFor(() => {
-        let pageComp = cache.component.get(helloPageElems.pageEl.id).component
+        let pageComp = cache.component.get(helloPageElems?.pageEl.id).component
         expect(redrawSpy).to.be.calledOnce
         expect(pageComp.get('path')).to.eq('Cereal')
       })
 
       await waitFor(() => {
         cerealPageElems = getCerealPageElems()
-        console.info(getRoot())
+        // console.info(getRoot())
         expect(cerealPageElems.container).to.exist
-        // u.forEach((elem) => expect(elem).to.exist, u.values(cerealPageElems))
-        // expect(cerealPageElems.imgEl.dataset).to.have.property(
-        //   'src',
-        //   `${assetsUrl}abc.png`,
-        // )
-        // expect(cerealPageElems.imgEl).to.have.property(
-        //   'src',
-        //   `${assetsUrl}abc.png`,
-        // )
-        // expect(cerealPageElems.labelEl.textContent).to.eq(submitMessage)
+        u.forEach((elem) => expect(elem).to.exist, u.values(cerealPageElems))
+        expect(cerealPageElems.imgEl.dataset).to.have.property(
+          'src',
+          `${assetsUrl}abc.png`,
+        )
+        expect(cerealPageElems.imgEl).to.have.property(
+          'src',
+          `${assetsUrl}abc.png`,
+        )
+        expect(cerealPageElems.labelEl.textContent).to.eq(submitMessage)
       })
     })
 
-    xit(`should set initialized to true when 'load' event is fired`, async () => {
+    it(`should set initialized to true when 'load' event is fired`, async () => {
       const { render } = createRender()
       await render()
       await waitFor(() => {
@@ -583,15 +583,18 @@ describe(nc.coolGold('components'), () => {
           const { ndom, render } = createRender(getCreateRenderOptions())
           await render()
           const pageComponent = cache.component.get('p2').component.child()
+          const componentPage = ndom.findPage(pageComponent)
           await waitForPageChildren()
           const oldPageChildrenIds = i._getDescendantIds(pageComponent)
-          const componentPage = ndom.findPage(
-            pageComponent.get('page') as NUIPage,
-          ) as ComponentPage
           oldPageChildrenIds.forEach((id) => {
             expect(cache.component.get(id)).to.exist
           })
-          await render('Tiger')
+          oldPageChildrenIds.forEach((id) =>
+            console.info(cache.component.get(id).page),
+          )
+          componentPage.requesting = 'Tiger'
+          await ndom.render(componentPage, {})
+          console.info(oldPageChildrenIds)
           await waitFor(() => {
             oldPageChildrenIds.forEach((id) => {
               expect(cache.component.get(id)).to.not.exist

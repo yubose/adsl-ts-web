@@ -1,5 +1,5 @@
-import { OrArray } from '@jsmanifest/typefest'
 import * as u from '@jsmanifest/utils'
+import { OrArray } from '@jsmanifest/typefest'
 import { NUIAction, NuiComponent } from 'noodl-ui'
 import {
   ActionObject,

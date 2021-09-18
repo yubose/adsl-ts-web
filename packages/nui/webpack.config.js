@@ -66,7 +66,7 @@ module.exports = {
   },
   output: {
     clean: true,
-    path: path.resolve(__dirname, 'build'),
+    path: path.resolve(__dirname, 'dist'),
   },
   mode,
   devServer: devServerOptions,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
@@ -5,7 +6,7 @@ import cache from './_cache'
 import isComponent from './utils/isComponent'
 import isViewport from './utils/isViewport'
 import NuiViewport from './Viewport'
-import NuiPage from './page'
+import NuiPage from './Page'
 import * as c from './constants'
 import * as t from './types'
 
@@ -21,19 +22,21 @@ export default function createPage(
         name?: string
         component?: t.NuiComponent.Instance
         id?: string
-        onChange?(prev: string, next: string): void
+        onChange?: { id: string; onChange?(prev: string, next: string): void }
         viewport?: NuiViewport | { width?: number; height?: number }
       },
   opts:
     | {
-        onChange?(prev: string, next: string): void
+        onChange?: { id: string; onChange?(prev: string, next: string): void }
         viewport?: NuiViewport | { width?: number; height?: number }
       }
     | never = {},
 ) {
   let name: string = ''
   let id: string | undefined = undefined
-  let onChange: ((prev: string, next: string) => void) | undefined
+  let onChange:
+    | { id: string; onChange: (prev: string, next: string) => void }
+    | undefined
   let page: NuiPage | undefined
   let viewport: NuiViewport | undefined
 

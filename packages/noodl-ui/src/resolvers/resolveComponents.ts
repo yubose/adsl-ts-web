@@ -243,7 +243,7 @@ componentResolver.setResolver(async (component, options, next) => {
               page.page = pageName
             }
           }
-        } catch (err) {
+        } catch (err: any) {
           // TODO - handle this. Maybe cleanup?
           console.error(
             `[Page component] ` +
@@ -274,7 +274,7 @@ componentResolver.setResolver(async (component, options, next) => {
     ) {
       if (cache.plugin.has(path)) {
         // callback?.(component)
-        return
+        return next?.()
       }
 
       const plugin = createPlugin(component)
@@ -285,6 +285,7 @@ componentResolver.setResolver(async (component, options, next) => {
         // so we don't need to handle setting the data-src and emitting the
         // path event here
         const src = resolveAssetUrl(
+          // @ts-expect-error
           await createSrc(path, { component, key: 'path', page }),
           getAssetsUrl(),
         )
@@ -295,12 +296,12 @@ componentResolver.setResolver(async (component, options, next) => {
         if (/(text|javascript)/i.test(contentType)) {
           component.edit('content', await res?.text?.())
         } else {
-          component.edit('content', await res?.json?.())
+          component.edit('content', await res?.on?.())
         }
-        const content = await res?.json?.()
+        const content = await res?.on?.()
         plugin && (plugin.content = component.get('content'))
         setTimeout(() => component.emit('content', content || ''))
-      } catch (err) {
+      } catch (err: any) {
         console.error(`[${err.name}]: ${err.message}`, err)
       } finally {
         plugin.initiated = true
@@ -487,7 +488,7 @@ componentResolver.setResolver(async (component, options, next) => {
       }
     }
 
-    !cache.component.has(component) && cache.component.add(component, _page)
+    !cache.component.has(component) && cache.component.add(component, page)
   } catch (error) {
     console.error(error)
   }

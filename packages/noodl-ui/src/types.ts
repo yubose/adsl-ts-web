@@ -25,6 +25,7 @@ import type {
   PluginBodyTopComponentObject,
   ReferenceString,
   IfObject,
+  PageComponentUrl,
 } from 'noodl-types'
 import type {
   Action,
@@ -69,6 +70,7 @@ export type NUIActionObjectInput =
 export interface ComponentCacheObject {
   component: NuiComponent.Instance
   page: string
+  pageId?: string
 }
 
 export namespace NUIEmit {
@@ -120,6 +122,10 @@ export interface GotoActionObject extends ActionObject, GotoObject {
 export interface ToastActionObject extends ActionObject, ToastObject {
   actionType: 'toast'
   [key: string]: any
+}
+
+export interface GotoFn {
+  (goto: string | GotoObject): any
 }
 
 export interface ICache {
@@ -248,14 +254,20 @@ export interface On {
     page?: NUIPage
     key: string
     value: IfObject
-  }): OrPromise<boolean | null | undefined>
+  }): boolean | null | undefined
   emit?(emitObject: EmitObjectFold): OrPromise<NUIActionChain>
+  pageComponentUrl?(args: {
+    component?: NuiComponent.Instance
+    page?: NUIPage
+    key: string
+    value: PageComponentUrl
+  }): string
   reference?<S extends string = string>(args: {
     component?: NuiComponent.Instance
     page?: NUIPage
     key: string
     value: ReferenceString<S>
-  }): OrPromise<any>
+  }): any
 }
 
 export namespace Register {

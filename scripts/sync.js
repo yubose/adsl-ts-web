@@ -71,8 +71,8 @@ async function sync() {
 
   await syncApp({
     name: 'admin',
-    configFilePath: '../cadl/config/admin.yml',
-    from: '../cadl/admin',
+    configFilePath: '../aitmed-admin/config/admind2.yml',
+    from: '../aitmed-admin/admin',
     to: './generated/admind2',
   })
 
