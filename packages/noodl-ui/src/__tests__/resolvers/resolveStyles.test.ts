@@ -435,11 +435,9 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
 
     describe(magenta(`list`), () => {
       it(`should disable listStyle and padding`, async () => {
-        expect((await resolveComponent(ui.list())).style).to.satisfy(
-          (style: any) => {
-            return style.listStyle === 'none' && style.padding === '0px'
-          },
-        )
+        const styles = (await resolveComponent(ui.list())).style
+        expect(styles).to.have.property('listStyle', 'none')
+        expect(styles).to.have.property('padding', '0px')
       })
     })
 

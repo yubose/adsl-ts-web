@@ -23,7 +23,6 @@ import getActionObjectErrors from './utils/getActionObjectErrors'
 import isComponent from './utils/isComponent'
 import isPage from './utils/isPage'
 import isViewport from './utils/isViewport'
-import NuiDereferencer from './Dereferencer'
 import NUIPage from './Page'
 import ActionsCache from './cache/ActionsCache'
 import Transformer from './Transformer'
@@ -1061,9 +1060,19 @@ const NUI = (function () {
     getActions: _getActions,
     getBuiltIns: () => cache.actions.builtIn,
     getBaseUrl: () => '',
-    getBaseStyles(component: t.NuiComponent.Instance) {
-      const origStyle = component?.blueprint?.style || {}
-      const styles = { ...origStyle } as any
+    getBaseStyles(
+      component: t.NuiComponent.Instance | Record<string, any>,
+      originalComponent:
+        | t.NuiComponent.Instance
+        | Record<string, any> = isComponent(component)
+        ? component.blueprint
+        : component,
+    ) {
+      const origStyle =
+        (isComponent(component)
+          ? component.blueprint?.style || component.style
+          : originalComponent.style || component?.style) || {}
+      const styles = { ...origStyle }
 
       if (VP.isNil(origStyle?.top) || origStyle?.top === 'auto') {
         styles.position = 'relative'

@@ -7,15 +7,11 @@
             "viewTag": "labelTagAboveList",
             "text": "Hello",
             "type": "label",
-            "style": {
-              "position": "relative",
-              "outline": "none",
-              "height": "auto"
-            },
+            "style": {},
             "data-viewtag": "labelTagAboveList",
             "data-ux": "labelTagAboveList",
-            "id": "_zfpso7ha2",
-            "parentId": "_hqt48hv84",
+            "id": "_3o7x4pdmn",
+            "parentId": "_03da3abw9",
             "children": []
           },
           {
@@ -45,31 +41,23 @@
                   {
                     "text": "Hello",
                     "type": "label",
-                    "style": {
-                      "position": "relative",
-                      "outline": "none",
-                      "height": "auto"
-                    },
+                    "style": {},
                     "data-value": "apple",
                     "data-key": "itemObject.fruit",
                     "data-name": "fruit",
-                    "id": "_yl6ewrlab",
-                    "parentId": "_mogun7ghl",
+                    "id": "_ob1ihz23u",
+                    "parentId": "_lsa4q24j5",
                     "children": []
                   },
                   {
                     "placeholder": "Edit fruit",
                     "type": "textField",
-                    "style": {
-                      "position": "relative",
-                      "outline": "none",
-                      "height": "auto"
-                    },
+                    "style": {},
                     "data-value": "apple",
                     "data-key": "itemObject.fruit",
                     "data-name": "fruit",
-                    "id": "_4iweluj5r",
-                    "parentId": "_mogun7ghl",
+                    "id": "_22y0e5uax",
+                    "parentId": "_lsa4q24j5",
                     "children": []
                   }
                 ],
@@ -81,8 +69,8 @@
                 "index": 0,
                 "data-viewtag": "listItemTag",
                 "data-ux": "listItemTag",
-                "id": "_mogun7ghl",
-                "parentId": "_nwkeckjkz"
+                "id": "_lsa4q24j5",
+                "parentId": "_36mr1ywqv"
               },
               {
                 "style": {
@@ -99,31 +87,23 @@
                   {
                     "text": "Hello",
                     "type": "label",
-                    "style": {
-                      "position": "relative",
-                      "outline": "none",
-                      "height": "auto"
-                    },
+                    "style": {},
                     "data-value": "berry",
                     "data-key": "itemObject.fruit",
                     "data-name": "fruit",
-                    "id": "_mawqaer4q",
-                    "parentId": "_zdkq9ahs8",
+                    "id": "_1qdaz11ve",
+                    "parentId": "_0smi68g5t",
                     "children": []
                   },
                   {
                     "placeholder": "Edit fruit",
                     "type": "textField",
-                    "style": {
-                      "position": "relative",
-                      "outline": "none",
-                      "height": "auto"
-                    },
+                    "style": {},
                     "data-value": "berry",
                     "data-key": "itemObject.fruit",
                     "data-name": "fruit",
-                    "id": "_3d56rpc6h",
-                    "parentId": "_zdkq9ahs8",
+                    "id": "_wy0jlyecj",
+                    "parentId": "_0smi68g5t",
                     "children": []
                   }
                 ],
@@ -135,31 +115,24 @@
                 "index": 1,
                 "data-viewtag": "listItemTag",
                 "data-ux": "listItemTag",
-                "id": "_zdkq9ahs8",
-                "parentId": "_nwkeckjkz"
+                "id": "_0smi68g5t",
+                "parentId": "_36mr1ywqv"
               }
             ],
             "type": "list",
             "style": {
-              "position": "relative",
-              "outline": "none",
-              "height": "auto",
               "display": "block",
               "listStyle": "none",
               "padding": "0px"
             },
-            "data-listid": "_nwkeckjkz",
-            "id": "_nwkeckjkz",
-            "parentId": "_hqt48hv84"
+            "data-listid": "_36mr1ywqv",
+            "id": "_36mr1ywqv",
+            "parentId": "_03da3abw9"
           }
         ],
         "type": "view",
-        "style": {
-          "position": "relative",
-          "outline": "none",
-          "height": "auto"
-        },
-        "id": "_hqt48hv84",
+        "style": {},
+        "id": "_03da3abw9",
         "parentId": null
       }
     ],
@@ -169,15 +142,11 @@
           "viewTag": "labelTagAboveList",
           "text": "Hello",
           "type": "label",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-viewtag": "labelTagAboveList",
           "data-ux": "labelTagAboveList",
-          "id": "_zfpso7ha2",
-          "parentId": "_hqt48hv84",
+          "id": "_3o7x4pdmn",
+          "parentId": "_03da3abw9",
           "children": []
         },
         {
@@ -207,31 +176,23 @@
                 {
                   "text": "Hello",
                   "type": "label",
-                  "style": {
-                    "position": "relative",
-                    "outline": "none",
-                    "height": "auto"
-                  },
+                  "style": {},
                   "data-value": "apple",
                   "data-key": "itemObject.fruit",
                   "data-name": "fruit",
-                  "id": "_yl6ewrlab",
-                  "parentId": "_mogun7ghl",
+                  "id": "_ob1ihz23u",
+                  "parentId": "_lsa4q24j5",
                   "children": []
                 },
                 {
                   "placeholder": "Edit fruit",
                   "type": "textField",
-                  "style": {
-                    "position": "relative",
-                    "outline": "none",
-                    "height": "auto"
-                  },
+                  "style": {},
                   "data-value": "apple",
                   "data-key": "itemObject.fruit",
                   "data-name": "fruit",
-                  "id": "_4iweluj5r",
-                  "parentId": "_mogun7ghl",
+                  "id": "_22y0e5uax",
+                  "parentId": "_lsa4q24j5",
                   "children": []
                 }
               ],
@@ -243,8 +204,8 @@
               "index": 0,
               "data-viewtag": "listItemTag",
               "data-ux": "listItemTag",
-              "id": "_mogun7ghl",
-              "parentId": "_nwkeckjkz"
+              "id": "_lsa4q24j5",
+              "parentId": "_36mr1ywqv"
             },
             {
               "style": {
@@ -261,31 +222,23 @@
                 {
                   "text": "Hello",
                   "type": "label",
-                  "style": {
-                    "position": "relative",
-                    "outline": "none",
-                    "height": "auto"
-                  },
+                  "style": {},
                   "data-value": "berry",
                   "data-key": "itemObject.fruit",
                   "data-name": "fruit",
-                  "id": "_mawqaer4q",
-                  "parentId": "_zdkq9ahs8",
+                  "id": "_1qdaz11ve",
+                  "parentId": "_0smi68g5t",
                   "children": []
                 },
                 {
                   "placeholder": "Edit fruit",
                   "type": "textField",
-                  "style": {
-                    "position": "relative",
-                    "outline": "none",
-                    "height": "auto"
-                  },
+                  "style": {},
                   "data-value": "berry",
                   "data-key": "itemObject.fruit",
                   "data-name": "fruit",
-                  "id": "_3d56rpc6h",
-                  "parentId": "_zdkq9ahs8",
+                  "id": "_wy0jlyecj",
+                  "parentId": "_0smi68g5t",
                   "children": []
                 }
               ],
@@ -297,31 +250,24 @@
               "index": 1,
               "data-viewtag": "listItemTag",
               "data-ux": "listItemTag",
-              "id": "_zdkq9ahs8",
-              "parentId": "_nwkeckjkz"
+              "id": "_0smi68g5t",
+              "parentId": "_36mr1ywqv"
             }
           ],
           "type": "list",
           "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto",
             "display": "block",
             "listStyle": "none",
             "padding": "0px"
           },
-          "data-listid": "_nwkeckjkz",
-          "id": "_nwkeckjkz",
-          "parentId": "_hqt48hv84"
+          "data-listid": "_36mr1ywqv",
+          "id": "_36mr1ywqv",
+          "parentId": "_03da3abw9"
         }
       ],
       "type": "view",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
-      "id": "_hqt48hv84",
+      "style": {},
+      "id": "_03da3abw9",
       "parentId": null
     },
     "lastArg": {
@@ -330,15 +276,11 @@
           "viewTag": "labelTagAboveList",
           "text": "Hello",
           "type": "label",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-viewtag": "labelTagAboveList",
           "data-ux": "labelTagAboveList",
-          "id": "_zfpso7ha2",
-          "parentId": "_hqt48hv84",
+          "id": "_3o7x4pdmn",
+          "parentId": "_03da3abw9",
           "children": []
         },
         {
@@ -368,31 +310,23 @@
                 {
                   "text": "Hello",
                   "type": "label",
-                  "style": {
-                    "position": "relative",
-                    "outline": "none",
-                    "height": "auto"
-                  },
+                  "style": {},
                   "data-value": "apple",
                   "data-key": "itemObject.fruit",
                   "data-name": "fruit",
-                  "id": "_yl6ewrlab",
-                  "parentId": "_mogun7ghl",
+                  "id": "_ob1ihz23u",
+                  "parentId": "_lsa4q24j5",
                   "children": []
                 },
                 {
                   "placeholder": "Edit fruit",
                   "type": "textField",
-                  "style": {
-                    "position": "relative",
-                    "outline": "none",
-                    "height": "auto"
-                  },
+                  "style": {},
                   "data-value": "apple",
                   "data-key": "itemObject.fruit",
                   "data-name": "fruit",
-                  "id": "_4iweluj5r",
-                  "parentId": "_mogun7ghl",
+                  "id": "_22y0e5uax",
+                  "parentId": "_lsa4q24j5",
                   "children": []
                 }
               ],
@@ -404,8 +338,8 @@
               "index": 0,
               "data-viewtag": "listItemTag",
               "data-ux": "listItemTag",
-              "id": "_mogun7ghl",
-              "parentId": "_nwkeckjkz"
+              "id": "_lsa4q24j5",
+              "parentId": "_36mr1ywqv"
             },
             {
               "style": {
@@ -422,31 +356,23 @@
                 {
                   "text": "Hello",
                   "type": "label",
-                  "style": {
-                    "position": "relative",
-                    "outline": "none",
-                    "height": "auto"
-                  },
+                  "style": {},
                   "data-value": "berry",
                   "data-key": "itemObject.fruit",
                   "data-name": "fruit",
-                  "id": "_mawqaer4q",
-                  "parentId": "_zdkq9ahs8",
+                  "id": "_1qdaz11ve",
+                  "parentId": "_0smi68g5t",
                   "children": []
                 },
                 {
                   "placeholder": "Edit fruit",
                   "type": "textField",
-                  "style": {
-                    "position": "relative",
-                    "outline": "none",
-                    "height": "auto"
-                  },
+                  "style": {},
                   "data-value": "berry",
                   "data-key": "itemObject.fruit",
                   "data-name": "fruit",
-                  "id": "_3d56rpc6h",
-                  "parentId": "_zdkq9ahs8",
+                  "id": "_wy0jlyecj",
+                  "parentId": "_0smi68g5t",
                   "children": []
                 }
               ],
@@ -458,34 +384,27 @@
               "index": 1,
               "data-viewtag": "listItemTag",
               "data-ux": "listItemTag",
-              "id": "_zdkq9ahs8",
-              "parentId": "_nwkeckjkz"
+              "id": "_0smi68g5t",
+              "parentId": "_36mr1ywqv"
             }
           ],
           "type": "list",
           "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto",
             "display": "block",
             "listStyle": "none",
             "padding": "0px"
           },
-          "data-listid": "_nwkeckjkz",
-          "id": "_nwkeckjkz",
-          "parentId": "_hqt48hv84"
+          "data-listid": "_36mr1ywqv",
+          "id": "_36mr1ywqv",
+          "parentId": "_03da3abw9"
         }
       ],
       "type": "view",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
-      "id": "_hqt48hv84",
+      "style": {},
+      "id": "_03da3abw9",
       "parentId": null
     },
-    "callId": 42963,
+    "callId": 2064,
     "errorWithCallStack": {}
   },
   {
@@ -494,15 +413,11 @@
         "viewTag": "labelTagAboveList",
         "text": "Hello",
         "type": "label",
-        "style": {
-          "position": "relative",
-          "outline": "none",
-          "height": "auto"
-        },
+        "style": {},
         "data-viewtag": "labelTagAboveList",
         "data-ux": "labelTagAboveList",
-        "id": "_zfpso7ha2",
-        "parentId": "_hqt48hv84",
+        "id": "_3o7x4pdmn",
+        "parentId": "_03da3abw9",
         "children": []
       }
     ],
@@ -510,33 +425,25 @@
       "viewTag": "labelTagAboveList",
       "text": "Hello",
       "type": "label",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-viewtag": "labelTagAboveList",
       "data-ux": "labelTagAboveList",
-      "id": "_zfpso7ha2",
-      "parentId": "_hqt48hv84",
+      "id": "_3o7x4pdmn",
+      "parentId": "_03da3abw9",
       "children": []
     },
     "lastArg": {
       "viewTag": "labelTagAboveList",
       "text": "Hello",
       "type": "label",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-viewtag": "labelTagAboveList",
       "data-ux": "labelTagAboveList",
-      "id": "_zfpso7ha2",
-      "parentId": "_hqt48hv84",
+      "id": "_3o7x4pdmn",
+      "parentId": "_03da3abw9",
       "children": []
     },
-    "callId": 42966,
+    "callId": 2067,
     "errorWithCallStack": {}
   },
   {
@@ -568,31 +475,23 @@
               {
                 "text": "Hello",
                 "type": "label",
-                "style": {
-                  "position": "relative",
-                  "outline": "none",
-                  "height": "auto"
-                },
+                "style": {},
                 "data-value": "apple",
                 "data-key": "itemObject.fruit",
                 "data-name": "fruit",
-                "id": "_yl6ewrlab",
-                "parentId": "_mogun7ghl",
+                "id": "_ob1ihz23u",
+                "parentId": "_lsa4q24j5",
                 "children": []
               },
               {
                 "placeholder": "Edit fruit",
                 "type": "textField",
-                "style": {
-                  "position": "relative",
-                  "outline": "none",
-                  "height": "auto"
-                },
+                "style": {},
                 "data-value": "apple",
                 "data-key": "itemObject.fruit",
                 "data-name": "fruit",
-                "id": "_4iweluj5r",
-                "parentId": "_mogun7ghl",
+                "id": "_22y0e5uax",
+                "parentId": "_lsa4q24j5",
                 "children": []
               }
             ],
@@ -604,8 +503,8 @@
             "index": 0,
             "data-viewtag": "listItemTag",
             "data-ux": "listItemTag",
-            "id": "_mogun7ghl",
-            "parentId": "_nwkeckjkz"
+            "id": "_lsa4q24j5",
+            "parentId": "_36mr1ywqv"
           },
           {
             "style": {
@@ -622,31 +521,23 @@
               {
                 "text": "Hello",
                 "type": "label",
-                "style": {
-                  "position": "relative",
-                  "outline": "none",
-                  "height": "auto"
-                },
+                "style": {},
                 "data-value": "berry",
                 "data-key": "itemObject.fruit",
                 "data-name": "fruit",
-                "id": "_mawqaer4q",
-                "parentId": "_zdkq9ahs8",
+                "id": "_1qdaz11ve",
+                "parentId": "_0smi68g5t",
                 "children": []
               },
               {
                 "placeholder": "Edit fruit",
                 "type": "textField",
-                "style": {
-                  "position": "relative",
-                  "outline": "none",
-                  "height": "auto"
-                },
+                "style": {},
                 "data-value": "berry",
                 "data-key": "itemObject.fruit",
                 "data-name": "fruit",
-                "id": "_3d56rpc6h",
-                "parentId": "_zdkq9ahs8",
+                "id": "_wy0jlyecj",
+                "parentId": "_0smi68g5t",
                 "children": []
               }
             ],
@@ -658,22 +549,19 @@
             "index": 1,
             "data-viewtag": "listItemTag",
             "data-ux": "listItemTag",
-            "id": "_zdkq9ahs8",
-            "parentId": "_nwkeckjkz"
+            "id": "_0smi68g5t",
+            "parentId": "_36mr1ywqv"
           }
         ],
         "type": "list",
         "style": {
-          "position": "relative",
-          "outline": "none",
-          "height": "auto",
           "display": "block",
           "listStyle": "none",
           "padding": "0px"
         },
-        "data-listid": "_nwkeckjkz",
-        "id": "_nwkeckjkz",
-        "parentId": "_hqt48hv84"
+        "data-listid": "_36mr1ywqv",
+        "id": "_36mr1ywqv",
+        "parentId": "_03da3abw9"
       }
     ],
     "firstArg": {
@@ -703,31 +591,23 @@
             {
               "text": "Hello",
               "type": "label",
-              "style": {
-                "position": "relative",
-                "outline": "none",
-                "height": "auto"
-              },
+              "style": {},
               "data-value": "apple",
               "data-key": "itemObject.fruit",
               "data-name": "fruit",
-              "id": "_yl6ewrlab",
-              "parentId": "_mogun7ghl",
+              "id": "_ob1ihz23u",
+              "parentId": "_lsa4q24j5",
               "children": []
             },
             {
               "placeholder": "Edit fruit",
               "type": "textField",
-              "style": {
-                "position": "relative",
-                "outline": "none",
-                "height": "auto"
-              },
+              "style": {},
               "data-value": "apple",
               "data-key": "itemObject.fruit",
               "data-name": "fruit",
-              "id": "_4iweluj5r",
-              "parentId": "_mogun7ghl",
+              "id": "_22y0e5uax",
+              "parentId": "_lsa4q24j5",
               "children": []
             }
           ],
@@ -739,8 +619,8 @@
           "index": 0,
           "data-viewtag": "listItemTag",
           "data-ux": "listItemTag",
-          "id": "_mogun7ghl",
-          "parentId": "_nwkeckjkz"
+          "id": "_lsa4q24j5",
+          "parentId": "_36mr1ywqv"
         },
         {
           "style": {
@@ -757,31 +637,23 @@
             {
               "text": "Hello",
               "type": "label",
-              "style": {
-                "position": "relative",
-                "outline": "none",
-                "height": "auto"
-              },
+              "style": {},
               "data-value": "berry",
               "data-key": "itemObject.fruit",
               "data-name": "fruit",
-              "id": "_mawqaer4q",
-              "parentId": "_zdkq9ahs8",
+              "id": "_1qdaz11ve",
+              "parentId": "_0smi68g5t",
               "children": []
             },
             {
               "placeholder": "Edit fruit",
               "type": "textField",
-              "style": {
-                "position": "relative",
-                "outline": "none",
-                "height": "auto"
-              },
+              "style": {},
               "data-value": "berry",
               "data-key": "itemObject.fruit",
               "data-name": "fruit",
-              "id": "_3d56rpc6h",
-              "parentId": "_zdkq9ahs8",
+              "id": "_wy0jlyecj",
+              "parentId": "_0smi68g5t",
               "children": []
             }
           ],
@@ -793,22 +665,19 @@
           "index": 1,
           "data-viewtag": "listItemTag",
           "data-ux": "listItemTag",
-          "id": "_zdkq9ahs8",
-          "parentId": "_nwkeckjkz"
+          "id": "_0smi68g5t",
+          "parentId": "_36mr1ywqv"
         }
       ],
       "type": "list",
       "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto",
         "display": "block",
         "listStyle": "none",
         "padding": "0px"
       },
-      "data-listid": "_nwkeckjkz",
-      "id": "_nwkeckjkz",
-      "parentId": "_hqt48hv84"
+      "data-listid": "_36mr1ywqv",
+      "id": "_36mr1ywqv",
+      "parentId": "_03da3abw9"
     },
     "lastArg": {
       "listObject": [
@@ -837,31 +706,23 @@
             {
               "text": "Hello",
               "type": "label",
-              "style": {
-                "position": "relative",
-                "outline": "none",
-                "height": "auto"
-              },
+              "style": {},
               "data-value": "apple",
               "data-key": "itemObject.fruit",
               "data-name": "fruit",
-              "id": "_yl6ewrlab",
-              "parentId": "_mogun7ghl",
+              "id": "_ob1ihz23u",
+              "parentId": "_lsa4q24j5",
               "children": []
             },
             {
               "placeholder": "Edit fruit",
               "type": "textField",
-              "style": {
-                "position": "relative",
-                "outline": "none",
-                "height": "auto"
-              },
+              "style": {},
               "data-value": "apple",
               "data-key": "itemObject.fruit",
               "data-name": "fruit",
-              "id": "_4iweluj5r",
-              "parentId": "_mogun7ghl",
+              "id": "_22y0e5uax",
+              "parentId": "_lsa4q24j5",
               "children": []
             }
           ],
@@ -873,8 +734,8 @@
           "index": 0,
           "data-viewtag": "listItemTag",
           "data-ux": "listItemTag",
-          "id": "_mogun7ghl",
-          "parentId": "_nwkeckjkz"
+          "id": "_lsa4q24j5",
+          "parentId": "_36mr1ywqv"
         },
         {
           "style": {
@@ -891,31 +752,23 @@
             {
               "text": "Hello",
               "type": "label",
-              "style": {
-                "position": "relative",
-                "outline": "none",
-                "height": "auto"
-              },
+              "style": {},
               "data-value": "berry",
               "data-key": "itemObject.fruit",
               "data-name": "fruit",
-              "id": "_mawqaer4q",
-              "parentId": "_zdkq9ahs8",
+              "id": "_1qdaz11ve",
+              "parentId": "_0smi68g5t",
               "children": []
             },
             {
               "placeholder": "Edit fruit",
               "type": "textField",
-              "style": {
-                "position": "relative",
-                "outline": "none",
-                "height": "auto"
-              },
+              "style": {},
               "data-value": "berry",
               "data-key": "itemObject.fruit",
               "data-name": "fruit",
-              "id": "_3d56rpc6h",
-              "parentId": "_zdkq9ahs8",
+              "id": "_wy0jlyecj",
+              "parentId": "_0smi68g5t",
               "children": []
             }
           ],
@@ -927,24 +780,21 @@
           "index": 1,
           "data-viewtag": "listItemTag",
           "data-ux": "listItemTag",
-          "id": "_zdkq9ahs8",
-          "parentId": "_nwkeckjkz"
+          "id": "_0smi68g5t",
+          "parentId": "_36mr1ywqv"
         }
       ],
       "type": "list",
       "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto",
         "display": "block",
         "listStyle": "none",
         "padding": "0px"
       },
-      "data-listid": "_nwkeckjkz",
-      "id": "_nwkeckjkz",
-      "parentId": "_hqt48hv84"
+      "data-listid": "_36mr1ywqv",
+      "id": "_36mr1ywqv",
+      "parentId": "_03da3abw9"
     },
-    "callId": 42969,
+    "callId": 2070,
     "errorWithCallStack": {}
   },
   {
@@ -964,31 +814,23 @@
           {
             "text": "Hello",
             "type": "label",
-            "style": {
-              "position": "relative",
-              "outline": "none",
-              "height": "auto"
-            },
+            "style": {},
             "data-value": "apple",
             "data-key": "itemObject.fruit",
             "data-name": "fruit",
-            "id": "_yl6ewrlab",
-            "parentId": "_mogun7ghl",
+            "id": "_ob1ihz23u",
+            "parentId": "_lsa4q24j5",
             "children": []
           },
           {
             "placeholder": "Edit fruit",
             "type": "textField",
-            "style": {
-              "position": "relative",
-              "outline": "none",
-              "height": "auto"
-            },
+            "style": {},
             "data-value": "apple",
             "data-key": "itemObject.fruit",
             "data-name": "fruit",
-            "id": "_4iweluj5r",
-            "parentId": "_mogun7ghl",
+            "id": "_22y0e5uax",
+            "parentId": "_lsa4q24j5",
             "children": []
           }
         ],
@@ -1000,8 +842,8 @@
         "index": 0,
         "data-viewtag": "listItemTag",
         "data-ux": "listItemTag",
-        "id": "_mogun7ghl",
-        "parentId": "_nwkeckjkz"
+        "id": "_lsa4q24j5",
+        "parentId": "_36mr1ywqv"
       }
     ],
     "firstArg": {
@@ -1019,31 +861,23 @@
         {
           "text": "Hello",
           "type": "label",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-value": "apple",
           "data-key": "itemObject.fruit",
           "data-name": "fruit",
-          "id": "_yl6ewrlab",
-          "parentId": "_mogun7ghl",
+          "id": "_ob1ihz23u",
+          "parentId": "_lsa4q24j5",
           "children": []
         },
         {
           "placeholder": "Edit fruit",
           "type": "textField",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-value": "apple",
           "data-key": "itemObject.fruit",
           "data-name": "fruit",
-          "id": "_4iweluj5r",
-          "parentId": "_mogun7ghl",
+          "id": "_22y0e5uax",
+          "parentId": "_lsa4q24j5",
           "children": []
         }
       ],
@@ -1055,8 +889,8 @@
       "index": 0,
       "data-viewtag": "listItemTag",
       "data-ux": "listItemTag",
-      "id": "_mogun7ghl",
-      "parentId": "_nwkeckjkz"
+      "id": "_lsa4q24j5",
+      "parentId": "_36mr1ywqv"
     },
     "lastArg": {
       "style": {
@@ -1073,31 +907,23 @@
         {
           "text": "Hello",
           "type": "label",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-value": "apple",
           "data-key": "itemObject.fruit",
           "data-name": "fruit",
-          "id": "_yl6ewrlab",
-          "parentId": "_mogun7ghl",
+          "id": "_ob1ihz23u",
+          "parentId": "_lsa4q24j5",
           "children": []
         },
         {
           "placeholder": "Edit fruit",
           "type": "textField",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-value": "apple",
           "data-key": "itemObject.fruit",
           "data-name": "fruit",
-          "id": "_4iweluj5r",
-          "parentId": "_mogun7ghl",
+          "id": "_22y0e5uax",
+          "parentId": "_lsa4q24j5",
           "children": []
         }
       ],
@@ -1109,10 +935,10 @@
       "index": 0,
       "data-viewtag": "listItemTag",
       "data-ux": "listItemTag",
-      "id": "_mogun7ghl",
-      "parentId": "_nwkeckjkz"
+      "id": "_lsa4q24j5",
+      "parentId": "_36mr1ywqv"
     },
-    "callId": 42972,
+    "callId": 2073,
     "errorWithCallStack": {}
   },
   {
@@ -1120,50 +946,38 @@
       {
         "text": "Hello",
         "type": "label",
-        "style": {
-          "position": "relative",
-          "outline": "none",
-          "height": "auto"
-        },
+        "style": {},
         "data-value": "apple",
         "data-key": "itemObject.fruit",
         "data-name": "fruit",
-        "id": "_yl6ewrlab",
-        "parentId": "_mogun7ghl",
+        "id": "_ob1ihz23u",
+        "parentId": "_lsa4q24j5",
         "children": []
       }
     ],
     "firstArg": {
       "text": "Hello",
       "type": "label",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-value": "apple",
       "data-key": "itemObject.fruit",
       "data-name": "fruit",
-      "id": "_yl6ewrlab",
-      "parentId": "_mogun7ghl",
+      "id": "_ob1ihz23u",
+      "parentId": "_lsa4q24j5",
       "children": []
     },
     "lastArg": {
       "text": "Hello",
       "type": "label",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-value": "apple",
       "data-key": "itemObject.fruit",
       "data-name": "fruit",
-      "id": "_yl6ewrlab",
-      "parentId": "_mogun7ghl",
+      "id": "_ob1ihz23u",
+      "parentId": "_lsa4q24j5",
       "children": []
     },
-    "callId": 42975,
+    "callId": 2076,
     "errorWithCallStack": {}
   },
   {
@@ -1171,50 +985,38 @@
       {
         "placeholder": "Edit fruit",
         "type": "textField",
-        "style": {
-          "position": "relative",
-          "outline": "none",
-          "height": "auto"
-        },
+        "style": {},
         "data-value": "apple",
         "data-key": "itemObject.fruit",
         "data-name": "fruit",
-        "id": "_4iweluj5r",
-        "parentId": "_mogun7ghl",
+        "id": "_22y0e5uax",
+        "parentId": "_lsa4q24j5",
         "children": []
       }
     ],
     "firstArg": {
       "placeholder": "Edit fruit",
       "type": "textField",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-value": "apple",
       "data-key": "itemObject.fruit",
       "data-name": "fruit",
-      "id": "_4iweluj5r",
-      "parentId": "_mogun7ghl",
+      "id": "_22y0e5uax",
+      "parentId": "_lsa4q24j5",
       "children": []
     },
     "lastArg": {
       "placeholder": "Edit fruit",
       "type": "textField",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-value": "apple",
       "data-key": "itemObject.fruit",
       "data-name": "fruit",
-      "id": "_4iweluj5r",
-      "parentId": "_mogun7ghl",
+      "id": "_22y0e5uax",
+      "parentId": "_lsa4q24j5",
       "children": []
     },
-    "callId": 42978,
+    "callId": 2079,
     "errorWithCallStack": {}
   },
   {
@@ -1234,31 +1036,23 @@
           {
             "text": "Hello",
             "type": "label",
-            "style": {
-              "position": "relative",
-              "outline": "none",
-              "height": "auto"
-            },
+            "style": {},
             "data-value": "berry",
             "data-key": "itemObject.fruit",
             "data-name": "fruit",
-            "id": "_mawqaer4q",
-            "parentId": "_zdkq9ahs8",
+            "id": "_1qdaz11ve",
+            "parentId": "_0smi68g5t",
             "children": []
           },
           {
             "placeholder": "Edit fruit",
             "type": "textField",
-            "style": {
-              "position": "relative",
-              "outline": "none",
-              "height": "auto"
-            },
+            "style": {},
             "data-value": "berry",
             "data-key": "itemObject.fruit",
             "data-name": "fruit",
-            "id": "_3d56rpc6h",
-            "parentId": "_zdkq9ahs8",
+            "id": "_wy0jlyecj",
+            "parentId": "_0smi68g5t",
             "children": []
           }
         ],
@@ -1270,8 +1064,8 @@
         "index": 1,
         "data-viewtag": "listItemTag",
         "data-ux": "listItemTag",
-        "id": "_zdkq9ahs8",
-        "parentId": "_nwkeckjkz"
+        "id": "_0smi68g5t",
+        "parentId": "_36mr1ywqv"
       }
     ],
     "firstArg": {
@@ -1289,31 +1083,23 @@
         {
           "text": "Hello",
           "type": "label",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-value": "berry",
           "data-key": "itemObject.fruit",
           "data-name": "fruit",
-          "id": "_mawqaer4q",
-          "parentId": "_zdkq9ahs8",
+          "id": "_1qdaz11ve",
+          "parentId": "_0smi68g5t",
           "children": []
         },
         {
           "placeholder": "Edit fruit",
           "type": "textField",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-value": "berry",
           "data-key": "itemObject.fruit",
           "data-name": "fruit",
-          "id": "_3d56rpc6h",
-          "parentId": "_zdkq9ahs8",
+          "id": "_wy0jlyecj",
+          "parentId": "_0smi68g5t",
           "children": []
         }
       ],
@@ -1325,8 +1111,8 @@
       "index": 1,
       "data-viewtag": "listItemTag",
       "data-ux": "listItemTag",
-      "id": "_zdkq9ahs8",
-      "parentId": "_nwkeckjkz"
+      "id": "_0smi68g5t",
+      "parentId": "_36mr1ywqv"
     },
     "lastArg": {
       "style": {
@@ -1343,31 +1129,23 @@
         {
           "text": "Hello",
           "type": "label",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-value": "berry",
           "data-key": "itemObject.fruit",
           "data-name": "fruit",
-          "id": "_mawqaer4q",
-          "parentId": "_zdkq9ahs8",
+          "id": "_1qdaz11ve",
+          "parentId": "_0smi68g5t",
           "children": []
         },
         {
           "placeholder": "Edit fruit",
           "type": "textField",
-          "style": {
-            "position": "relative",
-            "outline": "none",
-            "height": "auto"
-          },
+          "style": {},
           "data-value": "berry",
           "data-key": "itemObject.fruit",
           "data-name": "fruit",
-          "id": "_3d56rpc6h",
-          "parentId": "_zdkq9ahs8",
+          "id": "_wy0jlyecj",
+          "parentId": "_0smi68g5t",
           "children": []
         }
       ],
@@ -1379,10 +1157,10 @@
       "index": 1,
       "data-viewtag": "listItemTag",
       "data-ux": "listItemTag",
-      "id": "_zdkq9ahs8",
-      "parentId": "_nwkeckjkz"
+      "id": "_0smi68g5t",
+      "parentId": "_36mr1ywqv"
     },
-    "callId": 42981,
+    "callId": 2082,
     "errorWithCallStack": {}
   },
   {
@@ -1390,50 +1168,38 @@
       {
         "text": "Hello",
         "type": "label",
-        "style": {
-          "position": "relative",
-          "outline": "none",
-          "height": "auto"
-        },
+        "style": {},
         "data-value": "berry",
         "data-key": "itemObject.fruit",
         "data-name": "fruit",
-        "id": "_mawqaer4q",
-        "parentId": "_zdkq9ahs8",
+        "id": "_1qdaz11ve",
+        "parentId": "_0smi68g5t",
         "children": []
       }
     ],
     "firstArg": {
       "text": "Hello",
       "type": "label",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-value": "berry",
       "data-key": "itemObject.fruit",
       "data-name": "fruit",
-      "id": "_mawqaer4q",
-      "parentId": "_zdkq9ahs8",
+      "id": "_1qdaz11ve",
+      "parentId": "_0smi68g5t",
       "children": []
     },
     "lastArg": {
       "text": "Hello",
       "type": "label",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-value": "berry",
       "data-key": "itemObject.fruit",
       "data-name": "fruit",
-      "id": "_mawqaer4q",
-      "parentId": "_zdkq9ahs8",
+      "id": "_1qdaz11ve",
+      "parentId": "_0smi68g5t",
       "children": []
     },
-    "callId": 42984,
+    "callId": 2085,
     "errorWithCallStack": {}
   },
   {
@@ -1441,50 +1207,38 @@
       {
         "placeholder": "Edit fruit",
         "type": "textField",
-        "style": {
-          "position": "relative",
-          "outline": "none",
-          "height": "auto"
-        },
+        "style": {},
         "data-value": "berry",
         "data-key": "itemObject.fruit",
         "data-name": "fruit",
-        "id": "_3d56rpc6h",
-        "parentId": "_zdkq9ahs8",
+        "id": "_wy0jlyecj",
+        "parentId": "_0smi68g5t",
         "children": []
       }
     ],
     "firstArg": {
       "placeholder": "Edit fruit",
       "type": "textField",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-value": "berry",
       "data-key": "itemObject.fruit",
       "data-name": "fruit",
-      "id": "_3d56rpc6h",
-      "parentId": "_zdkq9ahs8",
+      "id": "_wy0jlyecj",
+      "parentId": "_0smi68g5t",
       "children": []
     },
     "lastArg": {
       "placeholder": "Edit fruit",
       "type": "textField",
-      "style": {
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
-      },
+      "style": {},
       "data-value": "berry",
       "data-key": "itemObject.fruit",
       "data-name": "fruit",
-      "id": "_3d56rpc6h",
-      "parentId": "_zdkq9ahs8",
+      "id": "_wy0jlyecj",
+      "parentId": "_0smi68g5t",
       "children": []
     },
-    "callId": 42987,
+    "callId": 2088,
     "errorWithCallStack": {}
   },
   {
@@ -1498,14 +1252,11 @@
         "text": "Submit",
         "viewTag": "submitTag",
         "style": {
-          "cursor": "pointer",
-          "position": "relative",
-          "outline": "none",
-          "height": "auto"
+          "cursor": "pointer"
         },
         "data-viewtag": "submitTag",
         "data-ux": "submitTag",
-        "id": "_ggbz85yc9",
+        "id": "_c3qza96b2",
         "parentId": null,
         "children": []
       }
@@ -1519,14 +1270,11 @@
       "text": "Submit",
       "viewTag": "submitTag",
       "style": {
-        "cursor": "pointer",
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
+        "cursor": "pointer"
       },
       "data-viewtag": "submitTag",
       "data-ux": "submitTag",
-      "id": "_ggbz85yc9",
+      "id": "_c3qza96b2",
       "parentId": null,
       "children": []
     },
@@ -1539,18 +1287,15 @@
       "text": "Submit",
       "viewTag": "submitTag",
       "style": {
-        "cursor": "pointer",
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
+        "cursor": "pointer"
       },
       "data-viewtag": "submitTag",
       "data-ux": "submitTag",
-      "id": "_ggbz85yc9",
+      "id": "_c3qza96b2",
       "parentId": null,
       "children": []
     },
-    "callId": 42992,
+    "callId": 2093,
     "errorWithCallStack": {}
   },
   {
@@ -1564,14 +1309,11 @@
         "text": "Close",
         "viewTag": "closeTag",
         "style": {
-          "cursor": "pointer",
-          "position": "relative",
-          "outline": "none",
-          "height": "auto"
+          "cursor": "pointer"
         },
         "data-viewtag": "closeTag",
         "data-ux": "closeTag",
-        "id": "_838jtsshm",
+        "id": "_qa90zwlaf",
         "parentId": null,
         "children": []
       }
@@ -1585,14 +1327,11 @@
       "text": "Close",
       "viewTag": "closeTag",
       "style": {
-        "cursor": "pointer",
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
+        "cursor": "pointer"
       },
       "data-viewtag": "closeTag",
       "data-ux": "closeTag",
-      "id": "_838jtsshm",
+      "id": "_qa90zwlaf",
       "parentId": null,
       "children": []
     },
@@ -1605,18 +1344,15 @@
       "text": "Close",
       "viewTag": "closeTag",
       "style": {
-        "cursor": "pointer",
-        "position": "relative",
-        "outline": "none",
-        "height": "auto"
+        "cursor": "pointer"
       },
       "data-viewtag": "closeTag",
       "data-ux": "closeTag",
-      "id": "_838jtsshm",
+      "id": "_qa90zwlaf",
       "parentId": null,
       "children": []
     },
-    "callId": 42997,
+    "callId": 2098,
     "errorWithCallStack": {}
   }
 ]

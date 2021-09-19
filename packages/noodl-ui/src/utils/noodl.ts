@@ -62,7 +62,7 @@ export function findParent<C extends NuiComponent.Instance>(
 }
 
 export function findListDataObject(
-  component: NuiComponent.Instance | undefined,
+  component: NuiComponent.Instance | Record<string, any> | undefined,
 ) {
   if (!isComponent(component) || !isListConsumer(component)) return null
 
@@ -104,7 +104,7 @@ export function findListDataObject(
 }
 
 export function findIteratorVar(
-  component: NuiComponent.Instance | undefined,
+  component: NuiComponent.Instance | Record<string, any> | undefined,
 ): string {
   if (isComponent(component)) {
     if (Identify.component.list(component)) {

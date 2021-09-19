@@ -822,8 +822,6 @@ class App {
         on: {
           actionChain: {},
           if: ({ page, value }) => {
-            console.log({ page, value })
-            debugger
             if (u.isStr(value) && Identify.reference(value)) {
               const datapath = nu.trimReference(value)
               if (Identify.localKey(datapath)) {
@@ -840,7 +838,6 @@ class App {
           reference: (args) => {
             log.func('on [reference]')
             log.grey('', args)
-            debugger
             const { page, value } = args
             if (Identify.reference(value)) {
               const datapath = nu.trimReference(value)

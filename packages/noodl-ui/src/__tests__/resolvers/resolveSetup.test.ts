@@ -13,7 +13,7 @@ beforeEach(() => {
   on = createOn(nui.getRoot)
 })
 
-describe.only(u.yellow(`resolveSetup`), () => {
+describe(u.yellow(`resolveSetup`), () => {
   describe(u.italic('on'), () => {
     describe(`if`, () => {
       it(`should return value at index 1 if true`, async () => {
