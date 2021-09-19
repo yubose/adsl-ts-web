@@ -40,5 +40,5 @@
     "test:file": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\" --watch-files \"../noodl-ui/dist/index.js\""
   },
   "types": "dist/index.d.ts",
-  "version": "0.0.63"
+  "version": "0.0.64"
 }
