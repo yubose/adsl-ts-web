@@ -90,7 +90,7 @@ export const Identify = (function () {
     },
     actionChain(v: unknown) {
       return (
-        i.isObj(v) && [o.action.any, o.emit, o.goto].some((fn) => v.some(fn))
+        i.isArr(v) && [o.action.any, o.emit, o.goto].some((fn) => v.some(fn))
       )
     },
     /**
@@ -264,7 +264,17 @@ export const Identify = (function () {
   const folds = {
     actionChain: identifyArr<
       (t.ActionObject | t.EmitObjectFold | t.GotoObject)[]
-    >((v) => i.isArr(v) && v.some(composeSomes(o.action.any, o.emit, o.goto))),
+    >(
+      (v) =>
+        i.isArr(v) &&
+        v.some(
+          composeSomes(
+            o.action.any,
+            (v) => i.isObj(v) && 'emit' in v,
+            (v) => i.isObj(v) && 'goto' in v,
+          ),
+        ),
+    ),
     component: Object.assign(
       {
         any<O extends PlainObject>(v: unknown): v is t.ActionObject & O {

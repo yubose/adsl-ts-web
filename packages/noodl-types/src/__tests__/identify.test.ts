@@ -1,10 +1,10 @@
-import * as com from 'noodl-common'
+import * as u from '@jsmanifest/utils'
 import { expect } from 'chai'
 import * as t from '..'
 
-const label = (s: string) => com.italic(com.white(s))
+const label = (s: string) => u.italic(u.white(s))
 
-describe(com.coolGold('Identify'), () => {
+describe(u.yellow('Identify'), () => {
   describe(label('actionChain'), () => {
     it(`should accept emit objects`, () => {
       expect(
@@ -24,7 +24,7 @@ describe(com.coolGold('Identify'), () => {
       ).to.be.true
     })
 
-    it(`should accept emit, goto, and toast objects`, () => {
+    it(`should accept emit and goto`, () => {
       expect(
         t.Identify.actionChain([
           { emit: { dataKey: { var1: 'itemObject' } }, actions: [] },
@@ -91,14 +91,13 @@ describe(com.coolGold('Identify'), () => {
       },
       local: {
         '=.SignIn.loginNewDevice.edgeAPI.store': false,
-        // '=.builtIn.math.random': false,
         '.Global.currentUser.dataCache.loadingDateTime@': false,
         '=.Global.currentUser.vertex.sk': false,
         '=..loginNewDevice.response.edge.deat.user_id': true,
         '=..rvCondition': true,
         '=.Global._nonce': false,
         '..formData.countryCode': true,
-        '.formData.countryCode': true,
+        '.formData.countryCode': false,
         '=.SignIn.formData.countryCode': false,
         '=..verificationCode.response.edge.deat.phone_number': true,
       },
@@ -145,7 +144,7 @@ describe(com.coolGold('Identify'), () => {
     }
 
     describe(`await references`, () => {
-      Object.entries(tests.await).forEach(([reference, expectedValue]) => {
+      u.entries(tests.await).forEach(([reference, expectedValue]) => {
         it(`should be ${expectedValue} for ${reference}`, () => {
           expect(t.Identify.awaitReference(reference)).to.be[
             String(expectedValue)
@@ -155,7 +154,7 @@ describe(com.coolGold('Identify'), () => {
     })
 
     describe(`evolve references`, () => {
-      Object.entries(tests.evolve).forEach(([reference, expectedValue]) => {
+      u.entries(tests.evolve).forEach(([reference, expectedValue]) => {
         it(`should be ${expectedValue} for ${reference}`, () => {
           expect(t.Identify.evalReference(reference)).to.be[
             String(expectedValue)
@@ -165,7 +164,7 @@ describe(com.coolGold('Identify'), () => {
     })
 
     describe(`local merge references`, () => {
-      Object.entries(tests.local).forEach(([reference, expectedValue]) => {
+      u.entries(tests.local).forEach(([reference, expectedValue]) => {
         it(`should be ${expectedValue} for ${reference}`, () => {
           expect(t.Identify.localReference(reference)).to.be[
             String(expectedValue)
@@ -175,7 +174,7 @@ describe(com.coolGold('Identify'), () => {
     })
 
     describe(`root merge references`, () => {
-      Object.entries(tests.root).forEach(([reference, expectedValue]) => {
+      u.entries(tests.root).forEach(([reference, expectedValue]) => {
         it(`should be ${expectedValue} for ${reference}`, () => {
           expect(t.Identify.rootReference(reference)).to.be[
             String(expectedValue)
@@ -185,7 +184,7 @@ describe(com.coolGold('Identify'), () => {
     })
 
     describe(`traverse references`, () => {
-      Object.entries(tests.traverse).forEach(([reference, expectedValue]) => {
+      u.entries(tests.traverse).forEach(([reference, expectedValue]) => {
         it(`should be ${expectedValue} for ${reference}`, () => {
           expect(t.Identify.traverseReference(reference)).to.be[
             String(expectedValue)
@@ -195,29 +194,13 @@ describe(com.coolGold('Identify'), () => {
     })
 
     describe(`tilde references`, () => {
-      Object.entries(tests.tilde).forEach(([reference, expectedValue]) => {
+      u.entries(tests.tilde).forEach(([reference, expectedValue]) => {
         it(`should be ${expectedValue} for ${reference}`, () => {
           expect(t.Identify.tildeReference(reference)).to.be[
             String(expectedValue)
           ]
         })
       })
-    })
-  })
-
-  describe(label('toast'), () => {
-    it(`should be a toast`, () => {
-      expect(t.Identify.folds.toast({ toast: { message: 'hello', style: {} } }))
-        .to.be.true
-    })
-    it(`should not be a toast`, () => {
-      expect(
-        t.Identify.folds.toast({ toasft: { message: 'hello', style: {} } }),
-      ).to.be.false
-      expect(t.Identify.folds.toast({})).to.be.false
-      expect(t.Identify.folds.toast('fasfas')).to.be.false
-      expect(t.Identify.folds.toast(5)).to.be.false
-      expect(t.Identify.folds.toast(null)).to.be.false
     })
   })
 })
