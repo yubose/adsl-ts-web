@@ -1,7 +1,5 @@
 import * as mock from 'noodl-ui-test-utils'
 import * as u from '@jsmanifest/utils'
-import fs from 'fs-extra'
-import path from 'path'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
@@ -86,7 +84,6 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       page,
       callback: spy,
     })
-    await fs.writeJson('callson', spy.getCalls(), { spaces: 2 })
     const expectedCallsInOrder = [
       { type: 'view' },
       { type: 'label' },
