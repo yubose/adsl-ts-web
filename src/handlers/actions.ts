@@ -412,6 +412,7 @@ const createActions = function createActions(app: App) {
 
   const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
     async function getInjectBlob(action, options) {
+      options.ref?.clear('timeout')
       log.func(name)
       log.gold('', action?.snapshot?.())
       const result = await openFileSelector()
