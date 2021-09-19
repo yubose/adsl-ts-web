@@ -277,7 +277,7 @@ export const Identify = (function () {
     ),
     component: Object.assign(
       {
-        any<O extends PlainObject>(v: unknown): v is t.ActionObject & O {
+        any<O extends PlainObject>(v: unknown): v is t.ComponentObject & O {
           return (
             i.isObj(v) &&
             'type' in v &&
