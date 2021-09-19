@@ -244,7 +244,12 @@ export const Identify = (function () {
     rootReference: isRootReference,
     tildeReference: isTildeReference,
     traverseReference: isTraverseReference,
-    pageComponentUrl(v = ''): v is PageComponentUrl {
+    /**
+     * Returns true if the string is in the format: `${string}@${string}#${string}`
+     * @param v
+     * @returns { boolean }
+     */
+    pageComponentUrl<S extends string>(v: S | undefined) {
       if (!i.isStr(v)) return false
       const parts = v.split(/(@|#)/)
       if (parts.length !== 5) return false

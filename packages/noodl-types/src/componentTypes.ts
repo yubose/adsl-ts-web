@@ -253,8 +253,6 @@ export interface ViewComponentObject extends ComponentObject {
 	---- Other component props
 -------------------------------------------------------- */
 
-export type PageComponentUrl<
-  TargetPage extends string = string,
-  CurrentPage extends string = string,
-  ViewTag extends string = string,
-> = `${TargetPage}@${CurrentPage}#${ViewTag}`
+export type PageComponentUrl<S> = S extends `${string}@${string}#${string}`
+  ? `${string}@${string}#${string}`
+  : string
