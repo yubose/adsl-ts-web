@@ -9,7 +9,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
-const {InjectScriptsPlugin} = require('./scripts/InjectScriptsPlugin')
+const { InjectScriptsPlugin } = require('./scripts/InjectScriptsPlugin')
 // import webpack from 'webpack'
 // import { createRequire } from 'module'
 // import * as u from '@jsmanifest/utils'
@@ -29,7 +29,6 @@ const {InjectScriptsPlugin} = require('./scripts/InjectScriptsPlugin')
 // const { default: InjectScriptsPlugin } = _InjectScriptsPlugin_
 
 const cli = meow('', { flags: { sample: { alias: 's', type: 'string' } } })
-console.info('SAMPLE: ' + process.env.SAMPLE)
 
 const pkgJson = {
   root: require('./package.json'),

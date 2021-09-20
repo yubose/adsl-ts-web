@@ -1,14 +1,8 @@
 {
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
-  "dependencies": {
-    "noodl-utils": "^0.0.65"
-  },
+  "dependencies": {},
   "description": "",
-  "devDependencies": {
-    "nock": "^13.1.0",
-    "noodl-ui": "file:../noodl-ui",
-    "noodl-ui-test-utils": "file:../noodl-ui-test-utils"
-  },
+  "devDependencies": {},
   "engines": {
     "node": ">=14",
     "npm": ">=6"
