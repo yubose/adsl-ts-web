@@ -1,4 +1,8 @@
-import { actionTypes as noodlTypesActionTypes, userEvent } from 'noodl-types'
+import {
+  actionTypes as noodlTypesActionTypes,
+  componentTypes as noodlComponentTypes,
+  userEvent,
+} from 'noodl-types'
 import type { NUIActionType } from './types'
 
 // Extended constants from this lib
@@ -28,6 +32,7 @@ export const lib = {
 } as const
 
 export const actionTypes = [...noodlTypesActionTypes, ...lib.actionTypes]
+export const componentTypes = [...noodlComponentTypes, ...lib.components]
 
 export const triggers = [
   ...lib.emitTriggers,

@@ -1,5 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
+import curry from 'lodash/curry'
+import partialRight from 'lodash/partialRight'
 import unary from 'lodash/unary'
 import type { ActionChainObserver } from 'noodl-action-chain'
 import { OrArray } from '@jsmanifest/typefest'
@@ -36,6 +38,7 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import { groupedActionTypes, nuiEmitType } from './constants'
+import getValue from './get'
 import isNuiPage from './utils/isPage'
 import cache from './_cache'
 import * as c from './constants'
@@ -1056,6 +1059,9 @@ const NUI = (function () {
     get emit() {
       return _emit
     },
+    get(key = '', localKey = '') {
+      return getValue(o.getRoot, key, localKey)
+    },
     getAssetsUrl: () => '',
     getActions: _getActions,
     getBuiltIns: () => cache.actions.builtIn,
@@ -1164,7 +1170,6 @@ const NUI = (function () {
         get emit() {
           return _emit
         },
-        get: _createGetter(page),
         get getBaseStyles() {
           return o.getBaseStyles
         },

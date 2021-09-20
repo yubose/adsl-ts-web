@@ -84,6 +84,9 @@ export function getPresetPageObjects() {
         if: [() => {}, '.Donut.thumbnail', '.HelloPage.icon'],
       }
       return {
+        data: {
+          thumbnail: '.Donut.thumbnail',
+        },
         components: [
           ui.view({
             style: { shadow: 'true' },
@@ -133,6 +136,38 @@ export function getPresetPageObjects() {
     },
     get Hello() {
       return { formData: { password: 'abc123', components: [] } }
+    },
+    get Sun() {
+      return {
+        key: '.Cereal.data.thumbnail',
+        formData: {
+          profile: {
+            user: {
+              firstName: 'Henry',
+              lastName: 'Gonzalez',
+              email: 'henry@gmail.com',
+              otherNames: ['mike', 'luke'],
+            },
+          },
+        },
+      }
+    },
+    get Cloud() {
+      return {
+        mainThumbnail: 'naruto.png',
+        messages: [
+          {
+            text: 'good morning',
+            user: 'apple123',
+            thumbnail: '...mainThumbnail',
+          },
+          {
+            text: 'it is not morning yet',
+            user: 'bob123',
+            thumbnail: '.Sun.key',
+          },
+        ],
+      }
     },
     get Tiger() {
       const iteratorVar = 'pencil'
