@@ -142,6 +142,7 @@ async function initializeNoodlPluginRefresher() {
 
 window.addEventListener('load', async (e) => {
   try {
+    window.build = process.env.BUILD
     window.ac = []
     log.func('onload')
 
