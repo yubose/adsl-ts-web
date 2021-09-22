@@ -15,9 +15,7 @@
   "main": "dist/index.js",
   "module": "dist/index.js",
   "name": "noodl-ui-dom",
-  "peerDependencies": {
-    "noodl-ui": "^0.1.35"
-  },
+  "peerDependencies": {},
   "prettier": {
     "arrowParens": "always",
     "endOfLine": "lf",

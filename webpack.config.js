@@ -34,6 +34,7 @@ const pkgJson = {
   root: require('./package.json'),
   nui: require('./packages/noodl-ui/package.json'),
   ndom: require('./packages/noodl-ui-dom/package.json'),
+  nTypes: require('./packages/noodl-types/package.json'),
 }
 
 const version = {
@@ -42,7 +43,7 @@ const version = {
   nui: pkgJson.nui.version,
   ndom: pkgJson.ndom.version,
   nutil: pkgJson.root.dependencies['noodl-utils'],
-  nTypes: pkgJson.root.dependencies['noodl-types'],
+  nTypes: pkgJson.nTypes.version,
 }
 
 const favicon = 'public/favicon.ico'
