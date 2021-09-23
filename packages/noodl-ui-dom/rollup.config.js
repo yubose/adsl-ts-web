@@ -1,4 +1,5 @@
 import { DEFAULT_EXTENSIONS } from '@babel/core'
+// import { visualizer } from 'rollup-plugin-visualizer'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
@@ -29,7 +30,9 @@ const configs = [
         },
       },
     ],
+    external: ['noodl-ui'],
     plugins: [
+      // visualizer(),
       nodePolyfills(),
       external(),
       commonjs(),

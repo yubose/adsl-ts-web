@@ -1,5 +1,6 @@
 {
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
+  "dependencies": {},
   "description": "",
   "engines": {
     "node": ">=14",
