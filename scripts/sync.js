@@ -12,7 +12,10 @@ const chalk = require('chalk')
 async function sync() {
   const toDir = path.join(process.cwd(), './generated')
 
-  async function syncApp({ name, from, to, configFilePath }) {
+  async function syncApp({ name, from, to, configPath }) {
+    const configFilePathFrom = path.resolve(path.join(from, configPath))
+    const configFilePathTo = path.resolve(path.join(to, configPath))
+
     console.log(
       `Syncing ${chalk.cyan(name)} from ${chalk.magenta(
         from,
@@ -29,15 +32,13 @@ async function sync() {
       })
 
       console.log(
-        `${chalk.cyan(`Using`)} config from ${chalk.magenta(configFilePath)}`,
+        `${chalk.cyan(`Using`)} config from ${chalk.magenta(configPath)}`,
       )
 
-      const toConfigFilePath = path.join(to, path.basename(configFilePath))
+      await fs.copy(configPath, configFilePathTo, { overwrite: true })
 
-      await fs.copy(configFilePath, toConfigFilePath, { overwrite: true })
-
-      if (fs.existsSync(configFilePath)) {
-        const yml = await fs.readFile(configFilePath, 'utf8')
+      if (fs.existsSync(configPath)) {
+        const yml = await fs.readFile(configPath, 'utf8')
         if (yml && u.isStr(yml)) {
           const doc = yaml.parseDocument(yml)
           if (doc) {
@@ -47,7 +48,7 @@ async function sync() {
                 doc.set('myBaseUrl', `http://127:0.0.1:3001/`)
               }
               await fs.writeFile(
-                toConfigFilePath,
+                configFilePathTo,
                 yaml.stringify(doc, { indent: 2 }),
                 'utf8',
               )
@@ -64,21 +65,29 @@ async function sync() {
 
   await syncApp({
     name: 'search',
-    configFilePath: '../aitmed-search/config/searchd2.yml',
+    configPath: 'config/searchd2.yml',
     from: '../aitmed-search/search',
     to: './generated/searchd2',
   })
 
   await syncApp({
     name: 'admin',
-    configFilePath: '../aitmed-admin/config/admind2.yml',
+    configPath: '../aitmed-admin/config/admind2.yml',
     from: '../aitmed-admin/admin',
     to: './generated/admind2',
   })
 
   await syncApp({
+    name: 'admin',
+    configPath: '../aitmed-admin/config/admind2.yml',
+    from: '../aitmed-sadmin/superadmin',
+    to: './generated/superadmin',
+    repo: 'http://gitlab.aitmed.com/production/superadmin.git',
+  })
+
+  await syncApp({
     name: 'testpage',
-    configFilePath: '../cadl/config/testpage.yml',
+    configPath: '../cadl/config/testpage.yml',
     from: '../cadl/testpage',
     to: './generated/testpage',
   })
