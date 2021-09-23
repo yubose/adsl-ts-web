@@ -393,7 +393,8 @@ function normalizeProps<
                   // Some list item consumers have data keys referencing color data values
                   // They are in the 0x0000000 form so we must convert them to be DOM compatible
                   if (isListPath) {
-                    const dataObject = findListDataObject(props)
+                    const dataObject =
+                      context?.dataObject || findListDataObject(props)
                     if (u.isObj(dataObject)) {
                       const dataKey = nu.excludeIteratorVar(
                         styleValue,

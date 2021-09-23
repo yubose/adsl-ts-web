@@ -47,9 +47,11 @@ class ComponentPage<
     component: NuiComponent.Instance,
     options?: { onLoad?: OnLoad; onError?: OnError; node?: any },
   ) {
-    let nuiPage = component?.get?.('page')
-    if (isNDOMPage(nuiPage)) nuiPage = nuiPage.getNuiPage()
-    super(nuiPage)
+    super(
+      isNDOMPage(component?.get?.('page'))
+        ? component?.get?.('page')
+        : component,
+    )
     this.#component = component
     this.node = options?.node || super.node
     this.origin = window.origin

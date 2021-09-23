@@ -50,6 +50,7 @@
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
     "noodl-action-chain": "^0.0.99",
+    "noodl-types": "file:packages/noodl-types",
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "process": "^0.11.10",
@@ -60,7 +61,7 @@
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.387",
+    "@aitmed/cadl": "^1.0.388",
     "@aitmed/ecos-lvl2-sdk": "^1.4.154",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
@@ -125,7 +126,6 @@
     "node-polyfill-webpack-plugin": "^1.1.4",
     "nodemon": "^2.0.9",
     "noodl-common": "^0.0.45",
-    "noodl-types": "file:packages/noodl-types",
     "noodl-ui-test-utils": "file:packages/noodl-ui-test-utils",
     "noodl-utils": "^0.0.83",
     "noodl-webpack-plugin": "^0.0.13",
@@ -137,6 +137,7 @@
     "rollup-plugin-progress": "^1.1.2",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.30.0",
+    "rollup-plugin-visualizer": "^5.5.2",
     "single-line-log": "^1.1.2",
     "sinon": "^10.0.0",
     "sinon-chai": "^3.6.0",
