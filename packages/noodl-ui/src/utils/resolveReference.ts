@@ -29,6 +29,8 @@ export default function resolveReference({
   }
   value = getReference(value, on)
   while (u.isStr(value) && nt.Identify.reference(value)) {
+    console.info(value)
+    console.info(root)
     value = getReference(value, on)
   }
   return value

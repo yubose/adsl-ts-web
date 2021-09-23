@@ -1,7 +1,5 @@
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
-import curry from 'lodash/curry'
-import partialRight from 'lodash/partialRight'
 import unary from 'lodash/unary'
 import type { ActionChainObserver } from 'noodl-action-chain'
 import { OrArray } from '@jsmanifest/typefest'

@@ -18,7 +18,7 @@ describe(u.yellow(`resolveSetup`), () => {
     describe(`if`, () => {
       it(`should return value at index 1 if true`, async () => {
         const [component] = await nui.resolveComponents({
-          components: [ui.label({ text: ui.ifObject([1, 'abc', 'wow']) })],
+          components: [ui.label({ text: { if: [1, 'abc', 'wow'] } })],
           on: { if: () => true },
         })
         expect(component.get('text')).to.eq('abc')
@@ -26,7 +26,7 @@ describe(u.yellow(`resolveSetup`), () => {
 
       it(`should return value at index 2 if false`, async () => {
         const component = await nui.resolveComponents({
-          components: ui.label({ text: ui.ifObject([1, 'abc', 'wow']) }),
+          components: ui.label({ text: { if: [1, 'abc', 'wow'] } }),
           on: { if: () => false },
         })
         expect(component.get('text')).to.eq('wow')
@@ -36,7 +36,7 @@ describe(u.yellow(`resolveSetup`), () => {
         const spy = sinon.spy()
         const component = await nui.resolveComponents({
           components: ui.label({
-            text: ui.ifObject([1, '..formData.password', 'wow']),
+            text: { if: [1, '..formData.password', 'wow'] },
           }),
           on: { if: () => true, reference: spy },
         })
@@ -45,13 +45,10 @@ describe(u.yellow(`resolveSetup`), () => {
       })
 
       it(`should be able to deeply resolve references`, async () => {
-        u.assign(nui.getRoot(), {
-          Power: { patientInfoPage: '.Sun.viewTag' },
-          Sun: { viewTag: '.Hello.formData.password' },
-        })
+        nui.getRoot().Power = { patientInfoPage: '.Sun.viewTag' }
         const component = await nui.resolveComponents({
           components: ui.label({
-            text: ui.ifObject([1, '.Power.patientInfoPage', 'wow']),
+            text: { if: [1, '.Power.patientInfoPage', 'wow'] },
           }),
         })
         expect(component.get('text')).to.eq(
@@ -77,7 +74,6 @@ describe(u.yellow(`resolveSetup`), () => {
         it(`should use the fallback pageComponentUrl resolver if no hook resolver is provided`, async () => {
           u.assign(nui.getRoot(), {
             Power: { patientInfoPage: 'Rawr' },
-            Sun: { viewTag: '.Hello.formData.password' },
           })
           const component = await nui.resolveComponents({
             components: ui.label({

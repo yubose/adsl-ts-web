@@ -109,6 +109,7 @@ NUI.emit({
 | ------- | ---------- | ----------- |
 | admin   | 8882005050 | password    |
 | admin   | 7144480995 | Baby2020!   |
+| admind2 | 8880000301 |             |
 | admind2 | 8885509773 | 123         |
 | admind2 | 8886006001 | password    |
 | admind2 | 8886006002 | password    |

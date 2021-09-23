@@ -138,17 +138,41 @@ export function defaultResolveIf(ifObject: nt.IfObject) {
   return !!cond ? valOnTrue : valOnFalse
 }
 
+export function resolveDataPath(datapath: string, rootKey?: string) {
+  if (nt.Identify.rootKey(datapath)) {
+    return nu.toDataPath(datapath)
+  } else if (nt.Identify.localKey(datapath)) {
+    return rootKey
+      ? [rootKey, ...nu.toDataPath(datapath)]
+      : nu.toDataPath(datapath)
+  }
+  return []
+}
+
 export function defaultResolveReference(
   root: Record<string, any> | (() => Record<string, any>),
-  localKey = '',
+  rootKey = '',
   reference: nt.ReferenceString,
 ) {
   const datapath = nu.trimReference(reference)
+
+  // while (nt.Identify.reference(value)) {
+  //   let nextDataPathStr = nu.trimReference(value)
+  //   let nextDataPath = nu.toDataPath(nextDataPathStr)
+  //   let nextRootKey = nt.Identify.rootKey(nextDataPathStr)
+  //     ? nextDataPath[0]
+  //     : ''
+  //   value = get(
+  //     u.isFnc(root) ? root() : root,
+  //     nextRootKey ? [nextRootKey, ...nextDataPath] : nextDataPath,
+  //   )
+  // }
+
   if (nt.Identify.localKey(datapath)) {
-    return get(u.isFnc(root) ? root() : root, [
-      localKey,
-      ...datapath.split('.'),
-    ])
+    return get(
+      u.isFnc(root) ? root() : root,
+      resolveDataPath(datapath, rootKey),
+    )
   }
-  return get(u.isFnc(root) ? root() : root, datapath.split('.'))
+  return get(u.isFnc(root) ? root() : root, nu.toDataPath(datapath))
 }

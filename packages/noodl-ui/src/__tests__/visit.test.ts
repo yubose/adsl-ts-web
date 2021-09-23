@@ -95,7 +95,7 @@ beforeEach(() => {
   }
 })
 
-describe(u.yellow('traverse'), () => {
+describe.skip(u.yellow('traverse'), () => {
   it(`should be called for every key/value and every item in arrays`, () => {
     let expectCallCount = 0
     const spy = sinon.spy()
@@ -128,22 +128,5 @@ describe(u.yellow('traverse'), () => {
     })(obj)
     traverse(obj, spy)
     expect(spy.callCount).to.eq(expectCallCount)
-  })
-})
-
-describe(u.yellow('visitHooks'), () => {
-  describe(`actionChain`, () => {
-    it(`should call the actionChain hook for onClick`, () => {
-      const spy = sinon.spy()
-      visitHooks(obj, {
-        // action: spy,
-        // actionChain: spy,
-        // component: spy,
-        style: spy,
-      })
-      // expect(spy).to.be.calledOnce
-      console.info(spy.args)
-      // fs.writeJsonSync('./visitHooks.json', spy.args, { spaces: 2 })
-    })
   })
 })

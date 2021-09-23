@@ -150,6 +150,7 @@ export function getPresetPageObjects() {
             },
           },
         },
+        viewTag: '.Hello.formData.password',
       }
     },
     get Cloud() {
