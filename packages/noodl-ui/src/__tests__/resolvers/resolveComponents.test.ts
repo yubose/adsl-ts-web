@@ -6,8 +6,8 @@ import { coolGold, italic, magenta } from 'noodl-common'
 import { waitFor } from '@testing-library/dom'
 import { ComponentObject } from 'noodl-types'
 import { ui } from '../../utils/test-utils'
-import NUI from '../../noodl-ui'
-import NUIPage from '../../Page'
+import nui from '../../noodl-ui'
+import NuiPage from '../../Page'
 import Viewport from '../../Viewport'
 import * as c from '../../constants'
 
@@ -21,18 +21,18 @@ const getPages = () => ['Hello', 'Cereal', 'SignIn']
 async function resolveComponent(component: ComponentObject) {
   const pageName = 'Hello'
   const pageObject = { components: u.array(component) }
-  NUI.use({
+  nui.use({
     getPages,
     getRoot: () => getRoot({ [pageName]: pageObject }),
     transaction: {
       [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
     },
   })
-  const page = NUI.createPage({
+  const page = nui.createPage({
     name: pageName,
     viewport: { width: 375, height: 667 },
   })
-  return NUI.resolveComponents({ components: component, page })
+  return nui.resolveComponents({ components: component, page })
 }
 
 describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
@@ -75,11 +75,11 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         ui.button({ viewTag: 'closeTag', text: 'Close' }),
       ],
     }
-    const HelloPg = NUI.getRoot().Hello
-    NUI.use({ getRoot: () => ({ Hello: HelloPg, Sam: pageObject }) })
-    const page = NUI.getRootPage()
+    const HelloPg = nui.getRoot().Hello
+    nui.use({ getRoot: () => ({ Hello: HelloPg, Sam: pageObject }) })
+    const page = nui.getRootPage()
     page.page = 'Sam'
-    const components = await NUI.resolveComponents({
+    const components = await nui.resolveComponents({
       components: pageObject.components,
       page,
       callback: spy,
@@ -110,7 +110,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         const spy = sinon.spy(() => true)
         const ifObj = { if: [{}, 'hello', 'bye'] }
         ;(
-          await NUI.resolveComponents({
+          await nui.resolveComponents({
             components: ui.button({
               text: ifObj,
               onClick: [ui.emitObject()],
@@ -128,7 +128,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       it(`should resolve using the if in hooks when provided`, async () => {
         expect(
           (
-            await NUI.resolveComponents({
+            await nui.resolveComponents({
               components: ui.button({
                 text: { if: [{}, 'hello', 'bye'] },
                 onClick: [ui.emitObject()],
@@ -140,7 +140,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         ).to.eq('hello')
         expect(
           (
-            await NUI.resolveComponents({
+            await nui.resolveComponents({
               components: ui.button({
                 text: { if: [{}, 'hello', 'bye'] },
                 onClick: [ui.emitObject()],
@@ -198,7 +198,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     )
   })
 
-  describe(italic(`page`), () => {
+  describe(italic(`Page`), () => {
     let componentObject: ReturnType<typeof ui.page>
 
     beforeEach(() => {
@@ -207,24 +207,24 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
 
     async function resolveComponent(component: ComponentObject) {
       const pageObject = { components: u.array(component) }
-      NUI.use({
+      nui.use({
         getPages,
         getRoot: () => getRoot({ Cereal: pageObject }),
         transaction: {
           [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
         },
       })
-      const page = NUI.createPage({
+      const page = nui.createPage({
         name: 'Hello',
         viewport: { width: 375, height: 667 },
       })
-      return NUI.resolveComponents({ components: component, page })
+      return nui.resolveComponents({ components: component, page })
     }
 
-    it(`should set "page" on the component that is an instance of NUIPage`, async () => {
+    it(`should set "page" on the component that is an instance of NuiPage`, async () => {
       expect(
         (await resolveComponent(componentObject)).get('page'),
-      ).to.be.instanceOf(NUIPage)
+      ).to.be.instanceOf(NuiPage)
     })
 
     it(`should set its current page name to its "path" value`, async () => {
@@ -247,12 +247,12 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
           ...componentObject,
           style: { width: '0.2', height: '0.5', top: '0' },
         })
-        const page = component.get('page') as NUIPage
+        const page = component.get('page') as NuiPage
         expect(page.viewport.width + 'px').to.eq(
           Number(
             Viewport.getSize(
               component.blueprint.style.width,
-              NUI.getRootPage().viewport.width,
+              nui.getRootPage().viewport.width,
             ),
           ).toPrecision() + 'px',
         )
@@ -260,55 +260,58 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
           Number(
             Viewport.getSize(
               component.blueprint.style.height,
-              NUI.getRootPage().viewport.height,
+              nui.getRootPage().viewport.height,
             ),
           ).toPrecision() + 'px',
         )
       },
     )
 
+    it(`should have set the Viewport's width/height to the root page's viewport's width/height if it was not provided`, async () => {
+      const component = await resolveComponent({
+        ...componentObject,
+        style: {},
+      })
+      const page = component.get('page') as NuiPage
+      const rootPage = nui.getRootPage()
+      expect(page.viewport.width).to.eq(rootPage.viewport.width)
+      expect(page.viewport.height).to.eq(rootPage.viewport.height)
+    })
+
     it(
-      `should have set the Viewport's width/height to the root page's viewport's ` +
-        `width/height if it was not provided`,
+      `should rerun the fetch components function and emit PAGE_COMPONENTS ` +
+        `with the new components when PAGE_CHANGED is emitted`,
       async () => {
-        const component = await resolveComponent({
-          ...componentObject,
-          style: {},
+        const dividerComponent = ui.divider({ id: 'divider' })
+        const Cereal = {
+          components: ui.page({
+            path: 'Hello',
+            children: [ui.label('Hi all')],
+          }),
+        }
+        const spy = sinon.spy()
+        nui.use({
+          getRoot: () =>
+            getRoot({ Cereal, Tiger: { components: [dividerComponent] } }),
+          getPages: () => ['Cereal', 'Hello', 'Tiger'],
+          transaction: {
+            [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (p) =>
+              p.page === 'Tiger' ? nui.getRoot().Tiger : Cereal,
+          },
         })
-        const page = component.get('page') as NUIPage
-        const rootPage = NUI.getRootPage()
-        expect(page.viewport.width).to.eq(rootPage.viewport.width)
-        expect(page.viewport.height).to.eq(rootPage.viewport.height)
+        const component = await nui.resolveComponents(Cereal.components)
+        expect(component.get('page')).to.be.instanceOf(NuiPage)
+        const page = component.get('page') as NuiPage
+        page?.on(c.nuiEvent.component.page.PAGE_CHANGED, spy)
+        page.page = 'Tiger'
+        page.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+        await waitFor(() => expect(spy).to.be.calledOnce)
+        expect(component.get('page')).to.have.property('page', 'Tiger')
+        expect(component.get('page'))
+          .to.have.property('components')
+          .to.deep.eq([dividerComponent])
       },
     )
-
-    it(`should rerun the fetch components function and emit PAGE_COMPONENTS with the new components when PAGE_CHANGED is emitted`, async () => {
-      const dividerComponent = ui.divider({ id: 'divider' })
-      const Cereal = {
-        components: ui.page({ path: 'Hello', children: [ui.label('Hi all')] }),
-      }
-      const spy = sinon.spy()
-      NUI.use({
-        getRoot: () =>
-          getRoot({ Cereal, Tiger: { components: [dividerComponent] } }),
-        getPages: () => ['Cereal', 'Hello', 'Tiger'],
-        transaction: {
-          [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (p) =>
-            p.page === 'Tiger' ? NUI.getRoot().Tiger : Cereal,
-        },
-      })
-      const component = await NUI.resolveComponents(Cereal.components)
-      expect(component.get('page')).to.be.instanceOf(NUIPage)
-      const page = component.get('page') as NUIPage
-      page?.on(c.nuiEvent.component.page.PAGE_CHANGED, spy)
-      page.page = 'Tiger'
-      page.emit(c.nuiEvent.component.page.PAGE_CHANGED)
-      await waitFor(() => expect(spy).to.be.calledOnce)
-      expect(component.get('page')).to.have.property('page', 'Tiger')
-      expect(component.get('page'))
-        .to.have.property('components')
-        .to.deep.eq([dividerComponent])
-    })
 
     describe(`when passing in remote urls (http**/*)`, () => {
       xit(``, () => {
@@ -322,7 +325,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       `should emit the ${magenta(`content`)} event with the content when ` +
         `contents are fetched`,
       async () => {
-        const component = await NUI.resolveComponents({
+        const component = await nui.resolveComponents({
           components: ui.pluginBodyTail({ path: 'abc.html' }),
         })
         const spy = sinon.spy(async () => 'hello123')
@@ -334,7 +337,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
     )
 
     xit(`should set this "content" property with the data received as its value`, async () => {
-      const component = await NUI.resolveComponents({
+      const component = await nui.resolveComponents({
         components: ui.pluginHead({ path: 'abc.html' }),
       })
       const contents = 'hello123'
@@ -364,8 +367,8 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
         formData: { password: 'mypassword' },
         components: [ui.textField('formData.password')],
       }
-      NUI.use({ getRoot: () => ({ Hello: pageObject }) })
-      const component = (await NUI.resolveComponents(pageObject.components))[0]
+      nui.use({ getRoot: () => ({ Hello: pageObject }) })
+      const component = (await nui.resolveComponents(pageObject.components))[0]
       const value = component.get('data-value')
       expect(value).to.eq(pageObject.formData.password)
     })

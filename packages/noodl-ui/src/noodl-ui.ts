@@ -535,6 +535,7 @@ const NUI = (function () {
         page: page as NUIPage,
         context,
       })
+
       await _transformer.transform(c, options)
       const iteratorVar = options?.context?.iteratorVar || ''
       const isListConsumer =

@@ -26,9 +26,7 @@ describe(u.italic(`createActionChain`), () => {
     it(`should attach the ActionChain instance to ${u.magenta(evt)}`, () => {
       const ac = nui.createActionChain(
         'onClick',
-        ui.video({
-          [sample(userEvent) as any]: [ui.popUp()],
-        }),
+        ui.video({ [sample(userEvent) as any]: [ui.popUp()] }),
       )
       expect(isActionChain(ac)).to.be.true
     })

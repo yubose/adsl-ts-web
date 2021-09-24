@@ -156,16 +156,15 @@ componentResolver.setResolver(async (component, options, next) => {
         }
       }
 
+      !page && (page = createPage(component) as NUIPage)
+      page !== component.get('page') && component.edit('page', page)
+
       if (!component.has('parentPage')) {
         component.edit(
           'parentPage',
           options?.page?.page || options.getRootPage().page,
         )
       }
-
-      if (!page) page = createPage(component) as NUIPage
-
-      page !== component.get('page') && component.edit('page', page)
 
       let viewport = page?.viewport
 
@@ -218,7 +217,7 @@ componentResolver.setResolver(async (component, options, next) => {
           page.page = pageName
         }
 
-        const onPageChange = async (initializing = false) => {
+        const onPageChange = async () => {
           try {
             await emit({
               type: c.nuiEmitType.TRANSACTION,
@@ -234,7 +233,7 @@ componentResolver.setResolver(async (component, options, next) => {
         try {
           // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
           if (getPages().includes(pageName) || pageName === '') {
-            getPages().includes(page.page) && (await onPageChange(true))
+            getPages().includes(page.page) && (await onPageChange())
           } else {
             // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
             if (!pageName.startsWith('http')) {

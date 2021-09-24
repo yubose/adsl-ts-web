@@ -149,7 +149,7 @@ class ComponentCache {
       | ((obj: ComponentCacheObject) => boolean | null | undefined),
     pageName = '',
   ) {
-    if (u.isFnc(cbOrKind)) return [...this].find(cbOrKind)
+    if (u.isFnc(cbOrKind)) return [...this].find((obj) => obj && cbOrKind(obj))
     return [...this].find((obj) => obj?.page === pageName)
   }
 

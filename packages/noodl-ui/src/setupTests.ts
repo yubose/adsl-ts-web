@@ -27,7 +27,7 @@ beforeEach(() => {
     getRoot: () => root,
     transaction: {
       [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (page: NuiPage) =>
-        root[page.page],
+        nui.getRoot()[page.page],
     },
   })
 })

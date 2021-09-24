@@ -199,6 +199,7 @@ export function getPresetPageObjects() {
             text: 'Submit',
             onClick: [ui.emitObject(), ui.evalObject(), ui.gotoObject('Abc')],
           }),
+          ui.textField({ dataKey: `..icon`, placeholder: `Icon URL` }),
         ],
       }
     },
