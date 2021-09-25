@@ -4,7 +4,7 @@
     "declarationDir": "./dist",
     "module": "esnext",
     "outDir": "./dist",
-    "target": "es2020"
+    "target": "esnext"
   },
   "exclude": ["./src/**/*.test.ts"],
   "include": ["./src/**/*"]
