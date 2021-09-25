@@ -41,7 +41,7 @@ const configs = [
       filesize(),
       progress(),
       nodeResolve({
-        // browser: true,
+        browser: true,
         extensions,
         moduleDirectories: ['node_modules'],
         // preferBuiltins: false,
