@@ -44,7 +44,7 @@ const configs = [
         browser: true,
         extensions,
         moduleDirectories: ['node_modules'],
-        // preferBuiltins: false,
+        preferBuiltins: false,
       }),
       esbuild({
         include: /\.[t]s?$/,
