@@ -26,5 +26,5 @@
     "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --file src/setupTests.ts -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\""
   },
   "typings": "./dist/index.d.ts",
-  "version": "0.1.83"
+  "version": "0.1.84"
 }
