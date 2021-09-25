@@ -1,6 +1,6 @@
 import { DEFAULT_EXTENSIONS } from '@babel/core'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
-// import nodePolyfills from 'rollup-plugin-node-polyfills'
+import nodePolyfills from 'rollup-plugin-node-polyfills'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
@@ -36,7 +36,7 @@ const configs = [
       },
     ],
     plugins: [
-      // nodePolyfills(),
+      nodePolyfills(),
       external(),
       filesize(),
       progress(),
