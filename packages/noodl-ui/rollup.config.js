@@ -61,6 +61,11 @@ const configs = [
         include: ['src/**/*'],
         exclude: ['node_modules/**/*'],
         extensions: ['.js'],
+        plugins: [
+          'babel-plugin-lodash',
+          '@babel/plugin-transform-runtime',
+          '@babel/plugin-proposal-optional-chaining',
+        ],
       }),
       !_DEV_
         ? terser({
