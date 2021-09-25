@@ -1,5 +1,6 @@
 import type { EmitObjectFold } from 'noodl-types'
-import { Action, IAction } from 'noodl-action-chain'
+import type { IAction } from 'noodl-action-chain'
+import { Action } from 'noodl-action-chain'
 import type { EmitActionObject, NUITrigger } from '../types'
 
 class EmitAction

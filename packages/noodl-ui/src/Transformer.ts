@@ -1,12 +1,8 @@
-import * as u from '@jsmanifest/utils'
-import * as nt from 'noodl-types'
 import resolveSetup from './resolvers/resolveSetup'
 import resolveAsync from './resolvers/resolveAsync'
 import resolveComponents from './resolvers/resolveComponents'
 import resolveStyles from './resolvers/resolveStyles'
 import resolveDataAttribs from './resolvers/resolveDataAttribs'
-// import resolveResolution from './resolvers/resolveResolution'
-import * as c from './constants'
 import * as t from './types'
 
 class NuiTransformer {

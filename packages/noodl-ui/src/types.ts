@@ -1,4 +1,4 @@
-import { OrArray, OrPromise } from '@jsmanifest/typefest'
+import type { OrArray, OrPromise } from '@jsmanifest/typefest'
 import type {
   ActionObject,
   ActionType,

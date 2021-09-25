@@ -3,7 +3,7 @@ import {
   ActionChainInstancesLoader,
   createActionChain as __createActionChain,
 } from 'noodl-action-chain'
-import {
+import type {
   NUIAction,
   NUIActionChain,
   NUIActionObject,

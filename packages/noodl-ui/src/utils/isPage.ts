@@ -1,6 +1,6 @@
-import NUIPage from '../Page'
+import type NUIPage from '../Page'
 
-function isNUIPage(value: unknown): value is NUIPage {
+function isNuiPage(value: unknown): value is NUIPage {
   return !!(
     value &&
     typeof value === 'object' &&
@@ -8,4 +8,4 @@ function isNUIPage(value: unknown): value is NUIPage {
   )
 }
 
-export default isNUIPage
+export default isNuiPage

@@ -6,6 +6,7 @@ import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
 import commonjs from '@rollup/plugin-commonjs'
 import esbuild from 'rollup-plugin-esbuild'
+// import visualizer from 'rollup-plugin-visualizer'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 const _DEV_ = process.env.NODE_ENV === 'development'
@@ -55,6 +56,7 @@ const configs = [
         target: 'es2018',
         sourceMap: true,
       }),
+      // visualizer(),
     ],
   },
 ]

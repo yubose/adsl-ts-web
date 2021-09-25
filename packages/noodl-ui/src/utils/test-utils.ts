@@ -3,14 +3,15 @@ import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
 import * as nu from 'noodl-utils'
 import * as nt from 'noodl-types'
-import NUI from '../noodl-ui'
-import NUIPage from '../Page'
+import type NuiPage from '../Page'
+import nui from '../noodl-ui'
 import Viewport from '../Viewport'
 import * as t from '../types'
 
+export { nui }
+
 export const baseUrl = 'https://google.com/'
 export const assetsUrl = `${baseUrl}assets/`
-export const nui = NUI
 export const viewport = new Viewport()
 export const ui = { ...actionFactory, ...componentFactory }
 
@@ -52,23 +53,23 @@ export function createOn(
 }
 
 export function createDataKeyReference({
-  page = NUI.getRootPage(),
+  page = nui.getRootPage(),
   pageName = page.page,
   pageObject,
 }: {
-  page?: NUIPage
+  page?: NuiPage
   pageName?: string
   pageObject?: Record<string, any>
 }) {
   if (isNil(page.viewport.width)) page.viewport.width = 375
   if (isNil(page.viewport.height)) page.viewport.height = 667
   pageObject = {
-    ...NUI.getRoot()[pageName],
+    ...nui.getRoot()[pageName],
     ...pageObject,
   }
   if (page.page !== pageName) page.page = pageName
-  const root = { ...NUI.getRoot(), [pageName]: pageObject }
-  NUI.use({ getRoot: () => root })
+  const root = { ...nui.getRoot(), [pageName]: pageObject }
+  nui.use({ getRoot: () => root })
   return { page }
 }
 

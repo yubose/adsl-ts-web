@@ -7,7 +7,7 @@ import type { ComponentObject, EcosDocument } from 'noodl-types'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
-import type NUIPage from '../Page'
+import type NuiPage from '../Page'
 import VP from '../Viewport'
 import { formatColor } from '../utils/common'
 import {
@@ -20,7 +20,6 @@ import {
 import type { NuiComponent } from '../types'
 import cache from '../_cache'
 import * as c from '../constants'
-import * as i from '../utils/internal'
 
 const componentResolver = new Resolver('resolveComponents')
 
@@ -144,19 +143,19 @@ componentResolver.setResolver(async (component, options, next) => {
 
     if (Identify.component.page(component)) {
       let pageName = component.get('path') || ''
-      let page = component.get('page') as NUIPage
+      let page = component.get('page') as NuiPage
 
       if (!page) {
         if (pageName) {
           page = [...cache.page.get().values()].find(
             (obj) => obj?.page === pageName,
-          )?.page as NUIPage
+          )?.page as NuiPage
         } else {
-          page = createPage(component) as NUIPage
+          page = createPage(component) as NuiPage
         }
       }
 
-      !page && (page = createPage(component) as NUIPage)
+      !page && (page = createPage(component) as NuiPage)
       page !== component.get('page') && component.edit('page', page)
 
       if (!component.has('parentPage')) {
