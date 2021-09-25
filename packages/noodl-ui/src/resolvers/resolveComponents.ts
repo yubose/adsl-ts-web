@@ -295,9 +295,9 @@ componentResolver.setResolver(async (component, options, next) => {
         if (/(text|javascript)/i.test(contentType)) {
           component.edit('content', await res?.text?.())
         } else {
-          component.edit('content', await res?.on?.())
+          component.edit('content', await res?.json?.())
         }
-        const content = await res?.on?.()
+        const content = await res?.json?.()
         plugin && (plugin.content = component.get('content'))
         setTimeout(() => component.emit('content', content || ''))
       } catch (err: any) {

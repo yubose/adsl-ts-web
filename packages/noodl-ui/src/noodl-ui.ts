@@ -36,7 +36,6 @@ import {
   resolveAssetUrl,
 } from './utils/noodl'
 import { groupedActionTypes, nuiEmitType } from './constants'
-import getValue from './get'
 import isNuiPage from './utils/isPage'
 import cache from './_cache'
 import * as c from './constants'
@@ -852,7 +851,7 @@ const NUI = (function () {
       if (!isPreexistent) {
         page = cache.page.create({
           id,
-          onChange,
+          onChange: onChange as any,
           viewport,
         }) as NUIPage
         if (isComponent(args)) {
@@ -869,7 +868,10 @@ const NUI = (function () {
           console.info(`[noodl-ui] isPreexistent - Removing page "${page.id}"`)
           cache.page.remove(page)
           const component = args?.component as t.NuiComponent.Instance
-          page = cache.page.create({ id: component.id, onChange })
+          page = cache.page.create({
+            id: component.id,
+            ...(onChange ? ({ onChange } as any) : undefined),
+          })
         }
       }
 
@@ -1057,9 +1059,6 @@ const NUI = (function () {
     },
     get emit() {
       return _emit
-    },
-    get(key = '', localKey = '') {
-      return getValue(o.getRoot, key, localKey)
     },
     getAssetsUrl: () => '',
     getActions: _getActions,

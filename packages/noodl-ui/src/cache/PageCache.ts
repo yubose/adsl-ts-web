@@ -2,16 +2,16 @@ import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
 import type Viewport from '../Viewport'
 import type { ICache, IPage, NuiComponent } from '../types'
-import NUIPage from '../Page'
+import NuiPage from '../Page'
 import isComponent from '../utils/isComponent'
 import * as c from '../constants'
 
 export interface PageCacheHooks {
   [c.cache.page.hooks.PAGE_CREATED](args: {
     component?: NuiComponent.Instance
-    page: NUIPage
+    page: NuiPage
   }): void
-  [c.cache.page.hooks.PAGE_REMOVED](page: NUIPage): void
+  [c.cache.page.hooks.PAGE_REMOVED](page: NuiPage): void
 }
 
 export interface State {
@@ -29,7 +29,7 @@ class PageCache implements ICache {
     [c.cache.page.hooks.PAGE_CREATED]: [] as PageCacheHooks['PAGE_CREATED'][],
     [c.cache.page.hooks.PAGE_REMOVED]: [] as PageCacheHooks['PAGE_REMOVED'][],
   }
-  #pages = new Map() as Map<IPage['id'], { page: NUIPage }>
+  #pages = new Map() as Map<IPage['id'], { page: NuiPage }>
   #state = {
     created: new Map(),
     removed: new Map(),
@@ -94,7 +94,7 @@ class PageCache implements ICache {
     return this
   }
 
-  // create(component: NuiComponent.Instance, page?: NUIPage): NUIPage
+  // create(component: NuiComponent.Instance, page?: NuiPage): NuiPage
   create(
     args: {
       // If component is passed in it must be treated as a page component.
@@ -106,7 +106,7 @@ class PageCache implements ICache {
   ) {
     let { id, viewport } = args
     id = id || (!this.#pages.size ? 'root' : undefined)
-    const page = new NUIPage(viewport, { id })
+    const page = new NuiPage(viewport, { id })
     args.onChange &&
       page.use({
         onChange: { id: args.onChange.id, fn: args.onChange.onChange },
@@ -114,22 +114,22 @@ class PageCache implements ICache {
     this.#pages.set(page.id, { page })
     const emitArgs = { page } as {
       component?: NuiComponent.Instance
-      page: NUIPage
+      page: NuiPage
     }
     if (isComponent(args.component)) emitArgs.component = args.component
     this.#emit(c.cache.page.hooks.PAGE_CREATED, emitArgs)
-    return this.#pages.get(page.id)?.page as NUIPage
+    return this.#pages.get(page.id)?.page as NuiPage
   }
 
   #emit = <Evt extends keyof PageCacheHooks>(
     evt: Evt,
-    page: NUIPage | { component?: NuiComponent.Instance; page: NUIPage },
+    page: NuiPage | { component?: NuiComponent.Instance; page: NuiPage },
   ) => {
     this.#hooks[evt]?.forEach?.((fn) => fn?.(page))
   }
 
-  get(id: IPage['id']): { page: NUIPage }
-  get(id?: never): [{ page: NUIPage }]
+  get(id: IPage['id']): { page: NuiPage }
+  get(id?: never): [{ page: NuiPage }]
   get(id?: IPage['id']) {
     if (!id) return [...this.#pages.values()]
     return this.#pages.get(id)
@@ -141,20 +141,20 @@ class PageCache implements ICache {
 
   forEach(
     fn: (
-      page: { page: NUIPage },
+      page: { page: NuiPage },
       index: IPage['id'],
-      collection: { page: NUIPage }[],
+      collection: { page: NuiPage }[],
     ) => void,
   ) {
     u.forEach(fn, [...this.#pages.values()])
   }
 
   on<Evt extends keyof PageCacheHooks>(evt: Evt, fn: PageCacheHooks[Evt]) {
-    this.#hooks[evt]?.push?.(fn)
+    this.#hooks[evt]?.push?.(fn as any)
     return this
   }
 
-  remove(page: NUIPage) {
+  remove(page: NuiPage) {
     if (u.isNil(page)) return this
     if (this.#pages.has(page.id)) {
       const isRemoved = this.#pages.delete(page.id)

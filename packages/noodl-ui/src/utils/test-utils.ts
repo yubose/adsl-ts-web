@@ -20,6 +20,7 @@ export function createOn(
   getRoot = () => ({} as Record<string, Record<string, any>>),
 ): t.On {
   return {
+    // @ts-expect-error
     if: ({ component, page, key, value }) => {
       if (u.isStr(value) && nt.Identify.reference(value)) {
         const datapath = nu.trimReference(value)

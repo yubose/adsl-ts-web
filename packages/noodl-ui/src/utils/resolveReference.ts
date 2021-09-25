@@ -23,6 +23,7 @@ export default function resolveReference({
 }) {
   const getReference = (_value: any, on: t.On | null | undefined) => {
     if (on?.reference) {
+      // @ts-expect-error
       return on.reference({ component, page, key: key || '', value: _value })
     }
     return defaultResolveReference(root, localKey || page?.page, _value)

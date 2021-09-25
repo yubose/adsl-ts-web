@@ -210,10 +210,11 @@ class ComponentCache {
   }
 
   map(cb: <V>(obj: ComponentCacheObject) => V) {
-    return [...this].map(cb)
+    return [...this].map((v) => v && cb(v))
   }
 
   reduce<A>(cb: (acc: A, obj: ComponentCacheObject) => A, initialValue: A) {
+    // @ts-expect-error
     return u.reduce([...this], cb, initialValue)
   }
 }
