@@ -54,7 +54,6 @@ const configs = [
         minify: !_DEV_,
         target: 'es2018',
         sourceMap: true,
-        // experimentalBundling: true,
       }),
     ],
   },
