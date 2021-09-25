@@ -4,6 +4,7 @@ import nodePolyfills from 'rollup-plugin-node-polyfills'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
+import commonjs from '@rollup/plugin-commonjs'
 import esbuild from 'rollup-plugin-esbuild'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
@@ -38,6 +39,7 @@ const configs = [
     plugins: [
       nodePolyfills(),
       external(),
+      commonjs(),
       filesize(),
       progress(),
       nodeResolve({
@@ -50,9 +52,9 @@ const configs = [
         include: /\.[t]s?$/,
         exclude: /node_modules/,
         minify: !_DEV_,
-        target: 'es2017',
+        target: 'es2018',
         sourceMap: true,
-        experimentalBundling: true,
+        // experimentalBundling: true,
       }),
     ],
   },
