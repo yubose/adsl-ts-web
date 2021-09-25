@@ -5,9 +5,10 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
-import babel from '@rollup/plugin-babel'
-import typescript from 'rollup-plugin-typescript2'
-import { terser } from 'rollup-plugin-terser'
+// import babel from '@rollup/plugin-babel'
+import esbuild from 'rollup-plugin-esbuild'
+// import typescript from 'rollup-plugin-typescript2'
+// import { terser } from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 const _DEV_ = process.env.NODE_ENV === 'development'
@@ -50,40 +51,38 @@ const configs = [
         moduleDirectories: ['node_modules'],
         preferBuiltins: false,
       }),
-      typescript({
-        rollupCommonJSResolveHack: true,
-        check: false,
-        abortOnError: false,
-        clean: true,
-      }),
-      babel({
-        babelHelpers: 'runtime',
-        include: ['src/**/*'],
-        exclude: ['node_modules/**/*'],
-        extensions: ['.js'],
-      }),
-      !_DEV_
-        ? terser({
-            compress: {
-              drop_console: false,
-              drop_debugger: false,
-            },
-            keep_fnames: true,
-            format: {
-              source_map: { includeSources: true },
-            },
-          })
-        : undefined,
-      // esbuild({
-      //   include: /\.[jt]s?$/,
-      //   exclude: /node_modules/,
-      //   minify: process.env.NODE_ENV === 'production',
-      //   target: 'es2015',
-      //   loaders: {
-      //     '.ts': 'ts',
-      //   },
-      //   sourceMap: true,
+      // typescript({
+      //   rollupCommonJSResolveHack: true,
+      //   check: false,
+      //   abortOnError: false,
+      //   clean: true,
       // }),
+      // babel({
+      //   babelHelpers: 'runtime',
+      //   include: ['src/**/*'],
+      //   exclude: ['node_modules/**/*'],
+      //   extensions: ['.js'],
+      // }),
+      // !_DEV_
+      //   ? terser({
+      //       compress: {
+      //         drop_console: false,
+      //         drop_debugger: false,
+      //       },
+      //       keep_fnames: true,
+      //       format: {
+      //         source_map: { includeSources: true },
+      //       },
+      //     })
+      //   : undefined,
+      esbuild({
+        include: /\.[t]s?$/,
+        exclude: /node_modules/,
+        // minify: process.env.NODE_ENV === 'production',
+        minify: true,
+        target: 'es2018',
+        sourceMap: true,
+      }),
     ],
   },
 ]
