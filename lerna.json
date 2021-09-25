@@ -4,7 +4,7 @@
       "hoist": true
     },
     "publish": {
-      "ignoreChanges": ["nui"]
+      "ignore": ["nui"]
     }
   },
   "ignore": ["docs", "nui", "noodl-ui-test-utils"],
