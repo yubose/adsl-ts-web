@@ -47,7 +47,7 @@ const configs = [
         preferBuiltins: false,
       }),
       esbuild({
-        include: /\.[t]s?$/,
+        include: /\.[jt]s?$/,
         exclude: /node_modules/,
         minify: !_DEV_,
         target: 'es2018',
