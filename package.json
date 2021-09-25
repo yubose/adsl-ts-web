@@ -66,6 +66,7 @@
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
     "@babel/preset-env": "^7.14.2",
+    "@babel/preset-typescript": "^7.15.0",
     "@fullcalendar/core": "^5.9.0",
     "@jsmanifest/typefest": "^1.0.9",
     "@rollup/plugin-alias": "^3.1.2",

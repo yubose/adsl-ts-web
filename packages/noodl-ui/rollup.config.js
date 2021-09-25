@@ -60,7 +60,7 @@ const configs = [
         babelHelpers: 'runtime',
         include: ['src/**/*'],
         exclude: ['node_modules/**/*'],
-        extensions: ['.js'],
+        extensions: ['.js', '.ts'],
       }),
       !_DEV_
         ? terser({
