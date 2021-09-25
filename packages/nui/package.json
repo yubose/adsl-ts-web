@@ -23,6 +23,7 @@
   "files": [
     "dist"
   ],
+  "gitHead": "219fe9fb75a633d207403f6234a483027fffdee4",
   "homepage": "",
   "jsnext:main": "dist/nui.js",
   "keywords": [
@@ -46,6 +47,7 @@
     "tabWidth": 2,
     "trailingComma": "all"
   },
+  "private": true,
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
@@ -59,6 +61,5 @@
     "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --file src/__tests__/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\""
   },
   "typings": "dist/nui.d.ts",
-  "version": "0.0.2",
-  "gitHead": "219fe9fb75a633d207403f6234a483027fffdee4"
+  "version": "0.0.2"
 }
