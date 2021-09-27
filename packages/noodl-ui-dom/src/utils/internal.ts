@@ -369,14 +369,12 @@ export const _syncPages = (function () {
             onChange: {
               id: 'syncPages',
               fn: (prev: string, next: string) => {
-                console.info(
-                  `${label} Page changed from "${prev}" to "${next}"`,
-                )
+                console.log(`${label} Page changed from "${prev}" to "${next}"`)
               },
             },
           })
 
-          console.info(label)
+          console.log(label)
 
           if (updateType === c.PAGE_CREATED) {
             // Incoming page still in the loading state

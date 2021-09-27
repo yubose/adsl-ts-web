@@ -1,5 +1,5 @@
 import { Identify } from 'noodl-types'
-import { NUIActionObjectInput } from '../types'
+import type { NUIActionObjectInput } from '../types'
 
 function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
   const results = [] as string[]

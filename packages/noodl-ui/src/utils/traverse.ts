@@ -3,8 +3,7 @@ import * as nt from 'noodl-types'
 import flip from 'lodash/flip'
 import get from 'lodash/get'
 import partialRight from 'lodash/partialRight'
-import { OrArray } from '@jsmanifest/typefest'
-import * as c from '../constants'
+import type { OrArray } from '@jsmanifest/typefest'
 import * as t from '../types'
 
 export type VisitReturn = 'SKIP' | null | void

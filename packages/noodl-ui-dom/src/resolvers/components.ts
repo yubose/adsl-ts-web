@@ -548,14 +548,14 @@ const componentsResolver: t.Resolve.Config = {
                           isComponent(componentPage.component) &&
                           args.component !== componentPage.component
                         ) {
-                          console.info(
+                          console.log(
                             `Incoming component is not the same as current component. Patching now`,
                           )
                           componentPage.patch(args.component)
                         }
 
                         if (!componentPage.hasNuiPage && nuiPage) {
-                          console.info(
+                          console.log(
                             `ComponentPage does not have a nuiPage. Patching now with a new one`,
                           )
                           componentPage.patch(nuiPage)
@@ -563,7 +563,7 @@ const componentsResolver: t.Resolve.Config = {
                           nuiPage &&
                           nuiPage !== componentPage.getNuiPage()
                         ) {
-                          console.info(
+                          console.log(
                             `The nuiPage in the ComponentPage is different than the incoming one. Patching with the incoming one now`,
                             nuiPage,
                           )
@@ -609,7 +609,6 @@ const componentsResolver: t.Resolve.Config = {
                     if (componentPage.requesting) {
                       // args.cache.component.clear(componentPage.page)
                       args.cache.component.clear(componentPage.requesting)
-                      console.info(args.cache.component.get())
                     }
 
                     //Ensure that the margin of the body is 0
@@ -638,7 +637,7 @@ const componentsResolver: t.Resolve.Config = {
                     // const cs = []
                     await Promise.all(
                       componentPage.components?.map((obj: ComponentObject) => {
-                        return new Promise(async (resolve, reject) => {
+                        return new Promise(async (resolve) => {
                           let child = await nui.resolveComponents({
                             components: obj,
                             page: nuiPage,
@@ -672,10 +671,6 @@ const componentsResolver: t.Resolve.Config = {
                         })
                       }) || [],
                     )
-                    // const { default: fs } = await import('fs-extra')
-                    // await fs.writeJson('resolvedComponents.json', cs, {
-                    //   spaces: 2,
-                    // })
                   } catch (error) {
                     console.error(error)
                   }

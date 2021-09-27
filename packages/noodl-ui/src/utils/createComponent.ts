@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
-import { ComponentObject } from 'noodl-types'
-import { NuiComponentType } from '../types'
+import type { ComponentObject } from 'noodl-types'
+import type { NuiComponentType } from '../types'
 import isComponent from './isComponent'
 import Component from '../Component'
 

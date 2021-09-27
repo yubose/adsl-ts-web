@@ -1,9 +1,10 @@
 import * as u from '@jsmanifest/utils'
 import { evalIf as _evalIf, excludeIteratorVar } from 'noodl-utils'
-import { ComponentObject, Identify, IfObject, PageObject } from 'noodl-types'
+import type { ComponentObject, IfObject } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isComponent from './isComponent'
-import { NuiComponent } from '../types'
+import type { NuiComponent } from '../types'
 
 export function evalIf<O extends IfObject>(val: O) {
   const [value, valTrue, valFalse] = val?.if || []

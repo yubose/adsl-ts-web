@@ -73,7 +73,7 @@ setupResolver.setResolver(async function setupResolver(
           value = i.defaultResolveIf(value)
 
           if (nt.Identify.reference(value)) {
-            console.info({
+            const result = resolveReference({
               component,
               page,
               key,
@@ -82,15 +82,7 @@ setupResolver.setResolver(async function setupResolver(
               on,
               root: getRoot,
             })
-            return resolveReference({
-              component,
-              page,
-              key,
-              value,
-              localKey: page?.page,
-              on,
-              root: getRoot,
-            })
+            return result
           }
 
           return value

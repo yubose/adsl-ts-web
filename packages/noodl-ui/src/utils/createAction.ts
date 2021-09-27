@@ -1,9 +1,10 @@
 import * as u from '@jsmanifest/utils'
-import { EmitObjectFold, Identify } from 'noodl-types'
+import type { EmitObjectFold } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import { Action, createAction as __createAction } from 'noodl-action-chain'
 import getActionType from './getActionType'
 import getActionObjectErrors from './getActionObjectErrors'
-import {
+import type {
   NUIAction,
   NUIActionObject,
   NUIActionObjectInput,

@@ -1,4 +1,4 @@
-import { ReferenceString } from '../ecosTypes'
+import type { ReferenceString } from '../ecosTypes'
 
 /**
  * Returns true if the value is prefixed with ~/ (placeholder for base url)
@@ -16,7 +16,7 @@ import { ReferenceString } from '../ecosTypes'
  */
 
 export default function isTildeReference(
-	v = '',
+  v = '',
 ): v is ReferenceString<string, '~/'> {
-	return v.startsWith('~/')
+  return v.startsWith('~/')
 }

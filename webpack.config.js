@@ -28,7 +28,7 @@ const { InjectScriptsPlugin } = require('./scripts/InjectScriptsPlugin')
 
 // const { default: InjectScriptsPlugin } = _InjectScriptsPlugin_
 
-const cli = meow('', { flags: { sample: { alias: 's', type: 'string' } } })
+const cli = meow('', { flags: { sample: { alias: 's', type: 'boolean' } } })
 
 const pkgJson = {
   root: require('./package.json'),
@@ -171,7 +171,7 @@ const environmentPlugin = new webpack.EnvironmentPlugin(
  */
 module.exports = {
   entry: {
-    main: [process.env.SAMPLE ? './src/sample.ts' : './src/index.ts'],
+    main: [process.env.SAMPLE ? './dev/sample.ts' : './src/index.ts'],
   },
   output: {
     clean: true,

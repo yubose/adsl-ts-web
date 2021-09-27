@@ -1,5 +1,5 @@
 import { Identify } from 'noodl-types'
-import { NUIActionObjectInput, NUIActionType } from '../types'
+import type { NUIActionObjectInput, NUIActionType } from '../types'
 
 function getActionType(obj: NUIActionObjectInput): NUIActionType {
   if (obj !== null && typeof obj === 'object') {

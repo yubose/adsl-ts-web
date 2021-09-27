@@ -1,4 +1,4 @@
-import { ReferenceString } from '../ecosTypes'
+import type { ReferenceString } from '../ecosTypes'
 
 /**
  * true: "=.."
@@ -7,8 +7,8 @@ import { ReferenceString } from '../ecosTypes'
  */
 
 export default function isEvalLocalReference(
-	v = '',
+  v = '',
 ): v is ReferenceString<string, '=..'> {
-	if (v.startsWith('=..')) return true
-	return false
+  if (v.startsWith('=..')) return true
+  return false
 }

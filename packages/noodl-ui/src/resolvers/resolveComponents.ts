@@ -7,7 +7,7 @@ import type { ComponentObject, EcosDocument } from 'noodl-types'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
-import type NUIPage from '../Page'
+import type NuiPage from '../Page'
 import VP from '../Viewport'
 import { formatColor } from '../utils/common'
 import {
@@ -20,7 +20,6 @@ import {
 import type { NuiComponent } from '../types'
 import cache from '../_cache'
 import * as c from '../constants'
-import * as i from '../utils/internal'
 
 const componentResolver = new Resolver('resolveComponents')
 
@@ -144,17 +143,20 @@ componentResolver.setResolver(async (component, options, next) => {
 
     if (Identify.component.page(component)) {
       let pageName = component.get('path') || ''
-      let page = component.get('page') as NUIPage
+      let page = component.get('page') as NuiPage
 
       if (!page) {
         if (pageName) {
           page = [...cache.page.get().values()].find(
             (obj) => obj?.page === pageName,
-          )?.page as NUIPage
+          )?.page as NuiPage
         } else {
-          page = createPage(component) as NUIPage
+          page = createPage(component) as NuiPage
         }
       }
+
+      !page && (page = createPage(component) as NuiPage)
+      page !== component.get('page') && component.edit('page', page)
 
       if (!component.has('parentPage')) {
         component.edit(
@@ -162,10 +164,6 @@ componentResolver.setResolver(async (component, options, next) => {
           options?.page?.page || options.getRootPage().page,
         )
       }
-
-      if (!page) page = createPage(component) as NUIPage
-
-      page !== component.get('page') && component.edit('page', page)
 
       let viewport = page?.viewport
 
@@ -218,7 +216,7 @@ componentResolver.setResolver(async (component, options, next) => {
           page.page = pageName
         }
 
-        const onPageChange = async (initializing = false) => {
+        const onPageChange = async () => {
           try {
             await emit({
               type: c.nuiEmitType.TRANSACTION,
@@ -234,7 +232,7 @@ componentResolver.setResolver(async (component, options, next) => {
         try {
           // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
           if (getPages().includes(pageName) || pageName === '') {
-            getPages().includes(page.page) && (await onPageChange(true))
+            getPages().includes(page.page) && (await onPageChange())
           } else {
             // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
             if (!pageName.startsWith('http')) {
@@ -296,9 +294,9 @@ componentResolver.setResolver(async (component, options, next) => {
         if (/(text|javascript)/i.test(contentType)) {
           component.edit('content', await res?.text?.())
         } else {
-          component.edit('content', await res?.on?.())
+          component.edit('content', await res?.json?.())
         }
-        const content = await res?.on?.()
+        const content = await res?.json?.()
         plugin && (plugin.content = component.get('content'))
         setTimeout(() => component.emit('content', content || ''))
       } catch (err: any) {

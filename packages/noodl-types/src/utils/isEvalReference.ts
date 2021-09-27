@@ -1,4 +1,4 @@
-import { ReferenceString } from '../ecosTypes'
+import type { ReferenceString } from '../ecosTypes'
 
 /**
  * True if the value starts with an equal sign "="
@@ -11,8 +11,8 @@ import { ReferenceString } from '../ecosTypes'
  */
 
 export default function isEvalReference(
-	v = '',
+  v = '',
 ): v is ReferenceString<string, '='> {
-	if (v.startsWith('=')) return true
-	return false
+  if (v.startsWith('=')) return true
+  return false
 }

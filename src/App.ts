@@ -821,35 +821,37 @@ class App {
       return this.ndom.render(page, {
         on: {
           actionChain: {},
-          if: ({ page, value }) => {
-            if (u.isStr(value) && Identify.reference(value)) {
-              const datapath = nu.trimReference(value)
-              if (Identify.localKey(datapath)) {
-                if (page?.page) {
-                  let value = get(this.root?.[page.page], datapath)
-                  if (Identify.reference(value)) {
-                  }
-                }
-              } else {
-                return get(this.root, datapath)
-              }
-            }
-          },
-          reference: (args) => {
-            log.func('on [reference]')
-            log.grey('', args)
-            const { page, value } = args
-            if (Identify.reference(value)) {
-              const datapath = nu.trimReference(value)
-              if (Identify.localKey(datapath)) {
-                if (page?.page) {
-                  return get(this.root?.[page.page], datapath)
-                }
-              } else {
-                return get(this.root, datapath)
-              }
-            }
-          },
+          // if: ({ page, value }) => {
+          //   if (u.isStr(value) && Identify.reference(value)) {
+          //     const datapath = nu.trimReference(value)
+          //     if (Identify.localKey(datapath)) {
+          //       if (page?.page) {
+          //         let value = get(this.root?.[page.page], datapath)
+          //         if (Identify.reference(value)) {
+          //         }
+          //       }
+          //       debugger
+          //     } else {
+          //       debugger
+          //       return get(this.root, datapath)
+          //     }
+          //   }
+          // },
+          // reference: (args) => {
+          //   log.func('on [reference]')
+          //   log.grey('', args)
+          //   const { page, value } = args
+          //   if (Identify.reference(value)) {
+          //     const datapath = nu.trimReference(value)
+          //     if (Identify.localKey(datapath)) {
+          //       if (page?.page) {
+          //         return get(this.root?.[page.page], datapath)
+          //       }
+          //     } else {
+          //       return get(this.root, datapath)
+          //     }
+          //   }
+          // },
         },
       })
     } catch (error) {
