@@ -7,6 +7,9 @@ export function getSdkHelpers(app: App) {
       get download() {
         return extendedSdkBuiltIns.download
       },
+      get downloadQRCode() {
+        return extendedSdkBuiltIns.downloadQRCode
+      },
     },
     async FCMOnTokenReceive(params?: any) {
       // Returns the token
