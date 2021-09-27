@@ -10,6 +10,7 @@ JSDOM('', {
   resources: 'usable',
   runScripts: 'dangerously',
   url: 'http://localhost:3000',
+  pretendToBeVisual: true,
 })
 
 chai.use(sinonChai)

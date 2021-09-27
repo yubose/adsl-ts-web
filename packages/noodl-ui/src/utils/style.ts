@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import { StyleObject } from 'noodl-types'
+import type { StyleObject } from 'noodl-types'
 import { hasDecimal, hasLetter } from './common'
 
 export const xKeys = <const>['width', 'left']

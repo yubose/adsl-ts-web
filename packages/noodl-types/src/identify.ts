@@ -1,6 +1,5 @@
+import type { ComponentType } from './constantTypes'
 import { componentTypes } from './_internal/constants'
-import { ComponentType } from './constantTypes'
-import { PageComponentUrl } from './componentTypes'
 import isAwaitReference from './utils/isAwaitReference'
 import isEvalReference from './utils/isEvalReference'
 import isEvalLocalReference from './utils/isEvalLocalReference'

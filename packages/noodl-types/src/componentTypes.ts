@@ -1,7 +1,11 @@
-import { ActionObject } from './actionTypes'
-import { ContentType, EventType } from './constantTypes'
-import { StyleObject, StyleTextAlign, StyleTextAlignObject } from './styleTypes'
-import {
+import type { ActionObject } from './actionTypes'
+import type { ContentType, EventType } from './constantTypes'
+import type {
+  StyleObject,
+  StyleTextAlign,
+  StyleTextAlignObject,
+} from './styleTypes'
+import type {
   ActionChain,
   EmitObject,
   GotoObject,

@@ -3,6 +3,7 @@ import type { LiteralUnion } from 'type-fest'
 import type { ComponentObject } from 'noodl-types'
 import type { OrArray } from '@jsmanifest/typefest'
 import type NuiViewport from '../Viewport'
+import isComponent from '../utils/isComponent'
 import NuiPage from '../Page'
 import { pageCacheHooks } from '../constants'
 
@@ -88,7 +89,9 @@ class PageCache {
 
   clear() {
     for (const [id, { page }] of this.#pages) {
-      Array.isArray(page.components) && (page.components.length = 0)
+      if (!u.isStr(page)) {
+        Array.isArray(page.components) && (page.components.length = 0)
+      }
       this.#pages.delete(id)
     }
     u.values(this.#hooks).forEach((fns) => (fns.length = 0))
@@ -116,7 +119,7 @@ class PageCache {
     }
     if (isComponent(args.component)) emitArgs.component = args.component
     this.#emit(c.PAGE_CREATED, emitArgs)
-    return this.#pages.get(page.id)?.page as NuiPage
+    return this.#pages.get(page.id)?.page
   }
 
   #emit = <Evt extends keyof PageCacheHooks>(
@@ -150,7 +153,7 @@ class PageCache {
   }
 
   on<Evt extends keyof PageCacheHooks>(evt: Evt, fn: PageCacheHooks[Evt]) {
-    this.#hooks[evt]?.push?.(fn)
+    fn && this.#hooks[evt]?.push?.(fn)
     return this
   }
 

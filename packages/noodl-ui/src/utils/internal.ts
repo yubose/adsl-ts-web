@@ -135,7 +135,7 @@ export function mapKeysToOwnArrays<K extends string, A = any>(keys: K[]) {
 export function defaultResolveIf(ifObject: nt.IfObject) {
   const [cond, valOnTrue, valOnFalse] = ifObject.if || []
   if (u.isFnc(cond)) return cond?.() ? valOnTrue : valOnFalse
-  return !!cond ? valOnTrue : valOnFalse
+  return cond ? valOnTrue : valOnFalse
 }
 
 export function resolveDataPath(datapath: string, rootKey?: string) {

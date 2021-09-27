@@ -48,7 +48,7 @@ class ComponentPage<
     options?: { onLoad?: OnLoad; onError?: OnError; node?: any },
   ) {
     super(
-      isNDOMPage(component?.get?.('page'))
+      isNuiPage(component?.get?.('page'))
         ? component?.get?.('page')
         : component,
     )

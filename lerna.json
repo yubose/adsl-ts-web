@@ -2,6 +2,9 @@
   "command": {
     "bootstrap": {
       "hoist": true
+    },
+    "publish": {
+      "ignore": ["nui"]
     }
   },
   "ignore": ["docs", "nui", "noodl-ui-test-utils"],

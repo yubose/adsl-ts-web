@@ -4,8 +4,9 @@ import sinon from 'sinon'
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
-import { assetsUrl, baseUrl, createOn, nui, ui } from '../../utils/test-utils'
 import * as i from '../../utils/internal'
+import { assetsUrl, baseUrl, createOn, nui, ui } from '../../utils/test-utils'
+import NuiPage from '../../Page'
 
 let on: ReturnType<typeof createOn>
 
@@ -108,6 +109,38 @@ describe(u.yellow(`resolveSetup`), () => {
             })
           ).get('text'),
         ).to.eq(nui.getRoot().Hello.formData.password)
+      })
+
+      it(`should pass in a page instance to args`, async () => {
+        const spy = sinon.spy()
+        ;(
+          await nui.resolveComponents({
+            components: ui.label({ text: '..formData.password' }),
+            on: { reference: spy },
+          })
+        ).get('text')
+        expect(spy.args[0][0])
+          .to.have.property('page')
+          .to.be.instanceOf(NuiPage)
+      })
+
+      it(`should pass in the correct page instance to a descendant of a page component`, async () => {
+        const spy = sinon.spy()
+        let [viewComponent] = await nui.resolveComponents({
+          components: u.array(nui.getRoot().Cereal.components),
+        })
+        const pageComponent = viewComponent.child(1)
+        const page = pageComponent.get('page') as NuiPage
+        let textField = (
+          await nui.resolveComponents({
+            components: page.components,
+            page,
+            on: { reference: spy },
+          })
+        )[2]
+        textField.get('dataKey')
+        const args = spy.args[0][0]
+        expect(args).to.have.property('page').to.deep.eq(page)
       })
     })
   })

@@ -49,7 +49,7 @@ class ComponentResolver<
   constructor(name = '', resolver?: Func) {
     super()
     this.#name = name
-    if (resolver) this.resolver = resolver
+    resolver && this.setResolver(resolver)
   }
 
   get internal() {

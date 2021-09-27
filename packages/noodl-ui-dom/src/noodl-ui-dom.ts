@@ -704,10 +704,6 @@ class NDOM extends NDOMInternal {
           if (parentNode) {
             parentNode.replaceChild(newNode, node)
           } else {
-            console.info(
-              `A "${newComponent.type}" component does not have a parent element`,
-              newComponent,
-            )
             node?.remove?.()
           }
           node = newNode

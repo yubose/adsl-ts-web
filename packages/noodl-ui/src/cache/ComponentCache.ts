@@ -1,9 +1,8 @@
 import * as u from '@jsmanifest/utils'
-import * as nt from 'noodl-types'
 import type { LiteralUnion } from 'type-fest'
 import type { ComponentCacheObject, NuiComponent } from '../types'
-import type NUIPage from '../Page'
-import isNUIPage from '../utils/isPage'
+import type NuiPage from '../Page'
+import isNuiPage from '../utils/isPage'
 
 type ComponentCacheHookEvent = 'add' | 'clear' | 'remove'
 
@@ -92,10 +91,10 @@ class ComponentCache {
 
   add(
     component: NuiComponent.Instance,
-    page: NUIPage | string | undefined,
+    page: NuiPage | string | undefined,
   ): ComponentCacheObject {
     if (component) {
-      const pageName = isNUIPage(page)
+      const pageName = isNuiPage(page)
         ? page.page
         : u.isObj(page)
         ? page.page || ''
@@ -105,7 +104,7 @@ class ComponentCache {
         page: string
         pageId?: string
       }
-      isNUIPage(page) && (value.pageId = page.id as string)
+      isNuiPage(page) && (value.pageId = page.id as string)
       this.#cache.set(component.id, value)
       this.emit('add', value)
     }
@@ -149,7 +148,7 @@ class ComponentCache {
       | ((obj: ComponentCacheObject) => boolean | null | undefined),
     pageName = '',
   ) {
-    if (u.isFnc(cbOrKind)) return [...this].find(cbOrKind)
+    if (u.isFnc(cbOrKind)) return [...this].find((obj) => obj && cbOrKind(obj))
     return [...this].find((obj) => obj?.page === pageName)
   }
 
@@ -210,10 +209,11 @@ class ComponentCache {
   }
 
   map(cb: <V>(obj: ComponentCacheObject) => V) {
-    return [...this].map(cb)
+    return [...this].map((v) => v && cb(v))
   }
 
   reduce<A>(cb: (acc: A, obj: ComponentCacheObject) => A, initialValue: A) {
+    // @ts-expect-error
     return u.reduce([...this], cb, initialValue)
   }
 }

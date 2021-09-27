@@ -149,7 +149,7 @@ function normalizeProps<
             let width: any
             let line: any
 
-            if (border == '0') debugger
+            // if (border == '0') debugger
             if (border == ('0' as any)) value.borderStyle = 'none'
 
             if (u.isObj(border)) {

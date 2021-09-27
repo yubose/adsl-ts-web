@@ -1,5 +1,5 @@
 import type { ComponentObject } from 'noodl-types'
-import { getRandomKey, inspect } from './utils/internal'
+import { getRandomKey } from './utils/internal'
 import type { IPage } from './types'
 import Viewport from './Viewport'
 import * as c from './constants'
@@ -21,7 +21,7 @@ class Page implements IPage {
   history = [] as string[]
   viewport: Viewport;
 
-  [inspect]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.toJSON()
   }
 
