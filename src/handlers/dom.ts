@@ -11,6 +11,7 @@ import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
 import { Identify } from 'noodl-types'
+import QRCode from 'qrcode'
 import {
   asHtmlElement,
   findByDataKey,
@@ -28,6 +29,7 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
+import { isObject } from 'lodash'
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -533,21 +535,32 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] QRCode': {
-      cond: 'view',
-      resolve(node, component) {
+      cond: 'image',
+      resolve({node, component}) {
         if (node && component && component.contentType === 'QRCode') {
           const dataValue = component.get('data-value') || '' || 'dataKey'
-          let text = JSON.stringify(dataValue)
-          let width = parseInt(node.style.width.replace('px', ''))
-          let height = parseInt(node.style.height.replace('px', ''))
-          // new QRCode(node, {
-          //   text: text,
-          //   width: width,
-          //   height: height,
-          //   colorDark: '#000000',
-          //   colorLight: '#ffffff',
-          //   correctLevel: QRCode.CorrectLevel.H,
-          // })
+          let text = dataValue
+          if(isObject(dataValue)){
+            text = JSON.stringify(dataValue)
+          }
+
+          let opts = {
+            errorCorrectionLevel: 'H',
+            type: 'svg',
+            quality: 0.3,
+            margin: 1,
+            color: {
+              dark:"#000000",
+              light:"#ffffff"
+            },
+            scale: 8,
+          }
+
+          QRCode.toDataURL(text, opts, function (err, url) {
+            if (err) throw err
+            node.src = url
+          })
+
         }
       },
     },

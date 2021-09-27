@@ -6,7 +6,10 @@ export function getSdkHelpers(app: App) {
     EcosObj: {
       get download() {
         return extendedSdkBuiltIns.download
-      },
+      }
+    },
+    get downloadQRCode() {
+      return extendedSdkBuiltIns.downloadQRCode
     },
     async FCMOnTokenReceive(params?: any) {
       // Returns the token
