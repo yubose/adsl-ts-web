@@ -348,7 +348,6 @@ function normalizeProps<
                 )
               }
             }else if (util.vpWidthKeys.includes(styleKey as any)) {
-              console.log('test',{styleKey,styleValue})
               if (util.isNoodlUnit(styleValue)) {
                 value[styleKey] = String(
                   NuiViewport.getSize(
