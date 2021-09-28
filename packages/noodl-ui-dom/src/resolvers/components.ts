@@ -750,7 +750,7 @@ const componentsResolver: t.Resolve.Config = {
 
           clearOptions(args.node as HTMLSelectElement)
 
-          if (u.isArr(selectOptions)) {
+          if (u.isArr(selectOptions) && args.component.get(c.DATA_VALUE) == undefined ) {
             setSelectOptions(args.node as HTMLSelectElement, selectOptions)
           } else if (u.isStr(selectOptions) || (dataKey && u.isStr(dataKey))) {
             // Retrieved through reference

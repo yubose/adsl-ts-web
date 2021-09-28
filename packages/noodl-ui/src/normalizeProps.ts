@@ -289,7 +289,7 @@ function normalizeProps<
           -------------------------------------------------------- */
 
           const { width, height, maxHeight, maxWidth, minHeight, minWidth } =
-            originalValue || {}
+          originalValue || {}
 
           if (viewport) {
             if (!isNil(width)) {
@@ -336,6 +336,29 @@ function normalizeProps<
 
           // HANDLING ARTBITRARY STYLES
           for (let [styleKey, styleValue] of u.entries(originalValue)) {
+
+            if (util.vpHeightKeys.includes(styleKey as any)) {
+              if (util.isNoodlUnit(styleValue)) {
+                value[styleKey] = String(
+                  NuiViewport.getSize(
+                    styleValue,
+                    viewport?.height as number,
+                    { unit: 'px' },
+                  ),
+                )
+              }
+            }else if (util.vpWidthKeys.includes(styleKey as any)) {
+              if (util.isNoodlUnit(styleValue)) {
+                value[styleKey] = String(
+                  NuiViewport.getSize(
+                    styleValue,
+                    viewport?.width as number,
+                    { unit: 'px' },
+                  ),
+                )
+              }
+            }
+            
             if (u.isStr(styleValue)) {
               // Resolve vm and vh units
               if (styleValue.endsWith('vw') || styleValue.endsWith('vh')) {
@@ -373,7 +396,30 @@ function normalizeProps<
                     styleValue.substring(1),
                   )
                 }
-                value[styleKey] = com.formatColor(styleValue)
+
+                if (util.vpHeightKeys.includes(styleKey as any)) {
+                  if (util.isNoodlUnit(styleValue)) {
+                    value[styleKey] = String(
+                      NuiViewport.getSize(
+                        styleValue,
+                        viewport?.height as number,
+                        { unit: 'px' },
+                      ),
+                    )
+                  }
+                }else if (util.vpWidthKeys.includes(styleKey as any)) {
+                  if (util.isNoodlUnit(styleValue)) {
+                    value[styleKey] = String(
+                      NuiViewport.getSize(
+                        styleValue,
+                        viewport?.width as number,
+                        { unit: 'px' },
+                      ),
+                    )
+                  }
+                }else{
+                  value[styleKey] = com.formatColor(styleValue)
+                }
               }
 
               // TODO - Find out how to resolve the issue of "value" being undefined without this string check when we already checked above this

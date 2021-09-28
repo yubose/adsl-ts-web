@@ -7,6 +7,7 @@ export const yKeys = <const>['height', 'top', 'marginTop']
 export const posKeys = <const>[...xKeys, ...yKeys]
 // Style keys that map their values relative to the viewport's height
 export const vpHeightKeys = <const>[...yKeys, 'borderRadius', 'fontSize']
+export const vpWidthKeys = <const>[...xKeys, 'marginLeft', 'marginRight']
 
 export const textAlignStrings = [
   'left',
