@@ -132,7 +132,7 @@ const createActions = function createActions(app: App) {
       actionChain: options?.ref?.snapshot?.(),
       options,
     })
-
+    options.ref?.clear('timeout')
     try {
       let object = _pick(action, 'object') as
         | IfObject
@@ -759,6 +759,7 @@ const createActions = function createActions(app: App) {
     action,
     { component, ref },
   ) {
+    ref?.clear('timeout')
     log.func('updateObject')
     log.grey('', action?.snapshot?.())
 
