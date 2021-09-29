@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import type jsPDF from 'jspdf'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
@@ -13,6 +14,21 @@ export function copyToClipboard(value: string) {
   document.execCommand('copy')
   textarea.remove()
   return null
+}
+
+export function screenshotElement(
+  node: HTMLElement,
+  { ext, filename = '' }: { ext?: string; filename?: string } = {},
+): Promise<[pdf: jsPDF, canvas: HTMLCanvasElement]> {
+  return new Promise((resolve) => {
+    html2canvas(node, {}).then((canvas) => {
+      // const dataUrl = canvas.toDataURL('image/png')
+      const doc = new jspdf('p', 'mm')
+      doc.addImage(canvas, 'PNG', 10, 10, window.innerWidth, window.innerHeight)
+      doc.save(filename.endsWith('.pdf') ? filename : `${filename}.pdf`)
+      resolve([doc, canvas])
+    })
+  })
 }
 
 export function download(url: string | Blob, filename?: string) {
