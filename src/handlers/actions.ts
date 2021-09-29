@@ -132,7 +132,7 @@ const createActions = function createActions(app: App) {
       actionChain: options?.ref?.snapshot?.(),
       options,
     })
-
+    options.ref?.clear('timeout')
     try {
       let object = _pick(action, 'object') as
         | IfObject
