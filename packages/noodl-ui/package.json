@@ -20,7 +20,7 @@
   "name": "noodl-ui",
   "repository": "pfftdammitchris/noodl-ui",
   "scripts": {
-    "build": "concurrently 'rollup -c --environment BUILD:production' 'tsc --emitDeclarationOnly'",
+    "build": "concurrently \"rollup -c --environment BUILD:production\" \"tsc --emitDeclarationOnly\"",
     "prebuild": "rm -rf dist",
     "postbuild": "npm run types",
     "start": "rollup -c -w --environment BUILD:development",
