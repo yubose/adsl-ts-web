@@ -759,6 +759,7 @@ const createActions = function createActions(app: App) {
     action,
     { component, ref },
   ) {
+    ref?.clear('timeout')
     log.func('updateObject')
     log.grey('', action?.snapshot?.())
 
