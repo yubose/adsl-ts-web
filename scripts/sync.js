@@ -4,7 +4,6 @@ const yaml = require('yaml')
 const fs = require('fs-extra')
 const path = require('path')
 const chalk = require('chalk')
-const axios = require('axios')
 const cpy = require('cpy')
 
 const aqua = (s) => chalk.keyword('aquamarine')(s)
@@ -12,12 +11,16 @@ const coolGold = (s) => chalk.keyword('navajowhite')(s)
 const tag = (s) => `[${u.cyan(s)}]`
 const log = console.log
 
+const normalizePath = (s = '') => s.replace(/\\/g, '/')
+
 /**
  *
  * @param { import('./op') } props
  */
 async function sync() {
   const toDir = path.join(process.cwd(), './generated')
+  const shellArgs = { shell: true, stdio: 'inherit' }
+  const command = async (cmd = '') => execa(cmd, shellArgs)
 
   async function syncRepos(repos) {
     /**
@@ -29,61 +32,61 @@ async function sync() {
     async function syncRepo(repo) {
       const { url = '', from, to } = repo
 
+      log(`${tag('syncing')} repo ${u.yellow(url)}`)
+
       try {
         let { baseDir, appFiles, configFrom } = from
         let { targetDir } = to
-        let gitFolder = path.posix.basename(baseDir)
-        let gitFolderPath = path.posix.resolve(path.join(baseDir, gitFolder))
+        let targetAssetsDir
 
-        baseDir = path.resolve(baseDir)
-        appFiles = path.join(baseDir, appFiles)
-        configFrom = u.array(configFrom).map((c) => path.join(baseDir, c))
-        targetDir = path.resolve(process.cwd(), targetDir).replace(/\\/g, '/')
-
-        /** @type { execa.ExecaChildProcess } */
-        let cmd
-        let configNames = u.reduce(
-          configFrom,
-          (acc, name) =>
-            u.assign(acc, { [path.basename(name)]: path.basename(name) }),
-          {},
+        baseDir = normalizePath(path.resolve(baseDir))
+        appFiles = normalizePath(path.join(baseDir, appFiles))
+        configFrom = u
+          .array(configFrom)
+          .map((c) => normalizePath(path.join(baseDir, c)))
+        targetDir = normalizePath(
+          path.resolve(process.cwd(), targetDir).replace(/\\/g, '/'),
         )
+        targetAssetsDir = path.join(targetDir, 'assets')
 
-        console.log({
-          repo,
-          baseDir,
-          appFiles,
-          configFrom,
-          targetDir,
-          gitFolderPath,
-          configNames,
-        })
+        // console.log({
+        //   repo,
+        //   baseDir,
+        //   appFiles,
+        //   configFrom,
+        //   targetDir,
+        //   configNames,
+        //   gitFolder,
+        // })
 
-        if (!fs.existsSync(baseDir)) {
-          cmd = await execa.command(`git clone ${url} ${gitFolder}`, {
-            shell: true,
-            stdio: 'inherit',
-          })
-          log(`${tag('git cloned')} to ${u.yellow(gitFolderPath)}`)
+        if (fs.existsSync(baseDir)) {
+          await command(`cd ${baseDir}`)
+          await command(`git pull -f`)
+        } else {
+          await command(`git clone ${url} ${baseDir}`)
+          log(`${tag('git cloned')} to ${u.yellow(baseDir)}`)
         }
 
-        await fs.ensureDir(gitFolderPath)
+        if (!fs.existsSync(targetDir)) {
+          await fs.ensureDir(targetDir)
+          log(`${tag('created output directory')} ${u.yellow(targetDir)}`)
+        }
 
-        const configYmls = (
-          await Promise.all(
-            u.array(configFrom).map(async (filepath) => {
-              try {
-                const yml = await fs.readFile(filepath, 'utf8')
-                await fs.writeFile(path.join(targetDir, configName), 'utf8')
-                return yml
-              } catch (error) {
-                log(`${tag('Error')}: ${error.message}`)
-              }
-            }),
-          )
-        ).filter(Boolean)
+        await Promise.all(
+          u.array(configFrom).map(async (filepath) => {
+            try {
+              const yml = await fs.readFile(filepath, 'utf8')
+              const configName = path.basename(filepath)
+              await fs.writeFile(path.join(targetDir, configName), yml, 'utf8')
+              return yml
+            } catch (error) {
+              log(`${tag('Error')}: ${error.message}`)
+            }
+          }),
+        )
 
-        await cpy(path.join(appFiles, '**/*'), targetDir)
+        await cpy(path.join(appFiles, '*'), targetDir)
+        await cpy(path.join(appFiles, 'assets/**/*'), targetAssetsDir)
       } catch (error) {
         console.error(error)
       }
@@ -98,9 +101,9 @@ async function sync() {
 
   await syncRepos([
     {
+      url: 'http://gitlab.aitmed.com/production/admin.git',
       from: {
-        url: 'http://gitlab.aitmed.com/production/admin.git',
-        baseDir: '../../admind2',
+        baseDir: '../admind2',
         appFiles: 'admin',
         configFrom: [
           'config/admin.yml',
