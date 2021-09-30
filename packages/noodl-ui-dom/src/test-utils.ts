@@ -258,6 +258,7 @@ export function getPageComponentChildIds(component: NuiComponent.Instance) {
   }, [] as string[])
 }
 
+// @ts-expect-error
 export function render(components: ComponentObject[]): Promise<t.NDOMElement[]>
 export function render(component: ComponentObject): Promise<t.NDOMElement>
 export async function render(options: ComponentObject | ComponentObject[]) {
@@ -285,6 +286,7 @@ export async function render(options: ComponentObject | ComponentObject[]) {
     getPreloadPages: () => [],
     getRoot: () => ({ ...root, [page.requesting]: root[_defaults.pageName] }),
     transaction: {
+      // @ts-expect-error
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (page) =>
         root[page.requesting],
     },

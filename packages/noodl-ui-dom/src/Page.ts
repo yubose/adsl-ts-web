@@ -23,6 +23,7 @@ class Page {
     t.Page.HookEvent,
     t.Page.HookDescriptor[]
   >
+  // @ts-expect-error
   #node: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement
   pageUrl: string = BASE_PAGE_URL;
 
@@ -260,6 +261,7 @@ class Page {
     ...args: Parameters<t.Page.Hook[K]>
   ) {
     u.forEach?.((d, index) => {
+      // @ts-expect-error
       d.fn?.call?.(this, ...args)
       if (d.once) this.hooks[evt].splice(index, 1)
     }, this.hooks[evt] || [])

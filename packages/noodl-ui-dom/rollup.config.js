@@ -6,8 +6,9 @@ import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
-import babel from '@rollup/plugin-babel'
-import typescript from 'rollup-plugin-typescript2'
+// import babel from '@rollup/plugin-babel'
+// import typescript from 'rollup-plugin-typescript2'
+import esbuild from 'rollup-plugin-esbuild'
 import { terser } from 'rollup-plugin-terser'
 
 const extensions = [...DEFAULT_EXTENSIONS, '.ts']
@@ -44,19 +45,26 @@ const configs = [
         moduleDirectories: ['node_modules'],
         preferBuiltins: false,
       }),
-      typescript({
-        rollupCommonJSResolveHack: true,
-        check: false,
-        abortOnError: false,
-        clean: true,
-      }),
-      babel({
-        babelHelpers: 'runtime',
-        include: ['src/**/*'],
-        exclude: ['node_modules/**/*'],
-        extensions,
-        presets: ['@babel/env'],
-        plugins: ['@babel/plugin-transform-runtime'],
+      // typescript({
+      //   rollupCommonJSResolveHack: true,
+      //   check: false,
+      //   abortOnError: false,
+      //   clean: true,
+      // }),
+      // babel({
+      //   babelHelpers: 'runtime',
+      //   include: ['src/**/*'],
+      //   exclude: ['node_modules/**/*'],
+      //   extensions,
+      //   presets: ['@babel/env'],
+      //   plugins: ['@babel/plugin-transform-runtime'],
+      // }),
+      esbuild({
+        include: /\.[t]s?$/,
+        exclude: /node_modules/,
+        minify: !_DEV_,
+        target: 'es2018',
+        sourceMap: true,
       }),
       !_DEV_
         ? terser({

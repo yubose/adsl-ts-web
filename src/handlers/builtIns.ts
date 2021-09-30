@@ -126,6 +126,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }
 
+  const exportPDF: Store.BuiltInObject['fn'] = async function onExportPDF() {
+    try {
+      //
+    } catch (error) {
+      throw new Error(error)
+    }
+  }
+
   const disconnectMeeting: Store.BuiltInObject['fn'] =
     async function onDisconnectMeeting(action) {
       log.func('disconnectMeeting')
@@ -148,28 +156,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
       if (u.isBool(reload)) {
         ndomPage.setModifier(ndomPage.previous, { reload })
-      }
-      if (
-        ndomPage.requesting === ndomPage.page &&
-        ndomPage.page === ndomPage.previous
-      ) {
-        console.log(
-          `%cLOOK HERE: All three (previous, current, requesting) value of the page name in the noodl-ui-dom instance are the same`,
-          `color:#ec0000;background:#000`,
-        )
-      } else {
-        if (ndomPage.previous === ndomPage.page) {
-          console.log(
-            `%cLOOK HERE: The current page is the same as the "previous" page on the noodl-ui-dom page`,
-            `color:deepOrange;background:#000`,
-          )
-        }
-        if (ndomPage.page === ndomPage.requesting) {
-          console.log(
-            `%cLOOK HERE: The current page is the same as the "requesting" page on the noodl-ui-dom page`,
-            `color:orange;background:#000`,
-          )
-        }
       }
     }
 

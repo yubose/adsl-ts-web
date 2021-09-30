@@ -48,6 +48,7 @@ const componentsResolver: t.Resolve.Config = {
       }
     } catch (error) {
       console.error(error)
+      // @ts-expect-error
       throw new Error(error)
     }
   },

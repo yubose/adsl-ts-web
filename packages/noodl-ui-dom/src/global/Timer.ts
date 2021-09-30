@@ -5,7 +5,7 @@ class Timer {
   #onClear: Timer['onClear']
   #onIncrement: Timer['onIncrement']
   dataKey: string
-  isGlobal: boolean
+  isGlobal: boolean | undefined
   pageName: string
   ref: NodeJS.Timeout | undefined
   value: Date | undefined;

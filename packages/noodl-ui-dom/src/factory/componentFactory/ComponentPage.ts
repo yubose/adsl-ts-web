@@ -3,7 +3,6 @@ import type { OrArray } from '@jsmanifest/typefest'
 import type { NuiComponent, Page as NUIPage } from 'noodl-ui'
 import { isComponent, isPage as isNuiPage } from 'noodl-ui'
 import NDOMPage from '../../Page'
-import isNDOMPage from '../../utils/isPage'
 import copyAttributes from '../../utils/copyAttributes'
 import * as c from '../../constants'
 
@@ -29,7 +28,7 @@ class ComponentPage<
     [c.eventId.componentPage.on.ON_ERROR]: [],
     [c.eventId.componentPage.on.ON_MESSAGE]: [],
   } as ComponentPageHooks
-  #nuiPage: NUIPage
+  #nuiPage: NUIPage | undefined
   #error: Error | null = null
   initialized = false
   origin = '';
@@ -188,6 +187,7 @@ class ComponentPage<
   clear() {
     this.remove()
     this.node?.remove?.()
+    // @ts-expect-error
     u.forEach(u.clearArr, u.values(this.#hooks))
     this.#component = null as any
   }
@@ -232,11 +232,12 @@ class ComponentPage<
     srcDoc?: string
     title?: string
   }) {
-    opts.allowPaymentRequest && (this.node.allowPaymentRequest = true)
     opts.className && this.node.classList.add(opts.className)
-    opts.width && (this.node.width = opts.width)
-    opts.height && (this.node.height = opts.height)
-    opts.name && (this.node.name = opts.name)
+    if (this.node instanceof HTMLIFrameElement) {
+      opts.name && (this.node.name = opts.name)
+      opts.width && (this.node.width = opts.width)
+      opts.height && (this.node.height = opts.height)
+    }
 
     if (opts.contentSecurityPolicy) {
       const addKeyPair = (k: string, v: OrArray<string> | boolean) => {
@@ -257,7 +258,10 @@ class ComponentPage<
       obj.allowVideos && (value += addKeyPair('media-src', '*'))
       obj.allowScripts && (value += addKeyPair('script-src', obj.allowScripts))
       cspElem.setAttribute('content', value)
-      this.node?.contentDocument?.head.appendChild(cspElem)
+
+      if (this.node instanceof HTMLIFrameElement) {
+        this.node?.contentDocument?.head.appendChild(cspElem)
+      }
     }
 
     opts.onLoad && this.on(c.eventId.componentPage.on.ON_LOAD, opts.onLoad)
@@ -307,6 +311,7 @@ class ComponentPage<
               ComponentPageHooks[ComponentPageEvent][number]
             >),
           ),
+        // @ts-expect-error
         this.#hooks[evt as ComponentPageEvent],
       )
     }
@@ -316,7 +321,7 @@ class ComponentPage<
   getNuiPage() {
     const nuiPage = this.#component?.get?.('page') as NUIPage
     nuiPage && this.#nuiPage !== nuiPage && (this.#nuiPage = nuiPage)
-    return this.#nuiPage
+    return this.#nuiPage as NUIPage
   }
 
   on<

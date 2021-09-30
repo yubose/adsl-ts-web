@@ -7,6 +7,7 @@ let _global: NDOMGlobal
 
 export class NDOMGlobal {
   #components: t.GlobalMap['components'] = new Map()
+  // @ts-expect-error
   #draw: t.GlobalMap['draw'] = new Map()
   #hooks: t.GlobalMap['hooks'] = new Map()
   #pages = {} as t.GlobalMap['pages']
@@ -54,6 +55,7 @@ export class NDOMGlobal {
   }
 
   add(page: NDOMPage | ComponentPage) {
+    // @ts-expect-error
     this.pages[page.id] = page
   }
 }

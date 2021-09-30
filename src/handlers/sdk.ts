@@ -6,7 +6,7 @@ export function getSdkHelpers(app: App) {
     EcosObj: {
       get download() {
         return extendedSdkBuiltIns.download
-      }
+      },
     },
     get downloadQRCode() {
       return extendedSdkBuiltIns.downloadQRCode
@@ -28,6 +28,9 @@ export function getSdkHelpers(app: App) {
     },
     get checkField() {
       return app.builtIns.get('checkField')?.find(Boolean)?.fn
+    },
+    get exportPDF() {
+      return app.builtIns.get('exportPDF')?.find(Boolean)?.fn
     },
     get goto() {
       return app.builtIns.get('goto')?.find(Boolean)?.fn

@@ -52,6 +52,7 @@ export default class NDOMResolver {
       editStyle: this.createStyleEditor(args.component),
       findPage: args.ndom.findPage.bind(args.ndom) as NDOM['findPage'],
       global: args.ndom.global,
+      // @ts-expect-error
       on: args.on || args.ndom.renderState.options.on,
       node: args.node,
       nui,
@@ -83,6 +84,7 @@ export default class NDOMResolver {
         v: any,
       ) => {
         if (/(innerHTML|innerText|textContent)/i.test(k)) {
+          // @ts-expect-error
           args.node[k] = v
         } else {
           args.node?.setAttribute?.(k, v)
@@ -131,6 +133,7 @@ export default class NDOMResolver {
   ) {
     await Promise.all(
       [config.before, config.resolve, config.after].map(
+        // @ts-expect-error
         (fn) => fn && this.resolveCond(config.cond, options, fn),
       ),
     )
