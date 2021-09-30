@@ -6,7 +6,6 @@ import { isAction } from 'noodl-action-chain'
 import {
   findListDataObject,
   findIteratorVar,
-  findParent,
   getDataValues,
   NuiComponent,
   resolvePageComponentUrl,
@@ -15,6 +14,7 @@ import {
   isListConsumer,
   ConsumerOptions,
 } from 'noodl-ui'
+import QRCode from 'qrcode'
 import {
   BASE_PAGE_URL,
   eventId as ndomEventId,
@@ -26,7 +26,6 @@ import {
   getFirstByElementId,
   isPageConsumer,
   Page as NDOMPage,
-  findByElementId,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import Logger from 'logsnap'
@@ -47,8 +46,6 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
-import QRCode from 'qrcode'
-import { isObject } from 'lodash'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -770,13 +767,14 @@ export const extendedSdkBuiltIns = {
     !data && (data = ecosObj.name?.data || '')
     return download(data, filename)
   },
-  downloadQRCode(this: App, { content,scale }: { content?: any,scale?: number } = {}) {
+  downloadQRCode(
+    this: App,
+    { content, scale }: { content?: any; scale?: number } = {},
+  ) {
     log.func('download (QRCode)')
-    // generate QRCode image
+    // Generate QRCode image
     let text = content
-    if(isObject(content)){
-      text = JSON.stringify(content)
-    }
+    if (u.isObj(content)) text = JSON.stringify(content)
 
     let opts = {
       errorCorrectionLevel: 'H',
@@ -784,38 +782,38 @@ export const extendedSdkBuiltIns = {
       quality: 0.3,
       margin: 1,
       color: {
-        dark:"#000000",
-        light:"#ffffff"
+        dark: '#000000',
+        light: '#ffffff',
       },
       scale: scale,
     }
-    let data 
+    let data
     QRCode.toDataURL(text, opts, function (err, url) {
       if (err) throw err
       data = url
     })
 
     // transform base64 to blob
-    let dataURLtoBlob = dataurl=>{
+    let dataURLtoBlob = (dataurl) => {
       let arr = dataurl.split(',')
-       //注意base64的最后面中括号和引号是不转译的   
-      let _arr = arr[1].substring(0,arr[1].length-2)
+      //注意base64的最后面中括号和引号是不转译的
+      let _arr = arr[1].substring(0, arr[1].length - 2)
       let mime = arr[0].match(/:(.*?);/)[1],
-           bstr =atob(_arr),
-           n = bstr.length,
-           u8arr = new Uint8Array(n)
-       while (n--) {
-           u8arr[n] = bstr.charCodeAt(n)
-       }
-       return new Blob([u8arr], {
-           type: mime
-       })
-   }
+        bstr = atob(_arr),
+        n = bstr.length,
+        u8arr = new Uint8Array(n)
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n)
+      }
+      return new Blob([u8arr], {
+        type: mime,
+      })
+    }
     let blobSrc = dataURLtoBlob(data)
-    console.log("test",blobSrc)
+    console.log('test', blobSrc)
     let ext = ''
     let filename = ('QRCode' || '') as string
-    let mimeType = ('image/png'|| '') as string
+    let mimeType = ('image/png' || '') as string
 
     if (mimeType && u.isStr(mimeType)) {
       // Assuming these are note docs since we are storing their data in json
@@ -831,7 +829,7 @@ export const extendedSdkBuiltIns = {
     }
 
     ext && u.isStr(filename) && (filename += ext)
-    !data && (data =  blobSrc || '')
+    !data && (data = blobSrc || '')
     return download(data, filename)
   },
   /**
