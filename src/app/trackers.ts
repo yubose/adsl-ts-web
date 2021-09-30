@@ -26,7 +26,6 @@ function validateRef(
           `The reference "${key}" is not found in the local root object for page "${page}"`,
           { datapath, key, page, pathInSplits },
         )
-        // if (key.startsWith('=..front_IDCard')) debugger
       }
       return get(app.root?.[page], pathInSplits)
     }
