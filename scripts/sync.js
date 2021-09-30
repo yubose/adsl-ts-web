@@ -128,7 +128,7 @@ async function sync() {
     {
       url: 'http://gitlab.aitmed.com/production/aitmed.git',
       from: {
-        baseDir: '../patd2',
+        baseDir: '../aitmed',
         appFiles: 'patient',
         configFrom: [
           'config/patient.yml',
@@ -143,7 +143,7 @@ async function sync() {
     {
       url: 'http://gitlab.aitmed.com/production/aitmed.git',
       from: {
-        baseDir: '../prod2',
+        baseDir: '../aitmed',
         appFiles: 'provider',
         configFrom: [
           'config/provider.yml',
@@ -153,6 +153,32 @@ async function sync() {
       },
       to: {
         targetDir: 'generated/prod2',
+      },
+    },
+    {
+      url: 'http://gitlab.aitmed.com/production/cadl.git',
+      from: {
+        baseDir: '../cadl',
+        appFiles: 'meet3',
+        configFrom: [
+          'config/meet.yml',
+          'config/meetd.yml',
+          'config/meetd2.yml',
+        ],
+      },
+      to: {
+        targetDir: 'generated/meetd2',
+      },
+    },
+    {
+      url: 'http://gitlab.aitmed.com/production/cadl.git',
+      from: {
+        baseDir: '../cadl',
+        appFiles: 'testpage',
+        configFrom: 'config/testpage.yml',
+      },
+      to: {
+        targetDir: 'generated/meetd2',
       },
     },
   ])
