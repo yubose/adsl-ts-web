@@ -6,7 +6,7 @@ import type {
   RemoteParticipant,
 } from 'twilio-video'
 import type HTML2Canvas, { Options } from 'html2canvas'
-import type jsPDF from 'jspdf'
+import type * as jsPDF from 'jspdf'
 import type NOODLDOM from 'noodl-ui-dom'
 import type echarts from '@types/echarts'
 import type { Calendar } from '@fullcalendar/core'

@@ -1,11 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
-import h from 'virtual-dom/h'
-import diff from 'virtual-dom/diff'
-import createElement from 'virtual-dom/create-element'
-import patch from 'virtual-dom/patch'
-import VNode from 'virtual-dom/vnode/vnode'
-import VText from 'virtual-dom/vnode/vtext'
+import yaml from 'yaml'
 import {
   eventId as ndomEventId,
   findByDataAttrib,
@@ -46,6 +41,25 @@ window.addEventListener('load', async function (evt) {
   log.func('load')
   log.green('DOM loaded', evt)
 
+  // const { default: App } = await import('./App')
+
+  // const sdk = resetInstance()
+  // await sdk.init()
+  // await sdk.initPage('PaymentTest', [], {
+
+  // })
+
+  // const app = new App({})
+  // await app.initialize()
+  // await app.navigate('AboutAitmed')
+
+  // this.window.app = app
+  // u.assign(window, getWindowHelpers())
+  // console.log(app)
+})
+
+/**
+ *
   const leftNode = h('div', {})
   const rightNode = h('input', {})
 
@@ -86,20 +100,4 @@ window.addEventListener('load', async function (evt) {
     _node = patch(_node, _patches)
     tree = newTree
   }, 500)
-
-  // const { default: App } = await import('./App')
-
-  // const sdk = resetInstance()
-  // await sdk.init()
-  // await sdk.initPage('PaymentTest', [], {
-
-  // })
-
-  // const app = new App({})
-  // await app.initialize()
-  // await app.navigate('AboutAitmed')
-
-  // this.window.app = app
-  // u.assign(window, getWindowHelpers())
-  // console.log(app)
-})
+ */

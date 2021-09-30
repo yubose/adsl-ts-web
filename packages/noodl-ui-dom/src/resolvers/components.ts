@@ -732,7 +732,7 @@ const componentsResolver: t.Resolve.Config = {
           }
 
           function setSelectOptions(_node: HTMLSelectElement, opts: any[]) {
-            opts.forEach((option: SelectOption, index) => {
+            u.array(opts).forEach((option: SelectOption, index) => {
               option = toSelectOption(option)
               const optionNode = document.createElement('option')
               _node.appendChild(optionNode)
@@ -750,7 +750,10 @@ const componentsResolver: t.Resolve.Config = {
 
           clearOptions(args.node as HTMLSelectElement)
 
-          if (u.isArr(selectOptions) && args.component.get(c.DATA_VALUE) == undefined ) {
+          if (
+            u.isArr(selectOptions) &&
+            args.component.get(c.DATA_VALUE) == undefined
+          ) {
             setSelectOptions(args.node as HTMLSelectElement, selectOptions)
           } else if (u.isStr(selectOptions) || (dataKey && u.isStr(dataKey))) {
             // Retrieved through reference

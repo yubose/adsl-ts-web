@@ -11,6 +11,17 @@ import * as util from './utils/style'
 
 const isNil = (v: any) => u.isNull(v) || u.isUnd(v)
 
+/**
+ *
+ * Normalizes + parses a component object for browsers to consume
+ *   @example
+ *
+  ```js
+    const componentObject = { style: { shadow: 'true' } }
+    const normalized = { style: { boxShadow: '5px 5px 10px 3px rgba(0, 0, 0, 0.015)' } }
+  ```
+ */
+
 function normalizeProps<
   Props extends Record<string, any> = Record<string, any>,
 >(
@@ -23,14 +34,33 @@ function normalizeProps<
     root = {},
     viewport,
   }: {
+    /**
+     * Any data needed to render/parse components
+     */
     context?: {
       dataObject?: Record<string, any>
       iteratorVar?: string
       index?: number
+      listObject?: string | any[]
     } & Record<string, any>
+    /**
+     * A function that will be used to merge base styles prior to parsing
+     */
     getBaseStyles?: typeof nui.getBaseStyles
+    /**
+     * Current page. If retrieving local root references, it will use this variable
+     * as the local root key
+     */
     pageName?: string
+    /**
+     * The root object or a function that returns the root object. This will
+     * be used to cross-reference other page objects if needed
+     */
     root?: Record<string, any> | (() => Record<string, any>)
+    /**
+     * A viewport containing the width/height.
+     * This will be used to resolve the positioning/sizes of component styles
+     */
     viewport?: NuiViewport
   } = {},
 ) {
@@ -46,7 +76,39 @@ function normalizeProps<
     for (const [originalKey, originalValue] of u.entries(blueprint)) {
       let value = props?.[originalKey]
 
-      if (originalKey === 'style') {
+      if (originalKey === 'options') {
+        if (blueprint.type === 'select') {
+          const { dataKey } = blueprint
+          const isUsingDataKey = !!(
+            (dataKey && u.isStr(dataKey)) ||
+            u.isStr(value)
+          )
+          // Receiving their options by reference
+          if (isUsingDataKey) {
+            let dataPath = dataKey && u.isStr(dataKey) ? dataKey : value
+            let dataObject: any
+            let isListPath = !!(iteratorVar && dataPath.startsWith(iteratorVar))
+
+            if (!u.isArr(value)) {
+              if (isListPath) {
+                dataPath = nu.excludeIteratorVar(dataPath, iteratorVar)
+                dataObject = context?.dataObject || findListDataObject(props)
+                value = dataPath ? get(dataObject, dataPath) : dataObject
+              } else {
+                dataPath = nu.trimReference(dataPath)
+                value = get(
+                  nt.Identify.localKey(dataPath) ? root?.[pageName] : root,
+                  dataPath,
+                )
+              }
+            }
+
+            value && (props['data-options'] = value || [])
+          }
+        }
+      } else if (originalKey === 'viewTag') {
+        props['data-viewtag'] = value
+      } else if (originalKey === 'style') {
         if (u.isObj(originalValue)) {
           const {
             align,
@@ -289,7 +351,7 @@ function normalizeProps<
           -------------------------------------------------------- */
 
           const { width, height, maxHeight, maxWidth, minHeight, minWidth } =
-          originalValue || {}
+            originalValue || {}
 
           if (viewport) {
             if (!isNil(width)) {
@@ -336,29 +398,24 @@ function normalizeProps<
 
           // HANDLING ARTBITRARY STYLES
           for (let [styleKey, styleValue] of u.entries(originalValue)) {
-
             if (util.vpHeightKeys.includes(styleKey as any)) {
               if (util.isNoodlUnit(styleValue)) {
                 value[styleKey] = String(
-                  NuiViewport.getSize(
-                    styleValue,
-                    viewport?.height as number,
-                    { unit: 'px' },
-                  ),
+                  NuiViewport.getSize(styleValue, viewport?.height as number, {
+                    unit: 'px',
+                  }),
                 )
               }
-            }else if (util.vpWidthKeys.includes(styleKey as any)) {
+            } else if (util.vpWidthKeys.includes(styleKey as any)) {
               if (util.isNoodlUnit(styleValue)) {
                 value[styleKey] = String(
-                  NuiViewport.getSize(
-                    styleValue,
-                    viewport?.width as number,
-                    { unit: 'px' },
-                  ),
+                  NuiViewport.getSize(styleValue, viewport?.width as number, {
+                    unit: 'px',
+                  }),
                 )
               }
             }
-            
+
             if (u.isStr(styleValue)) {
               // Resolve vm and vh units
               if (styleValue.endsWith('vw') || styleValue.endsWith('vh')) {
@@ -407,7 +464,7 @@ function normalizeProps<
                       ),
                     )
                   }
-                }else if (util.vpWidthKeys.includes(styleKey as any)) {
+                } else if (util.vpWidthKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
                       NuiViewport.getSize(
@@ -417,7 +474,7 @@ function normalizeProps<
                       ),
                     )
                   }
-                }else{
+                } else {
                   value[styleKey] = com.formatColor(styleValue)
                 }
               }
