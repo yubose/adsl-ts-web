@@ -21,12 +21,7 @@ import {
   Page as NDOMPage,
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
-import {
-  copyToClipboard,
-  getVcodeElem,
-  screenshotElement,
-  toast,
-} from './utils/dom'
+import { copyToClipboard, getVcodeElem, toast } from './utils/dom'
 import AppNotification from './app/Notifications'
 import App from './App'
 import './spinner/three-dots.css'
@@ -55,7 +50,6 @@ export function getWindowHelpers() {
       findWindow,
       findWindowDocument,
       getVcodeElem,
-      screenshotElement,
       toast,
     },
     pick(lib, ['getDataValues', 'publish']),

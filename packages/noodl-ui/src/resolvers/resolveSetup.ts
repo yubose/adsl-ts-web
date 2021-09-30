@@ -26,13 +26,6 @@ setupResolver.setResolver(async function setupResolver(
         let value = this.blueprint[key]
 
         if (u.isStr(value)) {
-          if (key === 'listObject') {
-            if (value === '') {
-              // We will override the prop getter here since in this case the reference
-              // is lost because a primitive ('') is set as the value here
-            }
-          }
-
           if (nt.Identify.pageComponentUrl(value)) {
             return resolvePageComponentUrl({
               component,

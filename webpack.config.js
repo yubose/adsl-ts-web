@@ -171,7 +171,7 @@ const environmentPlugin = new webpack.EnvironmentPlugin(
  */
 module.exports = {
   entry: {
-    main: [process.env.SAMPLE ? './src/sample.ts' : './src/index.ts'],
+    main: [process.env.SAMPLE ? './dev/sample.ts' : './src/index.ts'],
   },
   output: {
     clean: true,
@@ -295,8 +295,8 @@ ${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
 ${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
 ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
 
-${mode === 'production'
-    ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(title)}`
+${mode === 'production' 
+    ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(title)}` 
     : ''
 }\n\n`)
 }

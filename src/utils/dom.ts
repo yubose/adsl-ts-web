@@ -20,42 +20,14 @@ export function screenshotElement(
   node: HTMLElement,
   { ext, filename = '' }: { ext?: string; filename?: string } = {},
 ): Promise<[pdf: jsPDF, canvas: HTMLCanvasElement]> {
-  return new Promise((resolve, reject) => {
-    filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
-    // const dataUrl = canvas.toDataURL('image/png')
-    let doc = new jspdf.jsPDF('p', 'px')
-    doc = doc.viewerPreferences({
-      CenterWindow: true,
-      DisplayDocTitle: true,
+  return new Promise((resolve) => {
+    html2canvas(node, {}).then((canvas) => {
+      // const dataUrl = canvas.toDataURL('image/png')
+      const doc = new jspdf('p', 'mm')
+      doc.addImage(canvas, 'PNG', 10, 10, window.innerWidth, window.innerHeight)
+      doc.save(filename.endsWith('.pdf') ? filename : `${filename}.pdf`)
+      resolve([doc, canvas])
     })
-
-    doc = doc.setDocumentProperties({
-      author: 'Christopher',
-      creator: 'Christopher',
-      keywords: 'form',
-      subject: 'To whom this may concern',
-      title: 'Absentee Form',
-    })
-
-    doc
-      .html(node, {
-        callback: (doc) => {
-          window.doc = doc
-          let { width, height, fileType } = doc.getImageProperties(node)
-          ext =
-            (fileType &&
-              (fileType.startsWith('.') ? fileType : `.${fileType}`)) ||
-            ext
-          doc.setFont('Roboto')
-          doc.save(filename)
-          const blob = doc.output('blob', { filename }) as Blob
-          // download(blob, filename)
-          window.open(doc.output('bloburi'), '_blank')
-          resolve([doc, doc.canvas])
-        },
-      })
-      .then((worker) => {})
-      .catch(reject)
   })
 }
 

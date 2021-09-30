@@ -99,7 +99,6 @@
     "circular-dependency-plugin": "^5.2.0",
     "concurrently": "^6.2.1",
     "copy-webpack-plugin": "^8.1.1",
-    "cpy": "^8.1.2",
     "cross-env": "^7.0.2",
     "crypto-browserify": "^3.12.0",
     "css-loader": "^5.2.6",

@@ -4,13 +4,6 @@ const yaml = require('yaml')
 const fs = require('fs-extra')
 const path = require('path')
 const chalk = require('chalk')
-const axios = require('axios')
-const cpy = require('cpy')
-
-const aqua = (s) => chalk.keyword('aquamarine')(s)
-const coolGold = (s) => chalk.keyword('navajowhite')(s)
-const tag = (s) => `[${u.cyan(s)}]`
-const log = console.log
 
 /**
  *
@@ -18,118 +11,6 @@ const log = console.log
  */
 async function sync() {
   const toDir = path.join(process.cwd(), './generated')
-
-  async function syncRepos(repos) {
-    /**
-     * @param { string } url - Git repo url
-     * @param { string } baseDir - Base directory
-     * @param { string } appDir - Directory to the app files (.yml/assets)
-     * @param { string | string[] } configFilePath - Filepath to the config file
-     */
-    async function syncRepo(repo) {
-      const { url = '', from, to } = repo
-
-      try {
-        let { baseDir, appFiles, configFrom } = from
-        let { targetDir } = to
-        let gitFolder = path.posix.basename(baseDir)
-        let gitFolderPath = path.posix.resolve(path.join(baseDir, gitFolder))
-
-        baseDir = path.resolve(baseDir)
-        appFiles = path.join(baseDir, appFiles)
-        configFrom = u.array(configFrom).map((c) => path.join(baseDir, c))
-        targetDir = path.resolve(process.cwd(), targetDir).replace(/\\/g, '/')
-
-        /** @type { execa.ExecaChildProcess } */
-        let cmd
-        let configNames = u.reduce(
-          configFrom,
-          (acc, name) =>
-            u.assign(acc, { [path.basename(name)]: path.basename(name) }),
-          {},
-        )
-
-        console.log({
-          repo,
-          baseDir,
-          appFiles,
-          configFrom,
-          targetDir,
-          gitFolderPath,
-          configNames,
-        })
-
-        if (!fs.existsSync(baseDir)) {
-          cmd = await execa.command(`git clone ${url} ${gitFolder}`, {
-            shell: true,
-            stdio: 'inherit',
-          })
-          log(`${tag('git cloned')} to ${u.yellow(gitFolderPath)}`)
-        }
-
-        await fs.ensureDir(gitFolderPath)
-
-        const configYmls = (
-          await Promise.all(
-            u.array(configFrom).map(async (filepath) => {
-              try {
-                const yml = await fs.readFile(filepath, 'utf8')
-                await fs.writeFile(path.join(targetDir, configName), 'utf8')
-                return yml
-              } catch (error) {
-                log(`${tag('Error')}: ${error.message}`)
-              }
-            }),
-          )
-        ).filter(Boolean)
-
-        await cpy(path.join(appFiles, '**/*'), targetDir)
-      } catch (error) {
-        console.error(error)
-      }
-    }
-
-    try {
-      await Promise.all(repos.map(async (repo) => syncRepo(repo)))
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  await syncRepos([
-    {
-      from: {
-        url: 'http://gitlab.aitmed.com/production/admin.git',
-        baseDir: '../../admind2',
-        appFiles: 'admin',
-        configFrom: [
-          'config/admin.yml',
-          'config/admind.yml',
-          'config/admind2.yml',
-        ],
-      },
-      to: {
-        targetDir: 'generated/admind2',
-      },
-    },
-    // {
-    //   from: {
-    //     url: 'http://gitlab.aitmed.com/production/search.git',
-    //     baseDir: '../../searchd2',
-    //     appFiles: 'search',
-    //     configFrom: [
-    //       'config/search.yml',
-    //       'config/searchd.yml',
-    //       'config/searchd2.yml',
-    //     ],
-    //   },
-    //   to: {
-    //     targetDir: 'generated/searchd2',
-    //   },
-    // },
-  ])
-
-  return
 
   async function syncApp({ name, from, to, configPath }) {
     const configFilePathFrom = path.resolve(path.join(from, configPath))
