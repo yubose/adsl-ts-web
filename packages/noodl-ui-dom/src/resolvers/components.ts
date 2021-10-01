@@ -338,7 +338,8 @@ const componentsResolver: t.Resolve.Config = {
           try {
             const loadResult = await createEcosDocElement(
               args.node as HTMLElement,
-              args.component.get('ecosObj'),
+              args.component.get('ecosObj') ||
+                args.component?.blueprint?.['ecosObj'],
             )
             iframe = loadResult.iframe
           } catch (error) {

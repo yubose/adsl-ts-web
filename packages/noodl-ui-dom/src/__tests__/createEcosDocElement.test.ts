@@ -70,7 +70,6 @@ describe(coolGold(`createEcosDocElement`), async () => {
         const customEcosObj = ui.ecosDoc({
           name: {
             data: 'blob:https://www.google.com/abc.png',
-            type: 'image/png',
           },
           subtype: { mediaType: 4 },
         })
@@ -90,10 +89,10 @@ describe(coolGold(`createEcosDocElement`), async () => {
       })
     })
 
-    xdescribe(white(`pdf documents`), () => {
+    describe(white(`pdf documents`), () => {
       it(`should render the pdf element into its body and set the src`, async () => {
         const ecosObj = ui.ecosDoc('pdf')
-        const { iframe, node } = await getEcosDocRenderResults({
+        const { iframe } = await getEcosDocRenderResults({
           component: ui.ecosDocComponent({ ecosObj }),
           ecosObj,
           node: document.body,

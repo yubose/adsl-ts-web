@@ -235,12 +235,8 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
   -------------------------------------------------------- */
 
   if (Identify.component.select(component)) {
-    const isUsingDataKey = !!(
-      (dataKey && u.isStr(dataKey)) ||
-      u.isStr(selectOptions)
-    )
     // Receiving their options by reference
-    if (isUsingDataKey) {
+    if ([dataKey, selectOptions].find((v) => v && u.isStr(v))) {
       let dataPath = dataKey && u.isStr(dataKey) ? dataKey : selectOptions
       let dataOptions = selectOptions
       let isListPath = !!(iteratorVar && dataPath.startsWith(iteratorVar))

@@ -564,9 +564,9 @@ const NUI = (function () {
                         { component: c, possibleValue: styleValue },
                       )
                     }
-                  } else if (nt.Identify.reference(value)) {
+                  } else if (nt.Identify.reference(styleValue)) {
                     console.log(
-                      `%cEncountered an unparsed style value "${value}" for style key "${key}"`,
+                      `%cEncountered an unparsed style value "${styleValue}" for style key "${styleKey}"`,
                       `color:#ec0000;`,
                       c,
                     )

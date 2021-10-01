@@ -132,4 +132,16 @@ export function openOutboundURL(url: string) {
   }
 }
 
-// export function throwError()
+export function logError(err?: any) {
+  if (!err) err = new Error(`[Error] Error occurred`)
+  else if (!(err instanceof Error)) err = new Error(String(err))
+  console.log(`[${err.name}] ${err.message}`, err.stack)
+}
+
+export function throwError(err?: any) {
+  if (err) {
+    if (err instanceof Error) throw err
+    throw new Error(String(err))
+  }
+  throw new Error('Error occurred')
+}

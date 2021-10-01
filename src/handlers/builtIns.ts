@@ -31,13 +31,20 @@ import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import Logger from 'logsnap'
 import {
   download,
+  exportToPDF,
   isVisible,
   hide,
   show,
   scrollToElem,
   toast,
+  screenshotElement,
 } from '../utils/dom'
-import { getActionMetadata, pickActionKey } from '../utils/common'
+import {
+  getActionMetadata,
+  logError,
+  pickActionKey,
+  throwError,
+} from '../utils/common'
 import App from '../App'
 import {
   LocalAudioTrack,
@@ -46,6 +53,7 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
+import jsPDF from 'jspdf'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -126,11 +134,70 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }
 
-  const exportPDF: Store.BuiltInObject['fn'] = async function onExportPDF() {
+  /**
+   * Initiates a download window to export PDF using the information inside the document object
+   * @param { object } options
+   * @param { EcosDocument } options.ecosObj - eCOS document object
+   */
+  const exportPDF: any = async function onExportPDF(options: {
+    ecosObj: EcosDocument
+    viewTag?: string
+  }) {
     try {
-      //
+      log.func('exportPDF')
+      log.grey('Downloading PDF file', options)
+
+      const ecosObj = (
+        u.isObj(options) && 'ecosObj' in options ? options.ecosObj : options
+      ) as EcosDocument
+
+      if (u.isObj(ecosObj)) {
+        const { created_at, ctime, id, modified_at, mtime, name, size } =
+          ecosObj
+
+        if (u.isObj(name)) {
+          const { data, title: filename, type } = name
+
+          if (data) {
+            if (u.isStr(data)) {
+              await exportToPDF(data, { filename, type: name.type })
+              log.green('Exported successfully')
+            }
+          } else {
+            log.red(
+              `Tried to export the document to PDF but the "data" property is empty`,
+            )
+          }
+        } else {
+          log.red('The name field in an ecosObj was not an object', ecosObj)
+        }
+      } else if (options?.viewTag) {
+        const viewTag = options.viewTag
+        if (u.isStr(viewTag)) {
+          const snaps = [] as { pdf: jsPDF; canvas: HTMLCanvasElement }[]
+          const nodes = findByViewTag(viewTag)
+
+          if (u.isArr(nodes)) {
+            for (const node of nodes) {
+              const [pdf, canvas] = await screenshotElement(node, {
+                ext: 'png',
+              })
+              snaps.push({ pdf, canvas })
+            }
+          } else if (nodes) {
+            const [pdf, canvas] = await screenshotElement(nodes, { ext: 'png' })
+            snaps.push({ pdf, canvas })
+          }
+
+          for (const { pdf, canvas } of snaps) {
+            download(pdf.output('blob'))
+          }
+        } else if (u.isObj(viewTag)) {
+          // Future support
+        }
+      }
     } catch (error) {
-      throw new Error(error)
+      throwError(error)
     }
   }
 
@@ -663,6 +730,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const builtIns = {
     checkField,
     disconnectMeeting,
+    exportPDF,
     goBack,
     hide: hideAction,
     show: showAction,

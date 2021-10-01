@@ -40,7 +40,7 @@ export function screenshotElement(
     doc
       .html(node, {
         callback: (doc) => {
-          window.doc = doc
+          // @ts-expect-error
           let { width, height, fileType } = doc.getImageProperties(node)
           ext =
             (fileType &&
@@ -48,9 +48,11 @@ export function screenshotElement(
             ext
           doc.setFont('Roboto')
           doc.save(filename)
+          // @ts-expect-error
           const blob = doc.output('blob', { filename }) as Blob
           // download(blob, filename)
           window.open(doc.output('bloburi'), '_blank')
+          // @ts-expect-error
           resolve([doc, doc.canvas])
         },
       })
@@ -83,6 +85,37 @@ export function download(url: string | Blob, filename?: string) {
   } catch (error) {
     throw error
   }
+}
+
+export function exportToPDF(
+  dataOrUri: string,
+  { filename = 'file.pdf' }: { filename?: string; type?: string },
+): Promise<jsPDF> {
+  return new Promise(async (resolve, reject) => {
+    if (u.isStr(dataOrUri)) {
+      filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
+      const img = new Image()
+      img.style.visibility = 'hidden'
+      img.src = dataOrUri
+
+      img.addEventListener('load', function () {
+        const width = img.naturalWidth
+        const height = img.naturalHeight
+        let doc = new jspdf.jsPDF('p', 'px')
+        doc = doc.addImage(dataOrUri, 'png', 0, 0, width, height)
+        download(doc.output('datauristring'), filename)
+        resolve(doc)
+        document.body.removeChild(img)
+      })
+
+      img.addEventListener('error', function (err) {
+        reject(err)
+        document.body.removeChild(img)
+      })
+
+      document.body.appendChild(img)
+    }
+  })
 }
 
 export function getDocumentScrollTop(doc?: Document | null) {

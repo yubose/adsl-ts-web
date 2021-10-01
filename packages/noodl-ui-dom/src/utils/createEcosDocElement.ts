@@ -8,7 +8,7 @@ const is = Identify.ecosObj
 const getBody = (iframe: HTMLIFrameElement | null) =>
   (iframe?.contentDocument?.body as HTMLBodyElement) || null
 
-interface CreateEcosDocElementArgs<N extends NameField = NameField> {
+export interface CreateEcosDocElementArgs<N extends NameField = NameField> {
   ecosObj: EcosDocument<N>
   width?: number
   height?: number
@@ -62,98 +62,85 @@ function createEcosDocElement<
     iframe.title = ecosObj?.name?.title || 'eCOS Document'
 
     /** LOADED */
-    iframe.addEventListener(
-      'load',
-      async function onLoadEcosDocElement(event) {
-        let className = ''
-        if (is.doc(ecosObj)) {
-          if (/json/i.test(mimeType)) {
-            className = classes.ECOS_DOC_NOTE
-          } else if (/pdf/i.test(mimeType)) {
-            // className added in the render block somewhere below
-          }
-        } else if (is.image(ecosObj)) {
-          className = classes.ECOS_DOC_IMAGE
-        } else if (is.text(ecosObj)) {
-          if (/css/i.test(mimeType)) {
-            className = classes.ECOS_DOC_TEXT_CSS
-          } else if (/html/i.test(mimeType)) {
-            className = classes.ECOS_DOC_TEXT_HTML
-          } else if (/javascript/i.test(mimeType)) {
-            className = classes.ECOS_DOC_TEXT_JAVASCRIPT
-          } else if (/plain/i.test(mimeType)) {
-            className = classes.ECOS_DOC_TEXT_PLAIN
-          } else if (/markdown/i.test(mimeType)) {
-            className = classes.ECOS_DOC_TEXT_MARKDOWN
-          }
-        } else if (is.video(ecosObj)) {
-          className = classes.ECOS_DOC_VIDEO
+    iframe.addEventListener('load', async function onLoadEcosDocElement(event) {
+      let className = ''
+      if (is.doc(ecosObj)) {
+        if (/json/i.test(mimeType)) {
+          className = classes.ECOS_DOC_NOTE
+        } else if (/pdf/i.test(mimeType)) {
+          // className added in the render block somewhere below
         }
-
-        try {
-          if (
-            // REMINDER: Images aren't running this block. They hair their own
-            // onload/onerror handlers in their own block
-            iframeContent &&
-            iframe?.contentDocument?.body &&
-            !iframe.contentDocument.body.contains(iframeContent)
-          ) {
-            getBody(iframe)?.appendChild(iframeContent)
-          }
-        } catch (error) {
-          console.error(error)
+      } else if (is.image(ecosObj)) {
+        className = classes.ECOS_DOC_IMAGE
+      } else if (is.text(ecosObj)) {
+        if (/css/i.test(mimeType)) {
+          className = classes.ECOS_DOC_TEXT_CSS
+        } else if (/html/i.test(mimeType)) {
+          className = classes.ECOS_DOC_TEXT_HTML
+        } else if (/javascript/i.test(mimeType)) {
+          className = classes.ECOS_DOC_TEXT_JAVASCRIPT
+        } else if (/plain/i.test(mimeType)) {
+          className = classes.ECOS_DOC_TEXT_PLAIN
+        } else if (/markdown/i.test(mimeType)) {
+          className = classes.ECOS_DOC_TEXT_MARKDOWN
         }
+      } else if (is.video(ecosObj)) {
+        className = classes.ECOS_DOC_VIDEO
+      }
 
-        className && getBody(iframe)?.classList.add(className)
+      try {
+        if (
+          !is.image(ecosObj) &&
+          // REMINDER: Images aren't running this block.
+          // They have their own onload/onerror handlers in their own block
+          iframeContent &&
+          iframe?.contentDocument?.body &&
+          !iframe.contentDocument.body.contains(iframeContent)
+        ) {
+          getBody(iframe)?.appendChild(iframeContent)
+        }
+      } catch (error) {
+        console.error(error)
+      }
 
-        resolve({
-          iframe,
-          event,
-          width,
-          height,
-          src: ecosObj?.name?.data || '',
-          title: ecosObj?.name?.title,
-        })
-      },
-      { once: true },
-    )
+      className && getBody(iframe)?.classList.add(className)
+
+      resolve({
+        iframe,
+        event,
+        width,
+        height,
+        src: ecosObj?.name?.data || '',
+        title: ecosObj?.name?.title,
+      })
+    })
 
     /** ERROR */
-    iframe.addEventListener('error', reject, { once: true })
+    iframe.addEventListener('error', reject)
 
     /* -------------------------------------------------------
     ---- IMAGE DOCUMENTS
   -------------------------------------------------------- */
     if (is.image(ecosObj)) {
-      iframe.addEventListener(
-        'load',
-        async function () {
-          if (iframe.contentDocument?.body) {
-            try {
-              const result = await createAsyncImageElement(
-                iframe.contentDocument.body,
-                (img) => {
-                  img.src = ecosObj?.name?.data || ''
-                  img.style.width = '100%'
-                  img.style.height = '100%'
-                },
-              )
-              iframeContent = result.node
-              getBody(iframe)?.appendChild?.(iframeContent)
-            } catch (error) {
-              console.error(error)
-            }
+      iframe.addEventListener('load', async function () {
+        if (iframe.contentDocument?.body) {
+          try {
+            const result = await createAsyncImageElement(
+              iframe.contentDocument.body,
+              (img) => {
+                img.src = ecosObj?.name?.data || ''
+                img.style.width = '100%'
+                img.style.height = '100%'
+              },
+            )
+            iframeContent = result.node
+            getBody(iframe)?.appendChild?.(iframeContent)
+          } catch (error) {
+            reject(error)
           }
-        },
-        { once: true },
-      )
-      iframe.addEventListener(
-        'error',
-        function (err) {
-          console.error(err)
-        },
-        { once: true },
-      )
+        }
+      })
+      iframe.addEventListener('error', reject)
     } else if (is.doc(ecosObj)) {
       if (/pdf/i.test(ecosObj.name?.type || '')) {
         iframe.classList.add(classes.ECOS_DOC_PDF)
@@ -167,17 +154,7 @@ function createEcosDocElement<
             url.startsWith('data') ||
             url.startsWith('http')
           ) {
-            if (process.env.NODE_ENV === 'test') {
-              iframe.src = ''
-            } else {
-              iframe.src = url
-            }
-
-            console.log(
-              `%cAttaching a URL to iframe for a PDF ecosDoc component`,
-              `color:#95a5a6;`,
-              url,
-            )
+            iframe.src = process.env.NODE_ENV === 'test' ? '' : url
           } else {
             console.log(
               `%cThe url is in an unknown format (expected to receive it as ` +
@@ -200,11 +177,10 @@ function createEcosDocElement<
         iframeContent = document.createElement('div')
         if (ecosObj.name?.data) {
           if (u.isStr(ecosObj.name.data) || u.isNum(ecosObj.name.data)) {
-            iframe.addEventListener('load', function (evt) {
+            iframe.addEventListener('load', function () {
               if (iframe.contentDocument?.body) {
-                iframeContent = iframe.contentDocument.body
                 if (ecosObj?.name?.data) {
-                  iframeContent?.appendChild(
+                  iframe.contentDocument.body?.appendChild(
                     createTextNode(ecosObj.name.data, {
                       title: ecosObj.name?.title,
                       name: 'Note',
@@ -214,13 +190,6 @@ function createEcosDocElement<
                 }
               }
             })
-            // iframeContent?.appendChild(
-            //   createTextNode(ecosObj.name.data, {
-            //     title: ecosObj.name?.title,
-            //     name: 'Note',
-            //     classList: classes.ECOS_DOC_NOTE_DATA,
-            //   }),
-            // )
           } else {
             console.log(
               `%cExpected a string for a note's "data" but received "${typeof ecosObj
@@ -250,36 +219,46 @@ function createEcosDocElement<
 
       function appendTextNode(label: 'title' | 'content' | 'data') {
         let content = ecosObj?.name?.[label] || ''
-        if (u.isStr(content) && content.startsWith('blob:')) {
+        if (u.isStr(content)) {
           const img = document.createElement('img')
           img.title = ecosObj?.name?.title || ''
           img.alt = 'eCOS image'
           img.src = content
-          iframeContent.appendChild(img)
+          try {
+            iframeContent.appendChild(img)
+          } catch (error) {
+            console.error(error)
+          }
         } else {
-          iframeContent.appendChild(
-            createTextNode(content, {
-              title: label === 'title' ? ecosObj?.name?.[label] : undefined,
-              name: label,
-              classList:
-                label === 'title'
-                  ? classes.ECOS_DOC_TEXT_TITLE
-                  : label === 'content'
-                  ? classes.ECOS_DOC_TEXT_BODY
-                  : label === 'data'
-                  ? classes.ECOS_DOC_TEXT_BODY
-                  : undefined,
-            }),
-          )
+          try {
+            iframeContent.appendChild(
+              createTextNode(content, {
+                title: label === 'title' ? ecosObj?.name?.[label] : undefined,
+                name: label,
+                classList:
+                  label === 'title'
+                    ? classes.ECOS_DOC_TEXT_TITLE
+                    : label === 'content'
+                    ? classes.ECOS_DOC_TEXT_BODY
+                    : label === 'data'
+                    ? classes.ECOS_DOC_TEXT_BODY
+                    : undefined,
+              }),
+            )
+          } catch (error) {
+            console.error(error)
+          }
         }
       }
       ecosObj?.name?.title && !is.doc(ecosObj) && appendTextNode('title')
       ecosObj?.name?.content && appendTextNode('content')
       ecosObj?.name?.data && appendTextNode('data')
 
-      iframe.addEventListener('load', function (evt) {
-        if (iframe.contentDocument?.body) {
-          iframe.contentDocument.body.appendChild(iframeContent)
+      iframe.addEventListener('load', function () {
+        try {
+          iframe?.contentDocument?.body?.appendChild?.(iframeContent)
+        } catch (error) {
+          console.error(error)
         }
       })
     }
@@ -293,9 +272,9 @@ function createEcosDocElement<
       container.appendChild(iframe)
     } catch (error) {
       console.error(error)
-    } finally {
-      return iframe
     }
+
+    return iframe
   })
 }
 

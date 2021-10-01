@@ -2,14 +2,12 @@ import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
 import get from 'lodash/get'
+import nui from './noodl-ui'
 import NuiViewport from './Viewport'
 import { presets } from './constants'
 import { findIteratorVar, findListDataObject } from './utils/noodl'
-import nui from './noodl-ui'
 import * as com from './utils/common'
 import * as util from './utils/style'
-
-const isNil = (v: any) => u.isNull(v) || u.isUnd(v)
 
 /**
  *
@@ -106,8 +104,6 @@ function normalizeProps<
             value && (props['data-options'] = value || [])
           }
         }
-      } else if (originalKey === 'viewTag') {
-        props['data-viewtag'] = value
       } else if (originalKey === 'style') {
         if (u.isObj(originalValue)) {
           const {
@@ -327,7 +323,7 @@ function normalizeProps<
 
           {
             util.posKeys.forEach((posKey) => {
-              if (!isNil(originalValue?.[posKey])) {
+              if (!u.isNil(originalValue?.[posKey])) {
                 const result = util.getPositionProps(
                   originalValue,
                   posKey,
@@ -354,11 +350,11 @@ function normalizeProps<
             originalValue || {}
 
           if (viewport) {
-            if (!isNil(width)) {
+            if (!u.isNil(width)) {
               value.width = String(util.getSize(width as any, viewport.width))
             }
 
-            if (!isNil(height)) {
+            if (!u.isNil(height)) {
               // When the value needs to change whenever the viewport height changes
               if (util.isNoodlUnit(height)) {
                 value.height = String(util.getSize(height, viewport.height))
@@ -374,22 +370,22 @@ function normalizeProps<
             }
 
             //maxHeight,maxWidth,miniHeight,miniWidth
-            if (!isNil(maxHeight)) {
+            if (!u.isNil(maxHeight)) {
               value.maxHeight = String(
                 util.getSize(maxHeight as any, viewport.height),
               )
             }
-            if (!isNil(maxWidth)) {
+            if (!u.isNil(maxWidth)) {
               value.maxWidth = String(
                 util.getSize(maxWidth as any, viewport.width),
               )
             }
-            if (!isNil(minHeight)) {
+            if (!u.isNil(minHeight)) {
               value.minHeight = String(
                 util.getSize(minHeight as any, viewport.height),
               )
             }
-            if (!isNil(minWidth)) {
+            if (!u.isNil(minWidth)) {
               value.minWidth = String(
                 util.getSize(minWidth as any, viewport.width),
               )
@@ -536,6 +532,8 @@ function normalizeProps<
         } else if (u.isStr(originalValue)) {
           // Unparsed style value (reference)
         }
+      } else if (originalKey === 'viewTag') {
+        props['data-viewtag'] = value
       }
     }
     /* -------------------------------------------------------

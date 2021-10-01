@@ -96,11 +96,9 @@ NUI.emit({
 
 ## Todos
 
+- [ ] Input focus for vcode input
 - [ ] PasswordRecoveryHelper (Jiahao)
-- [x] Font size (Elaine)
-- [x] fixed path not being appended to assets url for iteratorVar paths
 - [ ] redraw transition (`effect: slideLeft`)
-- [ ] support borderRadius in noodl unit (ex: "0.1") (relative to screen size)
 - [ ] curry func utility to finalize parsings
 
 ## Accounts
@@ -187,4 +185,5 @@ NUI.emit({
 - Draft
   - Goes in root notebook (since it is a personal file)
 - There are now 2 notebooks (root and)
+
   - e10002 bvid --> evid
