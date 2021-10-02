@@ -33,7 +33,7 @@ export function getActionMetadata<PKey extends string = string>(
     metadata.action.object = action
   } else if (action) {
     metadata.action.instance = action as NUIAction
-    metadata.action.object = action.original
+    metadata.action.object = action['original']
   }
   pickKeys &&
     u.array(pickKeys).forEach((key: PKey) => {
@@ -54,6 +54,10 @@ export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
 }
 
+export function isDataUrl(value = '') {
+  return value.startsWith('blob:') || value.startsWith('data:')
+}
+
 /**
  * Returns whether the web app is running on a mobile browser.
  * @return { boolean }
@@ -70,6 +74,7 @@ export function isIOS() {
     /iPad|iPhone|iPod/.test(
       window.navigator.userAgent || window.navigator.vendor || '',
     ) &&
+    // @ts-expect-error
     !window.MSStream
   )
 }

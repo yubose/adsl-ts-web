@@ -9,6 +9,15 @@ import { findIteratorVar, findListDataObject } from './utils/noodl'
 import * as com from './utils/common'
 import * as util from './utils/style'
 
+function getByRef(root = {}, ref = '', rootKey = '') {
+  if (nt.Identify.localReference(ref)) {
+    if (rootKey) return get(root[rootKey], nu.toDataPath(nu.trimReference(ref)))
+  } else if (nt.Identify.rootReference(ref)) {
+    return get(root, nu.toDataPath(nu.trimReference(ref)))
+  }
+  return ref
+}
+
 /**
  *
  * Normalizes + parses a component object for browsers to consume
@@ -74,8 +83,14 @@ function normalizeProps<
     for (const [originalKey, originalValue] of u.entries(blueprint)) {
       let value = props?.[originalKey]
 
-      if (originalKey === 'options') {
-        if (blueprint.type === 'select') {
+      if (originalKey === 'dataKey') {
+        if (u.isStr(originalValue) && nt.Identify.reference(originalValue)) {
+          if (nt.Identify.component.select(blueprint)) {
+            props['data-value'] = getByRef(root, originalValue, pageName)
+          }
+        }
+      } else if (originalKey === 'options') {
+        if (nt.Identify.component.select(blueprint)) {
           const { dataKey } = blueprint
           const isUsingDataKey = !!(
             (dataKey && u.isStr(dataKey)) ||
@@ -94,10 +109,7 @@ function normalizeProps<
                 value = dataPath ? get(dataObject, dataPath) : dataObject
               } else {
                 dataPath = nu.trimReference(dataPath)
-                value = get(
-                  nt.Identify.localKey(dataPath) ? root?.[pageName] : root,
-                  dataPath,
-                )
+                value = getByRef(root, dataPath, pageName)
               }
             }
 
@@ -436,18 +448,18 @@ function normalizeProps<
 
               if (nt.Identify.reference(styleValue)) {
                 // Local
-                if (u.isStr(styleValue) && styleValue.startsWith?.('..')) {
-                  styleValue = get(
-                    (u.isFnc(root) ? root() : root)[pageName],
-                    styleValue.substring(2),
-                  )
+                if (
+                  u.isStr(styleValue) &&
+                  nt.Identify.localReference(styleValue)
+                ) {
+                  styleValue = getByRef(root, styleValue.substring(2), pageName)
                 }
                 // Root
-                else if (u.isStr(styleValue) && styleValue.startsWith?.('.')) {
-                  styleValue = get(
-                    u.isFnc(root) ? root() : root,
-                    styleValue.substring(1),
-                  )
+                else if (
+                  u.isStr(styleValue) &&
+                  nt.Identify.rootReference(styleValue)
+                ) {
+                  styleValue = getByRef(root, styleValue.substring(1))
                 }
 
                 if (util.vpHeightKeys.includes(styleKey as any)) {

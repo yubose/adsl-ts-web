@@ -1,8 +1,10 @@
 import * as u from '@jsmanifest/utils'
+import { throwError } from '@jsmanifest/utils'
 import type jsPDF from 'jspdf'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
+import { isDataUrl } from './common'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -88,34 +90,141 @@ export function download(url: string | Blob, filename?: string) {
 }
 
 export function exportToPDF(
-  dataOrUri: string,
-  { filename = 'file.pdf' }: { filename?: string; type?: string },
+  {
+    data,
+    download: shouldDownload = false,
+    labels = true,
+    open = false,
+    filename = 'file.pdf',
+  }: {
+    data:
+      | string
+      | { title?: string; content?: string; data?: string }
+      | HTMLElement
+    download?: boolean
+    labels?: boolean
+    open?: boolean
+    filename?: string
+  } = { data: '' },
 ): Promise<jsPDF> {
   return new Promise(async (resolve, reject) => {
-    if (u.isStr(dataOrUri)) {
-      filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
-      const img = new Image()
-      img.style.visibility = 'hidden'
-      img.src = dataOrUri
+    if (!data) reject(new Error(`Cannot export from empty data`))
 
-      img.addEventListener('load', function () {
-        const width = img.naturalWidth
-        const height = img.naturalHeight
-        let doc = new jspdf.jsPDF('p', 'px')
-        doc = doc.addImage(dataOrUri, 'png', 0, 0, width, height)
-        download(doc.output('datauristring'), filename)
-        resolve(doc)
-        document.body.removeChild(img)
+    filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
+
+    const onResolve = (doc: jsPDF) => {
+      if (!doc) return
+      open && doc.output('pdfobjectnewwindow')
+      shouldDownload && download(doc.output('datauristring'), filename)
+      resolve(doc)
+    }
+
+    function addImage(doc: jsPDF, data: string): Promise<jsPDF>
+    function addImage(data: string): Promise<jsPDF>
+    function addImage(doc: jsPDF | string | null, data?: string) {
+      return new Promise((resolve, reject) => {
+        if (!data && u.isStr(doc)) {
+          data = doc
+          doc = null
+        }
+
+        const img = new Image()
+        img.style.visibility = 'hidden'
+        img.src = data as string
+
+        img.addEventListener('load', async function () {
+          const width = img.naturalWidth
+          const height = img.naturalHeight
+
+          document.body.removeChild(img)
+
+          if (!doc) {
+            doc = new jspdf.jsPDF({
+              compress: true,
+              orientation: width > height ? 'landscape' : 'portrait',
+              unit: 'px',
+              format: [width, height],
+            })
+          }
+
+          if (doc && !u.isStr(doc) && data) {
+            doc.addImage(img, 'png', 0, 0, width, height)
+            doc.viewerPreferences({ FitWindow: true }, true)
+          }
+
+          resolve(doc)
+        })
+
+        img.addEventListener('error', function (err) {
+          document.body.removeChild(img)
+          reject(err)
+        })
+
+        document.body.appendChild(img)
       })
+    }
 
-      img.addEventListener('error', function (err) {
-        reject(err)
-        document.body.removeChild(img)
+    if (u.isStr(data)) {
+      if (isDataUrl(data) || data.startsWith('http')) {
+        onResolve(await addImage(data))
+      } else {
+        throwError(
+          `Tried to add an image to a PDF document but the data string was not a data uri. Only data uris are supported at the moment`,
+        )
+      }
+    } else if (data instanceof HTMLElement || 'tagName' in data) {
+      const doc = new jspdf.jsPDF({
+        compress: true,
+        orientation: 'portrait',
+        putOnlyUsedFonts: true,
+        unit: 'px',
       })
-
-      document.body.appendChild(img)
+      await doc.html(data, {
+        filename,
+        html2canvas: { logging: true },
+        x: 0,
+        y: 0,
+      })
+      onResolve(doc)
+    } else if (u.isObj(data)) {
+      const { title = '', content = '', data: dataProp = content } = data
+      const doc = new jspdf.jsPDF({
+        compress: true,
+        orientation: 'portrait',
+        putOnlyUsedFonts: true,
+        unit: 'px',
+      })
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(12)
+      const options = {
+        baseline: 'top',
+        // @ts-expect-error
+        maxWidth: doc.getPageWidth() - 20,
+      } as Parameters<jsPDF['text']>[3]
+      if (title) {
+        doc.text(labels ? `Title: ${title}` : title, 10, 10, options)
+      }
+      if (dataProp && u.isStr(dataProp)) {
+        if (dataProp.startsWith('blob:') || dataProp.startsWith('data:')) {
+          await addImage(doc, dataProp)
+        } else {
+          doc.text(labels ? 'Content: ' + dataProp : dataProp, 10, 25, options)
+        }
+      } else if (content) {
+        doc.text(content, 10, 25, options)
+      }
+      onResolve(doc)
     }
   })
+}
+
+export function getDataUrl(elem: HTMLImageElement) {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  canvas.width = elem.width
+  canvas.height = elem.height
+  ctx?.drawImage(elem, 0, 0)
+  return canvas.toDataURL('image/png')
 }
 
 export function getDocumentScrollTop(doc?: Document | null) {

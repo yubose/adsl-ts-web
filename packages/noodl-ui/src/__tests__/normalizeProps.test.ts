@@ -10,10 +10,10 @@ import { assetsUrl, baseUrl, createOn, nui, ui } from '../utils/test-utils'
 import NuiPage from '../Page'
 import normalizeProps from '../normalizeProps'
 
-describe.only(u.italic('normalizeProps'), () => {
-  describe(chalk.keyword('navajowhite')(`select`), () => {
+describe.only(chalk.keyword('navajowhite')('normalizeProps'), () => {
+  describe(u.italic(`select`), () => {
     let root: Record<string, any>
-    const normalize = (comp: nt.SelectComponentObject) =>
+    let normalize = (comp: nt.SelectComponentObject) =>
       normalizeProps({}, ui.select(comp), { root, pageName: 'SignIn' })
 
     beforeEach(() => {
@@ -30,11 +30,16 @@ describe.only(u.italic('normalizeProps'), () => {
         normalize({ dataKey: '..profile.options', options: '' }),
       ).to.have.property('data-options')
     })
-
-    it(`should set the data-value if dataKey is a path`, () => {
-      expect(normalize({ dataKey: '.SignIn.selectedOption' }))
-        .to.have.property('data-value')
-        .deep.eq(root.selectedOption)
+    ;[
+      '.SignIn.selectedOption',
+      '..selectedOption',
+      'SignIn.selectedOption',
+    ].forEach((ref) => {
+      it(`should set the data-value if dataKey is "${ref}"`, () => {
+        expect(normalize({ dataKey: ref }))
+          .to.have.property('data-value')
+          .deep.eq(root.SignIn.selectedOption)
+      })
     })
 
     xit(`should parse options references`, () => {

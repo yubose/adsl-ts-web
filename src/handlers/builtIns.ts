@@ -3,6 +3,7 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { isAction } from 'noodl-action-chain'
+import jsPDF from 'jspdf'
 import {
   findListDataObject,
   findIteratorVar,
@@ -53,7 +54,6 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
-import jsPDF from 'jspdf'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -152,16 +152,29 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       ) as EcosDocument
 
       if (u.isObj(ecosObj)) {
-        const { created_at, ctime, id, modified_at, mtime, name, size } =
-          ecosObj
+        const { name, subtype } = ecosObj
+        const mediaType = subtype?.mediaType
 
         if (u.isObj(name)) {
-          const { data, title: filename, type } = name
+          const { content, data, title } = name
 
           if (data) {
-            if (u.isStr(data)) {
-              await exportToPDF(data, { filename, type: name.type })
+            try {
+              await exportToPDF({
+                data:
+                  Identify.mediaType.audio(mediaType) ||
+                  Identify.mediaType.font(mediaType) ||
+                  Identify.mediaType.image(mediaType) ||
+                  Identify.mediaType.video(mediaType)
+                    ? data
+                    : { title: title || (u.isStr(content) && content) || data },
+                labels: true,
+                download: true,
+                filename: title,
+              })
               log.green('Exported successfully')
+            } catch (error) {
+              console.error(error)
             }
           } else {
             log.red(
@@ -197,6 +210,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       }
     } catch (error) {
+      logError(error)
       throwError(error)
     }
   }

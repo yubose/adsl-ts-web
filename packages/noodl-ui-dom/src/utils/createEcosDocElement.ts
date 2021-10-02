@@ -180,13 +180,22 @@ function createEcosDocElement<
             iframe.addEventListener('load', function () {
               if (iframe.contentDocument?.body) {
                 if (ecosObj?.name?.data) {
-                  iframe.contentDocument.body?.appendChild(
-                    createTextNode(ecosObj.name.data, {
-                      title: ecosObj.name?.title,
-                      name: 'Note',
-                      classList: classes.ECOS_DOC_NOTE_DATA,
-                    }),
-                  )
+                  if (!iframeContent) {
+                    iframeContent = document.createElement('div')
+                  }
+                  if (
+                    !iframeContent.querySelector(
+                      `.${classes.ECOS_DOC_NOTE_DATA}`,
+                    )
+                  ) {
+                    iframeContent?.appendChild(
+                      createTextNode(ecosObj.name.data, {
+                        title: ecosObj.name?.title,
+                        name: 'Note',
+                        classList: classes.ECOS_DOC_NOTE_DATA,
+                      }),
+                    )
+                  }
                 }
               }
             })
@@ -219,7 +228,10 @@ function createEcosDocElement<
 
       function appendTextNode(label: 'title' | 'content' | 'data') {
         let content = ecosObj?.name?.[label] || ''
-        if (u.isStr(content)) {
+        if (
+          u.isStr(content) &&
+          (content.startsWith('blob:') || content.startsWith('data:'))
+        ) {
           const img = document.createElement('img')
           img.title = ecosObj?.name?.title || ''
           img.alt = 'eCOS image'
@@ -250,7 +262,8 @@ function createEcosDocElement<
           }
         }
       }
-      ecosObj?.name?.title && !is.doc(ecosObj) && appendTextNode('title')
+
+      ecosObj?.name?.title && appendTextNode('title')
       ecosObj?.name?.content && appendTextNode('content')
       ecosObj?.name?.data && appendTextNode('data')
 

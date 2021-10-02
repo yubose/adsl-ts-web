@@ -15,6 +15,12 @@ import {
   findWindow,
   findWindowDocument,
 } from 'noodl-ui-dom'
+import {
+  download,
+  exportToPDF,
+  getDataUrl,
+  screenshotElement,
+} from './utils/dom'
 /**
  * Just a helper to return the utilities that are meant to be attached
  * to the global window object
@@ -40,6 +46,26 @@ const log = Logger.create('sample')
 window.addEventListener('load', async function (evt) {
   log.func('load')
   log.green('DOM loaded', evt)
+
+  const title = 'patient chart for the next 3 months'
+  const content =
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce ut aliquam diam, nec luctus magna. Aenean et augue non felis euismod molestie id faucibus ligula. Phasellus a augue sed dui molestie finibus. Cras sit amet semper est. Ut hendrerit fermentum facilisis. Suspendisse nec mi eget dui varius lobortis vel non ipsum. Morbi id risus lacus. Nunc porttitor nisl quis lacinia porta.'
+
+  // await exportToPDF({ data: { title, content }, open: true })
+
+  const img = document.createElement('img')
+  img.src = 'ava.png'
+  img.style.width = '375px'
+  this.document.body.appendChild(img)
+
+  img.addEventListener('load', async function (evt) {
+    await exportToPDF({
+      data: 'http://localhost:3000/ava.png',
+      labels: true,
+      filename: title,
+      open: true,
+    })
+  })
 
   // const { default: App } = await import('./App')
 
