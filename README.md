@@ -103,10 +103,11 @@ NUI.emit({
 
 ## Accounts
 
-| app     | phone #    | password    |
-| ------- | ---------- | ----------- |
+| app     | phone #    | password    | who  |
+| ------- | ---------- | ----------- | ---- |
 | admin   | 8882005050 | password    |
 | admin   | 7144480995 | Baby2020!   |
+| admin   | 5594215342 | Family3496  | toni |
 | admind2 | 8880000301 |             |
 | admind2 | 8885509773 | 123         |
 | admind2 | 8886006001 | password    |
