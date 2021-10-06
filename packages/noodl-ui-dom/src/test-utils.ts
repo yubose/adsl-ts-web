@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
 import isNil from 'lodash/isNil'
 import { expect } from 'chai'
@@ -259,6 +260,7 @@ export function getPageComponentChildIds(component: NuiComponent.Instance) {
 }
 
 export function render(components: ComponentObject[]): Promise<t.NDOMElement[]>
+// @ts-expect-error
 export function render(component: ComponentObject): Promise<t.NDOMElement>
 export async function render(options: ComponentObject | ComponentObject[]) {
   let components: ComponentObject[] = []
