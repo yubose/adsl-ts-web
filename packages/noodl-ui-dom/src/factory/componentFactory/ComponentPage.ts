@@ -46,6 +46,7 @@ class ComponentPage<
     component: NuiComponent.Instance,
     options?: { onLoad?: OnLoad; onError?: OnError; node?: any },
   ) {
+    // console.info(`[ComponentPage]`, { component, options })
     super(
       isNuiPage(component?.get?.('page'))
         ? component?.get?.('page')

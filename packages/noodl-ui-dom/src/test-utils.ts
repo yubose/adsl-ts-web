@@ -7,7 +7,7 @@ import { OrArray } from '@jsmanifest/typefest'
 import { ComponentObject, PageObject, userEvent } from 'noodl-types'
 import {
   nuiEmitTransaction,
-  NuiComponent,
+  NUIComponent as NuiComponent,
   NUI,
   Page as NUIPage,
   Viewport,
@@ -258,7 +258,6 @@ export function getPageComponentChildIds(component: NuiComponent.Instance) {
   }, [] as string[])
 }
 
-// @ts-expect-error
 export function render(components: ComponentObject[]): Promise<t.NDOMElement[]>
 export function render(component: ComponentObject): Promise<t.NDOMElement>
 export async function render(options: ComponentObject | ComponentObject[]) {
@@ -293,4 +292,10 @@ export async function render(options: ComponentObject | ComponentObject[]) {
   })
 
   return isArr ? u.array(await ndom.render(page)) : await ndom.render(page)
+}
+
+export function waitMs(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
 }

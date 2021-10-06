@@ -649,7 +649,7 @@ class NDOM extends NDOMInternal {
       pageProp ||
       (isPageComponent && this.findPage(component)) ||
       this.page ||
-      this.createPage(component?.id || node?.id)
+      this.createPage({id:component?.id || node?.id})
     let parent = component?.parent
 
     try {
