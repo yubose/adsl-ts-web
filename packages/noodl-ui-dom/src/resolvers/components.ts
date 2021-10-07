@@ -427,8 +427,10 @@ const componentsResolver: t.Resolve.Config = {
             )
 
             if (i._isIframeEl(args.node)) {
-              const nuiPage = args.component.get('page')
-              const src = nuiPage.page
+              const nuiPage =
+                args.component.get('page') ||
+                args.nui.cache.page.get(args.component.id)?.page
+              const src = nuiPage?.page
               if (componentPage.remote) {
                 /**
                  * Page components loading content through remote URLs

@@ -7,7 +7,7 @@
       "ignore": ["nui"]
     }
   },
-  "ignore": ["docs", "nui", "noodl-ui-test-utils"],
+  "ignore": ["docs", "nui"],
   "packages": ["packages/*"],
   "version": "independent"
 }

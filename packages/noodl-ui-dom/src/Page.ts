@@ -291,6 +291,10 @@ class Page {
       console.error(error)
     }
   }
+
+  toJSON() {
+    return this.snapshot()
+  }
 }
 
 export default Page

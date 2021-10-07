@@ -146,17 +146,20 @@ componentResolver.setResolver(async (component, options, next) => {
       let page = component.get('page') as NuiPage
 
       if (!page) {
-        if (pageName) {
-          page = [...cache.page.get().values()].find(
-            (obj) => obj?.page === pageName,
-          )?.page as NuiPage
-        } else {
-          page = createPage(component) as NuiPage
+        // page = cache.page.get(component.id)?.page
+        if (!page) {
+          if (pageName) {
+            page = [...cache.page.get().values()].find(
+              (obj) => obj?.page === pageName,
+            )?.page as NuiPage
+          } else {
+            page = createPage(component) as NuiPage
+          }
         }
       }
 
       !page && (page = createPage(component) as NuiPage)
-      page !== component.get('page') && component.edit('page', page)
+      page && page !== component.get('page') && component.edit('page', page)
 
       if (!component.has('parentPage')) {
         component.edit(
