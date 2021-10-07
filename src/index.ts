@@ -22,6 +22,7 @@ import {
 import { findReferences } from 'noodl-utils'
 import {
   copyToClipboard,
+  exportToPDF,
   getVcodeElem,
   screenshotElement,
   toast,
@@ -41,6 +42,7 @@ const log = Logger.create('App.ts')
 export function getWindowHelpers() {
   return u.assign(
     {
+      exportToPDF,
       findByDataAttrib,
       findByDataKey,
       findByElementId,

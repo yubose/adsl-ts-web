@@ -22,6 +22,7 @@ import {
   findByViewTag,
   findByUX,
   findFirstBySelector,
+  findFirstByViewTag,
   findWindow,
   getByDataUX,
   getFirstByElementId,
@@ -151,7 +152,28 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         u.isObj(options) && 'ecosObj' in options ? options.ecosObj : options
       ) as EcosDocument
 
-      if (u.isObj(ecosObj)) {
+      const viewTag = u.isObj(options) && options.viewTag
+
+      if (viewTag) {
+        if (u.isStr(viewTag)) {
+          const snaps = [] as { pdf: jsPDF; canvas: HTMLCanvasElement }[]
+          const elems = findByViewTag(viewTag)
+
+          if (u.isArr(elems)) {
+            for (const node of elems) {
+              debugger
+              const pdf = await exportToPDF({
+                data: node,
+                download: true,
+              })
+            }
+          } else if (elems) {
+            const pdf = await exportToPDF({ data: elems, download: true })
+          }
+        } else if (u.isObj(viewTag)) {
+          // Future support
+        }
+      } else if (u.isObj(ecosObj)) {
         const { name, subtype } = ecosObj
         const mediaType = subtype?.mediaType
 
@@ -183,30 +205,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           }
         } else {
           log.red('The name field in an ecosObj was not an object', ecosObj)
-        }
-      } else if (options?.viewTag) {
-        const viewTag = options.viewTag
-        if (u.isStr(viewTag)) {
-          const snaps = [] as { pdf: jsPDF; canvas: HTMLCanvasElement }[]
-          const nodes = findByViewTag(viewTag)
-
-          if (u.isArr(nodes)) {
-            for (const node of nodes) {
-              const [pdf, canvas] = await screenshotElement(node, {
-                ext: 'png',
-              })
-              snaps.push({ pdf, canvas })
-            }
-          } else if (nodes) {
-            const [pdf, canvas] = await screenshotElement(nodes, { ext: 'png' })
-            snaps.push({ pdf, canvas })
-          }
-
-          for (const { pdf, canvas } of snaps) {
-            download(pdf.output('blob'))
-          }
-        } else if (u.isObj(viewTag)) {
-          // Future support
         }
       }
     } catch (error) {
