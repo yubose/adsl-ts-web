@@ -461,6 +461,20 @@ function normalizeProps<
                 ) {
                   styleValue = getByRef(root, styleValue)
                 }
+                if (styleValue.endsWith('vw') || styleValue.endsWith('vh')) {
+                  const valueNum =
+                    parseFloat(styleValue.substring(0, styleValue.length - 2)) /
+                    100
+  
+                  value[styleKey] = String(
+                    util.getSize(
+                      valueNum,
+                      viewport?.[
+                        styleValue.endsWith('vw') ? 'width' : 'height'
+                      ] as number,
+                    ),
+                  )
+                }
                 
                 if (util.vpHeightKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
