@@ -266,9 +266,12 @@ class NDOM extends NDOMInternal {
       }
       const pageComponentParent = findParent(component, Identify.component.page)
       if (pageComponentParent) {
-        return u
-          .values(this.global.pages)
-          .find((p) => p.component === pageComponentParent)
+        return (
+          u
+            .values(this.global.pages)
+            // @ts-expect-error
+            .find((p) => p.component === pageComponentParent)
+        )
       }
     } else if (i._isNUIPage(nuiPage)) {
       for (const page of u.values(this.global.pages)) {
