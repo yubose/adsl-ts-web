@@ -452,16 +452,16 @@ function normalizeProps<
                   u.isStr(styleValue) &&
                   nt.Identify.localReference(styleValue)
                 ) {
-                  styleValue = getByRef(root, styleValue.substring(2), pageName)
+                  styleValue = getByRef(root, styleValue, pageName)
                 }
                 // Root
                 else if (
                   u.isStr(styleValue) &&
                   nt.Identify.rootReference(styleValue)
                 ) {
-                  styleValue = getByRef(root, styleValue.substring(1))
+                  styleValue = getByRef(root, styleValue)
                 }
-
+                
                 if (util.vpHeightKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
