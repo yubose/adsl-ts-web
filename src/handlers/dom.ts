@@ -520,7 +520,7 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           })
           node?.addEventListener('mouseout', function (e) {
-            u.eachEntries(component?.original?.hover, (key: any, value) => {
+            u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
               let realvalue = component.style[key]
               if (typeof realvalue == 'undefined' && key == 'backgroundColor') {
                 realvalue = '#ffffff'
