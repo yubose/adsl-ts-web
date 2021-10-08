@@ -158,8 +158,10 @@ const attributesResolver: t.Resolve.Config = {
           if (path && !['IFRAME', 'VIDEO'].includes(elementType)) {
             if (args.component.get(c.DATA_SRC)) {
               const src = args.component.get(c.DATA_SRC)
+              // @ts-expect-error
               u.forEach((fn) => fn('src', src), [setAttr, setDataAttr])
               args.component.on('path', (result) =>
+                // @ts-expect-error
                 u.forEach((fn) => fn('src', result), [setAttr, setDataAttr]),
               )
             }
@@ -174,17 +176,20 @@ const attributesResolver: t.Resolve.Config = {
 
             if (Identify.folds.emit(value)) {
               u.forEach(
+                // @ts-expect-error
                 (fn) => fn('placeholder', value),
                 [setAttr, setDataAttr],
               )
               args.component.on('placeholder', (val) =>
                 u.forEach(
+                  // @ts-expect-error
                   (fn) => fn('placeholder', val),
                   [setAttr, setDataAttr],
                 ),
               )
             } else {
               u.forEach(
+                // @ts-expect-error
                 (fn) => fn('placeholder', value),
                 [setAttr, setDataAttr],
               )
@@ -251,6 +256,7 @@ const attributesResolver: t.Resolve.Config = {
                 timer.on('increment', (v: any) =>
                   args.component.emit('timer:interval', v),
                 )
+                // @ts-expect-error
                 args.component.emit('timer:ref', timer)
 
                 args.page.once(c.eventId.page.on.ON_DOM_CLEANUP, () => {

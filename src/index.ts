@@ -6,7 +6,6 @@ import pick from 'lodash/pick'
 import * as lib from 'noodl-ui'
 import {
   asHtmlElement,
-  eventId as ndomEventId,
   findByDataAttrib,
   findByDataKey,
   findByElementId,
@@ -23,14 +22,15 @@ import {
 import { findReferences } from 'noodl-utils'
 import {
   copyToClipboard,
+  exportToPDF,
   getVcodeElem,
   screenshotElement,
   toast,
 } from './utils/dom'
 import AppNotification from './app/Notifications'
 import App from './App'
-import './spinner/three-dots.css'
 import 'vercel-toast/dist/vercel-toast.css'
+import './spinner/three-dots.css'
 import './styles.css'
 
 const log = Logger.create('App.ts')
@@ -42,6 +42,7 @@ const log = Logger.create('App.ts')
 export function getWindowHelpers() {
   return u.assign(
     {
+      exportToPDF,
       findByDataAttrib,
       findByDataKey,
       findByElementId,
@@ -103,20 +104,16 @@ async function initializeApp(
   window.app = app
   ////////////////////////////////////////////////////////////
   await app.initialize()
-  // app.navigate('PaymentTest')
+  // app.navigate('Cov19TestNewPatReviewPage1')
   return app
 }
 
 async function initializeNoodlPluginRefresher() {
   ws = new WebSocket(`ws://127.0.0.1:3002`)
 
-  ws.addEventListener(
-    'open',
-    (event) => {
-      // console.log(`[noodl refresher] started`, event)
-    },
-    { once: true },
-  )
+  ws.addEventListener('open', (event) => {
+    // console.log(`[noodl refresher] started`, event)
+  })
 
   ws.addEventListener('message', (msg) => {
     let data
@@ -127,21 +124,13 @@ async function initializeNoodlPluginRefresher() {
     } catch (error) {}
   })
 
-  ws.addEventListener(
-    'error',
-    (err) => {
-      // console.log(`%c[noodl reloader error]`, `color:#ec0000;`, err)
-    },
-    { once: true },
-  )
+  ws.addEventListener('error', () => {
+    // console.log(`%c[noodl reloader error]`, `color:#ec0000;`, err)
+  })
 
-  ws.addEventListener(
-    'close',
-    (event) => {
-      // console.log(`%c[noodl reloader] closed`, `color:#FF5722;`, event)
-    },
-    { once: true },
-  )
+  ws.addEventListener('close', (event) => {
+    // console.log(`%c[noodl reloader] closed`, `color:#FF5722;`, event)
+  })
 
   return ws
 }
@@ -242,21 +231,6 @@ function attachDebugUtilsToWindow(app: App) {
         return pageComponentCount
       },
     },
-    ndomPages: {
-      get() {
-        return (name: string) =>
-          u.values(app.ndom.pages).filter((page) => page.page === name)
-      },
-    },
-    nuiPages: {
-      get() {
-        return (name: string) =>
-          [...app.cache.page.get().values()].reduce(
-            (acc, { page }) => (page.page === name ? acc.concat(page) : acc),
-            [] as lib.Page[],
-          )
-      },
-    },
     pageTable: {
       get() {
         const result = [] as { page: string; ndom: number; nui: number }[]
@@ -298,22 +272,6 @@ function attachDebugUtilsToWindow(app: App) {
           result[index].ndom++
           result[index].page = pageKey
         }
-
-        // for (const obj of app.cache.component) {
-        //   if (obj?.component?.type === 'page') {
-        //     const page = app.cache.page.get(obj.component)?.page
-        //     if (page) {
-        //       const pageKey = getKey(page)
-        //       const resultObject = result.find((r) => r.page === pageKey)
-        //       if (resultObject) {
-        //         resultObject.nui++
-        //         debugger
-        //         const ndomPage = app.ndom.findPage(page)
-        //         if (ndomPage) resultObject.ndom++
-        //       }
-        //     }
-        //   }
-        // }
 
         return result
       },

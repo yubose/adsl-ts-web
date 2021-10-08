@@ -327,7 +327,7 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
       expect(result.style).to.have.property('width', '168.75px')
 
       result = await resolveComponent(ui.select({ style: { height: '0.29' } }))
-      expect(result.style).to.have.property('height', '193.42999999999998px')
+      expect(result.style).to.have.property('height', '193.43px')
     })
 
     // '23px' --> '23px'

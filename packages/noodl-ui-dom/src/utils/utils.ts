@@ -268,6 +268,7 @@ export function getByDataUX(key: string) {
     const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
     if (nodeList.length) {
       const nodes = [] as HTMLElement[]
+      // @ts-expect-error
       nodeList.forEach((node: HTMLElement) => nodes.push(node))
       return nodes.length === 1 ? nodes[0] : nodes
     }

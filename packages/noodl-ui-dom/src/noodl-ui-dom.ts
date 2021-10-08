@@ -51,6 +51,7 @@ class NDOM extends NDOMInternal {
   }
   consumerResolvers = [] as t.Resolve.Config[]
   global = new NDOMGlobal()
+  // @ts-expect-error
   page: NDOMPage; // This is the main (root) page. All other pages are stored in this.global.pages
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
@@ -352,6 +353,7 @@ class NDOM extends NDOMInternal {
       })
     } catch (error) {
       if (pageRequesting === page.requesting) page.requesting = ''
+      // @ts-expect-error
       throw error instanceof Error ? error : new Error(error)
     }
 
@@ -647,7 +649,7 @@ class NDOM extends NDOMInternal {
       pageProp ||
       (isPageComponent && this.findPage(component)) ||
       this.page ||
-      this.createPage(component?.id || node?.id)
+      this.createPage({id:component?.id || node?.id})
     let parent = component?.parent
 
     try {
@@ -695,6 +697,7 @@ class NDOM extends NDOMInternal {
         if (newComponent) {
           let parentNode = node.parentNode
           let currentIndex = getNodeIndex(node)
+          // @ts-expect-error
           let newNode = await this.draw(newComponent, parentNode, page, {
             ...options,
             on: options?.on || this.renderState.options.hooks,
@@ -702,6 +705,7 @@ class NDOM extends NDOMInternal {
             nodeIndex: currentIndex,
           })
           if (parentNode) {
+            // @ts-expect-error
             parentNode.replaceChild(newNode, node)
           } else {
             node?.remove?.()
@@ -713,6 +717,7 @@ class NDOM extends NDOMInternal {
       }
     } catch (error) {
       console.error(error)
+      // @ts-expect-error
       throw new Error(error)
     }
 
@@ -817,6 +822,7 @@ class NDOM extends NDOMInternal {
         this.#hooks.onBeforeRequestPageObject,
       )
     }
+    // @ts-expect-error
     const result = nuiCache.transactions.get(transaction)?.['fn']?.(...args)
     if (transaction === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
       u.forEach(
@@ -873,6 +879,7 @@ class NDOM extends NDOMInternal {
     if (nuiCache.component.has(componentId)) {
       this.removeComponent(nuiCache.component.get(componentId)?.component)
     }
+    // @ts-expect-error
     this.removeGlobalComponent(this.global, globalId)
   }
 
@@ -899,6 +906,7 @@ class NDOM extends NDOMInternal {
       nui.clean(page.getNuiPage())
       page.remove()
       if (this?.global?.pages) {
+        // @ts-expect-error
         if (id in this.global.pages) delete this.global.pages[id]
       }
       try {

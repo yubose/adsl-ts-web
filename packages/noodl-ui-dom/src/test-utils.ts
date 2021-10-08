@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
 import isNil from 'lodash/isNil'
 import { expect } from 'chai'
@@ -7,7 +8,7 @@ import { OrArray } from '@jsmanifest/typefest'
 import { ComponentObject, PageObject, userEvent } from 'noodl-types'
 import {
   nuiEmitTransaction,
-  NuiComponent,
+  NUIComponent as NuiComponent,
   NUI,
   Page as NUIPage,
   Viewport,
@@ -259,6 +260,7 @@ export function getPageComponentChildIds(component: NuiComponent.Instance) {
 }
 
 export function render(components: ComponentObject[]): Promise<t.NDOMElement[]>
+// @ts-expect-error
 export function render(component: ComponentObject): Promise<t.NDOMElement>
 export async function render(options: ComponentObject | ComponentObject[]) {
   let components: ComponentObject[] = []
@@ -285,10 +287,17 @@ export async function render(options: ComponentObject | ComponentObject[]) {
     getPreloadPages: () => [],
     getRoot: () => ({ ...root, [page.requesting]: root[_defaults.pageName] }),
     transaction: {
+      // @ts-expect-error
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (page) =>
         root[page.requesting],
     },
   })
 
   return isArr ? u.array(await ndom.render(page)) : await ndom.render(page)
+}
+
+export function waitMs(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
 }

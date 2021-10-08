@@ -57,6 +57,7 @@ const componentsResolver: t.Resolve.Config = {
       }
     } catch (error) {
       console.error(error)
+      // @ts-expect-error
       throw new Error(error)
     }
   },
@@ -346,7 +347,8 @@ const componentsResolver: t.Resolve.Config = {
           try {
             const loadResult = await createEcosDocElement(
               args.node as HTMLElement,
-              args.component.get('ecosObj'),
+              args.component.get('ecosObj') ||
+                args.component?.blueprint?.['ecosObj'],
             )
             iframe = loadResult.iframe
           } catch (error) {
@@ -434,8 +436,10 @@ const componentsResolver: t.Resolve.Config = {
             )
 
             if (i._isIframeEl(args.node)) {
-              const nuiPage = args.component.get('page')
-              const src = nuiPage.page
+              const nuiPage =
+                args.component.get('page') ||
+                args.nui.cache.page.get(args.component.id)?.page
+              const src = nuiPage?.page
               if (componentPage.remote) {
                 /**
                  * Page components loading content through remote URLs

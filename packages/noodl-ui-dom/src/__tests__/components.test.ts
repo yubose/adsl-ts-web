@@ -182,9 +182,9 @@ describe(nc.coolGold('components'), () => {
         'boxShadow',
         '5px 5px 10px 3px rgba(0, 0, 0, 0.015)',
       )
-      expect(node.style).to.have.property('width', '75px')
-      expect(node.style).to.have.property('height', '133.4px')
-      expect(node.style).to.have.property('top', '133.4px')
+      expect(node.style).to.have.property('width', '75.00px')
+      expect(node.style).to.have.property('height', '133.40px')
+      expect(node.style).to.have.property('top', '133.40px')
       expect(node.style).to.have.property('left', '0px')
       expect(node.style).to.have.property('margin-top', '0px')
     })
@@ -586,7 +586,7 @@ describe(nc.coolGold('components'), () => {
           )
         })
 
-        it(`should remove all the previous descendant page children from the component cache`, async () => {
+        it.skip(`should remove all the previous descendant page children from the component cache`, async () => {
           const { ndom, render } = createRender(getCreateRenderOptions())
           await render()
           const pageComponent = cache.component.get('p2').component.child()

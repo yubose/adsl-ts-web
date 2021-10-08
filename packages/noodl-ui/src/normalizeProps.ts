@@ -2,14 +2,21 @@ import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
 import get from 'lodash/get'
+import nui from './noodl-ui'
 import NuiViewport from './Viewport'
 import { presets } from './constants'
 import { findIteratorVar, findListDataObject } from './utils/noodl'
-import nui from './noodl-ui'
 import * as com from './utils/common'
 import * as util from './utils/style'
 
-const isNil = (v: any) => u.isNull(v) || u.isUnd(v)
+function getByRef(root = {}, ref = '', rootKey = '') {
+  if (nt.Identify.localReference(ref)) {
+    if (rootKey) return get(root[rootKey], nu.toDataPath(nu.trimReference(ref)))
+  } else if (nt.Identify.rootReference(ref)) {
+    return get(root, nu.toDataPath(nu.trimReference(ref)))
+  }
+  return ref
+}
 
 /**
  *
@@ -76,8 +83,14 @@ function normalizeProps<
     for (const [originalKey, originalValue] of u.entries(blueprint)) {
       let value = props?.[originalKey]
 
-      if (originalKey === 'options') {
-        if (blueprint.type === 'select') {
+      if (originalKey === 'dataKey') {
+        if (u.isStr(originalValue) && nt.Identify.reference(originalValue)) {
+          if (nt.Identify.component.select(blueprint)) {
+            props['data-value'] = getByRef(root, originalValue, pageName)
+          }
+        }
+      } else if (originalKey === 'options') {
+        if (nt.Identify.component.select(blueprint)) {
           const { dataKey } = blueprint
           const isUsingDataKey = !!(
             (dataKey && u.isStr(dataKey)) ||
@@ -96,18 +109,13 @@ function normalizeProps<
                 value = dataPath ? get(dataObject, dataPath) : dataObject
               } else {
                 dataPath = nu.trimReference(dataPath)
-                value = get(
-                  nt.Identify.localKey(dataPath) ? root?.[pageName] : root,
-                  dataPath,
-                )
+                value = getByRef(root, dataPath, pageName)
               }
             }
 
             value && (props['data-options'] = value || [])
           }
         }
-      } else if (originalKey === 'viewTag') {
-        props['data-viewtag'] = value
       } else if (originalKey === 'style') {
         if (u.isObj(originalValue)) {
           const {
@@ -327,7 +335,7 @@ function normalizeProps<
 
           {
             util.posKeys.forEach((posKey) => {
-              if (!isNil(originalValue?.[posKey])) {
+              if (!u.isNil(originalValue?.[posKey])) {
                 const result = util.getPositionProps(
                   originalValue,
                   posKey,
@@ -354,11 +362,11 @@ function normalizeProps<
             originalValue || {}
 
           if (viewport) {
-            if (!isNil(width)) {
+            if (!u.isNil(width)) {
               value.width = String(util.getSize(width as any, viewport.width))
             }
 
-            if (!isNil(height)) {
+            if (!u.isNil(height)) {
               // When the value needs to change whenever the viewport height changes
               if (util.isNoodlUnit(height)) {
                 value.height = String(util.getSize(height, viewport.height))
@@ -374,22 +382,22 @@ function normalizeProps<
             }
 
             //maxHeight,maxWidth,miniHeight,miniWidth
-            if (!isNil(maxHeight)) {
+            if (!u.isNil(maxHeight)) {
               value.maxHeight = String(
                 util.getSize(maxHeight as any, viewport.height),
               )
             }
-            if (!isNil(maxWidth)) {
+            if (!u.isNil(maxWidth)) {
               value.maxWidth = String(
                 util.getSize(maxWidth as any, viewport.width),
               )
             }
-            if (!isNil(minHeight)) {
+            if (!u.isNil(minHeight)) {
               value.minHeight = String(
                 util.getSize(minHeight as any, viewport.height),
               )
             }
-            if (!isNil(minWidth)) {
+            if (!u.isNil(minWidth)) {
               value.minWidth = String(
                 util.getSize(minWidth as any, viewport.width),
               )
@@ -440,18 +448,18 @@ function normalizeProps<
 
               if (nt.Identify.reference(styleValue)) {
                 // Local
-                if (u.isStr(styleValue) && styleValue.startsWith?.('..')) {
-                  styleValue = get(
-                    (u.isFnc(root) ? root() : root)[pageName],
-                    styleValue.substring(2),
-                  )
+                if (
+                  u.isStr(styleValue) &&
+                  nt.Identify.localReference(styleValue)
+                ) {
+                  styleValue = getByRef(root, styleValue.substring(2), pageName)
                 }
                 // Root
-                else if (u.isStr(styleValue) && styleValue.startsWith?.('.')) {
-                  styleValue = get(
-                    u.isFnc(root) ? root() : root,
-                    styleValue.substring(1),
-                  )
+                else if (
+                  u.isStr(styleValue) &&
+                  nt.Identify.rootReference(styleValue)
+                ) {
+                  styleValue = getByRef(root, styleValue.substring(1))
                 }
 
                 if (util.vpHeightKeys.includes(styleKey as any)) {
@@ -536,6 +544,8 @@ function normalizeProps<
         } else if (u.isStr(originalValue)) {
           // Unparsed style value (reference)
         }
+      } else if (originalKey === 'viewTag') {
+        props['data-viewtag'] = value
       }
     }
     /* -------------------------------------------------------

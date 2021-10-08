@@ -6,7 +6,10 @@ export function getSdkHelpers(app: App) {
     EcosObj: {
       get download() {
         return extendedSdkBuiltIns.download
-      }
+      },
+      get exportPDF() {
+        return app.builtIns.get('exportPDF')?.find(Boolean)?.fn
+      },
     },
     get downloadQRCode() {
       return extendedSdkBuiltIns.downloadQRCode

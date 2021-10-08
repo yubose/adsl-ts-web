@@ -1,4 +1,4 @@
-import { ActionsCache, NUI, NUITrigger } from 'noodl-ui'
+import { NUI, NUITrigger } from 'noodl-ui'
 
 NUI.cache.actions.emit.set('postMessage' as NUITrigger, [])
 

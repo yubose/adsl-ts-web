@@ -33,7 +33,7 @@ export function getActionMetadata<PKey extends string = string>(
     metadata.action.object = action
   } else if (action) {
     metadata.action.instance = action as NUIAction
-    metadata.action.object = action.original
+    metadata.action.object = action['original']
   }
   pickKeys &&
     u.array(pickKeys).forEach((key: PKey) => {
@@ -54,6 +54,10 @@ export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
 }
 
+export function isDataUrl(value = '') {
+  return value.startsWith('blob:') || value.startsWith('data:')
+}
+
 /**
  * Returns whether the web app is running on a mobile browser.
  * @return { boolean }
@@ -70,6 +74,7 @@ export function isIOS() {
     /iPad|iPhone|iPod/.test(
       window.navigator.userAgent || window.navigator.vendor || '',
     ) &&
+    // @ts-expect-error
     !window.MSStream
   )
 }
@@ -130,4 +135,18 @@ export function openOutboundURL(url: string) {
   if (typeof window !== 'undefined') {
     window.location.href = url
   }
+}
+
+export function logError(err?: any) {
+  if (!err) err = new Error(`[Error] Error occurred`)
+  else if (!(err instanceof Error)) err = new Error(String(err))
+  console.log(`[${err.name}] ${err.message}`, err.stack)
+}
+
+export function throwError(err?: any) {
+  if (err) {
+    if (err instanceof Error) throw err
+    throw new Error(String(err))
+  }
+  throw new Error('Error occurred')
 }
