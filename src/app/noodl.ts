@@ -3,7 +3,7 @@ import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
 
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'meetd2'
+export const CONFIG_KEY = 'searchd2'
 // const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
@@ -27,7 +27,7 @@ function getConfigEndpoint(name: string) {
 // China Sever
 // const configUrl = `${BASE}/${document.domain.split('.')[0]}.yml?`
 
-const CONFIG_URL = '../cadl/config/LocalDev.yml'
+const CONFIG_URL = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
 // China Sever
 // const CONFIG_URL = `https://public.ahmucel.com/config/${document.domain.split('.')[0]}.yml?`
 let noodl: NOODL | undefined
