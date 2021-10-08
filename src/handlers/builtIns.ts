@@ -524,8 +524,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const pageComponentParent = Identify.component.page(options?.component)
         ? options.component
         : findParent(options?.component, Identify.component.page)
-      ndomPage = app.ndom.findPage(pageComponentParent || options.component)
-      debugger
+      if (!ndomPage) {
+        ndomPage =
+          app.ndom.findPage(pageComponentParent || options.component) ||
+          app.mainPage
+      }
     } else if ('targetPage' in destProps) {
       destination = destProps.targetPage || ''
       id = destProps.viewTag || ''

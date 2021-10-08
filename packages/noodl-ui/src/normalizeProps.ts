@@ -455,27 +455,30 @@ function normalizeProps<
                   styleValue = getByRef(root, styleValue, pageName)
                 }
                 // Root
-                else if (
-                  u.isStr(styleValue) &&
-                  nt.Identify.rootReference(styleValue)
-                ) {
-                  styleValue = getByRef(root, styleValue)
+                else if (u.isStr(styleValue)) {
+                  if (nt.Identify.rootReference(styleValue)) {
+                    styleValue = getByRef(root, styleValue)
+                  }
+                  if (
+                    u.isStr(styleValue) &&
+                    (styleValue.endsWith('vw') || styleValue.endsWith('vh'))
+                  ) {
+                    const valueNum =
+                      parseFloat(
+                        styleValue.substring(0, styleValue.length - 2),
+                      ) / 100
+
+                    value[styleKey] = String(
+                      util.getSize(
+                        valueNum,
+                        viewport?.[
+                          styleValue.endsWith('vw') ? 'width' : 'height'
+                        ] as number,
+                      ),
+                    )
+                  }
                 }
-                if (styleValue.endsWith('vw') || styleValue.endsWith('vh')) {
-                  const valueNum =
-                    parseFloat(styleValue.substring(0, styleValue.length - 2)) /
-                    100
-  
-                  value[styleKey] = String(
-                    util.getSize(
-                      valueNum,
-                      viewport?.[
-                        styleValue.endsWith('vw') ? 'width' : 'height'
-                      ] as number,
-                    ),
-                  )
-                }
-                
+
                 if (util.vpHeightKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(

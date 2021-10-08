@@ -945,8 +945,9 @@ const NUI = (function () {
           (acc: t.NUIActionObject[], obj) => {
             const errors = getActionObjectErrors(obj)
             errors.length &&
-              errors.forEach((errMsg) =>
-                console.log(`%c${errMsg}`, `color:#ec0000;`, obj),
+              u.forEach(
+                (errMsg) => console.log(`%c${errMsg}`, `color:#ec0000;`, obj),
+                errors,
               )
             if (u.isObj(obj) && !('actionType' in obj)) {
               obj = { ...obj, actionType: getActionType(obj) }

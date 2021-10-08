@@ -191,6 +191,25 @@ export function getPresetPageObjects() {
                       ui.label({ dataKey: 'pencil.key' }),
                       ui.select({ options: `${iteratorVar}.doc` } as any),
                       ui.textField({ dataKey: 'pencil.value' }),
+                      ui.view({
+                        children: [
+                          ui.button({
+                            viewTag: 'updateTag',
+                            text: 'Click to update this row',
+                            onClick: [
+                              ui.emitObject(),
+                              ui.evalObject({
+                                object: async () => ui.gotoObject('Cloud'),
+                              }),
+                              ui.popUp('abc'),
+                              ui.builtIn({
+                                funcName: 'goto',
+                                destination: 'MeetingRoomInvited',
+                              }),
+                            ],
+                          }),
+                        ],
+                      }),
                     ],
                   }),
                 ],

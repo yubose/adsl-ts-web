@@ -8,6 +8,7 @@
  */
 
 import * as u from '@jsmanifest/utils'
+import { GotoObject } from 'noodl-types'
 import {
   ConsumerOptions,
   NUIAction,
@@ -21,7 +22,7 @@ export type ActionKind = 'action' | 'builtIn'
 
 export type ActionHandlerArgs =
   | [destination: string, ...rest: any[]]
-  | [actionObject: NUIActionObject, ...rest: any[]]
+  | [obj: NUIActionObject | { pageName: string; goto: string }, ...rest: any[]]
   | Parameters<Store.ActionObject['fn']>
   | Parameters<Store.BuiltInObject['fn']>
 
