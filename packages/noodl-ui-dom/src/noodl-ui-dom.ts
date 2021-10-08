@@ -1,7 +1,8 @@
 import invariant from 'invariant'
 import { Identify } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
-import type {
+import {
+  findParent,
   NuiComponent,
   Page as NUIPage,
   ResolveComponentOptions,
@@ -262,6 +263,12 @@ class NDOM extends NDOMInternal {
         return (
           (currentPage && this.findPage(currentPage)) || this.findPage(pagePath)
         )
+      }
+      const pageComponentParent = findParent(component, Identify.component.page)
+      if (pageComponentParent) {
+        return u
+          .values(this.global.pages)
+          .find((p) => p.component === pageComponentParent)
       }
     } else if (i._isNUIPage(nuiPage)) {
       for (const page of u.values(this.global.pages)) {
@@ -649,7 +656,7 @@ class NDOM extends NDOMInternal {
       pageProp ||
       (isPageComponent && this.findPage(component)) ||
       this.page ||
-      this.createPage({id:component?.id || node?.id})
+      this.createPage({ id: component?.id || node?.id })
     let parent = component?.parent
 
     try {

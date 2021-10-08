@@ -134,6 +134,8 @@ class Page {
   }
 
   set requesting(pageName: string) {
+    if (!this.#state)
+      this.#state = { modifiers: {}, requesting: pageName || '' }
     if (pageName === '') this.#state.modifiers = {}
     this.#state.requesting = pageName || ''
   }

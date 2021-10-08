@@ -10,7 +10,7 @@ import { assetsUrl, baseUrl, createOn, nui, ui } from '../utils/test-utils'
 import NuiPage from '../Page'
 import normalizeProps from '../normalizeProps'
 
-describe.only(chalk.keyword('navajowhite')('normalizeProps'), () => {
+describe(chalk.keyword('navajowhite')('normalizeProps'), () => {
   describe(u.italic(`select`), () => {
     let root: Record<string, any>
     let normalize = (comp: nt.SelectComponentObject) =>

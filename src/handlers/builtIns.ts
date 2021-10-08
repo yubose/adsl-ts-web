@@ -14,6 +14,7 @@ import {
   Viewport as VP,
   isListConsumer,
   ConsumerOptions,
+  findParent,
 } from 'noodl-ui'
 import QRCode from 'qrcode'
 import {
@@ -161,7 +162,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
           if (u.isArr(elems)) {
             for (const node of elems) {
-              debugger
               const pdf = await exportToPDF({
                 data: node,
                 download: true,
@@ -520,9 +520,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       id = destProps.id || id
       isSamePage = !!destProps.isSamePage
       duration = destProps.duration || duration
-      // ndomPage = app.ndom.findPage(
-      //   findParent(options?.component, Identify.component.page),
-      // )
+      ndomPage = options?.page
+      const pageComponentParent = Identify.component.page(options?.component)
+        ? options.component
+        : findParent(options?.component, Identify.component.page)
+      ndomPage = app.ndom.findPage(pageComponentParent || options.component)
+      debugger
     } else if ('targetPage' in destProps) {
       destination = destProps.targetPage || ''
       id = destProps.viewTag || ''
