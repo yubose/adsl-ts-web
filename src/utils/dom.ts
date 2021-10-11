@@ -197,11 +197,19 @@ export function exportToPDF(
           doc.deletePage(1)
 
           for (let index = 0; index <= totalPages; index++) {
-            node.scrollTo({ top: height * index })
+            var scrollPos = height * index
+            var yOffset = 0
+            // if the last page on canvas should have space (y-offset)
+            if (height * (index+1) > node.scrollHeight) {
+              scrollPos = (node.scrollHeight - height)
+              yOffset = height-(node.scrollHeight - height * index)
+            }
+            node.scrollTo({ top: scrollPos })
             const canvas = await html2canvas(node, {
               allowTaint: true,
-              width,
-              height,
+              width: width,
+              height: height,
+              y: yOffset
             })
             doc.addPage(format, orientation)
             doc.addImage(canvas.toDataURL(), 'PNG', 0, 0, width, height)
