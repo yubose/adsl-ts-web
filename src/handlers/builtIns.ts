@@ -156,6 +156,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       ) as EcosDocument
 
       const viewTag = u.isObj(options) && options.viewTag
+      const fileName = ecosObj.name?.title
 
       if (viewTag) {
         if (u.isStr(viewTag)) {
@@ -167,10 +168,11 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               const pdf = await exportToPDF({
                 data: node,
                 download: true,
+                filename: fileName
               })
             }
           } else if (elems) {
-            const pdf = await exportToPDF({ data: elems, download: true })
+            const pdf = await exportToPDF({ data: elems, download: true, filename: fileName })
           }
         } else if (u.isObj(viewTag)) {
           // Future support
