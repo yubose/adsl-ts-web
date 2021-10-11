@@ -19,6 +19,10 @@ export function copyToClipboard(value: string) {
   return null
 }
 
+export function isHtmlElement(node: Node): node is HTMLElement {
+  return node.nodeType === Node.ELEMENT_NODE && 'style' in node
+}
+
 export function screenshotElement(
   node: HTMLElement,
   { ext, filename = '' }: { ext?: string; filename?: string } = {},
@@ -114,50 +118,30 @@ export function exportToPDF(
 
       filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
 
-      const onResolve = (doc: jsPDF) => {
-        if (!doc) return
-        open && doc.output('pdfobjectnewwindow')
-        shouldDownload && download(doc.output('datauristring'), filename)
-        resolve(doc)
-      }
-
-      function addImage(doc: jsPDF, data: string): Promise<jsPDF>
-      function addImage(data: string): Promise<jsPDF>
-      function addImage(doc: jsPDF | string | null, data?: string) {
+      const getImageDataUrlProps = (
+        dataURL: string,
+      ): Promise<{
+        img: HTMLImageElement
+        width: number
+        height: number
+        orientation: 'landscape' | 'portrait'
+      }> => {
         return new Promise((resolve, reject) => {
-          if (!data && u.isStr(doc)) {
-            data = doc
-            doc = null
-          }
-
           const img = new Image()
           img.style.visibility = 'hidden'
-          img.src = data as string
+          img.src = dataURL
 
           img.addEventListener('load', async function () {
             const width = img.naturalWidth
             const height = img.naturalHeight
-
             document.body.removeChild(img)
-
-            if (!doc) {
-              doc = new jspdf.jsPDF({
-                compress: true,
-                orientation: width > height ? 'landscape' : 'portrait',
-                unit: 'px',
-                format: [width, height],
-              })
-            }
-
-            if (doc && !u.isStr(doc) && data) {
-              doc.addImage(img, 'png', 0, 0, width, height)
-              doc.viewerPreferences({ FitWindow: true }, true)
-            }
-
-            resolve(doc)
+            resolve({
+              img,
+              width,
+              height,
+              orientation: width > height ? 'landscape' : 'portrait',
+            })
           })
-
-          //
 
           img.addEventListener('error', function (err) {
             document.body.removeChild(img)
@@ -168,65 +152,128 @@ export function exportToPDF(
         })
       }
 
-      if (u.isStr(data)) {
-        if (isDataUrl(data) || data.startsWith('http')) {
-          onResolve(await addImage(data))
-        } else {
-          throwError(
-            `Tried to add an image to a PDF document but the data string was not a data uri. Only data uris are supported at the moment`,
-          )
-        }
-      } else if (data instanceof HTMLElement || 'tagName' in data) {
-        const width = NuiViewport.toNum(data.style.width)
-        const height = NuiViewport.toNum(data.style.height)
-        const doc = new jspdf.jsPDF({
-          compress: true,
-          orientation: width > height ? 'landscape' : 'portrait',
-          unit: 'px',
-          format: [width, height],
-        })
-        const worker = await doc.html(data, {
-          filename,
-          html2canvas: { logging: true },
-          width,
-        })
-        onResolve(doc)
-      } else if (u.isObj(data)) {
-        const { title = '', content = '', data: dataProp = content } = data
-        const doc = new jspdf.jsPDF({
-          compress: true,
-          orientation: 'portrait',
-          putOnlyUsedFonts: true,
-          unit: 'px',
-        })
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(12)
-        const options = {
-          baseline: 'top',
-          // @ts-expect-error
-          maxWidth: doc.getPageWidth() - 20,
-        } as Parameters<jsPDF['text']>[3]
-        if (title) {
-          doc.text(labels ? `Title: ${title}` : title, 10, 10, options)
-        }
-        if (dataProp && u.isStr(dataProp)) {
-          if (dataProp.startsWith('blob:') || dataProp.startsWith('data:')) {
-            await addImage(doc, dataProp)
+      const createDocByDataURL = async (
+        dataURL: string,
+      ): Promise<jsPDF | null> => {
+        if (u.isStr(dataURL)) {
+          if (isDataUrl(dataURL) || dataURL.startsWith('http')) {
+            const { img, width, height, orientation } =
+              await getImageDataUrlProps(dataURL)
+            const doc = new jspdf.jsPDF({
+              compress: true,
+              orientation,
+              unit: 'px',
+              format: [width, height],
+            })
+            doc.addImage(img, 'png', 0, 0, width, height)
+            doc.viewerPreferences({ FitWindow: true }, true)
+            return doc
           } else {
-            doc.text(
-              labels ? 'Content: ' + dataProp : dataProp,
-              10,
-              25,
-              options,
+            throw new Error(
+              `Tried to add an image to a PDF document but the data string was not a data uri. Only data uris are supported at the moment`,
             )
           }
-        } else if (content) {
-          doc.text(content, 10, 25, options)
         }
-        onResolve(doc)
+        return null
       }
+
+      const createDocByDOMNode = async (node: HTMLElement): Promise<jsPDF> => {
+        try {
+          const originalScrollPos = node.scrollTop
+          const scrollHeight = node.scrollHeight
+          const width = NuiViewport.toNum(node.style.width)
+          const height = NuiViewport.toNum(node.style.height)
+          const orientation = width > height ? 'landscape' : 'portrait'
+          const totalPages = Math.floor(scrollHeight / height)
+          const format = [width, height]
+
+          const doc = new jspdf.jsPDF({
+            compress: true,
+            orientation,
+            unit: 'px',
+            format,
+          })
+          // Deletes the empty page
+          doc.deletePage(1)
+
+          for (let index = 0; index <= totalPages; index++) {
+            node.scrollTo({ top: height * index })
+            const canvas = await html2canvas(node, {
+              allowTaint: true,
+              width,
+              height,
+            })
+            doc.addPage(format, orientation)
+            doc.addImage(canvas.toDataURL(), 'PNG', 0, 0, width, height)
+          }
+          node.scrollTo({ top: originalScrollPos })
+
+          return doc
+        } catch (error) {
+          if (error instanceof Error) throw error
+          throw new Error(String(error))
+        }
+      }
+
+      const createDocByObject = async (
+        data: Record<string, any>,
+      ): Promise<jsPDF> => {
+        try {
+          const { title = '', content = '', data: dataProp = content } = data
+          const doc = new jspdf.jsPDF({
+            compress: true,
+            orientation: 'portrait',
+            unit: 'px',
+          })
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(12)
+          const options = {
+            baseline: 'top',
+            // @ts-expect-error
+            maxWidth: doc.getPageWidth() - 20,
+          } as Parameters<jsPDF['text']>[3]
+          if (title) {
+            doc.text(labels ? `Title: ${title}` : title, 10, 10, options)
+          }
+          if (dataProp && u.isStr(dataProp)) {
+            if (dataProp.startsWith('blob:') || dataProp.startsWith('data:')) {
+              const { img, width, height } = await getImageDataUrlProps(
+                dataProp,
+              )
+              doc.addImage(img, 'png', 0, 0, width, height)
+            } else {
+              doc.text(
+                labels ? 'Content: ' + dataProp : dataProp,
+                10,
+                25,
+                options,
+              )
+            }
+          } else if (content) {
+            doc.text(content, 10, 25, options)
+          }
+          return doc
+        } catch (error) {
+          if (error instanceof Error) throw error
+          throw new Error(String(error))
+        }
+      }
+
+      const doc = u.isStr(data)
+        ? await createDocByDataURL(data)
+        : 'tagName' in data
+        ? await createDocByDOMNode(data)
+        : u.isObj(data)
+        ? await createDocByObject(data)
+        : null
+
+      if (!doc) throw new Error(`data is not a string, DOM node or object`)
+
+      open && doc.output('pdfobjectnewwindow')
+      shouldDownload && download(doc.output('datauristring'), filename)
+      resolve(doc)
     } catch (error) {
-      console.error(error)
+      u.logError(error)
       reject(error instanceof Error ? error : new Error(String(error)))
     }
   })
