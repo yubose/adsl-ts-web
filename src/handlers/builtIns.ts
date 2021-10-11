@@ -8,6 +8,7 @@ import {
   findListDataObject,
   findIteratorVar,
   getDataValues,
+  isPage as isNuiPage,
   NuiComponent,
   resolvePageComponentUrl,
   Store,
@@ -27,6 +28,7 @@ import {
   findWindow,
   getByDataUX,
   getFirstByElementId,
+  isPage as isNDOMPage,
   isPageConsumer,
   Page as NDOMPage,
 } from 'noodl-ui-dom'
@@ -524,7 +526,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const pageComponentParent = Identify.component.page(options?.component)
         ? options.component
         : findParent(options?.component, Identify.component.page)
-      if (!ndomPage) {
+
+      if (!ndomPage || isNuiPage(ndomPage)) {
         ndomPage =
           app.ndom.findPage(pageComponentParent || options.component) ||
           app.mainPage

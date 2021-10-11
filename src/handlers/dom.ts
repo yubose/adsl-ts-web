@@ -14,10 +14,12 @@ import { Identify } from 'noodl-types'
 import QRCode from 'qrcode'
 import {
   asHtmlElement,
+  ComponentPage,
   findByDataKey,
   getFirstByElementId,
   isTextFieldLike,
   NDOMElement,
+  Page as NDOMPage,
   Resolve,
 } from 'noodl-ui-dom'
 import { excludeIteratorVar } from 'noodl-utils'
@@ -43,13 +45,14 @@ const createExtendedDOMResolvers = function (app: App) {
     node: NDOMElement
     evtName: string
     iteratorVar: string
+    page: NDOMPage | ComponentPage
   }) {
-    let { component, dataKey, node, evtName, iteratorVar = '' } = args
+    let { component, dataKey, node, evtName, iteratorVar = '', page } = args
     let actionChain = component.get(evtName) as NUIActionChain | undefined
-    let pageName = app.currentPage
+    let pageName = page.page
 
     async function onChange(event: Event) {
-      pageName !== app.currentPage && (pageName = app.currentPage)
+      pageName !== page.page && (pageName = page.page)
 
       const value = (event.target as any)?.value || ''
 
@@ -446,7 +449,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
       },
-      resolve({ node, component }) {
+      resolve({ node, component, page }) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
@@ -459,6 +462,7 @@ const createExtendedDOMResolvers = function (app: App) {
               evtName: 'onChange',
               node: node as NDOMElement,
               iteratorVar,
+              page,
             }),
           )
 
@@ -471,6 +475,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 evtName: 'onInput',
                 node: node as NDOMElement,
                 iteratorVar,
+                page,
               }),
             )
           }
@@ -485,6 +490,7 @@ const createExtendedDOMResolvers = function (app: App) {
               dataKey,
               evtName: 'onBlur',
               iteratorVar,
+              page,
             }),
           )
         }
@@ -536,11 +542,11 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] QRCode': {
       cond: 'image',
-      resolve({node, component}) {
+      resolve({ node, component }) {
         if (node && component && component.contentType === 'QRCode') {
           const dataValue = component.get('data-value') || '' || 'dataKey'
           let text = dataValue
-          if(isObject(dataValue)){
+          if (isObject(dataValue)) {
             text = JSON.stringify(dataValue)
           }
 
@@ -550,8 +556,8 @@ const createExtendedDOMResolvers = function (app: App) {
             quality: 0.3,
             margin: 1,
             color: {
-              dark:"#000000",
-              light:"#ffffff"
+              dark: '#000000',
+              light: '#ffffff',
             },
             scale: 8,
           }
@@ -560,7 +566,6 @@ const createExtendedDOMResolvers = function (app: App) {
             if (err) throw err
             node.src = url
           })
-
         }
       },
     },
