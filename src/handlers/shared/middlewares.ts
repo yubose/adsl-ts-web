@@ -74,9 +74,7 @@ const registerMiddleware = function (app: App) {
     if (u.isObj(origArgs[0]) && 'pageName' in origArgs[0]) {
       const currentPage = origArgs[0].pageName || ''
       if (args[1].page && args[1].page.page !== currentPage) {
-        debugger
         args[1].page = app.ndom.findPage(currentPage)
-        debugger
       }
     }
 

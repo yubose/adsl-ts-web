@@ -195,8 +195,6 @@ const createActions = function createActions(app: App) {
                       ndomPage.requesting = destination
                     }
                   }
-
-                  debugger
                 }
 
                 log.grey(

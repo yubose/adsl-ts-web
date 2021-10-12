@@ -24,7 +24,7 @@
   },
   "scripts": {
     "build": "concurrently \"rollup -c --environment BUILD:production\" \"npm run types\"",
-    "start": "rm -rf dist && rollup -c -w --environment BUILD:development",
+    "start": "concurrently \"rollup -c -w --environment BUILD:development\" \"npm run types\"",
     "test": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" --watch-files \"../noodl-ui/dist/index.js\" \"src/**/*.test.ts\" --file src/setupTests.ts",
     "test:file": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\" --watch-files \"../noodl-ui/dist/index.js\"",
     "types": "tsc --emitDeclarationOnly"

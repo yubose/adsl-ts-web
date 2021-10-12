@@ -178,7 +178,7 @@ async function sync() {
         configFrom: 'config/testpage.yml',
       },
       to: {
-        targetDir: 'generated/meetd2',
+        targetDir: 'generated/testpage',
       },
     },
   ])
