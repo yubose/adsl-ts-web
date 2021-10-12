@@ -602,6 +602,7 @@ function normalizeProps<
       props.style.display = 'block'
     } else if (nt.Identify.component.textView(blueprint)) {
       props.style.rows = 10
+      props.style.resize = 'none'
     } else if (nt.Identify.component.video(blueprint)) {
       props.style.objectFit = 'contain'
     }
