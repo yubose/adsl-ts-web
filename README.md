@@ -115,6 +115,7 @@ NUI.emit({
 | admind2 | 8886006002 | password    |      |
 | admind2 | 2134628002 | letmein123! |      |
 | admind2 | 8883870054 | aitmed      | liz  | Josh Urgent Care |
+| admind2 | 8886540007 | 123         |      | yongjian         |
 | patd    | 8880081221 | letmein123! |      |
 | patd    | 8884240000 | 12345       |      |
 | patd2   | 8881122050 | 123         |      |

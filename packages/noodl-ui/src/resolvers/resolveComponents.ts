@@ -9,6 +9,7 @@ import { excludeIteratorVar, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
 import type NuiPage from '../Page'
 import VP from '../Viewport'
+import isNuiPage from '../utils/isPage'
 import { formatColor } from '../utils/common'
 import {
   findIteratorVar,
@@ -142,57 +143,43 @@ componentResolver.setResolver(async (component, options, next) => {
     -------------------------------------------------------- */
 
     if (Identify.component.page(component)) {
-      let pageName = component.get('path') || ''
-      let page = component.get('page') as NuiPage
+      let pageName = component.get('path')
+      let page: NuiPage
+
+      if (isNuiPage(options.page) && options.page.id !== 'root') {
+        page = options.page
+      } else {
+        page = component.get('page') as NuiPage
+      }
 
       if (!page) {
-        // page = cache.page.get(component.id)?.page
-        if (!page) {
-          if (pageName) {
-            page = [...cache.page.get().values()].find(
-              (obj) => obj?.page === pageName,
-            )?.page as NuiPage
-          } else {
-            page = createPage(component) as NuiPage
-          }
+        if (cache.page.has(component.id)) {
+          page = cache.page.get(component.id).page
+        } else {
+          page = createPage(component)
         }
       }
 
-      !page && (page = createPage(component) as NuiPage)
-      page && page !== component.get('page') && component.edit('page', page)
-
-      if (!component.has('parentPage')) {
-        component.edit(
-          'parentPage',
-          options?.page?.page || options.getRootPage().page,
-        )
+      if (page !== component.get('page')) {
+        component.edit('page', page)
       }
 
-      let viewport = page?.viewport
-
-      if (!viewport) {
-        viewport = new VP()
-        page.viewport = viewport
+      if (!page.viewport) {
+        page.viewport = new VP()
       }
 
-      if (VP.isNil(originalStyle.width)) {
-        viewport.width = getRootPage().viewport.width
-      } else {
-        viewport.width = Number(
-          VP.getSize(originalStyle.width, options.viewport?.width, {
-            toFixed: 2,
-          }),
-        )
-      }
+      let viewportWidth = originalStyle.width
+      let viewportHeight = originalStyle.height
 
-      if (VP.isNil(originalStyle.height)) {
-        viewport.height = getRootPage().viewport.height
-      } else {
-        viewport.height = Number(
-          VP.getSize(originalStyle.height, options.viewport?.height, {
-            toFixed: 2,
-          }),
-        )
+      for (const key of ['width', 'height']) {
+        const vpSize = key === 'width' ? viewportWidth : viewportHeight
+        page.viewport[key] = VP.isNil(vpSize)
+          ? getRootPage().viewport[key]
+          : Number(
+              VP.getSize(vpSize, options.viewport?.[key], {
+                toFixed: 2,
+              }),
+            )
       }
 
       const isRemote = (str = '') =>
@@ -200,60 +187,65 @@ componentResolver.setResolver(async (component, options, next) => {
 
       if (u.isStr(pageName)) {
         const isEqual = page.page === pageName
-        if (isEqual && !isRemote(pageName)) return next?.()
-
-        if (page.page === '' && pageName) {
-          // Assuming it was loading its page object and just received it
-        } else if (page.page && pageName === '') {
-          // Assuming it was active but is now entering in its idle/closing state
-        } else if (!isEqual) {
-          // Transitioning from a previous page to a new page
-          if (!component.get('page')) {
-            if (cache.page.has(component.id)) {
-              component.set('page', cache.page.get(component.id).page)
+        if (isEqual && !isRemote(pageName)) {
+          return next?.()
+        } else {
+          if (page.page === '' && pageName) {
+            // Assuming it was loading its page object and just received it
+          } else if (page.page && pageName === '') {
+            // Assuming it was active but is now entering in its idle/closing state
+          } else if (!isEqual) {
+            // Transitioning from a previous page to a new page
+            if (!component.get('page')) {
+              if (cache.page.has(component.id)) {
+                component.set('page', cache.page.get(component.id).page)
+              }
             }
           }
-        }
 
-        if (!isEqual) {
-          page.page = pageName
-        }
+          if (!isEqual) {
+            page.page = pageName
+          }
 
-        const onPageChange = async () => {
+          const onPageChange = async (page: NuiPage) => {
+            try {
+              await emit({
+                type: c.nuiEmitType.TRANSACTION,
+                transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+                params: page,
+              })
+              page.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+            } catch (error) {
+              console.error(error)
+            }
+          }
+
           try {
-            await emit({
-              type: c.nuiEmitType.TRANSACTION,
-              transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-              params: page,
-            })
-            page.emit(c.nuiEvent.component.page.PAGE_CHANGED)
-          } catch (error) {
-            console.error(error)
-          }
-        }
-
-        try {
-          // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
-          if (getPages().includes(pageName) || pageName === '') {
-            getPages().includes(page.page) && (await onPageChange())
-          } else {
-            // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
-            if (!pageName.startsWith('http')) {
-              page.page = resolveAssetUrl(pageName, getAssetsUrl())
+            // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
+            if (getPages().includes(pageName) || pageName === '') {
+              getPages().includes(page.page) && (await onPageChange(page))
             } else {
-              page.page = pageName
+              // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
+              if (!pageName.startsWith('http')) {
+                page.page = resolveAssetUrl(pageName, getAssetsUrl())
+              } else {
+                page.page = pageName
+              }
             }
+          } catch (err: any) {
+            // TODO - handle this. Maybe cleanup?
+            console.error(
+              `[Page component] ` +
+                `Error attempting to get the page object for a page component]: ${err.message}`,
+              err.stack?.() || new Error(err),
+            )
           }
-        } catch (err: any) {
-          // TODO - handle this. Maybe cleanup?
-          console.error(
-            `[Page component] ` +
-              `Error attempting to get the page object for a page component]: ${err.message}`,
-            err.stack?.() || new Error(err),
+
+          page.on(
+            c.nuiEvent.component.page.PAGE_CHANGED,
+            wrapOnPageChange(onPageChange, page),
           )
         }
-
-        page.on(c.nuiEvent.component.page.PAGE_CHANGED, onPageChange)
       } else {
         console.log(
           `%cThe pageName was not a string when resolving the page name for a page component`,
@@ -496,5 +488,9 @@ componentResolver.setResolver(async (component, options, next) => {
 
   return next?.()
 })
+
+function wrapOnPageChange(fn: (...args: any[]) => any, page: NuiPage) {
+  return () => fn(page)
+}
 
 export default componentResolver

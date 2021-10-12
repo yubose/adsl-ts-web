@@ -38,7 +38,7 @@ import type _ComponentCache from './cache/ComponentCache'
 import type _PluginCache from './cache/PluginCache'
 import type EmitAction from './actions/EmitAction'
 import type NUI from './noodl-ui'
-import type NUIPage from './Page'
+import type NuiPage from './Page'
 import type Viewport from './Viewport'
 import {
   nuiEvent,
@@ -55,7 +55,7 @@ export type NUITrigger = EventType | typeof lib.emitTriggers[number]
 export type DataAttribute = typeof lib.dataAttributes[number]
 
 /* -------------------------------------------------------
-  ---- ACTIONS 
+  ---- ACTIONS
 -------------------------------------------------------- */
 
 export type NUIActionChain = ActionChain<NUIActionObject, NUITrigger>
@@ -153,10 +153,10 @@ export namespace NuiComponent {
       dataObject: any
       index: number
     }): void
-    [nuiEvent.component.page.PAGE_CREATED](page: NUIPage): void
+    [nuiEvent.component.page.PAGE_CREATED](page: NuiPage): void
     [nuiEvent.component.page.PAGE_CHANGED](): void
     [nuiEvent.component.page.PAGE_COMPONENTS](options: {
-      page: NUIPage
+      page: NuiPage
       type: 'init' | 'update'
     }): void
     content(pluginContent: string): void
@@ -238,7 +238,7 @@ export type ConsumerOptions<Trig extends string = string> = Omit<
 
 export interface On {
   actionChain?: ActionChainObserver
-  page?(page: NUIPage): OrPromise<void>
+  page?(page: NuiPage): OrPromise<void>
   setup?(component: NuiComponent.Instance): OrPromise<void>
   createComponent?(
     component: NuiComponent.Instance,
@@ -251,20 +251,20 @@ export interface On {
   ): OrPromise<void>
   if?(args: {
     component?: NuiComponent.Instance
-    page?: NUIPage
+    page?: NuiPage
     key: string
     value: IfObject
   }): boolean | null | undefined
   emit?(emitObject: EmitObjectFold): OrPromise<NUIActionChain>
   pageComponentUrl?(args: {
     component?: NuiComponent.Instance
-    page?: NUIPage
+    page?: NuiPage
     key: string
     value: PageComponentUrl
   }): string
   reference?<S extends string = string>(args: {
     component?: NuiComponent.Instance
-    page?: NUIPage
+    page?: NuiPage
     key: string
     value: ReferenceString<S>
   }): any
@@ -305,11 +305,11 @@ export interface ResolveComponentOptions<
   C extends OrArray<NuiComponent.CreateType>,
   Context extends Record<string, any> = Record<string, any>,
 > {
-  components: C
   callback?(component: NuiComponent.Instance): NuiComponent.Instance | undefined
+  components: C
   context?: Context
-  page?: NUIPage
   on?: On
+  page?: NuiPage
 }
 
 export namespace Store {
@@ -344,7 +344,7 @@ export interface SelectOption {
 export interface Transaction {
   [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: {
     params: { page: string; modifiers?: Record<string, any> }
-    fn(page: NUIPage | NUIPage['page']): Promise<PageObject>
+    fn(page: NuiPage | NuiPage['page']): Promise<PageObject>
     callback(pageObject: PageObject): void
   }
   [key: string]: any

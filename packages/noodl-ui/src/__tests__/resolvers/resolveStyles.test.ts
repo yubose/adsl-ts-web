@@ -252,10 +252,6 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
         }
       })
     })
-
-    xit(`should format color data values coming from list data objects`, () => {
-      //
-    })
   })
 
   describe(italic(`Display`), () => {

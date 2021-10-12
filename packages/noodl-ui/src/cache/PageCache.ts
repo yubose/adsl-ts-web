@@ -97,19 +97,23 @@ class PageCache implements ICache {
   // create(component: NuiComponent.Instance, page?: NuiPage): NuiPage
   create(
     args: {
+      name?: string
       // If component is passed in it must be treated as a page component.
       component?: NuiComponent.Instance
       id?: string
-      onChange?: { id: string; onChange: (prev: string, next: string) => void }
+      onChange?: { id?: string; fn?: (prev: string, next: string) => void }
       viewport?: Viewport
     } = {},
   ) {
-    let { id, viewport } = args
+    let { id, name, viewport } = args
     id = id || (!this.#pages.size ? 'root' : undefined)
-    const page = new NuiPage(viewport, { id })
+    const page = new NuiPage(viewport, { id, name })
     args.onChange &&
       page.use({
-        onChange: { id: args.onChange.id, fn: args.onChange.onChange },
+        onChange: {
+          id: args.onChange.id || '',
+          fn: args.onChange.fn as (prev: string, next: string) => void,
+        },
       })
     this.#pages.set(page.id, { page })
     const emitArgs = { page } as {

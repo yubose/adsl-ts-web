@@ -7,7 +7,7 @@ import * as nu from 'noodl-utils'
 import { nui, ui } from '../utils/test-utils'
 import visit from '../utils/visit'
 
-describe.only(u.italic('visit'), () => {
+describe.skip(u.italic('visit'), () => {
   it(`should visit the component and all of its children in order`, async () => {
     const iteratorVar = 'itemObject'
     const listObject = [

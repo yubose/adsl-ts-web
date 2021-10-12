@@ -13,8 +13,10 @@ import {
   triggers as nuiTriggers,
 } from '../constants'
 import Component from '../Component'
-import Page from '../Page'
+import NuiPage from '../Page'
 import NUI from '../noodl-ui'
+
+const viewport = { width: 375, height: 667 }
 
 describe(u.italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {
@@ -166,14 +168,142 @@ describe(u.italic(`createComponent`), () => {
 })
 
 describe(u.italic(`createPage`), () => {
+  beforeEach(() => {
+    nui.reset()
+    nui.getRootPage().page = 'SignIn'
+  })
+
+  it(`should set the page to the page name if passed as args`, () => {
+    const page = nui.createPage('Coffee')
+    expect(page).to.have.property('page', 'Coffee')
+  })
+
+  it(`should set the page to the page name and id to id`, () => {
+    const args = { id: 'abc', name: 'Shoe' }
+    const page = nui.createPage(args)
+    expect(page).to.have.property('id', 'abc')
+    expect(page).to.have.property('page', 'Shoe')
+  })
+
   it(`should create and return a new Page instance from the PageCache`, () => {
-    const page = nui.createPage({
-      name: 'Hello',
-      viewport: { width: 375, height: 667 },
-    })
-    expect(page).to.be.instanceOf(Page)
+    const page = nui.createPage({ name: 'Hello', viewport })
+    expect(page).to.be.instanceOf(NuiPage)
     expect(nui.cache.page.has(page?.id || '')).to.be.true
     expect(nui.cache.page.get(page?.id || '').page).to.eq(page)
+  })
+
+  it(`should create a new page even if the page name is being used in another page`, () => {
+    const page = nui.createPage('SignIn')
+    expect(page).not.to.eq(nui.getRootPage())
+  })
+
+  it(
+    `should set the onChange fn and not add duplicates if it is already in ` +
+      `the fns list`,
+    () => {
+      const spy = sinon.spy()
+      const page = nui.createPage({
+        name: 'SignIn',
+        onChange: { id: 'me', fn: spy },
+      })
+      expect(page.onChange.get('me')).to.be.a('function')
+    },
+  )
+
+  it(`should call the provided fn on page change`, () => {
+    nui.reset()
+    const spy = sinon.spy()
+    const page = nui.createPage({
+      name: 'SignIn',
+      onChange: { id: 'me', fn: spy },
+    })
+    page.page = 'Hello'
+    expect(spy).to.be.calledOnce
+    expect(spy.args[0][0]).to.eq('SignIn')
+    expect(spy.args[0][1]).to.eq('Hello')
+  })
+
+  it(
+    `should default to creating a new page if another page instance is on the same ` +
+      `page but no page component or NuiPage was provided`,
+    () => {
+      const page1 = nui.createPage('Cereal')
+      const page2 = nui.createPage('Cereal')
+      expect(page1).to.be.instanceOf(NuiPage)
+      expect(page2).to.be.instanceOf(NuiPage)
+      expect(page1.id).to.not.eq(page2.id)
+      expect(page1.key).not.to.eq(page2.key)
+      expect(page1).not.to.eq(page2)
+    },
+  )
+
+  it(`should return the NuiPage back if it was provided`, () => {
+    const page = nui.createPage('Cereal')
+    expect(nui.createPage(page)).to.eq(page)
+  })
+
+  it(
+    `should return the existing NuiPage if the component is a page component ` +
+      `sharing the same id`,
+    async () => {
+      const componentObject = ui.view({
+        children: [ui.page({ path: 'Cereal' })],
+      })
+      const component = await nui.resolveComponents(componentObject)
+      const pageComponent = component.child()
+      const page = nui.cache.page.get(pageComponent.id).page
+      expect(page).to.have.property('id').to.eq(pageComponent.id)
+      expect(nui.cache.page.length).to.eq(2)
+      expect(nui.createPage(pageComponent)).to.eq(page)
+    },
+  )
+
+  describe(`when reusing page instances`, () => {
+    it(
+      `should not duplicate another instance when providing an ` +
+        `existing page component`,
+      async () => {
+        const componentObject = ui.view({
+          children: [ui.page({ path: 'Cereal' })],
+        })
+        expect(nui.cache.page.length).to.eq(1)
+        const component = await nui.resolveComponents(componentObject)
+        expect(nui.cache.page.length).to.eq(2)
+        const pageComponent = component.child()
+        const page = nui.cache.page.get(pageComponent.id).page
+        await nui.resolveComponents({ components: pageComponent, page })
+        expect(nui.cache.page.length).to.eq(2)
+        expect(page).to.eq(pageComponent.get('page'))
+      },
+    )
+  })
+
+  it(`should not duplicate another instance`, async () => {
+    nui.reset()
+    nui.getRootPage()
+    const componentObject = ui.view({
+      children: [ui.page({ path: 'Cereal' })],
+    })
+    expect(nui.cache.page.length).to.eq(1)
+    const component = await nui.resolveComponents(componentObject)
+    expect(nui.cache.page.length).to.eq(2)
+    const pageComponent = component.child()
+    const page = nui.cache.page.get(pageComponent.id).page
+    pageComponent.edit('page', page)
+    await nui.resolveComponents({
+      components: componentObject,
+      page,
+    })
+    await nui.resolveComponents({
+      components: componentObject,
+      page,
+    })
+    await nui.resolveComponents({
+      components: componentObject,
+      page,
+    })
+    expect(nui.cache.page.length).to.eq(2)
+    expect(page).to.eq(pageComponent.get('page'))
   })
 })
 
@@ -245,39 +375,6 @@ describe(u.italic(`createSrc`), () => {
       const expectedResult = nui.getAssetsUrl() + 'halloween.jpg'
       const src = await nui.createSrc(path, { component })
       await waitFor(() => expect(src).to.eq(expectedResult))
-    })
-
-    xit(`should emit the "path" event after receiving the value from an emit object`, (done) => {
-      const path = { emit: { dataKey: { var1: 'cereal.fruit' }, actions: [] } }
-      nui.use({ emit: { path: () => Promise.resolve('halloween.jpg') as any } })
-      const listObject = [{ fruit: 'apple.jpg' }, { fruit: 'orange.jpg' }]
-      createDataKeyReference({ pageObject: { info: { people: listObject } } })
-      const page = nui.createPage()
-      nui
-        .resolveComponents({
-          components: ui.list({
-            contentType: 'listObject',
-            listObject,
-            iteratorVar: 'cereal',
-            children: [
-              ui.listItem({
-                cereal: '',
-                children: [ui.image({ path })],
-              }),
-            ],
-          }),
-          page,
-        })
-        .then((component) => {
-          const image = component.child().child()
-          image?.on('path', (s) => {
-            const expectedResult = nui.getAssetsUrl() + 'halloween.jpg'
-            expect(s).to.eq(expectedResult)
-            expect(image.get('data-src')).to.eq(expectedResult)
-            done()
-          })
-          nui.createSrc(path, { component })
-        })
     })
   })
 })

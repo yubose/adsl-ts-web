@@ -27,11 +27,19 @@ class Page implements IPage {
 
   constructor(
     viewport: Viewport = new Viewport(),
-    { id = getRandomKey() }: { id?: IPage['id'] } = {},
+    { id = getRandomKey(), name }: { id?: IPage['id']; name?: string } = {},
   ) {
     this.#id = id
     this.created = Date.now()
+    name && (this.#page = name)
     this.viewport = viewport
+  }
+
+  /**
+   * Recommended to be used to differentiate between Page instances
+   */
+  get key() {
+    return `${this.id}-${this.created}`
   }
 
   get id() {
@@ -58,7 +66,7 @@ class Page implements IPage {
     if (this.history.length > 10) {
       while (this.history.length > 10) this.history.shift()
     }
-    this.#onChange?.forEach?.((fn) => fn?.(prev, name))
+    for (const fn of this.#onChange.values()) fn(prev, name)
   }
 
   #wrapOnChange = (fn: OnChangeFn): OnChangeFn => {
@@ -66,7 +74,7 @@ class Page implements IPage {
       Promise.all(
         this.#hooks.PAGE_CHANGED?.map?.((fn) => fn?.(prevPage, newPage)),
       )
-      return fn(prevPage, newPage)
+      return fn?.(prevPage, newPage)
     }
   }
 

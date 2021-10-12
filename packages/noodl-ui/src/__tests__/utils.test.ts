@@ -133,7 +133,7 @@ describe(coolGold(`Utils`), () => {
         .to.be.true
     })
 
-    xit(`should return true for deeply nested descendants of a list`, async () => {
+    it(`should return true for deeply nested descendants of a list`, async () => {
       const preset = await getResolvedListComponentPreset()
       expect(
         n.isListConsumer(
@@ -165,20 +165,6 @@ describe(coolGold(`Utils`), () => {
     it(`should return true for chatList components`, async () => {
       expect(n.isListLike(await NUI.resolveComponents({ type: 'chatList' }))).to
         .be.true
-    })
-  })
-
-  describe(italic(`parseReference`), () => {
-    xit(`should be able to parse a local reference`, () => {
-      //
-    })
-
-    xit(`should be able to parse a root reference`, () => {
-      //
-    })
-
-    xit(`should be able to parse a data object from a listObject reference`, () => {
-      //
     })
   })
 

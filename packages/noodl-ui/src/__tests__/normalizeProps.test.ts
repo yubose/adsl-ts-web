@@ -13,8 +13,12 @@ import normalizeProps from '../normalizeProps'
 describe(chalk.keyword('navajowhite')('normalizeProps'), () => {
   describe(u.italic(`select`), () => {
     let root: Record<string, any>
-    let normalize = (comp: nt.SelectComponentObject) =>
+    let normalize = (comp: Partial<nt.SelectComponentObject>) =>
       normalizeProps({}, ui.select(comp), { root, pageName: 'SignIn' })
+
+    before(() => {
+      process.stdout.write('\x1Bc')
+    })
 
     beforeEach(() => {
       root = {
@@ -30,12 +34,9 @@ describe(chalk.keyword('navajowhite')('normalizeProps'), () => {
         normalize({ dataKey: '..profile.options', options: '' }),
       ).to.have.property('data-options')
     })
-    ;[
-      '.SignIn.selectedOption',
-      '..selectedOption',
-      'SignIn.selectedOption',
-    ].forEach((ref) => {
+    ;['.SignIn.selectedOption', 'SignIn.selectedOption'].forEach((ref) => {
       it(`should set the data-value if dataKey is "${ref}"`, () => {
+        console.info(normalize({ dataKey: ref }))
         expect(normalize({ dataKey: ref }))
           .to.have.property('data-value')
           .deep.eq(root.SignIn.selectedOption)

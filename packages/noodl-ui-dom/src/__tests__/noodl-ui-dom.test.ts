@@ -872,94 +872,99 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
       expect(page.page).not.to.eq('')
     })
 
-    it.only(`should reuse existing page instances and their existing ids for new components in rerenders`, async () => {
-      const { nui, ndom, render } = createRenderProps
+    xit(
+      `should reuse existing page instances and their existing ids ` +
+        `for new components in rerenders when providing the NuiPage ` +
+        `as args`,
+      async () => {
+        const { nui, ndom, render } = createRenderProps
 
-      let view = await render()
-      let patientInfoViewTagComponent = view.child(2).child(1)
-      let titleViewTagComponent = patientInfoViewTagComponent.child(2)
-      let titleDataListComponent = titleViewTagComponent.child()
-      let [
-        patientInfoGotoTitle,
-        visitQuestionnaireGotoTitle,
-        medicalRecordsGotoTitle,
-      ] = titleDataListComponent.children
-      let appointmentViewTagComponent = view.child(1)
-      let appointmentsListComponent = appointmentViewTagComponent
-        .child(1)
-        .child(1)
-        .child()
-      let listItemPatientNameLabelGotoPatientInfo = appointmentsListComponent
-        .child()
-        .child()
-      let listItemVisitQuestionnaireGoto = appointmentsListComponent
-        .child()
-        .child(6)
-      let infoViewTagComponent = patientInfoViewTagComponent.child(3)
-      let pageComponent = infoViewTagComponent.child()
-      let nuiPage = pageComponent.get('page')
-      let ndomPage = ndom.findPage(nuiPage)
+        let view = await render()
+        let patientInfoViewTagComponent = view.child(2).child(1)
+        let titleViewTagComponent = patientInfoViewTagComponent.child(2)
+        let titleDataListComponent = titleViewTagComponent.child()
+        let [
+          patientInfoGotoTitle,
+          visitQuestionnaireGotoTitle,
+          medicalRecordsGotoTitle,
+        ] = titleDataListComponent.children
+        let appointmentViewTagComponent = view.child(1)
+        let appointmentsListComponent = appointmentViewTagComponent
+          .child(1)
+          .child(1)
+          .child()
+        let listItemPatientNameLabelGotoPatientInfo = appointmentsListComponent
+          .child()
+          .child()
+        let listItemVisitQuestionnaireGoto = appointmentsListComponent
+          .child()
+          .child(6)
+        let infoViewTagComponent = patientInfoViewTagComponent.child(3)
+        let pageComponent = infoViewTagComponent.child()
+        let nuiPage = pageComponent.get('page')
+        let ndomPage = ndom.findPage(nuiPage)
 
-      expect(getPageCount()).to.eq(2)
+        expect(getPageCount()).to.eq(2)
 
-      findFirstByElementId(listItemPatientNameLabelGotoPatientInfo).click()
+        findFirstByElementId(listItemPatientNameLabelGotoPatientInfo).click()
 
-      await waitFor(() => {
-        expect(getPatientInfoPage()).to.eq('PatientInfo')
-        expect(getPageBody().children).to.have.length.greaterThan(0)
-      })
+        await waitFor(() => {
+          expect(getPatientInfoPage()).to.eq('PatientInfo')
+          expect(getPageBody().children).to.have.length.greaterThan(0)
+        })
 
-      expect(getPageCount()).to.eq(2)
+        expect(getPageCount()).to.eq(2)
 
-      await waitFor(() => {
-        let listEl = getTitleViewTagEl().firstElementChild
-        expect(listEl).to.have.property('children').length.greaterThan(2)
-        ;(
-          listEl.querySelectorAll('li').item(1)
-            .lastElementChild as HTMLDivElement
-        ).click()
-      })
+        await waitFor(() => {
+          let listEl = getTitleViewTagEl().firstElementChild
+          expect(listEl).to.have.property('children').length.greaterThan(2)
+          ;(
+            listEl.querySelectorAll('li').item(1)
+              .lastElementChild as HTMLDivElement
+          ).click()
+        })
 
-      expect(getPageCount()).to.eq(2)
+        expect(getPageCount()).to.eq(2)
 
-      await waitFor(() => {
-        expect(getPatientInfoPage()).to.eq('VisitQuestionnaire')
-        expect(findFirstByViewTag('sunTag')).to.exist
-      })
+        await waitFor(() => {
+          expect(getPatientInfoPage()).to.eq('VisitQuestionnaire')
+          expect(findFirstByViewTag('sunTag')).to.exist
+        })
 
-      expect(getPageCount()).to.eq(3)
+        expect(getPageCount()).to.eq(3)
 
-      console.info(
-        `[${u.cyan('patientInfoPage')}]: ${u.green(getPatientInfoPage())}`,
-      )
+        console.info(
+          `[${u.cyan('patientInfoPage')}]: ${u.green(getPatientInfoPage())}`,
+        )
 
-      await waitFor(() => {
-        root.ScheduleManagementRoom.patientInfoPage = 'PatientInfo'
-        findFirstByElementId(listItemVisitQuestionnaireGoto).click()
-        expect(getPatientInfoPage()).to.eq('PatientInfo')
-      })
+        await waitFor(() => {
+          root.ScheduleManagementRoom.patientInfoPage = 'PatientInfo'
+          findFirstByElementId(listItemVisitQuestionnaireGoto).click()
+          expect(getPatientInfoPage()).to.eq('PatientInfo')
+        })
 
-      expect(getPageCount()).to.eq(3)
+        expect(getPageCount()).to.eq(3)
 
-      // console.info(ndom.pages)
+        // console.info(ndom.pages)
 
-      // // findFirstByElementId(visitQuestionnaireGotoTitle).click()
-      // // findFirstByElementId(medicalRecordsGotoTitle).click()
-      // await delay(100)
+        // // findFirstByElementId(visitQuestionnaireGotoTitle).click()
+        // // findFirstByElementId(medicalRecordsGotoTitle).click()
+        // await delay(100)
 
-      // console.info(prettyDOM())
+        // console.info(prettyDOM())
 
-      // let listEl = findFirstByClassName('list') as HTMLUListElement
-      // let pageEl = findFirstByViewTag(INFO_VIEWTAG) as HTMLIFrameElement
+        // let listEl = findFirstByClassName('list') as HTMLUListElement
+        // let pageEl = findFirstByViewTag(INFO_VIEWTAG) as HTMLIFrameElement
 
-      // const { default: path } = await import('path')
-      // const { writeJson } = await import('fs-extra')
+        // const { default: path } = await import('path')
+        // const { writeJson } = await import('fs-extra')
 
-      // await writeJson(
-      //   path.resolve(path.join('src/__tests__/ScheduleManagementRoom.json')),
-      //   ndom.pages,
-      //   { spaces: 2 },
-      // )
-    })
+        // await writeJson(
+        //   path.resolve(path.join('src/__tests__/ScheduleManagementRoom.json')),
+        //   ndom.pages,
+        //   { spaces: 2 },
+        // )
+      },
+    )
   })
 })
