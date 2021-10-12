@@ -84,7 +84,16 @@ function normalizeProps<
       let value = props?.[originalKey]
 
       if (originalKey === 'dataKey') {
-        if (u.isStr(originalValue) && nt.Identify.reference(originalValue)) {
+        if (u.isStr(originalValue)) {
+          if (nt.Identify.reference(originalValue)) {
+            props['data-value'] = getByRef(root, originalValue, pageName)
+          } else {
+            const isLocalKey = nt.Identify.localKey(originalKey)
+            const paths = originalValue.split('.') as string[]
+            isLocalKey && paths[0] === pageName && paths.shift()
+            props['data-value'] = get(isLocalKey ? root[pageName] : root, paths)
+            continue
+          }
           if (nt.Identify.component.select(blueprint)) {
             props['data-value'] = getByRef(root, originalValue, pageName)
           }
@@ -198,9 +207,9 @@ function normalizeProps<
 
           // DISPLAY
           if (display === 'inline') value.display = 'inline'
-          else if(display === 'inline-block'){
+          else if (display === 'inline-block') {
             value.display = 'inline-block'
-            value.verticalAlign = "top"
+            value.verticalAlign = 'top'
           }
 
           /* -------------------------------------------------------
