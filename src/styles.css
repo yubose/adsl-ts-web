@@ -1,3 +1,9 @@
+* {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+}
+
 html {
   -webkit-text-size-adjust: none !important;
   /* -ms-touch-action: none !important; */
@@ -110,6 +116,11 @@ div.pluginBodyTail {
 
 .popup {
   /* visibility: hidden; */
+}
+
+textarea {
+  /* Fixed size */
+  resize: none !important;
 }
 
 .popup-global {

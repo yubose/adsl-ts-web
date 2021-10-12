@@ -198,6 +198,10 @@ function normalizeProps<
 
           // DISPLAY
           if (display === 'inline') value.display = 'inline'
+          else if(display === 'inline-block'){
+            value.display = 'inline-block'
+            value.verticalAlign = "top"
+          }
 
           /* -------------------------------------------------------
             ---- BORDERS
