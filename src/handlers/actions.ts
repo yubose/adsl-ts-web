@@ -16,7 +16,7 @@ import {
   NDOMTrigger,
   Page as NDOMPage,
   SignaturePad,
-  getFirstByDataKey,
+  findFirstByDataKey,
 } from 'noodl-ui-dom'
 import {
   ConsumerOptions,
@@ -642,7 +642,7 @@ const createActions = function createActions(app: App) {
         log.func('removeSignature')
         log.grey('', { action: action?.snapshot?.(), options })
         const dataKey = _pick(action, 'dataKey')
-        const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
+        const node = findFirstByDataKey(dataKey) as HTMLCanvasElement
         if (node) {
           const component = app.cache.component.get(node.id)?.component
           if (isComponent(component)) {
@@ -683,7 +683,7 @@ const createActions = function createActions(app: App) {
       log.grey('', { action: action?.snapshot?.(), options })
       const dataKey = _pick(action, 'dataKey')
       if (dataKey) {
-        const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
+        const node = findFirstByDataKey(dataKey) as HTMLCanvasElement
         const component = app.cache.component.get(node.id)?.component
         if (component) {
           const signaturePad = component.get('signaturePad') as SignaturePad
