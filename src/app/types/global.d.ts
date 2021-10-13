@@ -42,7 +42,6 @@ declare global {
     noodl: any
     env: string | undefined
     FCMOnTokenReceive: any
-    getByDataUX: any
     getDataValues: any
     components: NOODLComponent[]
     pageObject: any

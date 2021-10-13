@@ -16,7 +16,7 @@ import {
   asHtmlElement,
   ComponentPage,
   findByDataKey,
-  getFirstByElementId,
+  findFirstByElementId,
   isTextFieldLike,
   NDOMElement,
   Page as NDOMPage,
@@ -31,7 +31,6 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
-import { isObject } from 'lodash'
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -511,7 +510,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const onEntry = (k: any, v: any) => (iframeEl.style[k] = v)
           iframeEl.setAttribute('src', img.src)
           u.eachEntries(component.style, onEntry)
-          parent && getFirstByElementId(parent)?.appendChild?.(iframeEl)
+          parent && findFirstByElementId(parent)?.appendChild?.(iframeEl)
         }
       },
     },
@@ -546,7 +545,7 @@ const createExtendedDOMResolvers = function (app: App) {
         if (node && component && component.contentType === 'QRCode') {
           const dataValue = component.get('data-value') || '' || 'dataKey'
           let text = dataValue
-          if (isObject(dataValue)) {
+          if (u.isObj(dataValue)) {
             text = JSON.stringify(dataValue)
           }
 

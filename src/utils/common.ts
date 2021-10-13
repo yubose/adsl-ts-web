@@ -1,23 +1,19 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
 import * as u from '@jsmanifest/utils'
-import {
-  ActionObject,
-  ComponentObject,
-  UncommonActionObjectProps,
-} from 'noodl-types'
+import * as nt from 'noodl-types'
 import { NUIAction, NUIActionObjectInput, NuiComponent, Store } from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
 import { ActionMetadata } from '../app/types'
 
 export function getActionMetadata<PKey extends string = string>(
-  action: NUIAction | ActionObject | undefined,
+  action: NUIAction | nt.ActionObject | undefined,
   {
     component,
     pickKeys,
     ...other
   }: {
-    component?: NuiComponent.Instance | ComponentObject
+    component?: NuiComponent.Instance | nt.ComponentObject
     pickKeys?: PKey | PKey[]
   } & Partial<Record<string, any>> = {},
 ) {
@@ -85,7 +81,7 @@ export function isUnitTestEnv() {
 
 export function isPlainAction(
   action: NUIAction | NUIActionObjectInput | undefined,
-): action is ActionObject {
+): action is nt.ActionObject {
   return !!(
     action &&
     !('hasExecutor' in action || 'execute' in action) &&
@@ -104,13 +100,13 @@ type ActionObjectArg =
  */
 export function pickActionKey<
   A extends ActionObjectArg = ActionObjectArg,
-  K extends keyof (ActionObject | UncommonActionObjectProps) = keyof (
-    | ActionObject
-    | UncommonActionObjectProps
+  K extends keyof (nt.ActionObject | nt.UncommonActionObjectProps) = keyof (
+    | nt.ActionObject
+    | nt.UncommonActionObjectProps
   ),
 >(action: A, key: LiteralUnion<K, string>, defaultValue?: any) {
   if (!key) return
-  let result = get(action.original, key)
+  let result = get(action['original'], key)
   u.isUnd(result) && (result = get(action, key, defaultValue))
   u.isUnd(result) && (result = defaultValue)
   return result
@@ -118,9 +114,9 @@ export function pickActionKey<
 
 export function pickHasActionKey<
   A extends ActionObjectArg = ActionObjectArg,
-  K extends keyof (ActionObject | UncommonActionObjectProps) = keyof (
-    | ActionObject
-    | UncommonActionObjectProps
+  K extends keyof (nt.ActionObject | nt.UncommonActionObjectProps) = keyof (
+    | nt.ActionObject
+    | nt.UncommonActionObjectProps
   ),
 >(action: A, key: LiteralUnion<K, string>) {
   if (!key || !(u.isObj(action) || u.isFnc(action))) return false

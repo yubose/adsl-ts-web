@@ -1,7 +1,6 @@
 import * as u from '@jsmanifest/utils'
-import Logger from 'logsnap'
+import * as nt from 'noodl-types'
 import { isAction } from 'noodl-action-chain'
-import { Identify } from 'noodl-types'
 import {
   ConsumerOptions,
   createAction,
@@ -10,8 +9,6 @@ import {
   NUIActionObject,
   Store,
 } from 'noodl-ui'
-
-const log = Logger.create('createActionHandler.ts')
 
 export type ActionKind = 'action' | 'builtIn'
 
@@ -96,7 +93,7 @@ function createActionHandler<K extends ActionKind>(
   ) {
     try {
       const args = [action, options, ...rest]
-      await _runMiddleware(args)
+      await _runMiddleware(args as any)
 
       let _action: NUIAction | undefined
 
@@ -114,18 +111,18 @@ function createActionHandler<K extends ActionKind>(
           //
         }
       } else if (u.isObj(action)) {
-        if (Identify.action.any(action)) {
+        if (nt.Identify.action.any(action)) {
           _action = createAction({ action, trigger: 'onClick' })
-        } else if (Identify.folds.emit(action)) {
+        } else if (nt.Identify.folds.emit(action)) {
           _action = createAction({ action, trigger: 'onClick' })
-        } else if (Identify.goto(action)) {
+        } else if (nt.Identify.goto(action)) {
           _action = createAction({ action, trigger: 'onClick' })
         } else {
           //
         }
       }
 
-      return _fn?.(_action, options)
+      return _fn?.(_action as any, options)
     } catch (error) {
       throw error
     }

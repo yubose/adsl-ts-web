@@ -24,11 +24,7 @@ import {
   findByViewTag,
   findByUX,
   findFirstBySelector,
-  findFirstByViewTag,
   findWindow,
-  getByDataUX,
-  getFirstByElementId,
-  isPage as isNDOMPage,
   isPageConsumer,
   Page as NDOMPage,
 } from 'noodl-ui-dom'
@@ -42,7 +38,6 @@ import {
   show,
   scrollToElem,
   toast,
-  screenshotElement,
 } from '../utils/dom'
 import {
   getActionMetadata,
@@ -168,11 +163,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               const pdf = await exportToPDF({
                 data: node,
                 download: true,
-                filename: fileName
+                filename: fileName,
               })
             }
           } else if (elems) {
-            const pdf = await exportToPDF({ data: elems, download: true, filename: fileName })
+            const pdf = await exportToPDF({
+              data: elems,
+              download: true,
+              filename: fileName,
+            })
           }
         } else if (u.isObj(viewTag)) {
           // Future support
@@ -313,7 +312,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const { component, getAssetsUrl } = options
       const dataKey = _pick(action, 'dataKey') || ''
       const iteratorVar = findIteratorVar(component)
-      const node = getFirstByElementId(component)
+      const node = findFirstByElementId(component)
       const ndomPage = pickNDOMPageFromOptions(options)
       const pageName = ndomPage?.page || ''
       let path = component?.get('path')
@@ -582,7 +581,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     if (id) {
       const isInsidePageComponent =
         isPageConsumer(options?.component) || !!destProps.targetPage
-      const node = findByViewTag(id) || getFirstByElementId(id)
+      const node = findByViewTag(id) || findFirstByElementId(id)
 
       if (node) {
         let win: Window | undefined | null
@@ -771,7 +770,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   /** Shared common logic for both lock/logout logic */
   async function _onLockLogout() {
     const dataValues = getDataValues() as { password: string }
-    const hiddenPwLabel = getByDataUX('passwordHidden') as HTMLDivElement
+    const hiddenPwLabel = findByUX('passwordHidden') as HTMLDivElement
     const password = dataValues.password || ''
     // Reset the visible status since this is a new attempt
     if (hiddenPwLabel) {

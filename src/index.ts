@@ -15,18 +15,16 @@ import {
   findBySrc,
   findByViewTag,
   findByUX,
+  findFirstByClassName,
+  findFirstByDataKey,
+  findFirstByElementId,
+  findFirstByViewTag,
   findWindow,
   findWindowDocument,
   Page as NDOMPage,
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
-import {
-  copyToClipboard,
-  exportToPDF,
-  getVcodeElem,
-  screenshotElement,
-  toast,
-} from './utils/dom'
+import { copyToClipboard, exportToPDF, getVcodeElem, toast } from './utils/dom'
 import AppNotification from './app/Notifications'
 import App from './App'
 import 'vercel-toast/dist/vercel-toast.css'
@@ -55,8 +53,11 @@ export function getWindowHelpers() {
       findReferences,
       findWindow,
       findWindowDocument,
+      findFirstByClassName,
+      findFirstByDataKey,
+      findFirstByElementId,
+      findFirstByViewTag,
       getVcodeElem,
-      screenshotElement,
       toast,
     },
     pick(lib, ['getDataValues', 'publish']),

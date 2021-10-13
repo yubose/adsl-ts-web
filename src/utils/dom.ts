@@ -1,6 +1,5 @@
 import * as u from '@jsmanifest/utils'
 import type jsPDF from 'jspdf'
-import { throwError } from '@jsmanifest/utils'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
 import { Viewport as NuiViewport } from 'noodl-ui'
 import { createToast, Toast } from 'vercel-toast'
@@ -21,51 +20,6 @@ export function copyToClipboard(value: string) {
 
 export function isHtmlElement(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE && 'style' in node
-}
-
-export function screenshotElement(
-  node: HTMLElement,
-  { ext, filename = '' }: { ext?: string; filename?: string } = {},
-): Promise<[pdf: jsPDF, canvas: HTMLCanvasElement]> {
-  return new Promise((resolve, reject) => {
-    filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
-    // const dataUrl = canvas.toDataURL('image/png')
-    let doc = new jspdf.jsPDF('p', 'px')
-    doc = doc.viewerPreferences({
-      CenterWindow: true,
-      DisplayDocTitle: true,
-    })
-
-    doc = doc.setDocumentProperties({
-      author: 'Christopher',
-      creator: 'Christopher',
-      keywords: 'form',
-      subject: 'To whom this may concern',
-      title: 'Absentee Form',
-    })
-
-    doc
-      .html(node, {
-        callback: (doc) => {
-          // @ts-expect-error
-          let { width, height, fileType } = doc.getImageProperties(node)
-          ext =
-            (fileType &&
-              (fileType.startsWith('.') ? fileType : `.${fileType}`)) ||
-            ext
-          doc.setFont('Roboto')
-          doc.save(filename)
-          // @ts-expect-error
-          const blob = doc.output('blob', { filename }) as Blob
-          // download(blob, filename)
-          window.open(doc.output('bloburi'), '_blank')
-          // @ts-expect-error
-          resolve([doc, doc.canvas])
-        },
-      })
-      .then((worker) => {})
-      .catch(reject)
-  })
 }
 
 export function download(url: string | Blob, filename?: string) {
@@ -200,16 +154,16 @@ export function exportToPDF(
             var scrollPos = height * index
             var yOffset = 0
             // if the last page on canvas should have space (y-offset)
-            if (height * (index+1) > node.scrollHeight) {
-              scrollPos = (node.scrollHeight - height)
-              yOffset = height-(node.scrollHeight - height * index)
+            if (height * (index + 1) > node.scrollHeight) {
+              scrollPos = node.scrollHeight - height
+              yOffset = height - (node.scrollHeight - height * index)
             }
             node.scrollTo({ top: scrollPos })
             const canvas = await html2canvas(node, {
               allowTaint: true,
               width: width,
               height: height,
-              y: yOffset
+              y: yOffset,
             })
             doc.addPage(format, orientation)
             doc.addImage(canvas.toDataURL(), 'PNG', 0, 0, width, height)
@@ -482,9 +436,9 @@ export function toast(message: string | number, options?: Toast['options']) {
 }
 
 export function getBlobFromCanvas(
-  node: HTMLCanvasElement,
+  canvas: HTMLCanvasElement,
   mimeType: string,
   quality: number = 8,
 ): Promise<Blob | null> {
-  return new Promise((resolve) => node.toBlob(resolve, mimeType, quality))
+  return new Promise((resolve) => canvas.toBlob(resolve, mimeType, quality))
 }

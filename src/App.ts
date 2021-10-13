@@ -368,7 +368,7 @@ class App {
 
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
       u.forEach(
-        (keyVal) => this.nui._experimental.register(...keyVal),
+        (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),
         registers,
       )
       u.entries(middlewares).forEach(([id, fn]) =>

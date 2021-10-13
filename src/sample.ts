@@ -15,12 +15,7 @@ import {
   findWindow,
   findWindowDocument,
 } from 'noodl-ui-dom'
-import {
-  download,
-  exportToPDF,
-  getDataUrl,
-  screenshotElement,
-} from './utils/dom'
+import { download, exportToPDF, getDataUrl } from './utils/dom'
 /**
  * Just a helper to return the utilities that are meant to be attached
  * to the global window object
