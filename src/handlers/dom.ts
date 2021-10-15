@@ -554,13 +554,8 @@ const createExtendedDOMResolvers = function (app: App) {
             quality: 0.3,
             margin: 1,
             color: {
-<<<<<<< HEAD
-              dark: "#000000",
-              light: "#ffffff"
-=======
               dark: '#000000',
               light: '#ffffff',
->>>>>>> f07b460f4bbf57607dbad9f207d633c004938c52
             },
             scale: 8,
           }
