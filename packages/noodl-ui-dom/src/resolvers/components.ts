@@ -28,6 +28,15 @@ const componentsResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] components`,
   async before(args) {
     try {
+      // Prevents continuous clicks
+      (args.node as HTMLElement).addEventListener('click',()=>{
+        (args.node as HTMLElement).style.pointerEvents = "none"
+        setTimeout(()=>{
+          (args.node as HTMLElement).style.pointerEvents = ""
+        }, 400)
+      })
+
+
       if (
         Identify.component.page(args.component) &&
         args.component.get('page')
@@ -48,6 +57,7 @@ const componentsResolver: t.Resolve.Config = {
       }
     } catch (error) {
       console.error(error)
+      // @ts-expect-error
       throw new Error(error)
     }
   },
@@ -337,7 +347,8 @@ const componentsResolver: t.Resolve.Config = {
           try {
             const loadResult = await createEcosDocElement(
               args.node as HTMLElement,
-              args.component.get('ecosObj'),
+              args.component.get('ecosObj') ||
+                args.component?.blueprint?.['ecosObj'],
             )
             iframe = loadResult.iframe
           } catch (error) {
@@ -425,8 +436,10 @@ const componentsResolver: t.Resolve.Config = {
             )
 
             if (i._isIframeEl(args.node)) {
-              const nuiPage = args.component.get('page')
-              const src = nuiPage.page
+              const nuiPage =
+                args.component.get('page') ||
+                args.nui.cache.page.get(args.component.id)?.page
+              const src = nuiPage?.page
               if (componentPage.remote) {
                 /**
                  * Page components loading content through remote URLs
@@ -732,7 +745,7 @@ const componentsResolver: t.Resolve.Config = {
           }
 
           function setSelectOptions(_node: HTMLSelectElement, opts: any[]) {
-            opts.forEach((option: SelectOption, index) => {
+            u.array(opts).forEach((option: SelectOption, index) => {
               option = toSelectOption(option)
               const optionNode = document.createElement('option')
               _node.appendChild(optionNode)
@@ -750,7 +763,10 @@ const componentsResolver: t.Resolve.Config = {
 
           clearOptions(args.node as HTMLSelectElement)
 
-          if (u.isArr(selectOptions) && args.component.get(c.DATA_VALUE) == undefined ) {
+          if (
+            u.isArr(selectOptions) &&
+            args.component.get(c.DATA_VALUE) == undefined
+          ) {
             setSelectOptions(args.node as HTMLSelectElement, selectOptions)
           } else if (u.isStr(selectOptions) || (dataKey && u.isStr(dataKey))) {
             // Retrieved through reference

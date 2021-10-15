@@ -7,7 +7,7 @@ xdescribe(`Viewport`, () => {
       expect(Viewport.getSize('0.2', 375, { unit: 'px' })).to.eq('75px')
     })
 
-    xit(`should convert back to noodl type value if unit is "noodl"`, () => {
+    it(`should convert back to noodl type value if unit is "noodl"`, () => {
       expect(Viewport.getSize(75, 375, { unit: 'noodl' })).to.eq('0.2')
       expect(Viewport.getSize(355, 1000, { unit: 'noodl' })).to.eq('0.355')
       expect(Viewport.getSize(2000, 2000, { unit: 'noodl' })).to.eq('1')

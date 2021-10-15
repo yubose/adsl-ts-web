@@ -1,19 +1,14 @@
-export { default as SignaturePad } from 'signature_pad'
 export { default } from './noodl-ui-dom'
-export { default as Global } from './Global'
-export { default as Page } from './Page'
-export { default as Resolver } from './Resolver'
-export * from './constants'
-export * from './noodl-ui-dom'
-export * from './types'
-export { default as attributeResolvers } from './resolvers/attributes'
-export { default as componentResolvers } from './resolvers/components'
+export { default as ComponentPage } from './factory/componentFactory/ComponentPage'
 export { default as createEcosDocElement } from './utils/createEcosDocElement'
 export { default as createElement } from './utils/createElement'
-export { default as findElement } from './utils/findElement'
 export { default as findWindow } from './utils/findWindow'
 export { default as findWindowDocument } from './utils/findWindowDocument'
+export { default as Global } from './Global'
 export { default as isPage } from './utils/isPage'
+export { default as Page } from './Page'
+export { default as Resolver } from './Resolver'
+export { default as SignaturePad } from 'signature_pad'
 export {
   asHtmlElement,
   findByClassName,
@@ -26,23 +21,16 @@ export {
   findBySrc,
   findByViewTag,
   findByUX,
-  findFirstBySelector,
   findFirstByClassName,
   findFirstByDataKey,
   findFirstByElementId,
+  findFirstBySelector,
   findFirstByViewTag,
-  getByDataUX,
-  getElementTag,
-  getFirstByClassName,
-  getFirstByDataKey,
-  getFirstByElementId,
-  getFirstByGlobalId,
-  getFirstByViewTag,
-  getFirstByUX,
-  getPageAncestor,
   isDisplayable,
   isPageConsumer,
   isTextFieldLike,
   makeElemFn,
-  makeFindByAttr,
 } from './utils'
+export * from './constants'
+export * from './noodl-ui-dom'
+export * from './types'

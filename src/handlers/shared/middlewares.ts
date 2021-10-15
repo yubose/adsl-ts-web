@@ -21,6 +21,7 @@ const registerMiddleware = function (app: App) {
   const handleInjections: MiddlewareFn = (
     args: ActionHandlerArgs,
   ): ActionHandlerArgs => {
+    let origArgs = [...args]
     if (u.isStr(args[0])) {
       const prevArgs = [...args]
       if (!prevArgs[1]) {
@@ -42,10 +43,13 @@ const registerMiddleware = function (app: App) {
     } else if (u.isObj(args[0]) && !isAction(args[0])) {
       const prevArgs = [...args]
 
-      if ('destination' in args[0]) {
+      if ('destination' in args[0] || 'goto' in args[0]) {
         // Dynamically injected plain objects as potential actions from lvl 2
         args[0] = createAction({
-          action: { actionType: 'goto', goto: args[0]?.destination },
+          action: {
+            actionType: 'goto',
+            goto: args[0]?.destination || args[0]?.goto,
+          },
           trigger: 'onClick',
         })
       }
@@ -67,8 +71,11 @@ const registerMiddleware = function (app: App) {
       args[1] = { ...args[1], snapshot: args[0].snapshot() }
     }
 
-    if ('ref' in args[1] || isActionChain(args[1]?.ref)) {
-      // debugger
+    if (u.isObj(origArgs[0]) && 'pageName' in origArgs[0]) {
+      const currentPage = origArgs[0].pageName || ''
+      if (args[1].page && args[1].page.page !== currentPage) {
+        args[1].page = app.ndom.findPage(currentPage)
+      }
     }
 
     return args

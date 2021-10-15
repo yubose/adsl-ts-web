@@ -1,7 +1,10 @@
 import * as u from '@jsmanifest/utils'
+import type jsPDF from 'jspdf'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
+import { Viewport as NuiViewport } from 'noodl-ui'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
+import { isDataUrl } from './common'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -13,6 +16,10 @@ export function copyToClipboard(value: string) {
   document.execCommand('copy')
   textarea.remove()
   return null
+}
+
+export function isHtmlElement(node: Node): node is HTMLElement {
+  return node.nodeType === Node.ELEMENT_NODE && 'style' in node
 }
 
 export function download(url: string | Blob, filename?: string) {
@@ -39,6 +46,208 @@ export function download(url: string | Blob, filename?: string) {
   } catch (error) {
     throw error
   }
+}
+
+export function exportToPDF(
+  {
+    data,
+    download: shouldDownload = false,
+    labels = true,
+    open = false,
+    filename = 'file.pdf',
+  }: {
+    data:
+      | string
+      | { title?: string; content?: string; data?: string }
+      | HTMLElement
+    download?: boolean
+    labels?: boolean
+    open?: boolean
+    filename?: string
+  } = { data: '' },
+): Promise<jsPDF> {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!data) reject(new Error(`Cannot export from empty data`))
+
+      filename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`
+
+      const getImageDataUrlProps = (
+        dataURL: string,
+      ): Promise<{
+        img: HTMLImageElement
+        width: number
+        height: number
+        orientation: 'landscape' | 'portrait'
+      }> => {
+        return new Promise((resolve, reject) => {
+          const img = new Image()
+          img.style.visibility = 'hidden'
+          img.src = dataURL
+
+          img.addEventListener('load', async function () {
+            const width = img.naturalWidth
+            const height = img.naturalHeight
+            document.body.removeChild(img)
+            resolve({
+              img,
+              width,
+              height,
+              orientation: width > height ? 'landscape' : 'portrait',
+            })
+          })
+
+          img.addEventListener('error', function (err) {
+            document.body.removeChild(img)
+            reject(err)
+          })
+
+          document.body.appendChild(img)
+        })
+      }
+
+      const createDocByDataURL = async (
+        dataURL: string,
+      ): Promise<jsPDF | null> => {
+        if (u.isStr(dataURL)) {
+          if (isDataUrl(dataURL) || dataURL.startsWith('http')) {
+            const { img, width, height, orientation } =
+              await getImageDataUrlProps(dataURL)
+            const doc = new jspdf.jsPDF({
+              compress: true,
+              orientation,
+              unit: 'px',
+              format: [width, height],
+            })
+            doc.addImage(img, 'png', 0, 0, width, height)
+            doc.viewerPreferences({ FitWindow: true }, true)
+            return doc
+          } else {
+            throw new Error(
+              `Tried to add an image to a PDF document but the data string was not a data uri. Only data uris are supported at the moment`,
+            )
+          }
+        }
+        return null
+      }
+
+      const createDocByDOMNode = async (node: HTMLElement): Promise<jsPDF> => {
+        try {
+          const originalScrollPos = node.scrollTop
+          const scrollHeight = node.scrollHeight
+          const width = NuiViewport.toNum(node.style.width)
+          const height = NuiViewport.toNum(node.style.height)
+          const orientation = width > height ? 'landscape' : 'portrait'
+          const totalPages = Math.floor(scrollHeight / height)
+          const format = [width, height]
+
+          const doc = new jspdf.jsPDF({
+            compress: true,
+            orientation,
+            unit: 'px',
+            format,
+          })
+          // Deletes the empty page
+          doc.deletePage(1)
+
+          for (let index = 0; index <= totalPages; index++) {
+            var scrollPos = height * index
+            var yOffset = 0
+            // if the last page on canvas should have space (y-offset)
+            if (height * (index + 1) > node.scrollHeight) {
+              scrollPos = node.scrollHeight - height
+              yOffset = height - (node.scrollHeight - height * index)
+            }
+            node.scrollTo({ top: scrollPos })
+            const canvas = await html2canvas(node, {
+              allowTaint: true,
+              width: width,
+              height: height,
+              y: yOffset,
+            })
+            doc.addPage(format, orientation)
+            doc.addImage(canvas.toDataURL(), 'PNG', 0, 0, width, height)
+          }
+          node.scrollTo({ top: originalScrollPos })
+
+          return doc
+        } catch (error) {
+          if (error instanceof Error) throw error
+          throw new Error(String(error))
+        }
+      }
+
+      const createDocByObject = async (
+        data: Record<string, any>,
+      ): Promise<jsPDF> => {
+        try {
+          const { title = '', content = '', data: dataProp = content } = data
+          const doc = new jspdf.jsPDF({
+            compress: true,
+            orientation: 'portrait',
+            unit: 'px',
+          })
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(12)
+          const options = {
+            baseline: 'top',
+            // @ts-expect-error
+            maxWidth: doc.getPageWidth() - 20,
+          } as Parameters<jsPDF['text']>[3]
+          if (title) {
+            doc.text(labels ? `Title: ${title}` : title, 10, 10, options)
+          }
+          if (dataProp && u.isStr(dataProp)) {
+            if (dataProp.startsWith('blob:') || dataProp.startsWith('data:')) {
+              const { img, width, height } = await getImageDataUrlProps(
+                dataProp,
+              )
+              doc.addImage(img, 'png', 0, 0, width, height)
+            } else {
+              doc.text(
+                labels ? 'Content: ' + dataProp : dataProp,
+                10,
+                25,
+                options,
+              )
+            }
+          } else if (content) {
+            doc.text(content, 10, 25, options)
+          }
+          return doc
+        } catch (error) {
+          if (error instanceof Error) throw error
+          throw new Error(String(error))
+        }
+      }
+
+      const doc = u.isStr(data)
+        ? await createDocByDataURL(data)
+        : 'tagName' in data
+        ? await createDocByDOMNode(data)
+        : u.isObj(data)
+        ? await createDocByObject(data)
+        : null
+
+      if (!doc) throw new Error(`data is not a string, DOM node or object`)
+
+      open && doc.output('pdfobjectnewwindow')
+      shouldDownload && download(doc.output('datauristring'), filename)
+      resolve(doc)
+    } catch (error) {
+      u.logError(error)
+      reject(error instanceof Error ? error : new Error(String(error)))
+    }
+  })
+}
+
+export function getDataUrl(elem: HTMLImageElement) {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  canvas.width = elem.width
+  canvas.height = elem.height
+  ctx?.drawImage(elem, 0, 0)
+  return canvas.toDataURL('image/png')
 }
 
 export function getDocumentScrollTop(doc?: Document | null) {
@@ -227,9 +436,9 @@ export function toast(message: string | number, options?: Toast['options']) {
 }
 
 export function getBlobFromCanvas(
-  node: HTMLCanvasElement,
+  canvas: HTMLCanvasElement,
   mimeType: string,
   quality: number = 8,
 ): Promise<Blob | null> {
-  return new Promise((resolve) => node.toBlob(resolve, mimeType, quality))
+  return new Promise((resolve) => canvas.toBlob(resolve, mimeType, quality))
 }

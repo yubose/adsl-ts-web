@@ -72,11 +72,20 @@ const NUI = (function () {
         }
         onClean?.({ componentsRemoved })
       }
-      // console.info(`[noodl-ui] _clean - Removing page "${value.id}"`)
       cache.page.remove(value)
     }
   }
 
+  /**
+   * Creates a Component from either:
+   * 1. Component type
+   * 2. Component object
+   * 3. Existing component instance
+   *
+   * The Component and the current page name will be added to the ComponentCache
+   * @param { t.NuiComponentType | t.NuiComponent.Instance | nt.ComponentObject } componentObject
+   * @param { NuiPage | undefined } page
+   */
   function _createComponent(
     componentObject:
       | t.NuiComponentType
@@ -524,21 +533,30 @@ const NUI = (function () {
 
     async function xform(
       c: t.NuiComponent.Instance,
-      cb?: t.ResolveComponentOptions<C, Context>['callback'],
-      on?: t.ResolveComponentOptions<C, Context>['on'],
+      {
+        callback,
+        context,
+        on,
+        page,
+      }: {
+        callback?: t.ResolveComponentOptions<C, Context>['callback']
+        context?: Record<string, any>
+        on?: t.ResolveComponentOptions<C, Context>['on']
+        page: NuiPage
+      },
     ) {
       const options = o.getConsumerOptions({
-        callback: cb,
+        callback,
         component: c,
-        on,
-        page: page as NuiPage,
         context,
+        on,
+        page,
       })
 
       await _transformer.transform(c, options)
-      const iteratorVar = options?.context?.iteratorVar || ''
-      const isListConsumer =
-        iteratorVar && u.isObj(options?.context?.dataObject)
+
+      const iteratorVar = context?.iteratorVar || ''
+      const isListConsumer = iteratorVar && u.isObj(context?.dataObject)
 
       for (const [key, value] of u.entries(c.props)) {
         if (key === 'style') {
@@ -554,7 +572,7 @@ const NUI = (function () {
                       iteratorVar,
                     ) as string
                     const cachedValue = styleValue
-                    styleValue = get(options.context?.dataObject, dataKey)
+                    styleValue = get(context?.dataObject, dataKey)
                     if (styleValue) {
                       c.edit({ style: { [styleKey]: styleValue } })
                     } else {
@@ -564,9 +582,9 @@ const NUI = (function () {
                         { component: c, possibleValue: styleValue },
                       )
                     }
-                  } else if (nt.Identify.reference(value)) {
+                  } else if (nt.Identify.reference(styleValue)) {
                     console.log(
-                      `%cEncountered an unparsed style value "${value}" for style key "${key}"`,
+                      `%cEncountered an unparsed style value "${styleValue}" for style key "${styleKey}"`,
                       `color:#ec0000;`,
                       c,
                     )
@@ -597,11 +615,12 @@ const NUI = (function () {
 
     for (let index = 0; index < numComponents; index++) {
       resolvedComponents.push(
-        await xform(
-          o.createComponent(componentsList[index], page as NuiPage),
+        await xform(o.createComponent(componentsList[index], page as NuiPage), {
           callback,
+          context,
           on,
-        ),
+          page,
+        }),
       )
     }
 
@@ -779,106 +798,61 @@ const NUI = (function () {
     createPage(
       args?:
         | string
+        | NuiPage
         /**
-         * If a component instance is given, we must set its page id to the component id, emit the PAGE_CREATED component event and set the "page" prop using the page instance
+         * If a component instance is given, we must set its page id to the
+         * component id, emit the PAGE_CREATED component event and set the
+         * "page" prop using the page instance
          */
         | t.NuiComponent.Instance
         | {
             name?: string
             component?: t.NuiComponent.Instance
             id?: string
-            onChange?(prev: string, next: string): void
+            onChange?: { id?: string; fn: (prev: string, next: string) => void }
             viewport?: VP | { width?: number; height?: number }
           },
-      opts:
-        | {
-            onChange?(prev: string, next: string): void
-            viewport?: VP | { width?: number; height?: number }
-          }
-        | never = {},
     ) {
+      if (isNuiPage(args)) return args
+
       let name: string = ''
       let id: string | undefined = undefined
-      let onChange: ((prev: string, next: string) => void) | undefined
+      let onChange:
+        | { id?: string; fn?: (prev: string, next: string) => void }
+        | undefined
       let page: NuiPage | undefined
       let viewport: VP | undefined
 
       if (u.isStr(args)) {
         name = args
-        if (opts?.viewport) {
-          if (opts.viewport instanceof VP) viewport = opts.viewport
-          else if (u.isObj(opts.viewport)) viewport = new VP(opts.viewport)
-        }
       } else if (isComponent(args)) {
         id = args.id
-        page = args.get('page') || cache.page.get(args.id)?.page
         name = String(args.get('path') || '')
-        page && args.get('page') !== page && args.edit('page', page)
+        page = args.get('page') || cache.page.get(args.id)?.page
+        if (isNuiPage(page)) return page
       } else if (u.isObj(args)) {
         args.name && (name = args.name)
         args.onChange && (onChange = args.onChange)
-        if (isComponent(args.component)) args.id = args.component.id
-        else id = args.id || id || ''
+        if (isComponent(args.component)) {
+          const componentId = args.component.id
+          if (componentId) {
+            if (cache.page.has(componentId)) {
+              return cache.page.get(componentId).page
+            }
+          }
+        } else {
+          id = args.id || id || ''
+        }
         if (args?.viewport) {
           if (isViewport(args.viewport)) viewport = args.viewport
           else if (u.isObj(args.viewport)) viewport = new VP(args.viewport)
         }
       }
 
-      let isPreexistent = false
-
-      if (name) {
-        for (const obj of o.cache.page) {
-          if (obj) {
-            const [_, { page: _prevPage }] = obj
-            if (_prevPage.page === name) {
-              page = _prevPage
-              isPreexistent = true
-
-              // Delete the cached components from the page since it will be
-              // re-rerendered
-              for (const obj of o.cache.component) {
-                if (obj && obj.page === page?.page) {
-                  if (nt.Identify.component.page(obj.component)) continue
-                  o.cache.component.remove(obj.component)
-                }
-              }
-            }
-          }
-        }
-      }
-
-      if (!isPreexistent) {
-        page = cache.page.create({
-          id,
-          onChange: onChange as any,
-          viewport,
-        }) as NuiPage
-        if (isComponent(args)) {
-          page.page = name
-          args.edit('page', page)
-          args.emit(c.nuiEvent.component.page.PAGE_CREATED, page)
-        } else if (!u.isStr(args) && isComponent(args?.component)) {
-          /**
-           * Transfer the page from page component to be stored in the WeakMap
-           * Page components being stored in Map are @deprecated because of
-           * caching issues, whereas WeakMap will garbage collect by itself
-           * in a more aggressive way
-           */
-          console.info(`[noodl-ui] isPreexistent - Removing page "${page.id}"`)
-          cache.page.remove(page)
-          const component = args?.component as t.NuiComponent.Instance
-          page = cache.page.create({
-            id: component.id,
-            ...(onChange ? ({ onChange } as any) : undefined),
-          })
-        }
-      }
-
-      name && page && page.page !== name && (page.page = name)
+      page = cache.page.create({ id, name, onChange, viewport })
       ;(page as NuiPage)?.use(() => o.getRoot()[page?.page || '']?.components)
 
-      return page
+      return page as NuiPage
     },
     createPlugin(
       location:
@@ -945,8 +919,9 @@ const NUI = (function () {
           (acc: t.NUIActionObject[], obj) => {
             const errors = getActionObjectErrors(obj)
             errors.length &&
-              errors.forEach((errMsg) =>
-                console.log(`%c${errMsg}`, `color:#ec0000;`, obj),
+              u.forEach(
+                (errMsg) => console.log(`%c${errMsg}`, `color:#ec0000;`, obj),
+                errors,
               )
             if (u.isObj(obj) && !('actionType' in obj)) {
               obj = { ...obj, actionType: getActionType(obj) }

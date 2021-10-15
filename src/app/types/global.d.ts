@@ -5,6 +5,8 @@ import type {
   LocalParticipant,
   RemoteParticipant,
 } from 'twilio-video'
+import type HTML2Canvas, { Options } from 'html2canvas'
+import type * as jsPDF from 'jspdf'
 import type NOODLDOM from 'noodl-ui-dom'
 import type echarts from '@types/echarts'
 import type { Calendar } from '@fullcalendar/core'
@@ -19,6 +21,10 @@ declare global {
   export const FullCalendar: {
     Calendar: typeof Calendar
   }
+
+  export const html2canvas: typeof HTML2Canvas
+  export const jspdf: typeof jsPDF
+
   const mapboxgl: any
   export const self: DedicatedWorkerGlobalScope
 
@@ -36,7 +42,6 @@ declare global {
     noodl: any
     env: string | undefined
     FCMOnTokenReceive: any
-    getByDataUX: any
     getDataValues: any
     components: NOODLComponent[]
     pageObject: any

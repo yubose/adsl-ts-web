@@ -111,6 +111,7 @@ export function _getOrCreateComponentPage(
 ) {
   if (_isNUIPage(componentOrNUIPage)) {
     return (findPage(componentOrNUIPage) ||
+      // @ts-expect-error
       createPage(componentOrNUIPage, node)) as ComponentPage
   }
   return findPage(componentOrNUIPage) || createPage(componentOrNUIPage, node)
@@ -218,6 +219,7 @@ export function handleDrawGlobalComponent(
       const onClick = () => {
         n.removeEventListener('click', onClick)
         this.removeNode(n)
+        // @ts-expect-error
         this.removeGlobalComponent(this.global, globalId)
       }
       n.addEventListener('click', onClick)
@@ -421,6 +423,7 @@ export const _syncPages = (function () {
 
             if (
               // !u.isNil(ndomPage?.id) &&
+              // @ts-expect-error
               !this.global.pageIds.includes(ndomPage.id)
             ) {
               this.global.add(ndomPage)

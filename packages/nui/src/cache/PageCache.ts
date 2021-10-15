@@ -104,13 +104,14 @@ class PageCache {
       // If component is passed in it must be treated as a page component.
       component?: ComponentObject
       id?: string
-      onChange?: (prev: string, next: string) => void
+      name?: string
+      onChange?: { id: string; onChange?: (prev: string, next: string) => void }
       viewport?: NuiViewport
     } = {},
   ) {
-    let { id, viewport } = args
+    let { id, name, viewport } = args
     id = id || (!this.#pages.size ? 'root' : undefined)
-    const page = new NuiPage(viewport, { id })
+    const page = new NuiPage({ id, name, viewport })
     args.onChange && page.use({ onChange: args.onChange })
     this.#pages.set(page.id, { page })
     const emitArgs = { page } as {

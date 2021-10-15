@@ -366,8 +366,11 @@ class App {
       this.ndom.use({ transaction: transactions })
       this.ndom.use({ createElementBinding: createElementBinding(this) })
 
-      doms.forEach((obj) => this.ndom.use({ resolver: obj }))
-      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
+      u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
+      u.forEach(
+        (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),
+        registers,
+      )
       u.entries(middlewares).forEach(([id, fn]) =>
         this.actionFactory.createMiddleware(id, fn),
       )

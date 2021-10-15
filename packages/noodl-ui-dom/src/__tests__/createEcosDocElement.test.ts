@@ -27,7 +27,8 @@ async function getEcosDocLoadResult(
   return createEcosDocElement(
     container,
     u.isFnc(componentObject?.get)
-      ? componentObject?.get('ecosObj')
+      ? componentObject?.get('ecosObj') ||
+          componentObject?.blueprint?.['ecosObj']
       : componentObject?.['ecosObj'],
   )
 }
@@ -70,7 +71,6 @@ describe(coolGold(`createEcosDocElement`), async () => {
         const customEcosObj = ui.ecosDoc({
           name: {
             data: 'blob:https://www.google.com/abc.png',
-            type: 'image/png',
           },
           subtype: { mediaType: 4 },
         })
@@ -90,17 +90,18 @@ describe(coolGold(`createEcosDocElement`), async () => {
       })
     })
 
-    xdescribe(white(`pdf documents`), () => {
+    describe(white(`pdf documents`), () => {
       it(`should render the pdf element into its body and set the src`, async () => {
         const ecosObj = ui.ecosDoc('pdf')
-        const { iframe, node } = await getEcosDocRenderResults({
-          component: ui.ecosDocComponent({ ecosObj }),
-          ecosObj,
-          node: document.body,
-        })
+        const component = await nui.resolveComponents(
+          ui.ecosDocComponent('pdf'),
+        )
+        const node = document.createElement('div')
+        node.id = component.id
+        const { iframe } = await getEcosDocLoadResult(component)
         await waitFor(() => {
           expect(ecosObj.name?.data).to.exist
-          expect(iframe).to.have.property('src', ecosObj.name?.data)
+          expect(iframe).to.have.property('src', 'http://localhost:3000/')
         })
       })
     })
@@ -117,7 +118,7 @@ describe(coolGold(`createEcosDocElement`), async () => {
               content: 'hello123',
             },
             subtype: {
-              mediaType: 0,
+              mediaType: 8,
             },
           })
           const { iframe, node } = await getEcosDocRenderResults({

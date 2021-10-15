@@ -96,31 +96,33 @@ NUI.emit({
 
 ## Todos
 
+- [ ] Input focus for vcode input
 - [ ] PasswordRecoveryHelper (Jiahao)
-- [x] Font size (Elaine)
-- [x] fixed path not being appended to assets url for iteratorVar paths
 - [ ] redraw transition (`effect: slideLeft`)
-- [ ] support borderRadius in noodl unit (ex: "0.1") (relative to screen size)
 - [ ] curry func utility to finalize parsings
 
 ## Accounts
 
-| app     | phone #    | password    |
-| ------- | ---------- | ----------- |
-| admin   | 8882005050 | password    |
-| admin   | 7144480995 | Baby2020!   |
-| admind2 | 8880000301 |             |
-| admind2 | 8885509773 | 123         |
-| admind2 | 8886006001 | password    |
-| admind2 | 8886006002 | password    |
-| admind2 | 2134628002 | letmein123! |
-| patd    | 8880081221 | letmein123! |
-| patd    | 8884240000 | 12345       |
-| patd2   | 8881122050 | 123         |
-| prod    | 8885550010 | password    |
-| meet4d  | 8882465555 | 142251      |
-| meet4d  | 8882468491 | 142251      |
-| meet4d  | 8882461234 | 142251      |
+| app     | phone #    | password    | who  | Notes            |
+| ------- | ---------- | ----------- | ---- | ---------------- |
+| admin   | 8882005050 | password    |      |
+| admin   | 7144480995 | Baby2020!   |      |
+| admin   | 5594215342 | Family3496  | toni |                  |
+| admin   | 8884210047 | aitmed      | toni |                  |
+| admind2 | 8880000301 |             |      |
+| admind2 | 8885509773 | 123         |      |
+| admind2 | 8886006001 | password    |      |
+| admind2 | 8886006002 | password    |      |
+| admind2 | 2134628002 | letmein123! |      |
+| admind2 | 8883870054 | aitmed      | liz  | Josh Urgent Care |
+| admind2 | 8886540007 | 123         |      | yongjian         |
+| patd    | 8880081221 | letmein123! |      |
+| patd    | 8884240000 | 12345       |      |
+| patd2   | 8881122050 | 123         |      |
+| prod    | 8885550010 | password    |      |
+| meet4d  | 8882465555 | 142251      |      |
+| meet4d  | 8882468491 | 142251      |      |
+| meet4d  | 8882461234 | 142251      |      |
 
 ## Ecos types
 
@@ -187,4 +189,5 @@ NUI.emit({
 - Draft
   - Goes in root notebook (since it is a personal file)
 - There are now 2 notebooks (root and)
+
   - e10002 bvid --> evid

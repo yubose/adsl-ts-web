@@ -1,6 +1,4 @@
 const u = require('@jsmanifest/utils')
-const fs = require('fs-extra')
-const meow = require('meow')
 const path = require('path')
 const webpack = require('webpack')
 const singleLog = require('single-line-log').stdout
@@ -10,25 +8,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const { InjectScriptsPlugin } = require('./scripts/InjectScriptsPlugin')
-// import webpack from 'webpack'
-// import { createRequire } from 'module'
-// import * as u from '@jsmanifest/utils'
-// import meow from 'meow'
-// import path from 'path'
-// import singleLog from 'single-line-log'
-// import CircularDependencyPlugin from 'circular-dependency-plugin'
-// import CopyPlugin from 'copy-webpack-plugin'
-// import HtmlWebpackPlugin from 'html-webpack-plugin'
-// import HtmlWebpackHarddiskPlugin from 'html-webpack-harddisk-plugin'
-// import InjectBodyWebpackPlugin from 'inject-body-webpack-plugin'
-// import { InjectScriptsPlugin } from './scripts/InjectScriptsPlugin.js'
-
-// const { default: InjectBodyPlugin } = InjectBodyWebpackPlugin
-// const require = createRequire(import.meta.url)
-
-// const { default: InjectScriptsPlugin } = _InjectScriptsPlugin_
-
-const cli = meow('', { flags: { sample: { alias: 's', type: 'boolean' } } })
 
 const pkgJson = {
   root: require('./package.json'),
@@ -61,10 +40,8 @@ if (mode === 'production') {
    */
   productionOptions.optimization = {
     concatenateModules: true,
-    //   innerGraph: true,
     mergeDuplicateChunks: true,
     minimize: true,
-    // mangleExports: true,
     nodeEnv: 'production',
     removeEmptyChunks: true,
     splitChunks: {
@@ -116,19 +93,6 @@ const devServerOptions = {
   hot: true,
   liveReload: true,
   headers: commonHeaders,
-  // after(app, server, compiler) {
-  //   app.use((req, resp, next) => {
-  //     console.log({ headers: req.headers, path: app.path, params: app.param })
-  //     setHeadersOnResp(resp)
-  //     next()
-  //   })
-  // },
-  // http2: true,
-  // https: {
-  //   ca: fs.readFileSync(path.resolve(path.join(process.cwd(), './dev/key.pem'))),
-  //   cert: fs.readFileSync(path.resolve(path.join(process.cwd(), './dev/cert.pem'))),
-  //   key: fs.readFileSync(path.resolve(path.join(process.cwd(), './dev/key.pem'))),
-  // },
   overlay: true,
   stats: { chunks: true },
   historyApiFallback: true,
@@ -171,7 +135,7 @@ const environmentPlugin = new webpack.EnvironmentPlugin(
  */
 module.exports = {
   entry: {
-    main: [process.env.SAMPLE ? './dev/sample.ts' : './src/index.ts'],
+    main: [process.env.SAMPLE ? './src/sample.ts' : './src/index.ts'],
   },
   output: {
     clean: true,
@@ -295,8 +259,8 @@ ${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
 ${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
 ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
 
-${mode === 'production' 
-    ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(title)}` 
+${mode === 'production'
+    ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(title)}`
     : ''
 }\n\n`)
 }

@@ -11,7 +11,7 @@ resolveStyles.setResolver(async (component, options, next) => {
       context,
       getBaseStyles,
       pageName: page?.page,
-      root: getRoot,
+      root: getRoot(),
       viewport,
     }),
   )

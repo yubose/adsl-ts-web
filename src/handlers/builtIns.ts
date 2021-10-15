@@ -3,18 +3,21 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { isAction } from 'noodl-action-chain'
+import jsPDF from 'jspdf'
 import {
   findListDataObject,
   findIteratorVar,
-  findParent,
   getDataValues,
+  isPage as isNuiPage,
   NuiComponent,
   resolvePageComponentUrl,
   Store,
   Viewport as VP,
   isListConsumer,
   ConsumerOptions,
+  findParent,
 } from 'noodl-ui'
+import QRCode from 'qrcode'
 import {
   BASE_PAGE_URL,
   eventId as ndomEventId,
@@ -22,23 +25,26 @@ import {
   findByUX,
   findFirstBySelector,
   findWindow,
-  getByDataUX,
-  getFirstByElementId,
   isPageConsumer,
   Page as NDOMPage,
-  findByElementId,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import Logger from 'logsnap'
 import {
   download,
+  exportToPDF,
   isVisible,
   hide,
   show,
   scrollToElem,
   toast,
 } from '../utils/dom'
-import { getActionMetadata, pickActionKey } from '../utils/common'
+import {
+  getActionMetadata,
+  logError,
+  pickActionKey,
+  throwError,
+} from '../utils/common'
 import App from '../App'
 import {
   LocalAudioTrack,
@@ -47,8 +53,6 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
-import QRCode from 'qrcode'
-import { isObject } from 'lodash'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -129,6 +133,89 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }
 
+  /**
+   * Initiates a download window to export PDF using the information inside the document object
+   * @param { object } options
+   * @param { EcosDocument } options.ecosObj - eCOS document object
+   */
+  const exportPDF: any = async function onExportPDF(options: {
+    ecosObj: EcosDocument
+    viewTag?: string
+  }) {
+    try {
+      log.func('exportPDF')
+      log.grey('Downloading PDF file', options)
+
+      const ecosObj = (
+        u.isObj(options) && 'ecosObj' in options ? options.ecosObj : options
+      ) as EcosDocument
+
+      const viewTag = u.isObj(options) && options.viewTag
+      const fileName = ecosObj.name?.title
+
+      if (viewTag) {
+        if (u.isStr(viewTag)) {
+          const snaps = [] as { pdf: jsPDF; canvas: HTMLCanvasElement }[]
+          const elems = findByViewTag(viewTag)
+
+          if (u.isArr(elems)) {
+            for (const node of elems) {
+              const pdf = await exportToPDF({
+                data: node,
+                download: true,
+                filename: fileName,
+              })
+            }
+          } else if (elems) {
+            const pdf = await exportToPDF({
+              data: elems,
+              download: true,
+              filename: fileName,
+            })
+          }
+        } else if (u.isObj(viewTag)) {
+          // Future support
+        }
+      } else if (u.isObj(ecosObj)) {
+        const { name, subtype } = ecosObj
+        const mediaType = subtype?.mediaType
+
+        if (u.isObj(name)) {
+          const { content, data, title } = name
+
+          if (data) {
+            try {
+              await exportToPDF({
+                data:
+                  Identify.mediaType.audio(mediaType) ||
+                  Identify.mediaType.font(mediaType) ||
+                  Identify.mediaType.image(mediaType) ||
+                  Identify.mediaType.video(mediaType)
+                    ? data
+                    : { title: title || (u.isStr(content) && content) || data },
+                labels: true,
+                download: true,
+                filename: title,
+              })
+              log.green('Exported successfully')
+            } catch (error) {
+              console.error(error)
+            }
+          } else {
+            log.red(
+              `Tried to export the document to PDF but the "data" property is empty`,
+            )
+          }
+        } else {
+          log.red('The name field in an ecosObj was not an object', ecosObj)
+        }
+      }
+    } catch (error) {
+      logError(error)
+      throwError(error)
+    }
+  }
+
   const disconnectMeeting: Store.BuiltInObject['fn'] =
     async function onDisconnectMeeting(action) {
       log.func('disconnectMeeting')
@@ -151,28 +238,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
       if (u.isBool(reload)) {
         ndomPage.setModifier(ndomPage.previous, { reload })
-      }
-      if (
-        ndomPage.requesting === ndomPage.page &&
-        ndomPage.page === ndomPage.previous
-      ) {
-        console.log(
-          `%cLOOK HERE: All three (previous, current, requesting) value of the page name in the noodl-ui-dom instance are the same`,
-          `color:#ec0000;background:#000`,
-        )
-      } else {
-        if (ndomPage.previous === ndomPage.page) {
-          console.log(
-            `%cLOOK HERE: The current page is the same as the "previous" page on the noodl-ui-dom page`,
-            `color:deepOrange;background:#000`,
-          )
-        }
-        if (ndomPage.page === ndomPage.requesting) {
-          console.log(
-            `%cLOOK HERE: The current page is the same as the "requesting" page on the noodl-ui-dom page`,
-            `color:orange;background:#000`,
-          )
-        }
       }
     }
 
@@ -247,7 +312,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const { component, getAssetsUrl } = options
       const dataKey = _pick(action, 'dataKey') || ''
       const iteratorVar = findIteratorVar(component)
-      const node = getFirstByElementId(component)
+      const node = findFirstByElementId(component)
       const ndomPage = pickNDOMPageFromOptions(options)
       const pageName = ndomPage?.page || ''
       let path = component?.get('path')
@@ -458,9 +523,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       id = destProps.id || id
       isSamePage = !!destProps.isSamePage
       duration = destProps.duration || duration
-      // ndomPage = app.ndom.findPage(
-      //   findParent(options?.component, Identify.component.page),
-      // )
+      ndomPage = options?.page
+      const pageComponentParent = Identify.component.page(options?.component)
+        ? options.component
+        : findParent(options?.component, Identify.component.page)
+
+      if (!ndomPage || isNuiPage(ndomPage)) {
+        ndomPage =
+          app.ndom.findPage(pageComponentParent || options.component) ||
+          app.mainPage
+      }
     } else if ('targetPage' in destProps) {
       destination = destProps.targetPage || ''
       id = destProps.viewTag || ''
@@ -509,7 +581,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     if (id) {
       const isInsidePageComponent =
         isPageConsumer(options?.component) || !!destProps.targetPage
-      const node = findByViewTag(id) || getFirstByElementId(id)
+      const node = findByViewTag(id) || findFirstByElementId(id)
 
       if (node) {
         let win: Window | undefined | null
@@ -680,6 +752,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const builtIns = {
     checkField,
     disconnectMeeting,
+    exportPDF,
     goBack,
     hide: hideAction,
     show: showAction,
@@ -697,7 +770,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   /** Shared common logic for both lock/logout logic */
   async function _onLockLogout() {
     const dataValues = getDataValues() as { password: string }
-    const hiddenPwLabel = getByDataUX('passwordHidden') as HTMLDivElement
+    const hiddenPwLabel = findByUX('passwordHidden') as HTMLDivElement
     const password = dataValues.password || ''
     // Reset the visible status since this is a new attempt
     if (hiddenPwLabel) {
@@ -770,13 +843,14 @@ export const extendedSdkBuiltIns = {
     !data && (data = ecosObj.name?.data || '')
     return download(data, filename)
   },
-  downloadQRCode(this: App, { content,scale }: { content?: any,scale?: number } = {}) {
+  downloadQRCode(
+    this: App,
+    { content, scale }: { content?: any; scale?: number } = {},
+  ) {
     log.func('download (QRCode)')
-    // generate QRCode image
+    // Generate QRCode image
     let text = content
-    if(isObject(content)){
-      text = JSON.stringify(content)
-    }
+    if (u.isObj(content)) text = JSON.stringify(content)
 
     let opts = {
       errorCorrectionLevel: 'H',
@@ -784,38 +858,38 @@ export const extendedSdkBuiltIns = {
       quality: 0.3,
       margin: 1,
       color: {
-        dark:"#000000",
-        light:"#ffffff"
+        dark: '#000000',
+        light: '#ffffff',
       },
       scale: scale,
     }
-    let data 
+    let data
     QRCode.toDataURL(text, opts, function (err, url) {
       if (err) throw err
       data = url
     })
 
     // transform base64 to blob
-    let dataURLtoBlob = dataurl=>{
+    let dataURLtoBlob = (dataurl) => {
       let arr = dataurl.split(',')
-       //注意base64的最后面中括号和引号是不转译的   
-      let _arr = arr[1].substring(0,arr[1].length-2)
+      //注意base64的最后面中括号和引号是不转译的
+      let _arr = arr[1].substring(0, arr[1].length - 2)
       let mime = arr[0].match(/:(.*?);/)[1],
-           bstr =atob(_arr),
-           n = bstr.length,
-           u8arr = new Uint8Array(n)
-       while (n--) {
-           u8arr[n] = bstr.charCodeAt(n)
-       }
-       return new Blob([u8arr], {
-           type: mime
-       })
-   }
+        bstr = atob(_arr),
+        n = bstr.length,
+        u8arr = new Uint8Array(n)
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n)
+      }
+      return new Blob([u8arr], {
+        type: mime,
+      })
+    }
     let blobSrc = dataURLtoBlob(data)
-    console.log("test",blobSrc)
+    console.log('test', blobSrc)
     let ext = ''
     let filename = ('QRCode' || '') as string
-    let mimeType = ('image/png'|| '') as string
+    let mimeType = ('image/png' || '') as string
 
     if (mimeType && u.isStr(mimeType)) {
       // Assuming these are note docs since we are storing their data in json
@@ -831,7 +905,7 @@ export const extendedSdkBuiltIns = {
     }
 
     ext && u.isStr(filename) && (filename += ext)
-    !data && (data =  blobSrc || '')
+    !data && (data = blobSrc || '')
     return download(data, filename)
   },
   /**

@@ -267,16 +267,20 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
       },
     )
 
-    it(`should have set the Viewport's width/height to the root page's viewport's width/height if it was not provided`, async () => {
-      const component = await resolveComponent({
-        ...componentObject,
-        style: {},
-      })
-      const page = component.get('page') as NuiPage
-      const rootPage = nui.getRootPage()
-      expect(page.viewport.width).to.eq(rootPage.viewport.width)
-      expect(page.viewport.height).to.eq(rootPage.viewport.height)
-    })
+    it(
+      `should have set the Viewport's width/height to the root page's viewport's ` +
+        `width/height if it was not provided`,
+      async () => {
+        const component = await resolveComponent({
+          ...componentObject,
+          style: {},
+        })
+        const page = component.get('page') as NuiPage
+        const rootPage = nui.getRootPage()
+        expect(page.viewport.width).to.eq(rootPage.viewport.width)
+        expect(page.viewport.height).to.eq(rootPage.viewport.height)
+      },
+    )
 
     it(
       `should rerun the fetch components function and emit PAGE_COMPONENTS ` +

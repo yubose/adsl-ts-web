@@ -10,10 +10,11 @@ function findWindowDocument(
     try {
       return cb(w?.['contentDocument'] || w?.document)
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
       // Allow the loop to continue if it is accessing an outside origin window
-      if (error.name === 'SecurityError' || error.code === 18) {
+      if (err.name === 'SecurityError' || (err as any).code === 18) {
       } else {
-        console.error(`[${error.name}]: ${error.message}`)
+        console.error(`[${err.name}]: ${err.message}`)
       }
       return false
     }

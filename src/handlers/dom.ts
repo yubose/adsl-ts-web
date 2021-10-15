@@ -14,10 +14,12 @@ import { Identify } from 'noodl-types'
 import QRCode from 'qrcode'
 import {
   asHtmlElement,
+  ComponentPage,
   findByDataKey,
-  getFirstByElementId,
+  findFirstByElementId,
   isTextFieldLike,
   NDOMElement,
+  Page as NDOMPage,
   Resolve,
 } from 'noodl-ui-dom'
 import { excludeIteratorVar } from 'noodl-utils'
@@ -29,7 +31,6 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
-import { isObject } from 'lodash'
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -43,13 +44,14 @@ const createExtendedDOMResolvers = function (app: App) {
     node: NDOMElement
     evtName: string
     iteratorVar: string
+    page: NDOMPage | ComponentPage
   }) {
-    let { component, dataKey, node, evtName, iteratorVar = '' } = args
+    let { component, dataKey, node, evtName, iteratorVar = '', page } = args
     let actionChain = component.get(evtName) as NUIActionChain | undefined
-    let pageName = app.currentPage
+    let pageName = page.page
 
     async function onChange(event: Event) {
-      pageName !== app.currentPage && (pageName = app.currentPage)
+      pageName !== page.page && (pageName = page.page)
 
       const value = (event.target as any)?.value || ''
 
@@ -445,7 +447,7 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
       },
-      resolve({ node, component }) {
+      resolve({ node, component, page }) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
@@ -458,6 +460,7 @@ const createExtendedDOMResolvers = function (app: App) {
               evtName: 'onChange',
               node: node as NDOMElement,
               iteratorVar,
+              page,
             }),
           )
 
@@ -470,6 +473,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 evtName: 'onInput',
                 node: node as NDOMElement,
                 iteratorVar,
+                page,
               }),
             )
           }
@@ -484,6 +488,7 @@ const createExtendedDOMResolvers = function (app: App) {
               dataKey,
               evtName: 'onBlur',
               iteratorVar,
+              page,
             }),
           )
         }
@@ -504,7 +509,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const onEntry = (k: any, v: any) => (iframeEl.style[k] = v)
           iframeEl.setAttribute('src', img.src)
           u.eachEntries(component.style, onEntry)
-          parent && getFirstByElementId(parent)?.appendChild?.(iframeEl)
+          parent && findFirstByElementId(parent)?.appendChild?.(iframeEl)
         }
       },
     },
@@ -519,7 +524,7 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           })
           node?.addEventListener('mouseout', function (e) {
-            u.eachEntries(component?.original?.hover, (key: any, value) => {
+            u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
               let realvalue = component.style[key]
               if (typeof realvalue == 'undefined' && key == 'backgroundColor') {
                 realvalue = '#ffffff'
@@ -539,7 +544,7 @@ const createExtendedDOMResolvers = function (app: App) {
         if (node && component && component.contentType === 'QRCode') {
           const dataValue = component.get('data-value') || '' || 'dataKey'
           let text = dataValue
-          if (isObject(dataValue)) {
+          if (u.isObj(dataValue)) {
             text = JSON.stringify(dataValue)
           }
 
@@ -549,8 +554,13 @@ const createExtendedDOMResolvers = function (app: App) {
             quality: 0.3,
             margin: 1,
             color: {
+<<<<<<< HEAD
               dark: "#000000",
               light: "#ffffff"
+=======
+              dark: '#000000',
+              light: '#ffffff',
+>>>>>>> f07b460f4bbf57607dbad9f207d633c004938c52
             },
             scale: 8,
           }
@@ -559,7 +569,6 @@ const createExtendedDOMResolvers = function (app: App) {
             if (err) throw err
             node.src = url
           })
-
         }
       },
     },

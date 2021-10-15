@@ -1,23 +1,19 @@
 import get from 'lodash/get'
 import has from 'lodash/has'
 import * as u from '@jsmanifest/utils'
-import {
-  ActionObject,
-  ComponentObject,
-  UncommonActionObjectProps,
-} from 'noodl-types'
+import * as nt from 'noodl-types'
 import { NUIAction, NUIActionObjectInput, NuiComponent, Store } from 'noodl-ui'
 import { LiteralUnion } from 'type-fest'
 import { ActionMetadata } from '../app/types'
 
 export function getActionMetadata<PKey extends string = string>(
-  action: NUIAction | ActionObject | undefined,
+  action: NUIAction | nt.ActionObject | undefined,
   {
     component,
     pickKeys,
     ...other
   }: {
-    component?: NuiComponent.Instance | ComponentObject
+    component?: NuiComponent.Instance | nt.ComponentObject
     pickKeys?: PKey | PKey[]
   } & Partial<Record<string, any>> = {},
 ) {
@@ -33,7 +29,7 @@ export function getActionMetadata<PKey extends string = string>(
     metadata.action.object = action
   } else if (action) {
     metadata.action.instance = action as NUIAction
-    metadata.action.object = action.original
+    metadata.action.object = action['original']
   }
   pickKeys &&
     u.array(pickKeys).forEach((key: PKey) => {
@@ -54,6 +50,10 @@ export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
 }
 
+export function isDataUrl(value = '') {
+  return value.startsWith('blob:') || value.startsWith('data:')
+}
+
 /**
  * Returns whether the web app is running on a mobile browser.
  * @return { boolean }
@@ -70,6 +70,7 @@ export function isIOS() {
     /iPad|iPhone|iPod/.test(
       window.navigator.userAgent || window.navigator.vendor || '',
     ) &&
+    // @ts-expect-error
     !window.MSStream
   )
 }
@@ -80,7 +81,7 @@ export function isUnitTestEnv() {
 
 export function isPlainAction(
   action: NUIAction | NUIActionObjectInput | undefined,
-): action is ActionObject {
+): action is nt.ActionObject {
   return !!(
     action &&
     !('hasExecutor' in action || 'execute' in action) &&
@@ -99,13 +100,13 @@ type ActionObjectArg =
  */
 export function pickActionKey<
   A extends ActionObjectArg = ActionObjectArg,
-  K extends keyof (ActionObject | UncommonActionObjectProps) = keyof (
-    | ActionObject
-    | UncommonActionObjectProps
+  K extends keyof (nt.ActionObject | nt.UncommonActionObjectProps) = keyof (
+    | nt.ActionObject
+    | nt.UncommonActionObjectProps
   ),
 >(action: A, key: LiteralUnion<K, string>, defaultValue?: any) {
   if (!key) return
-  let result = get(action.original, key)
+  let result = get(action['original'], key)
   u.isUnd(result) && (result = get(action, key, defaultValue))
   u.isUnd(result) && (result = defaultValue)
   return result
@@ -113,9 +114,9 @@ export function pickActionKey<
 
 export function pickHasActionKey<
   A extends ActionObjectArg = ActionObjectArg,
-  K extends keyof (ActionObject | UncommonActionObjectProps) = keyof (
-    | ActionObject
-    | UncommonActionObjectProps
+  K extends keyof (nt.ActionObject | nt.UncommonActionObjectProps) = keyof (
+    | nt.ActionObject
+    | nt.UncommonActionObjectProps
   ),
 >(action: A, key: LiteralUnion<K, string>) {
   if (!key || !(u.isObj(action) || u.isFnc(action))) return false
@@ -130,4 +131,18 @@ export function openOutboundURL(url: string) {
   if (typeof window !== 'undefined') {
     window.location.href = url
   }
+}
+
+export function logError(err?: any) {
+  if (!err) err = new Error(`[Error] Error occurred`)
+  else if (!(err instanceof Error)) err = new Error(String(err))
+  console.log(`[${err.name}] ${err.message}`, err.stack)
+}
+
+export function throwError(err?: any) {
+  if (err) {
+    if (err instanceof Error) throw err
+    throw new Error(String(err))
+  }
+  throw new Error('Error occurred')
 }

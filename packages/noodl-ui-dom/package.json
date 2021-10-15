@@ -10,8 +10,8 @@
   ],
   "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
   "keywords": [],
-  "main": "dist/index.js",
-  "module": "dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "name": "noodl-ui-dom",
   "prettier": {
     "arrowParens": "always",
@@ -23,11 +23,12 @@
     "trailingComma": "all"
   },
   "scripts": {
-    "build": "rm -rf dist && rollup -c --environment BUILD:production",
-    "start": "rm -rf dist && rollup -c -w --environment BUILD:development",
+    "build": "concurrently \"rollup -c --environment BUILD:production\" \"npm run types\"",
+    "start": "concurrently \"rollup -c -w --environment BUILD:development\" \"npm run types\"",
     "test": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" --watch-files \"../noodl-ui/dist/index.js\" \"src/**/*.test.ts\" --file src/setupTests.ts",
-    "test:file": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\" --watch-files \"../noodl-ui/dist/index.js\""
+    "test:file": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\" --watch-files \"../noodl-ui/dist/index.js\"",
+    "types": "tsc --emitDeclarationOnly"
   },
-  "types": "dist/index.d.ts",
+  "types": "./dist/index.d.ts",
   "version": "0.0.66"
 }

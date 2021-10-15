@@ -1,4 +1,3 @@
-import curry from 'lodash/curry'
 import { OrArray } from '@jsmanifest/typefest'
 import {
   DataAttribute,
@@ -9,7 +8,7 @@ import {
   pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
-import { Identify } from 'noodl-types'
+import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import { LiteralUnion } from 'type-fest'
 import findElement from './findElement'
@@ -222,59 +221,6 @@ export const findFirstByClassName = makeFindFirstBy<string>(
   (doc, className) => doc.getElementsByClassName(className)?.[0] as HTMLElement,
 )
 
-export function getFirstByClassName<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByClassName>[0],
-) {
-  return u.array(asHtmlElement(findByClassName(c)))[0] as N
-}
-
-export function getFirstByDataKey<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByDataKey>[0],
-) {
-  return u.array(asHtmlElement(findByDataKey(c)))[0] as N
-}
-
-export function getFirstByElementId<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByElementId>[0],
-) {
-  return u.array(asHtmlElement(findByElementId(c)))[0] as N
-}
-
-export function getFirstByGlobalId<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByGlobalId>[0],
-) {
-  return u.array(asHtmlElement(findByGlobalId(c)))[0] as N
-}
-
-export function getFirstByViewTag<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByViewTag>[0],
-) {
-  return u.array(asHtmlElement(findByViewTag(c)))[0] as N
-}
-
-export function getFirstByUX<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByUX>[0],
-) {
-  return u.array(asHtmlElement(findByUX(c)))[0] as N
-}
-
-/**
- * Returns the HTML DOM node or an array of HTML DOM nodes using the data-ux,
- * otherwise returns null
- * @param { string } key - The value of a data-ux element
- */
-export function getByDataUX(key: string) {
-  if (u.isStr(key)) {
-    const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
-    if (nodeList.length) {
-      const nodes = [] as HTMLElement[]
-      nodeList.forEach((node: HTMLElement) => nodes.push(node))
-      return nodes.length === 1 ? nodes[0] : nodes
-    }
-  }
-  return null
-}
-
 /**
  * Returns the component instance of type: page if it exists in the parent ancestry tree
  * @param { NuiComponent.Instance } component
@@ -284,7 +230,7 @@ export function getPageAncestor(
 ) {
   if (isComponent(component)) {
     if (component.type === 'page') return component
-    return findParent(component, Identify.component.page)
+    return findParent(component, nt.Identify.component.page)
   }
   return null
 }

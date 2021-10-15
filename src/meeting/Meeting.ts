@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import { EventEmitter } from 'events'
 import unary from 'lodash/unary'
 import Logger from 'logsnap'
-import { getFirstByViewTag, findByUX } from 'noodl-ui-dom'
+import { findFirstByViewTag, findByUX } from 'noodl-ui-dom'
 import { isMobile, isUnitTestEnv } from '../utils/common'
 import { hide, show, toast } from '../utils/dom'
 import App from '../App'
@@ -357,35 +357,35 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     },
     /** Element used for the dominant/main speaker */
     getMainStreamElement(): HTMLDivElement | null {
-      return getFirstByViewTag('mainStream') as HTMLDivElement
+      return findFirstByViewTag('mainStream') as HTMLDivElement
     },
     /** Element that the local participant uses (self mirror) */
     getSelfStreamElement(): HTMLDivElement | null {
-      return getFirstByViewTag('selfStream') as HTMLDivElement
+      return findFirstByViewTag('selfStream') as HTMLDivElement
     },
     /** Element that renders a remote participant into the participants list */
     getSubStreamElement(): HTMLDivElement | HTMLDivElement[] | null {
-      return getFirstByViewTag('subStream') as HTMLDivElement
+      return findFirstByViewTag('subStream') as HTMLDivElement
     },
     /** Element that toggles the camera on/off */
     getCameraElement(): HTMLImageElement | null {
-      return getFirstByViewTag('camera') as HTMLImageElement
+      return findFirstByViewTag('camera') as HTMLImageElement
     },
     /** Element that toggles the microphone on/off */
     getMicrophoneElement(): HTMLImageElement | null {
-      return getFirstByViewTag('microphone') as HTMLImageElement
+      return findFirstByViewTag('microphone') as HTMLImageElement
     },
     /** Element that completes the meeting when clicked */
     getHangUpElement(): HTMLImageElement | null {
-      return getFirstByViewTag('hangUp') as HTMLImageElement
+      return findFirstByViewTag('hangUp') as HTMLImageElement
     },
     /** Element to invite other participants into the meeting */
     getInviteOthersElement(): HTMLImageElement | null {
-      return getFirstByViewTag('inviteOthers') as HTMLImageElement
+      return findFirstByViewTag('inviteOthers') as HTMLImageElement
     },
     /** Element that renders a list of remote participants on the bottom */
     getParticipantsListElement(): HTMLUListElement | null {
-      return getFirstByViewTag('videoSubStream') as HTMLUListElement
+      return findFirstByViewTag('videoSubStream') as HTMLUListElement
     },
     getVideoChatElements() {
       return {

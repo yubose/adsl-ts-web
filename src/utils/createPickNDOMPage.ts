@@ -1,5 +1,5 @@
 import { Page as NUIPage, isPage as isNUIPage } from 'noodl-ui'
-import { Page as NDOMPage, isPage as isNDOMPage } from 'noodl-ui-dom'
+import { Page as NDOMPage } from 'noodl-ui-dom'
 import App from '../App'
 
 function createPickNDOMPage(app: App) {
