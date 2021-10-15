@@ -66,7 +66,7 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           log.red(
             `A ${component.type} component from a "${evtName}" handler tried ` +
-              `to update its value but a dataObject was not found`,
+            `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
           )
         }
@@ -82,11 +82,10 @@ const createExtendedDOMResolvers = function (app: App) {
               const paths = dataKey.split('.')
               const property = paths.length ? paths[paths.length - 1] : ''
               log.orange(
-                `Warning: The${
-                  property ? ` property "${property}" in the` : ''
+                `Warning: The${property ? ` property "${property}" in the` : ''
                 } ` +
-                  `dataKey path "${dataKey}" did not exist in the local root object ` +
-                  `If this is intended then ignore this message.`,
+                `dataKey path "${dataKey}" did not exist in the local root object ` +
+                `If this is intended then ignore this message.`,
                 {
                   component,
                   dataKey,
@@ -342,7 +341,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
-                    viewDidMount(mountArg) {},
+                    viewDidMount(mountArg) { },
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -370,7 +369,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             new Date(
                               info.event._instance.range.start,
                             ).getTime() +
-                              new Date().getTimezoneOffset() * 60 * 1000,
+                            new Date().getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '</div>\
@@ -437,12 +436,12 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] data-value': {
       cond: ({ node }) => isTextFieldLike(node),
       before({ node, component }) {
-        ;(node as HTMLInputElement).value = component.get('data-value') || ''
+        ; (node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
           if ((node as HTMLSelectElement).length) {
             // Put the default value to the first option in the list
-            ;(node as HTMLSelectElement)['selectedIndex'] = 0
+            ; (node as HTMLSelectElement)['selectedIndex'] = 0
           }
         }
       },
@@ -536,11 +535,11 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] QRCode': {
       cond: 'image',
-      resolve({node, component}) {
+      resolve({ node, component }) {
         if (node && component && component.contentType === 'QRCode') {
           const dataValue = component.get('data-value') || '' || 'dataKey'
           let text = dataValue
-          if(isObject(dataValue)){
+          if (isObject(dataValue)) {
             text = JSON.stringify(dataValue)
           }
 
@@ -550,8 +549,8 @@ const createExtendedDOMResolvers = function (app: App) {
             quality: 0.3,
             margin: 1,
             color: {
-              dark:"#000000",
-              light:"#ffffff"
+              dark: "#000000",
+              light: "#ffffff"
             },
             scale: 8,
           }
@@ -760,8 +759,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-              ? false
-              : true
+                ? false
+                : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -792,11 +791,30 @@ const createExtendedDOMResolvers = function (app: App) {
             if (flag) {
               let featuresData: any[] = []
               dataValue.data.forEach((element: any) => {
+                var str = "";
+                var showName = ""
+                var specialityArr = element.information.speciality;
+                var Name = element.information.name;
+                if (specialityArr) {
+                  for (var i = 0; i < specialityArr.length; i++) {
+                    str += specialityArr[i] + ", ";
+                  }
+                  if (str.length > 0) {
+                    str = str.substr(0, str.length - 2);
+                  }
+                } else {
+                  str = "No Speciality"
+                }
+                if (Name == "undefined undefined") {
+                  showName = "No Name"
+                } else {
+                  showName = Name
+                }
                 let item = {
                   type: 'Feature',
                   properties: {
-                    name: element.information.name,
-                    speciality: element.information.speciality,
+                    name: showName,
+                    speciality: str,
                     phoneNumber: element.information.phoneNumber,
                     address: element.information.address,
                   },
@@ -923,14 +941,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     .setLngLat(coordinates)
                     .setHTML(
                       '<span style="font-size: 1vh;">' +
-                        Name +
-                        ' </span><br> <span style="font-size: 1vh;">' +
-                        Speciality +
-                        '</span><br> <span style="font-size: 1vh;">' +
-                        phoneNumber +
-                        '</span><br> <span style="font-size: 1vh;">' +
-                        address +
-                        '</span>',
+                      Name +
+                      ' </span><br> <span style="font-size: 1vh;">' +
+                      Speciality +
+                      '</span><br> <span style="font-size: 1vh;">' +
+                      phoneNumber +
+                      '</span><br> <span style="font-size: 1vh;">' +
+                      address +
+                      '</span>',
                     )
                     .addTo(map)
                 })
@@ -961,8 +979,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-              ? false
-              : true
+                ? false
+                : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -1047,7 +1065,7 @@ const createExtendedDOMResolvers = function (app: App) {
               log.func('[App] onMeetingComponent')
               log.red(
                 `Attempted to add an element to a subStream but it ` +
-                  `already exists in the subStreams container`,
+                `already exists in the subStreams container`,
                 app.subStreams.snapshot(),
               )
             }
@@ -1055,7 +1073,7 @@ const createExtendedDOMResolvers = function (app: App) {
             log.func('[App] onMeetingComponent')
             log.red(
               `Attempted to create "subStreams" but a container (DOM element) ` +
-                `was not available`,
+              `was not available`,
               { node, component, ...app.streams.snapshot() },
             )
           }
