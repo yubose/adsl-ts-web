@@ -478,6 +478,7 @@ const createActions = function createActions(app: App) {
     const { ref } = options
     const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
     const popUpView = _pick(action, 'popUpView')
+    const popUpDismiss = _pick(action, 'popUpDismiss')
     u.arrayEach(asHtmlElement(findByUX(popUpView)), (elem) => {
       if (dismissOnTouchOutside) {
         const onTouchOutside = function onTouchOutside(
@@ -493,6 +494,11 @@ const createActions = function createActions(app: App) {
       if (elem?.style) {
         if (Identify.action.popUp(action)) show(elem)
         else if (Identify.action.popUpDismiss(action)) hide(elem)
+        if(popUpDismiss){
+          setTimeout(()=>{
+            hide(elem)
+          },popUpDismiss)
+        }
         // Some popup components render values using the dataKey. There is a bug
         // where an action returns a popUp action from an evalObject action. At
         // this moment the popup is not aware that it needs to read the dataKey if
