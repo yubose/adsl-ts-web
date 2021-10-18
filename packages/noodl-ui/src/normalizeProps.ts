@@ -512,8 +512,12 @@ function normalizeProps<
                       ),
                     )
                   }
-                } else {
+                }else {
                   value[styleKey] = com.formatColor(styleValue)
+                }
+
+                if(styleKey == 'pointerEvents' && styleValue != 'none'){
+                  delete value['pointerEvents']
                 }
               }
 
