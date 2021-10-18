@@ -3,7 +3,7 @@ import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
 
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'admind2'
+export const CONFIG_KEY = 'testpage'
 // const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
