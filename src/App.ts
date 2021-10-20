@@ -520,7 +520,7 @@ class App {
       let isAbortedFromSDK = false as boolean | undefined
 
       isAbortedFromSDK = (
-        await this.noodl?.initPage(pageRequesting, [], {
+        await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {
           ...(page.modifiers[pageRequesting] as any),
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
