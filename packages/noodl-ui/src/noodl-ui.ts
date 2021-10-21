@@ -596,11 +596,14 @@ const NUI = (function () {
           }
         } else {
           if (nt.Identify.reference(value)) {
-            console.log(
-              `%cEncountered an unparsed style value "${value}" for style key "${key}"`,
-              `color:#ec0000;`,
-              c,
-            )
+            // Do one final check for the "get" method, since some custom getters are defined on component.get() even though it returns the same component object when using component.props
+            if (nt.Identify.reference(c.get(key))) {
+              console.log(
+                `%cEncountered an unparsed reference value "${value}" for key "${key}"`,
+                `color:#ec0000;`,
+                c,
+              )
+            }
           }
         }
       }

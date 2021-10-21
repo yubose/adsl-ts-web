@@ -10,6 +10,7 @@ import Resolver from '../Resolver'
 import type NuiPage from '../Page'
 import VP from '../Viewport'
 import isNuiPage from '../utils/isPage'
+import resolveReference from '../utils/resolveReference'
 import { formatColor } from '../utils/common'
 import {
   findIteratorVar,
@@ -92,8 +93,32 @@ componentResolver.setResolver(async (component, options, next) => {
       }
 
       /** Filter invalid values (0 is a valid value)  */
-      function getListObject() {
-        return u.array(component.blueprint.listObject).filter(Boolean)
+      function getListObject(opts: typeof options) {
+        let listObject =
+          component.get('listObject') || component.blueprint.listObject
+        if (Identify.reference(listObject)) {
+          let page = opts.page
+          let pageName = ''
+          if (u.isStr(page)) {
+            pageName = page
+            page = opts.getRootPage()
+          } else if (isNuiPage(page)) {
+            pageName = page.page
+          }
+          component.edit(
+            'listObject',
+            resolveReference({
+              component: opts.component,
+              localKey: pageName,
+              root: opts.getRoot(),
+              key: 'listObject',
+              page,
+              value: listObject,
+            }),
+          )
+          listObject = component.get('listObject')
+        }
+        return listObject
       }
 
       function getRawBlueprint(component: NuiComponent.Instance) {
@@ -111,30 +136,33 @@ componentResolver.setResolver(async (component, options, next) => {
 
       // Customly create the listItem children using a dataObject as the data source
 
-      let dataObjects = getListObject()
-      if (
-        dataObjects.length == 1 &&
-        u.isStr(dataObjects[0]) &&
-        dataObjects[0].startsWith('itemObject')
-      ) {
-        let dataKey: any = dataObjects[0].toString()
-        dataKey = excludeIteratorVar(dataKey, iteratorVar)
-        dataObjects = get(findListDataObject(component), dataKey)
-      }
-      const numDataObjects = dataObjects.length
-      for (let index = 0; index < numDataObjects; index++) {
-        const dataObject = dataObjects[index]
-        const ctx = { index, iteratorVar, dataObject }
-        let listItem = createComponent(listItemBlueprint, page)
-        listItem = component.createChild(listItem)
-        listItem.edit({ index, [iteratorVar]: dataObject })
-        listItem = await resolveComponents({
-          callback,
-          components: listItem,
-          context: { ...context, ...ctx },
-          on: options.on,
-          page,
-        })
+      let dataObjects = getListObject(options)
+
+      if (u.isArr(dataObjects)) {
+        if (
+          dataObjects.length == 1 &&
+          u.isStr(dataObjects[0]) &&
+          dataObjects[0].startsWith('itemObject')
+        ) {
+          let dataKey: any = dataObjects[0].toString()
+          dataKey = excludeIteratorVar(dataKey, iteratorVar)
+          dataObjects = get(findListDataObject(component), dataKey)
+        }
+        const numDataObjects = dataObjects.length
+        for (let index = 0; index < numDataObjects; index++) {
+          const dataObject = dataObjects[index]
+          const ctx = { index, iteratorVar, dataObject }
+          let listItem = createComponent(listItemBlueprint, page)
+          listItem = component.createChild(listItem)
+          listItem.edit({ index, [iteratorVar]: dataObject })
+          listItem = await resolveComponents({
+            callback,
+            components: listItem,
+            context: { ...context, ...ctx },
+            on: options.on,
+            page,
+          })
+        }
       }
     }
 
