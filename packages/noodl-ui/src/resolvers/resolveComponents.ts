@@ -137,17 +137,15 @@ componentResolver.setResolver(async (component, options, next) => {
       // Customly create the listItem children using a dataObject as the data source
 
       let dataObjects = getListObject(options)
-
+      if (
+        u.isStr(dataObjects) &&
+        dataObjects.startsWith('itemObject')
+      ) {
+        let dataKey: any = dataObjects.toString()
+        dataKey = excludeIteratorVar(dataKey, iteratorVar)
+        dataObjects = get(findListDataObject(component), dataKey)
+      }
       if (u.isArr(dataObjects)) {
-        if (
-          dataObjects.length == 1 &&
-          u.isStr(dataObjects[0]) &&
-          dataObjects[0].startsWith('itemObject')
-        ) {
-          let dataKey: any = dataObjects[0].toString()
-          dataKey = excludeIteratorVar(dataKey, iteratorVar)
-          dataObjects = get(findListDataObject(component), dataKey)
-        }
         const numDataObjects = dataObjects.length
         for (let index = 0; index < numDataObjects; index++) {
           const dataObject = dataObjects[index]
