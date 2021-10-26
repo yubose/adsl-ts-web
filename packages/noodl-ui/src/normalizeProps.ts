@@ -138,6 +138,7 @@ function normalizeProps<
             fontSize,
             fontStyle,
             textAlign,
+            verticalAlign,
           } = originalValue
 
           // AXIS
@@ -210,6 +211,10 @@ function normalizeProps<
           else if (display === 'inline-block') {
             value.display = 'inline-block'
             value.verticalAlign = 'top'
+          }
+
+          if(verticalAlign){
+            value.verticalAlign = verticalAlign
           }
 
           /* -------------------------------------------------------
