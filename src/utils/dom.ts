@@ -55,6 +55,7 @@ export function exportToPDF(
     labels = true,
     open = false,
     filename = 'file.pdf',
+    viewport = { width: window.innerWidth, height: window.innerHeight },
   }: {
     data:
       | string
@@ -64,6 +65,7 @@ export function exportToPDF(
     labels?: boolean
     open?: boolean
     filename?: string
+    viewport?: NuiViewport | { width: number; height: number }
   } = { data: '' },
 ): Promise<jsPDF> {
   return new Promise(async (resolve, reject) => {
@@ -133,42 +135,215 @@ export function exportToPDF(
 
       const createDocByDOMNode = async (node: HTMLElement): Promise<jsPDF> => {
         try {
+          function createPages(
+            pdf: jsPDF | null,
+            [node, child = null]:
+              | [HTMLElement, HTMLElement | null]
+              | [HTMLElement],
+            options?: {
+              format: number[]
+              orientation: 'landscape' | 'portrait'
+              pageWidth: number
+              pageHeight: number
+              pos?: number
+              scrollY?: number
+              startPos?: number
+            },
+          ) {
+            return new Promise(async (resolve, reject) => {
+              try {
+                let {
+                  format,
+                  orientation,
+                  pageWidth = window.innerWidth,
+                  pageHeight = window.innerHeight,
+                  pos = 0,
+                  startPos = 0,
+                } = options || {}
+
+                format = [pageWidth, pageHeight]
+
+                if (pdf === null) {
+                  pdf = new jspdf.jsPDF({
+                    compress: true,
+                    orientation,
+                    unit: 'px',
+                    format,
+                  })
+                  // Deletes the empty page
+                  pdf.deletePage(1)
+                }
+
+                const nodeBounds = node.getBoundingClientRect()
+                const childBounds = child?.getBoundingClientRect?.() as DOMRect
+
+                if (child) {
+                  orientation =
+                    childBounds.width > pageWidth ? 'landscape' : 'portrait'
+                } else {
+                  if (node.firstElementChild) {
+                    child = node.firstElementChild as HTMLElement
+                  }
+                }
+
+                let currentPos = 0
+                let currentViewHeight = 0
+
+                if (node.firstElementChild) {
+                  const iframe = document.createElement('iframe')
+                  // iframe.hidden = true
+
+                  iframe.onload = async () => {
+                    const body = iframe.contentDocument?.body
+
+                    const clonedNode = node.cloneNode(true) as HTMLElement
+                    const children = [...clonedNode.children] as HTMLElement[]
+
+                    for (const childNode of clonedNode.childNodes) {
+                      clonedNode.removeChild(childNode)
+                    }
+
+                    for (let childNode of children) {
+                      clonedNode.appendChild(childNode)
+
+                      const bounds = childNode.getBoundingClientRect()
+
+                      if (currentViewHeight + bounds.height >= pageHeight) {
+                        const canvas = await html2canvas(clonedNode, {
+                          allowTaint: true,
+                          width: clonedNode.scrollWidth,
+                          height: pageHeight,
+                          windowHeight: node.scrollHeight,
+                          scrollY: currentPos,
+                        })
+
+                        pdf.addPage(format, orientation)
+                        pdf.addImage(
+                          canvas.toDataURL(),
+                          'PNG',
+                          0,
+                          0,
+                          pageWidth,
+                          pageHeight,
+                        )
+
+                        for (const childNode of clonedNode.children) {
+                          clonedNode?.removeChild(childNode)
+                          if (children.includes(childNode)) {
+                            children.splice(children.indexOf(childNode), 1)
+                          }
+                        }
+
+                        currentViewHeight = bounds.height
+                      } else {
+                        currentViewHeight += bounds.height
+                      }
+
+                      currentPos += bounds.height
+                    }
+
+                    resolve(pdf)
+                  }
+
+                  document.body.appendChild(iframe)
+                }
+              } catch (error) {
+                console.error(error)
+                throw error
+              }
+
+              // try {
+              //   const {
+              //     format = [window.innerWidth, window.innerHeight],
+              //     orientation = 'portrait',
+              //     pageWidth = window.innerWidth,
+              //     pageHeight = window.innerHeight,
+              //   } = options
+              //   pdf.canvas.height = node.scrollHeight
+              //   const canvas = await html2canvas(node, {
+              //     allowTaint: true,
+              //     logging: true,
+              //     onclone: (doc, el) => {
+              //       let iframe: HTMLIFrameElement | undefined
+              //       while (!iframe) {
+              //         iframe = el.parentElement as HTMLIFrameElement
+              //       }
+              //       iframe.height = node.scrollHeight + 'px'
+              //       debugger
+              //     },
+              //     width: pageWidth,
+              //     height: pageHeight,
+              //     x: window.scrollX,
+              //     y: options?.scrollY || window.scrollY,
+              //     windowHeight: pageHeight,
+              //     windowWidth: pageWidth,
+              //   })
+
+              //   pdf.addPage(format, orientation)
+              //   pdf.addImage(
+              //     canvas.toDataURL(),
+              //     'PNG',
+              //     0,
+              //     0,
+              //     pageWidth,
+              //     pageHeight,
+              //   )
+              //   return {
+              //     canvas: pdf.canvas,
+              //     dataUri: pdf.output('datauristring'),
+              //   }
+              //   // return { canvas, dataUri: canvas.toDataURL() }
+              // } catch (error) {
+              //   console.error(error)
+              //   console.trace(error.message)
+              //   if (error instanceof Error) throw error
+              //   throw new Error(String(error))
+              // }
+            })
+          }
+
           const originalScrollPos = node.scrollTop
-          const scrollHeight = node.scrollHeight
           const width = NuiViewport.toNum(node.style.width)
           const height = NuiViewport.toNum(node.style.height)
           const orientation = width > height ? 'landscape' : 'portrait'
-          const totalPages = Math.floor(scrollHeight / height)
           const format = [width, height]
 
-          const doc = new jspdf.jsPDF({
-            compress: true,
-            orientation,
-            unit: 'px',
+          const doc = await createPages(null, [node], {
             format,
+            orientation,
+            pageWidth: viewport.width,
+            pageHeight: viewport.height,
           })
-          // Deletes the empty page
-          doc.deletePage(1)
 
-          for (let index = 0; index <= totalPages; index++) {
-            var scrollPos = height * index
-            var yOffset = 0
-            // if the last page on canvas should have space (y-offset)
-            if (height * (index + 1) > node.scrollHeight) {
-              scrollPos = node.scrollHeight - height
-              yOffset = height - (node.scrollHeight - height * index)
-            }
-            node.scrollTo({ top: scrollPos })
-            const canvas = await html2canvas(node, {
-              allowTaint: true,
-              width: width,
-              height: height,
-              y: yOffset,
-            })
-            doc.addPage(format, orientation)
-            doc.addImage(canvas.toDataURL(), 'PNG', 0, 0, width, height)
-          }
-          node.scrollTo({ top: originalScrollPos })
+          // if (node.childElementCount) {
+          //   currChild = node.firstElementChild as HTMLElement
+          //   await createPage(doc, currChild, screenshotOptions)
+
+          //   while (currChild) {
+          //     bounds = currChild.getBoundingClientRect()
+          //     const willOverflowToNextPage =
+          //       currWrapperHeight + bounds.height > viewport.height
+          //     if (willOverflowToNextPage) {
+          //       await createPage(doc, currChild, screenshotOptions)
+          //       // currWrapperHeight = bounds.height
+          //     } else {
+          //       currWrapperHeight += bounds.height
+          //     }
+          //     // Should be the remaining/leftover data
+          //     if (!currChild.nextElementSibling) {
+          //       if (currWrapperHeight + bounds.top < bounds.bottom) {
+          //         currChild.scrollTo({ top: currWrapperHeight + bounds.top })
+          //         await createPage(doc, currChild, {
+          //           ...screenshotOptions,
+          //         })
+          //         currHeight += bounds.height
+          //       }
+          //     }
+          //     currChild = currChild.nextElementSibling as HTMLElement
+          //   }
+          // } else {
+          //   await createPage(doc, node, screenshotOptions)
+          // }
 
           return doc
         } catch (error) {
