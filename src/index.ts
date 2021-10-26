@@ -43,7 +43,7 @@ export async function getWindowHelpers() {
 
   return u.assign(
     {
-      lvl2: { ...lvl2sdk.utilServices },
+      lvl2: lvl2sdk.utilServices,
       exportToPDF,
       findByDataAttrib,
       findByDataKey,
@@ -186,7 +186,7 @@ window.addEventListener('load', async (e) => {
         get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
       },
       ...u.reduce(
-        u.entries(getWindowHelpers()),
+        u.entries(await getWindowHelpers()),
         (acc, [key, fn]) =>
           u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
         {},
