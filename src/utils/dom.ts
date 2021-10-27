@@ -161,40 +161,33 @@ export function exportToPDF(
             let currPageHeight = 0
             let currHeight = 0
             let firstPageNode: HTMLElement | undefined
+            let counter = 0
+
+            let lastId = ''
+            let pendingIds = [] as string[]
 
             for (let index = 0; index < node.children.length; index++) {
               let childNode = node.children[index]
               let childBounds = childNode.getBoundingClientRect()
               let currLabel = `[${childNode.tagName}_${childNode.id}]_${childBounds.top}`
-              let getLogArgs = (opts?: any) => ({
-                ...childBounds,
-                tagName: childNode.tagName,
-                id: childNode.id,
-                className: childNode.className,
-                ...opts,
-              })
 
               if (isElement(childNode)) {
-                if (!firstPageNode) {
-                  console.log(
-                    `%c${currLabel} Initiating first page node`,
-                    `color:#95a5a6;`,
-                    getLogArgs(),
-                  )
-                  firstPageNode = childNode
-                }
+                // let position = getElementTop(childNode)
+                let position = currHeight
+                let nextIterationHeight = currPageHeight + childBounds.height
 
-                let nextHeight = currPageHeight + childBounds.height
+                if (!firstPageNode) firstPageNode = childNode
 
                 // Cuts off / breakpoint line / end of a page
-                if (nextHeight > pageHeight) {
+                if (nextIterationHeight > pageHeight) {
                   console.log(
                     `%c${currLabel} Reached breakpoint/cutoff line from ` +
-                      `incoming node of height ${childBounds.height} of top ${childBounds.top} on ${nextHeight}`,
+                      `incoming node of height ${childBounds.height} of top ${childBounds.top} on ${nextIterationHeight}`,
                     `color:#FF5722;`,
-                    getLogArgs(),
                   )
+
                   const prevSibling = childNode.previousElementSibling
+
                   if (prevSibling) {
                     if (
                       prevSibling.classList.contains('label') ||
@@ -207,180 +200,89 @@ export function exportToPDF(
                     }
                   }
 
-                  const firstPageNodeBounds =
-                    firstPageNode.getBoundingClientRect()
-
-                  console.log(
-                    `%c${currLabel} Scrolling into first page node of: ${firstPageNode.tagName}` +
-                      `_${firstPageNode.id}` +
-                      `_${firstPageNodeBounds.top}`,
-                    `color:#95a5a6;`,
-                  )
-
                   firstPageNode.scrollIntoView()
 
-                  console.log(
-                    `%c${currLabel} Scrolled into first page node of: ${firstPageNode.tagName}` +
-                      `_${firstPageNode.id}` +
-                      `_${firstPageNodeBounds.top}`,
-                    `color:#00b406;`,
-                  )
+                  let startPosition = position
+                  let stopPosition = getElementTop(childNode)
 
-                  let stopAt = firstPageNode.getBoundingClientRect().bottom
-                  let hiddenNodes = [] as HTMLElement[]
-
-                  console.log(
-                    `%c${currLabel} Found stop point of incoming page: ${stopAt}`,
-                    'color:mediumslategreen;font-weight:bold;',
-                    getLogArgs(),
-                  )
-
-                  if (firstPageNode.childElementCount) {
-                    console.log(
-                      `%c${currLabel} Going through ` +
-                        `${firstPageNode.childElementCount} children of first ` +
-                        `page node's children`,
-                      `color:#95a5a6;`,
-                      getLogArgs(),
-                    )
-
-                    let count = 0
-
-                    for (const childNode of firstPageNode.children) {
-                      if (isElement(childNode)) {
-                        const bounds = childNode.getBoundingClientRect()
-                        count++
-                        console.log(
-                          `${currLabel} Child #${count}: ${childNode.tagName}_${childNode.id}`,
-                          bounds,
-                        )
-
-                        if (bounds.top > stopAt) {
-                          console.log(
-                            `%c${currLabel} Child #${count} has reached the stop point!`,
-                            `color:#00b406;`,
-                            { position: bounds.top, stopPoint: stopAt },
-                          )
-
-                          let prevVisibleValue = childNode.style.visibility
-
-                          if (prevVisibleValue !== 'hidden') {
-                            console.log(
-                              `%c${currLabel} Child #${count} is currently visible`,
-                              `color:#95a5a6;`,
-                            )
-                          }
-                          if (prevVisibleValue !== 'hidden') {
-                            childNode.style.visibility = 'hidden'
-                            console.log(
-                              `%c${currLabel} Switching visibility from ${prevVisibleValue} to hidden`,
-                              `color:#95a5a6;`,
-                            )
-                          }
-
-                          const prevHiddenNodesLength = hiddenNodes.length
-                          hiddenNodes.push(childNode)
-                          console.log(
-                            `%c${currLabel} Added child #${count} to list of hidden nodes`,
-                            {
-                              before: prevHiddenNodesLength,
-                              after: hiddenNodes.length,
-                            },
-                          )
-                        } else {
-                          console.log(
-                            `%c${currLabel} Child #${count} has not reached the stop point`,
-                            `color:#95a5a6;`,
-                            {
-                              position: bounds.top,
-                              stopPoint: stopAt,
-                              hiddenNodesLength: hiddenNodes.length,
-                            },
-                          )
-                        }
-                      }
-                    }
-                  } else {
-                    const firstPageNodeBounds =
-                      firstPageNode.getBoundingClientRect()
-                    console.log(
-                      `%c${currLabel} First page node (${firstPageNode.tagName}_${firstPageNode.id}_${firstPageNodeBounds.top}) has no children`,
-                      `color:#CCCD17;`,
-                      getLogArgs(),
-                    )
-
-                    if (firstPageNodeBounds.top > stopAt) {
-                      console.log(
-                        `%c${currLabel} First page node at ${firstPageNodeBounds.top} is reaching the stop point of ${stopAt}!`,
-                        `color:#00b406;`,
-                      )
-                      const prevVisibility = childNode.style.visibility
-                      console.log(
-                        `%c${currLabel} The first page node is ${prevVisibility}`,
-                      )
-                      if (prevVisibility !== 'hidden') {
-                        console.log(
-                          `%c${currLabel} Switching first page node's visibility state to hidden`,
-                          `color:#95a5a6;`,
-                        )
-                      }
-                      childNode.style.visibility = 'hidden'
-                      const prevHiddenNodesLength = hiddenNodes.length
-                      hiddenNodes.push(childNode)
-                      console.log(
-                        `%c${currLabel} Added single node of ${
-                          childNode.tagName
-                        }_${childNode.id}_${
-                          childNode.getBoundingClientRect().top
-                        } to list of hidden nodes`,
-                        {
-                          before: prevHiddenNodesLength,
-                          after: hiddenNodes.length,
-                        },
-                      )
-                    } else {
-                      console.log(
-                        `%c${currLabel} First page node has not reached the stop point yet`,
-                        `color:#95a5a6;`,
-                        firstPageNodeBounds,
-                      )
-                    }
-                  }
+                  console.log(childBounds)
 
                   const canvas = await html2canvas(node, {
                     allowTaint: true,
                     onclone: (doc, el) => {
-                      // let position = 0
-                      // for (const childNode of el.children) {
-                      //   if (isElement(childNode)) {
-                      //     const childBounds = childNode.getBoundingClientRect()
-                      //     position += childBounds.height
-                      //     console.log(
-                      //       `[${childNode.tagName}] ${childNode.id} position: ${position}`,
-                      //     )
-                      //     if (position > currPageHeight) {
-                      //       console.log(
-                      //         `%c[Removing] ${childNode.tagName} - ${childNode.id}`,
-                      //         `color:#00b406;font-weight:400;`,
-                      //         childNode.textContent,
-                      //       )
-                      //       // doc.body.removeChild(childNode)
-                      //       childNode.setAttribute(
-                      //         'data-html2canvas-ignore',
-                      //         'true',
-                      //       )
-                      //       childNode.hidden = true
-                      //       childNode.style.display = 'none'
-                      //       // el.removeChild(childNode)
-                      //       // childNode.remove()
-                      //       //   childNode.remove()
-                      //     }
-                      //   }
-                      // }
+                      counter++
+                      let position = 0
+                      for (const childNode of el.children) {
+                        if (isElement(childNode)) {
+                          childNode.style.border = '1px solid red'
+                          const { height } = childNode.getBoundingClientRect()
+                          position = getElementTop(childNode)
+                          const positionWithHeight = position + height
+                          // Left
+                          const removeBeforePosition =
+                            currHeight - currPageHeight
+                          // Right
+                          const removeAfterPosition =
+                            currHeight + currPageHeight
+
+                          const willOverflow = position > currHeight
+
+                          console.log({
+                            textContent: childNode.textContent,
+                            currPageHeight,
+                            currHeight,
+                            position,
+                            height,
+                            positionWithHeight,
+                            removeBeforePosition,
+                            removeAfterPosition,
+                            willOverflow,
+                          })
+
+                          debugger
+                          if (
+                            willOverflow ||
+                            position < removeBeforePosition ||
+                            position > removeAfterPosition
+                          ) {
+                            console.log(
+                              `%c[Removing] ${childNode.tagName} - ${childNode.id}`,
+                              `color:#00b406;font-weight:400;`,
+                              childNode.textContent,
+                            )
+                            debugger
+                            if (counter > 1) {
+                            }
+                            childNode.style.visibility = 'hidden'
+                            // doc.body.removeChild(childNode)
+                            // childNode.setAttribute(
+                            //   'data-html2canvas-ignore',
+                            //   'true',
+                            // )
+                            // childNode.style.display = 'none'
+                            // el.removeChild(childNode)
+                            // childNode.remove()
+                            //   childNode.remove()
+                            if (
+                              positionWithHeight > removeAfterPosition &&
+                              !pendingIds.includes(childNode.id)
+                            ) {
+                              pendingIds.push(childNode.id)
+                            }
+                          } else {
+                            if (pendingIds.includes(childNode.id)) {
+                              pendingIds.splice(
+                                pendingIds.indexOf(childNode.id),
+                                1,
+                              )
+                            }
+                          }
+                        }
+                      }
                     },
                     width,
                     height,
-                    scrollY: node.scrollTop,
+                    scrollY: startPosition,
                     windowWidth: overallWidth,
                     windowHeight: overallHeight,
                   })
@@ -388,36 +290,14 @@ export function exportToPDF(
                   doc.addPage(format, orientation)
                   doc.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height)
                   currPageHeight = 0
-                  firstPageNode = childNode.nextElementSibling as HTMLElement
-
-                  hiddenNodes.forEach((node) => {
-                    const top = node.getBoundingClientRect().top
-                    console.log(
-                      `%c${currLabel} Switching hidden node ${node.tagName}_${node.id}_${top} to visible`,
-                      'color: grey;',
-                    )
-                    node.style.visibility = 'visible'
-                  })
-
-                  if (firstPageNode) {
-                    console.log(
-                      `%c${currLabel} Next first page node: ${
-                        firstPageNode.tagName
-                      }_${firstPageNode.id}_${
-                        firstPageNode.getBoundingClientRect().top
-                      }`,
-                      `color:mediumslategreen`,
-                    )
-                  } else {
-                    console.log(`%c${currLabel} No more nodes to iterate over`)
-                  }
+                  firstPageNode = childNode
                 }
 
                 console.log(`[currPageHeight before: ${currPageHeight}]`)
                 console.log(`[currHeight before: ${currHeight}]`)
 
-                currPageHeight += childBounds.height
                 currHeight += childBounds.height
+                currPageHeight += childBounds.height
 
                 console.log(`[currPageHeight after: ${currPageHeight}]`)
                 console.log(`[currHeight after: ${currHeight}]`)
@@ -531,6 +411,13 @@ export function getDataUrl(elem: HTMLImageElement) {
 
 export function getDocumentScrollTop(doc?: Document | null) {
   return (doc || document)?.body?.scrollTop
+}
+
+export function getElementTop(el: HTMLElement) {
+  return (
+    el.offsetTop +
+      (el.offsetParent && getElementTop(el.offsetParent as HTMLElement)) || 0
+  )
 }
 
 export function getVcodeElem(dataKey = 'formData.code') {
