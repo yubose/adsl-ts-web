@@ -133,13 +133,19 @@ export function exportToPDF(
 
       const createDocByDOMNode = async (node: HTMLElement): Promise<jsPDF> => {
         try {
-          const originalScrollPos = node.scrollTop
-          const scrollHeight = node.scrollHeight
+          const bounds = node.getBoundingClientRect()
+          const originalScrollPos = 0
+          const overallHeight = node.scrollHeight
+          const overallWidth = node.scrollWidth
           const width = NuiViewport.toNum(node.style.width)
           const height = NuiViewport.toNum(node.style.height)
           const orientation = width > height ? 'landscape' : 'portrait'
-          const totalPages = Math.floor(scrollHeight / height)
           const format = [width, height]
+          const pageWidth = window.innerWidth
+          const pageHeight = window.innerHeight
+
+          console.log('\n')
+          console.log({ pageWidth, pageHeight, overallHeight })
 
           const doc = new jspdf.jsPDF({
             compress: true,
@@ -147,27 +153,300 @@ export function exportToPDF(
             unit: 'px',
             format,
           })
+
           // Deletes the empty page
           doc.deletePage(1)
 
-          for (let index = 0; index <= totalPages; index++) {
-            var scrollPos = height * index
-            var yOffset = 0
-            // if the last page on canvas should have space (y-offset)
-            if (height * (index + 1) > node.scrollHeight) {
-              scrollPos = node.scrollHeight - height
-              yOffset = height - (node.scrollHeight - height * index)
+          if (node.childElementCount) {
+            let currPageHeight = 0
+            let currHeight = 0
+            let firstPageNode: HTMLElement | undefined
+
+            for (let index = 0; index < node.children.length; index++) {
+              let childNode = node.children[index]
+              let childBounds = childNode.getBoundingClientRect()
+              let currLabel = `[${childNode.tagName}_${childNode.id}]_${childBounds.top}`
+              let getLogArgs = (opts?: any) => ({
+                ...childBounds,
+                tagName: childNode.tagName,
+                id: childNode.id,
+                className: childNode.className,
+                ...opts,
+              })
+
+              if (isElement(childNode)) {
+                if (!firstPageNode) {
+                  console.log(
+                    `%c${currLabel} Initiating first page node`,
+                    `color:#95a5a6;`,
+                    getLogArgs(),
+                  )
+                  firstPageNode = childNode
+                }
+
+                let nextHeight = currPageHeight + childBounds.height
+
+                // Cuts off / breakpoint line / end of a page
+                if (nextHeight > pageHeight) {
+                  console.log(
+                    `%c${currLabel} Reached breakpoint/cutoff line from ` +
+                      `incoming node of height ${childBounds.height} of top ${childBounds.top} on ${nextHeight}`,
+                    `color:#FF5722;`,
+                    getLogArgs(),
+                  )
+                  const prevSibling = childNode.previousElementSibling
+                  if (prevSibling) {
+                    if (
+                      prevSibling.classList.contains('label') ||
+                      [...prevSibling.children].some((n) =>
+                        n.classList.contains('label'),
+                      )
+                    ) {
+                      window.prevSibling = prevSibling
+                      debugger
+                    }
+                  }
+
+                  const firstPageNodeBounds =
+                    firstPageNode.getBoundingClientRect()
+
+                  console.log(
+                    `%c${currLabel} Scrolling into first page node of: ${firstPageNode.tagName}` +
+                      `_${firstPageNode.id}` +
+                      `_${firstPageNodeBounds.top}`,
+                    `color:#95a5a6;`,
+                  )
+
+                  firstPageNode.scrollIntoView()
+
+                  console.log(
+                    `%c${currLabel} Scrolled into first page node of: ${firstPageNode.tagName}` +
+                      `_${firstPageNode.id}` +
+                      `_${firstPageNodeBounds.top}`,
+                    `color:#00b406;`,
+                  )
+
+                  let stopAt = firstPageNode.getBoundingClientRect().bottom
+                  let hiddenNodes = [] as HTMLElement[]
+
+                  console.log(
+                    `%c${currLabel} Found stop point of incoming page: ${stopAt}`,
+                    'color:mediumslategreen;font-weight:bold;',
+                    getLogArgs(),
+                  )
+
+                  if (firstPageNode.childElementCount) {
+                    console.log(
+                      `%c${currLabel} Going through ` +
+                        `${firstPageNode.childElementCount} children of first ` +
+                        `page node's children`,
+                      `color:#95a5a6;`,
+                      getLogArgs(),
+                    )
+
+                    let count = 0
+
+                    for (const childNode of firstPageNode.children) {
+                      if (isElement(childNode)) {
+                        const bounds = childNode.getBoundingClientRect()
+                        count++
+                        console.log(
+                          `${currLabel} Child #${count}: ${childNode.tagName}_${childNode.id}`,
+                          bounds,
+                        )
+
+                        if (bounds.top > stopAt) {
+                          console.log(
+                            `%c${currLabel} Child #${count} has reached the stop point!`,
+                            `color:#00b406;`,
+                            { position: bounds.top, stopPoint: stopAt },
+                          )
+
+                          let prevVisibleValue = childNode.style.visibility
+
+                          if (prevVisibleValue !== 'hidden') {
+                            console.log(
+                              `%c${currLabel} Child #${count} is currently visible`,
+                              `color:#95a5a6;`,
+                            )
+                          }
+                          if (prevVisibleValue !== 'hidden') {
+                            childNode.style.visibility = 'hidden'
+                            console.log(
+                              `%c${currLabel} Switching visibility from ${prevVisibleValue} to hidden`,
+                              `color:#95a5a6;`,
+                            )
+                          }
+
+                          const prevHiddenNodesLength = hiddenNodes.length
+                          hiddenNodes.push(childNode)
+                          console.log(
+                            `%c${currLabel} Added child #${count} to list of hidden nodes`,
+                            {
+                              before: prevHiddenNodesLength,
+                              after: hiddenNodes.length,
+                            },
+                          )
+                        } else {
+                          console.log(
+                            `%c${currLabel} Child #${count} has not reached the stop point`,
+                            `color:#95a5a6;`,
+                            {
+                              position: bounds.top,
+                              stopPoint: stopAt,
+                              hiddenNodesLength: hiddenNodes.length,
+                            },
+                          )
+                        }
+                      }
+                    }
+                  } else {
+                    const firstPageNodeBounds =
+                      firstPageNode.getBoundingClientRect()
+                    console.log(
+                      `%c${currLabel} First page node (${firstPageNode.tagName}_${firstPageNode.id}_${firstPageNodeBounds.top}) has no children`,
+                      `color:#CCCD17;`,
+                      getLogArgs(),
+                    )
+
+                    if (firstPageNodeBounds.top > stopAt) {
+                      console.log(
+                        `%c${currLabel} First page node at ${firstPageNodeBounds.top} is reaching the stop point of ${stopAt}!`,
+                        `color:#00b406;`,
+                      )
+                      const prevVisibility = childNode.style.visibility
+                      console.log(
+                        `%c${currLabel} The first page node is ${prevVisibility}`,
+                      )
+                      if (prevVisibility !== 'hidden') {
+                        console.log(
+                          `%c${currLabel} Switching first page node's visibility state to hidden`,
+                          `color:#95a5a6;`,
+                        )
+                      }
+                      childNode.style.visibility = 'hidden'
+                      const prevHiddenNodesLength = hiddenNodes.length
+                      hiddenNodes.push(childNode)
+                      console.log(
+                        `%c${currLabel} Added single node of ${
+                          childNode.tagName
+                        }_${childNode.id}_${
+                          childNode.getBoundingClientRect().top
+                        } to list of hidden nodes`,
+                        {
+                          before: prevHiddenNodesLength,
+                          after: hiddenNodes.length,
+                        },
+                      )
+                    } else {
+                      console.log(
+                        `%c${currLabel} First page node has not reached the stop point yet`,
+                        `color:#95a5a6;`,
+                        firstPageNodeBounds,
+                      )
+                    }
+                  }
+
+                  const canvas = await html2canvas(node, {
+                    allowTaint: true,
+                    onclone: (doc, el) => {
+                      // let position = 0
+                      // for (const childNode of el.children) {
+                      //   if (isElement(childNode)) {
+                      //     const childBounds = childNode.getBoundingClientRect()
+                      //     position += childBounds.height
+                      //     console.log(
+                      //       `[${childNode.tagName}] ${childNode.id} position: ${position}`,
+                      //     )
+                      //     if (position > currPageHeight) {
+                      //       console.log(
+                      //         `%c[Removing] ${childNode.tagName} - ${childNode.id}`,
+                      //         `color:#00b406;font-weight:400;`,
+                      //         childNode.textContent,
+                      //       )
+                      //       // doc.body.removeChild(childNode)
+                      //       childNode.setAttribute(
+                      //         'data-html2canvas-ignore',
+                      //         'true',
+                      //       )
+                      //       childNode.hidden = true
+                      //       childNode.style.display = 'none'
+                      //       // el.removeChild(childNode)
+                      //       // childNode.remove()
+                      //       //   childNode.remove()
+                      //     }
+                      //   }
+                      // }
+                    },
+                    width,
+                    height,
+                    scrollY: node.scrollTop,
+                    windowWidth: overallWidth,
+                    windowHeight: overallHeight,
+                  })
+
+                  doc.addPage(format, orientation)
+                  doc.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height)
+                  currPageHeight = 0
+                  firstPageNode = childNode.nextElementSibling as HTMLElement
+
+                  hiddenNodes.forEach((node) => {
+                    const top = node.getBoundingClientRect().top
+                    console.log(
+                      `%c${currLabel} Switching hidden node ${node.tagName}_${node.id}_${top} to visible`,
+                      'color: grey;',
+                    )
+                    node.style.visibility = 'visible'
+                  })
+
+                  if (firstPageNode) {
+                    console.log(
+                      `%c${currLabel} Next first page node: ${
+                        firstPageNode.tagName
+                      }_${firstPageNode.id}_${
+                        firstPageNode.getBoundingClientRect().top
+                      }`,
+                      `color:mediumslategreen`,
+                    )
+                  } else {
+                    console.log(`%c${currLabel} No more nodes to iterate over`)
+                  }
+                }
+
+                console.log(`[currPageHeight before: ${currPageHeight}]`)
+                console.log(`[currHeight before: ${currHeight}]`)
+
+                currPageHeight += childBounds.height
+                currHeight += childBounds.height
+
+                console.log(`[currPageHeight after: ${currPageHeight}]`)
+                console.log(`[currHeight after: ${currHeight}]`)
+              }
             }
-            node.scrollTo({ top: scrollPos })
-            const canvas = await html2canvas(node, {
-              allowTaint: true,
-              width: width,
-              height: height,
-              y: yOffset,
-            })
-            doc.addPage(format, orientation)
-            doc.addImage(canvas.toDataURL(), 'PNG', 0, 0, width, height)
+          } else {
+            //
           }
+
+          // for (let index = 0; index <= totalPages; index++) {
+          //   let scrollPos = height * index
+          //   let yOffset = 0
+          //   let pageNum = index + 1
+          //   let currHeight = height * pageNum
+          //   // if the last page on canvas should have space (y-offset)
+          //   if (currHeight > overallHeight) {
+          //     scrollPos = overallHeight - height
+          //     yOffset = height - (overallHeight - height * index)
+          //   }
+          //   node.scrollTo({ top: scrollPos })
+          //   const canvas = await html2canvas(node, {
+          //     allowTaint: true,
+          //     width: width,
+          //     height: height,
+          //     y: yOffset,
+          //   })
+          //   doc.addPage(format, orientation)
+          //   doc.addImage(canvas.toDataURL(), 'PNG', 0, 0, width, height)
+          // }
           node.scrollTo({ top: originalScrollPos })
 
           return doc
@@ -274,6 +553,10 @@ export const show = makeElemFn((node) => {
  */
 export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
+}
+
+export function isElement(node: unknown): node is HTMLElement {
+  return !!node && typeof node == 'object' && 'tagName' in node
 }
 
 export function isVisible(node: HTMLElement | null) {

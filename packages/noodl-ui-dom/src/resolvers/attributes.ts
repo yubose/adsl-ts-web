@@ -281,6 +281,7 @@ const attributesResolver: t.Resolve.Config = {
               identify: (c: NuiComponent.Instance) => c.has('global'),
               className: 'global',
             },
+            label: 'label',
             page: 'page',
             popUp: 'popup',
             scrollView: 'scroll-view',
