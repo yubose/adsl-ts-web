@@ -233,6 +233,10 @@ class App {
         pageUrl = pageUrl.page
       }
       if (pageUrl) {
+        if (nu.isOutboundLink(pageUrl)) {
+          return void (window.location.href = pageUrl)
+        }
+
         let index =
           pageUrl.indexOf('&') != -1 ? pageUrl.indexOf('&') : pageUrl.length
         let startPage = pageUrl.slice(0, index)
