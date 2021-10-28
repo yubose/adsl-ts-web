@@ -165,6 +165,7 @@ export function exportToPDF(
 
             let lastId = ''
             let pendingIds = [] as string[]
+            let queue = [...node.children].map((n) => n.id)
 
             for (let index = 0; index < node.children.length; index++) {
               let childNode = node.children[index]
@@ -203,9 +204,6 @@ export function exportToPDF(
                   firstPageNode.scrollIntoView()
 
                   let startPosition = position
-                  let stopPosition = getElementTop(childNode)
-
-                  console.log(childBounds)
 
                   const canvas = await html2canvas(node, {
                     allowTaint: true,
@@ -214,14 +212,12 @@ export function exportToPDF(
                       let position = 0
                       for (const childNode of el.children) {
                         if (isElement(childNode)) {
-                          childNode.style.border = '1px solid red'
+                          // childNode.style.border = '1px solid red'
                           const { height } = childNode.getBoundingClientRect()
                           position = getElementTop(childNode)
                           const positionWithHeight = position + height
-                          // Left
                           const removeBeforePosition =
                             currHeight - currPageHeight
-                          // Right
                           const removeAfterPosition =
                             currHeight + currPageHeight
 
@@ -239,7 +235,6 @@ export function exportToPDF(
                             willOverflow,
                           })
 
-                          debugger
                           if (
                             willOverflow ||
                             position < removeBeforePosition ||
@@ -250,19 +245,7 @@ export function exportToPDF(
                               `color:#00b406;font-weight:400;`,
                               childNode.textContent,
                             )
-                            debugger
-                            if (counter > 1) {
-                            }
                             childNode.style.visibility = 'hidden'
-                            // doc.body.removeChild(childNode)
-                            // childNode.setAttribute(
-                            //   'data-html2canvas-ignore',
-                            //   'true',
-                            // )
-                            // childNode.style.display = 'none'
-                            // el.removeChild(childNode)
-                            // childNode.remove()
-                            //   childNode.remove()
                             if (
                               positionWithHeight > removeAfterPosition &&
                               !pendingIds.includes(childNode.id)
@@ -289,22 +272,24 @@ export function exportToPDF(
 
                   doc.addPage(format, orientation)
                   doc.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height)
+
                   currPageHeight = 0
                   firstPageNode = childNode
                 }
 
-                console.log(`[currPageHeight before: ${currPageHeight}]`)
-                console.log(`[currHeight before: ${currHeight}]`)
-
                 currHeight += childBounds.height
                 currPageHeight += childBounds.height
-
-                console.log(`[currPageHeight after: ${currPageHeight}]`)
-                console.log(`[currHeight after: ${currHeight}]`)
               }
             }
           } else {
-            //
+            const canvas = await html2canvas(node, {
+              width,
+              height,
+              windowHeight: height,
+            })
+
+            doc.addPage(format, orientation)
+            doc.addImage(node, 'PNG', 0, 0, width, height)
           }
 
           // for (let index = 0; index <= totalPages; index++) {
