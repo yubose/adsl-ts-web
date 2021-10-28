@@ -44,7 +44,7 @@
     "updatenoodl": "node scripts/update.js -u noodl -d"
   },
   "dependencies": {
-    "@jsmanifest/utils": "^1.0.19",
+    "@jsmanifest/utils": "^1.0.18",
     "axios": "^0.21.1",
     "date-fns": "^2.21.2",
     "firebase": "^8.7.0",
