@@ -10,7 +10,7 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "postinstall": "lerna exec --scope noodl-types \"npm run build\"",
+    "postinstall": "lerna exec --scope noodl-types --scope noodl-action-chain \"npm run build\"",
     "bootstrap": "lerna bootstrap --hoist",
     "prebuild": "rm -rf dist build",
     "build": "npm run lib:build && webpack --mode=production",

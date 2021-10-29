@@ -37,9 +37,13 @@ const log = Logger.create('App.ts')
  * Just a helper to return the utilities that are meant to be attached
  * to the global window object
  */
-export function getWindowHelpers() {
+export async function getWindowHelpers() {
+  const { default: Lvl2 } = await import('@aitmed/ecos-lvl2-sdk')
+  const lvl2sdk = new Lvl2({ env: 'development', configUrl: '' })
+
   return u.assign(
     {
+      lvl2: lvl2sdk.utilServices,
       exportToPDF,
       findByDataAttrib,
       findByDataKey,
@@ -182,7 +186,7 @@ window.addEventListener('load', async (e) => {
         get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
       },
       ...u.reduce(
-        u.entries(getWindowHelpers()),
+        u.entries(await getWindowHelpers()),
         (acc, [key, fn]) =>
           u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
         {},
