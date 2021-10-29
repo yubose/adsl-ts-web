@@ -1,10 +1,16 @@
 import * as u from '@jsmanifest/utils'
 import type jsPDF from 'jspdf'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
+import { Options as Html2CanvasOptions } from 'html2canvas'
 import { Viewport as NuiViewport } from 'noodl-ui'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 import { isDataUrl } from './common'
+import {
+  createCanvas as createCanvasForExportToPDF,
+  getPageElements as getPageElementsForExportToPDF,
+} from './exportToPDF'
+import isElement from './isElement'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -158,129 +164,202 @@ export function exportToPDF(
           doc.deletePage(1)
 
           if (node.childElementCount) {
-            let currPageHeight = 0
-            let currHeight = 0
-            let firstPageNode: HTMLElement | undefined
-            let counter = 0
+            let childNode = node.firstElementChild
 
-            let lastId = ''
-            let pendingIds = [] as string[]
-            let queue = [...node.children].map((n) => n.id)
+            if (isElement(childNode)) {
+              let items = getPageElementsForExportToPDF(childNode, pageHeight)
+              let batchHeight = items.reduce(
+                (acc, { height }) => (acc += height),
+                0,
+              )
 
-            for (let index = 0; index < node.children.length; index++) {
-              let childNode = node.children[index]
-              let childBounds = childNode.getBoundingClientRect()
-              let currLabel = `[${childNode.tagName}_${childNode.id}]_${childBounds.top}`
+              while (items.length) {
+                let scrollY = 0
+                let idToScrollTo = items[0]?.id || ''
 
-              if (isElement(childNode)) {
-                // let position = getElementTop(childNode)
-                let position = currHeight
-                let nextIterationHeight = currPageHeight + childBounds.height
+                let nodeToScrollTo = !!(idToScrollTo && idToScrollTo !== '#')
+                  ? (node.querySelector(`#${idToScrollTo}`) as HTMLElement)
+                  : undefined
 
-                if (!firstPageNode) firstPageNode = childNode
-
-                // Cuts off / breakpoint line / end of a page
-                if (nextIterationHeight > pageHeight) {
+                if (nodeToScrollTo) {
+                  let { tagName, id } = nodeToScrollTo
+                  scrollY = getElementTop(nodeToScrollTo)
                   console.log(
-                    `%c${currLabel} Reached breakpoint/cutoff line from ` +
-                      `incoming node of height ${childBounds.height} of top ${childBounds.top} on ${nextIterationHeight}`,
-                    `color:#FF5722;`,
+                    `%c[${id}] Scrolling to ${tagName} element at scrollY: ${scrollY}`,
+                    `color:hotpink;font-weight:bold;;`,
                   )
-
-                  const prevSibling = childNode.previousElementSibling
-
-                  if (prevSibling) {
-                    if (
-                      prevSibling.classList.contains('label') ||
-                      [...prevSibling.children].some((n) =>
-                        n.classList.contains('label'),
-                      )
-                    ) {
-                      window.prevSibling = prevSibling
-                      debugger
-                    }
-                  }
-
-                  firstPageNode.scrollIntoView()
-
-                  let startPosition = position
-
-                  const canvas = await html2canvas(node, {
-                    allowTaint: true,
-                    onclone: (doc, el) => {
-                      counter++
-                      let position = 0
-                      for (const childNode of el.children) {
-                        if (isElement(childNode)) {
-                          // childNode.style.border = '1px solid red'
-                          const { height } = childNode.getBoundingClientRect()
-                          position = getElementTop(childNode)
-                          const positionWithHeight = position + height
-                          const removeBeforePosition =
-                            currHeight - currPageHeight
-                          const removeAfterPosition =
-                            currHeight + currPageHeight
-
-                          const willOverflow = position > currHeight
-
-                          console.log({
-                            textContent: childNode.textContent,
-                            currPageHeight,
-                            currHeight,
-                            position,
-                            height,
-                            positionWithHeight,
-                            removeBeforePosition,
-                            removeAfterPosition,
-                            willOverflow,
-                          })
-
-                          if (
-                            willOverflow ||
-                            position < removeBeforePosition ||
-                            position > removeAfterPosition
-                          ) {
-                            console.log(
-                              `%c[Removing] ${childNode.tagName} - ${childNode.id}`,
-                              `color:#00b406;font-weight:400;`,
-                              childNode.textContent,
-                            )
-                            childNode.style.visibility = 'hidden'
-                            if (
-                              positionWithHeight > removeAfterPosition &&
-                              !pendingIds.includes(childNode.id)
-                            ) {
-                              pendingIds.push(childNode.id)
-                            }
-                          } else {
-                            if (pendingIds.includes(childNode.id)) {
-                              pendingIds.splice(
-                                pendingIds.indexOf(childNode.id),
-                                1,
-                              )
-                            }
-                          }
-                        }
-                      }
-                    },
-                    width,
-                    height,
-                    scrollY: startPosition,
-                    windowWidth: overallWidth,
-                    windowHeight: overallHeight,
+                  nodeToScrollTo.scrollIntoView()
+                  nodeToScrollTo.style.border = `4px dashed hotpink`
+                  debugger
+                  // nodeToScrollTo.style.border = `none`
+                } else {
+                  console.log(`%cNo element to scroll to`, `color:#ec0000;`, {
+                    scrollY,
+                    idToScrollTo,
+                    items,
+                    childNode,
                   })
-
-                  doc.addPage(format, orientation)
-                  doc.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height)
-
-                  currPageHeight = 0
-                  firstPageNode = childNode
                 }
 
-                currHeight += childBounds.height
-                currPageHeight += childBounds.height
+                let canvas = await createCanvasForExportToPDF(node, items, {
+                  scrollY,
+                  width: pageWidth,
+                  height: batchHeight,
+                  windowWidth: overallWidth,
+                  windowHeight: overallHeight,
+                } as Html2CanvasOptions)
+
+                doc.addPage(format, orientation)
+                doc.addImage(canvas, 'PNG', 0, 0, pageWidth, pageHeight)
+
+                const lastItem = items[items.length - 1]
+                const lastChildId = lastItem.id
+                const endPosition = lastItem.start
+
+                if (lastChildId) {
+                  debugger
+                  items = getPageElementsForExportToPDF(
+                    node.querySelector(`#${lastChildId}`) as HTMLElement,
+                    pageHeight,
+                    endPosition + lastItem.height,
+                  )
+                  debugger
+                } else {
+                  items.length = 0
+                  break
+                }
               }
             }
+
+            // const canvases = await createCanvasForExportToPDF(node, items)
+            // for (const canvas of canvases) {
+            //   debugger
+            //   doc.addPage(format, orientation)
+            //   doc.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height)
+            // }
+            // let currPageHeight = 0
+            // let currHeight = 0
+            // let firstPageNode: HTMLElement | undefined
+            // let counter = 0
+
+            // let lastId = ''
+            // let pendingIds = [] as string[]
+            // let queue = [...node.children].map((n) => n.id)
+
+            // for (let index = 0; index < node.children.length; index++) {
+            //   let childNode = node.children[index]
+            //   let childBounds = childNode.getBoundingClientRect()
+            //   let currLabel = `[${childNode.tagName}_${childNode.id}]_${childBounds.top}`
+
+            //   if (isElement(childNode)) {
+            //     // let position = getElementTop(childNode)
+            //     let position = currHeight
+            //     let nextIterationHeight = currPageHeight + childBounds.height
+
+            //     if (!firstPageNode) firstPageNode = childNode
+
+            //     // Cuts off / breakpoint line / end of a page
+            //     if (nextIterationHeight > pageHeight) {
+            //       console.log(
+            //         `%c${currLabel} Reached breakpoint/cutoff line from ` +
+            //           `incoming node of height ${childBounds.height} of top ${childBounds.top} on ${nextIterationHeight}`,
+            //         `color:#FF5722;`,
+            //       )
+
+            //       const prevSibling = childNode.previousElementSibling
+
+            //       if (prevSibling) {
+            //         if (
+            //           prevSibling.classList.contains('label') ||
+            //           [...prevSibling.children].some((n) =>
+            //             n.classList.contains('label'),
+            //           )
+            //         ) {
+            //           window.prevSibling = prevSibling
+            //           debugger
+            //         }
+            //       }
+
+            //       firstPageNode.scrollIntoView()
+
+            //       let startPosition = position
+
+            //       const canvas = await html2canvas(node, {
+            //         allowTaint: true,
+            //         onclone: (doc, el) => {
+            //           counter++
+            //           let position = 0
+            //           for (const childNode of el.children) {
+            //             if (isElement(childNode)) {
+            //               childNode.style.border = '1px solid red'
+            //               const { height } = childNode.getBoundingClientRect()
+            //               position = getElementTop(childNode)
+            //               const positionWithHeight = position + height
+            //               const removeBeforePosition =
+            //                 currHeight - currPageHeight
+            //               const removeAfterPosition =
+            //                 currHeight + currPageHeight
+
+            //               const willOverflow = position > currHeight
+
+            //               console.log({
+            //                 textContent: childNode.textContent,
+            //                 currPageHeight,
+            //                 currHeight,
+            //                 position,
+            //                 height,
+            //                 positionWithHeight,
+            //                 removeBeforePosition,
+            //                 removeAfterPosition,
+            //                 willOverflow,
+            //               })
+
+            //               if (
+            //                 willOverflow ||
+            //                 position < removeBeforePosition ||
+            //                 position > removeAfterPosition
+            //               ) {
+            //                 console.log(
+            //                   `%c[Removing] ${childNode.tagName} - ${childNode.id}`,
+            //                   `color:#00b406;font-weight:400;`,
+            //                   childNode.textContent,
+            //                 )
+            //                 childNode.style.visibility = 'hidden'
+            //                 if (
+            //                   positionWithHeight > removeAfterPosition &&
+            //                   !pendingIds.includes(childNode.id)
+            //                 ) {
+            //                   pendingIds.push(childNode.id)
+            //                 }
+            //               } else {
+            //                 if (pendingIds.includes(childNode.id)) {
+            //                   pendingIds.splice(
+            //                     pendingIds.indexOf(childNode.id),
+            //                     1,
+            //                   )
+            //                 }
+            //               }
+            //             }
+            //           }
+            //         },
+            //         width,
+            //         height,
+            //         scrollY: startPosition,
+            //         windowWidth: overallWidth,
+            //         windowHeight: overallHeight,
+            //       })
+
+            //       doc.addPage(format, orientation)
+            //       doc.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height)
+
+            //       currPageHeight = 0
+            //       firstPageNode = childNode
+            //     }
+
+            //     currHeight += childBounds.height
+            //     currPageHeight += childBounds.height
+            //   }
+            // }
           } else {
             const canvas = await html2canvas(node, {
               width,
@@ -425,10 +504,6 @@ export const show = makeElemFn((node) => {
  */
 export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
-}
-
-export function isElement(node: unknown): node is HTMLElement {
-  return !!node && typeof node == 'object' && 'tagName' in node
 }
 
 export function isVisible(node: HTMLElement | null) {
