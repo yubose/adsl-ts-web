@@ -36,7 +36,7 @@ class Component<C extends ComponentObject = ComponentObject> {
     }
   }
 
-  [u.inspect]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       ...this.toJSON(),
       type: this.type,

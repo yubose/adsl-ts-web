@@ -184,7 +184,7 @@ export class MockNoodl extends EventEmitter {
   emitCall = (arg: any) => Promise.resolve(arg)
   viewWidthHeightRatio?: { min: number; max: number };
 
-  [u.inspect]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       assetsUrl: this.assetsUrl,
       baseUrl: this.baseUrl,
