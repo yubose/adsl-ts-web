@@ -2,6 +2,8 @@ import jsPDF from 'jspdf'
 import createCanvas from './createCanvas'
 import getPageElements from './getPageElements'
 import isElement from '../../utils/isElement'
+import linkNodes from './linkNodes'
+import type { Item } from './types'
 
 export interface Options {
   format?: number[]
@@ -10,6 +12,16 @@ export interface Options {
   pageHeight?: number
   overallWidth?: number
   overallHeight?: number
+}
+
+function getSiblings(node: HTMLElement) {
+  const siblings = [] as HTMLElement[]
+  let sibling = node
+  while (sibling) {
+    HTMLElement && siblings.push(sibling)
+    sibling = node.nextElementSibling as HTMLElement
+  }
+  return siblings
 }
 
 async function createPages(
@@ -32,14 +44,19 @@ async function createPages(
 
     if (el.childElementCount) {
       let childNode = el.firstElementChild as HTMLElement | undefined
+      let lastItem = { node: childNode as HTMLElement } as Item | undefined
       let startPosition = 0
+      let linkedNode = linkNodes(lastItem?.node as HTMLElement)
 
-      while (isElement(childNode)) {
-        let { items, first, last } = getPageElements(
-          childNode,
-          pageHeight,
-          startPosition,
-        )
+      while ((lastItem && isElement(lastItem?.node)) || linkedNode.next) {
+        let {
+          items,
+          first,
+          last,
+          linkedNode: linkedNodeProp,
+        } = getPageElements(linkedNode, pageHeight, startPosition)
+
+        linkedNodeProp && (linkedNode = linkedNodeProp)
 
         if (first?.node) first.node.scrollIntoView()
 
@@ -62,7 +79,7 @@ async function createPages(
 
         debugger
 
-        childNode = last?.node
+        lastItem = last
         startPosition = last?.start || last?.end || startPosition
       }
     } else {

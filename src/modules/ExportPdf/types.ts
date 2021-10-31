@@ -5,4 +5,9 @@ export interface Item {
   height: number
   text?: string
   node: HTMLElement
+  hide: {
+    self: boolean
+    /** Element ids */
+    children: string[]
+  }
 }
