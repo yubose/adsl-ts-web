@@ -118,6 +118,7 @@ export function isStr(v: unknown): v is string {
 
 export const Regex = (function () {
   const o = {
+    onlyNumbers: /^[\+\-]?\d*\.?\d+(?:[Ee][\+\-]?\d+)?$/,
     reference: {
       dot: {
         single: {
