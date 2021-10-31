@@ -225,7 +225,8 @@ export const Identify = (function () {
     },
     rootKey: (v = '') =>
       !!(v && v[0].toUpperCase() === v[0] && !/[0-9]+/.test(v)),
-    localKey: (v = '') => !!(v && v[0].toLowerCase() === v[0]),
+    localKey: (v = '') =>
+      !!(v && v[0].toLowerCase() === v[0] && !/[0-9]+/.test(v)),
     reference: identifyStr<t.ReferenceString>((v) => {
       if (!i.isStr(v)) return false
       if (v === '.yml') return false
