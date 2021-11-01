@@ -519,11 +519,12 @@ function normalizeProps<
                   }
                 }else {
                   value[styleKey] = com.formatColor(styleValue)
+                  
+                  if(styleKey == 'pointerEvents' && styleValue != 'none'){
+                    delete value['pointerEvents']
+                  }
                 }
 
-                if(styleKey == 'pointerEvents' && styleValue != 'none'){
-                  delete value['pointerEvents']
-                }
               }
 
               // TODO - Find out how to resolve the issue of "value" being undefined without this string check when we already checked above this
@@ -603,7 +604,7 @@ function normalizeProps<
       if (!('objectFit' in (blueprint.style || {}))) {
         props.style.objectFit = 'contain'
       }
-    } else if (nt.Identify.component.listLike(blueprint)) {
+    } else if (nt.Identify.component.listLike(blueprint) && props.style.display !== 'none') {
       props.style.display =
         blueprint.style?.axis === 'horizontal' ? 'flex' : 'block'
       props.style.listStyle = 'none'
@@ -616,7 +617,7 @@ function normalizeProps<
       props.style.padding = 0
     } else if (nt.Identify.component.popUp(blueprint)) {
       props.style.visibility = 'hidden'
-    } else if (nt.Identify.component.scrollView(blueprint)) {
+    } else if (nt.Identify.component.scrollView(blueprint) && props.style.display !== 'none') {
       props.style.display = 'block'
     } else if (nt.Identify.component.textView(blueprint)) {
       props.style.rows = 10
