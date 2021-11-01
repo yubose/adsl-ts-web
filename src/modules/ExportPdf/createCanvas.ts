@@ -1,63 +1,68 @@
 import * as u from '@jsmanifest/utils'
-import { Options as Html2CanvasOptions } from 'html2canvas'
+import html2canvas, { Options as Html2CanvasOptions } from 'html2canvas'
 import isElement from '../../utils/isElement'
+import { SnapObject } from './getSnapObjects'
 import type { Item } from './types'
 
 async function createCanvas(options: {
   container: HTMLElement
   width: number
   height: number
-  start: number
-  items: Item[]
-  end: number
+  items: SnapObject[]
   pageHeight: number
   options?: Partial<Html2CanvasOptions>
 }) {
   try {
-    let { container, width, height, items, start, end, pageHeight, ...rest } =
-      options || {}
-    let endPosition = items[items.length - 1]?.end || start + height
+    let { container, width, height, items, pageHeight, ...rest } = options || {}
+    let startPosition = items[0]?.start.position || 0
+    let endPosition = items[items.length - 1]?.end.position || startPosition
     let hideIds = [] as string[]
 
-    for (const item of items) {
-      if (item.hide) {
-        if (item.hide.self) hideIds.push(item.id)
-        debugger
-        hideIds.push(...u.array(item.hide.children))
+    items[0]?.start?.node?.scrollIntoView?.()
+
+    for (const snapObject of items) {
+      if (snapObject.hide?.children) {
+        hideIds.push(...u.array(snapObject.hide.children))
       }
     }
 
     let canvas = await html2canvas(container, {
-      // allowTaint: true,
+      allowTaint: true,
       onclone: (doc: Document, el: HTMLElement) => {
+        debugger
         let position = 0
+        let nativeY = container.getBoundingClientRect().y
+        window.scrollTo({ top: nativeY })
 
         for (const childNode of el.children) {
           const id = childNode.id
+          const height = childNode.getBoundingClientRect().height
+          const nextPosition = position + height
 
           if (isElement(childNode)) {
-            if (
-              hideIds.includes(id) ||
-              hideIds.some((id) => childNode.querySelector(`#${id}`))
-            ) {
-              if (hideIds.includes(id)) childNode.style.visibility = 'hidden'
-              for (const id of hideIds) {
-                const innerChild = childNode.querySelector(
-                  `#${id}`,
-                ) as HTMLElement
-                innerChild && (innerChild.style.visibility = 'hidden')
+            if (nextPosition > startPosition + pageHeight) {
+              childNode.style.visibility = 'hidden'
+            } else {
+              if (
+                hideIds.includes(id) ||
+                hideIds.some((id) => childNode.querySelector(`#${id}`))
+              ) {
+                if (hideIds.includes(id)) childNode.style.visibility = 'hidden'
+                for (const id of hideIds) {
+                  const innerChild = childNode.querySelector(
+                    `#${id}`,
+                  ) as HTMLElement
+                  innerChild && (innerChild.style.visibility = 'hidden')
+                }
               }
             }
-            if (position > endPosition) {
-              childNode.style.visibility = 'hidden'
-            }
-            position += childNode.getBoundingClientRect().height
           }
+
+          position += height
         }
       },
       width,
       height,
-      scrollY: start,
       ...rest,
     })
 

@@ -1,11 +1,12 @@
 import { expect } from 'chai'
+import { prettyDOM } from '@testing-library/dom'
 import * as u from '@jsmanifest/utils'
 import * as nc from 'noodl-common'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
 import ExportPdf, { Item } from '../modules/ExportPdf'
 import createCanvas from '../modules/ExportPdf/createCanvas'
-import createPages from '../modules/ExportPdf/createPages'
+import createPages from '../modules/ExportPdf/createPages_next'
 import getPageElements from '../modules/ExportPdf/getPageElements'
 import {
   itemsWhereSomeChildrenWillOverflow,
@@ -137,7 +138,7 @@ describe(u.yellow(`ExportPdf`), () => {
       expect(items[3]).to.have.property('end', start + height)
     })
 
-    describe.only(`when the element will overflow to the next page`, () => {
+    describe(`when the element will overflow to the next page`, () => {
       describe(`when it is some of the children that will overflow and not all of them`, () => {
         let items = getItems(itemsWhereSomeChildrenWillOverflow.items)
         let pageHeight = itemsWhereSomeChildrenWillOverflow.pageHeight
@@ -192,6 +193,74 @@ describe(u.yellow(`ExportPdf`), () => {
   describe(u.italic(`createPages`), () => {
     it(``, () => {
       //
+    })
+  })
+
+  describe.only(u.italic(`getSnapObjects`), () => {
+    describe(`when the element will overflow`, () => {
+      it(`should traverse the children to get their start/end positions`, async () => {
+        const pageHeight = 880
+        const createLi = () => document.createElement('li')
+        const view = document.createElement('div')
+        view.style.height = '600px'
+        const list = document.createElement('ul')
+        list.style.height = '350px'
+        const label = document.createElement('div')
+        label.style.height = '70px'
+        view.appendChild(list)
+        const [li1, li2, li3] = [createLi(), createLi(), createLi()]
+        list.appendChild(li1)
+        list.appendChild(li2)
+        list.appendChild(li3)
+        li2.appendChild(label)
+        document.body.style.height = '1000px'
+        document.body.appendChild(view)
+
+        // const pages = await createPages(
+        //   {
+        //     addPage: () => {},
+        //     addImage: () => {},
+        //   } as any,
+        //   view,
+        //   { pageWidth: 366, pageHeight },
+        // )
+
+        // console.info({ pages })
+        console.info(prettyDOM(view.firstElementChild))
+        console.info(label.getBoundingClientRect())
+      })
+
+      describe(`when one or more children is overflowing`, () => {
+        xit(`should `, () => {
+          //
+        })
+      })
+
+      describe(`when the element itself with no children is overflowing`, () => {
+        xit(``, () => {
+          //
+        })
+      })
+
+      it(`should visit the siblings if the element and its children is not overflowing yet`, () => {
+        //
+      })
+
+      describe(`when a sibling is overflowing`, () => {
+        xit(``, () => {
+          //
+        })
+      })
+    })
+
+    describe(`when the element will not overflow`, () => {
+      xit(`should not visit children`, () => {
+        //
+      })
+
+      xit(`should visit the next sibling`, () => {
+        //
+      })
     })
   })
 })

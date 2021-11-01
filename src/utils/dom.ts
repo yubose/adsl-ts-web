@@ -6,7 +6,8 @@ import { Viewport as NuiViewport } from 'noodl-ui'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 import { isDataUrl } from './common'
-import createPagesForExportToPDF from '../modules/ExportPdf/createPages'
+import createPagesForExportToPDF from '../modules/ExportPdf/createPages_next'
+// import createPagesForExportToPDF from '../modules/ExportPdf/createPages'
 import createCanvasForExportToPDF from '../modules/ExportPdf/createCanvas'
 import getPageElementsForExportToPDF from '../modules/ExportPdf/getPageElements'
 import getElementTop from './getElementTop'
@@ -142,7 +143,6 @@ export function exportToPDF(
       const createDocByDOMNode = async (node: HTMLElement): Promise<jsPDF> => {
         try {
           const { width, height, top } = node.getBoundingClientRect()
-          window.scrollTo({ top })
           const originalScrollPos = node.scrollTop
           const pageWidth = width
           const pageHeight = height
@@ -150,17 +150,6 @@ export function exportToPDF(
           const overallHeight = node.scrollHeight
           const orientation = pageWidth > pageHeight ? 'landscape' : 'portrait'
           const format = [pageWidth, pageHeight]
-
-          console.log('\n')
-          console.log({
-            format,
-            orientation,
-            overallHeight,
-            overallWidth,
-            pageWidth,
-            pageHeight,
-            viewport,
-          })
 
           let doc = new jsPDF({
             compress: true,

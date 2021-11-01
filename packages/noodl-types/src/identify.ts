@@ -223,8 +223,10 @@ export const Identify = (function () {
       text: identifyNum<t.TextMediaType>((v) => v == 8),
       video: identifyNum<t.VideoMediaType>((v) => v == 9),
     },
-    rootKey: (v = '') => !!(v && v[0].toUpperCase() === v[0]),
-    localKey: (v = '') => !!(v && v[0].toLowerCase() === v[0]),
+    rootKey: (v = '') =>
+      !!(v && v[0].toUpperCase() === v[0] && !i.Regex.onlyNumbers.test(v)),
+    localKey: (v = '') =>
+      !!(v && v[0].toLowerCase() === v[0] && !i.Regex.onlyNumbers.test(v)),
     reference: identifyStr<t.ReferenceString>((v) => {
       if (!i.isStr(v)) return false
       if (v === '.yml') return false

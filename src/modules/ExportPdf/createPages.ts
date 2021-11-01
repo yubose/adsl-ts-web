@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf'
 import createCanvas from './createCanvas'
+import getSnapObjects from './getSnapObjects'
 import getPageElements from './getPageElements'
 import isElement from '../../utils/isElement'
 import linkNodes from './linkNodes'
@@ -42,7 +43,7 @@ async function createPages(
       overallHeight = pageHeight,
     } = options || {}
 
-    if (el.childElementCount) {
+    if (el.firstElementChild) {
       let childNode = el.firstElementChild as HTMLElement | undefined
       let lastItem = { node: childNode as HTMLElement } as Item | undefined
       let startPosition = 0
@@ -76,8 +77,6 @@ async function createPages(
 
         pdf.addPage(format, orientation)
         pdf.addImage(canvas, 'PNG', 0, 0, pageWidth, pageHeight)
-
-        debugger
 
         lastItem = last
         startPosition = last?.start || last?.end || startPosition

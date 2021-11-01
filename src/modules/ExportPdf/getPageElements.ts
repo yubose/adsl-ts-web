@@ -2,15 +2,7 @@ import * as u from '@jsmanifest/utils'
 import isElement from '../../utils/isElement'
 import linkNodes, { NodeLink } from './linkNodes'
 import type { Item } from './types'
-
-function getBounds(el: HTMLElement | DOMRect, position: number) {
-  const { height } = (isElement(el) ? el.getBoundingClientRect() : el) || {}
-  return {
-    start: position,
-    end: position + height,
-    height,
-  }
-}
+import getBounds from './getBounds'
 
 /**
  *
@@ -73,9 +65,9 @@ export function getPageElements(
         //     if (bounds.end <= pageHeight + startPosition) {
         //       // items.push(childItem)
         //       position = bounds.end
-        //       debugger
+        //
         //     } else if (end >= pageHeight) {
-        //       debugger
+        //
         //       if (!childLast) childLast = childItem
         //       if (!item.hide.includes(child.id)) {
         //         item.hide.push(child.id)
@@ -93,7 +85,6 @@ export function getPageElements(
       totalHeight += height
 
       if (end <= pageHeight + startPosition) {
-        debugger
         items.push(item)
         position = end
       } else if (end > startPosition + pageHeight) {
@@ -105,9 +96,8 @@ export function getPageElements(
           for (const child of sibling.children) {
             const bounds = getBounds(child, position)
             currHeight += bounds.height
-            debugger
+
             if (currHeight + position > pageHeight) {
-              debugger
               if (!item.hide.children.includes(child.id)) {
                 item.hide.children.push(child.id)
               }
