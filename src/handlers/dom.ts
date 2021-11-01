@@ -31,6 +31,9 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
+import { isArray } from 'lodash'
+import { addClassName } from 'noodl-ui-dom/dist/utils'
+import { isArr } from '@jsmanifest/utils'
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -548,7 +551,7 @@ const createExtendedDOMResolvers = function (app: App) {
             text = JSON.stringify(dataValue)
           }
 
-          let opts = {
+          let opts:any = {
             errorCorrectionLevel: 'H',
             type: 'svg',
             quality: 0.3,
@@ -561,9 +564,57 @@ const createExtendedDOMResolvers = function (app: App) {
           }
 
           QRCode.toDataURL(text, opts, function (err, url) {
-            if (err) throw err
-            node.src = url
+            // if (err) throw err
+            (node as HTMLImageElement).src = url
           })
+        }
+      },
+    },
+    '[App] highLight': {
+      cond: 'label',
+      resolve({ node, component }) {
+        if (component.has('highlightKey') && component.has('highlightStyle')) {
+
+          function heightLight(string, keyword) {
+              let reg = new RegExp(keyword, "gi")
+              string = string.replace(reg, function(txt){
+                  return `<span class="highlight" >${txt}</span>`
+              })
+              return string
+          }
+
+          const highlightKey = component.get('highlightKey')
+          const pageName = app.currentPage
+          const localhighlightValue = get(app.root[pageName], highlightKey)
+          const remotehighlightValue = get(app.root, highlightKey)
+          const highlightValue = localhighlightValue ? localhighlightValue : remotehighlightValue
+          const highlightStyle = component.get('highlightStyle')
+
+          let originalValue = node.innerHTML
+
+          node.innerHTML = ""
+          node.innerHTML = heightLight(originalValue,highlightValue)
+
+          let domObj:any = document.getElementsByClassName('highlight')
+          domObj.forEach(element=>{
+            u.eachEntries(highlightStyle, (key: any, value) => {
+              element.style[key] = value
+            })
+          })
+
+          // const span = document.createElement('span')
+          // span.innerText = highlightValue
+          // u.eachEntries(highlightStyle, (key: any, value) => {
+          //   span.style[key] = value
+          // })
+          // node.innerHTML = ""
+          // node.appendChild(span)
+
+          // let otherValue = originalValue.substring(highlightValue.length)
+          // const otherspan = document.createElement('span')
+          // otherspan.innerText = otherValue
+          // node.appendChild(otherspan )
+
         }
       },
     },
@@ -670,7 +721,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
                 li.onclick = function () {
                   console.log(li.innerHTML)
-                  node.value = li.innerHTML
+                  node.innerHTML = li.innerHTML
                   node.setAttribute('data-value', li.innerHTML)
                   ul.innerHTML = ''
                   ul.style.display = 'none'
@@ -690,7 +741,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let count = 0
               json1.forEach((element) => {
                 let name = element.name.toLowerCase()
-                let key = node.value.toLowerCase()
+                let key = node.innerHTML.toLowerCase()
                 if (name.indexOf(key) != -1) {
                   count = count + 1
                   let li = document.createElement('li')
@@ -715,7 +766,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
                   li.onclick = function () {
                     console.log(li.innerHTML)
-                    node.value = li.innerHTML
+                    node.innerHTML = li.innerHTML
                     node.setAttribute('data-value', li.innerHTML)
                     ul.innerHTML = ''
                     ul.style.display = 'none'
