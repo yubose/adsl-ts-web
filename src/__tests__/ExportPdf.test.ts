@@ -6,7 +6,7 @@ import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
 import ExportPdf, { Item } from '../modules/ExportPdf'
 import createCanvas from '../modules/ExportPdf/createCanvas'
-import createPages from '../modules/ExportPdf/createPages_next'
+import createPages from '../modules/ExportPdf/createPages'
 import getPageElements from '../modules/ExportPdf/getPageElements'
 import {
   itemsWhereSomeChildrenWillOverflow,

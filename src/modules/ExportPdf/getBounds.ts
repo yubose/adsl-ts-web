@@ -1,11 +1,5 @@
 import isElement from '../../utils/isElement'
-
-export interface Bounds {
-  height: number
-  start: number
-  end: number
-  native: DOMRect | null
-}
+import type { Bounds } from './types'
 
 function getBounds(el: HTMLElement | DOMRect, pos: number = 0) {
   const bounds = isElement(el) ? el.getBoundingClientRect() : el || {}

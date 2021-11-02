@@ -1,4 +1,7 @@
 export { default } from './ExportPdf'
+export { default as ExportPDF } from './ExportPdf'
 export { default as createCanvas } from './createCanvas'
-export { default as getPageElements } from './getPageElements'
+export { default as createPages } from './createPages'
+export { default as getBounds } from './getBounds'
+export { default as getSnapObjects } from './getSnapObjects'
 export * from './types'

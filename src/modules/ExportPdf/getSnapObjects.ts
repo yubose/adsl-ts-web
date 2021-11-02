@@ -1,71 +1,13 @@
-import type { Bounds } from './getBounds'
 import getBounds from './getBounds'
 import isElement from '../../utils/isElement'
-
-export interface SnapObject<N extends HTMLElement = HTMLElement> {
-  start: {
-    position: number
-    node: N
-  }
-  end: {
-    position: number
-    node: N | null
-  }
-  height: number
-  native: DOMRect | null
-  hide?: {
-    /** Element ids */
-    children?: string[]
-  }
-}
-
-export function getSnapObject(el: HTMLElement, pos: number) {
-  const bounds = getBounds(el, pos)
-  return {
-    start: {
-      position: pos,
-      node: el,
-    },
-    end: {
-      position: bounds.end,
-      node: el,
-    },
-    height: bounds.height,
-    native: bounds.native,
-    text: el.textContent?.substring?.(0, 35) || '',
-  } as SnapObject
-}
+import * as t from './types'
 
 const pageWidth = 363
 const pageHeight = 676.7897338867188
 
-export function getSnapObjectsBySibling(
-  el: HTMLElement,
-  pos = 0,
-  type: 'previous' | 'next' = 'next',
-) {
-  let objs = [] as SnapObject[]
-  let obj = getSnapObject(el, pos)
-  let method =
-    type === 'previous' ? 'previousElementSibling' : 'nextElementSibling'
-
-  objs.push(obj)
-
-  let currSibling = el[method] as HTMLElement
-
-  while (currSibling) {
-    const snapObject = getSnapObject(currSibling, pos)
-    objs.push(snapObject)
-    pos += snapObject.height
-    currSibling = currSibling[method] as HTMLElement
-  }
-
-  return objs
-}
-
 function getSnapObjects(el: HTMLElement, position = 0) {
   let accumulatedHeight = 0
-  let results = [] as SnapObject[]
+  let results = [] as t.SnapObject[]
   let result = getSnapObject(el, position)
   results.push(result)
 

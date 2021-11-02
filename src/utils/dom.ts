@@ -6,10 +6,9 @@ import { Viewport as NuiViewport } from 'noodl-ui'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 import { isDataUrl } from './common'
-import createPagesForExportToPDF from '../modules/ExportPdf/createPages_next'
+import createPagesForExportToPDF from '../modules/ExportPdf/createPages'
 // import createPagesForExportToPDF from '../modules/ExportPdf/createPages'
 import createCanvasForExportToPDF from '../modules/ExportPdf/createCanvas'
-import getPageElementsForExportToPDF from '../modules/ExportPdf/getPageElements'
 import getElementTop from './getElementTop'
 import isElement from './isElement'
 
@@ -278,6 +277,7 @@ export const show = makeElemFn((node) => {
  * A displayable value is any value that is a string or number
  * @param { any } value
  */
+
 export function isDisplayable(value: unknown): value is string | number {
   return value == 0 || typeof value === 'string' || typeof value === 'number'
 }
