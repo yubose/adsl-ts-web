@@ -29,10 +29,7 @@ async function createCanvas(options: {
     let canvas = await html2canvas(container, {
       allowTaint: true,
       onclone: (doc: Document, el: HTMLElement) => {
-        debugger
         let position = 0
-        let nativeY = container.getBoundingClientRect().y
-        window.scrollTo({ top: nativeY })
 
         for (const childNode of el.children) {
           const id = childNode.id

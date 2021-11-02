@@ -227,7 +227,6 @@ describe(u.yellow(`ExportPdf`), () => {
 
         // console.info({ pages })
         console.info(prettyDOM(view.firstElementChild))
-        console.info(label.getBoundingClientRect())
       })
 
       describe(`when one or more children is overflowing`, () => {
