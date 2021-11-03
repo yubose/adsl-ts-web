@@ -101,6 +101,7 @@ const devServerOptions = {
   static: [publicPath],
   // watchFiles: './public/**/*',
   onBeforeSetupMiddleware({ app, server }) {
+    if (!process.env.SAMPLE) return
     /**
      * @typedef { TestFileGroup }
      * @type { object } obj
