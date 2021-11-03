@@ -160,15 +160,14 @@ export function exportToPDF(
           doc.deletePage(1)
 
           if (isElement(node)) {
-            const exportPdf = ExportPdf({
+            await ExportPdf({
               orientation,
               pageHeight,
               pageWidth,
               overallWidth,
               overallHeight,
               ...html2canvas,
-            })
-            await exportPdf.createPages(doc, node)
+            }).create(doc, node)
           }
 
           node.scrollTo({ top: originalScrollPos })

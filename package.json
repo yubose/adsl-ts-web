@@ -60,7 +60,7 @@
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.415",
+    "@aitmed/cadl": "^1.0.416",
     "@aitmed/ecos-lvl2-sdk": "^1.4.156",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
@@ -168,7 +168,7 @@
     "webpack": "^5.42.0",
     "webpack-cli": "^4.7.0",
     "webpack-dev-middleware": "^5.0.0",
-    "webpack-dev-server": "^3.11.2",
+    "webpack-dev-server": "^4.4.0",
     "webpack-hot-middleware": "^2.25.0",
     "ws": "^8.2.2",
     "xstate": "^4.23.3",
