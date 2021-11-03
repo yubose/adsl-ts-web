@@ -30,6 +30,7 @@
     "start:sample": "cross-env SAMPLE=true NODE_ENV=development HMR=true ECOS_ENV=TEST USE_DEV_PATHS=true webpack serve --port 3000 --mode=development",
     "start:stable": "cross-env NODE_ENV=production HMR=true ECOS_ENV=stable webpack serve --port 3000",
     "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start",
+    "start:worker": "esbuild src/app/background/worker/backgroundWorker.ts --outfile=public/worker.js --watch --bundle --target=es2015 --format=iife --sourcemap",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --require ignore-styles --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --require ignore-styles --file src/setupTests.ts --watch --watch-files src",
     "test:nui": "lerna exec --scope noodl-ui \"npm run test\"",
@@ -60,7 +61,7 @@
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.416",
+    "@aitmed/cadl": "file:../aitmed-cadl-copy",
     "@aitmed/ecos-lvl2-sdk": "^1.4.156",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",

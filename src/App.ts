@@ -13,7 +13,12 @@ import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
-import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
+import {
+  command,
+  CACHED_PAGES,
+  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+  responseType,
+} from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
 import actionFactory from './factories/actionFactory'
@@ -25,6 +30,7 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
+import createNoodlWorker from './handlers/worker'
 import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
@@ -51,6 +57,7 @@ class App {
   #parser: nu.Parser
   #spinner: InstanceType<typeof Spinner>
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
+  #worker: ReturnType<typeof createNoodlWorker>
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
@@ -98,6 +105,9 @@ class App {
     this.#nui = nui
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
+    this.#worker = createNoodlWorker(this, 'app/background/worker/index.js', {
+      name: 'aitmed-noodl-web',
+    })
 
     noodl && (this.#noodl = noodl)
     this.#parser = new nu.Parser()
@@ -212,6 +222,10 @@ class App {
     return this.mainPage.viewport as VP
   }
 
+  get worker() {
+    return this.#worker
+  }
+
   /**
    * Navigates to a page specified in page.requesting
    * The value set in page.requesting should be set prior to this call unless pageRequesting is provided where it will be set to it automatically
@@ -311,6 +325,8 @@ class App {
       }
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
+
+      this.#worker.postMessage({ type: 'db' })
 
       await this.noodl.init()
 
@@ -522,6 +538,14 @@ class App {
 
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
+
+      // this.#worker.postMessage({
+      //   command: command.FETCH,
+      //   options: {
+      //     url: `${this.#noodl?.cadlBaseUrl}${pageRequesting}.yml`,
+      //     type: responseType.TEXT,
+      //   },
+      // })
 
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {

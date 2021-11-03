@@ -1,20 +1,221 @@
-const tag = `[ServiceWorker]`;
-self.oninstall = (event) => {
-  console.log(`%c${tag} oninstall`, `color:aquamarine;`, event);
-};
-self.onactivate = (event) => {
-  console.log(`%c${tag} onactivate`, `color:aquamarine;`, event);
-};
-self.addEventListener("message", function onWorkerMessage(evt) {
-  console.log(`%c${tag} onmessage`, `color:aquamarine;`, {
-    thisValue: this,
-    event: evt
+(() => {
+  var __defProp = Object.defineProperty;
+  var __getOwnPropSymbols = Object.getOwnPropertySymbols;
+  var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __propIsEnum = Object.prototype.propertyIsEnumerable;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __spreadValues = (a, b) => {
+    for (var prop in b || (b = {}))
+      if (__hasOwnProp.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    if (__getOwnPropSymbols)
+      for (var prop of __getOwnPropSymbols(b)) {
+        if (__propIsEnum.call(b, prop))
+          __defNormalProp(a, prop, b[prop]);
+      }
+    return a;
+  };
+  var __async = (__this, __arguments, generator) => {
+    return new Promise((resolve, reject) => {
+      var fulfilled = (value) => {
+        try {
+          step(generator.next(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var rejected = (value) => {
+        try {
+          step(generator.throw(value));
+        } catch (e) {
+          reject(e);
+        }
+      };
+      var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+      step((generator = generator.apply(__this, __arguments)).next());
+    });
+  };
+
+  // src/constants.ts
+  var command = {
+    FETCH: "FETCH"
+  };
+  var responseType = {
+    JSON: "application/json",
+    TEXT: "text/plain"
+  };
+
+  // src/modules/NoodlWorker/commands.ts
+  var Commands = class {
+    constructor() {
+      this.commands = {};
+    }
+    createCommand(command2, fn) {
+      const commandFn = (options, opts) => __async(this, null, function* () {
+        try {
+          return fn(options, opts);
+        } catch (error) {
+          if (error instanceof Error)
+            throw error;
+          throw new Error(String(error));
+        }
+      });
+      this.commands[command2] = commandFn;
+    }
+  };
+  var commands = new Commands();
+  commands.createCommand(command.FETCH, function(_0, _1) {
+    return __async(this, arguments, function* (options, { postMessage }) {
+      var _a;
+      const {
+        error,
+        headers,
+        method = "GET",
+        params,
+        type = responseType.TEXT,
+        url = ""
+      } = options || {};
+      try {
+        const response = yield fetch(url, {
+          headers: __spreadValues({
+            "Content-Type": type
+          }, headers),
+          method
+        });
+        const responseMethod = type.substring(type.indexOf("/"));
+        const result = yield (_a = response == null ? void 0 : response[type]) == null ? void 0 : _a.call(response, responseMethod);
+        postMessage({ command: command.FETCH, result });
+      } catch (error2) {
+        if (error2 instanceof Error)
+          throw error2;
+        throw new Error(String(error2));
+      }
+    });
   });
-});
-self.onfetch = (event) => {
-  console.log(`%c${tag} onfetch`, `color:aquamarine;`, event);
-};
-self.onpush = (event) => {
-  console.log(`%c${tag} onpush`, `color:aquamarine;`, event);
-};
-//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsiLi4vc3JjL3dvcmtlci50cyJdLAogICJzb3VyY2VzQ29udGVudCI6IFsiLy8vIDxyZWZlcmVuY2UgbGliPVwiV2ViV29ya2VyXCIgLz5cbi8vLyA8cmVmZXJlbmNlIGxpYj1cIldlYldvcmtlci5JbXBvcnRTY3JpcHRzXCIgLz5cbi8vIGltcG9ydCBDQURMIGZyb20gJ0BhaXRtZWQvY2FkbCdcblxuY29uc3QgdGFnID0gYFtTZXJ2aWNlV29ya2VyXWBcblxuLy8gQHRzLWV4cGVjdC1lcnJvclxuc2VsZi5vbmluc3RhbGwgPSAoZXZlbnQ6IEV4dGVuZGFibGVFdmVudCkgPT4ge1xuICBjb25zb2xlLmxvZyhgJWMke3RhZ30gb25pbnN0YWxsYCwgYGNvbG9yOmFxdWFtYXJpbmU7YCwgZXZlbnQpXG59XG5cbi8vIEB0cy1leHBlY3QtZXJyb3JcbnNlbGYub25hY3RpdmF0ZSA9IChldmVudDogRXh0ZW5kYWJsZUV2ZW50KSA9PiB7XG4gIGNvbnNvbGUubG9nKGAlYyR7dGFnfSBvbmFjdGl2YXRlYCwgYGNvbG9yOmFxdWFtYXJpbmU7YCwgZXZlbnQpXG59XG5cbnNlbGYuYWRkRXZlbnRMaXN0ZW5lcignbWVzc2FnZScsIGZ1bmN0aW9uIG9uV29ya2VyTWVzc2FnZShldnQpIHtcbiAgLy8gY29uc3Qgc2RrID0gbmV3IENBREwoe1xuICAvLyAgIGFzcGVjdFJhdGlvOiAxLFxuICAvLyAgIGNhZGxWZXJzaW9uOiAndGVzdCcsXG4gIC8vICAgY29uZmlnVXJsOiBgaHR0cHM6Ly9wdWJsaWMuYWl0bWVkLmNvbS9jb25maWcvbWVldDRkLnltbGAsXG4gIC8vIH0pXG4gIC8vIGNvbnNvbGUubG9nKHNkaylcbiAgY29uc29sZS5sb2coYCVjJHt0YWd9IG9ubWVzc2FnZWAsIGBjb2xvcjphcXVhbWFyaW5lO2AsIHtcbiAgICB0aGlzVmFsdWU6IHRoaXMsXG4gICAgZXZlbnQ6IGV2dCxcbiAgfSlcbn0pXG5cbi8vIEB0cy1leHBlY3QtZXJyb3JcbnNlbGYub25mZXRjaCA9IChldmVudDogRmV0Y2hFdmVudCkgPT4ge1xuICBjb25zb2xlLmxvZyhgJWMke3RhZ30gb25mZXRjaGAsIGBjb2xvcjphcXVhbWFyaW5lO2AsIGV2ZW50KVxufVxuXG4vLyBAdHMtZXhwZWN0LWVycm9yXG5zZWxmLm9ucHVzaCA9IChldmVudDogUHVzaEV2ZW50KSA9PiB7XG4gIGNvbnNvbGUubG9nKGAlYyR7dGFnfSBvbnB1c2hgLCBgY29sb3I6YXF1YW1hcmluZTtgLCBldmVudClcbn1cbiJdLAogICJtYXBwaW5ncyI6ICJBQUlBLE1BQU0sTUFBTTtBQUdaLEtBQUssWUFBWSxDQUFDLFVBQTJCO0FBQzNDLFVBQVEsSUFBSSxLQUFLLGlCQUFpQixxQkFBcUI7QUFBQTtBQUl6RCxLQUFLLGFBQWEsQ0FBQyxVQUEyQjtBQUM1QyxVQUFRLElBQUksS0FBSyxrQkFBa0IscUJBQXFCO0FBQUE7QUFHMUQsS0FBSyxpQkFBaUIsV0FBVyx5QkFBeUIsS0FBSztBQU83RCxVQUFRLElBQUksS0FBSyxpQkFBaUIscUJBQXFCO0FBQUEsSUFDckQsV0FBVztBQUFBLElBQ1gsT0FBTztBQUFBO0FBQUE7QUFLWCxLQUFLLFVBQVUsQ0FBQyxVQUFzQjtBQUNwQyxVQUFRLElBQUksS0FBSyxlQUFlLHFCQUFxQjtBQUFBO0FBSXZELEtBQUssU0FBUyxDQUFDLFVBQXFCO0FBQ2xDLFVBQVEsSUFBSSxLQUFLLGNBQWMscUJBQXFCO0FBQUE7IiwKICAibmFtZXMiOiBbXQp9Cg==
+  var commands_default = commands;
+
+  // src/worker.ts
+  var style = "color:aquamarine;font-weight:400;";
+  var tag = `%c[Worker]`;
+  var log = console.log;
+  self.oninstall = (event) => {
+    log(`${tag} oninstall`, style, event);
+  };
+  self.onactivate = (event) => {
+    log(`${tag} onactivate`, style, event);
+  };
+  self.addEventListener("message", function onWorkerMessage(msg) {
+    return __async(this, null, function* () {
+      var _a, _b;
+      let data = msg.data || {};
+      const { command: command2, options, type } = data;
+      if (command2) {
+        this.postMessage({
+          command: command2,
+          result: yield (_b = (_a = commands_default.commands)[command2]) == null ? void 0 : _b.call(_a, options, {
+            postMessage: this.postMessage.bind(this)
+          })
+        });
+      } else if (type) {
+        const databases = yield this.indexedDB.databases();
+        const database = this.indexedDB.open(`aitmed-noodl-web`);
+        const transaction = database.transaction;
+        const store = transaction == null ? void 0 : transaction.objectStore(`aitmed-noodl-web`);
+        database.onsuccess = (evt) => {
+          transaction == null ? void 0 : transaction.addEventListener("abort", (evt2) => {
+            this.postMessage({
+              name: `[transaction] abort`,
+              timestamp: evt2.timeStamp
+            });
+          });
+          transaction == null ? void 0 : transaction.addEventListener("complete", (evt2) => {
+            this.postMessage({
+              name: `[transaction] complete`,
+              timestamp: evt2.timeStamp
+            });
+          });
+          transaction == null ? void 0 : transaction.addEventListener("error", (evt2) => {
+            this.postMessage({
+              name: `[transaction] error`,
+              timestamp: evt2.timeStamp
+            });
+          });
+          transaction == null ? void 0 : transaction.db.addEventListener("abort", (evt2) => {
+            this.postMessage({
+              name: `[transaction db] abort`,
+              timestamp: evt2.timeStamp
+            });
+          });
+          transaction == null ? void 0 : transaction.db.addEventListener("error", (evt2) => {
+            this.postMessage({
+              name: `[transaction db] error`,
+              timestamp: evt2.timeStamp
+            });
+          });
+          transaction == null ? void 0 : transaction.db.addEventListener("close", (evt2) => {
+            this.postMessage({
+              name: `[transaction db] close`,
+              timestamp: evt2.timeStamp
+            });
+          });
+          transaction == null ? void 0 : transaction.db.addEventListener("versionchange", (evt2) => {
+            this.postMessage({
+              name: `[transaction db] versionchange`,
+              oldVersion: evt2.oldVersion,
+              newVersion: evt2.newVersion,
+              timestamp: evt2.timeStamp
+            });
+          });
+          this.postMessage({
+            message: `Database opened successfully`,
+            timestamp: evt.timeStamp,
+            database: {
+              error: database.error,
+              objectStoreNames: transaction == null ? void 0 : transaction.objectStoreNames,
+              objectStore: transaction == null ? void 0 : transaction.objectStore("aitmed-noodl-web"),
+              readyState: database.readyState,
+              source: database.source,
+              transaction: {
+                error: transaction == null ? void 0 : transaction.error,
+                mode: transaction == null ? void 0 : transaction.mode
+              }
+            },
+            allDatabases: databases
+          });
+        };
+        database.onerror = (evt) => {
+          this.postMessage({
+            name: evt["name"],
+            message: evt["message"] || `Error occurred when loading the IndexedDB database`,
+            timestamp: evt.timeStamp
+          });
+        };
+        database.onupgradeneeded = (evt) => {
+          this.postMessage({
+            message: `Upgrade needed!`,
+            oldVersion: evt.oldVersion,
+            newVersion: evt.newVersion,
+            timestamp: evt.timeStamp
+          });
+        };
+        database.onblocked = (evt) => {
+          this.postMessage({
+            message: `Database was blocked`,
+            timestamp: evt.timeStamp
+          });
+        };
+        this.postMessage({
+          greeting: `Thank you for your message`,
+          databases
+        });
+      }
+    });
+  });
+  self.onfetch = (event) => {
+    log(`${tag} onfetch`, style, event);
+  };
+  self.onpush = (event) => {
+    log(`${tag} onpush`, style, event);
+  };
+})();
+//# sourceMappingURL=worker.js.map
