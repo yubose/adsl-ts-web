@@ -4,14 +4,13 @@ import * as u from '@jsmanifest/utils'
 import * as nc from 'noodl-common'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
-import ExportPdf, { Item } from '../modules/ExportPdf'
-import createCanvas from '../modules/ExportPdf/createCanvas'
-import createPages from '../modules/ExportPdf/createPages_next'
-import getPageElements from '../modules/ExportPdf/getPageElements'
+import ExportPdf, { Item } from '../../modules/ExportPdf'
+import createCanvas from '../../modules/ExportPdf/createCanvas'
+import createPages from '../../modules/ExportPdf/createPages'
 import {
   itemsWhereSomeChildrenWillOverflow,
   pageElementResults,
-} from './fixtures/ExportPdf.json'
+} from '../fixtures/ExportPdf.json'
 
 class MockElement {
   #bounds: DOMRect
@@ -101,6 +100,67 @@ const getMockElements = <V = any>(results: V[]) => {
 }
 
 describe(u.yellow(`ExportPdf`), () => {
+  it(
+    `should initiate pageWidth, pageHeight, orientation, overallWidth, ` +
+      `overallHeight when given no options`,
+    () => {
+      const exportPdf = new ExportPdf()
+      expect(exportPdf).to.have.property('orientation', 'portrait')
+      expect(exportPdf).to.have.property('pageWidth').to.be.a('number')
+      expect(exportPdf).to.have.property('pageHeight').to.be.a('number')
+      expect(exportPdf).to.have.property('overallWidth').to.be.a('number')
+      expect(exportPdf).to.have.property('overallHeight').to.be.a('number')
+    },
+  )
+
+  const methods = ['previousElementSibling', 'nextElementSibling']
+
+  u.forEach((method) => {
+    it.only(`should return an array of node objects using ${method}`, () => {
+      const exportPdf = new ExportPdf()
+      const el = document.createElement('div')
+      el.style.width = '375px'
+      el.style.height = '667px'
+      const ch1 = document.createElement('a')
+      const ch2 = document.createElement('a')
+      const ch3 = document.createElement('button')
+      const container = document.createElement('div')
+      container.appendChild(ch1)
+      container.appendChild(ch2)
+      container.appendChild(el)
+      container.appendChild(ch3)
+      document.body.appendChild(container)
+      const items = exportPdf.getPreviousSiblingNodes(el)
+      const getSib =
+        (fnName = '') =>
+        (n: any) =>
+          n?.[fnName] as HTMLElement
+      const getPrevSib = getSib('previousElementSibling')
+      const getNextSib = getSib('nextElementSibling')
+
+      for (const fn of [getPrevSib, getNextSib]) {
+        if (fn === getPrevSib) {
+          expect(fn(ch1)).to.be.null
+          expect(fn(ch2)).to.eq(ch1)
+          expect(fn(el)).to.eq(ch2)
+          expect(fn(ch3)).to.eq(el)
+        } else {
+          expect(fn(ch1)).to.eq(ch2)
+          expect(fn(ch2)).to.eq(el)
+          expect(fn(el)).to.eq(ch3)
+          expect(fn(ch3)).to.be.null
+        }
+      }
+
+      for (const item of items) {
+        expect(item).to.have.property('start').to.be.a('number')
+        expect(item).to.have.property('end').to.be.a('number')
+        expect(item).to.have.property('bounds').to.exist
+        expect(item).to.have.property('nativeBounds').to.exist
+      }
+    })
+  }, methods)
+
   describe(u.italic(`getPageElements`), () => {
     it(`should return start: 0, end: 431.515625 for child #1`, () => {
       const nodes = getMockElements(pageElementResults)
