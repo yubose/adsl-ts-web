@@ -1,3 +1,5 @@
+import jsPDF from 'jspdf'
+
 export interface Bounds {
   height: number
   start: number
@@ -19,6 +21,14 @@ export interface Item {
   }
 }
 
+export type ElementArg<N extends HTMLElement = HTMLElement> =
+  | null
+  | undefined
+  | HTMLElement
+  | HTMLElement[]
+  | HTMLCollection
+  | NodeListOf<N>
+
 export interface Options {
   format?: number[]
   orientation?: 'landscape' | 'portrait'
@@ -29,6 +39,15 @@ export interface Options {
 }
 
 export type Orientation = 'portrait' | 'landscape'
+
+export interface Settings {
+  pdf: jsPDF | null
+  pageWidth: number
+  pageHeight: number
+  orientation: Orientation
+  overallWidth: number
+  overallHeight: number
+}
 
 export interface SnapObject<N extends HTMLElement = HTMLElement> {
   start: {

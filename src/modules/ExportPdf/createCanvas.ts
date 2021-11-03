@@ -1,26 +1,27 @@
 import * as u from '@jsmanifest/utils'
 import html2canvas, { Options as Html2CanvasOptions } from 'html2canvas'
 import isElement from '../../utils/isElement'
-import { SnapObject } from './getSnapObjects'
+import ExportNode from './ExportNode'
+import * as t from './types'
 
 async function createCanvas(options: {
   container: HTMLElement
   width: number
   height: number
-  items: SnapObject[]
+  items: ExportNode[]
   pageHeight: number
   options?: Partial<Html2CanvasOptions>
 }) {
   try {
     let { container, width, height, items, pageHeight, ...rest } = options || {}
-    let startPosition = items[0]?.start.position || 0
+    let startPosition = items[0]?.start || 0
     let hideIds = [] as string[]
 
-    items[0]?.start?.node?.scrollIntoView?.()
+    items[0]?.el?.scrollIntoView?.()
 
-    for (const snapObject of items) {
-      if (snapObject.hide?.children) {
-        hideIds.push(...u.array(snapObject.hide.children))
+    for (const xnode of items) {
+      if (xnode.hidden) {
+        hideIds.push(...u.array(xnode.hidden))
       }
     }
 

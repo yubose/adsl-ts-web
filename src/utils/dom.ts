@@ -6,10 +6,7 @@ import { Viewport as NuiViewport } from 'noodl-ui'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 import { isDataUrl } from './common'
-import createPagesForExportToPDF from '../modules/ExportPdf/createPages'
-// import createPagesForExportToPDF from '../modules/ExportPdf/createPages'
-import createCanvasForExportToPDF from '../modules/ExportPdf/createCanvas'
-import getElementTop from './getElementTop'
+import ExportPdf from '../modules/ExportPdf'
 import isElement from './isElement'
 
 export function copyToClipboard(value: string) {
@@ -62,12 +59,14 @@ export function exportToPDF(
     open = false,
     filename = 'file.pdf',
     viewport = { width: window.innerWidth, height: window.innerHeight },
+    html2canvas,
   }: {
     data:
       | string
       | { title?: string; content?: string; data?: string }
       | HTMLElement
     download?: boolean
+    html2canvas?: Html2CanvasOptions
     labels?: boolean
     open?: boolean
     filename?: string
@@ -160,17 +159,16 @@ export function exportToPDF(
           // Deletes the empty page
           doc.deletePage(1)
 
-          let el = node.firstElementChild || node
-
-          if (isElement(el)) {
-            await createPagesForExportToPDF(doc, node, {
-              format,
+          if (isElement(node)) {
+            const exportPdf = ExportPdf({
               orientation,
               pageHeight,
               pageWidth,
               overallWidth,
               overallHeight,
+              ...html2canvas,
             })
+            await exportPdf.createPages(doc, node)
           }
 
           node.scrollTo({ top: originalScrollPos })
