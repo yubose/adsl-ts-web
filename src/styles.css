@@ -1,6 +1,6 @@
 * {
-  padding: 0 ;
-  margin: 0 ;
+  padding: 0;
+  margin: 0;
   /* border-width: 0 ; */
 }
 
@@ -120,7 +120,7 @@ div.pluginBodyTail {
 
 textarea {
   /* Fixed size */
-  resize: none ;
+  resize: none;
 }
 
 .popup-global {

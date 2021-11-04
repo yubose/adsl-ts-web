@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import axios from 'axios'
 import Logger from 'logsnap'
 import yaml from 'yaml'
 import {
@@ -42,6 +43,8 @@ window.addEventListener('load', async function (evt) {
   log.func('load')
   log.green('DOM loaded', evt)
 
+  const resp = await axios.get(`http://127.0.0.1:3000/`)
+
   const title = 'patient chart for the next 3 months'
   const content =
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce ut aliquam diam, nec luctus magna. Aenean et augue non felis euismod molestie id faucibus ligula. Phasellus a augue sed dui molestie finibus. Cras sit amet semper est. Ut hendrerit fermentum facilisis. Suspendisse nec mi eget dui varius lobortis vel non ipsum. Morbi id risus lacus. Nunc porttitor nisl quis lacinia porta.'
@@ -54,12 +57,13 @@ window.addEventListener('load', async function (evt) {
   this.document.body.appendChild(img)
 
   img.addEventListener('load', async function (evt) {
-    await exportToPDF({
-      data: 'http://localhost:3000/ava.png',
-      labels: true,
-      filename: title,
-      open: true,
-    })
+    // await exportToPDF({
+    //   data: 'http://localhost:3000/ava.png',
+    //   labels: true,
+    //   filename: title,
+    //   open: true,
+    // })
+    window['exportToPDF'] = exportToPDF
   })
 
   // const { default: App } = await import('./App')

@@ -191,3 +191,30 @@ NUI.emit({
 - There are now 2 notebooks (root and)
 
   - e10002 bvid --> evid
+
+let index = 0
+let currentPosition = 0
+let pdfPageWidth = element width (453)
+let pdfPageHeight = element height (899)
+let overallHeight = 3033
+
+- for each child of element
+  - start loop with index as starting point
+  - if child's height accumulated with `currentPosition` is _not_ larger than `pdfPageHeight`
+    - add child's height to `currentPosition`
+  - else if child's height accumulated with `currentPosition` is larger than `pdfPageHeight`
+    - group all currently iterated children _not including the current child_
+    - record the _top_ position of the _first_ grouped child
+    - record the _bottom_ position of the _last_ grouped child
+    - send grouped children along with the top and bottom to html2canvas where top is the scrollY and bottom is the Y crop
+    - generate pdf
+      - (onclone - html2canvas)
+      - let clonePosition = 0
+        - for each cloned child of cloned element
+          - add cloned child's height to `clonePosition`
+          - if cloned child's height accumulated with `clonePosition` is larger than the _bottom_ position of the last grouped (uncloned) child
+            - hide the cloned child
+    - reset `currentPosition` to 0
+    - record the current child's index
+    - restart (recursion) the call and:
+      - make the start of the index the recorded index from the current child

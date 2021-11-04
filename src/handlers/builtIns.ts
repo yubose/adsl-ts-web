@@ -164,6 +164,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                 data: node,
                 download: true,
                 filename: fileName,
+                viewport: app.viewport,
               })
             }
           } else if (elems) {
@@ -171,6 +172,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               data: elems,
               download: true,
               filename: fileName,
+              viewport: app.viewport,
             })
           }
         } else if (u.isObj(viewTag)) {
