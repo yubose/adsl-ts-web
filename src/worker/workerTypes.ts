@@ -6,12 +6,7 @@ import * as nt from 'noodl-types'
     ---- FOREGROUND OWNED TYPES
   -------------------------------------------------------- */
 
-export namespace Fg {
-  export interface MessageCommand<Cmd extends string, A = any> {
-    command: Cmd | undefined
-    options?: A
-  }
-}
+export namespace Fg {}
 
 /* -------------------------------------------------------
   ---- BACKGROUND OWNED TYPES
@@ -19,7 +14,7 @@ export namespace Fg {
 
 export namespace Bg {
   /**
-   *      --- STATE ---
+   *  ------------ STATE ---------------------------------------------------
    */
 
   export interface State {
@@ -53,30 +48,45 @@ export namespace Bg {
   }
 
   /**
-   *      --- COMMAND ---
+   *  ------------ COMMAND -------------------------------------------------
    */
 
   export type CommandName = 'FETCH'
 
-  export interface FetchMessageCommand extends Fg.MessageCommand<'FETCH'> {
+  export interface MessageCommand<Cmd extends string, A = any> {
+    command: Cmd | undefined
+    options?: A
+  }
+
+  export interface FetchMessageCommand extends MessageCommand<'FETCH'> {
     options: {
-      /**
-       * Defaults to 'plain/text'
-       */
+      /** Defaults to 'plain/text' */
       type?: string
       error?: {
         code?: number
         name: string
         message: string
       }
+      env?: 'test' | 'stable'
       headers?: HeadersInit
-      /**
-       * Defaults to 'GET"
-       */
+      /** Defaults to 'GET" */
       method?: 'GET' | 'POST'
       params?: Record<string, any>
-      url: string
+      url: LiteralUnion<FetchConfigUrl | FetchPreloadUrl | FetchPageUrl, string>
+      version?: string
     }
+  }
+
+  export type FetchConfigUrl<S extends string = string> = `config:${S}` | S
+  export type FetchPreloadUrl<S extends string = string> = `preload:${S}` | S
+  export type FetchPageUrl<S extends string = string> = `page:${S}` | S
+
+  export interface CacheMessageCommand<
+    C extends 'CACHE_GET' | 'CACHE_SET' = 'CACHE_GET' | 'CACHE_SET',
+  > extends MessageCommand<C> {
+    options: C extends 'CACHE_SET'
+      ? { key: string; value: any }
+      : { key: string }
   }
 
   export interface ComponentGotoMeta {
@@ -92,12 +102,15 @@ export namespace Bg {
 
   export interface CommandFn<C extends string, A = any> {
     (
-      options: Fg.MessageCommand<C, A>['options'],
+      options: MessageCommand<C, A>['options'],
       opts: Bg.CommandFnHelpers,
     ): Promise<any>
   }
 
   export interface CommandFnHelpers {
+    db: IDBOpenDBRequest
+    store: IDBObjectStore
+    transaction: IDBTransaction
     postMessage: DedicatedWorkerGlobalScope['postMessage']
   }
 
@@ -107,7 +120,7 @@ export namespace Bg {
   }
 
   /**
-   *      --- MESSAGE ---
+   *  ------------ MESSAGE -------------------------------------------------
    */
 
   export interface MessageOptions<Opts = Record<string, any>> {

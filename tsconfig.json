@@ -14,6 +14,7 @@
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "declaration": true,
+    "declarationMap": true,
     "emitDecoratorMetadata": true,
     "esModuleInterop": true,
     "experimentalDecorators": true,
@@ -29,7 +30,6 @@
     "noLib": false,
     "outDir": "build",
     "paths": {},
-    "plugins": [{ "name": "typescript-plugin-css-modules" }],
     "pretty": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
@@ -41,16 +41,12 @@
   },
   "include": ["src/**/*"],
   "exclude": [
-    "_data",
     "docs",
     "libs",
     "node_modules",
     "build",
     "dist",
     "generated",
-    "output",
-    "public",
-    "server",
-    "scripts"
+    "output"
   ]
 }

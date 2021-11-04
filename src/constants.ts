@@ -7,6 +7,7 @@ export const PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT =
 -------------------------------------------------------- */
 
 export const command = {
+  CACHE_GET: 'CACHE_GET',
   FETCH: 'FETCH',
 } as const
 

@@ -26,7 +26,6 @@ import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createNoodlConfigValidator from './modules/NoodlConfigValidator'
-import createNoodlWorker from './handlers/worker'
 import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
@@ -53,13 +52,13 @@ class App {
   #parser: nu.Parser
   #spinner: InstanceType<typeof Spinner>
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
-  #worker: ReturnType<typeof createNoodlWorker>
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NOODLDOM['page']
   pickNUIPage = createPickNUIPage(this)
-  pickNDOMPage = createPickNDOMPage(this);
+  pickNDOMPage = createPickNDOMPage(this)
+  dedicatedWorker: Worker;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -103,8 +102,9 @@ class App {
     this.#nui = nui
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
-    this.#worker = createNoodlWorker(this, 'worker.js', {
+    this.dedicatedWorker = new Worker('worker.js', {
       name: App.id,
+      type: 'module',
     })
 
     noodl && (this.#noodl = noodl)
@@ -218,10 +218,6 @@ class App {
 
   get viewport() {
     return this.mainPage.viewport as VP
-  }
-
-  get worker() {
-    return this.#worker
   }
 
   /**
@@ -514,14 +510,6 @@ class App {
 
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
-
-      // this.#worker.postMessage({
-      //   command: command.FETCH,
-      //   options: {
-      //     url: `${this.#noodl?.cadlBaseUrl}${pageRequesting}.yml`,
-      //     type: responseType.TEXT,
-      //   },
-      // })
 
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {

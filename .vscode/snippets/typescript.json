@@ -15,6 +15,10 @@
     "body": "const spy = sinon.spy()",
     "prefix": "spy"
   },
+  "taglog": {
+    "body": "log(`\\${tag}$1`, style, $2)",
+    "prefix": "taglog"
+  },
   "test": {
     "body": [
       "import { expect } from 'chai'",

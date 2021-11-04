@@ -1,10 +1,15 @@
 import curry from 'lodash/curry'
-import * as t from './types'
+import * as t from './workerTypes'
 
 const log = console.log
 const tag = `[NoodlWorker]`
 
 const NoodlWorker = (function () {
+  let _state: t.Bg.State = {
+    configKey: '',
+    configVersion: '',
+    pages: {},
+  }
   let _worker: Worker | undefined
 
   function command<CmdName extends string, O = any>(
