@@ -1,13 +1,13 @@
-import App from '../App'
 import NoodlWorker from '../modules/NoodlWorker'
 import * as t from '../modules/NoodlWorker/types'
+import App from '../App'
 
 function createNoodlWorker(app: App, path: string, options?: WorkerOptions) {
   const tag = `%c[NoodlWorker]`
   const style = `color:navajowhite;font-weight:400;`
   const log = console.log
 
-  const _state: t.NoodlWorkerState = {
+  const _state: t.Bg.State = {
     configKey: '',
     configVersion: '',
     pages: {},

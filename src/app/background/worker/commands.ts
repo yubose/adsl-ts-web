@@ -1,12 +1,12 @@
 import { command as cmd, responseType } from '../../../constants'
-import * as t from 'modules/NoodlWorker/types'
+import * as t from '../../../modules/NoodlWorker/types'
 
 class Commands<C extends string = string> {
-  commands = {} as Record<C, t.CommandFn<C, Record<string, any>>>
+  commands = {} as Record<C, t.Bg.CommandFn<C, Record<string, any>>>
 
   createCommand<Opts extends Record<string, any> = Record<string, any>>(
     command: string,
-    fn: t.CommandFn<string, Opts>,
+    fn: t.Bg.CommandFn<string, Opts>,
   ) {
     const commandFn: typeof fn = async (options, opts) => {
       try {
@@ -22,7 +22,7 @@ class Commands<C extends string = string> {
 
 const commands = new Commands()
 
-commands.createCommand<t.FetchMessageCommand['options']>(
+commands.createCommand<t.Bg.FetchMessageCommand['options']>(
   cmd.FETCH,
   async function (options, { postMessage }) {
     const {

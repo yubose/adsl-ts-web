@@ -45,7 +45,7 @@
     TEXT: "text/plain"
   };
 
-  // src/modules/NoodlWorker/commands.ts
+  // src/app/background/worker/commands.ts
   var Commands = class {
     constructor() {
       this.commands = {};
@@ -94,128 +94,145 @@
   });
   var commands_default = commands;
 
-  // src/worker.ts
+  // src/app/background/worker/createDb.ts
+  function createDb(name) {
+    if (!name)
+      throw new Error(`name is required`);
+    const db2 = self.indexedDB.open(name);
+    return db2;
+  }
+  var createDb_default = createDb;
+
+  // src/app/background/worker/createStore.ts
+  function createStore(db2) {
+    let _transaction = db2.transaction;
+    let _store = _transaction == null ? void 0 : _transaction.objectStore(db2.result.name);
+    return _store;
+  }
+  var createStore_default = createStore;
+
+  // src/app/background/worker/backgroundWorker.ts
+  var id = `aitmed-noodl-web`;
+  var db = registerIndexDbListeners(createDb_default(id));
+  var store = createStore_default(db);
+  var transaction = db.transaction;
   var style = "color:aquamarine;font-weight:400;";
-  var tag = `%c[Worker]`;
+  var tag = `%c[backgroundWorker]`;
   var log = console.log;
-  self.oninstall = (event) => {
-    log(`${tag} oninstall`, style, event);
-  };
-  self.onactivate = (event) => {
-    log(`${tag} onactivate`, style, event);
-  };
-  self.addEventListener("message", function onWorkerMessage(msg) {
+  self.onmessage = function onWorkerMessage(msg) {
     return __async(this, null, function* () {
       var _a, _b;
-      let data = msg.data || {};
-      const { command: command2, options, type } = data;
+      let { command: command2, options } = msg.data || {};
       if (command2) {
-        this.postMessage({
+        return this.postMessage({
           command: command2,
           result: yield (_b = (_a = commands_default.commands)[command2]) == null ? void 0 : _b.call(_a, options, {
             postMessage: this.postMessage.bind(this)
           })
         });
-      } else if (type) {
-        const databases = yield this.indexedDB.databases();
-        const database = this.indexedDB.open(`aitmed-noodl-web`);
-        const transaction = database.transaction;
-        const store = transaction == null ? void 0 : transaction.objectStore(`aitmed-noodl-web`);
-        database.onsuccess = (evt) => {
-          transaction == null ? void 0 : transaction.addEventListener("abort", (evt2) => {
-            this.postMessage({
-              name: `[transaction] abort`,
-              timestamp: evt2.timeStamp
-            });
-          });
-          transaction == null ? void 0 : transaction.addEventListener("complete", (evt2) => {
-            this.postMessage({
-              name: `[transaction] complete`,
-              timestamp: evt2.timeStamp
-            });
-          });
-          transaction == null ? void 0 : transaction.addEventListener("error", (evt2) => {
-            this.postMessage({
-              name: `[transaction] error`,
-              timestamp: evt2.timeStamp
-            });
-          });
-          transaction == null ? void 0 : transaction.db.addEventListener("abort", (evt2) => {
-            this.postMessage({
-              name: `[transaction db] abort`,
-              timestamp: evt2.timeStamp
-            });
-          });
-          transaction == null ? void 0 : transaction.db.addEventListener("error", (evt2) => {
-            this.postMessage({
-              name: `[transaction db] error`,
-              timestamp: evt2.timeStamp
-            });
-          });
-          transaction == null ? void 0 : transaction.db.addEventListener("close", (evt2) => {
-            this.postMessage({
-              name: `[transaction db] close`,
-              timestamp: evt2.timeStamp
-            });
-          });
-          transaction == null ? void 0 : transaction.db.addEventListener("versionchange", (evt2) => {
-            this.postMessage({
-              name: `[transaction db] versionchange`,
-              oldVersion: evt2.oldVersion,
-              newVersion: evt2.newVersion,
-              timestamp: evt2.timeStamp
-            });
-          });
-          this.postMessage({
-            message: `Database opened successfully`,
-            timestamp: evt.timeStamp,
-            database: {
-              error: database.error,
-              objectStoreNames: transaction == null ? void 0 : transaction.objectStoreNames,
-              objectStore: transaction == null ? void 0 : transaction.objectStore("aitmed-noodl-web"),
-              readyState: database.readyState,
-              source: database.source,
-              transaction: {
-                error: transaction == null ? void 0 : transaction.error,
-                mode: transaction == null ? void 0 : transaction.mode
-              }
-            },
-            allDatabases: databases
-          });
-        };
-        database.onerror = (evt) => {
-          this.postMessage({
-            name: evt["name"],
-            message: evt["message"] || `Error occurred when loading the IndexedDB database`,
-            timestamp: evt.timeStamp
-          });
-        };
-        database.onupgradeneeded = (evt) => {
-          this.postMessage({
-            message: `Upgrade needed!`,
-            oldVersion: evt.oldVersion,
-            newVersion: evt.newVersion,
-            timestamp: evt.timeStamp
-          });
-        };
-        database.onblocked = (evt) => {
-          this.postMessage({
-            message: `Database was blocked`,
-            timestamp: evt.timeStamp
-          });
-        };
-        this.postMessage({
-          greeting: `Thank you for your message`,
-          databases
-        });
       }
     });
-  });
+  };
   self.onfetch = (event) => {
     log(`${tag} onfetch`, style, event);
   };
   self.onpush = (event) => {
     log(`${tag} onpush`, style, event);
   };
+  self.ononline = (event) => {
+    log(`${tag} ononline`, style, event);
+  };
+  self.onoffline = (event) => {
+    log(`${tag} onoffline`, style, event);
+  };
+  self.onunhandledrejection = (event) => {
+    log(`${tag} onunhandledrejection`, style, event);
+  };
+  function registerIndexDbListeners(db2) {
+    const transaction2 = db2.transaction;
+    db2.onsuccess = (evt) => {
+      transaction2 == null ? void 0 : transaction2.addEventListener("abort", (evt2) => {
+        self.postMessage({
+          name: `[transaction] abort`,
+          timestamp: evt2.timeStamp
+        });
+      });
+      transaction2 == null ? void 0 : transaction2.addEventListener("complete", (evt2) => {
+        self.postMessage({
+          name: `[transaction] complete`,
+          timestamp: evt2.timeStamp
+        });
+      });
+      transaction2 == null ? void 0 : transaction2.addEventListener("error", (evt2) => {
+        self.postMessage({
+          name: `[transaction] error`,
+          timestamp: evt2.timeStamp
+        });
+      });
+      transaction2 == null ? void 0 : transaction2.db.addEventListener("abort", (evt2) => {
+        self.postMessage({
+          name: `[transaction db] abort`,
+          timestamp: evt2.timeStamp
+        });
+      });
+      transaction2 == null ? void 0 : transaction2.db.addEventListener("error", (evt2) => {
+        self.postMessage({
+          name: `[transaction db] error`,
+          timestamp: evt2.timeStamp
+        });
+      });
+      transaction2 == null ? void 0 : transaction2.db.addEventListener("close", (evt2) => {
+        self.postMessage({
+          name: `[transaction db] close`,
+          timestamp: evt2.timeStamp
+        });
+      });
+      transaction2 == null ? void 0 : transaction2.db.addEventListener("versionchange", (evt2) => {
+        self.postMessage({
+          name: `[transaction db] versionchange`,
+          oldVersion: evt2.oldVersion,
+          newVersion: evt2.newVersion,
+          timestamp: evt2.timeStamp
+        });
+      });
+      self.postMessage({
+        message: `Database opened successfully`,
+        timestamp: evt.timeStamp,
+        db: {
+          error: db2.error,
+          objectStoreNames: transaction2 == null ? void 0 : transaction2.objectStoreNames,
+          objectStore: transaction2 == null ? void 0 : transaction2.objectStore("aitmed-noodl-web"),
+          readyState: db2.readyState,
+          source: db2.source,
+          transaction: {
+            error: transaction2 == null ? void 0 : transaction2.error,
+            mode: transaction2 == null ? void 0 : transaction2.mode
+          }
+        }
+      });
+    };
+    db2.onerror = (evt) => {
+      self.postMessage({
+        name: evt["name"],
+        message: evt["message"] || `Error occurred when loading the IndexedDB db`,
+        timestamp: evt.timeStamp
+      });
+    };
+    db2.onupgradeneeded = (evt) => {
+      self.postMessage({
+        message: `Upgrade needed!`,
+        oldVersion: evt.oldVersion,
+        newVersion: evt.newVersion,
+        timestamp: evt.timeStamp
+      });
+    };
+    db2.onblocked = (evt) => {
+      self.postMessage({
+        message: `Database was blocked`,
+        timestamp: evt.timeStamp
+      });
+    };
+    return db2;
+  }
 })();
 //# sourceMappingURL=worker.js.map

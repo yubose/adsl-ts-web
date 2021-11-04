@@ -14,12 +14,14 @@ const NoodlWorker = (function () {
     _worker?.postMessage({ command: name, options })
   }
 
-  function message({ options }: t.MessageOptions) {
+  function message({ options }: t.Bg.MessageOptions) {
     _worker?.postMessage(options)
   }
 
   const o = {
-    command: curry<string, t.MessageCommand<t.CommandName>['options']>(command),
+    command: curry<string, t.Fg.MessageCommand<t.Bg.CommandName>['options']>(
+      command,
+    ),
     message: curry(message),
   }
 

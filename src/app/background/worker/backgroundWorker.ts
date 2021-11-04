@@ -1,44 +1,35 @@
 /// <reference lib="WebWorker" />
-/// <reference lib="WebWorker.ImportScripts" />
+
 import commands from './commands'
 import createDb from './createDb'
 import createStore from './createStore'
 import { command as cmd } from '../../../constants'
-// import * as t from './modules/NoodlWorker/types'
+
+let id = `aitmed-noodl-web`
+let db = registerIndexDbListeners(createDb(id))
+let store = createStore(db)
+let transaction = db.transaction
 
 const style = 'color:aquamarine;font-weight:400;'
-const tag = `%c[Worker]`
+const tag = `%c[backgroundWorker]`
 const log = console.log
 
 // @ts-expect-error
-self.oninstall = (event: ExtendableEvent) => {
-  log(`${tag} oninstall`, style, event)
+self.onmessage = async function onWorkerMessage(
+  this: DedicatedWorkerGlobalScope,
+  msg: MessageEvent,
+) {
+  let { command, options } = msg.data || {}
+
+  if (command) {
+    return this.postMessage({
+      command,
+      result: await commands.commands[command]?.(options, {
+        postMessage: this.postMessage.bind(this),
+      }),
+    })
+  }
 }
-
-// @ts-expect-error
-self.onactivate = (event: ExtendableEvent) => {
-  log(`${tag} onactivate`, style, event)
-}
-
-self.addEventListener(
-  'message',
-  async function onWorkerMessage(this: DedicatedWorkerGlobalScope, msg) {
-    let { command, options, type } = msg.data || {}
-    let db = registerIndexDbListeners(createDb(`aitmed-noodl-web`))
-    let store = createStore(db)
-    let transaction = db.transaction
-
-    if (command) {
-      this.postMessage({
-        command,
-        result: await commands.commands[command]?.(options, {
-          postMessage: this.postMessage.bind(this),
-        }),
-      })
-    } else if (type === cmd.FETCH) {
-    }
-  },
-)
 
 // @ts-expect-error
 self.onfetch = (event: FetchEvent) => {
@@ -48,6 +39,21 @@ self.onfetch = (event: FetchEvent) => {
 // @ts-expect-error
 self.onpush = (event: PushEvent) => {
   log(`${tag} onpush`, style, event)
+}
+
+// @ts-expect-error
+self.ononline = (event: PushEvent) => {
+  log(`${tag} ononline`, style, event)
+}
+
+// @ts-expect-error
+self.onoffline = (event: PushEvent) => {
+  log(`${tag} onoffline`, style, event)
+}
+
+// @ts-expect-error
+self.onunhandledrejection = (event: PushEvent) => {
+  log(`${tag} onunhandledrejection`, style, event)
 }
 
 function registerIndexDbListeners(db: IDBOpenDBRequest) {

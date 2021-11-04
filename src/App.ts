@@ -13,12 +13,7 @@ import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
-import {
-  command,
-  CACHED_PAGES,
-  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-  responseType,
-} from './constants'
+import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
 import actionFactory from './factories/actionFactory'
@@ -30,6 +25,7 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
+import createNoodlConfigValidator from './modules/NoodlConfigValidator'
 import createNoodlWorker from './handlers/worker'
 import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
@@ -84,6 +80,8 @@ class App {
     }
   }
 
+  static id = `aitmed-noodl-web`
+
   constructor({
     getStatus,
     meeting,
@@ -105,8 +103,8 @@ class App {
     this.#nui = nui
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
-    this.#worker = createNoodlWorker(this, 'app/background/worker/index.js', {
-      name: 'aitmed-noodl-web',
+    this.#worker = createNoodlWorker(this, 'worker.js', {
+      name: App.id,
     })
 
     noodl && (this.#noodl = noodl)
@@ -326,8 +324,6 @@ class App {
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
-      this.#worker.postMessage({ type: 'db' })
-
       await this.noodl.init()
 
       if (!this.notification) {
@@ -418,34 +414,14 @@ class App {
         }
       }
 
-      const ls = window.localStorage
+      const ls = createNoodlConfigValidator({
+        configKey: 'config',
+        timestampKey: 'timestamp',
+        get: (key: string) => localStorage.getItem(key),
+        set: (key: string, value: any) => void localStorage.setItem(key, value),
+      })
 
-      const hasLocalConfig = () => !!ls.getItem('config')
-      const getStoredConfig = () => {
-        if (hasLocalConfig()) {
-          try {
-            let cfg = ls.getItem('config')
-            if (u.isStr(cfg)) return JSON.parse(cfg)
-            return cfg
-          } catch (error) {
-            console.error(error)
-          }
-        }
-      }
-      const getTimestampKey = () => {
-        const cfg = getStoredConfig()
-        if (u.isObj(cfg) && 'timestamp' in cfg) return String(cfg.timestamp)
-        return ''
-      }
-      const getStoredTimestamp = () => ls.getItem(getTimestampKey())
-      const getCurrentTimestamp = () => getStoredConfig()?.timestamp
-      // Intentionally not strictly equal === to allow coercion
-      const isTimestampEqual = () =>
-        getStoredTimestamp() == getCurrentTimestamp()
-      const cacheTimestamp = () =>
-        ls.setItem(getTimestampKey(), getCurrentTimestamp())
-
-      if (getTimestampKey() == null && hasLocalConfig()) cacheTimestamp()
+      if (!ls.getTimestampKey() && ls.configExists()) ls.cacheTimestamp()
 
       if (this.mainPage && location.href) {
         let { startPage } = this.noodl.cadlEndpoint
@@ -453,23 +429,23 @@ class App {
         const pathname = urlParts[urlParts.length - 1]
 
         console.log(`%cConfig evaluation`, `color:#e50087;`, {
-          storedConfig: getStoredConfig(),
-          hasLocalConfig: hasLocalConfig(),
-          timestampKey: getTimestampKey(),
-          timestampNow: getCurrentTimestamp(),
-          storedTimestamp: getStoredTimestamp(),
-          isTimestampEqual: isTimestampEqual(),
+          hasLocalConfig: ls.configExists(),
+          isTimestampEq: ls.isTimestampEq(),
+          timestampKey: ls.getTimestampKey(),
+          timestampNow: ls.getCurrentTimestamp(),
+          storedConfig: ls.getStoredConfigObject(),
+          storedTimestamp: ls.getStoredTimestamp(),
         })
 
         const keyParts = pathname.split('=')
         let isParameters = keyParts.length > 1 ? true : false
 
-        if (!isTimestampEqual() && !isParameters) {
+        if (!ls.isTimestampEq() && !isParameters) {
           // Set the URL / cached pages to their base state
-          ls.setItem('CACHED_PAGES', JSON.stringify([]))
+          localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
-          cacheTimestamp()
+          ls.cacheTimestamp()
         } else if (!pathname?.startsWith(BASE_PAGE_URL)) {
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
