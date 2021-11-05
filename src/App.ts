@@ -13,7 +13,11 @@ import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
-import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
+import {
+  command as cmd,
+  CACHED_PAGES,
+  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+} from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
 import actionFactory from './factories/actionFactory'
@@ -30,6 +34,7 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
+import NoodlWorker from './worker/NoodlWorker'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
@@ -52,13 +57,13 @@ class App {
   #parser: nu.Parser
   #spinner: InstanceType<typeof Spinner>
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
+  #worker: ReturnType<typeof NoodlWorker>
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NOODLDOM['page']
   pickNUIPage = createPickNUIPage(this)
-  pickNDOMPage = createPickNDOMPage(this)
-  dedicatedWorker: Worker;
+  pickNDOMPage = createPickNDOMPage(this);
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -102,10 +107,12 @@ class App {
     this.#nui = nui
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
-    this.dedicatedWorker = new Worker('worker.js', {
-      name: App.id,
-      type: 'module',
-    })
+    this.#worker = NoodlWorker(
+      new Worker('dedicatedWorker.js', {
+        name: App.id,
+        type: 'module',
+      }),
+    )
 
     noodl && (this.#noodl = noodl)
     this.#parser = new nu.Parser()
@@ -220,6 +227,10 @@ class App {
     return this.mainPage.viewport as VP
   }
 
+  get worker() {
+    return this.#worker
+  }
+
   /**
    * Navigates to a page specified in page.requesting
    * The value set in page.requesting should be set prior to this call unless pageRequesting is provided where it will be set to it automatically
@@ -320,8 +331,6 @@ class App {
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
-      await this.noodl.init()
-
       if (!this.notification) {
         this.#notification = new (await import('./app/Notifications')).default()
         log.grey(`Initialized notifications`, this.#notification)
@@ -338,6 +347,10 @@ class App {
       if (!this.notification?.initiated) {
         await this.notification?.init()
       }
+
+      this.worker.command(cmd.FETCH, { version: `0.78d`, url: `config:meetd2` })
+
+      await this.noodl.init()
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -492,14 +505,6 @@ class App {
       log.func('getPageObject')
       log.teal(`Running noodl.initPage for page "${pageRequesting}"`)
 
-      // if (pageRequesting && !(pageRequesting in this.noodl.root)) {
-      //   console.log(
-      //     `%cThe page "${pageRequesting}" does not exist in the root object`,
-      //     `color:#ec0000;`,
-      //     this.root,
-      //   )
-      // }
-
       if (pageRequesting === currentPage) {
         console.log(
           `%cYou are already on the "${pageRequesting}" page. ` +
@@ -510,6 +515,8 @@ class App {
 
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
+
+      this.worker.command(cmd.FETCH, { url: `page:${pageRequesting}` })
 
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {
@@ -574,6 +581,7 @@ class App {
               let currentIndex = this.loadingPages[pageRequesting]?.findIndex?.(
                 (o) => o.id === page.id,
               )
+
               if (currentIndex > -1) {
                 if (currentIndex > 0) {
                   isAborted = true

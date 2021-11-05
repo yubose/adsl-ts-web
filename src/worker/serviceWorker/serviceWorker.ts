@@ -31,20 +31,9 @@ messaging.onBackgroundMessage(function (payload) {
   self.registration.showNotification(notificationTitle, notificationOptions)
 })
 
-const style = 'color:navajowhite;font-weight:400;'
+const style = `color:#C04000;font-weight:500;`
 const tag = `%c[serviceWorker]`
 const log = console.log
-
-// self.caches.open('s').then((c) =>)
-
-log(`${tag} Message event`, {
-  caches: self.caches.open('aitmed-noodl-web'),
-  crossOriginIsolated: self.crossOriginIsolated,
-  clients: self.clients,
-  location: self.location,
-  isSecureContext: self.isSecureContext,
-  origin: self.origin,
-})
 
 self.addEventListener('activate', function (extEvt) {
   log(`${tag} Activated`, style, {
@@ -96,8 +85,14 @@ self.addEventListener('fetch', function (evt) {
   })
 })
 
-self.addEventListener('message', (msgEvt) => {
-  log(`${tag} Message event`, style, msgEvt.data)
+self.addEventListener('message', function (msgEvt) {
+  log(`${tag} Message event`, {
+    crossOriginIsolated: self.crossOriginIsolated,
+    location: self.location,
+    origin: self.origin,
+    data: msgEvt.data,
+  })
+  msgEvt.source?.postMessage('THANK YOU FOR THE MESSAGE')
 })
 
 self.addEventListener(`messageerror`, function (msgEvt) {

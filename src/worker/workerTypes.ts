@@ -2,6 +2,24 @@ import type { LiteralUnion } from 'type-fest'
 import type { NUITrigger } from 'noodl-ui'
 import * as nt from 'noodl-types'
 
+type CommonPreloadPage = 'BaseDataModel' | 'BaseCSS' | 'BasePage'
+
+export interface StoreObject {
+  noodl?: {
+    [configName: string]: {
+      config?: nt.RootConfig
+      preload?: Record<
+        LiteralUnion<CommonPreloadPage, string>,
+        Record<string, any>
+      >
+      pages?: Record<
+        LiteralUnion<CommonPreloadPage, string>,
+        Record<string, any>
+      >
+    }
+  }
+}
+
 /* -------------------------------------------------------
     ---- FOREGROUND OWNED TYPES
   -------------------------------------------------------- */
@@ -61,7 +79,7 @@ export namespace Bg {
   export interface FetchMessageCommand extends MessageCommand<'FETCH'> {
     options: {
       /** Defaults to 'plain/text' */
-      type?: string
+      type?: 'blob' | 'json' | 'text'
       error?: {
         code?: number
         name: string
@@ -108,9 +126,6 @@ export namespace Bg {
   }
 
   export interface CommandFnHelpers {
-    db: IDBOpenDBRequest
-    store: IDBObjectStore
-    transaction: IDBTransaction
     postMessage: DedicatedWorkerGlobalScope['postMessage']
   }
 

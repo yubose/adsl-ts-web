@@ -108,7 +108,12 @@ class AppNotification {
       this.initiated = true
       this.workerRegistration = await navigator.serviceWorker?.register(
         AppNotification.path,
+        { updateViaCache: 'all' },
       )
+      this.workerRegistration.active?.postMessage({
+        command: 'FETCH',
+        url: 'config:meetd2dsfsdfsdf',
+      })
       this.emit('initiated', this.client as firebase.app.App)
       return this.client
     } catch (error) {

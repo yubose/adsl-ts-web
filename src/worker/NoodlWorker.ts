@@ -12,35 +12,43 @@ const NoodlWorker = (function () {
   }
   let _worker: Worker | undefined
 
-  function command<CmdName extends string, O = any>(
-    name: CmdName,
-    options?: O,
-  ) {
+  function command<
+    CmdName extends string,
+    O extends t.Bg.MessageOptions['options'],
+  >(name: CmdName, options?: O) {
     _worker?.postMessage({ command: name, options })
   }
 
-  function message({ options }: t.Bg.MessageOptions) {
-    _worker?.postMessage(options)
+  type NoodlWorkerApi = typeof o & {
+    _worker: Worker
   }
 
-  const o = {
-    command: curry<string, t.Fg.MessageCommand<t.Bg.CommandName>['options']>(
-      command,
-    ),
-    message: curry(message),
+  function createNoodlWorker(options: {
+    url?: string
+    options?: WorkerOptions
+  }): NoodlWorkerApi
+
+  function createNoodlWorker(worker: Worker): NoodlWorkerApi
+
+  function createNoodlWorker(
+    options: Worker | { url?: string; options?: WorkerOptions },
+  ) {
+    if ('postMessage' in options) {
+      _worker = options
+    } else {
+      if (!options.url) {
+        throw new Error(`url is required when instantiating a NoodlWorker`)
+      }
+      _worker = new Worker(options.url, options.options)
+    }
+
+    return {
+      _worker,
+      command: curry(command),
+    }
   }
 
-  return curry(
-    (
-      url: string,
-      options: WorkerOptions,
-      callback: (this: Worker, api: typeof o) => any,
-    ) => {
-      _worker = new Worker(url, options)
-      callback?.call(_worker, o)
-      return _worker
-    },
-  )
+  return curry(createNoodlWorker)
 })()
 
 export default NoodlWorker

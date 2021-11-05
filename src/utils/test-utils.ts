@@ -1,14 +1,9 @@
-// @ts-nocheck
 import { LiteralUnion } from 'type-fest'
 import { EventEmitter } from 'events'
 import { Status } from '@aitmed/ecos-lvl2-sdk'
 import { LocalParticipant } from 'twilio-video'
 import { ComponentObject, PageObject } from 'noodl-types'
-import NOODLDOM, {
-  defaultResolvers,
-  Page as NOODLDOMPage,
-  Resolve,
-} from 'noodl-ui-dom'
+import NOODLDOM, { Page as NOODLDOMPage, Resolve } from 'noodl-ui-dom'
 import {
   actionTypes as nuiActionTypes,
   nuiEmitTransaction,
