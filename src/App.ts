@@ -49,6 +49,7 @@ class App {
     authStatus: '' as AuthStatus | '',
     initialized: false,
     loadingPages: {} as Record<string, { id: string; init: boolean }[]>,
+    load: {},
   }
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
@@ -383,25 +384,26 @@ class App {
         await this.notification?.init(this.#serviceWorkerRegistration)
       }
 
-      await this.noodl.init({
-        ...getBatchFromLocalStorage(
-          'BaseDataModel',
-          'BaseCSS',
-          'BasePage',
-          'cadlEndpoint',
-          'config',
-        ),
-        onCadlEndpoint: (json) => {
-          if (u.isObj(json)) {
-            localStorage.setItem('cadlEndpoint', JSON.stringify(json))
-          }
-        },
-        onPreload: (name, processed, json, yml) => {
-          if (name && u.isObj(json)) {
-            localStorage.setItem(name, JSON.stringify(json))
-          }
-        },
-      })
+      await this.noodl.init()
+      // await this.noodl.init({
+      //   ...getBatchFromLocalStorage(
+      //     'BaseDataModel',
+      //     'BaseCSS',
+      //     'BasePage',
+      //     'cadlEndpoint',
+      //     'config',
+      //   ),
+      //   onCadlEndpoint: (json) => {
+      //     if (u.isObj(json)) {
+      //       localStorage.setItem('cadlEndpoint', JSON.stringify(json))
+      //     }
+      //   },
+      //   onPreload: (name, processed, json, yml) => {
+      //     if (name && u.isObj(json)) {
+      //       localStorage.setItem(name, JSON.stringify(json))
+      //     }
+      //   },
+      // })
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -567,7 +569,7 @@ class App {
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
 
-      this.worker.command(cmd.FETCH, { url: `page:${pageRequesting}` })
+      // this.worker.command(cmd.FETCH, { url: `page:${pageRequesting}` })
 
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {

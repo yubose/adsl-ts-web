@@ -37,7 +37,7 @@ import {
   isRootDataKey,
   ParsedPageComponentUrlObject,
 } from 'noodl-utils'
-import { IfObject, Identify } from 'noodl-types'
+import { EmitObjectFold, IfObject, Identify } from 'noodl-types'
 import {
   getBlobFromCanvas,
   getVcodeElem,
@@ -77,7 +77,11 @@ const createActions = function createActions(app: App) {
               actions: _pick(action, 'actions'),
               pageName:
                 pickNUIPageFromOptions(options)?.page || app.currentPage,
-            } as T.EmitCallParams
+            } as {
+              actions: EmitObjectFold['emit']['actions']
+              dataKey: EmitObjectFold['emit']['dataKey']
+              pageName: string
+            }
 
             if (_has(_pick(action, 'emit'), 'dataKey')) {
               const dataKeyValue = _pick(action, 'dataKey')
@@ -494,10 +498,10 @@ const createActions = function createActions(app: App) {
       if (elem?.style) {
         if (Identify.action.popUp(action)) show(elem)
         else if (Identify.action.popUpDismiss(action)) hide(elem)
-        if(popUpDismiss){
-          setTimeout(()=>{
+        if (popUpDismiss) {
+          setTimeout(() => {
             hide(elem)
-          },popUpDismiss)
+          }, popUpDismiss)
         }
         // Some popup components render values using the dataKey. There is a bug
         // where an action returns a popUp action from an evalObject action. At
