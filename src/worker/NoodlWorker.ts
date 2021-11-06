@@ -12,6 +12,11 @@ const NoodlWorker = (function () {
   }
   let _worker: Worker | undefined
 
+  const api = {
+    _worker,
+    command: curry(command),
+  }
+
   function command<
     CmdName extends string,
     O extends t.Bg.MessageOptions['options'],
@@ -19,7 +24,7 @@ const NoodlWorker = (function () {
     _worker?.postMessage({ command: name, options })
   }
 
-  type NoodlWorkerApi = typeof o & {
+  type NoodlWorkerApi = typeof api & {
     _worker: Worker
   }
 
@@ -42,10 +47,7 @@ const NoodlWorker = (function () {
       _worker = new Worker(options.url, options.options)
     }
 
-    return {
-      _worker,
-      command: curry(command),
-    }
+    return api
   }
 
   return curry(createNoodlWorker)

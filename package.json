@@ -20,7 +20,7 @@
     "build:deploy:test": "npm run build:test && npm run deploy:test",
     "build:deploy:noodltest": "npm run build:test && npm run deploy:noodltest",
     "build:deploy:chinaServer": "npm run build:test && bash chinaServer.sh",
-    "build:swWorker": "esbuild src/worker/serviceWorker/serviceWorker.ts --outfile=public/serviceWorker.js --bundle --target=es2015 --format=iife --sourcemap",
+    "build:swWorker": "esbuild src/worker/serviceWorker/serviceWorker.ts --outfile=public/serviceWorker.js --target=es2015 --platform=browser --format=iife --sourcemap",
     "build:dedWorker": "esbuild src/worker/dedicatedWorker/dedicatedWorker.ts --outfile=public/dedicatedWorker.js --bundle --target=es2015 --format=iife --sourcemap",
     "postbuild": "npm run build:swWorker && npm run build:dedWorker",
     "deploy:stable": "bash s3Deploy.sh build",
@@ -33,9 +33,7 @@
     "start:sample": "cross-env SAMPLE=true NODE_ENV=development HMR=true ECOS_ENV=TEST USE_DEV_PATHS=true webpack serve --port 3000 --mode=development",
     "start:stable": "cross-env NODE_ENV=production HMR=true ECOS_ENV=stable webpack serve --port 3000",
     "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start",
-    "start:worker": "concurrently \"npm run start:swWorker\" \"npm run start:dedWorker\"",
-    "start:swWorker": "npm run build:swWorker -- --watch",
-    "start:dedWorker": "npm run build:dedWorker -- --watch",
+    "start:worker": "npm run build:dedWorker -- --watch",
     "poststart": "npm run start:worker",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src",
@@ -69,7 +67,7 @@
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.416",
+    "@aitmed/cadl": "file:../aitmed-cadl-copy",
     "@aitmed/ecos-lvl2-sdk": "^1.4.156",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",

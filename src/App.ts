@@ -34,6 +34,7 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
+import getBatchFromLocalStorage from './utils/getBatchFromLocalStorage'
 import NoodlWorker from './worker/NoodlWorker'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
@@ -57,6 +58,7 @@ class App {
   #parser: nu.Parser
   #spinner: InstanceType<typeof Spinner>
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
+  #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
   #worker: ReturnType<typeof NoodlWorker>
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
@@ -207,6 +209,14 @@ class App {
     return this.#meeting.selfStream
   }
 
+  get serviceWorker() {
+    return this.#serviceWorkerRegistration?.active as ServiceWorker
+  }
+
+  get serviceWorkerRegistration() {
+    return this.#serviceWorkerRegistration
+  }
+
   get subStreams() {
     return this.meeting.subStreams
   }
@@ -344,13 +354,72 @@ class App {
         }
       })
 
+      this.#serviceWorkerRegistration = await navigator.serviceWorker?.register(
+        AppNotification.path,
+      )
+
+      if (this.#serviceWorkerRegistration) {
+        this.serviceWorker?.addEventListener('statechange', (evt) => {
+          console.log(
+            `%c[App - serviceWorker] State changed`,
+            `color:#c4a901;`,
+            evt,
+          )
+        })
+
+        this.#serviceWorkerRegistration.addEventListener(
+          'updatefound',
+          (evt) => {
+            console.log(
+              `%c[App - serviceWorkerRegistration] Update found`,
+              `color:#c4a901;`,
+              evt,
+            )
+          },
+        )
+      }
+
       if (!this.notification?.initiated) {
-        await this.notification?.init()
+        await this.notification?.init(this.#serviceWorkerRegistration)
       }
 
       this.worker.command(cmd.FETCH, { version: `0.78d`, url: `config:meetd2` })
 
-      await this.noodl.init()
+      const preloadKeysInLocalStorage = [
+        'BaseDataModel',
+        'BaseCSS',
+        'BasePage',
+        'BaseMessage',
+        'cadlEndpoint',
+      ] as const
+
+      await this.noodl.init({
+        ...getBatchFromLocalStorage(
+          'config',
+          'cadlEndpoint',
+          ...preloadKeysInLocalStorage,
+        ),
+        onConfig: (processed, json) => {},
+        onCadlEndpoint: (json, yml) => {
+          if (u.isObj(json)) {
+            try {
+              localStorage.setItem('cadlEndpoint', JSON.stringify(json))
+            } catch (error) {
+              console.error(error)
+            }
+          }
+        },
+        onPreload: (name, processed, json, yml) => {
+          console.log({ name, processed, json, yml })
+          if (name && u.isObj(json)) {
+            try {
+              localStorage.setItem(name, JSON.stringify(json))
+            } catch (error) {
+              console.error(error)
+            }
+          }
+        },
+      })
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
