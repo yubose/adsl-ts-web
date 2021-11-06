@@ -383,40 +383,22 @@ class App {
         await this.notification?.init(this.#serviceWorkerRegistration)
       }
 
-      this.worker.command(cmd.FETCH, { version: `0.78d`, url: `config:meetd2` })
-
-      const preloadKeysInLocalStorage = [
-        'BaseDataModel',
-        'BaseCSS',
-        'BasePage',
-        'BaseMessage',
-        'cadlEndpoint',
-      ] as const
-
       await this.noodl.init({
         ...getBatchFromLocalStorage(
-          'config',
+          'BaseDataModel',
+          'BaseCSS',
+          'BasePage',
           'cadlEndpoint',
-          ...preloadKeysInLocalStorage,
+          'config',
         ),
-        onConfig: (processed, json) => {},
-        onCadlEndpoint: (json, yml) => {
+        onCadlEndpoint: (json) => {
           if (u.isObj(json)) {
-            try {
-              localStorage.setItem('cadlEndpoint', JSON.stringify(json))
-            } catch (error) {
-              console.error(error)
-            }
+            localStorage.setItem('cadlEndpoint', JSON.stringify(json))
           }
         },
         onPreload: (name, processed, json, yml) => {
-          console.log({ name, processed, json, yml })
           if (name && u.isObj(json)) {
-            try {
-              localStorage.setItem(name, JSON.stringify(json))
-            } catch (error) {
-              console.error(error)
-            }
+            localStorage.setItem(name, JSON.stringify(json))
           }
         },
       })
