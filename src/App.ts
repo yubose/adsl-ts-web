@@ -422,7 +422,10 @@ class App {
       }
 
       this.nui.use({
-        getAssetsUrl: () => this.noodl.assetsUrl,
+        getAssetsUrl: () => {
+          debugger
+          return this.noodl.assetsUrl
+        },
         getBaseUrl: () => this.noodl.cadlBaseUrl || '',
         getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
         getPages: () => this.noodl.cadlEndpoint?.page || [],
