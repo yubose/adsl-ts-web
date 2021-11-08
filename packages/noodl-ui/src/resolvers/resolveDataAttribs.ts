@@ -209,19 +209,19 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
         if (u.isStr(src) && !src.startsWith(getAssetsUrl())) {
           src = getAssetsUrl() + src
         }
+
         // TODO - Deprecate "data-src" in favor of data-value
         component.edit({ 'data-src': src, src })
         path && component.emit('path', src)
         image && component.emit('image', src)
       } else {
         if (src) {
+          src = n.resolveAssetUrl(src, getAssetsUrl())
           component.edit({ 'data-src': src, path: src })
           // Wrapping this in a setTimeout allows DOM elements to subscribe
           // their callbacks before this fires
           setTimeout(() => {
-            src = n.resolveAssetUrl(src, getAssetsUrl())
             // TODO - Deprecate "src" in favor of data-value
-            component.edit({ 'data-src': src })
             path && component.emit('path', src)
             image && component.emit('image', src)
           })
