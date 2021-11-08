@@ -38,6 +38,7 @@ async function resolveAsync(
     on?.actionChain && ac.use(on.actionChain)
     const results = await ac.execute()
     let result = results?.find((val) => !!val?.result)?.result
+
     if (Identify.component.page(component)) {
       //
     } else {
