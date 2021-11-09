@@ -34,7 +34,6 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
-import getBatchFromLocalStorage from './utils/getBatchFromLocalStorage'
 import NoodlWorker from './worker/NoodlWorker'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
@@ -347,17 +346,25 @@ class App {
         log.grey(`Initialized notifications`, this.#notification)
       }
 
-      this.#notification?.on('message', (obs) => {
-        if (u.isFnc(obs)) {
-          obs
-        } else {
-          obs
-        }
-      })
+  
 
-      this.#serviceWorkerRegistration = await navigator.serviceWorker?.register(
-        AppNotification.path,
-      )
+      console.log(`A`)
+      if (this.notification.supported) {
+        if (!this.notification?.initiated) {
+          console.log(`B-1`)
+          this.#serviceWorkerRegistration =
+            await navigator.serviceWorker?.register('sw.js')
+          console.log(`B-2`)
+          this.notification?.init(this.#serviceWorkerRegistration)
+          console.log(`B-3`)
+        }
+      } else {
+        console.log(`C-1`)
+        this.#serviceWorkerRegistration =
+          await navigator.serviceWorker?.register('sw.js')
+        console.log(`C-2`)
+      }
+      console.log(`D`)
 
       if (this.#serviceWorkerRegistration) {
         this.serviceWorker?.addEventListener('statechange', (evt) => {
@@ -370,7 +377,8 @@ class App {
 
         this.#serviceWorkerRegistration.addEventListener(
           'updatefound',
-          (evt) => {
+          async (evt) => {
+            await this.#serviceWorkerRegistration?.update()
             console.log(
               `%c[App - serviceWorkerRegistration] Update found`,
               `color:#c4a901;`,
@@ -378,10 +386,6 @@ class App {
             )
           },
         )
-      }
-
-      if (!this.notification?.initiated) {
-        await this.notification?.init(this.#serviceWorkerRegistration)
       }
 
       await this.noodl.init()
@@ -423,7 +427,6 @@ class App {
 
       this.nui.use({
         getAssetsUrl: () => {
-          debugger
           return this.noodl.assetsUrl
         },
         getBaseUrl: () => this.noodl.cadlBaseUrl || '',

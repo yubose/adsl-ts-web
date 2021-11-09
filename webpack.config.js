@@ -287,8 +287,8 @@ module.exports = {
     extensions: ['.ts', '.js'],
     modules: ['node_modules'],
     fallback: {
-      // crypto: require.resolve('crypto-browserify'),
-      // stream: require.resolve('stream-browserify'),
+      crypto: require.resolve('crypto-browserify'),
+      stream: require.resolve('stream-browserify'),
     },
   },
   plugins: [
@@ -320,16 +320,18 @@ module.exports = {
       },
     }),
     new HtmlWebpackHarddiskPlugin(),
-    new InjectScriptsPlugin({
-      path: 'public/libs.html',
-    }),
+    new InjectScriptsPlugin({ path: 'public/libs.html' }),
     new InjectBodyPlugin({
       content: `<div id="root"></div>`,
       position: 'start',
     }),
     new CopyPlugin({
       patterns: [
-        { from: 'public/serviceWorker.js', to: 'serviceWorker.js' },
+        {
+          from: 'public/firebase-messaging-sw.js',
+          to: 'firebase-messaging-sw.js',
+        },
+        { from: 'public/sw.js', to: 'sw.js' },
         { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
       ],
     }),

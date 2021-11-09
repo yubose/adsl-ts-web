@@ -82,7 +82,10 @@ function createRegisters(app: App) {
       app.notification
         ?.getToken()
         .then(async (token) => {
-          log.grey(token)
+          log.grey('', {
+            token,
+            serviceWorkerRegistration: app.notification.workerRegistration,
+          })
           await componentObject.onEvent?.(token)
         })
         .catch((err) => log.red(`[Error]: ${err.message}`))
