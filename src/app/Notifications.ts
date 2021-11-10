@@ -63,7 +63,7 @@ class AppNotification {
     this.#unsubscribe = unsubscribe
   }
 
-  async init() {
+  async init(registration: ServiceWorkerRegistration) {
     try {
       if (this.supported) {
         this.client = firebase.initializeApp(credentials)
@@ -106,9 +106,7 @@ class AppNotification {
         )
       }
       this.initiated = true
-      this.workerRegistration = await navigator.serviceWorker?.register(
-        AppNotification.path,
-      )
+      this.workerRegistration = registration
       this.emit('initiated', this.client as firebase.app.App)
       return this.client
     } catch (error) {

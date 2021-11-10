@@ -6,6 +6,7 @@ else
     rm -rf $1/build
     cp -r ./build $1
     cd $1
+    git pull
     git add .
     git commit -a -m "update build"
     git push

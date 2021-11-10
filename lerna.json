@@ -1,13 +1,23 @@
 {
   "command": {
     "bootstrap": {
-      "hoist": true
+      "hoist": true,
+      "ignore": ["docs", "nui"]
+    },
+    "create": {
+      "license": "MIT"
     },
     "publish": {
-      "ignore": ["nui"]
+      "bump": "patch",
+      "ignore": ["docs", "nui", "noodl-ui-test-utils"],
+      "message": "Update"
     }
   },
   "ignore": ["docs", "nui"],
+  "ignoreChanges": ["**/__tests__/**"],
+  "loglevel": "success",
   "packages": ["packages/*"],
+  "registry": "https://registry.npmjs.org/",
+  "useWorkspaces": true,
   "version": "independent"
 }

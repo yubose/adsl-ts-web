@@ -29,13 +29,12 @@ const componentsResolver: t.Resolve.Config = {
   async before(args) {
     try {
       // Prevents continuous clicks
-      (args.node as HTMLElement).addEventListener('click',()=>{
-        (args.node as HTMLElement).style.pointerEvents = "none"
-        setTimeout(()=>{
-          (args.node as HTMLElement).style.pointerEvents = ""
+      ;(args.node as HTMLElement).addEventListener('click', () => {
+        ;(args.node as HTMLElement).style.pointerEvents = 'none'
+        setTimeout(() => {
+          ;(args.node as HTMLElement).style.pointerEvents = ''
         }, 400)
       })
-
 
       if (
         Identify.component.page(args.component) &&
@@ -377,6 +376,7 @@ const componentsResolver: t.Resolve.Config = {
           if (args.component.get(c.DATA_SRC)) {
             setAttr('src', args.component.get(c.DATA_SRC))
             setDataAttr('src', args.component.get(c.DATA_SRC))
+          } else {
           }
           args.component.on('path', (result: string) => {
             if (args.node) {

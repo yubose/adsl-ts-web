@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
-import cloneDeep from 'lodash/cloneDeep'
+import formatDate from 'date-fns/format'
+import subMs from 'date-fns/subMilliseconds'
 import Logger from 'logsnap'
 import { Identify, ReferenceString } from 'noodl-types'
 import { trimReference } from 'noodl-utils'
@@ -87,6 +88,24 @@ const trackProperty = function trackProperty({
       ].includes(type)
     ) {
       if (type === 'SET_VALUE') {
+        if (u.isNum(payload?.value?.mtime)) {
+          // const date = formatDate(
+          //   new Date(payload.value.mtime),
+          //   'MMM Do, yyyy hh:mm:ss',
+          // )
+          // console.log(`%cTimestamp/date`, `color:#00b406;`, {
+          //   payload,
+          //   stampToDay: app.noodl.root.builtIn.date.stampToDate(
+          //     payload.value.atime,
+          //   ),
+          //   stampToDate: app.noodl.root.builtIn.date.stampToDate(
+          //     payload.value.atime,
+          //   ),
+          //   stampToTime: app.noodl.root.builtIn.date.stampToTime(
+          //     payload.value.atime,
+          //   ),
+          // })
+        }
         if (
           // Silence the unnecessary logging of adding functions to objects
           [payload?.value, payload?.fn, payload?.update].some((o) => u.isFnc(o))

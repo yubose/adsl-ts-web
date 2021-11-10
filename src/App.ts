@@ -13,7 +13,11 @@ import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
-import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
+import {
+  command as cmd,
+  CACHED_PAGES,
+  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
+} from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
 import actionFactory from './factories/actionFactory'
@@ -25,10 +29,13 @@ import createExtendedDOMResolvers from './handlers/dom'
 import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
+import createNoodlConfigValidator from './modules/NoodlConfigValidator'
 import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
+import getBatchFromLocalStorage from './utils/getBatchFromLocalStorage'
+import NoodlWorker from './worker/NoodlWorker'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
@@ -51,6 +58,8 @@ class App {
   #parser: nu.Parser
   #spinner: InstanceType<typeof Spinner>
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
+  #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
+  #worker: ReturnType<typeof NoodlWorker>
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
@@ -77,6 +86,8 @@ class App {
     }
   }
 
+  static id = `aitmed-noodl-web`
+
   constructor({
     getStatus,
     meeting,
@@ -98,6 +109,12 @@ class App {
     this.#nui = nui
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
+    this.#worker = NoodlWorker(
+      new Worker('dedicatedWorker.js', {
+        name: App.id,
+        type: 'module',
+      }),
+    )
 
     noodl && (this.#noodl = noodl)
     this.#parser = new nu.Parser()
@@ -192,6 +209,14 @@ class App {
     return this.#meeting.selfStream
   }
 
+  get serviceWorker() {
+    return this.#serviceWorkerRegistration?.active as ServiceWorker
+  }
+
+  get serviceWorkerRegistration() {
+    return this.#serviceWorkerRegistration
+  }
+
   get subStreams() {
     return this.meeting.subStreams
   }
@@ -210,6 +235,10 @@ class App {
 
   get viewport() {
     return this.mainPage.viewport as VP
+  }
+
+  get worker() {
+    return this.#worker
   }
 
   /**
@@ -312,8 +341,6 @@ class App {
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
-      await this.noodl.init()
-
       if (!this.notification) {
         this.#notification = new (await import('./app/Notifications')).default()
         log.grey(`Initialized notifications`, this.#notification)
@@ -327,9 +354,54 @@ class App {
         }
       })
 
-      if (!this.notification?.initiated) {
-        await this.notification?.init()
+      this.#serviceWorkerRegistration = await navigator.serviceWorker?.register(
+        AppNotification.path,
+      )
+
+      if (this.#serviceWorkerRegistration) {
+        this.serviceWorker?.addEventListener('statechange', (evt) => {
+          console.log(
+            `%c[App - serviceWorker] State changed`,
+            `color:#c4a901;`,
+            evt,
+          )
+        })
+
+        this.#serviceWorkerRegistration.addEventListener(
+          'updatefound',
+          (evt) => {
+            console.log(
+              `%c[App - serviceWorkerRegistration] Update found`,
+              `color:#c4a901;`,
+              evt,
+            )
+          },
+        )
       }
+
+      if (!this.notification?.initiated) {
+        await this.notification?.init(this.#serviceWorkerRegistration)
+      }
+
+      await this.noodl.init({
+        ...getBatchFromLocalStorage(
+          'BaseDataModel',
+          'BaseCSS',
+          'BasePage',
+          'cadlEndpoint',
+          'config',
+        ),
+        onCadlEndpoint: (json) => {
+          if (u.isObj(json)) {
+            localStorage.setItem('cadlEndpoint', JSON.stringify(json))
+          }
+        },
+        onPreload: (name, processed, json, yml) => {
+          if (name && u.isObj(json)) {
+            localStorage.setItem(name, JSON.stringify(json))
+          }
+        },
+      })
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -402,34 +474,14 @@ class App {
         }
       }
 
-      const ls = window.localStorage
+      const ls = createNoodlConfigValidator({
+        configKey: 'config',
+        timestampKey: 'timestamp',
+        get: (key: string) => localStorage.getItem(key),
+        set: (key: string, value: any) => void localStorage.setItem(key, value),
+      })
 
-      const hasLocalConfig = () => !!ls.getItem('config')
-      const getStoredConfig = () => {
-        if (hasLocalConfig()) {
-          try {
-            let cfg = ls.getItem('config')
-            if (u.isStr(cfg)) return JSON.parse(cfg)
-            return cfg
-          } catch (error) {
-            console.error(error)
-          }
-        }
-      }
-      const getTimestampKey = () => {
-        const cfg = getStoredConfig()
-        if (u.isObj(cfg) && 'timestamp' in cfg) return String(cfg.timestamp)
-        return ''
-      }
-      const getStoredTimestamp = () => ls.getItem(getTimestampKey())
-      const getCurrentTimestamp = () => getStoredConfig()?.timestamp
-      // Intentionally not strictly equal === to allow coercion
-      const isTimestampEqual = () =>
-        getStoredTimestamp() == getCurrentTimestamp()
-      const cacheTimestamp = () =>
-        ls.setItem(getTimestampKey(), getCurrentTimestamp())
-
-      if (getTimestampKey() == null && hasLocalConfig()) cacheTimestamp()
+      if (!ls.getTimestampKey() && ls.configExists()) ls.cacheTimestamp()
 
       if (this.mainPage && location.href) {
         let { startPage } = this.noodl.cadlEndpoint
@@ -437,23 +489,23 @@ class App {
         const pathname = urlParts[urlParts.length - 1]
 
         console.log(`%cConfig evaluation`, `color:#e50087;`, {
-          storedConfig: getStoredConfig(),
-          hasLocalConfig: hasLocalConfig(),
-          timestampKey: getTimestampKey(),
-          timestampNow: getCurrentTimestamp(),
-          storedTimestamp: getStoredTimestamp(),
-          isTimestampEqual: isTimestampEqual(),
+          hasLocalConfig: ls.configExists(),
+          isTimestampEq: ls.isTimestampEq(),
+          timestampKey: ls.getTimestampKey(),
+          timestampNow: ls.getCurrentTimestamp(),
+          storedConfig: ls.getStoredConfigObject(),
+          storedTimestamp: ls.getStoredTimestamp(),
         })
 
         const keyParts = pathname.split('=')
         let isParameters = keyParts.length > 1 ? true : false
 
-        if (!isTimestampEqual() && !isParameters) {
+        if (!ls.isTimestampEq() && !isParameters) {
           // Set the URL / cached pages to their base state
-          ls.setItem('CACHED_PAGES', JSON.stringify([]))
+          localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
-          cacheTimestamp()
+          ls.cacheTimestamp()
         } else if (!pathname?.startsWith(BASE_PAGE_URL)) {
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
@@ -503,14 +555,6 @@ class App {
 
       log.func('getPageObject')
       log.teal(`Running noodl.initPage for page "${pageRequesting}"`)
-
-      // if (pageRequesting && !(pageRequesting in this.noodl.root)) {
-      //   console.log(
-      //     `%cThe page "${pageRequesting}" does not exist in the root object`,
-      //     `color:#ec0000;`,
-      //     this.root,
-      //   )
-      // }
 
       if (pageRequesting === currentPage) {
         console.log(
@@ -586,6 +630,7 @@ class App {
               let currentIndex = this.loadingPages[pageRequesting]?.findIndex?.(
                 (o) => o.id === page.id,
               )
+
               if (currentIndex > -1) {
                 if (currentIndex > 0) {
                   isAborted = true
