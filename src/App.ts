@@ -567,8 +567,6 @@ class App {
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
 
-      this.worker.command(cmd.FETCH, { url: `page:${pageRequesting}` })
-
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {
           ...(page.modifiers[pageRequesting] as any),

@@ -87,12 +87,8 @@ const devServerOptions = {
     'aitmed.com',
     'aitmed.io',
   ],
-  client: { logging: 'verbose' },
-  compress: true,
-  devMiddleware: {
-    serverSideRender: true,
-    writeToDisk: true,
-  },
+  compress: false,
+  devMiddleware: {},
   host: '127.0.0.1',
   hot: true,
   liveReload: true,
@@ -101,117 +97,7 @@ const devServerOptions = {
   static: [publicPath],
   // watchFiles: './public/**/*',
   onBeforeSetupMiddleware({ app, server }) {
-    if (!process.env.SAMPLE) return
-    /**
-     * @typedef { TestFileGroup }
-     * @type { object } obj
-     * @property { string } obj.dirPath
-     * @property { string[] } obj.dirFilePaths
-     * @property { string } obj.folderName
-     * @property { TestFileObjectEntry } obj.testFileObject
-     *
-     * @typedef { TestFileObjectEntry }
-     * @type { object }
-     * @property { string } html
-     * @property { Record<string, string } [resources]
-     *
-     * @typedef { TestFileEntry }
-     * @property { string } obj.dir
-     * @property { TestFileObjectEntry } obj.files
-     *
-     */
-    let pdfTestFilesDirPath = path.resolve(
-      path.join(process.cwd(), './public/exportPdfTestFiles'),
-    )
-
-    let pdfTestFilesDirFolderNames = fs.readdirSync(pdfTestFilesDirPath, 'utf8')
-
-    /** @type { TestFileGroup } */
-    let pdfTests = u.reduce(
-      pdfTestFilesDirFolderNames,
-      (acc, folderName) => {
-        const dirPath = path.join(pdfTestFilesDirPath, folderName)
-        const dirFilePaths = fs
-          .readdirSync(dirPath, 'utf8')
-          .map((folderName) => path.join(dirPath, folderName))
-        /**
-         * @type { TestFileObjectEntry }
-         */
-        const testFileObject = {
-          dir: dirPath,
-          files: u.reduce(
-            dirFilePaths,
-            (acc, filepath) => {
-              console.log(u.yellow(filepath))
-              const file = fs.statSync(filepath)
-              !acc[filepath] && (acc[filepath] = {})
-              if (file.isFile()) {
-                if (filepath.endsWith('.html')) {
-                  acc[filepath].html = fs.readFileSync(filepath, 'utf8')
-                } else {
-                  acc[filepath] = filepath
-                }
-              } else if (file.isDirectory()) {
-                if (filepath.endsWith(`_files`)) {
-                  const fileNames = fs.readdirSync(filepath, 'utf8')
-                  acc[filepath].resources = {}
-                  for (const fileName of fileNames) {
-                    const resourceFilePath = path.join(filepath, fileName)
-                    const isFile = fs.statSync(resourceFilePath).isFile()
-                    if (isFile) {
-                      acc[filepath].resources[fileName] = fs.readFileSync(
-                        resourceFilePath,
-                        'utf8',
-                      )
-                    }
-                  }
-                }
-              }
-              return acc
-            },
-            {},
-          ),
-        }
-        acc[folderName] = {
-          dirPath,
-          dirFilePaths,
-          folderName,
-          testFileObject,
-        }
-        return acc
-      },
-      {},
-    )
-
-    for (const testFileObject of u.values(pdfTests)) {
-      const { dirPath, dirFilePaths, folderName } = testFileObject
-      console.log({ dirPath, dirFilePaths, folderName, testFileObject })
-    }
-
-    for (let folderAsRoute of pdfTestFilesDirFolderNames) {
-      let raw = folderAsRoute
-      folderAsRoute = encodeURI(folderAsRoute)
-      app.get(
-        [
-          `/${folderAsRoute}`,
-          `/${folderAsRoute}.yml`,
-          `/${folderAsRoute}_en.yml`,
-        ],
-        (req, res, next) => {
-          return res.sendFile(
-            path.resolve(
-              path.join(
-                process.cwd(),
-                `./public/exportPdfTestFiles/${raw}/${raw}.html`,
-              ),
-            ),
-            (err) => {
-              if (err) res.send(`[${err.name}]: ${err.messages}`)
-            },
-          )
-        },
-      )
-    }
+    //
   },
 }
 
@@ -329,7 +215,10 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        { from: 'public/serviceWorker.js', to: 'serviceWorker.js' },
+        {
+          from: 'public/firebase-messaging-sw.js',
+          to: 'firebase-messaging-sw.js',
+        },
         { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
       ],
     }),
