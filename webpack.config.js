@@ -219,6 +219,10 @@ module.exports = {
           from: 'public/firebase-messaging-sw.js',
           to: 'firebase-messaging-sw.js',
         },
+        {
+          from: 'public/dedicatedWorker.js',
+          to: 'dedicatedWorker.js',
+        },
         { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
       ],
     }),
