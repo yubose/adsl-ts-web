@@ -10,6 +10,10 @@ html {
   /* touch-action: none !important; Prevents user scaling */
 }
 
+input::-ms-clear,input::-ms-reveal{
+  display: none;
+}
+
 body {
   margin: 0;
   padding: 0;
