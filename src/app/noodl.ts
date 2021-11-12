@@ -1,4 +1,4 @@
-import NOODL from '@aitmed/cadl'
+import { CADL as NOODL } from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
 

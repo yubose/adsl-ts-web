@@ -36,7 +36,9 @@ class AppNotification {
   client: firebase.app.App | undefined
   initiated = false
   messaging: FirebaseMessaging | undefined
-  workerRegistration: ServiceWorkerRegistration | undefined;
+  workerRegistration: ServiceWorkerRegistration | undefined
+
+  static path = 'firebase-messaging-sw.js';
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {

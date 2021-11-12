@@ -392,9 +392,27 @@ const componentsResolver: t.Resolve.Config = {
             args.component
               ?.get?.(c.DATA_VALUE)
               .then?.((path: any) => {
-                if (path) {
-                  console.log('load path', path)
-                  setAttr('src', path)
+                if (path || path?.url) {
+
+                  if(path?.type && path.type == 'application/pdf'){
+                    //pdf preview
+                    let key
+                    let iframe = document.createElement('iframe')
+                    iframe.src = `${path.url}#toolbar=0&navpanes=0&scrollbar=0`
+                    iframe.style.border = 'none'
+                    for(let i=0;i<args.node.style.length;i++){
+                      key = args.node.style[i]
+                      iframe.style[key] = args.node.style[key]
+                    }
+                    let parent = args.node.parentNode
+                    parent?.appendChild(iframe)
+                    parent?.removeChild(args.node)
+                    
+                  }else{
+                    path = path?.url? path.url: path
+                    console.log('load path', path)
+                    setAttr('src', path)
+                  }
                 } else {
                   setAttr('src', args.component?.get?.(c.DATA_SRC))
                 }

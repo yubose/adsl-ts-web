@@ -467,10 +467,45 @@ class App {
       this.observeViewport(this.viewport)
       this.observePages(this.mainPage)
 
-      /* -------------------------------------------------------
-      ---- LOCAL STORAGE
-    -------------------------------------------------------- */
-      let startPage = this.noodl.cadlEndpoint?.startPage
+      /**
+       *
+       * Determining the start page or initial action
+       *
+       * In order of precedence:
+       *  1. Determine the initial action by URL
+       *  2. Determine the initial action by page in cache
+       *  3. Determine the initial action by start page
+       */
+
+      const { href } = new URL(window.location.href)
+      const url = new URL(href)
+      const searchParams = url.searchParams
+      const [noodlUrlEntry, ...queryParams] = [...searchParams.entries()]
+      let startPage = ''
+
+      if (queryParams.length) {
+        // The user is coming from an outside link
+        //    (ex: being redirected after submitting a payment)
+        const params = u.reduce(
+          queryParams,
+          (acc, [key, value]) => u.assign(acc, { [key]: value }),
+          {},
+        )
+        const noodlUrl = noodlUrlEntry[0] || ''
+        const pageNames = noodlUrl.split('-')
+        startPage = pageNames[pageNames.length - 1]
+        this.mainPage.pageUrl = BASE_PAGE_URL + noodlUrl
+        if (u.isArr(this.#noodl.cadlEndpoint?.page)) {
+          if (!this.#noodl.cadlEndpoint.page.includes(startPage)) {
+            // Fall back to the original start page if it is an invalid page
+            startPage = this.#noodl.cadlEndpoint.startPage || startPage || ''
+            this.mainPage.pageUrl = BASE_PAGE_URL
+          }
+        }
+        await this.navigate(this.mainPage, startPage)
+      } else {
+        startPage = this.noodl.cadlEndpoint?.startPage
+      }
 
       // Override the start page if they were on a previous page
       const cachedPages = this.getCachedPages()
@@ -574,8 +609,6 @@ class App {
 
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
-
-      // this.worker.command(cmd.FETCH, { url: `page:${pageRequesting}` })
 
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {

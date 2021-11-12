@@ -520,9 +520,12 @@ function normalizeProps<
                 }else {
                   value[styleKey] = com.formatColor(styleValue)
                   
-                  if(styleKey == 'pointerEvents' && styleValue != 'none'){
+                  styleKey == 'pointerEvents' && styleValue != 'none' &&(
                     delete value['pointerEvents']
-                  }
+                  )
+                  styleKey == 'isHidden' && nt.Identify.isBooleanTrue(styleValue) &&(
+                    props.style.visibility = 'hidden'
+                  )
                 }
 
               }
