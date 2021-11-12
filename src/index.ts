@@ -1,6 +1,6 @@
 import yaml from 'yaml'
 import * as u from '@jsmanifest/utils'
-import CADL, { Account } from '@aitmed/cadl'
+import { Account, CADL } from '@aitmed/cadl'
 import Logger from 'logsnap'
 import pick from 'lodash/pick'
 import * as lib from 'noodl-ui'
@@ -115,26 +115,10 @@ async function initializeApp(
 
 async function initializeNoodlPluginRefresher() {
   ws = new WebSocket(`ws://127.0.0.1:3002`)
-
-  ws.addEventListener('open', (event) => {
-    // console.log(`[noodl refresher] started`, event)
-  })
-
   ws.addEventListener('message', (msg) => {
-    let data
     try {
-      data = JSON.parse(msg.data)
-      // console.log(`%cReceived from noodl-webpack-plugin:`, `color:#e50087;`, data)
-      data.type === 'FILE_CHANGED' && app.reset(true)
+      JSON.parse(msg.data)?.type === 'FILE_CHANGED' && app.reset(true)
     } catch (error) {}
-  })
-
-  ws.addEventListener('error', () => {
-    // console.log(`%c[noodl reloader error]`, `color:#ec0000;`, err)
-  })
-
-  ws.addEventListener('close', (event) => {
-    // console.log(`%c[noodl reloader] closed`, `color:#FF5722;`, event)
   })
 
   return ws
