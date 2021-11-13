@@ -346,14 +346,12 @@ class App {
         log.grey(`Initialized notifications`, this.#notification)
       }
 
-  
-
       console.log(`A`)
       if (this.notification.supported) {
         if (!this.notification?.initiated) {
           console.log(`B-1`)
           this.#serviceWorkerRegistration =
-            await navigator.serviceWorker?.register('sw.js')
+            await navigator.serviceWorker?.register('firebase-messaging-sw.js')
           console.log(`B-2`)
           this.notification?.init(this.#serviceWorkerRegistration)
           console.log(`B-3`)
@@ -361,7 +359,7 @@ class App {
       } else {
         console.log(`C-1`)
         this.#serviceWorkerRegistration =
-          await navigator.serviceWorker?.register('sw.js')
+          await navigator.serviceWorker?.register('firebase-messaging-sw.js')
         console.log(`C-2`)
       }
       console.log(`D`)
@@ -704,11 +702,11 @@ class App {
       )?.aborted
 
       log.func('createPreparePage')
-      log.salmon(`Ran noodl.initPage on page "${pageRequesting}"`, {
+      log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
         pageRequesting,
         pageModifiers: page.modifiers,
         pageObject: this?.root[pageRequesting],
-        snapshot: page.snapshot(),
+        ...page.snapshot(),
       })
 
       if (isAbortedFromSDK) {

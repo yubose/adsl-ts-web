@@ -190,6 +190,10 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gesturechange', (e) => e.preventDefault())
 })
 
+window.addEventListener('unload', (evt) => {
+  window.alert('hello')
+})
+
 if (module.hot) {
   module.hot.accept()
   if (module.hot.status() === 'apply') {

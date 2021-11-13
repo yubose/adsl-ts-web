@@ -173,8 +173,8 @@ module.exports = {
     extensions: ['.ts', '.js'],
     modules: ['node_modules'],
     fallback: {
-      crypto: require.resolve('crypto-browserify'),
-      stream: require.resolve('stream-browserify'),
+      // crypto: require.resolve('crypto-browserify'),
+      // stream: require.resolve('stream-browserify'),
     },
   },
   plugins: [
