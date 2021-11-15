@@ -393,23 +393,21 @@ const componentsResolver: t.Resolve.Config = {
               ?.get?.(c.DATA_VALUE)
               .then?.((path: any) => {
                 if (path || path?.url) {
-
-                  if(path?.type && path.type == 'application/pdf'){
+                  if (path?.type && path.type == 'application/pdf') {
                     //pdf preview
                     let key
                     let iframe = document.createElement('iframe')
                     iframe.src = `${path.url}#toolbar=0&navpanes=0&scrollbar=0`
                     iframe.style.border = 'none'
-                    for(let i=0;i<args.node.style.length;i++){
+                    for (let i = 0; i < args.node.style.length; i++) {
                       key = args.node.style[i]
                       iframe.style[key] = args.node.style[key]
                     }
                     let parent = args.node.parentNode
                     parent?.appendChild(iframe)
                     parent?.removeChild(args.node)
-                    
-                  }else{
-                    path = path?.url? path.url: path
+                  } else {
+                    path = path?.url ? path.url : path
                     console.log('load path', path)
                     setAttr('src', path)
                   }
@@ -917,22 +915,32 @@ const componentsResolver: t.Resolve.Config = {
           let sourceEl: HTMLSourceElement
           let notSupportedEl: HTMLParagraphElement
           videoEl.controls = Identify.isBooleanTrue(controls)
-          if (poster)
-            videoEl.setAttribute('poster', args.component.get('poster'))
-          if (args.component.blueprint?.['path']) {
-            args.component.on('path', (res) => {
-              sourceEl = document.createElement('source')
-              notSupportedEl = document.createElement('p')
-              if (videoType) sourceEl.setAttribute('type', videoType)
-              sourceEl.setAttribute('src', res)
-              notSupportedEl.style.textAlign = 'center'
-              // This text will not appear unless the browser isn't able to play the video
-              notSupportedEl.innerHTML =
-                "Sorry, your browser doesn's support embedded videos."
-              videoEl.appendChild(sourceEl)
-              videoEl.appendChild(notSupportedEl)
-            })
-          }
+
+          const attrs = ['poster', ['src', 'path']]
+
+          attrs.forEach((attr) => {
+            if (u.isArr(attr)) {
+              const [attrib, key] = attr
+              const value = args.component.props[key]
+              !u.isNil(value) && setAttr(attrib, value)
+
+              if (attrib === 'src') {
+                sourceEl = document.createElement('source')
+                notSupportedEl = document.createElement('p')
+                if (videoType) sourceEl.setAttribute('type', videoType)
+                sourceEl.setAttribute('src', value)
+                notSupportedEl.style.textAlign = 'center'
+                // This text will not appear unless the browser isn't able to play the video
+                notSupportedEl.innerHTML =
+                  "Sorry, your browser doesn's support embedded videos."
+                videoEl.appendChild(sourceEl)
+                videoEl.appendChild(notSupportedEl)
+              }
+            } else {
+              const value = args.component.props[attr]
+              !u.isNil(value) && setAttr(attr, value)
+            }
+          })
 
           videoEl.style.objectFit = 'contain'
         }
