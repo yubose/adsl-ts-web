@@ -4,23 +4,18 @@
  */
 function createAsyncImageElement(
   container = document.body,
-  onBeforeLoad?: (node: HTMLImageElement) => void,
-): Promise<{
-  event: Event
-  node: HTMLImageElement
-}> {
+): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
-    let node = new Image()
-    onBeforeLoad?.(node)
-    node.addEventListener('load', (event) => resolve({ event, node }))
-    node.addEventListener('error', reject)
+    const node = new Image()
+    node
+      .decode()
+      .then(() => resolve(node))
+      .catch(reject)
     try {
-      container?.appendChild?.(node)
+      requestAnimationFrame(() => container.appendChild(node))
     } catch (error) {
       console.error(error)
       reject(error)
-    } finally {
-      node.dispatchEvent(new Event('load'))
     }
   })
 }

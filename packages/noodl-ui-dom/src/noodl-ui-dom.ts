@@ -535,8 +535,7 @@ class NDOM extends NDOMInternal {
           try {
             if (Identify.folds.emit(component.blueprint?.path)) {
               try {
-                node = (await createAsyncImageElement(container as HTMLElement))
-                  .node
+                node = await createAsyncImageElement(container as HTMLElement)
                 node &&
                   ((node as HTMLImageElement).src = component.get(c.DATA_SRC))
               } catch (error) {
