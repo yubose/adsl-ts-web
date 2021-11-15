@@ -311,11 +311,11 @@ const createExtendedDOMResolvers = function (app: App) {
                       element.timeLength = duration/60
                       element.title = element.patientName
                       element.name = element.visitReason
-                      if(element.visitType === "Office Visits"){
-                        element.eventColor = "#f9d9da"
+                      if(((element.subtype&0xf0000)>>16) % 2 ===0){
+                        element.eventColor = "#ffd25a"
                         
                       }else{
-                        element.eventColor = "#e4f5e9"
+                        element.eventColor = "#30b354"
                 
                       }
                       element.backgroundColor = element.eventColor
@@ -326,6 +326,7 @@ const createExtendedDOMResolvers = function (app: App) {
                       delete element.visitReason
                       delete element.eventColor
                     })
+                    console.error(defaultData)
                   } else {
                     defaultData = []
                   }
