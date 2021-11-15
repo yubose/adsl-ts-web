@@ -1,3 +1,4 @@
+import { ReferenceString } from 'ecosTypes'
 import type { ActionObject } from './actionTypes'
 import type { StyleObject } from './styleTypes'
 
@@ -14,10 +15,9 @@ export interface EmitObject {
   [key: string]: any
 }
 
-export interface EmitObjectFold {
+export type EmitObjectFold<O = any> = {
   emit: EmitObject
-  [key: string]: any
-}
+} & O
 
 export type GotoUrl = string
 
@@ -48,3 +48,13 @@ export interface ToastObject {
   message?: string
   style?: StyleObject
 }
+
+export type Value =
+  | ''
+  | any[]
+  | boolean
+  | number
+  | null
+  | Record<string, any>
+  | ReferenceString
+  | string
