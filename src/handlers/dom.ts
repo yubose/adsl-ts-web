@@ -578,7 +578,7 @@ const createExtendedDOMResolvers = function (app: App) {
           function heightLight(string, keyword) {
               let reg = new RegExp(keyword, "gi")
               string = string.replace(reg, function(txt){
-                  return `<span class="highlight" >${txt}</span>`
+                  return `<span class="highlight">${txt}</span>`
               })
               return string
           }
@@ -588,6 +588,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const localhighlightValue = get(app.root[pageName], highlightKey)
           const remotehighlightValue = get(app.root, highlightKey)
           const highlightValue = localhighlightValue ? localhighlightValue : remotehighlightValue
+
           const highlightStyle = component.get('highlightStyle')
 
           let originalValue = node.innerHTML
@@ -595,25 +596,15 @@ const createExtendedDOMResolvers = function (app: App) {
           node.innerHTML = ""
           node.innerHTML = heightLight(originalValue,highlightValue)
 
-          let domObj:any = document.getElementsByClassName('highlight')
-          domObj.forEach(element=>{
+          let currentSpans = node.getElementsByClassName('highlight')
+          // let domObj:any = document.getElementsByClassName('highlight')
+          for(let i=0;i<currentSpans.length;i++){
+            let currentSpan = currentSpans[i] as HTMLElement
             u.eachEntries(highlightStyle, (key: any, value) => {
-              element.style[key] = value
+              currentSpan.style[key] = value
             })
-          })
+          }
 
-          // const span = document.createElement('span')
-          // span.innerText = highlightValue
-          // u.eachEntries(highlightStyle, (key: any, value) => {
-          //   span.style[key] = value
-          // })
-          // node.innerHTML = ""
-          // node.appendChild(span)
-
-          // let otherValue = originalValue.substring(highlightValue.length)
-          // const otherspan = document.createElement('span')
-          // otherspan.innerText = otherValue
-          // node.appendChild(otherspan )
 
         }
       },
