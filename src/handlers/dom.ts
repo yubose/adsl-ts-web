@@ -299,23 +299,35 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                   let defaultData = dataValue.chartData
                   if (u.isArr(defaultData)) {
+                    
                     defaultData.forEach((element) => {
-                      let duration = element.etime - element.stime
-                      if (duration / 60 <= 15) {
+                      let duration = element.etime-element.stime
+                      if(duration/60<=15){
                         // display min: 15min
                         element.etime = element.stime + 900
                       }
                       element.start = new Date(element.stime * 1000)
                       element.end = new Date(element.etime * 1000)
-                      element.timeLength = duration / 60
+                      element.timeLength = duration/60
                       element.title = element.patientName
                       element.name = element.visitReason
+                      if(element.visitType === "Office Visits"){
+                        element.eventColor = "#f9d9da"
+                        
+                      }else{
+                        element.eventColor = "#e4f5e9"
+                
+                      }
+                      element.backgroundColor = element.eventColor
+                      element.textColor = "#000000"
+                      element.borderColor  = element.eventColor
                       delete element.stime
                       delete element.etime
                       delete element.visitReason
+                      delete element.eventColor
                     })
                   } else {
-                    defaultData = {}
+                    defaultData = []
                   }
                   let calendar = new FullCalendar.Calendar(node, {
                     dayHeaderClassNames: 'fc.header',
@@ -400,10 +412,8 @@ const createExtendedDOMResolvers = function (app: App) {
                         dataValue.response = event.event._def.publicId
                       }
                     },
-                  })
-
-                  calendar.render()
-
+                  });
+                  calendar.render();
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
                   Object.defineProperty(calendar.el.style, 'display', {
