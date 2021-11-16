@@ -299,23 +299,34 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                   let defaultData = dataValue.chartData
                   if (u.isArr(defaultData)) {
+                    
                     defaultData.forEach((element) => {
-                      let duration = element.etime - element.stime
-                      if (duration / 60 <= 15) {
+                      let duration = element.etime-element.stime
+                      if(duration/60<=15){
                         // display min: 15min
                         element.etime = element.stime + 900
                       }
                       element.start = new Date(element.stime * 1000)
                       element.end = new Date(element.etime * 1000)
-                      element.timeLength = duration / 60
+                      element.timeLength = duration/60
                       element.title = element.patientName
                       element.name = element.visitReason
+                      if(((element.subtype&0xf0000)>>16) % 2 === 0){
+                        element.eventColor = "#ffd25a"
+                      }else{
+                        element.eventColor = "#30b354"
+                      }
+                      element.backgroundColor = element.eventColor
+                      element.textColor = "#000000"
+                      element.borderColor  = element.eventColor
                       delete element.stime
                       delete element.etime
                       delete element.visitReason
+                      delete element.eventColor
                     })
+                    console.error(defaultData)
                   } else {
-                    defaultData = {}
+                    defaultData = []
                   }
                   let calendar = new FullCalendar.Calendar(node, {
                     dayHeaderClassNames: 'fc.header',
@@ -400,10 +411,8 @@ const createExtendedDOMResolvers = function (app: App) {
                         dataValue.response = event.event._def.publicId
                       }
                     },
-                  })
-
-                  calendar.render()
-
+                  });
+                  calendar.render();
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
                   Object.defineProperty(calendar.el.style, 'display', {
@@ -578,7 +587,7 @@ const createExtendedDOMResolvers = function (app: App) {
           function heightLight(string, keyword) {
               let reg = new RegExp(keyword, "gi")
               string = string.replace(reg, function(txt){
-                  return `<span class="highlight" >${txt}</span>`
+                  return `<span class="highlight">${txt}</span>`
               })
               return string
           }
@@ -588,6 +597,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const localhighlightValue = get(app.root[pageName], highlightKey)
           const remotehighlightValue = get(app.root, highlightKey)
           const highlightValue = localhighlightValue ? localhighlightValue : remotehighlightValue
+
           const highlightStyle = component.get('highlightStyle')
 
           let originalValue = node.innerHTML
@@ -595,25 +605,15 @@ const createExtendedDOMResolvers = function (app: App) {
           node.innerHTML = ""
           node.innerHTML = heightLight(originalValue,highlightValue)
 
-          let domObj:any = document.getElementsByClassName('highlight')
-          domObj.forEach(element=>{
+          let currentSpans = node.getElementsByClassName('highlight')
+          // let domObj:any = document.getElementsByClassName('highlight')
+          for(let i=0;i<currentSpans.length;i++){
+            let currentSpan = currentSpans[i] as HTMLElement
             u.eachEntries(highlightStyle, (key: any, value) => {
-              element.style[key] = value
+              currentSpan.style[key] = value
             })
-          })
+          }
 
-          // const span = document.createElement('span')
-          // span.innerText = highlightValue
-          // u.eachEntries(highlightStyle, (key: any, value) => {
-          //   span.style[key] = value
-          // })
-          // node.innerHTML = ""
-          // node.appendChild(span)
-
-          // let otherValue = originalValue.substring(highlightValue.length)
-          // const otherspan = document.createElement('span')
-          // otherspan.innerText = otherValue
-          // node.appendChild(otherspan )
 
         }
       },
