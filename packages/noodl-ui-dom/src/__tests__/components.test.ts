@@ -881,8 +881,7 @@ describe(nc.coolGold('components'), () => {
       const { assetsUrl, render } = _createRender(
         ui.video({ poster: 'abc.png' }),
       )
-      const video = await render()
-      const el = findFirstByElementId(video) as HTMLVideoElement
+      const el = findFirstByElementId(await render()) as HTMLVideoElement
       expect(el).to.have.property('poster', `${assetsUrl}abc.png`)
     })
 
@@ -890,8 +889,7 @@ describe(nc.coolGold('components'), () => {
       const { assetsUrl, render } = _createRender(
         ui.video({ path: 'twenty.jpeg' }),
       )
-      const video = await render()
-      const el = findFirstByElementId(video) as HTMLVideoElement
+      const el = findFirstByElementId(await render()) as HTMLVideoElement
       await waitFor(() => {
         expect(el).to.have.property('src', `${assetsUrl}twenty.jpeg`)
       })

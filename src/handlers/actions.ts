@@ -65,13 +65,12 @@ const createActions = function createActions(app: App) {
   const emit = triggers.reduce(
     (acc: Partial<Record<string, Store.ActionObject<'emit'>['fn']>>, trigger) =>
       u.assign(acc, {
-        [trigger]: async function (
+        [trigger]: async function onEmitAction(
           action: EmitAction,
           options: ConsumerOptions,
         ) {
           try {
             log.func(`emit [${trigger}]`)
-            log.grey('', action?.snapshot?.())
 
             const emitParams = {
               actions: _pick(action, 'actions'),
@@ -82,22 +81,17 @@ const createActions = function createActions(app: App) {
             if (_has(_pick(action, 'emit'), 'dataKey')) {
               const dataKeyValue = _pick(action, 'dataKey')
               emitParams.dataKey = dataKeyValue
-              if (dataKeyValue == undefined) {
-                log.red(
-                  `An undefined value was set for "dataKey" as arguments to emitCall`,
-                  { action: action?.snapshot?.(), emitParams },
-                )
-              }
             }
 
             log.grey('Emitting', {
               action: action?.snapshot?.(),
-              emitParams,
-              options,
+              emitParams: { ...emitParams },
             })
+
             const emitResult = u.array(
               await app.noodl.emitCall(emitParams as any),
             )
+
             log.grey(`Emitted`, {
               action: action?.snapshot?.(),
               emitParams,
@@ -494,10 +488,10 @@ const createActions = function createActions(app: App) {
       if (elem?.style) {
         if (Identify.action.popUp(action)) show(elem)
         else if (Identify.action.popUpDismiss(action)) hide(elem)
-        if(popUpDismiss){
-          setTimeout(()=>{
+        if (popUpDismiss) {
+          setTimeout(() => {
             hide(elem)
-          },popUpDismiss)
+          }, popUpDismiss)
         }
         // Some popup components render values using the dataKey. There is a bug
         // where an action returns a popUp action from an evalObject action. At

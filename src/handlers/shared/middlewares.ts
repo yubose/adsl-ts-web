@@ -9,14 +9,13 @@ import App from '../../App'
  * This file contains middleware functions wrapping functions from
  * src/actions.ts and src/builtIns.ts
  */
-
 const registerMiddleware = function (app: App) {
   const log = Logger.create('middlewares.ts')
 
   /**
    * Transforms abnormal args to the expected [action, options] structure
    * Useful to handle dynamically injected actions (goto strings for
-   * destinations for ex)
+   * destinations for example)
    */
   const handleInjections: MiddlewareFn = (
     args: ActionHandlerArgs,
@@ -34,14 +33,8 @@ const registerMiddleware = function (app: App) {
         action: { actionType: 'goto', goto: args[0] },
         trigger: 'onClick',
       })
-
-      log.func('handleInjections')
-      log.green(
-        `A goto destination of "${prevArgs[0]}" was dynamically injected into an action chain`,
-        { prevArgs, newArgs: args },
-      )
     } else if (u.isObj(args[0]) && !isAction(args[0])) {
-      const prevArgs = [...args]
+      // const prevArgs = [...args]
 
       if ('destination' in args[0] || 'goto' in args[0]) {
         // Dynamically injected plain objects as potential actions from lvl 2
@@ -53,12 +46,6 @@ const registerMiddleware = function (app: App) {
           trigger: 'onClick',
         })
       }
-
-      log.func('handleInjections')
-      log.green(
-        `An action object was dynamically injected into an action chain`,
-        { prevArgs, newArgs: args },
-      )
     }
 
     if (!args[1]) {

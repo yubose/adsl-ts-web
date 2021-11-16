@@ -1,0 +1,7655 @@
+{
+  "AddButton": {
+    "style": {
+      "backgroundColor": "#003D68",
+      "border": {
+        "style": "3"
+      },
+      "borderRadius": "1",
+      "color": "0xffffff",
+      "fontSize": "12",
+      "height": "0.046",
+      "width": "0.03"
+    },
+    "text": "ADD",
+    "type": "button"
+  },
+  "AddFacilityLabel": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": "1.3vh",
+      "height": "0.025",
+      "left": "0",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": "0"
+    },
+    "type": "label"
+  },
+  "AddFacilityLabelNoTop": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": "1.3vh",
+      "height": "0.025",
+      "left": "0",
+      "textAlign": {
+        "y": "center"
+      }
+    },
+    "type": "label"
+  },
+  "AddFacilityTextField": {
+    "placeholder": "Enter here",
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xeaeaea",
+      "borderRadius": "3",
+      "borderWidth": "1.5",
+      "boxSizing": "border-box",
+      "fontFamily": "Poppins",
+      "fontSize": "1.4vh",
+      "height": "0.044",
+      "left": "0",
+      "textAlign": {
+        "y": "center"
+      },
+      "textIndent": "1vh",
+      "top": "0",
+      "width": "0.1"
+    },
+    "type": "textField"
+  },
+  "AddFacilityTextFieldNoTop": {
+    "placeholder": "Enter here",
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xeaeaea",
+      "borderRadius": "3",
+      "borderWidth": "1.5",
+      "boxSizing": "border-box",
+      "fontFamily": "Poppins",
+      "fontSize": "1.4vh",
+      "height": "0.04",
+      "left": "0",
+      "marginTop": "0.004",
+      "textAlign": {
+        "y": "center"
+      },
+      "textIndent": "1vh",
+      "width": "0.1"
+    },
+    "type": "textField"
+  },
+  "Addbutton": {
+    "children": [
+      {
+        ".Label1": null,
+        "style": {
+          "fontSize": "13",
+          "left": "0.025",
+          "top": "0.01"
+        },
+        "text": "Add Appointment"
+      },
+      {
+        "path": "addWhite.svg",
+        "style": {
+          "left": "0.005",
+          "top": "0.01"
+        },
+        "type": "image"
+      }
+    ],
+    "style": {
+      "backgroundColor": "#005795",
+      "borderRadius": "5",
+      "color": "#FFFFFF",
+      "height": "0.05",
+      "left": "0.55",
+      "top": "0.015",
+      "width": "0.11"
+    },
+    "type": "view"
+  },
+  "Addbutton1": {
+    "children": [
+      {
+        ".Label1": null,
+        "style": {
+          "color": "#e8eef3",
+          "fontSize": "1.7vh",
+          "height": "0.05",
+          "left": "0.0305",
+          "textAlign": {
+            "y": "center"
+          }
+        },
+        "text": "Add New Staff"
+      },
+      {
+        "path": "addWhite.svg",
+        "style": {
+          "left": "0.012",
+          "top": "0.015",
+          "width": "0.01"
+        },
+        "type": "image"
+      }
+    ],
+    "style": {
+      "backgroundColor": "#005795",
+      "borderRadius": "5",
+      "color": "#FFFFFF",
+      "height": "0.05",
+      "left": "0.69",
+      "top": "0.015",
+      "width": "0.105"
+    },
+    "type": "view"
+  },
+  "Alllabel": {
+    "style": {
+      "color": "#425061",
+      "fontFamily": "Poppins",
+      "height": "0.05",
+      "left": "0",
+      "textAlign": {
+        "x": "center"
+      },
+      "top": "0",
+      "width": "0.3"
+    },
+    "type": "label"
+  },
+  "AppointmentLobby": {
+    "dataKey": null,
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n4_3",
+      "fontWeight": "400",
+      "height": "0.1",
+      "left": "0.038",
+      "textAlign": {
+        "y": "center"
+      },
+      "width": "0.14"
+    },
+    "text": "Appointment Lobby",
+    "type": "label"
+  },
+  "AttachmentView": {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "onClick": [
+                  {
+                    "actionType": "evalObject",
+                    "object": [
+                      {
+                        "=.builtIn.EcosObj.download": {
+                          "dataIn": {
+                            "ecosObj": "=..formData.soloAttach"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "path": "downLoadBlue.svg",
+                "style": {
+                  "width": "0.015"
+                },
+                "type": "image"
+              },
+              {
+                "onClick": [
+                  {
+                    "actionType": "popUpDismiss",
+                    "popUpView": "_____.viewTag"
+                  }
+                ],
+                "path": "close.svg",
+                "style": {
+                  "width": "0.015"
+                },
+                "type": "image"
+              }
+            ],
+            "style": {
+              "alignItems": "center",
+              "display": "flex",
+              "height": "0.06",
+              "justifyContent": "space-around",
+              "left": "0.33",
+              "marginTop": "0",
+              "width": "0.07"
+            },
+            "type": "view"
+          },
+          {
+            "children": [
+              {
+                "dataKey": "formData.soloAttach.id",
+                "path": "null.png",
+                "path=func": "=.builtIn.utils.prepareDocToPath",
+                "style": {
+                  "height": "auto",
+                  "left": "0.05",
+                  "top": "0",
+                  "width": "0.3"
+                },
+                "type": "image",
+                "viewTag": "imgView"
+              },
+              {
+                "ecosObj": "..formData.soloAttach",
+                "style": {
+                  "height": "auto",
+                  "isHidden": true,
+                  "left": "0",
+                  "top": "0",
+                  "width": "0.4"
+                },
+                "type": "ecosDoc",
+                "viewTag": "pdfView"
+              }
+            ],
+            "style": {
+              "height": "0.74",
+              "marginTop": "0.1",
+              "overflow": "scroll",
+              "width": "0.4"
+            },
+            "type": "scrollView"
+          }
+        ],
+        "style": {
+          "backgroundColor": "0xffffff",
+          "borderRadius": "5px",
+          "height": "0.9",
+          "left": "0.3",
+          "top": "0.05",
+          "width": "0.4"
+        },
+        "type": "view"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp",
+    "viewTag": "attachView"
+  },
+  "BackImg": {
+    "path": "goBack.svg",
+    "style": {
+      "height": "1.8vw",
+      "left": "0.51",
+      "top": "0.02",
+      "width": "1.8vw"
+    },
+    "type": "image"
+  },
+  "BackLabel": {
+    "onClick": [
+      {
+        "actionType": "builtIn",
+        "funcName": "goBack",
+        "reload": true
+      }
+    ],
+    "style": {
+      "color": "0x005795",
+      "fontSize": "2.1vh",
+      "fontWeight": "600",
+      "height": "0.03",
+      "left": "0",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0.02",
+      "width": "0.04"
+    },
+    "text": "< Back",
+    "type": "label"
+  },
+  "BackgroundPopUp": {
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": 10
+    },
+    "type": "popUp",
+    "viewTag": "DeletePopupTag"
+  },
+  "BackgroundWhite": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderRadius": "5",
+      "boxShadow": "0px 2px 2px 1px #b7b7b7",
+      "height": "0.37",
+      "left": "0.44",
+      "top": "0.3",
+      "width": "0.28"
+    },
+    "type": "view"
+  },
+  "Ball": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderRadius": "1000",
+      "boxShadow": "0px 0px 1px 1px #0063A8",
+      "color": "#0063A8",
+      "fontSize": "15",
+      "top": "0.002"
+    },
+    "type": "button"
+  },
+  "BaseButton": {
+    "style": {
+      "backgroundColor": "0x0b4a7e",
+      "border": {
+        "style": "1"
+      },
+      "borderRadius": "5",
+      "color": "0xffffffff",
+      "display": "inline",
+      "fontSize": "0.8vw",
+      "height": "2.2vw",
+      "textAlign": {
+        "x": "center",
+        "y": "center"
+      },
+      "width": "15.2vw"
+    },
+    "text": "button",
+    "type": "button"
+  },
+  "BaseCheckView": {
+    "children": [
+      {
+        "path": "__.path",
+        "style": {
+          "left": "0.12",
+          "top": "0.04",
+          "width": "0.06"
+        },
+        "type": "image"
+      },
+      {
+        "style": {
+          ".LabelStyle": {
+            "color": "0x000000",
+            "fontFamily": "sans-serif",
+            "fontSize": "2vh",
+            "height": "0.06",
+            "left": "0",
+            "textAlign": {
+              "x": "center",
+              "y": "center"
+            },
+            "top": "0.18",
+            "width": "0.3"
+          }
+        },
+        "text": "__.message",
+        "text2": "_.text3",
+        "text3": "v",
+        "text4": "__.children.1.text",
+        "type": "label"
+      },
+      {
+        "onClick": [
+          {
+            "actionType": "popUpDismiss",
+            "popUpView": "___.viewTag"
+          }
+        ],
+        "style": {
+          "backgroundColor": "#005795",
+          "border": {
+            "color": "#005795",
+            "style": "3"
+          },
+          "borderRadius": "5",
+          "color": "0xffffff",
+          "fontSize": "2.1vh",
+          "height": "0.04",
+          "left": "0.12",
+          "top": "0.3",
+          "width": "0.06"
+        },
+        "text": "ok",
+        "type": "button"
+      }
+    ],
+    "message": "error code",
+    "path": "aboutBlue.svg",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "#f4f8fa",
+      "borderRadius": "7",
+      "boxShadow": "0px 0px  5px 2px #f4f8fa",
+      "height": "0.4",
+      "left": "0.35",
+      "top": "0.3",
+      "width": "0.3",
+      "zIndex": "100000"
+    },
+    "type": "popUp",
+    "viewTag": "baseCheckView"
+  },
+  "BaseCheckViewSignInOrUp": {
+    "children": [
+      {
+        "children": [
+          {
+            "path": "___.path",
+            "style": {
+              "left": "0.12",
+              "top": "0.04",
+              "width": "0.06"
+            },
+            "type": "image"
+          },
+          {
+            "style": {
+              ".LabelStyle": {
+                "color": "0x000000",
+                "fontFamily": "sans-serif",
+                "fontSize": "2vh",
+                "height": "0.06",
+                "left": "0",
+                "textAlign": {
+                  "x": "center",
+                  "y": "center"
+                },
+                "top": "0.18",
+                "width": "0.3"
+              }
+            },
+            "text": "___.message",
+            "text2": "_.text3",
+            "text3": "v",
+            "text4": "___.children.1.text",
+            "type": "label"
+          },
+          {
+            "onClick": [
+              {
+                "actionType": "popUpDismiss",
+                "popUpView": "____.viewTag"
+              }
+            ],
+            "style": {
+              "backgroundColor": "#005795",
+              "border": {
+                "color": "#005795",
+                "style": "3"
+              },
+              "borderRadius": "5",
+              "color": "0xffffff",
+              "fontSize": "2.1vh",
+              "height": "0.04",
+              "left": "0.12",
+              "top": "0.3",
+              "width": "0.06"
+            },
+            "text": "ok",
+            "type": "button"
+          }
+        ],
+        "style": {
+          "backgroundColor": "0xffffff",
+          "border": {
+            "style": "3"
+          },
+          "borderColor": "#f4f8fa",
+          "borderRadius": "7",
+          "boxShadow": "0px 0px  5px 2px #f4f8fa",
+          "height": "0.4",
+          "left": "0.35",
+          "top": "0.3",
+          "width": "0.3"
+        },
+        "type": "view"
+      }
+    ],
+    "message": "error code",
+    "path": "aboutBlue.svg",
+    "style": {
+      "backgroundColor": "0xffffffaa",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "100000"
+    },
+    "type": "popUp",
+    "viewTag": "baseCheckView"
+  },
+  "BaseJudgeButtonNo": {
+    "onClick": [
+      {
+        "actionType": "popUpDismiss",
+        "popUpView": "_____.viewTag"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0xedeef2",
+      "border": {
+        "style": "1"
+      },
+      "color": "0x4c5264",
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n5_2",
+      "height": "0.04",
+      "left": "0.19",
+      "top": "0.015",
+      "width": "0.02"
+    },
+    "text": "No",
+    "type": "button"
+  },
+  "BaseJudgeButtonView": {
+    "style": {
+      "backgroundColor": "0xedeef2",
+      "border-bottom-left-radius": "5px",
+      "border-bottom-right-radius": "5px",
+      "height": "0.07",
+      "marginTop": "0.059",
+      "width": "0.32"
+    },
+    "type": "view"
+  },
+  "BaseJudgeButtonYes": {
+    "style": {
+      "backgroundColor": "0x005795",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0x005795",
+      "borderRadius": "7",
+      "borderWidth": "1",
+      "color": "0xffffff",
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6",
+      "height": "0.04",
+      "left": "0.235",
+      "top": "0.015",
+      "width": "0.055"
+    },
+    "text": "Yes",
+    "type": "button"
+  },
+  "BaseJudgeCancelImg": {
+    "onClick": [
+      {
+        "actionType": "popUpDismiss",
+        "popUpView": "____.viewTag"
+      }
+    ],
+    "path": "cancelGrey.svg",
+    "style": {
+      "left": "0.29",
+      "marginTop": "0.025",
+      "width": "0.009"
+    },
+    "type": "image"
+  },
+  "BaseJudgeInnerView": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderRadius": "5",
+      "boxShadow": "0px 2px 2px 1px #b7b7b7",
+      "height": "0.24",
+      "left": "0.42",
+      "top": "0.34",
+      "width": "0.32"
+    },
+    "type": "view"
+  },
+  "BaseJudgeTxt": {
+    "style": {
+      "color": "0x333333",
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n5_2",
+      "left": "0.02",
+      "marginTop": "0.04",
+      "textAlign": {
+        "x": "center"
+      },
+      "width": "0.28"
+    },
+    "text": "___.msg",
+    "type": "label"
+  },
+  "BaseJudgeView": {
+    "children": [
+      {
+        ".BaseJudgeInnerView": null,
+        "children": [
+          {
+            ".BaseJudgeCancelImg": null
+          },
+          {
+            ".BaseJudgeTxt": null
+          },
+          {
+            ".BaseJudgeButtonView": null,
+            "children": [
+              {
+                ".BaseJudgeButtonNo": null
+              },
+              {
+                ".BaseJudgeButtonYes": null
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "msg": "Are you sure you want to delete it?",
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp",
+    "viewTag": "judgeView"
+  },
+  "BaseList": {
+    "contentType": "listObject",
+    "iteratorVar": "itemObject",
+    "style": {
+      "left": "0",
+      "width": "1"
+    },
+    "type": "list"
+  },
+  "BaseListItem": {
+    "itemObject": "",
+    "style": {
+      "height": "0.05",
+      "left": "0",
+      "marginTop": "0",
+      "width": "1"
+    },
+    "type": "listItem"
+  },
+  "BaseOverSizeView": {
+    "children": [
+      {
+        "path": "__.path",
+        "style": {
+          "left": "0.12",
+          "top": "0.04",
+          "width": "0.06"
+        },
+        "type": "image"
+      },
+      {
+        "style": {
+          ".LabelStyle": {
+            "color": "0x000000",
+            "fontFamily": "sans-serif",
+            "fontSize": ".Nfont.h2",
+            "height": "0.06",
+            "left": "0",
+            "textAlign": {
+              "x": "center",
+              "y": "center"
+            },
+            "top": "0.16",
+            "width": "0.3"
+          }
+        },
+        "text": "*The uploaded file size should not exceed 2Mb.",
+        "type": "label"
+      },
+      {
+        "dataKey": "Global.formData.fileSize",
+        "style": {
+          ".LabelStyle": {
+            "color": "0x000000",
+            "fontFamily": "sans-serif",
+            "fontSize": ".Nfont.h2",
+            "height": "0.06",
+            "left": "0",
+            "textAlign": {
+              "x": "center",
+              "y": "center"
+            },
+            "top": "0.21",
+            "width": "0.3"
+          }
+        },
+        "type": "label"
+      },
+      {
+        "onClick": [
+          {
+            "actionType": "popUpDismiss",
+            "popUpView": "___.viewTag"
+          }
+        ],
+        "style": {
+          "backgroundColor": "#005795",
+          "border": {
+            "color": "#005795",
+            "style": "3"
+          },
+          "borderRadius": "5",
+          "color": "0xffffff",
+          "fontSize": "2.1vh",
+          "height": "0.04",
+          "left": "0.12",
+          "top": "0.3",
+          "width": "0.06"
+        },
+        "text": "ok",
+        "type": "button"
+      }
+    ],
+    "path": "aboutBlue.svg",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "#f4f8fa",
+      "borderRadius": "7",
+      "boxShadow": "0px 0px  5px 2px #f4f8fa",
+      "height": "0.4",
+      "left": "0.35",
+      "top": "0.3",
+      "width": "0.3",
+      "zIndex": "100000"
+    },
+    "type": "popUp",
+    "viewTag": "overSize"
+  },
+  "BasePage": {
+    "pageNumber": "0"
+  },
+  "BasePopUp": {
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp"
+  },
+  "BaseSuccessfulView": {
+    "children": [
+      {
+        ".SuccessfulBgViewWhite": null,
+        "children": [
+          {
+            ".SuccessfulBgViewGreen": null
+          },
+          {
+            "children": [
+              {
+                ".SuccessfulViewImg": null
+              },
+              {
+                ".SuccessfulViewLabel": null
+              }
+            ],
+            "style": {
+              "height": "0.267",
+              "left": "0",
+              "marginTop": "0",
+              "width": "0.28"
+            },
+            "type": "view"
+          }
+        ]
+      }
+    ],
+    "msg": "Save Successfully",
+    "onClick": [
+      {
+        "actionType": "popUpDismiss",
+        "popUpView": "__.viewTag"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp",
+    "viewTag": "successView"
+  },
+  "BaseTextField": {
+    "require": "true",
+    "style": {
+      "border": {
+        "style": 3
+      },
+      "borderColor": "0xcccccc",
+      "borderWidth": "1.3",
+      "fontSize": "18",
+      "height": "0.06",
+      "width": "0.8"
+    },
+    "type": "textField"
+  },
+  "BaseWarningView": {
+    "children": [
+      {
+        "children": [
+          {
+            "style": {
+              "backgroundColor": "0xe24445",
+              "border-top-left-radius": "5px",
+              "border-top-right-radius": "5px",
+              "height": "0.013",
+              "left": "0",
+              "marginTop": "0",
+              "width": "0.28"
+            },
+            "type": "view"
+          },
+          {
+            "children": [
+              {
+                "path": "warningRed.svg",
+                "style": {
+                  "left": "0.12",
+                  "marginTop": "0.04",
+                  "width": "0.04"
+                },
+                "type": "image"
+              },
+              {
+                "style": {
+                  "color": "0x171725",
+                  "fontFamily": "Robot",
+                  "fontSize": ".Nfont.n5_1",
+                  "fontWeight": "500",
+                  "left": "0.05",
+                  "marginTop": "0.02",
+                  "textAlign": {
+                    "x": "center"
+                  },
+                  "width": "0.18"
+                },
+                "text": "____.msg1",
+                "type": "label"
+              },
+              {
+                "style": {
+                  "color": "0x707070",
+                  "fontFamily": "Roboto",
+                  "fontSize": ".Nfont.n6",
+                  "left": "0.02",
+                  "marginTop": "0.02",
+                  "textAlign": {
+                    "x": "center"
+                  },
+                  "width": "0.24"
+                },
+                "text": "____.msg2",
+                "type": "label"
+              }
+            ],
+            "style": {
+              "height": "0.267",
+              "left": "0",
+              "marginTop": "0",
+              "width": "0.28"
+            },
+            "type": "view"
+          }
+        ],
+        "style": {
+          "backgroundColor": "0xffffff",
+          "borderRadius": "5",
+          "boxShadow": "0px 2px 2px 1px #b7b7b7",
+          "height": "0.28",
+          "left": "0.44",
+          "top": "0.3",
+          "width": "0.28"
+        },
+        "type": "view"
+      }
+    ],
+    "msg1": "Warning",
+    "msg2": "Please complete the required items.",
+    "onClick": [
+      {
+        "actionType": "popUpDismiss",
+        "popUpView": "__.viewTag"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp",
+    "viewTag": "warningView"
+  },
+  "BasicInformationTableSonSonText": {
+    "dataKey": null,
+    "style": {
+      "alignItems": "center",
+      "display": "flex",
+      "fontFamily": "Poppins",
+      "fontSize": "0.8vw",
+      "fontWeight": "600",
+      "height": "0.04",
+      "justifyContent": "flex-start",
+      "width": "10vw"
+    },
+    "text": "Medical Facility Name",
+    "type": "label"
+  },
+  "BasicInformationTableSonViewGray": {
+    "style": {
+      "backgroundColor": "0xeaeaea",
+      "height": "0.04",
+      "width": "0.685"
+    },
+    "type": "view"
+  },
+  "BasicInformationTableSonViewWhiteLabel": {
+    "dataKey": null,
+    "style": {
+      "alignItems": "center",
+      "borderRight": 3385444637,
+      "boxSizing": "border-box",
+      "display": "flex",
+      "height": "0.04",
+      "paddingLeft": "10px",
+      "width": "0.17125"
+    },
+    "text": "A&C Urgent Care",
+    "type": "label"
+  },
+  "BigButton": {
+    "style": {
+      "backgroundColor": "#ffffff",
+      "borderRadius": "5",
+      "fontFamily": "Poppins",
+      "height": "0.1",
+      "left": "0.45",
+      "width": "0.3"
+    },
+    "type": "button"
+  },
+  "BlueButton": {
+    "style": {
+      "backgroundColor": "#0063a8",
+      "borderRadius": "5px",
+      "boxShadow": "3px 3px 3px #0063a8",
+      "color": "#ffffff",
+      "fontSize": "0.8vw",
+      "height": "0.035",
+      "width": "0.1"
+    },
+    "type": "button"
+  },
+  "BodyBarView": {
+    "style": {
+      "display": "flex",
+      "flexWrap": "wrap",
+      "left": "0.16",
+      "width": "0.84"
+    },
+    "type": "view"
+  },
+  "BodyView": {
+    "style": {
+      "backgroundColor": "#F4F8FA",
+      "height": "0.92",
+      "left": "0.16",
+      "top": "0.07",
+      "width": "0.84"
+    },
+    "type": "scrollView"
+  },
+  "Border1": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": "1px solid #cad9e3",
+      "borderRadius": "5px",
+      "borderWidth": "1px",
+      "height": "0.035",
+      "left": "0.31",
+      "top": "0.03",
+      "width": "0.09",
+      "zIndex": "100"
+    },
+    "type": "view"
+  },
+  "Border2": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": "1px solid #f3f3f3",
+      "borderRadius": "5px",
+      "borderWidth": "1px",
+      "boxShadow": "0px 8px 15px 1px #88888866",
+      "height": "0.2",
+      "left": "0.04",
+      "top": "0.13",
+      "width": "0.25",
+      "zIndex": "100"
+    },
+    "type": "view"
+  },
+  "Border3": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": "1px solid #f3f3f3",
+      "borderRadius": "5px",
+      "borderWidth": "1px",
+      "boxShadow": "0px 8px 15px 1px #88888866",
+      "height": "0.03",
+      "left": "0.28",
+      "top": " 0.03",
+      "width": "0.09",
+      "zIndex": "100"
+    },
+    "type": "view"
+  },
+  "Borrow": {
+    "path": "arrowBule.svg",
+    "style": {
+      "height": "0.01",
+      "left": "0.08",
+      "top": "0.462"
+    },
+    "type": "image"
+  },
+  "BottomButton": {
+    "style": {
+      "borderRadius": "5",
+      "height": "0.05",
+      "top": "0.78",
+      "width": "0.09"
+    },
+    "type": "button"
+  },
+  "Buttonimage": {
+    "path": "addBlack.svg",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "left": "0.0045",
+      "top": "0.0105",
+      "width": "0.008",
+      "zIndex": "100"
+    },
+    "type": "image"
+  },
+  "Buttonlabel": {
+    "style": {
+      "color": "0x000000",
+      "fontSize": "1.8vh",
+      "height": "0.035",
+      "left": "0.035",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": " 0",
+      "width": "0.1",
+      "zIndex": "100"
+    },
+    "text": "Add Patient",
+    "type": "label"
+  },
+  "CDivider": {
+    "style": {
+      "color": "#707070",
+      "height": "1.75",
+      "left": "0.47",
+      "width": "0.00001"
+    },
+    "type": "divider"
+  },
+  "CancelButton": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "1"
+      },
+      "color": "#666666",
+      "fontSize": ".Nfont.n5_1",
+      "height": "0.06",
+      "left": "0.065",
+      "marginTop": "0",
+      "textDecoration": "underline",
+      "width": "0.06"
+    },
+    "text": "Cancel",
+    "type": "button"
+  },
+  "CenterView": {
+    "style": {
+      "backgroundColor": "#ffffff",
+      "height": "0.85",
+      "left": "0.1",
+      "top": "0.1",
+      "width": "0.8"
+    },
+    "type": "view"
+  },
+  "CheckBox": {
+    "children": [
+      {
+        ".SmallCheckBox": null,
+        "style": {
+          "left": "0"
+        }
+      },
+      {
+        ".SmallCheckBox": null,
+        "style": {
+          "left": "0.04"
+        }
+      },
+      {
+        ".SmallCheckbox": null,
+        "style": {
+          "left": "0.08"
+        }
+      }
+    ],
+    "style": {
+      "height": "0.04",
+      "left": "0.14",
+      "width": "0.1"
+    },
+    "type": "view"
+  },
+  "Close": {
+    "path": "close.svg",
+    "style": {
+      "left": "0.42",
+      "top": "0.02"
+    },
+    "type": "image"
+  },
+  "CloseButton": {
+    "style": {
+      "backgroundColor": "0x005795",
+      "border": {
+        "style": "5"
+      },
+      "borderRadius": "5",
+      "color": "0xffffff",
+      "fontFamily": "Avenir",
+      "fontSize": "0.6vw",
+      "height": "0.038",
+      "left": "0.457",
+      "top": "0.75",
+      "width": "0.075"
+    },
+    "text": "Close",
+    "type": "button"
+  },
+  "Closebutton": {
+    "path": "error.svg",
+    "style": {
+      "left": "0.36",
+      "top": "0.015",
+      "width": "0.025"
+    },
+    "type": "image"
+  },
+  "ColorButton": {
+    "style": {
+      "borderRadius": "1000",
+      "height": "0.036",
+      "width": "0.018"
+    },
+    "type": "button"
+  },
+  "ContentBar": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xffffff",
+      "borderRadius": "5",
+      "boxSizing": "border-box",
+      "height": "0.825",
+      "left": "0.017",
+      "width": "0.806"
+    },
+    "type": "view"
+  },
+  "ContentTitle": {
+    "children": null,
+    "style": {
+      "height": "0.1",
+      "width": "0.2"
+    },
+    "type": "view"
+  },
+  "ContentTitleImage": {
+    "path": "Vertical_line.png",
+    "style": {
+      "height": ".Nfont.h3",
+      "top": "0.004"
+    },
+    "type": "image"
+  },
+  "ContentTitleText": {
+    "style": {
+      "color": "#064474",
+      "fontSize": ".Nfont.h3",
+      "left": "0.01",
+      "lineHeight": "3.0vh"
+    },
+    "text": "Licenses List",
+    "type": "label"
+  },
+  "ContentView": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "height": "0.8",
+      "left": "0.03",
+      "overflow": "scroll",
+      "top": "0.08",
+      "width": "0.8"
+    },
+    "type": "scrollView"
+  },
+  "ContentViewOne": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "height": "0.77",
+      "left": "49.964px",
+      "overflow": "scroll",
+      "top": "72.7px",
+      "width": "0.78"
+    },
+    "type": "scrollView"
+  },
+  "Cov19ResultFaciInfoData": {
+    "style": {
+      "fontSize": "1.4vw",
+      "marginLeft": "10px"
+    },
+    "type": "label"
+  },
+  "Cov19ResultFaciInfoText": {
+    "style": {
+      "color": "0x757575",
+      "fontSize": "1.4vw"
+    },
+    "type": "label"
+  },
+  "Cov19ResultFaciInfoView": {
+    "style": {
+      "alignItems": "center",
+      "display": "flex",
+      "height": "0.05",
+      "width": "0.25"
+    },
+    "type": "view"
+  },
+  "Cov19ResultsText": {
+    "style": {
+      "fontSize": ".Nfont.n4_3",
+      "height": "auto",
+      "left": "0.02",
+      "width": "0.35"
+    },
+    "type": "label"
+  },
+  "Cov19ResultsTextField": {
+    "placeholder": "Enter here",
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xeeeeee",
+      "borderRadius": "3",
+      "borderWidth": "1",
+      "fontFamily": "",
+      "fontSize": ".Nfont.h1",
+      "height": "0.04",
+      "left": "0",
+      "marginTop": "0.02",
+      "textIndent": "0.5em",
+      "width": "0.2"
+    },
+    "type": "textField"
+  },
+  "Cov19ResultsTextFieldReview": {
+    "style": {
+      "fontSize": ".Nfont.n5_2",
+      "height": "0.04",
+      "left": "0",
+      "marginTop": "0.02",
+      "textIndent": "0.5em",
+      "width": "0.2"
+    },
+    "type": "label"
+  },
+  "Cov19ResultsView": {
+    "style": {
+      "top": "0",
+      "width": "0.2"
+    },
+    "type": "view"
+  },
+  "CreateLabel": {
+    "style": {
+      "color": "0xffffff",
+      "fontSize": "2vh",
+      "height": "0.08",
+      "left": "0.03",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": "0"
+    },
+    "text": "Create an Appointment",
+    "type": "label"
+  },
+  "DaImage": {
+    "path": {
+      "emit": {
+        "actions": [
+          {
+            "if": [
+              true,
+              "$var.path1",
+              "$var.path1"
+            ]
+          }
+        ],
+        "dataKey": {
+          "var": "itemObject"
+        }
+      }
+    },
+    "style": {
+      "height": "0.03",
+      "left": "0.045",
+      "zIndex": 22
+    },
+    "type": "image"
+  },
+  "Dalabel": {
+    "style": {
+      "fontSize": "12",
+      "left": "0.03"
+    },
+    "type": "label"
+  },
+  "Datebutton": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderBottom": "1px solid rgb(202, 217, 227)",
+      "borderColor": "#cad9e3",
+      "borderRight": "1px solid rgb(202, 217, 227)",
+      "height": "0.09",
+      "top": "0.109",
+      "width": "0.069"
+    },
+    "type": "view"
+  },
+  "DayLabel": {
+    "style": {
+      "color": "#8399a9",
+      "fontSize": "18",
+      "fontWeight": "500",
+      "left": "0",
+      "textAlign": {
+        "x": "center"
+      },
+      "top": "0.035",
+      "width": "0.07"
+    },
+    "type": "label"
+  },
+  "DeleteButton": {
+    "style": {
+      "backgroundColor": "#e24445",
+      "border": {
+        "style": "1"
+      },
+      "borderRadius": "5",
+      "color": "0xffffff",
+      "fontSize": ".Nfont.n6",
+      "height": "0.037",
+      "left": "0.11",
+      "marginTop": "0",
+      "width": "0.055"
+    },
+    "text": "Delete",
+    "type": "button"
+  },
+  "DeleteWarningImg": {
+    "path": "warningRed.svg",
+    "style": {
+      "left": "0.12",
+      "marginTop": "0.049",
+      "width": "0.04"
+    },
+    "type": "image"
+  },
+  "DeleteWarningLabel": {
+    "style": {
+      "color": "#666666",
+      "fontFamily": "Robot",
+      "fontSize": ".Nfont.n6_1_1",
+      "fontWeight": "500",
+      "left": "0.05",
+      "marginTop": "0.024",
+      "textAlign": {
+        "x": "center"
+      },
+      "width": "0.18"
+    },
+    "text": "Permanently delete the message ?",
+    "type": "label"
+  },
+  "DeleteWarningPopUp": {
+    ".BackgroundPopUp": null,
+    "children": [
+      {
+        ".BackgroundWhite": null,
+        "children": [
+          {
+            ".WarningRedLine": null
+          },
+          {
+            "children": [
+              {
+                ".DeleteWarningImg": null
+              },
+              {
+                ".WarningLabel": null
+              },
+              {
+                ".DeleteWarningLabel": null
+              }
+            ],
+            "style": {
+              "height": "0.267",
+              "left": "0",
+              "marginTop": "0",
+              "width": "0.28"
+            },
+            "type": "view"
+          },
+          {
+            ".CancelButton": null
+          },
+          {
+            ".DeleteButton": null
+          }
+        ]
+      }
+    ]
+  },
+  "DeletedBackground": {
+    "style": {
+      "backgroundColor": "0xd4d4d4",
+      "height": "1",
+      "left": "0.16",
+      "opacity": "0.4",
+      "width": "0.84",
+      "zIndex": "10"
+    },
+    "type": "popUp"
+  },
+  "DividerLine": {
+    "style": {
+      "backgroundColor": "0x8e8e8e",
+      "height": "0.001",
+      "left": "0.05",
+      "top": "0.05",
+      "width": "0.5"
+    },
+    "type": "view"
+  },
+  "Dividerline": {
+    "style": {
+      "color": "#E6E9F4",
+      "height": "0.000001",
+      "left": "0.02",
+      "top": "0.43",
+      "width": "0.21"
+    },
+    "type": "divider"
+  },
+  "EdImage": {
+    "style": {
+      "top": "0.68",
+      "width": "0.07"
+    },
+    "type": "image"
+  },
+  "EdLabel": {
+    "style": {
+      "fontSize": "12",
+      "left": "0.67",
+      "top": "0.02",
+      "width": "0.1"
+    },
+    "type": "label"
+  },
+  "Eddivider": {
+    "style": {
+      "backgroundColor": "#eaeaea",
+      "height": "0.04",
+      "left": "0.2",
+      "top": "0.04",
+      "width": "0.001"
+    },
+    "type": "view"
+  },
+  "Edimage": {
+    "style": {
+      "left": "0.65",
+      "top": "0.02",
+      "width": "0.01"
+    },
+    "type": "image"
+  },
+  "EditTableLabel": {
+    "dataKey": null,
+    "style": {
+      "alignItems": "center",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xe2e2e2",
+      "borderRadius": "5",
+      "boxSizing": "border-box",
+      "display": "flex",
+      "flexGrow": "0",
+      "fontSize": "15px",
+      "height": "0.040",
+      "paddingLeft": "10px",
+      "width": "0.12"
+    },
+    "text": "A&C Urgent Care",
+    "type": "textField"
+  },
+  "EditTableStar": {
+    "dataKey": null,
+    "style": {
+      "alignItems": "center",
+      "color": "0xff4747",
+      "display": "flex",
+      "height": "0.02533"
+    },
+    "text": "*",
+    "type": "label"
+  },
+  "EditTableText": {
+    "dataKey": null,
+    "style": {
+      "alignItems": "center",
+      "display": "flex",
+      "fontSize": "0.8vw",
+      "height": "0.02533",
+      "width": "0.095"
+    },
+    "text": "Medical Facility Name",
+    "type": "label"
+  },
+  "ExtendButton": {
+    "style": {
+      "backgroundColor": "#005795",
+      "border": {
+        "style": "1"
+      },
+      "borderRadius": "5",
+      "color": "#FFFFFF",
+      "fontFamily": "Avenir",
+      "fontSize": "1.6vh",
+      "height": "0.03",
+      "left": "0.02",
+      "top": "0.12",
+      "width": "0.056"
+    },
+    "text": "Buy Now",
+    "type": "button"
+  },
+  "ExtendContent": {
+    "style": {
+      "color": "#000000",
+      "fontSize": ".Nfont.h2",
+      "fontWeight": "lighter",
+      "left": "0",
+      "top": "0",
+      "width": "0.33"
+    },
+    "text": "Purchase cloud storage monthly package, it'll add on you current package, and take effective next month.",
+    "type": "label"
+  },
+  "ExtendSquare": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": "3px solid #0063A8",
+      "borderRadius": "10",
+      "borderWidth": "2",
+      "boxShadow": "3px 3px 5px #88888870",
+      "height": "0.17",
+      "left": "0",
+      "top": "0",
+      "width": "0.09"
+    },
+    "type": "view"
+  },
+  "ExtendTitle": {
+    "style": {
+      "color": "#0063A8",
+      "fontSize": ".Nfont.h2",
+      "left": "0",
+      "top": "0",
+      "width": "0.23"
+    },
+    "text": "For Cloud Storage",
+    "type": "label"
+  },
+  "ExtendWord1": {
+    "children": [
+      {
+        "style": {
+          "fontSize": ".Nfont.h6",
+          "fontWeight": "600",
+          "textAlign": {
+            "x": "right"
+          },
+          "top": "0",
+          "width": "0.055"
+        },
+        "text": "__.number",
+        "type": "label"
+      },
+      {
+        "style": {
+          "fontSize": ".Nfont.h3",
+          "left": "0.055",
+          "textAlign": {
+            "x": "left"
+          },
+          "top": "0.01",
+          "width": "0.045"
+        },
+        "text": "__.unit",
+        "type": "label"
+      }
+    ],
+    "ss": 0,
+    "ss2": "GB",
+    "style": {
+      "color": "#0063A8",
+      "left": "-0.03",
+      "marginTop": "0.01",
+      "top": "0.02",
+      "width": "0.09"
+    },
+    "type": "view"
+  },
+  "ExtendWord2": {
+    "children": [
+      {
+        "style": {
+          "fontSize": ".Nfont.h3",
+          "marginTop": "0.01",
+          "textAlign": {
+            "x": "right"
+          },
+          "top": "0.06",
+          "width": "0.045"
+        },
+        "text": "__.dollar",
+        "type": "label"
+      },
+      {
+        "style": {
+          "fontSize": ".Nfont.h1",
+          "left": "0.045",
+          "marginTop": "0.01",
+          "textAlign": {
+            "x": "left"
+          },
+          "top": "0.067",
+          "width": "0.045"
+        },
+        "text": "__.month",
+        "type": "label"
+      }
+    ],
+    "ss": "$0",
+    "ss2": "/month",
+    "style": {
+      "color": "#000000bf",
+      "width": "0.09"
+    },
+    "type": "view"
+  },
+  "FacilityInfoText": {
+    "style": {
+      "fontFamily": "sans-serif",
+      "fontSize": "1.4vh",
+      "fontWeight": "500",
+      "height": "0.04",
+      "left": "0",
+      "textAlign": {
+        "y": "center"
+      },
+      "textIndent": "1.2em",
+      "top": "0.04",
+      "width": "0.1",
+      "wordBreak": "break-all"
+    },
+    "type": "label"
+  },
+  "FacilityInfoTitle": {
+    "style": {
+      "fontFamily": "sans-serif",
+      "fontSize": "1.1vh",
+      "fontWeight": "500",
+      "height": "0.04",
+      "left": "0",
+      "textAlign": {
+        "y": "center"
+      },
+      "textIndent": "1.5em",
+      "top": "0",
+      "width": "0.1"
+    },
+    "type": "label"
+  },
+  "FlowChart": {
+    "children": [
+      {
+        "style": {
+          "fontSize": "12",
+          "left": "0",
+          "top": "0.04"
+        },
+        "text": "Basic Info ",
+        "type": "label"
+      },
+      {
+        "style": {
+          "fontSize": "12",
+          "left": "0.13",
+          "style": null,
+          "top": "0.04"
+        },
+        "text": "Billing Info",
+        "type": "label"
+      },
+      {
+        "style": {
+          "backgroundColor": "#0063A8",
+          "color": "red",
+          "height": "0.001",
+          "left": "0.04",
+          "top": "0.005",
+          "width": "0.08"
+        },
+        "type": "divider"
+      },
+      {
+        ".Ball": null,
+        "style": {
+          "left": "0.01"
+        },
+        "text": "1"
+      },
+      {
+        ".Ball": null,
+        "style": {
+          "left": "0.14"
+        },
+        "text": "2"
+      }
+    ],
+    "style": {
+      "height": "0.1",
+      "left": "0.42",
+      "top": "0.04",
+      "width": "0.4"
+    },
+    "type": "view"
+  },
+  "FormDetail": {
+    "style": {
+      "borderRight": "1px solid #f5f5f5",
+      "borderWidth": "1px",
+      "color": "#000",
+      "display": "inline-block",
+      "fontFamily": "Segoe UI",
+      "fontSize": "0.6vw",
+      "lineHeight": "3.5vh",
+      "minHeight": "3.5vh",
+      "textAlign": {
+        "x": "center",
+        "y": "center"
+      },
+      "textIndent": "0.5wm",
+      "width": "0.08"
+    },
+    "type": "label"
+  },
+  "FormHead": {
+    "style": {
+      "backgroundColor": "#0063a8",
+      "border": "1px solid #e5e5e5",
+      "borderRadius": "5px 5px 0 0",
+      "borderWidth": "1px",
+      "height": "0.035",
+      "width": "0.78"
+    },
+    "type": "view"
+  },
+  "FormMeterBlue": {
+    "style": {
+      "backgroundColor": "0x0063a8",
+      "border-top-left-radius": "5px",
+      "border-top-right-radius": "5px",
+      "height": "0.035",
+      "width": "0.79"
+    },
+    "type": "view"
+  },
+  "FormTemplate": {
+    "dataKey": null,
+    "style": {
+      "borderRight": "1px solid #ffffff",
+      "boxSizing": "border-box",
+      "color": "0xffffff",
+      "display": "inline-block",
+      "fontFamily": "Proxima Nova",
+      "fontSize": ".Nfont.n6_1",
+      "fontWeight": "600",
+      "height": "0.035",
+      "lineHeight": "3.5vh",
+      "paddingLeft": "7px",
+      "textAlign": {
+        "y": "center"
+      },
+      "width": "0.0838"
+    },
+    "text": "Transaction ID",
+    "type": "label"
+  },
+  "FormTitle": {
+    "style": {
+      "borderRight": "1px #ffffff solid",
+      "borderWidth": "1px",
+      "color": "#ffffff",
+      "display": "inline-block",
+      "fontFamily": "Segoe UI",
+      "fontSize": "1vw",
+      "fontWeight": "bold",
+      "lineHeight": "3.5vh",
+      "textAlign": {
+        "x": "center"
+      },
+      "textIndent": "0.5wm",
+      "width": "0.08"
+    },
+    "type": "label"
+  },
+  "FormsBlockText": {
+    "style": {
+      "color": "0x707070",
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6_1",
+      "lineHeight": "1.6em",
+      "marginTop": "0.04",
+      "width": "0.39"
+    },
+    "text": "The Department of Health and Human Services has established a âPrivacy Ruleâ to help insure that personal health care information is protected for privacy. The Privacy Rule was also created in order to provide a standard for certain health care providers to obtain their patientsâ consent for uses and disclosures of health information about the patient to carry out treatment, payment or health care operations. ",
+    "type": "label"
+  },
+  "FormsBottomButtons": {
+    "style": {
+      "height": "0.075",
+      "margin": "auto",
+      "width": "0.24"
+    },
+    "type": "view"
+  },
+  "FormsBottomLeftButton": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0x1263a8",
+      "borderRadius": "3",
+      "borderWeight": "2",
+      "color": "0x1263a8",
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6_1",
+      "height": "0.04",
+      "left": "0",
+      "top": "0.0175",
+      "width": "0.1"
+    },
+    "text": "Private",
+    "type": "button"
+  },
+  "FormsBottomMiddleButton": {
+    "style": {
+      "backgroundColor": "0x005795",
+      "border": {
+        "style": "5"
+      },
+      "borderRadius": "5",
+      "color": "0xffffff",
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6_1",
+      "height": "0.04",
+      "left": "0.07",
+      "top": "0.0175",
+      "width": "0.1"
+    },
+    "text": "Next",
+    "type": "button"
+  },
+  "FormsBottomRightButton": {
+    "style": {
+      "backgroundColor": "0x30b354",
+      "border": {
+        "style": "5"
+      },
+      "borderRadius": "5",
+      "color": "0xffffff",
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6_1",
+      "height": "0.04",
+      "left": "0.14",
+      "top": "0.0175",
+      "width": "0.1"
+    },
+    "text": "Release",
+    "type": "button"
+  },
+  "FormsBottomView": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderTop": "1px solid #efefef",
+      "boxShadow": "1px 3px 5px 1px #cdcdcd",
+      "height": "0.075",
+      "left": "0.008",
+      "overflow": "hidden",
+      "top": "0.84",
+      "width": "0.824"
+    },
+    "type": "view"
+  },
+  "FormsCloseButton": {
+    "onClick": {
+      "goto": "MedicalRecords"
+    },
+    "style": {
+      "backgroundColor": "0x005795",
+      "border": {
+        "style": "5"
+      },
+      "borderRadius": "5",
+      "color": "0xffffff",
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6_1",
+      "height": "0.045",
+      "left": "0.68",
+      "top": "0.68",
+      "width": "0.08"
+    },
+    "text": "Close",
+    "type": "button"
+  },
+  "FormsContentTitle": {
+    "style": {
+      "color": "0x143459",
+      "fontSize": ".Nfont.n6",
+      "marginTop": "0.01",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "width": "0.39"
+    },
+    "text": "this is a formsContentTitle",
+    "type": "label"
+  },
+  "FormsLittleTitle": {
+    "style": {
+      "color": "0x363636",
+      "fontSize": "1.4vw",
+      "marginTop": "0.02",
+      "width": "0.39"
+    },
+    "text": "HIPPA Notice of Privacy Practices",
+    "type": "label"
+  },
+  "FormsRightButton": {
+    "children": [
+      {
+        "path": "__.img",
+        "style": {
+          "height": "0.025",
+          "width": "0.015"
+        },
+        "type": "image"
+      },
+      {
+        "style": {
+          "color": "0xffffff",
+          "fontFamily": "Roboto",
+          "fontSize": ".Nfont.n6_2",
+          "marginTop": "0.002"
+        },
+        "text": "__.msg",
+        "type": "label"
+      }
+    ],
+    "img": "ait.svg",
+    "msg": "Assign To",
+    "style": {
+      "align-items": "center",
+      "backgroundColor": "0xea5b5b",
+      "borderRadius": "5",
+      "display": "flex",
+      "flex-direction": "column",
+      "height": "0.074",
+      "justify-content": "center"
+    },
+    "type": "view"
+  },
+  "FormsRightButtonsView": {
+    "style": {
+      "height": "auto",
+      "left": "0.792",
+      "top": "0.1",
+      "width": "0.041"
+    },
+    "type": "view"
+  },
+  "FormsTextField": {
+    "dataKey": null,
+    "isEditable": "false",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xdfe1e5",
+      "borderRadius": "5px",
+      "boxSizing": "border-box",
+      "fontSize": ".Nfont.n6",
+      "height": "0.04",
+      "textIndent": "0.5em",
+      "top": "0.03",
+      "width": "0.07"
+    },
+    "type": "textField"
+  },
+  "FormsTextFieldLabel": {
+    "style": {
+      "color": "0x707070",
+      "fontSize": ".Nfont.n6",
+      "top": "0",
+      "width": "0.07"
+    },
+    "text": "FormsTextLabel",
+    "type": "label"
+  },
+  "FormsTextView": {
+    "style": {
+      "backgroundColor": "0xfff00033",
+      "height": "0.06",
+      "marginTop": "0.02",
+      "width": "0.05"
+    },
+    "type": "view"
+  },
+  "FormsTypeTitle": {
+    "style": {
+      "border": {
+        "style": "2"
+      },
+      "borderColor": "0x143459",
+      "borderWidth": "2",
+      "color": "0x143459",
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n5_2",
+      "height": "0.08",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "width": "0.39"
+    },
+    "text": "=..title",
+    "type": "label"
+  },
+  "GotoBack": {
+    "children": [
+      {
+        "path": "backArrow.svg",
+        "style": {
+          "height": "0.02",
+          "width": "0.01"
+        },
+        "type": "image"
+      },
+      {
+        "style": {
+          "color": "0x005795",
+          "fontSize": ".Nfont.n6",
+          "fontWeight": "Roboto",
+          "height": "0.03",
+          "textAlign": {
+            "y": "top"
+          }
+        },
+        "text": "Back",
+        "type": "label"
+      }
+    ],
+    "onClick": [
+      {
+        "goto": "PatientSummary"
+      }
+    ],
+    "style": {
+      "align-items": "center",
+      "display": "flex",
+      "height": "0.03",
+      "justify-content": "space-evenly",
+      "left": "0.77",
+      "top": "0.06",
+      "width": "0.04"
+    },
+    "type": "view"
+  },
+  "GotoBackPreview": {
+    "children": [
+      {
+        "path": "backArrow.svg",
+        "style": {
+          "height": "0.02",
+          "width": "0.01"
+        },
+        "type": "image"
+      },
+      {
+        "style": {
+          "color": "0x005795",
+          "fontSize": ".Nfont.n6",
+          "fontWeight": "Roboto",
+          "height": "0.03",
+          "textAlign": {
+            "y": "top"
+          }
+        },
+        "text": "Back",
+        "type": "label"
+      }
+    ],
+    "onClick": [
+      {
+        "actionType": "evalObject",
+        "object": [
+          {
+            "if": [
+              "=.Global.formData.previewFromProvider",
+              {
+                "goto": "ProviderManagement"
+              },
+              {
+                "goto": "RoomManagement"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "style": {
+      "align-items": "center",
+      "display": "flex",
+      "height": "0.03",
+      "justify-content": "space-evenly",
+      "left": "0.77",
+      "top": "0.06",
+      "width": "0.04"
+    },
+    "type": "view"
+  },
+  "Head0": {
+    "children": [
+      {
+        "path": "AiTmed.svg",
+        "style": {
+          "left": "0.015",
+          "top": "0.005",
+          "width": "0.025"
+        },
+        "type": "image"
+      },
+      {
+        "style": {
+          "color": "#517086",
+          "fontSize": "1.7vh",
+          "height": "0.06",
+          "left": "0.055",
+          "textAlign": {
+            "y": "center"
+          },
+          "top": "0",
+          "zIndex": 333
+        },
+        "text": "AiTmed Admin",
+        "type": "label"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0xffffff",
+      "height": "0.06",
+      "left": "0",
+      "top": "0",
+      "width": "1"
+    },
+    "type": "view"
+  },
+  "InboxDeletedTagLabel": {
+    "dataKey": null,
+    "style": {
+      "fontSize": ".Nfont.n5_1"
+    },
+    "text": "",
+    "type": "label"
+  },
+  "InboxDeletedTagNoButton": {
+    "style": {
+      "backgroundColor": "0xbebebe",
+      "border": {
+        "style": "1"
+      },
+      "borderRadius": "5",
+      "color": "0xffffff",
+      "fontSize": ".Nfont.n6_1",
+      "height": "0.045",
+      "textAlign": {
+        "x": "center",
+        "y": "center"
+      },
+      "width": "0.065"
+    },
+    "text": "No",
+    "type": "button"
+  },
+  "InboxDeletedTagYesButton": {
+    "style": {
+      "backgroundColor": "0x005795",
+      "border": {
+        "style": "1"
+      },
+      "borderRadius": "5",
+      "color": "0xffffff",
+      "fontSize": ".Nfont.n6_1",
+      "height": "0.045",
+      "textAlign": {
+        "x": "center",
+        "y": "center"
+      },
+      "width": "0.065"
+    },
+    "text": "Yes",
+    "type": "button"
+  },
+  "IndicatorDate": {
+    "style": {
+      "color": "0X000000",
+      "fontFamily": "sans-serif",
+      "fontSize": "1.9vh",
+      "height": "0.03",
+      "left": "0.13",
+      "letterSpacing": "2px",
+      "top": "0.04",
+      "width": "0.05"
+    },
+    "text": "Day",
+    "type": "label"
+  },
+  "IndicatorText": {
+    "style": {
+      "color": "0X000000",
+      "fontSize": "1.5vh",
+      "fontWeight": "550",
+      "height": "0.065",
+      "left": "0.015",
+      "top": "0.08",
+      "width": "0.12"
+    },
+    "text": "NEW APPOINTMENTS",
+    "type": "label"
+  },
+  "IndicatorTitle": {
+    "style": {
+      "color": "0x004779",
+      "fontSize": "5.3vh",
+      "height": "0.065",
+      "left": "0.015",
+      "top": "0.01",
+      "width": "0.07"
+    },
+    "text": 6,
+    "type": "label"
+  },
+  "IndicatorView": {
+    "style": {
+      "boxShadow": "5px 5px 10px 10px #f5f5f5",
+      "height": "0.18",
+      "left": "0.03",
+      "top": "0.07",
+      "width": "0.48"
+    },
+    "type": "view"
+  },
+  "InfoDataKey": {
+    "style": {
+      "border": {
+        "style": "2"
+      },
+      "borderColor": "#517086",
+      "borderWidth": "1",
+      "color": "#26536f",
+      "fontFamily": "sans-serif",
+      "fontSize": "1.7vh",
+      "height": "0.035",
+      "textIndent": "10px",
+      "top": "0.03",
+      "width": "0.23"
+    },
+    "type": "label"
+  },
+  "InfoLabel": {
+    "style": {
+      "color": "#517086",
+      "fontFamily": "sans-serif",
+      "fontSize": "1.6vh",
+      "height": "0.025",
+      "left": "0",
+      "top": "0"
+    },
+    "type": "label"
+  },
+  "InfoSelect2": {
+    "children": [
+      {
+        "onClick": [
+          {
+            "goto": "ScheduleManagementPI"
+          }
+        ],
+        "style": {
+          "color": "#003D689f",
+          "fontFamily": "Poppins",
+          "fontSize": "12",
+          "left": "0.15"
+        },
+        "text": "Patient Info",
+        "type": "label"
+      },
+      {
+        "path": "blueLine.png",
+        "style": {
+          "left": "0.235",
+          "top": "0.027",
+          "widht": "0.1"
+        },
+        "type": "image"
+      },
+      {
+        "style": {
+          "color": "#003D68",
+          "fontFamily": "Poppins",
+          "fontSize": "12",
+          "left": "0.225",
+          "textAlign": {
+            "x": "center"
+          },
+          "width": "0.1"
+        },
+        "text": "Billing",
+        "type": "label"
+      },
+      {
+        "onClick": [
+          {
+            "goto": "ScheduleManagementConsents"
+          }
+        ],
+        "style": {
+          "color": "#003D689f",
+          "fontFamily": "Poppins",
+          "fontSize": "12",
+          "left": "0.35"
+        },
+        "text": "Consents",
+        "type": "label"
+      }
+    ],
+    "style": {
+      "top": "0.15",
+      "width": "0.55"
+    },
+    "type": "view"
+  },
+  "InfoSelect3": {
+    "children": [
+      {
+        "onClick": [
+          {
+            "goto": "ScheduleManagementPI"
+          }
+        ],
+        "style": {
+          "color": "#003D689f",
+          "fontFamily": "Poppins",
+          "fontSize": "12",
+          "left": "0.15"
+        },
+        "text": "Patient Info",
+        "type": "label"
+      },
+      {
+        "path": "blueLine.png",
+        "style": {
+          "left": "0.335",
+          "top": "0.027",
+          "widht": "0.1"
+        },
+        "type": "image"
+      },
+      {
+        "onClick": [
+          {
+            "goto": "ScheduleManagementBilling"
+          }
+        ],
+        "style": {
+          "color": "#003D689f",
+          "fontFamily": "Poppins",
+          "fontSize": "12",
+          "left": "0.225",
+          "textAlign": {
+            "x": "center"
+          },
+          "width": "0.1"
+        },
+        "text": "Billing",
+        "type": "label"
+      },
+      {
+        "style": {
+          "color": "#003D68",
+          "fontFamily": "Poppins",
+          "fontSize": "12",
+          "left": "0.35"
+        },
+        "text": "Consents",
+        "type": "label"
+      }
+    ],
+    "style": {
+      "top": "0.15",
+      "width": "0.55"
+    },
+    "type": "view"
+  },
+  "InfoTitle": {
+    "style": {
+      "color": "#517086",
+      "fontSize": "16",
+      "left": "0.02",
+      "top": "0.03"
+    },
+    "type": "label"
+  },
+  "InfoView": {
+    "style": {
+      "height": "0.08",
+      "left": "0",
+      "marginTop": "0",
+      "width": "0.23"
+    },
+    "type": "view"
+  },
+  "InnerBodyView": {
+    "style": {
+      "backgroundColor": "#f4f8fa",
+      "height": "0.93",
+      "left": "0.16",
+      "marginTop": "0.07",
+      "width": "0.84"
+    },
+    "type": "view"
+  },
+  "Label1": {
+    "style": {
+      "fontSize": ".Nfont.h1"
+    },
+    "type": "label"
+  },
+  "Label2": {
+    "style": {
+      "color": "#1e1e1e",
+      "fontSize": "13",
+      "height": "0.03",
+      "left": "0.015",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": "0.0145",
+      "width": "0.1"
+    },
+    "type": "label"
+  },
+  "LeftArrowInbox": {
+    "path": "leftArrowInbox.svg",
+    "style": {
+      "top": "0.02",
+      "width": "0.02"
+    },
+    "type": "image"
+  },
+  "LeftDivider": {
+    "style": {
+      "backgroundColor": "#f4f8fa",
+      "height": "0.86",
+      "left": "0.25",
+      "top": "0.1",
+      "width": "0.001",
+      "zIndex": 222
+    },
+    "type": "view"
+  },
+  "LeftImage": {
+    "style": {
+      "left": "0.055",
+      "top": "0.43",
+      "width": "0.05"
+    },
+    "type": "image"
+  },
+  "LeftLabel": {
+    "style": {
+      "color": "0x287bb5",
+      "fontFamily": "Poppins",
+      "fontSize": "2.2vh",
+      "left": "0.02",
+      "lineHeight": "1.5",
+      "textAlign": {
+        "x": "center"
+      },
+      "top": "0.21",
+      "width": "0.13"
+    },
+    "type": "label"
+  },
+  "LetterLabel": {
+    "dataKey": null,
+    "style": {
+      "lineHeight": "1.7"
+    },
+    "text": null,
+    "type": "label"
+  },
+  "Line1": {
+    "style": {
+      "backgroundColor": "#d5e0e9",
+      "height": "0.348",
+      "left": "0.275",
+      "top": "0",
+      "width": "0.001"
+    },
+    "type": "view"
+  },
+  "Line2": {
+    "style": {
+      "backgroundColor": "#d5e0e9",
+      "height": "0.001",
+      "left": "0",
+      "top": "0.11",
+      "width": "0.72"
+    },
+    "type": "view"
+  },
+  "Line3": {
+    "style": {
+      "backgroundColor": "#d5e0e9",
+      "height": "0.054",
+      "top": "0",
+      "width": "0.0001"
+    },
+    "type": "view"
+  },
+  "ListContent": {
+    "style": {
+      "fontFamily": "Montserrat",
+      "top": "0"
+    },
+    "text": "NO.",
+    "type": "label"
+  },
+  "ListTest": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "#EAEAEA",
+      "fontSize": "12",
+      "height": "0.045",
+      "textAlign": {
+        "y": "center"
+      },
+      "textIndent": "20px"
+    },
+    "type": "label"
+  },
+  "LittlePopUpView": {
+    "children": [
+      {
+        "children": [
+          {
+            "path": "___.img",
+            "style": {
+              "height": "0.025",
+              "left": "0.08",
+              "top": "0.017",
+              "width": "0.015"
+            },
+            "type": "image"
+          },
+          {
+            "style": {
+              "color": "0x000000",
+              "fontSize": ".Nfont.n6_1",
+              "height": "0.055",
+              "left": "0.12",
+              "top": "0.018"
+            },
+            "text": "___.msg",
+            "type": "label"
+          }
+        ],
+        "style": {
+          "backgroundColor": "0xffffff",
+          "borderRadius": "3px",
+          "height": "0.055",
+          "left": "0.4",
+          "textAlign": {
+            "y": "center"
+          },
+          "top": "0.04",
+          "width": "0.32",
+          "zIndex": "10"
+        },
+        "type": "view"
+      }
+    ],
+    "img": "miniRedAlert.svg",
+    "msg": "You haven't choose any message",
+    "onClick": [
+      {
+        "actionType": "popUpDismiss",
+        "popUpView": "noMessageTag"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "top": "0",
+      "width": "1",
+      "zIndex": "20"
+    },
+    "type": "popUp",
+    "viewTag": "noMessageTag"
+  },
+  "LoadingView": {
+    "children": [
+      {
+        "path": "__.path",
+        "style": {
+          "left": "0.12",
+          "top": "0.04",
+          "width": "0.06"
+        },
+        "type": "image"
+      },
+      {
+        "style": {
+          ".LabelStyle": {
+            "color": "0x000000",
+            "fontFamily": "sans-serif",
+            "fontSize": "2vh",
+            "height": "0.06",
+            "left": "0",
+            "textAlign": {
+              "x": "center",
+              "y": "center"
+            },
+            "top": "0.18",
+            "width": "0.3"
+          }
+        },
+        "text": "__.message",
+        "text2": "_.text3",
+        "text3": "v",
+        "text4": "__.children.1.text",
+        "type": "label"
+      }
+    ],
+    "message": "error code",
+    "path": "aboutBlue.svg",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "#f4f8fa",
+      "borderRadius": "7",
+      "boxShadow": "0px 0px  5px 2px #f4f8fa",
+      "height": "0.3",
+      "left": "0.43",
+      "top": "0.3",
+      "width": "0.3",
+      "zIndex": "100000"
+    },
+    "type": "popUp",
+    "viewTag": "baseCheckView"
+  },
+  "MainView": {
+    "style": {
+      "backgroundColor": "#f4f8fa",
+      "fontFamily": "Poppins",
+      "height": "1",
+      "left": "0",
+      "margin": "auto",
+      "width": "1"
+    },
+    "type": "view"
+  },
+  "MedicInsuranceLeftText": {
+    "style": {
+      "color": "0x666666",
+      "fontSize": ".Nfont.n6_2"
+    },
+    "type": "label"
+  },
+  "MedicInsuranceRightText": {
+    "style": {
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6_2",
+      "marginLeft": "0.02"
+    },
+    "type": "label"
+  },
+  "MedicInsuranceTextView": {
+    "style": {
+      "alignItems": "center",
+      "display": "flex",
+      "marginTop": "0.01"
+    },
+    "type": "view"
+  },
+  "MenuDashboard": {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "path": {
+                  "emit": {
+                    "actions": [
+                      {
+                        "if": [
+                          true,
+                          "$var.logoPath",
+                          "$var.logoPath"
+                        ]
+                      }
+                    ],
+                    "dataKey": {
+                      "var": "itemObject"
+                    }
+                  }
+                },
+                "style": {
+                  "height": "0.02",
+                  "left": "0.02",
+                  "top": "0.02"
+                },
+                "type": "image"
+              },
+              {
+                "dataKey": "itemObject.title",
+                "style": {
+                  "backgroundColor": "itemObject.backgroundColor",
+                  "color": "0xffffff",
+                  "height": "0.06",
+                  "left": "0.05",
+                  "textAlign": {
+                    "y": "center"
+                  },
+                  "top": "0",
+                  "width": "0.1"
+                },
+                "type": "label"
+              },
+              {
+                "path": {
+                  "emit": {
+                    "actions": [
+                      {
+                        "if": [
+                          true,
+                          "$var.iconPath",
+                          "$var.iconPath"
+                        ]
+                      }
+                    ],
+                    "dataKey": {
+                      "var": "itemObject"
+                    }
+                  }
+                },
+                "style": {
+                  "height": "0.02",
+                  "left": "0.14",
+                  "top": "0.02",
+                  "zIndex": "100"
+                },
+                "type": "image"
+              }
+            ],
+            "itemObject": "",
+            "onClick": [
+              {
+                "emit": {
+                  "actions": [
+                    {
+                      "if": [
+                        true,
+                        {
+                          "goto": "$var.pageName"
+                        },
+                        {
+                          "goto": "$var.pageName"
+                        }
+                      ]
+                    }
+                  ],
+                  "dataKey": {
+                    "var": "itemObject"
+                  }
+                }
+              }
+            ],
+            "style": {
+              "backgroundColor": "itemObject.backgroundColor",
+              "border": "none",
+              "borderBottom": "1.5px solid #326182",
+              "borderColor": "#326182",
+              "display": "inline-block",
+              "height": "0.06",
+              "left": "0",
+              "width": "0.16"
+            },
+            "type": "listItem"
+          }
+        ],
+        "contentType": "listObject",
+        "iteratorVar": "itemObject",
+        "listObject": "..MenuData",
+        "style": {
+          "height": "0.6",
+          "left": "0",
+          "top": "0",
+          "width": "0.16"
+        },
+        "type": "list"
+      }
+    ],
+    "style": {
+      "height": "0.6",
+      "left": "0",
+      "top": "0.12",
+      "width": "0.16"
+    },
+    "type": "view",
+    "viewTag": "MenuList"
+  },
+  "Mybutton": {
+    "onClick": [
+      {
+        "goto": "My Document"
+      }
+    ],
+    "style": {
+      "backgroundColor": "#004779",
+      "borderRadius": "5px",
+      "color": "#FFFFFF",
+      "fontSize": "1.8vh",
+      "height": "0.04",
+      "left": "0.21",
+      "paddingTop": "3px",
+      "textAlign": {
+        "x": "center"
+      },
+      "top": " 0.13",
+      "width": "0.07",
+      "zIndex": "100"
+    },
+    "text": "My Documents",
+    "type": "label"
+  },
+  "MylistItem": {
+    "itemObject": "",
+    "style": {
+      "display": "inline-block",
+      "height": "0.12",
+      "left": "0",
+      "width": "0.2",
+      "zIndex": "100"
+    },
+    "type": "listItem"
+  },
+  "Mylistimage": {
+    "path": {
+      "emit": {
+        "actions": [
+          {
+            "if": [
+              "=$var.key",
+              "$var.key",
+              "$var.key"
+            ]
+          }
+        ],
+        "dataKey": {
+          "var": "itemObject"
+        }
+      }
+    },
+    "style": {
+      "left": "0.22",
+      "top": "0.01",
+      "width": "0.012",
+      "zIndex": "100"
+    },
+    "type": "image"
+  },
+  "Mylistword": {
+    "dataKey": "itemObject.key",
+    "style": {
+      "color": "#000000",
+      "fontFamily": "sans-serif",
+      "fontSize": "2vh",
+      "fontWeight": "400",
+      "height": "0.2",
+      "left": "0.07",
+      "paddingTop": "3px",
+      "textAlign": {
+        "x": "center"
+      },
+      "top": "0",
+      "width": "0.5",
+      "zIndex": "100"
+    },
+    "type": "label"
+  },
+  "PageButton": {
+    "children": [
+      {
+        ".PageButton1": null,
+        "style": {
+          "left": "0"
+        }
+      },
+      {
+        ".PageButton1": null,
+        "style": {
+          "backgroundColor": "#003D68",
+          "color": "0xffffff",
+          "left": "0.018"
+        },
+        "text": "1"
+      },
+      {
+        ".PageButton1": null,
+        "style": {
+          "left": "0.036"
+        },
+        "text": "2"
+      },
+      {
+        ".PageButton1": null,
+        "style": {
+          "left": "0.054"
+        },
+        "text": "3"
+      },
+      {
+        ".PageButton1": null,
+        "style": {
+          "left": "0.072"
+        },
+        "text": "4"
+      },
+      {
+        ".PageButton1": null,
+        "style": {
+          "left": "0.09"
+        },
+        "text": "5"
+      },
+      {
+        ".PageButton1": null,
+        "style": {
+          "left": "0.108"
+        },
+        "text": "6"
+      },
+      {
+        ".PageButton1": null,
+        "style": {
+          "left": "0.126"
+        },
+        "text": "7"
+      },
+      {
+        ".PageButton1": null,
+        "style": {
+          "left": "0.144"
+        },
+        "text": "8"
+      },
+      {
+        ".PageButton1": null,
+        "style": {
+          "left": "0.162"
+        }
+      },
+      {
+        "path": "rightArrow.svg",
+        "style": {
+          "left": "0.167",
+          "top": "0.013"
+        },
+        "type": "image"
+      },
+      {
+        "path": "leftArrow.svg",
+        "style": {
+          "left": "0.006",
+          "top": "0.013"
+        },
+        "type": "image"
+      }
+    ],
+    "style": {
+      "border": {
+        "style": 3
+      },
+      "borderRadius": "10",
+      "height": "0.04",
+      "left": "0.6",
+      "width": "0.18"
+    },
+    "type": "view"
+  },
+  "PageButton1": {
+    "onClick": [
+      {
+        "goto": null
+      }
+    ],
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "5"
+      },
+      "borderColor": "#D7DAE2",
+      "boxShadow": "0px 0px 1px 1px #D7DAE2",
+      "height": "0.04",
+      "width": "0.018"
+    },
+    "type": "button"
+  },
+  "PageTitle": {
+    "style": {
+      "fontSize": ".Nfont.h4",
+      "height": "0.08",
+      "left": "0.03",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": "0.02",
+      "width": "0.2"
+    },
+    "text": "..title",
+    "type": "label"
+  },
+  "PageTitle2": {
+    "style": {
+      "fontSize": "20",
+      "height": "0.08",
+      "left": "0.01",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": "0.02",
+      "width": "0.2"
+    },
+    "text": "",
+    "type": "label"
+  },
+  "PageTitleLabel": {
+    "children": [
+      {
+        "style": {
+          "fontFamily": "Roboto",
+          "fontSize": "2.9vh",
+          "width": "0.3"
+        },
+        "text": "..title",
+        "type": "label"
+      }
+    ],
+    "style": {
+      "alignItems": "center",
+      "display": "flex",
+      "height": "0.08",
+      "left": "0.03",
+      "width": "0.78"
+    },
+    "type": "view"
+  },
+  "Pageview": {
+    "style": {
+      "height": "0",
+      "left": "0",
+      "top": "0",
+      "width": "0.5"
+    },
+    "type": "view"
+  },
+  "PatDate": {
+    "style": {
+      "fontSize": ".Nfont.n6",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0.03"
+    },
+    "text": "Date:",
+    "type": "label"
+  },
+  "PatDateValue": {
+    "dataKey": null,
+    "style": {
+      "color": "0x707070",
+      "fontSize": ".Nfont.n6",
+      "marginLeft": "0.045",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0.03"
+    },
+    "text": "09/02/2022",
+    "text=func": ".builtIn.string.formatUnixtimeL_en",
+    "type": "label"
+  },
+  "PatName": {
+    "style": {
+      "fontSize": ".Nfont.n6",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0"
+    },
+    "text": "Patient Name:",
+    "type": "label"
+  },
+  "PatNameAndDate": {
+    "children": [
+      {
+        ".PatName": null
+      },
+      {
+        ".PatNameValue": null
+      },
+      {
+        ".PatDate": null
+      },
+      {
+        ".PatDateValue": null
+      }
+    ],
+    "style": {
+      "height": "auto",
+      "marginTop": "0.02",
+      "width": "0.33"
+    },
+    "type": "view"
+  },
+  "PatNameValue": {
+    "dataKey": null,
+    "style": {
+      "color": "0x707070",
+      "fontSize": ".Nfont.n6",
+      "marginLeft": "0.08",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0"
+    },
+    "text": "Aomas Mueller",
+    "type": "label"
+  },
+  "PatientChartListView": {
+    "style": {
+      "left": "0.017",
+      "marginTop": "0.01",
+      "width": "0.34"
+    },
+    "type": "view"
+  },
+  "PatientChartLittleData": {
+    "style": {
+      "display": "inline-block",
+      "fontSize": ".Nfont.n6_1_1",
+      "height": "0.03",
+      "textAlign": {
+        "x": "right"
+      },
+      "width": "0.08"
+    },
+    "type": "label"
+  },
+  "PatientChartLittleText": {
+    "style": {
+      "display": "inline-block",
+      "fontSize": ".Nfont.n6_1_1",
+      "height": "0.03",
+      "textAlign": {
+        "x": "left"
+      },
+      "width": "0.25"
+    },
+    "text": "Currently pregnant?",
+    "type": "label"
+  },
+  "PatientChartLittleTitle": {
+    "style": {
+      "fontSize": ".Nfont.n6_1_1",
+      "fontWeight": "500",
+      "marginTop": "0.01",
+      "textAlign": {
+        "x": "left"
+      },
+      "width": "0.2"
+    },
+    "text": "Pregnancy",
+    "type": "label"
+  },
+  "PatientChartLittleView": {
+    "style": {
+      "border": {
+        "style": "2"
+      },
+      "borderColor": "0xefefef",
+      "borderWidth": "1",
+      "height": "0.03",
+      "marginTop": "0.01",
+      "width": "0.9"
+    },
+    "type": "view"
+  },
+  "PatientChartShowData": {
+    "style": {
+      "display": "inline-block",
+      "fontSize": ".Nfont.n6_1_1",
+      "marginLeft": "0.02",
+      "textAlign": {
+        "x": "right"
+      },
+      "width": "0.15"
+    },
+    "type": "label"
+  },
+  "PatientChartShowLine": {
+    "style": {
+      "border": {
+        "style": "2"
+      },
+      "borderColor": "0xefefef",
+      "borderWidth": "1",
+      "height": "0.04",
+      "textAlign": {
+        "y": "center"
+      },
+      "width": "0.34"
+    },
+    "type": "view"
+  },
+  "PatientChartShowTitle": {
+    "style": {
+      "display": "inline-block",
+      "fontSize": ".Nfont.n6_1_1",
+      "width": "0.15"
+    },
+    "type": "label"
+  },
+  "PatientChartSummaryRightText": {
+    "style": {
+      "fontSize": "14",
+      "left": "0.3",
+      "lineHeight": "2em",
+      "textAlign": {
+        "x": "right"
+      },
+      "top": "0",
+      "width": "0.4"
+    },
+    "text": "Melissa",
+    "type": "label"
+  },
+  "PatientChartSummarySelect": {
+    "onClick": [
+      {
+        "actionType": "builtIn",
+        "funcName": "toggleProviderOnOff"
+      }
+    ],
+    "path": "selectOffBlack.svg",
+    "pathSelected": "selectOnBlack.svg",
+    "style": {
+      "display": "inline-block",
+      "marginLeft": "10%",
+      "marginTop": "5%",
+      "position": "static",
+      "width": "0.035"
+    },
+    "type": "image",
+    "viewTag": "provider"
+  },
+  "PatientChartSummaryView": {
+    "style": {
+      "border": {
+        "color": "#bfbfbf",
+        "style": "2"
+      },
+      "borderWidth": "1",
+      "display": "block",
+      "paddingBottom": "5%",
+      "position": "static",
+      "width": "0.8"
+    },
+    "type": "view"
+  },
+  "PatientChartTitle": {
+    "style": {
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6",
+      "fontWeight": "600",
+      "height": "0.03",
+      "left": "0.015",
+      "marginTop": "0.015",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "width": "0.34"
+    },
+    "text": "Past Medical History",
+    "type": "label"
+  },
+  "PatientChartTitleView": {
+    "style": {
+      "backgroundColor": "0xf0f0f0",
+      "height": "0.04",
+      "left": "0",
+      "marginTop": "0",
+      "width": "1"
+    },
+    "type": "view"
+  },
+  "PatientChartView": {
+    "style": {
+      "height": "auto",
+      "left": "0.017",
+      "width": "0.34"
+    },
+    "type": "view"
+  },
+  "PatientHistoryText": {
+    "style": {
+      "color": "0x000000",
+      "fontSize": "1.8vh",
+      "height": "0.03",
+      "left": "0",
+      "top": "0",
+      "width": "0.25"
+    },
+    "type": "label"
+  },
+  "PatientHistoryTextNewUI": {
+    "style": {
+      "color": "0x000000",
+      "fontSize": "1.8vh",
+      "height": "0.03",
+      "left": "0",
+      "top": "0",
+      "width": "0.25"
+    },
+    "type": "label"
+  },
+  "PatientInfoText": {
+    "style": {
+      "borderLeft": "1px solid #c1c1c1",
+      "borderTop": "1px solid #c1c1c1",
+      "fontFamily": "Poppins",
+      "fontSize": "14",
+      "height": "0.07",
+      "left": "0",
+      "textAlign": {
+        "x": "center",
+        "y": "center"
+      },
+      "top": "0.07",
+      "width": "0.2"
+    },
+    "type": "label"
+  },
+  "PatientInfoTitle": {
+    "style": {
+      "backgroundColor": "0xeaeaea",
+      "borderLeft": "1px solid #c1c1c1",
+      "borderTop": "1px solid #c1c1c1",
+      "fontFamily": "Poppins",
+      "fontSize": "12",
+      "fontWeight": "600",
+      "height": "0.07",
+      "left": "0",
+      "textAlign": {
+        "x": "center",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.2"
+    },
+    "type": "label"
+  },
+  "PatientPropertiesText": {
+    "style": {
+      "color": "0X000000",
+      "fontFamily": "sans-serif",
+      "fontSize": "2.1vh",
+      "height": "0.03",
+      "left": "0.34",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.17",
+      "width": "0.08"
+    },
+    "text": "Female",
+    "type": "label"
+  },
+  "PatientPropertiesTitle": {
+    "style": {
+      "color": "0X000000",
+      "fontFamily": "sans-serif",
+      "fontSize": "2.1vh",
+      "fontWeight": "500",
+      "height": "0.03",
+      "left": "0.34",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.1",
+      "width": "0.08"
+    },
+    "text": "Gender",
+    "type": "label"
+  },
+  "PatientSummaryBlueLabel": {
+    "dataKey": null,
+    "style": {
+      "color": "0x4094e7",
+      "fontSize": ".Nfont.n6_2",
+      "left": "0.34",
+      "textDecoration": "underline",
+      "top": "0.017"
+    },
+    "text": "Previous",
+    "type": "label"
+  },
+  "PatientSummaryText": {
+    "style": {
+      "border": {
+        "style": "2"
+      },
+      "borderColor": "0xc2c2c266",
+      "borderWidth": "1.5",
+      "fontSize": "1.65vh",
+      "height": "0.03",
+      "left": "0",
+      "paddingBottom": "2px",
+      "textAlign": {
+        "x": "left"
+      },
+      "textIndent": "20px",
+      "top": "0.03",
+      "width": "0.32"
+    },
+    "type": "label"
+  },
+  "PatientSummaryTextNewUI": {
+    "style": {
+      "fontSize": "1.65vh",
+      "height": "0.032"
+    },
+    "type": "label"
+  },
+  "PatientSummaryTitle": {
+    "style": {
+      "color": "0xc2c2c2",
+      "fontSize": "1.65vh",
+      "height": "0.028",
+      "left": "0",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0",
+      "width": "0.32"
+    },
+    "type": "label"
+  },
+  "PatientSummaryTitleLabel": {
+    "style": {
+      "backgroundColor": "0xeff0f2",
+      "borderRadius": "5",
+      "fontSize": ".Nfont.n6",
+      "height": "0.035",
+      "left": "0.03",
+      "marginTop": "0.01",
+      "textAlign": {
+        "y": "center"
+      },
+      "textIndent": "1em",
+      "width": "0.35"
+    },
+    "text": "Appointment Info",
+    "type": "label"
+  },
+  "PatientSummaryTitleNewUI": {
+    "style": {
+      "fontSize": "1.65vh",
+      "height": "0.032"
+    },
+    "type": "label"
+  },
+  "PaymentSettingLabel": {
+    "style": {
+      "display": "flex",
+      "fontSize": ".Nfont.n6",
+      "marginLeft": "0.02",
+      "marginTop": "0.03"
+    },
+    "text": null,
+    "type": "label"
+  },
+  "PaymentSettingLittleTitle": {
+    "style": {
+      "display": "flex",
+      "fontSize": ".Nfont.n6_1_1"
+    },
+    "text": "",
+    "type": "label"
+  },
+  "PaymentSettingTextFiled": {
+    "placeholder": "Enter Here",
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "#EAEAEA",
+      "borderRadius": "5",
+      "display": "flex",
+      "fontSize": ".Nfont.n6",
+      "height": "0.045",
+      "marginLeft": "0",
+      "marginTop": "0.005",
+      "textIndent": "10px",
+      "width": "0.168"
+    },
+    "type": "textField"
+  },
+  "PaymentSettingView": {
+    "style": {
+      "display": "inline-block",
+      "marginLeft": "0"
+    },
+    "type": "view"
+  },
+  "PictureCheckBackgroundPopup": {
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp",
+    "viewTag": "cvDetailView"
+  },
+  "PictureCheckBigViewPopup": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderRadius": "5px",
+      "height": "0.445",
+      "left": "0.37",
+      "top": "0.248",
+      "width": "0.334"
+    },
+    "type": "view"
+  },
+  "PictureCheckClosePopup": {
+    "onClick": [
+      {
+        "actionType": "popUpDismiss",
+        "popUpView": "_____.viewTag"
+      }
+    ],
+    "path": "close.svg",
+    "style": {
+      "width": "0.012"
+    },
+    "type": "image"
+  },
+  "PictureCheckImgPopup": {
+    "dataKey": "formData.providerInfo.name.data.cv",
+    "path": "null.png",
+    "path=func": ".builtIn.utils.prepareDocToPath",
+    "style": {
+      "height": "0.3",
+      "width": "0.28"
+    },
+    "type": "image",
+    "viewTag": "imgView"
+  },
+  "PictureCheckPopup": {
+    ".PictureCheckBackgroundPopup": null,
+    "children": [
+      {
+        ".PictureCheckBigViewPopup": null,
+        "children": [
+          {
+            ".PictureCheckViewPopup": null,
+            "children": [
+              {
+                ".PictureCheckClosePopup": null
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                ".PictureCheckImgPopup": null
+              }
+            ],
+            "style": {
+              "height": "0.365",
+              "marginTop": "0",
+              "textAlign": {
+                "x": "center"
+              },
+              "width": "0.334"
+            },
+            "type": "view"
+          }
+        ]
+      }
+    ]
+  },
+  "PictureCheckViewPopup": {
+    "style": {
+      "alignItems": "center",
+      "display": "flex",
+      "height": "0.1",
+      "justifyContent": "space-around",
+      "left": "0.264",
+      "marginTop": "0",
+      "width": "0.07"
+    },
+    "type": "view"
+  },
+  "PopUpField": {
+    "contentType": "text",
+    "dataKey": "",
+    "placeholder": "Enter Here",
+    "style": {
+      "backgroundColor": "#ffffff",
+      "borderColor": "#C4C4C4",
+      "borderRadius": "5px",
+      "borderWidth": "1",
+      "color": "#C4C4C4",
+      "fontFamily": "Montserrat",
+      "fontSize": "14",
+      "height": "0.05",
+      "textIndent": "1em",
+      "top": "0.03",
+      "width": "0.18"
+    },
+    "type": "textField"
+  },
+  "PopUpT": {
+    "style": {
+      "fontFamily": "Montserrat",
+      "fontSize": "12"
+    },
+    "text": "Cardholder name",
+    "type": "label"
+  },
+  "PopUpText": {
+    "style": {
+      "fontSize": "56",
+      "textAlign": {
+        "x": "center"
+      },
+      "top": "0.13",
+      "width": "0.32"
+    },
+    "text": "$36",
+    "type": "text"
+  },
+  "PopUpTitle": {
+    "style": {
+      "fontSize": "24",
+      "left": "0.02",
+      "top": "0.06",
+      "width": null
+    },
+    "text": "Buy New License",
+    "type": "label"
+  },
+  "PopUpTitle2": {
+    "style": {
+      "color": "#0000008f",
+      "fontSize": "16",
+      "fontWeight": "lighter",
+      "left": "0.02",
+      "top": "0.115",
+      "width": null
+    },
+    "text": "How many licenses do you want to buy?",
+    "type": "label"
+  },
+  "PopUphead": {
+    "style": {
+      "backgroundColor": "#005795",
+      "height": "0.08",
+      "width": "0.4"
+    },
+    "type": "view"
+  },
+  "PopularTime": {
+    "style": {
+      "backgroundColor": "0x003d68",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0x003d68",
+      "borderRadius": "1",
+      "borderWidth": "1",
+      "color": "0xffffff",
+      "fontSize": "1.6vh",
+      "height": "0.035",
+      "left": "0.01",
+      "textAlign": {
+        "x": "center"
+      },
+      "top": "0.06",
+      "width": "0.05"
+    },
+    "text": "Day",
+    "type": "button"
+  },
+  "PopupLightPrompt": {
+    "children": [
+      {
+        "children": [
+          {
+            "path": "AboutRed2.svg",
+            "style": {
+              "height": "0.02",
+              "left": "0",
+              "width": "0.015"
+            },
+            "type": "image"
+          },
+          {
+            "dataKey": null,
+            "style": {
+              "color": "#e24445",
+              "marginLeft": "0.014",
+              "textAlign": {
+                "x": "center"
+              }
+            },
+            "text": "___.msg",
+            "type": "label",
+            "y": "center"
+          }
+        ],
+        "style": {
+          "alignItems": "center",
+          "backgroundColor": "0xffffff",
+          "boxShadow": "0px 2px 2px 1px #a6bbca",
+          "display": "flex",
+          "height": "0.05",
+          "justifyContent": "center",
+          "left": "0.43",
+          "top": "0.08",
+          "width": "0.3",
+          "zIndex": "15"
+        },
+        "type": "view"
+      }
+    ],
+    "msg": "The option has been selected",
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp",
+    "viewTag": "PopupLightPromptTag"
+  },
+  "PopupLightPromptRight": {
+    "children": [
+      {
+        "path": "AboutRed2.svg",
+        "style": {
+          "height": "0.02",
+          "width": "0.015"
+        },
+        "type": "image"
+      },
+      {
+        "dataKey": null,
+        "style": {
+          "color": "0xe24445",
+          "marginLeft": "0.014",
+          "textAlign": {
+            "x": "center",
+            "y": "center"
+          }
+        },
+        "text": "The option has been selected",
+        "type": "label"
+      }
+    ],
+    "style": {
+      "alignItems": "center",
+      "backgroundColor": "0xffe3e3",
+      "display": "flex",
+      "height": "0.05",
+      "justifyContent": "center",
+      "left": "0.6",
+      "top": "0.08",
+      "width": "0.4",
+      "zIndex": "15"
+    },
+    "type": "popUp",
+    "viewTag": "PopupLightPromptTag"
+  },
+  "PresLabelLeft": {
+    "style": {
+      "display": "inline-block",
+      "heigth": "auto",
+      "width": "0.2"
+    },
+    "type": "label"
+  },
+  "PresLabelRight": {
+    "dataKey": null,
+    "style": {
+      "display": "inline-block",
+      "heigth": "auto",
+      "textAlign": {
+        "x": "right"
+      },
+      "width": "0.3",
+      "wordBreak": "break-all"
+    },
+    "type": "label"
+  },
+  "PresListView": {
+    "style": {
+      "height": "auto",
+      "marginTop": "0.01",
+      "width": "0.5"
+    },
+    "type": "view"
+  },
+  "PrescriptionDatakey": {
+    "style": {
+      "fontSize": ".Nfont.n6",
+      "height": "0.03",
+      "left": "0.1",
+      "textAlign": {
+        "x": "right",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.29"
+    },
+    "type": "label"
+  },
+  "PrescriptionDatakey1": {
+    "style": {
+      "fontSize": "14",
+      "height": "0.03",
+      "width": "0.45"
+    },
+    "type": "label"
+  },
+  "PrescriptionInputText": {
+    "style": {
+      "fontSize": "14",
+      "height": "0.025",
+      "left": "0",
+      "top": "0.06",
+      "width": "0.1"
+    },
+    "text": "Strength",
+    "type": "label"
+  },
+  "PrescriptionInputTextField": {
+    "placeholder": "",
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0x000000",
+      "borderWidth": "1",
+      "fontSize": "14",
+      "height": "0.02",
+      "left": "0.22",
+      "top": "0.06",
+      "width": "0.17"
+    },
+    "type": "textField"
+  },
+  "PrescriptionLabel": {
+    "style": {
+      "fontSize": ".Nfont.n6",
+      "height": "0.03",
+      "left": "0",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.1"
+    },
+    "text": "Patient Name",
+    "type": "label"
+  },
+  "PrescriptionLabel1": {
+    "style": {
+      "fontSize": "14",
+      "height": "0.03",
+      "width": "0.4"
+    },
+    "text": "Patient Name",
+    "type": "label"
+  },
+  "PrescriptionListBox": {
+    "style": {
+      "height": "0.03",
+      "marginTop": "0.005",
+      "width": "0.39"
+    },
+    "type": "view"
+  },
+  "PrescriptionListBox1": {
+    "style": {
+      "height": "0.035",
+      "width": "0.9"
+    },
+    "type": "view"
+  },
+  "PrescriptionReviewInputText": {
+    "style": {
+      "color": "#797979",
+      "fontSize": ".Nfont.n6",
+      "fontWeight": "600",
+      "height": "0.025",
+      "left": "0",
+      "top": "0.06",
+      "width": "0.1"
+    },
+    "type": "label"
+  },
+  "PrescriptionReviewInputTextField": {
+    "placeholder": "",
+    "style": {
+      "border": {
+        "style": "1"
+      },
+      "borderColor": "0x000000",
+      "borderWidth": "1",
+      "fontSize": ".Nfont.n6",
+      "fontWeight": "600",
+      "height": "0.03",
+      "left": "0",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.04",
+      "width": "0.12"
+    },
+    "type": "textField"
+  },
+  "Prfield": {
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xdddddd",
+      "borderWidth": "1",
+      "boxSizing": "border-box",
+      "height": "0.034",
+      "left": "0.15",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": "0.008",
+      "width": "0.2"
+    },
+    "type": "label"
+  },
+  "Prfield1": {
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xdddddd",
+      "borderWidth": "1",
+      "boxSizing": "border-box",
+      "height": "0.038",
+      "left": "0.15",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": "0.008",
+      "width": "0.2"
+    },
+    "type": "label"
+  },
+  "ProNoteDateTextField": {
+    "isEditable": "false",
+    "placeholder": "Select Date",
+    "style": {
+      "border": {
+        "style": 3
+      },
+      "borderColor": "0xcccccc",
+      "borderRadius": "3",
+      "borderWidth": "1.3",
+      "boxSizing": "border-box",
+      "color": "0x0f0f0f",
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6",
+      "height": "0.025",
+      "left": "0",
+      "top": "0",
+      "width": "0.12"
+    },
+    "type": "textField"
+  },
+  "ProNoteInitLabel": {
+    "style": {
+      "color": "0x0f0f0f",
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6",
+      "left": "0.24",
+      "textAlign": {
+        "x": "right"
+      },
+      "width": "0.15",
+      "wordBreak": "break-all"
+    },
+    "type": "label"
+  },
+  "ProNoteInitLabelTwo": {
+    "style": {
+      "color": "0x757575",
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6",
+      "height": "auto",
+      "left": "0",
+      "top": "0",
+      "width": "0.12"
+    },
+    "type": "label"
+  },
+  "ProNoteInitTextField": {
+    "isEditable": false,
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "color": "0xdededf",
+        "style": "3"
+      },
+      "borderColor": "0xd4d4d4",
+      "borderRadius": "3",
+      "borderWidth": "1",
+      "height": "0.05",
+      "marginTop": "0.005",
+      "width": "0.1"
+    },
+    "type": "textField"
+  },
+  "ProNoteInitTextFieldNewUI": {
+    "isEditable": false,
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "color": "0xdededf",
+        "style": "3"
+      },
+      "borderColor": "0xd4d4d4",
+      "borderRadius": "3",
+      "borderWidth": "1",
+      "height": "0.03",
+      "marginTop": "0.005",
+      "width": "0.035"
+    },
+    "type": "textField"
+  },
+  "ProNoteInitTextView": {
+    "isEditable": false,
+    "placeholder": "Enter here",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": 3
+      },
+      "borderColor": "0xd4d4d4",
+      "borderRadius": "3",
+      "borderWidth": "1",
+      "boxSizing": "border-box",
+      "fontSize": ".Nfont.n6",
+      "height": "0.13",
+      "marginTop": "0.013",
+      "resize": "none",
+      "width": "0.39"
+    },
+    "type": "textView"
+  },
+  "ProNoteTextField": {
+    "isEditable": false,
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": 3
+      },
+      "borderColor": "0xcccccc",
+      "borderRadius": "3",
+      "borderWidth": "1.3",
+      "boxSizing": "border-box",
+      "color": "0x0f0f0f",
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6",
+      "height": "0.04",
+      "left": "0.2",
+      "textAlign": {
+        "x": "right",
+        "y": "center"
+      },
+      "width": "0.19",
+      "wordBreak": "break-all"
+    },
+    "type": "textField"
+  },
+  "ProdField": {
+    "isEditable": false,
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xdddddd",
+      "borderWidth": "1",
+      "boxSizing": "border-box",
+      "fontFamily": "Poppins",
+      "fontSize": "0.8vw",
+      "height": "0.034",
+      "left": "0.15",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": "0.008",
+      "width": "0.2"
+    },
+    "type": "textField"
+  },
+  "ProdManageLabel": {
+    "style": {
+      "fontSize": "1.7vh",
+      "height": "0.05",
+      "left": "0.05",
+      "textAlign": {
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.15"
+    },
+    "type": "label"
+  },
+  "ProdManageView": {
+    "style": {
+      "height": "0.05",
+      "left": "0",
+      "marginTop": "0",
+      "width": "0.4"
+    },
+    "type": "view"
+  },
+  "ProdManageView1": {
+    "style": {
+      "height": "0.05",
+      "left": "0",
+      "marginTop": "0.01",
+      "width": "0.4"
+    },
+    "type": "view"
+  },
+  "Profile2Label": {
+    "style": {
+      "fontSize": "1.6vw",
+      "lineHeight": "1.6em",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "width": "0.8"
+    },
+    "text": "this is a label",
+    "type": "label"
+  },
+  "Profile2LabelNewUI": {
+    "style": {
+      "fontSize": "1vw",
+      "height": "auto",
+      "width": "0.39"
+    },
+    "text": "this is a label",
+    "type": "label"
+  },
+  "Profile2TextView": {
+    "isEditable": "false",
+    "placeholder": "Enter here",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xdfe1e5",
+      "borderRadius": "5",
+      "borderWidth": "1",
+      "fontFamily": "sans-serif",
+      "fontSize": "1.6vw",
+      "height": "0.1",
+      "lineHeight": "1.6em",
+      "marginTop": "0.015",
+      "textIndent": "0.5em",
+      "width": "0.8"
+    },
+    "type": "textView"
+  },
+  "Profile2TextViewNewUI": {
+    "isEditable": "false",
+    "placeholder": "Enter here",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xdfe1e5",
+      "borderRadius": "5",
+      "borderWidth": "1",
+      "boxSizing": "border-box",
+      "fontFamily": "sans-serif",
+      "fontSize": "1vw",
+      "height": "0.05",
+      "marginTop": "0.015",
+      "textIndent": "0.3em",
+      "width": "0.39"
+    },
+    "type": "textView"
+  },
+  "Profile2Title": {
+    "style": {
+      "color": "0x000000",
+      "fontFamily": "Poppins",
+      "fontSize": "18",
+      "fontWeight": "600",
+      "height": "0.03",
+      "left": "0.1",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.05",
+      "width": "0.9"
+    },
+    "text": "Today's Visit",
+    "type": "label"
+  },
+  "Profile2View": {
+    "style": {
+      "height": "auto",
+      "marginTop": "0.03",
+      "width": "0.8"
+    },
+    "type": "view"
+  },
+  "Profile2ViewNewUI": {
+    "style": {
+      "height": "auto",
+      "marginTop": "0.03",
+      "width": "0.39"
+    },
+    "type": "view"
+  },
+  "Profile3LeftLabel": {
+    "style": {
+      "display": "inline-block",
+      "fontSize": "16",
+      "marginLeft": "7%",
+      "marginTop": "2%",
+      "position": "static",
+      "textAlign": {
+        "x": "left"
+      },
+      "width": "0.53"
+    },
+    "text": "Currently pregnant?"
+  },
+  "Profile3LittleText": {
+    "style": {
+      "display": "inline-block",
+      "fontSize": "16",
+      "marginLeft": "2%",
+      "marginTop": "2%",
+      "position": "static",
+      "textAlign": {
+        "x": "center"
+      },
+      "width": "0.35"
+    },
+    "text": "bees",
+    "type": "label"
+  },
+  "Profile3LittleTitle": {
+    "style": {
+      "display": "inline-block",
+      "fontWeight": "600",
+      "marginTop": "2%",
+      "position": "static",
+      "textAlign": {
+        "x": "center"
+      },
+      "width": "0.35"
+    },
+    "text": "Allergen/Irritant",
+    "type": "label"
+  },
+  "Profile3RightLabel": {
+    "style": {
+      "color": "0x5f5f5f",
+      "display": "inline-block",
+      "position": "static",
+      "textAlign": {
+        "x": "right"
+      },
+      "width": "0.16"
+    },
+    "text": 3,
+    "type": "label"
+  },
+  "Profile3Title": {
+    "style": {
+      "color": "0x000000",
+      "display": "block",
+      "fontFamily": "Poppins",
+      "fontSize": "18",
+      "fontWeight": "600",
+      "marginLeft": "5%",
+      "marginTop": "3%",
+      "position": "static",
+      "textAlign": {
+        "x": "left"
+      },
+      "width": "0.7"
+    },
+    "text": "Past Medical History",
+    "type": "label"
+  },
+  "ProfileImg": {
+    "path": "profilehead.png",
+    "style": {
+      "left": "0.02",
+      "top": "0.05",
+      "width": "0.06"
+    },
+    "type": "image"
+  },
+  "ProfileInfoLeftText": {
+    "style": {
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6_3",
+      "fontWeight": "600",
+      "width": "0.13"
+    },
+    "type": "label"
+  },
+  "ProfileInfoRightText": {
+    "dataKey": null,
+    "style": {
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6_3",
+      "marginLeft": "0",
+      "width": "0.145"
+    },
+    "type": "label"
+  },
+  "ProfileInfoTextView": {
+    "style": {
+      "alignItems": "center",
+      "display": "flex",
+      "height": "auto",
+      "left": "0",
+      "marginTop": "0.02",
+      "width": "0.295"
+    },
+    "type": "view"
+  },
+  "ProfileInfoTitle": {
+    "style": {
+      "border": {
+        "style": "2"
+      },
+      "borderColor": "0xeeeeee",
+      "borderWidth": "1",
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n6",
+      "fontWeight": "600",
+      "height": "0.03",
+      "marginTop": "0.04",
+      "width": "0.295"
+    },
+    "type": "label"
+  },
+  "ProfileInnerText": {
+    "style": {
+      "color": "0xc2c2c2",
+      "fontFamily": "Poppins",
+      "fontSize": "1.7vh",
+      "fontWeight": "500",
+      "height": "0.03",
+      "left": "0",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0",
+      "width": "0.35"
+    },
+    "text": "Room Name",
+    "type": "label"
+  },
+  "ProfileInnerTextField": {
+    "placeholder": "Dr.Chen's Room",
+    "style": {
+      "border": {
+        "style": "2"
+      },
+      "borderColor": "0xc2c2c2",
+      "borderWidth": "1",
+      "color": "0x000000",
+      "fontFamily": "Poppins",
+      "fontSize": "1.7vh",
+      "fontWeight": "500",
+      "height": "0.03",
+      "left": "0",
+      "textAlign": {
+        "x": "left"
+      },
+      "textIndent": "20px",
+      "top": "0.03",
+      "width": "0.37"
+    },
+    "type": "textField"
+  },
+  "ProfileInnerTitle": {
+    "style": {
+      "color": "0x000000",
+      "fontFamily": "Poppins",
+      "fontSize": "2.1vh",
+      "fontWeight": "600",
+      "height": "0.03",
+      "left": "0.015",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.03",
+      "width": "0.2"
+    },
+    "text": "Visit Summary",
+    "type": "label"
+  },
+  "ProfileInnerView": {
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0x388ecc",
+      "borderRadius": "10",
+      "borderWidth": "1",
+      "boxShadow": "5px 5px 10px 5px #f5f5f5",
+      "height": "0.125",
+      "left": "0.015",
+      "top": "0",
+      "width": "0.075"
+    },
+    "type": "view"
+  },
+  "ProfileInnerViewImg": {
+    "path": "remoteHealth0.svg",
+    "style": {
+      "left": "0.0225",
+      "top": "0.01",
+      "width": "0.03"
+    },
+    "type": "image"
+  },
+  "ProfileInnerViewText": {
+    "style": {
+      "color": "0x000000",
+      "fontFamily": "Poppins",
+      "fontSize": "1.6vh",
+      "fontWeight": "500",
+      "height": "0.03",
+      "left": "0",
+      "textAlign": {
+        "x": "center"
+      },
+      "top": "0.08",
+      "width": "0.03"
+    },
+    "text": "Vital Signs",
+    "type": "label"
+  },
+  "ProfileText": {
+    "style": {
+      "color": "0x517086",
+      "fontFamily": "Poppins",
+      "fontSize": "1.7vh",
+      "fontWeight": "500",
+      "height": "0.03",
+      "left": "0.11",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.02",
+      "width": "0.2"
+    },
+    "text": "Steve Chandler",
+    "type": "label"
+  },
+  "ProfileTitle": {
+    "style": {
+      "color": "0x517086dd",
+      "fontFamily": "Poppins",
+      "fontSize": "1.9vh",
+      "height": "0.03",
+      "left": "0.015",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.01",
+      "width": "0.05"
+    },
+    "text": "Profile",
+    "type": "label"
+  },
+  "ProviderButton": {
+    "style": {
+      "backgroundColor": "0xefefef",
+      "border": {
+        "style": "5"
+      },
+      "borderRadius": "10",
+      "color": "0x517086ad",
+      "fontSize": "2.0vh",
+      "height": "0.055",
+      "left": "0",
+      "textAlign": {
+        "x": "center"
+      },
+      "top": "0.017",
+      "width": "0.1"
+    },
+    "text": "Provider",
+    "type": "button"
+  },
+  "ProviderPageTile": {
+    "style": {
+      "fontFamily": "Segoe UI",
+      "fontSize": "1.4vw",
+      "fontWeight": "bold"
+    },
+    "type": "label"
+  },
+  "ProviderTable": {
+    "style": {
+      "borderLeft": "1px solid rgb(0, 61, 104, 0.25)",
+      "borderRadius": "1",
+      "borderRight": "1px solid rgb(0, 61, 104, 0.25)",
+      "borderWidth": "1",
+      "height": "0.3",
+      "left": "0.03",
+      "top": "1.5",
+      "width": "0.74"
+    },
+    "type": "view"
+  },
+  "ProviderTableImg": {
+    "path": "order.svg",
+    "style": {
+      "left": "0.06",
+      "top": "0.012",
+      "width": "0.007"
+    },
+    "type": "image"
+  },
+  "ProviderTableItem": {
+    "dataKey": "itemObject.time",
+    "style": {
+      "borderRight": "1px solid rgb(0, 61, 104, 0.25)",
+      "fontFamily": "sans-serif",
+      "fontSize": "1.9vh",
+      "height": "0.048",
+      "left": "0",
+      "textAlign": {
+        "x": "center",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.2"
+    },
+    "type": "label"
+  },
+  "ProviderTableText": {
+    "style": {
+      "color": "0X000000",
+      "fontFamily": "sans-serif",
+      "fontSize": "1.8vh",
+      "height": "0.03",
+      "left": "0.02",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.01",
+      "width": "0.025"
+    },
+    "text": "Time",
+    "type": "label"
+  },
+  "ProviderTableView": {
+    "style": {
+      "borderBottom": "1px solid rgb(0, 61, 104, 0.25)",
+      "borderRight": "1px solid rgb(0, 61, 104, 0.25)",
+      "height": "0.048",
+      "left": "0",
+      "top": "0",
+      "width": "0.2"
+    },
+    "type": "view"
+  },
+  "RaImage": {
+    "path": "3.5stars.png",
+    "type": "image"
+  },
+  "RaLabel": {
+    "style": {
+      "color": "#003D68",
+      "fontSize": "14",
+      "left": "0",
+      "top": "0.1"
+    },
+    "text": "Less than 1 month ago - Initials hidden",
+    "type": "label"
+  },
+  "Raimage": {
+    "path": "4.5stars.png",
+    "type": "image"
+  },
+  "Ralabel1": {
+    "style": {
+      "color": "#003D68",
+      "fontSize": "12",
+      "left": "0",
+      "top": "0.04"
+    },
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc a risus arcu. Quisque faucibus accumsan nisi nec tempor. Maecenas et felis justo. Nunc justo purus, lacinia eu neque vitae, varius pharetra risus.",
+    "type": "label"
+  },
+  "Ralabel2": {
+    "style": {
+      "color": "#003D68",
+      "fontSize": "12",
+      "left": "0",
+      "top": "0.21"
+    },
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc a risus arcu. Quisque faucibus accumsan nisi nec tempor.",
+    "type": "label"
+  },
+  "Recentsbutton": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderRadius": "1",
+      "color": "#003D68",
+      "fontSize": "14",
+      "width": "0.08"
+    },
+    "type": "button"
+  },
+  "RecipientName": {
+    "style": {
+      "children": [
+        {
+          ".RecipientNameLabel": null
+        },
+        {
+          ".RecipientNameTextField": null
+        }
+      ],
+      "height": "auto",
+      "marginTop": "0.02",
+      "width": "0.33"
+    },
+    "type": "view"
+  },
+  "RecipientNameLabel": {
+    "style": {
+      "fontSize": ".Nfont.n6",
+      "marginTop": "0"
+    },
+    "text": "Name of Recipient/Healthcare Proxy",
+    "type": "label"
+  },
+  "RecipientNameTextField": {
+    "isEditable": "false",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xdfe1e5",
+      "borderRadius": "5px",
+      "fontSize": ".Nfont.n6",
+      "height": "0.04",
+      "marginTop": "0.01",
+      "textIndent": "0.5em",
+      "width": "0.33"
+    },
+    "type": "textField"
+  },
+  "RightArrowInbox": {
+    "path": "rightArrowInbox.svg",
+    "style": {
+      "left": "0.055",
+      "top": "0.02",
+      "width": "0.02"
+    },
+    "type": "image"
+  },
+  "RightButton": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "boxShadow": "0px 0px 0.5px 0px #02487a",
+      "color": "0x000000",
+      "fontFamily": "Poppins",
+      "fontSize": "16",
+      "height": "0.12",
+      "left": "0.04",
+      "width": "0.2"
+    },
+    "type": "button"
+  },
+  "RoomManageLabel": {
+    "style": {
+      "color": "0x143459",
+      "fontSize": "1.7vh",
+      "fontWeight": "500",
+      "height": "0.03",
+      "left": "0.03",
+      "marginTop": "0",
+      "textAlign": {
+        "y": "center"
+      },
+      "width": "0.25"
+    },
+    "type": "label"
+  },
+  "ScImage": {
+    "path": "Icon feather-calendar.svg",
+    "style": {
+      "left": "0.02",
+      "top": "0.33",
+      "width": "0.02"
+    },
+    "type": "image"
+  },
+  "ScLabel": {
+    "style": {
+      "fontSize": "1.7vh",
+      "left": "0.087",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.05",
+      "width": "0.07"
+    },
+    "type": "label"
+  },
+  "ScLabel0": {
+    "style": {
+      "fontSize": "1.5vh",
+      "left": "0.087",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.08",
+      "width": "0.07"
+    },
+    "type": "label"
+  },
+  "ScLabel1": {
+    "style": {
+      "fontSize": "12",
+      "left": "0.05",
+      "lineHeight": "1.5",
+      "top": "0.33"
+    },
+    "type": "label"
+  },
+  "Scbutton": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderRadius": "8",
+      "color": "#1492E6",
+      "fontSize": "13",
+      "height": "0.08",
+      "top": "0.41",
+      "width": "0.18"
+    },
+    "text": "Edit Availability Settings",
+    "type": "button"
+  },
+  "ScbuttonTwo": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0x2988e6",
+      "borderRadius": "5",
+      "borderWidth": "1",
+      "color": "0x3890e7",
+      "fontFamily": "Arial",
+      "height": "0.03",
+      "left": "0.015",
+      "textAlign": {
+        "x": "center",
+        "y": "center"
+      },
+      "top": "0.185",
+      "width": "0.06"
+    },
+    "text": "Reason",
+    "type": "button"
+  },
+  "Scdivider": {
+    "style": {
+      "backgroundColor": "#E3F6FF",
+      "height": "0.001",
+      "left": "0",
+      "top": "0.41",
+      "width": "0.179",
+      "zIndex": 22
+    },
+    "type": "view"
+  },
+  "ScheduleManagementDatakey": {
+    "style": {
+      "fontSize": "1.6vh",
+      "height": "0.03",
+      "left": "0.15",
+      "textAlign": {
+        "x": "right"
+      },
+      "top": "0",
+      "width": "0.2"
+    },
+    "type": "label"
+  },
+  "ScheduleManagementText": {
+    "style": {
+      "fontSize": "1.6vh",
+      "height": "0.028",
+      "left": "0.05",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.15"
+    },
+    "type": "label"
+  },
+  "Scimage": {
+    "style": {
+      "left": "0.04",
+      "top": "0.05",
+      "width": "0.1"
+    },
+    "type": "image"
+  },
+  "Scimage1": {
+    "path": "bottomArrow.png",
+    "style": {
+      "height": "0.04",
+      "left": "0.52",
+      "top": "0.02"
+    },
+    "type": "image"
+  },
+  "Sclabel": {
+    "style": {
+      "color": "#30b354",
+      "fontSize": "10",
+      "left": "0.01",
+      "top": "0.02"
+    },
+    "text": "Active",
+    "type": "label"
+  },
+  "Scselect1": {
+    "style": {
+      "borderRadius": "1",
+      "color": "black",
+      "fontSize": "12",
+      "height": "0.04",
+      "left": "0.52",
+      "textIndent": "10px",
+      "top": "0.02",
+      "width": "0.15"
+    },
+    "type": "select"
+  },
+  "Scview": {
+    "style": {
+      "borderRadius": "8",
+      "boxShadow": "0px 0px 2px 1px #c8c8c8",
+      "height": "0.24",
+      "left": "0.02",
+      "width": "0.165"
+    },
+    "type": "view"
+  },
+  "SearchImage": {
+    "path": "search.svg",
+    "style": {
+      "height": "0.02",
+      "top": "0.01"
+    },
+    "type": "image"
+  },
+  "SearchTextField": {
+    "placeholder": "Search...",
+    "style": {
+      "borderWidth": "0",
+      "color": "0x517086",
+      "fontSize": "1.8vh",
+      "left": "0.02",
+      "top": "0.01",
+      "width": "0.5"
+    },
+    "type": "textField"
+  },
+  "SideMenuBar": {
+    "style": {
+      "backgroundColor": "0x005795",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "0.16"
+    },
+    "type": "view"
+  },
+  "SignAreaClickText": {
+    "style": {
+      "color": "0x707070",
+      "fontSize": ".Nfont.n6_1",
+      "marginTop": "0.02"
+    },
+    "text": "Click on the signature box below to finger sign",
+    "type": "label"
+  },
+  "SignAreaView": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "color": "0xacacac",
+        "style": "4",
+        "width": "1.5"
+      },
+      "height": "0.16",
+      "marginTop": "0.02",
+      "width": "0.33"
+    },
+    "type": "view"
+  },
+  "SignInCheck": {
+    "if": [
+      "=.Global.currentUser.vertex.sk",
+      "continue",
+      {
+        "goto": "SignIn"
+      }
+    ]
+  },
+  "SmallCheckBox": {
+    "path": "checkOff.svg",
+    "style": {
+      "left": "0"
+    },
+    "type": "image"
+  },
+  "SmallCheckbox": {
+    "path": "checkOn.svg",
+    "style": {
+      "left": "0"
+    },
+    "type": "image"
+  },
+  "Squareimage": {
+    "path": "square1.svg",
+    "style": {
+      "height": "0.018",
+      "left": "0.02",
+      "top": "0.26"
+    },
+    "type": "image"
+  },
+  "Squarelabel1": {
+    "style": {
+      "color": "#131523",
+      "fontSize": ".Nfont.h4",
+      "height": "0.1",
+      "left": "0.045",
+      "top": "0.252"
+    },
+    "text": "Completed",
+    "type": "label"
+  },
+  "Squarelabel2": {
+    "style": {
+      "color": "#131523",
+      "fontSize": ".Nfont.h4",
+      "fontStyle": "bold",
+      "height": "0.1",
+      "left": "0.2",
+      "top": "0.252"
+    },
+    "text": "50%",
+    "type": "label"
+  },
+  "StaffBasicInfoDatakey": {
+    "style": {
+      "fontSize": "1.4vh",
+      "fontWeight": "500",
+      "height": "0.028",
+      "left": "0.27",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.07"
+    },
+    "type": "label"
+  },
+  "StaffBasicInfoText": {
+    "style": {
+      "fontSize": "1.5vh",
+      "height": "0.028",
+      "marginLeft": "0",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.09"
+    },
+    "type": "label"
+  },
+  "StaffBasicInfoView": {
+    "style": {
+      "height": "0.028",
+      "left": "0.01",
+      "marginTop": "0.01",
+      "width": "0.17"
+    },
+    "type": "view"
+  },
+  "Star": {
+    "path": "4.5stars.png",
+    "style": {
+      "height": "0.036",
+      "left": "0.02",
+      "top": "0.08"
+    },
+    "type": "image"
+  },
+  "Stateselect": {
+    "options": [
+      "-- --",
+      "AK",
+      "AL",
+      "AR",
+      "AZ",
+      "CA",
+      "CO",
+      "CT",
+      "DE",
+      "FL",
+      "GA",
+      "HI",
+      "ID",
+      "IL",
+      "IN",
+      "IA",
+      "KS",
+      "KY",
+      "LA",
+      "ME",
+      "MD",
+      "MA",
+      "MI",
+      "MN",
+      "MS",
+      "MO",
+      "MT",
+      "NE",
+      "NV",
+      "NH",
+      "NJ",
+      "NM",
+      "NY",
+      "NC",
+      "ND",
+      "OH",
+      "OK",
+      "OR",
+      "PA",
+      "RI",
+      "SC",
+      "SD",
+      "TN",
+      "TX",
+      "UT",
+      "VT",
+      "VA",
+      "WA",
+      "WV",
+      "WI",
+      "WY",
+      "DC"
+    ],
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "#EAEAEA",
+      "fontSize": "12",
+      "height": "0.04",
+      "left": "0.46",
+      "required": "true",
+      "selectHeight": "0.1",
+      "top": "0.66",
+      "width": "0.04"
+    },
+    "type": "select"
+  },
+  "SuccessDeletedPopUpView": {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "path": "____.img",
+                "style": {
+                  "height": "0.1"
+                },
+                "type": "image"
+              }
+            ],
+            "style": {
+              "alignItems": "flex-end",
+              "display": "flex",
+              "height": "0.19",
+              "justifyContent": "center",
+              "width": "0.32"
+            },
+            "type": "view"
+          },
+          {
+            "dataKey": null,
+            "style": {
+              "alignItems": "center",
+              "display": "flex",
+              "fontSize": ".Nfont.n5_2",
+              "height": "0.12",
+              "justifyContent": "center",
+              "width": "0.32"
+            },
+            "text": "___.msg",
+            "type": "label"
+          }
+        ],
+        "style": {
+          "backgroundColor": "0xffffff",
+          "box-shadow": "0 0 9px 3px #cccccc",
+          "height": "0.34",
+          "left": "0.4",
+          "top": "0.27",
+          "width": "0.32",
+          "zIndex": "20"
+        },
+        "type": "view"
+      }
+    ],
+    "img": "successDelete.svg",
+    "onClick": [
+      {
+        "actionType": "popUpDismiss",
+        "popUpView": "__.viewTag"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp"
+  },
+  "SuccessfulBgViewGreen": {
+    "style": {
+      "backgroundColor": "0x2fb355",
+      "border-top-left-radius": "5px",
+      "border-top-right-radius": "5px",
+      "height": "0.013",
+      "left": "0",
+      "marginTop": "0",
+      "width": "0.3"
+    },
+    "type": "view"
+  },
+  "SuccessfulBgViewWhite": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderRadius": "5",
+      "boxShadow": "0px 2px 2px 1px #b7b7b7",
+      "height": "0.29",
+      "left": "0.43",
+      "top": "0.3",
+      "width": "0.3"
+    },
+    "type": "view"
+  },
+  "SuccessfulViewImg": {
+    "path": "successfulGreen.svg",
+    "style": {
+      "left": "0.12",
+      "marginTop": "0.05",
+      "width": "0.05"
+    },
+    "type": "image"
+  },
+  "SuccessfulViewLabel": {
+    "style": {
+      "color": "0x171725",
+      "fontFamily": "Roboto",
+      "fontSize": ".Nfont.n5_1",
+      "fontWeight": "500",
+      "left": "0.055",
+      "marginTop": "0.04",
+      "textAlign": {
+        "x": "center"
+      },
+      "width": "0.18"
+    },
+    "text": "____.msg",
+    "type": "label"
+  },
+  "SwitchFormLeft": {
+    "path": "blueLeftForms.svg",
+    "style": {
+      "height": "0.04",
+      "left": "0.33",
+      "position": "fixed",
+      "top": "0.48"
+    },
+    "type": "image"
+  },
+  "SwitchFormRight": {
+    "path": "blueRightForms.svg",
+    "style": {
+      "height": "0.04",
+      "left": "0.92",
+      "position": "fixed",
+      "top": "0.48"
+    },
+    "type": "image"
+  },
+  "TextField1": {
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "#EAEAEA",
+      "fontSize": "12",
+      "height": "0.04",
+      "textIndent": "10px"
+    },
+    "type": "textField"
+  },
+  "TextField2": {
+    "placeholder": "Enter Here",
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "#EAEAEA",
+      "fontSize": "12",
+      "height": "0.05",
+      "textIndent": "10px",
+      "width": "0.2"
+    },
+    "type": "textField"
+  },
+  "TimeSelect": {
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "#EAEAEA",
+      "fontSize": "12",
+      "height": "0.046"
+    },
+    "type": "select"
+  },
+  "TimeView": {
+    "style": {
+      "borderBottom": "1px solid #eaeaea",
+      "borderTop": "1px solid #eaeaea",
+      "color": "#517086",
+      "fontSize": "12",
+      "height": "0.03",
+      "left": "0.045",
+      "textIndent": "10px",
+      "width": "0.20"
+    },
+    "type": "view"
+  },
+  "TopBar": {
+    "children": [
+      {
+        "children": [
+          {
+            "style": {
+              "fontSize": "0.9vw",
+              "height": "0.07",
+              "textAlign": {
+                "x": "left",
+                "y": "center"
+              }
+            },
+            "text": "Facility schedule link:",
+            "type": "label"
+          },
+          {
+            "dataKey": "Global.formData.facilityLink",
+            "style": {
+              "color": "0x2988e6",
+              "fontSize": "0.8vw",
+              "height": "0.07",
+              "marginRight": "10px",
+              "textAlign": {
+                "x": "left",
+                "y": "center"
+              },
+              "textIndent": "10px"
+            },
+            "type": "label",
+            "viewTag": "linkView"
+          },
+          {
+            "onClick": [
+              {
+                "actionType": "builtIn",
+                "funcName": "copy",
+                "viewTag": "linkView"
+              }
+            ],
+            "path": "copyImg.svg",
+            "style": {
+              "width": "0.01",
+              "zIndex": "10"
+            },
+            "type": "image"
+          }
+        ],
+        "style": {
+          "display": "flex",
+          "height": "0.07",
+          "marginLeft": "30px",
+          "width": "auto"
+        },
+        "type": "view"
+      },
+      {
+        "style": {
+          "borderLeft": "2px solid #88858A",
+          "display": "flex",
+          "height": "0.02",
+          "marginLeft": "20px",
+          "marginTop": "0.025",
+          "width": "0.0001"
+        },
+        "type": "view"
+      },
+      {
+        "children": [
+          {
+            "style": {
+              "fontSize": "0.9vw",
+              "height": "0.07",
+              "textAlign": {
+                "x": "left",
+                "y": "center"
+              }
+            },
+            "text": "Download QR Code:",
+            "type": "label"
+          },
+          {
+            "onClick": [
+              {
+                "actionType": "popUp",
+                "popUpView": "downloadQrcodeTag"
+              }
+            ],
+            "path": "qrcode.svg",
+            "style": {
+              "marginLeft": "10px",
+              "width": "0.01"
+            },
+            "type": "image"
+          }
+        ],
+        "style": {
+          "display": "flex",
+          "height": "0.07",
+          "marginLeft": "20px"
+        },
+        "type": "view"
+      },
+      {
+        "children": [
+          {
+            "dataKey": "Global.currentFacility.name.basicInfo.medicalFacilityName",
+            "style": {
+              "alignItems": "center",
+              "display": "flex",
+              "fontFamily": "Poppins-SemiBold",
+              "fontSize": ".Nfont.h2",
+              "height": "0.07",
+              "justifyContent": "flex-end",
+              "width": "0.155"
+            },
+            "type": "label"
+          },
+          {
+            "children": [
+              {
+                "onClick": [
+                  {
+                    "actionType": "popUp",
+                    "popUpView": "iconsTag"
+                  }
+                ],
+                "path": "bottom1.svg",
+                "style": {
+                  "width": "0.015"
+                },
+                "type": "image"
+              }
+            ],
+            "style": {
+              "alignContent": "center",
+              "display": "flex",
+              "justifyContent": "center",
+              "width": "0.05"
+            },
+            "type": "view"
+          }
+        ],
+        "style": {
+          "alignContent": "center",
+          "display": "flex",
+          "justifyContent": "flex-end",
+          "marginLeft": "auto",
+          "marginRight": "30px"
+        },
+        "type": "view"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "style": {
+                      "fontSize": "1.2vw",
+                      "height": "0.04",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      },
+                      "width": "0.4"
+                    },
+                    "text": "QR Code",
+                    "type": "label"
+                  },
+                  {
+                    "style": {
+                      "fontSize": "0.4vw",
+                      "height": "0.04",
+                      "left": "0.02",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      },
+                      "width": "0.36"
+                    },
+                    "text": "The size of the QR code should be scaled by an integer multiple of 43 pixels. To maintain the best results",
+                    "type": "label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "dataKey": null,
+                        "style": {
+                          "color": "0x333333",
+                          "fontSize": "1.5vh",
+                          "height": "0.04",
+                          "left": "0",
+                          "textAlign": {
+                            "x": "center",
+                            "y": "center"
+                          },
+                          "top": "0",
+                          "width": "0.12"
+                        },
+                        "text": "QR Code Side",
+                        "type": "label"
+                      },
+                      {
+                        "dataKey": null,
+                        "style": {
+                          "color": "0x333333",
+                          "fontSize": "1.5vh",
+                          "height": "0.04",
+                          "left": "0.12",
+                          "textAlign": {
+                            "x": "center",
+                            "y": "center"
+                          },
+                          "top": "0",
+                          "width": "0.12"
+                        },
+                        "text": "Scanning Distance",
+                        "type": "label"
+                      },
+                      {
+                        "dataKey": null,
+                        "style": {
+                          "color": "0x333333",
+                          "fontSize": "1.5vh",
+                          "height": "0.04",
+                          "left": "0.24",
+                          "textAlign": {
+                            "x": "center",
+                            "y": "center"
+                          },
+                          "top": "0",
+                          "width": "0.12"
+                        },
+                        "text": "Download",
+                        "type": "label"
+                      }
+                    ],
+                    "style": {
+                      "backgroundColor": "0x0075C7",
+                      "height": "0.04",
+                      "left": "0.02",
+                      "width": "0.36"
+                    },
+                    "type": "view"
+                  },
+                  {
+                    "children": [
+                      {
+                        "children": [
+                          {
+                            "children": [
+                              {
+                                "dataKey": "itemObject.side",
+                                "style": {
+                                  "fontSize": "1.5vh",
+                                  "height": "0.04",
+                                  "left": "0",
+                                  "textAlign": {
+                                    "x": "center",
+                                    "y": "center"
+                                  },
+                                  "top": "0",
+                                  "width": "0.12"
+                                },
+                                "type": "label"
+                              },
+                              {
+                                "dataKey": "itemObject.distance",
+                                "style": {
+                                  "fontSize": "1.5vh",
+                                  "height": "0.04",
+                                  "left": "0.12",
+                                  "textAlign": {
+                                    "x": "center",
+                                    "y": "center"
+                                  },
+                                  "top": "0",
+                                  "width": "0.12"
+                                },
+                                "type": "label"
+                              },
+                              {
+                                "onClick": [
+                                  {
+                                    "emit": {
+                                      "actions": [
+                                        {
+                                          "=.builtIn.downloadQRCode": {
+                                            "dataIn": {
+                                              "content": "=.Global.formData.facilityLink",
+                                              "scale": "$var.scale"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "dataKey": {
+                                        "var": "itemObject"
+                                      }
+                                    }
+                                  }
+                                ],
+                                "path": "downloadQRcode.svg",
+                                "style": {
+                                  "left": "0.295",
+                                  "top": "0.01",
+                                  "width": "0.01",
+                                  "zIndex": "10"
+                                },
+                                "type": "image"
+                              }
+                            ],
+                            "itemObject": "",
+                            "style": {
+                              "border": {
+                                "style": "2"
+                              },
+                              "borderColor": "#dededf",
+                              "borderWidth": "1",
+                              "height": "0.04",
+                              "left": "0",
+                              "width": "0.36"
+                            },
+                            "type": "listItem"
+                          }
+                        ],
+                        "contentType": "listObject",
+                        "iteratorVar": "itemObject",
+                        "listObject": ".SelectData.QRData",
+                        "style": {
+                          "height": "auto",
+                          "left": "0",
+                          "margin": "0",
+                          "width": "0.36",
+                          "zIndex": "10000"
+                        },
+                        "type": "list"
+                      }
+                    ],
+                    "style": {
+                      "height": "0.3",
+                      "left": "0.02",
+                      "margin": "0",
+                      "overflow": "scroll",
+                      "width": "0.36"
+                    },
+                    "type": "scrollView"
+                  }
+                ],
+                "style": {
+                  "height": "auto",
+                  "left": "0",
+                  "marginTop": "0.03",
+                  "width": "0.4"
+                },
+                "type": "view"
+              }
+            ],
+            "style": {
+              "backgroundColor": "0xffffff",
+              "border": {
+                "style": "3"
+              },
+              "borderColor": "0xdededf",
+              "borderRadius": "5",
+              "borderWidth": "1",
+              "height": "0.4",
+              "width": "0.4"
+            },
+            "type": "view"
+          }
+        ],
+        "onClick": [
+          {
+            "actionType": "popUpDismiss",
+            "popUpView": "downloadQrcodeTag"
+          }
+        ],
+        "style": {
+          "height": "0.5",
+          "isHidden": false,
+          "left": "0.2",
+          "top": "0.3",
+          "width": "0.4",
+          "zIndex": "200"
+        },
+        "type": "popUp",
+        "viewTag": "downloadQrcodeTag"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "children": [
+                          {
+                            "children": [
+                              {
+                                "dataKey": "itemObject.name.basicInfo.medicalFacilityName",
+                                "style": {
+                                  "fontSize": "1.5vh",
+                                  "height": "0.04",
+                                  "left": "0",
+                                  "textAlign": {
+                                    "x": "center",
+                                    "y": "center"
+                                  },
+                                  "top": "0",
+                                  "width": "0.12"
+                                },
+                                "type": "label"
+                              }
+                            ],
+                            "itemObject": "",
+                            "onClick": [
+                              {
+                                "emit": {
+                                  "actions": [
+                                    {
+                                      "if": [
+                                        true,
+                                        {
+                                          ".Global.currentFacility@": "$var"
+                                        },
+                                        {
+                                          ".Global.currentFacility@": "$var"
+                                        },
+                                        {
+                                          ".Global.currentId.facility@": "$var.id"
+                                        },
+                                        {
+                                          ".Global.currentId.location@": "$var.id"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "=.builtIn.array.add": {
+                                        "dataIn": {
+                                          "object": "=.Global.relation.edgeReq.id",
+                                          "value": "=.Global.currentUser.vertex.id"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "=.builtIn.array.add": {
+                                        "dataIn": {
+                                          "object": "=.Global.relation.edgeReq.id",
+                                          "value": "=.Global.currentFacility.id"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "=.Global.relation.edgeAPI.get": ""
+                                    },
+                                    {
+                                      "=.builtIn.string.concat": {
+                                        "dataIn": [
+                                          "=.Config.searchLink",
+                                          "/index.html?FacilityDetailLink&id=",
+                                          "$var.name.basicInfo.locationID",
+                                          " "
+                                        ],
+                                        "dataOut": "Global.formData.facilityLink"
+                                      }
+                                    },
+                                    {
+                                      ".Global.locationAll@": []
+                                    },
+                                    {
+                                      ".Global.menuBar.listData@": "=.SideMenuBarDM.ScheduleManagement"
+                                    }
+                                  ],
+                                  "dataKey": {
+                                    "var": "itemObject"
+                                  }
+                                }
+                              },
+                              {
+                                "goto": "ScheduleManagement"
+                              },
+                              {
+                                "actionType": "refresh"
+                              }
+                            ],
+                            "style": {
+                              "border": {
+                                "style": "2"
+                              },
+                              "borderColor": "#dededf",
+                              "borderWidth": "1",
+                              "height": "0.04",
+                              "left": "0",
+                              "width": "0.12"
+                            },
+                            "type": "listItem"
+                          }
+                        ],
+                        "contentType": "listObject",
+                        "iteratorVar": "itemObject",
+                        "listObject": ".Global.facilityList",
+                        "style": {
+                          "height": "auto",
+                          "left": "0",
+                          "margin": "0",
+                          "width": "0.12",
+                          "zIndex": "10000"
+                        },
+                        "type": "list"
+                      }
+                    ],
+                    "style": {
+                      "height": "0.3",
+                      "margin": "0",
+                      "overflow": "scroll",
+                      "width": "0.12"
+                    },
+                    "type": "scrollView"
+                  },
+                  {
+                    "onClick": [
+                      {
+                        "goto": "MedicalFacility1"
+                      }
+                    ],
+                    "style": {
+                      "color": "0x005795",
+                      "fontSize": "1.5vh",
+                      "height": "0.04",
+                      "left": "0",
+                      "marginTop": "0",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      },
+                      "width": "0.12"
+                    },
+                    "text": "+ Add New Organization",
+                    "type": "label"
+                  }
+                ],
+                "style": {
+                  "backgroundColor": "0xffffff",
+                  "border": {
+                    "style": "3"
+                  },
+                  "borderColor": "0xdededf",
+                  "borderRadius": "5",
+                  "borderWidth": "1",
+                  "height": "auto",
+                  "left": "0",
+                  "marginTop": "0",
+                  "width": "0.12"
+                },
+                "type": "view"
+              }
+            ],
+            "style": {
+              "height": "0.3",
+              "left": "0.69",
+              "margin": "0",
+              "top": "0.07",
+              "width": "0.12"
+            },
+            "type": "view"
+          }
+        ],
+        "onClick": [
+          {
+            "actionType": "popUpDismiss",
+            "popUpView": "iconsTag"
+          }
+        ],
+        "style": {
+          "height": "0.5",
+          "left": "0",
+          "top": "0",
+          "width": "0.82",
+          "zIndex": "200"
+        },
+        "type": "popUp",
+        "viewTag": "iconsTag"
+      }
+    ],
+    "style": {
+      "display": "flex",
+      "height": "0.07",
+      "left": "0.16",
+      "top": "0",
+      "width": "0.84"
+    },
+    "type": "view"
+  },
+  "TopBarView": {
+    "children": [
+      {
+        "children": [
+          {
+            "style": {
+              "fontSize": "0.9vw",
+              "height": "0.07",
+              "textAlign": {
+                "x": "left",
+                "y": "center"
+              }
+            },
+            "text": "Facility schedule link:",
+            "type": "label"
+          },
+          {
+            "dataKey": "Global.formData.facilityLink",
+            "style": {
+              "color": "0x2988e6",
+              "fontSize": "0.8vw",
+              "height": "0.07",
+              "marginRight": "10px",
+              "textAlign": {
+                "x": "left",
+                "y": "center"
+              },
+              "textIndent": "10px"
+            },
+            "type": "label",
+            "viewTag": "linkTag"
+          },
+          {
+            "onClick": [
+              {
+                "actionType": "builtIn",
+                "funcName": "copy",
+                "viewTag": "linkTag"
+              }
+            ],
+            "path": "copyImg.svg",
+            "style": {
+              "width": "0.01",
+              "zIndex": "10"
+            },
+            "type": "image"
+          }
+        ],
+        "style": {
+          "display": "flex",
+          "height": "0.07",
+          "marginLeft": "30px",
+          "width": "auto"
+        },
+        "type": "view"
+      },
+      {
+        "style": {
+          "borderLeft": "2px solid #88858A",
+          "display": "flex",
+          "height": "0.02",
+          "marginLeft": "20px",
+          "marginTop": "0.025",
+          "width": "0.0001"
+        },
+        "type": "view"
+      },
+      {
+        "children": [
+          {
+            "style": {
+              "fontSize": "0.9vw",
+              "height": "0.07",
+              "textAlign": {
+                "x": "left",
+                "y": "center"
+              }
+            },
+            "text": "Download QR Code:",
+            "type": "label"
+          },
+          {
+            "onClick": [
+              {
+                "actionType": "popUp",
+                "popUpView": "downloadQrcodeView"
+              }
+            ],
+            "path": "qrcode.svg",
+            "style": {
+              "marginLeft": "10px",
+              "width": "0.01"
+            },
+            "type": "image"
+          }
+        ],
+        "style": {
+          "display": "flex",
+          "height": "0.07",
+          "marginLeft": "20px"
+        },
+        "type": "view"
+      },
+      {
+        "children": [
+          {
+            "dataKey": "Global.currentFacility.name.basicInfo.medicalFacilityName",
+            "style": {
+              "alignItems": "center",
+              "display": "flex",
+              "fontFamily": "Poppins-SemiBold",
+              "fontSize": ".Nfont.h2",
+              "height": "0.07",
+              "justifyContent": "flex-end",
+              "width": "0.155"
+            },
+            "type": "label"
+          },
+          {
+            "children": [
+              {
+                "onClick": [
+                  {
+                    "actionType": "popUp",
+                    "popUpView": "iconView"
+                  }
+                ],
+                "path": "bottom1.svg",
+                "style": {
+                  "width": "0.015"
+                },
+                "type": "image"
+              }
+            ],
+            "style": {
+              "alignContent": "center",
+              "display": "flex",
+              "justifyContent": "center",
+              "width": "0.05"
+            },
+            "type": "view"
+          }
+        ],
+        "style": {
+          "alignContent": "center",
+          "display": "flex",
+          "justifyContent": "flex-end",
+          "marginLeft": "auto",
+          "marginRight": "30px"
+        },
+        "type": "view"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "style": {
+                      "fontSize": "1.2vw",
+                      "height": "0.04",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      },
+                      "width": "0.4"
+                    },
+                    "text": "QR Code",
+                    "type": "label"
+                  },
+                  {
+                    "style": {
+                      "fontSize": "0.4vw",
+                      "height": "0.04",
+                      "left": "0.02",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      },
+                      "width": "0.36"
+                    },
+                    "text": "The size of the QR code should be scaled by an integer multiple of 43 pixels. To maintain the best results",
+                    "type": "label"
+                  },
+                  {
+                    "children": [
+                      {
+                        "dataKey": null,
+                        "style": {
+                          "color": "0x333333",
+                          "fontSize": "1.5vh",
+                          "height": "0.04",
+                          "left": "0",
+                          "textAlign": {
+                            "x": "center",
+                            "y": "center"
+                          },
+                          "top": "0",
+                          "width": "0.12"
+                        },
+                        "text": "QR Code Side",
+                        "type": "label"
+                      },
+                      {
+                        "dataKey": null,
+                        "style": {
+                          "color": "0x333333",
+                          "fontSize": "1.5vh",
+                          "height": "0.04",
+                          "left": "0.12",
+                          "textAlign": {
+                            "x": "center",
+                            "y": "center"
+                          },
+                          "top": "0",
+                          "width": "0.12"
+                        },
+                        "text": "Scanning Distance",
+                        "type": "label"
+                      },
+                      {
+                        "dataKey": null,
+                        "style": {
+                          "color": "0x333333",
+                          "fontSize": "1.5vh",
+                          "height": "0.04",
+                          "left": "0.24",
+                          "textAlign": {
+                            "x": "center",
+                            "y": "center"
+                          },
+                          "top": "0",
+                          "width": "0.12"
+                        },
+                        "text": "Download",
+                        "type": "label"
+                      }
+                    ],
+                    "style": {
+                      "backgroundColor": "0x0075C7",
+                      "height": "0.04",
+                      "left": "0.02",
+                      "width": "0.36"
+                    },
+                    "type": "view"
+                  },
+                  {
+                    "children": [
+                      {
+                        "children": [
+                          {
+                            "children": [
+                              {
+                                "dataKey": "itemObject.side",
+                                "style": {
+                                  "fontSize": "1.5vh",
+                                  "height": "0.04",
+                                  "left": "0",
+                                  "textAlign": {
+                                    "x": "center",
+                                    "y": "center"
+                                  },
+                                  "top": "0",
+                                  "width": "0.12"
+                                },
+                                "type": "label"
+                              },
+                              {
+                                "dataKey": "itemObject.distance",
+                                "style": {
+                                  "fontSize": "1.5vh",
+                                  "height": "0.04",
+                                  "left": "0.12",
+                                  "textAlign": {
+                                    "x": "center",
+                                    "y": "center"
+                                  },
+                                  "top": "0",
+                                  "width": "0.12"
+                                },
+                                "type": "label"
+                              },
+                              {
+                                "onClick": [
+                                  {
+                                    "emit": {
+                                      "actions": [
+                                        {
+                                          "=.builtIn.downloadQRCode": {
+                                            "dataIn": {
+                                              "content": "=.Global.formData.facilityLink",
+                                              "scale": "$var.scale"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "dataKey": {
+                                        "var": "itemObject"
+                                      }
+                                    }
+                                  }
+                                ],
+                                "path": "downloadQRcode.svg",
+                                "style": {
+                                  "left": "0.295",
+                                  "top": "0.01",
+                                  "width": "0.01",
+                                  "zIndex": "10"
+                                },
+                                "type": "image"
+                              }
+                            ],
+                            "itemObject": "",
+                            "style": {
+                              "border": {
+                                "style": "2"
+                              },
+                              "borderColor": "#dededf",
+                              "borderWidth": "1",
+                              "height": "0.04",
+                              "left": "0",
+                              "width": "0.36"
+                            },
+                            "type": "listItem"
+                          }
+                        ],
+                        "contentType": "listObject",
+                        "iteratorVar": "itemObject",
+                        "listObject": ".SelectData.QRData",
+                        "style": {
+                          "height": "auto",
+                          "left": "0",
+                          "margin": "0",
+                          "width": "0.36",
+                          "zIndex": "10000"
+                        },
+                        "type": "list"
+                      }
+                    ],
+                    "style": {
+                      "height": "0.3",
+                      "left": "0.02",
+                      "margin": "0",
+                      "overflow": "scroll",
+                      "width": "0.36"
+                    },
+                    "type": "scrollView"
+                  }
+                ],
+                "style": {
+                  "height": "auto",
+                  "left": "0",
+                  "marginTop": "0.03",
+                  "width": "0.4"
+                },
+                "type": "view"
+              }
+            ],
+            "style": {
+              "backgroundColor": "0xffffff",
+              "border": {
+                "style": "3"
+              },
+              "borderColor": "0xdededf",
+              "borderRadius": "5",
+              "borderWidth": "1",
+              "height": "0.4",
+              "width": "0.4"
+            },
+            "type": "view"
+          }
+        ],
+        "onClick": [
+          {
+            "actionType": "popUpDismiss",
+            "popUpView": "downloadQrcodeView"
+          }
+        ],
+        "style": {
+          "height": "0.5",
+          "isHidden": false,
+          "left": "0.2",
+          "top": "0.3",
+          "width": "0.4",
+          "zIndex": "200"
+        },
+        "type": "popUp",
+        "viewTag": "downloadQrcodeView"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "children": [
+                      {
+                        "children": [
+                          {
+                            "children": [
+                              {
+                                "dataKey": "itemObject.name.basicInfo.medicalFacilityName",
+                                "style": {
+                                  "fontSize": "1.5vh",
+                                  "height": "0.04",
+                                  "left": "0",
+                                  "textAlign": {
+                                    "x": "center",
+                                    "y": "center"
+                                  },
+                                  "top": "0",
+                                  "width": "0.12"
+                                },
+                                "type": "label"
+                              }
+                            ],
+                            "itemObject": "",
+                            "onClick": [
+                              {
+                                "emit": {
+                                  "actions": [
+                                    {
+                                      "if": [
+                                        true,
+                                        {
+                                          ".Global.currentFacility@": "$var"
+                                        },
+                                        {
+                                          ".Global.currentFacility@": "$var"
+                                        },
+                                        {
+                                          ".Global.currentId.facility@": "$var.id"
+                                        },
+                                        {
+                                          ".Global.currentId.location@": "$var.id"
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "=.builtIn.array.add": {
+                                        "dataIn": {
+                                          "object": "=.Global.relation.edgeReq.id",
+                                          "value": "=.Global.currentUser.vertex.id"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "=.builtIn.array.add": {
+                                        "dataIn": {
+                                          "object": "=.Global.relation.edgeReq.id",
+                                          "value": "=.Global.currentFacility.id"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "=.Global.relation.edgeAPI.get": ""
+                                    },
+                                    {
+                                      "=.builtIn.string.concat": {
+                                        "dataIn": [
+                                          "=.Config.searchLink",
+                                          "/index.html?FacilityDetailLink&id=",
+                                          "$var.name.basicInfo.locationID",
+                                          " "
+                                        ],
+                                        "dataOut": "Global.formData.facilityLink"
+                                      }
+                                    },
+                                    {
+                                      ".Global.locationAll@": []
+                                    },
+                                    {
+                                      ".Global.menuBar.listData@": "=.SideMenuBarDM.ScheduleManagement"
+                                    }
+                                  ],
+                                  "dataKey": {
+                                    "var": "itemObject"
+                                  }
+                                }
+                              },
+                              {
+                                "goto": "ScheduleManagement"
+                              },
+                              {
+                                "actionType": "refresh"
+                              }
+                            ],
+                            "style": {
+                              "border": {
+                                "style": "2"
+                              },
+                              "borderColor": "#dededf",
+                              "borderWidth": "1",
+                              "height": "0.04",
+                              "left": "0",
+                              "width": "0.12"
+                            },
+                            "type": "listItem"
+                          }
+                        ],
+                        "contentType": "listObject",
+                        "iteratorVar": "itemObject",
+                        "listObject": ".Global.facilityList",
+                        "style": {
+                          "height": "auto",
+                          "left": "0",
+                          "margin": "0",
+                          "width": "0.12",
+                          "zIndex": "10000"
+                        },
+                        "type": "list"
+                      }
+                    ],
+                    "style": {
+                      "height": "0.3",
+                      "margin": "0",
+                      "overflow": "scroll",
+                      "width": "0.12"
+                    },
+                    "type": "scrollView"
+                  },
+                  {
+                    "onClick": [
+                      {
+                        "goto": "MedicalFacility1"
+                      }
+                    ],
+                    "style": {
+                      "color": "0x005795",
+                      "fontSize": "1.5vh",
+                      "height": "0.04",
+                      "left": "0",
+                      "marginTop": "0",
+                      "textAlign": {
+                        "x": "center",
+                        "y": "center"
+                      },
+                      "width": "0.12"
+                    },
+                    "text": "+ Add New Organization",
+                    "type": "label"
+                  }
+                ],
+                "style": {
+                  "backgroundColor": "0xffffff",
+                  "border": {
+                    "style": "3"
+                  },
+                  "borderColor": "0xdededf",
+                  "borderRadius": "5",
+                  "borderWidth": "1",
+                  "height": "auto",
+                  "left": "0",
+                  "marginTop": "0",
+                  "width": "0.12"
+                },
+                "type": "view"
+              }
+            ],
+            "style": {
+              "height": "0.3",
+              "left": "0.69",
+              "margin": "0",
+              "top": "0.07",
+              "width": "0.12"
+            },
+            "type": "view"
+          }
+        ],
+        "onClick": [
+          {
+            "actionType": "popUpDismiss",
+            "popUpView": "iconView"
+          }
+        ],
+        "style": {
+          "height": "0.5",
+          "left": "0",
+          "top": "0",
+          "width": "0.82",
+          "zIndex": "200"
+        },
+        "type": "popUp",
+        "viewTag": "iconView"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0xffffff",
+      "height": "0.065",
+      "left": "0",
+      "top": "0",
+      "width": "0.84"
+    },
+    "type": "view"
+  },
+  "TopSearch": {
+    "style": {
+      "backgroundColor": "0xcdcdcd",
+      "height": "0.04",
+      "left": "0",
+      "top": "0",
+      "width": "0.15"
+    },
+    "type": "view"
+  },
+  "TotalView": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "display": "flex",
+      "flexWrap": "nowrap",
+      "height": "1",
+      "margin": "auto",
+      "width": "1"
+    },
+    "type": "view"
+  },
+  "TransactionsTextField": {
+    "dataKey": "datakey",
+    "placeholder": "Search patient",
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xd0d0d0",
+      "borderRadius": "5",
+      "fontSize": ".Nfont.n6",
+      "height": "0.032",
+      "left": "0.012",
+      "marginTop": "0.02",
+      "paddingLeft": "5px",
+      "width": "0.108"
+    },
+    "type": "textField"
+  },
+  "TrueImage": {
+    "path": "true.svg",
+    "style": {
+      "left": "0.01",
+      "top": "0",
+      "width": "0.02"
+    },
+    "type": "image"
+  },
+  "UniversalButton": {
+    "style": {
+      "backgroundColor": "0x005795",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0x005795",
+      "borderRadius": "5",
+      "borderWidth": "1",
+      "color": "0xffffff",
+      "fontFamily": "sans-serif",
+      "fontSize": "1.7vh",
+      "height": "0.04",
+      "width": "0.09"
+    },
+    "type": "button"
+  },
+  "UploadingPopUpView": {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "path": "____.img",
+                "style": {
+                  "height": "0.15"
+                },
+                "type": "image"
+              }
+            ],
+            "style": {
+              "alignItems": "flex-end",
+              "display": "flex",
+              "height": "0.22",
+              "justifyContent": "center",
+              "width": "0.32"
+            },
+            "type": "view"
+          },
+          {
+            "dataKey": null,
+            "style": {
+              "alignItems": "center",
+              "color": "0xbdbdbd",
+              "display": "flex",
+              "fontFamily": "Poppins",
+              "fontSize": ".Nfont.n5_2",
+              "height": "0.12",
+              "justifyContent": "center",
+              "width": "0.32"
+            },
+            "text": "___.msg",
+            "type": "label"
+          }
+        ],
+        "style": {
+          "backgroundColor": "0xffffff",
+          "height": "0.34",
+          "left": "0.4",
+          "top": "0.27",
+          "width": "0.32",
+          "zIndex": "20"
+        },
+        "type": "view"
+      }
+    ],
+    "img": "uploading.gif",
+    "msg": "Uploading...",
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp",
+    "viewTag": "uploadingTag"
+  },
+  "VaccineSectionLabel": {
+    "style": {
+      "fontFamily": "Raleway",
+      "fontSize": "1.8vw",
+      "fontWeight": "600",
+      "left": "2vw",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      }
+    },
+    "text": "Section",
+    "type": "label"
+  },
+  "VaccineText": {
+    "style": {
+      "fontFamily": "Railway",
+      "fontSize": "14",
+      "height": "auto",
+      "left": "0.04",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0",
+      "width": "0.86"
+    },
+    "type": "label"
+  },
+  "VaccineTextField": {
+    "style": {
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xdbdbdb",
+      "borderRadius": "2",
+      "borderWidth": "1",
+      "fontSize": "16",
+      "left": "10vw",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "width": "60vw"
+    },
+    "type": "label"
+  },
+  "VaccineTextView": {
+    "style": {
+      "height": "0.1",
+      "left": "0",
+      "marginTop": "0.03",
+      "width": "0.95"
+    },
+    "type": "view"
+  },
+  "VaccineTitle": {
+    "style": {
+      "fontSize": "1vw",
+      "fontWeight": "600",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "width": "20vw"
+    },
+    "text": "First name",
+    "type": "label"
+  },
+  "VaccineTitleView": {
+    "style": {
+      "display": "flex",
+      "height": "2.5vw",
+      "left": "3vw",
+      "marginTop": "1vw",
+      "width": "80vw"
+    },
+    "type": "view"
+  },
+  "VaccineUniversalLabel": {
+    "style": {
+      "fontSize": "1vw",
+      "left": "2vw",
+      "marginTop": "1vw",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      }
+    },
+    "text": "Description",
+    "type": "label"
+  },
+  "View1": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "color": "#517086",
+      "fontSize": ".Nfont.h4",
+      "height": "0.03",
+      "left": "0.01",
+      "top": "0.015"
+    },
+    "text": "Average Minute Usage",
+    "type": "label"
+  },
+  "View2": {
+    "style": {
+      "backgroundColor": "0xffffff",
+      "color": "#131523",
+      "fontSize": "3.8vh",
+      "height": "0.06",
+      "left": "0.01",
+      "textAlign": {
+        "x": "left"
+      },
+      "top": "0.07"
+    },
+    "text": "185",
+    "type": "label"
+  },
+  "View3": {
+    "style": {
+      "color": "#F0142F",
+      "fontSize": ".Nfont.h1",
+      "height": "0.03",
+      "left": "0.01",
+      "top": "0.17"
+    },
+    "text": "1.3% â",
+    "type": "label"
+  },
+  "View4": {
+    "style": {
+      "color": "#517086",
+      "fontSize": ".Nfont.h1",
+      "height": "0.03",
+      "left": "0.04",
+      "top": "0.17"
+    },
+    "text": "from last month",
+    "type": "label"
+  },
+  "View5": {
+    "style": {
+      "color": "#517086",
+      "fontSize": ".Nfont.h3",
+      "height": "0.1",
+      "left": "0.01",
+      "top": "0.02"
+    },
+    "text": "Popular Times",
+    "type": "label"
+  },
+  "View6": {
+    "style": {
+      "color": "0x0062ff",
+      "fontSize": ".Nfont.h3",
+      "height": "0.1",
+      "left": "0.02",
+      "top": "0.46"
+    },
+    "text": "More insights",
+    "type": "label"
+  },
+  "VitalSignsText": {
+    "style": {
+      "fontSize": ".Nfont.n6_1_1",
+      "marginLeft": "0.015",
+      "textAlign": {
+        "x": "left"
+      },
+      "width": "0.15"
+    },
+    "text": "Blood Pressure(mmHg)",
+    "type": "label"
+  },
+  "VitalSignsTextField": {
+    "placeholder": "Enter here",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": "3"
+      },
+      "borderColor": "0xcccccc",
+      "borderRadius": "5",
+      "borderWidth": "1",
+      "fontSize": ".Nfont.n6_1_1",
+      "height": "0.03",
+      "marginLeft": "0.08",
+      "textIndent": "1em",
+      "width": "0.1"
+    },
+    "type": "textField"
+  },
+  "VitalSignsView": {
+    "style": {
+      "height": "0.04",
+      "left": "0",
+      "marginTop": "0.01",
+      "textAlign": {
+        "y": "center"
+      },
+      "width": "0.34"
+    },
+    "type": "view"
+  },
+  "WarningDeletedPopUp": {
+    "children": [
+      {
+        "children": [
+          {
+            "dataKey": null,
+            "style": {
+              "alignItems": "center",
+              "color": "0xffffff",
+              "display": "flex",
+              "fontSize": ".Nfont.n6_1",
+              "height": "0.05",
+              "justifyContent": "center",
+              "width": "0.23"
+            },
+            "text": "___.headMsg",
+            "type": "label"
+          }
+        ],
+        "style": {
+          "backgroundColor": "0xBF0000",
+          "height": "0.05",
+          "width": "0.23"
+        },
+        "type": "view"
+      },
+      {
+        "path": "deleteAvailability.svg",
+        "style": {
+          "left": "0.1",
+          "marginTop": "0.03"
+        },
+        "type": "image"
+      },
+      {
+        "children": [
+          {
+            "dataKey": null,
+            "style": {
+              "fontSize": "1.1vw",
+              "textAlign": {
+                "x": "center"
+              },
+              "width": "0.1"
+            },
+            "text": "___.main",
+            "type": "label"
+          }
+        ],
+        "style": {
+          "border": {
+            "style": "2"
+          },
+          "borderColor": "0xeeeeee",
+          "borderWidth": "1",
+          "display": "flex",
+          "height": "0.07",
+          "justifyContent": "center",
+          "marginTop": "0.03",
+          "textAlign": {
+            "x": "center"
+          },
+          "width": "0.23"
+        },
+        "type": "view"
+      },
+      {
+        "children": [
+          {
+            "onClick": [
+              {
+                "actionType": "builtIn",
+                "funcName": "hide",
+                "viewTag": "____.cancelHideTag1"
+              }
+            ],
+            "style": {
+              "backgroundColor": "0xffffff",
+              "border": "none",
+              "borderRight": "solid 1px #eeeeee",
+              "color": "0x2988e6",
+              "fontSize": ".Nfont.n6_1",
+              "height": "0.046",
+              "textAlign": {
+                "x": "center",
+                "y": "center"
+              },
+              "top": "0",
+              "width": "0.12"
+            },
+            "text": "Cancel",
+            "type": "button"
+          },
+          {
+            "onClick": [
+              {
+                "actionType": "builtIn",
+                "funcName": "hide",
+                "viewTag": "____.deleteHideTag1"
+              }
+            ],
+            "style": {
+              "backgroundColor": "0xffffff",
+              "border": {
+                "style": "1"
+              },
+              "color": "0x2988e6",
+              "fontSize": ".Nfont.n6_1",
+              "height": "0.046",
+              "left": "0.12",
+              "textAlign": {
+                "x": "center",
+                "y": "center"
+              },
+              "top": "0",
+              "width": "0.11"
+            },
+            "text": "Delete",
+            "type": "button"
+          }
+        ],
+        "style": {
+          "height": "0.046",
+          "width": "0.23"
+        },
+        "type": "view"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0xffffff",
+      "box-shadow": "0 0 9px 3px #cccccc",
+      "height": "0.275",
+      "left": "0.45",
+      "top": "0.31",
+      "width": "0.23"
+    },
+    "type": "popUp"
+  },
+  "WarningLabel": {
+    "style": {
+      "color": "0x171725",
+      "fontFamily": "Robot",
+      "fontSize": ".Nfont.n5_1",
+      "fontWeight": "500",
+      "left": "0.05",
+      "marginTop": "0.025",
+      "textAlign": {
+        "x": "center"
+      },
+      "width": "0.18"
+    },
+    "text": "Warning",
+    "type": "label"
+  },
+  "WarningRedLine": {
+    "style": {
+      "backgroundColor": "0xe24445",
+      "border-top-left-radius": "5px",
+      "border-top-right-radius": "5px",
+      "height": "0.013",
+      "left": "0",
+      "marginTop": "0",
+      "width": "0.28"
+    },
+    "type": "view"
+  },
+  "Weeklabel": {
+    "style": {
+      "color": "#8399a9",
+      "fontSize": "15",
+      "left": "0",
+      "textAlign": {
+        "x": "center"
+      },
+      "width": "0.07"
+    },
+    "type": "label"
+  },
+  "Weightlabel": {
+    "style": {
+      "fontSize": "12",
+      "fontWeight": "600"
+    },
+    "type": "label"
+  },
+  "Wordline": {
+    "style": {
+      "color": "#004779",
+      "height": "0.0001",
+      "left": "0.216",
+      "top": "0.15",
+      "width": "0.054",
+      "zIndex": "100"
+    },
+    "type": "divider"
+  },
+  "aitLogo": {
+    "children": [
+      {
+        "path": "AiTmedLogo.svg",
+        "style": {
+          "width": "0.03"
+        },
+        "type": "image"
+      }
+    ],
+    "style": {
+      "border": {
+        "style": "2"
+      },
+      "borderColor": "0x3080b9",
+      "borderWidth": "1",
+      "boxSizing": "border-box",
+      "display": "flex",
+      "height": "0.11",
+      "justifyContent": "center",
+      "left": "0",
+      "top": "0",
+      "width": "0.16"
+    },
+    "type": "view"
+  },
+  "chartView": {
+    "style": {
+      "height": "0.17",
+      "left": "0.105",
+      "top": "0.03",
+      "width": "0.125"
+    },
+    "type": "view"
+  },
+  "datebutton": {
+    "onClick": [
+      {
+        "actionType": "popUp",
+        "popUpView": "Create"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0xffffff",
+      "borderBottom": "1px solid rgb(202, 217, 227)",
+      "borderColor": "#cad9e3",
+      "borderRight": "1px solid rgb(202, 217, 227)",
+      "borderTop": "1px solid rgb(202, 217, 227)",
+      "color": "#517086",
+      "fontSize": "12",
+      "height": "0.03",
+      "left": "0.03",
+      "textAlign": {
+        "y": "center"
+      },
+      "textIndent": "10px",
+      "top": "0",
+      "width": "0.069"
+    },
+    "type": "view"
+  },
+  "itemAlreadyExist": {
+    "children": [
+      {
+        "children": [
+          {
+            "style": {
+              "backgroundColor": "0xe24445",
+              "border-top-left-radius": "5px",
+              "border-top-right-radius": "5px",
+              "height": "0.013",
+              "left": "0",
+              "marginTop": "0",
+              "width": "0.28"
+            },
+            "type": "view"
+          },
+          {
+            "children": [
+              {
+                "path": "warningRed.svg",
+                "style": {
+                  "left": "0.12",
+                  "marginTop": "0.04",
+                  "width": "0.04"
+                },
+                "type": "image"
+              },
+              {
+                "style": {
+                  "color": "0x171725",
+                  "fontFamily": "Robot",
+                  "fontSize": ".Nfont.n5_1",
+                  "fontWeight": "500",
+                  "left": "0.05",
+                  "marginTop": "0.02",
+                  "textAlign": {
+                    "x": "center"
+                  },
+                  "width": "0.18"
+                },
+                "text": "____.msg1",
+                "type": "label"
+              },
+              {
+                "style": {
+                  "color": "0x707070",
+                  "fontFamily": "Roboto",
+                  "fontSize": ".Nfont.n6",
+                  "left": "0.02",
+                  "marginTop": "0.02",
+                  "textAlign": {
+                    "x": "center"
+                  },
+                  "width": "0.24"
+                },
+                "text": "____.msg2",
+                "type": "label"
+              }
+            ],
+            "style": {
+              "height": "0.267",
+              "left": "0",
+              "marginTop": "0",
+              "width": "0.28"
+            },
+            "type": "view"
+          }
+        ],
+        "style": {
+          "backgroundColor": "0xffffff",
+          "borderRadius": "5",
+          "boxShadow": "0px 2px 2px 1px #b7b7b7",
+          "height": "0.28",
+          "margin": "auto",
+          "marginTop": "0.36",
+          "width": "0.28"
+        },
+        "type": "view"
+      }
+    ],
+    "msg1": "Warning",
+    "msg2": "You can't add a item which is already exited!",
+    "onClick": [
+      {
+        "actionType": "popUpDismiss",
+        "popUpView": "__.viewTag"
+      }
+    ],
+    "style": {
+      "backgroundColor": "0x00000033",
+      "height": "1",
+      "left": "0",
+      "top": "0",
+      "width": "1",
+      "zIndex": "10"
+    },
+    "type": "popUp",
+    "viewTag": "itemAlreadyExist"
+  },
+  "patientInfo1_Label": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": "13",
+      "height": "0.02",
+      "left": "0",
+      "top": "0",
+      "width": "0.25"
+    },
+    "type": "label"
+  },
+  "patientInfo1_TextField": {
+    "isEditable": false,
+    "style": {
+      "border": {
+        "color": "#dededf",
+        "style": "3"
+      },
+      "borderRadius": "3",
+      "height": "0.03",
+      "left": "0",
+      "top": "0.03",
+      "width": "0.25"
+    },
+    "type": "textField"
+  },
+  "patientInfo3_label": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": "14",
+      "fontStyle": "bold",
+      "height": "0.03",
+      "left": "0",
+      "top": "0",
+      "width": "0.05"
+    },
+    "type": "label"
+  },
+  "patientInfo3_paragraph": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": "13",
+      "height": "0.1",
+      "left": "0.05",
+      "top": "0",
+      "width": "0.8"
+    },
+    "type": "label"
+  },
+  "prOneLabelLeft": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n4_2",
+      "height": "0.05",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.14"
+    },
+    "type": "label"
+  },
+  "prOneLabelLeftNewUI": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6_1_1",
+      "width": "0.14"
+    },
+    "type": "label"
+  },
+  "prOneLabelRight": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n4_2",
+      "height": "0.05",
+      "left": "0.14",
+      "textAlign": {
+        "x": "right",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.76"
+    },
+    "type": "label"
+  },
+  "prOneLabelRightNewUI": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6",
+      "height": "auto"
+    },
+    "type": "label"
+  },
+  "prOneLabelView": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n4_2",
+      "height": "0.05",
+      "marginTop": "0.015",
+      "width": "0.9"
+    },
+    "type": "view"
+  },
+  "prOneLabelViewNewUI": {
+    "style": {
+      "alignItems": "center",
+      "display": "flex",
+      "fontFamily": "Poppins",
+      "height": "auto",
+      "justifyContent": "space-between",
+      "marginTop": "0.015",
+      "width": "0.39"
+    },
+    "type": "view"
+  },
+  "prOneListField": {
+    "style": {
+      "border": {
+        "style": 3
+      },
+      "borderColor": "0xdededf",
+      "borderRadius": "3",
+      "borderWidth": "1",
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n4_2",
+      "height": "0.05",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "width": "0.5"
+    },
+    "type": "label"
+  },
+  "prOneListFieldNewUI": {
+    "style": {
+      "border": {
+        "style": 3
+      },
+      "borderColor": "0xdededf",
+      "borderRadius": "3",
+      "borderWidth": "1",
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6_1_1",
+      "height": "0.035",
+      "marginTop": "0.01",
+      "textAlign": {
+        "y": "center"
+      },
+      "width": "0.388"
+    },
+    "type": "label"
+  },
+  "prOneListLabel": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n4_2",
+      "height": "0.05",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "width": "0.5"
+    },
+    "type": "label"
+  },
+  "prOneListLabelNewUI": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6_1_1",
+      "height": "auto",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      },
+      "width": "0.39"
+    },
+    "type": "label"
+  },
+  "prOneListView": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n4_2",
+      "height": "0.12",
+      "marginTop": "0.015",
+      "width": "0.9"
+    },
+    "type": "view"
+  },
+  "prOneListViewNewUI": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n4_2",
+      "height": "auto",
+      "marginTop": "0.015",
+      "width": "0.39"
+    },
+    "type": "view"
+  },
+  "prTwoLabelLeft": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6",
+      "height": "0.04",
+      "left": "0",
+      "textAlign": {
+        "y": "center"
+      },
+      "width": "0.1"
+    },
+    "text": "Patient Name",
+    "type": "label"
+  },
+  "prTwoLabelRight": {
+    "isEditable": false,
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": 3
+      },
+      "borderColor": "0xcccccc",
+      "borderWidth": "1.3",
+      "boxSizing": "border-box",
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6",
+      "height": "0.04",
+      "left": "0.24",
+      "textAlign": {
+        "x": "right",
+        "y": "center"
+      },
+      "top": "0",
+      "width": "0.15"
+    },
+    "type": "textView"
+  },
+  "prTwoLabelView": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6",
+      "height": "0.05",
+      "marginTop": "0.015",
+      "width": "0.39"
+    },
+    "type": "view"
+  },
+  "prTwoListField": {
+    "dataKey": null,
+    "isEditable": "false",
+    "placeholder": "Enter here",
+    "style": {
+      "backgroundColor": "0xffffff",
+      "border": {
+        "style": 3
+      },
+      "borderColor": "0xdededf",
+      "borderRadius": "3",
+      "borderWidth": "1",
+      "boxSizing": "border-box",
+      "fontSize": ".Nfont.n6",
+      "height": "0.05",
+      "marginTop": "0.01",
+      "textAlign": {
+        "y": "center"
+      },
+      "width": "0.39"
+    },
+    "type": "textField"
+  },
+  "prTwoListLabel": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6",
+      "height": "auto",
+      "width": "0.39"
+    },
+    "text": null,
+    "type": "label"
+  },
+  "prTwoListView": {
+    "style": {
+      "fontFamily": "Poppins",
+      "fontSize": ".Nfont.n6",
+      "height": "0.1",
+      "marginTop": "0.015",
+      "width": "0.39"
+    },
+    "type": "view"
+  }
+}
