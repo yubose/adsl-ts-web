@@ -479,18 +479,10 @@ class App {
         //    (ex: being redirected after submitting a payment)
         const params = u.reduce(
           queryParams,
-          (acc, [key, value]) => u.assign(acc, { key: value }),
+          (acc, [key, value]) => u.assign(acc, { [key]: value }),
           {},
         )
-        const outLinkParams = u.reduce(
-          queryParams,
-          (acc, [k, v]) => {
-            acc[k as string] = v
-            return acc
-          },
-          {},
-        )
-        localStorage.setItem('tempParams',JSON.stringify(outLinkParams))
+        localStorage.setItem('tempParams',JSON.stringify(params))
         const noodlUrl = noodlUrlEntry[0] || ''
         const pageNames = noodlUrl.split('-')
         startPage = pageNames[pageNames.length - 1]
