@@ -482,7 +482,7 @@ class App {
           (acc, [key, value]) => u.assign(acc, { [key]: value }),
           {},
         )
-        localStorage.setItem('tempParams',JSON.stringify(params))
+        localStorage.setItem('tempParams', JSON.stringify(params))
         const noodlUrl = noodlUrlEntry[0] || ''
         const pageNames = noodlUrl.split('-')
         startPage = pageNames[pageNames.length - 1]
