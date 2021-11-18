@@ -311,12 +311,10 @@ const createExtendedDOMResolvers = function (app: App) {
                       element.timeLength = duration/60
                       element.title = element.patientName
                       element.name = element.visitReason
-                      if(((element.subtype&0xf0000)>>16) % 2 ===0){
+                      if(((element.subtype&0xf0000)>>16) % 2 === 0){
                         element.eventColor = "#ffd25a"
-                        
                       }else{
                         element.eventColor = "#30b354"
-                
                       }
                       element.backgroundColor = element.eventColor
                       element.textColor = "#000000"

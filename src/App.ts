@@ -255,57 +255,57 @@ class App {
       let _page: NOODLDOMPage
       let _pageRequesting = ''
 
-      const ls = window.localStorage
+      // const ls = window.localStorage
       let pageUrl = pageRequesting ? pageRequesting : page
 
       if (isNOODLDOMPage(pageUrl)) {
         pageUrl = pageUrl.page
       }
-      if (pageUrl) {
-        if (nu.isOutboundLink(pageUrl)) {
-          return void (window.location.href = pageUrl)
-        }
+      // if (pageUrl) {
+      //   if (nu.isOutboundLink(pageUrl)) {
+      //     return void (window.location.href = pageUrl)
+      //   }
 
-        let index =
-          pageUrl.indexOf('&') != -1 ? pageUrl.indexOf('&') : pageUrl.length
-        let startPage = pageUrl.slice(0, index)
-        pageRequesting =
-          typeof pageRequesting == 'string' ? startPage : pageRequesting
-        page = typeof page == 'string' ? startPage : page
+      //   let index =
+      //     pageUrl.indexOf('&') != -1 ? pageUrl.indexOf('&') : pageUrl.length
+      //   let startPage = pageUrl.slice(0, index)
+      //   pageRequesting =
+      //     typeof pageRequesting == 'string' ? startPage : pageRequesting
+      //   page = typeof page == 'string' ? startPage : page
 
-        if (index != pageUrl.length) {
-          const ls = window.localStorage
-          let endKeys = pageUrl.slice(pageUrl.indexOf('&'))
-          let params: any = endKeys.split('=')
-          let tempParams: any = ls.getItem('tempParams')
-          let value
-          let key
+      //   if (index != pageUrl.length) {
+      //     const ls = window.localStorage
+      //     let endKeys = pageUrl.slice(pageUrl.indexOf('&'))
+      //     let params: any = endKeys.split('=')
+      //     let tempParams: any = ls.getItem('tempParams')
+      //     let value
+      //     let key
 
-          params = params ? params : []
-          tempParams =
-            typeof tempParams == 'string' ? JSON.parse(tempParams) : {}
+      //     params = params ? params : []
+      //     tempParams =
+      //       typeof tempParams == 'string' ? JSON.parse(tempParams) : {}
 
-          for (let i = 0; i < params.length - 1; i++) {
-            index =
-              params[i].lastIndexOf('&') != -1 ? params[i].lastIndexOf('&') : 0
-            key = params[i].slice(index + 1)
-            if (i + 1 == params.length - 1) {
-              value = params[i + 1]
-            } else {
-              index =
-                params[i + 1].lastIndexOf('&') != -1
-                  ? params[i + 1].lastIndexOf('&')
-                  : params[i + 1].length
-              value = params[i + 1].slice(0, index)
-            }
-            tempParams[key] = value
-          }
+      //     for (let i = 0; i < params.length - 1; i++) {
+      //       index =
+      //         params[i].lastIndexOf('&') != -1 ? params[i].lastIndexOf('&') : 0
+      //       key = params[i].slice(index + 1)
+      //       if (i + 1 == params.length - 1) {
+      //         value = params[i + 1]
+      //       } else {
+      //         index =
+      //           params[i + 1].lastIndexOf('&') != -1
+      //             ? params[i + 1].lastIndexOf('&')
+      //             : params[i + 1].length
+      //         value = params[i + 1].slice(0, index)
+      //       }
+      //       tempParams[key] = value
+      //     }
 
-          ls.setItem('tempParams', JSON.stringify(tempParams))
-        } else {
-          ls.removeItem('tempParams')
-        }
-      }
+      //     ls.setItem('tempParams', JSON.stringify(tempParams))
+      //   } else {
+      //     ls.removeItem('tempParams')
+      //   }
+      // }
 
       if (isNOODLDOMPage(page)) {
         _page = page
@@ -474,7 +474,6 @@ class App {
       const searchParams = url.searchParams
       const [noodlUrlEntry, ...queryParams] = [...searchParams.entries()]
       let startPage = ''
-
       if (queryParams.length) {
         // The user is coming from an outside link
         //    (ex: being redirected after submitting a payment)
@@ -483,6 +482,7 @@ class App {
           (acc, [key, value]) => u.assign(acc, { [key]: value }),
           {},
         )
+        localStorage.setItem('tempParams',JSON.stringify(params))
         const noodlUrl = noodlUrlEntry[0] || ''
         const pageNames = noodlUrl.split('-')
         startPage = pageNames[pageNames.length - 1]
@@ -497,6 +497,7 @@ class App {
         await this.navigate(this.mainPage, startPage)
       } else {
         startPage = this.noodl.cadlEndpoint?.startPage
+        localStorage.removeItem('tempParams')
       }
 
       // Override the start page if they were on a previous page
@@ -518,7 +519,7 @@ class App {
 
       if (!ls.getTimestampKey() && ls.configExists()) ls.cacheTimestamp()
 
-      if (this.mainPage && location.href) {
+      if (this.mainPage && location.href && !queryParams.length) {
         let { startPage } = this.noodl.cadlEndpoint
         const urlParts = location.href.split('/')
         const pathname = urlParts[urlParts.length - 1]
