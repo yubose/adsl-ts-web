@@ -1,5 +1,5 @@
 import firebase from 'firebase'
-import CADL, { Account } from '@aitmed/cadl'
+import type { Account, CADL } from '@aitmed/cadl'
 import { NUI, NUIAction, NUITrigger, Store, Viewport } from 'noodl-ui'
 import {
   ActionObject,

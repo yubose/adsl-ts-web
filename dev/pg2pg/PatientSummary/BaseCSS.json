@@ -1,0 +1,108 @@
+{
+  "BaseCss": null,
+  "FormMainLabelStyle": {
+    "boxSizing": "border-box",
+    "display": "inline-block",
+    "fontFamily": "Segoe UI",
+    "fontSize": ".Nfont.n6_2_2",
+    "height": "0.03",
+    "lineHeight": "3vh",
+    "paddingLeft": "7px"
+  },
+  "LabelStyle": {
+    ".Style": {
+      "display": "inline",
+      "textAlign": {
+        "x": "left",
+        "y": "center"
+      }
+    }
+  },
+  "Nfont": {
+    "h1": "1.6vh",
+    "h2": "2vh",
+    "h3": "2.4vh",
+    "h4": "2.8vh",
+    "h5": "3.2vh",
+    "h6": "3.6vh",
+    "h7": "4vh",
+    "h8": "4.4vh",
+    "n1": "5.04vw",
+    "n2": "3.65vw",
+    "n3": "2.64vw",
+    "n4": "1.91vw",
+    "n4_1": "1.65vw",
+    "n4_2": "1.6vw",
+    "n4_2_1": "1.52vw",
+    "n4_3": "1.45vw",
+    "n5": "1.38vw",
+    "n5_1": "1.2vw",
+    "n5_2": "1.1vw",
+    "n6": "1vw",
+    "n6_1": "0.8vw",
+    "n6_1_1": "0.9vw",
+    "n6_1_2": "0.78vw",
+    "n6_2": "0.5vw",
+    "n6_2_1": "0.6vw",
+    "n6_2_2": "0.65vw",
+    "n6_3": "0.7vw"
+  },
+  "SignCanvasStyle": {
+    "height": "0.16",
+    "left": "0",
+    "top": "0",
+    "width": "0.33",
+    "zIndex": "100"
+  },
+  "SignClearStyle": {
+    "color": "0x2988e6",
+    "fontSize": ".Nfont.n6_1",
+    "height": "auto",
+    "left": "0.25",
+    "textAlign": {
+      "y": "center"
+    },
+    "top": "0.01",
+    "width": "0.1",
+    "zIndex": "100"
+  },
+  "SignLabelStyle": {
+    "border": {
+      "style": "2"
+    },
+    "borderColor": "0x707070",
+    "borderWidth": "1",
+    "boxSizing": "content-box",
+    "fontSize": ".Nfont.n4_3",
+    "height": "0.028",
+    "left": "0.025",
+    "top": "0.1",
+    "width": "0.28",
+    "zIndex": "10"
+  },
+  "btnCancel": {
+    "backgroundColor": "0xb7b7b7",
+    "border": {
+      "style": "5"
+    },
+    "borderRadius": "2",
+    "boxShadow": "1px 1px 2px 1px #b7b7b7",
+    "color": "0xffffff",
+    "display": "inline",
+    "fontSize": "0.8vw",
+    "fontWeight": "500",
+    "height": "1.9vw",
+    "marginTop": "1.5vw",
+    "textAlign": {
+      "x": "center",
+      "y": "center"
+    },
+    "width": "5vw"
+  },
+  "btnSubmit": {
+    "..btnCancel": {
+      "backgroundColor": "0x0b4a7e",
+      "boxShadow": "1px 1px 2px 1px #0b4a7e"
+    }
+  }
+}
