@@ -4,7 +4,9 @@ import type { OrArray } from './_internal/types'
 export type RootConfig = {
   /** Example: albh2.aitmed.io */
   apiHost: string
-  /** Example: 443 */
+  /**
+   * @example: 443
+   */
   apiPort: string | number
   /**
    * Can be a variable (example: apiHost which re-uses the value of

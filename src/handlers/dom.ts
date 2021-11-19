@@ -331,7 +331,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   let calendar = new FullCalendar.Calendar(node, {
                     dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
-                    height: '83vh',
+                    height: '77.9vh',
                     allDaySlot: false, // 是否显示表头的全天事件栏
                     initialView: 'timeGridDay',
                     //locale: 'zh-cn',             // 区域本地化
@@ -413,6 +413,10 @@ const createExtendedDOMResolvers = function (app: App) {
                     },
                   });
                   calendar.render();
+                  // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
+                  window.setTimeout(() => {
+                    (document.querySelectorAll("tbody .fc-timegrid-now-indicator-line")[0] as HTMLDivElement).scrollIntoView({behavior: "smooth"});
+                    }, 0);
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
                   Object.defineProperty(calendar.el.style, 'display', {

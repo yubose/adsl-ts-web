@@ -7,6 +7,7 @@ function createAsyncImageElement(
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const node = new Image()
+    node.onload = (evt) => {}
     node
       .decode()
       .then(() => resolve(node))
