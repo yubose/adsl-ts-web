@@ -126,7 +126,7 @@ function createEcosDocElement<
         if (iframe.contentDocument?.body) {
           try {
             // The result could not be returned
-            // const img = createAsyncImageElement(
+            // const img = await createAsyncImageElement(
             //   iframe.contentDocument.body,
             // )
             const img = document.createElement('img')
