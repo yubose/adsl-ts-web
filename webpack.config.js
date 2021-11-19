@@ -1,3 +1,17 @@
+// import * as u from '@jsmanifest/utils'
+// import fs from 'fs-extra'
+// import path from 'path'
+// import webpack from 'webpack'
+// import SingleLineLog from 'single-line-log'
+// import CircularDependencyPlugin from 'circular-dependency-plugin'
+// import CopyPlugin from 'copy-webpack-plugin'
+// import HtmlWebpackPlugin from 'html-webpack-plugin'
+// import HtmlWebpackHarddiskPlugin from 'html-webpack-harddisk-plugin'
+// import InjectBodyWebpackPlugin from 'inject-body-webpack-plugin'
+// import { InjectScriptsPlugin } from './scripts/InjectScriptsPlugin.js'
+
+// const { default: InjectBodyPlugin } = InjectBodyWebpackPlugin
+
 const u = require('@jsmanifest/utils')
 const path = require('path')
 const fs = require('fs-extra')
@@ -8,13 +22,20 @@ const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
-const { InjectScriptsPlugin } = require('./scripts/InjectScriptsPlugin')
+const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
+
+const pkg = fs.readJsonSync('./package.json')
+const nuiPkg = fs.readJsonSync('./packages/noodl-ui/package.json')
+const ndomPkg = fs.readJsonSync('./packages/noodl-ui-dom/package.json')
+const ntypesPkg = fs.readJsonSync('./packages/noodl-types/package.json')
+
+// const singleLog = SingleLineLog.stdout
 
 const pkgJson = {
-  root: require('./package.json'),
-  nui: require('./packages/noodl-ui/package.json'),
-  ndom: require('./packages/noodl-ui-dom/package.json'),
-  nTypes: require('./packages/noodl-types/package.json'),
+  root: pkg,
+  nui: nuiPkg,
+  ndom: ndomPkg,
+  nTypes: ntypesPkg,
 }
 
 const version = {
