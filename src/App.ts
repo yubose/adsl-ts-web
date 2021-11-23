@@ -265,28 +265,58 @@ class App {
         if (nu.isOutboundLink(pageUrl)) {
           return void (window.location.href = pageUrl)
         }
-        
 
+        const urlParts = this.mainPage.pageUrl.split('/')
+        const pathname = urlParts[urlParts.length - 1]
+        const pageParts = pathname.split('-')
+        let currentPage = ''
+        if (pageParts.length > 1) {
+          currentPage = pageParts[pageParts.length - 1]
+        } else {
+          const baseArr = pageParts[0].split('?')
+          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
+            currentPage = baseArr[baseArr.length - 1]
+          }
+        }
         let index =
-          pageUrl.indexOf('&') != -1 ? pageUrl.indexOf('&') : pageUrl.length
-        let startPage = pageUrl.slice(0, index)
+          currentPage.indexOf('&') != -1 ? currentPage.indexOf('&') : currentPage.length
+        let startPage = currentPage.slice(0, index)
         pageRequesting =
           typeof pageRequesting == 'string' ? startPage : pageRequesting
         page = typeof page == 'string' ? startPage : page
-        
-        const { href } = new URL(window.location.href)
-        const url = new URL(href)
-        const searchParams = url.searchParams
-        const [noodlUrlEntry, ...queryParams] = [...searchParams.entries()]
-        if (queryParams.length) {
+
+
+        if (currentPage.includes('&')) {
           // The user is coming from an outside link
           //    (ex: being redirected after submitting a payment)
-          const params = u.reduce(
-            queryParams,
-            (acc, [key, value]) => u.assign(acc, { [key]: value }),
-            {},
-          )
-          localStorage.setItem('tempParams', JSON.stringify(params))
+          const ls = window.localStorage
+          let endKeys = currentPage.slice(pageUrl.indexOf('&'))
+          let params: any = endKeys.split('=')
+          let tempParams: any = ls.getItem('tempParams')
+          let value
+          let key
+
+          params = params ? params : []
+          tempParams =
+            typeof tempParams == 'string' ? JSON.parse(tempParams) : {}
+
+          for (let i = 0; i < params.length - 1; i++) {
+            index =
+              params[i].lastIndexOf('&') != -1 ? params[i].lastIndexOf('&') : 0
+            key = params[i].slice(index + 1)
+            if (i + 1 == params.length - 1) {
+              value = params[i + 1]
+            } else {
+              index =
+                params[i + 1].lastIndexOf('&') != -1
+                  ? params[i + 1].lastIndexOf('&')
+                  : params[i + 1].length
+              value = params[i + 1].slice(0, index)
+            }
+            tempParams[key] = value
+          }
+
+          ls.setItem('tempParams', JSON.stringify(tempParams))
         } else {
           ls.removeItem('tempParams')
         }
