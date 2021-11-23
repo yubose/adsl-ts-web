@@ -281,10 +281,10 @@ class App {
         let index =
           currentPage.indexOf('&') != -1 ? currentPage.indexOf('&') : currentPage.length
         let startPage = currentPage.slice(0, index)
+        startPage = startPage?startPage:pageUrl
         pageRequesting =
           typeof pageRequesting == 'string' ? startPage : pageRequesting
         page = typeof page == 'string' ? startPage : page
-
 
         if (currentPage.includes('&')) {
           // The user is coming from an outside link
