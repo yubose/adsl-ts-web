@@ -768,7 +768,7 @@ const componentsResolver: t.Resolve.Config = {
               optionNode.id = option.key
               optionNode.value = option.value
               optionNode.textContent = option.label
-              if (option?.value === args.component.props[c.DATA_VALUE]) {
+              if (option?.value === args.component.props[c.DATA_VALUE]?.toString()) {
                 // Default to the selected index if the user already has a state set before
                 _node.selectedIndex = index
                 _node.dataset.value = option.value

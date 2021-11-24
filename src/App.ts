@@ -255,57 +255,72 @@ class App {
       let _page: NOODLDOMPage
       let _pageRequesting = ''
 
-      // const ls = window.localStorage
+      const ls = window.localStorage
       let pageUrl = pageRequesting ? pageRequesting : page
 
       if (isNOODLDOMPage(pageUrl)) {
         pageUrl = pageUrl.page
       }
-      // if (pageUrl) {
-      //   if (nu.isOutboundLink(pageUrl)) {
-      //     return void (window.location.href = pageUrl)
-      //   }
+      if (pageUrl) {
+        if (nu.isOutboundLink(pageUrl)) {
+          return void (window.location.href = pageUrl)
+        }
 
-      //   let index =
-      //     pageUrl.indexOf('&') != -1 ? pageUrl.indexOf('&') : pageUrl.length
-      //   let startPage = pageUrl.slice(0, index)
-      //   pageRequesting =
-      //     typeof pageRequesting == 'string' ? startPage : pageRequesting
-      //   page = typeof page == 'string' ? startPage : page
+        const urlParts = this.mainPage.pageUrl.split('/')
+        const pathname = urlParts[urlParts.length - 1]
+        const pageParts = pathname.split('-')
+        let currentPage = ''
+        if (pageParts.length > 1) {
+          currentPage = pageParts[pageParts.length - 1]
+        } else {
+          const baseArr = pageParts[0].split('?')
+          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
+            currentPage = baseArr[baseArr.length - 1]
+          }
+        }
+        let index =
+          currentPage.indexOf('&') != -1 ? currentPage.indexOf('&') : currentPage.length
+        let startPage = currentPage.slice(0, index)
+        startPage = startPage?startPage:pageUrl
+        pageRequesting =
+          typeof pageRequesting == 'string' ? startPage : pageRequesting
+        page = typeof page == 'string' ? startPage : page
 
-      //   if (index != pageUrl.length) {
-      //     const ls = window.localStorage
-      //     let endKeys = pageUrl.slice(pageUrl.indexOf('&'))
-      //     let params: any = endKeys.split('=')
-      //     let tempParams: any = ls.getItem('tempParams')
-      //     let value
-      //     let key
+        if (currentPage.includes('&')) {
+          // The user is coming from an outside link
+          //    (ex: being redirected after submitting a payment)
+          const ls = window.localStorage
+          let endKeys = currentPage.slice(pageUrl.indexOf('&'))
+          let params: any = endKeys.split('=')
+          let tempParams: any = ls.getItem('tempParams')
+          let value
+          let key
 
-      //     params = params ? params : []
-      //     tempParams =
-      //       typeof tempParams == 'string' ? JSON.parse(tempParams) : {}
+          params = params ? params : []
+          tempParams =
+            typeof tempParams == 'string' ? JSON.parse(tempParams) : {}
 
-      //     for (let i = 0; i < params.length - 1; i++) {
-      //       index =
-      //         params[i].lastIndexOf('&') != -1 ? params[i].lastIndexOf('&') : 0
-      //       key = params[i].slice(index + 1)
-      //       if (i + 1 == params.length - 1) {
-      //         value = params[i + 1]
-      //       } else {
-      //         index =
-      //           params[i + 1].lastIndexOf('&') != -1
-      //             ? params[i + 1].lastIndexOf('&')
-      //             : params[i + 1].length
-      //         value = params[i + 1].slice(0, index)
-      //       }
-      //       tempParams[key] = value
-      //     }
+          for (let i = 0; i < params.length - 1; i++) {
+            index =
+              params[i].lastIndexOf('&') != -1 ? params[i].lastIndexOf('&') : 0
+            key = params[i].slice(index + 1)
+            if (i + 1 == params.length - 1) {
+              value = params[i + 1]
+            } else {
+              index =
+                params[i + 1].lastIndexOf('&') != -1
+                  ? params[i + 1].lastIndexOf('&')
+                  : params[i + 1].length
+              value = params[i + 1].slice(0, index)
+            }
+            tempParams[key] = value
+          }
 
-      //     ls.setItem('tempParams', JSON.stringify(tempParams))
-      //   } else {
-      //     ls.removeItem('tempParams')
-      //   }
-      // }
+          ls.setItem('tempParams', JSON.stringify(tempParams))
+        } else {
+          ls.removeItem('tempParams')
+        }
+      }
 
       if (isNOODLDOMPage(page)) {
         _page = page
@@ -477,9 +492,15 @@ class App {
       if (queryParams.length) {
         // The user is coming from an outside link
         //    (ex: being redirected after submitting a payment)
+        let paramsStr = ''
         const params = u.reduce(
           queryParams,
           (acc, [key, value]) => u.assign(acc, { [key]: value }),
+          {},
+        )
+        u.reduce(
+          queryParams,
+          (acc, [key, value]) => paramsStr =  `${paramsStr}&${[key]}=${value}`,
           {},
         )
         localStorage.setItem('tempParams', JSON.stringify(params))
@@ -494,6 +515,7 @@ class App {
             this.mainPage.pageUrl = BASE_PAGE_URL
           }
         }
+        this.mainPage.pageUrl = this.mainPage.pageUrl+paramsStr 
         await this.navigate(this.mainPage, startPage)
       } else {
         startPage = this.noodl.cadlEndpoint?.startPage
