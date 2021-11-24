@@ -7,16 +7,18 @@ function createAsyncImageElement(
 ): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const node = new Image()
-    node.onload = (evt) => {}
-    node
-      .decode()
-      .then(() => resolve(node))
-      .catch(reject)
+
+    node.addEventListener('load', () => resolve(node))
+    node.addEventListener('error', reject)
+
     try {
-      requestAnimationFrame(() => container.appendChild(node))
+      if (!container) resolve(node)
+      else container.appendChild(node)
     } catch (error) {
       console.error(error)
       reject(error)
+    } finally {
+      node.dispatchEvent(new Event('load'))
     }
   })
 }
