@@ -371,9 +371,12 @@ class App {
         }
       })
 
-      this.#serviceWorkerRegistration = await navigator.serviceWorker?.register(
-        AppNotification.path,
-      )
+      try {
+        this.#serviceWorkerRegistration =
+          await navigator.serviceWorker?.register(AppNotification.path)
+      } catch (error) {
+        console.error(error)
+      }
 
       if (this.#serviceWorkerRegistration) {
         this.serviceWorker?.addEventListener('statechange', (evt) => {
