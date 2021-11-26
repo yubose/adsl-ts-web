@@ -1147,7 +1147,8 @@
           throw new Error(`Expected YAML collection at ${key}. Remaining path: ${rest}`);
       }
     }
-    deleteIn([key, ...rest]) {
+    deleteIn(path) {
+      const [key, ...rest] = path;
       if (rest.length === 0)
         return this.delete(key);
       const node = this.get(key, true);
@@ -1156,7 +1157,8 @@
       else
         throw new Error(`Expected YAML collection at ${key}. Remaining path: ${rest}`);
     }
-    getIn([key, ...rest], keepScalar) {
+    getIn(path, keepScalar) {
+      const [key, ...rest] = path;
       const node = this.get(key, true);
       if (rest.length === 0)
         return !keepScalar && isScalar(node) ? node.value : node;
@@ -1171,13 +1173,15 @@
         return n == null || allowScalar && isScalar(n) && n.value == null && !n.commentBefore && !n.comment && !n.tag;
       });
     }
-    hasIn([key, ...rest]) {
+    hasIn(path) {
+      const [key, ...rest] = path;
       if (rest.length === 0)
         return this.has(key);
       const node = this.get(key, true);
       return isCollection(node) ? node.hasIn(rest) : false;
     }
-    setIn([key, ...rest], value) {
+    setIn(path, value) {
+      const [key, ...rest] = path;
       if (rest.length === 0) {
         this.set(key, value);
       } else {
@@ -1416,24 +1420,37 @@ ${indent}${text.slice(fold + 1, end2)}`;
     return implicitKey ? str : foldFlowLines(str, indent, FOLD_QUOTED, getFoldOptions(ctx));
   }
   function singleQuotedString(value, ctx) {
-    if (ctx.implicitKey) {
-      if (/\n/.test(value))
-        return doubleQuotedString(value, ctx);
-    } else {
-      if (/[ \t]\n|\n[ \t]/.test(value))
-        return doubleQuotedString(value, ctx);
-    }
+    if (ctx.options.singleQuote === false || ctx.implicitKey && value.includes("\n") || /[ \t]\n|\n[ \t]/.test(value))
+      return doubleQuotedString(value, ctx);
     const indent = ctx.indent || (containsDocumentMarker(value) ? "  " : "");
     const res = "'" + value.replace(/'/g, "''").replace(/\n+/g, `$&
 ${indent}`) + "'";
     return ctx.implicitKey ? res : foldFlowLines(res, indent, FOLD_FLOW, getFoldOptions(ctx));
   }
+  function quotedString(value, ctx) {
+    const { singleQuote } = ctx.options;
+    let qs;
+    if (singleQuote === false)
+      qs = doubleQuotedString;
+    else {
+      const hasDouble = value.includes('"');
+      const hasSingle = value.includes("'");
+      if (hasDouble && !hasSingle)
+        qs = singleQuotedString;
+      else if (hasSingle && !hasDouble)
+        qs = doubleQuotedString;
+      else
+        qs = singleQuote ? singleQuotedString : doubleQuotedString;
+    }
+    return qs(value, ctx);
+  }
   function blockString({ comment, type, value }, ctx, onComment, onChompKeep) {
-    if (/\n[\t ]+$/.test(value) || /^\s*$/.test(value)) {
-      return doubleQuotedString(value, ctx);
+    const { lineWidth, blockQuote } = ctx.options;
+    if (!blockQuote || /\n[\t ]+$/.test(value) || /^\s*$/.test(value)) {
+      return quotedString(value, ctx);
     }
     const indent = ctx.indent || (ctx.forceBlockIndent || containsDocumentMarker(value) ? "  " : "");
-    const literal = type === Scalar.BLOCK_FOLDED ? false : type === Scalar.BLOCK_LITERAL ? true : !lineLengthOverLimit(value, ctx.options.lineWidth, indent.length);
+    const literal = blockQuote === "literal" ? true : blockQuote === "folded" || type === Scalar.BLOCK_FOLDED ? false : type === Scalar.BLOCK_LITERAL ? true : !lineLengthOverLimit(value, lineWidth, indent.length);
     if (!value)
       return literal ? "|\n" : ">\n";
     let chomp;
@@ -1499,21 +1516,9 @@ ${indent}${body}`;
     const { type, value } = item;
     const { actualString, implicitKey, indent, inFlow } = ctx;
     if (implicitKey && /[\n[\]{},]/.test(value) || inFlow && /[[\]{},]/.test(value)) {
-      return doubleQuotedString(value, ctx);
+      return quotedString(value, ctx);
     }
     if (!value || /^[\n\t ,[\]{}#&*!|>'"%@`]|^[?-]$|^[?-][ \t]|[\n:][ \t]|[ \t]\n|[\n\t ]#|[\n\t :]$/.test(value)) {
-      const hasDouble = value.indexOf('"') !== -1;
-      const hasSingle = value.indexOf("'") !== -1;
-      let quotedString;
-      if (hasDouble && !hasSingle) {
-        quotedString = singleQuotedString;
-      } else if (hasSingle && !hasDouble) {
-        quotedString = doubleQuotedString;
-      } else if (ctx.options.singleQuote) {
-        quotedString = singleQuotedString;
-      } else {
-        quotedString = doubleQuotedString;
-      }
       return implicitKey || inFlow || value.indexOf("\n") === -1 ? quotedString(value, ctx) : blockString(item, ctx, onComment, onChompKeep);
     }
     if (!implicitKey && !inFlow && type !== Scalar.PLAIN && value.indexOf("\n") !== -1) {
@@ -1528,7 +1533,7 @@ ${indent}`);
     if (actualString) {
       for (const tag2 of ctx.doc.schema.tags) {
         if (tag2.default && tag2.tag !== "tag:yaml.org,2002:str" && ((_a = tag2.test) === null || _a === void 0 ? void 0 : _a.test(str)))
-          return doubleQuotedString(value, ctx);
+          return quotedString(value, ctx);
       }
     }
     return implicitKey ? str : foldFlowLines(str, indent, FOLD_FLOW, getFoldOptions(ctx));
@@ -1545,7 +1550,7 @@ ${indent}`);
       switch (_type) {
         case Scalar.BLOCK_FOLDED:
         case Scalar.BLOCK_LITERAL:
-          return implicitKey || inFlow ? doubleQuotedString(ss.value, ctx) : blockString(ss, ctx, onComment, onChompKeep);
+          return implicitKey || inFlow ? quotedString(ss.value, ctx) : blockString(ss, ctx, onComment, onChompKeep);
         case Scalar.QUOTE_DOUBLE:
           return doubleQuotedString(ss.value, ctx);
         case Scalar.QUOTE_SINGLE:
@@ -1574,6 +1579,7 @@ ${indent}`);
     indent: "",
     indentStep: typeof options.indent === "number" ? " ".repeat(options.indent) : "  ",
     options: Object.assign({
+      blockQuote: true,
       defaultKeyType: null,
       defaultStringType: "PLAIN",
       directives: null,
@@ -1585,7 +1591,7 @@ ${indent}`);
       minContentWidth: 20,
       nullStr: "null",
       simpleKeys: false,
-      singleQuote: false,
+      singleQuote: null,
       trueStr: "true",
       verifyAliasOrder: true
     }, options)
@@ -1719,14 +1725,14 @@ ${stringifyComment(value.commentBefore, ctx.indent)}`;
     const valueStr = stringify(value, ctx, () => valueCommentDone = true, () => chompKeep = true);
     let ws = " ";
     if (vcb || keyComment) {
-      ws = `${vcb}
+      ws = valueStr === "" && !ctx.inFlow ? vcb : `${vcb}
 ${ctx.indent}`;
     } else if (!explicitKey && isCollection(value)) {
       const flow = valueStr[0] === "[" || valueStr[0] === "{";
       if (!flow || valueStr.includes("\n"))
         ws = `
 ${ctx.indent}`;
-    } else if (valueStr[0] === "\n")
+    } else if (valueStr === "" || valueStr[0] === "\n")
       ws = "";
     if (ctx.inFlow) {
       if (valueCommentDone && onComment)
@@ -1755,6 +1761,7 @@ ${ctx.indent}`;
   var MERGE_KEY = "<<";
   function addPairToJSMap(ctx, map2, { key, value }) {
     if (ctx && ctx.doc.schema.merge && isMergeKey(key)) {
+      value = isAlias(value) ? value.resolve(ctx.doc) : value;
       if (isSeq(value))
         for (const it of value.items)
           mergeToJSMap(ctx, map2, it);
@@ -1865,6 +1872,7 @@ ${ctx.indent}`;
   // node_modules/yaml/browser/dist/options.js
   var defaultOptions = {
     intAsBigInt: false,
+    keepSourceTokens: false,
     logLevel: "warn",
     prettyErrors: true,
     strict: true,
@@ -2926,8 +2934,12 @@ ${cn.comment}` : item.comment;
   function getTags(customTags, schemaName) {
     let tags = schemas[schemaName];
     if (!tags) {
-      const keys2 = Object.keys(schemas).filter((key) => key !== "yaml11").map((key) => JSON.stringify(key)).join(", ");
-      throw new Error(`Unknown schema "${schemaName}"; use one of ${keys2}`);
+      if (Array.isArray(customTags))
+        tags = [];
+      else {
+        const keys2 = Object.keys(schemas).filter((key) => key !== "yaml11").map((key) => JSON.stringify(key)).join(", ");
+        throw new Error(`Unknown schema "${schemaName}"; use one of ${keys2} or define customTags array`);
+      }
     }
     if (Array.isArray(customTags)) {
       for (const tag2 of customTags)
@@ -3476,7 +3488,8 @@ ${pointer}
     var _a;
     const map2 = new YAMLMap(ctx.schema);
     let offset = bm.offset;
-    for (const { start, key, sep, value } of bm.items) {
+    for (const collItem of bm.items) {
+      const { start, key, sep, value } = collItem;
       const keyProps = resolveProps(start, {
         indicator: "explicit-key-ind",
         next: key || (sep === null || sep === void 0 ? void 0 : sep[0]),
@@ -3526,7 +3539,10 @@ ${pointer}
         }
         const valueNode = value ? composeNode2(ctx, value, valueProps, onError) : composeEmptyNode2(ctx, offset, sep, null, valueProps, onError);
         offset = valueNode.range[2];
-        map2.items.push(new Pair(keyNode, valueNode));
+        const pair = new Pair(keyNode, valueNode);
+        if (ctx.options.keepSourceTokens)
+          pair.srcToken = collItem;
+        map2.items.push(pair);
       } else {
         if (implicitKey)
           onError(keyNode.range, "MISSING_CHAR", "Implicit map keys need to be followed by map values");
@@ -3536,7 +3552,10 @@ ${pointer}
           else
             keyNode.comment = valueProps.comment;
         }
-        map2.items.push(new Pair(keyNode));
+        const pair = new Pair(keyNode);
+        if (ctx.options.keepSourceTokens)
+          pair.srcToken = collItem;
+        map2.items.push(pair);
       }
     }
     map2.range = [bm.offset, offset, offset];
@@ -3623,7 +3642,8 @@ ${pointer}
     coll.flow = true;
     let offset = fc.offset;
     for (let i = 0; i < fc.items.length; ++i) {
-      const { start, key, sep, value } = fc.items[i];
+      const collItem = fc.items[i];
+      const { start, key, sep, value } = collItem;
       const props = resolveProps(start, {
         flow: fcName,
         indicator: "explicit-key-ind",
@@ -3732,6 +3752,8 @@ ${pointer}
             keyNode.comment = valueProps.comment;
         }
         const pair = new Pair(keyNode, valueNode);
+        if (ctx.options.keepSourceTokens)
+          pair.srcToken = collItem;
         if (isMap2) {
           const map2 = coll;
           if (mapIncludes(ctx, map2.items, keyNode))
@@ -3837,7 +3859,7 @@ ${pointer}
         break;
     }
     if (!scalar.source || chompStart === 0) {
-      const value2 = header.chomp === "+" ? lines.map((line) => line[0]).join("\n") : "";
+      const value2 = header.chomp === "+" ? "\n".repeat(Math.max(0, lines.length - 1)) : "";
       let end2 = start + header.length;
       if (scalar.source)
         end2 += scalar.source.length;
@@ -4308,6 +4330,8 @@ ${pointer}
       else
         node.commentBefore = comment;
     }
+    if (ctx.options.keepSourceTokens)
+      node.srcToken = token;
     return node;
   }
   function composeEmptyNode(ctx, offset, before, pos, { spaceBefore, comment, anchor, tag: tag2 }, onError) {
@@ -4911,7 +4935,7 @@ ${end.comment}` : end.comment;
       const line = this.getLine();
       if (line === null)
         return this.setNext("flow");
-      if (indent !== -1 && indent < this.indentNext || indent === 0 && (line.startsWith("---") || line.startsWith("...")) && isEmpty(line[3])) {
+      if (indent !== -1 && indent < this.indentNext && line[0] !== "#" || indent === 0 && (line.startsWith("---") || line.startsWith("...")) && isEmpty(line[3])) {
         const atFlowEndMarker = indent === this.indentNext - 1 && this.flowLevel === 1 && (line[0] === "]" || line[0] === "}");
         if (!atFlowEndMarker) {
           this.flowLevel = 0;
@@ -4920,8 +4944,11 @@ ${end.comment}` : end.comment;
         }
       }
       let n = 0;
-      while (line[n] === ",")
-        n += (yield* this.pushCount(1)) + (yield* this.pushSpaces(true));
+      while (line[n] === ",") {
+        n += yield* this.pushCount(1);
+        n += yield* this.pushSpaces(true);
+        this.flowKey = false;
+      }
       n += yield* this.pushIndicators();
       switch (line[n]) {
         case void 0:

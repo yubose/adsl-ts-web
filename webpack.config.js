@@ -43,7 +43,7 @@ const version = {
   ecosSdk: pkgJson.root.devDependencies['@aitmed/ecos-lvl2-sdk'],
   nui: pkgJson.nui.version,
   ndom: pkgJson.ndom.version,
-  nutil: pkgJson.root.dependencies['noodl-utils'],
+  nutil: pkgJson.root.devDependencies['noodl-utils'],
   nTypes: pkgJson.nTypes.version,
 }
 
