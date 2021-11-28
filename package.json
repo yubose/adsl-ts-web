@@ -71,7 +71,7 @@
     "@babel/preset-env": "^7.15.6",
     "@fullcalendar/core": "^5.9.0",
     "@jsmanifest/typefest": "^1.0.9",
-    "@jsmanifest/utils": "^1.0.33",
+    "@jsmanifest/utils": "^1.0.55",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-node-resolve": "^13.0.6",
