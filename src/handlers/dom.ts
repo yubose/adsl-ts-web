@@ -326,7 +326,6 @@ const createExtendedDOMResolvers = function (app: App) {
                       delete element.visitReason
                       delete element.eventColor
                     })
-                    console.error(defaultData)
                   } else {
                     defaultData = []
                   }
