@@ -120,7 +120,7 @@ NUI.emit({
 | patd    | 8884240000 | 12345       |      |
 | patd2   | 8881122050 | 123         |      |
 | prod    | 8885550010 | password    |      |
-| prod    | 8884210053 | aitmed    |  toni    |
+| prod    | 8884210053 | aitmed      | toni |
 | meet4d  | 8882465555 | 142251      |      |
 | meet4d  | 8882468491 | 142251      |      |
 | meet4d  | 8882461234 | 142251      |      |
@@ -227,7 +227,7 @@ let overallHeight = 3033
 - To reproduce `JWT_EXPIRED` error:
   1. Call `ce` using type `10` (clears cache then triggers jwt expired in server)
 
-## error code 4 --> delay by 1+ seconds  --> retry again
+## error code 4 --> delay by 1+ seconds --> retry again
 
 ## 11/24/21
 
@@ -246,7 +246,7 @@ pushed @aitmed/cadl 1.0.450:
 - fixed error when populating strings and locations is invalid
 - fixed `replaceEvalObject` (unit tests exposed a hidden flaw in this func) async loop to use a better/accurate async way
   - this mainly used in `init` and `initPage`
-  - this might have fixed some important random behavior on an `evalObject` *during init* when a `goto` is called *while init is still running*
+  - this might have fixed some important random behavior on an `evalObject` _during init_ when a `goto` is called _while init is still running_
 - unit tests on `populateString`
   - revealed 2 flaws on this function. this function is not doing what we expect so working on refactoring
 - unit tests on `populateVars`
@@ -255,9 +255,8 @@ pushed @aitmed/cadl 1.0.450:
 - unit tests on `replaceVars` (stable)
 
 deployed:
+
 - updated @aitmed/cadl sdk
-
-
 
 ## 11/24/21 backwards compatible subtype switching
 
@@ -265,3 +264,7 @@ if subtype is 0, we should automatically copy to type
 
 if document subtype is 0, set it to -1 (backend will see this and set it to 0)
 when we do cd and send api to backend, by this time all our bit is 0 (everything is 0). if so set these to -1
+
+## Accomplished
+
+- Fixed crash issue when checking property in `populatedCommand` (string)
