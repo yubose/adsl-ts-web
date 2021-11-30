@@ -64,7 +64,7 @@
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.461",
+    "@aitmed/cadl": "^1.0.460",
     "@aitmed/ecos-lvl2-sdk": "^1.4.170",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
