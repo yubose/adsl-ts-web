@@ -52,9 +52,7 @@ export function getRandomKey() {
 
 export function isChrome() {
   return (
-    u.isBrowser() &&
-    !!window.chrome &&
-    (!!window.chrome.webstore || !!window.chrome.runtime)
+    u.isBrowser() && navigator.userAgent.toLowerCase().indexOf('chrome') > -1
   )
 }
 
