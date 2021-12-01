@@ -62,373 +62,370 @@
 
   // node_modules/@jsmanifest/utils/dist/index.js
   var require_dist = __commonJS({
-    "node_modules/@jsmanifest/utils/dist/index.js"(exports) {
-      var __defProp2 = Object.defineProperty;
-      var __markAsModule2 = (target) => __defProp2(target, "__esModule", { value: true });
-      var __export2 = (target, all) => {
-        for (var name in all)
-          __defProp2(target, name, { get: all[name], enumerable: true });
-      };
-      __markAsModule2(exports);
-      __export2(exports, {
-        array: () => array,
-        arrayEach: () => arrayEach,
-        assign: () => assign,
-        blue: () => blue,
-        bold: () => bold,
-        callAll: () => callAll,
-        clearArr: () => clearArr,
-        cloneDeep: () => cloneDeep,
-        compose: () => compose,
-        createMap: () => createMap2,
-        cyan: () => cyan,
-        divider: () => divider,
-        eachEntries: () => eachEntries,
-        entries: () => entries2,
-        filter: () => filter,
-        forEach: () => forEach,
-        green: () => green,
-        handleAsync: () => handleAsync,
-        isArr: () => isArr,
-        isBool: () => isBool,
-        isBrowser: () => isBrowser,
-        isFnc: () => isFnc,
-        isMap: () => isMap2,
-        isNil: () => isNil,
-        isNode: () => isNode2,
-        isNull: () => isNull,
-        isNum: () => isNum,
-        isObj: () => isObj2,
-        isPromise: () => isPromise,
-        isSet: () => isSet,
-        isStr: () => isStr,
-        isUnd: () => isUnd,
-        isWorker: () => isWorker,
-        italic: () => italic,
-        keys: () => keys2,
-        log: () => log2,
-        logError: () => logError,
-        magenta: () => magenta,
-        map: () => map2,
-        newline: () => newline,
-        omit: () => omit,
-        parseDataURI: () => parseDataURI,
-        parseStackTrace: () => parseStackTrace_default,
-        perf: () => perf,
-        pick: () => pick,
-        red: () => red,
-        reduce: () => reduce,
-        shallowArrayEqual: () => shallowArrayEqual,
-        spread: () => spread,
-        unixify: () => unixify,
-        values: () => values2,
-        white: () => white,
-        withTag: () => withTag,
-        yellow: () => yellow
-      });
-      var UNKNOWN_FUNCTION = "<unknown>";
-      function stackTraceParser(stackString) {
-        const lines = stackString.split("\n");
-        return lines.reduce((stack, line) => {
-          const parseResult = parseChrome(line) || parseWinjs(line) || parseGecko(line) || parseNode(line) || parseJSC(line);
-          if (parseResult) {
-            stack.push(parseResult);
+    "node_modules/@jsmanifest/utils/dist/index.js"(exports, module) {
+      (function(global, factory) {
+        typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.JsManifestUtils = {}));
+      })(exports, function(exports2) {
+        "use strict";
+        var UNKNOWN_FUNCTION = "<unknown>";
+        function stackTraceParser(stackString) {
+          const lines = stackString.split("\n");
+          return lines.reduce((stack, line) => {
+            const parseResult = parseChrome(line) || parseWinjs(line) || parseGecko(line) || parseNode(line) || parseJSC(line);
+            if (parseResult) {
+              stack.push(parseResult);
+            }
+            return stack;
+          }, []);
+        }
+        var chromeRe = /^\s*at (.*?) ?\(((?:file|https?|blob|chrome-extension|native|eval|webpack|<anonymous>|\/|[a-z]:\\|\\\\).*?)(?::(\d+))?(?::(\d+))?\)?\s*$/i;
+        var chromeEvalRe = /\((\S*)(?::(\d+))(?::(\d+))\)/;
+        function parseChrome(line) {
+          const parts = chromeRe.exec(line);
+          if (!parts) {
+            return null;
           }
-          return stack;
-        }, []);
-      }
-      var chromeRe = /^\s*at (.*?) ?\(((?:file|https?|blob|chrome-extension|native|eval|webpack|<anonymous>|\/|[a-z]:\\|\\\\).*?)(?::(\d+))?(?::(\d+))?\)?\s*$/i;
-      var chromeEvalRe = /\((\S*)(?::(\d+))(?::(\d+))\)/;
-      function parseChrome(line) {
-        const parts = chromeRe.exec(line);
-        if (!parts) {
-          return null;
+          const isNative = parts[2] && parts[2].indexOf("native") === 0;
+          const isEval = parts[2] && parts[2].indexOf("eval") === 0;
+          const submatch = chromeEvalRe.exec(parts[2]);
+          if (isEval && submatch != null) {
+            parts[2] = submatch[1];
+            parts[3] = submatch[2];
+            parts[4] = submatch[3];
+          }
+          return {
+            file: !isNative ? parts[2] : null,
+            methodName: parts[1] || UNKNOWN_FUNCTION,
+            arguments: isNative ? [parts[2]] : [],
+            lineNumber: parts[3] ? +parts[3] : null,
+            column: parts[4] ? +parts[4] : null
+          };
         }
-        const isNative = parts[2] && parts[2].indexOf("native") === 0;
-        const isEval = parts[2] && parts[2].indexOf("eval") === 0;
-        const submatch = chromeEvalRe.exec(parts[2]);
-        if (isEval && submatch != null) {
-          parts[2] = submatch[1];
-          parts[3] = submatch[2];
-          parts[4] = submatch[3];
+        var winjsRe = /^\s*at (?:((?:\[object object\])?.+) )?\(?((?:file|ms-appx|https?|webpack|blob):.*?):(\d+)(?::(\d+))?\)?\s*$/i;
+        function parseWinjs(line) {
+          const parts = winjsRe.exec(line);
+          if (!parts) {
+            return null;
+          }
+          return {
+            file: parts[2],
+            methodName: parts[1] || UNKNOWN_FUNCTION,
+            arguments: [],
+            lineNumber: +parts[3],
+            column: parts[4] ? +parts[4] : null
+          };
         }
-        return {
-          file: !isNative ? parts[2] : null,
-          methodName: parts[1] || UNKNOWN_FUNCTION,
-          arguments: isNative ? [parts[2]] : [],
-          lineNumber: parts[3] ? +parts[3] : null,
-          column: parts[4] ? +parts[4] : null
-        };
-      }
-      var winjsRe = /^\s*at (?:((?:\[object object\])?.+) )?\(?((?:file|ms-appx|https?|webpack|blob):.*?):(\d+)(?::(\d+))?\)?\s*$/i;
-      function parseWinjs(line) {
-        const parts = winjsRe.exec(line);
-        if (!parts) {
-          return null;
+        var geckoRe = /^\s*(.*?)(?:\((.*?)\))?(?:^|@)((?:file|https?|blob|chrome|webpack|resource|\[native).*?|[^@]*bundle)(?::(\d+))?(?::(\d+))?\s*$/i;
+        var geckoEvalRe = /(\S+) line (\d+)(?: > eval line \d+)* > eval/i;
+        function parseGecko(line) {
+          const parts = geckoRe.exec(line);
+          if (!parts) {
+            return null;
+          }
+          const isEval = parts[3] && parts[3].indexOf(" > eval") > -1;
+          const submatch = geckoEvalRe.exec(parts[3]);
+          if (isEval && submatch != null) {
+            parts[3] = submatch[1];
+            parts[4] = submatch[2];
+            parts[5] = null;
+          }
+          return {
+            file: parts[3],
+            methodName: parts[1] || UNKNOWN_FUNCTION,
+            arguments: parts[2] ? parts[2].split(",") : [],
+            lineNumber: parts[4] ? +parts[4] : null,
+            column: parts[5] ? +parts[5] : null
+          };
         }
-        return {
-          file: parts[2],
-          methodName: parts[1] || UNKNOWN_FUNCTION,
-          arguments: [],
-          lineNumber: +parts[3],
-          column: parts[4] ? +parts[4] : null
-        };
-      }
-      var geckoRe = /^\s*(.*?)(?:\((.*?)\))?(?:^|@)((?:file|https?|blob|chrome|webpack|resource|\[native).*?|[^@]*bundle)(?::(\d+))?(?::(\d+))?\s*$/i;
-      var geckoEvalRe = /(\S+) line (\d+)(?: > eval line \d+)* > eval/i;
-      function parseGecko(line) {
-        const parts = geckoRe.exec(line);
-        if (!parts) {
-          return null;
+        var javaScriptCoreRe = /^\s*(?:([^@]*)(?:\((.*?)\))?@)?(\S.*?):(\d+)(?::(\d+))?\s*$/i;
+        function parseJSC(line) {
+          const parts = javaScriptCoreRe.exec(line);
+          if (!parts) {
+            return null;
+          }
+          return {
+            file: parts[3],
+            methodName: parts[1] || UNKNOWN_FUNCTION,
+            arguments: [],
+            lineNumber: +parts[4],
+            column: parts[5] ? +parts[5] : null
+          };
         }
-        const isEval = parts[3] && parts[3].indexOf(" > eval") > -1;
-        const submatch = geckoEvalRe.exec(parts[3]);
-        if (isEval && submatch != null) {
-          parts[3] = submatch[1];
-          parts[4] = submatch[2];
-          parts[5] = null;
+        var nodeRe = /^\s*at (?:((?:\[object object\])?[^\\/]+(?: \[as \S+\])?) )?\(?(.*?):(\d+)(?::(\d+))?\)?\s*$/i;
+        function parseNode(line) {
+          const parts = nodeRe.exec(line);
+          if (!parts) {
+            return null;
+          }
+          return {
+            file: parts[2],
+            methodName: parts[1] || UNKNOWN_FUNCTION,
+            arguments: [],
+            lineNumber: +parts[3],
+            column: parts[4] ? +parts[4] : null
+          };
         }
-        return {
-          file: parts[3],
-          methodName: parts[1] || UNKNOWN_FUNCTION,
-          arguments: parts[2] ? parts[2].split(",") : [],
-          lineNumber: parts[4] ? +parts[4] : null,
-          column: parts[5] ? +parts[5] : null
-        };
-      }
-      var javaScriptCoreRe = /^\s*(?:([^@]*)(?:\((.*?)\))?@)?(\S.*?):(\d+)(?::(\d+))?\s*$/i;
-      function parseJSC(line) {
-        const parts = javaScriptCoreRe.exec(line);
-        if (!parts) {
-          return null;
+        var parseStackTrace_default = stackTraceParser;
+        var divider = "----------------------------------------------------------";
+        function array(val) {
+          return isArr(val) ? val : [val];
         }
-        return {
-          file: parts[3],
-          methodName: parts[1] || UNKNOWN_FUNCTION,
-          arguments: [],
-          lineNumber: +parts[4],
-          column: parts[5] ? +parts[5] : null
-        };
-      }
-      var nodeRe = /^\s*at (?:((?:\[object object\])?[^\\/]+(?: \[as \S+\])?) )?\(?(.*?):(\d+)(?::(\d+))?\)?\s*$/i;
-      function parseNode(line) {
-        const parts = nodeRe.exec(line);
-        if (!parts) {
-          return null;
+        function arrayEach(obj, fn) {
+          array(obj).forEach(fn);
         }
-        return {
-          file: parts[2],
-          methodName: parts[1] || UNKNOWN_FUNCTION,
-          arguments: [],
-          lineNumber: +parts[3],
-          column: parts[4] ? +parts[4] : null
-        };
-      }
-      var parseStackTrace_default = stackTraceParser;
-      var divider = "----------------------------------------------------------";
-      function array(val) {
-        return isArr(val) ? val : [val];
-      }
-      function arrayEach(obj, fn) {
-        array(obj).forEach(fn);
-      }
-      function assign(v, ...rest) {
-        return Object.assign(v, ...rest);
-      }
-      function callAll(...fns) {
-        function onFunc(...args) {
-          fns.forEach((fn) => fn == null ? void 0 : fn(...args));
+        function assign(v, ...rest) {
+          return Object.assign(v, ...rest);
         }
-        return onFunc;
-      }
-      function clearArr(arr) {
-        arr.length = 0;
-        return arr;
-      }
-      function cloneDeep(value) {
-        if (isArr(value)) {
-          return map2((v) => isObj2(v) ? cloneDeep(v) : v, value);
+        function callAll(...fns) {
+          function onFunc(...args) {
+            fns.forEach((fn) => fn == null ? void 0 : fn(...args));
+          }
+          return onFunc;
         }
-        if (isObj2(value)) {
-          return reduce(keys2(value), (acc, key) => {
-            if (isObj2(value[key]))
-              acc[key] = cloneDeep(value[key]);
-            else
-              acc[key] = value[key];
+        function clearArr(arr) {
+          arr.length = 0;
+          return arr;
+        }
+        function cloneDeep(value) {
+          if (isArr(value)) {
+            return map2((v) => isObj2(v) ? cloneDeep(v) : v, value);
+          }
+          if (isObj2(value)) {
+            return reduce(keys2(value), (acc, key) => {
+              if (isObj2(value[key]))
+                acc[key] = cloneDeep(value[key]);
+              else
+                acc[key] = value[key];
+              return acc;
+            }, {});
+          }
+          return value;
+        }
+        function compose(...fns) {
+          return function(value) {
+            return fns.reduceRight((acc, fn) => acc(fn(value)), (x) => x);
+          };
+        }
+        function createMap2(defaultValue) {
+          return new Map([...entries2(defaultValue)]);
+        }
+        function entries2(v) {
+          return isObj2(v) ? Object.entries(v) : [];
+        }
+        function eachEntries(obj, fn) {
+          if (obj) {
+            let isBreak = false;
+            if (obj instanceof Map) {
+              for (const [key, value] of obj) {
+                fn(key, value, () => isBreak = true);
+                if (isBreak)
+                  break;
+              }
+            } else if (isObj2(obj)) {
+              for (const [k, v] of entries2(obj)) {
+                fn(k, v, () => isBreak = true);
+                if (isBreak)
+                  break;
+              }
+            }
+          }
+        }
+        function filter(fn, arr) {
+          return arr.filter(fn);
+        }
+        function forEach(fn, arr) {
+          arr.forEach(fn);
+        }
+        function handleAsync(fn, ...args) {
+          return __async(this, null, function* () {
+            try {
+              const result = yield fn(...args);
+              return [null, result];
+            } catch (error) {
+              return [
+                error instanceof Error ? error : new Error(String(error)),
+                void 0
+              ];
+            }
+          });
+        }
+        function isBrowser() {
+          return typeof window !== "undefined" && typeof window.document !== "undefined";
+        }
+        function isNode2() {
+          return typeof process !== "undefined" && process.versions != null && process.versions.node != null;
+        }
+        function isPromise(value) {
+          return isObj2(value) && "then" in value;
+        }
+        function isWorker() {
+          return typeof self === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
+        }
+        function isArr(v) {
+          return Array.isArray(v);
+        }
+        function isBool(v) {
+          return typeof v === "boolean";
+        }
+        function isMap2(v) {
+          return isObj2(v) && v instanceof Map;
+        }
+        function isObj2(v) {
+          return !!v && !isArr(v) && typeof v === "object";
+        }
+        function isNum(v) {
+          return typeof v === "number";
+        }
+        function isSet(v) {
+          return isObj2(v) && v instanceof Set;
+        }
+        function isStr(v) {
+          return typeof v === "string";
+        }
+        function isUnd(v) {
+          return typeof v === "undefined";
+        }
+        function isNull(v) {
+          return v === null;
+        }
+        function isNil(v) {
+          return isNull(v) || isUnd(v);
+        }
+        function isFnc(v) {
+          return typeof v === "function";
+        }
+        function keys2(v) {
+          return isObj2(v) ? Object.keys(v) : [];
+        }
+        function map2(fn, arr) {
+          return arr.map(fn);
+        }
+        function omit(obj, _keys) {
+          return reduce(keys2(obj), (acc, key) => {
+            if (_keys.includes(key))
+              return acc;
+            acc[key] = obj[key];
             return acc;
           }, {});
         }
-        return value;
-      }
-      function compose(...fns) {
-        return function(value) {
-          return fns.reduceRight((acc, fn) => acc(fn(value)), (x) => x);
-        };
-      }
-      function createMap2(defaultValue) {
-        return new Map([...entries2(defaultValue)]);
-      }
-      function entries2(v) {
-        return isObj2(v) ? Object.entries(v) : [];
-      }
-      function eachEntries(obj, fn) {
-        if (obj) {
-          let isBreak = false;
-          if (obj instanceof Map) {
-            for (const [key, value] of obj) {
-              fn(key, value, () => isBreak = true);
-              if (isBreak)
-                break;
-            }
-          } else if (isObj2(obj)) {
-            for (const [k, v] of entries2(obj)) {
-              fn(k, v, () => isBreak = true);
-              if (isBreak)
-                break;
-            }
-          }
+        function parseDataURI(dataURI) {
+          let [metadata, base64] = dataURI.split(",");
+          const mimeType = metadata.split(";")[0].split(":")[1];
+          const ext = mimeType.substring(mimeType.indexOf("/") + 1);
+          return { base64, ext, mimeType };
         }
-      }
-      function filter(fn, arr) {
-        return arr.filter(fn);
-      }
-      function forEach(fn, arr) {
-        arr.forEach(fn);
-      }
-      function handleAsync(fn, ...args) {
-        return __async(this, null, function* () {
-          try {
-            const result = yield fn(...args);
-            return [null, result];
-          } catch (error) {
-            return [
-              error instanceof Error ? error : new Error(String(error)),
-              void 0
-            ];
-          }
-        });
-      }
-      function isBrowser() {
-        return typeof window !== "undefined" && typeof window.document !== "undefined";
-      }
-      function isNode2() {
-        return typeof process !== "undefined" && process.versions != null && process.versions.node != null;
-      }
-      function isPromise(value) {
-        return isObj2(value) && "then" in value;
-      }
-      function isWorker() {
-        return typeof self === "object" && self.constructor && self.constructor.name === "DedicatedWorkerGlobalScope";
-      }
-      function isArr(v) {
-        return Array.isArray(v);
-      }
-      function isBool(v) {
-        return typeof v === "boolean";
-      }
-      function isMap2(v) {
-        return isObj2(v) && v instanceof Map;
-      }
-      function isObj2(v) {
-        return !!v && !isArr(v) && typeof v === "object";
-      }
-      function isNum(v) {
-        return typeof v === "number";
-      }
-      function isSet(v) {
-        return isObj2(v) && v instanceof Set;
-      }
-      function isStr(v) {
-        return typeof v === "string";
-      }
-      function isUnd(v) {
-        return typeof v === "undefined";
-      }
-      function isNull(v) {
-        return v === null;
-      }
-      function isNil(v) {
-        return isNull(v) || isUnd(v);
-      }
-      function isFnc(v) {
-        return typeof v === "function";
-      }
-      function keys2(v) {
-        return isObj2(v) ? Object.keys(v) : [];
-      }
-      function map2(fn, arr) {
-        return arr.map(fn);
-      }
-      function omit(obj, _keys) {
-        return reduce(keys2(obj), (acc, key) => {
-          if (_keys.includes(key))
+        function perf(func, label = "") {
+          console.time(label);
+          func();
+          console.timeEnd(label);
+        }
+        function pick(obj, _keys) {
+          return reduce(array(_keys), (acc, key, _, collection) => {
+            if (collection.includes(key))
+              acc[key] = obj[key];
             return acc;
-          acc[key] = obj[key];
-          return acc;
-        }, {});
-      }
-      function parseDataURI(dataURI) {
-        let [metadata, base64] = dataURI.split(",");
-        const mimeType = metadata.split(";")[0].split(":")[1];
-        const ext = mimeType.substring(mimeType.indexOf("/") + 1);
-        return { base64, ext, mimeType };
-      }
-      function perf(func, label = "") {
-        console.time(label);
-        func();
-        console.timeEnd(label);
-      }
-      function pick(obj, _keys) {
-        return reduce(array(_keys), (acc, key, _, collection) => {
-          if (collection.includes(key))
-            acc[key] = obj[key];
-          return acc;
-        }, {});
-      }
-      function reduce(arr, fn, acc) {
-        return arr.reduce(fn, acc);
-      }
-      function spread(fn) {
-        function spreadArgs(keyVal) {
-          return fn(...keyVal);
+          }, {});
         }
-        return spreadArgs;
-      }
-      function shallowArrayEqual(a, b) {
-        if (a === b)
-          return true;
-        if (a.length !== b.length)
-          return false;
-        for (let i = 0, l = a.length; i < l; i++)
-          if (a[i] !== b[i])
+        function reduce(arr, fn, acc) {
+          return arr.reduce(fn, acc);
+        }
+        function spread(fn) {
+          function spreadArgs(keyVal) {
+            return fn(...keyVal);
+          }
+          return spreadArgs;
+        }
+        function shallowArrayEqual(a, b) {
+          if (a === b)
+            return true;
+          if (a.length !== b.length)
             return false;
-        return true;
-      }
-      function values2(v) {
-        return Object.values(v);
-      }
-      function unixify(filepath = "") {
-        return filepath.replace(/\\/g, "/");
-      }
-      var resetColorCode = "[0m";
-      var createColorStr = (codePoint) => (s) => `[${codePoint}m${s}${resetColorCode}`;
-      var log2 = console.log;
-      var newline = () => log2("");
-      var bold = createColorStr(1);
-      var blue = createColorStr(34);
-      var cyan = createColorStr(36);
-      var green = createColorStr(32);
-      var italic = createColorStr(3);
-      var magenta = createColorStr(35);
-      var red = createColorStr(31);
-      var white = createColorStr(37);
-      var withTag = (s, colorFunc = cyan) => `[${(colorFunc == null ? void 0 : colorFunc(s)) || s}]`;
-      var yellow = createColorStr(33);
-      function logError(err) {
-        if (!(err instanceof Error))
-          err = new Error(String(err));
-        console.log(`[${err.name || "Error"}] ${err.message}`, err.stack);
-      }
+          for (let i = 0, l = a.length; i < l; i++)
+            if (a[i] !== b[i])
+              return false;
+          return true;
+        }
+        function values2(v) {
+          return Object.values(v);
+        }
+        function unixify(filepath = "") {
+          return filepath.replace(/\\/g, "/");
+        }
+        var resetColorCode = "[0m";
+        var createColorStr = (codePoint) => (s) => `[${codePoint}m${s}${resetColorCode}`;
+        var log2 = console.log;
+        var newline = () => log2("");
+        var bold = createColorStr(1);
+        var blue = createColorStr(34);
+        var cyan = createColorStr(36);
+        var green = createColorStr(32);
+        var italic = createColorStr(3);
+        var magenta = createColorStr(35);
+        var red = createColorStr(31);
+        var white = createColorStr(37);
+        var withTag = (s, colorFunc = cyan) => `[${(colorFunc == null ? void 0 : colorFunc(s)) || s}]`;
+        var yellow = createColorStr(33);
+        function logError(err) {
+          if (!(err instanceof Error))
+            err = new Error(String(err));
+          console.log(`[${err.name || "Error"}] ${err.message}`, err.stack);
+        }
+        exports2.array = array;
+        exports2.arrayEach = arrayEach;
+        exports2.assign = assign;
+        exports2.blue = blue;
+        exports2.bold = bold;
+        exports2.callAll = callAll;
+        exports2.clearArr = clearArr;
+        exports2.cloneDeep = cloneDeep;
+        exports2.compose = compose;
+        exports2.createMap = createMap2;
+        exports2.cyan = cyan;
+        exports2.divider = divider;
+        exports2.eachEntries = eachEntries;
+        exports2.entries = entries2;
+        exports2.filter = filter;
+        exports2.forEach = forEach;
+        exports2.green = green;
+        exports2.handleAsync = handleAsync;
+        exports2.isArr = isArr;
+        exports2.isBool = isBool;
+        exports2.isBrowser = isBrowser;
+        exports2.isFnc = isFnc;
+        exports2.isMap = isMap2;
+        exports2.isNil = isNil;
+        exports2.isNode = isNode2;
+        exports2.isNull = isNull;
+        exports2.isNum = isNum;
+        exports2.isObj = isObj2;
+        exports2.isPromise = isPromise;
+        exports2.isSet = isSet;
+        exports2.isStr = isStr;
+        exports2.isUnd = isUnd;
+        exports2.isWorker = isWorker;
+        exports2.italic = italic;
+        exports2.keys = keys2;
+        exports2.log = log2;
+        exports2.logError = logError;
+        exports2.magenta = magenta;
+        exports2.map = map2;
+        exports2.newline = newline;
+        exports2.omit = omit;
+        exports2.parseDataURI = parseDataURI;
+        exports2.parseStackTrace = parseStackTrace_default;
+        exports2.perf = perf;
+        exports2.pick = pick;
+        exports2.red = red;
+        exports2.reduce = reduce;
+        exports2.shallowArrayEqual = shallowArrayEqual;
+        exports2.spread = spread;
+        exports2.unixify = unixify;
+        exports2.values = values2;
+        exports2.white = white;
+        exports2.withTag = withTag;
+        exports2.yellow = yellow;
+        Object.defineProperty(exports2, "__esModule", { value: true });
+      });
     }
   });
 
@@ -1147,7 +1144,8 @@
           throw new Error(`Expected YAML collection at ${key}. Remaining path: ${rest}`);
       }
     }
-    deleteIn([key, ...rest]) {
+    deleteIn(path) {
+      const [key, ...rest] = path;
       if (rest.length === 0)
         return this.delete(key);
       const node = this.get(key, true);
@@ -1156,7 +1154,8 @@
       else
         throw new Error(`Expected YAML collection at ${key}. Remaining path: ${rest}`);
     }
-    getIn([key, ...rest], keepScalar) {
+    getIn(path, keepScalar) {
+      const [key, ...rest] = path;
       const node = this.get(key, true);
       if (rest.length === 0)
         return !keepScalar && isScalar(node) ? node.value : node;
@@ -1171,13 +1170,15 @@
         return n == null || allowScalar && isScalar(n) && n.value == null && !n.commentBefore && !n.comment && !n.tag;
       });
     }
-    hasIn([key, ...rest]) {
+    hasIn(path) {
+      const [key, ...rest] = path;
       if (rest.length === 0)
         return this.has(key);
       const node = this.get(key, true);
       return isCollection(node) ? node.hasIn(rest) : false;
     }
-    setIn([key, ...rest], value) {
+    setIn(path, value) {
+      const [key, ...rest] = path;
       if (rest.length === 0) {
         this.set(key, value);
       } else {
@@ -1416,24 +1417,37 @@ ${indent}${text.slice(fold + 1, end2)}`;
     return implicitKey ? str : foldFlowLines(str, indent, FOLD_QUOTED, getFoldOptions(ctx));
   }
   function singleQuotedString(value, ctx) {
-    if (ctx.implicitKey) {
-      if (/\n/.test(value))
-        return doubleQuotedString(value, ctx);
-    } else {
-      if (/[ \t]\n|\n[ \t]/.test(value))
-        return doubleQuotedString(value, ctx);
-    }
+    if (ctx.options.singleQuote === false || ctx.implicitKey && value.includes("\n") || /[ \t]\n|\n[ \t]/.test(value))
+      return doubleQuotedString(value, ctx);
     const indent = ctx.indent || (containsDocumentMarker(value) ? "  " : "");
     const res = "'" + value.replace(/'/g, "''").replace(/\n+/g, `$&
 ${indent}`) + "'";
     return ctx.implicitKey ? res : foldFlowLines(res, indent, FOLD_FLOW, getFoldOptions(ctx));
   }
+  function quotedString(value, ctx) {
+    const { singleQuote } = ctx.options;
+    let qs;
+    if (singleQuote === false)
+      qs = doubleQuotedString;
+    else {
+      const hasDouble = value.includes('"');
+      const hasSingle = value.includes("'");
+      if (hasDouble && !hasSingle)
+        qs = singleQuotedString;
+      else if (hasSingle && !hasDouble)
+        qs = doubleQuotedString;
+      else
+        qs = singleQuote ? singleQuotedString : doubleQuotedString;
+    }
+    return qs(value, ctx);
+  }
   function blockString({ comment, type, value }, ctx, onComment, onChompKeep) {
-    if (/\n[\t ]+$/.test(value) || /^\s*$/.test(value)) {
-      return doubleQuotedString(value, ctx);
+    const { lineWidth, blockQuote } = ctx.options;
+    if (!blockQuote || /\n[\t ]+$/.test(value) || /^\s*$/.test(value)) {
+      return quotedString(value, ctx);
     }
     const indent = ctx.indent || (ctx.forceBlockIndent || containsDocumentMarker(value) ? "  " : "");
-    const literal = type === Scalar.BLOCK_FOLDED ? false : type === Scalar.BLOCK_LITERAL ? true : !lineLengthOverLimit(value, ctx.options.lineWidth, indent.length);
+    const literal = blockQuote === "literal" ? true : blockQuote === "folded" || type === Scalar.BLOCK_FOLDED ? false : type === Scalar.BLOCK_LITERAL ? true : !lineLengthOverLimit(value, lineWidth, indent.length);
     if (!value)
       return literal ? "|\n" : ">\n";
     let chomp;
@@ -1499,21 +1513,9 @@ ${indent}${body}`;
     const { type, value } = item;
     const { actualString, implicitKey, indent, inFlow } = ctx;
     if (implicitKey && /[\n[\]{},]/.test(value) || inFlow && /[[\]{},]/.test(value)) {
-      return doubleQuotedString(value, ctx);
+      return quotedString(value, ctx);
     }
     if (!value || /^[\n\t ,[\]{}#&*!|>'"%@`]|^[?-]$|^[?-][ \t]|[\n:][ \t]|[ \t]\n|[\n\t ]#|[\n\t :]$/.test(value)) {
-      const hasDouble = value.indexOf('"') !== -1;
-      const hasSingle = value.indexOf("'") !== -1;
-      let quotedString;
-      if (hasDouble && !hasSingle) {
-        quotedString = singleQuotedString;
-      } else if (hasSingle && !hasDouble) {
-        quotedString = doubleQuotedString;
-      } else if (ctx.options.singleQuote) {
-        quotedString = singleQuotedString;
-      } else {
-        quotedString = doubleQuotedString;
-      }
       return implicitKey || inFlow || value.indexOf("\n") === -1 ? quotedString(value, ctx) : blockString(item, ctx, onComment, onChompKeep);
     }
     if (!implicitKey && !inFlow && type !== Scalar.PLAIN && value.indexOf("\n") !== -1) {
@@ -1528,7 +1530,7 @@ ${indent}`);
     if (actualString) {
       for (const tag2 of ctx.doc.schema.tags) {
         if (tag2.default && tag2.tag !== "tag:yaml.org,2002:str" && ((_a = tag2.test) === null || _a === void 0 ? void 0 : _a.test(str)))
-          return doubleQuotedString(value, ctx);
+          return quotedString(value, ctx);
       }
     }
     return implicitKey ? str : foldFlowLines(str, indent, FOLD_FLOW, getFoldOptions(ctx));
@@ -1545,7 +1547,7 @@ ${indent}`);
       switch (_type) {
         case Scalar.BLOCK_FOLDED:
         case Scalar.BLOCK_LITERAL:
-          return implicitKey || inFlow ? doubleQuotedString(ss.value, ctx) : blockString(ss, ctx, onComment, onChompKeep);
+          return implicitKey || inFlow ? quotedString(ss.value, ctx) : blockString(ss, ctx, onComment, onChompKeep);
         case Scalar.QUOTE_DOUBLE:
           return doubleQuotedString(ss.value, ctx);
         case Scalar.QUOTE_SINGLE:
@@ -1574,6 +1576,7 @@ ${indent}`);
     indent: "",
     indentStep: typeof options.indent === "number" ? " ".repeat(options.indent) : "  ",
     options: Object.assign({
+      blockQuote: true,
       defaultKeyType: null,
       defaultStringType: "PLAIN",
       directives: null,
@@ -1585,7 +1588,7 @@ ${indent}`);
       minContentWidth: 20,
       nullStr: "null",
       simpleKeys: false,
-      singleQuote: false,
+      singleQuote: null,
       trueStr: "true",
       verifyAliasOrder: true
     }, options)
@@ -1719,14 +1722,14 @@ ${stringifyComment(value.commentBefore, ctx.indent)}`;
     const valueStr = stringify(value, ctx, () => valueCommentDone = true, () => chompKeep = true);
     let ws = " ";
     if (vcb || keyComment) {
-      ws = `${vcb}
+      ws = valueStr === "" && !ctx.inFlow ? vcb : `${vcb}
 ${ctx.indent}`;
     } else if (!explicitKey && isCollection(value)) {
       const flow = valueStr[0] === "[" || valueStr[0] === "{";
       if (!flow || valueStr.includes("\n"))
         ws = `
 ${ctx.indent}`;
-    } else if (valueStr[0] === "\n")
+    } else if (valueStr === "" || valueStr[0] === "\n")
       ws = "";
     if (ctx.inFlow) {
       if (valueCommentDone && onComment)
@@ -1755,6 +1758,7 @@ ${ctx.indent}`;
   var MERGE_KEY = "<<";
   function addPairToJSMap(ctx, map2, { key, value }) {
     if (ctx && ctx.doc.schema.merge && isMergeKey(key)) {
+      value = isAlias(value) ? value.resolve(ctx.doc) : value;
       if (isSeq(value))
         for (const it of value.items)
           mergeToJSMap(ctx, map2, it);
@@ -1865,6 +1869,7 @@ ${ctx.indent}`;
   // node_modules/yaml/browser/dist/options.js
   var defaultOptions = {
     intAsBigInt: false,
+    keepSourceTokens: false,
     logLevel: "warn",
     prettyErrors: true,
     strict: true,
@@ -2926,8 +2931,12 @@ ${cn.comment}` : item.comment;
   function getTags(customTags, schemaName) {
     let tags = schemas[schemaName];
     if (!tags) {
-      const keys2 = Object.keys(schemas).filter((key) => key !== "yaml11").map((key) => JSON.stringify(key)).join(", ");
-      throw new Error(`Unknown schema "${schemaName}"; use one of ${keys2}`);
+      if (Array.isArray(customTags))
+        tags = [];
+      else {
+        const keys2 = Object.keys(schemas).filter((key) => key !== "yaml11").map((key) => JSON.stringify(key)).join(", ");
+        throw new Error(`Unknown schema "${schemaName}"; use one of ${keys2} or define customTags array`);
+      }
     }
     if (Array.isArray(customTags)) {
       for (const tag2 of customTags)
@@ -3476,7 +3485,8 @@ ${pointer}
     var _a;
     const map2 = new YAMLMap(ctx.schema);
     let offset = bm.offset;
-    for (const { start, key, sep, value } of bm.items) {
+    for (const collItem of bm.items) {
+      const { start, key, sep, value } = collItem;
       const keyProps = resolveProps(start, {
         indicator: "explicit-key-ind",
         next: key || (sep === null || sep === void 0 ? void 0 : sep[0]),
@@ -3526,7 +3536,10 @@ ${pointer}
         }
         const valueNode = value ? composeNode2(ctx, value, valueProps, onError) : composeEmptyNode2(ctx, offset, sep, null, valueProps, onError);
         offset = valueNode.range[2];
-        map2.items.push(new Pair(keyNode, valueNode));
+        const pair = new Pair(keyNode, valueNode);
+        if (ctx.options.keepSourceTokens)
+          pair.srcToken = collItem;
+        map2.items.push(pair);
       } else {
         if (implicitKey)
           onError(keyNode.range, "MISSING_CHAR", "Implicit map keys need to be followed by map values");
@@ -3536,7 +3549,10 @@ ${pointer}
           else
             keyNode.comment = valueProps.comment;
         }
-        map2.items.push(new Pair(keyNode));
+        const pair = new Pair(keyNode);
+        if (ctx.options.keepSourceTokens)
+          pair.srcToken = collItem;
+        map2.items.push(pair);
       }
     }
     map2.range = [bm.offset, offset, offset];
@@ -3623,7 +3639,8 @@ ${pointer}
     coll.flow = true;
     let offset = fc.offset;
     for (let i = 0; i < fc.items.length; ++i) {
-      const { start, key, sep, value } = fc.items[i];
+      const collItem = fc.items[i];
+      const { start, key, sep, value } = collItem;
       const props = resolveProps(start, {
         flow: fcName,
         indicator: "explicit-key-ind",
@@ -3732,6 +3749,8 @@ ${pointer}
             keyNode.comment = valueProps.comment;
         }
         const pair = new Pair(keyNode, valueNode);
+        if (ctx.options.keepSourceTokens)
+          pair.srcToken = collItem;
         if (isMap2) {
           const map2 = coll;
           if (mapIncludes(ctx, map2.items, keyNode))
@@ -3837,7 +3856,7 @@ ${pointer}
         break;
     }
     if (!scalar.source || chompStart === 0) {
-      const value2 = header.chomp === "+" ? lines.map((line) => line[0]).join("\n") : "";
+      const value2 = header.chomp === "+" ? "\n".repeat(Math.max(0, lines.length - 1)) : "";
       let end2 = start + header.length;
       if (scalar.source)
         end2 += scalar.source.length;
@@ -4308,6 +4327,8 @@ ${pointer}
       else
         node.commentBefore = comment;
     }
+    if (ctx.options.keepSourceTokens)
+      node.srcToken = token;
     return node;
   }
   function composeEmptyNode(ctx, offset, before, pos, { spaceBefore, comment, anchor, tag: tag2 }, onError) {
@@ -4911,7 +4932,7 @@ ${end.comment}` : end.comment;
       const line = this.getLine();
       if (line === null)
         return this.setNext("flow");
-      if (indent !== -1 && indent < this.indentNext || indent === 0 && (line.startsWith("---") || line.startsWith("...")) && isEmpty(line[3])) {
+      if (indent !== -1 && indent < this.indentNext && line[0] !== "#" || indent === 0 && (line.startsWith("---") || line.startsWith("...")) && isEmpty(line[3])) {
         const atFlowEndMarker = indent === this.indentNext - 1 && this.flowLevel === 1 && (line[0] === "]" || line[0] === "}");
         if (!atFlowEndMarker) {
           this.flowLevel = 0;
@@ -4920,8 +4941,11 @@ ${end.comment}` : end.comment;
         }
       }
       let n = 0;
-      while (line[n] === ",")
-        n += (yield* this.pushCount(1)) + (yield* this.pushSpaces(true));
+      while (line[n] === ",") {
+        n += yield* this.pushCount(1);
+        n += yield* this.pushSpaces(true);
+        this.flowKey = false;
+      }
       n += yield* this.pushIndicators();
       switch (line[n]) {
         case void 0:

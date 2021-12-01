@@ -25,6 +25,7 @@ import {
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
 import { copyToClipboard, exportToPDF, getVcodeElem, toast } from './utils/dom'
+import { isChrome } from './utils/common'
 import AppNotification from './app/Notifications'
 import App from './App'
 import 'vercel-toast/dist/vercel-toast.css'
@@ -134,7 +135,7 @@ window.addEventListener('load', async (e) => {
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
 
-    await initializeNoodlPluginRefresher()
+    // await initializeNoodlPluginRefresher()
 
     log.grey('Initializing [App] instance')
 
@@ -188,6 +189,25 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gesturestart', (e) => e.preventDefault())
   document.addEventListener('gestureend', (e) => e.preventDefault())
   document.addEventListener('gesturechange', (e) => e.preventDefault())
+
+  window.addEventListener('storage', (evt) => {
+    console.log(`[storage]`, evt)
+  })
+
+  const notifiedForChromeDesktop = window.localStorage.getItem(
+    'notified-chrome-desktop',
+  )
+
+  if (!isChrome() && notifiedForChromeDesktop != 'notified') {
+    const width = window.outerWidth
+    if (width > 1000) {
+      window.localStorage.setItem('notified-chrome-desktop', 'notified')
+      toast(`For best performance, please use the Chrome browser`, {
+        timeout: 10000,
+        type: 'dark',
+      })
+    }
+  }
 })
 
 if (module.hot) {

@@ -35,7 +35,7 @@ import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
 import getBatchFromLocalStorage from './utils/getBatchFromLocalStorage'
-import NoodlWorker from './worker/NoodlWorker'
+// import NoodlWorker from './worker/NoodlWorker'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
@@ -59,7 +59,7 @@ class App {
   #spinner: InstanceType<typeof Spinner>
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
   #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
-  #worker: ReturnType<typeof NoodlWorker>
+  // #worker: ReturnType<typeof NoodlWorker>
   actionFactory = actionFactory(this)
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
@@ -109,12 +109,12 @@ class App {
     this.#nui = nui
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
-    this.#worker = NoodlWorker(
-      new Worker('dedicatedWorker.js', {
-        name: App.id,
-        type: 'module',
-      }),
-    )
+    // this.#worker = NoodlWorker(
+    //   new Worker('dedicatedWorker.js', {
+    //     name: App.id,
+    //     type: 'module',
+    //   }),
+    // )
 
     noodl && (this.#noodl = noodl)
     this.#parser = new nu.Parser()
@@ -237,9 +237,9 @@ class App {
     return this.mainPage.viewport as VP
   }
 
-  get worker() {
-    return this.#worker
-  }
+  // get worker() {
+  //   return this.#worker
+  // }
 
   /**
    * Navigates to a page specified in page.requesting
@@ -279,9 +279,11 @@ class App {
           }
         }
         let index =
-          currentPage.indexOf('&') != -1 ? currentPage.indexOf('&') : currentPage.length
+          currentPage.indexOf('&') != -1
+            ? currentPage.indexOf('&')
+            : currentPage.length
         let startPage = currentPage.slice(0, index)
-        startPage = startPage?startPage:pageUrl
+        startPage = startPage ? startPage : pageUrl
         pageRequesting =
           typeof pageRequesting == 'string' ? startPage : pageRequesting
         page = typeof page == 'string' ? startPage : page
@@ -369,9 +371,12 @@ class App {
         }
       })
 
-      this.#serviceWorkerRegistration = await navigator.serviceWorker?.register(
-        AppNotification.path,
-      )
+      try {
+        this.#serviceWorkerRegistration =
+          await navigator.serviceWorker?.register(AppNotification.path)
+      } catch (error) {
+        console.error(error)
+      }
 
       if (this.#serviceWorkerRegistration) {
         this.serviceWorker?.addEventListener('statechange', (evt) => {
@@ -500,7 +505,7 @@ class App {
         )
         u.reduce(
           queryParams,
-          (acc, [key, value]) => paramsStr =  `${paramsStr}&${[key]}=${value}`,
+          (acc, [key, value]) => (paramsStr = `${paramsStr}&${[key]}=${value}`),
           {},
         )
         localStorage.setItem('tempParams', JSON.stringify(params))
@@ -515,7 +520,7 @@ class App {
             this.mainPage.pageUrl = BASE_PAGE_URL
           }
         }
-        this.mainPage.pageUrl = this.mainPage.pageUrl+paramsStr 
+        this.mainPage.pageUrl = this.mainPage.pageUrl + paramsStr
         await this.navigate(this.mainPage, startPage)
       } else {
         startPage = this.noodl.cadlEndpoint?.startPage

@@ -40,6 +40,6 @@
     "start": "tsc -w",
     "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\""
   },
-  "types": "dist/noodl-ui-test-utils.d.ts",
+  "typings": "dist/noodl-ui-test-utils.d.ts",
   "version": "0.0.13"
 }
