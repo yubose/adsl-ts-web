@@ -265,6 +265,7 @@ if subtype is 0, we should automatically copy to type
 if document subtype is 0, set it to -1 (backend will see this and set it to 0)
 when we do cd and send api to backend, by this time all our bit is 0 (everything is 0). if so set these to -1
 
-## Accomplished
+## 11/30/21
 
-- Fixed crash issue when checking property in `populatedCommand` (string)
+- Fixed a hidden issue in sdk where a doc is erased when merging a list of docs
+- Fixed empty configUrl after logging out

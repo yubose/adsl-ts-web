@@ -39,6 +39,7 @@ declare global {
     app: any
     build: any
     cache: any
+    chrome: any
     noodl: any
     env: string | undefined
     FCMOnTokenReceive: any

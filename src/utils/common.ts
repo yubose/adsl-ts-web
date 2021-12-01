@@ -50,6 +50,14 @@ export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
 }
 
+export function isChrome() {
+  return (
+    u.isBrowser() &&
+    !!window.chrome &&
+    (!!window.chrome.webstore || !!window.chrome.runtime)
+  )
+}
+
 export function isDataUrl(value = '') {
   return value.startsWith('blob:') || value.startsWith('data:')
 }
