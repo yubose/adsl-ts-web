@@ -555,6 +555,22 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    '[App] dbEvents': {
+      cond: ({ component }) => component.has('dbEvents'),
+      resolve({ node, component }) {
+        if (component?.blueprint?.dbEvents && component?.blueprint?.dbEvents === "pare") {
+          node?.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+          }, false);
+        }
+        if(component?.blueprint?.dbEvents && component?.blueprint?.dbEvents === "child"){
+          node?.addEventListener("touchstart", (e) => {
+            e.stopPropagation();
+          }, false);
+
+        }
+      },
+    },
     '[App] QRCode': {
       cond: 'image',
       resolve({ node, component }) {
