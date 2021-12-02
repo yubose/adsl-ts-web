@@ -326,7 +326,6 @@ const createExtendedDOMResolvers = function (app: App) {
                       delete element.visitReason
                       delete element.eventColor
                     })
-                    console.error(defaultData)
                   } else {
                     defaultData = []
                   }
@@ -553,6 +552,22 @@ const createExtendedDOMResolvers = function (app: App) {
               node.style[key] = realvalue
             })
           })
+        }
+      },
+    },
+    '[App] dbEvents': {
+      cond: ({ component }) => component.has('dbEvents'),
+      resolve({ node, component }) {
+        if (component?.blueprint?.dbEvents && component?.blueprint?.dbEvents === "pare") {
+          node?.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+          }, false);
+        }
+        if(component?.blueprint?.dbEvents && component?.blueprint?.dbEvents === "child"){
+          node?.addEventListener("touchstart", (e) => {
+            e.stopPropagation();
+          }, false);
+
         }
       },
     },

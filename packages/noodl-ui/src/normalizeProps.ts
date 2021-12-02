@@ -609,7 +609,7 @@ function normalizeProps<
       }
     } else if (nt.Identify.component.listLike(blueprint) && props.style.display !== 'none') {
       props.style.display =
-        blueprint.style?.axis === 'horizontal' ? 'flex' : 'block'
+      (blueprint.style?.axis === 'horizontal' || blueprint.style?.axis === 'vertical') ? 'flex' : 'block'
       props.style.listStyle = 'none'
       props.style.padding = '0px'
     } else if (nt.Identify.component.listItem(blueprint)) {
