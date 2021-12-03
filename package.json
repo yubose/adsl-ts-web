@@ -31,7 +31,7 @@
     "start:editor": "cross-env NODE_ENV=development ECOS_ENV=TEST lerna exec --scope noodl-editor \"npm run start\"",
     "start:sample": "cross-env SAMPLE=true NODE_ENV=development HMR=true ECOS_ENV=TEST USE_DEV_PATHS=true webpack serve --port 3000 --mode=development",
     "start:stable": "cross-env NODE_ENV=production HMR=true ECOS_ENV=stable webpack serve --port 3000",
-    "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start",
+    "start:test": "cross-env NODE_ENV=development NODE_OPTIONS=\"--stack-trace-limit=10000\" ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start",
     "start:worker": "npm run build:dedWorker -- --watch",
     "poststart": "npm run start:worker",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
@@ -49,6 +49,7 @@
     "updatenoodl": "node scripts/update.js -u noodl -d"
   },
   "dependencies": {
+    "@aitmed/cadl": "^1.0.470",
     "axios": "^0.21.1",
     "date-fns": "^2.21.2",
     "firebase": "^8.7.0",
@@ -64,7 +65,6 @@
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.469",
     "@aitmed/ecos-lvl2-sdk": "^1.4.170",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
