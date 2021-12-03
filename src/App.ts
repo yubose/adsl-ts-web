@@ -141,7 +141,7 @@ class App {
   }
 
   get config() {
-    return this.noodl.getConfig()
+    return this.noodl.config
   }
 
   get cache() {
