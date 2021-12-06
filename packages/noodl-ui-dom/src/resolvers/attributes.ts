@@ -45,8 +45,8 @@ function attachUserEvents<N extends t.NDOMElement>(
        * where the emitted action handlers are being called before local
        * root object gets their data values updated.
        */
-      node.addEventListener(normalizeEventName(eventType), (e) =>
-        setTimeout(() => component.get(eventType)?.execute?.(e)),
+      node.addEventListener(normalizeEventName(eventType), (...args) =>
+        setTimeout(() => component.get(eventType)?.execute?.(...args)),
       )
     }
   })

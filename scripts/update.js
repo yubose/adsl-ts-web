@@ -97,7 +97,7 @@ async function update(props) {
     u.log(u.green(`Updated ${pkgs.ntest}`))
   } else {
     if (input[1] === 'sdk') {
-      npmInstallStr = `${npmInstallStr}`
+      npmInstallStr = `${npmInstallStr} -D`
       remotePkgs.push('@aitmed/cadl@latest', '@aitmed/ecos-lvl2-sdk@latest')
     } else if (input[1] === 'noodl') {
       npmInstallStr = `${npmInstallStr}`

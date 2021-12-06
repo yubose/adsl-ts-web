@@ -31,9 +31,6 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
-import { isArray } from 'lodash'
-import { addClassName } from 'noodl-ui-dom/dist/utils'
-import { isArr } from '@jsmanifest/utils'
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -71,7 +68,7 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           log.red(
             `A ${component.type} component from a "${evtName}" handler tried ` +
-            `to update its value but a dataObject was not found`,
+              `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
           )
         }
@@ -87,10 +84,11 @@ const createExtendedDOMResolvers = function (app: App) {
               const paths = dataKey.split('.')
               const property = paths.length ? paths[paths.length - 1] : ''
               log.orange(
-                `Warning: The${property ? ` property "${property}" in the` : ''
+                `Warning: The${
+                  property ? ` property "${property}" in the` : ''
                 } ` +
-                `dataKey path "${dataKey}" did not exist in the local root object ` +
-                `If this is intended then ignore this message.`,
+                  `dataKey path "${dataKey}" did not exist in the local root object ` +
+                  `If this is intended then ignore this message.`,
                 {
                   component,
                   dataKey,
@@ -98,6 +96,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   pageName,
                   pageObject: app.root[pageName],
                   value,
+                  currentDraft: draft,
                 },
               )
             }
@@ -111,15 +110,13 @@ const createExtendedDOMResolvers = function (app: App) {
                 const pathToTage = 'verificationCode.response.edge.tage'
                 if (has(app.root?.[pageName], pathToTage)) {
                   app.updateRoot(`${pageName}.${pathToTage}`, value)
-                  console.log(`Updated: SettingsUpdate.${pathToTage}`)
                 }
               }
             }
             if (!iteratorVar) {
               u.array(asHtmlElement(findByDataKey(dataKey)))?.forEach(
                 (node) => {
-                  // Since select elements have options as children, we should not
-                  // edit by innerHTML or we would have to unnecessarily re-render the nodes
+                  // Since select elements have options as children, we should not edit by innerHTML or we would have to unnecessarily re-render the nodes
                   if (node && node.tagName !== 'SELECT') {
                     if (isTextFieldLike(node)) node.dataset.value = value
                     else node.innerHTML = `${value || ''}`
@@ -299,28 +296,30 @@ const createExtendedDOMResolvers = function (app: App) {
                   }
                   let defaultData = dataValue.chartData
                   if (u.isArr(defaultData)) {
-                    
                     defaultData.forEach((element) => {
-                      let duration = element.etime-element.stime
-                      if(duration/60<=15){
+                      let duration = element.etime - element.stime
+                      if (duration / 60 <= 15) {
                         // display min: 15min
                         element.etime = element.stime + 900
                       }
                       element.start = new Date(element.stime * 1000)
                       element.end = new Date(element.etime * 1000)
-                      element.timeLength = duration/60
+                      element.timeLength = duration / 60
                       element.title = element.patientName
                       element.name = element.visitReason
-                      if(((element.subtype&0xf0000)>>16) % 2 === 0){
-                        element.eventColor = "#FDE7C0"
-                        element.textColor = "#EB9C0C"
-                      }else if(((element.subtype&0xf0000)>>16) % 2 === 1){
-                        element.eventColor = "#DDEFC8"
-                        element.textColor = "#2FB355"
+                      if (((element.subtype & 0xf0000) >> 16) % 2 === 0) {
+                        element.eventColor = '#FDE7C0'
+                        element.textColor = '#EB9C0C'
+                      } else if (
+                        ((element.subtype & 0xf0000) >> 16) % 2 ===
+                        1
+                      ) {
+                        element.eventColor = '#DDEFC8'
+                        element.textColor = '#2FB355'
                       }
                       element.backgroundColor = element.eventColor
-                      
-                      element.borderColor  = element.eventColor
+
+                      element.borderColor = element.eventColor
                       delete element.stime
                       delete element.etime
                       delete element.visitReason
@@ -358,7 +357,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
-                    viewDidMount(mountArg) { },
+                    viewDidMount(mountArg) {},
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -386,7 +385,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             new Date(
                               info.event._instance.range.start,
                             ).getTime() +
-                            new Date().getTimezoneOffset() * 60 * 1000,
+                              new Date().getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '</div>\
@@ -412,12 +411,16 @@ const createExtendedDOMResolvers = function (app: App) {
                         dataValue.response = event.event._def.publicId
                       }
                     },
-                  });
-                  calendar.render();
+                  })
+                  calendar.render()
                   // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
                   window.setTimeout(() => {
-                    (document.querySelectorAll("tbody .fc-timegrid-now-indicator-line")[0] as HTMLDivElement).scrollIntoView({behavior: "smooth"});
-                    }, 0);
+                    ;(
+                      document.querySelectorAll(
+                        'tbody .fc-timegrid-now-indicator-line',
+                      )[0] as HTMLDivElement
+                    ).scrollIntoView({ behavior: 'smooth' })
+                  }, 0)
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
                   Object.defineProperty(calendar.el.style, 'display', {
@@ -455,12 +458,12 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] data-value': {
       cond: ({ node }) => isTextFieldLike(node),
       before({ node, component }) {
-        ; (node as HTMLInputElement).value = component.get('data-value') || ''
+        ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
           if ((node as HTMLSelectElement).length) {
             // Put the default value to the first option in the list
-            ; (node as HTMLSelectElement)['selectedIndex'] = 0
+            ;(node as HTMLSelectElement)['selectedIndex'] = 0
           }
         }
       },
@@ -558,16 +561,29 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] dbEvents': {
       cond: ({ component }) => component.has('dbEvents'),
       resolve({ node, component }) {
-        if (component?.blueprint?.dbEvents && component?.blueprint?.dbEvents === "pare") {
-          node?.addEventListener("touchstart", (e) => {
-            e.preventDefault();
-          }, false);
+        if (
+          component?.blueprint?.dbEvents &&
+          component?.blueprint?.dbEvents === 'pare'
+        ) {
+          node?.addEventListener(
+            'touchstart',
+            (e) => {
+              e.preventDefault()
+            },
+            false,
+          )
         }
-        if(component?.blueprint?.dbEvents && component?.blueprint?.dbEvents === "child"){
-          node?.addEventListener("touchstart", (e) => {
-            e.stopPropagation();
-          }, false);
-
+        if (
+          component?.blueprint?.dbEvents &&
+          component?.blueprint?.dbEvents === 'child'
+        ) {
+          node?.addEventListener(
+            'touchstart',
+            (e) => {
+              e.stopPropagation()
+            },
+            false,
+          )
         }
       },
     },
@@ -581,7 +597,7 @@ const createExtendedDOMResolvers = function (app: App) {
             text = JSON.stringify(dataValue)
           }
 
-          let opts:any = {
+          let opts: any = {
             errorCorrectionLevel: 'H',
             type: 'svg',
             quality: 0.3,
@@ -595,7 +611,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           QRCode.toDataURL(text, opts, function (err, url) {
             // if (err) throw err
-            (node as HTMLImageElement).src = url
+            ;(node as HTMLImageElement).src = url
           })
         }
       },
@@ -604,38 +620,37 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'label',
       resolve({ node, component }) {
         if (component.has('highlightKey') && component.has('highlightStyle')) {
-
           function heightLight(string, keyword) {
-              let reg = new RegExp(keyword, "gi")
-              string = string.replace(reg, function(txt){
-                  return `<span class="highlight">${txt}</span>`
-              })
-              return string
+            let reg = new RegExp(keyword, 'gi')
+            string = string.replace(reg, function (txt) {
+              return `<span class="highlight">${txt}</span>`
+            })
+            return string
           }
 
           const highlightKey = component.get('highlightKey')
           const pageName = app.currentPage
           const localhighlightValue = get(app.root[pageName], highlightKey)
           const remotehighlightValue = get(app.root, highlightKey)
-          const highlightValue = localhighlightValue ? localhighlightValue : remotehighlightValue
+          const highlightValue = localhighlightValue
+            ? localhighlightValue
+            : remotehighlightValue
 
           const highlightStyle = component.get('highlightStyle')
 
           let originalValue = node.innerHTML
 
-          node.innerHTML = ""
-          node.innerHTML = heightLight(originalValue,highlightValue)
+          node.innerHTML = ''
+          node.innerHTML = heightLight(originalValue, highlightValue)
 
           let currentSpans = node.getElementsByClassName('highlight')
           // let domObj:any = document.getElementsByClassName('highlight')
-          for(let i=0;i<currentSpans.length;i++){
+          for (let i = 0; i < currentSpans.length; i++) {
             let currentSpan = currentSpans[i] as HTMLElement
             u.eachEntries(highlightStyle, (key: any, value) => {
               currentSpan.style[key] = value
             })
           }
-
-
         }
       },
     },
@@ -835,8 +850,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -867,22 +882,22 @@ const createExtendedDOMResolvers = function (app: App) {
             if (flag) {
               let featuresData: any[] = []
               dataValue.data.forEach((element: any) => {
-                var str = "";
-                var showName = ""
-                var specialityArr = element.information.speciality;
-                var Name = element.information.name;
+                var str = ''
+                var showName = ''
+                var specialityArr = element.information.speciality
+                var Name = element.information.name
                 if (specialityArr) {
                   for (var i = 0; i < specialityArr.length; i++) {
-                    str += specialityArr[i] + ", ";
+                    str += specialityArr[i] + ', '
                   }
                   if (str.length > 0) {
-                    str = str.substr(0, str.length - 2);
+                    str = str.substr(0, str.length - 2)
                   }
                 } else {
-                  str = "No Speciality"
+                  str = 'No Speciality'
                 }
-                if (Name == "undefined undefined") {
-                  showName = "No Name"
+                if (Name == 'undefined undefined') {
+                  showName = 'No Name'
                 } else {
                   showName = Name
                 }
@@ -1017,14 +1032,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     .setLngLat(coordinates)
                     .setHTML(
                       '<span style="font-size: 1vh;">' +
-                      Name +
-                      ' </span><br> <span style="font-size: 1vh;">' +
-                      Speciality +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      phoneNumber +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      address +
-                      '</span>',
+                        Name +
+                        ' </span><br> <span style="font-size: 1vh;">' +
+                        Speciality +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        phoneNumber +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        address +
+                        '</span>',
                     )
                     .addTo(map)
                 })
@@ -1055,8 +1070,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -1141,7 +1156,7 @@ const createExtendedDOMResolvers = function (app: App) {
               log.func('[App] onMeetingComponent')
               log.red(
                 `Attempted to add an element to a subStream but it ` +
-                `already exists in the subStreams container`,
+                  `already exists in the subStreams container`,
                 app.subStreams.snapshot(),
               )
             }
@@ -1149,7 +1164,7 @@ const createExtendedDOMResolvers = function (app: App) {
             log.func('[App] onMeetingComponent')
             log.red(
               `Attempted to create "subStreams" but a container (DOM element) ` +
-              `was not available`,
+                `was not available`,
               { node, component, ...app.streams.snapshot() },
             )
           }

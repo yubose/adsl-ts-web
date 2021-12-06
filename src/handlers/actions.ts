@@ -136,7 +136,6 @@ const createActions = function createActions(app: App) {
         const result = await object()
         if (result) {
           const { ref: actionChain } = options
-
           if (u.isObj(result)) {
             getActionObjectErrors(result).forEach((errMsg: string) =>
               log.red(errMsg, result),
