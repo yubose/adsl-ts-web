@@ -1235,8 +1235,8 @@ const createExtendedDOMResolvers = function (app: App) {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
             setTimeout(() => {
               const assetsUrl = app.nui.getAssetsUrl() || ''
-              const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
-              const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
+              const eyeOpened = assetsUrl + 'makePasswordVisiableEye.svg'
+              const eyeClosed = assetsUrl + 'makePasswordInvisibleEye.svg'
               const originalParent = node?.parentNode as HTMLDivElement
               const newParent = document.createElement('div')
               const eyeContainer = document.createElement('button')
@@ -1255,6 +1255,7 @@ const createExtendedDOMResolvers = function (app: App) {
               newParent.style.display = 'flex'
               newParent.style.alignItems = 'center'
               newParent.style.background = 'none'
+              // newParent.style.borderBottom = '1px solid #767676'
 
               node && (node.style.width = '100%')
               node && (node.style.height = '100%')
@@ -1262,13 +1263,19 @@ const createExtendedDOMResolvers = function (app: App) {
               eyeContainer.style.top = '0px'
               eyeContainer.style.bottom = '0px'
               eyeContainer.style.right = '6px'
-              eyeContainer.style.width = '42px'
               eyeContainer.style.background = 'none'
               eyeContainer.style.border = '0px'
+              eyeContainer.style.display = 'flex'
+              eyeContainer.style.alignItems = 'center'
               eyeContainer.style.outline = 'none'
+              eyeContainer.style.marginLeft = '2vw'
+              eyeContainer.style.marginRight = '4vw'
 
-              eyeIcon.style.width = '100%'
-              eyeIcon.style.height = '100%'
+              
+              // eyeIcon.style.width = '100%'
+              // eyeIcon.style.height = '100%'
+              eyeIcon.style.width = "6vw"
+              eyeIcon.style.height = "100%"
               eyeIcon.style.userSelect = 'none'
 
               eyeIcon.setAttribute('src', eyeClosed)
@@ -1287,6 +1294,7 @@ const createExtendedDOMResolvers = function (app: App) {
               originalParent?.appendChild(newParent)
               eyeContainer.appendChild(eyeIcon)
               newParent.appendChild(node)
+              // node.appendChild(eyeContainer);
               newParent.appendChild(eyeContainer)
 
               let selected = true
