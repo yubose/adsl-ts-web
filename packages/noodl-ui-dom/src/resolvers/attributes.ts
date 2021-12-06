@@ -39,6 +39,14 @@ function attachUserEvents<N extends t.NDOMElement>(
   component: NuiComponent.Instance,
 ) {
   userEvent.forEach((eventType: string) => {
+    /**
+     * TODO - Don't include DOM events in this loop. Instead, the user can register them via noodl-ui-dom resolve API
+     * - onBlur
+     * - onChange
+     * - onInput
+     */
+
+    if (eventType === 'onChange') return
     if (u.isFnc(component.get?.(eventType)?.execute)) {
       /**
        * Putting a setTimeout here helps to avoid the race condition in
@@ -46,7 +54,7 @@ function attachUserEvents<N extends t.NDOMElement>(
        * root object gets their data values updated.
        */
       node.addEventListener(normalizeEventName(eventType), (...args) =>
-        setTimeout(() => component.get(eventType)?.execute?.(...args)),
+        setTimeout(() => component.get?.(eventType)?.execute?.(...args)),
       )
     }
   })
