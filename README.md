@@ -269,3 +269,15 @@ when we do cd and send api to backend, by this time all our bit is 0 (everything
 
 - Fixed a hidden issue in sdk where a doc is erased when merging a list of docs
 - Fixed empty configUrl after logging out
+
+## onChange call flow
+
+1. should go through the handler created on `.addEventListener` from `noodl-ui-dom` first to update any data values accordingly
+2. should then go to the handler created on `noodl-ui`
+3. should call the `onChange` noodl function inside this call
+4. should then end up back to the caller from `noodl-ui`
+
+## 12/06/21
+
+- Fixed evalObject firing twice (API change for DOM addEventListener)
+- Fixed error for accessing reference strings for styles

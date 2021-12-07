@@ -38,6 +38,15 @@ type ToolbarInput = any
 const log = Logger.create('dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
+  /**
+   * Creates an onChange function which should be used as a handler on the
+   * addEventListener of a DOM element. This is the first thing that happens
+   * when the entire process is called, so updating DOM values happens here.
+   * Calls from the SDK/noodl will be invoked at the end of this function call
+   *
+   * @param args
+   * @returns onChange function
+   */
   const getOnChange = function _getOnChangeFn(args: {
     component: NuiComponent.Instance
     dataKey: string
@@ -83,22 +92,14 @@ const createExtendedDOMResolvers = function (app: App) {
             if (!has(draft?.[pageName], dataKey)) {
               const paths = dataKey.split('.')
               const property = paths.length ? paths[paths.length - 1] : ''
-              log.orange(
-                `Warning: The${
-                  property ? ` property "${property}" in the` : ''
-                } ` +
-                  `dataKey path "${dataKey}" did not exist in the local root object ` +
-                  `If this is intended then ignore this message.`,
-                {
-                  component,
-                  dataKey,
-                  node,
-                  pageName,
-                  pageObject: app.root[pageName],
-                  value,
-                  currentDraft: draft,
-                },
-              )
+
+              let warningMsg = 'Warning: The'
+              warningMsg += property ? ` property "${property}" in the ` : ' '
+              warningMsg += `dataKey path "${dataKey}" did not exist `
+              warningMsg += `in the local root object. `
+              warningMsg += `If this is intended then ignore this message.`
+
+              log.orange(warningMsg, { component, dataKey, pageName, value })
             }
             set(draft?.[pageName], dataKey, value)
             component.edit('data-value', value)
@@ -113,6 +114,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 }
               }
             }
+
             if (!iteratorVar) {
               u.array(asHtmlElement(findByDataKey(dataKey)))?.forEach(
                 (node) => {
@@ -1271,11 +1273,10 @@ const createExtendedDOMResolvers = function (app: App) {
               eyeContainer.style.marginLeft = '2vw'
               eyeContainer.style.marginRight = '4vw'
 
-              
               // eyeIcon.style.width = '100%'
               // eyeIcon.style.height = '100%'
-              eyeIcon.style.width = "6vw"
-              eyeIcon.style.height = "100%"
+              eyeIcon.style.width = '6vw'
+              eyeIcon.style.height = '100%'
               eyeIcon.style.userSelect = 'none'
 
               eyeIcon.setAttribute('src', eyeClosed)

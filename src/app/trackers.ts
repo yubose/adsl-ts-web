@@ -1,6 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import formatDate from 'date-fns/format'
-import subMs from 'date-fns/subMilliseconds'
+import cloneDeep from 'lodash/cloneDeep'
 import Logger from 'logsnap'
 import { Identify, ReferenceString } from 'noodl-types'
 import { trimReference } from 'noodl-utils'

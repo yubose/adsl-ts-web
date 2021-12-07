@@ -213,7 +213,7 @@ function normalizeProps<
             value.verticalAlign = 'top'
           }
 
-          if(verticalAlign){
+          if (verticalAlign) {
             value.verticalAlign = verticalAlign
           }
 
@@ -517,17 +517,16 @@ function normalizeProps<
                       ),
                     )
                   }
-                }else {
+                } else {
                   value[styleKey] = com.formatColor(styleValue)
-                  
-                  styleKey == 'pointerEvents' && styleValue != 'none' &&(
-                    delete value['pointerEvents']
-                  )
-                  styleKey == 'isHidden' && nt.Identify.isBooleanTrue(styleValue) &&(
-                    props.style.visibility = 'hidden'
-                  )
-                }
 
+                  styleKey == 'pointerEvents' &&
+                    styleValue != 'none' &&
+                    delete value['pointerEvents']
+                  styleKey == 'isHidden' &&
+                    nt.Identify.isBooleanTrue(styleValue) &&
+                    (props.style.visibility = 'hidden')
+                }
               }
 
               // TODO - Find out how to resolve the issue of "value" being undefined without this string check when we already checked above this
@@ -598,18 +597,26 @@ function normalizeProps<
     if (nt.Identify.component.header(blueprint)) {
       props.style.zIndex = 100
     } else if (nt.Identify.component.image(blueprint)) {
-      // Remove the height to maintain the aspect ratio since images are
-      // assumed to have an object-fit of 'contain'
-      if (!('height' in (blueprint.style || {}))) delete props.style.height
-      // Remove the width to maintain the aspect ratio since images are
-      // assumed to have an object-fit of 'contain'
-      if (!('width' in (blueprint.style || {}))) delete props.style.width
-      if (!('objectFit' in (blueprint.style || {}))) {
-        props.style.objectFit = 'contain'
+      if (u.isObj(blueprint.style)) {
+        // Remove the height to maintain the aspect ratio since images are
+        // assumed to have an object-fit of 'contain'
+        if (!('height' in (blueprint.style || {}))) delete props.style.height
+        // Remove the width to maintain the aspect ratio since images are
+        // assumed to have an object-fit of 'contain'
+        if (!('width' in (blueprint.style || {}))) delete props.style.width
+        if (!('objectFit' in (blueprint.style || {}))) {
+          props.style.objectFit = 'contain'
+        }
       }
-    } else if (nt.Identify.component.listLike(blueprint) && props.style.display !== 'none') {
+    } else if (
+      nt.Identify.component.listLike(blueprint) &&
+      props.style.display !== 'none'
+    ) {
       props.style.display =
-      (blueprint.style?.axis === 'horizontal' || blueprint.style?.axis === 'vertical') ? 'flex' : 'block'
+        blueprint.style?.axis === 'horizontal' ||
+        blueprint.style?.axis === 'vertical'
+          ? 'flex'
+          : 'block'
       props.style.listStyle = 'none'
       props.style.padding = '0px'
     } else if (nt.Identify.component.listItem(blueprint)) {
@@ -620,7 +627,10 @@ function normalizeProps<
       props.style.padding = 0
     } else if (nt.Identify.component.popUp(blueprint)) {
       props.style.visibility = 'hidden'
-    } else if (nt.Identify.component.scrollView(blueprint) && props.style.display !== 'none') {
+    } else if (
+      nt.Identify.component.scrollView(blueprint) &&
+      props.style.display !== 'none'
+    ) {
       props.style.display = 'block'
     } else if (nt.Identify.component.textView(blueprint)) {
       props.style.rows = 10
