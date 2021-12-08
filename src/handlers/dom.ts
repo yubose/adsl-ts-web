@@ -587,6 +587,19 @@ const createExtendedDOMResolvers = function (app: App) {
             false,
           )
         }
+
+        if (
+          component?.blueprint?.dbEvents &&
+          component?.blueprint?.dbEvents === 'pointer-events'
+        ) {
+          node?.addEventListener(
+            'click',
+            (e) => {
+              node.style.pointerEvents = 'none'
+            },
+            false,
+          )
+        }
       },
     },
     '[App] QRCode': {

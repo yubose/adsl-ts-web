@@ -28,14 +28,7 @@ const componentsResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] components`,
   async before(args) {
     try {
-      // Prevents continuous clicks
-      ;(args.node as HTMLElement).addEventListener('click', () => {
-        ;(args.node as HTMLElement).style.pointerEvents = 'none'
-        setTimeout(() => {
-          ;(args.node as HTMLElement).style.pointerEvents = ''
-        }, 400)
-      })
-
+      
       if (
         Identify.component.page(args.component) &&
         args.component.get('page')
