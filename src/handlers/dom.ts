@@ -1256,6 +1256,7 @@ const createExtendedDOMResolvers = function (app: App) {
               const newParent = document.createElement('div')
               const eyeContainer = document.createElement('button')
               const eyeIcon = document.createElement('img')
+              // const eyeIcon = originalParent.getElementsByTagName("img")[0] as HTMLImageElement||document.createElement('img')
 
               // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
               // prettier-ignore
@@ -1288,7 +1289,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
               // eyeIcon.style.width = '100%'
               // eyeIcon.style.height = '100%'
-              eyeIcon.style.width = '25px'
+              eyeIcon.style.width = '18px'
               eyeIcon.style.height = '100%'
               eyeIcon.style.userSelect = 'none'
 
@@ -1309,6 +1310,7 @@ const createExtendedDOMResolvers = function (app: App) {
               eyeContainer.appendChild(eyeIcon)
               newParent.appendChild(node)
               // node.appendChild(eyeContainer);
+              // newParent.appendChild(img)
               newParent.appendChild(eyeContainer)
 
               let selected = true
