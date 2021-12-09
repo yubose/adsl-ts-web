@@ -1269,7 +1269,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
               newParent.style.display = 'flex'
               newParent.style.alignItems = 'center'
-              newParent.style.background = 'none'
+              // newParent.style.background = 'none'
               // newParent.style.borderBottom = '1px solid #767676'
 
               node && (node.style.width = '100%')
@@ -1283,12 +1283,12 @@ const createExtendedDOMResolvers = function (app: App) {
               eyeContainer.style.display = 'flex'
               eyeContainer.style.alignItems = 'center'
               eyeContainer.style.outline = 'none'
-              eyeContainer.style.marginLeft = '2vw'
-              eyeContainer.style.marginRight = '4vw'
+              eyeContainer.style.marginLeft = '8px'
+              eyeContainer.style.marginRight = '16px'
 
               // eyeIcon.style.width = '100%'
               // eyeIcon.style.height = '100%'
-              eyeIcon.style.width = '6vw'
+              eyeIcon.style.width = '25px'
               eyeIcon.style.height = '100%'
               eyeIcon.style.userSelect = 'none'
 
