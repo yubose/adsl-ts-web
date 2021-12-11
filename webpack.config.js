@@ -1,17 +1,3 @@
-// import * as u from '@jsmanifest/utils'
-// import fs from 'fs-extra'
-// import path from 'path'
-// import webpack from 'webpack'
-// import SingleLineLog from 'single-line-log'
-// import CircularDependencyPlugin from 'circular-dependency-plugin'
-// import CopyPlugin from 'copy-webpack-plugin'
-// import HtmlWebpackPlugin from 'html-webpack-plugin'
-// import HtmlWebpackHarddiskPlugin from 'html-webpack-harddisk-plugin'
-// import InjectBodyWebpackPlugin from 'inject-body-webpack-plugin'
-// import { InjectScriptsPlugin } from './scripts/InjectScriptsPlugin.js'
-
-// const { default: InjectBodyPlugin } = InjectBodyWebpackPlugin
-
 const u = require('@jsmanifest/utils')
 const path = require('path')
 const fs = require('fs-extra')
@@ -24,12 +10,15 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
+const TITLE = 'AiTmed: Start your E-health Journal Anywhere, Anytime'
+const DESCRIPTION = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
+const KEYWORDS = ['aitmed', 'telemedicine', 'blockchain', 'noodl']
+const FAVICON = 'public/favicon.ico'
+
 const pkg = fs.readJsonSync('./package.json')
 const nuiPkg = fs.readJsonSync('./packages/noodl-ui/package.json')
 const ndomPkg = fs.readJsonSync('./packages/noodl-ui-dom/package.json')
 const ntypesPkg = fs.readJsonSync('./packages/noodl-types/package.json')
-
-// const singleLog = SingleLineLog.stdout
 
 const pkgJson = {
   root: pkg,
@@ -39,18 +28,20 @@ const pkgJson = {
 }
 
 const version = {
-  noodlSdk: pkgJson.root.devDependencies['@aitmed/cadl'],
-  ecosSdk: pkgJson.root.devDependencies['@aitmed/ecos-lvl2-sdk'],
+  noodlSdk:
+    pkgJson.root.dependencies['@aitmed/cadl'] ||
+    pkgJson.root.devDependencies['@aitmed/cadl'],
+  ecosSdk:
+    pkgJson.root.dependencies['@aitmed/ecos-lvl2-sdk'] ||
+    pkgJson.root.devDependencies['@aitmed/ecos-lvl2-sdk'],
   nui: pkgJson.nui.version,
   ndom: pkgJson.ndom.version,
   nutil: pkgJson.root.devDependencies['noodl-utils'],
   nTypes: pkgJson.nTypes.version,
 }
 
-const favicon = 'public/favicon.ico'
 const filename = 'index.html'
 const publicPath = path.join(process.cwd(), 'public')
-const title = 'AiTmed: Start your E-health Journal Anywhere, Anytime'
 const productionOptions = {}
 const mode =
   process.env.NODE_ENV !== 'production' ? 'development' : 'production'
@@ -103,8 +94,10 @@ const devServerOptions = {
     'localhost',
     '127.0.0.1',
     '127.0.0.1:3000',
+    '127.0.0.1:4000',
     'https://127.0.0.1',
     'https://127.0.0.1:3000',
+    'https://127.0.0.1:4000',
     'aitmed.com',
     'aitmed.io',
   ],
@@ -212,16 +205,16 @@ module.exports = {
     new HtmlWebpackPlugin({
       alwaysWriteToDisk: true,
       filename,
-      title,
-      favicon,
+      title: TITLE,
+      favicon: FAVICON,
       cache: false,
       scriptLoading: 'defer',
       minify: true,
       //Austin Yu 8/5/2021 disable for stable build to use webpack generate index.html
       // ...(ecosEnv !== 'test' ? { template: 'public/index.html' } : undefined),
       meta: {
-        description: `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`,
-        keywords: 'aitmed, telemedicine, blockchain, noodl',
+        description: DESCRIPTION,
+        keywords: KEYWORDS.join(', '),
         viewport:
           'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no',
       },
@@ -285,7 +278,7 @@ ${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
 ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
 
 ${mode === 'production'
-    ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(title)}`
+    ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(TITLE)}`
     : ''
 }\n\n`)
 }

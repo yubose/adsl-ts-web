@@ -945,21 +945,23 @@ const NUI = (function () {
             return async function executeActionChain(event?: Event) {
               let results = [] as (Error | any)[]
               if (fns.length) {
-                const callbacks = fns.map(
-                  async (obj: t.Store.ActionObject | t.Store.BuiltInObject) =>
-                    obj.fn?.(action as any, {
-                      ...options,
-                      component: opts?.component,
-                      event,
-                      ref: actionChain,
-                    }),
-                )
                 results = await promiseAllSafely(
-                  callbacks,
+                  fns.map(
+                    async (
+                      obj: t.Store.ActionObject | t.Store.BuiltInObject,
+                    ) => {
+                      return obj.fn?.(action as any, {
+                        ...options,
+                        component: opts?.component,
+                        event,
+                        ref: actionChain,
+                      })
+                    },
+                  ),
                   (err, result) => err || result,
                 )
+                return results.length < 2 ? results[0] : results
               }
-              return results.length < 2 ? results[0] : results
             }
           }
 

@@ -2,7 +2,6 @@ import yaml from 'yaml'
 import * as u from '@jsmanifest/utils'
 import { Account, CADL } from '@aitmed/cadl'
 import Logger from 'logsnap'
-import pick from 'lodash/pick'
 import * as lib from 'noodl-ui'
 import {
   asHtmlElement,
@@ -26,6 +25,10 @@ import {
 import { findReferences } from 'noodl-utils'
 import { copyToClipboard, exportToPDF, getVcodeElem, toast } from './utils/dom'
 import { isChrome } from './utils/common'
+import {
+  getUserProps as getUserPropsFromLocalStorage,
+  saveUserProps as saveUserPropsFromLocalStorage,
+} from './utils/localStorage'
 import AppNotification from './app/Notifications'
 import App from './App'
 import 'vercel-toast/dist/vercel-toast.css'
@@ -42,31 +45,30 @@ export async function getWindowHelpers() {
   const { default: Lvl2 } = await import('@aitmed/ecos-lvl2-sdk')
   const lvl2sdk = new Lvl2({ env: 'development', configUrl: '' })
 
-  return u.assign(
-    {
-      lvl2: lvl2sdk.utilServices,
-      exportToPDF,
-      findByDataAttrib,
-      findByDataKey,
-      findByElementId,
-      findByGlobalId,
-      findByPlaceholder,
-      findBySelector,
-      findBySrc,
-      findByViewTag,
-      findByUX,
-      findReferences,
-      findWindow,
-      findWindowDocument,
-      findFirstByClassName,
-      findFirstByDataKey,
-      findFirstByElementId,
-      findFirstByViewTag,
-      getVcodeElem,
-      toast,
-    },
-    pick(lib, ['getDataValues', 'publish']),
-  )
+  return u.assign({
+    lvl2: lvl2sdk.utilServices,
+    exportToPDF,
+    findByDataAttrib,
+    findByDataKey,
+    findByElementId,
+    findByGlobalId,
+    findByPlaceholder,
+    findBySelector,
+    findBySrc,
+    findByViewTag,
+    findByUX,
+    findReferences,
+    findWindow,
+    findWindowDocument,
+    findFirstByClassName,
+    findFirstByDataKey,
+    findFirstByElementId,
+    findFirstByViewTag,
+    getVcodeElem,
+    getUserPropsFromLocalStorage,
+    saveUserPropsFromLocalStorage,
+    toast,
+  })
 }
 
 let app: App

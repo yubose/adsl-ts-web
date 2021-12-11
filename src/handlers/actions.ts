@@ -133,75 +133,99 @@ const createActions = function createActions(app: App) {
         | ((...args: any[]) => any)
 
       if (u.isFnc(object)) {
+        const strategies = [] as {
+          type: 'abort-true' | 'abort-wait'
+          object?: any
+        }[]
         const result = await object()
         if (result) {
           const { ref: actionChain } = options
-          if (u.isObj(result)) {
-            getActionObjectErrors(result).forEach((errMsg: string) =>
-              log.red(errMsg, result),
-            )
-            if (result.abort) {
-              log.grey(
-                `An evalObject returned an object with abort: true. The action chain ` +
-                  `will no longer proceed`,
-                { actionChain, injectedObject: result },
-              )
-              if (actionChain) {
-                // There is a bug with global popups not being able to be visible because of this abort block.
-                // For now until a better solution is implemented we can do a check here
-                for (const action of actionChain.queue) {
-                  const popUpView = _pick(action, 'popUpView')
-                  if (popUpView) {
-                    if (app.ndom.global.components.has(popUpView)) {
-                      log.salmon(
-                        `An "abort: true" was injected from evalObject but a global component ` +
-                          `with popUpView "${popUpView}" was found. These popUp actions will ` +
-                          `still be called to ensure the behavior persists for global popUps`,
-                        {
-                          globalObject:
-                            app.ndom.global.components.get(popUpView),
-                        },
-                      )
-                      await action?.execute()
-                    }
-                  }
-                }
-                await actionChain.abort(
-                  `An evalObject is requesting to abort using the "abort" key`,
-                )
-              }
-            } else {
-              const isPossiblyAction = 'actionType' in result
-              const isPossiblyToastMsg = 'message' in result
-              const isPossiblyGoto = 'goto' in result || 'destination' in result
+          const results = u.array(result)
 
-              if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
-                if (isPossiblyGoto) {
-                  const destination = result.goto || result.destination || ''
-                  const pageComponentParent = findParent(
-                    options?.component,
-                    Identify.component.page,
-                  )
-                  if (pageComponentParent && pageComponentParent.get('page')) {
-                    const ndomPage = app.ndom.findPage(pageComponentParent)
-                    if (ndomPage && ndomPage.requesting !== destination) {
-                      ndomPage.requesting = destination
-                    }
-                  }
-                }
+          while (results.length) {
+            let result = results.shift()
+
+            if (u.isArr(result)) {
+              results.push(...result)
+              result = results.shift()
+            }
+
+            if (u.isObj(result)) {
+              getActionObjectErrors(result).forEach((errMsg: string) =>
+                log.red(errMsg, result),
+              )
+
+              if (result.abort) {
+                strategies.push({ type: 'abort-true', object: result })
 
                 log.grey(
-                  `An evalObject action is injecting a new object to the chain`,
-                  {
-                    actionChain,
-                    instance: actionChain?.inject.call(
-                      actionChain,
-                      result as any,
-                    ),
-                    object: result,
-                    queue: actionChain?.queue.slice(),
-                  },
+                  `An evalObject returned an object with abort: true. The action chain ` +
+                    `will no longer proceed`,
+                  { actionChain, injectedObject: result },
                 )
+                if (actionChain) {
+                  // There is a bug with global popups not being able to be visible because of this abort block.
+                  // For now until a better solution is implemented we can do a check here
+                  for (const action of actionChain.queue) {
+                    const popUpView = _pick(action, 'popUpView')
+                    if (popUpView) {
+                      if (app.ndom.global.components.has(popUpView)) {
+                        log.salmon(
+                          `An "abort: true" was injected from evalObject but a global component ` +
+                            `with popUpView "${popUpView}" was found. These popUp actions will ` +
+                            `still be called to ensure the behavior persists for global popUps`,
+                          {
+                            globalObject:
+                              app.ndom.global.components.get(popUpView),
+                          },
+                        )
+                        await action?.execute()
+                      }
+                    }
+                  }
+                  if (!actionChain.isAborted()) {
+                    await actionChain.abort(
+                      `An evalObject is requesting to abort using the "abort" key`,
+                    )
+                  }
+                }
+              } else {
+                const isPossiblyAction = 'actionType' in result
+                const isPossiblyToastMsg = 'message' in result
+                const isPossiblyGoto =
+                  'goto' in result || 'destination' in result
+
+                if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
+                  if (isPossiblyGoto) {
+                    const destination = result.goto || result.destination || ''
+                    const pageComponentParent = findParent(
+                      options?.component,
+                      Identify.component.page,
+                    )
+                    if (
+                      pageComponentParent &&
+                      pageComponentParent.get('page')
+                    ) {
+                      const ndomPage = app.ndom.findPage(pageComponentParent)
+                      if (ndomPage && ndomPage.requesting !== destination) {
+                        ndomPage.requesting = destination
+                      }
+                    }
+                  }
+
+                  log.grey(
+                    `An evalObject action is injecting a new object to the chain`,
+                    {
+                      actionChain,
+                      instance: actionChain?.inject.call(
+                        actionChain,
+                        result as any,
+                      ),
+                      object: result,
+                      queue: actionChain?.queue.slice(),
+                    },
+                  )
+                }
               }
             }
           }
