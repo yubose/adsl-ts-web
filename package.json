@@ -50,7 +50,7 @@
     "updatenoodl": "node scripts/update.js -u noodl -d"
   },
   "dependencies": {
-    "@aitmed/cadl": "^1.0.477",
+    "@aitmed/cadl": "^1.0.478",
     "axios": "^0.21.1",
     "date-fns": "^2.21.2",
     "firebase": "^8.7.0",
