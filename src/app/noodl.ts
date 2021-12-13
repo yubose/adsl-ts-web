@@ -2,8 +2,12 @@ import { CADL as NOODL } from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
 
+// console.log({ configKey: process.env.CONFIG_KEY })
+// console.log({ configKey: process.env.CONFIG_KEY })
+// console.log({ configKey: process.env.CONFIG_KEY })
+
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'testpage'
+export const CONFIG_KEY = 'admind2'
 // const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
