@@ -31,10 +31,10 @@ import {
 } from './utils/localStorage'
 import AppNotification from './app/Notifications'
 import App from './App'
+import isLandingPage from './utils/isLandingPage'
 import 'vercel-toast/dist/vercel-toast.css'
 import './spinner/three-dots.css'
 import './styles.css'
-import { NuiComponent } from 'noodl-ui'
 
 const log = Logger.create('App.ts')
 
@@ -130,6 +130,16 @@ async function initializeNoodlPluginRefresher() {
 
 window.addEventListener('load', async (e) => {
   try {
+    if (isLandingPage()) {
+      const isIO = window.location.hostname.endsWith('.io')
+      // For now we are temporarily redirecting them to the self scheduling link
+      return window.location.replace(
+        `https://search.aitmed.${
+          isIO ? 'io' : 'com'
+        }/index.html?FacilityDetailLink&id=ACUrgentcare`,
+      )
+    }
+
     window.build = process.env.BUILD
     window.ac = []
     log.func('onload')
