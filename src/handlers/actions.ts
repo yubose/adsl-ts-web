@@ -851,17 +851,11 @@ const createActions = function createActions(app: App) {
           }
         }
 
-        if (dataObject) {
-          const params = { dataKey, dataObject }
-          log.func('updateObject')
-          log.grey(`Calling updateObject`, { params })
-          await app.noodl.updateObject(params)
-        } else {
-          log.red(`Invalid/empty dataObject`, {
-            action: action?.snapshot?.(),
-            dataObject,
-          })
-        }
+
+        const params = { dataKey, dataObject }
+        log.func('updateObject')
+        log.grey(`Calling updateObject`, { params })
+        await app.noodl.updateObject(params)
       }
     } catch (error) {
       console.error(error)
