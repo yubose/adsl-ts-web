@@ -34,6 +34,7 @@ import App from './App'
 import 'vercel-toast/dist/vercel-toast.css'
 import './spinner/three-dots.css'
 import './styles.css'
+import { NuiComponent } from 'noodl-ui'
 
 const log = Logger.create('App.ts')
 
@@ -285,6 +286,20 @@ function attachDebugUtilsToWindow(app: App) {
         }
 
         return result
+      },
+    },
+    componentCache: {
+      value: {
+        findByComponentType: (type: string) =>
+          app.cache.component.filter((obj) => obj.component?.type === type),
+        findByPopUpView: (popUpView: string) =>
+          app.cache.component.filter(
+            (obj) => obj.component?.blueprint?.popUpView === popUpView,
+          ),
+        findByViewTag: (viewTag: string) =>
+          app.cache.component.filter(
+            (obj) => obj.component?.blueprint?.viewTag === viewTag,
+          ),
       },
     },
   })
