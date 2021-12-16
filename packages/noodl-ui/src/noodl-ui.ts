@@ -943,24 +943,29 @@ const NUI = (function () {
             options: t.ConsumerOptions,
           ) {
             return async function executeActionChain(event?: Event) {
-              let results = [] as (Error | any)[]
               if (fns.length) {
-                results = await promiseAllSafely(
-                  fns.map(
-                    async (
-                      obj: t.Store.ActionObject | t.Store.BuiltInObject,
-                    ) => {
-                      return obj.fn?.(action as any, {
-                        ...options,
-                        component: opts?.component,
-                        event,
-                        ref: actionChain,
-                      })
-                    },
-                  ),
-                  (err, result) => err || result,
-                )
-                return results.length < 2 ? results[0] : results
+                const results = [
+                  ...(
+                    await Promise.allSettled(
+                      fns.map(
+                        async (
+                          obj: t.Store.ActionObject | t.Store.BuiltInObject,
+                        ) => {
+                          const result = await obj.fn?.(action as any, {
+                            ...options,
+                            component: opts?.component,
+                            event,
+                            ref: actionChain,
+                          })
+                          return result
+                        },
+                      ),
+                    )
+                  ).values(),
+                ]
+                return results.length < 2
+                  ? results[0]?.['value']
+                  : [...results?.values()]
               }
             }
           }

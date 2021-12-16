@@ -171,7 +171,6 @@
     "ws": "^8.2.2",
     "yaml": "^2.0.0-8"
   },
-  "peerDependencies": {},
   "eslintConfig": {
     "globals": {
       "echarts": "readonly",
