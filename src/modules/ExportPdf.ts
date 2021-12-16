@@ -54,6 +54,7 @@ export const ExportPdf = (function () {
           scrollY: -window.scrollY,
           windowWidth: width,
           windowHeight: _settings.overallHeight,
+          // useCORS: true,
           onclone: (doc, el) => {
             el.scrollTo({ top: pos })
 
@@ -83,14 +84,7 @@ export const ExportPdf = (function () {
           },
         })
 
-        pdf.addImage(
-          canvas.toDataURL(),
-          'PNG',
-          0,
-          pos,
-          canvas.width,
-          canvas.height,
-        )
+        pdf.addImage(canvas, 'PNG', 0, pos, canvas.width, canvas.height)
       }
 
       return pdf

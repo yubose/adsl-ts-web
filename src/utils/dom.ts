@@ -150,8 +150,8 @@ export function exportToPDF(
           const format = [pageWidth, pageHeight]
 
           let doc = new jsPDF({
-            compress: true,
-            format,
+            compress: false,
+            format: [overallWidth, overallHeight],
             orientation,
             unit: 'px',
           })
@@ -160,14 +160,15 @@ export function exportToPDF(
           doc.deletePage(1)
 
           if (isElement(node)) {
-            await ExportPdf({
+            const exporter = ExportPdf({
               orientation,
               pageHeight,
               pageWidth,
               overallWidth,
               overallHeight,
               ...html2canvas,
-            }).create(doc, node)
+            })
+            doc = await exporter.create(doc, node)
           }
 
           node.scrollTo({ top: originalScrollPos })
@@ -223,13 +224,69 @@ export function exportToPDF(
         }
       }
 
-      const doc = u.isStr(data)
-        ? await createDocByDataURL(data)
-        : 'tagName' in data
-        ? await createDocByDOMNode(data)
-        : u.isObj(data)
-        ? await createDocByObject(data)
-        : null
+      const createDocUsingHTMLMethod = async (node: HTMLElement) => {
+        try {
+          const { width, height } = node.getBoundingClientRect()
+          const pageWidth = width
+          const pageHeight = height
+          const orientation = pageWidth > pageHeight ? 'landscape' : 'portrait'
+          const doc = new jsPDF({
+            compress: false,
+            format: [viewport.width, viewport.height],
+            orientation,
+            unit: 'px',
+          })
+          await doc.html(node, {
+            autoPaging: true,
+            image: { quality: 1, type: 'png' },
+            width: viewport.width,
+            windowWidth: viewport.width,
+            // @ts-expect-error
+            html2canvas: {
+              allowTaint: true,
+              width: viewport.width,
+              height,
+              letterRendering: true,
+              removeContainer: true,
+              svgRendering: true,
+              windowWidth: viewport.width,
+              windowHeight: height,
+              scrollX: 0,
+              taintTest: true,
+              ...html2canvas,
+            },
+          })
+          return doc
+        } catch (error) {
+          console.error(
+            error instanceof Error ? error : new Error(String(error)),
+          )
+        }
+      }
+
+      let doc: jsPDF | null = null
+
+      try {
+        doc = u.isStr(data)
+          ? await createDocByDataURL(data)
+          : 'tagName' in data
+          ? await createDocByDOMNode(data)
+          : u.isObj(data)
+          ? await createDocByObject(data)
+          : null
+      } catch (error) {
+        console.error(error)
+        if (u.isObj(data) && 'tagName' in data) {
+          console.log(
+            `[exportToPDF] Creating a PDF document failed. Retrying fallback using the HTML method...`,
+          )
+          try {
+            doc = (await createDocUsingHTMLMethod(data as HTMLElement)) || null
+          } catch (error) {
+            console.error(error)
+          }
+        }
+      }
 
       if (!doc) throw new Error(`data is not a string, DOM node or object`)
 

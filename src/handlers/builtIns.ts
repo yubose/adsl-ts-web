@@ -152,28 +152,17 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
       const viewTag = u.isObj(options) && options.viewTag
       const fileName = ecosObj.name?.title
-
       if (viewTag) {
         if (u.isStr(viewTag)) {
-          const snaps = [] as { pdf: jsPDF; canvas: HTMLCanvasElement }[]
-          const elems = findByViewTag(viewTag)
-
-          if (u.isArr(elems)) {
-            for (const node of elems) {
+          for (const elem of [...u.array(findByViewTag(viewTag))]) {
+            if (elem) {
               const pdf = await exportToPDF({
-                data: node,
+                data: elem,
                 download: true,
                 filename: fileName,
                 viewport: app.viewport,
               })
             }
-          } else if (elems) {
-            const pdf = await exportToPDF({
-              data: elems,
-              download: true,
-              filename: fileName,
-              viewport: app.viewport,
-            })
           }
         } else if (u.isObj(viewTag)) {
           // Future support
