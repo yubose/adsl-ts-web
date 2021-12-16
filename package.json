@@ -61,8 +61,7 @@
     "signature_pad": "^3.0.0-beta.4",
     "tippy.js": "^6.3.1",
     "util": "^0.12.3",
-    "vercel-toast": "^1.5.3",
-    "virtual-dom": "^2.1.1"
+    "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
     "@aitmed/cadl": "^1.0.485",
@@ -90,7 +89,6 @@
     "@types/qrcode": "^1.4.1",
     "@types/sinon": "^10.0.3",
     "@types/sinon-chai": "^3.2.5",
-    "@types/virtual-dom": "^2.1.1",
     "@types/webpack-dev-server": "^4.1.0",
     "@types/webpack-env": "^1.16.1",
     "@typescript-eslint/eslint-plugin": "^5.3.0",
@@ -148,7 +146,6 @@
     "rollup-plugin-peer-deps-external": "^2.2.2",
     "rollup-plugin-progress": "^1.1.2",
     "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-typescript2": "^0.30.0",
     "rollup-plugin-visualizer": "^5.5.2",
     "single-line-log": "^1.1.2",
     "sinon": "^10.0.0",
