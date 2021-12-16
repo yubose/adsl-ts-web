@@ -31,7 +31,6 @@ import {
 } from './utils/localStorage'
 import AppNotification from './app/Notifications'
 import App from './App'
-import isLandingPage from './utils/isLandingPage'
 import 'vercel-toast/dist/vercel-toast.css'
 import './spinner/three-dots.css'
 import './styles.css'
@@ -130,16 +129,6 @@ async function initializeNoodlPluginRefresher() {
 
 window.addEventListener('load', async (e) => {
   try {
-    if (isLandingPage()) {
-      const isIO = window.location.hostname.endsWith('.io')
-      // For now we are temporarily redirecting them to the self scheduling link
-      return window.location.replace(
-        `https://search.aitmed.${
-          isIO ? 'io' : 'com'
-        }/index.html?FacilityDetailLink&id=ACUrgentcare`,
-      )
-    }
-
     window.build = process.env.BUILD
     window.ac = []
     log.func('onload')
@@ -300,8 +289,21 @@ function attachDebugUtilsToWindow(app: App) {
     },
     componentCache: {
       value: {
+        findComponentsWithKeys: (...keys: string[]) => {
+          const regexp = new RegExp(`(${keys.join('|')})`)
+          return app.cache.component.filter((obj) =>
+            [
+              ...new Set([
+                ...u.keys(obj?.component?.blueprint || {}),
+                ...u.keys(obj?.component?.props || {}),
+              ]),
+            ].some((key) => regexp.test(key)),
+          )
+        },
         findByComponentType: (type: string) =>
           app.cache.component.filter((obj) => obj.component?.type === type),
+        findById: (id: string) =>
+          app.cache.component.filter((obj) => obj.component?.id === id),
         findByPopUpView: (popUpView: string) =>
           app.cache.component.filter(
             (obj) => obj.component?.blueprint?.popUpView === popUpView,
