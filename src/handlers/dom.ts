@@ -482,19 +482,7 @@ const createExtendedDOMResolvers = function (app: App) {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         if (dataKey) {
-          node.addEventListener(
-            'change',
-            getOnChange({
-              component,
-              dataKey,
-              evtName: 'onChange',
-              node: node as NDOMElement,
-              iteratorVar,
-              page,
-            }),
-          )
-
-          if (component?.type == 'textField') {
+          if(component?.type == 'textField' && component?.contentType == 'password'){
             node.addEventListener(
               'input',
               getOnChange({
@@ -506,6 +494,32 @@ const createExtendedDOMResolvers = function (app: App) {
                 page,
               }),
             )
+          }else{
+            node.addEventListener(
+              'change',
+              getOnChange({
+                component,
+                dataKey,
+                evtName: 'onChange',
+                node: node as NDOMElement,
+                iteratorVar,
+                page,
+              }),
+            )
+
+            if (component?.type == 'textField') {
+              node.addEventListener(
+                'input',
+                getOnChange({
+                  component,
+                  dataKey,
+                  evtName: 'onInput',
+                  node: node as NDOMElement,
+                  iteratorVar,
+                  page,
+                }),
+              )
+            }
           }
         }
 
