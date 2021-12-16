@@ -83,11 +83,6 @@ const createActions = function createActions(app: App) {
               emitParams.dataKey = dataKeyValue
             }
 
-            log.grey('Emitting', {
-              action: action?.snapshot?.(),
-              emitParams: { ...emitParams },
-            })
-
             const emitResult = u.array(
               await app.noodl.emitCall(emitParams as any),
             )

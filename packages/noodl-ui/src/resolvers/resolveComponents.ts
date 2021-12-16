@@ -87,7 +87,6 @@ componentResolver.setResolver(async (component, options, next) => {
 
     if (isListLike(component)) {
       const listItemBlueprint = getRawBlueprint(component)
-
       function getChildrenKey(component: NuiComponent.Instance) {
         return component.type === 'chatList' ? 'chatItem' : 'children'
       }
@@ -137,10 +136,7 @@ componentResolver.setResolver(async (component, options, next) => {
       // Customly create the listItem children using a dataObject as the data source
 
       let dataObjects = getListObject(options)
-      if (
-        u.isStr(dataObjects) &&
-        dataObjects.startsWith('itemObject')
-      ) {
+      if (u.isStr(dataObjects) && dataObjects.startsWith('itemObject')) {
         let dataKey: any = dataObjects.toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
         dataObjects = get(findListDataObject(component), dataKey)
