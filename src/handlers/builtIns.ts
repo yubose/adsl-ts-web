@@ -711,33 +711,56 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         })
       }
 
-      await Promise.all(
-        components.map(async function redrawComponents(_component) {
-          const _node = findFirstBySelector(`#${_component?.id}`)
-          if (!_node) {
-            log.func('redraw')
-            log.red(
-              `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
-              { component: _component, node: _node },
-            )
-          } else {
-            const ctx = {} as any
-            if (isListConsumer(_component)) {
-              const dataObject = findListDataObject(_component)
-              dataObject && (ctx.dataObject = dataObject)
-            }
-            const ndomPage = pickNDOMPageFromOptions(options)
-            const redrawed = await app.ndom.redraw(
-              _node,
-              _component,
-              ndomPage,
-              { context: ctx },
-            )
-            debugger
-            return redrawed
+      for (const _component of components) {
+        const _node = findFirstBySelector(`#${_component?.id}`)
+        if (!_node) {
+          log.func('redraw')
+          log.red(
+            `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+            { component: _component, node: _node },
+          )
+        } else {
+          const ctx = {} as any
+          if (isListConsumer(_component)) {
+            const dataObject = findListDataObject(_component)
+            dataObject && (ctx.dataObject = dataObject)
           }
-        }),
-      )
+          const ndomPage = pickNDOMPageFromOptions(options)
+          const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
+            context: ctx,
+          })
+          debugger
+          return redrawed
+        }
+      }
+
+      // await Promise.all(
+      //   components.map(async function redrawComponents(_component) {
+      //     const _node = findFirstBySelector(`#${_component?.id}`)
+      //     if (!_node) {
+      //       log.func('redraw')
+      //       log.red(
+      //         `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+      //         { component: _component, node: _node },
+      //       )
+      //     } else {
+      //       const ctx = {} as any
+      //       if (isListConsumer(_component)) {
+      //         const dataObject = findListDataObject(_component)
+      //         dataObject && (ctx.dataObject = dataObject)
+      //       }
+      //       const ndomPage = pickNDOMPageFromOptions(options)
+      //       const redrawed = await app.ndom.redraw(
+      //         _node,
+      //         _component,
+      //         ndomPage,
+      //         { context: ctx },
+      //       )
+      //       debugger
+      //       return redrawed
+      //     }
+      //   }),
+      // )
     } catch (error) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
