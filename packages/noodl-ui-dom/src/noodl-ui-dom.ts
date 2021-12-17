@@ -664,12 +664,13 @@ class NDOM extends NDOMInternal {
     try {
       if (component) {
         if (Identify.component.listItem(component)) {
-          const iteratorVar = findIteratorVar(component)
+          const iteratorVar = findIteratorVar(component) || component?.parent?.blueprint?.iteratorVar
           if (iteratorVar) {
+            const index = component.get('index') || 0
             context = { ...context }
-            context.index = component.get('index') || 0
+            context.index = index
             context.dataObject =
-              context?.dataObject || component.get(iteratorVar)
+              context?.dataObject || component.get(iteratorVar) || context.listObject?.[index]
             context.iteratorVar = iteratorVar
           }
         }

@@ -136,7 +136,11 @@ componentResolver.setResolver(async (component, options, next) => {
       // Customly create the listItem children using a dataObject as the data source
 
       let dataObjects = getListObject(options)
-      if (u.isStr(dataObjects) && dataObjects.startsWith('itemObject')) {
+      if (
+        u.isStr(dataObjects) &&
+        ((iteratorVar && dataObjects.startsWith(iteratorVar)) ||
+          dataObjects.startsWith('itemObject'))
+      ) {
         let dataKey: any = dataObjects.toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
         dataObjects = get(findListDataObject(component), dataKey)
@@ -494,7 +498,7 @@ componentResolver.setResolver(async (component, options, next) => {
           child = await resolveComponents({
             callback,
             components: child,
-            context,
+            context: { ...context },
             page: _page,
             on: options.on,
           })

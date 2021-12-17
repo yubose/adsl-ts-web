@@ -67,7 +67,6 @@ const createExtendedDOMResolvers = function (app: App) {
       if (iteratorVar) {
         const dataObject = findListDataObject(component)
         if (dataObject) {
-          // if (evtName === 'onInput') debugger
           set(
             dataObject,
             excludeIteratorVar(dataKey, iteratorVar) as string,
@@ -76,7 +75,6 @@ const createExtendedDOMResolvers = function (app: App) {
 
           component.edit('data-value', value)
           node.dataset.value = value
-          // if (evtName === 'onInput') debugger
         } else {
           log.red(
             `A ${component.type} component from a "${evtName}" handler tried ` +
@@ -87,13 +85,10 @@ const createExtendedDOMResolvers = function (app: App) {
 
         // TODO - Come back to this to provide more robust functionality
         if (Identify.folds.emit(component.blueprint.dataValue)) {
-          // if (evtName === 'onInput') debugger
           await actionChain?.execute?.(event)
-          // if (evtName === 'onInput') debugger
         }
       } else {
         if (dataKey) {
-          // if (evtName === 'onInput') debugger
           app.updateRoot((draft) => {
             if (!has(draft?.[pageName], dataKey)) {
               const paths = dataKey.split('.')
@@ -133,10 +128,8 @@ const createExtendedDOMResolvers = function (app: App) {
               )
             }
           })
-          // if (evtName === 'onInput') debugger
         }
         // console.log("test actionChain",actionChain)
-        // if (evtName === 'onInput') debugger
         await actionChain?.execute?.(event)
       }
     }

@@ -3,7 +3,6 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { isAction } from 'noodl-action-chain'
-import jsPDF from 'jspdf'
 import {
   findListDataObject,
   findIteratorVar,
@@ -724,12 +723,20 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           if (isListConsumer(_component)) {
             const dataObject = findListDataObject(_component)
             dataObject && (ctx.dataObject = dataObject)
+            if (Identify.component.list(_component)) {
+              ctx.listObject =
+                _component.get?.('listObject') ||
+                _component.blueprint?.listObject ||
+                _component?.['listObject']
+              ctx.index = 0
+              ctx.dataObject = ctx.listObject?.[0]
+              ctx.iteratorVar = _component.blueprint?.iteratorVar
+            }
           }
           const ndomPage = pickNDOMPageFromOptions(options)
           const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
             context: ctx,
           })
-          debugger
           return redrawed
         }
       }
