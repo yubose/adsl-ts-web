@@ -1,17 +1,11 @@
-import { DEFAULT_EXTENSIONS } from '@babel/core'
-// import { visualizer } from 'rollup-plugin-visualizer'
 import nodePolyfills from 'rollup-plugin-node-polyfills'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
 import external from 'rollup-plugin-peer-deps-external'
 import progress from 'rollup-plugin-progress'
-// import babel from '@rollup/plugin-babel'
-// import typescript from 'rollup-plugin-typescript2'
 import esbuild from 'rollup-plugin-esbuild'
-import { terser } from 'rollup-plugin-terser'
 
-const extensions = [...DEFAULT_EXTENSIONS, '.ts']
 const _DEV_ = process.env.NODE_ENV === 'development'
 /**
  * @typedef { RollupOptions[] }
@@ -24,16 +18,15 @@ const configs = [
         dir: 'dist',
         exports: 'named',
         format: 'umd',
-        name: 'noodluidom',
+        name: 'ndom',
         sourcemap: 'inline-source-map',
         globals: {
-          'noodl-ui': 'noodlui',
+          'noodl-ui': 'nui',
         },
       },
     ],
     external: ['noodl-ui'],
     plugins: [
-      // visualizer(),
       nodePolyfills(),
       external(),
       commonjs(),
@@ -41,24 +34,10 @@ const configs = [
       progress(),
       resolve({
         browser: true,
-        extensions,
+        extensions: ['.js', '.ts'],
         moduleDirectories: ['node_modules'],
         preferBuiltins: false,
       }),
-      // typescript({
-      //   rollupCommonJSResolveHack: true,
-      //   check: false,
-      //   abortOnError: false,
-      //   clean: true,
-      // }),
-      // babel({
-      //   babelHelpers: 'runtime',
-      //   include: ['src/**/*'],
-      //   exclude: ['node_modules/**/*'],
-      //   extensions,
-      //   presets: ['@babel/env'],
-      //   plugins: ['@babel/plugin-transform-runtime'],
-      // }),
       esbuild({
         include: /\.[t]s?$/,
         exclude: /node_modules/,
@@ -66,18 +45,6 @@ const configs = [
         target: 'es2018',
         sourceMap: true,
       }),
-      !_DEV_
-        ? terser({
-            compress: {
-              drop_console: false,
-              drop_debugger: false,
-            },
-            keep_fnames: true,
-            format: {
-              source_map: { includeSources: true },
-            },
-          })
-        : undefined,
     ],
   },
 ]
