@@ -734,10 +734,13 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             }
           }
           const ndomPage = pickNDOMPageFromOptions(options)
-          const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
+          await app.ndom.redraw(_node, _component, ndomPage, {
             context: ctx,
           })
-          return redrawed
+          // const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
+          //   context: ctx,
+          // })
+          // return redrawed
         }
       }
 
