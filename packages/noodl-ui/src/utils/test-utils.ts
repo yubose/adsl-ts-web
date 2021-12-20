@@ -13,6 +13,7 @@ export { nui }
 export const baseUrl = 'https://google.com/'
 export const assetsUrl = `${baseUrl}assets/`
 export const viewport = new Viewport()
+// @ts-expect-error
 export const ui = { ...actionFactory, ...componentFactory }
 
 const isNil = (v: any) => v === null || v === undefined || v === ''

@@ -11,13 +11,9 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import * as nu from 'noodl-utils'
-import { Identify, PageObject, ReferenceString } from 'noodl-types'
+import { AppConfig, Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
-import {
-  command as cmd,
-  CACHED_PAGES,
-  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-} from './constants'
+import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
 import actionFactory from './factories/actionFactory'
@@ -35,6 +31,7 @@ import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
 // import NoodlWorker from './worker/NoodlWorker'
+import parseUrl from './utils/parseUrl'
 import Spinner from './spinner'
 import { getBatchFromLocalStorage } from './utils/localStorage'
 import { getSdkHelpers } from './handlers/sdk'
@@ -400,28 +397,11 @@ class App {
       }
 
       if (!this.notification?.initiated) {
+        // @ts-expect-error
         await this.notification?.init(this.#serviceWorkerRegistration)
       }
 
-      await this.noodl.init({
-        ...getBatchFromLocalStorage(
-          'BaseDataModel',
-          'BaseCSS',
-          'BasePage',
-          'cadlEndpoint',
-          'config',
-        ),
-        onCadlEndpoint: (json) => {
-          if (u.isObj(json)) {
-            localStorage.setItem('cadlEndpoint', JSON.stringify(json))
-          }
-        },
-        onPreload: (name, processed, json, yml) => {
-          if (name && u.isObj(json)) {
-            localStorage.setItem(name, JSON.stringify(json))
-          }
-        },
-      })
+      await this.noodl.init()
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -480,50 +460,29 @@ class App {
       this.observePages(this.mainPage)
 
       /**
-       *
        * Determining the start page or initial action
-       *
-       * In order of precedence:
-       *  1. Determine the initial action by URL
-       *  2. Determine the initial action by page in cache
-       *  3. Determine the initial action by start page
        */
+      const parsedUrl = parseUrl(
+        this.#noodl?.cadlEndpoint as AppConfig,
+        window.location.href,
+      )
 
-      const { href } = new URL(window.location.href)
-      const url = new URL(href)
-      const searchParams = url.searchParams
-      const [noodlUrlEntry, ...queryParams] = [...searchParams.entries()]
-      let startPage = ''
-      if (queryParams.length) {
-        // The user is coming from an outside link
-        //    (ex: being redirected after submitting a payment)
-        let paramsStr = ''
-        const params = u.reduce(
-          queryParams,
-          (acc, [key, value]) => u.assign(acc, { [key]: value }),
-          {},
-        )
-        u.reduce(
-          queryParams,
-          (acc, [key, value]) => (paramsStr = `${paramsStr}&${[key]}=${value}`),
-          {},
-        )
-        localStorage.setItem('tempParams', JSON.stringify(params))
-        const noodlUrl = noodlUrlEntry[0] || ''
-        const pageNames = noodlUrl.split('-')
-        startPage = pageNames[pageNames.length - 1]
-        this.mainPage.pageUrl = BASE_PAGE_URL + noodlUrl
-        if (u.isArr(this.#noodl.cadlEndpoint?.page)) {
-          if (!this.#noodl.cadlEndpoint.page.includes(startPage)) {
+      let startPage = parsedUrl.startPage
+
+      localStorage.setItem('tempParams', JSON.stringify(parsedUrl.params))
+
+      if (parsedUrl.hasParams) {
+        this.mainPage.pageUrl = parsedUrl.pageUrl
+        if (u.isArr(this.noodl?.cadlEndpoint?.page)) {
+          if (!this.noodl?.cadlEndpoint?.page.includes(parsedUrl.startPage)) {
             // Fall back to the original start page if it is an invalid page
-            startPage = this.#noodl.cadlEndpoint.startPage || startPage || ''
+            startPage = this.noodl?.cadlEndpoint?.startPage || startPage || ''
             this.mainPage.pageUrl = BASE_PAGE_URL
           }
         }
-        this.mainPage.pageUrl = this.mainPage.pageUrl + paramsStr
         await this.navigate(this.mainPage, startPage)
       } else {
-        startPage = this.noodl.cadlEndpoint?.startPage
+        startPage = this.noodl.cadlEndpoint?.startPage || ''
         localStorage.removeItem('tempParams')
       }
 
@@ -546,20 +505,10 @@ class App {
 
       if (!ls.getTimestampKey() && ls.configExists()) ls.cacheTimestamp()
 
-      if (this.mainPage && location.href && !queryParams.length) {
-        let { startPage } = this.noodl.cadlEndpoint
+      if (this.mainPage && location.href && !parsedUrl.hasParams) {
+        let { startPage = '' } = this.noodl.cadlEndpoint || {}
         const urlParts = location.href.split('/')
         const pathname = urlParts[urlParts.length - 1]
-
-        console.log(`%cConfig evaluation`, `color:#e50087;`, {
-          hasLocalConfig: ls.configExists(),
-          isTimestampEq: ls.isTimestampEq(),
-          timestampKey: ls.getTimestampKey(),
-          timestampNow: ls.getCurrentTimestamp(),
-          storedConfig: ls.getStoredConfigObject(),
-          storedTimestamp: ls.getStoredTimestamp(),
-        })
-
         const keyParts = pathname.split('=')
         let isParameters = keyParts.length > 1 ? true : false
 
