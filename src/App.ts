@@ -263,7 +263,7 @@ class App {
           return void (window.location.href = pageUrl)
         }
         
-        const parsedUrl = isNOODLDOMPage(page)? 
+        const parsedUrl = isNOODLDOMPage(page) && page?.pageUrl.startsWith('http')? 
           parseUrl(
             this.#noodl?.cadlEndpoint as AppConfig,
             page.pageUrl,
