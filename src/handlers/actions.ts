@@ -378,11 +378,15 @@ const createActions = function createActions(app: App) {
     if (!destinationParam.startsWith('http')) {
       // Avoids letting page components (lower level components) from mutating the tab's url
       if (ndomPage === app.mainPage) {
+        const originUrl = ndomPage.pageUrl
         ndomPage.pageUrl = app.parse.queryString({
           destination,
           pageUrl: ndomPage.pageUrl,
           startPage: app.startPage,
         })
+        if(originUrl.includes('&')){
+          ndomPage.pageUrl = originUrl + '-' + destination
+        }
         log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
       } else {
         // TODO - Move this to an official location in noodl-ui-dom
