@@ -622,11 +622,13 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
 
     if (!destinationParam.startsWith('http')) {
+      const originUrl = ndomPage.pageUrl
       ndomPage.pageUrl = app.parse.queryString({
         destination,
         pageUrl: ndomPage.pageUrl,
         startPage: app.startPage,
       })
+      ndomPage.pageUrl = originUrl + '-' + destination
     } else {
       destination = destinationParam
     }

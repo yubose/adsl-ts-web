@@ -262,61 +262,25 @@ class App {
         if (nu.isOutboundLink(pageUrl)) {
           return void (window.location.href = pageUrl)
         }
-
-        const urlParts = this.mainPage.pageUrl.split('/')
-        const pathname = urlParts[urlParts.length - 1]
-        const pageParts = pathname.split('-')
-        let currentPage = ''
-        if (pageParts.length > 1) {
-          currentPage = pageParts[pageParts.length - 1]
-        } else {
-          const baseArr = pageParts[0].split('?')
-          if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
-            currentPage = baseArr[baseArr.length - 1]
+        
+        const parsedUrl = isNOODLDOMPage(page)? 
+          parseUrl(
+            this.#noodl?.cadlEndpoint as AppConfig,
+            page.pageUrl,
+          ):
+          parseUrl(
+            this.#noodl?.cadlEndpoint as AppConfig,
+            window.location.href,
+          )
+        const currentPage = parsedUrl?.currentPage
+        if(currentPage.includes('&')) {
+          if(isNOODLDOMPage(page)){
+            pageRequesting = parsedUrl?.startPage
+          }else{
+            page = parsedUrl?.startPage
           }
-        }
-        let index =
-          currentPage.indexOf('&') != -1
-            ? currentPage.indexOf('&')
-            : currentPage.length
-        let startPage = currentPage.slice(0, index)
-        startPage = startPage ? startPage : pageUrl
-        pageRequesting =
-          typeof pageRequesting == 'string' ? startPage : pageRequesting
-        page = typeof page == 'string' ? startPage : page
-
-        if (currentPage.includes('&')) {
-          // The user is coming from an outside link
-          //    (ex: being redirected after submitting a payment)
-          const ls = window.localStorage
-          let endKeys = currentPage.slice(pageUrl.indexOf('&'))
-          let params: any = endKeys.split('=')
-          let tempParams: any = ls.getItem('tempParams')
-          let value
-          let key
-
-          params = params ? params : []
-          tempParams =
-            typeof tempParams == 'string' ? JSON.parse(tempParams) : {}
-
-          for (let i = 0; i < params.length - 1; i++) {
-            index =
-              params[i].lastIndexOf('&') != -1 ? params[i].lastIndexOf('&') : 0
-            key = params[i].slice(index + 1)
-            if (i + 1 == params.length - 1) {
-              value = params[i + 1]
-            } else {
-              index =
-                params[i + 1].lastIndexOf('&') != -1
-                  ? params[i + 1].lastIndexOf('&')
-                  : params[i + 1].length
-              value = params[i + 1].slice(0, index)
-            }
-            tempParams[key] = value
-          }
-
-          ls.setItem('tempParams', JSON.stringify(tempParams))
-        } else {
+          ls.setItem('tempParams', JSON.stringify(parsedUrl?.params))
+        }else {
           ls.removeItem('tempParams')
         }
       }
@@ -469,7 +433,6 @@ class App {
 
       let startPage = parsedUrl.startPage
 
-      localStorage.setItem('tempParams', JSON.stringify(parsedUrl.params))
 
       if (parsedUrl.hasParams) {
         this.mainPage.pageUrl = parsedUrl.pageUrl
@@ -480,10 +443,10 @@ class App {
             this.mainPage.pageUrl = BASE_PAGE_URL
           }
         }
+        this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
         await this.navigate(this.mainPage, startPage)
       } else {
         startPage = this.noodl.cadlEndpoint?.startPage || ''
-        localStorage.removeItem('tempParams')
       }
 
       // Override the start page if they were on a previous page
