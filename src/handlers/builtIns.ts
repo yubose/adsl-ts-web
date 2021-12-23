@@ -628,8 +628,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         pageUrl: ndomPage.pageUrl,
         startPage: app.startPage,
       })
-      if(originUrl.includes('&')){
+      if(originUrl.includes('&') && !destination.includes('&')){
         ndomPage.pageUrl = originUrl + '-' + destination
+      }else if(originUrl.includes('&') && destination.includes('&')){
+        ndomPage.pageUrl = BASE_PAGE_URL + destination
       }
     } else {
       destination = destinationParam

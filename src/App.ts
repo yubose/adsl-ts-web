@@ -248,6 +248,18 @@ class App {
   async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
   async navigate(pageRequesting?: string): Promise<void>
   async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
+    function getParams(pageName:string){
+        const nameParts = pageName.split('&')
+        let params = {}
+        if(nameParts.length > 1){
+          for(let i=1;i<nameParts.length;i++){
+            const partItem = nameParts[i]
+            const parts = partItem.split('=')
+            params[parts[0]] = parts[1]
+          }
+        }
+        return params
+    }
     try {
       let _page: NOODLDOMPage
       let _pageRequesting = ''
@@ -262,7 +274,6 @@ class App {
         if (nu.isOutboundLink(pageUrl)) {
           return void (window.location.href = pageUrl)
         }
-        
         const parsedUrl = isNOODLDOMPage(page) && page?.pageUrl.startsWith('http')? 
           parseUrl(
             this.#noodl?.cadlEndpoint as AppConfig,
@@ -273,13 +284,20 @@ class App {
             window.location.href,
           )
         const currentPage = parsedUrl?.currentPage
-        if(currentPage.includes('&')) {
+        if(pageUrl.includes('&') || currentPage.includes('&')) {
+
           if(isNOODLDOMPage(page)){
             pageRequesting = parsedUrl?.startPage
           }else{
             page = parsedUrl?.startPage
           }
-          ls.setItem('tempParams', JSON.stringify(parsedUrl?.params))
+
+          if(pageUrl.includes('&')){
+            const params = getParams(pageUrl)
+            ls.setItem('tempParams', JSON.stringify(params))
+          }else{
+            ls.setItem('tempParams', JSON.stringify(parsedUrl?.params))
+          }
         }else {
           ls.removeItem('tempParams')
         }
@@ -433,7 +451,7 @@ class App {
 
       let startPage = parsedUrl.startPage
 
-
+        
       if (parsedUrl.hasParams) {
         this.mainPage.pageUrl = parsedUrl.pageUrl
         if (u.isArr(this.noodl?.cadlEndpoint?.page)) {
@@ -443,8 +461,13 @@ class App {
             this.mainPage.pageUrl = BASE_PAGE_URL
           }
         }
-        this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
-        await this.navigate(this.mainPage, startPage)
+        if(!parsedUrl.currentPage.includes('&')){
+          this.mainPage.pageUrl = parsedUrl?.url
+          await this.navigate(this.mainPage, parsedUrl.currentPage)
+        }else{
+          this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
+          await this.navigate(this.mainPage, startPage)
+        }
       } else {
         startPage = this.noodl.cadlEndpoint?.startPage || ''
       }
@@ -472,10 +495,8 @@ class App {
         let { startPage = '' } = this.noodl.cadlEndpoint || {}
         const urlParts = location.href.split('/')
         const pathname = urlParts[urlParts.length - 1]
-        const keyParts = pathname.split('=')
-        let isParameters = keyParts.length > 1 ? true : false
 
-        if (!ls.isTimestampEq() && !isParameters) {
+        if (!ls.isTimestampEq()) {
           // Set the URL / cached pages to their base state
           localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
           this.mainPage.pageUrl = BASE_PAGE_URL
