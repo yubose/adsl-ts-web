@@ -270,37 +270,18 @@ class App {
       if (isNOODLDOMPage(pageUrl)) {
         pageUrl = pageUrl.page
       }
-      if (pageUrl) {
+      if (pageUrl && pageUrl.includes('&')) {
         if (nu.isOutboundLink(pageUrl)) {
           return void (window.location.href = pageUrl)
         }
-        const parsedUrl = isNOODLDOMPage(page) && page?.pageUrl.startsWith('http')? 
-          parseUrl(
-            this.#noodl?.cadlEndpoint as AppConfig,
-            page.pageUrl,
-          ):
-          parseUrl(
-            this.#noodl?.cadlEndpoint as AppConfig,
-            window.location.href,
-          )
-        const currentPage = parsedUrl?.currentPage
-        if(pageUrl.includes('&') || currentPage.includes('&')) {
-
-          if(isNOODLDOMPage(page)){
-            pageRequesting = parsedUrl?.startPage
-          }else{
-            page = parsedUrl?.startPage
-          }
-
-          if(pageUrl.includes('&')){
-            const params = getParams(pageUrl)
-            ls.setItem('tempParams', JSON.stringify(params))
-          }else{
-            ls.setItem('tempParams', JSON.stringify(parsedUrl?.params))
-          }
-        }else {
-          ls.removeItem('tempParams')
+        const params = getParams(pageUrl)
+        const curretPage = pageUrl.includes('&') ? pageUrl.substring(0, pageUrl.indexOf('&')) : pageUrl
+        if(isNOODLDOMPage(page)){
+          pageRequesting = curretPage
+        }else{ 
+          page = curretPage 
         }
+        ls.setItem('tempParams', JSON.stringify(params))
       }
 
       if (isNOODLDOMPage(page)) {
@@ -461,13 +442,8 @@ class App {
             this.mainPage.pageUrl = BASE_PAGE_URL
           }
         }
-        if(!parsedUrl.currentPage.includes('&')){
-          this.mainPage.pageUrl = parsedUrl?.url
-          await this.navigate(this.mainPage, parsedUrl.currentPage)
-        }else{
-          this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
-          await this.navigate(this.mainPage, startPage)
-        }
+        this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
+        await this.navigate(this.mainPage, parsedUrl?.currentPage)
       } else {
         startPage = this.noodl.cadlEndpoint?.startPage || ''
       }

@@ -43,6 +43,7 @@ import {
   logError,
   pickActionKey,
   throwError,
+  queryString,
 } from '../utils/common'
 import App from '../App'
 import {
@@ -623,16 +624,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
     if (!destinationParam.startsWith('http')) {
       const originUrl = ndomPage.pageUrl
-      ndomPage.pageUrl = app.parse.queryString({
+      // ndomPage.pageUrl = app.parse.queryString({
+      //   destination,
+      //   pageUrl: ndomPage.pageUrl,
+      //   startPage: app.startPage,
+      // })
+      ndomPage.pageUrl = queryString({
         destination,
-        pageUrl: ndomPage.pageUrl,
+        pageUrl: originUrl,
         startPage: app.startPage,
       })
-      if(originUrl.includes('&') && !destination.includes('&')){
-        ndomPage.pageUrl = originUrl + '-' + destination
-      }else if(originUrl.includes('&') && destination.includes('&')){
-        ndomPage.pageUrl = BASE_PAGE_URL + destination
-      }
     } else {
       destination = destinationParam
     }
