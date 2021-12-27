@@ -224,33 +224,71 @@ export function exportToPDF(
         }
       }
 
+      // TODO - See if we can use all pdf download methods to use this function
       const createDocUsingHTMLMethod = async (node: HTMLElement) => {
         try {
           const { width, height } = node.getBoundingClientRect()
-          const pageWidth = width
-          const pageHeight = height
-          const orientation = pageWidth > pageHeight ? 'landscape' : 'portrait'
-          const doc = new jsPDF({
-            compress: false,
-            format: [viewport.width, viewport.height],
+          const exporter = ExportPdf(viewport as NuiViewport)
+          const format = exporter.getFormat(node)
+          const orientation = exporter.getOrientation(node)
+
+          let doc = new jsPDF({
+            compress: true,
+            format,
             orientation,
             unit: 'px',
           })
+
+          const totalHeight = exporter.setDocSizesFromElement(doc, node)[1]
+          const totalWidth = exporter.getTotalWidthFromElement(node)
+
+          doc.canvas.width = width
+          doc.canvas.height = totalHeight
+          doc.internal.pageSize.height = totalHeight + node.clientHeight
+
+          doc.viewerPreferences({
+            FitWindow: true,
+            HideMenubar: true,
+            HideToolbar: true,
+            HideWindowUI: true,
+            PrintArea: 'BleedBox',
+            NonFullScreenPageMode: 'UseThumbs',
+            ViewArea: 'BleedBox',
+          })
+
           await doc.html(node, {
-            autoPaging: true,
+            autoPaging: 'slice',
             image: { quality: 1, type: 'png' },
-            width: viewport.width,
-            windowWidth: viewport.width,
-            // @ts-expect-error
+            width,
+            windowWidth: totalWidth,
+            callback: (doc) => {
+              //
+            },
             html2canvas: {
+              // @ts-expect-error
+              onclone: (_: Document, container: HTMLElement) => {
+                const style = (container.firstChild as HTMLElement)?.style
+                if (u.isObj(style)) {
+                  style.overflow = 'auto'
+                  style.height = 'auto'
+                  style.width = `${width}px`
+                }
+                for (const el of [
+                  ...container.getElementsByClassName('scroll-view'),
+                ] as HTMLElement[]) {
+                  el.classList.remove('scroll-view')
+                  el.style.height = 'auto'
+                  if (el.style.overflow === 'hidden') {
+                    el.style.overflow = 'auto'
+                  }
+                }
+              },
               allowTaint: true,
-              width: viewport.width,
+              width,
               height,
-              letterRendering: true,
+              windowWidth: totalWidth,
+              windowHeight: totalHeight,
               removeContainer: true,
-              svgRendering: true,
-              windowWidth: viewport.width,
-              windowHeight: height,
               scrollX: 0,
               taintTest: true,
               ...html2canvas,
