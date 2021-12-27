@@ -10,7 +10,7 @@
   "license": "ISC",
   "private": true,
   "scripts": {
-    "postinstall": "lerna exec --scope noodl-types --scope noodl-action-chain \"npm run build\"",
+    "postinstall": "lerna exec --scope noodl-types --scope noodl-action-chain --scope noodl-utils \"npm run build\"",
     "bootstrap": "lerna bootstrap --hoist",
     "prebuild": "rm -rf dist build",
     "build": "npm run lib:build && webpack --mode=production",
@@ -134,7 +134,7 @@
     "noodl-ui": "file:packages/noodl-ui",
     "noodl-ui-dom": "file:packages/noodl-ui-dom",
     "noodl-ui-test-utils": "file:packages/noodl-ui-test-utils",
-    "noodl-utils": "^0.0.84",
+    "noodl-utils": "file:packages/noodl-utils",
     "prettier": "^2.3.1",
     "process": "^0.11.10",
     "rollup": "^2.59.0",
