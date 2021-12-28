@@ -916,16 +916,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 var showName = ''
                 var specialityArr = element.information.speciality
                 var Name = element.information.name
-                if (specialityArr) {
-                  for (var i = 0; i < specialityArr.length; i++) {
-                    str += specialityArr[i] + ', '
-                  }
-                  if (str.length > 0) {
-                    str = str.substr(0, str.length - 2)
-                  }
-                } else {
-                  str = 'No Speciality'
-                }
+                str = specialityArr
                 if (Name == 'undefined undefined') {
                   showName = 'No Name'
                 } else {
