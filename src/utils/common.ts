@@ -153,20 +153,31 @@ export function throwError(err?: any) {
   throw new Error('Error occurred')
 }
 
-export function queryString({destination,pageUrl,startPage}){
-  const base = pageUrl.includes('?') ? pageUrl.substring(0, pageUrl.indexOf('?')) : pageUrl
-  if(destination == startPage) return base
-  let pageParts = pageUrl.includes('?') ? pageUrl.substring(pageUrl.indexOf('?')+1,pageUrl.length): ''
-  if(pageParts){
-    let pages = pageParts.split('-')
-    const index = pages.indexOf(destination)
-    if (index == -1){
-      pages.push(destination)
-    }else{
-      pages = pages.slice(0,index+1)
+export function queryString({
+  destination,
+  pageUrl,
+  startPage
+}: {
+  destination: string
+  pageUrl: string
+  startPage?: string
+}){
+  const base = 'index.html?'
+  pageUrl = pageUrl.indexOf(base)!==-1 ? pageUrl : pageUrl + base
+  let separator = pageUrl.endsWith('?') ? '' : '-'
+  if (destination !== startPage) {
+    const questionMarkIndex = pageUrl.indexOf(`?${destination}`)
+    const hyphenIndex = pageUrl.indexOf(`-${destination}`)
+    if (questionMarkIndex !== -1) {
+      pageUrl = pageUrl.substring(0, questionMarkIndex + 1)
+      separator = pageUrl.endsWith('?') ? '' : '-'
+    } else if (hyphenIndex !== -1) {
+      pageUrl = pageUrl.substring(0, hyphenIndex)
+      separator = pageUrl.endsWith('?') ? '' : '-'
     }
-    return `${base}?${pages.join('-')}`
+    pageUrl += `${separator}${destination}`
+  } else {
+    pageUrl = base
   }
-  let pages = [destination]
-  return `${base}?${pages.join('-')}`
+  return pageUrl
 }
