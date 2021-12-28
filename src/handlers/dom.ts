@@ -135,8 +135,26 @@ const createExtendedDOMResolvers = function (app: App) {
     }
 
     return onChange
-  }
+  };
 
+  (function (){
+    let beforeUnload_time = 0, gap_time = 0;
+      window.onunload = function (){
+          gap_time = new Date().getTime() - beforeUnload_time;
+          if(gap_time <= 5){ //浏览器关闭判断
+              clearCookie();
+          }
+      }
+      window.onbeforeunload = function (){
+          beforeUnload_time = new Date().getTime();
+      };
+      function clearCookie() {
+          //清除localstorage
+          window.localStorage.clear();
+      }
+    
+  })();
+  
   const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
       cond: 'chart',
