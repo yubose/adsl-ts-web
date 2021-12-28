@@ -19,12 +19,14 @@ const pkg = fs.readJsonSync('./package.json')
 const nuiPkg = fs.readJsonSync('./packages/noodl-ui/package.json')
 const ndomPkg = fs.readJsonSync('./packages/noodl-ui-dom/package.json')
 const ntypesPkg = fs.readJsonSync('./packages/noodl-types/package.json')
+const nutilsPkg = fs.readJsonSync('./packages/noodl-utils/package.json')
 
 const pkgJson = {
   root: pkg,
   nui: nuiPkg,
   ndom: ndomPkg,
   nTypes: ntypesPkg,
+  nutils: nutilsPkg,
 }
 
 const version = {
@@ -36,7 +38,7 @@ const version = {
     pkgJson.root.devDependencies['@aitmed/ecos-lvl2-sdk'],
   nui: pkgJson.nui.version,
   ndom: pkgJson.ndom.version,
-  nutil: pkgJson.root.devDependencies['noodl-utils'],
+  nutil: pkgJson.nutils.version,
   nTypes: pkgJson.nTypes.version,
 }
 
