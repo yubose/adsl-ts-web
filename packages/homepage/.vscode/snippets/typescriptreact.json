@@ -1,0 +1,10 @@
+{
+  "import { css } from '@emotion/css'": {
+    "body": "import { css } from '@emotion/css'",
+    "prefix": "css"
+  },
+  "import { cx } from '@emotion/css'": {
+    "body": "import { cx } from '@emotion/css'",
+    "prefix": "cx"
+  }
+}
