@@ -248,17 +248,17 @@ class App {
   async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
   async navigate(pageRequesting?: string): Promise<void>
   async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
-    function getParams(pageName:string){
-        const nameParts = pageName.split('&')
-        let params = {}
-        if(nameParts.length > 1){
-          for(let i=1;i<nameParts.length;i++){
-            const partItem = nameParts[i]
-            const parts = partItem.split('=')
-            params[parts[0]] = parts[1]
-          }
+    function getParams(pageName: string) {
+      const nameParts = pageName.split('&')
+      let params = {}
+      if (nameParts.length > 1) {
+        for (let i = 1; i < nameParts.length; i++) {
+          const partItem = nameParts[i]
+          const parts = partItem.split('=')
+          params[parts[0]] = parts[1]
         }
-        return params
+      }
+      return params
     }
     try {
       let _page: NOODLDOMPage
@@ -275,11 +275,13 @@ class App {
           return void (window.location.href = pageUrl)
         }
         const params = getParams(pageUrl)
-        const curretPage = pageUrl.includes('&') ? pageUrl.substring(0, pageUrl.indexOf('&')) : pageUrl
-        if(isNOODLDOMPage(page)){
+        const curretPage = pageUrl.includes('&')
+          ? pageUrl.substring(0, pageUrl.indexOf('&'))
+          : pageUrl
+        if (isNOODLDOMPage(page)) {
           pageRequesting = curretPage
-        }else{ 
-          page = curretPage 
+        } else {
+          page = curretPage
         }
         ls.setItem('tempParams', JSON.stringify(params))
       }
@@ -432,7 +434,6 @@ class App {
 
       let startPage = parsedUrl.startPage
 
-        
       if (parsedUrl.hasParams) {
         this.mainPage.pageUrl = parsedUrl.pageUrl
         if (u.isArr(this.noodl?.cadlEndpoint?.page)) {
