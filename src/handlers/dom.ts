@@ -338,8 +338,12 @@ const createExtendedDOMResolvers = function (app: App) {
                         element.eventColor = '#DDEFC8'
                         element.textColor = '#2FB355'
                       }
-                      element.backgroundColor = element.eventColor
 
+                      if(((element.tage & 0xf00)>>8)==1){
+                        element.eventColor = '#d11cf9'
+                        element.textColor = '#F0F0F0'
+                      }
+                      element.backgroundColor = element.eventColor
                       element.borderColor = element.eventColor
                       delete element.stime
                       delete element.etime
