@@ -5,7 +5,6 @@ import * as u from '@jsmanifest/utils'
 import type { Viewport as NuiViewport } from 'noodl-ui'
 import jsPDF from 'jspdf'
 import { isViewport } from 'noodl-ui'
-import forEachSibling from '../utils/forEachSibling'
 import isElement from '../utils/isElement'
 
 const isNil = (v: unknown): v is null | undefined => v == null || v == undefined
