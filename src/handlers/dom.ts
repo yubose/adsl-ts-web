@@ -340,8 +340,8 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
 
                       if(((element.tage & 0xf00)>>8)==1){
-                        element.eventColor = '#d11cf9'
-                        element.textColor = '#F0F0F0'
+                        element.eventColor = '#f9d9da'
+                        element.textColor = '#e24445'
                       }
                       element.backgroundColor = element.eventColor
                       element.borderColor = element.eventColor
