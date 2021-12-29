@@ -53,6 +53,7 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
+import type { Format as PdfPageFormat } from '../modules/ExportPdf'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -141,6 +142,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const exportPDF: any = async function onExportPDF(options: {
     ecosObj: EcosDocument
     viewTag?: string
+    format?: PdfPageFormat
+    download?: boolean
+    open?: boolean
   }) {
     try {
       log.func('exportPDF')
@@ -151,16 +155,23 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       ) as EcosDocument
 
       const viewTag = u.isObj(options) && options.viewTag
-      const fileName = ecosObj.name?.title
+      const format = u.isObj(options) ? options.format : undefined
+      const fileName = ecosObj.name?.title || ''
+      const shouldDownload = u.isBool(options?.download)
+        ? options.download
+        : true
+      const shouldOpen = u.isBool(options?.open) ? options.open : false
+
       if (viewTag) {
         if (u.isStr(viewTag)) {
           for (const elem of [...u.array(findByViewTag(viewTag))]) {
             if (elem) {
-              const pdf = await exportToPDF({
+              await exportToPDF({
                 data: elem,
-                download: true,
+                download: shouldDownload,
+                open: shouldOpen,
                 filename: fileName,
-                viewport: app.viewport,
+                format,
               })
             }
           }
@@ -185,7 +196,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                     ? data
                     : { title: title || (u.isStr(content) && content) || data },
                 labels: true,
-                download: true,
+                download: shouldDownload,
+                open: shouldOpen,
                 filename: title,
               })
               log.green('Exported successfully')

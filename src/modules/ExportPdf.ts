@@ -3,11 +3,23 @@
  */
 import * as u from '@jsmanifest/utils'
 import type { Viewport as NuiViewport } from 'noodl-ui'
-import jsPDF, { Html2CanvasOptions } from 'jspdf'
+import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import type { Options as Html2CanvasOptions } from 'html2canvas'
 import { isViewport } from 'noodl-ui'
-import forEachSibling from '../utils/forEachSibling'
 import isElement from '../utils/isElement'
+
+export type Format =
+  | [width: number, height: number]
+  | 'A1'
+  | 'A2'
+  | 'A3'
+  | 'A4'
+  | 'A5'
+  | 'A6'
+  | 'A7'
+  | 'A8'
+export type Orientation = 'landscape' | 'portrait'
 
 const isNil = (v: unknown): v is null | undefined => v == null || v == undefined
 
@@ -35,14 +47,21 @@ export const ExportPdf = (function () {
    * @param el DOM element
    * @returns jsPDF instance
    */
-  async function create(el: HTMLElement | null | undefined) {
+  async function create(
+    el: HTMLElement | null | undefined,
+    opts?: {
+      /**
+       * Defaults to A4 (595x842) in 72 PPI
+       */
+      format?: Format
+    },
+  ) {
     if (!isElement(el)) return
 
     let doc: jsPDF | undefined
-    let { width, height } = el.getBoundingClientRect()
-    // let format = getFormat(el)
-    let format = [o.sizes.A4.width, o.sizes.A4.height] as [number, number]
-    let orientation = getOrientation(el) as 'portrait' | 'landscape'
+    let { width, height, x, y } = el.getBoundingClientRect()
+    let format = getFormat(opts?.format)
+    let orientation = getOrientation(el) as Orientation
 
     const pdfDocOptions = {
       compress: true,
@@ -51,19 +70,14 @@ export const ExportPdf = (function () {
       unit: 'px',
     } as const
 
-    const commonHtml2CanvasOptions: Omit<
-      Html2CanvasOptions,
-      | 'ignoreElements'
-      | 'onclone'
-      | 'width'
-      | 'height'
-      | 'windowWidth'
-      | 'windowHeight'
-    > = {
+    let commonHtml2CanvasOptions: Partial<Html2CanvasOptions> = {
       allowTaint: true,
-      removeContainer: false,
+      logging: true,
+      // Putting this to true will avoid blank page when they try to re-download
+      removeContainer: true,
       useCORS: true,
-      scrollX: 0,
+      x: 0,
+      y: 0,
     }
 
     /**
@@ -75,11 +89,21 @@ export const ExportPdf = (function () {
      * @param container Container created by html2canvas
      */
     const onclone = (_: Document, container: HTMLElement) => {
+      const styleElem = document.createElement('style')
+      styleElem.innerHTML += `
+        * {
+
+        }
+      `
+      _.head.appendChild(styleElem)
+      debugger
+      // Expands the container -- This fills in the remaining space in the page
       container.style.overflow = 'auto'
       container.style.height = 'auto'
-      const style = (container.firstChild as HTMLElement)?.style
 
+      const style = (container.firstChild as HTMLElement)?.style
       if (u.isObj(style)) {
+        // Expands the target element
         style.overflow = 'auto'
         style.height = 'auto'
         style.width = `${width}px`
@@ -88,6 +112,7 @@ export const ExportPdf = (function () {
       for (const el of [
         ...container.getElementsByClassName('scroll-view'),
       ] as HTMLElement[]) {
+        // Expands scroll view elements to capture underlying contents
         el.classList.remove('scroll-view')
         el.style.height = 'auto'
         if (el.style.overflow === 'hidden') el.style.overflow = 'auto'
@@ -100,48 +125,60 @@ export const ExportPdf = (function () {
       const totalHeight = setDocSizesFromElement(doc, el)[1]
       const totalWidth = getTotalWidthFromElement(el)
 
-      doc.canvas.width = width
+      // doc.canvas.width = format[0]
+      // doc.canvas.height = format[1]
+      // doc.internal.pageSize.width = format[0]
+      // doc.internal.pageSize.height = format[1]
+      doc.canvas.width = totalWidth
       doc.canvas.height = totalHeight
-      doc.internal.pageSize.height = totalHeight + 150
+      doc.internal.pageSize.width = totalWidth
+      doc.internal.pageSize.height = totalHeight + 350
 
-      const image = await html2canvas(el, {
-        ...commonHtml2CanvasOptions,
-        onclone,
-        width: totalWidth,
-        height: totalHeight,
-        windowWidth: totalWidth,
-        windowHeight: totalHeight,
-      })
+      try {
+        commonHtml2CanvasOptions = {
+          ...commonHtml2CanvasOptions,
+          onclone,
+          // width: format[0],
+          // height: format[1],
+          // windowWidth: format[0],
+          // windowHeight: format[1],
+          width: totalWidth,
+          // This height expands the VISIBLE content that is cropped off
+          height: doc.internal.pageSize.height,
+          windowWidth: totalWidth,
+          // This height expands the PDF PAGE
+          windowHeight: doc.internal.pageSize.height,
+        }
 
-      // prettier-ignore
-      doc.addImage(
-         image.toDataURL(), 'png', 0, 0, totalWidth, totalHeight, 'FAST', 'FAST'
+        const image = await html2canvas(el, commonHtml2CanvasOptions)
+
+        // prettier-ignore
+        doc.addImage(
+        //  image.toDataURL(), 'png', 0, 0, format[0], format[1], 'FAST', 'FAST'
+         image.toDataURL(), 'png', 0, 0, totalWidth, doc.internal.pageSize.height, 'FAST', 'FAST'
       )
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        console.log(
+          `[ExportPDF-${err.name}] Error occurred while creating a PDF using the addImage method. Using fallback HTML strategy now...`,
+          err,
+        )
+
+        await doc?.html(el, {
+          autoPaging: 'slice',
+          // width: format[0],
+          // windowWidth: format[0],
+          width,
+          windowWidth: totalWidth,
+          html2canvas: {
+            ...commonHtml2CanvasOptions,
+            svgRendering: false,
+            taintTest: true,
+          } as Parameters<jsPDF['html']>[1],
+        })
+      }
     } catch (error) {
       console.error(error instanceof Error ? error : new Error(String(error)))
-      console.log(
-        `[ExportPDF#create] Error occurred while creating a PDF using the addImage method. Using fallback using the HTML method now...`,
-        error,
-      )
-
-      !doc && (doc = new jsPDF(pdfDocOptions))
-
-      await doc?.html(el, {
-        autoPaging: 'slice',
-        width,
-        windowWidth: getTotalWidthFromElement(el),
-        html2canvas: {
-          ...commonHtml2CanvasOptions,
-          // @ts-expect-error
-          onclone,
-          width,
-          height,
-          windowWidth: getTotalWidthFromElement(el),
-          windowHeight: getTotalHeightFromElement(el),
-          svgRendering: false,
-          taintTest: true,
-        },
-      })
     }
     return doc
   }
@@ -191,8 +228,14 @@ export const ExportPdf = (function () {
    * @returns pdf page format which includes width and height
    */
   function getFormat(
-    el?: NuiViewport | HTMLElement | null | undefined,
+    el?: NuiViewport | HTMLElement | null | undefined | Format,
   ): [width: number, height: number] {
+    if (u.isStr(el) && el in o.sizes) {
+      return [o.sizes[el].width, o.sizes[el].height]
+    }
+    if (u.isArr(el)) {
+      return el
+    }
     if (isViewport(el)) {
       _viewport = el
       return [el.width, el.height]
@@ -200,7 +243,7 @@ export const ExportPdf = (function () {
     if (isElement(el)) {
       return [getTotalWidthFromElement(el), getTotalHeightFromElement(el)]
     }
-    return [window.innerWidth, window.innerHeight]
+    return [o.sizes.A4.width, o.sizes.A4.height]
   }
 
   /**
@@ -208,7 +251,7 @@ export const ExportPdf = (function () {
    * @param el DOM element
    * @returns 'portrait' or 'landscape'
    */
-  function getOrientation(el: HTMLElement | null | undefined) {
+  function getOrientation(el: HTMLElement | null | undefined): Orientation {
     if (isElement(el)) {
       const { width, height } = el.getBoundingClientRect()
       return width > height ? 'landscape' : 'portrait'
