@@ -53,17 +53,7 @@ export const ExportPdf = (function () {
 
       doc.canvas.width = width
       doc.canvas.height = totalHeight
-      doc.internal.pageSize.height = totalHeight + el.clientHeight
-
-      doc.viewerPreferences({
-        FitWindow: true,
-        HideMenubar: true,
-        HideToolbar: true,
-        HideWindowUI: true,
-        PrintArea: 'BleedBox',
-        NonFullScreenPageMode: 'UseThumbs',
-        ViewArea: 'BleedBox',
-      })
+      doc.internal.pageSize.height = totalHeight + 150
 
       await doc.html(el, {
         autoPaging: 'slice',
@@ -84,9 +74,7 @@ export const ExportPdf = (function () {
             ] as HTMLElement[]) {
               el.classList.remove('scroll-view')
               el.style.height = 'auto'
-              if (el.style.overflow === 'hidden') {
-                el.style.overflow = 'auto'
-              }
+              if (el.style.overflow === 'hidden') el.style.overflow = 'auto'
             }
           },
           allowTaint: true,
@@ -95,6 +83,7 @@ export const ExportPdf = (function () {
           windowWidth: totalWidth,
           windowHeight: totalHeight,
           removeContainer: true,
+          svgRendering: false,
           scrollX: 0,
           taintTest: true,
           ...html2canvas,
