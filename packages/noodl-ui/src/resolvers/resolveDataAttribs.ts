@@ -116,7 +116,7 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
       //path=func
       if (Identify.component.image(component)) {
         if (component.blueprint?.['path=func']) {
-          result = await component.get('path=func')?.(result)
+          result = component.get('path=func')?.(result)
         }
       }
 

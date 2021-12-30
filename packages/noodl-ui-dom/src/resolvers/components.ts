@@ -387,7 +387,7 @@ const componentsResolver: t.Resolve.Config = {
             )
             args.component
               ?.get?.(c.DATA_VALUE)
-              .then?.((path: any) => {
+              ?.then?.((path: any) => {
                 if (path || path?.url) {
                   if (path?.type && path.type == 'application/pdf') {
                     //pdf preview
