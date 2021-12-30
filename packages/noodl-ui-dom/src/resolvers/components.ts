@@ -28,7 +28,6 @@ const componentsResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] components`,
   async before(args) {
     try {
-      
       if (
         Identify.component.page(args.component) &&
         args.component.get('page')
@@ -381,7 +380,11 @@ const componentsResolver: t.Resolve.Config = {
           // load promise return to image
           if (args.component.blueprint?.['path=func']) {
             // ;(node as HTMLImageElement).src = '../waiting.png'
-            setAttr('src', args.component?.get?.(c.DATA_SRC))
+            setAttr(
+              'src',
+              (await args.component?.get?.(c.DATA_SRC)) ||
+                (await args.component?.get?.(c.DATA_VALUE)),
+            )
             args.component
               ?.get?.(c.DATA_VALUE)
               .then?.((path: any) => {
