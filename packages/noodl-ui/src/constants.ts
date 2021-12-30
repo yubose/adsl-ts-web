@@ -8,7 +8,7 @@ import type { NUIActionType } from './types'
 // Extended constants from this lib
 export const lib = {
   actionTypes: ['anonymous', 'emit', 'goto', 'toast'],
-  components: ['br'],
+  components: ['br','span'],
   emitTriggers: [
     'dataKey',
     'dataValue',

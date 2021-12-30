@@ -376,9 +376,9 @@ componentResolver.setResolver(async (component, options, next) => {
             }
             const text = createComponent(
               {
-                type: 'label',
+                type: 'span',
                 style: {
-                  display: 'inline-block',
+                  // display: 'inline-block',
                   ...('color' in item
                     ? { color: formatColor(item.color || '') }
                     : undefined),
