@@ -66,6 +66,7 @@ export function getElementTag(
 }
 
 getElementTag.prototype.elementMap = {
+  span:'span',
   br: 'br',
   button: 'button',
   canvas: 'canvas',

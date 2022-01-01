@@ -338,8 +338,12 @@ const createExtendedDOMResolvers = function (app: App) {
                         element.eventColor = '#DDEFC8'
                         element.textColor = '#2FB355'
                       }
-                      element.backgroundColor = element.eventColor
 
+                      if(((element.tage & 0xf00)>>8)==1){
+                        element.eventColor = '#f9d9da'
+                        element.textColor = '#e24445'
+                      }
+                      element.backgroundColor = element.eventColor
                       element.borderColor = element.eventColor
                       delete element.stime
                       delete element.etime
@@ -934,16 +938,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 var showName = ''
                 var specialityArr = element.information.speciality
                 var Name = element.information.name
-                if (specialityArr) {
-                  for (var i = 0; i < specialityArr.length; i++) {
-                    str += specialityArr[i] + ', '
-                  }
-                  if (str.length > 0) {
-                    str = str.substr(0, str.length - 2)
-                  }
-                } else {
-                  str = 'No Speciality'
-                }
+                str = specialityArr
                 if (Name == 'undefined undefined') {
                   showName = 'No Name'
                 } else {

@@ -4,9 +4,22 @@
 import * as u from '@jsmanifest/utils'
 import type { Viewport as NuiViewport } from 'noodl-ui'
 import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
+import type { Options as Html2CanvasOptions } from 'html2canvas'
 import { isViewport } from 'noodl-ui'
-import forEachSibling from '../utils/forEachSibling'
 import isElement from '../utils/isElement'
+
+export type Format =
+  | [width: number, height: number]
+  | 'A1'
+  | 'A2'
+  | 'A3'
+  | 'A4'
+  | 'A5'
+  | 'A6'
+  | 'A7'
+  | 'A8'
+export type Orientation = 'landscape' | 'portrait'
 
 const isNil = (v: unknown): v is null | undefined => v == null || v == undefined
 
@@ -22,6 +35,25 @@ export const ExportPdf = (function () {
 
   let _viewport: NuiViewport | null = null
 
+  function getDocumentSize(_document: Document) {
+    if (typeof window !== 'undefined') {
+      const { body, documentElement } = _document
+      return {
+        width: Math.max(
+          Math.max(body.scrollWidth, documentElement.scrollWidth),
+          Math.max(body.offsetWidth, documentElement.offsetWidth),
+          Math.max(body.clientWidth, documentElement.clientWidth),
+        ),
+        height: Math.max(
+          Math.max(body.scrollHeight, documentElement.scrollHeight),
+          Math.max(body.offsetHeight, documentElement.offsetHeight),
+          Math.max(body.clientHeight, documentElement.clientHeight),
+        ),
+      }
+    }
+    return { width: 0, height: 0 }
+  }
+
   /**
    * Creates a jsPDF instance and generates the pages on it using dimensions from a DOM element
    *
@@ -34,76 +66,248 @@ export const ExportPdf = (function () {
    * @param el DOM element
    * @returns jsPDF instance
    */
-  async function create(el: HTMLElement | null | undefined) {
-    try {
-      if (!isElement(el)) return
-      const { width, height } = el.getBoundingClientRect()
-      const format = getFormat(el)
-      const orientation = getOrientation(el)
+  async function create(
+    el: HTMLElement | null | undefined,
+    opts?: {
+      /**
+       * Defaults to A4 (595x842) in 72 PPI
+       */
+      format?: Format
+    },
+  ) {
+    if (!isElement(el)) return
 
-      const doc = new jsPDF({
-        compress: true,
-        format,
-        orientation,
-        unit: 'px',
-      })
+    let doc: jsPDF | undefined
+    let { width, y: startY } = el.getBoundingClientRect()
+    let format = getFormat(opts?.format)
+    let orientation = getOrientation(el) as Orientation
 
-      const totalHeight = setDocSizesFromElement(doc, el)[1]
-      const totalWidth = getTotalWidthFromElement(el)
+    let pdfDocOptions = {
+      compress: true,
+      format,
+      orientation,
+      unit: 'px',
+    } as const
 
-      doc.canvas.width = width
-      doc.canvas.height = totalHeight
-      doc.internal.pageSize.height = totalHeight + el.clientHeight
+    let commonHtml2CanvasOptions: Partial<Html2CanvasOptions> = {
+      allowTaint: true,
+      logging: true,
+      // Putting this to true will avoid blank page when they try to re-download
+      removeContainer: true,
+      useCORS: true,
+      x: 0,
+      y: 0,
+    }
 
-      doc.viewerPreferences({
-        FitWindow: true,
-        HideMenubar: true,
-        HideToolbar: true,
-        HideWindowUI: true,
-        PrintArea: 'BleedBox',
-        NonFullScreenPageMode: 'UseThumbs',
-        ViewArea: 'BleedBox',
-      })
+    const totalHeight = getTotalHeightFromElement(el) - startY
+    const totalWidth = getTotalWidthFromElement(el)
 
-      await doc.html(el, {
-        autoPaging: 'slice',
-        image: { quality: 1, type: 'png' },
-        width,
-        windowWidth: totalWidth,
-        html2canvas: {
-          // @ts-expect-error
-          onclone: (_: Document, container: HTMLElement) => {
-            const style = (container.firstChild as HTMLElement)?.style
-            if (u.isObj(style)) {
-              style.overflow = 'auto'
-              style.height = 'auto'
-              style.width = `${width}px`
+    /**
+     * Callback called with the cloned element.
+     * Optionally mutate this cloned element to modify the output if needed.
+     * The first (immediate) child of the container argument is the cloned "el" argument passed above
+     *
+     * @param _ HTML Document
+     * @param container Container created by html2canvas
+     */
+    const onclone = (_: Document, targetElem: HTMLElement) => {
+      // Expand all elements to fit their contents in pdf pages
+
+      // currElem = targetElem
+      let currHeight = 0
+      let maxPageHeight = format[0]
+
+      // Since there is an issue with images being 0px height because of the "height: auto" in parent, we have to skip modifying parents that have them as children so the images can expand
+      const setNonImagesToHeightAuto = (c: HTMLElement | null | undefined) => {
+        if (c) {
+          let hasImageChild = false
+
+          // while (currElem) {
+          const { height } = c.getBoundingClientRect()
+          const nextHeight = currHeight + height
+          if (nextHeight > maxPageHeight) {
+            // debugger
+            doc = doc?.addPage(format, orientation)
+            currHeight = 0
+          }
+          currHeight += height
+          // currElem =
+          //   (currElem.nextElementSibling as HTMLElement) || currElem.firstChild
+          // }
+
+          for (const childNode of c.children) {
+            if (childNode.tagName === 'IMG') {
+              hasImageChild = true
+              break
             }
-            for (const el of [
-              ...container.getElementsByClassName('scroll-view'),
-            ] as HTMLElement[]) {
-              el.classList.remove('scroll-view')
-              el.style.height = 'auto'
-              if (el.style.overflow === 'hidden') {
-                el.style.overflow = 'auto'
-              }
-            }
+          }
+
+          !hasImageChild && (c.style.height = 'auto')
+          c.style.overflow === 'hidden' && (c.style.overflow = 'auto')
+
+          for (const childNode of c.children) {
+            setNonImagesToHeightAuto(childNode as HTMLElement)
+          }
+        }
+      }
+
+      let currElem = targetElem
+
+      // Expands all descendants so their content can be captured in pdf pages
+      while (currElem) {
+        setNonImagesToHeightAuto(currElem)
+        currElem = currElem.nextElementSibling as HTMLElement
+      }
+
+      // currElem = targetElem
+      // let currHeight = 0
+      // let maxPageHeight = format[0]
+
+      // while (currElem) {
+      //   const { height } = currElem.getBoundingClientRect()
+      //   const nextHeight = currHeight + height
+      //   if (nextHeight > maxPageHeight) {
+      //     debugger
+      //     doc = doc?.addPage(format, orientation)
+      //   }
+      //   currElem =
+      //     (currElem.nextElementSibling as HTMLElement) || currElem.firstChild
+      // }
+    }
+
+    function getTreeBounds(el) {
+      const obj = {}
+
+      if (!el) return obj
+
+      function getProps(obj, el) {
+        const result = {
+          ...obj,
+          bounds: el.getBoundingClientRect(),
+          id: el.id,
+          clientHeight: el.clientHeight,
+          offsetHeight: el.offsetHeight,
+          scrollHeight: el.scrollHeight,
+          style: {
+            position: el.style.position,
+            display: el.style.display,
+            marginTop: el.style.marginTop,
+            top: el.style.top,
+            left: el.style.left,
+            width: el.style.width,
+            height: el.style.height,
           },
-          allowTaint: true,
-          width,
-          height,
-          windowWidth: totalWidth,
-          windowHeight: totalHeight,
-          removeContainer: true,
-          scrollX: 0,
-          taintTest: true,
-          ...html2canvas,
-        },
+        }
+        return result
+      }
+
+      Object.assign(obj, getProps(obj, el), {
+        children: [],
+        path: [],
+        parent: null,
       })
-      return doc
+
+      function collect(obj = {}, node) {
+        Object.assign(obj, getProps(obj, node))
+        const numChildren = node.children.length
+        numChildren && !obj.children && (obj.children = [])
+        for (let index = 0; index < numChildren; index++) {
+          const childNode = node.children[index]
+          obj.children[index] = collect(
+            { parent: node.id, path: obj.path.concat('children', index) },
+            childNode,
+          )
+        }
+
+        return obj
+      }
+
+      const numChildren = el.children.length
+      numChildren && !obj.children && (obj.children = [])
+      for (let index = 0; index < numChildren; index++) {
+        const childNode = el.children[index]
+        obj.children[index] = collect(
+          { parent: el.id, path: obj.path.concat(`children`, index) },
+          childNode,
+        )
+      }
+
+      return obj
+    }
+
+    try {
+      doc = new jsPDF(pdfDocOptions)
+
+      doc.canvas.width = totalWidth
+      doc.canvas.height = totalHeight
+      doc.internal.pageSize.width = totalWidth
+      doc.internal.pageSize.height = totalHeight
+
+      // Canvas + image must share this same size to avoid stretches in fonts
+      const imageSize = {
+        width: totalWidth,
+        height: totalHeight,
+      }
+
+      try {
+        commonHtml2CanvasOptions = {
+          ...commonHtml2CanvasOptions,
+          onclone,
+          // width: format[0],
+          // height: format[1],
+          windowWidth: totalWidth,
+          // windowWidth: format[0],
+          windowHeight: totalHeight,
+          // windowHeight: format[1],
+          width: totalWidth,
+          // This height expands the VISIBLE content that is cropped off
+          height: totalHeight,
+          // windowWidth: imageSize.width,
+          // This height expands the PDF PAGE
+          // windowHeight: imageSize.height,
+        }
+
+        const image = await html2canvas(el, commonHtml2CanvasOptions)
+        // prettier-ignore
+        doc.addImage(
+         image.toDataURL(), 'png', 0, 0,
+         totalWidth, totalHeight,
+         'FAST', 'FAST'
+        )
+        console.log({
+          commonHtml2CanvasOptions,
+          generatedCanvasSizes: { width: image.width, height: image.height },
+          pdfPageSizes: {
+            width: doc.internal.pageSize.width,
+            height: doc.internal.pageSize.height,
+          },
+        })
+        debugger
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        console.log(
+          `[ExportPDF-${err.name}] Error occurred while creating a PDF using the addImage method. Using fallback HTML strategy now...`,
+          err,
+        )
+
+        await doc?.html(el, {
+          autoPaging: 'slice',
+          // width: format[0],
+          // windowWidth: format[0],
+          width,
+          // windowWidth: totalWidth,
+          windowWidth: totalWidth,
+          html2canvas: {
+            ...commonHtml2CanvasOptions,
+            svgRendering: false,
+            taintTest: true,
+          } as Parameters<jsPDF['html']>[1],
+        })
+      }
     } catch (error) {
       console.error(error instanceof Error ? error : new Error(String(error)))
     }
+    return doc
   }
 
   /**
@@ -113,17 +317,20 @@ export const ExportPdf = (function () {
    * @param el
    */
   function getTotalHeightFromElement(el: HTMLElement | null | undefined) {
-    let height = 0
-    if (isElement(el)) {
-      for (const childNode of [...el.children]) {
-        if (childNode.children.length) {
-          height += getTotalHeightFromElement(childNode as HTMLElement)
-        } else {
-          height += childNode.scrollHeight
-        }
+    let y = 0
+    let currEl = el
+
+    while (currEl) {
+      y = Math.max(y, currEl.getBoundingClientRect().y)
+
+      for (const childNode of currEl.children) {
+        y = Math.max(y, getTotalHeightFromElement(childNode as HTMLElement))
       }
+
+      currEl = currEl.nextElementSibling as HTMLElement
     }
-    return height
+
+    return y
   }
 
   /**
@@ -151,8 +358,14 @@ export const ExportPdf = (function () {
    * @returns pdf page format which includes width and height
    */
   function getFormat(
-    el?: NuiViewport | HTMLElement | null | undefined,
+    el?: NuiViewport | HTMLElement | null | undefined | Format,
   ): [width: number, height: number] {
+    if (u.isStr(el) && el in o.sizes) {
+      return [o.sizes[el].width, o.sizes[el].height]
+    }
+    if (u.isArr(el)) {
+      return el
+    }
     if (isViewport(el)) {
       _viewport = el
       return [el.width, el.height]
@@ -160,7 +373,7 @@ export const ExportPdf = (function () {
     if (isElement(el)) {
       return [getTotalWidthFromElement(el), getTotalHeightFromElement(el)]
     }
-    return [window.innerWidth, window.innerHeight]
+    return [o.sizes.A4.width, o.sizes.A4.height]
   }
 
   /**
@@ -168,7 +381,7 @@ export const ExportPdf = (function () {
    * @param el DOM element
    * @returns 'portrait' or 'landscape'
    */
-  function getOrientation(el: HTMLElement | null | undefined) {
+  function getOrientation(el: HTMLElement | null | undefined): Orientation {
     if (isElement(el)) {
       const { width, height } = el.getBoundingClientRect()
       return width > height ? 'landscape' : 'portrait'
@@ -200,6 +413,20 @@ export const ExportPdf = (function () {
     getOrientation,
     getTotalHeightFromElement,
     getTotalWidthFromElement,
+    /**
+     * - Presets for convential sizes in pixels (All representing 72 PPI)
+     * - Use https://www.papersizes.org/a-sizes-in-pixels.htm for an online tool
+     */
+    sizes: {
+      A1: { width: 1684, height: 2384 },
+      A2: { width: 1191, height: 1684 },
+      A3: { width: 842, height: 1191 },
+      A4: { width: 595, height: 842 },
+      A5: { width: 420, height: 595 },
+      A6: { width: 298, height: 420 },
+      A7: { width: 210, height: 298 },
+      A8: { width: 147, height: 210 },
+    },
     setDocSizesFromElement,
     settings: _settings,
     get viewport() {

@@ -49,7 +49,7 @@ import {
   toast,
 } from '../utils/dom'
 import App from '../App'
-import { getRandomKey, pickActionKey, pickHasActionKey,queryString } from '../utils/common'
+import { getRandomKey, pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
 
 const log = Logger.create('actions.ts')
@@ -380,14 +380,9 @@ const createActions = function createActions(app: App) {
       // Avoids letting page components (lower level components) from mutating the tab's url
       if (ndomPage === app.mainPage) {
         const originUrl = ndomPage.pageUrl
-        // ndomPage.pageUrl = app.parse.queryString({
-        //   destination,
-        //   pageUrl: ndomPage.pageUrl,
-        //   startPage: app.startPage,
-        // })
-        ndomPage.pageUrl = queryString({
+        ndomPage.pageUrl = app.parse.queryString({
           destination,
-          pageUrl: originUrl,
+          pageUrl: ndomPage.pageUrl,
           startPage: app.startPage,
         })
         log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)

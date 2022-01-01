@@ -153,20 +153,3 @@ export function throwError(err?: any) {
   throw new Error('Error occurred')
 }
 
-export function queryString({destination,pageUrl,startPage}){
-  const base = pageUrl.includes('?') ? pageUrl.substring(0, pageUrl.indexOf('?')) : pageUrl
-  if(destination == startPage) return base
-  let pageParts = pageUrl.includes('?') ? pageUrl.substring(pageUrl.indexOf('?')+1,pageUrl.length): ''
-  if(pageParts){
-    let pages = pageParts.split('-')
-    const index = pages.indexOf(destination)
-    if (index == -1){
-      pages.push(destination)
-    }else{
-      pages = pages.slice(0,index+1)
-    }
-    return `${base}?${pages.join('-')}`
-  }
-  let pages = [destination]
-  return `${base}?${pages.join('-')}`
-}

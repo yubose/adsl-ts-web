@@ -162,7 +162,7 @@ class NoodlUtilsParser {
     startPage?: string
   }) {
     const base = 'index.html?'
-    pageUrl = pageUrl.startsWith(base) ? pageUrl : pageUrl + base
+    pageUrl = pageUrl.indexOf(base)!== -1 ? pageUrl : pageUrl + base
     let separator = pageUrl.endsWith('?') ? '' : '-'
     if (destination !== startPage) {
       const questionMarkIndex = pageUrl.indexOf(`?${destination}`)
