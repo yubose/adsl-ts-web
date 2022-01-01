@@ -1,325 +1,76 @@
 import { expect } from 'chai'
 import { prettyDOM } from '@testing-library/dom'
+import type jsPDF from 'jspdf'
+import fs from 'fs-extra'
+import path from 'path'
 import * as u from '@jsmanifest/utils'
 import * as nc from 'noodl-common'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
-import ExportPdf, { Item } from '../../modules/ExportPdf'
-import createCanvas from '../../modules/ExportPdf/createCanvas'
-import createPages from '../../modules/ExportPdf/createPages'
-import {
-  itemsWhereSomeChildrenWillOverflow,
-  pageElementResults,
-} from '../fixtures/ExportPdf.json'
+import cheerio from 'cheerio'
+import jsdom from 'jsdom-global'
+import { findFirstByViewTag } from 'noodl-ui-dom'
+import ExportPdf from '../../modules/ExportPdf'
 
-class MockElement {
-  #bounds: DOMRect
-  #id = ''
-  #next: HTMLElement
-  #textContent = '';
+const getAbsFilePath = (...s: string[]) =>
+  path.resolve(path.join(process.cwd(), ...s))
 
-  [Symbol.for('nodejs.util.inspect.custom')]() {
-    return {
-      bounds: this.#bounds,
-      id: this.id,
-      nextElementSibling: this.nextElementSibling,
-      textContent: this.textContent,
-    }
-  }
-
-  constructor({
-    bounds,
-    id,
-    props,
-    textContent,
-  }: {
-    bounds: any
-    id: any
-    textContent: any
-  }) {
-    this.#id = id
-    this.#bounds = bounds as any
-    this.#next = props
-    this.#textContent = textContent
-  }
-
-  get style() {
-    return {}
-  }
-
-  set style(style) {}
-
-  get tagName() {
-    return ''
-  }
-
-  get id() {
-    return this.#id
-  }
-
-  set next(el: HTMLElement) {
-    this.#next = el
-  }
-
-  get nextElementSibling() {
-    return this.#next || null
-  }
-
-  getBoundingClientRect() {
-    return this.#bounds
-  }
-
-  get textContent() {
-    return this.#textContent
-  }
+const loadHtml = {
+  DWCFormRFAReview: () =>
+    fs.readFileSync(
+      getAbsFilePath('src/__tests__/fixtures/DWCFormRFAReview.html'),
+      'utf8',
+    ),
 }
 
-const getItems = <V>(items: V[]): V[] => items.map((r) => ({ ...r }))
-
-const pageWidth = 467
-const pageHeight = 937
-
-const getMockElements = <V = any>(results: V[]) => {
-  const elements = [] as MockElement[]
-  let index = 0
-  for (const props of results) {
-    const mockElem = new MockElement({
-      bounds: props['bounds'],
-      id: props['id'],
-      textContent: props['text'],
-      children: props.children,
-    })
-    if (index) {
-      // @ts-expect-error
-      elements[index - 1].next = mockElem as HTMLElement
-    }
-    index++
-    elements.push(mockElem)
-  }
-  return elements
+// Needs to overwrite the call from setupTests.ts to disable the ajax requests
+function loadHtmlToEnvironment(html = '') {
+  return jsdom(html, {
+    includeNodeLocations: true,
+    pretendToBeVisual: true,
+    url: 'http://localhost:3000',
+    contentType: 'text/html',
+  })
 }
 
-describe(u.yellow(`ExportPdf`), () => {
-  it(
-    `should initiate pageWidth, pageHeight, orientation, overallWidth, ` +
-      `overallHeight when given no options`,
-    () => {
-      const exportPdf = new ExportPdf()
-      expect(exportPdf).to.have.property('orientation', 'portrait')
-      expect(exportPdf).to.have.property('pageWidth').to.be.a('number')
-      expect(exportPdf).to.have.property('pageHeight').to.be.a('number')
-      expect(exportPdf).to.have.property('overallWidth').to.be.a('number')
-      expect(exportPdf).to.have.property('overallHeight').to.be.a('number')
-    },
-  )
+const renderedPseudoDOMElementMap = {}
 
-  const methods = ['previousElementSibling', 'nextElementSibling']
+function createMockDOMNode(pseudoElem) {
+  renderedPseudoDOMElementMap[pseudoElem.id] = pseudoElem
+  const node = u.omit(pseudoElem, ['bounds', 'parent', 'path'])
+  node.getBoundingClientRect = () => pseudoElem.bounds
+  node.parentElement = renderedPseudoDOMElementMap[pseudoElem.parent] || null
+  return node as HTMLElement
+}
 
-  u.forEach((method) => {
-    it.only(`should return an array of node objects using ${method}`, () => {
-      const exportPdf = new ExportPdf()
-      const el = document.createElement('div')
-      el.style.width = '375px'
-      el.style.height = '667px'
-      const ch1 = document.createElement('a')
-      const ch2 = document.createElement('a')
-      const ch3 = document.createElement('button')
-      const container = document.createElement('div')
-      container.appendChild(ch1)
-      container.appendChild(ch2)
-      container.appendChild(el)
-      container.appendChild(ch3)
-      document.body.appendChild(container)
-      const items = exportPdf.getPreviousSiblingNodes(el)
-      const getSib =
-        (fnName = '') =>
-        (n: any) =>
-          n?.[fnName] as HTMLElement
-      const getPrevSib = getSib('previousElementSibling')
-      const getNextSib = getSib('nextElementSibling')
-
-      for (const fn of [getPrevSib, getNextSib]) {
-        if (fn === getPrevSib) {
-          expect(fn(ch1)).to.be.null
-          expect(fn(ch2)).to.eq(ch1)
-          expect(fn(el)).to.eq(ch2)
-          expect(fn(ch3)).to.eq(el)
-        } else {
-          expect(fn(ch1)).to.eq(ch2)
-          expect(fn(ch2)).to.eq(el)
-          expect(fn(el)).to.eq(ch3)
-          expect(fn(ch3)).to.be.null
-        }
-      }
-
-      for (const item of items) {
-        expect(item).to.have.property('start').to.be.a('number')
-        expect(item).to.have.property('end').to.be.a('number')
-        expect(item).to.have.property('bounds').to.exist
-        expect(item).to.have.property('nativeBounds').to.exist
-      }
-    })
-  }, methods)
-
-  describe(u.italic(`getPageElements`), () => {
-    it(`should return start: 0, end: 431.515625 for child #1`, () => {
-      const nodes = getMockElements(pageElementResults)
-      const { items } = getPageElements(nodes[0], pageHeight)
-      const start = 0
-      const height = nodes[0].getBoundingClientRect().height
-      expect(items[0]).to.have.property('start', start)
-      expect(items[0]).to.have.property('end', start + height)
+describe(`ExportPDF`, () => {
+  describe(`DWCFormRFAReview page`, () => {
+    beforeEach(() => {
+      loadHtmlToEnvironment(loadHtml.DWCFormRFAReview())
     })
 
-    it(`should return start: 431.515625, end: 543.9375 for child #2`, () => {
-      const start = 431.515625
-      const nodes = getMockElements(pageElementResults)
-      const { items } = getPageElements(nodes[0], pageHeight)
-      const height = nodes[1].getBoundingClientRect().height
-      expect(items[1]).to.have.property('start', start)
-      expect(items[1]).to.have.property('end', start + height)
-    })
+    describe(`getTotalHeightFromElement`, () => {
+      it(`should return the expected total height`, () => {
+        const $ = cheerio.load(loadHtml.DWCFormRFAReview())
+        const $mainViewEl = $(`[data-viewtag="mainView"]`)
+        const mainViewEl = findFirstByViewTag('mainView')
 
-    it(`should return start: 600.125, end: 684.421875 for child #3`, () => {
-      const start = 478.34375
-      const nodes = getMockElements(pageElementResults)
-      const { items } = getPageElements(nodes[0], pageHeight)
-      const height = nodes[2].getBoundingClientRect().height
-      expect(items[2]).to.have.property('start', start)
-      expect(items[2]).to.have.property('end', start + height)
-    })
+        console.info($mainViewEl.css('width'))
+        console.info($mainViewEl.css('height'))
+        console.info(mainViewEl.getBoundingClientRect())
 
-    it(`should return start: 703.15625, end: 787.453125 for child #4`, () => {
-      const start = 562.640625
-      const nodes = getMockElements(pageElementResults)
-      const { items } = getPageElements(nodes[0], pageHeight)
-      const height = nodes[3].getBoundingClientRect().height
-      expect(items[3]).to.have.property('start', start)
-      expect(items[3]).to.have.property('end', start + height)
-    })
+        // console.info(findFirstByViewTag('mainView').getBoundingClientRect())
 
-    describe(`when the element will overflow to the next page`, () => {
-      describe(`when it is some of the children that will overflow and not all of them`, () => {
-        let items = getItems(itemsWhereSomeChildrenWillOverflow.items)
-        let pageHeight = itemsWhereSomeChildrenWillOverflow.pageHeight
-        let nodes: MockElement[]
-
-        beforeEach(() => {
-          items = getItems(itemsWhereSomeChildrenWillOverflow.items)
-          for (const item of items) {
-            if (item.children?.length) {
-              let index = 0
-              for (const ch of item.children) {
-                // @ts-expect-error
-                item.children[index].getBoundingClientRect = () => ch.height
-                item.children[index].textContent = ch.textContent
-                index++
-              }
-            }
-          }
-          nodes = getMockElements(items)
-        })
-
-        it(`should add the overflowing children ids to item.hide`, () => {
-          const { first, last, items, totalHeight } = getPageElements(
-            nodes[0],
-            pageHeight,
-          )
-          console.info({
-            first,
-            last,
-            items,
-            totalHeight,
-            hide: items[0].hide,
-          })
-          const hideIds = last?.hide.children as string[]
-          // console.info({ hide: last.hide, items })
-          expect(hideIds.length).to.be.greaterThan(0)
-          expect(hideIds.length).to.eq(5)
-          for (const item of items) {
-            expect(hideIds).to.include.members([item.id])
-          }
-        })
-      })
-
-      describe(`when the whole element itself will overflow `, () => {
-        xit(``, () => {
-          //
-        })
-      })
-    })
-  })
-
-  describe(u.italic(`createPages`), () => {
-    it(``, () => {
-      //
-    })
-  })
-
-  describe.only(u.italic(`getSnapObjects`), () => {
-    describe(`when the element will overflow`, () => {
-      it(`should traverse the children to get their start/end positions`, async () => {
-        const pageHeight = 880
-        const createLi = () => document.createElement('li')
-        const view = document.createElement('div')
-        view.style.height = '600px'
-        const list = document.createElement('ul')
-        list.style.height = '350px'
-        const label = document.createElement('div')
-        label.style.height = '70px'
-        view.appendChild(list)
-        const [li1, li2, li3] = [createLi(), createLi(), createLi()]
-        list.appendChild(li1)
-        list.appendChild(li2)
-        list.appendChild(li3)
-        li2.appendChild(label)
-        document.body.style.height = '1000px'
-        document.body.appendChild(view)
-
-        // const pages = await createPages(
-        //   {
-        //     addPage: () => {},
-        //     addImage: () => {},
-        //   } as any,
-        //   view,
-        //   { pageWidth: 366, pageHeight },
-        // )
-
-        // console.info({ pages })
-        console.info(prettyDOM(view.firstElementChild))
-      })
-
-      describe(`when one or more children is overflowing`, () => {
-        xit(`should `, () => {
-          //
-        })
-      })
-
-      describe(`when the element itself with no children is overflowing`, () => {
-        xit(``, () => {
-          //
-        })
-      })
-
-      it(`should visit the siblings if the element and its children is not overflowing yet`, () => {
-        //
-      })
-
-      describe(`when a sibling is overflowing`, () => {
-        xit(``, () => {
-          //
-        })
+        // expect(
+        //   ExportPdf().getTotalHeightFromElement(findFirstByViewTag('mainView')),
+        // ).to.eq(1)
       })
     })
 
-    describe(`when the element will not overflow`, () => {
-      xit(`should not visit children`, () => {
-        //
-      })
-
-      xit(`should visit the next sibling`, () => {
-        //
-      })
-    })
+    // it(``, async () => {
+    //   const mainViewEl = findFirstByViewTag('mainView')
+    //   const exporter = ExportPdf()
+    //   exporter.
+    // })
   })
 })

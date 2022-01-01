@@ -35,6 +35,25 @@ export const ExportPdf = (function () {
 
   let _viewport: NuiViewport | null = null
 
+  function getDocumentSize(_document: Document) {
+    if (typeof window !== 'undefined') {
+      const { body, documentElement } = _document
+      return {
+        width: Math.max(
+          Math.max(body.scrollWidth, documentElement.scrollWidth),
+          Math.max(body.offsetWidth, documentElement.offsetWidth),
+          Math.max(body.clientWidth, documentElement.clientWidth),
+        ),
+        height: Math.max(
+          Math.max(body.scrollHeight, documentElement.scrollHeight),
+          Math.max(body.offsetHeight, documentElement.offsetHeight),
+          Math.max(body.clientHeight, documentElement.clientHeight),
+        ),
+      }
+    }
+    return { width: 0, height: 0 }
+  }
+
   /**
    * Creates a jsPDF instance and generates the pages on it using dimensions from a DOM element
    *
@@ -59,11 +78,11 @@ export const ExportPdf = (function () {
     if (!isElement(el)) return
 
     let doc: jsPDF | undefined
-    let { width, height, x, y } = el.getBoundingClientRect()
+    let { width, y: startY } = el.getBoundingClientRect()
     let format = getFormat(opts?.format)
     let orientation = getOrientation(el) as Orientation
 
-    const pdfDocOptions = {
+    let pdfDocOptions = {
       compress: true,
       format,
       orientation,
@@ -80,6 +99,9 @@ export const ExportPdf = (function () {
       y: 0,
     }
 
+    const totalHeight = getTotalHeightFromElement(el) - startY
+    const totalWidth = getTotalWidthFromElement(el)
+
     /**
      * Callback called with the cloned element.
      * Optionally mutate this cloned element to modify the output if needed.
@@ -88,51 +110,144 @@ export const ExportPdf = (function () {
      * @param _ HTML Document
      * @param container Container created by html2canvas
      */
-    const onclone = (_: Document, container: HTMLElement) => {
-      const styleElem = document.createElement('style')
-      styleElem.innerHTML += `
-        * {
+    const onclone = (_: Document, targetElem: HTMLElement) => {
+      // Expand all elements to fit their contents in pdf pages
 
+      // currElem = targetElem
+      let currHeight = 0
+      let maxPageHeight = format[0]
+
+      // Since there is an issue with images being 0px height because of the "height: auto" in parent, we have to skip modifying parents that have them as children so the images can expand
+      const setNonImagesToHeightAuto = (c: HTMLElement | null | undefined) => {
+        if (c) {
+          let hasImageChild = false
+
+          // while (currElem) {
+          const { height } = c.getBoundingClientRect()
+          const nextHeight = currHeight + height
+          if (nextHeight > maxPageHeight) {
+            // debugger
+            doc = doc?.addPage(format, orientation)
+            currHeight = 0
+          }
+          currHeight += height
+          // currElem =
+          //   (currElem.nextElementSibling as HTMLElement) || currElem.firstChild
+          // }
+
+          for (const childNode of c.children) {
+            if (childNode.tagName === 'IMG') {
+              hasImageChild = true
+              break
+            }
+          }
+
+          !hasImageChild && (c.style.height = 'auto')
+          c.style.overflow === 'hidden' && (c.style.overflow = 'auto')
+
+          for (const childNode of c.children) {
+            setNonImagesToHeightAuto(childNode as HTMLElement)
+          }
         }
-      `
-      _.head.appendChild(styleElem)
-      debugger
-      // Expands the container -- This fills in the remaining space in the page
-      container.style.overflow = 'auto'
-      container.style.height = 'auto'
-
-      const style = (container.firstChild as HTMLElement)?.style
-      if (u.isObj(style)) {
-        // Expands the target element
-        style.overflow = 'auto'
-        style.height = 'auto'
-        style.width = `${width}px`
       }
 
-      for (const el of [
-        ...container.getElementsByClassName('scroll-view'),
-      ] as HTMLElement[]) {
-        // Expands scroll view elements to capture underlying contents
-        el.classList.remove('scroll-view')
-        el.style.height = 'auto'
-        if (el.style.overflow === 'hidden') el.style.overflow = 'auto'
+      let currElem = targetElem
+
+      // Expands all descendants so their content can be captured in pdf pages
+      while (currElem) {
+        setNonImagesToHeightAuto(currElem)
+        currElem = currElem.nextElementSibling as HTMLElement
       }
+
+      // currElem = targetElem
+      // let currHeight = 0
+      // let maxPageHeight = format[0]
+
+      // while (currElem) {
+      //   const { height } = currElem.getBoundingClientRect()
+      //   const nextHeight = currHeight + height
+      //   if (nextHeight > maxPageHeight) {
+      //     debugger
+      //     doc = doc?.addPage(format, orientation)
+      //   }
+      //   currElem =
+      //     (currElem.nextElementSibling as HTMLElement) || currElem.firstChild
+      // }
+    }
+
+    function getTreeBounds(el) {
+      const obj = {}
+
+      if (!el) return obj
+
+      function getProps(obj, el) {
+        const result = {
+          ...obj,
+          bounds: el.getBoundingClientRect(),
+          id: el.id,
+          clientHeight: el.clientHeight,
+          offsetHeight: el.offsetHeight,
+          scrollHeight: el.scrollHeight,
+          style: {
+            position: el.style.position,
+            display: el.style.display,
+            marginTop: el.style.marginTop,
+            top: el.style.top,
+            left: el.style.left,
+            width: el.style.width,
+            height: el.style.height,
+          },
+        }
+        return result
+      }
+
+      Object.assign(obj, getProps(obj, el), {
+        children: [],
+        path: [],
+        parent: null,
+      })
+
+      function collect(obj = {}, node) {
+        Object.assign(obj, getProps(obj, node))
+        const numChildren = node.children.length
+        numChildren && !obj.children && (obj.children = [])
+        for (let index = 0; index < numChildren; index++) {
+          const childNode = node.children[index]
+          obj.children[index] = collect(
+            { parent: node.id, path: obj.path.concat('children', index) },
+            childNode,
+          )
+        }
+
+        return obj
+      }
+
+      const numChildren = el.children.length
+      numChildren && !obj.children && (obj.children = [])
+      for (let index = 0; index < numChildren; index++) {
+        const childNode = el.children[index]
+        obj.children[index] = collect(
+          { parent: el.id, path: obj.path.concat(`children`, index) },
+          childNode,
+        )
+      }
+
+      return obj
     }
 
     try {
       doc = new jsPDF(pdfDocOptions)
 
-      const totalHeight = setDocSizesFromElement(doc, el)[1]
-      const totalWidth = getTotalWidthFromElement(el)
-
-      // doc.canvas.width = format[0]
-      // doc.canvas.height = format[1]
-      // doc.internal.pageSize.width = format[0]
-      // doc.internal.pageSize.height = format[1]
       doc.canvas.width = totalWidth
       doc.canvas.height = totalHeight
       doc.internal.pageSize.width = totalWidth
-      doc.internal.pageSize.height = totalHeight + 350
+      doc.internal.pageSize.height = totalHeight
+
+      // Canvas + image must share this same size to avoid stretches in fonts
+      const imageSize = {
+        width: totalWidth,
+        height: totalHeight,
+      }
 
       try {
         commonHtml2CanvasOptions = {
@@ -140,23 +255,34 @@ export const ExportPdf = (function () {
           onclone,
           // width: format[0],
           // height: format[1],
+          windowWidth: totalWidth,
           // windowWidth: format[0],
+          windowHeight: totalHeight,
           // windowHeight: format[1],
           width: totalWidth,
           // This height expands the VISIBLE content that is cropped off
-          height: doc.internal.pageSize.height,
-          windowWidth: totalWidth,
+          height: totalHeight,
+          // windowWidth: imageSize.width,
           // This height expands the PDF PAGE
-          windowHeight: doc.internal.pageSize.height,
+          // windowHeight: imageSize.height,
         }
 
         const image = await html2canvas(el, commonHtml2CanvasOptions)
-
         // prettier-ignore
         doc.addImage(
-        //  image.toDataURL(), 'png', 0, 0, format[0], format[1], 'FAST', 'FAST'
-         image.toDataURL(), 'png', 0, 0, totalWidth, doc.internal.pageSize.height, 'FAST', 'FAST'
-      )
+         image.toDataURL(), 'png', 0, 0,
+         totalWidth, totalHeight,
+         'FAST', 'FAST'
+        )
+        console.log({
+          commonHtml2CanvasOptions,
+          generatedCanvasSizes: { width: image.width, height: image.height },
+          pdfPageSizes: {
+            width: doc.internal.pageSize.width,
+            height: doc.internal.pageSize.height,
+          },
+        })
+        debugger
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
         console.log(
@@ -169,6 +295,7 @@ export const ExportPdf = (function () {
           // width: format[0],
           // windowWidth: format[0],
           width,
+          // windowWidth: totalWidth,
           windowWidth: totalWidth,
           html2canvas: {
             ...commonHtml2CanvasOptions,
@@ -190,17 +317,20 @@ export const ExportPdf = (function () {
    * @param el
    */
   function getTotalHeightFromElement(el: HTMLElement | null | undefined) {
-    let height = 0
-    if (isElement(el)) {
-      for (const childNode of [...el.children]) {
-        if (childNode.children.length) {
-          height += getTotalHeightFromElement(childNode as HTMLElement)
-        } else {
-          height += childNode.scrollHeight
-        }
+    let y = 0
+    let currEl = el
+
+    while (currEl) {
+      y = Math.max(y, currEl.getBoundingClientRect().y)
+
+      for (const childNode of currEl.children) {
+        y = Math.max(y, getTotalHeightFromElement(childNode as HTMLElement))
       }
+
+      currEl = currEl.nextElementSibling as HTMLElement
     }
-    return height
+
+    return y
   }
 
   /**
