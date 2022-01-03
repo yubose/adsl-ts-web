@@ -3,7 +3,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import type { ComponentObject, EcosDocument } from 'noodl-types'
+import {  ComponentObject, EcosDocument,userEvent } from 'noodl-types'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
@@ -22,6 +22,7 @@ import {
 import type { NuiComponent } from '../types'
 import cache from '../_cache'
 import * as c from '../constants'
+import { NUIActionObject } from '..'
 
 const componentResolver = new Resolver('resolveComponents')
 
@@ -374,44 +375,63 @@ componentResolver.setResolver(async (component, options, next) => {
                   : dataObject
               }
             }
-            const text = createComponent(
-              {
-                type: 'span',
-                style: {
-                  // display: 'inline-block',
-                  ...('color' in item
-                    ? { color: formatColor(item.color || '') }
-                    : undefined),
-                  ...('fontSize' in item
-                    ? {
-                        fontSize:
-                          item.fontSize.search(/[a-z]/gi) != -1
-                            ? item.fontSize
-                            : item.fontSize + 'px',
-                      }
-                    : undefined),
-                  ...('fontWeight' in item
-                    ? { fontWeight: item.fontWeight }
-                    : undefined),
-                  ...('left' in item
-                    ? {
-                        marginLeft: item.left.includes('px')
-                          ? item.left
-                          : `${item.left}px`,
-                      }
-                    : undefined),
-                  ...('top' in item
-                    ? {
-                        marginTop: item.top.includes('px')
-                          ? item.top
-                          : `${item.top}px`,
-                      }
-                    : undefined),
-                },
-                text: 'text' in item ? item.text : '',
+            let componentObject = {
+              type: 'span',
+              style: {
+                // display: 'inline-block',
+                ...('color' in item
+                  ? { color: formatColor(item.color || '') }
+                  : undefined),
+                ...('fontSize' in item
+                  ? {
+                      fontSize:
+                        item.fontSize.search(/[a-z]/gi) != -1
+                          ? item.fontSize
+                          : item.fontSize + 'px',
+                    }
+                  : undefined),
+                ...('fontWeight' in item
+                  ? { fontWeight: item.fontWeight }
+                  : undefined),
+                ...('left' in item
+                  ? {
+                      marginLeft: item.left.includes('px')
+                        ? item.left
+                        : `${item.left}px`,
+                    }
+                  : undefined),
+                ...('top' in item
+                  ? {
+                      marginTop: item.top.includes('px')
+                        ? item.top
+                        : `${item.top}px`,
+                    }
+                  : undefined),
               },
+              text: 'text' in item ? item.text : '',
+            }
+            userEvent.forEach(event=>{
+              if(item?.[event]){
+                componentObject[event] = item?.[event]
+              }
+            })
+            const text = createComponent(
+             componentObject,
               page,
+
             )
+
+            const { createActionChain, on } = options
+            userEvent.forEach(event=>{
+              if(item?.[event]){
+                const actionChain = createActionChain(
+                  event,
+                  item[event] as NUIActionObject[],
+                )
+                on?.actionChain && actionChain.use(on.actionChain)
+                text.edit({ [event]: actionChain })
+              }
+            })
             component.createChild(text)
             callback?.(text)
           }
