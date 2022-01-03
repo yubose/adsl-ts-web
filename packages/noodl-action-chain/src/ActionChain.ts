@@ -104,17 +104,19 @@ class ActionChain<
    * Aborts the action chain from executing further
    * @param { string | string[] | undefined } reason
    */
-  async abort(_reason?: string | string[]) {
-    this.#emit('onAbortStart')
-
+  async abort(_reason?: Error | string | string[]) {
     let reason: string | string[] | undefined
 
     if (_reason) {
       if (isArray(_reason) && _reason.length > 1) _reason.push(..._reason)
       else if (isArray(_reason)) reason = _reason[0]
-      else if (_reason) reason = _reason
+      else if (_reason instanceof Error) {
+        reason = _reason.message
+        this.#error = _reason
+      } else if (_reason) reason = _reason
     }
 
+    this.#emit('onAbortStart', reason as string | string[] | Error)
     this.#setStatus(c.ABORTED, reason)
 
     // The loop below should handle the current pending action. Since this.current is never
@@ -199,7 +201,7 @@ class ActionChain<
       // Initiates the generator (note: this first invocation does not execute
       // any actions, it steps into it so the actual execution of actions
       // begins at the second call to this.next)
-      iterator = await this.next()
+      iterator = await this.next?.()
 
       if (iterator) {
         while (!iterator?.done) {
@@ -224,7 +226,7 @@ class ActionChain<
 
                 if (action?.status !== 'aborted') {
                   this.#emit('onBeforeActionExecute', { action, args })
-                  result = await action?.execute?.(args)
+                  result = await action?.execute?.call(action, args)
                   this.#emit('onExecuteResult', result)
                   this.#results.push({
                     action: action as Action<A['actionType'], T>,
@@ -323,7 +325,7 @@ class ActionChain<
     }
     // @ts-expect-error
     this.#gen = ActionChain.createGenerator<A, T>(this)
-    return this.queue
+    return this.#queue
   }
 
   /**
@@ -331,7 +333,7 @@ class ActionChain<
    * @param { any } callerResult - Result of previous call passes as arguments to the generator yielder
    */
   async next(callerResult?: any) {
-    const result = await this.#gen?.next(callerResult)
+    const result = await this.#gen?.next?.(callerResult)
     if (result) {
       if (!result.done && result.value instanceof Action) {
         this.#current = result.value
@@ -407,6 +409,17 @@ class ActionChain<
       })
     }
     return this
+  }
+
+  toJSON() {
+    return {
+      actions: this.actions,
+      trigger: this.trigger,
+      // injected: this.injected,
+      // queue: this.queue,
+      // results: this.#results,
+      // status: this.#status,
+    }
   }
 }
 

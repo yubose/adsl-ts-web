@@ -243,6 +243,8 @@ export interface On {
   createComponent?(
     component: NuiComponent.Instance,
     args: {
+      path?: (string | number)[]
+      page?: NuiPage
       parent: NuiComponent.Instance | null
       index?: number
       iteratorVar?: number

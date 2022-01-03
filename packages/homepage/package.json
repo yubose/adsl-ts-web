@@ -3,7 +3,6 @@
   "bugs": {},
   "dependencies": {
     "@emotion/css": "^11.7.1",
-    "@emotion/react": "^11.7.1",
     "gatsby": "^4.4.0",
     "gatsby-plugin-emotion": "^7.4.0",
     "gatsby-plugin-gatsby-cloud": "^4.4.0",
@@ -13,6 +12,7 @@
     "gatsby-plugin-react-helmet": "^5.4.0",
     "gatsby-plugin-sharp": "^4.4.0",
     "gatsby-source-filesystem": "^4.4.0",
+    "gatsby-transformer-json": "^4.4.0",
     "gatsby-transformer-sharp": "^4.4.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
@@ -188,6 +188,9 @@
     "build": "gatsby build",
     "clean": "gatsby clean",
     "format": "prettier --write '**/*.{js,jsx,ts,tsx,json,md}'",
+    "generate": "node ./generate",
+    "prebuild": "node scripts/prebuild",
+    "prestart": "node scripts/prebuild",
     "serve": "gatsby serve",
     "start": "gatsby develop -p 3000",
     "test": "jest"

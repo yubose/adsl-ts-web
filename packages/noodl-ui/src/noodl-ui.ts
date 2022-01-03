@@ -199,7 +199,7 @@ const NUI = (function () {
               { iteratorVar },
             )
           }
-          emitAction.executor = async () => {
+          emitAction.executor = async function () {
             const callbacks = (o.cache.actions.emit.get('path') || []).reduce(
               (acc, obj) =>
                 obj?.trigger === 'path' ? acc.concat(obj as any) : acc,
@@ -222,7 +222,7 @@ const NUI = (function () {
             return (u.isArr(result) ? result[0] : result) || ''
           }
           // Result returned should be a string type
-          let result = (await emitAction.execute(args)) as
+          let result = (await emitAction.execute.call(emitAction, args)) as
             | string
             | Promise<string>
 

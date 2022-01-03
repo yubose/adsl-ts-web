@@ -1,17 +1,246 @@
+import * as u from '@jsmanifest/utils'
 import React from 'react'
-import { Link } from 'gatsby'
-import { StaticImage } from 'gatsby-plugin-image'
+import type { ComponentObject } from 'noodl-types'
+import {
+  createAction,
+  createActionChain,
+  NUI as nui,
+  NUITrigger,
+  triggers,
+} from 'noodl-ui'
+import { Link, PageProps } from 'gatsby'
 import { css } from '@emotion/css'
 import Layout from '../layout'
 import Seo from '../components/Seo'
+import is from '../utils/is'
+import * as t from '../types'
 
-const IndexPage = () => (
-  <Layout>
-    <Seo title="Home" />
-    <main>
-      <h1>Homepage</h1>
-    </main>
-  </Layout>
-)
+nui.use({
+  getRoot: () => ({}),
+  getAssetsUrl: () => 'http://127.0.0.1:3001/assets/',
+  getBaseUrl: () => 'http://127.0.0.1:3001/',
+  getPreloadPages: () => [],
+  getPages: () => ['HomePage'],
+  emit: {
+    onClick: async (action, options) => {
+      console.log(`[emit]`, { action, options })
+    },
+  },
+  evalObject: [
+    async (action, options) => {
+      console.log(`[evalObject]`, { action, options })
+    },
+  ],
+  goto: [
+    async (action, options) => {
+      console.log(`[goto]`, { action, options })
+    },
+  ],
+})
+
+function getTagName(type: string) {
+  return {
+    span: 'span',
+    br: 'br',
+    button: 'button',
+    canvas: 'canvas',
+    chart: 'div',
+    date: 'input',
+    dateSelect: 'input',
+    divider: 'hr',
+    ecosDoc: 'div',
+    footer: 'div',
+    header: 'div',
+    searchBar: 'input',
+    textField: 'input',
+    image: 'img',
+    label: 'div',
+    list: 'ul',
+    listItem: 'li',
+    map: 'div',
+    page: 'iframe',
+    popUp: 'div',
+    plugin: 'div',
+    pluginHead: 'script',
+    pluginBodyTail: 'script',
+    register: 'div',
+    scrollView: 'div',
+    select: 'select',
+    textView: 'textarea',
+    video: 'video',
+    view: 'div',
+  }[type]
+}
+
+const initialState = {
+  components: {} as { [id: string]: { parentId: string; type: string } },
+}
+
+export interface RenderComponentCallbackArgs {
+  component: t.StaticComponentObject
+  element: React.ReactElement
+  tagName: string
+}
+
+const traverse = (
+  component: t.StaticComponentObject,
+  cb: (args: {
+    component: t.StaticComponentObject
+    parent: ComponentObject | null
+  }) => void,
+) => {
+  for (const child of u.array(component.children).filter(Boolean)) {
+    cb({ component: child, parent: component || null })
+    if (child?.children) {
+      traverse(child.children, cb)
+    }
+  }
+}
+
+function IndexPage(
+  props: PageProps<{}, { components: t.StaticComponentObject[] }>,
+) {
+  const [state, setState] = React.useState(() => {
+    const st = {}
+    for (const component of props.pageContext.components) {
+      traverse(component, ({ component: comp, parent }) => {
+        st[comp.id] = {
+          id: comp.id,
+          parent: u.omit(parent, ['children', 'parentId']),
+        }
+      })
+    }
+    return st
+  })
+
+  const { navigate } = props
+
+  React.useEffect(() => {
+    console.log(`[Homepage] state`, state)
+    console.log(`[Homepage] props`, props)
+    console.log(`[Homepage] components`, props.pageContext.components)
+  }, [])
+
+  const renderComponent = React.useCallback(
+    (
+      componentProp: t.StaticComponentObject,
+      cb?: (args: RenderComponentCallbackArgs) => void,
+    ) => {
+      let { id, type, style, children: nchildren } = componentProp
+      let props = { key: id, style } as Record<string, any>
+      let children = [] as React.ReactElement[]
+
+      if (nchildren && !u.isArr(nchildren)) nchildren = u.array(nchildren)
+
+      nchildren.length &&
+        (children = nchildren.map((c) => renderComponent(c, cb)))
+
+      for (const [key, value] of u.entries(componentProp)) {
+        if (key === 'children') {
+          //
+        } else if (key === 'data-value' && type === 'label') {
+          children.push(value)
+        } else if (key === 'data-src' && /(image|video)/i.test(type)) {
+          props.src = value
+        } else if (key === 'style') {
+          //
+        } else if (key === 'text' && !componentProp['data-value']) {
+          value && children.push(value)
+        } else if (triggers.includes(key as string)) {
+          if (key === 'onClick') {
+            const obj = value as t.StaticComponentObject[NUITrigger]
+            const actions = obj?.actions || []
+            const trigger = key as NUITrigger
+            const actionChain = createActionChain(trigger, actions, (objs) => {
+              const loaded = []
+
+              for (const obj of objs) {
+                const nuiAction = createAction({ action: obj, trigger })
+
+                nuiAction.executor = async (event: React.SyntheticEvent) => {
+                  if (is.goto(obj)) window.location.href = obj.goto
+                  if (is.folds.goto(obj)) window.location.href = obj.goto
+                  console.log({ event, obj, nuiAction })
+                }
+
+                loaded.push(nuiAction)
+              }
+
+              return loaded
+            })
+
+            const getArgs = function (args) {
+              if (args.length) {
+                args = [...args].filter(Boolean)
+                return args.length ? { args } : ''
+              }
+              return ''
+            }
+
+            actionChain.use({
+              onAbortStart() {
+                console.log(`[onAbortStart]`, getArgs(arguments))
+              },
+              onBeforeActionExecute() {
+                console.log(`[onBeforeActionExecute]`, getArgs(arguments))
+              },
+              onExecuteStart() {
+                console.log(`[onExecuteStart]`, getArgs(arguments))
+              },
+              onExecuteEnd() {
+                console.log(`[onExecuteEnd]`, getArgs(arguments))
+              },
+              onExecuteResult() {
+                console.log(`[onExecuteResult]`, getArgs(arguments))
+              },
+              onExecuteError() {
+                console.log(`[onExecuteError]`, getArgs(arguments))
+              },
+              onAbortError() {
+                console.log(`[onAbortError]`, getArgs(arguments))
+              },
+            })
+
+            props[trigger] = async function onTriggerAction(
+              event: React.SyntheticEvent,
+            ) {
+              await actionChain.execute(event)
+            }
+
+            actionChain.loadQueue()
+          }
+        } else {
+          if (
+            !/(contentType|iteratorVar|itemObject|listObject|parentId|viewTag|videoFormat)/.test(
+              key as any,
+            )
+          ) {
+            props[key] = value
+          }
+        }
+      }
+
+      const tagName = getTagName(type)
+
+      const element = React.createElement(
+        tagName,
+        props,
+        children.length ? children : undefined,
+      )
+
+      cb?.({ component: componentProp, element, tagName })
+
+      return element
+    },
+    [],
+  )
+
+  return (
+    <Layout>
+      <Seo title="Home" />
+      {props.pageContext.components.map((c) => renderComponent(c))}
+    </Layout>
+  )
+}
 
 export default IndexPage

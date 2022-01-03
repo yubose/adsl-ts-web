@@ -6,6 +6,7 @@
 import React from 'react'
 import { injectGlobal } from '@emotion/css'
 import { useStaticQuery, graphql } from 'gatsby'
+import Navbar from './components/Navbar'
 
 injectGlobal`
   * {
@@ -14,11 +15,10 @@ injectGlobal`
   html {
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
-    box-sizing: border-box;
-    overflow-y: scroll;
   }
   body {
-    margin: 0;
+    padding: 0px;
+    margin: 0px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: hsla(0, 0%, 0%, 0.8);
@@ -39,12 +39,7 @@ const Layout = ({ children }) => {
     }
   `)
 
-  return (
-    <>
-      {/* <Header siteTitle={data.site.siteMetadata?.title || `Title`} /> */}
-      <main>{children}</main>
-    </>
-  )
+  return <>{children}</>
 }
 
 export default Layout

@@ -38,6 +38,7 @@ componentResolver.setResolver(async (component, options, next) => {
     getPages,
     getRoot,
     getRootPage,
+    on,
     page,
     resolveComponents,
   } = options
@@ -50,6 +51,12 @@ componentResolver.setResolver(async (component, options, next) => {
     const { contentType, dataKey, path, text, textBoard } = original
     const iteratorVar =
       context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
+
+    on?.createComponent?.(component, {
+      page,
+      parent: component.parent,
+      ...context,
+    })
 
     /* -------------------------------------------------------
       ---- ECOSDOC
@@ -156,7 +163,13 @@ componentResolver.setResolver(async (component, options, next) => {
           listItem = await resolveComponents({
             callback,
             components: listItem,
-            context: { ...context, ...ctx },
+            context: {
+              ...context,
+              ...ctx,
+              path: context?.path
+                ? context.path.concat('children', index)
+                : ['children', index],
+            },
             on: options.on,
             page,
           })
@@ -489,7 +502,9 @@ componentResolver.setResolver(async (component, options, next) => {
     // All other children are handled here
     if (!isListLike(component) && !Identify.component.page(component)) {
       if (u.isArr(component.blueprint?.children)) {
-        for (const childObject of component.blueprint.children) {
+        const numChildren = component.blueprint.children.length
+        for (let index = 0; index < numChildren; index++) {
+          const childObject = component.blueprint.children[index]
           let _page = Identify.component.page(component.parent)
             ? component.parent.get('page')
             : page || page
@@ -498,10 +513,16 @@ componentResolver.setResolver(async (component, options, next) => {
           child = await resolveComponents({
             callback,
             components: child,
-            context: { ...context },
+            context: {
+              ...context,
+              path: context?.path
+                ? context.path.concat('children', index)
+                : ['children', index],
+            },
             page: _page,
             on: options.on,
           })
+
           !cache.component.has(child) && cache.component.add(child, _page)
         }
       }

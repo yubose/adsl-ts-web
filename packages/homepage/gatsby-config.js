@@ -1,4 +1,5 @@
 /**
+ * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-config/
  * @type { import('gatsby').GatsbyConfig }
  */
 module.exports = {
@@ -8,11 +9,26 @@ module.exports = {
     siteUrl: `https://aitmed.com/`,
   },
   plugins: [
+    `gatsby-transformer-json`,
     `gatsby-plugin-react-helmet`,
     `gatsby-plugin-image`,
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
     `gatsby-plugin-emotion`,
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `assets`,
+        path: `${__dirname}/src/resources/assets`,
+      },
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `data`,
+        path: `${__dirname}/src/resources/data`,
+      },
+    },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
