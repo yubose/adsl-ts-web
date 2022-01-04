@@ -178,7 +178,7 @@
     "ehealth"
   ],
   "license": "0BSD",
-  "name": "aitmed-homepage",
+  "name": "homepage",
   "private": true,
   "repository": {
     "type": "git",

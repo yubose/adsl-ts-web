@@ -18,6 +18,7 @@ const get = require('lodash/get')
 const set = require('lodash/set')
 const { NUI, Transformer } = require('noodl-ui')
 
+const nui = NUI
 const { parse, traverse, types: t, transformFromAstAsync } = babel
 
 function getPathToEventTargetFile() {
@@ -31,11 +32,13 @@ function getPathToEventTargetFile() {
 
 /**
  * @typedef { import('noodl-ui').NuiComponent.Instance } NuiComponent
+ * @typedef { import('noodl-ui').On } NuiOn
  * @typedef { import('noodl-ui').Page } NuiPage
  * @typedef { import('noodl-ui').Viewport } NuiViewport
  * @typedef { import('@babel/traverse').Node } Node
  * @typedef { import('@babel/traverse').NodePath } NodePath
  * @typedef { object } On
+ * @property { NuiOn['createComponent'] } On.createComponent
  * @property { object } On.patch
  * @property { function } On.patch.addEventListener
  * @property { function } On.patch.removeEventListener
@@ -200,7 +203,7 @@ async function getGenerator({
 
     const untransformedComponents = sdk.root.HomePage.components
 
-    NUI.use({
+    nui.use({
       getRoot: () => sdk.root,
       getAssetsUrl: () => sdk.assetsUrl,
       getBaseUrl: () => sdk.cadlBaseUrl,
@@ -209,12 +212,15 @@ async function getGenerator({
     })
 
     const transformer = new Transformer()
-    const page = NUI.getRootPage()
+    const page = nui.getRootPage()
 
     page.page = startPage
     page.viewport.width = viewport.width
     page.viewport.height = viewport.height
 
+    /**
+     * @param { Record<string, any> } obj
+     */
     function getGoto(obj) {
       if (u.isObj(obj)) {
         if ('goto' in obj) return obj.goto
@@ -238,44 +244,16 @@ async function getGenerator({
      */
     async function transform(componentProp, index = 0) {
       if (!componentProp) componentProp = {}
-      const component = NUI.createComponent(componentProp, page)
+      const component = nui.createComponent(componentProp, page)
 
       await transformer.transform(
         component,
-        NUI.getConsumerOptions({
+        nui.getConsumerOptions({
           context: { path: [index] },
           component,
           page,
           on: {
-            createComponent(comp, opts) {
-              const componentLabel = `[${comp.type}]`
-              const path = opts.path || []
-              const pathStr = path.join('.') || ''
-              // const logArgs = [
-              //   comp.type,
-              //   opts.parent?.type || '',
-              //   u.isNum(opts?.index) ? opts.index : null,
-              // ]
-              // if (u.isStr(comp.blueprint.path))
-              //   logArgs.push(comp.blueprint.path)
-              // else if (comp.blueprint.viewTag)
-              //   logArgs.push(comp.blueprint.viewTag)
-              // console.log(logArgs)
-              if (comp.blueprint.onClick) {
-                let goto = getGoto(comp.blueprint.onClick)
-                if (goto) {
-                  if ('goto' in goto) {
-                    comp.set('onClick', { actions: [goto], trigger: 'onClick' })
-                  }
-                }
-                // console.log(comp.blueprint.onClick)
-              }
-              // console.log(
-              //   componentLabel,
-              //   pathStr,
-              //   has(sdk.root.HomePage.components, path),
-              // )
-            },
+            createComponent: on?.createComponent,
           },
         }),
       )
@@ -304,16 +282,26 @@ module.exports = {
 
 // process.stdout.write('\x1Bc')
 
-// generate()
-//   .then(async ({ components, nui }) => {
-//     // console.log(components)
-//     await fs.writeJson('HomePage.json', nui.getRoot().HomePage, { spaces: 2 })
-//     await fs.writeJson(
-//       'src/resources/data/homepage-components.json',
-//       components,
-//       {
-//         spaces: 2,
-//       },
-//     )
-//   })
-//   .catch(console.error)
+// getGenerator()
+//   .then(async ({ components, getGoto, nui, page, sdk, transform }) => {
+//     const result = sdk.processPopulate({
+//       source: ,
+//       lookFor: ['.', '..', '=', '~'],
+//       pageName: 'HomePage',
+//       withFns: true,
+//     })
+//     console.dir(result, { depth: Infinity })
+// console.log(await transform(components[1]))
+// console.dir(await transform(components[9]), { depth: Infinity })
+
+// console.log(components)
+// await fs.writeJson('HomePage.json', nui.getRoot().HomePage, { spaces: 2 })
+// await fs.writeJson(
+//   'src/resources/data/homepage-components.json',
+//   components,
+//   {
+//     spaces: 2,
+//   },
+// )
+// })
+// .catch(console.error)

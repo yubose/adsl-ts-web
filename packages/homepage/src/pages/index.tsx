@@ -169,7 +169,7 @@ function IndexPage(
               return loaded
             })
 
-            const getArgs = function (args) {
+            const getArgs = function (args: IArguments | any[]) {
               if (args.length) {
                 args = [...args].filter(Boolean)
                 return args.length ? { args } : ''
@@ -242,5 +242,22 @@ function IndexPage(
     </Layout>
   )
 }
+
+// export async function getServerData() {
+//   try {
+//     const { default: axios } = await import('axios')
+//     const { default: y } = await import('yaml')
+//     const res = await axios.get(`https://public.aitmed.com/config/www.yml`)
+//     return {
+//       props: y.parse(res.data),
+//     }
+//   } catch (error) {
+//     return {
+//       status: 500,
+//       headers: {},
+//       props: {},
+//     }
+//   }
+// }
 
 export default IndexPage

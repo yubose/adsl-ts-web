@@ -3,7 +3,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import {  ComponentObject, EcosDocument,userEvent } from 'noodl-types'
+import { ComponentObject, EcosDocument, userEvent } from 'noodl-types'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar, findDataValue } from 'noodl-utils'
 import Resolver from '../Resolver'
@@ -46,18 +46,18 @@ componentResolver.setResolver(async (component, options, next) => {
 
   callback?.(component)
 
+  const mergingProps = on?.createComponent?.(component, {
+    page,
+    parent: component.parent,
+    ...context,
+  })
+
   try {
     const original = component.blueprint || {}
     const originalStyle = original.style || {}
     const { contentType, dataKey, path, text, textBoard } = original
     const iteratorVar =
       context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
-
-    on?.createComponent?.(component, {
-      page,
-      parent: component.parent,
-      ...context,
-    })
 
     /* -------------------------------------------------------
       ---- ECOSDOC
@@ -228,6 +228,7 @@ componentResolver.setResolver(async (component, options, next) => {
       if (u.isStr(pageName)) {
         const isEqual = page.page === pageName
         if (isEqual && !isRemote(pageName)) {
+          u.isObj(mergingProps) && component.edit(mergingProps)
           return next?.()
         } else {
           if (page.page === '' && pageName) {
@@ -306,7 +307,7 @@ componentResolver.setResolver(async (component, options, next) => {
       Identify.component.pluginBodyTail(component)
     ) {
       if (cache.plugin.has(path)) {
-        // callback?.(component)
+        u.isObj(mergingProps) && component.edit(mergingProps)
         return next?.()
       }
 
@@ -423,20 +424,16 @@ componentResolver.setResolver(async (component, options, next) => {
               },
               text: 'text' in item ? item.text : '',
             }
-            userEvent.forEach(event=>{
-              if(item?.[event]){
+            userEvent.forEach((event) => {
+              if (item?.[event]) {
                 componentObject[event] = item?.[event]
               }
             })
-            const text = createComponent(
-             componentObject,
-              page,
-
-            )
+            const text = createComponent(componentObject, page)
 
             const { createActionChain, on } = options
-            userEvent.forEach(event=>{
-              if(item?.[event]){
+            userEvent.forEach((event) => {
+              if (item?.[event]) {
                 const actionChain = createActionChain(
                   event,
                   item[event] as NUIActionObject[],
@@ -553,6 +550,7 @@ componentResolver.setResolver(async (component, options, next) => {
     console.error(error)
   }
 
+  u.isObj(mergingProps) && component.edit(mergingProps)
   return next?.()
 })
 

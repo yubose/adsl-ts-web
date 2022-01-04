@@ -6,7 +6,6 @@
 import React from 'react'
 import { injectGlobal } from '@emotion/css'
 import { useStaticQuery, graphql } from 'gatsby'
-import Navbar from './components/Navbar'
 
 injectGlobal`
   * {
