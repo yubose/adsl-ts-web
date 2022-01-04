@@ -188,7 +188,6 @@
     "build": "gatsby build",
     "clean": "gatsby clean",
     "format": "prettier --write '**/*.{js,jsx,ts,tsx,json,md}'",
-    "generate": "node ./generate",
     "prebuild": "node scripts/prebuild",
     "prestart": "node scripts/prebuild",
     "serve": "gatsby serve",

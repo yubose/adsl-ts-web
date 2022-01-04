@@ -6,7 +6,7 @@ require('jsdom-global')('', {
     localStorage = win.localStorage || global.localStorage
   },
 })
-const axios = require('axios')
+
 const nt = require('noodl-types')
 const u = require('@jsmanifest/utils')
 const fs = require('fs-extra')
@@ -31,19 +31,27 @@ function getPathToEventTargetFile() {
 
 /**
  * @typedef { import('noodl-ui').NuiComponent.Instance } NuiComponent
+ * @typedef { import('noodl-ui').Page } NuiPage
+ * @typedef { import('noodl-ui').Viewport } NuiViewport
  * @typedef { import('@babel/traverse').Node } Node
  * @typedef { import('@babel/traverse').NodePath } NodePath
+ * @typedef { object } On
+ * @property { object } On.patch
+ * @property { function } On.patch.addEventListener
+ * @property { function } On.patch.removeEventListener
+ *
  */
 
 /**
- *
- * @param { Parameters<typeof generate>[0]['patches'] } options
+ * addEventListener is preving sdk from sandboxing.
+ * We must monkey patch the EventTarget
+ * @argument { object } opts
+ * @param { On['patch'] } opts.onPatch
  * @returns { Promise<{ components: NuiComponent.Instance[]; nui: typeof NUI }> }
  */
-async function monkeyPatchAddEventListener(options) {
+async function monkeyPatchAddEventListener(opts) {
   try {
     const code = await fs.readFile(getPathToEventTargetFile(), 'utf8')
-
     const ast = parse(code)
 
     /**
@@ -124,10 +132,10 @@ async function monkeyPatchAddEventListener(options) {
             ['removeEventListener', removeEventListenerMethod],
           ]) {
             if (isMethodPatched(method)) {
-              options?.[evtName]?.({ wasPatched: true })
+              opts?.onPatch?.[evtName]?.({ wasPatched: true })
             } else {
               eventListenersWerePatched = false
-              options?.[evtName]?.({ wasPatched: false })
+              opts?.onPatch?.[evtName]?.({ wasPatched: false })
               if (t.isBlockStatement(method.body)) {
                 method.body.body.unshift(t.returnStatement())
               }
@@ -152,19 +160,35 @@ async function monkeyPatchAddEventListener(options) {
 
 /**
  * @param { object } opts
- * @param { object } opts.patches
- * @param { function } opts.patches.addEventListener
- * @param { function } opts.patches.removeEventListener
- * @returns { Promise<{ components: NuiComponent[]; nui: typeof NUI }> }
+ * @param { string } [opts.configUrl]
+ * @param { string } [opts.configKey]
+ * @param { string } [opts.startPage]
+ * @param { On } [opts.on]
+ * @param { NuiViewport } [opts.viewport]
+ * @returns { Promise<{ components: nt.ComponentObject[]; getGoto: function; nui: typeof NUI; page: NuiPage; sdk: CADL; transform: (componentProp: nt.ComponentObject, index?: number) => Promise<NuiComponent.Instance> }> }
  */
-async function generate({ patches } = {}) {
+async function getGenerator({
+  configUrl,
+  configKey = 'www',
+  on,
+  startPage = 'HomePage',
+  viewport = { width: 1024, height: 768 },
+} = {}) {
   try {
-    await monkeyPatchAddEventListener(patches)
-
+    // Patches the EventTarget so we can sandbox the sdk
+    await monkeyPatchAddEventListener({
+      onPatch: {
+        addEventListener: on?.patch?.addEventListener,
+        removeEventListener: on?.patch?.removeEventListener,
+      },
+    })
+    // Intentionally using require
     const { CADL } = require('@aitmed/cadl')
+
     const sdk = new CADL({
       cadlVersion: 'test',
-      configUrl: `https://public.aitmed.com/config/www.yml`,
+      configUrl:
+        configUrl || `https://public.aitmed.com/config/${configKey}.yml`,
     })
 
     await sdk.init()
@@ -172,30 +196,26 @@ async function generate({ patches } = {}) {
     if (u.isObj(sdk.root?.BaseHeader?.style)) {
       sdk.root.BaseHeader.style.top = '0'
     }
-    await sdk.initPage('HomePage')
-    // const { data: HomePageYml } = await axios.get(
-    //   sdk.baseUrl + 'HomePage_en.yml',
-    // )
-    // const HomePageJson = y.parse(HomePageYml)?.HomePage
-    // console.log(HomePageJson)
+    await sdk.initPage(startPage)
 
-    const components = sdk.root.HomePage.components
+    const untransformedComponents = sdk.root.HomePage.components
 
     NUI.use({
       getRoot: () => sdk.root,
       getAssetsUrl: () => sdk.assetsUrl,
       getBaseUrl: () => sdk.cadlBaseUrl,
-      getPreloadPages: () => sdk.cadlEndpoint.preload,
-      getPages: () => sdk.cadlEndpoint.page,
+      getPreloadPages: () => sdk.cadlEndpoint?.preload || [],
+      getPages: () => sdk.cadlEndpoint?.page || [],
     })
 
     const transformer = new Transformer()
     const page = NUI.getRootPage()
-    page.page = 'HomePage'
-    page.viewport.width = 1024
-    page.viewport.height = 768
 
-    const getGoto = (obj) => {
+    page.page = startPage
+    page.viewport.width = viewport.width
+    page.viewport.height = viewport.height
+
+    function getGoto(obj) {
       if (u.isObj(obj)) {
         if ('goto' in obj) return obj.goto
         for (const v of u.values(obj)) {
@@ -213,11 +233,13 @@ async function generate({ patches } = {}) {
     }
 
     /**
-     * @param { nt.ComponentObject } component
+     * @argument { nt.ComponentObject } componentProp
+     * @argument { number } [index]
      */
-    const parseComponent = async (componentProp, index = 0) => {
+    async function transform(componentProp, index = 0) {
       if (!componentProp) componentProp = {}
       const component = NUI.createComponent(componentProp, page)
+
       await transformer.transform(
         component,
         NUI.getConsumerOptions({
@@ -258,32 +280,16 @@ async function generate({ patches } = {}) {
         }),
       )
 
-      // const props = component.props
-
       return component
     }
 
-    /**
-     *
-     * @param { nt.ComponentObject | nt.ComponentObject[] } component
-     * @returns { Promise<import('noodl-ui').NuiComponent.Instance[]> }
-     */
-    const parseAll = async (value) => {
-      const components = []
-      const componentsList = u.array(value)
-      const numComponents = componentsList.length
-      for (let index = 0; index < numComponents; index++) {
-        const component = componentsList[index]
-        components.push(await parseComponent(component, index))
-      }
-      return components
-    }
-
-    const parsedComponents = await parseAll(components)
-
     return {
-      components: parsedComponents,
+      components: untransformedComponents,
+      getGoto,
       nui: NUI,
+      page,
+      sdk,
+      transform,
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
@@ -292,7 +298,7 @@ async function generate({ patches } = {}) {
 }
 
 module.exports = {
-  generate,
+  getGenerator,
   monkeyPatchAddEventListener,
 }
 

@@ -10,7 +10,7 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
-const TITLE = 'AiTmed: Start your E-health Journal Anywhere, Anytime'
+const TITLE = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
 const DESCRIPTION = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
 const KEYWORDS = ['aitmed', 'telemedicine', 'blockchain', 'noodl']
 const FAVICON = 'public/favicon.ico'
