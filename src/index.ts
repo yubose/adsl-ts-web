@@ -225,7 +225,7 @@ window.addEventListener('load', async (e) => {
         return clearInterval(interval)
       }
     }
-    console.log(`[interval] The btn button has not rendered yet`)
+    // console.log(`[interval] The btn button has not rendered yet`)
   }, 150)
 })
 
