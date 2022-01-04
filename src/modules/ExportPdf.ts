@@ -7,6 +7,9 @@ import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import type { Options as Html2CanvasOptions } from 'html2canvas'
 import { isViewport } from 'noodl-ui'
+import getElementTreeDimensions, {
+  ElementTreeDimensions,
+} from '../utils/getElementTreeDimensions'
 import isElement from '../utils/isElement'
 
 export type Format =
@@ -99,7 +102,7 @@ export const ExportPdf = (function () {
       y: 0,
     }
 
-    const totalHeight = getTotalHeightFromElement(el) - startY
+    const totalHeight = getTotalHeight(el)[0] - startY
     const totalWidth = getTotalWidthFromElement(el)
 
     /**
@@ -126,7 +129,6 @@ export const ExportPdf = (function () {
           const { height } = c.getBoundingClientRect()
           const nextHeight = currHeight + height
           if (nextHeight > maxPageHeight) {
-            // debugger
             doc = doc?.addPage(format, orientation)
             currHeight = 0
           }
@@ -175,66 +177,6 @@ export const ExportPdf = (function () {
       // }
     }
 
-    function getTreeBounds(el) {
-      const obj = {}
-
-      if (!el) return obj
-
-      function getProps(obj, el) {
-        const result = {
-          ...obj,
-          bounds: el.getBoundingClientRect(),
-          id: el.id,
-          clientHeight: el.clientHeight,
-          offsetHeight: el.offsetHeight,
-          scrollHeight: el.scrollHeight,
-          style: {
-            position: el.style.position,
-            display: el.style.display,
-            marginTop: el.style.marginTop,
-            top: el.style.top,
-            left: el.style.left,
-            width: el.style.width,
-            height: el.style.height,
-          },
-        }
-        return result
-      }
-
-      Object.assign(obj, getProps(obj, el), {
-        children: [],
-        path: [],
-        parent: null,
-      })
-
-      function collect(obj = {}, node) {
-        Object.assign(obj, getProps(obj, node))
-        const numChildren = node.children.length
-        numChildren && !obj.children && (obj.children = [])
-        for (let index = 0; index < numChildren; index++) {
-          const childNode = node.children[index]
-          obj.children[index] = collect(
-            { parent: node.id, path: obj.path.concat('children', index) },
-            childNode,
-          )
-        }
-
-        return obj
-      }
-
-      const numChildren = el.children.length
-      numChildren && !obj.children && (obj.children = [])
-      for (let index = 0; index < numChildren; index++) {
-        const childNode = el.children[index]
-        obj.children[index] = collect(
-          { parent: el.id, path: obj.path.concat(`children`, index) },
-          childNode,
-        )
-      }
-
-      return obj
-    }
-
     try {
       doc = new jsPDF(pdfDocOptions)
 
@@ -253,18 +195,12 @@ export const ExportPdf = (function () {
         commonHtml2CanvasOptions = {
           ...commonHtml2CanvasOptions,
           onclone,
-          // width: format[0],
-          // height: format[1],
-          windowWidth: totalWidth,
-          // windowWidth: format[0],
-          windowHeight: totalHeight,
-          // windowHeight: format[1],
           width: totalWidth,
           // This height expands the VISIBLE content that is cropped off
           height: totalHeight,
-          // windowWidth: imageSize.width,
           // This height expands the PDF PAGE
-          // windowHeight: imageSize.height,
+          windowHeight: totalHeight,
+          windowWidth: totalWidth,
         }
 
         const image = await html2canvas(el, commonHtml2CanvasOptions)
@@ -282,7 +218,6 @@ export const ExportPdf = (function () {
             height: doc.internal.pageSize.height,
           },
         })
-        debugger
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
         console.log(
@@ -310,27 +245,149 @@ export const ExportPdf = (function () {
     return doc
   }
 
+  function createBlueprint(
+    size: string | [width: number, height: number],
+    el: HTMLElement | null | undefined,
+  ) {
+    if (!el) return
+    const [pageWidth, pageHeight] = (
+      u.isStr(size) && o.sizes[size]
+        ? [o.sizes[size].width, o.sizes[size].height]
+        : u.isArr(size)
+        ? size
+        : [el.scrollWidth, el.scrollHeight]
+    ) as [number, number]
+    const [totalHeight, path] = getTotalHeight(el)
+    const [totalPages, remainingHeight] = getTotalPages(pageHeight, [
+      totalHeight,
+      path,
+    ])
+
+    const blueprint = {
+      pages: getPageBlueprints(getElementTreeDimensions(el), {
+        pageHeight,
+      }),
+      pageWidth,
+      pageHeight,
+      path,
+      remainingHeight,
+      totalHeight,
+      totalPages,
+    }
+
+    function getPageBlueprints(
+      obj: ElementTreeDimensions,
+      {
+        currPage = 0,
+        currPageHeight = 0,
+        pageHeight,
+        path = [],
+      }: {
+        currPage?: number
+        currPageHeight?: number
+        pageHeight: number
+        path?: any[]
+      },
+    ) {
+      const { bounds } = obj
+      const results = [] as any[]
+      const next = currPageHeight + bounds.height
+
+      const result = {
+        currPageHeight,
+        id: obj.id,
+        parent: obj.parent,
+        path,
+      } as Record<string, any>
+
+      obj.viewTag && (result.viewTag = obj.viewTag)
+
+      if (currPageHeight < pageHeight) {
+        if (next >= pageHeight) {
+          const remaining = next - pageHeight
+          result.currPageHeight = currPageHeight
+          result.page = ++currPage
+          result.remaining = remaining
+          currPageHeight = remaining
+          results.push(result)
+        }
+      } else {
+        currPageHeight = next
+      }
+
+      return obj?.children?.length
+        ? results.concat(
+            ...obj.children.map(
+              (childObj, i) =>
+                getPageBlueprints(childObj, {
+                  currPage,
+                  currPageHeight,
+                  pageHeight,
+                  path: path.concat('children', i),
+                }),
+              pageHeight,
+            ),
+          )
+        : results
+    }
+
+    return blueprint
+  }
+
   /**
    * Calculates the total page height of a DOM node's tree including the height
    * inside scroll windows
    *
    * @param el
    */
-  function getTotalHeightFromElement(el: HTMLElement | null | undefined) {
-    let y = 0
-    let currEl = el
+  function getTotalHeight(
+    el: HTMLElement | null | undefined,
+    path = [] as any[],
+    cb?: (args: {
+      el: HTMLElement
+      bounds: DOMRect
+      clientHeight: number
+      offsetHeight: number
+      scrollHeight: number
+      path: any[]
+    }) => void,
+  ): [number, any[]] {
+    let bounds = el?.getBoundingClientRect?.() as DOMRect
+    let curr = bounds?.bottom || 0
 
-    while (currEl) {
-      y = Math.max(y, currEl.getBoundingClientRect().y)
+    if (!el?.children) return [curr, path]
 
-      for (const childNode of currEl.children) {
-        y = Math.max(y, getTotalHeightFromElement(childNode as HTMLElement))
+    cb?.({
+      el,
+      bounds,
+      clientHeight: el.clientHeight,
+      offsetHeight: el.offsetHeight,
+      scrollHeight: el.scrollHeight,
+      path,
+    })
+
+    for (const childNode of el.children) {
+      if (isElement(childNode)) {
+        const { top, bottom } = childNode.getBoundingClientRect()
+
+        if (bottom > curr) curr = bottom
+
+        const map = {
+          current: top,
+          bottom,
+          id: childNode.id,
+          tagName: childNode.tagName.toLowerCase(),
+        } as Record<string, any>
+
+        path.push(map)
+        const next = getTotalHeight(childNode as HTMLElement, [], cb)
+        path.push(...next[1])
+
+        if (next[0] > curr) curr = next[0] as number
       }
-
-      currEl = currEl.nextElementSibling as HTMLElement
     }
 
-    return y
+    return [curr, path]
   }
 
   /**
@@ -341,6 +398,28 @@ export const ExportPdf = (function () {
    */
   function getTotalWidthFromElement(el: HTMLElement) {
     return el.getBoundingClientRect().width
+  }
+
+  function getTotalPages(
+    pageHeight = 0,
+    [totalHeight = 0, path = [] as any[]],
+  ): [total: number, remainingHeight: number] {
+    let curr = 0
+    let remaining = 0
+    let total = 1
+
+    while (curr <= totalHeight) {
+      const next = curr + pageHeight
+      if (next <= totalHeight) {
+        curr += pageHeight
+        total++
+      } else {
+        remaining = totalHeight - curr
+        break
+      }
+    }
+
+    return [total, remaining]
   }
 
   /**
@@ -371,7 +450,7 @@ export const ExportPdf = (function () {
       return [el.width, el.height]
     }
     if (isElement(el)) {
-      return [getTotalWidthFromElement(el), getTotalHeightFromElement(el)]
+      return [getTotalWidthFromElement(el), getTotalHeight(el, [])[0]]
     }
     return [o.sizes.A4.width, o.sizes.A4.height]
   }
@@ -398,7 +477,7 @@ export const ExportPdf = (function () {
    */
   function setDocSizesFromElement(doc: jsPDF, el: HTMLElement) {
     if (u.isObj(doc) && u.isObj(el)) {
-      doc.internal.pageSize.height = getTotalHeightFromElement(el)
+      doc.internal.pageSize.height = getTotalHeight(el, [])[0]
       doc.internal.pageSize.width = getTotalWidthFromElement(el)
     }
     return [doc, doc.internal.pageSize.height] as [
@@ -409,10 +488,12 @@ export const ExportPdf = (function () {
 
   const o = {
     create,
+    createBlueprint,
     getFormat,
     getOrientation,
-    getTotalHeightFromElement,
+    getTotalHeight,
     getTotalWidthFromElement,
+    getTotalPages,
     /**
      * - Presets for convential sizes in pixels (All representing 72 PPI)
      * - Use https://www.papersizes.org/a-sizes-in-pixels.htm for an online tool
@@ -426,6 +507,8 @@ export const ExportPdf = (function () {
       A6: { width: 298, height: 420 },
       A7: { width: 210, height: 298 },
       A8: { width: 147, height: 210 },
+      mobile: { width: 375, height: 667 },
+      desktop: { width: 1024, height: 768 },
     },
     setDocSizesFromElement,
     settings: _settings,

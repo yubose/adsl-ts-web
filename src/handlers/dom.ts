@@ -1,10 +1,8 @@
 import * as u from '@jsmanifest/utils'
+import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import 'tippy.js/dist/tippy.css'
-import 'tippy.js/themes/light.css'
-import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
@@ -135,26 +133,27 @@ const createExtendedDOMResolvers = function (app: App) {
     }
 
     return onChange
-  };
+  }
 
-  (function (){
-    let beforeUnload_time = 0, gap_time = 0;
-      window.onunload = function (){
-          gap_time = new Date().getTime() - beforeUnload_time;
-          if(gap_time <= 5){ //浏览器关闭判断
-              clearCookie();
-          }
+  ;(function () {
+    let beforeUnload_time = 0,
+      gap_time = 0
+    window.onunload = function () {
+      gap_time = new Date().getTime() - beforeUnload_time
+      if (gap_time <= 5) {
+        //浏览器关闭判断
+        clearCookie()
       }
-      window.onbeforeunload = function (){
-          beforeUnload_time = new Date().getTime();
-      };
-      function clearCookie() {
-          //清除localstorage
-          window.localStorage.clear();
-      }
-    
-  })();
-  
+    }
+    window.onbeforeunload = function () {
+      beforeUnload_time = new Date().getTime()
+    }
+    function clearCookie() {
+      //清除localstorage
+      window.localStorage.clear()
+    }
+  })()
+
   const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
       cond: 'chart',
@@ -339,7 +338,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         element.textColor = '#2FB355'
                       }
 
-                      if(((element.tage & 0xf00)>>8)==1){
+                      if ((element.tage & 0xf00) >> 8 == 1) {
                         element.eventColor = '#f9d9da'
                         element.textColor = '#e24445'
                       }
@@ -497,7 +496,10 @@ const createExtendedDOMResolvers = function (app: App) {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         if (dataKey) {
-          if(component?.type == 'textField' && component?.contentType == 'password'){
+          if (
+            component?.type == 'textField' &&
+            component?.contentType == 'password'
+          ) {
             node.addEventListener(
               'input',
               getOnChange({
@@ -509,7 +511,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 page,
               }),
             )
-          }else{
+          } else {
             node.addEventListener(
               'change',
               getOnChange({

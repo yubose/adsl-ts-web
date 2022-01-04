@@ -1,8 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import jsPDF from 'jspdf'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
-import { Options as Html2CanvasOptions } from 'html2canvas'
-import { Viewport as NuiViewport } from 'noodl-ui'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 import { isDataUrl } from './common'

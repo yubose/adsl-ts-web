@@ -17,14 +17,19 @@ import {
   findFirstByClassName,
   findFirstByDataKey,
   findFirstByElementId,
+  findFirstBySelector,
   findFirstByViewTag,
   findWindow,
   findWindowDocument,
   Page as NDOMPage,
-  findFirstBySelector,
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
-import { copyToClipboard, exportToPDF, getVcodeElem, toast } from './utils/dom'
+import {
+  copyToClipboard,
+  exportToPDF,
+  getVcodeElem,
+  toast,
+} from './utils/dom'
 import { isChrome } from './utils/common'
 import {
   getUserProps as getUserPropsFromLocalStorage,
@@ -32,6 +37,10 @@ import {
 } from './utils/localStorage'
 import AppNotification from './app/Notifications'
 import App from './App'
+import ExportPdf from './modules/ExportPdf'
+import getElementTreeDimensions from './utils/getElementTreeDimensions'
+import 'tippy.js/dist/tippy.css'
+import 'tippy.js/themes/light.css'
 import 'vercel-toast/dist/vercel-toast.css'
 import './spinner/three-dots.css'
 import './styles.css'
@@ -64,7 +73,9 @@ export async function getWindowHelpers() {
     findFirstByClassName,
     findFirstByDataKey,
     findFirstByElementId,
+    findFirstBySelector,
     findFirstByViewTag,
+    getElementTreeDimensions,
     getVcodeElem,
     getUserPropsFromLocalStorage,
     saveUserPropsFromLocalStorage,
@@ -162,6 +173,7 @@ window.addEventListener('load', async (e) => {
     })
 
     Object.defineProperties(window, {
+      ExportPdf: { configurable: true, get: () => ExportPdf },
       app: { configurable: true, get: () => app },
       build: { configurable: true, value: process.env.BUILD },
       l: { configurable: true, get: () => app?.meeting.localParticipant },
@@ -214,19 +226,19 @@ window.addEventListener('load', async (e) => {
 
   // const pdfElem = findFirstByViewTag('mainView')
   window.scrollTo({ left: window.innerWidth })
-  let interval = setInterval(() => {
-    const imgElem = findFirstBySelector(
-      `[src="http://127.0.0.1:3001/assets/downLoadBlue.svg"]`,
-    )
-    if (imgElem) {
-      const btn = imgElem.nextElementSibling
-      if (btn) {
-        btn['click']()
-        return clearInterval(interval)
-      }
-    }
-    console.log(`[interval] The btn button has not rendered yet`)
-  }, 150)
+  // let interval = setInterval(() => {
+  //   const imgElem = findFirstBySelector(
+  //     `[src="http://127.0.0.1:3001/assets/downLoadBlue.svg"]`,
+  //   )
+  //   if (imgElem) {
+  //     const btn = imgElem.nextElementSibling
+  //     if (btn) {
+  //       btn['click']()
+  //       return clearInterval(interval)
+  //     }
+  //   }
+  //   console.log(`[interval] The btn button has not rendered yet`)
+  // }, 150)
 })
 
 if (module.hot) {
