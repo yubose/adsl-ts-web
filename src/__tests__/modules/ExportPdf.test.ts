@@ -51,7 +51,7 @@ function createMockDOMNode(
   return node as HTMLElement
 }
 
-describe(`ExportPDF`, () => {
+describe.only(`ExportPDF`, () => {
   describe(`DWCFormRFAReview page`, () => {
     beforeEach(() => {
       loadHtmlToEnvironment(loadHtml.DWCFormRFAReview())
