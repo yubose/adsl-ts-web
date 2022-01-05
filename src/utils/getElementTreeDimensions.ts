@@ -20,6 +20,7 @@ export interface ElementTreeDimensions {
   parent: string
   path: (string | number)[]
   src?: string
+  tagName?: string
   viewTag?: string
 }
 
@@ -36,9 +37,10 @@ function getElementTreeDimensions(el: HTMLElement | null | undefined) {
       offsetHeight: el.offsetHeight,
       scrollHeight: el.scrollHeight,
       style: {
-        position: el.style.position,
-        display: el.style.display,
+        position: el.style?.position,
+        display: el.style?.display,
       },
+      tagName: el.tagName,
     } as ElementTreeDimensions
 
     for (const key of [
@@ -49,12 +51,12 @@ function getElementTreeDimensions(el: HTMLElement | null | undefined) {
       'width',
       'height',
     ]) {
-      el.style[key] && result.style && (result.style[key] = el.style[key])
+      el.style?.[key] && result.style && (result.style[key] = el.style?.[key])
     }
-    if (el.dataset.src) {
+    if (el.dataset?.src) {
       result.src = el.dataset.src
     }
-    if (el.dataset.viewtag) {
+    if (el.dataset?.viewtag) {
       result.viewTag = el.dataset.viewtag
     }
     return result
@@ -86,10 +88,10 @@ function getElementTreeDimensions(el: HTMLElement | null | undefined) {
     return obj
   }
 
-  const numChildren = el.children.length
+  const numChildren = el.children?.length || 0
   numChildren && !obj.children && (obj.children = [])
   for (let index = 0; index < numChildren; index++) {
-    const childNode = el.children[index]
+    const childNode = el.children?.[index]
     !obj.children && (obj.children = [])
     obj.children[index] = collect(
       {

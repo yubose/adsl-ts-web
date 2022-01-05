@@ -3,6 +3,8 @@
  */
 import * as u from '@jsmanifest/utils'
 import type { Viewport as NuiViewport } from 'noodl-ui'
+import has from 'lodash/has'
+import get from 'lodash/get'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
 import type { Options as Html2CanvasOptions } from 'html2canvas'
@@ -11,6 +13,8 @@ import getElementTreeDimensions, {
   ElementTreeDimensions,
 } from '../utils/getElementTreeDimensions'
 import isElement from '../utils/isElement'
+
+type El = HTMLElement | null | undefined
 
 export type Format =
   | [width: number, height: number]
@@ -22,7 +26,43 @@ export type Format =
   | 'A6'
   | 'A7'
   | 'A8'
+
 export type Orientation = 'landscape' | 'portrait'
+
+export interface PdfBlueprint {
+  el: HTMLElement
+  format: [width: number, height: number]
+  pages: PageBlueprint[]
+  pageWidth: number
+  pageHeight: number
+  path: PathObject[]
+  remainingHeight: number
+  totalWidth: number
+  totalHeight: number
+  totalPages: number
+}
+
+export interface PageBlueprint {
+  children?: any[]
+  el: HTMLElement
+  currPageHeight: number
+  id: string
+  format: [number, number]
+  orientation: Orientation
+  parent: string | null
+  path: any[]
+  page: number
+  remaining: number
+  viewTag?: string
+}
+
+export interface PathObject {
+  id: string
+  tagName: string
+  top: number
+  bottom: number
+  height: number
+}
 
 const isNil = (v: unknown): v is null | undefined => v == null || v == undefined
 
@@ -102,7 +142,7 @@ export const ExportPdf = (function () {
       y: 0,
     }
 
-    const totalHeight = getTotalHeight(el)[0] - startY
+    const totalHeight = getTotalHeight(el)[0]
     const totalWidth = getTotalWidthFromElement(el)
 
     /**
@@ -250,30 +290,6 @@ export const ExportPdf = (function () {
     el: HTMLElement | null | undefined,
   ) {
     if (!el) return
-    const [pageWidth, pageHeight] = (
-      u.isStr(size) && o.sizes[size]
-        ? [o.sizes[size].width, o.sizes[size].height]
-        : u.isArr(size)
-        ? size
-        : [el.scrollWidth, el.scrollHeight]
-    ) as [number, number]
-    const [totalHeight, path] = getTotalHeight(el)
-    const [totalPages, remainingHeight] = getTotalPages(pageHeight, [
-      totalHeight,
-      path,
-    ])
-
-    const blueprint = {
-      pages: getPageBlueprints(getElementTreeDimensions(el), {
-        pageHeight,
-      }),
-      pageWidth,
-      pageHeight,
-      path,
-      remainingHeight,
-      totalHeight,
-      totalPages,
-    }
 
     function getPageBlueprints(
       obj: ElementTreeDimensions,
@@ -288,51 +304,293 @@ export const ExportPdf = (function () {
         pageHeight: number
         path?: any[]
       },
-    ) {
-      const { bounds } = obj
-      const results = [] as any[]
-      const next = currPageHeight + bounds.height
+    ): PageBlueprint[] {
+      // const bounds = obj.bounds
+      const results = [] as PageBlueprint[]
+      // const next = currPageHeight + bounds?.height || 0
 
-      const result = {
-        currPageHeight,
-        id: obj.id,
-        parent: obj.parent,
-        path,
-      } as Record<string, any>
+      // const result = {
+      //   currPageHeight,
+      //   id: obj.id,
+      //   parent: obj.parent,
+      //   path,
+      //   ...({ viewTag: obj.viewTag } || undefined),
+      // } as PageBlueprint
 
-      obj.viewTag && (result.viewTag = obj.viewTag)
+      for (const pathObject of blueprint.path) {
+        const next = totalHeight - (totalHeight - pathObject.top)
 
-      if (currPageHeight < pageHeight) {
-        if (next >= pageHeight) {
-          const remaining = next - pageHeight
-          result.currPageHeight = currPageHeight
-          result.page = ++currPage
-          result.remaining = remaining
-          currPageHeight = remaining
-          results.push(result)
+        if (currPageHeight >= pageHeight) {
+          debugger
+          const el = document.getElementById(pathObject.id)
+          const pageBlueprint = {
+            el,
+            format,
+            id: pathObject.id,
+            page: ++currPage,
+            remaining: next - pageHeight,
+            orientation: getOrientation(el),
+          } as PageBlueprint
+
+          if (el?.children?.length) {
+            for (const childNode of el.children) {
+              const bounds = childNode.getBoundingClientRect()
+              const incHeight = currPageHeight + bounds.height
+
+              if (incHeight <= pageHeight) {
+                // currPageHeight += bounds.height
+              } else {
+                pageBlueprint.currPageHeight = currPageHeight
+                pageBlueprint.remaining = pageHeight - currPageHeight
+
+                break
+                // currPageHeight = pageBlueprint.remaining
+              }
+            }
+          } else {
+            pageBlueprint.currPageHeight = currPageHeight
+            pageBlueprint.remaining = pageHeight = currPageHeight
+          }
+
+          currPageHeight = 0
+          results.push(pageBlueprint)
+        } else {
+          currPageHeight += pathObject.height
         }
-      } else {
-        currPageHeight = next
       }
 
-      return obj?.children?.length
-        ? results.concat(
-            ...obj.children.map(
-              (childObj, i) =>
-                getPageBlueprints(childObj, {
-                  currPage,
-                  currPageHeight,
-                  pageHeight,
-                  path: path.concat('children', i),
-                }),
-              pageHeight,
-            ),
-          )
-        : results
+      // if (currPageHeight < pageHeight) {
+      //   if (next >= pageHeight) {
+      //     if (obj.children.length) {
+      //       // console.log({ currPageHeight, next, children: obj.children })
+      //       const numChildren = obj.children.length
+
+      //       for (let index = 0; index < numChildren; index++) {
+      //         const childObj = obj.children[index] as ElementTreeDimensions
+      //         const pages = getPageBlueprints(childObj, {
+      //           currPage,
+      //           currPageHeight,
+      //           pageHeight,
+      //           path: path.concat('children', index),
+      //         })
+      //         // for (const p of blueprint.path) {
+      //         //   // console.log(p)
+      //         // }
+      //         if (pages.length) {
+      //           console.log(
+      //             `index in path: ${blueprint.path.findIndex(
+      //               (p) => p.id == pages[0].id,
+      //             )}`,
+      //             path,
+      //           )
+      //           console.log('pages[0]', pages[0])
+      //           console.log('path[23]', blueprint.path[23])
+      //           // console.log(get(el, path))
+      //           // console.log(pages[0])
+      //           // console.log(pageHeight)
+      //           // console.log(pageHeight - pages[0].remaining)
+      //         }
+      //       }
+      //     }
+
+      //     const isFirstPage = currPageHeight === 0
+      //     const remaining = next - pageHeight
+      //     // if (!isFirstPage) {
+      //     const elem = document.getElementById(obj.id)
+      //     result.el = elem
+      //     result.currPageHeight = currPageHeight
+      //     result.format = [o.sizes.A4.width, o.sizes.A4.height]
+      //     result.orientation = getOrientation(elem)
+      //     result.page = ++currPage
+      //     result.remaining = remaining
+      //     results.push(result)
+      //     // }
+      //     currPageHeight = remaining
+      //   } else {
+      //     return results.concat(
+      //       ...(obj.children?.map((childObj, i) =>
+      //         getPageBlueprints(childObj, {
+      //           currPage,
+      //           currPageHeight,
+      //           pageHeight,
+      //           path: path.concat('children', i),
+      //         }),
+      //       ) || []),
+      //     )
+      //   }
+      // } else {
+      //   currPageHeight = next
+      // }
+
+      // return (
+      //   obj?.children?.length
+      //     ? results.concat(
+      //         ...obj.children.map((childObj, i) =>
+      //           getPageBlueprints(childObj, {
+      //             currPage,
+      //             currPageHeight,
+      //             pageHeight,
+      //             path: path.concat('children', i),
+      //           }),
+      //         ),
+      //       )
+      //     : results
+      // ) as PageBlueprint[]
+
+      return results
     }
 
-    return blueprint
+    const defaultFormat = [o.sizes.A4.width, o.sizes.A4.height]
+    const format = (
+      u.isStr(size) && o.sizes[size]
+        ? [o.sizes[size].width, o.sizes[size].height]
+        : u.isArr(size)
+        ? size
+        : defaultFormat
+    ) as [number, number]
+
+    const totalWidth = getTotalWidthFromElement(el)
+    const [pageWidth, pageHeight] = format
+    const [totalHeight, path] = getTotalHeight(el)
+    const [totalPages, remainingHeight] = getTotalPages(pageHeight, [
+      totalHeight,
+      path,
+    ])
+
+    const blueprint = {
+      el,
+      format,
+      pageWidth,
+      pageHeight,
+      path,
+      remainingHeight,
+      totalWidth,
+      totalHeight,
+      totalPages,
+    } as PdfBlueprint
+
+    const treeDimensions = getElementTreeDimensions(el)
+
+    blueprint.pages = getPageBlueprints(treeDimensions, {
+      pageHeight,
+    })
+
+    return blueprint as PdfBlueprint
   }
+
+  function createPageBlueprint({
+    currPage = 1,
+    currPageHeight = 0,
+    format,
+    index = 0,
+    pageHeight,
+    path = [],
+    totalHeight,
+  }: {
+    currPage?: number
+    currPageHeight?: number
+    format?: PdfBlueprint['format']
+    index?: number
+    pageHeight: number
+    totalHeight: number
+    path: PathObject[]
+  }) {
+    const pageBlueprint = {
+      currPageHeight,
+      page: currPage,
+    } as PageBlueprint
+    const currPathObject = path[index]
+    const next = totalHeight - (totalHeight - currPathObject?.top || 0)
+
+    if (currPageHeight >= pageHeight) {
+      pageBlueprint.currPageHeight = currPageHeight - pageHeight
+      pageBlueprint.id = currPathObject.id
+      pageBlueprint.orientation = getOrientation(format)
+      pageBlueprint.remaining = currPageHeight - pageHeight
+    } else {
+      currPageHeight += currPathObject?.height || 0
+    }
+
+    return pageBlueprint
+  }
+
+  // if (currPageHeight < pageHeight) {
+  //   if (next >= pageHeight) {
+  //     if (obj.children.length) {
+  //       // console.log({ currPageHeight, next, children: obj.children })
+  //       const numChildren = obj.children.length
+
+  //       for (let index = 0; index < numChildren; index++) {
+  //         const childObj = obj.children[index] as ElementTreeDimensions
+  //         const pages = getPageBlueprints(childObj, {
+  //           currPage,
+  //           currPageHeight,
+  //           pageHeight,
+  //           path: path.concat('children', index),
+  //         })
+  //         // for (const p of blueprint.path) {
+  //         //   // console.log(p)
+  //         // }
+  //         if (pages.length) {
+  //           console.log(
+  //             `index in path: ${blueprint.path.findIndex(
+  //               (p) => p.id == pages[0].id,
+  //             )}`,
+  //             path,
+  //           )
+  //           console.log('pages[0]', pages[0])
+  //           console.log('path[23]', blueprint.path[23])
+  //           // console.log(get(el, path))
+  //           // console.log(pages[0])
+  //           // console.log(pageHeight)
+  //           // console.log(pageHeight - pages[0].remaining)
+  //         }
+  //       }
+  //     }
+
+  //     const isFirstPage = currPageHeight === 0
+  //     const remaining = next - pageHeight
+  //     // if (!isFirstPage) {
+  //     const elem = document.getElementById(obj.id)
+  //     result.el = elem
+  //     result.currPageHeight = currPageHeight
+  //     result.format = [o.sizes.A4.width, o.sizes.A4.height]
+  //     result.orientation = getOrientation(elem)
+  //     result.page = ++currPage
+  //     result.remaining = remaining
+  //     results.push(result)
+  //     // }
+  //     currPageHeight = remaining
+  //   } else {
+  //     return results.concat(
+  //       ...(obj.children?.map((childObj, i) =>
+  //         getPageBlueprints(childObj, {
+  //           currPage,
+  //           currPageHeight,
+  //           pageHeight,
+  //           path: path.concat('children', i),
+  //         }),
+  //       ) || []),
+  //     )
+  //   }
+  // } else {
+  //   currPageHeight = next
+  // }
+
+  // return (
+  //   obj?.children?.length
+  //     ? results.concat(
+  //         ...obj.children.map((childObj, i) =>
+  //           getPageBlueprints(childObj, {
+  //             currPage,
+  //             currPageHeight,
+  //             pageHeight,
+  //             path: path.concat('children', i),
+  //           }),
+  //         ),
+  //       )
+  //     : results
+  // ) as PageBlueprint[]
 
   /**
    * Calculates the total page height of a DOM node's tree including the height
@@ -342,18 +600,28 @@ export const ExportPdf = (function () {
    */
   function getTotalHeight(
     el: HTMLElement | null | undefined,
-    path = [] as any[],
+    path = [] as PathObject[],
     cb?: (args: {
       el: HTMLElement
       bounds: DOMRect
       clientHeight: number
       offsetHeight: number
       scrollHeight: number
-      path: any[]
+      path: PathObject[]
     }) => void,
-  ): [number, any[]] {
+  ): [number, PathObject[]] {
     let bounds = el?.getBoundingClientRect?.() as DOMRect
     let curr = bounds?.bottom || 0
+
+    const map = {
+      top: bounds.top,
+      bottom: bounds.bottom,
+      height: bounds.height,
+      id: el?.id || '',
+      tagName: (el?.tagName || '').toLowerCase(),
+    } as PathObject
+
+    path.push(map)
 
     if (!el?.children) return [curr, path]
 
@@ -368,18 +636,17 @@ export const ExportPdf = (function () {
 
     for (const childNode of el.children) {
       if (isElement(childNode)) {
-        const { top, bottom } = childNode.getBoundingClientRect()
+        const { top, bottom, height } = childNode.getBoundingClientRect()
+        // if (bottom > curr) curr = bottom
 
-        if (bottom > curr) curr = bottom
+        // const map = {
+        //   height,
+        //   top,
+        //   bottom,
+        //   id: childNode.id,
+        //   tagName: childNode.tagName.toLowerCase(),
+        // } as PathObject
 
-        const map = {
-          current: top,
-          bottom,
-          id: childNode.id,
-          tagName: childNode.tagName.toLowerCase(),
-        } as Record<string, any>
-
-        path.push(map)
         const next = getTotalHeight(childNode as HTMLElement, [], cb)
         path.push(...next[1])
 
@@ -460,10 +727,15 @@ export const ExportPdf = (function () {
    * @param el DOM element
    * @returns 'portrait' or 'landscape'
    */
-  function getOrientation(el: HTMLElement | null | undefined): Orientation {
+  function getOrientation(
+    el: PdfBlueprint['format'] | HTMLElement | null | undefined,
+  ): Orientation {
     if (isElement(el)) {
       const { width, height } = el.getBoundingClientRect()
       return width > height ? 'landscape' : 'portrait'
+    }
+    if (u.isArr(el)) {
+      return el[0] > el[1] ? 'landscape' : 'portrait'
     }
     return 'portrait'
   }
@@ -486,9 +758,230 @@ export const ExportPdf = (function () {
     ]
   }
 
+  async function create2(
+    blueprint: NonNullable<ReturnType<typeof createBlueprint>>,
+  ) {
+    let doc: jsPDF | undefined
+    let el = blueprint.el
+    let elBounds = el.getBoundingClientRect()
+
+    let pdfDocOptions = {
+      compress: true,
+      format: blueprint.format,
+      orientation: getOrientation(el),
+      unit: 'px',
+    } as const
+
+    console.log(`%cPDF options`, `color:#c4a901;`, pdfDocOptions)
+
+    doc = new jsPDF(pdfDocOptions)
+    // Deletes the first (empty) page
+    doc.deletePage(1)
+
+    let commonHtml2CanvasOptions: Partial<Html2CanvasOptions> = {
+      allowTaint: true,
+      logging: true,
+      // Putting this to true will avoid blank page when they try to re-download
+      removeContainer: true,
+      useCORS: true,
+      x: 0,
+      y: 0,
+    }
+
+    const startY = elBounds.top
+    const totalHeight = getTotalHeight(el)[0] - startY
+    const totalWidth = getTotalWidthFromElement(el)
+
+    console.log(`%cstartY: ${startY}`, `color:#c4a901;`)
+    console.log(`%ctotalHeight: ${totalHeight}`, `color:#c4a901;`)
+    console.log(`%ctotalWidth: ${totalWidth}`, `color:#c4a901;`)
+
+    const getOnClone =
+      (page: PageBlueprint) =>
+      /**
+       * Callback called with the cloned element.
+       * Optionally mutate this cloned element to modify the output if needed.
+       * The first (immediate) child of the container argument is the cloned "el" argument passed above
+       *
+       * @param _ HTML Document
+       * @param container Container created by html2canvas
+       */
+      (_: Document, targetElem: HTMLElement) => {
+        // Expand all elements to fit their contents in pdf pages
+
+        // currElem = targetElem
+        let currHeight = 0
+        let maxPageHeight = blueprint.pageHeight
+
+        _.getElementById(page.id)?.scrollIntoView()
+
+        // Since there is an issue with images being 0px height because of the "height: auto" in parent, we have to skip modifying parents that have them as children so the images can expand
+        const setNonImagesToHeightAuto = (
+          c: HTMLElement | null | undefined,
+        ) => {
+          if (c) {
+            let hasImageChild = false
+
+            // while (currElem) {
+            const { height } = c.getBoundingClientRect()
+            const nextHeight = currHeight + height
+            if (nextHeight > maxPageHeight) {
+              // doc = doc?.addPage(pdfDocOptions.format, pdfDocOptions.orientation)
+              currHeight = 0
+            }
+
+            currHeight += height
+
+            for (const childNode of c.children) {
+              if (childNode.tagName === 'IMG') {
+                hasImageChild = true
+                break
+              }
+            }
+
+            !hasImageChild && (c.style.height = 'auto')
+            c.style.overflow === 'hidden' && (c.style.overflow = 'auto')
+
+            for (const childNode of c.children) {
+              setNonImagesToHeightAuto(childNode as HTMLElement)
+            }
+          }
+        }
+
+        let currElem = targetElem
+
+        // Expands all descendants so their content can be captured in pdf pages
+        while (currElem) {
+          setNonImagesToHeightAuto(currElem)
+          currElem = currElem.nextElementSibling as HTMLElement
+        }
+      }
+
+    try {
+      for (const page of blueprint?.pages) {
+        console.log(`%cCreating page #${page.page}`, `color:#c4a901;`, page)
+        console.log(`%cPage orientation: ${page.orientation}`, `color:#c4a901;`)
+        console.log(`%cPage height is ${page.currPageHeight}`, `color:#c4a901;`)
+        console.log(
+          `%cPage height remaining ${page.remaining}`,
+          `color:#c4a901;`,
+        )
+
+        try {
+          commonHtml2CanvasOptions = {
+            ...commonHtml2CanvasOptions,
+            onclone: getOnClone(page),
+            width: page.format[0],
+            // This height expands the VISIBLE content that is cropped off
+            height: page.format[1],
+            windowWidth: totalWidth,
+            // This height expands the PDF PAGE
+            windowHeight: totalHeight,
+            // y: startY,
+          }
+
+          console.log(`%cCreating page #${page.page}`, `color:#c4a901;`)
+
+          doc.addPage(page.format, page.orientation)
+          doc.canvas.width = page.format[0]
+          doc.canvas.height = page.format[1]
+          doc.internal.pageSize.width = page.format[0]
+          doc.internal.pageSize.height = page.format[1]
+
+          console.log(
+            `%cCurrent pages in pdf: ${doc.getNumberOfPages()}`,
+            `color:#e50087;`,
+          )
+
+          console.log(`%cGenerating image`, `color:#00b406;`)
+
+          const image = await html2canvas(el, commonHtml2CanvasOptions)
+
+          console.log(`%cImage generated`, `color:#00b406;`)
+
+          // prettier-ignore
+          doc.addImage(
+            image.toDataURL(), 'png', 0, 0,
+            image.width, image.height,
+            'FAST', 'FAST'
+           )
+
+          console.log(
+            `%cAdded generated image to page #${page.page}`,
+            `color:#00b406;`,
+          )
+
+          console.log(
+            `%cCurrent pages in pdf: ${doc.getNumberOfPages()}`,
+            `color:#e50087;`,
+          )
+
+          // doc.canvas.width = image.width
+          // doc.canvas.height = image.height
+          doc.internal.pageSize.width = page.format[0]
+          doc.internal.pageSize.height = page.format[1]
+
+          console.log(
+            `%cDoc canvas width: ${doc.canvas.width}`,
+            `color:#c4a901;`,
+            page,
+          )
+          console.log(
+            `%cDoc canvas height: ${doc.canvas.height}`,
+            `color:#c4a901;`,
+            page,
+          )
+
+          console.log(
+            `%cDoc internal width: ${doc.internal.pageSize.width}`,
+            `color:#c4a901;`,
+            page,
+          )
+          console.log(
+            `%cDoc internal height: ${doc.internal.pageSize.height}`,
+            `color:#c4a901;`,
+            page,
+          )
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.log(
+            `[ExportPDF-${err.name}] Error occurred while creating a PDF using the addImage method. Using fallback HTML strategy now...`,
+            err,
+          )
+
+          await doc?.html(el, {
+            autoPaging: 'slice',
+            // width: format[0],
+            // windowWidth: format[0],
+            width: el.getBoundingClientRect().width,
+            // windowWidth: totalWidth,
+            windowWidth: totalWidth,
+            html2canvas: {
+              ...commonHtml2CanvasOptions,
+              svgRendering: false,
+              taintTest: true,
+            } as Parameters<jsPDF['html']>[1],
+          })
+        }
+      }
+
+      return doc
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      throw err
+    }
+  }
+
   const o = {
+    g(el: HTMLElement) {
+      for (const pathObject of getTotalHeight(el)[1]) {
+        console.log(pathObject.bottom - pathObject.top)
+      }
+    },
     create,
+    create2,
     createBlueprint,
+    createPageBlueprint,
     getFormat,
     getOrientation,
     getTotalHeight,
@@ -559,5 +1052,43 @@ export const ExportPdf = (function () {
     return o
   }
 })()
+
+export function traverseBF(cb: (sibling: HTMLElement) => void, el: El) {
+  if (!el) return
+
+  let sibling = el.nextElementSibling as HTMLElement
+
+  while (sibling) {
+    cb(sibling)
+    sibling = sibling.nextElementSibling as HTMLElement
+  }
+
+  if (el?.children?.length) {
+    const numChildren = el.children.length
+
+    for (let index = 0; index < numChildren; index++) {
+      const childNode = el.children[index] as HTMLElement
+      traverseBF(cb, childNode)
+    }
+  }
+}
+
+/** @argument { HTMLElement } el */
+function getTreeBF(el) {}
+
+export class ExportPDF {
+  getTotalHeight(el: El) {
+    if (!el?.children) return el?.scrollHeight || 0
+
+    let height = 0
+
+    for (const childNode of el.children) {
+      if (isElement(childNode)) {
+      }
+    }
+
+    return height
+  }
+}
 
 export default ExportPdf

@@ -76,7 +76,7 @@ const createExtendedDOMResolvers = function (app: App) {
         } else {
           log.red(
             `A ${component.type} component from a "${evtName}" handler tried ` +
-            `to update its value but a dataObject was not found`,
+              `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
           )
         }
@@ -135,23 +135,24 @@ const createExtendedDOMResolvers = function (app: App) {
     return onChange
   }
 
-  (function () {
-    let beforeUnload_time = 0, gap_time = 0;
+  ;(function () {
+    let beforeUnload_time = 0,
+      gap_time = 0
     window.onunload = function () {
-      gap_time = new Date().getTime() - beforeUnload_time;
-      if (gap_time <= 5) { //浏览器关闭判断
-        clearCookie();
+      gap_time = new Date().getTime() - beforeUnload_time
+      if (gap_time <= 5) {
+        //浏览器关闭判断
+        clearCookie()
       }
     }
     window.onbeforeunload = function () {
-      beforeUnload_time = new Date().getTime();
-    };
+      beforeUnload_time = new Date().getTime()
+    }
     function clearCookie() {
       //清除localstorage
-      window.localStorage.clear();
+      window.localStorage.clear()
     }
-
-  })();
+  })()
 
   const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
@@ -337,7 +338,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         element.textColor = '#2FB355'
                       }
 
-                      if (((element.tage & 0xf00) >> 8) == 1) {
+                      if ((element.tage & 0xf00) >> 8 == 1) {
                         element.eventColor = '#f9d9da'
                         element.textColor = '#e24445'
                       }
@@ -380,7 +381,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
-                    viewDidMount(mountArg) { },
+                    viewDidMount(mountArg) {},
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -408,7 +409,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             new Date(
                               info.event._instance.range.start,
                             ).getTime() +
-                            new Date().getTimezoneOffset() * 60 * 1000,
+                              new Date().getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '</div>\
@@ -438,32 +439,40 @@ const createExtendedDOMResolvers = function (app: App) {
                   calendar.render()
                   // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
                   window.setTimeout(() => {
-                    ; (
+                    ;(
                       document.querySelectorAll(
                         'tbody .fc-timegrid-now-indicator-line',
                       )[0] as HTMLDivElement
-                    ).scrollIntoView({ behavior: 'smooth' });
-                    let docEventPrevClick: HTMLButtonElement = document.querySelectorAll(".fc-prev-button")[0] as HTMLButtonElement;
-                    let docEventNextClick: HTMLButtonElement = document.querySelectorAll(".fc-next-button")[0] as HTMLButtonElement;
-                    let docEventTimeGridDayClick: HTMLButtonElement = document.querySelectorAll(".fc-timeGridDay-button")[0] as HTMLButtonElement;
-                    let docEventTimeGridWeekClick: HTMLButtonElement = document.querySelectorAll(".fc-timeGridWeek-button")[0] as HTMLButtonElement;
+                    ).scrollIntoView({ behavior: 'smooth' })
+                    let docEventPrevClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-prev-button',
+                      )[0] as HTMLButtonElement
+                    let docEventNextClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-next-button',
+                      )[0] as HTMLButtonElement
+                    let docEventTimeGridDayClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridDay-button',
+                      )[0] as HTMLButtonElement
+                    let docEventTimeGridWeekClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridWeek-button',
+                      )[0] as HTMLButtonElement
 
                     // let docEventClick =  document.querySelectorAll("div .fc-header-toolbar")[0];
-                    docEventPrevClick.addEventListener("click", (e) => {
-                      dataValue.data =   "prev";
-
+                    docEventPrevClick.addEventListener('click', (e) => {
+                      dataValue.data = 'prev'
                     })
-                    docEventNextClick.addEventListener("click", (e) => {
-                      dataValue.data = "next";
-
+                    docEventNextClick.addEventListener('click', (e) => {
+                      dataValue.data = 'next'
                     })
-                    docEventTimeGridDayClick.addEventListener("click", (e) => {
-                      dataValue.data =  "timeGridDay" ;
-
+                    docEventTimeGridDayClick.addEventListener('click', (e) => {
+                      dataValue.data = 'timeGridDay'
                     })
-                    docEventTimeGridWeekClick.addEventListener("click", (e) => {
-                      dataValue.data =  "timeGridWeek" ;
-
+                    docEventTimeGridWeekClick.addEventListener('click', (e) => {
+                      dataValue.data = 'timeGridWeek'
                     })
                   }, 0)
                   // This is to fix the issue of calendar being blank when switching back from
@@ -503,12 +512,12 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] data-value': {
       cond: ({ node }) => isTextFieldLike(node),
       before({ node, component }) {
-        ; (node as HTMLInputElement).value = component.get('data-value') || ''
+        ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
           if ((node as HTMLSelectElement).length) {
             // Put the default value to the first option in the list
-            ; (node as HTMLSelectElement)['selectedIndex'] = 0
+            ;(node as HTMLSelectElement)['selectedIndex'] = 0
           }
         }
       },
@@ -517,7 +526,10 @@ const createExtendedDOMResolvers = function (app: App) {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         if (dataKey) {
-          if (component?.type == 'textField' && component?.contentType == 'password') {
+          if (
+            component?.type == 'textField' &&
+            component?.contentType == 'password'
+          ) {
             node.addEventListener(
               'input',
               getOnChange({
@@ -683,7 +695,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           QRCode.toDataURL(text, opts, function (err, url) {
             // if (err) throw err
-            ; (node as HTMLImageElement).src = url
+            ;(node as HTMLImageElement).src = url
           })
         }
       },
@@ -922,8 +934,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -1095,14 +1107,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     .setLngLat(coordinates)
                     .setHTML(
                       '<span style="font-size: 1vh;">' +
-                      Name +
-                      ' </span><br> <span style="font-size: 1vh;">' +
-                      Speciality +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      phoneNumber +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      address +
-                      '</span>',
+                        Name +
+                        ' </span><br> <span style="font-size: 1vh;">' +
+                        Speciality +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        phoneNumber +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        address +
+                        '</span>',
                     )
                     .addTo(map)
                 })
@@ -1133,8 +1145,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -1219,7 +1231,7 @@ const createExtendedDOMResolvers = function (app: App) {
               log.func('[App] onMeetingComponent')
               log.red(
                 `Attempted to add an element to a subStream but it ` +
-                `already exists in the subStreams container`,
+                  `already exists in the subStreams container`,
                 app.subStreams.snapshot(),
               )
             }
@@ -1227,7 +1239,7 @@ const createExtendedDOMResolvers = function (app: App) {
             log.func('[App] onMeetingComponent')
             log.red(
               `Attempted to create "subStreams" but a container (DOM element) ` +
-              `was not available`,
+                `was not available`,
               { node, component, ...app.streams.snapshot() },
             )
           }
