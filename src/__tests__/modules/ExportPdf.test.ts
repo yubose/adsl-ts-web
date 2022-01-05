@@ -7,14 +7,17 @@ import * as u from '@jsmanifest/utils'
 import * as nc from 'noodl-common'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
+import { findFirstByViewTag } from 'noodl-ui-dom'
 import cheerio from 'cheerio'
 import jsdom from 'jsdom-global'
-import { findFirstByViewTag } from 'noodl-ui-dom'
-import ExportPdf, {
-  traverseBF,
+import type {
+  Format,
+  Orientation,
   PageBlueprint,
   PdfBlueprint,
+  PathObject,
 } from '../../modules/ExportPdf'
+import ExportPdf, { traverseBF } from '../../modules/ExportPdf'
 import Cov19ResultsAndFluResultsReviewGeneratedData from '../fixtures/Cov19ResultsAndFluResultsReview.json'
 import getElementTreeDimensions from '../../utils/getElementTreeDimensions'
 
@@ -100,7 +103,7 @@ describe.only(`ExportPDF`, () => {
     })
   })
 
-  describe.only(`traverseBF`, () => {
+  describe(`traverseBF`, () => {
     it(``, () => {
       traverseBF((sibling) => {
         console.log(sibling)
@@ -112,6 +115,11 @@ describe.only(`ExportPDF`, () => {
     // Tested with window.innerWidth: 1051, window.innerHeight: 823
     // Tested with viewport.width: 1464.94, viewport.height: 823
     let blueprint: PdfBlueprint | undefined
+    let format = [sizes.A4.width, sizes.A4.height] as Format
+    let pageWidth = 842
+    let pageHeight = 842
+    let totalWidth = 864.296875
+    let totalHeight = 1459.6875
 
     beforeEach(() => {
       blueprint = ExportPdf().createBlueprint(
@@ -122,7 +130,18 @@ describe.only(`ExportPDF`, () => {
       )
     })
 
-    describe(`createPageBlueprint`, () => {
+    describe.only(`createPageBlueprint`, () => {
+      it.only(`should return the startY and endY`, () => {
+        const pageBlueprint = ExportPdf().createPageBlueprint({
+          pageHeight,
+          totalHeight,
+          path: blueprint?.path,
+        })
+        // expect(pageBlueprint).to.have.property('startY')
+        // expect(pageBlueprint).to.have.property('endY')
+        console.log(pageBlueprint)
+      })
+
       describe(`when accumulated height exceeds page height`, () => {
         it(``, () => {
           const { blueprint } = Cov19ResultsAndFluResultsReviewGeneratedData

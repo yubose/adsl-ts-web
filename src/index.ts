@@ -24,12 +24,7 @@ import {
   Page as NDOMPage,
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
-import {
-  copyToClipboard,
-  exportToPDF,
-  getVcodeElem,
-  toast,
-} from './utils/dom'
+import { copyToClipboard, exportToPDF, getVcodeElem, toast } from './utils/dom'
 import { isChrome } from './utils/common'
 import {
   getUserProps as getUserPropsFromLocalStorage,

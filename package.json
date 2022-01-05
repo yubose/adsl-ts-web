@@ -43,6 +43,7 @@
     "test:ndom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
     "test:ntil": "lerna exec --scope noodl-utils \"npm run test\"",
     "test:workers": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global --extensions ts --watch --watch-files \"src\" src/__tests__/worker/**/*.test.ts",
+    "lib:build:dev": "cross-env USE_DEV_PATHS=true NODE_ENV=development lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-types build",
     "lib:build": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-types build",
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --parallel start",
     "sync": "node scripts/op sync",

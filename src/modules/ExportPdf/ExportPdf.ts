@@ -11,58 +11,11 @@ import type { Options as Html2CanvasOptions } from 'html2canvas'
 import { isViewport } from 'noodl-ui'
 import getElementTreeDimensions, {
   ElementTreeDimensions,
-} from '../utils/getElementTreeDimensions'
-import isElement from '../utils/isElement'
+} from '../../utils/getElementTreeDimensions'
+import isElement from '../../utils/isElement'
+import * as t from './types'
 
 type El = HTMLElement | null | undefined
-
-export type Format =
-  | [width: number, height: number]
-  | 'A1'
-  | 'A2'
-  | 'A3'
-  | 'A4'
-  | 'A5'
-  | 'A6'
-  | 'A7'
-  | 'A8'
-
-export type Orientation = 'landscape' | 'portrait'
-
-export interface PdfBlueprint {
-  el: HTMLElement
-  format: [width: number, height: number]
-  pages: PageBlueprint[]
-  pageWidth: number
-  pageHeight: number
-  path: PathObject[]
-  remainingHeight: number
-  totalWidth: number
-  totalHeight: number
-  totalPages: number
-}
-
-export interface PageBlueprint {
-  children?: any[]
-  el: HTMLElement
-  currPageHeight: number
-  id: string
-  format: [number, number]
-  orientation: Orientation
-  parent: string | null
-  path: any[]
-  page: number
-  remaining: number
-  viewTag?: string
-}
-
-export interface PathObject {
-  id: string
-  tagName: string
-  top: number
-  bottom: number
-  height: number
-}
 
 const isNil = (v: unknown): v is null | undefined => v == null || v == undefined
 
@@ -115,7 +68,7 @@ export const ExportPdf = (function () {
       /**
        * Defaults to A4 (595x842) in 72 PPI
        */
-      format?: Format
+      format?: t.Format
     },
   ) {
     if (!isElement(el)) return
@@ -123,7 +76,7 @@ export const ExportPdf = (function () {
     let doc: jsPDF | undefined
     let { width, y: startY } = el.getBoundingClientRect()
     let format = getFormat(opts?.format)
-    let orientation = getOrientation(el) as Orientation
+    let orientation = getOrientation(el) as t.Orientation
 
     let pdfDocOptions = {
       compress: true,
@@ -304,9 +257,9 @@ export const ExportPdf = (function () {
         pageHeight: number
         path?: any[]
       },
-    ): PageBlueprint[] {
+    ): t.PageBlueprint[] {
       // const bounds = obj.bounds
-      const results = [] as PageBlueprint[]
+      const results = [] as t.PageBlueprint[]
       // const next = currPageHeight + bounds?.height || 0
 
       // const result = {
@@ -315,7 +268,7 @@ export const ExportPdf = (function () {
       //   parent: obj.parent,
       //   path,
       //   ...({ viewTag: obj.viewTag } || undefined),
-      // } as PageBlueprint
+      // } as t.PageBlueprint
 
       for (const pathObject of blueprint.path) {
         const next = totalHeight - (totalHeight - pathObject.top)
@@ -330,7 +283,7 @@ export const ExportPdf = (function () {
             page: ++currPage,
             remaining: next - pageHeight,
             orientation: getOrientation(el),
-          } as PageBlueprint
+          } as t.PageBlueprint
 
           if (el?.children?.length) {
             for (const childNode of el.children) {
@@ -435,7 +388,7 @@ export const ExportPdf = (function () {
       //         ),
       //       )
       //     : results
-      // ) as PageBlueprint[]
+      // ) as t.PageBlueprint[]
 
       return results
     }
@@ -467,7 +420,7 @@ export const ExportPdf = (function () {
       totalWidth,
       totalHeight,
       totalPages,
-    } as PdfBlueprint
+    } as t.PdfBlueprint
 
     const treeDimensions = getElementTreeDimensions(el)
 
@@ -475,10 +428,11 @@ export const ExportPdf = (function () {
       pageHeight,
     })
 
-    return blueprint as PdfBlueprint
+    return blueprint as t.PdfBlueprint
   }
 
   function createPageBlueprint({
+    acc = 0,
     currPage = 1,
     currPageHeight = 0,
     format,
@@ -487,18 +441,32 @@ export const ExportPdf = (function () {
     path = [],
     totalHeight,
   }: {
+    acc?: number
     currPage?: number
     currPageHeight?: number
-    format?: PdfBlueprint['format']
+    format?: t.PdfBlueprint['format']
     index?: number
     pageHeight: number
     totalHeight: number
-    path: PathObject[]
+    path?: t.PathObject[]
   }) {
     const pageBlueprint = {
       currPageHeight,
       page: currPage,
-    } as PageBlueprint
+      startY: acc,
+    } as t.PageBlueprint
+
+    const nextOffset = {
+      from: pageBlueprint.startY,
+      to: pageBlueprint.startY + pageHeight,
+    }
+
+    const pathLength = path.length
+
+    for (let i = index; i < pathLength; i++) {
+      const pathObject = path[i]
+    }
+
     const currPathObject = path[index]
     const next = totalHeight - (totalHeight - currPathObject?.top || 0)
 
@@ -590,7 +558,7 @@ export const ExportPdf = (function () {
   //         ),
   //       )
   //     : results
-  // ) as PageBlueprint[]
+  // ) as t.PageBlueprint[]
 
   /**
    * Calculates the total page height of a DOM node's tree including the height
@@ -600,26 +568,28 @@ export const ExportPdf = (function () {
    */
   function getTotalHeight(
     el: HTMLElement | null | undefined,
-    path = [] as PathObject[],
+    path = [] as t.PathObject[],
     cb?: (args: {
       el: HTMLElement
       bounds: DOMRect
       clientHeight: number
       offsetHeight: number
       scrollHeight: number
-      path: PathObject[]
+      path: t.PathObject[]
     }) => void,
-  ): [number, PathObject[]] {
+  ): [number, t.PathObject[]] {
     let bounds = el?.getBoundingClientRect?.() as DOMRect
     let curr = bounds?.bottom || 0
 
     const map = {
       top: bounds.top,
       bottom: bounds.bottom,
+      y: bounds.bottom,
       height: bounds.height,
+      scrollHeight: el?.scrollHeight || 0,
       id: el?.id || '',
       tagName: (el?.tagName || '').toLowerCase(),
-    } as PathObject
+    } as t.PathObject
 
     path.push(map)
 
@@ -636,21 +606,9 @@ export const ExportPdf = (function () {
 
     for (const childNode of el.children) {
       if (isElement(childNode)) {
-        const { top, bottom, height } = childNode.getBoundingClientRect()
-        // if (bottom > curr) curr = bottom
-
-        // const map = {
-        //   height,
-        //   top,
-        //   bottom,
-        //   id: childNode.id,
-        //   tagName: childNode.tagName.toLowerCase(),
-        // } as PathObject
-
         const next = getTotalHeight(childNode as HTMLElement, [], cb)
         path.push(...next[1])
-
-        if (next[0] > curr) curr = next[0] as number
+        next[0] > curr && (curr = next[0] as number)
       }
     }
 
@@ -704,7 +662,7 @@ export const ExportPdf = (function () {
    * @returns pdf page format which includes width and height
    */
   function getFormat(
-    el?: NuiViewport | HTMLElement | null | undefined | Format,
+    el?: NuiViewport | HTMLElement | null | undefined | t.Format,
   ): [width: number, height: number] {
     if (u.isStr(el) && el in o.sizes) {
       return [o.sizes[el].width, o.sizes[el].height]
@@ -728,8 +686,8 @@ export const ExportPdf = (function () {
    * @returns 'portrait' or 'landscape'
    */
   function getOrientation(
-    el: PdfBlueprint['format'] | HTMLElement | null | undefined,
-  ): Orientation {
+    el: t.PdfBlueprint['format'] | HTMLElement | null | undefined,
+  ): t.Orientation {
     if (isElement(el)) {
       const { width, height } = el.getBoundingClientRect()
       return width > height ? 'landscape' : 'portrait'
@@ -797,7 +755,7 @@ export const ExportPdf = (function () {
     console.log(`%ctotalWidth: ${totalWidth}`, `color:#c4a901;`)
 
     const getOnClone =
-      (page: PageBlueprint) =>
+      (page: t.PageBlueprint) =>
       /**
        * Callback called with the cloned element.
        * Optionally mutate this cloned element to modify the output if needed.
