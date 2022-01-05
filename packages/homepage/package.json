@@ -179,6 +179,9 @@
   ],
   "license": "0BSD",
   "name": "homepage",
+  "nodemonConfig": {
+    "ignore": "*.json"
+  },
   "private": true,
   "repository": {
     "type": "git",

@@ -1,11 +1,16 @@
 process.stdout.write('\x1Bc')
 const curry = require('lodash/curry')
 const u = require('@jsmanifest/utils')
+const nu = require('noodl-utils')
 const { getGenerator } = require('./generator')
 const fs = require('fs-extra')
+const has = require('lodash/has')
+const get = require('lodash/get')
+const set = require('lodash/set')
 const path = require('path')
 
 const log = console.log
+const BUILTIN_EVAL_TOKEN = '=.'
 
 ;(async () => {
   try {
@@ -13,35 +18,21 @@ const log = console.log
 
     const getTraverse = curry(
       /**
-       * @param { (key: string, value: any) => void } cb
+       * @param { (key: string, value: any, parent: Record<string, any>) => void } cb
        * @param { import('noodl-types').ComponentObject } bp
        */
-      (cb, bp) => {
-        let mergingProps
-
-        for (const [key, value] of u.entries(bp)) {
-          let props = cb(key, value)
-
-          if (u.isObj(value)) {
-            const res = getTraverse(cb, { ...mergingProps, ...props })
-            res && (mergingProps = { ...mergingProps, [key]: props })
-          } else if (u.isArr(value)) {
-            mergingProps = {
-              ...mergingProps,
-              [key]: value.reduce((acc, c) => {
-                // props = getTraverse(cb, c)
-                // console.log({ c })
-                // if (props) {
-                //   if (u.isObj(props)) return acc.concat({ ...c, ...props })
-                //   if (u.isArr(props)) return acc.concat([...c, ...props])
-                //   return acc.concat(props)
-                // }
-                return acc.concat(c)
-              }, []),
-            }
+      (cb, bp, path = []) => {
+        if (u.isObj(bp)) {
+          const entries = u.entries(bp)
+          const numEntries = entries.length
+          for (let index = 0; index < numEntries; index++) {
+            const [key, value] = entries[index]
+            cb(key, value, bp, path.concat(key))
+            getTraverse(cb, value, path.concat(key))
           }
+        } else if (u.isArr(bp)) {
+          bp.forEach((b, i) => getTraverse(cb, b, path.concat(i)))
         }
-        return mergingProps
       },
     )
 
@@ -52,9 +43,7 @@ const log = console.log
           createComponent(comp, opts) {
             // const componentLabel = `[${comp.type}]`
             const path = opts.path || []
-            const pathStr = path.join('.') || ''
-            const mergingProps = traverse(comp.blueprint)
-            if (mergingProps) return mergingProps
+            traverse(comp.blueprint, path)
             // const logArgs = [
             //   comp.type,
             //   opts.parent?.type || '',
@@ -100,19 +89,27 @@ const log = console.log
         viewport: { width: 1024, hight: 768 },
       })
 
-    const traverse = getTraverse((key, value) => {
+    const paths = []
+
+    const traverse = getTraverse((key, value, parent, path) => {
       if (key.startsWith('=.builtIn')) {
+        // key = key.replace(BUILTIN_EVAL_TOKEN, '')
+        path[path.length - 1] = key.replace(BUILTIN_EVAL_TOKEN, '')
+        const pathStr = path.join('.')
+        paths.push(pathStr)
+
+        // log([key, value, parent, pathStr])
+
         if (u.isObj(value)) {
           try {
-            const processed = sdk.processPopulate({
-              source: value,
-              lookFor: ['.', '..', '=', '~'],
-              pageName: 'HomePage',
-              withFns: false,
-            })
-
+            // const processed = sdk.processPopulate({
+            //   source: value,
+            //   lookFor: ['.', '..', '=', '~'],
+            //   pageName: 'HomePage',
+            //   withFns: false,
+            // })
             // console.dir(processed, { depth: Infinity })
-            return processed
+            // return processed
           } catch (error) {
             const err =
               error instanceof Error ? error : new Error(String(error))
@@ -141,6 +138,27 @@ const log = console.log
     }
 
     const transformedComponents = await transformAllComponents(components)
+
+    log(components)
+
+    for (let path of paths) {
+      let builtInKey = ''
+      let indexOfBuiltInKey = path.indexOf('builtIn')
+      // log(path)
+      if (indexOfBuiltInKey > -1) {
+        builtInKey = path.substring(indexOfBuiltInKey)
+        path = path.substring(0, indexOfBuiltInKey - 1)
+        // log(`${builtInKey} - ${path}`)
+      }
+
+      path = [
+        ...path.split('.'),
+        ...(builtInKey ? [`${BUILTIN_EVAL_TOKEN}${builtInKey}`] : []),
+      ]
+
+      log(has(components, path), path)
+      log(get(components, path))
+    }
 
     await fs.writeJson(
       path.resolve(
