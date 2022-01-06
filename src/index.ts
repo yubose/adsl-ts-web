@@ -213,20 +213,20 @@ window.addEventListener('load', async (e) => {
   }
 
   // const pdfElem = findFirstByViewTag('mainView')
-  window.scrollTo({ left: window.innerWidth })
-  let interval = setInterval(() => {
-    const imgElem = findFirstBySelector(
-      `[src="http://127.0.0.1:3001/assets/downLoadBlue.svg"]`,
-    )
-    if (imgElem) {
-      const btn = imgElem.nextElementSibling
-      if (btn) {
-        btn['click']()
-        return clearInterval(interval)
-      }
-    }
-    // console.log(`[interval] The btn button has not rendered yet`)
-  }, 150)
+  // window.scrollTo({ left: window.innerWidth })
+  // let interval = setInterval(() => {
+  //   const imgElem = findFirstBySelector(
+  //     `[src="http://127.0.0.1:3001/assets/downLoadBlue.svg"]`,
+  //   )
+  //   if (imgElem) {
+  //     const btn = imgElem.nextElementSibling
+  //     if (btn) {
+  //       btn['click']()
+  //       return clearInterval(interval)
+  //     }
+  //   }
+  // console.log(`[interval] The btn button has not rendered yet`)
+  // }, 150)
 })
 
 if (module.hot) {

@@ -42,6 +42,7 @@ const configs = [
         include: /\.[t]s?$/,
         exclude: /node_modules/,
         minify: !_DEV_,
+        minifyIdentifiers: false,
         target: 'es2018',
         sourceMap: true,
       }),

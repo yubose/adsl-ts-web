@@ -1,5 +1,5 @@
-import { ActionObject } from 'noodl-types'
-import { ActionChainInstancesLoader } from '../types'
+import type { ActionObject } from 'noodl-types'
+import type { ActionChainInstancesLoader } from '../types'
 import ActionChain from '../ActionChain'
 
 function createActionChain<
@@ -8,7 +8,7 @@ function createActionChain<
 >(
   trigger: T,
   actions: A[],
-  loader?: ActionChainInstancesLoader<A, T>,
+  loader?: ActionChainInstancesLoader,
   id?: string,
 ): ActionChain<A, T>
 
@@ -18,7 +18,7 @@ function createActionChain<
 >(args: {
   actions: A[]
   trigger: T
-  loader?: ActionChainInstancesLoader<A, T>
+  loader?: ActionChainInstancesLoader
   id?: string
 }): ActionChain<A, T>
 
@@ -30,17 +30,17 @@ function createActionChain<
     | {
         actions: A[]
         trigger: T
-        loader?: ActionChainInstancesLoader<A, T>
+        loader?: ActionChainInstancesLoader
         id?: string
       }
     | T,
-  actions?: A[] | ActionChainInstancesLoader<A, T>,
-  loader?: ActionChainInstancesLoader<A, T>,
+  actions?: A[] | ActionChainInstancesLoader,
+  loader?: ActionChainInstancesLoader,
   id?: string,
 ) {
   let _trigger: T
   let _actions: A[] = []
-  let _loader: ActionChainInstancesLoader<A, T> | undefined
+  let _loader: ActionChainInstancesLoader | undefined
   let _id = ''
 
   if (typeof args === 'string') {

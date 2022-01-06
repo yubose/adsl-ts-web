@@ -48,6 +48,7 @@ import {
   scrollToElem,
   toast,
 } from '../utils/dom'
+import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
 import { getRandomKey, pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
@@ -266,163 +267,166 @@ const createActions = function createActions(app: App) {
     }
   }
 
-  const goto: Store.ActionObject['fn'] = async function onGoto(
-    action,
-    options,
-  ) {
-    let goto = _pick(action, 'goto') || ''
-    let ndomPage = pickNDOMPageFromOptions(options)
-    let destProps: ReturnType<typeof app.parse.destination>
+  const goto: Store.ActionObject['fn'] = useGotoSpinner(
+    app,
+    async function onGoto(action, options) {
+      let goto = _pick(action, 'goto') || ''
+      let ndomPage = pickNDOMPageFromOptions(options)
+      let destProps: ReturnType<typeof app.parse.destination>
 
-    log.func('goto')
-    log.grey(
-      _pick(action, 'goto'),
-      u.isObj(action) ? action?.snapshot?.() : action,
-    )
+      log.func('goto')
+      log.grey(
+        _pick(action, 'goto'),
+        u.isObj(action) ? action?.snapshot?.() : action,
+      )
 
-    let destinationParam =
-      (u.isStr(goto)
-        ? goto
-        : u.isObj(goto)
-        ? goto.destination || goto.dataIn?.destination || goto
-        : '') || ''
+      let destinationParam =
+        (u.isStr(goto)
+          ? goto
+          : u.isObj(goto)
+          ? goto.destination || goto.dataIn?.destination || goto
+          : '') || ''
 
-    destProps = app.parse.destination(
-      Identify.pageComponentUrl(destinationParam)
-        ? resolvePageComponentUrl({
-            component: options?.component,
-            page: ndomPage.getNuiPage(),
-            localKey: ndomPage.page,
-            root: app.root,
-            key: 'goto',
-            value: destinationParam,
-          })
-        : destinationParam,
-    )
+      destProps = app.parse.destination(
+        Identify.pageComponentUrl(destinationParam)
+          ? resolvePageComponentUrl({
+              component: options?.component,
+              page: ndomPage.getNuiPage(),
+              localKey: ndomPage.page,
+              root: app.root,
+              key: 'goto',
+              value: destinationParam,
+            })
+          : destinationParam,
+      )
 
-    let { destination, id = '', isSamePage, duration } = destProps
+      let { destination, id = '', isSamePage, duration } = destProps
 
-    let pageModifiers = {} as any
+      let pageModifiers = {} as any
 
-    if (destination === destinationParam) {
-      ndomPage.requesting = destination
-    }
+      if (destination === destinationParam) {
+        ndomPage.requesting = destination
+      }
 
-    if ('targetPage' in destProps) {
-      // @ts-expect-error
-      const destObj = destProps as ParsedPageComponentUrlObject
-      destination = destObj.targetPage || ''
-      id = destObj.viewTag || ''
-      if (id) {
-        for (const obj of app.cache.component) {
-          if (obj) {
-            if (obj?.component?.blueprint?.id === id) {
-              const pageComponent = obj.component
-              const currentPageName = pageComponent?.get?.('path')
-              ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
-              break
+      if ('targetPage' in destProps) {
+        // @ts-expect-error
+        const destObj = destProps as ParsedPageComponentUrlObject
+        destination = destObj.targetPage || ''
+        id = destObj.viewTag || ''
+        if (id) {
+          for (const obj of app.cache.component) {
+            if (obj) {
+              if (obj?.component?.blueprint?.id === id) {
+                const pageComponent = obj.component
+                const currentPageName = pageComponent?.get?.('path')
+                ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+                break
+              }
             }
           }
         }
       }
-    }
 
-    if (u.isObj(goto?.dataIn)) {
-      const dataIn = goto.dataIn
-      'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
-      'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
-    }
+      if (u.isObj(goto?.dataIn)) {
+        const dataIn = goto.dataIn
+        'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
+        'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
+      }
 
-    if (id) {
-      const isInsidePageComponent =
-        isPageConsumer(options.component) || !!destProps.targetPage
-      const node = findByViewTag(id) || findByElementId(id)
-      if (node) {
-        let win: Window | undefined | null
-        let doc: Document | null | undefined
-        if (document.contains?.(node as any)) {
-          win = window
-          doc = window.document
-        } else {
-          win = findWindow((w) => {
-            if (!w) return false
-            return (
-              'contentDocument' in w ? w['contentDocument'] : w.document
-            )?.contains?.(node as HTMLElement)
-          })
-        }
-        function scroll() {
-          if (isInsidePageComponent) {
-            scrollToElem(node, { win, doc, duration })
+      if (id) {
+        const isInsidePageComponent =
+          isPageConsumer(options.component) || !!destProps.targetPage
+        const node = findByViewTag(id) || findByElementId(id)
+        if (node) {
+          let win: Window | undefined | null
+          let doc: Document | null | undefined
+          if (document.contains?.(node as any)) {
+            win = window
+            doc = window.document
           } else {
-            ;(node as HTMLElement)?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'center',
+            win = findWindow((w) => {
+              if (!w) return false
+              return (
+                'contentDocument' in w ? w['contentDocument'] : w.document
+              )?.contains?.(node as HTMLElement)
             })
           }
+          function scroll() {
+            if (isInsidePageComponent) {
+              scrollToElem(node, { win, doc, duration })
+            } else {
+              ;(node as HTMLElement)?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center',
+              })
+            }
+          }
+          if (isSamePage) scroll()
+          else;
+          ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+        } else {
+          log.red(
+            `Could not search for a DOM node with an identity of "${id}"`,
+            {
+              id,
+              destination,
+              isSamePage,
+              duration,
+              action: action?.snapshot?.(),
+            },
+          )
         }
-        if (isSamePage) scroll()
-        else;
-        ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
-      } else {
-        log.red(`Could not search for a DOM node with an identity of "${id}"`, {
-          id,
-          destination,
-          isSamePage,
-          duration,
-          action: action?.snapshot?.(),
-        })
       }
-    }
 
-    if (!destinationParam.startsWith('http')) {
-      // Avoids letting page components (lower level components) from mutating the tab's url
-      if (ndomPage === app.mainPage) {
-        const originUrl = ndomPage.pageUrl
-        ndomPage.pageUrl = app.parse.queryString({
-          destination,
-          pageUrl: ndomPage.pageUrl,
-          startPage: app.startPage,
-        })
-        log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+      if (!destinationParam.startsWith('http')) {
+        // Avoids letting page components (lower level components) from mutating the tab's url
+        if (ndomPage === app.mainPage) {
+          const originUrl = ndomPage.pageUrl
+          ndomPage.pageUrl = app.parse.queryString({
+            destination,
+            pageUrl: ndomPage.pageUrl,
+            startPage: app.startPage,
+          })
+          log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+        } else {
+          // TODO - Move this to an official location in noodl-ui-dom
+          if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+            if (ndomPage.node.contentDocument?.body) {
+              ndomPage.node.contentDocument.body.textContent = ''
+            }
+          }
+        }
       } else {
-        // TODO - Move this to an official location in noodl-ui-dom
-        if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+        destination = destinationParam
+      }
+
+      log.grey(`Goto info`, {
+        gotoObject: { goto },
+        destinationParam,
+        isSamePage,
+        pageModifiers,
+        updatedQueryString: ndomPage?.pageUrl,
+      })
+
+      if (!isSamePage) {
+        if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
           if (ndomPage.node.contentDocument?.body) {
             ndomPage.node.contentDocument.body.textContent = ''
           }
         }
-      }
-    } else {
-      destination = destinationParam
-    }
 
-    log.grey(`Goto info`, {
-      gotoObject: { goto },
-      destinationParam,
-      isSamePage,
-      pageModifiers,
-      updatedQueryString: ndomPage?.pageUrl,
-    })
-
-    if (!isSamePage) {
-      if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
-        if (ndomPage.node.contentDocument?.body) {
-          ndomPage.node.contentDocument.body.textContent = ''
+        await app.navigate(ndomPage, destination)
+        if (!destination) {
+          log.func('goto')
+          log.red(
+            'Tried to go to a page but could not find information on the whereabouts',
+            { action: action?.snapshot?.(), options },
+          )
         }
       }
-
-      await app.navigate(ndomPage, destination)
-      if (!destination) {
-        log.func('goto')
-        log.red(
-          'Tried to go to a page but could not find information on the whereabouts',
-          { action: action?.snapshot?.(), options },
-        )
-      }
-    }
-  }
+    },
+  )
 
   const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
     async function getInjectBlob(action, options) {
@@ -847,7 +851,6 @@ const createActions = function createActions(app: App) {
             !dataObject && (dataObject = file)
           }
         }
-
 
         const params = { dataKey, dataObject }
         log.func('updateObject')

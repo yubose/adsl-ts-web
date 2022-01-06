@@ -19,6 +19,7 @@ import AppNotification from './app/Notifications'
 import actionFactory from './factories/actionFactory'
 import createActions from './handlers/actions'
 import createBuiltIns from './handlers/builtIns'
+import createGoto from './handlers/shared/goto'
 import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
@@ -33,10 +34,10 @@ import createMiddleware from './handlers/shared/middlewares'
 // import NoodlWorker from './worker/NoodlWorker'
 import parseUrl from './utils/parseUrl'
 import Spinner from './spinner'
-import { getBatchFromLocalStorage } from './utils/localStorage'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
+import * as c from './constants'
 import * as t from './app/types'
 
 const log = Logger.create('App.ts')
@@ -46,6 +47,16 @@ class App {
     authStatus: '' as AuthStatus | '',
     initialized: false,
     loadingPages: {} as Record<string, { id: string; init: boolean }[]>,
+    spinner: {
+      active: false,
+      config: {
+        delay: c.DEFAULT_SPINNER_DELAY,
+        timeout: c.DEFAULT_SPINNER_TIMEOUT,
+      },
+      page: null,
+      timeout: null,
+      trigger: null,
+    } as t.SpinnerState,
   }
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
@@ -53,11 +64,12 @@ class App {
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
   #parser: nu.Parser
-  #spinner: InstanceType<typeof Spinner>
+  #spinner: Spinner
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
   #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
   // #worker: ReturnType<typeof NoodlWorker>
   actionFactory = actionFactory(this)
+  goto: ReturnType<typeof createGoto>
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NOODLDOM['page']
@@ -112,6 +124,7 @@ class App {
     //     type: 'module',
     //   }),
     // )
+    this.goto = createGoto(this)
 
     noodl && (this.#noodl = noodl)
     this.#parser = new nu.Parser()
@@ -162,8 +175,7 @@ class App {
   }
 
   get globalRegister() {
-    return this.noodl.root?.Global?.globalRegister as
-      | t.GlobalRegisterComponent[]
+    return this.noodl.root?.Global?.globalRegister
   }
 
   get loadingPages() {
@@ -232,6 +244,10 @@ class App {
 
   get viewport() {
     return this.mainPage.viewport as VP
+  }
+
+  getState() {
+    return this.#state
   }
 
   // get worker() {
@@ -502,14 +518,12 @@ class App {
       console.error(error)
       throw error
     } finally {
-      this.#spinner.stop()
+      this.disableSpinner()
     }
   }
 
   async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
-    let spinnerRef = setTimeout(() => {
-      this.#spinner.spin(page?.node || this.mainPage?.node)
-    }, 350)
+    this.enableSpinner({ target: page?.node || this.mainPage?.node })
 
     try {
       const pageRequesting = page.requesting
@@ -661,8 +675,7 @@ class App {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
     } finally {
-      clearTimeout(spinnerRef)
-      this.#spinner.stop()
+      this.disableSpinner()
     }
   }
 
@@ -845,7 +858,38 @@ class App {
 
       return this.ndom.render(page, {
         on: {
-          actionChain: {},
+          actionChain: {
+            // onBeforeInject() {
+            //   console.log(`[onBeforeInject]`, this)
+            // },
+            // onAfterInject() {
+            //   console.log(`[onAfterInject]`, this)
+            // },
+            // onAbortEnd() {
+            //   console.log(`[onAbortEnd]`, this)
+            // },
+            // onAbortStart() {
+            //   console.log(`[onAbortStart]`, this)
+            // },
+            // onAbortError() {
+            //   console.log(`[onAbortError]`, this)
+            // },
+            onExecuteStart: () => {
+              console.log(`[onExecuteStart]`, this)
+              this.enableSpinner({ target: document.body, page: page?.page })
+            },
+            // onBeforeActionExecute() {
+            //   console.log(`[onBeforeActionExecute]`, this)
+            // },
+            onExecuteError: () => {
+              //   console.log(`[onExecuteError]`, this)
+              this.disableSpinner()
+            },
+            onExecuteEnd: () => {
+              // console.log(`[onExecuteEnd]`, this)
+              this.disableSpinner()
+            },
+          },
           // if: ({ page, value }) => {
           //   if (u.isStr(value) && Identify.reference(value)) {
           //     const datapath = nu.trimReference(value)
@@ -983,6 +1027,62 @@ class App {
   >(id: Id, params?: P) {
     const fns = this.obs.has(id) && this.obs.get(id)
     fns && fns.forEach((fn) => u.isFnc(fn) && fn(params as P))
+  }
+
+  enableSpinner({
+    delay,
+    page: pageName,
+    target,
+    timeout,
+    trigger,
+  }: {
+    delay?: number
+    page?: string
+    target?: HTMLElement
+    timeout?: number
+    trigger?: t.SpinnerState['trigger']
+  } = {}) {
+    if (this.#state.spinner.ref || this.#state.spinner.timeout) {
+      this.disableSpinner()
+    }
+
+    if (pageName) this.#state.spinner.page = pageName
+    else this.#state.spinner.page = null
+
+    if (trigger) this.#state.spinner.trigger = trigger
+    else this.#state.spinner.trigger = null
+
+    this.#state.spinner.ref = setTimeout(
+      () => {
+        this.#spinner.spin(target)
+        this.#state.spinner.active = true
+      },
+      u.isNum(delay) ? delay : this.#state.spinner.config.delay,
+    )
+
+    this.#state.spinner.timeout = setTimeout(
+      () => this.disableSpinner(),
+      u.isNum(timeout) ? timeout : this.#state.spinner.config.timeout,
+    )
+  }
+
+  disableSpinner() {
+    this.#spinner.stop()
+
+    this.#state.spinner.active = false
+    this.#state.spinner.page = null
+    this.#state.spinner.timeout = null
+    this.#state.spinner.trigger = null
+
+    if (this.#state.spinner.ref) {
+      clearTimeout(this.#state.spinner.ref)
+      this.#state.spinner.ref = null
+    }
+
+    if (this.#state.spinner.timeout) {
+      clearTimeout(this.#state.spinner.timeout)
+      this.#state.spinner.timeout = null
+    }
   }
 
   /* -------------------------------------------------------

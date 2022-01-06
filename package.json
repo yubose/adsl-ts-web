@@ -16,6 +16,7 @@
     "build": "npm run lib:build && webpack --mode=production",
     "build:stable": "cross-env ECOS_ENV=stable NODE_ENV=production DEPLOYING=true npm run build",
     "build:test": "cross-env ECOS_ENV=test NODE_ENV=production DEPLOYING=true npm run build",
+    "build:test:dev": "cross-env ECOS_ENV=test NODE_ENV=development DEPLOYING=true npm run build",
     "build:deploy:stable": "npm run build:stable && npm run deploy:stable",
     "build:deploy:test": "npm run build:test && npm run deploy:test",
     "build:deploy:noodltest": "npm run build:test && npm run deploy:noodltest",

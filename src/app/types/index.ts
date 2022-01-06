@@ -84,6 +84,18 @@ export interface AppNotificationMessageObject<
   priority?: 'normal'
 }
 
+export interface SpinnerState {
+  active: boolean
+  config: {
+    delay: number
+    timeout: number
+  }
+  page: string | null
+  ref: null | NodeJS.Timeout
+  timeout: null | NodeJS.Timeout
+  trigger: 'inject' | NUITrigger | null
+}
+
 export interface CachedPageObject {
   name: string
   timestamp: number
