@@ -8,6 +8,7 @@ import { presets } from './constants'
 import { findIteratorVar, findListDataObject } from './utils/noodl'
 import * as com from './utils/common'
 import * as util from './utils/style'
+import { styleKeys } from 'noodl-types'
 
 function getByRef(root = {}, ref = '', rootKey = '') {
   if (nt.Identify.localReference(ref)) {
@@ -496,7 +497,7 @@ function normalizeProps<
                     )
                   }
                 }
-
+                console.log('test',{styleKey,styleValue})
                 if (util.vpHeightKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
@@ -506,8 +507,11 @@ function normalizeProps<
                         { unit: 'px' },
                       ),
                     )
+                  }else{
+                    value[styleKey] = com.formatColor(styleValue)
                   }
-                } else if (util.vpWidthKeys.includes(styleKey as any)) {
+                } 
+                else if (util.vpWidthKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
                       NuiViewport.getSize(
