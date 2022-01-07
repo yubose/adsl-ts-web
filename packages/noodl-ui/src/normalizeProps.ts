@@ -497,7 +497,7 @@ function normalizeProps<
                     )
                   }
                 }
-                console.log('test',{styleKey,styleValue})
+
                 if (util.vpHeightKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
