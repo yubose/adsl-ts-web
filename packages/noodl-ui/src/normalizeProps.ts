@@ -507,8 +507,8 @@ function normalizeProps<
                         { unit: 'px' },
                       ),
                     )
-                  }else{
-                    value[styleKey] = com.formatColor(styleValue)
+                  }else if(styleKey == 'borderRadius' && u.isStr(styleValue)){
+                    value[styleKey] = styleValue
                   }
                 } 
                 else if (util.vpWidthKeys.includes(styleKey as any)) {
