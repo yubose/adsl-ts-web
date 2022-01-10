@@ -105,7 +105,7 @@ const createActions = function createActions(app: App) {
           } catch (error) {
             console.error(error)
           } finally {
-            if (!app.noodl.getState().queue.length) app.disableSpinner()
+            if (!app.noodl.getState().queue?.length) app.disableSpinner()
           }
         },
       }),
@@ -272,7 +272,7 @@ const createActions = function createActions(app: App) {
       console.error(error)
       toast(error.message, { type: 'error' })
     } finally {
-      if (!app.noodl.getState().queue.length) {
+      if (!app.noodl.getState().queue?.length) {
         app.disableSpinner()
       }
     }
@@ -315,7 +315,7 @@ const createActions = function createActions(app: App) {
 
       let { destination, id = '', isSamePage, duration } = destProps
 
-      let pageModifiers = {} as any
+      let pageModifiers = { reload: true } as any
 
       if (destination === destinationParam) {
         ndomPage.requesting = destination
@@ -428,7 +428,8 @@ const createActions = function createActions(app: App) {
             ndomPage.node.contentDocument.body.textContent = ''
           }
         }
-
+        ndomPage.setModifier(destination, pageModifiers)
+        debugger
         await app.navigate(ndomPage, destination)
         if (!destination) {
           log.func('goto')

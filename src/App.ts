@@ -316,6 +316,12 @@ class App {
         _page.requesting = ''
         return void (window.location.href = _pageRequesting)
       }
+
+      if (_page.page && _page.requesting && _page.page !== _page.requesting) {
+        // delete this.noodl.root[_page.page]
+        // await this.getPageObject(_page)
+      }
+
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       const req = await this.ndom.request(_page)
       if (req) {
@@ -389,7 +395,7 @@ class App {
       })
 
       this.noodl.on('QUEUE_END', () => {
-        if (!this.noodl.getState().queue.length) {
+        if (!this.noodl.getState().queue?.length) {
           if (this.getState().spinner.active) this.disableSpinner()
         }
       })
@@ -530,8 +536,8 @@ class App {
       console.error(error)
       throw error
     } finally {
-      if (!this.noodl.getState().queue.length) {
-        if (this.getState().spinner.active) {
+      if (!this.noodl.getState()?.queue?.length) {
+        if (this.getState().spinner?.active) {
           this.disableSpinner()
         }
       }
@@ -567,6 +573,8 @@ class App {
             `The page is unnecessarily rendering twice to the DOM`,
           `color:#ec0000;`,
         )
+      } else {
+        // delete this.noodl.root[currentPage]
       }
 
       let isAborted = false
@@ -574,7 +582,7 @@ class App {
 
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {
-          ...(page.modifiers[pageRequesting] as any),
+          ...(page.modifiers?.[pageRequesting] as any),
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
             log.func('onBeforeInit')
@@ -583,7 +591,7 @@ class App {
           onInit: (current, index, init) => {
             log.func('onInit')
             log.grey('', { current, index, init, page: pageRequesting })
-            debugger
+
             const validateReference = (ref: string) => {
               const datapath = nu.trimReference(ref as ReferenceString)
               const location = ref.startsWith(`=.builtIn`)

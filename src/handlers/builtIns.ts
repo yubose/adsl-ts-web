@@ -26,6 +26,7 @@ import {
   findWindow,
   isPageConsumer,
   Page as NDOMPage,
+  findFirstByElementId,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import Logger from 'logsnap'
@@ -306,14 +307,13 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action?.snapshot?.())
     const reload = _pick(action, 'reload')
     const ndomPage = pickNDOMPageFromOptions(options)
-
     if (ndomPage) {
       ndomPage.requesting = ndomPage.previous
       // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
-      if (u.isBool(reload)) {
-        ndomPage.setModifier(ndomPage.previous, { reload })
-      }
+      ndomPage.setModifier(ndomPage.previous, {
+        reload: u.isBool(reload) ? reload : true,
+      })
     }
 
     if (!app.getState().spinner.active) app.enableSpinner()
@@ -637,9 +637,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         ndomPage.requesting = destination
       }
 
-      if (!u.isUnd(reload)) {
-        ndomPage.setModifier(destinationParam, { reload })
-      }
+      ndomPage.setModifier(destinationParam, { reload: reload !== false })
+
       if (!u.isUnd(pageReload)) {
         ndomPage.setModifier(destinationParam, { pageReload })
       }
@@ -747,6 +746,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               ndomPage.node.contentDocument.body.textContent = ''
             }
           }
+          debugger
           await app.navigate(ndomPage, destination)
         }
 
