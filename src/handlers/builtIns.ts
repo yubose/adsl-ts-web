@@ -134,6 +134,78 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }
 
+  const exportCSV = async function onExportCSV(options: {
+    ecosObj?: EcosDocument
+    viewTag?: string
+    format?: PdfPageFormat
+    download?: boolean
+    open?: boolean
+  }) {
+    try {
+      let listOfData = u.isArr(options) ? options : ([] as any[])
+      let title = new Date().toLocaleDateString().replaceAll('/', '-')
+
+      if (u.isObj(options)) {
+        if ('ecosObj' in options) {
+          listOfData.push(options.ecosObj?.name || {})
+          if (options.ecosObj?.name?.title) title = options.ecosObj.name.title
+        } else {
+          listOfData.push(options)
+        }
+      } else if (u.isStr(options)) {
+        try {
+          let data = JSON.parse(options)
+          listOfData.push(data)
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.error(err)
+          listOfData.push(options)
+        }
+      }
+
+      let csv = ''
+
+      for (const dataObject of listOfData) {
+        let entries = u.entries(dataObject).map(([k, v]) => [[k, v]])
+        let numEntries = entries.length
+
+        //1st loop is to extract each row
+        for (let i = 0; i < numEntries; i++) {
+          let row = ''
+          //2nd loop will extract each column and convert it in string comma-seprated
+          for (const index in entries[i]) {
+            row += '"' + entries[i][index] + '",'
+          }
+          row.slice(0, row.length - 1)
+          //add a line break after each row
+          csv += row + '\r\n'
+        }
+
+        numEntries && (csv += '\r\n')
+      }
+
+      const link = document.createElement('a')
+      link.id = 'lnkDwnldLnk'
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const csvUrl = URL.createObjectURL(blob)
+      const filename =
+        `${
+          title ||
+          `data-${new Date().toLocaleDateString().replaceAll('/', '-')}`
+        }` + '.csv'
+      link.download = filename
+      link.href = csvUrl
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(csvUrl)
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error(err)
+    }
+  }
+
   /**
    * Initiates a download window to export PDF using the information inside the document object
    * @param { object } options
@@ -243,6 +315,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         ndomPage.setModifier(ndomPage.previous, { reload })
       }
     }
+
+    if (!app.getState().spinner.active) app.enableSpinner()
 
     window.history.back()
   }
@@ -461,6 +535,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     useGotoSpinner(app, async function onGoto(action, options) {
       log.func('goto')
       log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
+
+      if (!app.getState().spinner.active) app.enableSpinner()
 
       let destinationParam = ''
       let reload: boolean | undefined
@@ -802,6 +878,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const builtIns = {
     checkField,
     disconnectMeeting,
+    exportCSV,
     exportPDF,
     goBack,
     hide: hideAction,

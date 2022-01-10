@@ -1194,15 +1194,6 @@
   };
   Collection.maxFlowStringSingleLineLength = 60;
 
-  // node_modules/yaml/browser/dist/stringify/stringifyComment.js
-  var stringifyComment = (str) => str.replace(/^(?!$)(?: $)?/gm, "#");
-  function indentComment(comment, indent) {
-    if (/^\n+$/.test(comment))
-      return comment.substring(1);
-    return indent ? comment.replace(/^(?! *$)/gm, indent) : comment;
-  }
-  var lineComment = (str, indent, comment) => comment.includes("\n") ? "\n" + indentComment(comment, indent) : (str.endsWith(" ") ? "" : " ") + comment;
-
   // node_modules/yaml/browser/dist/stringify/foldFlowLines.js
   var FOLD_FLOW = "flow";
   var FOLD_BLOCK = "block";
@@ -1451,7 +1442,7 @@ ${indent}`) + "'";
     return qs(value, ctx);
   }
   function blockString({ comment, type, value }, ctx, onComment, onChompKeep) {
-    const { blockQuote, commentString, lineWidth } = ctx.options;
+    const { lineWidth, blockQuote } = ctx.options;
     if (!blockQuote || /\n[\t ]+$/.test(value) || /^\s*$/.test(value)) {
       return quotedString(value, ctx);
     }
@@ -1503,7 +1494,7 @@ ${indent}`) + "'";
     const indentSize = indent ? "2" : "1";
     let header = (literal ? "|" : ">") + (startWithSpace ? indentSize : "") + chomp;
     if (comment) {
-      header += " " + commentString(comment.replace(/ ?[\r\n]+/g, " "));
+      header += " #" + comment.replace(/ ?[\r\n]+/g, " ");
       if (onComment)
         onComment();
     }
@@ -1518,6 +1509,7 @@ ${indent}${start}${value}${end}`;
 ${indent}${body}`;
   }
   function plainString(item, ctx, onComment, onChompKeep) {
+    var _a;
     const { type, value } = item;
     const { actualString, implicitKey, indent, inFlow } = ctx;
     if (implicitKey && /[\n[\]{},]/.test(value) || inFlow && /[[\]{},]/.test(value)) {
@@ -1536,13 +1528,10 @@ ${indent}${body}`;
     const str = value.replace(/\n+/g, `$&
 ${indent}`);
     if (actualString) {
-      const test = (tag2) => {
-        var _a;
-        return tag2.default && tag2.tag !== "tag:yaml.org,2002:str" && ((_a = tag2.test) === null || _a === void 0 ? void 0 : _a.test(str));
-      };
-      const { compat, tags } = ctx.doc.schema;
-      if (tags.some(test) || (compat === null || compat === void 0 ? void 0 : compat.some(test)))
-        return quotedString(value, ctx);
+      for (const tag2 of ctx.doc.schema.tags) {
+        if (tag2.default && tag2.tag !== "tag:yaml.org,2002:str" && ((_a = tag2.test) === null || _a === void 0 ? void 0 : _a.test(str)))
+          return quotedString(value, ctx);
+      }
     }
     return implicitKey ? str : foldFlowLines(str, indent, FOLD_FLOW, getFoldOptions(ctx));
   }
@@ -1581,10 +1570,13 @@ ${indent}`);
   }
 
   // node_modules/yaml/browser/dist/stringify/stringify.js
-  function createStringifyContext(doc, options) {
-    const opt = Object.assign({
+  var createStringifyContext = (doc, options) => ({
+    anchors: new Set(),
+    doc,
+    indent: "",
+    indentStep: typeof options.indent === "number" ? " ".repeat(options.indent) : "  ",
+    options: Object.assign({
       blockQuote: true,
-      commentString: stringifyComment,
       defaultKeyType: null,
       defaultStringType: "PLAIN",
       directives: null,
@@ -1599,27 +1591,8 @@ ${indent}`);
       singleQuote: null,
       trueStr: "true",
       verifyAliasOrder: true
-    }, doc.schema.toStringOptions, options);
-    let inFlow;
-    switch (opt.collectionStyle) {
-      case "block":
-        inFlow = false;
-        break;
-      case "flow":
-        inFlow = true;
-        break;
-      default:
-        inFlow = null;
-    }
-    return {
-      anchors: new Set(),
-      doc,
-      indent: "",
-      indentStep: typeof opt.indent === "number" ? " ".repeat(opt.indent) : "  ",
-      inFlow,
-      options: opt
-    };
-  }
+    }, options)
+  });
   function getTagObject(tags, item) {
     if (item.tag) {
       const match = tags.filter((t) => t.tag === item.tag);
@@ -1643,36 +1616,24 @@ ${indent}`);
     return tagObj;
   }
   function stringifyProps(node, tagObj, { anchors, doc }) {
-    if (!doc.directives)
-      return "";
     const props = [];
     const anchor = (isScalar(node) || isCollection(node)) && node.anchor;
     if (anchor && anchorIsValid(anchor)) {
       anchors.add(anchor);
       props.push(`&${anchor}`);
     }
-    const tag2 = node.tag || (tagObj.default ? null : tagObj.tag);
-    if (tag2)
-      props.push(doc.directives.tagString(tag2));
+    if (node.tag) {
+      props.push(doc.directives.tagString(node.tag));
+    } else if (!tagObj.default) {
+      props.push(doc.directives.tagString(tagObj.tag));
+    }
     return props.join(" ");
   }
   function stringify(item, ctx, onComment, onChompKeep) {
-    var _a;
     if (isPair(item))
       return item.toString(ctx, onComment, onChompKeep);
-    if (isAlias(item)) {
-      if (ctx.doc.directives)
-        return item.toString(ctx);
-      if ((_a = ctx.resolvedAliases) === null || _a === void 0 ? void 0 : _a.has(item)) {
-        throw new TypeError(`Cannot stringify circular structure without alias nodes`);
-      } else {
-        if (ctx.resolvedAliases)
-          ctx.resolvedAliases.add(item);
-        else
-          ctx.resolvedAliases = new Set([item]);
-        item = item.resolve(ctx.doc);
-      }
-    }
+    if (isAlias(item))
+      return item.toString(ctx);
     let tagObj = void 0;
     const node = isNode(item) ? item : ctx.doc.createNode(item, { onTagObj: (o) => tagObj = o });
     if (!tagObj)
@@ -1687,9 +1648,16 @@ ${indent}`);
 ${ctx.indent}${str}`;
   }
 
+  // node_modules/yaml/browser/dist/stringify/stringifyComment.js
+  var stringifyComment = (comment, indent) => /^\n+$/.test(comment) ? comment.substring(1) : comment.replace(/^(?!$)(?: $)?/gm, `${indent}#`);
+  function addComment(str, indent, comment) {
+    return !comment ? str : comment.includes("\n") ? `${str}
+` + stringifyComment(comment, indent) : str.endsWith(" ") ? `${str}#${comment}` : `${str} #${comment}`;
+  }
+
   // node_modules/yaml/browser/dist/stringify/stringifyPair.js
   function stringifyPair({ key, value }, ctx, onComment, onChompKeep) {
-    const { allNullValues, doc, indent, indentStep, options: { commentString, indentSeq, simpleKeys } } = ctx;
+    const { allNullValues, doc, indent, indentStep, options: { indentSeq, simpleKeys } } = ctx;
     let keyComment = isNode(key) && key.comment || null;
     if (simpleKeys) {
       if (keyComment) {
@@ -1721,35 +1689,24 @@ ${ctx.indent}${str}`;
         return explicitKey ? `? ${str}` : str;
       }
     } else if (allNullValues && !simpleKeys || value == null && explicitKey) {
-      str = `? ${str}`;
-      if (keyComment && !keyCommentDone) {
-        str += lineComment(str, ctx.indent, commentString(keyComment));
-      } else if (chompKeep && onChompKeep)
+      if (keyCommentDone)
+        keyComment = null;
+      if (chompKeep && !keyComment && onChompKeep)
         onChompKeep();
-      return str;
+      return addComment(`? ${str}`, ctx.indent, keyComment);
     }
     if (keyCommentDone)
       keyComment = null;
-    if (explicitKey) {
-      if (keyComment)
-        str += lineComment(str, ctx.indent, commentString(keyComment));
-      str = `? ${str}
-${indent}:`;
-    } else {
-      str = `${str}:`;
-      if (keyComment)
-        str += lineComment(str, ctx.indent, commentString(keyComment));
-    }
+    str = explicitKey ? `? ${addComment(str, ctx.indent, keyComment)}
+${indent}:` : addComment(`${str}:`, ctx.indent, keyComment);
     let vcb = "";
     let valueComment = null;
     if (isNode(value)) {
       if (value.spaceBefore)
         vcb = "\n";
-      if (value.commentBefore) {
-        const cs = commentString(value.commentBefore);
+      if (value.commentBefore)
         vcb += `
-${indentComment(cs, ctx.indent)}`;
-      }
+${stringifyComment(value.commentBefore, ctx.indent)}`;
       valueComment = value.comment;
     } else if (value && typeof value === "object") {
       value = doc.createNode(value);
@@ -1774,16 +1731,17 @@ ${ctx.indent}`;
 ${ctx.indent}`;
     } else if (valueStr === "" || valueStr[0] === "\n")
       ws = "";
-    str += ws + valueStr;
     if (ctx.inFlow) {
       if (valueCommentDone && onComment)
         onComment();
-    } else if (valueComment && !valueCommentDone) {
-      str += lineComment(str, ctx.indent, commentString(valueComment));
-    } else if (chompKeep && onChompKeep) {
-      onChompKeep();
+      return str + ws + valueStr;
+    } else {
+      if (valueCommentDone)
+        valueComment = null;
+      if (chompKeep && !valueComment && onChompKeep)
+        onChompKeep();
+      return addComment(str + ws + valueStr, ctx.indent, valueComment);
     }
-    return str;
   }
 
   // node_modules/yaml/browser/dist/log.js
@@ -1920,146 +1878,114 @@ ${ctx.indent}`;
   };
 
   // node_modules/yaml/browser/dist/stringify/stringifyCollection.js
-  function stringifyCollection(collection, ctx, options) {
-    var _a;
-    const flow = (_a = ctx.inFlow) !== null && _a !== void 0 ? _a : collection.flow;
-    const stringify4 = flow ? stringifyFlowCollection : stringifyBlockCollection;
-    return stringify4(collection, ctx, options);
-  }
-  function stringifyBlockCollection({ comment, items }, ctx, { blockItemPrefix, flowChars, itemIndent, onChompKeep, onComment }) {
-    const { indent, options: { commentString } } = ctx;
-    const itemCtx = Object.assign({}, ctx, { indent: itemIndent, type: null });
+  function stringifyCollection({ comment, flow, items }, ctx, { blockItem, flowChars, itemIndent, onChompKeep, onComment }) {
+    const { indent, indentStep } = ctx;
+    const inFlow = flow || ctx.inFlow;
+    if (inFlow)
+      itemIndent += indentStep;
+    ctx = Object.assign({}, ctx, { indent: itemIndent, inFlow, type: null });
+    let singleLineOutput = true;
     let chompKeep = false;
-    const lines = [];
-    for (let i = 0; i < items.length; ++i) {
-      const item = items[i];
+    const nodes = items.reduce((nodes2, item, i) => {
       let comment2 = null;
       if (isNode(item)) {
         if (!chompKeep && item.spaceBefore)
-          lines.push("");
-        addCommentBefore(ctx, lines, item.commentBefore, chompKeep);
-        if (item.comment)
+          nodes2.push({ comment: true, str: "" });
+        let cb = item.commentBefore;
+        if (cb && chompKeep)
+          cb = cb.replace(/^\n+/, "");
+        if (cb) {
+          if (/^\n+$/.test(cb))
+            cb = cb.substring(1);
+          for (const line of cb.match(/^.*$/gm)) {
+            const str3 = line === " " ? "#" : line ? `#${line}` : "";
+            nodes2.push({ comment: true, str: str3 });
+          }
+        }
+        if (item.comment) {
           comment2 = item.comment;
+          singleLineOutput = false;
+        }
       } else if (isPair(item)) {
         const ik = isNode(item.key) ? item.key : null;
         if (ik) {
           if (!chompKeep && ik.spaceBefore)
-            lines.push("");
-          addCommentBefore(ctx, lines, ik.commentBefore, chompKeep);
+            nodes2.push({ comment: true, str: "" });
+          let cb = ik.commentBefore;
+          if (cb && chompKeep)
+            cb = cb.replace(/^\n+/, "");
+          if (cb) {
+            if (/^\n+$/.test(cb))
+              cb = cb.substring(1);
+            for (const line of cb.match(/^.*$/gm)) {
+              const str3 = line === " " ? "#" : line ? `#${line}` : "";
+              nodes2.push({ comment: true, str: str3 });
+            }
+          }
+          if (ik.comment)
+            singleLineOutput = false;
+        }
+        if (inFlow) {
+          const iv = isNode(item.value) ? item.value : null;
+          if (iv) {
+            if (iv.comment)
+              comment2 = iv.comment;
+            if (iv.comment || iv.commentBefore)
+              singleLineOutput = false;
+          } else if (item.value == null && ik && ik.comment) {
+            comment2 = ik.comment;
+          }
         }
       }
       chompKeep = false;
-      let str2 = stringify(item, itemCtx, () => comment2 = null, () => chompKeep = true);
-      if (comment2)
-        str2 += lineComment(str2, itemIndent, commentString(comment2));
-      if (chompKeep && comment2)
+      let str2 = stringify(item, ctx, () => comment2 = null, () => chompKeep = true);
+      if (inFlow && i < items.length - 1)
+        str2 += ",";
+      str2 = addComment(str2, itemIndent, comment2);
+      if (chompKeep && (comment2 || inFlow))
         chompKeep = false;
-      lines.push(blockItemPrefix + str2);
-    }
+      nodes2.push({ comment: false, str: str2 });
+      return nodes2;
+    }, []);
     let str;
-    if (lines.length === 0) {
+    if (nodes.length === 0) {
       str = flowChars.start + flowChars.end;
-    } else {
-      str = lines[0];
-      for (let i = 1; i < lines.length; ++i) {
-        const line = lines[i];
-        str += line ? `
-${indent}${line}` : "\n";
+    } else if (inFlow) {
+      const { start, end } = flowChars;
+      const strings = nodes.map((n) => n.str);
+      let singleLineLength = 2;
+      for (const node of nodes) {
+        if (node.comment || node.str.includes("\n")) {
+          singleLineOutput = false;
+          break;
+        }
+        singleLineLength += node.str.length + 2;
       }
+      if (!singleLineOutput || singleLineLength > Collection.maxFlowStringSingleLineLength) {
+        str = start;
+        for (const s of strings) {
+          str += s ? `
+${indentStep}${indent}${s}` : "\n";
+        }
+        str += `
+${indent}${end}`;
+      } else {
+        str = `${start} ${strings.join(" ")} ${end}`;
+      }
+    } else {
+      const strings = nodes.map(blockItem);
+      str = strings.shift() || "";
+      for (const s of strings)
+        str += s ? `
+${indent}${s}` : "\n";
     }
     if (comment) {
-      str += "\n" + indentComment(commentString(comment), indent);
+      str += "\n" + stringifyComment(comment, indent);
       if (onComment)
         onComment();
     } else if (chompKeep && onChompKeep)
       onChompKeep();
     return str;
-  }
-  function stringifyFlowCollection({ comment, items }, ctx, { flowChars, itemIndent, onComment }) {
-    const { indent, indentStep, options: { commentString } } = ctx;
-    itemIndent += indentStep;
-    const itemCtx = Object.assign({}, ctx, {
-      indent: itemIndent,
-      inFlow: true,
-      type: null
-    });
-    let reqNewline = false;
-    let linesAtValue = 0;
-    const lines = [];
-    for (let i = 0; i < items.length; ++i) {
-      const item = items[i];
-      let comment2 = null;
-      if (isNode(item)) {
-        if (item.spaceBefore)
-          lines.push("");
-        addCommentBefore(ctx, lines, item.commentBefore, false);
-        if (item.comment)
-          comment2 = item.comment;
-      } else if (isPair(item)) {
-        const ik = isNode(item.key) ? item.key : null;
-        if (ik) {
-          if (ik.spaceBefore)
-            lines.push("");
-          addCommentBefore(ctx, lines, ik.commentBefore, false);
-          if (ik.comment)
-            reqNewline = true;
-        }
-        const iv = isNode(item.value) ? item.value : null;
-        if (iv) {
-          if (iv.comment)
-            comment2 = iv.comment;
-          if (iv.commentBefore)
-            reqNewline = true;
-        } else if (item.value == null && ik && ik.comment) {
-          comment2 = ik.comment;
-        }
-      }
-      if (comment2)
-        reqNewline = true;
-      let str2 = stringify(item, itemCtx, () => comment2 = null);
-      if (i < items.length - 1)
-        str2 += ",";
-      if (comment2)
-        str2 += lineComment(str2, itemIndent, commentString(comment2));
-      if (!reqNewline && (lines.length > linesAtValue || str2.includes("\n")))
-        reqNewline = true;
-      lines.push(str2);
-      linesAtValue = lines.length;
-    }
-    let str;
-    const { start, end } = flowChars;
-    if (lines.length === 0) {
-      str = start + end;
-    } else {
-      if (!reqNewline) {
-        const len = lines.reduce((sum, line) => sum + line.length + 2, 2);
-        reqNewline = len > Collection.maxFlowStringSingleLineLength;
-      }
-      if (reqNewline) {
-        str = start;
-        for (const line of lines)
-          str += line ? `
-${indentStep}${indent}${line}` : "\n";
-        str += `
-${indent}${end}`;
-      } else {
-        str = `${start} ${lines.join(" ")} ${end}`;
-      }
-    }
-    if (comment) {
-      str += lineComment(str, commentString(comment), indent);
-      if (onComment)
-        onComment();
-    }
-    return str;
-  }
-  function addCommentBefore({ indent, options: { commentString } }, lines, comment, chompKeep) {
-    if (comment && chompKeep)
-      comment = comment.replace(/^\n+/, "");
-    if (comment) {
-      const ic = indentComment(commentString(comment), indent);
-      lines.push(ic.trimStart());
-    }
   }
 
   // node_modules/yaml/browser/dist/nodes/YAMLMap.js
@@ -2146,7 +2072,7 @@ ${indent}${end}`;
       if (!ctx.allNullValues && this.hasAllNullValues(false))
         ctx = Object.assign({}, ctx, { allNullValues: true });
       return stringifyCollection(this, ctx, {
-        blockItemPrefix: "",
+        blockItem: (n) => n.str,
         flowChars: { start: "{", end: "}" },
         itemIndent: ctx.indent || "",
         onChompKeep,
@@ -2245,7 +2171,7 @@ ${indent}${end}`;
       if (!ctx)
         return JSON.stringify(this);
       return stringifyCollection(this, ctx, {
-        blockItemPrefix: "- ",
+        blockItem: (n) => n.comment ? n.str : `- ${n.str}`,
         flowChars: { start: "[", end: "]" },
         itemIndent: (ctx.indent || "") + "  ",
         onChompKeep,
@@ -2366,10 +2292,7 @@ ${indent}${end}`;
     format: "EXP",
     test: /^[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)[eE][-+]?[0-9]+$/,
     resolve: (str) => parseFloat(str),
-    stringify(node) {
-      const num = Number(node.value);
-      return isFinite(num) ? num.toExponential() : stringifyNumber(node);
-    }
+    stringify: ({ value }) => Number(value).toExponential()
   };
   var float = {
     identify: (value) => typeof value === "number",
@@ -2708,10 +2631,7 @@ ${cn.comment}` : item.comment;
     format: "EXP",
     test: /^[-+]?(?:[0-9][0-9_]*)?(?:\.[0-9_]*)?[eE][-+]?[0-9]+$/,
     resolve: (str) => parseFloat(str.replace(/_/g, "")),
-    stringify(node) {
-      const num = Number(node.value);
-      return isFinite(num) ? num.toExponential() : stringifyNumber(node);
-    }
+    stringify: ({ value }) => Number(value).toExponential()
   };
   var float2 = {
     identify: (value) => typeof value === "number",
@@ -2975,13 +2895,13 @@ ${cn.comment}` : item.comment;
   ];
 
   // node_modules/yaml/browser/dist/schema/tags.js
-  var schemas = new Map([
-    ["core", schema],
-    ["failsafe", [map, seq, string]],
-    ["json", schema2],
-    ["yaml11", schema3],
-    ["yaml-1.1", schema3]
-  ]);
+  var schemas = {
+    core: schema,
+    failsafe: [map, seq, string],
+    json: schema2,
+    yaml11: schema3,
+    "yaml-1.1": schema3
+  };
   var tagsByName = {
     binary,
     bool: boolTag,
@@ -3009,12 +2929,12 @@ ${cn.comment}` : item.comment;
     "tag:yaml.org,2002:timestamp": timestamp
   };
   function getTags(customTags, schemaName) {
-    let tags = schemas.get(schemaName);
+    let tags = schemas[schemaName];
     if (!tags) {
       if (Array.isArray(customTags))
         tags = [];
       else {
-        const keys2 = Array.from(schemas.keys()).filter((key) => key !== "yaml11").map((key) => JSON.stringify(key)).join(", ");
+        const keys2 = Object.keys(schemas).filter((key) => key !== "yaml11").map((key) => JSON.stringify(key)).join(", ");
         throw new Error(`Unknown schema "${schemaName}"; use one of ${keys2} or define customTags array`);
       }
     }
@@ -3038,13 +2958,11 @@ ${cn.comment}` : item.comment;
   // node_modules/yaml/browser/dist/schema/Schema.js
   var sortMapEntriesByKey = (a, b) => a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
   var Schema = class {
-    constructor({ compat, customTags, merge, resolveKnownTags, schema: schema4, sortMapEntries, toStringDefaults }) {
-      this.compat = Array.isArray(compat) ? getTags(compat, "compat") : compat ? getTags(null, compat) : null;
+    constructor({ customTags, merge, resolveKnownTags, schema: schema4, sortMapEntries }) {
       this.merge = !!merge;
-      this.name = typeof schema4 === "string" && schema4 || "core";
+      this.name = schema4 || "core";
       this.knownTags = resolveKnownTags ? coreKnownTags : {};
       this.tags = getTags(customTags, this.name);
-      this.toStringOptions = toStringDefaults || null;
       Object.defineProperty(this, MAP, { value: map });
       Object.defineProperty(this, SCALAR, { value: string });
       Object.defineProperty(this, SEQ, { value: seq });
@@ -3061,7 +2979,7 @@ ${cn.comment}` : item.comment;
   function stringifyDocument(doc, options) {
     const lines = [];
     let hasDirectives = options.directives === true;
-    if (options.directives !== false && doc.directives) {
+    if (options.directives !== false) {
       const dir = doc.directives.toString(doc);
       if (dir) {
         lines.push(dir);
@@ -3071,31 +2989,27 @@ ${cn.comment}` : item.comment;
     }
     if (hasDirectives)
       lines.push("---");
-    const ctx = createStringifyContext(doc, options);
-    const { commentString } = ctx.options;
     if (doc.commentBefore) {
       if (lines.length !== 1)
         lines.unshift("");
-      const cs = commentString(doc.commentBefore);
-      lines.unshift(indentComment(cs, ""));
+      lines.unshift(stringifyComment(doc.commentBefore, ""));
     }
+    const ctx = createStringifyContext(doc, options);
     let chompKeep = false;
     let contentComment = null;
     if (doc.contents) {
       if (isNode(doc.contents)) {
         if (doc.contents.spaceBefore && hasDirectives)
           lines.push("");
-        if (doc.contents.commentBefore) {
-          const cs = commentString(doc.contents.commentBefore);
-          lines.push(indentComment(cs, ""));
-        }
+        if (doc.contents.commentBefore)
+          lines.push(stringifyComment(doc.contents.commentBefore, ""));
         ctx.forceBlockIndent = !!doc.comment;
         contentComment = doc.contents.comment;
       }
       const onChompKeep = contentComment ? void 0 : () => chompKeep = true;
       let body = stringify(doc.contents, ctx, () => contentComment = null, onChompKeep);
       if (contentComment)
-        body += lineComment(body, "", commentString(contentComment));
+        body = addComment(body, "", contentComment);
       if ((body[0] === "|" || body[0] === ">") && lines[lines.length - 1] === "---") {
         lines[lines.length - 1] = `--- ${body}`;
       } else
@@ -3109,7 +3023,7 @@ ${cn.comment}` : item.comment;
     if (dc) {
       if ((!chompKeep || contentComment) && lines[lines.length - 1] !== "")
         lines.push("");
-      lines.push(indentComment(commentString(dc), ""));
+      lines.push(stringifyComment(dc, ""));
     }
     return lines.join("\n") + "\n";
   }
@@ -3198,8 +3112,7 @@ ${cn.comment}` : item.comment;
       copy.errors = this.errors.slice();
       copy.warnings = this.warnings.slice();
       copy.options = Object.assign({}, this.options);
-      if (this.directives)
-        copy.directives = this.directives.clone();
+      copy.directives = this.directives.clone();
       copy.schema = this.schema.clone();
       copy.contents = isNode(this.contents) ? this.contents.clone(copy.schema) : this.contents;
       if (this.range)
@@ -3302,41 +3215,23 @@ ${cn.comment}` : item.comment;
         this.contents.setIn(path, value);
       }
     }
-    setSchema(version, options = {}) {
-      if (typeof version === "number")
-        version = String(version);
-      let opt;
-      switch (version) {
+    setSchema(version, options) {
+      let _options;
+      switch (String(version)) {
         case "1.1":
-          if (this.directives)
-            this.directives.yaml.version = "1.1";
-          else
-            this.directives = new Directives({ version: "1.1" });
-          opt = { merge: true, resolveKnownTags: false, schema: "yaml-1.1" };
+          this.directives.yaml.version = "1.1";
+          _options = Object.assign({ merge: true, resolveKnownTags: false, schema: "yaml-1.1" }, options);
           break;
         case "1.2":
-          if (this.directives)
-            this.directives.yaml.version = "1.2";
-          else
-            this.directives = new Directives({ version: "1.2" });
-          opt = { merge: false, resolveKnownTags: true, schema: "core" };
-          break;
-        case null:
-          if (this.directives)
-            delete this.directives;
-          opt = null;
+          this.directives.yaml.version = "1.2";
+          _options = Object.assign({ merge: false, resolveKnownTags: true, schema: "core" }, options);
           break;
         default: {
           const sv = JSON.stringify(version);
-          throw new Error(`Expected '1.1', '1.2' or null as first argument, but found: ${sv}`);
+          throw new Error(`Expected '1.1' or '1.2' as version, but found: ${sv}`);
         }
       }
-      if (options.schema instanceof Object)
-        this.schema = options.schema;
-      else if (opt)
-        this.schema = new Schema(Object.assign(opt, options));
-      else
-        throw new Error(`With a null YAML version, the { schema: Schema } option is required`);
+      this.schema = new Schema(_options);
     }
     toJS({ json, jsonArg, mapAsMap, maxAliasCount, onAnchor, reviver } = {}) {
       const ctx = {
@@ -3503,8 +3398,6 @@ ${pointer}
         case indicator:
           if (anchor || tag2)
             onError(token, "BAD_PROP_ORDER", `Anchors and tags must be after the ${token.source} indicator`);
-          if (found)
-            onError(token, "UNEXPECTED_TOKEN", `Unexpected ${token.source} in ${flow || "collection"}`);
           found = token;
           atNewline = false;
           hasSpace = false;
@@ -3577,17 +3470,6 @@ ${pointer}
     }
   }
 
-  // node_modules/yaml/browser/dist/compose/util-flow-indent-check.js
-  function flowIndentCheck(indent, fc, onError) {
-    if ((fc === null || fc === void 0 ? void 0 : fc.type) === "flow-collection") {
-      const end = fc.end[0];
-      if (end.indent === indent && (end.source === "]" || end.source === "}") && containsNewline(fc)) {
-        const msg = "Flow end indicator should be more indented than parent";
-        onError(end, "BAD_INDENT", msg, true);
-      }
-    }
-  }
-
   // node_modules/yaml/browser/dist/compose/util-map-includes.js
   function mapIncludes(ctx, items, search) {
     const { uniqueKeys } = ctx.options;
@@ -3602,8 +3484,6 @@ ${pointer}
   function resolveBlockMap({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bm, onError) {
     var _a;
     const map2 = new YAMLMap(ctx.schema);
-    if (ctx.atRoot)
-      ctx.atRoot = false;
     let offset = bm.offset;
     for (const collItem of bm.items) {
       const { start, key, sep, value } = collItem;
@@ -3637,8 +3517,6 @@ ${pointer}
         onError(key, "MULTILINE_IMPLICIT_KEY", "Implicit keys need to be on a single line");
       const keyStart = keyProps.end;
       const keyNode = key ? composeNode2(ctx, key, keyProps, onError) : composeEmptyNode2(ctx, keyStart, start, null, keyProps, onError);
-      if (ctx.schema.compat)
-        flowIndentCheck(bm.indent, key, onError);
       if (mapIncludes(ctx, map2.items, keyNode))
         onError(keyStart, "DUPLICATE_KEY", "Map keys must be unique");
       const valueProps = resolveProps(sep || [], {
@@ -3657,8 +3535,6 @@ ${pointer}
             onError(keyNode.range, "KEY_OVER_1024_CHARS", "The : indicator must be at most 1024 chars after the start of an implicit block mapping key");
         }
         const valueNode = value ? composeNode2(ctx, value, valueProps, onError) : composeEmptyNode2(ctx, offset, sep, null, valueProps, onError);
-        if (ctx.schema.compat)
-          flowIndentCheck(bm.indent, value, onError);
         offset = valueNode.range[2];
         const pair = new Pair(keyNode, valueNode);
         if (ctx.options.keepSourceTokens)
@@ -3686,8 +3562,6 @@ ${pointer}
   // node_modules/yaml/browser/dist/compose/resolve-block-seq.js
   function resolveBlockSeq({ composeNode: composeNode2, composeEmptyNode: composeEmptyNode2 }, ctx, bs, onError) {
     const seq2 = new YAMLSeq(ctx.schema);
-    if (ctx.atRoot)
-      ctx.atRoot = false;
     let offset = bs.offset;
     for (const { start, value } of bs.items) {
       const props = resolveProps(start, {
@@ -3711,8 +3585,6 @@ ${pointer}
         }
       }
       const node = value ? composeNode2(ctx, value, props, onError) : composeEmptyNode2(ctx, offset, start, null, props, onError);
-      if (ctx.schema.compat)
-        flowIndentCheck(bs.indent, value, onError);
       offset = node.range[2];
       seq2.items.push(node);
     }
@@ -3765,10 +3637,7 @@ ${pointer}
     const fcName = isMap2 ? "flow map" : "flow sequence";
     const coll = isMap2 ? new YAMLMap(ctx.schema) : new YAMLSeq(ctx.schema);
     coll.flow = true;
-    const atRoot = ctx.atRoot;
-    if (atRoot)
-      ctx.atRoot = false;
-    let offset = fc.offset + fc.start.source.length;
+    let offset = fc.offset;
     for (let i = 0; i < fc.items.length; ++i) {
       const collItem = fc.items[i];
       const { start, key, sep, value } = collItem;
@@ -3792,7 +3661,6 @@ ${pointer}
             else
               coll.comment = props.comment;
           }
-          offset = props.end;
           continue;
         }
         if (!isMap2 && ctx.options.strict && containsNewline(key))
@@ -3903,9 +3771,7 @@ ${pointer}
     if (ce && ce.source === expectedEnd)
       cePos = ce.offset + ce.source.length;
     else {
-      const name = fcName[0].toUpperCase() + fcName.substring(1);
-      const msg = atRoot ? `${name} must end with a ${expectedEnd}` : `${name} in block collection must be sufficiently indented and end with a ${expectedEnd}`;
-      onError(offset, atRoot ? "MISSING_CHAR" : "BAD_INDENT", msg);
+      onError(offset + 1, "MISSING_CHAR", `Expected ${fcName} to end with ${expectedEnd}`);
       if (ce && ce.source.length !== 1)
         ee.unshift(ce);
     }
@@ -4339,7 +4205,7 @@ ${pointer}
   function composeScalar(ctx, token, tagToken, onError) {
     const { value, type, comment, range } = token.type === "block-scalar" ? resolveBlockScalar(token, ctx.options.strict, onError) : resolveFlowScalar(token, ctx.options.strict, onError);
     const tagName = tagToken ? ctx.directives.tagName(tagToken.source, (msg) => onError(tagToken, "TAG_RESOLVE_FAILED", msg)) : null;
-    const tag2 = tagToken && tagName ? findScalarTagByName(ctx.schema, value, tagName, tagToken, onError) : token.type === "scalar" ? findScalarTagByTest(ctx, value, token, onError) : ctx.schema[SCALAR];
+    const tag2 = tagToken && tagName ? findScalarTagByName(ctx.schema, value, tagName, tagToken, onError) : findScalarTagByTest(ctx.schema, value, token.type === "scalar");
     let scalar;
     try {
       const res = tag2.resolve(value, (msg) => onError(tagToken || token, "TAG_RESOLVE_FAILED", msg), ctx.options);
@@ -4385,24 +4251,15 @@ ${pointer}
     onError(tagToken, "TAG_RESOLVE_FAILED", `Unresolved tag: ${tagName}`, tagName !== "tag:yaml.org,2002:str");
     return schema4[SCALAR];
   }
-  function findScalarTagByTest({ directives, schema: schema4 }, value, token, onError) {
-    const tag2 = schema4.tags.find((tag3) => {
-      var _a;
-      return tag3.default && ((_a = tag3.test) === null || _a === void 0 ? void 0 : _a.test(value));
-    }) || schema4[SCALAR];
-    if (schema4.compat) {
-      const compat = schema4.compat.find((tag3) => {
-        var _a;
-        return tag3.default && ((_a = tag3.test) === null || _a === void 0 ? void 0 : _a.test(value));
-      }) || schema4[SCALAR];
-      if (tag2.tag !== compat.tag) {
-        const ts = directives.tagString(tag2.tag);
-        const cs = directives.tagString(compat.tag);
-        const msg = `Value may be parsed as either ${ts} or ${cs}`;
-        onError(token, "TAG_RESOLVE_FAILED", msg, true);
+  function findScalarTagByTest(schema4, value, apply) {
+    var _a;
+    if (apply) {
+      for (const tag2 of schema4.tags) {
+        if (tag2.default && ((_a = tag2.test) === null || _a === void 0 ? void 0 : _a.test(value)))
+          return tag2;
       }
     }
-    return tag2;
+    return schema4[SCALAR];
   }
 
   // node_modules/yaml/browser/dist/compose/util-empty-scalar-position.js
@@ -4510,7 +4367,6 @@ ${pointer}
     const opts = Object.assign({ directives }, options);
     const doc = new Document(void 0, opts);
     const ctx = {
-      atRoot: true,
       directives: doc.directives,
       options: doc.options,
       schema: doc.schema
@@ -5119,7 +4975,6 @@ ${end.comment}` : end.comment;
         case ":": {
           const next = this.charAt(1);
           if (this.flowKey || isEmpty(next) || next === ",") {
-            this.flowKey = false;
             yield* this.pushCount(1);
             yield* this.pushSpaces(true);
             return "flow";
@@ -5315,8 +5170,6 @@ ${end.comment}` : end.comment;
           if (isEmpty(this.charAt(1))) {
             if (this.flowLevel === 0)
               this.indentNext = this.indentValue + 1;
-            else if (this.flowKey)
-              this.flowKey = false;
             return (yield* this.pushCount(1)) + (yield* this.pushSpaces(true)) + (yield* this.pushIndicators());
           }
       }
@@ -5543,7 +5396,6 @@ ${end.comment}` : end.comment;
               this.indent += source.length;
             break;
           case "doc-mode":
-          case "flow-error-end":
             return;
           default:
             this.atNewLine = false;
@@ -5611,11 +5463,8 @@ ${end.comment}` : end.comment;
         yield token;
       } else {
         const top = this.peek(1);
-        if (token.type === "block-scalar") {
-          token.indent = "indent" in top ? top.indent : 0;
-        } else if (token.type === "flow-collection" && top.type === "document") {
-          token.indent = 0;
-        }
+        if (token.type === "block-scalar" || token.type === "flow-collection")
+          token.indent = "indent" in top ? top.indent : -1;
         if (token.type === "flow-collection")
           fixFlowSeqItems(token);
         switch (top.type) {
@@ -6170,8 +6019,8 @@ ${end.comment}` : end.comment;
 
   // node_modules/yaml/browser/dist/public-api.js
   function parseOptions(options) {
-    const prettyErrors = options.prettyErrors !== false;
-    const lineCounter = options.lineCounter || prettyErrors && new LineCounter() || null;
+    const prettyErrors = !options || options.prettyErrors !== false;
+    const lineCounter = options && options.lineCounter || prettyErrors && new LineCounter() || null;
     return { lineCounter, prettyErrors };
   }
   function parseDocument(source, options = {}) {

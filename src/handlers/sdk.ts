@@ -1,11 +1,14 @@
 import App from '../App'
-import { extendedSdkBuiltIns } from './builtIns'
+import {  extendedSdkBuiltIns } from './builtIns'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {
     EcosObj: {
       get download() {
         return extendedSdkBuiltIns.download
+      },
+      get exportCSV() {
+        return app.builtIns.get('exportCSV')?.find(Boolean)?.fn
       },
       get exportPDF() {
         return app.builtIns.get('exportPDF')?.find(Boolean)?.fn

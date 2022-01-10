@@ -72,6 +72,8 @@ const createActions = function createActions(app: App) {
           options: ConsumerOptions,
         ) {
           try {
+            !app.getState().spinner.active && app.enableSpinner()
+
             log.func(`emit [${trigger}]`)
 
             const emitParams = {
@@ -102,6 +104,8 @@ const createActions = function createActions(app: App) {
               : [emitResult]
           } catch (error) {
             console.error(error)
+          } finally {
+            if (!app.noodl.getState().queue.length) app.disableSpinner()
           }
         },
       }),
@@ -123,7 +127,10 @@ const createActions = function createActions(app: App) {
       actionChain: options?.ref?.snapshot?.(),
       options,
     })
+
+    !app.getState().spinner.active && app.enableSpinner()
     options.ref?.clear('timeout')
+
     try {
       let object = _pick(action, 'object') as
         | IfObject
@@ -264,6 +271,10 @@ const createActions = function createActions(app: App) {
     } catch (error) {
       console.error(error)
       toast(error.message, { type: 'error' })
+    } finally {
+      if (!app.noodl.getState().queue.length) {
+        app.disableSpinner()
+      }
     }
   }
 
@@ -273,6 +284,8 @@ const createActions = function createActions(app: App) {
       let goto = _pick(action, 'goto') || ''
       let ndomPage = pickNDOMPageFromOptions(options)
       let destProps: ReturnType<typeof app.parse.destination>
+
+      if (!app.getState().spinner.active) app.enableSpinner()
 
       log.func('goto')
       log.grey(

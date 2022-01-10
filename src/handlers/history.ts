@@ -12,6 +12,8 @@ export const createOnPopState = curry(
   async (app: App, event: PopStateEvent) => {
     log.func('onPopState')
 
+    if (!app.getState().spinner.active) app.enableSpinner()
+
     let parts = app.mainPage.pageUrl.split('-')
     let popped
 
@@ -42,6 +44,19 @@ export const createOnPopState = curry(
     } else {
       app.mainPage.pageUrl = BASE_PAGE_URL
     }
-    await app.navigate(app.previousPage)
+
+    try {
+      if (app.noodl.getState().queue.length) {
+        if (!app.getState().spinner.active) app.enableSpinner()
+      }
+      await app.navigate(app.previousPage)
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error(err)
+    } finally {
+      if (!app.noodl.getState().queue.length) {
+        if (app.getState().spinner.active) app.disableSpinner()
+      }
+    }
   },
 )

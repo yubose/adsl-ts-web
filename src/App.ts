@@ -330,6 +330,8 @@ class App {
 
   async initialize() {
     try {
+      if (!this.getState().spinner.active) this.enableSpinner()
+
       if (!this.getStatus) {
         this.getStatus = (await import('@aitmed/cadl')).Account.getStatus
       }
@@ -381,6 +383,16 @@ class App {
         // @ts-expect-error
         await this.notification?.init(this.#serviceWorkerRegistration)
       }
+
+      this.noodl.on('QUEUE_START', () => {
+        if (!this.getState().spinner.active) this.enableSpinner()
+      })
+
+      this.noodl.on('QUEUE_END', () => {
+        if (!this.noodl.getState().queue.length) {
+          if (this.getState().spinner.active) this.disableSpinner()
+        }
+      })
 
       await this.noodl.init()
 
@@ -518,12 +530,18 @@ class App {
       console.error(error)
       throw error
     } finally {
-      this.disableSpinner()
+      if (!this.noodl.getState().queue.length) {
+        if (this.getState().spinner.active) {
+          this.disableSpinner()
+        }
+      }
     }
   }
 
   async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
-    this.enableSpinner({ target: page?.node || this.mainPage?.node })
+    if (!this.getState().spinner.active) {
+      this.enableSpinner({ target: page?.node || this.mainPage?.node })
+    }
 
     try {
       const pageRequesting = page.requesting
@@ -565,7 +583,7 @@ class App {
           onInit: (current, index, init) => {
             log.func('onInit')
             log.grey('', { current, index, init, page: pageRequesting })
-
+            debugger
             const validateReference = (ref: string) => {
               const datapath = nu.trimReference(ref as ReferenceString)
               const location = ref.startsWith(`=.builtIn`)
@@ -875,19 +893,19 @@ class App {
             //   console.log(`[onAbortError]`, this)
             // },
             onExecuteStart: () => {
-              console.log(`[onExecuteStart]`, this)
-              this.enableSpinner({ target: document.body, page: page?.page })
+              // console.log(`[onExecuteStart]`, this)
+              // this.enableSpinner({ target: document.body, page: page?.page })
             },
             // onBeforeActionExecute() {
             //   console.log(`[onBeforeActionExecute]`, this)
             // },
             onExecuteError: () => {
               //   console.log(`[onExecuteError]`, this)
-              this.disableSpinner()
+              // this.disableSpinner()
             },
             onExecuteEnd: () => {
               // console.log(`[onExecuteEnd]`, this)
-              this.disableSpinner()
+              // this.disableSpinner()
             },
           },
           // if: ({ page, value }) => {
@@ -1032,7 +1050,7 @@ class App {
   enableSpinner({
     delay,
     page: pageName,
-    target,
+    target = document.body,
     timeout,
     trigger,
   }: {
@@ -1052,8 +1070,11 @@ class App {
     if (trigger) this.#state.spinner.trigger = trigger
     else this.#state.spinner.trigger = null
 
+    // debugger
+
     this.#state.spinner.ref = setTimeout(
       () => {
+        // debugger
         this.#spinner.spin(target)
         this.#state.spinner.active = true
       },
