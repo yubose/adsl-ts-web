@@ -497,8 +497,17 @@ function normalizeProps<
                     )
                   }
                 }
-
-                if (util.vpHeightKeys.includes(styleKey as any)) {
+                if(styleValue.endsWith('vw') || styleValue.endsWith('vh')){
+                  const valueNum = parseFloat(styleValue.substring(0, styleValue.length - 2)) /100
+                  value[styleKey] = String(
+                    util.getSize(
+                      valueNum,
+                      viewport?.[
+                        styleValue.endsWith('vw') ? 'width' : 'height'
+                      ] as number,
+                    ),
+                  )
+                } else if (util.vpHeightKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
                       NuiViewport.getSize(
