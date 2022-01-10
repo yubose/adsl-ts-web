@@ -497,7 +497,7 @@ function normalizeProps<
                     )
                   }
                 }
-                if(styleValue.endsWith('vw') || styleValue.endsWith('vh')){
+                if(u.isStr(styleValue) && (styleValue.endsWith('vw') || styleValue.endsWith('vh'))){
                   const valueNum = parseFloat(styleValue.substring(0, styleValue.length - 2)) /100
                   value[styleKey] = String(
                     util.getSize(
