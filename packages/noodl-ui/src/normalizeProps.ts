@@ -8,6 +8,7 @@ import { presets } from './constants'
 import { findIteratorVar, findListDataObject } from './utils/noodl'
 import * as com from './utils/common'
 import * as util from './utils/style'
+import { styleKeys } from 'noodl-types'
 
 function getByRef(root = {}, ref = '', rootKey = '') {
   if (nt.Identify.localReference(ref)) {
@@ -496,8 +497,17 @@ function normalizeProps<
                     )
                   }
                 }
-
-                if (util.vpHeightKeys.includes(styleKey as any)) {
+                if(u.isStr(styleValue) && (styleValue.endsWith('vw') || styleValue.endsWith('vh'))){
+                  const valueNum = parseFloat(styleValue.substring(0, styleValue.length - 2)) /100
+                  value[styleKey] = String(
+                    util.getSize(
+                      valueNum,
+                      viewport?.[
+                        styleValue.endsWith('vw') ? 'width' : 'height'
+                      ] as number,
+                    ),
+                  )
+                } else if (util.vpHeightKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
                       NuiViewport.getSize(
@@ -506,8 +516,11 @@ function normalizeProps<
                         { unit: 'px' },
                       ),
                     )
+                  }else if(styleKey == 'borderRadius' && u.isStr(styleValue)){
+                    value[styleKey] = styleValue
                   }
-                } else if (util.vpWidthKeys.includes(styleKey as any)) {
+                } 
+                else if (util.vpWidthKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
                       NuiViewport.getSize(
