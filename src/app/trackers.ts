@@ -1,5 +1,4 @@
 import * as u from '@jsmanifest/utils'
-import cloneDeep from 'lodash/cloneDeep'
 import Logger from 'logsnap'
 import { Identify, ReferenceString } from 'noodl-types'
 import { trimReference } from 'noodl-utils'

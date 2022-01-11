@@ -55,7 +55,6 @@
     "date-fns": "^2.21.2",
     "firebase": "^8.7.0",
     "idb-keyval": "^6.0.3",
-    "invariant": "^2.2.4",
     "lodash": "^4.17.20",
     "logsnap": "^0.0.21",
     "qrcode": "^1.4.4",

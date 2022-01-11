@@ -1,8 +1,5 @@
 import type { LiteralUnion } from 'type-fest'
-import * as nt from 'noodl-types'
-import { parse as parseYml } from 'yaml'
-import * as idb from 'idb-keyval'
-import { getOrFetch, isWrappedUrl } from './utils'
+import { getOrFetch } from './utils'
 import { command as cmd, responseType } from '../../constants'
 import * as t from '../workerTypes'
 

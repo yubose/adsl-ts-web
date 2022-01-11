@@ -1,5 +1,5 @@
 import App from '../App'
-import {  extendedSdkBuiltIns } from './builtIns'
+import { extendedSdkBuiltIns } from './builtIns'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {

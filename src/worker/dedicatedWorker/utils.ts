@@ -1,12 +1,8 @@
 import type { LiteralUnion } from 'type-fest'
-import curry from 'lodash/curry'
 import * as idb from 'idb-keyval'
 import { parse as parseYml } from 'yaml'
 import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
-import { command as cmd } from '../../constants'
-import { StoreObject } from '../workerTypes'
-import { FetchOptions } from 'jsdom'
 
 const baseConfigUrl = `https://public.aitmed.com/config/`
 

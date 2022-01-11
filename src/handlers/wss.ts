@@ -71,11 +71,7 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
         // worker.postMessage(msg)
         ws?.send(JSON.stringify(msg, null, 2))
       } catch (error) {
-        console.error({
-          code: error.code,
-          name: error.name,
-          message: error.message,
-        })
+        console.error(error instanceof Error ? error : new Error(String(error)))
       }
 
       // Send to noodl plugin

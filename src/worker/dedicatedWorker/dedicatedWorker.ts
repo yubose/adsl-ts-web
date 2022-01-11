@@ -3,9 +3,8 @@
 declare const self: DedicatedWorkerGlobalScope
 
 import * as idb from 'idb-keyval'
-import commands, { Commands } from './commands'
+import commands from './commands'
 import { getOrFetch } from './utils'
-import { command as cmd, id } from '../../constants'
 import * as t from '../workerTypes'
 
 const style = 'color:#157DEC;font-weight:400;'
