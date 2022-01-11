@@ -34,7 +34,7 @@ export function useGotoSpinner(
       })
     }
 
-    if (app.currentPage in app.noodl.root[app.currentPage]) {
+    if (app.currentPage in app.noodl.root) {
       app.noodl.emit({
         type: 'DELETE_PAGE',
         payload: { pageName: app.currentPage },
