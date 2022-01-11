@@ -32,7 +32,6 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
-// import NoodlWorker from './worker/NoodlWorker'
 import parseUrl from './utils/parseUrl'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
@@ -125,12 +124,6 @@ class App {
     this.#nui = nui
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
-    // this.#worker = NoodlWorker(
-    //   new Worker('dedicatedWorker.js', {
-    //     name: App.id,
-    //     type: 'module',
-    //   }),
-    // )
     this.goto = createGoto(this)
 
     noodl && (this.#noodl = noodl)

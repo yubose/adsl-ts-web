@@ -158,7 +158,8 @@ module.exports = {
   },
   output: {
     clean: true,
-    filename: '[name].[contenthash].js',
+    // Using content hash when "watching" makes webpack save assets which might increase memory usage
+    filename: mode === 'production' ? '[name].[contenthash].js' : '[name].js',
     path: path.resolve(process.cwd(), 'build'),
   },
   mode,
@@ -234,10 +235,6 @@ module.exports = {
         {
           from: 'public/firebase-messaging-sw.js',
           to: 'firebase-messaging-sw.js',
-        },
-        {
-          from: 'public/dedicatedWorker.js',
-          to: 'dedicatedWorker.js',
         },
         { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
       ],
