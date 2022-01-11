@@ -2,8 +2,6 @@ import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import 'tippy.js/dist/tippy.css'
-import 'tippy.js/themes/light.css'
 import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
@@ -177,7 +175,8 @@ const createExtendedDOMResolvers = function (app: App) {
       //     lazyLoad: true,
       //   },
       // ],
-      resolve({ node, component }) {
+      resolve({ node, component, page }) {
+        const pageName = page.page
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           node.style.width = component.style.width as string
@@ -438,6 +437,10 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                     },
                   })
+                  app.instances.FullCalendar = {
+                    inst: calendar,
+                    page: pageName,
+                  }
                   calendar.render()
                   // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
                   window.setTimeout(() => {
