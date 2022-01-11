@@ -1,4 +1,4 @@
-import { LiteralUnion } from 'type-fest'
+import type { LiteralUnion } from 'type-fest'
 import ActionsCache from './cache/ActionsCache'
 import ComponentCache from './cache/ComponentCache'
 import PageCache from './cache/PageCache'

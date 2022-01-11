@@ -3,12 +3,7 @@ import {
   ActionChainInstancesLoader,
   createActionChain as __createActionChain,
 } from 'noodl-action-chain'
-import type {
-  NUIAction,
-  NUIActionChain,
-  NUIActionObject,
-  NUITrigger,
-} from '../types'
+import type { NUIActionChain, NUIActionObject, NUITrigger } from '../types'
 
 function createActionChain(args: {
   actions: NUIActionObject[]
@@ -33,9 +28,7 @@ function createActionChain(
         loader?: ActionChainInstancesLoader
         id?: string
       },
-  actions?:
-    | NUIActionObject[]
-    | ActionChainInstancesLoader,
+  actions?: NUIActionObject[] | ActionChainInstancesLoader,
   loader?: ActionChainInstancesLoader,
   id?: string,
 ) {

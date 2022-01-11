@@ -3,11 +3,11 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import {  ComponentObject, EcosDocument,userEvent } from 'noodl-types'
+import { userEvent } from 'noodl-types'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar, findDataValue } from 'noodl-utils'
+import type { ComponentObject, EcosDocument } from 'noodl-types'
 import Resolver from '../Resolver'
-import type NuiPage from '../Page'
 import VP from '../Viewport'
 import isNuiPage from '../utils/isPage'
 import resolveReference from '../utils/resolveReference'
@@ -19,10 +19,10 @@ import {
   isListLike,
   resolveAssetUrl,
 } from '../utils/noodl'
-import type { NuiComponent } from '../types'
+import type { NuiComponent, NUIActionObject } from '../types'
+import type NuiPage from '../Page'
 import cache from '../_cache'
 import * as c from '../constants'
-import { NUIActionObject } from '..'
 
 const componentResolver = new Resolver('resolveComponents')
 
@@ -268,6 +268,10 @@ componentResolver.setResolver(async (component, options, next) => {
             )
           }
 
+          const wrapOnPageChange =
+            (fn: (...args: any[]) => any, page: NuiPage) => () =>
+              fn(page)
+
           page.on(
             c.nuiEvent.component.page.PAGE_CHANGED,
             wrapOnPageChange(onPageChange, page),
@@ -410,20 +414,16 @@ componentResolver.setResolver(async (component, options, next) => {
               },
               text: 'text' in item ? item.text : '',
             }
-            userEvent.forEach(event=>{
-              if(item?.[event]){
+            userEvent.forEach((event) => {
+              if (item?.[event]) {
                 componentObject[event] = item?.[event]
               }
             })
-            const text = createComponent(
-             componentObject,
-              page,
-
-            )
+            const text = createComponent(componentObject, page)
 
             const { createActionChain, on } = options
-            userEvent.forEach(event=>{
-              if(item?.[event]){
+            userEvent.forEach((event) => {
+              if (item?.[event]) {
                 const actionChain = createActionChain(
                   event,
                   item[event] as NUIActionObject[],
@@ -534,9 +534,5 @@ componentResolver.setResolver(async (component, options, next) => {
 
   return next?.()
 })
-
-function wrapOnPageChange(fn: (...args: any[]) => any, page: NuiPage) {
-  return () => fn(page)
-}
 
 export default componentResolver
