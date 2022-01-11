@@ -13,6 +13,7 @@ import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { AppConfig, Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
+import { cache } from '@aitmed/cadl'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
@@ -318,7 +319,7 @@ class App {
       }
 
       if (_page.page && _page.requesting && _page.page !== _page.requesting) {
-        // delete this.noodl.root[_page.page]
+        delete this.noodl.root[_page.page]
         // await this.getPageObject(_page)
       }
 
@@ -579,6 +580,8 @@ class App {
 
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
+
+      if (page.previous === page.requesting) page.previous = page.page
 
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {

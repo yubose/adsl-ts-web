@@ -315,7 +315,7 @@ const createActions = function createActions(app: App) {
 
       let { destination, id = '', isSamePage, duration } = destProps
 
-      let pageModifiers = { reload: true } as any
+      let pageModifiers = {} as any
 
       if (destination === destinationParam) {
         ndomPage.requesting = destination
@@ -429,7 +429,10 @@ const createActions = function createActions(app: App) {
           }
         }
         ndomPage.setModifier(destination, pageModifiers)
-        debugger
+        // debugger
+        if (ndomPage.page && ndomPage.page !== destination) {
+          // delete app.noodl.root[ndomPage.page]
+        }
         await app.navigate(ndomPage, destination)
         if (!destination) {
           log.func('goto')

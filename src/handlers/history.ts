@@ -66,18 +66,6 @@ export const createOnPopState = curry(
       if (app.noodl.getState()?.queue?.length) {
         if (!app.getState().spinner?.active) app.enableSpinner()
       }
-      if (!app.previousPage) {
-        // if (app.mainPage.page) app.mainPage.previous = app.mainPage.page
-        // app.mainPage.previous = app.mainPage.getPreviousPage(app.startPage)
-      }
-      if (!app.noodl.root[app.previousPage]) {
-        // console.log(
-        //   `%c${app.previousPage} not found in root. Fetching now...`,
-        //   `color:#00b406;`,
-        // )
-        // // debugger
-        // await app.getPageObject(app.previousPage)
-      }
       await app.navigate(app.previousPage)
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))

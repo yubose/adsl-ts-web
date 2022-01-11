@@ -312,7 +312,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
       ndomPage.setModifier(ndomPage.previous, {
-        reload: u.isBool(reload) ? reload : true,
+        reload: Identify.isBooleanFalse(reload) ? false : true,
       })
     }
 
@@ -637,7 +637,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         ndomPage.requesting = destination
       }
 
-      ndomPage.setModifier(destinationParam, { reload: reload !== false })
+      if (!u.isNil(reload)) {
+        // reload = Identify.isBooleanFalse(reload) ? false : true
+        ndomPage.setModifier(destinationParam, {
+          reload,
+        })
+      }
 
       if (!u.isUnd(pageReload)) {
         ndomPage.setModifier(destinationParam, { pageReload })
@@ -746,7 +751,6 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
               ndomPage.node.contentDocument.body.textContent = ''
             }
           }
-          debugger
           await app.navigate(ndomPage, destination)
         }
 
