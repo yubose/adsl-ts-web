@@ -21,9 +21,6 @@
     "build:deploy:test": "npm run build:test && npm run deploy:test",
     "build:deploy:noodltest": "npm run build:test && npm run deploy:noodltest",
     "build:deploy:chinaServer": "npm run build:test && bash chinaServer.sh",
-    "build:swWorker": "esbuild src/worker/serviceWorker/serviceWorker.ts --outfile=public/serviceWorker.js --target=es2015 --platform=browser --format=iife --sourcemap",
-    "build:dedWorker": "esbuild src/worker/dedicatedWorker/dedicatedWorker.ts --outfile=public/dedicatedWorker.js --bundle --target=es2015 --format=iife --sourcemap",
-    "postbuild": "npm run build:dedWorker",
     "deploy:stable": "bash s3Deploy.sh build",
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "deploy:noodltest": "bash s3Deploy.sh build cadltest.aitmed.com",
@@ -34,8 +31,6 @@
     "start:stable": "cross-env NODE_ENV=production HMR=true ECOS_ENV=stable webpack serve --port 3000",
     "start:test": "cross-env NODE_ENV=development NODE_OPTIONS=\"--stack-trace-limit=10000\" ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start",
     "start:test-diff-port": "cross-env NODE_ENV=development NODE_OPTIONS=\"--stack-trace-limit=10000\" ECOS_ENV=test HMR=true USE_DEV_PATHS=true webpack serve --port 4000 --mode=development",
-    "start:worker": "npm run build:dedWorker -- --watch",
-    "poststart": "npm run start:worker",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src",
     "test:nui": "lerna exec --scope noodl-ui \"npm run test\"",
@@ -43,7 +38,6 @@
     "test:ndom": "lerna exec --scope noodl-ui-dom \"npm run test\"",
     "test:ndom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
     "test:ntil": "lerna exec --scope noodl-utils \"npm run test\"",
-    "test:workers": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r ts-node/register -r jsdom-global --extensions ts --watch --watch-files \"src\" src/__tests__/worker/**/*.test.ts",
     "lib:build": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-types build",
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --parallel start",
     "sync": "node scripts/op sync",
@@ -78,6 +72,7 @@
     "@testing-library/dom": "^8.5.0",
     "@testing-library/user-event": "^13.1.9",
     "@types/chai": "^4.2.22",
+    "@types/chai-as-promised": "^7.1.4",
     "@types/fs-extra": "^9.0.1",
     "@types/html2canvas": "^1.0.0",
     "@types/invariant": "^2.2.34",
@@ -95,6 +90,7 @@
     "@typescript-eslint/parser": "^5.3.0",
     "babel-plugin-lodash": "^3.3.4",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "chalk": "^4.1.0",
     "circular-dependency-plugin": "^5.2.0",
     "concurrently": "^6.2.1",
@@ -200,8 +196,7 @@
       "browser": true,
       "es6": true,
       "mocha": true,
-      "node": true,
-      "worker": true
+      "node": true
     },
     "settings": {
       "import/resolver": {

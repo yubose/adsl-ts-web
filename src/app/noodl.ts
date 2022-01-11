@@ -30,7 +30,7 @@ function findArrOfMinSize(root = {}, size, path = []) {
 // console.log({ configKey: process.env.CONFIG_KEY })
 
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'prod2'
+export const CONFIG_KEY = 'patd2'
 // const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
@@ -71,8 +71,8 @@ export function resetInstance() {
         ? VP.getAspectRatio(window.innerWidth, window.innerHeight)
         : 1,
     cadlVersion: isStable() ? 'stable' : 'test',
-    configUrl: CONFIG_URL,
-    // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
+    // configUrl: CONFIG_URL,
+    configUrl: `${BASE}/${CONFIG_KEY}.yml`,
     dbConfig: undefined,
   })
   return noodl
