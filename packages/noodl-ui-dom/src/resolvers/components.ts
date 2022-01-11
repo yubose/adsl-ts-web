@@ -1,25 +1,25 @@
 import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
 import { createEmitDataKey } from 'noodl-utils'
-import SignaturePad from 'signature_pad'
+import { Identify } from 'noodl-types'
+import { formatColor, isComponent, publish } from 'noodl-ui'
 import has from 'lodash/has'
-import { ComponentObject, Identify } from 'noodl-types'
-import {
-  formatColor,
-  isComponent,
-  NuiComponent,
-  SelectOption,
-  Plugin,
-  NUIActionChain,
+import type SignaturePad from 'signature_pad'
+import type { ComponentObject } from 'noodl-types'
+import type {
   EmitAction,
+  NUIActionChain,
+  NuiComponent,
+  Plugin,
+  SelectOption,
 } from 'noodl-ui'
 import { findFirstByElementId, toSelectOption } from '../utils'
-import { ComponentPage } from '../factory/componentFactory'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import applyStyles from '../utils/applyStyles'
 import copyStyles from '../utils/copyStyles'
-import NDOM from '../noodl-ui-dom'
-import NDOMPage from '../Page'
+import type NDOM from '../noodl-ui-dom'
+import type NDOMPage from '../Page'
+import type { ComponentPage } from '../factory/componentFactory'
 import * as t from '../types'
 import * as i from '../utils/internal'
 import * as c from '../constants'
@@ -647,7 +647,15 @@ const componentsResolver: t.Resolve.Config = {
                     }
 
                     if (componentPage?.component) {
-                      const descendentIds = i._getDescendantIds(
+                      const getDescendantIds = (
+                        component: NuiComponent.Instance,
+                      ): string[] => {
+                        const ids = [] as string[]
+                        publish(component, (child) => ids.push(child.id))
+                        return ids
+                      }
+
+                      const descendentIds = getDescendantIds(
                         componentPage.component,
                       )
                       for (const id of descendentIds) {
