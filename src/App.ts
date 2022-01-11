@@ -5,6 +5,7 @@ import NOODLDOM, {
   isPage as isNOODLDOMPage,
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
+import { Account } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
 import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
@@ -13,7 +14,6 @@ import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { AppConfig, Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
-import { cache } from '@aitmed/cadl'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
@@ -58,6 +58,12 @@ class App {
       timeout: null,
       trigger: null,
     } as t.SpinnerState,
+  }
+  #instances = {
+    FullCalendar: {
+      inst: null as null | InstanceType<typeof FullCalendar.Calendar>,
+      page: '',
+    },
   }
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
@@ -157,6 +163,10 @@ class App {
 
   get cache() {
     return this.nui.cache
+  }
+
+  get instances() {
+    return this.#instances
   }
 
   get spinner() {
@@ -262,9 +272,17 @@ class App {
    * @param { NOODLDOMPage } page
    * @param { string | undefined } pageRequesting
    */
-  async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
+  async navigate(
+    page: NOODLDOMPage,
+    pageRequesting?: string,
+    opts?: { isGoto?: boolean },
+  ): Promise<void>
   async navigate(pageRequesting?: string): Promise<void>
-  async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
+  async navigate(
+    page?: NOODLDOMPage | string,
+    pageRequesting?: string,
+    { isGoto }: { isGoto?: boolean } = {},
+  ) {
     function getParams(pageName: string) {
       const nameParts = pageName.split('&')
       let params = {}
@@ -319,13 +337,47 @@ class App {
       }
 
       if (_page.page && _page.requesting && _page.page !== _page.requesting) {
-        delete this.noodl.root[_page.page]
-        // await this.getPageObject(_page)
+        // If this is a goto, we must delete the page we are redirecting to if it previously was used in the root object
+        if (isGoto) {
+          if (_page.requesting in this.noodl.root) {
+            if (location.search) {
+              // If we are going to a page where we were from before, we must destroy the pages that followed it
+              const parts = (
+                location.search.startsWith('?')
+                  ? location.search.slice(1)
+                  : location.search
+              ).split('-')
+
+              if (parts.includes(_page.requesting)) {
+                let pageToDestroy = parts.pop()
+
+                while (pageToDestroy && pageToDestroy !== _page.requesting) {
+                  if (pageToDestroy in this.noodl.root) {
+                    delete this.noodl.root[pageToDestroy]
+                    console.log(
+                      `%cRemoved "${pageToDestroy}" from the page stack`,
+                      `color:#00b406;`,
+                    )
+                  }
+                  pageToDestroy = parts.pop()
+                }
+              }
+            }
+            if (_page.requesting in this.noodl.root) {
+              delete this.noodl.root[_page.requesting]
+            }
+          }
+        } else {
+          // Otherwise if this is a goBack we must delete the current page
+          delete this.noodl.root[_page.page]
+        }
       }
 
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       const req = await this.ndom.request(_page)
       if (req) {
+        // @ts-expect-error
+        delete window.pcomponents
         const components = await this.render(_page)
         window.pcomponents = components as any
       }
@@ -338,10 +390,7 @@ class App {
   async initialize() {
     try {
       if (!this.getState().spinner.active) this.enableSpinner()
-
-      if (!this.getStatus) {
-        this.getStatus = (await import('@aitmed/cadl')).Account.getStatus
-      }
+      if (!this.getStatus) this.getStatus = Account.getStatus
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
@@ -883,6 +932,12 @@ class App {
           )
         }
         page = this.mainPage
+      }
+
+      if (this.instances.FullCalendar.inst) {
+        this.instances.FullCalendar.inst.destroy()
+        this.instances.FullCalendar.inst = null
+        this.instances.FullCalendar.page = ''
       }
 
       return this.ndom.render(page, {
