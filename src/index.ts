@@ -31,6 +31,8 @@ import {
 } from './utils/localStorage'
 import AppNotification from './app/Notifications'
 import App from './App'
+import 'tippy.js/dist/tippy.css'
+import 'tippy.js/themes/light.css'
 import 'vercel-toast/dist/vercel-toast.css'
 import './spinner/three-dots.css'
 import './styles.css'
@@ -42,11 +44,11 @@ const log = Logger.create('App.ts')
  * to the global window object
  */
 export async function getWindowHelpers() {
-  const { default: Lvl2 } = await import('@aitmed/ecos-lvl2-sdk')
-  const lvl2sdk = new Lvl2({ env: 'development', configUrl: '' })
+  // const { default: Lvl2 } = await import('@aitmed/ecos-lvl2-sdk')
+  // const lvl2sdk = new Lvl2({ env: 'development', configUrl: '' })
 
   return u.assign({
-    lvl2: lvl2sdk.utilServices,
+    // lvl2: lvl2sdk.utilServices,
     exportToPDF,
     findByDataAttrib,
     findByDataKey,
@@ -163,22 +165,22 @@ window.addEventListener('load', async (e) => {
     Object.defineProperties(window, {
       app: { configurable: true, get: () => app },
       build: { configurable: true, value: process.env.BUILD },
-      l: { configurable: true, get: () => app?.meeting.localParticipant },
-      cache: { configurable: true, get: () => app?.cache },
+      // l: { configurable: true, get: () => app?.meeting.localParticipant },
+      // cache: { configurable: true, get: () => app?.cache },
       cp: { configurable: true, get: () => copyToClipboard },
-      noodl: { configurable: true, get: () => noodl },
-      nui: { configurable: true, get: () => app?.nui },
-      ndom: { configurable: true, get: () => app?.ndom },
-      phone: {
-        get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
-      },
+      // noodl: { configurable: true, get: () => noodl },
+      // nui: { configurable: true, get: () => app?.nui },
+      // ndom: { configurable: true, get: () => app?.ndom },
+      // phone: {
+      //   get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
+      // },
       ...u.reduce(
         u.entries(await getWindowHelpers()),
         (acc, [key, fn]) =>
           u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
         {},
       ),
-      toYml: { configurable: true, get: () => yaml.stringify.bind(yaml) },
+      // toYml: { configurable: true, get: () => yaml.stringify.bind(yaml) },
     })
 
     window.addEventListener('popstate', createOnPopState(app))
@@ -243,21 +245,6 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
-    componentStats: {
-      get() {
-        const pageComponentCount = {} as Record<string, number>
-        for (const obj of app.cache.component) {
-          if (obj) {
-            const pageName = obj.page
-            if (!(pageName in pageComponentCount)) {
-              pageComponentCount[pageName] = 0
-            }
-            pageComponentCount[pageName]++
-          }
-        }
-        return pageComponentCount
-      },
-    },
     pageTable: {
       get() {
         const result = [] as { page: string; ndom: number; nui: number }[]
