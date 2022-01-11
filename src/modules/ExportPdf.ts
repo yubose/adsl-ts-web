@@ -308,6 +308,7 @@ export const ExportPdf = (function () {
     } catch (error) {
       console.error(error instanceof Error ? error : new Error(String(error)))
     }
+
     return doc
   }
 
