@@ -21,7 +21,6 @@ import {
   findWindow,
   findWindowDocument,
   Page as NDOMPage,
-  findFirstBySelector,
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
 import { copyToClipboard, exportToPDF, getVcodeElem, toast } from './utils/dom'

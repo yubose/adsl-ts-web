@@ -13,6 +13,7 @@ import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { AppConfig, Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
+import { cache } from '@aitmed/cadl'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
@@ -316,6 +317,12 @@ class App {
         _page.requesting = ''
         return void (window.location.href = _pageRequesting)
       }
+
+      if (_page.page && _page.requesting && _page.page !== _page.requesting) {
+        delete this.noodl.root[_page.page]
+        // await this.getPageObject(_page)
+      }
+
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       const req = await this.ndom.request(_page)
       if (req) {
@@ -330,6 +337,8 @@ class App {
 
   async initialize() {
     try {
+      if (!this.getState().spinner.active) this.enableSpinner()
+
       if (!this.getStatus) {
         this.getStatus = (await import('@aitmed/cadl')).Account.getStatus
       }
@@ -381,6 +390,16 @@ class App {
         // @ts-expect-error
         await this.notification?.init(this.#serviceWorkerRegistration)
       }
+
+      this.noodl.on('QUEUE_START', () => {
+        if (!this.getState().spinner.active) this.enableSpinner()
+      })
+
+      this.noodl.on('QUEUE_END', () => {
+        if (!this.noodl.getState().queue?.length) {
+          if (this.getState().spinner.active) this.disableSpinner()
+        }
+      })
 
       await this.noodl.init()
 
@@ -518,12 +537,18 @@ class App {
       console.error(error)
       throw error
     } finally {
-      this.disableSpinner()
+      if (!this.noodl.getState()?.queue?.length) {
+        if (this.getState().spinner?.active) {
+          this.disableSpinner()
+        }
+      }
     }
   }
 
   async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
-    this.enableSpinner({ target: page?.node || this.mainPage?.node })
+    if (!this.getState().spinner.active) {
+      this.enableSpinner({ target: page?.node || this.mainPage?.node })
+    }
 
     try {
       const pageRequesting = page.requesting
@@ -549,14 +574,18 @@ class App {
             `The page is unnecessarily rendering twice to the DOM`,
           `color:#ec0000;`,
         )
+      } else {
+        // delete this.noodl.root[currentPage]
       }
 
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
 
+      if (page.previous === page.requesting) page.previous = page.page
+
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {
-          ...(page.modifiers[pageRequesting] as any),
+          ...(page.modifiers?.[pageRequesting] as any),
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
             log.func('onBeforeInit')
@@ -875,19 +904,19 @@ class App {
             //   console.log(`[onAbortError]`, this)
             // },
             onExecuteStart: () => {
-              console.log(`[onExecuteStart]`, this)
-              this.enableSpinner({ target: document.body, page: page?.page })
+              // console.log(`[onExecuteStart]`, this)
+              // this.enableSpinner({ target: document.body, page: page?.page })
             },
             // onBeforeActionExecute() {
             //   console.log(`[onBeforeActionExecute]`, this)
             // },
             onExecuteError: () => {
               //   console.log(`[onExecuteError]`, this)
-              this.disableSpinner()
+              // this.disableSpinner()
             },
             onExecuteEnd: () => {
               // console.log(`[onExecuteEnd]`, this)
-              this.disableSpinner()
+              // this.disableSpinner()
             },
           },
           // if: ({ page, value }) => {
@@ -1032,7 +1061,7 @@ class App {
   enableSpinner({
     delay,
     page: pageName,
-    target,
+    target = document.body,
     timeout,
     trigger,
   }: {
@@ -1052,8 +1081,11 @@ class App {
     if (trigger) this.#state.spinner.trigger = trigger
     else this.#state.spinner.trigger = null
 
+    // debugger
+
     this.#state.spinner.ref = setTimeout(
       () => {
+        // debugger
         this.#spinner.spin(target)
         this.#state.spinner.active = true
       },

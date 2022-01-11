@@ -26,6 +26,7 @@ import {
   findWindow,
   isPageConsumer,
   Page as NDOMPage,
+  findFirstByElementId,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import Logger from 'logsnap'
@@ -134,6 +135,78 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }
 
+  const exportCSV = async function onExportCSV(options: {
+    ecosObj?: EcosDocument
+    viewTag?: string
+    format?: PdfPageFormat
+    download?: boolean
+    open?: boolean
+  }) {
+    try {
+      let listOfData = u.isArr(options) ? options : ([] as any[])
+      let title = new Date().toLocaleDateString().replaceAll('/', '-')
+
+      if (u.isObj(options)) {
+        if ('ecosObj' in options) {
+          listOfData.push(options.ecosObj?.name || {})
+          if (options.ecosObj?.name?.title) title = options.ecosObj.name.title
+        } else {
+          listOfData.push(options)
+        }
+      } else if (u.isStr(options)) {
+        try {
+          let data = JSON.parse(options)
+          listOfData.push(data)
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.error(err)
+          listOfData.push(options)
+        }
+      }
+
+      let csv = ''
+
+      for (const dataObject of listOfData) {
+        let entries = u.entries(dataObject).map(([k, v]) => [[k, v]])
+        let numEntries = entries.length
+
+        //1st loop is to extract each row
+        for (let i = 0; i < numEntries; i++) {
+          let row = ''
+          //2nd loop will extract each column and convert it in string comma-seprated
+          for (const index in entries[i]) {
+            row += '"' + entries[i][index] + '",'
+          }
+          row.slice(0, row.length - 1)
+          //add a line break after each row
+          csv += row + '\r\n'
+        }
+
+        numEntries && (csv += '\r\n')
+      }
+
+      const link = document.createElement('a')
+      link.id = 'lnkDwnldLnk'
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const csvUrl = URL.createObjectURL(blob)
+      const filename =
+        `${
+          title ||
+          `data-${new Date().toLocaleDateString().replaceAll('/', '-')}`
+        }` + '.csv'
+      link.download = filename
+      link.href = csvUrl
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(csvUrl)
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error(err)
+    }
+  }
+
   /**
    * Initiates a download window to export PDF using the information inside the document object
    * @param { object } options
@@ -234,15 +307,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action?.snapshot?.())
     const reload = _pick(action, 'reload')
     const ndomPage = pickNDOMPageFromOptions(options)
-
     if (ndomPage) {
       ndomPage.requesting = ndomPage.previous
       // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
-      if (u.isBool(reload)) {
-        ndomPage.setModifier(ndomPage.previous, { reload })
-      }
+      ndomPage.setModifier(ndomPage.previous, {
+        reload: Identify.isBooleanFalse(reload) ? false : true,
+      })
     }
+
+    if (!app.getState().spinner.active) app.enableSpinner()
 
     window.history.back()
   }
@@ -462,6 +536,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       log.func('goto')
       log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
 
+      if (!app.getState().spinner.active) app.enableSpinner()
+
       let destinationParam = ''
       let reload: boolean | undefined
       let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
@@ -561,9 +637,13 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         ndomPage.requesting = destination
       }
 
-      if (!u.isUnd(reload)) {
-        ndomPage.setModifier(destinationParam, { reload })
+      if (!u.isNil(reload)) {
+        // reload = Identify.isBooleanFalse(reload) ? false : true
+        ndomPage.setModifier(destinationParam, {
+          reload,
+        })
       }
+
       if (!u.isUnd(pageReload)) {
         ndomPage.setModifier(destinationParam, { pageReload })
       }
@@ -802,6 +882,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const builtIns = {
     checkField,
     disconnectMeeting,
+    exportCSV,
     exportPDF,
     goBack,
     hide: hideAction,
