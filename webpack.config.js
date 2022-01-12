@@ -51,7 +51,7 @@ const ECOS_ENV = process.env.ECOS_ENV
 
 if (mode === 'production') {
   /**
-   * @type { webpack.Configuration['optimization'] }
+   * @type { import('webpack').Configuration['optimization'] }
    */
   productionOptions.optimization = {
     concatenateModules: true,
@@ -59,6 +59,13 @@ if (mode === 'production') {
     minimize: true,
     nodeEnv: 'production',
     removeEmptyChunks: true,
+    minimizer: [
+      (compiler) => {
+        console.log(`[${u.cyan('minimizer')}]`, [
+          ...(compiler.modifiedFiles?.values() || []),
+        ])
+      },
+    ],
     splitChunks: {
       chunks: 'async',
       minSize: 30000,
@@ -187,6 +194,9 @@ module.exports = {
     ],
   },
   resolve: {
+    cache: true,
+    // resolver(r) {},
+    unsafeCache: true,
     extensions: ['.ts', '.js'],
     modules: ['node_modules'],
     fallback: {
@@ -210,7 +220,7 @@ module.exports = {
       filename,
       title: TITLE,
       favicon: FAVICON,
-      cache: false,
+      cache: true,
       scriptLoading: 'defer',
       minify: true,
       //Austin Yu 8/5/2021 disable for stable build to use webpack generate index.html
@@ -260,24 +270,22 @@ const getNodeEnv = () => (mode ? mode.toUpperCase() : '<Variable not set>')
  * @param { ...string } args
  */
 function webpackProgress(percentage, msg, ...args) {
-  process.stdout.write('\x1Bc')
-  // prettier-ignore
-  singleLog(
-`Your app is being built for ${u.cyan(`eCOS`)} ${u.magenta(getEcosEnv())} environment in ${u.cyan(getNodeEnv())} mode\n
-Status:    ${u.cyan(msg.toUpperCase())}
-File:      ${u.magenta(args[0])}
-Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
-
-${u.cyan('eCOS packages')}:
-${u.white(`@aitmed/cadl`)}:            ${u.magenta(version.noodlSdk)}
-${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(version.ecosSdk)}
-${u.white(`noodl-types`)}:             ${u.magenta(version.nTypes)}
-${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
-${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
-${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
-
-${mode === 'production'
-    ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(TITLE)}`
-    : ''
-}\n\n`)
+  //   process.stdout.write('\x1Bc')
+  //   // prettier-ignore
+  //   singleLog(
+  // `Your app is being built for ${u.cyan(`eCOS`)} ${u.magenta(getEcosEnv())} environment in ${u.cyan(getNodeEnv())} mode\n
+  // Status:    ${u.cyan(msg.toUpperCase())}
+  // File:      ${u.magenta(args[0])}
+  // Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
+  // ${u.cyan('eCOS packages')}:
+  // ${u.white(`@aitmed/cadl`)}:            ${u.magenta(version.noodlSdk)}
+  // ${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(version.ecosSdk)}
+  // ${u.white(`noodl-types`)}:             ${u.magenta(version.nTypes)}
+  // ${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
+  // ${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
+  // ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
+  // ${mode === 'production'
+  //     ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(TITLE)}`
+  //     : ''
+  // }\n\n`)
 }
