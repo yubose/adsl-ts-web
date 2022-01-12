@@ -130,6 +130,12 @@ async function initializeNoodlPluginRefresher() {
 }
 
 window.addEventListener('load', async (e) => {
+  if (isChrome()) {
+    console.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
+  } else {
+    console.log(`%c[Chrome] You are not using chrome browser`, `color:orange;`)
+  }
+
   try {
     window.build = process.env.BUILD
     window.ac = []
@@ -139,7 +145,9 @@ window.addEventListener('load', async (e) => {
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
 
-    await initializeNoodlPluginRefresher()
+    if (/(127.0.0.1|localhost)/i.test(location.hostname)) {
+      await initializeNoodlPluginRefresher()
+    }
 
     log.grey('Initializing [App] instance')
 

@@ -9,7 +9,7 @@
 
 ## Correct link to GitLab
 
-- https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/
+- <https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/>
 
 ## Globals
 

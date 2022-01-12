@@ -1,5 +1,10 @@
+importScripts(
+  'https://storage.googleapis.com/workbox-cdn/releases/6.2.0/workbox-sw.js',
+)
 importScripts('https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js')
 importScripts('https://www.gstatic.com/firebasejs/8.2.5/firebase-messaging.js')
+
+workbox.precaching.precacheAndRoute(self.__WB_MANIFEST)
 
 firebase.initializeApp({
   apiKey: 'AIzaSyCjNVKmHuDKra5Ct1MKAJ5fI0iQ3UnK7Ho',
@@ -30,17 +35,26 @@ const style = `color:#C04000;font-weight:500;`
 const tag = `%c[serviceWorker]`
 const log = console.log
 
+self.addEventListener('install', function (evt) {
+  console.log(`${tag} installed`, evt)
+  // evt.waitUntil(
+  //   caches
+  //     .open('v1')
+  //     .then(function (cache) {
+  //       console.log('caching - getting')
+  //       return cache.addAll(['/react-redux/a.js'])
+  //     })
+  //     .catch(function (error) {
+  //       console.log('error', error)
+  //     }),
+  // )
+})
+
 self.addEventListener(
   'fetch',
   /** @type { ServiceWorkerGlobalScope['onfetch'] } */
   function (evt) {
-    // log(`${tag} onfetch`, style, {
-    //   clientId: evt.clientId,
-    //   request: evt.request,
-    //   resultingClientId: evt.resultingClientId,
-    //   type: evt.type,
-    //   timestamp: evt.timeStamp,
-    // })
+    // log(`${tag} fetch`, style, evt)
   },
 )
 

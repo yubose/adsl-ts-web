@@ -26,6 +26,8 @@
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "deploy:noodltest": "bash s3Deploy.sh build cadltest.aitmed.com",
     "editor": "lerna exec --scope noodl-editor 'npm run start'",
+    "build:serve": "cross-env NODE_ENV=production ECOS_ENV=test webpack --mode=production && npm run serve",
+    "serve": "serve build -p 3000",
     "start": "webpack serve --port 3000 --mode=development",
     "start:editor": "cross-env NODE_ENV=development ECOS_ENV=TEST lerna exec --scope noodl-editor \"npm run start\"",
     "start:sample": "cross-env SAMPLE=true NODE_ENV=development HMR=true ECOS_ENV=TEST USE_DEV_PATHS=true webpack serve --port 3000 --mode=development",
@@ -86,6 +88,7 @@
     "@types/qrcode": "^1.4.1",
     "@types/sinon": "^10.0.3",
     "@types/sinon-chai": "^3.2.5",
+    "@types/webpack": "^5.28.0",
     "@types/webpack-dev-server": "^4.1.0",
     "@types/webpack-env": "^1.16.1",
     "@typescript-eslint/eslint-plugin": "^5.3.0",
@@ -161,6 +164,7 @@
     "webpack-dev-middleware": "^5.0.0",
     "webpack-dev-server": "^4.4.0",
     "webpack-hot-middleware": "^2.25.0",
+    "workbox-webpack-plugin": "^6.4.2",
     "ws": "^8.2.2",
     "yaml": "^2.0.0-8"
   },
@@ -201,10 +205,10 @@
       "prettier"
     ],
     "env": {
-      "browser": true,
       "es6": true,
       "mocha": true,
-      "node": true
+      "node": true,
+      "worker": true
     },
     "settings": {
       "import/resolver": {

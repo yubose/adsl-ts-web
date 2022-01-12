@@ -8,6 +8,7 @@ const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
+const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
 const TITLE = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
@@ -44,44 +45,10 @@ const version = {
 
 const filename = 'index.html'
 const publicPath = path.join(process.cwd(), 'public')
-const productionOptions = {}
-const mode =
-  process.env.NODE_ENV !== 'production' ? 'development' : 'production'
-const ECOS_ENV = process.env.ECOS_ENV
 
-if (mode === 'production') {
-  /**
-   * @type { webpack.Configuration['optimization'] }
-   */
-  productionOptions.optimization = {
-    concatenateModules: true,
-    mergeDuplicateChunks: true,
-    minimize: true,
-    nodeEnv: 'production',
-    removeEmptyChunks: true,
-    splitChunks: {
-      chunks: 'async',
-      minSize: 30000,
-      maxSize: 80000,
-      minChunks: 8,
-      maxAsyncRequests: 30,
-      maxInitialRequests: 30,
-      automaticNameDelimiter: '~',
-      enforceSizeThreshold: 50000,
-      cacheGroups: {
-        defaultVendors: {
-          test: /[\\/]node_modules[\\/]/,
-          priority: -10,
-        },
-        default: {
-          minChunks: 5,
-          priority: -20,
-          reuseExistingChunk: true,
-        },
-      },
-    },
-  }
-}
+const ECOS_ENV = process.env.ECOS_ENV
+const NODE_ENV = process.env.NODE_ENV
+const MODE = NODE_ENV !== 'production' ? 'development' : 'production'
 
 const commonHeaders = {
   'Access-Control-Allow-Credentials': true,
@@ -89,65 +56,6 @@ const commonHeaders = {
   'Access-Control-Allow-Headers':
     'Origin, X-Requested-With, Content-Type, Accept, Authorization',
 }
-
-/** @type { import('webpack-dev-server').Configuration } */
-const devServerOptions = {
-  allowedHosts: [
-    'localhost',
-    '127.0.0.1',
-    '127.0.0.1:3000',
-    '127.0.0.1:4000',
-    'https://127.0.0.1',
-    'https://127.0.0.1:3000',
-    'https://127.0.0.1:4000',
-    'aitmed.com',
-    'aitmed.io',
-  ],
-  compress: false,
-  devMiddleware: {},
-  host: '127.0.0.1',
-  hot: true,
-  liveReload: true,
-  headers: commonHeaders,
-  port: 3000,
-  static: [publicPath],
-  // watchFiles: './public/**/*',
-  onBeforeSetupMiddleware({ app, server }) {
-    //
-  },
-}
-
-const environmentPluginOptions = {
-  BUILD: {
-    ecosEnv: ECOS_ENV,
-    nodeEnv: mode,
-    packages: {
-      '@aitmed/cadl': version.noodlSdk,
-      '@aitmed/ecos-lvl2-sdk': version.ecosSdk,
-      'noodl-types': version.nTypes,
-      'noodl-ui': version.nui,
-      'noodl-utils': version.nutil,
-      'noodl-ui-dom': version.ndom,
-    },
-    timestamp: new Date().toLocaleString(),
-  },
-  // if process.env.DEPLOYING === true, this forces the config url in
-  // src/app/noodl.ts to point to the public.aitmed.com host
-  ECOS_ENV,
-  NODE_ENV: mode,
-  USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
-}
-
-if (!u.isUnd(process.env.DEPLOYING)) {
-  environmentPluginOptions.DEPLOYING =
-    process.env.DEPLOYING === true || process.env.DEPLOYING === 'true'
-      ? true
-      : false
-}
-
-const environmentPlugin = new webpack.EnvironmentPlugin(
-  environmentPluginOptions,
-)
 
 /**
  * @type { webpack.Configuration } webpackOptions
@@ -159,11 +67,37 @@ module.exports = {
   output: {
     clean: true,
     // Using content hash when "watching" makes webpack save assets which might increase memory usage
-    filename: mode === 'production' ? '[name].[contenthash].js' : '[name].js',
+    filename: MODE === 'production' ? '[name].[contenthash].js' : '[name].js',
     path: path.resolve(process.cwd(), 'build'),
   },
-  mode,
-  devServer: devServerOptions,
+  mode: MODE,
+  devServer: {
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      '127.0.0.1:3000',
+      '127.0.0.1:4000',
+      'https://127.0.0.1',
+      'https://127.0.0.1:3000',
+      'https://127.0.0.1:4000',
+      'aitmed.com',
+      'aitmed.io',
+    ],
+    compress: false,
+    devMiddleware: {
+      writeToDisk: true,
+    },
+    host: '127.0.0.1',
+    hot: true,
+    liveReload: true,
+    headers: commonHeaders,
+    port: 3000,
+    static: [publicPath],
+    // watchFiles: './public/**/*',
+    onBeforeSetupMiddleware({ app, server }) {
+      //
+    },
+  },
   devtool: 'inline-source-map',
   externals: [],
   module: {
@@ -187,6 +121,9 @@ module.exports = {
     ],
   },
   resolve: {
+    cache: true,
+    // resolver(r) {},
+    unsafeCache: true,
     extensions: ['.ts', '.js'],
     modules: ['node_modules'],
     fallback: {
@@ -195,6 +132,37 @@ module.exports = {
     },
   },
   plugins: [
+    new WorkboxPlugin.InjectManifest({
+      swSrc: path.join(process.cwd(), './public/firebase-messaging-sw.js'),
+      swDest: 'firebase-messaging-sw.js',
+      maximumFileSizeToCacheInBytes: 500000000,
+      // globDirectory: 'public',
+      // globPatterns: [
+      //   '**/public/**/*.{js,css,html,png,jpg,jpeg,woff2,ttf,eot,svg}',
+      // ],
+      manifestTransforms: [
+        (entries) => {
+          entries.forEach((entry) => {
+            console.log(`[${u.cyan('entry')}]`, entry)
+          })
+          // this.globDirectory = 'public'
+          // this.globPatterns = [
+          //   '**/public/**/*.{js,css,html,png,jpg,jpeg,woff2,ttf,eot,svg}',
+          // ]
+          return { manifest: entries, warnings: [] }
+        },
+      ],
+      // mode: 'production',
+
+      // cleanupOutdatedCaches: true,
+      // importScripts: [
+      //   'https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js',
+      //   'https://www.gstatic.com/firebasejs/8.2.5/firebase-messaging.js',
+      // ],
+      // clientsClaim: true,
+      // maximumFileSizeToCacheInBytes: 1000000000000,
+      // skipWaiting: true,
+    }),
     new webpack.ProvidePlugin({ process: 'process' }),
     new CircularDependencyPlugin({
       exclude: /node_modules/,
@@ -204,13 +172,40 @@ module.exports = {
       /date\-fns[\/\\]/,
       new RegExp(`[/\\\\\](${['en-US'].join('|')})[/\\\\\]index\.js$`),
     ),
-    environmentPlugin,
+    new webpack.EnvironmentPlugin({
+      BUILD: {
+        ecosEnv: ECOS_ENV,
+        nodeEnv: MODE,
+        packages: {
+          '@aitmed/cadl': version.noodlSdk,
+          '@aitmed/ecos-lvl2-sdk': version.ecosSdk,
+          'noodl-types': version.nTypes,
+          'noodl-ui': version.nui,
+          'noodl-utils': version.nutil,
+          'noodl-ui-dom': version.ndom,
+        },
+        timestamp: new Date().toLocaleString(),
+      },
+      // if process.env.DEPLOYING === true, this forces the config url in
+      // src/app/noodl.ts to point to the public.aitmed.com host
+      ECOS_ENV,
+      NODE_ENV: MODE,
+      USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
+      ...(!u.isUnd(process.env.DEPLOYING)
+        ? {
+            DEPLOYING:
+              process.env.DEPLOYING === true || process.env.DEPLOYING === 'true'
+                ? true
+                : false,
+          }
+        : undefined),
+    }),
     new HtmlWebpackPlugin({
       alwaysWriteToDisk: true,
       filename,
       title: TITLE,
       favicon: FAVICON,
-      cache: false,
+      cache: true,
       scriptLoading: 'defer',
       minify: true,
       //Austin Yu 8/5/2021 disable for stable build to use webpack generate index.html
@@ -230,10 +225,10 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
-        {
-          from: 'public/firebase-messaging-sw.js',
-          to: 'firebase-messaging-sw.js',
-        },
+        // {
+        //   from: 'public/firebase-messaging-sw.js',
+        //   to: 'firebase-messaging-sw.js',
+        // },
         { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
       ],
     }),
@@ -241,16 +236,54 @@ module.exports = {
       handler: webpackProgress,
     }),
   ],
-  ...productionOptions,
-  optimization: {
-    ...(productionOptions && productionOptions.optimization),
-  },
+  optimization:
+    MODE === 'production'
+      ? {
+          concatenateModules: true,
+          mergeDuplicateChunks: true,
+          minimize: true,
+          nodeEnv: 'production',
+          removeEmptyChunks: true,
+          minimizer: [
+            (compiler) => {
+              console.log(`[${u.cyan('minimizer')}]`, [
+                ...(compiler.modifiedFiles?.values() || []),
+              ])
+            },
+          ],
+          splitChunks: {
+            // chunks(chunk) {
+            //   // console.log(`[${u.cyan('chunk')}]`, chunk)
+            //   return true
+            // },
+            chunks: 'async',
+            minSize: 30000,
+            maxSize: 80000,
+            minChunks: 8,
+            maxAsyncRequests: 30,
+            maxInitialRequests: 30,
+            automaticNameDelimiter: '~',
+            enforceSizeThreshold: 50000,
+            cacheGroups: {
+              defaultVendors: {
+                test: /[\\/]node_modules[\\/]/,
+                priority: -10,
+              },
+              default: {
+                minChunks: 5,
+                priority: -20,
+                reuseExistingChunk: true,
+              },
+            },
+          },
+        }
+      : undefined,
 }
 
 const getEcosEnv = () =>
   ECOS_ENV ? ECOS_ENV.toUpperCase() : '<Variable not set>'
 
-const getNodeEnv = () => (mode ? mode.toUpperCase() : '<Variable not set>')
+const getNodeEnv = () => (MODE ? MODE.toUpperCase() : '<Variable not set>')
 
 /**
  * @param { number } percentage
@@ -258,24 +291,22 @@ const getNodeEnv = () => (mode ? mode.toUpperCase() : '<Variable not set>')
  * @param { ...string } args
  */
 function webpackProgress(percentage, msg, ...args) {
-  process.stdout.write('\x1Bc')
-  // prettier-ignore
-  singleLog(
-`Your app is being built for ${u.cyan(`eCOS`)} ${u.magenta(getEcosEnv())} environment in ${u.cyan(getNodeEnv())} mode\n
-Status:    ${u.cyan(msg.toUpperCase())}
-File:      ${u.magenta(args[0])}
-Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
-
-${u.cyan('eCOS packages')}:
-${u.white(`@aitmed/cadl`)}:            ${u.magenta(version.noodlSdk)}
-${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(version.ecosSdk)}
-${u.white(`noodl-types`)}:             ${u.magenta(version.nTypes)}
-${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
-${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
-${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
-
-${mode === 'production'
-    ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(TITLE)}`
-    : ''
-}\n\n`)
+  //   process.stdout.write('\x1Bc')
+  //   // prettier-ignore
+  //   singleLog(
+  // `Your app is being built for ${u.cyan(`eCOS`)} ${u.magenta(getEcosEnv())} environment in ${u.cyan(getNodeEnv())} MODE\n
+  // Status:    ${u.cyan(msg.toUpperCase())}
+  // File:      ${u.magenta(args[0])}
+  // Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
+  // ${u.cyan('eCOS packages')}:
+  // ${u.white(`@aitmed/cadl`)}:            ${u.magenta(version.noodlSdk)}
+  // ${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(version.ecosSdk)}
+  // ${u.white(`noodl-types`)}:             ${u.magenta(version.nTypes)}
+  // ${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
+  // ${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
+  // ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
+  // ${MODE === 'production'
+  //     ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(TITLE)}`
+  //     : ''
+  // }\n\n`)
 }
