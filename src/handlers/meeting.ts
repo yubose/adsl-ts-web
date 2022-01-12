@@ -41,21 +41,6 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
     return onConnectionChange
   }
 
-  window.spamToasts = () => {
-    _attachOnRemoteParticipantConnectionChangeAlerter('participantConnected')({
-      sid: 'abc',
-    } as any)
-    _attachOnRemoteParticipantConnectionChangeAlerter(
-      'participantDisconnected',
-    )({ sid: 'abc' } as any)
-    _attachOnRemoteParticipantConnectionChangeAlerter(
-      'participantReconnecting',
-    )({ sid: 'abc' } as any)
-    _attachOnRemoteParticipantConnectionChangeAlerter('participantReconnected')(
-      { sid: 'abc' } as any,
-    )
-  }
-
   const onRoomEvent = {
     participantConnected: u.callAll(
       _attachOnRemoteParticipantConnectionChangeAlerter('participantConnected'),

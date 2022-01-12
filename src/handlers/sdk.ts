@@ -7,6 +7,9 @@ export function getSdkHelpers(app: App) {
       get download() {
         return extendedSdkBuiltIns.download
       },
+      get exportCSV() {
+        return app.builtIns.get('exportCSV')?.find(Boolean)?.fn
+      },
       get exportPDF() {
         return app.builtIns.get('exportPDF')?.find(Boolean)?.fn
       },

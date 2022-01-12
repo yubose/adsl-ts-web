@@ -7,7 +7,10 @@ import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 import { isDataUrl } from './common'
 import ExportPdf from '../modules/ExportPdf'
-import isElement from './isElement'
+import type {
+  Format as PdfPageFormat,
+  Orientation as PDFPageOrientation,
+} from '../modules/ExportPdf'
 
 export function copyToClipboard(value: string) {
   const textarea = document.createElement('textarea')
@@ -56,23 +59,21 @@ export function exportToPDF(
     data,
     download: shouldDownload = false,
     labels = true,
+    format: formatProp,
     open = false,
     filename = 'file.pdf',
-    viewport = { width: window.innerWidth, height: window.innerHeight },
-    html2canvas,
   }: {
     data:
       | string
       | { title?: string; content?: string; data?: string }
       | HTMLElement
     download?: boolean
-    html2canvas?: Html2CanvasOptions
+    format?: PdfPageFormat
     labels?: boolean
     open?: boolean
     filename?: string
-    viewport?: NuiViewport | { width: number; height: number }
   } = { data: '' },
-): Promise<jsPDF> {
+): Promise<void> {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data) reject(new Error(`Cannot export from empty data`))
@@ -85,7 +86,7 @@ export function exportToPDF(
         img: HTMLImageElement
         width: number
         height: number
-        orientation: 'landscape' | 'portrait'
+        orientation: PDFPageOrientation
       }> => {
         return new Promise((resolve, reject) => {
           const img = new Image()
@@ -138,47 +139,6 @@ export function exportToPDF(
         return null
       }
 
-      const createDocByDOMNode = async (node: HTMLElement): Promise<jsPDF> => {
-        try {
-          const { width, height, top } = node.getBoundingClientRect()
-          const originalScrollPos = node.scrollTop
-          const pageWidth = width
-          const pageHeight = height
-          const overallWidth = node.scrollWidth
-          const overallHeight = node.scrollHeight
-          const orientation = pageWidth > pageHeight ? 'landscape' : 'portrait'
-          const format = [pageWidth, pageHeight]
-
-          let doc = new jsPDF({
-            compress: true,
-            format,
-            orientation,
-            unit: 'px',
-          })
-
-          // Deletes the empty page
-          doc.deletePage(1)
-
-          if (isElement(node)) {
-            await ExportPdf({
-              orientation,
-              pageHeight,
-              pageWidth,
-              overallWidth,
-              overallHeight,
-              ...html2canvas,
-            }).create(doc, node)
-          }
-
-          node.scrollTo({ top: originalScrollPos })
-
-          return doc
-        } catch (error) {
-          if (error instanceof Error) throw error
-          throw new Error(String(error))
-        }
-      }
-
       const createDocByObject = async (
         data: Record<string, any>,
       ): Promise<jsPDF> => {
@@ -223,19 +183,46 @@ export function exportToPDF(
         }
       }
 
-      const doc = u.isStr(data)
-        ? await createDocByDataURL(data)
-        : 'tagName' in data
-        ? await createDocByDOMNode(data)
-        : u.isObj(data)
-        ? await createDocByObject(data)
-        : null
+      let doc: jsPDF | null = null
+
+      try {
+        doc = u.isStr(data)
+          ? await createDocByDataURL(data)
+          : 'tagName' in data
+          ? ((await ExportPdf().create(data, {
+              format: formatProp,
+            })) as jsPDF)
+          : u.isObj(data)
+          ? await createDocByObject(data)
+          : null
+      } catch (error) {
+        console.error(error instanceof Error ? error : new Error(String(error)))
+
+        if (u.isObj(data) && 'tagName' in data) {
+          console.log(
+            `[exportToPDF] Creating a PDF document failed. Retrying one more time...`,
+          )
+
+          try {
+            doc =
+              ((await ExportPdf().create(data, {
+                format: formatProp,
+              })) as jsPDF) || null
+          } catch (error) {
+            console.log(
+              `[exportToPDF] Creating a PDF document failed both times`,
+              error instanceof Error ? error : new Error(String(error)),
+            )
+          }
+        }
+      }
 
       if (!doc) throw new Error(`data is not a string, DOM node or object`)
 
       open && doc.output('pdfobjectnewwindow')
       shouldDownload && download(doc.output('datauristring'), filename)
-      resolve(doc)
+      doc.close()
+      resolve()
     } catch (error) {
       u.logError(error)
       reject(error instanceof Error ? error : new Error(String(error)))

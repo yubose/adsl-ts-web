@@ -6,6 +6,21 @@ import type { BuiltInEvalObject, DataIn, ReferenceString } from './ecosTypes'
 export interface UncommonActionObjectProps {
   actions?: any[]
   contentType?: string // ex: "messageHidden"
+  /**
+   * @example
+   * ```json
+   * {
+   *   "emit": {
+   *     "actions": [
+   *       { "=.builtIn.string.equal": {...} }
+   *     ],
+   *     "dataKey": {
+   *       "var1": "itemObject.color"
+   *     },
+   *   }
+   * }
+   * ```
+   */
   emit?: EmitObjectFold
   dataKey?: any
   dataIn?: any
@@ -13,6 +28,16 @@ export interface UncommonActionObjectProps {
   destination?: string
   dismissOnTouchOutside?: boolean
   evolve?: boolean
+  /**
+   * @example
+   * ```json
+   * {
+   *   "actionType": "builtIn",
+   *   "funcName": "redraw",
+   *   "viewTag": "mainView"
+   * }
+   * ```
+   */
   funcName?: string
   message?: string
   object?: any
@@ -20,6 +45,16 @@ export interface UncommonActionObjectProps {
   popUpView?: string
   reload?: boolean
   timer?: number
+  /**
+   * @example
+   * ```json
+   * {
+   *   "actionType": "builtIn",
+   *   "funcName": "redraw",
+   *   "viewTag": "mainView"
+   * }
+   * ```
+   */
   viewTag?: string
   wait?: boolean | number
 }
@@ -29,6 +64,16 @@ export interface ActionObject<T extends string = string> {
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "builtIn",
+ *   "funcName": "redraw",
+ *   "viewTag": "mainView"
+ * }
+ * ```
+ */
 export interface BuiltInActionObject
   extends ActionObject,
     Pick<
@@ -39,6 +84,23 @@ export interface BuiltInActionObject
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "evalObject",
+ *   "object": [
+ *     {
+ *       "=.builtIn.object.set": {
+ *         "object": "..formData.userProfile",
+ *         "key": "username",
+ *         "value": ".SignIn.tempUser.username"
+ *       }
+ *     }
+ *   ]
+ * }
+ * ```
+ */
 export interface EvalActionObject
   extends ActionObject,
     Pick<UncommonActionObjectProps, 'dataKey' | 'dataObject'> {
@@ -84,6 +146,15 @@ export interface OpenDocumentManagerActionObject
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "pageJump",
+ *   "destination": "MeetingRoomInvited"
+ * }
+ * ```
+ */
 export interface PageJumpActionObject
   extends ActionObject,
     Pick<UncommonActionObjectProps, 'destination'> {
@@ -91,6 +162,15 @@ export interface PageJumpActionObject
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "popUp",
+ *   "popUpView": "mainView"
+ * }
+ * ```
+ */
 export interface PopupActionObject
   extends ActionObject,
     Pick<
@@ -101,6 +181,15 @@ export interface PopupActionObject
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "popUpDismiss",
+ *   "popUpView": "mainView"
+ * }
+ * ```
+ */
 export interface PopupDismissActionObject
   extends ActionObject,
     Pick<
@@ -111,11 +200,29 @@ export interface PopupDismissActionObject
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "refresh"
+ * }
+ * ```
+ */
 export interface RefreshActionObject extends ActionObject {
   actionType: 'refresh'
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "removeSignature",
+ *   "dataObject": "BLOB",
+ *   "dataKey": "SignIn.tempUser.signature"
+ * }
+ * ```
+ */
 export interface RemoveSignatureActionObject
   extends ActionObject,
     Pick<UncommonActionObjectProps, 'dataObject' | 'dataKey'> {
@@ -123,6 +230,15 @@ export interface RemoveSignatureActionObject
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "saveAction",
+ *   "object": "..abc.profile"
+ * }
+ * ```
+ */
 export interface SaveActionObject
   extends ActionObject,
     Pick<UncommonActionObjectProps, 'object'> {
@@ -130,6 +246,16 @@ export interface SaveActionObject
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "saveSignature",
+ *   "dataObject": "BLOB",
+ *   "dataKey": "SignIn.tempUser.signature"
+ * }
+ * ```
+ */
 export interface SaveSignatureActionObject
   extends ActionObject,
     Pick<UncommonActionObjectProps, 'dataObject' | 'dataKey'> {
@@ -137,6 +263,16 @@ export interface SaveSignatureActionObject
   [key: string]: any
 }
 
+/**
+ * @example
+ * ```json
+ * {
+ *   "actionType": "updateObject",
+ *   "dataObject": "BLOB",
+ *   "dataKey": "SignIn.tempUser.profile"
+ * }
+ * ```
+ */
 export interface UpdateActionObject
   extends ActionObject,
     Pick<UncommonActionObjectProps, 'dataObject' | 'dataKey'> {}

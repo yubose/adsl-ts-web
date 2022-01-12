@@ -1,9 +1,10 @@
 import * as u from '@jsmanifest/utils'
 import startOfDay from 'date-fns/startOfDay'
 import { Identify, userEvent } from 'noodl-types'
-import { dataAttributes, NuiComponent } from 'noodl-ui'
+import { dataAttributes } from 'noodl-ui'
+import type { NuiComponent } from 'noodl-ui'
 import { isDisplayable, normalizeEventName } from '../utils'
-import NDOMResolver from '../Resolver'
+import type NDOMResolver from '../Resolver'
 import * as t from '../types'
 import * as i from '../utils/internal'
 import * as c from '../constants'
@@ -39,14 +40,22 @@ function attachUserEvents<N extends t.NDOMElement>(
   component: NuiComponent.Instance,
 ) {
   userEvent.forEach((eventType: string) => {
+    /**
+     * TODO - Don't include DOM events in this loop. Instead, the user can register them via noodl-ui-dom resolve API
+     * - onBlur
+     * - onChange
+     * - onInput
+     */
+
+    if (eventType === 'onChange') return
     if (u.isFnc(component.get?.(eventType)?.execute)) {
       /**
        * Putting a setTimeout here helps to avoid the race condition in
        * where the emitted action handlers are being called before local
        * root object gets their data values updated.
        */
-      node.addEventListener(normalizeEventName(eventType), (e) =>
-        setTimeout(() => component.get(eventType)?.execute?.(e)),
+      node.addEventListener(normalizeEventName(eventType), (...args) =>
+        setTimeout(() => component.get?.(eventType)?.execute?.(...args)),
       )
     }
   })

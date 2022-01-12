@@ -125,15 +125,15 @@ function createEcosDocElement<
       iframe.addEventListener('load', async function () {
         if (iframe.contentDocument?.body) {
           try {
-            const result = await createAsyncImageElement(
-              iframe.contentDocument.body,
-              (img) => {
-                img.src = ecosObj?.name?.data || ''
-                img.style.width = '100%'
-                img.style.height = '100%'
-              },
-            )
-            iframeContent = result.node
+            // The result could not be returned
+            // const img = await createAsyncImageElement(
+            //   iframe.contentDocument.body,
+            // )
+            const img = document.createElement('img')
+            img.src = ecosObj?.name?.data || ''
+            img.style.width = '100%'
+            img.style.height = '100%'
+            iframeContent = img
             getBody(iframe)?.appendChild?.(iframeContent)
           } catch (error) {
             reject(error)

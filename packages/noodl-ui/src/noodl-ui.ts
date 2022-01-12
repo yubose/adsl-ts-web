@@ -3,7 +3,6 @@ import * as nt from 'noodl-types'
 import unary from 'lodash/unary'
 import type { ActionChainObserver } from 'noodl-action-chain'
 import type { OrArray } from '@jsmanifest/typefest'
-import invariant from 'invariant'
 import merge from 'lodash/merge'
 import get from 'lodash/get'
 import set from 'lodash/set'
@@ -27,7 +26,6 @@ import isViewport from './utils/isViewport'
 import NuiPage from './Page'
 import Transformer from './Transformer'
 import VP from './Viewport'
-import { promiseAllSafely } from './utils/common'
 import {
   findIteratorVar,
   findListDataObject,
@@ -38,7 +36,6 @@ import {
 import { groupedActionTypes, nuiEmitType } from './constants'
 import isNuiPage from './utils/isPage'
 import cache from './_cache'
-import * as c from './constants'
 import * as t from './types'
 
 const NUI = (function () {
@@ -603,6 +600,7 @@ const NUI = (function () {
                 `color:#ec0000;`,
                 c,
               )
+              key === 'data-value' && c.edit({ [key] : '' })
             }
           }
         }
@@ -943,23 +941,30 @@ const NUI = (function () {
             options: t.ConsumerOptions,
           ) {
             return async function executeActionChain(event?: Event) {
-              let results = [] as (Error | any)[]
               if (fns.length) {
-                const callbacks = fns.map(
-                  async (obj: t.Store.ActionObject | t.Store.BuiltInObject) =>
-                    obj.fn?.(action as any, {
-                      ...options,
-                      component: opts?.component,
-                      event,
-                      ref: actionChain,
-                    }),
-                )
-                results = await promiseAllSafely(
-                  callbacks,
-                  (err, result) => err || result,
-                )
+                const results = [
+                  ...(
+                    await Promise.allSettled(
+                      fns.map(
+                        async (
+                          obj: t.Store.ActionObject | t.Store.BuiltInObject,
+                        ) => {
+                          const result = await obj.fn?.(action as any, {
+                            ...options,
+                            component: opts?.component,
+                            event,
+                            ref: actionChain,
+                          })
+                          return result
+                        },
+                      ),
+                    )
+                  ).values(),
+                ]
+                return results.length < 2
+                  ? results[0]?.['value']
+                  : [...results?.values()]
               }
-              return results.length < 2 ? results[0] : results
             }
           }
 
@@ -1205,10 +1210,11 @@ const NUI = (function () {
       for (const actionType of groupedActionTypes) {
         if (actionType in args) {
           u.forEach((fn) => {
-            invariant(
-              u.isFnc(fn),
-              `fn is required for handling actionType "${actionType}"`,
-            )
+            if (!u.isFnc(fn)) {
+              throw new Error(
+                `fn is required for handling actionType "${actionType}"`,
+              )
+            }
             cache.actions[actionType]?.push({ actionType, fn })
           }, u.array(args[actionType]))
         }
@@ -1217,7 +1223,9 @@ const NUI = (function () {
       if ('builtIn' in args) {
         u.forEach(([funcName, fn]: [string, t.Store.BuiltInObject['fn']]) => {
           u.forEach((f) => {
-            invariant(!!funcName, `"Missing funcName in a builtIn handler`)
+            if (!funcName) {
+              throw new Error(`Missing funcName in a builtIn handler`)
+            }
             if (!cache.actions.builtIn.has(funcName)) {
               cache.actions.builtIn.set(funcName, [])
             }

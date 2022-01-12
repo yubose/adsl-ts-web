@@ -50,6 +50,12 @@ export function getRandomKey() {
   return `_${Math.random().toString(36).substr(2, 9)}`
 }
 
+export function isChrome() {
+  return (
+    u.isBrowser() && navigator.userAgent.toLowerCase().indexOf('chrome') > -1
+  )
+}
+
 export function isDataUrl(value = '') {
   return value.startsWith('blob:') || value.startsWith('data:')
 }
@@ -146,3 +152,4 @@ export function throwError(err?: any) {
   }
   throw new Error('Error occurred')
 }
+

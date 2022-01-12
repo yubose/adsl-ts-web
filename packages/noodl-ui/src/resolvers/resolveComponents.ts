@@ -3,11 +3,11 @@ import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import type { ComponentObject, EcosDocument } from 'noodl-types'
+import { userEvent } from 'noodl-types'
 import { Identify } from 'noodl-types'
 import { excludeIteratorVar, findDataValue } from 'noodl-utils'
+import type { ComponentObject, EcosDocument } from 'noodl-types'
 import Resolver from '../Resolver'
-import type NuiPage from '../Page'
 import VP from '../Viewport'
 import isNuiPage from '../utils/isPage'
 import resolveReference from '../utils/resolveReference'
@@ -19,7 +19,8 @@ import {
   isListLike,
   resolveAssetUrl,
 } from '../utils/noodl'
-import type { NuiComponent } from '../types'
+import type { NuiComponent, NUIActionObject } from '../types'
+import type NuiPage from '../Page'
 import cache from '../_cache'
 import * as c from '../constants'
 
@@ -87,7 +88,6 @@ componentResolver.setResolver(async (component, options, next) => {
 
     if (isListLike(component)) {
       const listItemBlueprint = getRawBlueprint(component)
-
       function getChildrenKey(component: NuiComponent.Instance) {
         return component.type === 'chatList' ? 'chatItem' : 'children'
       }
@@ -139,7 +139,8 @@ componentResolver.setResolver(async (component, options, next) => {
       let dataObjects = getListObject(options)
       if (
         u.isStr(dataObjects) &&
-        dataObjects.startsWith('itemObject')
+        ((iteratorVar && dataObjects.startsWith(iteratorVar)) ||
+          dataObjects.startsWith('itemObject'))
       ) {
         let dataKey: any = dataObjects.toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
@@ -267,6 +268,10 @@ componentResolver.setResolver(async (component, options, next) => {
             )
           }
 
+          const wrapOnPageChange =
+            (fn: (...args: any[]) => any, page: NuiPage) => () =>
+              fn(page)
+
           page.on(
             c.nuiEvent.component.page.PAGE_CHANGED,
             wrapOnPageChange(onPageChange, page),
@@ -374,44 +379,59 @@ componentResolver.setResolver(async (component, options, next) => {
                   : dataObject
               }
             }
-            const text = createComponent(
-              {
-                type: 'label',
-                style: {
-                  display: 'inline-block',
-                  ...('color' in item
-                    ? { color: formatColor(item.color || '') }
-                    : undefined),
-                  ...('fontSize' in item
-                    ? {
-                        fontSize:
-                          item.fontSize.search(/[a-z]/gi) != -1
-                            ? item.fontSize
-                            : item.fontSize + 'px',
-                      }
-                    : undefined),
-                  ...('fontWeight' in item
-                    ? { fontWeight: item.fontWeight }
-                    : undefined),
-                  ...('left' in item
-                    ? {
-                        marginLeft: item.left.includes('px')
-                          ? item.left
-                          : `${item.left}px`,
-                      }
-                    : undefined),
-                  ...('top' in item
-                    ? {
-                        marginTop: item.top.includes('px')
-                          ? item.top
-                          : `${item.top}px`,
-                      }
-                    : undefined),
-                },
-                text: 'text' in item ? item.text : '',
+            let componentObject = {
+              type: 'span',
+              style: {
+                // display: 'inline-block',
+                ...('color' in item
+                  ? { color: formatColor(item.color || '') }
+                  : undefined),
+                ...('fontSize' in item
+                  ? {
+                      fontSize:
+                        item.fontSize.search(/[a-z]/gi) != -1
+                          ? item.fontSize
+                          : item.fontSize + 'px',
+                    }
+                  : undefined),
+                ...('fontWeight' in item
+                  ? { fontWeight: item.fontWeight }
+                  : undefined),
+                ...('left' in item
+                  ? {
+                      marginLeft: item.left.includes('px')
+                        ? item.left
+                        : `${item.left}px`,
+                    }
+                  : undefined),
+                ...('top' in item
+                  ? {
+                      marginTop: item.top.includes('px')
+                        ? item.top
+                        : `${item.top}px`,
+                    }
+                  : undefined),
               },
-              page,
-            )
+              text: 'text' in item ? item.text : '',
+            }
+            userEvent.forEach((event) => {
+              if (item?.[event]) {
+                componentObject[event] = item?.[event]
+              }
+            })
+            const text = createComponent(componentObject, page)
+
+            const { createActionChain, on } = options
+            userEvent.forEach((event) => {
+              if (item?.[event]) {
+                const actionChain = createActionChain(
+                  event,
+                  item[event] as NUIActionObject[],
+                )
+                on?.actionChain && actionChain.use(on.actionChain)
+                text.edit({ [event]: actionChain })
+              }
+            })
             component.createChild(text)
             callback?.(text)
           }
@@ -498,7 +518,7 @@ componentResolver.setResolver(async (component, options, next) => {
           child = await resolveComponents({
             callback,
             components: child,
-            context,
+            context: { ...context },
             page: _page,
             on: options.on,
           })
@@ -514,9 +534,5 @@ componentResolver.setResolver(async (component, options, next) => {
 
   return next?.()
 })
-
-function wrapOnPageChange(fn: (...args: any[]) => any, page: NuiPage) {
-  return () => fn(page)
-}
 
 export default componentResolver

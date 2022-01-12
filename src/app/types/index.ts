@@ -1,7 +1,18 @@
 import firebase from 'firebase'
+<<<<<<< HEAD
 import CADL, { Account } from '@aitmed/cadl'
 import { NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
 import { ActionObject, PageObject, RegisterComponentObject } from 'noodl-types'
+=======
+import type { Account, CADL } from '@aitmed/cadl'
+import { NUI, NUIAction, NUITrigger, Store, Viewport } from 'noodl-ui'
+import {
+  ActionObject,
+  EmitObjectFold,
+  PageObject,
+  RegisterComponentObject,
+} from 'noodl-types'
+>>>>>>> dev2
 import NOODLDOM from 'noodl-ui-dom'
 import AppNotification from '../Notifications'
 import createMeetingFns from '../../meeting'
@@ -70,6 +81,18 @@ export interface AppNotificationMessageObject<
   data: O
   from?: string
   priority?: 'normal'
+}
+
+export interface SpinnerState {
+  active: boolean
+  config: {
+    delay: number
+    timeout: number
+  }
+  page: string | null
+  ref: null | NodeJS.Timeout
+  timeout: null | NodeJS.Timeout
+  trigger: 'inject' | NUITrigger | null
 }
 
 export interface CachedPageObject {

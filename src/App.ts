@@ -5,24 +5,22 @@ import NOODLDOM, {
   isPage as isNOODLDOMPage,
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
+import { Account } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
 import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import * as nu from 'noodl-utils'
-import { Identify, PageObject, ReferenceString } from 'noodl-types'
+import { AppConfig, Identify, PageObject, ReferenceString } from 'noodl-types'
 import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
-import {
-  command as cmd,
-  CACHED_PAGES,
-  PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT,
-} from './constants'
+import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
 import actionFactory from './factories/actionFactory'
 import createActions from './handlers/actions'
 import createBuiltIns from './handlers/builtIns'
+import createGoto from './handlers/shared/goto'
 import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
@@ -34,11 +32,16 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
+<<<<<<< HEAD
 import NoodlWorker from './worker/NoodlWorker'
+=======
+import parseUrl from './utils/parseUrl'
+>>>>>>> dev2
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
+import * as c from './constants'
 import * as t from './app/types'
 
 const log = Logger.create('App.ts')
@@ -48,7 +51,26 @@ class App {
     authStatus: '' as AuthStatus | '',
     initialized: false,
     loadingPages: {} as Record<string, { id: string; init: boolean }[]>,
+<<<<<<< HEAD
     load: {},
+=======
+    spinner: {
+      active: false,
+      config: {
+        delay: c.DEFAULT_SPINNER_DELAY,
+        timeout: c.DEFAULT_SPINNER_TIMEOUT,
+      },
+      page: null,
+      timeout: null,
+      trigger: null,
+    } as t.SpinnerState,
+  }
+  #instances = {
+    FullCalendar: {
+      inst: null as null | InstanceType<typeof FullCalendar.Calendar>,
+      page: '',
+    },
+>>>>>>> dev2
   }
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
@@ -56,11 +78,12 @@ class App {
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
   #parser: nu.Parser
-  #spinner: InstanceType<typeof Spinner>
+  #spinner: Spinner
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
   #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
-  #worker: ReturnType<typeof NoodlWorker>
+  // #worker: ReturnType<typeof NoodlWorker>
   actionFactory = actionFactory(this)
+  goto: ReturnType<typeof createGoto>
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
   mainPage: NOODLDOM['page']
@@ -109,12 +132,7 @@ class App {
     this.#nui = nui
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
-    this.#worker = NoodlWorker(
-      new Worker('dedicatedWorker.js', {
-        name: App.id,
-        type: 'module',
-      }),
-    )
+    this.goto = createGoto(this)
 
     noodl && (this.#noodl = noodl)
     this.#parser = new nu.Parser()
@@ -141,11 +159,15 @@ class App {
   }
 
   get config() {
-    return this.noodl.getConfig()
+    return this.noodl.config
   }
 
   get cache() {
     return this.nui.cache
+  }
+
+  get instances() {
+    return this.#instances
   }
 
   get spinner() {
@@ -165,8 +187,7 @@ class App {
   }
 
   get globalRegister() {
-    return this.noodl.root?.Global?.globalRegister as
-      | t.GlobalRegisterComponent[]
+    return this.noodl.root?.Global?.globalRegister
   }
 
   get loadingPages() {
@@ -237,9 +258,13 @@ class App {
     return this.mainPage.viewport as VP
   }
 
-  get worker() {
-    return this.#worker
+  getState() {
+    return this.#state
   }
+
+  // get worker() {
+  //   return this.#worker
+  // }
 
   /**
    * Navigates to a page specified in page.requesting
@@ -248,9 +273,29 @@ class App {
    * @param { NOODLDOMPage } page
    * @param { string | undefined } pageRequesting
    */
-  async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
+  async navigate(
+    page: NOODLDOMPage,
+    pageRequesting?: string,
+    opts?: { isGoto?: boolean },
+  ): Promise<void>
   async navigate(pageRequesting?: string): Promise<void>
-  async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
+  async navigate(
+    page?: NOODLDOMPage | string,
+    pageRequesting?: string,
+    { isGoto }: { isGoto?: boolean } = {},
+  ) {
+    function getParams(pageName: string) {
+      const nameParts = pageName.split('&')
+      let params = {}
+      if (nameParts.length > 1) {
+        for (let i = 1; i < nameParts.length; i++) {
+          const partItem = nameParts[i]
+          const parts = partItem.split('=')
+          params[parts[0]] = parts[1]
+        }
+      }
+      return params
+    }
     try {
       let _page: NOODLDOMPage
       let _pageRequesting = ''
@@ -261,50 +306,20 @@ class App {
       if (isNOODLDOMPage(pageUrl)) {
         pageUrl = pageUrl.page
       }
-      if (pageUrl) {
+      if (pageUrl && pageUrl.includes('&')) {
         if (nu.isOutboundLink(pageUrl)) {
           return void (window.location.href = pageUrl)
         }
-
-        let index =
-          pageUrl.indexOf('&') != -1 ? pageUrl.indexOf('&') : pageUrl.length
-        let startPage = pageUrl.slice(0, index)
-        pageRequesting =
-          typeof pageRequesting == 'string' ? startPage : pageRequesting
-        page = typeof page == 'string' ? startPage : page
-
-        if (index != pageUrl.length) {
-          const ls = window.localStorage
-          let endKeys = pageUrl.slice(pageUrl.indexOf('&'))
-          let params: any = endKeys.split('=')
-          let tempParams: any = ls.getItem('tempParams')
-          let value
-          let key
-
-          params = params ? params : []
-          tempParams =
-            typeof tempParams == 'string' ? JSON.parse(tempParams) : {}
-
-          for (let i = 0; i < params.length - 1; i++) {
-            index =
-              params[i].lastIndexOf('&') != -1 ? params[i].lastIndexOf('&') : 0
-            key = params[i].slice(index + 1)
-            if (i + 1 == params.length - 1) {
-              value = params[i + 1]
-            } else {
-              index =
-                params[i + 1].lastIndexOf('&') != -1
-                  ? params[i + 1].lastIndexOf('&')
-                  : params[i + 1].length
-              value = params[i + 1].slice(0, index)
-            }
-            tempParams[key] = value
-          }
-
-          ls.setItem('tempParams', JSON.stringify(tempParams))
+        const params = getParams(pageUrl)
+        const curretPage = pageUrl.includes('&')
+          ? pageUrl.substring(0, pageUrl.indexOf('&'))
+          : pageUrl
+        if (isNOODLDOMPage(page)) {
+          pageRequesting = curretPage
         } else {
-          ls.removeItem('tempParams')
+          page = curretPage
         }
+        ls.setItem('tempParams', JSON.stringify(params))
       }
 
       if (isNOODLDOMPage(page)) {
@@ -321,9 +336,49 @@ class App {
         _page.requesting = ''
         return void (window.location.href = _pageRequesting)
       }
+
+      if (_page.page && _page.requesting && _page.page !== _page.requesting) {
+        // If this is a goto, we must delete the page we are redirecting to if it previously was used in the root object
+        if (isGoto) {
+          if (_page.requesting in this.noodl.root) {
+            if (location.search) {
+              // If we are going to a page where we were from before, we must destroy the pages that followed it
+              const parts = (
+                location.search.startsWith('?')
+                  ? location.search.slice(1)
+                  : location.search
+              ).split('-')
+
+              if (parts.includes(_page.requesting)) {
+                let pageToDestroy = parts.pop()
+
+                while (pageToDestroy && pageToDestroy !== _page.requesting) {
+                  if (pageToDestroy in this.noodl.root) {
+                    delete this.noodl.root[pageToDestroy]
+                    console.log(
+                      `%cRemoved "${pageToDestroy}" from the page stack`,
+                      `color:#00b406;`,
+                    )
+                  }
+                  pageToDestroy = parts.pop()
+                }
+              }
+            }
+            if (_page.requesting in this.noodl.root) {
+              delete this.noodl.root[_page.requesting]
+            }
+          }
+        } else {
+          // Otherwise if this is a goBack we must delete the current page
+          delete this.noodl.root[_page.page]
+        }
+      }
+
       // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       const req = await this.ndom.request(_page)
       if (req) {
+        // @ts-expect-error
+        delete window.pcomponents
         const components = await this.render(_page)
         window.pcomponents = components as any
       }
@@ -335,9 +390,8 @@ class App {
 
   async initialize() {
     try {
-      if (!this.getStatus) {
-        this.getStatus = (await import('@aitmed/cadl')).Account.getStatus
-      }
+      if (!this.getState().spinner.active) this.enableSpinner()
+      if (!this.getStatus) this.getStatus = Account.getStatus
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
@@ -356,6 +410,7 @@ class App {
           this.notification?.init(this.#serviceWorkerRegistration)
           console.log(`B-3`)
         }
+<<<<<<< HEAD
       } else {
         console.log(`C-1`)
         this.#serviceWorkerRegistration =
@@ -363,6 +418,16 @@ class App {
         console.log(`C-2`)
       }
       console.log(`D`)
+=======
+      })
+
+      try {
+        this.#serviceWorkerRegistration =
+          await navigator.serviceWorker?.register(AppNotification.path)
+      } catch (error) {
+        console.error(error)
+      }
+>>>>>>> dev2
 
       if (this.#serviceWorkerRegistration) {
         this.serviceWorker?.addEventListener('statechange', (evt) => {
@@ -386,6 +451,7 @@ class App {
         )
       }
 
+<<<<<<< HEAD
       await this.noodl.init()
       // await this.noodl.init({
       //   ...getBatchFromLocalStorage(
@@ -406,6 +472,24 @@ class App {
       //     }
       //   },
       // })
+=======
+      if (!this.notification?.initiated) {
+        // @ts-expect-error
+        await this.notification?.init(this.#serviceWorkerRegistration)
+      }
+
+      this.noodl.on('QUEUE_START', () => {
+        if (!this.getState().spinner.active) this.enableSpinner()
+      })
+
+      this.noodl.on('QUEUE_END', () => {
+        if (!this.noodl.getState().queue?.length) {
+          if (this.getState().spinner.active) this.disableSpinner()
+        }
+      })
+>>>>>>> dev2
+
+      await this.noodl.init()
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -466,43 +550,28 @@ class App {
       this.observePages(this.mainPage)
 
       /**
-       *
        * Determining the start page or initial action
-       *
-       * In order of precedence:
-       *  1. Determine the initial action by URL
-       *  2. Determine the initial action by page in cache
-       *  3. Determine the initial action by start page
        */
+      const parsedUrl = parseUrl(
+        this.#noodl?.cadlEndpoint as AppConfig,
+        window.location.href,
+      )
 
-      const { href } = new URL(window.location.href)
-      const url = new URL(href)
-      const searchParams = url.searchParams
-      const [noodlUrlEntry, ...queryParams] = [...searchParams.entries()]
-      let startPage = ''
+      let startPage = parsedUrl.startPage
 
-      if (queryParams.length) {
-        // The user is coming from an outside link
-        //    (ex: being redirected after submitting a payment)
-        const params = u.reduce(
-          queryParams,
-          (acc, [key, value]) => u.assign(acc, { [key]: value }),
-          {},
-        )
-        const noodlUrl = noodlUrlEntry[0] || ''
-        const pageNames = noodlUrl.split('-')
-        startPage = pageNames[pageNames.length - 1]
-        this.mainPage.pageUrl = BASE_PAGE_URL + noodlUrl
-        if (u.isArr(this.#noodl.cadlEndpoint?.page)) {
-          if (!this.#noodl.cadlEndpoint.page.includes(startPage)) {
+      if (parsedUrl.hasParams) {
+        this.mainPage.pageUrl = parsedUrl.pageUrl
+        if (u.isArr(this.noodl?.cadlEndpoint?.page)) {
+          if (!this.noodl?.cadlEndpoint?.page.includes(parsedUrl.startPage)) {
             // Fall back to the original start page if it is an invalid page
-            startPage = this.#noodl.cadlEndpoint.startPage || startPage || ''
+            startPage = this.noodl?.cadlEndpoint?.startPage || startPage || ''
             this.mainPage.pageUrl = BASE_PAGE_URL
           }
         }
-        await this.navigate(this.mainPage, startPage)
+        this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
+        await this.navigate(this.mainPage, parsedUrl?.currentPage)
       } else {
-        startPage = this.noodl.cadlEndpoint?.startPage
+        startPage = this.noodl.cadlEndpoint?.startPage || ''
       }
 
       // Override the start page if they were on a previous page
@@ -524,24 +593,12 @@ class App {
 
       if (!ls.getTimestampKey() && ls.configExists()) ls.cacheTimestamp()
 
-      if (this.mainPage && location.href) {
-        let { startPage } = this.noodl.cadlEndpoint
+      if (this.mainPage && location.href && !parsedUrl.hasParams) {
+        let { startPage = '' } = this.noodl.cadlEndpoint || {}
         const urlParts = location.href.split('/')
         const pathname = urlParts[urlParts.length - 1]
 
-        console.log(`%cConfig evaluation`, `color:#e50087;`, {
-          hasLocalConfig: ls.configExists(),
-          isTimestampEq: ls.isTimestampEq(),
-          timestampKey: ls.getTimestampKey(),
-          timestampNow: ls.getCurrentTimestamp(),
-          storedConfig: ls.getStoredConfigObject(),
-          storedTimestamp: ls.getStoredTimestamp(),
-        })
-
-        const keyParts = pathname.split('=')
-        let isParameters = keyParts.length > 1 ? true : false
-
-        if (!ls.isTimestampEq() && !isParameters) {
+        if (!ls.isTimestampEq()) {
           // Set the URL / cached pages to their base state
           localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
           this.mainPage.pageUrl = BASE_PAGE_URL
@@ -570,14 +627,18 @@ class App {
       console.error(error)
       throw error
     } finally {
-      this.#spinner.stop()
+      if (!this.noodl.getState()?.queue?.length) {
+        if (this.getState().spinner?.active) {
+          this.disableSpinner()
+        }
+      }
     }
   }
 
   async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
-    let spinnerRef = setTimeout(() => {
-      this.#spinner.spin(page?.node || this.mainPage?.node)
-    }, 350)
+    if (!this.getState().spinner.active) {
+      this.enableSpinner({ target: page?.node || this.mainPage?.node })
+    }
 
     try {
       const pageRequesting = page.requesting
@@ -603,14 +664,18 @@ class App {
             `The page is unnecessarily rendering twice to the DOM`,
           `color:#ec0000;`,
         )
+      } else {
+        // delete this.noodl.root[currentPage]
       }
 
       let isAborted = false
       let isAbortedFromSDK = false as boolean | undefined
 
+      if (page.previous === page.requesting) page.previous = page.page
+
       isAbortedFromSDK = (
         await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {
-          ...(page.modifiers[pageRequesting] as any),
+          ...(page.modifiers?.[pageRequesting] as any),
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
             log.func('onBeforeInit')
@@ -729,8 +794,7 @@ class App {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
     } finally {
-      clearTimeout(spinnerRef)
-      this.#spinner.stop()
+      this.disableSpinner()
     }
   }
 
@@ -911,9 +975,46 @@ class App {
         page = this.mainPage
       }
 
+      if (this.instances.FullCalendar.inst) {
+        this.instances.FullCalendar.inst.destroy()
+        this.instances.FullCalendar.inst = null
+        this.instances.FullCalendar.page = ''
+      }
+
       return this.ndom.render(page, {
         on: {
-          actionChain: {},
+          actionChain: {
+            // onBeforeInject() {
+            //   console.log(`[onBeforeInject]`, this)
+            // },
+            // onAfterInject() {
+            //   console.log(`[onAfterInject]`, this)
+            // },
+            // onAbortEnd() {
+            //   console.log(`[onAbortEnd]`, this)
+            // },
+            // onAbortStart() {
+            //   console.log(`[onAbortStart]`, this)
+            // },
+            // onAbortError() {
+            //   console.log(`[onAbortError]`, this)
+            // },
+            onExecuteStart: () => {
+              // console.log(`[onExecuteStart]`, this)
+              // this.enableSpinner({ target: document.body, page: page?.page })
+            },
+            // onBeforeActionExecute() {
+            //   console.log(`[onBeforeActionExecute]`, this)
+            // },
+            onExecuteError: () => {
+              //   console.log(`[onExecuteError]`, this)
+              // this.disableSpinner()
+            },
+            onExecuteEnd: () => {
+              // console.log(`[onExecuteEnd]`, this)
+              // this.disableSpinner()
+            },
+          },
           // if: ({ page, value }) => {
           //   if (u.isStr(value) && Identify.reference(value)) {
           //     const datapath = nu.trimReference(value)
@@ -1051,6 +1152,65 @@ class App {
   >(id: Id, params?: P) {
     const fns = this.obs.has(id) && this.obs.get(id)
     fns && fns.forEach((fn) => u.isFnc(fn) && fn(params as P))
+  }
+
+  enableSpinner({
+    delay,
+    page: pageName,
+    target = document.body,
+    timeout,
+    trigger,
+  }: {
+    delay?: number
+    page?: string
+    target?: HTMLElement
+    timeout?: number
+    trigger?: t.SpinnerState['trigger']
+  } = {}) {
+    if (this.#state.spinner.ref || this.#state.spinner.timeout) {
+      this.disableSpinner()
+    }
+
+    if (pageName) this.#state.spinner.page = pageName
+    else this.#state.spinner.page = null
+
+    if (trigger) this.#state.spinner.trigger = trigger
+    else this.#state.spinner.trigger = null
+
+    // debugger
+
+    this.#state.spinner.ref = setTimeout(
+      () => {
+        // debugger
+        this.#spinner.spin(target)
+        this.#state.spinner.active = true
+      },
+      u.isNum(delay) ? delay : this.#state.spinner.config.delay,
+    )
+
+    this.#state.spinner.timeout = setTimeout(
+      () => this.disableSpinner(),
+      u.isNum(timeout) ? timeout : this.#state.spinner.config.timeout,
+    )
+  }
+
+  disableSpinner() {
+    this.#spinner.stop()
+
+    this.#state.spinner.active = false
+    this.#state.spinner.page = null
+    this.#state.spinner.timeout = null
+    this.#state.spinner.trigger = null
+
+    if (this.#state.spinner.ref) {
+      clearTimeout(this.#state.spinner.ref)
+      this.#state.spinner.ref = null
+    }
+
+    if (this.#state.spinner.timeout) {
+      clearTimeout(this.#state.spinner.timeout)
+      this.#state.spinner.timeout = null
+    }
   }
 
   /* -------------------------------------------------------

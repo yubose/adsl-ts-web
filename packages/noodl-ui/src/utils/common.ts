@@ -9,10 +9,6 @@ export function formatColor(value: string) {
   return value || ''
 }
 
-export function isPromise(value: any): value is Promise<any> {
-  return value && typeof value === 'object' && 'then' in value
-}
-
 /**
  * Returns true if there is a decimal in the number.
  * @param { number } value - Value to evaluate
@@ -27,38 +23,4 @@ export function hasDecimal(value: any): boolean {
  */
 export function hasLetter(value: any): boolean {
   return /[a-zA-Z]/i.test(String(value))
-}
-
-export async function promiseAllSafely(
-  promises: Promise<any>[],
-  getResult?: <RT = any>(err: null | Error, result: any) => RT,
-) {
-  const results = [] as any[]
-
-  for (let index = 0; index < promises.length; index++) {
-    try {
-      let result = await promises[index]
-      result = getResult ? getResult(null, result) : result
-      results.push(result)
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      const result = getResult ? getResult(err, undefined) : err
-      results.push(result)
-    }
-  }
-
-  return results
-}
-
-export function toNumber(str: string) {
-  let value: any
-  if (hasLetter(str)) {
-    const results = str.match(/[a-zA-Z]/i)
-    if (typeof results?.index === 'number' && results.index > -1) {
-      value = Number(str.substring(0, results.index))
-    }
-  } else {
-    value = Number(str)
-  }
-  return value
 }

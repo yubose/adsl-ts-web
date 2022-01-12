@@ -27,7 +27,7 @@ export type UncommonComponentObjectProps = {
   image?: string
   isEditable?: boolean
   iteratorVar?: string
-  listObject?: any[]
+  listObject?: string | any[]
   onEvent?: string
   optionKey?: string
   options?: any[]

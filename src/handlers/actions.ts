@@ -17,6 +17,7 @@ import {
   Page as NDOMPage,
   SignaturePad,
   findFirstByDataKey,
+  BASE_PAGE_URL,
 } from 'noodl-ui-dom'
 import {
   ConsumerOptions,
@@ -47,6 +48,7 @@ import {
   scrollToElem,
   toast,
 } from '../utils/dom'
+import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
 import { getRandomKey, pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
@@ -65,13 +67,14 @@ const createActions = function createActions(app: App) {
   const emit = triggers.reduce(
     (acc: Partial<Record<string, Store.ActionObject<'emit'>['fn']>>, trigger) =>
       u.assign(acc, {
-        [trigger]: async function (
+        [trigger]: async function onEmitAction(
           action: EmitAction,
           options: ConsumerOptions,
         ) {
           try {
+            !app.getState().spinner.active && app.enableSpinner()
+
             log.func(`emit [${trigger}]`)
-            log.grey('', action?.snapshot?.())
 
             const emitParams = {
               actions: _pick(action, 'actions'),
@@ -86,22 +89,12 @@ const createActions = function createActions(app: App) {
             if (_has(_pick(action, 'emit'), 'dataKey')) {
               const dataKeyValue = _pick(action, 'dataKey')
               emitParams.dataKey = dataKeyValue
-              if (dataKeyValue == undefined) {
-                log.red(
-                  `An undefined value was set for "dataKey" as arguments to emitCall`,
-                  { action: action?.snapshot?.(), emitParams },
-                )
-              }
             }
 
-            log.grey('Emitting', {
-              action: action?.snapshot?.(),
-              emitParams,
-              options,
-            })
             const emitResult = u.array(
               await app.noodl.emitCall(emitParams as any),
             )
+
             log.grey(`Emitted`, {
               action: action?.snapshot?.(),
               emitParams,
@@ -115,6 +108,8 @@ const createActions = function createActions(app: App) {
               : [emitResult]
           } catch (error) {
             console.error(error)
+          } finally {
+            if (!app.noodl.getState().queue?.length) app.disableSpinner()
           }
         },
       }),
@@ -136,83 +131,109 @@ const createActions = function createActions(app: App) {
       actionChain: options?.ref?.snapshot?.(),
       options,
     })
+
+    !app.getState().spinner.active && app.enableSpinner()
     options.ref?.clear('timeout')
+
     try {
       let object = _pick(action, 'object') as
         | IfObject
         | ((...args: any[]) => any)
 
       if (u.isFnc(object)) {
+        const strategies = [] as {
+          type: 'abort-true' | 'abort-wait'
+          object?: any
+        }[]
         const result = await object()
         if (result) {
           const { ref: actionChain } = options
+          const results = u.array(result)
 
-          if (u.isObj(result)) {
-            getActionObjectErrors(result).forEach((errMsg: string) =>
-              log.red(errMsg, result),
-            )
-            if (result.abort) {
-              log.grey(
-                `An evalObject returned an object with abort: true. The action chain ` +
-                  `will no longer proceed`,
-                { actionChain, injectedObject: result },
+          while (results.length) {
+            let result = results.shift()
+
+            if (u.isArr(result)) {
+              results.push(...result)
+              result = results.shift()
+            }
+
+            if (u.isObj(result)) {
+              getActionObjectErrors(result).forEach((errMsg: string) =>
+                log.red(errMsg, result),
               )
-              if (actionChain) {
-                // There is a bug with global popups not being able to be visible because of this abort block.
-                // For now until a better solution is implemented we can do a check here
-                for (const action of actionChain.queue) {
-                  const popUpView = _pick(action, 'popUpView')
-                  if (popUpView) {
-                    if (app.ndom.global.components.has(popUpView)) {
-                      log.salmon(
-                        `An "abort: true" was injected from evalObject but a global component ` +
-                          `with popUpView "${popUpView}" was found. These popUp actions will ` +
-                          `still be called to ensure the behavior persists for global popUps`,
-                        {
-                          globalObject:
-                            app.ndom.global.components.get(popUpView),
-                        },
-                      )
-                      await action?.execute()
-                    }
-                  }
-                }
-                await actionChain.abort(
-                  `An evalObject is requesting to abort using the "abort" key`,
-                )
-              }
-            } else {
-              const isPossiblyAction = 'actionType' in result
-              const isPossiblyToastMsg = 'message' in result
-              const isPossiblyGoto = 'goto' in result || 'destination' in result
 
-              if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
-                if (isPossiblyGoto) {
-                  const destination = result.goto || result.destination || ''
-                  const pageComponentParent = findParent(
-                    options?.component,
-                    Identify.component.page,
-                  )
-                  if (pageComponentParent && pageComponentParent.get('page')) {
-                    const ndomPage = app.ndom.findPage(pageComponentParent)
-                    if (ndomPage && ndomPage.requesting !== destination) {
-                      ndomPage.requesting = destination
-                    }
-                  }
-                }
+              if (result.abort) {
+                strategies.push({ type: 'abort-true', object: result })
 
                 log.grey(
-                  `An evalObject action is injecting a new object to the chain`,
-                  {
-                    actionChain,
-                    instance: actionChain?.inject.call(
-                      actionChain,
-                      result as any,
-                    ),
-                    object: result,
-                    queue: actionChain?.queue.slice(),
-                  },
+                  `An evalObject returned an object with abort: true. The action chain ` +
+                    `will no longer proceed`,
+                  { actionChain, injectedObject: result },
                 )
+                if (actionChain) {
+                  // There is a bug with global popups not being able to be visible because of this abort block.
+                  // For now until a better solution is implemented we can do a check here
+                  for (const action of actionChain.queue) {
+                    const popUpView = _pick(action, 'popUpView')
+                    if (popUpView) {
+                      if (app.ndom.global.components.has(popUpView)) {
+                        log.salmon(
+                          `An "abort: true" was injected from evalObject but a global component ` +
+                            `with popUpView "${popUpView}" was found. These popUp actions will ` +
+                            `still be called to ensure the behavior persists for global popUps`,
+                          {
+                            globalObject:
+                              app.ndom.global.components.get(popUpView),
+                          },
+                        )
+                        await action?.execute()
+                      }
+                    }
+                  }
+                  if (!actionChain.isAborted()) {
+                    await actionChain.abort(
+                      `An evalObject is requesting to abort using the "abort" key`,
+                    )
+                  }
+                }
+              } else {
+                const isPossiblyAction = 'actionType' in result
+                const isPossiblyToastMsg = 'message' in result
+                const isPossiblyGoto =
+                  'goto' in result || 'destination' in result
+
+                if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
+                  if (isPossiblyGoto) {
+                    const destination = result.goto || result.destination || ''
+                    const pageComponentParent = findParent(
+                      options?.component,
+                      Identify.component.page,
+                    )
+                    if (
+                      pageComponentParent &&
+                      pageComponentParent.get('page')
+                    ) {
+                      const ndomPage = app.ndom.findPage(pageComponentParent)
+                      if (ndomPage && ndomPage.requesting !== destination) {
+                        ndomPage.requesting = destination
+                      }
+                    }
+                  }
+
+                  log.grey(
+                    `An evalObject action is injecting a new object to the chain`,
+                    {
+                      actionChain,
+                      instance: actionChain?.inject.call(
+                        actionChain,
+                        result as any,
+                      ),
+                      object: result,
+                      queue: actionChain?.queue.slice(),
+                    },
+                  )
+                }
               }
             }
           }
@@ -254,165 +275,179 @@ const createActions = function createActions(app: App) {
     } catch (error) {
       console.error(error)
       toast(error.message, { type: 'error' })
+    } finally {
+      if (!app.noodl.getState().queue?.length) {
+        app.disableSpinner()
+      }
     }
   }
 
-  const goto: Store.ActionObject['fn'] = async function onGoto(
-    action,
-    options,
-  ) {
-    let goto = _pick(action, 'goto') || ''
-    let ndomPage = pickNDOMPageFromOptions(options)
-    let destProps: ReturnType<typeof app.parse.destination>
+  const goto: Store.ActionObject['fn'] = useGotoSpinner(
+    app,
+    async function onGoto(action, options) {
+      let goto = _pick(action, 'goto') || ''
+      let ndomPage = pickNDOMPageFromOptions(options)
+      let destProps: ReturnType<typeof app.parse.destination>
 
-    log.func('goto')
-    log.grey(
-      _pick(action, 'goto'),
-      u.isObj(action) ? action?.snapshot?.() : action,
-    )
+      if (!app.getState().spinner.active) app.enableSpinner()
 
-    let destinationParam =
-      (u.isStr(goto)
-        ? goto
-        : u.isObj(goto)
-        ? goto.destination || goto.dataIn?.destination || goto
-        : '') || ''
+      log.func('goto')
+      log.grey(
+        _pick(action, 'goto'),
+        u.isObj(action) ? action?.snapshot?.() : action,
+      )
 
-    destProps = app.parse.destination(
-      Identify.pageComponentUrl(destinationParam)
-        ? resolvePageComponentUrl({
-            component: options?.component,
-            page: ndomPage.getNuiPage(),
-            localKey: ndomPage.page,
-            root: app.root,
-            key: 'goto',
-            value: destinationParam,
-          })
-        : destinationParam,
-    )
+      let destinationParam =
+        (u.isStr(goto)
+          ? goto
+          : u.isObj(goto)
+          ? goto.destination || goto.dataIn?.destination || goto
+          : '') || ''
 
-    let { destination, id = '', isSamePage, duration } = destProps
+      destProps = app.parse.destination(
+        Identify.pageComponentUrl(destinationParam)
+          ? resolvePageComponentUrl({
+              component: options?.component,
+              page: ndomPage.getNuiPage(),
+              localKey: ndomPage.page,
+              root: app.root,
+              key: 'goto',
+              value: destinationParam,
+            })
+          : destinationParam,
+      )
 
-    let pageModifiers = {} as any
+      let { destination, id = '', isSamePage, duration } = destProps
 
-    if (destination === destinationParam) {
-      ndomPage.requesting = destination
-    }
+      let pageModifiers = {} as any
 
-    if ('targetPage' in destProps) {
-      // @ts-expect-error
-      const destObj = destProps as ParsedPageComponentUrlObject
-      destination = destObj.targetPage || ''
-      id = destObj.viewTag || ''
-      if (id) {
-        for (const obj of app.cache.component) {
-          if (obj) {
-            if (obj?.component?.blueprint?.id === id) {
-              const pageComponent = obj.component
-              const currentPageName = pageComponent?.get?.('path')
-              ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
-              break
+      if (destination === destinationParam) {
+        ndomPage.requesting = destination
+      }
+
+      if ('targetPage' in destProps) {
+        // @ts-expect-error
+        const destObj = destProps as ParsedPageComponentUrlObject
+        destination = destObj.targetPage || ''
+        id = destObj.viewTag || ''
+        if (id) {
+          for (const obj of app.cache.component) {
+            if (obj) {
+              if (obj?.component?.blueprint?.id === id) {
+                const pageComponent = obj.component
+                const currentPageName = pageComponent?.get?.('path')
+                ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+                break
+              }
             }
           }
         }
       }
-    }
 
-    if (u.isObj(goto?.dataIn)) {
-      const dataIn = goto.dataIn
-      'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
-      'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
-    }
+      if (u.isObj(goto?.dataIn)) {
+        const dataIn = goto.dataIn
+        'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
+        'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
+      }
 
-    if (id) {
-      const isInsidePageComponent =
-        isPageConsumer(options.component) || !!destProps.targetPage
-      const node = findByViewTag(id) || findByElementId(id)
-      if (node) {
-        let win: Window | undefined | null
-        let doc: Document | null | undefined
-        if (document.contains?.(node as any)) {
-          win = window
-          doc = window.document
-        } else {
-          win = findWindow((w) => {
-            if (!w) return false
-            return (
-              'contentDocument' in w ? w['contentDocument'] : w.document
-            )?.contains?.(node as HTMLElement)
-          })
-        }
-        function scroll() {
-          if (isInsidePageComponent) {
-            scrollToElem(node, { win, doc, duration })
+      if (id) {
+        const isInsidePageComponent =
+          isPageConsumer(options.component) || !!destProps.targetPage
+        const node = findByViewTag(id) || findByElementId(id)
+        if (node) {
+          let win: Window | undefined | null
+          let doc: Document | null | undefined
+          if (document.contains?.(node as any)) {
+            win = window
+            doc = window.document
           } else {
-            ;(node as HTMLElement)?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'center',
+            win = findWindow((w) => {
+              if (!w) return false
+              return (
+                'contentDocument' in w ? w['contentDocument'] : w.document
+              )?.contains?.(node as HTMLElement)
             })
           }
+          function scroll() {
+            if (isInsidePageComponent) {
+              scrollToElem(node, { win, doc, duration })
+            } else {
+              ;(node as HTMLElement)?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center',
+              })
+            }
+          }
+          if (isSamePage) scroll()
+          else;
+          ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+        } else {
+          log.red(
+            `Could not search for a DOM node with an identity of "${id}"`,
+            {
+              id,
+              destination,
+              isSamePage,
+              duration,
+              action: action?.snapshot?.(),
+            },
+          )
         }
-        if (isSamePage) scroll()
-        else;
-        ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
-      } else {
-        log.red(`Could not search for a DOM node with an identity of "${id}"`, {
-          id,
-          destination,
-          isSamePage,
-          duration,
-          action: action?.snapshot?.(),
-        })
       }
-    }
 
-    if (!destinationParam.startsWith('http')) {
-      // Avoids letting page components (lower level components) from mutating the tab's url
-      if (ndomPage === app.mainPage) {
-        ndomPage.pageUrl = app.parse.queryString({
-          destination,
-          pageUrl: ndomPage.pageUrl,
-          startPage: app.startPage,
-        })
-        log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+      if (!destinationParam.startsWith('http')) {
+        // Avoids letting page components (lower level components) from mutating the tab's url
+        if (ndomPage === app.mainPage) {
+          const originUrl = ndomPage.pageUrl
+          ndomPage.pageUrl = app.parse.queryString({
+            destination,
+            pageUrl: ndomPage.pageUrl,
+            startPage: app.startPage,
+          })
+          log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+        } else {
+          // TODO - Move this to an official location in noodl-ui-dom
+          if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+            if (ndomPage.node.contentDocument?.body) {
+              ndomPage.node.contentDocument.body.textContent = ''
+            }
+          }
+        }
       } else {
-        // TODO - Move this to an official location in noodl-ui-dom
-        if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+        destination = destinationParam
+      }
+
+      log.grey(`Goto info`, {
+        gotoObject: { goto },
+        destinationParam,
+        isSamePage,
+        pageModifiers,
+        updatedQueryString: ndomPage?.pageUrl,
+      })
+
+      if (!isSamePage) {
+        if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
           if (ndomPage.node.contentDocument?.body) {
             ndomPage.node.contentDocument.body.textContent = ''
           }
         }
-      }
-    } else {
-      destination = destinationParam
-    }
-
-    log.grey(`Goto info`, {
-      gotoObject: { goto },
-      destinationParam,
-      isSamePage,
-      pageModifiers,
-      updatedQueryString: ndomPage?.pageUrl,
-    })
-
-    if (!isSamePage) {
-      if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
-        if (ndomPage.node.contentDocument?.body) {
-          ndomPage.node.contentDocument.body.textContent = ''
+        ndomPage.setModifier(destination, pageModifiers)
+        // debugger
+        if (ndomPage.page && ndomPage.page !== destination) {
+          // delete app.noodl.root[ndomPage.page]
+        }
+        await app.navigate(ndomPage, destination, { isGoto: true })
+        if (!destination) {
+          log.func('goto')
+          log.red(
+            'Tried to go to a page but could not find information on the whereabouts',
+            { action: action?.snapshot?.(), options },
+          )
         }
       }
-
-      await app.navigate(ndomPage, destination)
-      if (!destination) {
-        log.func('goto')
-        log.red(
-          'Tried to go to a page but could not find information on the whereabouts',
-          { action: action?.snapshot?.(), options },
-        )
-      }
-    }
-  }
+    },
+  )
 
   const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
     async function getInjectBlob(action, options) {
@@ -838,17 +873,10 @@ const createActions = function createActions(app: App) {
           }
         }
 
-        if (dataObject) {
-          const params = { dataKey, dataObject }
-          log.func('updateObject')
-          log.grey(`Calling updateObject`, { params })
-          await app.noodl.updateObject(params)
-        } else {
-          log.red(`Invalid/empty dataObject`, {
-            action: action?.snapshot?.(),
-            dataObject,
-          })
-        }
+        const params = { dataKey, dataObject }
+        log.func('updateObject')
+        log.grey(`Calling updateObject`, { params })
+        await app.noodl.updateObject(params)
       }
     } catch (error) {
       console.error(error)

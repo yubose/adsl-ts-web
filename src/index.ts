@@ -2,7 +2,6 @@ import yaml from 'yaml'
 import * as u from '@jsmanifest/utils'
 import { Account, CADL } from '@aitmed/cadl'
 import Logger from 'logsnap'
-import pick from 'lodash/pick'
 import * as lib from 'noodl-ui'
 import {
   asHtmlElement,
@@ -25,8 +24,15 @@ import {
 } from 'noodl-ui-dom'
 import { findReferences } from 'noodl-utils'
 import { copyToClipboard, exportToPDF, getVcodeElem, toast } from './utils/dom'
+import { isChrome } from './utils/common'
+import {
+  getUserProps as getUserPropsFromLocalStorage,
+  saveUserProps as saveUserPropsFromLocalStorage,
+} from './utils/localStorage'
 import AppNotification from './app/Notifications'
 import App from './App'
+import 'tippy.js/dist/tippy.css'
+import 'tippy.js/themes/light.css'
 import 'vercel-toast/dist/vercel-toast.css'
 import './spinner/three-dots.css'
 import './styles.css'
@@ -38,34 +44,33 @@ const log = Logger.create('App.ts')
  * to the global window object
  */
 export async function getWindowHelpers() {
-  const { default: Lvl2 } = await import('@aitmed/ecos-lvl2-sdk')
-  const lvl2sdk = new Lvl2({ env: 'development', configUrl: '' })
+  // const { default: Lvl2 } = await import('@aitmed/ecos-lvl2-sdk')
+  // const lvl2sdk = new Lvl2({ env: 'development', configUrl: '' })
 
-  return u.assign(
-    {
-      lvl2: lvl2sdk.utilServices,
-      exportToPDF,
-      findByDataAttrib,
-      findByDataKey,
-      findByElementId,
-      findByGlobalId,
-      findByPlaceholder,
-      findBySelector,
-      findBySrc,
-      findByViewTag,
-      findByUX,
-      findReferences,
-      findWindow,
-      findWindowDocument,
-      findFirstByClassName,
-      findFirstByDataKey,
-      findFirstByElementId,
-      findFirstByViewTag,
-      getVcodeElem,
-      toast,
-    },
-    pick(lib, ['getDataValues', 'publish']),
-  )
+  return u.assign({
+    // lvl2: lvl2sdk.utilServices,
+    exportToPDF,
+    findByDataAttrib,
+    findByDataKey,
+    findByElementId,
+    findByGlobalId,
+    findByPlaceholder,
+    findBySelector,
+    findBySrc,
+    findByViewTag,
+    findByUX,
+    findReferences,
+    findWindow,
+    findWindowDocument,
+    findFirstByClassName,
+    findFirstByDataKey,
+    findFirstByElementId,
+    findFirstByViewTag,
+    getVcodeElem,
+    getUserPropsFromLocalStorage,
+    saveUserPropsFromLocalStorage,
+    toast,
+  })
 }
 
 let app: App
@@ -160,22 +165,22 @@ window.addEventListener('load', async (e) => {
     Object.defineProperties(window, {
       app: { configurable: true, get: () => app },
       build: { configurable: true, value: process.env.BUILD },
-      l: { configurable: true, get: () => app?.meeting.localParticipant },
-      cache: { configurable: true, get: () => app?.cache },
+      // l: { configurable: true, get: () => app?.meeting.localParticipant },
+      // cache: { configurable: true, get: () => app?.cache },
       cp: { configurable: true, get: () => copyToClipboard },
-      noodl: { configurable: true, get: () => noodl },
-      nui: { configurable: true, get: () => app?.nui },
-      ndom: { configurable: true, get: () => app?.ndom },
-      phone: {
-        get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
-      },
+      // noodl: { configurable: true, get: () => noodl },
+      // nui: { configurable: true, get: () => app?.nui },
+      // ndom: { configurable: true, get: () => app?.ndom },
+      // phone: {
+      //   get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
+      // },
       ...u.reduce(
         u.entries(await getWindowHelpers()),
         (acc, [key, fn]) =>
           u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
         {},
       ),
-      toYml: { configurable: true, get: () => yaml.stringify.bind(yaml) },
+      // toYml: { configurable: true, get: () => yaml.stringify.bind(yaml) },
     })
 
     window.addEventListener('popstate', createOnPopState(app))
@@ -188,6 +193,41 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gesturestart', (e) => e.preventDefault())
   document.addEventListener('gestureend', (e) => e.preventDefault())
   document.addEventListener('gesturechange', (e) => e.preventDefault())
+
+  window.addEventListener('storage', (evt) => {
+    console.log(`[storage]`, evt)
+  })
+
+  const notifiedForChromeDesktop = window.localStorage.getItem(
+    'notified-chrome-desktop',
+  )
+
+  if (!isChrome() && notifiedForChromeDesktop != 'notified') {
+    const width = window.outerWidth
+    if (width > 1000) {
+      window.localStorage.setItem('notified-chrome-desktop', 'notified')
+      toast(`For best performance, please use the Chrome browser`, {
+        timeout: 10000,
+        type: 'dark',
+      })
+    }
+  }
+
+  // const pdfElem = findFirstByViewTag('mainView')
+  // window.scrollTo({ left: window.innerWidth })
+  // let interval = setInterval(() => {
+  //   const imgElem = findFirstBySelector(
+  //     `[src="http://127.0.0.1:3001/assets/downLoadBlue.svg"]`,
+  //   )
+  //   if (imgElem) {
+  //     const btn = imgElem.nextElementSibling
+  //     if (btn) {
+  //       btn['click']()
+  //       return clearInterval(interval)
+  //     }
+  //   }
+  // console.log(`[interval] The btn button has not rendered yet`)
+  // }, 150)
 })
 
 window.addEventListener('unload', (evt) => {
@@ -209,21 +249,6 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
-    componentStats: {
-      get() {
-        const pageComponentCount = {} as Record<string, number>
-        for (const obj of app.cache.component) {
-          if (obj) {
-            const pageName = obj.page
-            if (!(pageName in pageComponentCount)) {
-              pageComponentCount[pageName] = 0
-            }
-            pageComponentCount[pageName]++
-          }
-        }
-        return pageComponentCount
-      },
-    },
     pageTable: {
       get() {
         const result = [] as { page: string; ndom: number; nui: number }[]
@@ -267,6 +292,33 @@ function attachDebugUtilsToWindow(app: App) {
         }
 
         return result
+      },
+    },
+    componentCache: {
+      value: {
+        findComponentsWithKeys: (...keys: string[]) => {
+          const regexp = new RegExp(`(${keys.join('|')})`)
+          return app.cache.component.filter((obj) =>
+            [
+              ...new Set([
+                ...u.keys(obj?.component?.blueprint || {}),
+                ...u.keys(obj?.component?.props || {}),
+              ]),
+            ].some((key) => regexp.test(key)),
+          )
+        },
+        findByComponentType: (type: string) =>
+          app.cache.component.filter((obj) => obj.component?.type === type),
+        findById: (id: string) =>
+          app.cache.component.filter((obj) => obj.component?.id === id),
+        findByPopUpView: (popUpView: string) =>
+          app.cache.component.filter(
+            (obj) => obj.component?.blueprint?.popUpView === popUpView,
+          ),
+        findByViewTag: (viewTag: string) =>
+          app.cache.component.filter(
+            (obj) => obj.component?.blueprint?.viewTag === viewTag,
+          ),
       },
     },
   })

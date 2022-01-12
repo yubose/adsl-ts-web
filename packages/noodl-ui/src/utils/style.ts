@@ -6,8 +6,21 @@ export const xKeys = <const>['width', 'left']
 export const yKeys = <const>['height', 'top', 'marginTop']
 export const posKeys = <const>[...xKeys, ...yKeys]
 // Style keys that map their values relative to the viewport's height
-export const vpHeightKeys = <const>[...yKeys, 'borderRadius', 'fontSize']
-export const vpWidthKeys = <const>[...xKeys, 'marginLeft', 'marginRight']
+export const vpHeightKeys = <const>[
+  ...yKeys,
+  'borderRadius',
+  'fontSize',
+  'paddingTop',
+  'paddingBottom',
+  'marginBottom',
+]
+export const vpWidthKeys = <const>[
+  ...xKeys,
+  'marginLeft',
+  'marginRight',
+  'paddingLeft',
+  'paddingRight',
+]
 
 export const textAlignStrings = [
   'left',
@@ -60,30 +73,6 @@ export function getSize(value: string | number, viewportSize: number) {
     return `${value}px`
   }
   return value
-}
-
-/**
- *  Returns an object transformed using the value of textAlign
- * @param { object } style
- * @param { string } textAlign - NOODL textAlign value
- */
-export function getTextAlign(
-  textAlign: string,
-): undefined | Record<string, any> {
-  if (
-    !textAlignStrings.includes(textAlign as typeof textAlignStrings[number])
-  ) {
-    return
-  }
-  if (textAlign === 'centerX') return { textAlign: 'center' }
-  if (textAlign === 'centerY') return { display: 'flex', alignItems: 'center' }
-  // NOTE: careful about passing "y" into here
-  switch (textAlign) {
-    case 'left':
-    case 'center':
-    case 'right':
-      return { textAlign }
-  }
 }
 
 /**

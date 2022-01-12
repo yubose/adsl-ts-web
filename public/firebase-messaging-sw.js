@@ -34,13 +34,13 @@ self.addEventListener(
   'fetch',
   /** @type { ServiceWorkerGlobalScope['onfetch'] } */
   function (evt) {
-    log(`${tag} onfetch`, style, {
-      clientId: evt.clientId,
-      request: evt.request,
-      resultingClientId: evt.resultingClientId,
-      type: evt.type,
-      timestamp: evt.timeStamp,
-    })
+    // log(`${tag} onfetch`, style, {
+    //   clientId: evt.clientId,
+    //   request: evt.request,
+    //   resultingClientId: evt.resultingClientId,
+    //   type: evt.type,
+    //   timestamp: evt.timeStamp,
+    // })
   },
 )
 

@@ -34,13 +34,11 @@ export {
 } from './constants'
 export {
   evalIf,
-  findChild,
   findListDataObject,
   findIteratorVar,
   findParent,
   flatten,
   getDataValues,
-  getLast,
   isListConsumer,
   parseReference,
   publish,
