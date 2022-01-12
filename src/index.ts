@@ -145,7 +145,9 @@ window.addEventListener('load', async (e) => {
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
 
-    await initializeNoodlPluginRefresher()
+    if (/(127.0.0.1|localhost)/i.test(location.hostname)) {
+      await initializeNoodlPluginRefresher()
+    }
 
     log.grey('Initializing [App] instance')
 

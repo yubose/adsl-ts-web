@@ -9,7 +9,7 @@
 
 ## Correct link to GitLab
 
-- https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/
+- <https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/>
 
 ## Globals
 
@@ -118,6 +118,7 @@ NUI.emit({
 | admind2 | 8886540007 | 123         |      | yongjian         |
 | admind2 | 8884565043 | 123         |      | chenchen         |
 | admind2 | 8882320918 | 888666      |      | yuhan            |
+| admind2 | 8882324378 | 888666      |      | austin            |
 | patd    | 8880081221 | letmein123! |      |
 | patd    | 8884240000 | 12345       |      |
 | patd2   | 8881122050 | 123         |      |
