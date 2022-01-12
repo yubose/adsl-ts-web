@@ -600,6 +600,7 @@ const NUI = (function () {
                 `color:#ec0000;`,
                 c,
               )
+              key === 'data-value' && c.edit({ [key] : '' })
             }
           }
         }
