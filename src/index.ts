@@ -130,6 +130,12 @@ async function initializeNoodlPluginRefresher() {
 }
 
 window.addEventListener('load', async (e) => {
+  if (isChrome()) {
+    console.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
+  } else {
+    console.log(`%c[Chrome] You are not using chrome browser`, `color:orange;`)
+  }
+
   try {
     window.build = process.env.BUILD
     window.ac = []
