@@ -97,6 +97,7 @@ describe(coolGold(`App`), () => {
           obj.name,
         )} to the list of DOM resolvers`, async () => {
           const app = await initializeApp()
+          // @ts-expect-error
           expect(app.ndom.resolvers()).to.satisfy((objs: any) =>
             objs.some((r: any) => r.name === obj.name),
           )
@@ -129,6 +130,7 @@ describe(coolGold(`App`), () => {
 
       createRegisters({} as any).forEach((obj) => {
         it(`should register the "${magenta(
+          // @ts-expect-error
           obj.name,
         )}" object to the register store`, async () => {
           const app = await initializeApp()

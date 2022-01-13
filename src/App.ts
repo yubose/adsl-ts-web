@@ -32,11 +32,7 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
-<<<<<<< HEAD
-import NoodlWorker from './worker/NoodlWorker'
-=======
 import parseUrl from './utils/parseUrl'
->>>>>>> dev2
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
@@ -51,9 +47,6 @@ class App {
     authStatus: '' as AuthStatus | '',
     initialized: false,
     loadingPages: {} as Record<string, { id: string; init: boolean }[]>,
-<<<<<<< HEAD
-    load: {},
-=======
     spinner: {
       active: false,
       config: {
@@ -70,7 +63,6 @@ class App {
       inst: null as null | InstanceType<typeof FullCalendar.Calendar>,
       page: '',
     },
->>>>>>> dev2
   }
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
@@ -400,83 +392,69 @@ class App {
         log.grey(`Initialized notifications`, this.#notification)
       }
 
-      console.log(`A`)
       if (this.notification.supported) {
         if (!this.notification?.initiated) {
-          console.log(`B-1`)
           this.#serviceWorkerRegistration =
             await navigator.serviceWorker?.register('firebase-messaging-sw.js')
-          console.log(`B-2`)
-          this.notification?.init(this.#serviceWorkerRegistration)
-          console.log(`B-3`)
-        }
-<<<<<<< HEAD
-      } else {
-        console.log(`C-1`)
-        this.#serviceWorkerRegistration =
-          await navigator.serviceWorker?.register('firebase-messaging-sw.js')
-        console.log(`C-2`)
-      }
-      console.log(`D`)
-=======
-      })
 
-      try {
-        this.#serviceWorkerRegistration =
-          await navigator.serviceWorker?.register(AppNotification.path)
-      } catch (error) {
-        console.error(error)
-      }
->>>>>>> dev2
-
-      if (this.#serviceWorkerRegistration) {
-        this.serviceWorker?.addEventListener('statechange', (evt) => {
-          console.log(
-            `%c[App - serviceWorker] State changed`,
-            `color:#c4a901;`,
-            evt,
-          )
-        })
-
-        this.#serviceWorkerRegistration.addEventListener(
-          'updatefound',
-          async (evt) => {
-            await this.#serviceWorkerRegistration?.update()
+          this.serviceWorker?.addEventListener('statechange', (evt) => {
             console.log(
-              `%c[App - serviceWorkerRegistration] Update found`,
+              `%c[App - serviceWorker] State changed`,
               `color:#c4a901;`,
               evt,
             )
-          },
-        )
+          })
+
+          this.#serviceWorkerRegistration.addEventListener(
+            'updatefound',
+            async (evt) => {
+              await this.#serviceWorkerRegistration?.update()
+              console.log(
+                `%c[App - serviceWorkerRegistration] Update found`,
+                `color:#c4a901;`,
+                evt,
+              )
+            },
+          )
+
+          const listenForWaitingServiceWorker = (
+            reg: ServiceWorkerRegistration,
+            promptUserToRefresh: (reg: ServiceWorkerRegistration) => void,
+          ) => {
+            const awaitStateChange = () => {
+              reg.installing?.addEventListener('statechange', function () {
+                if (this.state === 'installed') promptUserToRefresh(reg)
+              })
+            }
+            if (!reg) return
+            if (reg.waiting) return promptUserToRefresh(reg)
+            if (reg.installing) awaitStateChange()
+            reg.addEventListener('updatefound', awaitStateChange)
+          }
+
+          // Reload once when the new Service Worker starts activating
+          let refreshing = false
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return
+            refreshing = true
+            window.location.reload()
+          })
+
+          listenForWaitingServiceWorker(
+            this.#serviceWorkerRegistration,
+            (reg: ServiceWorkerRegistration) => {
+              reg.showNotification(
+                `There is an update available. Would you like to apply the update?`,
+              )
+              // onClick -->   reg.waiting?.postMessage('skipWaiting')
+            },
+          )
+
+          this.notification?.init()
+        }
       }
 
-<<<<<<< HEAD
-      await this.noodl.init()
-      // await this.noodl.init({
-      //   ...getBatchFromLocalStorage(
-      //     'BaseDataModel',
-      //     'BaseCSS',
-      //     'BasePage',
-      //     'cadlEndpoint',
-      //     'config',
-      //   ),
-      //   onCadlEndpoint: (json) => {
-      //     if (u.isObj(json)) {
-      //       localStorage.setItem('cadlEndpoint', JSON.stringify(json))
-      //     }
-      //   },
-      //   onPreload: (name, processed, json, yml) => {
-      //     if (name && u.isObj(json)) {
-      //       localStorage.setItem(name, JSON.stringify(json))
-      //     }
-      //   },
-      // })
-=======
-      if (!this.notification?.initiated) {
-        // @ts-expect-error
-        await this.notification?.init(this.#serviceWorkerRegistration)
-      }
+      !this.notification?.initiated && (await this.notification?.init())
 
       this.noodl.on('QUEUE_START', () => {
         if (!this.getState().spinner.active) this.enableSpinner()
@@ -487,7 +465,6 @@ class App {
           if (this.getState().spinner.active) this.disableSpinner()
         }
       })
->>>>>>> dev2
 
       await this.noodl.init()
 

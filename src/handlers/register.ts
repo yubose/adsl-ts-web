@@ -80,11 +80,14 @@ function createRegisters(app: App) {
       }
 
       app.notification
-        ?.getToken()
+        ?.getToken({
+          serviceWorkerRegistration:
+            app.serviceWorkerRegistration as ServiceWorkerRegistration,
+        })
         .then(async (token) => {
           log.grey('', {
             token,
-            serviceWorkerRegistration: app.notification.workerRegistration,
+            serviceWorkerRegistration: app.serviceWorkerRegistration,
           })
           await componentObject.onEvent?.(token)
         })
@@ -217,7 +220,10 @@ function createRegisters(app: App) {
             app,
           )
         }
-        const token = await app.notification?.getToken()
+        const token = await app.notification?.getToken({
+          serviceWorkerRegistration:
+            app.serviceWorkerRegistration as ServiceWorkerRegistration,
+        })
         copyToClipboard(token as string)
         return token
       } catch (error) {

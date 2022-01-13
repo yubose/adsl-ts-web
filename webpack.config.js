@@ -2,6 +2,7 @@ const u = require('@jsmanifest/utils')
 const path = require('path')
 const fs = require('fs-extra')
 const webpack = require('webpack')
+const del = require('del')
 const singleLog = require('single-line-log').stdout
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
@@ -10,6 +11,8 @@ const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
+
+del.sync(path.resolve(path.join(process.cwd(), 'build')))
 
 const TITLE = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
 const DESCRIPTION = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
@@ -21,6 +24,33 @@ const nuiPkg = fs.readJsonSync('./packages/noodl-ui/package.json')
 const ndomPkg = fs.readJsonSync('./packages/noodl-ui-dom/package.json')
 const ntypesPkg = fs.readJsonSync('./packages/noodl-types/package.json')
 const nutilsPkg = fs.readJsonSync('./packages/noodl-utils/package.json')
+
+const filename = 'index.html'
+const publicPath = path.join(process.cwd(), 'public')
+
+const ECOS_ENV = process.env.ECOS_ENV
+const NODE_ENV = process.env.NODE_ENV
+const MODE = NODE_ENV !== 'production' ? 'development' : 'production'
+
+let pkgVersionPaths = String(pkg.version).split('.')
+let pkgVersionRev = Number(pkgVersionPaths.pop())
+let outputFileName = ''
+let buildVersion = ''
+
+if (!Number.isNaN(pkgVersionRev)) {
+  buildVersion = [...pkgVersionPaths, ++pkgVersionRev].join('.')
+  // fs.writeJsonSync(
+  //   './package.json',
+  //   { ...pkg, version: buildVersion },
+  //   { spaces: 2 },
+  // )
+  outputFileName =
+    MODE === 'production' ? `[name].[contenthash].js` : '[name].js'
+  // MODE === 'production' ? `[name]${buildVersion}.js` : '[name].js'
+} else {
+  outputFileName =
+    MODE === 'production' ? `[name].[contenthash].js` : '[name].js'
+}
 
 const pkgJson = {
   root: pkg,
@@ -43,13 +73,6 @@ const version = {
   nTypes: pkgJson.nTypes.version,
 }
 
-const filename = 'index.html'
-const publicPath = path.join(process.cwd(), 'public')
-
-const ECOS_ENV = process.env.ECOS_ENV
-const NODE_ENV = process.env.NODE_ENV
-const MODE = NODE_ENV !== 'production' ? 'development' : 'production'
-
 const commonHeaders = {
   'Access-Control-Allow-Credentials': true,
   'Access-Control-Allow-Origin': '*',
@@ -67,7 +90,7 @@ module.exports = {
   output: {
     clean: true,
     // Using content hash when "watching" makes webpack save assets which might increase memory usage
-    filename: MODE === 'production' ? '[name].[contenthash].js' : '[name].js',
+    filename: outputFileName,
     path: path.resolve(process.cwd(), 'build'),
   },
   mode: MODE,
@@ -121,9 +144,7 @@ module.exports = {
     ],
   },
   resolve: {
-    cache: true,
-    // resolver(r) {},
-    unsafeCache: true,
+    cache: false,
     extensions: ['.ts', '.js'],
     modules: ['node_modules'],
     fallback: {
@@ -132,36 +153,38 @@ module.exports = {
     },
   },
   plugins: [
+    // new WorkboxPlugin.GenerateSW({
+    // cleanupOutdatedCaches: true,
+    // importScripts: [
+    //   'https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js',
+    //   'https://www.gstatic.com/firebasejs/8.2.5/firebase-messaging.js',
+    // ],
+    //   clientsClaim: true,
+    //   maximumFileSizeToCacheInBytes: 1000000000000,
+    //   skipWaiting: true,
+    // }),
     new WorkboxPlugin.InjectManifest({
       swSrc: path.join(process.cwd(), './public/firebase-messaging-sw.js'),
       swDest: 'firebase-messaging-sw.js',
       maximumFileSizeToCacheInBytes: 500000000,
+      mode: 'production',
       // globDirectory: 'public',
       // globPatterns: [
       //   '**/public/**/*.{js,css,html,png,jpg,jpeg,woff2,ttf,eot,svg}',
       // ],
-      manifestTransforms: [
-        (entries) => {
-          entries.forEach((entry) => {
-            console.log(`[${u.cyan('entry')}]`, entry)
-          })
-          // this.globDirectory = 'public'
-          // this.globPatterns = [
-          //   '**/public/**/*.{js,css,html,png,jpg,jpeg,woff2,ttf,eot,svg}',
-          // ]
-          return { manifest: entries, warnings: [] }
-        },
-      ],
-      // mode: 'production',
-
-      // cleanupOutdatedCaches: true,
-      // importScripts: [
-      //   'https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js',
-      //   'https://www.gstatic.com/firebasejs/8.2.5/firebase-messaging.js',
+      // manifestTransforms: [
+      //   (entries) => {
+      //     // }), warnings: [] }
+      //     for (const entry of entries) {
+      //       console.log(`[${u.cyan(entry.url)}]`)
+      //       if (entry.url === `main${buildVersion}.js`) {
+      //         // entries.splice(entries.indexOf(entry), 1)
+      //       }
+      //     }
+      //     return { manifest: entries, warnings: [] }
+      //   },
       // ],
-      // clientsClaim: true,
-      // maximumFileSizeToCacheInBytes: 1000000000000,
-      // skipWaiting: true,
+      mode: 'production',
     }),
     new webpack.ProvidePlugin({ process: 'process' }),
     new CircularDependencyPlugin({
@@ -295,6 +318,7 @@ function webpackProgress(percentage, msg, ...args) {
   //   // prettier-ignore
   //   singleLog(
   // `Your app is being built for ${u.cyan(`eCOS`)} ${u.magenta(getEcosEnv())} environment in ${u.cyan(getNodeEnv())} MODE\n
+  // Version: ${u.cyan(buildVersion)}
   // Status:    ${u.cyan(msg.toUpperCase())}
   // File:      ${u.magenta(args[0])}
   // Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%

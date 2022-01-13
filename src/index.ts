@@ -29,7 +29,6 @@ import {
   getUserProps as getUserPropsFromLocalStorage,
   saveUserProps as saveUserPropsFromLocalStorage,
 } from './utils/localStorage'
-import AppNotification from './app/Notifications'
 import App from './App'
 import 'tippy.js/dist/tippy.css'
 import 'tippy.js/themes/light.css'
@@ -78,16 +77,14 @@ let ws: WebSocket
 
 async function initializeApp(
   args: {
-    notification?: AppNotification
     noodl?: CADL
     Account?: typeof Account
   } = {},
 ) {
-  let { notification, noodl, Account: accountProp } = args
+  let { noodl, Account: accountProp } = args
+  let notification = new (await import('./app/Notifications')).default()
   !noodl && (noodl = (await import('./app/noodl')).default)
   !accountProp && (accountProp = (await import('@aitmed/cadl')).Account)
-  !notification &&
-    (notification = new (await import('./app/Notifications')).default())
   if (!app) {
     app = new App({
       noodl,
@@ -103,7 +100,7 @@ async function initializeApp(
       color: '#000', // CSS color or array of colors
       zIndex: 2000000000, // The z-index (defaults to 2e9)
     })
-    app.spinner.spin(document.getElementById('root'))
+    app.spinner.spin(document.getElementById('root') as HTMLDivElement)
   }
   /* -------------------------------------------------------
     ---- Testing tracker
@@ -173,22 +170,13 @@ window.addEventListener('load', async (e) => {
     Object.defineProperties(window, {
       app: { configurable: true, get: () => app },
       build: { configurable: true, value: process.env.BUILD },
-      // l: { configurable: true, get: () => app?.meeting.localParticipant },
-      // cache: { configurable: true, get: () => app?.cache },
       cp: { configurable: true, get: () => copyToClipboard },
-      // noodl: { configurable: true, get: () => noodl },
-      // nui: { configurable: true, get: () => app?.nui },
-      // ndom: { configurable: true, get: () => app?.ndom },
-      // phone: {
-      //   get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
-      // },
       ...u.reduce(
         u.entries(await getWindowHelpers()),
         (acc, [key, fn]) =>
           u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
         {},
       ),
-      // toYml: { configurable: true, get: () => yaml.stringify.bind(yaml) },
     })
 
     window.addEventListener('popstate', createOnPopState(app))
