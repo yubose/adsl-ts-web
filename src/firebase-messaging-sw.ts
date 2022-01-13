@@ -1,0 +1,153 @@
+/// <reference lib="WebWorker" />
+
+declare var self: ServiceWorkerGlobalScope
+
+import { precacheAndRoute } from 'workbox-precaching'
+import { registerRoute } from 'workbox-routing'
+import { StaleWhileRevalidate } from 'workbox-strategies'
+
+precacheAndRoute(self.__WB_MANIFEST)
+registerRoute(new RegExp(`/\\.(js|css|html|yml)$/`), new StaleWhileRevalidate())
+registerRoute(
+  ({ request }) =>
+    request.destination === 'script' || request.destination === 'style',
+  new StaleWhileRevalidate(),
+)
+
+// importScripts(
+//   'https://storage.googleapis.com/workbox-cdn/releases/6.2.0/workbox-sw.js',
+// )
+importScripts('https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js')
+importScripts('https://www.gstatic.com/firebasejs/8.2.5/firebase-messaging.js')
+
+// @ts-expect-error
+firebase.initializeApp({
+  apiKey: 'AIzaSyCjNVKmHuDKra5Ct1MKAJ5fI0iQ3UnK7Ho',
+  authDomain: 'aitmessage.firebaseapp.com',
+  databaseURL: 'https://aitmessage.firebaseio.com',
+  projectId: 'aitmessage',
+  storageBucket: 'aitmessage.appspot.com',
+  messagingSenderId: '121837683309',
+  appId: '1:121837683309:web:7fda76efe79928215f3564',
+})
+
+// @ts-expect-error
+const messaging = firebase.messaging()
+
+messaging.onBackgroundMessage(function (payload) {
+  console.log('[serviceWorker.js] Received background message ', payload)
+  // payload.from example --> "669708592038"
+  const { collapseKey, data, from, notification = {} } = payload
+  const notificationTitle = notification.title || ''
+  const notificationOptions = {
+    body: notification.body || '',
+    icon: 'favicon.ico',
+  }
+  self.registration.showNotification(notificationTitle, notificationOptions)
+})
+
+const style = `color:#C04000;font-weight:500;`
+const tag = `%c[serviceWorker]`
+const log = console.log
+
+// If a newer service worker sends a message to an older one,
+// we'll update the old one immediately
+self.addEventListener('message', function (messageEvent) {
+  if (messageEvent.data === 'skipWaiting') return this.skipWaiting()
+})
+
+self.addEventListener('fetch', function onFetch(event) {
+  event.respondWith(
+    (async () => {
+      if (
+        event.request.mode === 'navigate' &&
+        event.request.method === 'GET' &&
+        registration.waiting &&
+        (await clients.matchAll()).length < 2
+      ) {
+        registration.waiting.postMessage('skipWaiting')
+        return new Response('', { headers: { Refresh: '0' } })
+      }
+      return (await caches.match(event.request)) || fetch(event.request)
+    })(),
+  )
+})
+
+self.addEventListener('install', function (evt) {
+  console.log(`${tag} installed`, evt)
+  // evt.waitUntil(
+  //   caches
+  //     .open('v1')
+  //     .then(function (cache) {
+  //       console.log('caching - getting')
+  //       return cache.addAll(['/react-redux/a.js'])
+  //     })
+  //     .catch(function (error) {
+  //       console.log('error', error)
+  //     }),
+  // )
+})
+
+self.addEventListener('notificationclick', function (evt) {
+  log(`${tag} Notification clicked`, style, {
+    action: evt.action,
+    notification: {
+      title: evt.notification.title,
+      body: evt.notification.body,
+      data: evt.notification.data,
+      dir: evt.notification.dir,
+      icon: evt.notification.icon,
+      lang: evt.notification.lang,
+      tag: evt.notification.tag,
+    },
+    timestamp: evt.timeStamp,
+    type: evt.type,
+    evt,
+  })
+})
+
+// self.addEventListener(
+//   'push',
+//   /** @type { ServiceWorkerGlobalScope['onpush'] } */
+//   function (pushEvt) {
+//     log(`${tag} Push event`, style, {
+//       data: pushEvt.data,
+//       timestamp: pushEvt.timeStamp,
+//       type: pushEvt.type,
+//     })
+
+//     const data = pushEvt.data // PushMessageData
+//     const currentTarget = pushEvt.currentTarget // ServiceWorkerGlobalScope
+//     const location = pushEvt?.target?.location // WorkerLocation
+//     const navigator = currentTarget?.navigator // WorkerNavigator
+//     const connection = navigator.connection // NetworkInformation
+//     const storage = navigator.storage // StorageManager
+//     const { onLine, userAgent } = navigator
+//     const platform = navigator.platform // ex: "MacIntel"
+//     const userAgentData = navigator.userAgentData // NavigatorUAData
+//     const isMobile = userAgentData.mobile
+//     // const self = target.self // ServiceWorkerGlobalScope
+//     const caches = self.caches // CacheStorage
+//   },
+// )
+
+// self.addEventListener(
+//   'notificationclose',
+//   /** @type { ServiceWorkerGlobalScope['onnotificationclose'] } */
+//   function (evt) {
+//     log(`${tag} Notification closed`, style, {
+//       action: evt.action,
+//       notification: {
+//         title: evt.notification.title,
+//         body: evt.notification.body,
+//         data: evt.notification.data,
+//         dir: evt.notification.dir,
+//         icon: evt.notification.icon,
+//         lang: evt.notification.lang,
+//         tag: evt.notification.tag,
+//       },
+//       timestamp: evt.timeStamp,
+//       type: evt.type,
+//     })
+//   },
+// )
