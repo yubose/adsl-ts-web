@@ -43,7 +43,6 @@ async function resolveAsync(
       //
     } else {
       result = result ? resolveAssetUrl(result, getAssetsUrl()) : ''
-      debugger
       component.edit({ src: result })
       component.edit({ 'data-src': result })
       component.emit('path', result)

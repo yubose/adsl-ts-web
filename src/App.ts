@@ -230,6 +230,10 @@ class App {
     return this.#serviceWorkerRegistration
   }
 
+  set serviceWorkerRegistration(reg: ServiceWorkerRegistration | null) {
+    this.#serviceWorkerRegistration = reg
+  }
+
   get subStreams() {
     return this.meeting.subStreams
   }
@@ -380,7 +384,11 @@ class App {
     }
   }
 
-  async initialize() {
+  async initialize({
+    onInitNotification,
+  }: {
+    onInitNotification?: (notification: AppNotification) => Promise<void>
+  } = {}) {
     try {
       if (!this.getState().spinner.active) this.enableSpinner()
       if (!this.getStatus) this.getStatus = Account.getStatus
@@ -390,71 +398,8 @@ class App {
       if (!this.notification) {
         this.#notification = new (await import('./app/Notifications')).default()
         log.grey(`Initialized notifications`, this.#notification)
+        onInitNotification && (await onInitNotification?.(this.#notification))
       }
-
-      if (this.notification.supported) {
-        if (!this.notification?.initiated) {
-          this.#serviceWorkerRegistration =
-            await navigator.serviceWorker?.register('firebase-messaging-sw.js')
-
-          this.serviceWorker?.addEventListener('statechange', (evt) => {
-            console.log(
-              `%c[App - serviceWorker] State changed`,
-              `color:#c4a901;`,
-              evt,
-            )
-          })
-
-          this.#serviceWorkerRegistration.addEventListener(
-            'updatefound',
-            async (evt) => {
-              await this.#serviceWorkerRegistration?.update()
-              console.log(
-                `%c[App - serviceWorkerRegistration] Update found`,
-                `color:#c4a901;`,
-                evt,
-              )
-            },
-          )
-
-          const listenForWaitingServiceWorker = (
-            reg: ServiceWorkerRegistration,
-            promptUserToRefresh: (reg: ServiceWorkerRegistration) => void,
-          ) => {
-            const awaitStateChange = () => {
-              reg.installing?.addEventListener('statechange', function () {
-                if (this.state === 'installed') promptUserToRefresh(reg)
-              })
-            }
-            if (!reg) return
-            if (reg.waiting) return promptUserToRefresh(reg)
-            if (reg.installing) awaitStateChange()
-            reg.addEventListener('updatefound', awaitStateChange)
-          }
-
-          // Reload once when the new Service Worker starts activating
-          let refreshing = false
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (refreshing) return
-            refreshing = true
-            window.location.reload()
-          })
-
-          listenForWaitingServiceWorker(
-            this.#serviceWorkerRegistration,
-            (reg: ServiceWorkerRegistration) => {
-              reg.showNotification(
-                `There is an update available. Would you like to apply the update?`,
-              )
-              // onClick -->   reg.waiting?.postMessage('skipWaiting')
-            },
-          )
-
-          this.notification?.init()
-        }
-      }
-
-      !this.notification?.initiated && (await this.notification?.init())
 
       this.noodl.on('QUEUE_START', () => {
         if (!this.getState().spinner.active) this.enableSpinner()

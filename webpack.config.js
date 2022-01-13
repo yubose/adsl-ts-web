@@ -27,6 +27,7 @@ const nutilsPkg = fs.readJsonSync('./packages/noodl-utils/package.json')
 
 const filename = 'index.html'
 const publicPath = path.join(process.cwd(), 'public')
+const buildPath = path.join(process.cwd(), 'build')
 
 const ECOS_ENV = process.env.ECOS_ENV
 const NODE_ENV = process.env.NODE_ENV
@@ -91,7 +92,7 @@ module.exports = {
     clean: true,
     // Using content hash when "watching" makes webpack save assets which might increase memory usage
     filename: outputFileName,
-    path: path.resolve(process.cwd(), 'build'),
+    path: buildPath,
   },
   mode: MODE,
   devServer: {
@@ -164,26 +165,37 @@ module.exports = {
     //   skipWaiting: true,
     // }),
     new WorkboxPlugin.InjectManifest({
-      swSrc: path.join(process.cwd(), './public/firebase-messaging-sw.js'),
+      swSrc: path.join(process.cwd(), './src/firebase-messaging-sw.ts'),
       swDest: 'firebase-messaging-sw.js',
       maximumFileSizeToCacheInBytes: 500000000,
+
       mode: 'production',
-      // globDirectory: 'public',
-      // globPatterns: [
-      //   '**/public/**/*.{js,css,html,png,jpg,jpeg,woff2,ttf,eot,svg}',
-      // ],
-      // manifestTransforms: [
-      //   (entries) => {
-      //     // }), warnings: [] }
-      //     for (const entry of entries) {
-      //       console.log(`[${u.cyan(entry.url)}]`)
-      //       if (entry.url === `main${buildVersion}.js`) {
-      //         // entries.splice(entries.indexOf(entry), 1)
-      //       }
-      //     }
-      //     return { manifest: entries, warnings: [] }
-      //   },
-      // ],
+      manifestTransforms: [
+        /**
+         * @param { WorkboxPlugin.ManifestEntry[] } entries
+         * @param { webpack.Compilation } compilation
+         * @returns
+         */
+        (entries, compilation) => {
+          // console.log({
+          //   assets: compilation.getAssets(),
+          //   assetsInfo: Array.from(compilation.assetsInfo.entries()),
+          //   cache: compilation.getCache(),
+          //   chunks: compilation.chunks,
+          //   entryPoints: Array.from(compilation.entrypoints.entries()),
+          //   stats: compilation.getStats(),
+          // })
+          const mainBundleRegExp = /\.\w{20}\.js$/
+          for (const entry of entries) {
+            if (entry.url.match(mainBundleRegExp)) {
+              // Force the worker to use the url as the revision
+              entry.revision = null
+            }
+            // console.log(`[${u.cyan(entry.url)}]`)
+          }
+          return { manifest: entries, warnings: [] }
+        },
+      ],
       mode: 'production',
     }),
     new webpack.ProvidePlugin({ process: 'process' }),
@@ -197,6 +209,7 @@ module.exports = {
     ),
     new webpack.EnvironmentPlugin({
       BUILD: {
+        version: buildVersion,
         ecosEnv: ECOS_ENV,
         nodeEnv: MODE,
         packages: {
@@ -314,23 +327,23 @@ const getNodeEnv = () => (MODE ? MODE.toUpperCase() : '<Variable not set>')
  * @param { ...string } args
  */
 function webpackProgress(percentage, msg, ...args) {
-  //   process.stdout.write('\x1Bc')
-  //   // prettier-ignore
-  //   singleLog(
-  // `Your app is being built for ${u.cyan(`eCOS`)} ${u.magenta(getEcosEnv())} environment in ${u.cyan(getNodeEnv())} MODE\n
-  // Version: ${u.cyan(buildVersion)}
-  // Status:    ${u.cyan(msg.toUpperCase())}
-  // File:      ${u.magenta(args[0])}
-  // Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
-  // ${u.cyan('eCOS packages')}:
-  // ${u.white(`@aitmed/cadl`)}:            ${u.magenta(version.noodlSdk)}
-  // ${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(version.ecosSdk)}
-  // ${u.white(`noodl-types`)}:             ${u.magenta(version.nTypes)}
-  // ${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
-  // ${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
-  // ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
-  // ${MODE === 'production'
-  //     ? `An ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(TITLE)}`
-  //     : ''
-  // }\n\n`)
+  process.stdout.write('\x1Bc')
+  // prettier-ignore
+  singleLog(
+  `Your app is being built for ${u.cyan(`eCOS`)} ${u.magenta(getEcosEnv())} environment in ${u.cyan(getNodeEnv())} MODE\n
+  Version:   ${u.cyan(buildVersion)}
+  Status:    ${u.cyan(msg.toUpperCase())}
+  File:      ${u.magenta(args[0])}
+  Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
+  ${u.cyan('eCOS packages')}:
+  ${u.white(`@aitmed/cadl`)}:            ${u.magenta(version.noodlSdk)}
+  ${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(version.ecosSdk)}
+  ${u.white(`noodl-types`)}:             ${u.magenta(version.nTypes)}
+  ${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
+  ${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
+  ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
+  ${MODE === 'production'
+      ? `\nAn ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(TITLE)}`
+      : ''
+  }\n\n`)
 }

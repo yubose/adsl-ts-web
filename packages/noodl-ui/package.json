@@ -21,6 +21,7 @@
   "repository": "pfftdammitchris/noodl-ui",
   "scripts": {
     "build": "concurrently \"rollup -c --environment BUILD:production\" \"npm run types\"",
+    "build:development": "cross-env NODE_ENV=development concurrently \"rollup -c --environment BUILD:development\" \"npm run types\"",
     "start": "concurrently \"rollup -c -w --environment BUILD:development\" \"npm run types\"",
     "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register -r jsdom-global/register --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\"",
     "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r jsdom-global/register --file src/setupTests.ts -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\"",

@@ -23,6 +23,7 @@
     "deploy:stable": "bash s3Deploy.sh build",
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
     "editor": "lerna exec --scope noodl-editor 'npm run start'",
+    "lib:build:development": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-types build:development",
     "lib:build": "cross-env USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-types build",
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --parallel start",
     "postinstall": "lerna exec --scope noodl-types --scope noodl-action-chain \"npm run build\"",

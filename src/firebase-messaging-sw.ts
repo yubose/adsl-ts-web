@@ -7,16 +7,14 @@ import { registerRoute } from 'workbox-routing'
 import { StaleWhileRevalidate } from 'workbox-strategies'
 
 precacheAndRoute(self.__WB_MANIFEST)
-registerRoute(new RegExp(`/\\.(js|css|html|yml)$/`), new StaleWhileRevalidate())
 registerRoute(
-  ({ request }) =>
-    request.destination === 'script' || request.destination === 'style',
+  new RegExp(`/\\.(css|html|yml|min\\.js)$/`),
   new StaleWhileRevalidate(),
 )
+registerRoute(({ request }) => {
+  return request.destination === 'script' || request.destination === 'style'
+}, new StaleWhileRevalidate())
 
-// importScripts(
-//   'https://storage.googleapis.com/workbox-cdn/releases/6.2.0/workbox-sw.js',
-// )
 importScripts('https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js')
 importScripts('https://www.gstatic.com/firebasejs/8.2.5/firebase-messaging.js')
 
@@ -50,31 +48,8 @@ const style = `color:#C04000;font-weight:500;`
 const tag = `%c[serviceWorker]`
 const log = console.log
 
-// If a newer service worker sends a message to an older one,
-// we'll update the old one immediately
-self.addEventListener('message', function (messageEvent) {
-  if (messageEvent.data === 'skipWaiting') return this.skipWaiting()
-})
-
-self.addEventListener('fetch', function onFetch(event) {
-  event.respondWith(
-    (async () => {
-      if (
-        event.request.mode === 'navigate' &&
-        event.request.method === 'GET' &&
-        registration.waiting &&
-        (await clients.matchAll()).length < 2
-      ) {
-        registration.waiting.postMessage('skipWaiting')
-        return new Response('', { headers: { Refresh: '0' } })
-      }
-      return (await caches.match(event.request)) || fetch(event.request)
-    })(),
-  )
-})
-
 self.addEventListener('install', function (evt) {
-  console.log(`${tag} installed`, evt)
+  console.log(`${tag} install`, evt)
   // evt.waitUntil(
   //   caches
   //     .open('v1')
@@ -88,7 +63,38 @@ self.addEventListener('install', function (evt) {
   // )
 })
 
+self.addEventListener('activate', function (evt) {
+  log(`${tag} activate`, evt)
+})
+
+// If a newer service worker sends a message to an older one,
+// we'll update the old one immediately
+self.addEventListener('message', function (messageEvent) {
+  log(`${tag} message`, messageEvent)
+  if (messageEvent.data === 'skipWaiting') return this.skipWaiting()
+})
+
+self.addEventListener('fetch', function onFetch(event) {
+  log(`${tag} fetch`, { event })
+  // event.respondWith(
+  //   (async () => {
+  //     if (
+  //       event.request.mode === 'navigate' &&
+  //       event.request.method === 'GET' &&
+  //       registration.waiting &&
+  //       (await clients.matchAll()).length < 2
+  //     ) {
+  //       registration.waiting.postMessage('skipWaiting')
+  //       return new Response('', { headers: { Refresh: '0' } })
+  //     }
+  //     return (await caches.match(event.request)) || fetch(event.request)
+  //   })(),
+  // )
+})
+
 self.addEventListener('notificationclick', function (evt) {
+  const { data } = evt.notification
+
   log(`${tag} Notification clicked`, style, {
     action: evt.action,
     notification: {
@@ -104,32 +110,58 @@ self.addEventListener('notificationclick', function (evt) {
     type: evt.type,
     evt,
   })
+
+  if (data?.type === 'update-click') {
+    evt.notification.close()
+    this.registration.waiting?.postMessage({ type: 'send-skip-waiting' })
+  }
 })
 
-// self.addEventListener(
-//   'push',
-//   /** @type { ServiceWorkerGlobalScope['onpush'] } */
-//   function (pushEvt) {
-//     log(`${tag} Push event`, style, {
-//       data: pushEvt.data,
-//       timestamp: pushEvt.timeStamp,
-//       type: pushEvt.type,
-//     })
+self.addEventListener('push', function (pushEvt) {
+  log(`${tag} Push`, style, {
+    data: pushEvt.data,
+    timestamp: pushEvt.timeStamp,
+    type: pushEvt.type,
+    pushEvt,
+  })
 
-//     const data = pushEvt.data // PushMessageData
-//     const currentTarget = pushEvt.currentTarget // ServiceWorkerGlobalScope
-//     const location = pushEvt?.target?.location // WorkerLocation
-//     const navigator = currentTarget?.navigator // WorkerNavigator
-//     const connection = navigator.connection // NetworkInformation
-//     const storage = navigator.storage // StorageManager
-//     const { onLine, userAgent } = navigator
-//     const platform = navigator.platform // ex: "MacIntel"
-//     const userAgentData = navigator.userAgentData // NavigatorUAData
-//     const isMobile = userAgentData.mobile
-//     // const self = target.self // ServiceWorkerGlobalScope
-//     const caches = self.caches // CacheStorage
-//   },
-// )
+  const data = pushEvt.data // PushMessageData
+  const currentTarget = pushEvt.currentTarget // ServiceWorkerGlobalScope
+  const location = pushEvt?.target?.location // WorkerLocation
+  const navigator = currentTarget?.navigator // WorkerNavigator
+  const connection = navigator.connection // NetworkInformation
+  const storage = navigator.storage // StorageManager
+  const { onLine, userAgent } = navigator
+  const platform = navigator.platform // ex: "MacIntel"
+  const userAgentData = navigator.userAgentData // NavigatorUAData
+  const isMobile = userAgentData.mobile
+  // const self = target.self // ServiceWorkerGlobalScope
+  const caches = self.caches // CacheStorage
+})
+
+self.addEventListener('online', function (evt) {
+  log(`${tag} online`, evt)
+})
+
+self.addEventListener('offline', function (evt) {
+  log(`${tag} offline`, evt)
+})
+
+self.addEventListener('error', function (errEvt) {
+  log(`${tag} error`, errEvt)
+})
+
+self.addEventListener('messageerror', function (evt) {
+  log(`${tag} messageerror`, evt)
+})
+
+self.addEventListener('rejectionhandled', function (evt) {
+  log(`${tag} rejectionhandled`, evt)
+})
+
+self.addEventListener('unrejectionhandled', function (evt) {
+  log(`${tag} unrejectionhandled`, evt)
+})
 
 // self.addEventListener(
 //   'notificationclose',

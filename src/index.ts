@@ -102,15 +102,93 @@ async function initializeApp(
     })
     app.spinner.spin(document.getElementById('root') as HTMLDivElement)
   }
-  /* -------------------------------------------------------
-    ---- Testing tracker
-  -------------------------------------------------------- */
   const { trackSdk, trackWebApp } = await import('./app/trackers')
   trackSdk(app)
   trackWebApp(app)
   window.app = app
   ////////////////////////////////////////////////////////////
-  await app.initialize()
+  await app.initialize({
+    async onInitNotification(notification) {
+      try {
+        if (notification.supported) {
+          if (!notification?.initiated) {
+            app.serviceWorkerRegistration =
+              await navigator.serviceWorker?.register(
+                'firebase-messaging-sw.js',
+              )
+
+            app.serviceWorker?.addEventListener('statechange', (evt) => {
+              console.log(
+                `%c[App - serviceWorker] State changed`,
+                `color:#c4a901;`,
+                evt,
+              )
+            })
+
+            const listenForWaitingServiceWorker = (
+              reg: ServiceWorkerRegistration,
+              promptUserToRefresh: (reg: ServiceWorkerRegistration) => void,
+            ) => {
+              const awaitStateChange = async (evt?: Event) => {
+                await app.serviceWorkerRegistration?.update()
+                console.log(
+                  `%c[App - serviceWorkerRegistration] Update found`,
+                  `color:#c4a901;`,
+                  evt,
+                )
+
+                reg.installing?.addEventListener('statechange', function () {
+                  if (this.state === 'installed') promptUserToRefresh(reg)
+                })
+              }
+              if (!reg) return
+              if (reg.waiting) return promptUserToRefresh(reg)
+              if (reg.installing) awaitStateChange()
+              reg.addEventListener('updatefound', awaitStateChange)
+            }
+
+            // Reload once when the new Service Worker starts activating
+            let refreshing = false
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+              if (refreshing) return
+              refreshing = true
+              window.location.reload()
+            })
+
+            navigator.serviceWorker.addEventListener('message', (msg) => {
+              console.log(
+                `%c[App] serviceWorker message`,
+                `color:#00b406;`,
+                msg,
+              )
+              if (msg?.type === 'send-skip-waiting') {
+                app.serviceWorkerRegistration?.waiting?.postMessage(
+                  'skipWaiting',
+                )
+              }
+            })
+
+            listenForWaitingServiceWorker(
+              app.serviceWorkerRegistration,
+              (reg: ServiceWorkerRegistration) => {
+                reg.showNotification(
+                  `There is an update available. Would you like to apply the update?`,
+                  { data: { type: 'update-click' } },
+                )
+                // onClick -->   reg.waiting?.postMessage('skipWaiting')
+              },
+            )
+            notification?.init()
+          }
+        }
+
+        !notification?.initiated && (await notification?.init())
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        console.error(err)
+      }
+    },
+  })
   // app.navigate('Cov19TestNewPatReviewPage1')
   return app
 }
