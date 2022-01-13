@@ -115,4 +115,57 @@ describe(`parseUrl`, () => {
       // expect(parsed).to.have.property('startPage').to.eq('MeetingRoomInvited')
     })
   })
+
+  const url4 = `https://patd3.aitmed.io/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY`
+
+  it(
+    u.italic(
+      `should parse through the random "=" sign right behind PaymentConfirmation in the url`,
+    ),
+    () => {
+      let pageUrl = 'index.html?'
+      let startPage = 'SignIn'
+      let page = ['SignIn', 'PaymentConfirmation']
+      const parsedUrl = parseUrl(
+        {
+          languageSuffix: {},
+          fileSuffix: '.yml',
+          assetsUrl: `$\\{cadlBaseUrl}`,
+          baseUrl: `https://public.aitmed.com/cadl/admindd7.14/`,
+          page,
+          preload: [],
+          startPage: 'SignIn',
+        },
+        url4,
+      )
+
+      if (parsedUrl.hasParams) {
+        pageUrl = parsedUrl.pageUrl
+        if (u.isArr(['SignIn', 'PaymentConfirmation'])) {
+          if (!page.includes(parsedUrl.startPage)) {
+            // Fall back to the original start page if it is an invalid page
+            startPage = startPage || startPage || ''
+            pageUrl = 'index.html?'
+          }
+        }
+        pageUrl = pageUrl + parsedUrl?.paramsStr
+      }
+
+      expect(parsedUrl).to.have.property('startPage', 'PaymentConfirmation')
+      expect(parsedUrl)
+        .to.have.property('pages')
+        .to.include.members(['SignIn', 'PaymentConfirmation'])
+      expect(parsedUrl.params).to.have.property(
+        'checkoutId',
+        'CBASEGgNoO4yMDXtGxoZf3Q0hG0',
+      )
+      expect(parsedUrl.params).to.have.property(
+        'transactionId',
+        'rt1gucryhQv4MEZ4tHoZnKdpVIRZY',
+      )
+      expect(parsedUrl.pageUrl).to.eq(
+        'https://patd3.aitmed.io/index.html?PaymentConfirmation',
+      )
+    },
+  )
 })

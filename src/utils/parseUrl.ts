@@ -36,6 +36,7 @@ const getParamsAndPages = (url: URL) => {
 function parseUrl(appConfig: nt.AppConfig, value = '') {
   const url = new URL(value)
   const { params, pages } = getParamsAndPages(url)
+
   const base = getBase(url.href)
   const keys = u.keys(params) as string[]
   let noodlPathname = pages.join('-')
@@ -47,20 +48,24 @@ function parseUrl(appConfig: nt.AppConfig, value = '') {
 
   pageUrl.endsWith('index.html') && (pageUrl = `${pageUrl}?`)
   pageUrl = `${pageUrl}${noodlPathname}`
-  
-  const pageParts = value.split('-')
+
+  const pagePartsInUrl = pages.includes(startPage)
+    ? [...pages].splice(pages.indexOf(startPage), 1)
+    : pages
+
   let currentPage = ''
-  if (pageParts.length > 1) {
-    currentPage = pageParts[pageParts.length - 1]
+
+  if (pagePartsInUrl.length > 1) {
+    currentPage = pagePartsInUrl[pagePartsInUrl.length - 1]
   } else {
-    const baseArr = pageParts[0].split('?')
+    const baseArr = pagePartsInUrl[0].split('?')
     if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
       currentPage = baseArr[baseArr.length - 1]
     }
   }
 
   let paramsStr = ''
-  if(Object.keys(params)){
+  if (Object.keys(params)) {
     u.reduce(
       Object.keys(params),
       (acc, key) => (paramsStr = `${paramsStr}&${key}=${params[key]}`),
@@ -79,7 +84,7 @@ function parseUrl(appConfig: nt.AppConfig, value = '') {
     startPage,
     url: url.href,
     currentPage: currentPage,
-    paramsStr: paramsStr
+    paramsStr: paramsStr,
   }
 
   return result
