@@ -1099,11 +1099,8 @@ class App {
     if (trigger) this.#state.spinner.trigger = trigger
     else this.#state.spinner.trigger = null
 
-    // debugger
-
     this.#state.spinner.ref = setTimeout(
       () => {
-        // debugger
         this.#spinner.spin(target)
         this.#state.spinner.active = true
       },

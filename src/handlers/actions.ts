@@ -433,7 +433,6 @@ const createActions = function createActions(app: App) {
           }
         }
         ndomPage.setModifier(destination, pageModifiers)
-        // debugger
         if (ndomPage.page && ndomPage.page !== destination) {
           // delete app.noodl.root[ndomPage.page]
         }
