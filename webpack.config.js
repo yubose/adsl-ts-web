@@ -146,9 +146,6 @@ module.exports = {
       },
     ],
   },
-  resolveLoader: {
-    modules: [path.join(__dirname, 'node_modules')],
-  },
   resolve: {
     alias: {
       fs: path.resolve(path.join(process.cwd(), './node_modules/fs-extra')),
@@ -255,8 +252,6 @@ module.exports = {
       cache: true,
       scriptLoading: 'defer',
       minify: true,
-      //Austin Yu 8/5/2021 disable for stable build to use webpack generate index.html
-      // ...(ecosEnv !== 'test' ? { template: 'public/index.html' } : undefined),
       meta: {
         description: DESCRIPTION,
         keywords: KEYWORDS.join(', '),
