@@ -137,10 +137,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const exportCSV = async function onExportCSV(options: {
     ecosObj?: EcosDocument
+    obj?:Object
     viewTag?: string
     format?: PdfPageFormat
     download?: boolean
     open?: boolean
+    header?: Array<any>
   }) {
     try {
       let listOfData = u.isArr(options) ? options : ([] as any[])
@@ -164,26 +166,33 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         }
       }
 
-      let csv = ''
-
-      for (const dataObject of listOfData) {
-        let entries = u.entries(dataObject).map(([k, v]) => [[k, v]])
-        let numEntries = entries.length
-
-        //1st loop is to extract each row
-        for (let i = 0; i < numEntries; i++) {
-          let row = ''
-          //2nd loop will extract each column and convert it in string comma-seprated
-          for (const index in entries[i]) {
-            row += '"' + entries[i][index] + '",'
-          }
-          row.slice(0, row.length - 1)
-          //add a line break after each row
-          csv += row + '\r\n'
-        }
-
-        numEntries && (csv += '\r\n')
+      let csv = options.obj
+      // generate header
+      let csvHeader:string|undefined = ''
+      if('header' in options) {
+        csvHeader = options.header?.toString()
+        csvHeader+='\r\n'
       }
+      csv = csvHeader?csvHeader+csv:csv
+      // formate csv in sdk
+      // for (const dataObject of listOfData) {
+      //   let entries = u.entries(dataObject).map(([k, v]) => [[k, v]])
+      //   let numEntries = entries.length
+
+      //   //1st loop is to extract each row
+      //   for (let i = 0; i < numEntries; i++) {
+      //     let row = ''
+      //     //2nd loop will extract each column and convert it in string comma-seprated
+      //     for (const index in entries[i]) {
+      //       row += '"' + entries[i][index] + '",'
+      //     }
+      //     row.slice(0, row.length - 1)
+      //     //add a line break after each row
+      //     csv += row + '\r\n'
+      //   }
+
+      //   numEntries && (csv += '\r\n')
+      // }
 
       const link = document.createElement('a')
       link.id = 'lnkDwnldLnk'
@@ -283,6 +292,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             )
           }
         } else {
+          
           log.red('The name field in an ecosObj was not an object', ecosObj)
         }
       }
