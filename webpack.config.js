@@ -2,7 +2,6 @@ const u = require('@jsmanifest/utils')
 const path = require('path')
 const fs = require('fs-extra')
 const webpack = require('webpack')
-const del = require('del')
 const singleLog = require('single-line-log').stdout
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
@@ -12,7 +11,7 @@ const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
-del.sync(path.resolve(path.join(process.cwd(), 'build')))
+// del.sync(path.resolve(path.join(process.cwd(), 'build')))
 
 const TITLE = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
 const DESCRIPTION = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
@@ -94,7 +93,6 @@ module.exports = {
     filename: outputFileName,
     path: buildPath,
   },
-
   mode: MODE,
   dependencies: ['@aitmed/ecos-lvl2-sdk', '@aitmed/protorepo', 'sql.js'],
   devServer: {
@@ -119,10 +117,6 @@ module.exports = {
     headers: commonHeaders,
     port: 3000,
     static: [publicPath],
-    // watchFiles: './public/**/*',
-    onBeforeSetupMiddleware({ app, server }) {
-      //
-    },
   },
   devtool: 'inline-source-map',
   externals: [],
@@ -162,21 +156,10 @@ module.exports = {
     },
   },
   plugins: [
-    // new WorkboxPlugin.GenerateSW({
-    // cleanupOutdatedCaches: true,
-    // importScripts: [
-    //   'https://www.gstatic.com/firebasejs/8.2.5/firebase-app.js',
-    //   'https://www.gstatic.com/firebasejs/8.2.5/firebase-messaging.js',
-    // ],
-    //   clientsClaim: true,
-    //   maximumFileSizeToCacheInBytes: 1000000000000,
-    //   skipWaiting: true,
-    // }),
     new WorkboxPlugin.InjectManifest({
       swSrc: path.join(process.cwd(), './src/firebase-messaging-sw.ts'),
       swDest: 'firebase-messaging-sw.js',
       maximumFileSizeToCacheInBytes: 500000000,
-
       mode: 'production',
       manifestTransforms: [
         /**
@@ -184,22 +167,13 @@ module.exports = {
          * @param { webpack.Compilation } compilation
          * @returns
          */
-        (entries, compilation) => {
-          // console.log({
-          //   assets: compilation.getAssets(),
-          //   assetsInfo: Array.from(compilation.assetsInfo.entries()),
-          //   cache: compilation.getCache(),
-          //   chunks: compilation.chunks,
-          //   entryPoints: Array.from(compilation.entrypoints.entries()),
-          //   stats: compilation.getStats(),
-          // })
+        (entries) => {
           const mainBundleRegExp = /\.\w{20}\.js$/
           for (const entry of entries) {
             if (entry.url.match(mainBundleRegExp)) {
               // Force the worker to use the url as the revision
               entry.revision = null
             }
-            // console.log(`[${u.cyan(entry.url)}]`)
           }
           return { manifest: entries, warnings: [] }
         },
@@ -268,8 +242,8 @@ module.exports = {
     new CopyPlugin({
       patterns: [
         // {
-        //   from: 'public/firebase-messaging-sw.js',
-        //   to: 'firebase-messaging-sw.js',
+        //   from: 'public/worker.js',
+        //   to: 'worker.js',
         // },
         { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
       ],

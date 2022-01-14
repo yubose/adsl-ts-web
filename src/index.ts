@@ -188,6 +188,42 @@ async function initializeApp(
         console.error(err)
       }
     },
+    onSdkInit(sdk) {
+      app.worker?.postMessage({ type: 'ON_INIT_SDK' })
+      sdk.root.builtIn
+        .SignInOk()
+        .then((authed) => {
+          if (authed) {
+            app.worker?.postMessage({ type: 'AUTHENTICATED' })
+            // document.getElementById('root').innerHTML = html
+          }
+        })
+        .catch((error) => {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.error(err)
+        })
+    },
+    onWorker(worker) {
+      worker.addEventListener('message', function (evt) {
+        console.log(
+          `%c[worker] Message`,
+          `color:#00b406;font-weight:bold;`,
+          evt,
+        )
+      })
+
+      worker.addEventListener('messageerror', function (evt) {
+        console.log(
+          `%c[worker] Message error`,
+          `color:tomato;font-weight:bold;`,
+          evt,
+        )
+      })
+
+      worker.addEventListener('error', function (evt) {
+        console.log(`%c[worker] Error`, `color:tomato;font-weight:bold;`, evt)
+      })
+    },
   })
   // app.navigate('Cov19TestNewPatReviewPage1')
   return app
@@ -304,8 +340,22 @@ window.addEventListener('load', async (e) => {
   // }, 150)
 })
 
-window.addEventListener('unload', (evt) => {
-  window.alert('hello')
+window.addEventListener('beforeunload', (evt) => {
+  const html = document.getElementById('root')?.innerHTML || ''
+  if (html) {
+    localStorage.setItem(
+      `__last__`,
+      JSON.stringify({
+        page: app.currentPage,
+        startPage: app.startPage,
+        root: html,
+        x: window.scrollX,
+        y: window.scrollY,
+      }),
+    )
+  } else {
+    localStorage.removeItem(`__last__`)
+  }
 })
 
 if (module.hot) {

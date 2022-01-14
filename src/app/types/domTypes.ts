@@ -1,3 +1,11 @@
+export interface StoredDOMState {
+  page: string
+  startPage: string
+  root: string
+  x: number
+  y: number
+}
+
 export type ElementArg<N extends HTMLElement = HTMLElement> =
   | null
   | undefined

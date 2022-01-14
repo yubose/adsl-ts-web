@@ -6,6 +6,7 @@ import NOODLDOM, {
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
 import { Account } from '@aitmed/cadl'
+import type { CADL } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
 import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
@@ -73,6 +74,7 @@ class App {
   #spinner: Spinner
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
   #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
+  #worker: Worker | null = null
   // #worker: ReturnType<typeof NoodlWorker>
   actionFactory = actionFactory(this)
   goto: ReturnType<typeof createGoto>
@@ -195,7 +197,7 @@ class App {
   }
 
   get noodl() {
-    return this.#noodl as NonNullable<t.AppConstructorOptions['noodl']>
+    return this.#noodl as CADL
   }
 
   get nui() {
@@ -252,6 +254,10 @@ class App {
 
   get viewport() {
     return this.mainPage.viewport as VP
+  }
+
+  get worker() {
+    return this.#worker
   }
 
   getState() {
@@ -388,10 +394,19 @@ class App {
 
   async initialize({
     onInitNotification,
+    onSdkInit,
+    onWorker,
   }: {
     onInitNotification?: (notification: AppNotification) => Promise<void>
+    onSdkInit?: (sdk: CADL) => void
+    onWorker?: (worker: Worker) => void
   } = {}) {
     try {
+      // if (process.env.NODE_ENV !== 'test' && window.Worker) {
+      //   this.#worker = new Worker('worker.js')
+      //   onWorker?.(this.worker as Worker)
+      // }
+
       if (!this.getState().spinner.active) this.enableSpinner()
       if (!this.getStatus) this.getStatus = Account.getStatus
 
@@ -401,6 +416,61 @@ class App {
         this.#notification = new (await import('./app/Notifications')).default()
         log.grey(`Initialized notifications`, this.#notification)
         onInitNotification && (await onInitNotification?.(this.#notification))
+      }
+
+      const lastDOM = localStorage.getItem('__last__') || ''
+      if (lastDOM) {
+        const renderCachedState = (
+          rootEl: HTMLElement,
+          lastState: t.StoredDOMState,
+        ) => {
+          rootEl.innerHTML = lastState.root
+
+          if (u.isNum(lastState.x) && u.isNum(lastState.y)) {
+            window.scrollTo({
+              behavior: 'auto',
+              left: lastState.x,
+              top: lastState.y,
+            })
+          }
+
+          for (const btn of Array.from(rootEl.querySelectorAll('button'))) {
+            btn.textContent = 'Loading...'
+            btn.style.userSelect = 'none'
+            btn.style.pointerEvents = 'none'
+          }
+
+          for (const inputEl of [
+            ...Array.from(rootEl.querySelectorAll('input')),
+            ...Array.from(rootEl.querySelectorAll('select')),
+            ...Array.from(rootEl.querySelectorAll('textarea')),
+          ]) {
+            inputEl.disabled = true
+          }
+        }
+
+        try {
+          const lastState = JSON.parse(lastDOM) as t.StoredDOMState
+          if (lastState?.root) {
+            const rootEl = document.getElementById('root')
+            if (rootEl) {
+              if (lastState.page !== lastState.startPage) {
+                if (await this.noodl.root.builtIn.SignInOk()) {
+                  renderCachedState(rootEl, lastState)
+                }
+              } else {
+                renderCachedState(rootEl, lastState)
+              }
+            }
+          }
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.log(
+            `%c[Rehydration] ${err.name}: ${err.message}`,
+            'color:tomato',
+            err,
+          )
+        }
       }
 
       this.noodl.on('QUEUE_START', () => {
@@ -414,6 +484,7 @@ class App {
       })
 
       await this.noodl.init()
+      onSdkInit?.(this.noodl)
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -605,7 +676,7 @@ class App {
             log.func('onBeforeInit')
             log.grey('', { init, page: pageRequesting })
           },
-          onInit: (current, index, init) => {
+          onInit: async (current, index, init) => {
             log.func('onInit')
             log.grey('', { current, index, init, page: pageRequesting })
 
