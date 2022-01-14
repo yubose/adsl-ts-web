@@ -72,8 +72,8 @@ export function resetInstance() {
         ? VP.getAspectRatio(window.innerWidth, window.innerHeight)
         : 1,
     cadlVersion: isStable() ? 'stable' : 'test',
-    // configUrl: CONFIG_URL,
-    configUrl: `${BASE}/${CONFIG_KEY}.yml`,
+    configUrl: CONFIG_URL,
+    // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
     dbConfig: undefined,
     SearchClient,
   })
