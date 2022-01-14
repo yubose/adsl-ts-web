@@ -166,6 +166,7 @@ describe(`parseUrl`, () => {
       expect(parsedUrl.pageUrl).to.eq(
         'https://patd3.aitmed.io/index.html?PaymentConfirmation',
       )
+      console.log(parsedUrl)
     },
   )
 })

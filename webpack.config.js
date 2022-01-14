@@ -94,7 +94,9 @@ module.exports = {
     filename: outputFileName,
     path: buildPath,
   },
+
   mode: MODE,
+  dependencies: ['@aitmed/ecos-lvl2-sdk', '@aitmed/protorepo', 'sql.js'],
   devServer: {
     allowedHosts: [
       'localhost',
@@ -144,13 +146,22 @@ module.exports = {
       },
     ],
   },
+  resolveLoader: {
+    modules: [path.join(__dirname, 'node_modules')],
+  },
   resolve: {
-    cache: false,
+    alias: {
+      fs: path.resolve(path.join(process.cwd(), './node_modules/fs-extra')),
+    },
+    cache: true,
     extensions: ['.ts', '.js'],
     modules: ['node_modules'],
     fallback: {
-      // crypto: require.resolve('crypto-browserify'),
-      // stream: require.resolve('stream-browserify'),
+      assert: false,
+      constants: require.resolve('constants-browserify'),
+      crypto: require.resolve('crypto-browserify'),
+      path: require.resolve('path-browserify'),
+      stream: require.resolve('stream-browserify'),
     },
   },
   plugins: [

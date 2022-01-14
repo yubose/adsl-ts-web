@@ -292,6 +292,7 @@ class App {
       }
       return params
     }
+
     try {
       let _page: NOODLDOMPage
       let _pageRequesting = ''
@@ -302,6 +303,7 @@ class App {
       if (isNOODLDOMPage(pageUrl)) {
         pageUrl = pageUrl.page
       }
+
       if (pageUrl && pageUrl.includes('&')) {
         if (nu.isOutboundLink(pageUrl)) {
           return void (window.location.href = pageUrl)
