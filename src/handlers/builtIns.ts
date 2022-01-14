@@ -55,6 +55,7 @@ import {
   Room,
 } from '../app/types'
 import type { Format as PdfPageFormat } from '../modules/ExportPdf'
+import { cs } from 'date-fns/locale'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -137,10 +138,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const exportCSV = async function onExportCSV(options: {
     ecosObj?: EcosDocument
+    obj?:Object
     viewTag?: string
     format?: PdfPageFormat
     download?: boolean
     open?: boolean
+    header?: Array<any>
   }) {
     try {
       let listOfData = u.isArr(options) ? options : ([] as any[])
@@ -165,6 +168,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       let csv = ''
+      // generate header
+      let csvHeader:string|undefined = ''
+      if('header' in options) {
+        csvHeader = options.header?.toString()
+        csvHeader+='\r\n'
+      }
 
       for (const dataObject of listOfData) {
         let entries = u.entries(dataObject).map(([k, v]) => [[k, v]])
@@ -283,6 +292,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             )
           }
         } else {
+          
           log.red('The name field in an ecosObj was not an object', ecosObj)
         }
       }
