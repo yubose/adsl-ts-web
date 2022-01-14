@@ -1,5 +1,6 @@
 const u = require('@jsmanifest/utils')
 const path = require('path')
+const del = require('del')
 const fs = require('fs-extra')
 const webpack = require('webpack')
 const singleLog = require('single-line-log').stdout
@@ -11,7 +12,7 @@ const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
-// del.sync(path.resolve(path.join(process.cwd(), 'build')))
+del.sync(path.resolve(path.join(process.cwd(), 'build')))
 
 const TITLE = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
 const DESCRIPTION = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
@@ -94,7 +95,6 @@ module.exports = {
     path: buildPath,
   },
   mode: MODE,
-  dependencies: ['@aitmed/ecos-lvl2-sdk', '@aitmed/protorepo', 'sql.js'],
   devServer: {
     allowedHosts: [
       'localhost',
@@ -118,10 +118,15 @@ module.exports = {
     port: 3000,
     static: [publicPath],
   },
-  devtool: 'inline-source-map',
+  devtool: false,
   externals: [],
   module: {
     rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+        exclude: /\.module\.css$/,
+      },
       {
         test: /\.ts$/,
         exclude: /node_modules/,
@@ -129,14 +134,9 @@ module.exports = {
         use: [
           {
             loader: 'esbuild-loader',
-            options: { loader: 'ts', target: 'es2020' },
+            options: { loader: 'ts', target: 'es2017' },
           },
         ],
-      },
-      {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
-        exclude: /\.module\.css$/,
       },
     ],
   },
@@ -151,6 +151,8 @@ module.exports = {
       assert: false,
       constants: require.resolve('constants-browserify'),
       crypto: require.resolve('crypto-browserify'),
+      http: require.resolve('stream-http'),
+      https: require.resolve('https-browserify'),
       path: require.resolve('path-browserify'),
       stream: require.resolve('stream-browserify'),
     },
@@ -260,20 +262,13 @@ module.exports = {
           minimize: true,
           nodeEnv: 'production',
           removeEmptyChunks: true,
-          minimizer: [
-            (compiler) => {
-              console.log(`[${u.cyan('minimizer')}]`, [
-                ...(compiler.modifiedFiles?.values() || []),
-              ])
-            },
-          ],
           splitChunks: {
             // chunks(chunk) {
             //   // console.log(`[${u.cyan('chunk')}]`, chunk)
             //   return true
             // },
             chunks: 'async',
-            minSize: 30000,
+            minSize: 35000,
             maxSize: 80000,
             minChunks: 8,
             maxAsyncRequests: 30,
