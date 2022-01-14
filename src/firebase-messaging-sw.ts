@@ -8,7 +8,7 @@ import { StaleWhileRevalidate } from 'workbox-strategies'
 
 precacheAndRoute(self.__WB_MANIFEST)
 registerRoute(
-  new RegExp(`/\\.(css|html|yml|min\\.js)$/`),
+  new RegExp(`/\\.(css|html|yml|mp4|min\\.js)$/`),
   new StaleWhileRevalidate(),
 )
 registerRoute(({ request }) => {
