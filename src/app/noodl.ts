@@ -3,35 +3,8 @@ import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
 import { Client as SearchClient } from 'elasticsearch-browser'
 
-function findArrOfMinSize(root = {}, size, path = []) {
-  const results = []
-
-  if (Array.isArray(root)) {
-    const count = root.length
-
-    if (count >= size) results.push({ arr: root, path })
-
-    for (let index = 0; index < count; index++) {
-      const item = root[index]
-      results.push(...findArrOfMinSize(item, size, path.concat(index)))
-    }
-  } else if (root && typeof root === 'object' && typeof root !== 'function') {
-    for (const [key, value] of Object.entries(root)) {
-      results.push(...findArrOfMinSize(value, size, path.concat(key)))
-      // if (Array.isArray(value)) {
-      // } else {}
-    }
-  }
-
-  return results
-}
-
-// console.log({ configKey: process.env.CONFIG_KEY })
-// console.log({ configKey: process.env.CONFIG_KEY })
-// console.log({ configKey: process.env.CONFIG_KEY })
-
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'patd3'
+export const CONFIG_KEY = 'admind3'
 // const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')

@@ -441,9 +441,9 @@ class App {
           }
 
           for (const inputEl of [
-            ...Array.from(rootEl.querySelectorAll('input')),
-            ...Array.from(rootEl.querySelectorAll('select')),
-            ...Array.from(rootEl.querySelectorAll('textarea')),
+            ...rootEl.querySelectorAll('input'),
+            ...rootEl.querySelectorAll('select'),
+            ...rootEl.querySelectorAll('textarea'),
           ]) {
             inputEl.disabled = true
           }
@@ -451,7 +451,7 @@ class App {
 
         try {
           const lastState = JSON.parse(lastDOM) as t.StoredDOMState
-          if (lastState?.root) {
+          if (lastState?.root && lastState.origin === location.origin) {
             const rootEl = document.getElementById('root')
             if (rootEl) {
               if (lastState.page !== lastState.startPage) {

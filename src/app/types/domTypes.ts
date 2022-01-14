@@ -1,4 +1,5 @@
 export interface StoredDOMState {
+  origin: string
   page: string
   startPage: string
   root: string

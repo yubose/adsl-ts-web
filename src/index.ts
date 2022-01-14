@@ -346,6 +346,7 @@ window.addEventListener('beforeunload', (evt) => {
     localStorage.setItem(
       `__last__`,
       JSON.stringify({
+        origin: location.origin,
         page: app.currentPage,
         startPage: app.startPage,
         root: html,
@@ -443,6 +444,38 @@ function attachDebugUtilsToWindow(app: App) {
           app.cache.component.filter(
             (obj) => obj.component?.blueprint?.viewTag === viewTag,
           ),
+      },
+    },
+    findArrOfMinSize: {
+      value: function findArrOfMinSize(
+        root = {} as Record<string, any>,
+        size: number,
+        path = [] as (string | number)[],
+      ) {
+        const results = [] as { arr: any[]; path: (string | number)[] }[]
+
+        if (Array.isArray(root)) {
+          const count = root.length
+
+          if (count >= size) results.push({ arr: root, path })
+
+          for (let index = 0; index < count; index++) {
+            const item = root[index]
+            results.push(...findArrOfMinSize(item, size, path.concat(index)))
+          }
+        } else if (
+          root &&
+          typeof root === 'object' &&
+          typeof root !== 'function'
+        ) {
+          for (const [key, value] of Object.entries(root)) {
+            results.push(...findArrOfMinSize(value, size, path.concat(key)))
+            // if (Array.isArray(value)) {
+            // } else {}
+          }
+        }
+
+        return results
       },
     },
   })
