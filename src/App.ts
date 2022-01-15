@@ -47,6 +47,7 @@ class App {
   #state = {
     authStatus: '' as AuthStatus | '',
     initialized: false,
+    initiatedRender: false,
     loadingPages: {} as Record<string, { id: string; init: boolean }[]>,
     spinner: {
       active: false,
@@ -418,6 +419,19 @@ class App {
         onInitNotification && (await onInitNotification?.(this.#notification))
       }
 
+      this.noodl.on('QUEUE_START', () => {
+        if (!this.getState().spinner.active) this.enableSpinner()
+      })
+
+      this.noodl.on('QUEUE_END', () => {
+        if (!this.noodl.getState().queue?.length) {
+          if (this.getState().spinner.active) this.disableSpinner()
+        }
+      })
+
+      await this.noodl.init()
+      onSdkInit?.(this.noodl)
+
       const lastDOM = localStorage.getItem('__last__') || ''
       if (lastDOM) {
         const renderCachedState = (
@@ -456,10 +470,14 @@ class App {
             if (rootEl) {
               if (lastState.page !== lastState.startPage) {
                 if (await this.noodl.root.builtIn.SignInOk()) {
-                  renderCachedState(rootEl, lastState)
+                  if (!this.getState().initiatedRender) {
+                    renderCachedState(rootEl, lastState)
+                  }
                 }
               } else {
-                renderCachedState(rootEl, lastState)
+                if (!this.getState().initiatedRender) {
+                  renderCachedState(rootEl, lastState)
+                }
               }
             }
           }
@@ -472,19 +490,6 @@ class App {
           )
         }
       }
-
-      this.noodl.on('QUEUE_START', () => {
-        if (!this.getState().spinner.active) this.enableSpinner()
-      })
-
-      this.noodl.on('QUEUE_END', () => {
-        if (!this.noodl.getState().queue?.length) {
-          if (this.getState().spinner.active) this.disableSpinner()
-        }
-      })
-
-      await this.noodl.init()
-      onSdkInit?.(this.noodl)
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -959,6 +964,7 @@ class App {
   }
 
   async render(page: NOODLDOMPage) {
+    if (!this.getState().initiatedRender) this.#state.initiatedRender = true
     try {
       if (!page) {
         if (arguments.length) {
