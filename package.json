@@ -96,7 +96,7 @@
     "constants-browserify": "^1.0.0",
     "copy-webpack-plugin": "^8.1.1",
     "cpy": "^8.1.2",
-    "cross-env": "^7.0.2",
+    "cross-env": "^7.0.3",
     "css-loader": "^5.2.6",
     "del": "^4.1.1",
     "docusaurus": "^1.14.7",

@@ -1,4 +1,3 @@
-import nodePolyfills from 'rollup-plugin-node-polyfills'
 import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import filesize from 'rollup-plugin-filesize'
@@ -15,7 +14,7 @@ const configs = [
     input: 'src/index.ts',
     output: [
       {
-        dir: 'dist',
+        dir: './dist',
         exports: 'named',
         format: 'umd',
         name: 'ndom',
@@ -27,24 +26,24 @@ const configs = [
     ],
     external: ['noodl-ui'],
     plugins: [
-      nodePolyfills(),
-      external(),
-      commonjs(),
+      external({
+        includeDependencies: true,
+      }),
+      commonjs({
+        sourceMap: false,
+      }),
       filesize(),
       progress(),
       resolve({
-        browser: true,
         extensions: ['.js', '.ts'],
-        moduleDirectories: ['node_modules'],
-        preferBuiltins: false,
+        preferBuiltins: true,
       }),
       esbuild({
-        include: /\.[t]s?$/,
+        include: /\.ts?$/,
         exclude: /node_modules/,
         minify: !_DEV_,
         minifyIdentifiers: false,
-        target: 'es2018',
-        sourceMap: true,
+        target: 'es2015',
       }),
     ],
   },
