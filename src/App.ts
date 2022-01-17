@@ -47,7 +47,6 @@ class App {
   #state = {
     authStatus: '' as AuthStatus | '',
     initialized: false,
-    initiatedRender: false,
     loadingPages: {} as Record<string, { id: string; init: boolean }[]>,
     spinner: {
       active: false,
@@ -428,7 +427,6 @@ class App {
           if (this.getState().spinner.active) this.disableSpinner()
         }
       })
-
       await this.noodl.init()
       onSdkInit?.(this.noodl)
 
@@ -470,14 +468,10 @@ class App {
             if (rootEl) {
               if (lastState.page !== lastState.startPage) {
                 if (await this.noodl.root.builtIn.SignInOk()) {
-                  if (!this.getState().initiatedRender) {
-                    renderCachedState(rootEl, lastState)
-                  }
-                }
-              } else {
-                if (!this.getState().initiatedRender) {
                   renderCachedState(rootEl, lastState)
                 }
+              } else {
+                renderCachedState(rootEl, lastState)
               }
             }
           }
@@ -964,7 +958,6 @@ class App {
   }
 
   async render(page: NOODLDOMPage) {
-    if (!this.getState().initiatedRender) this.#state.initiatedRender = true
     try {
       if (!page) {
         if (arguments.length) {
@@ -1069,7 +1062,7 @@ class App {
           const currentPage = this.mainPage.page
           delete currentRoot[currentPage]
           this.#noodl = resetSdk()
-          await this.#noodl.init()
+          await this.noodl.init()
 
           u.assign(this.#noodl.root, currentRoot)
           this.cache.component.clear()

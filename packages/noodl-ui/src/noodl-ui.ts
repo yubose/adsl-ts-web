@@ -600,7 +600,7 @@ const NUI = (function () {
                 `color:#ec0000;`,
                 c,
               )
-              key === 'data-value' && c.edit({ [key] : '' })
+              key === 'data-value' && (nt.Identify.rootReference(value) || nt.Identify.localReference(value)) && c.edit({ [key] : '' })
             }
           }
         }

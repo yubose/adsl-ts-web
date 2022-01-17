@@ -449,6 +449,21 @@ function attachDebugUtilsToWindow(app: App) {
         return result
       },
     },
+    getDataValues: {
+      value() {
+        return u.reduce(
+          u.array(findByDataKey()),
+          (acc, el) => {
+            if (el) {
+              acc[el.dataset.key as string] =
+                'value' in el ? (el as any).value : el.dataset.value
+            }
+            return acc
+          },
+          {} as Record<string, any>,
+        )
+      },
+    },
     componentCache: {
       value: {
         findComponentsWithKeys: (...keys: string[]) => {

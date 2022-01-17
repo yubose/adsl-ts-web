@@ -3,6 +3,7 @@ import type { Status } from '@aitmed/ecos-lvl2-sdk'
 import type { LocalParticipant } from 'twilio-video'
 import type { ComponentObject, PageObject } from 'noodl-types'
 import { EventEmitter } from 'events'
+import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
 import NOODLDOM, { Page as NOODLDOMPage, Resolve } from 'noodl-ui-dom'
 import {
   actionTypes as nuiActionTypes,
@@ -29,6 +30,8 @@ import getMockParticipant, {
 } from '../__tests__/helpers/getMockParticipant'
 import * as c from '../constants'
 import { getRandomKey } from './common'
+
+export const ui = { ...actionFactory, ...componentFactory }
 
 export const deviceSize = {
   galaxys5: { width: 360, height: 640, aspectRatio: 0.5621345029239766 },
