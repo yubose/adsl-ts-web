@@ -26,7 +26,7 @@
     "lib:build:development": "cross-env lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-types build:development",
     "lib:build": "cross-env lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-types build",
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --parallel start",
-    "postinstall": "lerna exec --scope noodl-types \"npm run build\" && npm run bootstrap && lerna run build",
+    "postinstall": "lerna exec --scope noodl-types \"npm run build\" && lerna exec --scope noodl-utils --scope noodl-action-chain \"npm run build\" && lerna exec --scope noodl-ui --scope noodl-ui-dom \"npm run build\" && npm run bootstrap",
     "prebuild": "rm -rf dist build",
     "serve": "cross-env ECOS_ENV=test NODE_ENV=production webpack serve --port 3000 --mode=development",
     "start": "webpack serve --port 3000 --mode=development",
