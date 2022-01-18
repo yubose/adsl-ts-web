@@ -143,6 +143,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     download?: boolean
     open?: boolean
     header?: Array<any>
+    fileName?: string
   }) {
     try {
       let listOfData = u.isArr(options) ? options : ([] as any[])
@@ -200,11 +201,15 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       document.body.appendChild(link)
       const blob = new Blob([csv], { type: 'text/csv' })
       const csvUrl = URL.createObjectURL(blob)
-      const filename =
-        `${
+      let filename = ''
+      if ('fileName' in options){
+        filename = `${options.fileName}.csv`
+      } else {
+        filename = `${
           title ||
           `data-${new Date().toLocaleDateString().replaceAll('/', '-')}`
-        }` + '.csv'
+        }` + '.csv'      
+      }
       link.download = filename
       link.href = csvUrl
       link.click()
