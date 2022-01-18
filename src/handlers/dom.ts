@@ -140,7 +140,7 @@ const createExtendedDOMResolvers = function (app: App) {
       gap_time = 0
     window.onunload = function () {
       gap_time = new Date().getTime() - beforeUnload_time
-      if (gap_time <= 5) {
+      if (gap_time <= 2) {
         //浏览器关闭判断
         clearCookie()
       }

@@ -94,6 +94,7 @@ module.exports = {
     filename: outputFileName,
     path: buildPath,
   },
+  ignoreWarnings: [/InjectManifest/],
   mode: MODE,
   devServer: {
     allowedHosts: [

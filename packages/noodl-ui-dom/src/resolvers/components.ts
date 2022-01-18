@@ -380,15 +380,10 @@ const componentsResolver: t.Resolve.Config = {
           // load promise return to image
           if (args.component.blueprint?.['path=func']) {
             // ;(node as HTMLImageElement).src = '../waiting.png'
-            setAttr(
-              'src',
-              (await args.component?.get?.(c.DATA_SRC)) ||
-                (await args.component?.get?.(c.DATA_VALUE)),
-            )
             args.component
               ?.get?.(c.DATA_VALUE)
               ?.then?.((path: any) => {
-                if (path || path?.url) {
+                if (path && path?.url) {
                   if (path?.type && path.type == 'application/pdf') {
                     //pdf preview
                     let key
@@ -403,9 +398,8 @@ const componentsResolver: t.Resolve.Config = {
                     parent?.appendChild(iframe)
                     parent?.removeChild(args.node)
                   } else {
-                    path = path?.url ? path.url : path
                     console.log('load path', path)
-                    setAttr('src', path)
+                    setAttr('src', path?.url)
                   }
                 } else {
                   setAttr('src', args.component?.get?.(c.DATA_SRC))
