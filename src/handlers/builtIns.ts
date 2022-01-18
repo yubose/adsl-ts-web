@@ -986,68 +986,46 @@ export const extendedSdkBuiltIns = {
   },
   downloadQRCode(
     this: App,
-    { content, scale }: { content?: any; scale?: number } = {},
+    { content, scale,viewTag }: { content?: any; scale?: number,viewTag?:string } = {},
   ) {
     log.func('download (QRCode)')
     // Generate QRCode image
-    let text = content
-    if (u.isObj(content)) text = JSON.stringify(content)
-
-    let opts = {
-      errorCorrectionLevel: 'H',
-      type: 'svg',
-      quality: 0.3,
-      margin: 1,
-      color: {
-        dark: '#000000',
-        light: '#ffffff',
-      },
-      scale: scale,
-    }
-    let data
-    QRCode.toDataURL(text, opts, function (err, url) {
-      if (err) throw err
-      data = url
-    })
-
-    // transform base64 to blob
-    let dataURLtoBlob = (dataurl) => {
-      let arr = dataurl.split(',')
-      //注意base64的最后面中括号和引号是不转译的
-      let _arr = arr[1].substring(0, arr[1].length - 2)
-      let mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(_arr),
-        n = bstr.length,
-        u8arr = new Uint8Array(n)
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n)
-      }
-      return new Blob([u8arr], {
-        type: mime,
-      })
-    }
-    let blobSrc = dataURLtoBlob(data)
-    console.log('test', blobSrc)
     let ext = ''
     let filename = ('QRCode' || '') as string
     let mimeType = ('image/png' || '') as string
-
-    if (mimeType && u.isStr(mimeType)) {
-      // Assuming these are note docs since we are storing their data in json
-      if (mimeType.endsWith('json')) {
-        ext = '.txt'
-        const title = filename
-        const body = blobSrc
-        const note = `${title}\n\n${body}`
-        data = new Blob([note], { type: 'text/plain' })
-      } else {
-        ext = mimeType.substring(mimeType.lastIndexOf('/')).replace('/', '.')
-      }
-    }
-
+    ext = mimeType.substring(mimeType.lastIndexOf('/')).replace('/', '.')
     ext && u.isStr(filename) && (filename += ext)
-    !data && (data = blobSrc || '')
-    return download(data, filename)
+
+    if(viewTag){
+      const node = findByViewTag(viewTag) as HTMLElement
+      html2canvas(node,{
+        allowTaint: true,    //跨域
+        useCORS: true         //跨域
+      }).then(canvas => {
+        let url = canvas.toDataURL(mimeType)
+        return download(url, filename)
+      })
+    }else{
+      let text = content
+      if (u.isObj(content)) text = JSON.stringify(content)
+
+      let opts:Record<string,any> = {
+        errorCorrectionLevel: 'H',
+        type: 'svg',
+        quality: 0.3,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+        scale: scale,
+      }
+      
+      QRCode.toDataURL(text, opts, function (err, url) {
+        if (err) throw err
+        return download(url, filename)
+      })
+    }
   },
   /**
    * Called during "init" when navigating to VideoChat
