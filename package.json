@@ -30,7 +30,7 @@
     "prebuild": "rm -rf dist build",
     "serve": "cross-env ECOS_ENV=test NODE_ENV=production webpack serve --port 3000 --mode=development",
     "start": "webpack serve --port 3000 --mode=development",
-    "start:stable": "cross-env NODE_ENV=production HMR=true ECOS_ENV=stable webpack serve --port 3000",
+    "start:stable": "cross-env NODE_ENV=development HMR=true ECOS_ENV=stable USE_DEV_PATHS=true npm run start",
     "start:test": "cross-env NODE_ENV=development ECOS_ENV=test HMR=true USE_DEV_PATHS=true npm run start",
     "sync": "node scripts/op sync",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
