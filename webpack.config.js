@@ -94,6 +94,7 @@ module.exports = {
     filename: outputFileName,
     path: buildPath,
   },
+  ignoreWarnings: [/InjectManifest/],
   mode: MODE,
   devServer: {
     allowedHosts: [
@@ -130,7 +131,7 @@ module.exports = {
       {
         test: /\.ts$/,
         exclude: /node_modules/,
-        include: path.resolve(process.cwd(), 'src'),
+        include: path.resolve(path.join(process.cwd(), 'src')),
         use: [
           {
             loader: 'esbuild-loader',

@@ -26,7 +26,7 @@
     "lib:build:development": "cross-env lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-types build:development",
     "lib:build": "cross-env lerna run --scope noodl-ui --scope noodl-ui-dom --scope noodl-types build",
     "lib:start": "cross-env NODE_ENV=development USE_DEV_PATHS=true lerna run --scope noodl-ui --scope noodl-ui-dom --parallel start",
-    "postinstall": "npm run bootstrap && lerna run build",
+    "postinstall": "lerna exec --scope noodl-types \"npm run build\" && lerna exec --scope noodl-utils --scope noodl-action-chain \"npm run build\" && lerna exec --scope noodl-ui \"npm run build\" && lerna exec --scope noodl-ui-test-utils \"npm run build\" && lerna exec --scope noodl-ui-dom \"npm run build\" && npm run bootstrap",
     "prebuild": "rm -rf dist build",
     "serve": "cross-env ECOS_ENV=test NODE_ENV=production webpack serve --port 3000 --mode=development",
     "start": "webpack serve --port 3000 --mode=development",
@@ -56,7 +56,7 @@
     "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.522",
+    "@aitmed/cadl": "^1.0.524",
     "@aitmed/ecos-lvl2-sdk": "^1.4.175",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",

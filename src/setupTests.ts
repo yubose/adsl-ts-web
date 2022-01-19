@@ -2,6 +2,7 @@ import jsdom from 'jsdom-global'
 import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import sinonChai from 'sinon-chai'
+
 jsdom('', {
   resources: 'usable',
   runScripts: 'dangerously',
@@ -10,6 +11,7 @@ jsdom('', {
   beforeParse(win) {
     global.EventTarget = win.EventTarget
     global.localStorage = win.localStorage
+    localStorage = win.localStorage
   },
 })
 

@@ -1,6 +1,5 @@
-import yaml from 'yaml'
 import * as u from '@jsmanifest/utils'
-import { Account, CADL } from '@aitmed/cadl'
+import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
 import Logger from 'logsnap'
 import * as lib from 'noodl-ui'
 import {
@@ -78,14 +77,45 @@ let ws: WebSocket
 async function initializeApp(
   args: {
     noodl?: CADL
-    Account?: typeof Account
+    Account?: typeof CADLAccount
   } = {},
 ) {
+  const getAppName = () => {
+    let appName = ''
+    let hostname = location.hostname
+    let hostnameParts = hostname.split('.')
+    if (
+      /(127.0.0.1|localhost)/.test(hostname) ||
+      hostnameParts[1] === 'aitmed'
+    ) {
+      appName = 'aitmed'
+    } else {
+      appName = hostnameParts[0]
+    }
+    return appName
+  }
+  // if (!localStorage.getItem('config')) {
+  //   const { default: axios } = await import('axios')
+  //   const {
+  //     default: { parse },
+  //   } = await import('yaml')
+
+  //   localStorage.setItem(
+  //     'config',
+  //     JSON.stringify(
+  //       parse(
+  //         (await axios.get(`https://public.aitmed.com/config/${getAppName()}.yml`))
+  //           .data,
+  //       ),
+  //     ),
+  //   )
+  // }
   let { noodl, Account: accountProp } = args
   let notification = new (await import('./app/Notifications')).default()
   !noodl && (noodl = (await import('./app/noodl')).default)
   !accountProp && (accountProp = (await import('@aitmed/cadl')).Account)
   if (!app) {
+    const { Account } = await import('@aitmed/cadl')
     app = new App({
       noodl,
       notification,

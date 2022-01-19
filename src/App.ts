@@ -418,6 +418,18 @@ class App {
         onInitNotification && (await onInitNotification?.(this.#notification))
       }
 
+      this.noodl.on('QUEUE_START', () => {
+        if (!this.getState().spinner.active) this.enableSpinner()
+      })
+
+      this.noodl.on('QUEUE_END', () => {
+        if (!this.noodl.getState().queue?.length) {
+          if (this.getState().spinner.active) this.disableSpinner()
+        }
+      })
+      await this.noodl.init()
+      onSdkInit?.(this.noodl)
+
       const lastDOM = localStorage.getItem('__last__') || ''
       if (lastDOM) {
         const renderCachedState = (
@@ -472,19 +484,6 @@ class App {
           )
         }
       }
-
-      this.noodl.on('QUEUE_START', () => {
-        if (!this.getState().spinner.active) this.enableSpinner()
-      })
-
-      this.noodl.on('QUEUE_END', () => {
-        if (!this.noodl.getState().queue?.length) {
-          if (this.getState().spinner.active) this.disableSpinner()
-        }
-      })
-
-      await this.noodl.init()
-      onSdkInit?.(this.noodl)
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -1063,7 +1062,7 @@ class App {
           const currentPage = this.mainPage.page
           delete currentRoot[currentPage]
           this.#noodl = resetSdk()
-          await this.#noodl.init()
+          await this.noodl.init()
 
           u.assign(this.#noodl.root, currentRoot)
           this.cache.component.clear()
