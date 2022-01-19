@@ -7,3 +7,5 @@ noodl.yml
 ./docs
 .env
 .gitignore
+public/admin
+public/aitmed
