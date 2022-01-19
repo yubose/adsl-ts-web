@@ -56,7 +56,9 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
       //
     } else if (Identify.action.updateObject(obj)) {
       //
-    } else {
+    }else if (Identify.action.getLocationAddress(obj)) {
+      //
+    }else {
       results.push(
         `Encountered an unsupported action object of type "${obj.actionType}". ` +
           `Check typos or letter casings.`,
