@@ -49,12 +49,13 @@ function parseUrl(appConfig: nt.AppConfig, value = '') {
   pageUrl.endsWith('index.html') && (pageUrl = `${pageUrl}?`)
   pageUrl = `${pageUrl}${noodlPathname}`
 
+  //get page with params
+  const pageParts = value.split('-')
   let currentPage = ''
-
-  if (pages.length > 1) {
-    currentPage = pages[pages.length - 1]
+  if (pageParts.length > 1) {
+    currentPage = pageParts[pageParts.length - 1]
   } else {
-    const baseArr = pages[0].split('?')
+    const baseArr = pageParts[0].split('?')
     if (baseArr.length > 1 && baseArr[baseArr.length - 1] !== '') {
       currentPage = baseArr[baseArr.length - 1]
     }
