@@ -1,6 +1,7 @@
 export const action = {
 	BUILTIN: 'builtIn',
 	EVALOBJECT: 'evalObject',
+	GETLOCATIONADDRESS: 'getLocationAddress',
 	OPENCAMERA: 'openCamera',
 	OPENPHOTOLIBRARY: 'openPhotoLibrary',
 	OPENDOCUMENTMANAGER: 'openDocumentManager',

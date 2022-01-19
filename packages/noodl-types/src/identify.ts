@@ -55,6 +55,9 @@ export const Identify = (function () {
       evalObject: identifyObj<t.EvalActionObject>(
         (v) => v.actionType === 'evalObject',
       ),
+      getLocationAddress: identifyObj<t.GetLocationAddressActionObject>(
+        (v) => v.actionType === 'getLocationAddress',
+      ),
       openCamera: identifyObj<t.OpenCameraActionObject>(
         (v) => v.actionType === 'openCamera',
       ),
