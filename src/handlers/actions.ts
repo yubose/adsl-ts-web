@@ -890,60 +890,33 @@ const createActions = function createActions(app: App) {
     options,
   ){
     log.func('getLocationAddress')
+    log.grey('', action?.snapshot?.())
     const types = 'address'
     const access_token = 'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
     const host = 'https://api.mapbox.com/geocoding/v5/mapbox.places'
     const dataKey = _pick(action, 'dataKey')
-    const opt = {
-      enableHighAccuracy: false,
-      timeout: 3000,
-      maximumAge: 3000
-    }
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position)=>{
-          const longitude = position.coords.longitude
-          const latitude = position.coords.latitude
-          axios({
-            method: 'get',
-            url: `${host}/${longitude},${latitude}.json`,
-            params: {
-              // types: types,
-              limit: 1,
-              access_token: access_token
-            }
-          }).then(function(res){
-            const place_name =  res['data']['features'][0]['place_name']
-            let dataObject = isRootDataKey(dataKey)
-              ? app.root
-              : app.root?.[pickNUIPageFromOptions(options)?.page || '']
-            if(place_name){
-              set(dataObject,dataKey,place_name)
-            }
-          }).catch(function(error){
-            console.log(error)
-          })
-        }, 
-        (error)=>{
-          let msg=''
-          switch (error.code) {
-              case error.PERMISSION_DENIED:
-                  msg = "User rejects request to get geolocation."
-                  break;
-              case error.POSITION_UNAVAILABLE:
-                  msg = "Location information is not available."
-                  break;
-              case error.TIMEOUT:
-                  msg = "Requesting user geolocation timed out."
-                  break;
-              case error.UNKNOWN_ERROR:
-                  msg = "unknown error"
-                  break;
-          }
-          console.error(msg);
-        },opt)
-    } else {
-      console.log('Your browser does not support geolocation')
+    const longitude = localStorage.getItem('longitude')
+    const latitude = localStorage.getItem('latitude')
+    if(longitude && latitude){
+      await axios({
+        method: 'get',
+        url: `${host}/${longitude},${latitude}.json`,
+        params: {
+          // types: types,
+          limit: 1,
+          access_token: access_token
+        }
+      }).then((res)=>{
+        const place_name =  res['data']['features'][0]['place_name']
+        let dataObject = isRootDataKey(dataKey)
+          ? app.root
+          : app.root?.[pickNUIPageFromOptions(options)?.page || '']
+        if(place_name){
+          set(dataObject,dataKey,place_name)
+        }
+      }).catch((error)=>{
+        console.log(error)
+      })
     }
 
   }
