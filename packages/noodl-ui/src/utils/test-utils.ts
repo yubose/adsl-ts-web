@@ -1,3 +1,4 @@
+// @ts-expect-error
 import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
