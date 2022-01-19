@@ -55,7 +55,7 @@ async function resolveAsync(
     ])
     on?.actionChain && ac.use(on.actionChain)
     const results = await ac.execute?.()
-    const result = results?.find((v) => !!v.result)?.result
+    const result = results?.find((v) => !!v.result)?.result || ''
     component.edit({ 'data-placeholder': result })
     component.emit('placeholder', result)
   }
