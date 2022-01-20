@@ -17,7 +17,56 @@ del.sync(path.resolve(path.join(process.cwd(), 'build')))
 const TITLE = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
 const DESCRIPTION = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
 const KEYWORDS = [
-'aitmed','noodl','telemedicine','telehealth','blockchain Telemedicine','Fast, Private, Secure','Blockchain Telehealth Platform','HIPAA Compliance','Pandemic','Covid19','Wellness and illness','Telemedicine clinic','Telemedicine Pediatric','Telemedicine Urgent Care','Telemedicine dermatology','Telemedicine Senior House','Telemedicine Hospital','Telemedicine RADIOLOGY','Telemedicine Neurology','Telehealth Lab','Telehealth Pandemic','Telehealth Covid19','Telehealth clinic','Telehealth Pediatric','Telehealth Urgent Care','Telehealth dermatology','Telehealth Senior House','Telehealth Hospital','Telehealth RADIOLOGY','Telehealth Neurology','Telehealth Lab','Doctor Virtual Platform','Telemedicine Imaging','Online Medical Practice','Online schedule','E-prescription','Virtual Meeting Room','Virtual platform','Secure Platform','Virtual Visit','Private Visit','doctor','patient','chronic illness','Medical clinic','medical platform','Medical knowledge','telecommunication','virtual','Vital Sign'
+  'aitmed',
+  'noodl',
+  'telemedicine',
+  'telehealth',
+  'blockchain Telemedicine',
+  'Fast, Private, Secure',
+  'Blockchain Telehealth Platform',
+  'HIPAA Compliance',
+  'Pandemic',
+  'Covid19',
+  'Wellness and illness',
+  'Telemedicine clinic',
+  'Telemedicine Pediatric',
+  'Telemedicine Urgent Care',
+  'Telemedicine dermatology',
+  'Telemedicine Senior House',
+  'Telemedicine Hospital',
+  'Telemedicine RADIOLOGY',
+  'Telemedicine Neurology',
+  'Telehealth Lab',
+  'Telehealth Pandemic',
+  'Telehealth Covid19',
+  'Telehealth clinic',
+  'Telehealth Pediatric',
+  'Telehealth Urgent Care',
+  'Telehealth dermatology',
+  'Telehealth Senior House',
+  'Telehealth Hospital',
+  'Telehealth RADIOLOGY',
+  'Telehealth Neurology',
+  'Telehealth Lab',
+  'Doctor Virtual Platform',
+  'Telemedicine Imaging',
+  'Online Medical Practice',
+  'Online schedule',
+  'E-prescription',
+  'Virtual Meeting Room',
+  'Virtual platform',
+  'Secure Platform',
+  'Virtual Visit',
+  'Private Visit',
+  'doctor',
+  'patient',
+  'chronic illness',
+  'Medical clinic',
+  'medical platform',
+  'Medical knowledge',
+  'telecommunication',
+  'virtual',
+  'Vital Sign',
 ]
 const FAVICON = 'public/favicon.ico'
 
@@ -326,3 +375,7 @@ function webpackProgress(percentage, msg, ...args) {
       : ''
   }\n\n`)
 }
+
+module.exports.TITLE = TITLE
+module.exports.DESCRIPTION = DESCRIPTION
+module.exports.KEYWORDS = KEYWORDS
