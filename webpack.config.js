@@ -155,6 +155,7 @@ module.exports = {
       http: require.resolve('stream-http'),
       https: require.resolve('https-browserify'),
       path: require.resolve('path-browserify'),
+      process: require.resolve('process/browser'),
       stream: require.resolve('stream-browserify'),
     },
   },

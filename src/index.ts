@@ -335,7 +335,7 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gesturechange', (e) => e.preventDefault())
 
   window.addEventListener('storage', (evt) => {
-    console.log(`[storage]`, evt)
+    const { key, storageArea } = evt
   })
 
   const notifiedForChromeDesktop = window.localStorage.getItem(
