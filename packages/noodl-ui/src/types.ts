@@ -240,6 +240,11 @@ export interface On {
   actionChain?: ActionChainObserver
   page?(page: NuiPage): OrPromise<void>
   setup?(component: NuiComponent.Instance): OrPromise<void>
+  /**
+   * Called whenever a NuiComponent instance is created (depth-first)
+   * @param component NuiComponent
+   * @param args Context
+   */
   createComponent?(
     component: NuiComponent.Instance,
     args: {
@@ -255,7 +260,18 @@ export interface On {
     key: string
     value: IfObject
   }): boolean | null | undefined
-  emit?(emitObject: EmitObjectFold): OrPromise<NUIActionChain>
+  emit?: {
+    // TODO - Finish
+    createActionChain?(opts: {
+      actionChain: NUIActionChain
+      actions: NUIActionObject
+      component: NuiComponent.Instance
+      shouldExecuteImmediately?:
+        | boolean
+        | ((actionChain: NUIActionChain) => boolean)
+      trigger: NUITrigger
+    }): Promise<void> | void
+  }
   pageComponentUrl?(args: {
     component?: NuiComponent.Instance
     page?: NuiPage

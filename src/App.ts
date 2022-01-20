@@ -5,6 +5,7 @@ import NOODLDOM, {
   isPage as isNOODLDOMPage,
   Page as NOODLDOMPage,
 } from 'noodl-ui-dom'
+import type { ActionChainIteratorResult } from 'noodl-action-chain'
 import { Account } from '@aitmed/cadl'
 import type { CADL } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
@@ -14,7 +15,15 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { AppConfig, Identify, PageObject, ReferenceString } from 'noodl-types'
-import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
+import { Identify as is } from 'noodl-types'
+import {
+  NUI,
+  Page as NUIPage,
+  NUIActionObject,
+  NUITrigger,
+  resolveAssetUrl,
+  Viewport as VP,
+} from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
@@ -1009,37 +1018,40 @@ class App {
               // this.disableSpinner()
             },
           },
-          // if: ({ page, value }) => {
-          //   if (u.isStr(value) && Identify.reference(value)) {
-          //     const datapath = nu.trimReference(value)
-          //     if (Identify.localKey(datapath)) {
-          //       if (page?.page) {
-          //         let value = get(this.root?.[page.page], datapath)
-          //         if (Identify.reference(value)) {
-          //         }
-          //       }
-          //       debugger
-          //     } else {
-          //       debugger
-          //       return get(this.root, datapath)
-          //     }
-          //   }
-          // },
-          // reference: (args) => {
-          //   log.func('on [reference]')
-          //   log.grey('', args)
-          //   const { page, value } = args
-          //   if (Identify.reference(value)) {
-          //     const datapath = nu.trimReference(value)
-          //     if (Identify.localKey(datapath)) {
-          //       if (page?.page) {
-          //         return get(this.root?.[page.page], datapath)
-          //       }
-          //     } else {
-          //       return get(this.root, datapath)
-          //     }
-          //   }
-          // },
+          emit: {
+            createActionChain: async ({ actionChain, component, trigger }) => {
+              let results: ActionChainIteratorResult<
+                NUIActionObject,
+                NUITrigger
+              >[] = []
+              let result: any
+
+              if (/(dataValue|path|placeholder)/.test(trigger)) {
+                results = await actionChain?.execute?.()
+                result = results.find((val) => !!val?.result)?.result
+
+                let datasetKey = ''
+
+                if (trigger === 'path') {
+                  datasetKey = 'src'
+                  if (!is.component.page(component)) {
+                    result = result
+                      ? resolveAssetUrl(result, this.nui.getAssetsUrl())
+                      : ''
+                    component.edit({ src: result })
+                    component.edit({ 'data-src': result })
+                    component.emit('path', result)
+                  }
+                } else if (trigger === 'dataValue') {
+                  datasetKey = 'value'
+                } else {
+                  datasetKey = trigger.toLowerCase()
+                }
+                component.edit({ [`data-${datasetKey}`]: result })
+                component.emit(trigger as any, result)
+              }
+            },
+          },
         },
       })
     } catch (error) {
