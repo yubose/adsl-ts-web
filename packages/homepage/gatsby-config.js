@@ -1,12 +1,21 @@
+const fs = require('fs-extra')
+const path = require('path')
+const webpackConfig = require('../../webpack.config')
+
+const siteTitle = 'AiTmed'
+const siteDescription = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us! A full-service healthcare solution`
+const siteUrl = `https://aitmed.com/`
+
 /**
  * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-config/
  * @type { import('gatsby').GatsbyConfig }
  */
 module.exports = {
   siteMetadata: {
-    title: `AiTmed`,
-    description: `Anyone, Anywhere, Anytime Start Your E-health Journey With Us! A full-service healthcare solution`,
-    siteUrl: `https://aitmed.com/`,
+    siteTitle: webpackConfig.TITLE,
+    siteDescription: webpackConfig.DESCRIPTION,
+    siteUrl,
+    siteKeywords: webpackConfig.KEYWORDS,
   },
   plugins: [
     `gatsby-transformer-json`,
