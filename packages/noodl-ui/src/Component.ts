@@ -392,6 +392,9 @@ class Component<C extends ComponentObject = ComponentObject> {
           remove?.('style')
         } else {
           this.props[k] = v
+          if(v===0){
+            this.props[k] = `${v}`
+          }
           remove?.()
         }
       })

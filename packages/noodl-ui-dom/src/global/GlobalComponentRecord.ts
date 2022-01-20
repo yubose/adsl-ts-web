@@ -1,6 +1,6 @@
-import { NuiComponent } from 'noodl-ui'
+import type { NuiComponent } from 'noodl-ui'
 import GlobalRecord from './GlobalRecord'
-import Page from '../Page'
+import type Page from '../Page'
 import { DATA_GLOBALID } from '../constants'
 
 export interface GlobalComponentMapOptions {

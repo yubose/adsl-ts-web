@@ -1,8 +1,8 @@
 import { expect } from 'chai'
 import { waitFor } from '@testing-library/dom'
+import * as nt from 'noodl-types'
 import sinon from 'sinon'
 import * as u from '@jsmanifest/utils'
-import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
 import * as i from '../../utils/internal'
 import { assetsUrl, baseUrl, createOn, nui, ui } from '../../utils/test-utils'
@@ -27,6 +27,7 @@ describe(u.yellow(`resolveSetup`), () => {
 
       it(`should return value at index 2 if false`, async () => {
         const component = await nui.resolveComponents({
+          // @ts-expect-error
           components: ui.label({ text: { if: [1, 'abc', 'wow'] } }),
           on: { if: () => false },
         })
@@ -36,6 +37,7 @@ describe(u.yellow(`resolveSetup`), () => {
       it(`should run the reference hook if the truthy/falsy value returns a reference`, async () => {
         const spy = sinon.spy()
         const component = await nui.resolveComponents({
+          // @ts-expect-error
           components: ui.label({
             text: { if: [1, '..formData.password', 'wow'] },
           }),
@@ -48,6 +50,7 @@ describe(u.yellow(`resolveSetup`), () => {
       it(`should be able to deeply resolve references`, async () => {
         nui.getRoot().Power = { patientInfoPage: '.Sun.viewTag' }
         const component = await nui.resolveComponents({
+          // @ts-expect-error
           components: ui.label({
             text: { if: [1, '.Power.patientInfoPage', 'wow'] },
           }),
@@ -142,6 +145,62 @@ describe(u.yellow(`resolveSetup`), () => {
         const args = spy.args[0][0]
         expect(args).to.have.property('page').to.deep.eq(page)
       })
+    })
+  })
+
+  describe(`async emits`, () => {
+    async function resolveComponent(component: nt.ComponentObject) {
+      const page = nui.createPage({
+        name: 'Hello',
+        viewport: { width: 375, height: 667 },
+      })
+
+      return {
+        component: await nui.resolveComponents({ components: component, page }),
+        page,
+      }
+    }
+
+    it(`should only run the provided callback once per action`, async () => {
+      const spy = sinon.spy()
+      nui.use({ evalObject: spy })
+      const { component } = await resolveComponent(
+        ui.label({ onClick: [ui.evalObject(), ui.evalObject()] }),
+      )
+      // @ts-expect-error
+      await component.get('onClick').execute({})
+      await waitFor(() => expect(spy).to.be.calledTwice)
+    })
+
+    it(`should only run the provided callback once per emit action`, async () => {
+      const trigger = 'onChange'
+      const spy = sinon.spy()
+      nui.use({ emit: { [trigger]: spy } })
+      const { component } = await resolveComponent(
+        ui.label({
+          [trigger]: [ui.evalObject, ui.emitObject(), ui.evalObject],
+        }),
+      )
+      // @ts-expect-error
+      await component.get(trigger)?.execute({})
+      await waitFor(() => expect(spy).to.be.calledOnce)
+    })
+
+    it(`should call on.emit.createActionChain subscriber with the expected args`, async () => {
+      const spy = sinon.spy()
+      const component = await nui.resolveComponents({
+        components: ui.label({
+          emit: ui.emitObject({ dataKey: { var1: 'itemObject' }, actions: [] }),
+        }),
+        on: {
+          emit: {
+            createActionChain: spy,
+          },
+        },
+      })
+      console.info(component.props)
+
+      expect(spy).to.be.calledOnce
     })
   })
 })

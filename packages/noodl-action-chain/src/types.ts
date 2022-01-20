@@ -1,5 +1,7 @@
-import { ActionObject } from 'noodl-types'
-import AbortExecuteError from './AbortExecuteError'
+import type { ActionObject } from 'noodl-types'
+import type AbortExecuteError from './AbortExecuteError'
+import type Action from './Action'
+import type ActionChain from './ActionChain'
 import * as c from './constants'
 
 export interface IAction<
@@ -34,41 +36,73 @@ export type ActionChainIteratorResult<
   A extends ActionObject = ActionObject,
   T extends string = string,
 > = {
-  action: IAction<A['actionType'], T>
+  action: Action<A['actionType'], T>
   result: any
 }
 
 export interface ActionChainInstancesLoader<
-  A extends ActionObject = ActionObject,
-  RT = IAction<A['actionType']>,
+  RT = Action<ActionObject['actionType']>,
 > {
-  (actions: A[]): RT[]
+  (actions: ActionObject[]): RT[]
 }
 
 export interface ActionChainObserver<A extends ActionObject = ActionObject> {
-  onAbortStart?: (err: Error | string | string[]) => void
-  onAbortEnd?: () => void
-  onAbortError?(args: { action: IAction<A['actionType']>; error: Error }): void
+  onAbortStart?: (reason: string | string[] | undefined) => void
+  onAbortEnd?: (args: { aborted: Action[]; error: Action[] }) => void
+  onAbortError?(args: { action: Action<A['actionType']>; error: Error }): void
   onBeforeAbortAction?(args: {
-    action: IAction<A['actionType']>
-    queue: IAction[]
+    action: Action<A['actionType']>
+    queue: Action[]
   }): void
   onAfterAbortAction?(args: {
-    action: IAction<A['actionType']>
-    queue: IAction[]
+    action: Action<A['actionType']>
+    queue: Action[]
   }): void
-  onExecuteStart?(): void
-  onExecuteEnd?(): void
-  onExecuteError?(current: IAction, error: Error | AbortExecuteError): void
+  /**
+   * Invoked prior to looping the ActionChain's queue
+   * @param opts Options
+   */
+  onExecuteStart?(opts: {
+    args: any
+    actions: ActionObject[]
+    data: ActionChain['data']
+    queue: Action[]
+    trigger: ActionChain['trigger']
+    timeout: number
+  }): void
+  onExecuteError?(args: {
+    actions: ActionObject[]
+    current: Action
+    error: Error | AbortExecuteError
+    data: ActionChain['data']
+    trigger: ActionChain['trigger']
+  }): void
+  /**
+   * Invoked after looping the ActionChain's queue
+   */
+  onExecuteEnd?(args: {
+    actions: ActionObject[]
+    data: ActionChain['data']
+    trigger: ActionChain['trigger']
+  }): void
   onExecuteResult?(result?: any): void
-  onBeforeActionExecute?(args: {
-    action: IAction<A['actionType']>
-    args?: any
+  onBeforeActionExecute?<A = any>(args: {
+    actions: ActionObject[]
+    action: Action
+    args?: A
+    data: ActionChain['data']
+    trigger: ActionChain['trigger']
   }): void
   onRefresh?(): void
-  onBeforeInject?: (action: A | ActionObject) => void
+  onBeforeInject?: (args: {
+    action: A | ActionObject
+    actions: ActionObject[]
+    current: Action
+    data: ActionChain['data']
+    trigger: ActionChain['trigger']
+  }) => void
   onAfterInject?: (
     action: A | ActionObject,
-    instance: IAction<ActionObject['actionType']>,
+    instance: Action<ActionObject['actionType']>,
   ) => void
 }

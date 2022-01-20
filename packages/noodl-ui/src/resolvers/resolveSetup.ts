@@ -1,3 +1,4 @@
+import type { LiteralUnion } from 'type-fest'
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import Resolver from '../Resolver'
@@ -14,9 +15,10 @@ setupResolver.setResolver(async function setupResolver(
   next,
 ) {
   try {
-    const { getRoot, on, page } = options
+    const { createActionChain, getRoot, on, page } = options
+    const original = component.blueprint || {}
 
-    if (u.isObj(component.blueprint)) {
+    if (u.isObj(original)) {
       const origGet = component.get.bind(component)
 
       const _getter = function getter(
@@ -26,13 +28,6 @@ setupResolver.setResolver(async function setupResolver(
         let value = this.blueprint[key]
 
         if (u.isStr(value)) {
-          if (key === 'listObject') {
-            if (value === '') {
-              // We will override the prop getter here since in this case the reference
-              // is lost because a primitive ('') is set as the value here
-            }
-          }
-
           if (nt.Identify.pageComponentUrl(value)) {
             return resolvePageComponentUrl({
               component,
@@ -105,6 +100,65 @@ setupResolver.setResolver(async function setupResolver(
           return _getter.bind(this)
         },
       })
+
+      /* -------------------------------------------------------
+        ---- USER EVENTS (onClick, onHover, onBlur, etc)
+      -------------------------------------------------------- */
+
+      // @ts-expect-error
+      userEvent.concat('postMessage').forEach((eventType) => {
+        if (original[eventType]) {
+          const actionChain = createActionChain(
+            eventType,
+            original[eventType] as t.NUIActionObject[],
+          )
+          on?.actionChain && actionChain.use(on.actionChain)
+          component.edit({ [eventType]: actionChain })
+          eventType !== 'postMessage' && (component.style.cursor = 'pointer')
+        }
+
+        if (original.onTextChange) {
+          const actionChain = createActionChain(
+            'onInput',
+            original.onTextChange,
+          )
+          component.edit({ ['onInput']: actionChain })
+          on?.actionChain && actionChain.use(on.actionChain)
+        }
+      })
+
+      /* -------------------------------------------------------
+        ---- EMITS
+      -------------------------------------------------------- */
+
+      for (const prop of [
+        'path',
+        'placeholder',
+        { trigger: 'dataValue', datasetKey: 'value' },
+      ]) {
+        let datasetKey = ''
+        let trigger = '' as LiteralUnion<t.NUITrigger, string>
+
+        if (u.isObj(prop)) {
+          datasetKey = prop.datasetKey
+          trigger = prop.trigger
+        } else {
+          datasetKey = trigger = prop
+        }
+
+        if (nt.Identify.folds.emit(original[trigger])) {
+          const actionChain = createActionChain('', [
+            { emit: original[trigger].emit, actionType: 'emit' },
+          ])
+          on?.actionChain && actionChain.use(on.actionChain)
+          await on?.emit?.createActionChain?.({
+            actionChain,
+            actions: original[trigger].emit?.actions || [],
+            component,
+            trigger: trigger as t.NUITrigger,
+          })
+        }
+      }
     }
   } catch (error) {
     console.error(error)

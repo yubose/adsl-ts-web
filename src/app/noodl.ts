@@ -1,13 +1,10 @@
 import { CADL as NOODL } from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
-
-// console.log({ configKey: process.env.CONFIG_KEY })
-// console.log({ configKey: process.env.CONFIG_KEY })
-// console.log({ configKey: process.env.CONFIG_KEY })
+import { Client as SearchClient } from 'elasticsearch-browser'
 
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'admind2'
+export const CONFIG_KEY = 'admind3'
 // const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
@@ -50,10 +47,8 @@ export function resetInstance() {
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: CONFIG_URL,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
-    dbConfig: {
-      locateFile: (filename) =>
-        'https://cdn.jsdelivr.net/npm/sql-wasm@1.1.4/dist/cjs/sql-wasm.min.js',
-    },
+    dbConfig: undefined,
+    SearchClient,
   })
   return noodl
 }

@@ -73,7 +73,7 @@ export function exportToPDF(
     open?: boolean
     filename?: string
   } = { data: '' },
-): Promise<jsPDF> {
+): Promise<void> {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data) reject(new Error(`Cannot export from empty data`))
@@ -221,7 +221,8 @@ export function exportToPDF(
 
       open && doc.output('pdfobjectnewwindow')
       shouldDownload && download(doc.output('datauristring'), filename)
-      resolve(doc)
+      doc.close()
+      resolve()
     } catch (error) {
       u.logError(error)
       reject(error instanceof Error ? error : new Error(String(error)))

@@ -1,8 +1,9 @@
-import { nodeResolve } from '@rollup/plugin-node-resolve'
+import resolve from '@rollup/plugin-node-resolve'
 import filesize from 'rollup-plugin-filesize'
 import progress from 'rollup-plugin-progress'
 import commonjs from '@rollup/plugin-commonjs'
 import esbuild from 'rollup-plugin-esbuild'
+import external from 'rollup-plugin-peer-deps-external'
 
 const extensions = ['.js', '.ts']
 const _DEV_ = process.env.NODE_ENV === 'development'
@@ -22,21 +23,26 @@ const configs = [
         sourcemap: true,
       },
     ],
+    context: 'window',
     plugins: [
-      commonjs(),
+      resolve({
+        extensions,
+        preferBuiltins: true,
+      }),
+      commonjs({
+        sourceMap: false,
+      }),
       filesize(),
       progress(),
-      nodeResolve({
-        browser: true,
-        extensions,
-        moduleDirectories: ['node_modules'],
+      external({
+        includeDependencies: true,
       }),
       esbuild({
-        include: /\.[jt]s?$/,
+        include: /\.ts$/,
         exclude: /node_modules/,
         minify: !_DEV_,
-        target: 'es2018',
-        sourceMap: true,
+        minifyIdentifiers: false,
+        target: 'es2015',
       }),
     ],
   },

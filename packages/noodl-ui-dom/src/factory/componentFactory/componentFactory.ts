@@ -7,16 +7,7 @@
  * However this is planned to spawn other critical instances like the
  * SignaturePad for the signature functionality
  */
-import * as u from '@jsmanifest/utils'
-import { OrArray } from '@jsmanifest/typefest'
 import ComponentPage from './ComponentPage'
-import * as c from '../../constants'
-import * as t from '../../types'
-
-const ARIA_LABELLEDBY = 'aria-labelledby'
-const ARIA_HIDDEN = 'aria-hidden'
-const ARIA_LABEL = 'aria-label'
-const CONTENT_SECURITY_POLICY = 'Content-Security-Policy'
 
 const componentFactory = (function () {
   return {

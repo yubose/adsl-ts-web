@@ -1,3 +1,6 @@
+// INACTIVE
+// @ts-nocheck
+
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import flip from 'lodash/flip'

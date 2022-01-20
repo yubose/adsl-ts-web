@@ -127,7 +127,7 @@ export const ExportPdf = (function () {
           const nextHeight = currHeight + height
           if (nextHeight > maxPageHeight) {
             // debugger
-            doc = doc?.addPage(format, orientation)
+            // doc = doc?.addPage(format, orientation)
             currHeight = 0
           }
           currHeight += height
@@ -238,10 +238,12 @@ export const ExportPdf = (function () {
     try {
       doc = new jsPDF(pdfDocOptions)
 
-      doc.canvas.width = totalWidth
-      doc.canvas.height = totalHeight
-      doc.internal.pageSize.width = totalWidth
-      doc.internal.pageSize.height = totalHeight
+      doc.canvas.width = o.sizes.A4.width
+      doc.canvas.height = o.sizes.A4.height
+      // doc.internal.pageSize.width = totalWidth
+      // doc.internal.pageSize.height = totalHeight
+      doc.internal.pageSize.width = o.sizes.A4.width
+      doc.internal.pageSize.height = o.sizes.A4.height
 
       // Canvas + image must share this same size to avoid stretches in fonts
       const imageSize = {
@@ -271,7 +273,7 @@ export const ExportPdf = (function () {
         // prettier-ignore
         doc.addImage(
          image.toDataURL(), 'png', 0, 0,
-         totalWidth, totalHeight,
+         o.sizes.A4.width, o.sizes.A4.height,
          'FAST', 'FAST'
         )
         console.log({
@@ -282,7 +284,6 @@ export const ExportPdf = (function () {
             height: doc.internal.pageSize.height,
           },
         })
-        debugger
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
         console.log(
@@ -307,6 +308,7 @@ export const ExportPdf = (function () {
     } catch (error) {
       console.error(error instanceof Error ? error : new Error(String(error)))
     }
+
     return doc
   }
 
