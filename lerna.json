@@ -2,18 +2,18 @@
   "command": {
     "bootstrap": {
       "hoist": true,
-      "ignore": ["docs", "nui"]
+      "ignore": ["docs", "homepage"]
     },
     "create": {
       "license": "MIT"
     },
     "publish": {
       "bump": "patch",
-      "ignore": ["docs", "nui", "noodl-ui-test-utils"],
+      "ignore": ["docs", "homepage", "noodl-ui-test-utils"],
       "message": "Update"
     }
   },
-  "ignore": ["docs", "nui"],
+  "ignore": ["docs", "homepage"],
   "ignoreChanges": ["**/__tests__/**"],
   "loglevel": "success",
   "packages": ["packages/*"],
