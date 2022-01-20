@@ -261,7 +261,6 @@ export interface On {
     value: IfObject
   }): boolean | null | undefined
   emit?: {
-    // TODO - Finish
     createActionChain?(opts: {
       actionChain: NUIActionChain
       actions: NUIActionObject
