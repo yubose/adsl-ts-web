@@ -56,7 +56,7 @@
     "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.528",
+    "@aitmed/cadl": "^1.0.529",
     "@aitmed/ecos-lvl2-sdk": "^1.4.176",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
