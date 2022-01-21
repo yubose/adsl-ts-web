@@ -173,6 +173,7 @@ class NOODLViewport {
     ) => Promise<any> | any,
   ) {
     if (typeof window !== 'undefined') {
+      const userAgent = window.navigator.userAgent || window.navigator.vendor
       window.removeEventListener('resize', this.#onResize)
 
       this.#onResize = () => {
@@ -209,6 +210,10 @@ class NOODLViewport {
         // window.addEventListener('gesturechange', this.#onResize)
         window.addEventListener('resize', this.#onResize)
         window.addEventListener('unload', onUnload)
+      }
+      if (/android/i.test(userAgent)) {
+        window.removeEventListener('resize', this.#onResize)
+        window.removeEventListener('unload', onUnload)
       }
     }
   }
