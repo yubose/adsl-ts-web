@@ -471,19 +471,19 @@ class App {
         }
 
         try {
-          const lastState = JSON.parse(lastDOM) as t.StoredDOMState
-          if (lastState?.root && lastState.origin === location.origin) {
-            const rootEl = document.getElementById('root')
-            if (rootEl) {
-              if (lastState.page !== lastState.startPage) {
-                if (await this.noodl.root.builtIn.SignInOk()) {
-                  renderCachedState(rootEl, lastState)
-                }
-              } else {
-                renderCachedState(rootEl, lastState)
-              }
-            }
-          }
+          // const lastState = JSON.parse(lastDOM) as t.StoredDOMState
+          // if (lastState?.root && lastState.origin === location.origin) {
+          //   const rootEl = document.getElementById('root')
+          //   if (rootEl) {
+          //     if (lastState.page !== lastState.startPage) {
+          //       if (await this.noodl.root.builtIn.SignInOk()) {
+          //         renderCachedState(rootEl, lastState)
+          //       }
+          //     } else {
+          //       renderCachedState(rootEl, lastState)
+          //     }
+          //   }
+          // }
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
           console.log(

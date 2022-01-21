@@ -14,8 +14,6 @@ const BUILTIN_EVAL_TOKEN = '=.'
 
 ;(async () => {
   try {
-    log(`${u.cyan('Generating components')}`)
-
     const getTraverse = curry(
       /**
        * @param { (key: string, value: any, parent: Record<string, any>) => void } cb
@@ -35,6 +33,8 @@ const BUILTIN_EVAL_TOKEN = '=.'
         }
       },
     )
+
+    log(`${u.cyan('Generating components')}`)
 
     const { components, getGoto, nui, page, sdk, transform } =
       await getGenerator({
@@ -144,11 +144,9 @@ const BUILTIN_EVAL_TOKEN = '=.'
     for (let path of paths) {
       let builtInKey = ''
       let indexOfBuiltInKey = path.indexOf('builtIn')
-      // log(path)
       if (indexOfBuiltInKey > -1) {
         builtInKey = path.substring(indexOfBuiltInKey)
         path = path.substring(0, indexOfBuiltInKey - 1)
-        // log(`${builtInKey} - ${path}`)
       }
 
       path = [

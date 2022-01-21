@@ -7,7 +7,7 @@
     },
     "data-viewtag": "breakView",
     "data-ux": "breakView",
-    "id": "_mj011yhg8",
+    "id": "_ycg4yy9tc",
     "parentId": null,
     "children": []
   },
@@ -40,19 +40,50 @@
         "children": [
           {
             "type": "view",
-            "onClick": [
-              {
-                "actionType": "evalObject"
-              },
-              {
-                "actionType": "builtIn",
-                "funcName": "redraw",
-                "viewTag": "headRightView"
-              },
-              {
-                "goto": "HomePage"
-              }
-            ],
+            "onClick": {
+              "actions": [
+                {
+                  "actionType": "evalObject",
+                  "object": [
+                    {
+                      "=.builtIn.object.setProperty": {
+                        "dataIn": {
+                          "obj": "=.Resource.baseHeaderData",
+                          "label": "title",
+                          "text": "For Provider",
+                          "arr": [
+                            "fontSize",
+                            "fontWeight",
+                            "fontColor"
+                          ],
+                          "valueArr": [
+                            "2.28vh",
+                            "600",
+                            "0x388fcd"
+                          ],
+                          "errorArr": [
+                            "2.28vh",
+                            "400",
+                            "0x000000"
+                          ]
+                        },
+                        "dataOut": "Resource.baseHeaderData"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "actionType": "builtIn",
+                  "funcName": "redraw",
+                  "viewTag": "headRightView"
+                },
+                {
+                  "goto": "HomePage",
+                  "actionType": "goto"
+                }
+              ],
+              "trigger": "onClick"
+            },
             "style": {
               "height": "calc(116.28/1724.81*100vw)",
               "width": "calc(200.28/1724.81*100vw)",
@@ -71,8 +102,8 @@
                   "objectFit": "contain"
                 },
                 "data-src": "https://public.aitmed.com/cadl/www4.04/assets/aitmednowords.svg",
-                "id": "_9iubf4l3z",
-                "parentId": "_4hlkhg80l",
+                "id": "_6d2v3j1hd",
+                "parentId": "_rvsr67ok8",
                 "children": []
               },
               {
@@ -92,13 +123,13 @@
                   "justifyContent": "flex-start",
                   "fontWeight": "bold"
                 },
-                "id": "_1jmssdxlr",
-                "parentId": "_4hlkhg80l",
+                "id": "_anm0rpt4o",
+                "parentId": "_rvsr67ok8",
                 "children": []
               }
             ],
-            "id": "_4hlkhg80l",
-            "parentId": "_8yad2rfvc"
+            "id": "_rvsr67ok8",
+            "parentId": "_l6clejurr"
           },
           {
             "type": "view",
@@ -322,16 +353,78 @@
                                       "string2": "Sign in / Sign up"
                                     }
                                   }
+                                ]
+                              }
+                            ]
+                          },
+                          "actionType": "emit"
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "1"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "1"
+                                  "actionType": "popUp",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
+                              ]
+                            },
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "0"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "0"
-                                }
+                                  "actionType": "popUpDismiss",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
                               ]
                             }
                           ]
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.signInFlag",
+                                      "string2": "1"
+                                    }
+                                  }
+                                },
+                                {
+                                  "actionType": "popUp",
+                                  "popUpView": "redict",
+                                  "dismissOnTouchOutside": true
+                                },
+                                "continue"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "actionType": "builtIn",
+                          "funcName": "redraw",
+                          "viewTag": "headRightView"
                         }
                       },
                       {
@@ -380,14 +473,14 @@
                         "data-value": "Find My Care",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_iswwk8mun",
-                        "parentId": "_qs43oz5ha",
+                        "id": "_qawaf1jhi",
+                        "parentId": "_w0804nnda",
                         "children": []
                       }
                     ],
                     "index": "0",
-                    "id": "_qs43oz5ha",
-                    "parentId": "_9z317x0bz"
+                    "id": "_w0804nnda",
+                    "parentId": "_tc8das1mg"
                   },
                   {
                     "type": "listItem",
@@ -525,16 +618,78 @@
                                       "string2": "Sign in / Sign up"
                                     }
                                   }
+                                ]
+                              }
+                            ]
+                          },
+                          "actionType": "emit"
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "1"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "1"
+                                  "actionType": "popUp",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
+                              ]
+                            },
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "0"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "0"
-                                }
+                                  "actionType": "popUpDismiss",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
                               ]
                             }
                           ]
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.signInFlag",
+                                      "string2": "1"
+                                    }
+                                  }
+                                },
+                                {
+                                  "actionType": "popUp",
+                                  "popUpView": "redict",
+                                  "dismissOnTouchOutside": true
+                                },
+                                "continue"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "actionType": "builtIn",
+                          "funcName": "redraw",
+                          "viewTag": "headRightView"
                         }
                       },
                       {
@@ -583,14 +738,14 @@
                         "data-value": "For Provider",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_x9zu7sy00",
-                        "parentId": "_7brzs7kig",
+                        "id": "_fvbi7rpy8",
+                        "parentId": "_a1qgubzib",
                         "children": []
                       }
                     ],
                     "index": 1,
-                    "id": "_7brzs7kig",
-                    "parentId": "_9z317x0bz"
+                    "id": "_a1qgubzib",
+                    "parentId": "_tc8das1mg"
                   },
                   {
                     "type": "listItem",
@@ -728,16 +883,78 @@
                                       "string2": "Sign in / Sign up"
                                     }
                                   }
+                                ]
+                              }
+                            ]
+                          },
+                          "actionType": "emit"
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "1"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "1"
+                                  "actionType": "popUp",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
+                              ]
+                            },
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "0"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "0"
-                                }
+                                  "actionType": "popUpDismiss",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
                               ]
                             }
                           ]
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.signInFlag",
+                                      "string2": "1"
+                                    }
+                                  }
+                                },
+                                {
+                                  "actionType": "popUp",
+                                  "popUpView": "redict",
+                                  "dismissOnTouchOutside": true
+                                },
+                                "continue"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "actionType": "builtIn",
+                          "funcName": "redraw",
+                          "viewTag": "headRightView"
                         }
                       },
                       {
@@ -786,14 +1003,14 @@
                         "data-value": "For Business",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_d4gjf8rff",
-                        "parentId": "_n9pymab4i",
+                        "id": "_gawrx65wu",
+                        "parentId": "_ximasw2he",
                         "children": []
                       }
                     ],
                     "index": 2,
-                    "id": "_n9pymab4i",
-                    "parentId": "_9z317x0bz"
+                    "id": "_ximasw2he",
+                    "parentId": "_tc8das1mg"
                   },
                   {
                     "type": "listItem",
@@ -931,30 +1148,82 @@
                                       "string2": "Sign in / Sign up"
                                     }
                                   }
+                                ]
+                              }
+                            ]
+                          },
+                          "actionType": "emit"
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "1"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "1"
+                                  "actionType": "popUp",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
+                              ]
+                            },
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "0"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "0"
-                                }
+                                  "actionType": "popUpDismiss",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
                               ]
                             }
                           ]
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.signInFlag",
+                                      "string2": "1"
+                                    }
+                                  }
+                                },
+                                {
+                                  "actionType": "popUp",
+                                  "popUpView": "redict",
+                                  "dismissOnTouchOutside": true
+                                },
+                                "continue"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "actionType": "builtIn",
+                          "funcName": "redraw",
+                          "viewTag": "headRightView"
                         }
-                      },
-                      {
-                        "actionType": "evalObject"
-                      },
-                      {
-                        "actionType": "evalObject"
-                      },
-                      {
-                        "actionType": "builtIn",
-                        "funcName": "redraw",
-                        "viewTag": "headRightView"
-                      }
-                    ],
+                      ],
+                      "trigger": "onClick"
+                    },
                     "style": {
                       "width": "calc(7vw)",
                       "height": "calc(116.28/1724.81*100vw)",
@@ -989,14 +1258,14 @@
                         "data-value": "Aitmed Care",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_7o346xc8k",
-                        "parentId": "_b51nd2j9j",
+                        "id": "_qrm5a1g3h",
+                        "parentId": "_h7cyqn7xt",
                         "children": []
                       }
                     ],
                     "index": 3,
-                    "id": "_b51nd2j9j",
-                    "parentId": "_9z317x0bz"
+                    "id": "_h7cyqn7xt",
+                    "parentId": "_tc8das1mg"
                   },
                   {
                     "type": "listItem",
@@ -1134,16 +1403,78 @@
                                       "string2": "Sign in / Sign up"
                                     }
                                   }
+                                ]
+                              }
+                            ]
+                          },
+                          "actionType": "emit"
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "1"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "1"
+                                  "actionType": "popUp",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
+                              ]
+                            },
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.productFlag",
+                                      "string2": "0"
+                                    }
+                                  }
                                 },
                                 {
-                                  ".Resource.signInFlag@": "0"
-                                }
+                                  "actionType": "popUpDismiss",
+                                  "popUpView": "productView"
+                                },
+                                "continue"
                               ]
                             }
                           ]
+                        },
+                        {
+                          "actionType": "evalObject",
+                          "object": [
+                            {
+                              "if": [
+                                {
+                                  "=.builtIn.string.equal": {
+                                    "dataIn": {
+                                      "string1": "=.Resource.signInFlag",
+                                      "string2": "1"
+                                    }
+                                  }
+                                },
+                                {
+                                  "actionType": "popUp",
+                                  "popUpView": "redict",
+                                  "dismissOnTouchOutside": true
+                                },
+                                "continue"
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "actionType": "builtIn",
+                          "funcName": "redraw",
+                          "viewTag": "headRightView"
                         }
                       },
                       {
@@ -1192,29 +1523,29 @@
                         "data-value": "Sign in / Sign up",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_161p7xwvg",
-                        "parentId": "_yk14y1njc",
+                        "id": "_kghza7bsc",
+                        "parentId": "_4ihx5g6dr",
                         "children": []
                       }
                     ],
                     "index": 4,
-                    "id": "_yk14y1njc",
-                    "parentId": "_9z317x0bz"
+                    "id": "_4ihx5g6dr",
+                    "parentId": "_tc8das1mg"
                   }
                 ],
-                "data-listid": "_9z317x0bz",
-                "id": "_9z317x0bz",
-                "parentId": "_vudrfljns"
+                "data-listid": "_tc8das1mg",
+                "id": "_tc8das1mg",
+                "parentId": "_9m0s7tct5"
               }
             ],
             "data-viewtag": "headRightView",
             "data-ux": "headRightView",
-            "id": "_vudrfljns",
-            "parentId": "_8yad2rfvc"
+            "id": "_9m0s7tct5",
+            "parentId": "_l6clejurr"
           }
         ],
-        "id": "_8yad2rfvc",
-        "parentId": "_h6rkf5ue7"
+        "id": "_l6clejurr",
+        "parentId": "_5b5f9r9si"
       },
       {
         "type": "popUp",
@@ -1380,14 +1711,14 @@
                         "data-value": "Care App",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_4j7407noa",
-                        "parentId": "_eqeuednen",
+                        "id": "_l9fysss4l",
+                        "parentId": "_mnljnla7w",
                         "children": []
                       }
                     ],
                     "index": "0",
-                    "id": "_eqeuednen",
-                    "parentId": "_1z4lnlv6i"
+                    "id": "_mnljnla7w",
+                    "parentId": "_pq7qdtrm7"
                   },
                   {
                     "type": "listItem",
@@ -1490,29 +1821,29 @@
                         "data-value": "Health A-Z",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_bs528a230",
-                        "parentId": "_70wjyzo5y",
+                        "id": "_aieaiixq2",
+                        "parentId": "_c9gq51jfs",
                         "children": []
                       }
                     ],
                     "index": 1,
-                    "id": "_70wjyzo5y",
-                    "parentId": "_1z4lnlv6i"
+                    "id": "_c9gq51jfs",
+                    "parentId": "_pq7qdtrm7"
                   }
                 ],
-                "data-listid": "_1z4lnlv6i",
-                "id": "_1z4lnlv6i",
-                "parentId": "_0a46guxdz"
+                "data-listid": "_pq7qdtrm7",
+                "id": "_pq7qdtrm7",
+                "parentId": "_aor4ajxio"
               }
             ],
-            "id": "_0a46guxdz",
-            "parentId": "_dqbghbmnm"
+            "id": "_aor4ajxio",
+            "parentId": "_sapwrfca4"
           }
         ],
         "data-viewtag": "productView",
         "data-ux": "productView",
-        "id": "_dqbghbmnm",
-        "parentId": "_h6rkf5ue7"
+        "id": "_sapwrfca4",
+        "parentId": "_5b5f9r9si"
       },
       {
         "type": "popUp",
@@ -1573,19 +1904,19 @@
                   "alignItems": "center",
                   "justifyContent": "center"
                 },
-                "id": "_owj1pi5ce",
-                "parentId": "_4wz3n3uvx",
+                "id": "_fd10q8135",
+                "parentId": "_6nkw1jg96",
                 "children": []
               }
             ],
-            "id": "_4wz3n3uvx",
-            "parentId": "_p20j9ha8g"
+            "id": "_6nkw1jg96",
+            "parentId": "_ix9g5sfxv"
           }
         ],
         "data-viewtag": "wellnessView",
         "data-ux": "wellnessView",
-        "id": "_p20j9ha8g",
-        "parentId": "_h6rkf5ue7"
+        "id": "_ix9g5sfxv",
+        "parentId": "_5b5f9r9si"
       },
       {
         "type": "popUp",
@@ -1752,14 +2083,14 @@
                         "data-value": "Care",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_0mtfsqyh4",
-                        "parentId": "_gtctiwuh1",
+                        "id": "_ok5239cl8",
+                        "parentId": "_gl3b4o3ub",
                         "children": []
                       }
                     ],
                     "index": "0",
-                    "id": "_gtctiwuh1",
-                    "parentId": "_ajifr7eoi"
+                    "id": "_gl3b4o3ub",
+                    "parentId": "_93650rgbb"
                   },
                   {
                     "type": "listItem",
@@ -1861,14 +2192,14 @@
                         "data-value": "Provider",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_t2225lvna",
-                        "parentId": "_b5fffczgu",
+                        "id": "_ykxo75vdh",
+                        "parentId": "_0oqc3nyi9",
                         "children": []
                       }
                     ],
                     "index": 1,
-                    "id": "_b5fffczgu",
-                    "parentId": "_ajifr7eoi"
+                    "id": "_0oqc3nyi9",
+                    "parentId": "_93650rgbb"
                   },
                   {
                     "type": "listItem",
@@ -1970,29 +2301,29 @@
                         "data-value": "Admin",
                         "data-key": "itemObject.title",
                         "data-name": "title",
-                        "id": "_vv0qz1k1t",
-                        "parentId": "_mh4kqx0h1",
+                        "id": "_nv303z7u7",
+                        "parentId": "_abf2fqse1",
                         "children": []
                       }
                     ],
                     "index": 2,
-                    "id": "_mh4kqx0h1",
-                    "parentId": "_ajifr7eoi"
+                    "id": "_abf2fqse1",
+                    "parentId": "_93650rgbb"
                   }
                 ],
-                "data-listid": "_ajifr7eoi",
-                "id": "_ajifr7eoi",
-                "parentId": "_gpd2f4sir"
+                "data-listid": "_93650rgbb",
+                "id": "_93650rgbb",
+                "parentId": "_if4xpanuw"
               }
             ],
-            "id": "_gpd2f4sir",
-            "parentId": "_780ce02aa"
+            "id": "_if4xpanuw",
+            "parentId": "_q98p9mmla"
           }
         ],
         "data-viewtag": "signInView",
         "data-ux": "signInView",
-        "id": "_780ce02aa",
-        "parentId": "_h6rkf5ue7"
+        "id": "_q98p9mmla",
+        "parentId": "_5b5f9r9si"
       },
       {
         "type": "popUp",
@@ -2035,8 +2366,8 @@
               }
             ],
             "data-src": "https://public.aitmed.com/cadl/www4.04/assets/dismiss2.png",
-            "id": "_v3749u1k7",
-            "parentId": "_p83bjmngh",
+            "id": "_790n454mu",
+            "parentId": "_h3cef5wk8",
             "children": []
           },
           {
@@ -2061,8 +2392,8 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "id": "_fdqjb186n",
-                "parentId": "_s05ndtjti",
+                "id": "_62xkfiq2n",
+                "parentId": "_2nipp033y",
                 "children": []
               },
               {
@@ -2076,13 +2407,13 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "id": "_tacn9qm0m",
-                "parentId": "_s05ndtjti",
+                "id": "_rgwdp4zab",
+                "parentId": "_2nipp033y",
                 "children": []
               }
             ],
-            "id": "_s05ndtjti",
-            "parentId": "_p83bjmngh"
+            "id": "_2nipp033y",
+            "parentId": "_h3cef5wk8"
           },
           {
             "type": "view",
@@ -2128,13 +2459,13 @@
                       "alignItems": "center",
                       "justifyContent": "center"
                     },
-                    "id": "_imz6tb9cj",
-                    "parentId": "_gout6jgtx",
+                    "id": "_7fx538hry",
+                    "parentId": "_nsrup9ao9",
                     "children": []
                   }
                 ],
-                "id": "_gout6jgtx",
-                "parentId": "_texykl992"
+                "id": "_nsrup9ao9",
+                "parentId": "_swcgqeb1v"
               },
               {
                 "type": "view",
@@ -2170,13 +2501,13 @@
                       "alignItems": "center",
                       "justifyContent": "center"
                     },
-                    "id": "_dl9y9p3a2",
-                    "parentId": "_idg75bzan",
+                    "id": "_acqyzghvy",
+                    "parentId": "_mte1jlnjy",
                     "children": []
                   }
                 ],
-                "id": "_idg75bzan",
-                "parentId": "_texykl992"
+                "id": "_mte1jlnjy",
+                "parentId": "_swcgqeb1v"
               },
               {
                 "type": "view",
@@ -2212,23 +2543,23 @@
                       "alignItems": "center",
                       "justifyContent": "center"
                     },
-                    "id": "_g0is2vbb4",
-                    "parentId": "_vg8c9hcdr",
+                    "id": "_sal1dws9b",
+                    "parentId": "_uyfvd4047",
                     "children": []
                   }
                 ],
-                "id": "_vg8c9hcdr",
-                "parentId": "_texykl992"
+                "id": "_uyfvd4047",
+                "parentId": "_swcgqeb1v"
               }
             ],
-            "id": "_texykl992",
-            "parentId": "_p83bjmngh"
+            "id": "_swcgqeb1v",
+            "parentId": "_h3cef5wk8"
           }
         ],
         "data-viewtag": "JFreeTag",
         "data-ux": "JFreeTag",
-        "id": "_p83bjmngh",
-        "parentId": "_h6rkf5ue7"
+        "id": "_h3cef5wk8",
+        "parentId": "_5b5f9r9si"
       },
       {
         "type": "popUp",
@@ -2247,8 +2578,8 @@
         },
         "data-viewtag": "JFreeShadowPop",
         "data-ux": "JFreeShadowPop",
-        "id": "_ub9fto1fc",
-        "parentId": "_h6rkf5ue7",
+        "id": "_19cmez07o",
+        "parentId": "_5b5f9r9si",
         "children": []
       },
       {
@@ -2307,8 +2638,8 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "id": "_zn2m1t6st",
-                "parentId": "_f3hu5mhts",
+                "id": "_ah9w8hld0",
+                "parentId": "_amp6ihbz2",
                 "children": []
               },
               {
@@ -2326,13 +2657,17 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "onClick": [
-                  {
-                    "goto": "https://patient.aitmed.com/"
-                  }
-                ],
-                "id": "_iinuhv30z",
-                "parentId": "_f3hu5mhts",
+                "onClick": {
+                  "actions": [
+                    {
+                      "goto": "https://patient.aitmed.com/",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_9h2gsuhps",
+                "parentId": "_amp6ihbz2",
                 "children": []
               },
               {
@@ -2350,18 +2685,22 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "onClick": [
-                  {
-                    "goto": "https://patient.aitmed.com/"
-                  }
-                ],
-                "id": "_243jq2r8w",
-                "parentId": "_f3hu5mhts",
+                "onClick": {
+                  "actions": [
+                    {
+                      "goto": "https://patient.aitmed.com/",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_zh32dxarr",
+                "parentId": "_amp6ihbz2",
                 "children": []
               }
             ],
-            "id": "_f3hu5mhts",
-            "parentId": "_6ghzyl74q"
+            "id": "_amp6ihbz2",
+            "parentId": "_t2pnjr58k"
           },
           {
             "type": "view",
@@ -2395,8 +2734,8 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "id": "_728vd2chr",
-                "parentId": "_ay99nc73a",
+                "id": "_xwp0insnz",
+                "parentId": "_efn0pccxt",
                 "children": []
               },
               {
@@ -2414,13 +2753,17 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "onClick": [
-                  {
-                    "goto": "https://provider.aitmed.com/"
-                  }
-                ],
-                "id": "_73oepp00w",
-                "parentId": "_ay99nc73a",
+                "onClick": {
+                  "actions": [
+                    {
+                      "goto": "https://provider.aitmed.com/",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_6saalztcp",
+                "parentId": "_efn0pccxt",
                 "children": []
               },
               {
@@ -2438,18 +2781,22 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "onClick": [
-                  {
-                    "goto": "https://provider.aitmed.com/"
-                  }
-                ],
-                "id": "_ti9d3ksmc",
-                "parentId": "_ay99nc73a",
+                "onClick": {
+                  "actions": [
+                    {
+                      "goto": "https://provider.aitmed.com/",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_8lusdroed",
+                "parentId": "_efn0pccxt",
                 "children": []
               }
             ],
-            "id": "_ay99nc73a",
-            "parentId": "_6ghzyl74q"
+            "id": "_efn0pccxt",
+            "parentId": "_t2pnjr58k"
           },
           {
             "type": "view",
@@ -2481,8 +2828,8 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "id": "_gi2k8is03",
-                "parentId": "_xvtfno10j",
+                "id": "_6j9iuanwo",
+                "parentId": "_k15hyj4yi",
                 "children": []
               },
               {
@@ -2500,13 +2847,17 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "onClick": [
-                  {
-                    "goto": "https://admin.aitmed.com/"
-                  }
-                ],
-                "id": "_j07sxvn0z",
-                "parentId": "_xvtfno10j",
+                "onClick": {
+                  "actions": [
+                    {
+                      "goto": "https://admin.aitmed.com/",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_27vupgki7",
+                "parentId": "_k15hyj4yi",
                 "children": []
               },
               {
@@ -2524,27 +2875,31 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "onClick": [
-                  {
-                    "goto": "https://admin.aitmed.com/"
-                  }
-                ],
-                "id": "_6zlpbt4y9",
-                "parentId": "_xvtfno10j",
+                "onClick": {
+                  "actions": [
+                    {
+                      "goto": "https://admin.aitmed.com/",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_esn3cy31i",
+                "parentId": "_k15hyj4yi",
                 "children": []
               }
             ],
-            "id": "_xvtfno10j",
-            "parentId": "_6ghzyl74q"
+            "id": "_k15hyj4yi",
+            "parentId": "_t2pnjr58k"
           }
         ],
         "data-viewtag": "redict",
         "data-ux": "redict",
-        "id": "_6ghzyl74q",
-        "parentId": "_h6rkf5ue7"
+        "id": "_t2pnjr58k",
+        "parentId": "_5b5f9r9si"
       }
     ],
-    "id": "_h6rkf5ue7",
+    "id": "_5b5f9r9si",
     "parentId": null
   },
   {
@@ -2555,7 +2910,7 @@
     },
     "data-viewtag": "topView",
     "data-ux": "topView",
-    "id": "_1c0q54ipt",
+    "id": "_1s1xt9lkr",
     "parentId": null,
     "children": []
   },
@@ -2581,8 +2936,8 @@
           "objectFit": "contain"
         },
         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/homeNew11.png",
-        "id": "_28w6je06m",
-        "parentId": "_fxnjdt6pv",
+        "id": "_clvhlreil",
+        "parentId": "_is7sco06f",
         "children": []
       },
       {
@@ -2601,8 +2956,8 @@
           "position": "absolute",
           "outline": "none"
         },
-        "id": "_0rk1rzncr",
-        "parentId": "_fxnjdt6pv",
+        "id": "_jh9yxzny8",
+        "parentId": "_is7sco06f",
         "children": []
       },
       {
@@ -2619,8 +2974,8 @@
           "position": "absolute",
           "outline": "none"
         },
-        "id": "_pema2miqb",
-        "parentId": "_fxnjdt6pv",
+        "id": "_1qzgfvwxb",
+        "parentId": "_is7sco06f",
         "children": []
       },
       {
@@ -2653,12 +3008,12 @@
           "alignItems": "center",
           "justifyContent": "center"
         },
-        "id": "_6wdgcsu5q",
-        "parentId": "_fxnjdt6pv",
+        "id": "_fmwf6utgw",
+        "parentId": "_is7sco06f",
         "children": []
       }
     ],
-    "id": "_fxnjdt6pv",
+    "id": "_is7sco06f",
     "parentId": null
   },
   {
@@ -2700,8 +3055,8 @@
               "position": "relative",
               "outline": "none"
             },
-            "id": "_6iphbf37z",
-            "parentId": "_94kc3ycp7",
+            "id": "_am9cewyrt",
+            "parentId": "_652r2cmb5",
             "children": []
           },
           {
@@ -2742,8 +3097,8 @@
                     },
                     "path": "https://public.aitmed.com/cadl/www4.04/assets/remoteLight.png",
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/remoteLight.png",
-                    "id": "_zt90d73ft",
-                    "parentId": "_4yqegen2e",
+                    "id": "_m13wqihhm",
+                    "parentId": "_clamdwdm2",
                     "children": []
                   },
                   {
@@ -2759,13 +3114,13 @@
                       "outline": "none"
                     },
                     "text": "Remote Monitoring",
-                    "id": "_apnhmshsv",
-                    "parentId": "_4yqegen2e",
+                    "id": "_sc7eo90f7",
+                    "parentId": "_clamdwdm2",
                     "children": []
                   }
                 ],
-                "id": "_4yqegen2e",
-                "parentId": "_yv3vqvixa"
+                "id": "_clamdwdm2",
+                "parentId": "_wkfzp8ia6"
               },
               {
                 "type": "view",
@@ -2791,8 +3146,8 @@
                     },
                     "path": "https://public.aitmed.com/cadl/www4.04/assets/worldLight.png",
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/worldLight.png",
-                    "id": "_5yhwlogec",
-                    "parentId": "_7krct1f10",
+                    "id": "_kwct8rj48",
+                    "parentId": "_ukr3iecfw",
                     "children": []
                   },
                   {
@@ -2808,13 +3163,13 @@
                       "outline": "none"
                     },
                     "text": "Worldwide Usage",
-                    "id": "_w45n6mez6",
-                    "parentId": "_7krct1f10",
+                    "id": "_lkm45y7ok",
+                    "parentId": "_ukr3iecfw",
                     "children": []
                   }
                 ],
-                "id": "_7krct1f10",
-                "parentId": "_yv3vqvixa"
+                "id": "_ukr3iecfw",
+                "parentId": "_wkfzp8ia6"
               },
               {
                 "type": "view",
@@ -2840,8 +3195,8 @@
                     },
                     "path": "https://public.aitmed.com/cadl/www4.04/assets/pigLight.png",
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/pigLight.png",
-                    "id": "_sc0rnf6ym",
-                    "parentId": "_e9364nkm1",
+                    "id": "_rdz2kk9pu",
+                    "parentId": "_vv0x0yocr",
                     "children": []
                   },
                   {
@@ -2857,13 +3212,13 @@
                       "outline": "none"
                     },
                     "text": "Free",
-                    "id": "_50tufny00",
-                    "parentId": "_e9364nkm1",
+                    "id": "_41bh2b1gy",
+                    "parentId": "_vv0x0yocr",
                     "children": []
                   }
                 ],
-                "id": "_e9364nkm1",
-                "parentId": "_yv3vqvixa"
+                "id": "_vv0x0yocr",
+                "parentId": "_wkfzp8ia6"
               },
               {
                 "type": "view",
@@ -2889,8 +3244,8 @@
                     },
                     "path": "https://public.aitmed.com/cadl/www4.04/assets/userLight.png",
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/userLight.png",
-                    "id": "_4ftb3kjog",
-                    "parentId": "_9oy6el9ag",
+                    "id": "_m1xjop2ff",
+                    "parentId": "_d69ejl5kg",
                     "children": []
                   },
                   {
@@ -2907,13 +3262,13 @@
                       "outline": "none"
                     },
                     "text": "Premium Network & E-Referral",
-                    "id": "_xh7xg2jh0",
-                    "parentId": "_9oy6el9ag",
+                    "id": "_nxn6rugmr",
+                    "parentId": "_d69ejl5kg",
                     "children": []
                   }
                 ],
-                "id": "_9oy6el9ag",
-                "parentId": "_yv3vqvixa"
+                "id": "_d69ejl5kg",
+                "parentId": "_wkfzp8ia6"
               },
               {
                 "type": "view",
@@ -2939,8 +3294,8 @@
                     },
                     "path": "https://public.aitmed.com/cadl/www4.04/assets/lockLight.png",
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/lockLight.png",
-                    "id": "_u86mmx8e5",
-                    "parentId": "_710rsripw",
+                    "id": "_33cwx44qk",
+                    "parentId": "_14wcfjfbw",
                     "children": []
                   },
                   {
@@ -2957,13 +3312,13 @@
                       "outline": "none"
                     },
                     "text": "Highest Level of Privacy & Security",
-                    "id": "_frypbs39x",
-                    "parentId": "_710rsripw",
+                    "id": "_4pbly8abv",
+                    "parentId": "_14wcfjfbw",
                     "children": []
                   }
                 ],
-                "id": "_710rsripw",
-                "parentId": "_yv3vqvixa"
+                "id": "_14wcfjfbw",
+                "parentId": "_wkfzp8ia6"
               },
               {
                 "type": "view",
@@ -2989,8 +3344,8 @@
                     },
                     "path": "https://public.aitmed.com/cadl/www4.04/assets/heartLight.png",
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/heartLight.png",
-                    "id": "_n2mr9u532",
-                    "parentId": "_9yvhyaux3",
+                    "id": "_cavuxgkzq",
+                    "parentId": "_pdo118mfs",
                     "children": []
                   },
                   {
@@ -3007,24 +3362,24 @@
                       "outline": "none"
                     },
                     "text": "E-Health Solution",
-                    "id": "_08nh0vpgp",
-                    "parentId": "_9yvhyaux3",
+                    "id": "_c9neb9q1a",
+                    "parentId": "_pdo118mfs",
                     "children": []
                   }
                 ],
-                "id": "_9yvhyaux3",
-                "parentId": "_yv3vqvixa"
+                "id": "_pdo118mfs",
+                "parentId": "_wkfzp8ia6"
               }
             ],
-            "id": "_yv3vqvixa",
-            "parentId": "_94kc3ycp7"
+            "id": "_wkfzp8ia6",
+            "parentId": "_652r2cmb5"
           }
         ],
-        "id": "_94kc3ycp7",
-        "parentId": "_da7hky7th"
+        "id": "_652r2cmb5",
+        "parentId": "_5blikj5hd"
       }
     ],
-    "id": "_da7hky7th",
+    "id": "_5blikj5hd",
     "parentId": null
   },
   {
@@ -3050,8 +3405,8 @@
           "objectFit": "contain"
         },
         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/HomeBottom.png",
-        "id": "_bcs5vbgxx",
-        "parentId": "_wb72q74tm",
+        "id": "_dcsnjq86r",
+        "parentId": "_t6pdenybh",
         "children": []
       },
       {
@@ -3070,8 +3425,8 @@
           "position": "relative",
           "outline": "none"
         },
-        "id": "_ggz2x1lkd",
-        "parentId": "_wb72q74tm",
+        "id": "_8g492nav2",
+        "parentId": "_t6pdenybh",
         "children": []
       },
       {
@@ -3119,13 +3474,13 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/phone4.png",
-                    "id": "_sqqppkuff",
-                    "parentId": "_kk7oasis2",
+                    "id": "_11j98aamp",
+                    "parentId": "_dip2gwxt6",
                     "children": []
                   }
                 ],
-                "id": "_kk7oasis2",
-                "parentId": "_mikrxf9ru"
+                "id": "_dip2gwxt6",
+                "parentId": "_pgp0ds13u"
               },
               {
                 "type": "label",
@@ -3142,21 +3497,52 @@
                   "height": "auto"
                 },
                 "text": "AiTmed Care",
-                "onClick": [
-                  {
-                    "actionType": "evalObject"
-                  },
-                  {
-                    "actionType": "builtIn",
-                    "funcName": "redraw",
-                    "viewTag": "headRightView"
-                  },
-                  {
-                    "goto": "AiTmedCare"
-                  }
-                ],
-                "id": "_pb29wuqze",
-                "parentId": "_mikrxf9ru",
+                "onClick": {
+                  "actions": [
+                    {
+                      "actionType": "evalObject",
+                      "object": [
+                        {
+                          "=.builtIn.object.setProperty": {
+                            "dataIn": {
+                              "obj": "=.Resource.baseHeaderData",
+                              "label": "title",
+                              "text": "Products",
+                              "arr": [
+                                "fontSize",
+                                "fontWeight",
+                                "fontColor"
+                              ],
+                              "valueArr": [
+                                "2.28vh",
+                                "600",
+                                "0x388fcd"
+                              ],
+                              "errorArr": [
+                                "2.28vh",
+                                "400",
+                                "0x000000"
+                              ]
+                            },
+                            "dataOut": "Resource.baseHeaderData"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "actionType": "builtIn",
+                      "funcName": "redraw",
+                      "viewTag": "headRightView"
+                    },
+                    {
+                      "goto": "AiTmedCare",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_luqn73tk0",
+                "parentId": "_pgp0ds13u",
                 "children": []
               },
               {
@@ -3187,13 +3573,17 @@
                       "outline": "none",
                       "height": "auto"
                     },
-                    "onClick": [
-                      {
-                        "goto": "https://patient.aitmed.com/"
-                      }
-                    ],
-                    "id": "_meah4ldb7",
-                    "parentId": "_kkzlb5p3o",
+                    "onClick": {
+                      "actions": [
+                        {
+                          "goto": "https://patient.aitmed.com/",
+                          "actionType": "goto"
+                        }
+                      ],
+                      "trigger": "onClick"
+                    },
+                    "id": "_a7tjcxxs3",
+                    "parentId": "_ea1q758kk",
                     "children": []
                   },
                   {
@@ -3211,22 +3601,26 @@
                       "outline": "none",
                       "height": "auto"
                     },
-                    "onClick": [
-                      {
-                        "goto": "https://patient.aitmed.com/"
-                      }
-                    ],
-                    "id": "_90iltd1w7",
-                    "parentId": "_kkzlb5p3o",
+                    "onClick": {
+                      "actions": [
+                        {
+                          "goto": "https://patient.aitmed.com/",
+                          "actionType": "goto"
+                        }
+                      ],
+                      "trigger": "onClick"
+                    },
+                    "id": "_mlqp53ni2",
+                    "parentId": "_ea1q758kk",
                     "children": []
                   }
                 ],
-                "id": "_kkzlb5p3o",
-                "parentId": "_mikrxf9ru"
+                "id": "_ea1q758kk",
+                "parentId": "_pgp0ds13u"
               }
             ],
-            "id": "_mikrxf9ru",
-            "parentId": "_q3l8y44gv"
+            "id": "_pgp0ds13u",
+            "parentId": "_lc4re4idu"
           },
           {
             "type": "view",
@@ -3263,13 +3657,13 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/phone1.png",
-                    "id": "_i8lt1knw7",
-                    "parentId": "_lykawkle4",
+                    "id": "_j8k99ob8u",
+                    "parentId": "_raygxzswi",
                     "children": []
                   }
                 ],
-                "id": "_lykawkle4",
-                "parentId": "_b4f981p0w"
+                "id": "_raygxzswi",
+                "parentId": "_x84iazsi0"
               },
               {
                 "type": "label",
@@ -3288,21 +3682,52 @@
                   "height": "auto"
                 },
                 "text": "AiTmed Provider",
-                "onClick": [
-                  {
-                    "actionType": "evalObject"
-                  },
-                  {
-                    "actionType": "builtIn",
-                    "funcName": "redraw",
-                    "viewTag": "headRightView"
-                  },
-                  {
-                    "goto": "AiTmedProvider"
-                  }
-                ],
-                "id": "_ojzv3oic7",
-                "parentId": "_b4f981p0w",
+                "onClick": {
+                  "actions": [
+                    {
+                      "actionType": "evalObject",
+                      "object": [
+                        {
+                          "=.builtIn.object.setProperty": {
+                            "dataIn": {
+                              "obj": "=.Resource.baseHeaderData",
+                              "label": "title",
+                              "text": "Products",
+                              "arr": [
+                                "fontSize",
+                                "fontWeight",
+                                "fontColor"
+                              ],
+                              "valueArr": [
+                                "2.28vh",
+                                "600",
+                                "0x388fcd"
+                              ],
+                              "errorArr": [
+                                "2.28vh",
+                                "400",
+                                "0x000000"
+                              ]
+                            },
+                            "dataOut": "Resource.baseHeaderData"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "actionType": "builtIn",
+                      "funcName": "redraw",
+                      "viewTag": "headRightView"
+                    },
+                    {
+                      "goto": "AiTmedProvider",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_xj3ndsaok",
+                "parentId": "_x84iazsi0",
                 "children": []
               },
               {
@@ -3333,13 +3758,17 @@
                       "outline": "none",
                       "height": "auto"
                     },
-                    "onClick": [
-                      {
-                        "goto": "https://provider.aitmed.com/"
-                      }
-                    ],
-                    "id": "_d31oan135",
-                    "parentId": "_7uzm9ttu7",
+                    "onClick": {
+                      "actions": [
+                        {
+                          "goto": "https://provider.aitmed.com/",
+                          "actionType": "goto"
+                        }
+                      ],
+                      "trigger": "onClick"
+                    },
+                    "id": "_z27t74u20",
+                    "parentId": "_xiv5xip5e",
                     "children": []
                   },
                   {
@@ -3357,22 +3786,26 @@
                       "outline": "none",
                       "height": "auto"
                     },
-                    "onClick": [
-                      {
-                        "goto": "https://provider.aitmed.com/"
-                      }
-                    ],
-                    "id": "_btr8sfsg7",
-                    "parentId": "_7uzm9ttu7",
+                    "onClick": {
+                      "actions": [
+                        {
+                          "goto": "https://provider.aitmed.com/",
+                          "actionType": "goto"
+                        }
+                      ],
+                      "trigger": "onClick"
+                    },
+                    "id": "_5ee1f32de",
+                    "parentId": "_xiv5xip5e",
                     "children": []
                   }
                 ],
-                "id": "_7uzm9ttu7",
-                "parentId": "_b4f981p0w"
+                "id": "_xiv5xip5e",
+                "parentId": "_x84iazsi0"
               }
             ],
-            "id": "_b4f981p0w",
-            "parentId": "_q3l8y44gv"
+            "id": "_x84iazsi0",
+            "parentId": "_lc4re4idu"
           },
           {
             "type": "view",
@@ -3409,13 +3842,13 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/product.png",
-                    "id": "_kozwv47ko",
-                    "parentId": "_1pfaig8jg",
+                    "id": "_tbwjdlwam",
+                    "parentId": "_xcxyqv6us",
                     "children": []
                   }
                 ],
-                "id": "_1pfaig8jg",
-                "parentId": "_z4cgio3hv"
+                "id": "_xcxyqv6us",
+                "parentId": "_l8so4t7nq"
               },
               {
                 "type": "label",
@@ -3434,21 +3867,52 @@
                   "height": "auto"
                 },
                 "text": "AiTmed Admin",
-                "onClick": [
-                  {
-                    "actionType": "evalObject"
-                  },
-                  {
-                    "actionType": "builtIn",
-                    "funcName": "redraw",
-                    "viewTag": "headRightView"
-                  },
-                  {
-                    "goto": "AiTmedAdmin"
-                  }
-                ],
-                "id": "_bppez92va",
-                "parentId": "_z4cgio3hv",
+                "onClick": {
+                  "actions": [
+                    {
+                      "actionType": "evalObject",
+                      "object": [
+                        {
+                          "=.builtIn.object.setProperty": {
+                            "dataIn": {
+                              "obj": "=.Resource.baseHeaderData",
+                              "label": "title",
+                              "text": "Products",
+                              "arr": [
+                                "fontSize",
+                                "fontWeight",
+                                "fontColor"
+                              ],
+                              "valueArr": [
+                                "2.28vh",
+                                "600",
+                                "0x388fcd"
+                              ],
+                              "errorArr": [
+                                "2.28vh",
+                                "400",
+                                "0x000000"
+                              ]
+                            },
+                            "dataOut": "Resource.baseHeaderData"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "actionType": "builtIn",
+                      "funcName": "redraw",
+                      "viewTag": "headRightView"
+                    },
+                    {
+                      "goto": "AiTmedAdmin",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_o3obmgmb9",
+                "parentId": "_l8so4t7nq",
                 "children": []
               },
               {
@@ -3477,13 +3941,17 @@
                       "outline": "none",
                       "height": "auto"
                     },
-                    "onClick": [
-                      {
-                        "goto": "https://admin.aitmed.com/"
-                      }
-                    ],
-                    "id": "_nvkeudfoz",
-                    "parentId": "_1efco0qkg",
+                    "onClick": {
+                      "actions": [
+                        {
+                          "goto": "https://admin.aitmed.com/",
+                          "actionType": "goto"
+                        }
+                      ],
+                      "trigger": "onClick"
+                    },
+                    "id": "_6xtr4v6zw",
+                    "parentId": "_hpoyxrrli",
                     "children": []
                   },
                   {
@@ -3500,22 +3968,26 @@
                       "outline": "none",
                       "height": "auto"
                     },
-                    "onClick": [
-                      {
-                        "goto": "https://admin.aitmed.com/"
-                      }
-                    ],
-                    "id": "_d2nqknhsc",
-                    "parentId": "_1efco0qkg",
+                    "onClick": {
+                      "actions": [
+                        {
+                          "goto": "https://admin.aitmed.com/",
+                          "actionType": "goto"
+                        }
+                      ],
+                      "trigger": "onClick"
+                    },
+                    "id": "_io2frntrl",
+                    "parentId": "_hpoyxrrli",
                     "children": []
                   }
                 ],
-                "id": "_1efco0qkg",
-                "parentId": "_z4cgio3hv"
+                "id": "_hpoyxrrli",
+                "parentId": "_l8so4t7nq"
               }
             ],
-            "id": "_z4cgio3hv",
-            "parentId": "_q3l8y44gv"
+            "id": "_l8so4t7nq",
+            "parentId": "_lc4re4idu"
           },
           {
             "type": "view",
@@ -3552,13 +4024,13 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/product1.png",
-                    "id": "_s63x98l3i",
-                    "parentId": "_a3gmp3lfi",
+                    "id": "_fdlwqm0m2",
+                    "parentId": "_cp9a5wwg6",
                     "children": []
                   }
                 ],
-                "id": "_a3gmp3lfi",
-                "parentId": "_1cgt1je5r"
+                "id": "_cp9a5wwg6",
+                "parentId": "_nfmgvw60c"
               },
               {
                 "type": "label",
@@ -3577,33 +4049,64 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "onClick": [
-                  {
-                    "actionType": "evalObject"
-                  },
-                  {
-                    "actionType": "builtIn",
-                    "funcName": "redraw",
-                    "viewTag": "headRightView"
-                  },
-                  {
-                    "goto": "AitmedSearch"
-                  }
-                ],
-                "id": "_aj9bxey00",
-                "parentId": "_1cgt1je5r",
+                "onClick": {
+                  "actions": [
+                    {
+                      "actionType": "evalObject",
+                      "object": [
+                        {
+                          "=.builtIn.object.setProperty": {
+                            "dataIn": {
+                              "obj": "=.Resource.baseHeaderData",
+                              "label": "title",
+                              "text": "Products",
+                              "arr": [
+                                "fontSize",
+                                "fontWeight",
+                                "fontColor"
+                              ],
+                              "valueArr": [
+                                "2.28vh",
+                                "600",
+                                "0x388fcd"
+                              ],
+                              "errorArr": [
+                                "2.28vh",
+                                "400",
+                                "0x000000"
+                              ]
+                            },
+                            "dataOut": "Resource.baseHeaderData"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "actionType": "builtIn",
+                      "funcName": "redraw",
+                      "viewTag": "headRightView"
+                    },
+                    {
+                      "goto": "AitmedSearch",
+                      "actionType": "goto"
+                    }
+                  ],
+                  "trigger": "onClick"
+                },
+                "id": "_lcl5sisko",
+                "parentId": "_nfmgvw60c",
                 "children": []
               }
             ],
-            "id": "_1cgt1je5r",
-            "parentId": "_q3l8y44gv"
+            "id": "_nfmgvw60c",
+            "parentId": "_lc4re4idu"
           }
         ],
-        "id": "_q3l8y44gv",
-        "parentId": "_wb72q74tm"
+        "id": "_lc4re4idu",
+        "parentId": "_t6pdenybh"
       }
     ],
-    "id": "_wb72q74tm",
+    "id": "_t6pdenybh",
     "parentId": null
   },
   {
@@ -3636,8 +4139,8 @@
           "position": "relative",
           "outline": "none"
         },
-        "id": "_jj91veumd",
-        "parentId": "_59qm4lscm",
+        "id": "_7ef0mbw5r",
+        "parentId": "_y0hhe6rgi",
         "children": []
       },
       {
@@ -3654,8 +4157,8 @@
           "objectFit": "contain"
         },
         "data-src": "https://public.aitmed.com/commonRes/video/aitmed228FromBlair11192020.mp4",
-        "id": "_yzbc1lo46",
-        "parentId": "_59qm4lscm",
+        "id": "_t1gvlmon8",
+        "parentId": "_y0hhe6rgi",
         "children": []
       },
       {
@@ -3692,8 +4195,8 @@
                   "outline": "none",
                   "borderStyle": "none"
                 },
-                "id": "_ijvm3i3f8",
-                "parentId": "_ve8051lpo",
+                "id": "_zvv8z60ze",
+                "parentId": "_k3xd7ogvg",
                 "children": []
               },
               {
@@ -3711,13 +4214,13 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "id": "_naz95k5i5",
-                "parentId": "_ve8051lpo",
+                "id": "_9ifizbd2u",
+                "parentId": "_k3xd7ogvg",
                 "children": []
               }
             ],
-            "id": "_ve8051lpo",
-            "parentId": "_er6tvjay9"
+            "id": "_k3xd7ogvg",
+            "parentId": "_e4yw3jxcf"
           },
           {
             "type": "view",
@@ -3840,14 +4343,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/2.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/2.png",
-                        "id": "_4yifvc49a",
-                        "parentId": "_6cdja46yd",
+                        "id": "_6tw8ay0rt",
+                        "parentId": "_vh4t81zy7",
                         "children": []
                       }
                     ],
                     "index": "0",
-                    "id": "_6cdja46yd",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_vh4t81zy7",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -3891,14 +4394,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/1.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/1.png",
-                        "id": "_bxglc1354",
-                        "parentId": "_klpt404uh",
+                        "id": "_a62wp378l",
+                        "parentId": "_w79zciome",
                         "children": []
                       }
                     ],
                     "index": 1,
-                    "id": "_klpt404uh",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_w79zciome",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -3942,14 +4445,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/3.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/3.png",
-                        "id": "_7wuaesdv7",
-                        "parentId": "_69kfwhh51",
+                        "id": "_pq4w6z2vd",
+                        "parentId": "_etkraqqzz",
                         "children": []
                       }
                     ],
                     "index": 2,
-                    "id": "_69kfwhh51",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_etkraqqzz",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -3993,14 +4496,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/34.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/34.png",
-                        "id": "_xbumfy3xg",
-                        "parentId": "_8a69vw4qk",
+                        "id": "_mxvdxaf2w",
+                        "parentId": "_i21p8f7ik",
                         "children": []
                       }
                     ],
                     "index": 3,
-                    "id": "_8a69vw4qk",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_i21p8f7ik",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -4044,14 +4547,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/5.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/5.png",
-                        "id": "_6911j7c3f",
-                        "parentId": "_rig7l2cy9",
+                        "id": "_4eawr96a8",
+                        "parentId": "_12kgdbubz",
                         "children": []
                       }
                     ],
                     "index": 4,
-                    "id": "_rig7l2cy9",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_12kgdbubz",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -4095,14 +4598,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/6.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/6.png",
-                        "id": "_25eyz03t0",
-                        "parentId": "_6d8a0v0wd",
+                        "id": "_m18i2gj74",
+                        "parentId": "_jnaow3bol",
                         "children": []
                       }
                     ],
                     "index": 5,
-                    "id": "_6d8a0v0wd",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_jnaow3bol",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -4146,14 +4649,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/8.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/8.png",
-                        "id": "_wfj3bpkzf",
-                        "parentId": "_h2kjemypn",
+                        "id": "_s3gaqsozu",
+                        "parentId": "_lm974488u",
                         "children": []
                       }
                     ],
                     "index": 6,
-                    "id": "_h2kjemypn",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_lm974488u",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -4196,14 +4699,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/7.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/7.png",
-                        "id": "_mtfjjsbso",
-                        "parentId": "_gmsv9nqv3",
+                        "id": "_alml51mqm",
+                        "parentId": "_dbr1fzxad",
                         "children": []
                       }
                     ],
                     "index": 7,
-                    "id": "_gmsv9nqv3",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_dbr1fzxad",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -4247,14 +4750,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/9.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/9.png",
-                        "id": "_ax8upu4yl",
-                        "parentId": "_kfe87a1w9",
+                        "id": "_bzrbjxsxj",
+                        "parentId": "_rc1yhmdwd",
                         "children": []
                       }
                     ],
                     "index": 8,
-                    "id": "_kfe87a1w9",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_rc1yhmdwd",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -4298,14 +4801,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/10.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/10.png",
-                        "id": "_tyuvb1642",
-                        "parentId": "_2tydzk437",
+                        "id": "_6w1wh591g",
+                        "parentId": "_2qsuknbah",
                         "children": []
                       }
                     ],
                     "index": 9,
-                    "id": "_2tydzk437",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_2qsuknbah",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -4349,14 +4852,14 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/11.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/11.png",
-                        "id": "_v1w4rgt7q",
-                        "parentId": "_i0ikls2ez",
+                        "id": "_9v48j7nmo",
+                        "parentId": "_k7ak7v211",
                         "children": []
                       }
                     ],
                     "index": 10,
-                    "id": "_i0ikls2ez",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_k7ak7v211",
+                    "parentId": "_p7j55gpcx"
                   },
                   {
                     "type": "listItem",
@@ -4400,25 +4903,25 @@
                         },
                         "data-src": "https://public.aitmed.com/cadl/www4.04/assets/partner/33.png",
                         "src": "https://public.aitmed.com/cadl/www4.04/assets/partner/33.png",
-                        "id": "_388iox0bm",
-                        "parentId": "_5kg5hx9a6",
+                        "id": "_w0q2lpyc8",
+                        "parentId": "_2dcumn9mj",
                         "children": []
                       }
                     ],
                     "index": 11,
-                    "id": "_5kg5hx9a6",
-                    "parentId": "_nbdjw3qu9"
+                    "id": "_2dcumn9mj",
+                    "parentId": "_p7j55gpcx"
                   }
                 ],
                 "data-viewtag": "imagePaths",
-                "data-listid": "_nbdjw3qu9",
+                "data-listid": "_p7j55gpcx",
                 "data-ux": "imagePaths",
-                "id": "_nbdjw3qu9",
-                "parentId": "_r8oigxikr"
+                "id": "_p7j55gpcx",
+                "parentId": "_4h0noxjj3"
               }
             ],
-            "id": "_r8oigxikr",
-            "parentId": "_er6tvjay9"
+            "id": "_4h0noxjj3",
+            "parentId": "_e4yw3jxcf"
           },
           {
             "type": "list",
@@ -4608,14 +5111,14 @@
                       "outline": "none",
                       "objectFit": "contain"
                     },
-                    "id": "_u8g8vc32w",
-                    "parentId": "_kpwc79un7",
+                    "id": "_danmoxh88",
+                    "parentId": "_s9acbf69",
                     "children": []
                   }
                 ],
                 "index": "0",
-                "id": "_kpwc79un7",
-                "parentId": "_0kimfkfkl"
+                "id": "_s9acbf69",
+                "parentId": "_5bvmfr0n5"
               },
               {
                 "type": "listItem",
@@ -4773,14 +5276,14 @@
                       "outline": "none",
                       "objectFit": "contain"
                     },
-                    "id": "_qdbpsyhv3",
-                    "parentId": "_tgacropa3",
+                    "id": "_cu61zacec",
+                    "parentId": "_1azbr2xty",
                     "children": []
                   }
                 ],
                 "index": 1,
-                "id": "_tgacropa3",
-                "parentId": "_0kimfkfkl"
+                "id": "_1azbr2xty",
+                "parentId": "_5bvmfr0n5"
               },
               {
                 "type": "listItem",
@@ -4938,28 +5441,28 @@
                       "outline": "none",
                       "objectFit": "contain"
                     },
-                    "id": "_1tmnc6s2g",
-                    "parentId": "_qv643uekz",
+                    "id": "_x3fp3381g",
+                    "parentId": "_k57t8klgz",
                     "children": []
                   }
                 ],
                 "index": 2,
-                "id": "_qv643uekz",
-                "parentId": "_0kimfkfkl"
+                "id": "_k57t8klgz",
+                "parentId": "_5bvmfr0n5"
               }
             ],
             "data-viewtag": "imageUpdate",
-            "data-listid": "_0kimfkfkl",
+            "data-listid": "_5bvmfr0n5",
             "data-ux": "imageUpdate",
-            "id": "_0kimfkfkl",
-            "parentId": "_er6tvjay9"
+            "id": "_5bvmfr0n5",
+            "parentId": "_e4yw3jxcf"
           }
         ],
-        "id": "_er6tvjay9",
-        "parentId": "_59qm4lscm"
+        "id": "_e4yw3jxcf",
+        "parentId": "_y0hhe6rgi"
       }
     ],
-    "id": "_59qm4lscm",
+    "id": "_y0hhe6rgi",
     "parentId": null
   },
   {
@@ -5024,13 +5527,13 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/aitmedLogo.png",
-                    "id": "_td4jfica5",
-                    "parentId": "_g09ay6bti",
+                    "id": "_sz8l7qzh8",
+                    "parentId": "_ifct86gxj",
                     "children": []
                   }
                 ],
-                "id": "_g09ay6bti",
-                "parentId": "_da3ey5gjs"
+                "id": "_ifct86gxj",
+                "parentId": "_5e6gf7uhf"
               },
               {
                 "type": "view",
@@ -5059,8 +5562,8 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/externalLinkedin.png",
-                    "id": "_lrxx8jrrg",
-                    "parentId": "_wnigxrox9",
+                    "id": "_47pg8qkl5",
+                    "parentId": "_mwrbym0u8",
                     "children": []
                   },
                   {
@@ -5078,8 +5581,8 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/socialFacebook.png",
-                    "id": "_f8llbsxki",
-                    "parentId": "_wnigxrox9",
+                    "id": "_vutxhl2mb",
+                    "parentId": "_mwrbym0u8",
                     "children": []
                   },
                   {
@@ -5097,8 +5600,8 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/socialPinterest.png",
-                    "id": "_2pc3ghxn5",
-                    "parentId": "_wnigxrox9",
+                    "id": "_jqgm79j2g",
+                    "parentId": "_mwrbym0u8",
                     "children": []
                   },
                   {
@@ -5116,8 +5619,8 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/socialYoutube.png",
-                    "id": "_x3l034v82",
-                    "parentId": "_wnigxrox9",
+                    "id": "_f1vdrl8rv",
+                    "parentId": "_mwrbym0u8",
                     "children": []
                   },
                   {
@@ -5135,8 +5638,8 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/socialTwitter.png",
-                    "id": "_d85zk0drp",
-                    "parentId": "_wnigxrox9",
+                    "id": "_u3yfcc3ti",
+                    "parentId": "_mwrbym0u8",
                     "children": []
                   },
                   {
@@ -5154,17 +5657,17 @@
                       "objectFit": "contain"
                     },
                     "data-src": "https://public.aitmed.com/cadl/www4.04/assets/externalTiktok.png",
-                    "id": "_hhee62jkd",
-                    "parentId": "_wnigxrox9",
+                    "id": "_kg4qsdxjj",
+                    "parentId": "_mwrbym0u8",
                     "children": []
                   }
                 ],
-                "id": "_wnigxrox9",
-                "parentId": "_da3ey5gjs"
+                "id": "_mwrbym0u8",
+                "parentId": "_5e6gf7uhf"
               }
             ],
-            "id": "_da3ey5gjs",
-            "parentId": "_8evmhrnho"
+            "id": "_5e6gf7uhf",
+            "parentId": "_9d702t6dg"
           },
           {
             "type": "view",
@@ -5206,8 +5709,8 @@
                       "fontWeight": "bold"
                     },
                     "text": "About",
-                    "id": "_qt0d2x0ga",
-                    "parentId": "_cycr164fd",
+                    "id": "_jjuiiq6sz",
+                    "parentId": "_zjwi392o7",
                     "children": []
                   },
                   {
@@ -5233,21 +5736,52 @@
                           "outline": "none"
                         },
                         "text": "Company",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "AboutAiTmed"
-                          }
-                        ],
-                        "id": "_tho76kwkl",
-                        "parentId": "_whicwrnl9",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "About",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "600",
+                                        "0x388fcd"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "AboutAiTmed",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_wkrnz145v",
+                        "parentId": "_wuibtws4s",
                         "children": []
                       },
                       {
@@ -5264,21 +5798,52 @@
                           "outline": "none"
                         },
                         "text": "Care",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "AiTmedCare"
-                          }
-                        ],
-                        "id": "_tju982rv3",
-                        "parentId": "_whicwrnl9",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "Products",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "600",
+                                        "0x388fcd"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "AiTmedCare",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_rq6ato6vf",
+                        "parentId": "_wuibtws4s",
                         "children": []
                       },
                       {
@@ -5295,21 +5860,52 @@
                           "outline": "none"
                         },
                         "text": "Provider",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "AiTmedProvider"
-                          }
-                        ],
-                        "id": "_jugjuvgm1",
-                        "parentId": "_whicwrnl9",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "Products",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "600",
+                                        "0x388fcd"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "AiTmedProvider",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_fh8zmsfhy",
+                        "parentId": "_wuibtws4s",
                         "children": []
                       },
                       {
@@ -5326,30 +5922,61 @@
                           "outline": "none"
                         },
                         "text": "Admin",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "AiTmedAdmin"
-                          }
-                        ],
-                        "id": "_8ikym8mvl",
-                        "parentId": "_whicwrnl9",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "Products",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "600",
+                                        "0x388fcd"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "AiTmedAdmin",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_plvw2nwgh",
+                        "parentId": "_wuibtws4s",
                         "children": []
                       }
                     ],
-                    "id": "_whicwrnl9",
-                    "parentId": "_cycr164fd"
+                    "id": "_wuibtws4s",
+                    "parentId": "_zjwi392o7"
                   }
                 ],
-                "id": "_cycr164fd",
-                "parentId": "_mf1lfdxa6"
+                "id": "_zjwi392o7",
+                "parentId": "_3lq1b84nt"
               },
               {
                 "type": "view",
@@ -5379,8 +6006,8 @@
                       "fontWeight": "bold"
                     },
                     "text": "Our Services",
-                    "id": "_o2b4nj1i1",
-                    "parentId": "_6lhtvlx14",
+                    "id": "_vb2x6jrrx",
+                    "parentId": "_30wexfxyg",
                     "children": []
                   },
                   {
@@ -5406,21 +6033,52 @@
                           "outline": "none"
                         },
                         "text": "Search & E-Referral",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "AitmedSearch"
-                          }
-                        ],
-                        "id": "_woet76zge",
-                        "parentId": "_9k9jdfwl9",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "Products",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "600",
+                                        "0x388fcd"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "AitmedSearch",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_is12xa16b",
+                        "parentId": "_lll2oljjc",
                         "children": []
                       },
                       {
@@ -5437,21 +6095,52 @@
                           "outline": "none"
                         },
                         "text": "Cloud Waiting Room",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "Cloudwaitingroom"
-                          }
-                        ],
-                        "id": "_43svu28pt",
-                        "parentId": "_9k9jdfwl9",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "About",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "Cloudwaitingroom",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_8wtuqg6km",
+                        "parentId": "_lll2oljjc",
                         "children": []
                       },
                       {
@@ -5468,21 +6157,52 @@
                           "outline": "none"
                         },
                         "text": "Customized Telehealth Platform",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "AiTmedCustomizedTelehealthPlatform"
-                          }
-                        ],
-                        "id": "_clc02ay6b",
-                        "parentId": "_9k9jdfwl9",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "About",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "AiTmedCustomizedTelehealthPlatform",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_1osdia3i4",
+                        "parentId": "_lll2oljjc",
                         "children": []
                       },
                       {
@@ -5499,21 +6219,52 @@
                           "outline": "none"
                         },
                         "text": "SelfScheduling",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "AiTmedSelfScheduling"
-                          }
-                        ],
-                        "id": "_5eioesjem",
-                        "parentId": "_9k9jdfwl9",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "About",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "AiTmedSelfScheduling",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_eboqabq40",
+                        "parentId": "_lll2oljjc",
                         "children": []
                       },
                       {
@@ -5530,30 +6281,61 @@
                           "outline": "none"
                         },
                         "text": "Documentation",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "AiTmedDocumentation"
-                          }
-                        ],
-                        "id": "_c78jvm32x",
-                        "parentId": "_9k9jdfwl9",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "About",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "AiTmedDocumentation",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_qmpxnsm32",
+                        "parentId": "_lll2oljjc",
                         "children": []
                       }
                     ],
-                    "id": "_9k9jdfwl9",
-                    "parentId": "_6lhtvlx14"
+                    "id": "_lll2oljjc",
+                    "parentId": "_30wexfxyg"
                   }
                 ],
-                "id": "_6lhtvlx14",
-                "parentId": "_mf1lfdxa6"
+                "id": "_30wexfxyg",
+                "parentId": "_3lq1b84nt"
               },
               {
                 "type": "view",
@@ -5583,8 +6365,8 @@
                       "fontWeight": "bold"
                     },
                     "text": "Support",
-                    "id": "_nofc3zl42",
-                    "parentId": "_inbm2ydnw",
+                    "id": "_nz31j64u9",
+                    "parentId": "_k3iwczl7f",
                     "children": []
                   },
                   {
@@ -5610,21 +6392,52 @@
                           "outline": "none"
                         },
                         "text": "Contact Us",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "AiTmedContact"
-                          }
-                        ],
-                        "id": "_ofadi566l",
-                        "parentId": "_3wlqyut8n",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "About",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "AiTmedContact",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_87hm15k06",
+                        "parentId": "_3jgbr0txj",
                         "children": []
                       },
                       {
@@ -5641,21 +6454,52 @@
                           "outline": "none"
                         },
                         "text": "Terms of Service",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "TermsOfService"
-                          }
-                        ],
-                        "id": "_mpjwghu36",
-                        "parentId": "_3wlqyut8n",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "About",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "TermsOfService",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_sanavol6x",
+                        "parentId": "_3jgbr0txj",
                         "children": []
                       },
                       {
@@ -5672,38 +6516,69 @@
                           "outline": "none"
                         },
                         "text": "Privacy Policy",
-                        "onClick": [
-                          {
-                            "actionType": "evalObject"
-                          },
-                          {
-                            "actionType": "builtIn",
-                            "funcName": "redraw",
-                            "viewTag": "headRightView"
-                          },
-                          {
-                            "goto": "PrivacyPolicy"
-                          }
-                        ],
-                        "id": "_mqdvsjt26",
-                        "parentId": "_3wlqyut8n",
+                        "onClick": {
+                          "actions": [
+                            {
+                              "actionType": "evalObject",
+                              "object": [
+                                {
+                                  "=.builtIn.object.setProperty": {
+                                    "dataIn": {
+                                      "obj": "=.Resource.baseHeaderData",
+                                      "label": "title",
+                                      "text": "About",
+                                      "arr": [
+                                        "fontSize",
+                                        "fontWeight",
+                                        "fontColor"
+                                      ],
+                                      "valueArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ],
+                                      "errorArr": [
+                                        "2.28vh",
+                                        "400",
+                                        "0x000000"
+                                      ]
+                                    },
+                                    "dataOut": "Resource.baseHeaderData"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "actionType": "builtIn",
+                              "funcName": "redraw",
+                              "viewTag": "headRightView"
+                            },
+                            {
+                              "goto": "PrivacyPolicy",
+                              "actionType": "goto"
+                            }
+                          ],
+                          "trigger": "onClick"
+                        },
+                        "id": "_xq2xxci0a",
+                        "parentId": "_3jgbr0txj",
                         "children": []
                       }
                     ],
-                    "id": "_3wlqyut8n",
-                    "parentId": "_inbm2ydnw"
+                    "id": "_3jgbr0txj",
+                    "parentId": "_k3iwczl7f"
                   }
                 ],
-                "id": "_inbm2ydnw",
-                "parentId": "_mf1lfdxa6"
+                "id": "_k3iwczl7f",
+                "parentId": "_3lq1b84nt"
               }
             ],
-            "id": "_mf1lfdxa6",
-            "parentId": "_8evmhrnho"
+            "id": "_3lq1b84nt",
+            "parentId": "_9d702t6dg"
           }
         ],
-        "id": "_8evmhrnho",
-        "parentId": "_vodgs5775"
+        "id": "_9d702t6dg",
+        "parentId": "_je31pld5b"
       },
       {
         "type": "view",
@@ -5745,13 +6620,13 @@
                   "position": "relative",
                   "outline": "none"
                 },
-                "id": "_t7mdm92gs",
-                "parentId": "_7nm0q0m59",
+                "id": "_6mxu3izse",
+                "parentId": "_ritkk1d0o",
                 "children": []
               }
             ],
-            "id": "_7nm0q0m59",
-            "parentId": "_tswogqcdz"
+            "id": "_ritkk1d0o",
+            "parentId": "_rrm5h9o4z"
           },
           {
             "type": "view",
@@ -5780,20 +6655,20 @@
                   "objectFit": "contain"
                 },
                 "data-src": "https://public.aitmed.com/cadl/www4.04/assets/bottom2.png",
-                "id": "_0d30aew59",
-                "parentId": "_4hlcs9k2u",
+                "id": "_r6of45y12",
+                "parentId": "_609lvmap2",
                 "children": []
               }
             ],
-            "id": "_4hlcs9k2u",
-            "parentId": "_tswogqcdz"
+            "id": "_609lvmap2",
+            "parentId": "_rrm5h9o4z"
           }
         ],
-        "id": "_tswogqcdz",
-        "parentId": "_vodgs5775"
+        "id": "_rrm5h9o4z",
+        "parentId": "_je31pld5b"
       }
     ],
-    "id": "_vodgs5775",
+    "id": "_je31pld5b",
     "parentId": null
   }
 ]

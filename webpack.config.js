@@ -133,9 +133,9 @@ const commonHeaders = {
 }
 
 /**
- * @type { webpack.Configuration } webpackOptions
+ * @type { import('webpack').Configuration } webpackOptions
  */
-module.exports = {
+const webpackOptions = {
   entry: {
     main: [process.env.SAMPLE ? './src/sample.ts' : './src/index.ts'],
   },
@@ -379,3 +379,4 @@ function webpackProgress(percentage, msg, ...args) {
 module.exports.TITLE = TITLE
 module.exports.DESCRIPTION = DESCRIPTION
 module.exports.KEYWORDS = KEYWORDS
+module.exports = webpackOptions

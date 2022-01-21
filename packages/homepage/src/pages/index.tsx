@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import React from 'react'
+import set from 'lodash/set'
 import type { ComponentObject } from 'noodl-types'
 import {
   createAction,
@@ -12,6 +13,7 @@ import { Link, PageProps } from 'gatsby'
 import { css } from '@emotion/css'
 import Layout from '../layout'
 import Seo from '../components/Seo'
+import useActionChain from '../hooks/useActionChain'
 import is from '../utils/is'
 import * as t from '../types'
 
@@ -113,7 +115,7 @@ function IndexPage(
     return st
   })
 
-  const { navigate } = props
+  const ac = useActionChain()
 
   React.useEffect(() => {
     console.log(`[Homepage] state`, state)
@@ -138,6 +140,8 @@ function IndexPage(
       for (const [key, value] of u.entries(componentProp)) {
         if (key === 'children') {
           //
+        } else if (['popUpView', 'viewTag'].includes(key as string)) {
+          set(props, `dataset.viewtag`, value)
         } else if (key === 'data-value' && type === 'label') {
           children.push(value)
         } else if (key === 'data-src' && /(image|video)/i.test(type)) {
@@ -151,63 +155,8 @@ function IndexPage(
             const obj = value as t.StaticComponentObject[NUITrigger]
             const actions = obj?.actions || []
             const trigger = key as NUITrigger
-            const actionChain = createActionChain(trigger, actions, (objs) => {
-              const loaded = []
-
-              for (const obj of objs) {
-                const nuiAction = createAction({ action: obj, trigger })
-
-                nuiAction.executor = async (event: React.SyntheticEvent) => {
-                  if (is.goto(obj)) window.location.href = obj.goto
-                  if (is.folds.goto(obj)) window.location.href = obj.goto
-                  console.log({ event, obj, nuiAction })
-                }
-
-                loaded.push(nuiAction)
-              }
-
-              return loaded
-            })
-
-            const getArgs = function (args: IArguments | any[]) {
-              if (args.length) {
-                args = [...args].filter(Boolean)
-                return args.length ? { args } : ''
-              }
-              return ''
-            }
-
-            actionChain.use({
-              onAbortStart() {
-                console.log(`[onAbortStart]`, getArgs(arguments))
-              },
-              onBeforeActionExecute() {
-                console.log(`[onBeforeActionExecute]`, getArgs(arguments))
-              },
-              onExecuteStart() {
-                console.log(`[onExecuteStart]`, getArgs(arguments))
-              },
-              onExecuteEnd() {
-                console.log(`[onExecuteEnd]`, getArgs(arguments))
-              },
-              onExecuteResult() {
-                console.log(`[onExecuteResult]`, getArgs(arguments))
-              },
-              onExecuteError() {
-                console.log(`[onExecuteError]`, getArgs(arguments))
-              },
-              onAbortError() {
-                console.log(`[onAbortError]`, getArgs(arguments))
-              },
-            })
-
-            props[trigger] = async function onTriggerAction(
-              event: React.SyntheticEvent,
-            ) {
-              await actionChain.execute(event)
-            }
-
-            actionChain.loadQueue()
+            const actionChain = ac.createActionChain(trigger, actions)
+            props[trigger] = actionChain.execute.bind(actionChain)
           }
         } else {
           if (

@@ -165,6 +165,7 @@ async function monkeyPatchAddEventListener(opts) {
  * @param { object } opts
  * @param { string } [opts.configUrl]
  * @param { string } [opts.configKey]
+ * @param { string } [opts.ecosEnv]
  * @param { string } [opts.startPage]
  * @param { On } [opts.on]
  * @param { NuiViewport } [opts.viewport]
@@ -173,6 +174,7 @@ async function monkeyPatchAddEventListener(opts) {
 async function getGenerator({
   configUrl,
   configKey = 'www',
+  ecosEnv = 'test',
   on,
   startPage = 'HomePage',
   viewport = { width: 1024, height: 768 },
@@ -189,7 +191,7 @@ async function getGenerator({
     const { CADL } = require('@aitmed/cadl')
 
     const sdk = new CADL({
-      cadlVersion: 'test',
+      cadlVersion: ecosEnv,
       configUrl:
         configUrl || `https://public.aitmed.com/config/${configKey}.yml`,
     })
@@ -199,7 +201,9 @@ async function getGenerator({
     if (u.isObj(sdk.root?.BaseHeader?.style)) {
       sdk.root.BaseHeader.style.top = '0'
     }
-    await sdk.initPage(startPage)
+    await sdk.initPage(startPage, [], {
+      wrapEvalObjects: false,
+    })
 
     const untransformedComponents = sdk.root.HomePage.components
 
@@ -252,9 +256,7 @@ async function getGenerator({
           context: { path: [index] },
           component,
           page,
-          on: {
-            createComponent: on?.createComponent,
-          },
+          on,
         }),
       )
 
