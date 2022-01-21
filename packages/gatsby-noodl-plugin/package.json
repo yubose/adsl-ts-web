@@ -1,0 +1,19 @@
+{
+  "author": "Christopher <christopher@gmail.com>",
+  "description": "Gatsby AiTmed plugin to generate static pages from a noodl config",
+  "keywords": [
+    "aitmed",
+    "website"
+  ],
+  "license": "0BSD",
+  "main": "index.js",
+  "name": "gatsby-noodl-plugin",
+  "scripts": {
+    "build": "echo \"No build script setup\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.0.0",
+  "dependencies": {
+    "loglevel": "^1.8.0"
+  }
+}
