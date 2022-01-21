@@ -186,7 +186,7 @@ function IndexPage(
 
   return (
     <Layout>
-      <Seo title="Home" />
+      <Seo />
       {props.pageContext.components.map((c) => renderComponent(c))}
     </Layout>
   )

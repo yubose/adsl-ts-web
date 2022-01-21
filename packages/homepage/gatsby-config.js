@@ -1,10 +1,58 @@
-const fs = require('fs-extra')
-const path = require('path')
-const webpackConfig = require('../../webpack.config')
-
-const siteTitle = 'AiTmed'
-const siteDescription = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us! A full-service healthcare solution`
+const siteTitle = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
+const siteDescription = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
 const siteUrl = `https://aitmed.com/`
+const siteKeywords = [
+  'aitmed',
+  'noodl',
+  'telemedicine',
+  'telehealth',
+  'blockchain Telemedicine',
+  'Fast, Private, Secure',
+  'Blockchain Telehealth Platform',
+  'HIPAA Compliance',
+  'Pandemic',
+  'Covid19',
+  'Wellness and illness',
+  'Telemedicine clinic',
+  'Telemedicine Pediatric',
+  'Telemedicine Urgent Care',
+  'Telemedicine dermatology',
+  'Telemedicine Senior House',
+  'Telemedicine Hospital',
+  'Telemedicine RADIOLOGY',
+  'Telemedicine Neurology',
+  'Telehealth Lab',
+  'Telehealth Pandemic',
+  'Telehealth Covid19',
+  'Telehealth clinic',
+  'Telehealth Pediatric',
+  'Telehealth Urgent Care',
+  'Telehealth dermatology',
+  'Telehealth Senior House',
+  'Telehealth Hospital',
+  'Telehealth RADIOLOGY',
+  'Telehealth Neurology',
+  'Telehealth Lab',
+  'Doctor Virtual Platform',
+  'Telemedicine Imaging',
+  'Online Medical Practice',
+  'Online schedule',
+  'E-prescription',
+  'Virtual Meeting Room',
+  'Virtual platform',
+  'Secure Platform',
+  'Virtual Visit',
+  'Private Visit',
+  'doctor',
+  'patient',
+  'chronic illness',
+  'Medical clinic',
+  'medical platform',
+  'Medical knowledge',
+  'telecommunication',
+  'virtual',
+  'Vital Sign',
+]
 
 /**
  * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-config/
@@ -12,10 +60,10 @@ const siteUrl = `https://aitmed.com/`
  */
 module.exports = {
   siteMetadata: {
-    siteTitle: webpackConfig.TITLE,
-    siteDescription: webpackConfig.DESCRIPTION,
+    siteTitle,
+    siteDescription,
     siteUrl,
-    siteKeywords: webpackConfig.KEYWORDS,
+    siteKeywords,
   },
   plugins: [
     `gatsby-transformer-json`,
@@ -24,6 +72,15 @@ module.exports = {
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
     `gatsby-plugin-emotion`,
+    {
+      resolve: require.resolve(`../gatsby-noodl-plugin`),
+      options: {
+        configPrefix: `https://public.aitmed.com/config/`,
+        config: 'www',
+        loglevel: 'debug',
+        path: `${__dirname}/output`,
+      },
+    },
     {
       resolve: `gatsby-source-filesystem`,
       options: {

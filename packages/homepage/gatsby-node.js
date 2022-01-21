@@ -5,6 +5,7 @@
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin')
 const fs = require('fs-extra')
 const path = require('path')
+const axios = require('axios')
 
 /** @argument { import('gatsby').CreateWebpackConfigArgs } args */
 exports.onCreateWebpackConfig = (args) => {
@@ -14,37 +15,3 @@ exports.onCreateWebpackConfig = (args) => {
     },
   })
 }
-
-/** @argument { import('gatsby').CreatePageArgs } args */
-exports.onCreatePage = async (args) => {
-  const {
-    page,
-    actions,
-    cache,
-    getNode,
-    getNodes,
-    getNodesByType,
-    loadNodeContent,
-    store,
-  } = args
-  const { createPage, deletePage } = actions
-
-  if (page.path === '/') {
-    deletePage(page)
-    createPage({
-      ...page,
-      context: {
-        ...page.context,
-        components: await fs.readJson(
-          './src/resources/data/homepage-components.json',
-        ),
-      },
-    })
-  }
-}
-
-/** @argument { import('gatsby').SourceNodesArgs } args */
-// exports.sourceNodes = async (args) => {
-//   const { actions, createNodeId, createContentDigest } = args
-//   const { createNode } = actions
-// }

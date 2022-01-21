@@ -12,34 +12,49 @@ export interface SeoProps {
   meta?: Record<string, any>[]
 }
 
-function Seo({ title = '', description = '', lang = 'en', meta = [] }) {
-  const { site } = useStaticQuery(
+function Seo({
+  title = '',
+  description = '',
+  canonical = '',
+  lang = 'en',
+  meta = [],
+}) {
+  const {
+    site: {
+      siteMetadata: { siteTitle, siteDescription, siteUrl, siteKeywords },
+    },
+  } = useStaticQuery<{
+    site: {
+      siteMetadata: {
+        siteTitle: string
+        siteDescription: string
+        siteUrl: string
+        siteKeywords: string[]
+      }
+    }
+  }>(
     graphql`
       query {
         site {
           siteMetadata {
-            title
-            description
+            siteTitle
+            siteDescription
+            siteUrl
+            siteKeywords
           }
         }
       }
     `,
   )
 
-  const metaDescription = description || site.siteMetadata.description
-  const defaultTitle = site.siteMetadata?.title
-
   return (
     <Helmet
-      htmlAttributes={{
-        lang,
-      }}
-      title={title}
-      titleTemplate={defaultTitle ? `%s | ${defaultTitle}` : null}
+      htmlAttributes={{ lang }}
+      title={siteTitle}
       meta={[
         {
           name: `description`,
-          content: metaDescription,
+          content: siteDescription,
         },
         {
           property: `og:title`,
@@ -47,7 +62,7 @@ function Seo({ title = '', description = '', lang = 'en', meta = [] }) {
         },
         {
           property: `og:description`,
-          content: metaDescription,
+          content: siteDescription,
         },
         {
           property: `og:type`,
@@ -57,17 +72,17 @@ function Seo({ title = '', description = '', lang = 'en', meta = [] }) {
           name: `twitter:card`,
           content: `summary`,
         },
-        {
-          name: `twitter:creator`,
-          content: site.siteMetadata?.author || ``,
-        },
+        // {
+        //   name: `twitter:creator`,
+        //   content: site.siteMetadata?.author || ``,
+        // },
         {
           name: `twitter:title`,
           content: title,
         },
         {
           name: `twitter:description`,
-          content: metaDescription,
+          content: siteDescription,
         },
       ].concat(meta)}
     />

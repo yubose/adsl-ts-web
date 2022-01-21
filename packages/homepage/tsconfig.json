@@ -26,5 +26,5 @@
     "target": "es5"
   },
   "exclude": ["node_modules"],
-  "include": ["./src/**/*", "./__helpers__/*"]
+  "include": ["./src/**/*", "./gatsby-aitmed-plugin"]
 }
