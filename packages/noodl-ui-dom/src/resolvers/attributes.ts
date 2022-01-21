@@ -182,7 +182,7 @@ const attributesResolver: t.Resolve.Config = {
             ---- PLACEHOLDERS
           -------------------------------------------------------- */
           if (placeholder) {
-            let value = args.component.get(c.DATA_PLACEHOLDER) || ''
+            let value = args.component.get(c.DATA_PLACEHOLDER) ||placeholder || ''
             u.forEach(
               (fn: (...args: any[]) => any) =>
                 fn('placeholder', Identify.folds.emit(value) ? '' : value),
