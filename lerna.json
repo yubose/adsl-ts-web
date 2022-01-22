@@ -2,18 +2,18 @@
   "command": {
     "bootstrap": {
       "hoist": true,
-      "ignore": ["docs", "gatsby-aitmed-plugin"]
+      "ignore": ["docs"]
     },
     "create": {
       "license": "MIT"
     },
     "publish": {
       "bump": "patch",
-      "ignore": ["docs", "noodl-ui-test-utils", "gatsby-aitmed-plugin"],
+      "ignore": ["docs", "noodl-ui-test-utils"],
       "message": "Update"
     }
   },
-  "ignore": ["docs", "gatsby-aitmed-plugin"],
+  "ignore": ["docs"],
   "ignoreChanges": ["**/__tests__/**"],
   "loglevel": "success",
   "packages": ["packages/*"],
