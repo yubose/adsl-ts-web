@@ -455,8 +455,13 @@ function attachDebugUtilsToWindow(app: App) {
           u.array(findByDataKey()),
           (acc, el) => {
             if (el) {
-              acc[el.dataset.key as string] =
-                'value' in el ? (el as any).value : el.dataset.value
+              if (el.dataset.value === '[object Object]') {
+                const component = app.cache.component.get(el.id)?.component
+                acc[el.dataset.key as string] = component.get('data-value')
+              } else {
+                acc[el.dataset.key as string] =
+                  'value' in el ? (el as any).value : el.dataset.value
+              }
             }
             return acc
           },
