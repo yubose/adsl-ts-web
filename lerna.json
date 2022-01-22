@@ -2,18 +2,23 @@
   "command": {
     "bootstrap": {
       "hoist": true,
-      "ignore": ["docs", "homepage"]
+      "ignore": ["docs", "homepage", "gatsby-noodl-plugin"]
     },
     "create": {
       "license": "MIT"
     },
     "publish": {
       "bump": "patch",
-      "ignore": ["docs", "homepage", "noodl-ui-test-utils"],
+      "ignore": [
+        "docs",
+        "homepage",
+        "noodl-ui-test-utils",
+        "gatsby-noodl-plugin"
+      ],
       "message": "Update"
     }
   },
-  "ignore": ["docs", "homepage"],
+  "ignore": ["docs", "homepage", "gatsby-noodl-plugin"],
   "ignoreChanges": ["**/__tests__/**"],
   "loglevel": "success",
   "packages": ["packages/*"],
