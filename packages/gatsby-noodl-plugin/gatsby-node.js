@@ -7,6 +7,7 @@ const u = require('@jsmanifest/utils')
 const log = require('loglevel')
 const curry = require('lodash/curry')
 const fs = require('fs-extra')
+const nu = require('noodl-utils')
 const has = require('lodash/has')
 const get = require('lodash/get')
 const set = require('lodash/set')
@@ -40,6 +41,8 @@ const data = {
   appKey: '',
   path: '',
 }
+
+exports.data = data
 
 /**
  * https://www.gatsbyjs.com/docs/node-apis/
@@ -95,11 +98,40 @@ exports.sourceNodes = async (args, pluginOptions) => {
 
   log.debug(`Parsed config`)
 
-  const appKey = ensureYmlExt(configJson.cadlMain)
-  const appConfigLink = ensureYmlExt(configJson.cadlBaseUrl + data.configKey)
+  data.appKey = configJson.cadlMain.replace('.yml', '')
+  log.debug(`App key: ${configJson.cadlMain}`)
 
+  data.configVersion = getConfigVersion(configJson)
+  log.debug(`Config version set to: ${data.configVersion}`)
+
+  log.info({
+    cadlBaseUrl: configJson.cadlBaseUrl,
+    cadlVersion: data.configVersion,
+    designSuffix: configJson.designSuffix,
+  })
+
+  const replacePlaceholders = nu.createNoodlPlaceholderReplacer({
+    cadlBaseUrl: configJson.cadlBaseUrl,
+    cadlVersion: data.configVersion,
+    designSuffix: '',
+  })
+
+  data.cadlBaseUrl = replacePlaceholders(configJson.cadlBaseUrl)
+
+  log.debug(`Parsed placeholder(s) in cadlBaseUrl`)
+
+  if (configJson.myBaseUrl) {
+    data.myBaseUrl = replacePlaceholders(configJson.myBaseUrl)
+    log.debug(`Parsed myBaseUrl`)
+  }
+
+  const appConfigLink = replacePlaceholders(
+    ensureYmlExt(data.cadlBaseUrl + data.appKey),
+  )
+
+  log.debug(data)
   log.debug(`Link to app config yml: ${appConfigLink}`)
-  log.debug(`App key: ${appKey}`)
+  log.debug(`App key: ${data.appKey}`)
   log.debug(`Retrieving app config`)
 
   const { data: appYml } = await axios.get(appConfigLink)
@@ -108,49 +140,40 @@ exports.sourceNodes = async (args, pluginOptions) => {
 
   const appConfigJson = y.parse(appYml)
 
-  log.debug(`Retrieved app config`)
-
-  const replacePlaceholders = replaceNoodlPlaceholders({
-    cadlBaseUrl: configJson.cadlBaseUrl,
-    designSuffix: configJson.designSuffix,
-  })
-
-  const parsedConfigJson = replacePlaceholders(configJson)
-  log.debug(`Parsed config`)
-  const parsedAppConfigJson = replacePlaceholders(appConfigJson)
   log.debug(`Parsed app config`)
 
-  const { preload = [], page: pages = [] } = parsedAppConfigJson
+  const { preload = [], page: pages = [] } = appConfigJson
 
   log.debug(
     `There are ${preload.length} pages to preload and ${pages.length} pages to load afterwards`,
   )
 
-  const cadlBaseUrl = parsedConfigJson.cadlBaseUrl
-
-  log.debug(`cadlBaseUrl: ${cadlBaseUrl}`)
-
-  const assetsUrl = replaceNoodlPlaceholders(
-    { cadlBaseUrl },
-    appConfigJson.assetsUrl,
-  )
+  const assetsUrl = replaceNoodlPlaceholders(appConfigJson.assetsUrl)
 
   log.debug(`assetsUrl: ${assetsUrl}`)
 
-  for (const name of [...preload, ...pages]) {
-    const filename = ensureYmlExt(name)
-    const dlLink = ensureYmlExt(`${cadlBaseUrl}${filename}`)
-    log.debug(`Fetching ${name} from ${dlLink}`)
-    const { data: yml } = await axios.get(dlLink, {
-      onDownloadProgress: (progress) => {
-        console.log({ progress })
-      },
-      responseType: 'text',
-    })
-    log.debug(`Retrieved "${filename}"`)
-  }
+  await Promise.all(
+    [...preload, ...pages].map(async (name) => {
+      try {
+        const filename = ensureYmlExt(`${name}_en`)
+        const dlLink = `${data.cadlBaseUrl}${filename}`
 
-  process.exit(0)
+        log.debug(`Fetching ${name} from ${dlLink}`)
+
+        const { data: yml } = await axios.get(dlLink, {
+          onDownloadProgress: (progress) => {
+            console.log({ progress })
+          },
+          responseType: 'text',
+        })
+
+        log.info(`Retrieved ${filename}`)
+        const json = y.parse(yml)
+      } catch (error) {
+        u.logError(error)
+      }
+    }),
+  )
 
   const { createPage, createNode, createNodeField } = actions
 

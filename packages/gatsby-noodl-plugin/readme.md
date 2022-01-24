@@ -20,4 +20,6 @@
 4. parse/save cadlBaseUrl
 5. parse/save configKey
 6. parse/save appKey
-7.
+7. transforming each page to graphql nodes
+  1. fetch + parse yml to json
+

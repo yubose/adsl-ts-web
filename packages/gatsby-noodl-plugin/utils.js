@@ -1,9 +1,9 @@
 const u = require('@jsmanifest/utils')
 
 const regex = {
-  cadlBaseUrlPlaceholder: /\${cadlBaseUrl}/,
-  cadlVersionPlaceholder: /\${cadlVersion}/,
-  designSuffix: /\${designSuffix}/,
+  cadlBaseUrlPlaceholder: /\\${cadlBaseUrl}/,
+  cadlVersionPlaceholder: /\\${cadlVersion}/,
+  designSuffixPlaceholder: /\\${designSuffix}/,
 }
 
 exports.regex = regex
@@ -28,8 +28,15 @@ function replaceNoodlPlaceholders(options, value = '') {
     if (cadlVersion && regex.cadlVersionPlaceholder.test(cadlVersion)) {
       value = value.replace(regex.cadlVersionPlaceholder, cadlVersion)
     }
-    if (designSuffix && regex.designSuffixPlaceholder.test(designSuffix)) {
-      value = value.replace(regex.designSuffixPlaceholder, designSuffix)
+    if (designSuffix) {
+      if (
+        u.isStr(designSuffix) &&
+        regex.designSuffixPlaceholder.test(designSuffix)
+      ) {
+        value = value.replace(regex.designSuffixPlaceholder, designSuffix)
+      } else if (u.isObj(designSuffix)) {
+        value = ''
+      }
     }
   } else if (u.isArr(value)) {
     return value.map((v) => replaceNoodlPlaceholders(options, v))
