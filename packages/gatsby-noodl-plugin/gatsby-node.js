@@ -17,11 +17,7 @@ const set = require('lodash/set')
 const path = require('path')
 const y = require('yaml')
 const { getGenerator, monkeyPatchAddEventListener } = require('./generator')
-const {
-  ensureYmlExt,
-  getConfigVersion,
-  replaceNoodlPlaceholders,
-} = require('./utils')
+const utils = require('./utils')
 
 log.setDefaultLevel('INFO')
 
@@ -105,7 +101,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
   log.debug(`Output path: ${path}`)
 
   data.configKey = config
-  data.configUrl = ensureYmlExt(`${BASE_CONFIG_URL}${config}`)
+  data.configUrl = utils.ensureYmlExt(`${BASE_CONFIG_URL}${config}`)
 
   await cache.set('configKey', data.configKey)
   await cache.set('configUrl', data.configUrl)
@@ -115,14 +111,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
  * @param { import('gatsby').CreateNodeArgs } args
  * @param { PluginOptions } pluginOptions
  */
-exports.onCreateNode = async function onCreateNode(args, pluginOptions) {
-  // const { node, actions, loadNodeContent, createNodeId, createContentDigest } =
-  //   args
-  // if (!unstable_shouldOnCreateNode({ node })) {
-  //   return
-  // }
-  // const content = await loadNodeContent(node)
-}
+exports.onCreateNode = async function onCreateNode(args, pluginOptions) {}
 
 /**
  * @param { import('gatsby').SourceNodesArgs } args
@@ -148,7 +137,7 @@ exports.sourceNodes = async (args, pluginOptions) => {
 
   log.debug(`Noodl app key: ${data.appKey}`)
 
-  data.configVersion = getConfigVersion(data.configJson)
+  data.configVersion = utils.getConfigVersion(data.configJson)
   await cache.set('configVersion', data.configVersion)
 
   log.debug(`Noodl config version set to: ${data.configVersion}`)
@@ -177,7 +166,7 @@ exports.sourceNodes = async (args, pluginOptions) => {
   }
 
   data.appConfigLink = replacePlaceholders(
-    ensureYmlExt(data.cadlBaseUrl + data.appKey),
+    utils.ensureYmlExt(data.cadlBaseUrl + data.appKey),
   )
 
   await cache.set('appConfigLink', data.appConfigLink)
@@ -211,70 +200,70 @@ exports.sourceNodes = async (args, pluginOptions) => {
     await cache.set('pages', data.pages.app)
   }
 
-  data.assetsUrl = replaceNoodlPlaceholders(data.appConfigJson.assetsUrl)
+  data.assetsUrl = utils.replaceNoodlPlaceholders(data.appConfigJson.assetsUrl)
   await cache.set('assetsUrl', data.assetsUrl)
 
   log.debug(`Noodl assetsUrl: ${data.assetsUrl}`)
 
   log.debug(data)
 
+  const allYmlNames = [...u.keys(data.pages.preload), ...u.keys(data.pages.app)]
+
   await Promise.all(
-    [...u.keys(data.pages.preload), ...u.keys(data.pages.app)].map(
-      async (name) => {
-        try {
-          const filename = ensureYmlExt(`${name}_en`)
-          const dlLink = `${data.cadlBaseUrl}${filename}`
+    allYmlNames.map(async (name) => {
+      try {
+        const filename = utils.ensureYmlExt(`${name}_en`)
+        const dlLink = `${data.cadlBaseUrl}${filename}`
 
-          log.debug(`Fetching ${name} from ${dlLink}`)
+        log.debug(`Fetching ${name} from ${dlLink}`)
 
-          const { data: yml } = await axios.get(dlLink, {
-            onDownloadProgress: (progress) => {
-              console.log({ progress })
-            },
-            responseType: 'text',
+        const { data: yml } = await axios.get(dlLink, {
+          onDownloadProgress: (progress) => {
+            console.log({ progress })
+          },
+          responseType: 'text',
+        })
+
+        log.info(`Retrieved ${filename}`)
+
+        const pagesKey = name in data.pages.preload ? 'preload' : 'app'
+        data.pages[pagesKey][name] = yml
+
+        await cache.set(`pages.${pagesKey}.${name}`, yml)
+
+        const json = y.parse(yml)
+
+        createNode({
+          name,
+          slug: `/${name}/`,
+          content: JSON.stringify(json),
+          isPreload: pagesKey === 'preload',
+          id: createNodeId(`noodl_${name}`),
+          children: [],
+          internal: {
+            contentDigest: createContentDigest(yml),
+            type: NOODL_PAGE_NODE_TYPE,
+          },
+        })
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        if (axios.isAxiosError(err)) {
+          const errResp = err.response
+          console.log({
+            name: err.name,
+            message: err.message,
+            respData: errResp.data,
+            respStatus: errResp.status,
+            respStatusText: errResp.statusText,
+            req: errResp.request,
+            reqConfig: errResp.config,
+            reqHeaders: errResp.headers,
           })
-
-          log.info(`Retrieved ${filename}`)
-
-          const pagesKey = name in data.pages.preload ? 'preload' : 'app'
-          data.pages[pagesKey][name] = yml
-
-          await cache.set(`pages.${pagesKey}.${name}`, yml)
-
-          const json = y.parse(yml)
-
-          createNode({
-            name,
-            slug: `/${name}/`,
-            content: JSON.stringify(json),
-            isPreload: pagesKey === 'preload',
-            id: createNodeId(`noodl_${name}`),
-            children: [],
-            internal: {
-              contentDigest: createContentDigest(yml),
-              type: NOODL_PAGE_NODE_TYPE,
-            },
-          })
-        } catch (error) {
-          const err = error instanceof Error ? error : new Error(String(error))
-          if (axios.isAxiosError(err)) {
-            const errResp = err.response
-            console.log({
-              name: err.name,
-              message: err.message,
-              respData: errResp.data,
-              respStatus: errResp.status,
-              respStatusText: errResp.statusText,
-              req: errResp.request,
-              reqConfig: errResp.config,
-              reqHeaders: errResp.headers,
-            })
-          } else {
-            throw err
-          }
+        } else {
+          throw err
         }
-      },
-    ),
+      }
+    }),
   )
 }
 

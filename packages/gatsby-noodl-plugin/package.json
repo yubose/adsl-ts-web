@@ -1,6 +1,103 @@
 {
   "author": "Christopher <christopher@gmail.com>",
+  "dependencies": {
+    "loglevel": "^1.8.0"
+  },
   "description": "Gatsby AiTmed plugin to generate static pages from a noodl config",
+  "devDependencies": {
+    "eslint": "^8.7.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-react": "^7.28.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "es6": true
+    },
+    "extends": [
+      "airbnb:recommended",
+      "prettier"
+    ],
+    "ignorePatterns": [
+      "**/*.js",
+      "**/*.js.map",
+      "dist",
+      "output",
+      "node_modules"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2018,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "prettier"
+    ],
+    "root": true,
+    "rules": {
+      "array-callback-return": "error",
+      "arrow-body-style": "off",
+      "arrow-parens": "warn",
+      "arrow-spacing": "warn",
+      "camelcase": "off",
+      "class-methods-use-this": "warn",
+      "consistent-return": "off",
+      "default-case": "off",
+      "dot-notation": "off",
+      "eqeqeq": 0,
+      "function-paren-newline": "warn",
+      "generator-star-spacing": "error",
+      "implicit-arrow-linebreak": "error",
+      "import/export": "off",
+      "import/extensions": "off",
+      "import/no-extraneous-dependencies": "off",
+      "import/no-unresolved": "off",
+      "import/prefer-default-export": "off",
+      "max-classes-per-file": "off",
+      "no-alert": "off",
+      "no-array-constructor": "error",
+      "no-await-in-loop": "off",
+      "no-bitwise": "off",
+      "no-console": "off",
+      "no-empty-function": "off",
+      "no-eval": "off",
+      "no-floating-decimal": "off",
+      "no-inner-declarations": "off",
+      "no-lonely-if": "off",
+      "no-loop-func": "error",
+      "no-nested-ternary": "off",
+      "no-new": "off",
+      "no-new-func": "error",
+      "no-param-reassign": "error",
+      "no-plusplus": "warn",
+      "no-restricted-globals": "off",
+      "no-restricted-syntax": "off",
+      "no-return-assign": "off",
+      "no-shadow": "off",
+      "no-template-curly-in-string": "off",
+      "no-undef": "warn",
+      "no-underscore-dangle": "off",
+      "no-unused-expressions": "off",
+      "no-unused-vars": "off",
+      "no-use-before-define": "off",
+      "no-useless-catch": "off",
+      "no-useless-escape": "error",
+      "no-void": "off",
+      "prefer-arrow-callback": "off",
+      "prefer-const": "warn",
+      "prefer-destructuring": "off",
+      "prefer-object-spread": "error",
+      "prefer-rest-params": "off",
+      "prefer-spread": "warn",
+      "prefer-template": "off",
+      "prettier/prettier": 2,
+      "space-before-blocks": "error",
+      "space-before-function-paren": "error"
+    },
+    "settings": {
+      "react": {
+        "version": "latest"
+      }
+    }
+  },
   "keywords": [
     "aitmed",
     "website"
@@ -8,12 +105,18 @@
   "license": "0BSD",
   "main": "index.js",
   "name": "gatsby-noodl-plugin",
+  "prettier": {
+    "arrowParens": "always",
+    "endOfLine": "lf",
+    "printWidth": 80,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all"
+  },
   "scripts": {
     "build": "echo \"No build script setup\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --watch --watch-files . \"__tests__/**/*.test.js\""
   },
-  "version": "1.0.0",
-  "dependencies": {
-    "loglevel": "^1.8.0"
-  }
+  "version": "1.0.0"
 }
