@@ -1,3 +1,5 @@
+const path = require('path')
+
 const siteTitle = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
 const siteDescription = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
 const siteUrl = `https://aitmed.com/`
@@ -79,13 +81,21 @@ module.exports = {
         config: 'www',
         loglevel: 'debug',
         path: `${__dirname}/output`,
+        pageTemplate: path.resolve(`src/templates/page.tsx`),
       },
     },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
-        name: `assets`,
-        path: `${__dirname}/src/resources/assets`,
+        name: `wwwPages`,
+        path: `${__dirname}/output/www/yml`,
+      },
+    },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `wwwAssets`,
+        path: `${__dirname}/output/www/assets`,
       },
     },
     {
