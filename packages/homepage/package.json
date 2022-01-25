@@ -97,9 +97,7 @@
         {
           "devDependencies": [
             "**/*.test.[jt]s",
-            "**/*.spec.[jt]s",
-            "**/*.test.[jt]sx",
-            "**/*.spec.[jt]sx"
+            "**/*.test.[jt]sx"
           ]
         }
       ],
