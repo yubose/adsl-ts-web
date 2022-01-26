@@ -165,8 +165,8 @@ async function monkeyPatchAddEventListener(opts) {
  * @typedef Use
  * @property { nt.RootConfig } [Use.config]
  * @property { nt.AppConfig } [Use.appConfig]
- * @property { Record<string, any> } [Use.pages.preload]
- * @property { Record<string, nt.PageObject> } [Use.pages.app]
+ * @property { Record<string, any> } [Use.appConfig]
+ * @property { Record<string, Record<string, nt.PageObject>> } [Use.pages]
  * @property { { width: number; height: number } } [Use.viewport]
  */
 
@@ -175,19 +175,17 @@ async function monkeyPatchAddEventListener(opts) {
  * @param { string } [opts.configUrl]
  * @param { string } [opts.configKey]
  * @param { string } [opts.ecosEnv]
- * @param { string } [opts.startPage]
  * @param { Use } [opts.use]
  * @param { On } [opts.on]
  * @param { NuiViewport } [opts.viewport]
  * @returns { Promise<{ components: nt.ComponentObject[]; getGoto: function; nui: typeof NUI; page: NuiPage; sdk: CADL; pages: Record<string, nt.PageObject>; transform: (componentProp: nt.ComponentObject, index?: number) => Promise<NuiComponent.Instance> }> }
  */
 async function getGenerator({
-  configUrl,
   configKey = 'www',
+  configUrl = `https://public.aitmed.com/config/${configKey}.yml`,
   ecosEnv = 'test',
   on,
-  startPage = 'HomePage',
-  use,
+  use = {},
   viewport = { width: 1024, height: 768 },
 } = {}) {
   try {
@@ -198,22 +196,13 @@ async function getGenerator({
         removeEventListener: on?.patch?.removeEventListener,
       },
     })
+
     // Intentionally using require
     const { CADL } = require('@aitmed/cadl')
 
-    const sdk = new CADL({
-      cadlVersion: ecosEnv,
-      configUrl:
-        configUrl || `https://public.aitmed.com/config/${configKey}.yml`,
-    })
+    const sdk = new CADL({ cadlVersion: ecosEnv, configUrl })
 
-    await sdk.init({
-      use: {
-        ...use?.pages?.preload,
-        config: use?.config,
-        cadlEndpoint: use?.appConfig,
-      },
-    })
+    await sdk.init()
 
     // Fixes navbar to stay at the top
     if (u.isObj(sdk.root?.BaseHeader?.style)) {
@@ -235,9 +224,10 @@ async function getGenerator({
 
     // App pages
     await Promise.all(
-      u.keys(use?.pages?.app || {}).map(async (pageName) => {
+      u.entries(use.pages.json || {}).map(async ([pageName, cadlObject]) => {
+        const cadlYAML = use.pages.serialized[pageName]
         try {
-          await sdk.initPage(pageName, [], {
+          await sdk.initPage({ cadlObject, cadlYAML, pageName }, [], {
             wrapEvalObjects: false,
           })
           pages[pageName] = sdk.root[pageName]
@@ -248,7 +238,7 @@ async function getGenerator({
             message: err.message,
             stack: err.stack,
           }
-          u.logError(err)
+          console.log(`[${u.yellow(err.name)}] ${u.red(err.message)}`)
         }
       }),
     )
@@ -256,7 +246,7 @@ async function getGenerator({
     const transformer = new Transformer()
     const page = nui.getRootPage()
 
-    page.page = startPage
+    page.page = sdk.cadlEndpoint.startPage || ''
     page.viewport.width = use?.viewport?.width || 0
     page.viewport.height = use?.viewport?.height || 0
 

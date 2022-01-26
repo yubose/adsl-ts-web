@@ -2,12 +2,10 @@
  * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/
  * https://www.gatsbyjs.com/docs/reference/config-files/node-api-helpers/
  */
-const axios = require('axios').default
 const u = require('@jsmanifest/utils')
 const log = require('loglevel')
+const attempt = require('lodash/attempt')
 const curry = require('lodash/curry')
-const camelCase = require('lodash/camelCase')
-const upperFirst = require('lodash/upperFirst')
 const fs = require('fs-extra')
 const nt = require('noodl-types')
 const nu = require('noodl-utils')
@@ -25,7 +23,6 @@ const NOODL_PAGE_NODE_TYPE = 'NoodlPage'
 
 function unstable_shouldOnCreateNode({ node }) {
   if (node.internal.mediaType === `text/yaml`) {
-    log.info(`mediaType`, node)
     return true
   }
   return false
@@ -35,10 +32,8 @@ function unstable_shouldOnCreateNode({ node }) {
  * @typedef PluginOptions
  * @property { import('../homepage/node_modules/gatsby').PluginOptions['plugins'] } options.plugins
  * @property { string } [options.config]
- * @property { string } [options.configPrefix]
- * @property { string } [options.configVersion]
+ * @property { string } [options.template]
  * @property { 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn' } [options.loglevel]
- * @property { string } [options.path]
  */
 
 const BUILTIN_EVAL_TOKEN = '=.'
@@ -46,19 +41,21 @@ const BASE_CONFIG_URL = `https://public.aitmed.com/config/`
 const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 const data = {
-  appKey: '',
-  appConfigLink: '',
-  appConfigJson: null,
+  _components_: {},
   cadlBaseUrl: '',
   configKey: '',
-  configVersion: '',
-  configJson: null,
+  configUrl: '',
   myBaseUrl: '',
   pages: {
-    preload: {},
-    app: {},
+    json: {},
+    serialized: {},
   },
+  template: '',
 }
+
+let createNode
+/** @type { import('noodl-ui').Transformer['transform'] } */
+let transformComponent
 
 exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
 
@@ -82,7 +79,7 @@ exports.onPreInit = (args, pluginOptions) => {
   }
 
   // Replaces backlashes for windows support
-  for (const key of ['path', 'pageTemplate']) {
+  for (const key of ['path', 'template']) {
     if (pluginOptions[key]) {
       pluginOptions[key] = pluginOptions[key].replaceAll('\\', '/')
     }
@@ -95,13 +92,15 @@ exports.onPreInit = (args, pluginOptions) => {
  */
 exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
   const { cache } = args
-  const { config = 'aitmed', path } = pluginOptions || {}
+  const { config = 'aitmed', path, template } = pluginOptions || {}
 
   log.debug(`Config key: ${config}`)
   log.debug(`Output path: ${path}`)
+  log.debug(`Template path: ${template}`)
 
   data.configKey = config
   data.configUrl = utils.ensureYmlExt(`${BASE_CONFIG_URL}${config}`)
+  data.template = template
 
   await cache.set('configKey', data.configKey)
   await cache.set('configUrl', data.configUrl)
@@ -118,153 +117,121 @@ exports.onCreateNode = async function onCreateNode(args, pluginOptions) {}
  * @param { PluginOptions } pluginOptions
  */
 exports.sourceNodes = async (args, pluginOptions) => {
-  const { actions, cache, createContentDigest, createNodeId } = args
+  const { actions, createContentDigest, createNodeId } = args
+  createNode = actions.createNode
 
-  const { createNode } = actions
-
-  log.debug(`Fetching noodl config from ${await cache.get('configUrl')}`)
-
-  const { data: configYml } = await axios.get(data.configUrl)
-
-  log.debug(`Noodl config fetched`)
-
-  data.configJson = y.parse(configYml)
-
-  log.debug(`Parsed noodl config`)
-
-  data.appKey = data.configJson.cadlMain.replace('.yml', '')
-  await cache.set('appKey', data.appKey)
-
-  log.debug(`Noodl app key: ${data.appKey}`)
-
-  data.configVersion = utils.getConfigVersion(data.configJson)
-  await cache.set('configVersion', data.configVersion)
-
-  log.debug(`Noodl config version set to: ${data.configVersion}`)
-
-  log.info({
-    cadlBaseUrl: data.cadlBaseUrl,
-    cadlVersion: data.configVersion,
-    designSuffix: data.configJson.designSuffix,
-  })
-
-  const replacePlaceholders = nu.createNoodlPlaceholderReplacer({
-    cadlBaseUrl: data.configJson.cadlBaseUrl,
-    cadlVersion: data.configVersion,
-    designSuffix: '',
-  })
-
-  data.cadlBaseUrl = replacePlaceholders(data.configJson.cadlBaseUrl)
-  await cache.set('cadlBaseUrl', data.cadlBaseUrl)
-
-  log.debug(`Parsed noodl placeholder(s) in cadlBaseUrl`)
-
-  if (data.configJson.myBaseUrl) {
-    data.myBaseUrl = replacePlaceholders(data.configJson.myBaseUrl)
-    await cache.set('myBaseUrl', data.myBaseUrl)
-    log.debug(`Parsed myBaseUrl in noodl config`)
-  }
-
-  data.appConfigLink = replacePlaceholders(
-    utils.ensureYmlExt(data.cadlBaseUrl + data.appKey),
-  )
-
-  await cache.set('appConfigLink', data.appConfigLink)
-
-  log.debug(`Link to noodl app config yml: ${data.appConfigLink}`)
-  log.debug(`Noodl app key: ${data.appKey}`)
-  log.debug(`Retrieving noodl app config`)
-
-  const { data: appYml } = await axios.get(data.appConfigLink)
-
-  log.debug(`Retrieved noodl app config`)
-
-  data.appConfigJson = y.parse(appYml)
-
-  log.debug(`Parsed noodl app config`)
-
-  const { preload = [], page: pages = [] } = data.appConfigJson
-
-  log.debug(
-    `There are ${preload.length} noodl pages to preload and ${pages.length} pages to load afterwards`,
-  )
-
-  {
-    const toMapping = (arr = []) =>
-      u.reduce(arr, (acc, key) => u.assign(acc, { [key]: '' }), {})
-
-    data.pages.preload = toMapping(preload)
-    data.pages.app = toMapping(pages)
-
-    await cache.set('preload', data.pages.preload)
-    await cache.set('pages', data.pages.app)
-  }
-
-  data.assetsUrl = utils.replaceNoodlPlaceholders(data.appConfigJson.assetsUrl)
-  await cache.set('assetsUrl', data.assetsUrl)
-
-  log.debug(`Noodl assetsUrl: ${data.assetsUrl}`)
-
-  log.debug(data)
-
-  const allYmlNames = [...u.keys(data.pages.preload), ...u.keys(data.pages.app)]
-
-  await Promise.all(
-    allYmlNames.map(async (name) => {
-      try {
-        const filename = utils.ensureYmlExt(`${name}_en`)
-        const dlLink = `${data.cadlBaseUrl}${filename}`
-
-        log.debug(`Fetching ${name} from ${dlLink}`)
-
-        const { data: yml } = await axios.get(dlLink, {
-          onDownloadProgress: (progress) => {
-            console.log({ progress })
-          },
-          responseType: 'text',
-        })
-
-        log.info(`Retrieved ${filename}`)
-
-        const pagesKey = name in data.pages.preload ? 'preload' : 'app'
-        data.pages[pagesKey][name] = yml
-
-        await cache.set(`pages.${pagesKey}.${name}`, yml)
-
-        const json = y.parse(yml)
-
-        createNode({
-          name,
-          slug: `/${name}/`,
-          content: JSON.stringify(json),
-          isPreload: pagesKey === 'preload',
-          id: createNodeId(`noodl_${name}`),
-          children: [],
-          internal: {
-            contentDigest: createContentDigest(yml),
-            type: NOODL_PAGE_NODE_TYPE,
-          },
-        })
-      } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error))
-        if (axios.isAxiosError(err)) {
-          const errResp = err.response
-          console.log({
-            name: err.name,
-            message: err.message,
-            respData: errResp.data,
-            respStatus: errResp.status,
-            respStatusText: errResp.statusText,
-            req: errResp.request,
-            reqConfig: errResp.config,
-            reqHeaders: errResp.headers,
-          })
-        } else {
-          throw err
+  const getTraverse = curry(
+    /**
+     * @param { (key: string, value: any, parent: Record<string, any>) => void } cb
+     * @param { import('noodl-types').ComponentObject } bp
+     */
+    (cb, bp, componentPath = []) => {
+      if (u.isObj(bp)) {
+        const entries = u.entries(bp)
+        const numEntries = entries.length
+        for (let index = 0; index < numEntries; index++) {
+          const [key, value] = entries[index]
+          cb(key, value, bp, componentPath.concat(key))
+          getTraverse(cb, value, componentPath.concat(key))
         }
+      } else if (u.isArr(bp)) {
+        bp.forEach((b, i) => getTraverse(cb, b, componentPath.concat(i)))
       }
-    }),
+    },
   )
+
+  const paths = []
+
+  const traverse = getTraverse((key, _, __, componentPath) => {
+    if (key.startsWith('=.builtIn')) {
+      componentPath[componentPath.length - 1] = key.replace(
+        BUILTIN_EVAL_TOKEN,
+        '',
+      )
+      paths.push(componentPath.join('.'))
+    }
+  })
+
+  const { nui, page, pages, sdk, transform } = await getGenerator({
+    configKey: data.configKey,
+    on: {
+      createComponent(comp, opts) {
+        const componentId = comp.id || ''
+        const blueprint = u.omit(comp.blueprint, ['children'])
+        const pageName = get(opts, 'page.page', '')
+        const parentId = get(comp, 'parent.id', null)
+        const componentPath = opts.path || []
+
+        if (!data.componentsByPage[pageName]) {
+          data.componentsByPage[pageName] = {}
+        }
+
+        set(data, ['componentsByPage', pageName, componentId], {
+          context: u.assign({}, { opts, page: pageName, parent: parentId }),
+          blueprint,
+        })
+
+        traverse(blueprint, componentPath)
+      },
+      patch: u.reduce(
+        ['addEventListener', 'removeEventListener'],
+        (acc, evtName) => {
+          /**
+           * @argument { object } args
+           * @param { boolean } args.wasPatched
+           */
+          acc[evtName] = function ({ wasPatched } = {}) {
+            let label = ''
+            label += u.yellow('EventTarget')
+            label += u.magenta('#')
+            label += u.white(evtName)
+            if (wasPatched) {
+              log.debug(`${label} is already patched.`)
+            } else {
+              log.debug(`${label} ${u.green('patched!')}`)
+            }
+          }
+          return acc
+        },
+        {},
+      ),
+    },
+    use: {
+      pages: data.pages,
+    },
+  })
+
+  transformComponent = transform
+
+  // TODO - Remove when official release
+  {
+    fs.writeJson(path.join(__dirname, './pages-output.json'), pages, {
+      spaces: 2,
+    })
+  }
+
+  data.startPage = (sdk.cadlEndpoint || {}).startPage || 'HomePage'
+
+  page.viewport.width = 1024
+  page.viewport.height = 768
+
+  for (const [name, pageObject] of u.entries(pages)) {
+    data.pages.json[name] = pageObject
+    data.pages.serialized[name] = JSON.stringify(pageObject)
+
+    createNode({
+      name,
+      slug: `/${name}/`,
+      content: data.pages.serialized[name],
+      isPreload: false,
+      id: createNodeId(name),
+      children: [],
+      internal: {
+        contentDigest: createContentDigest(data.pages.serialized[name]),
+        type: NOODL_PAGE_NODE_TYPE,
+      },
+    })
+  }
 }
 
 /**
@@ -273,7 +240,7 @@ exports.sourceNodes = async (args, pluginOptions) => {
  */
 exports.createPages = async function createPages(args, pluginOptions) {
   try {
-    const { actions, cache, graphql } = args
+    const { actions, graphql } = args
     const { createPage } = actions
 
     const {
@@ -287,7 +254,6 @@ exports.createPages = async function createPages(args, pluginOptions) {
             slug
             content
             isPreload
-            id
           }
         }
       }
@@ -296,119 +262,15 @@ exports.createPages = async function createPages(args, pluginOptions) {
     if (errors) {
       throw new Error(errors)
     } else {
-      log.info(`Creating ${data?.allNoodlPage?.nodes?.length} pages`)
+      const numNoodlPages = allNoodlPage.nodes.length || 0
 
-      const { getGoto, nui, page, pages, sdk, transform } = await getGenerator({
-        configKey: data.configKey,
-        on: {
-          createComponent(comp, opts) {
-            const path = opts.path || []
-            traverse(comp.blueprint, path)
-          },
-          patch: u.reduce(
-            ['addEventListener', 'removeEventListener'],
-            (acc, evtName) => {
-              /**
-               * @argument { object } args
-               * @param { boolean } args.wasPatched
-               */
-              acc[evtName] = function (args) {
-                let label = ''
-                label += u.yellow('EventTarget')
-                label += u.magenta('#')
-                label += u.white(evtName)
-                args.wasPatched
-                  ? log.debug(`${label} is already patched.`)
-                  : log.debug(`${label} ${u.green('patched!')}`)
-              }
-              return acc
-            },
-            {},
-          ),
-        },
-        use: {
-          // config: data.configJson,
-          appConfig: data.appConfigJson,
-          pages: {
-            preload: u.reduce(
-              u.entries(data.pages.preload),
-              (acc, [name, yml]) => {
-                acc[name] = y.parse(yml)
-                return acc
-              },
-              {},
-            ),
-            app: u.reduce(
-              u.entries(data.pages.app),
-              (acc, [name, yml]) => {
-                acc[name] = y.parse(yml)
-                return acc
-              },
-              {},
-            ),
-          },
-          viewport: { width: 1024, height: 768 },
-        },
-        startPage: 'HomePage',
-      })
-
-      const getTraverse = curry(
-        /**
-         * @param { (key: string, value: any, parent: Record<string, any>) => void } cb
-         * @param { import('noodl-types').ComponentObject } bp
-         */
-        (cb, bp, path = []) => {
-          if (u.isObj(bp)) {
-            const entries = u.entries(bp)
-            const numEntries = entries.length
-            for (let index = 0; index < numEntries; index++) {
-              const [key, value] = entries[index]
-              cb(key, value, bp, path.concat(key))
-              getTraverse(cb, value, path.concat(key))
-            }
-          } else if (u.isArr(bp)) {
-            bp.forEach((b, i) => getTraverse(cb, b, path.concat(i)))
-          }
-        },
-      )
-
-      const traverse = getTraverse((key, value, parent, path) => {
-        if (key.startsWith('=.builtIn')) {
-          // key = key.replace(BUILTIN_EVAL_TOKEN, '')
-          path[path.length - 1] = key.replace(BUILTIN_EVAL_TOKEN, '')
-          const pathStr = path.join('.')
-          paths.push(pathStr)
-          // log([key, value, parent, pathStr])
-          if (u.isObj(value)) {
-            try {
-              // const processed = sdk.processPopulate({
-              //   source: value,
-              //   lookFor: ['.', '..', '=', '~'],
-              //   pageName: 'HomePage',
-              //   withFns: false,
-              // })
-              // console.dir(processed, { depth: Infinity })
-              // return processed
-            } catch (error) {
-              const err =
-                error instanceof Error ? error : new Error(String(error))
-              log.error(
-                `[key:${key}-${u.yellow(err.name)}] ${u.red(err.message)}`,
-                value,
-              )
-            }
-          }
-        }
-      })
+      log.info(`Creating ${numNoodlPages} pages`)
 
       /**
        * @param { nt.ComponentObject[] } componentObjects
        */
       const generateComponents = async (componentObjects) => {
-        const paths = []
-
         /**
-         *
          * @param { nt.ComponentObject | nt.ComponentObject[] } value
          * @returns { Promise<import('./generator').NuiComponent[] }
          */
@@ -417,7 +279,9 @@ exports.createPages = async function createPages(args, pluginOptions) {
           const componentsList = u.filter(Boolean, u.array(value))
           const numComponents = componentsList.length
           for (let index = 0; index < numComponents; index++) {
-            const transformedComponent = await transform(componentsList[index])
+            const transformedComponent = await transformComponent(
+              componentsList[index],
+            )
             components.push(transformedComponent.toJSON())
           }
           return components
@@ -427,71 +291,32 @@ exports.createPages = async function createPages(args, pluginOptions) {
           componentObjects,
         )
 
-        // for (let path of paths) {
-        //   let builtInKey = ''
-        //   let indexOfBuiltInKey = path.indexOf('builtIn')
-
-        //   if (indexOfBuiltInKey > -1) {
-        //     builtInKey = path.substring(indexOfBuiltInKey)
-        //     path = path.substring(0, indexOfBuiltInKey - 1)
-        //   }
-
-        // path = [
-        //   ...path.split('.'),
-        //   ...(builtInKey ? [`${BUILTIN_EVAL_TOKEN}${builtInKey}`] : []),
-        // ]
-
-        // log.debug(has(components, path), path)
-        // log.debug(get(components, path))
-        // }
-
         log.info(`${'Components generated'}`)
         return transformedComponents
       }
 
       await Promise.all(
-        u.entries(pages)?.map(async ([pageName, pageObject]) => {
-          if (pageName in data.pages.app) {
-            pageObject.components = await generateComponents(
-              pageObject.components,
-            )
+        u.entries(data.pages.json).map(async ([pageName, pageObject]) => {
+          pageObject.components = await generateComponents(
+            pageName,
+            pageObject.components,
+          )
 
-            createPage({
-              path: node.slug,
-              component: pluginOptions.pageTemplate,
-              context: {
-                pageName: node.name,
-                pageObject,
-                slug: node.slug,
-                isPreload: node.isPreload,
-              },
-            })
-          }
+          const slug = `/${pageName}/`
+
+          createPage({
+            path: slug,
+            component: pluginOptions.template,
+            context: {
+              pageName,
+              pageObject: JSON.parse(data.pages.serialized[pageName]),
+              componentMap: get(data, ['componentsByPage', pageName]) || {},
+              slug,
+              isPreload: false,
+            },
+          })
         }) || [],
       )
-
-      // await Promise.all(
-      //   allNoodlPage?.nodes?.map(async (node) => {
-      //     if (node.name in data.pages.app) {
-      //       const pageObject = JSON.parse(node.content)?.[node.name] || {}
-
-      //       pageObject.components = await generateComponents(
-      //         pageObject.components,
-      //       )
-
-      //       createPage({
-      //         path: node.slug,
-      //         component: pluginOptions.pageTemplate,
-      //         context: {
-      //           pageName: node.name,
-      //           pageObject,
-      //           slug: node.slug,
-      //           isPreload: node.isPreload,
-      //         },
-      //       })
-      //     }
-      //   }) || [],
-      // )
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
@@ -500,35 +325,4 @@ exports.createPages = async function createPages(args, pluginOptions) {
 }
 
 /** @argument { import('gatsby').CreatePageArgs } args */
-exports.onCreatePage = async (args) => {
-  const {
-    page,
-    actions,
-    cache,
-    getNode,
-    getNodes,
-    getNodesByType,
-    loadNodeContent,
-    store,
-  } = args
-  const { createPage, deletePage } = actions
-
-  // if (page.path === '/') {
-  //   page.
-  //   log.info({ page })
-  //   page.
-  //   deletePage(page)
-  //   createPage({
-  //     ...page,
-  //     context: {
-  //       ...page.context,
-  //       components: await fs.readJson(
-  //         path.join(
-  //           __dirname,
-  //           '../homepage/src/resources/data/homepage-components.json',
-  //         ),
-  //       ),
-  //     },
-  //   })
-  // }
-}
+exports.onCreatePage = async (args) => {}
