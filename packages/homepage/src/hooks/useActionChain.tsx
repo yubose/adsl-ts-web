@@ -36,6 +36,7 @@ function useActionChain({}: UseActionChainOptions = {}) {
           nuiAction.executor = async function onExecuteAction(
             event: React.SyntheticEvent,
           ) {
+            debugger
             if (is.goto(obj)) {
               let destination = obj.goto
               if (u.isObj(destination)) destination = destination.goto

@@ -53,7 +53,6 @@ function NoodlPageTemplate(props: NoodlPageTemplateProps) {
   const { location, params, pageContext } = props
   const { pageName, pageObject } = pageContext
 
-  const ac = useActionChain()
   const renderer = useRenderer()
 
   React.useEffect(() => {
@@ -65,7 +64,7 @@ function NoodlPageTemplate(props: NoodlPageTemplateProps) {
   return (
     <Layout>
       <Seo />
-      {pageObject.components?.map?.((c) => (
+      {pageObject.components?.map?.((c: t.StaticComponentObject) => (
         <React.Fragment key={c.id}>
           {renderer.renderComponent(c, pageContext)}
         </React.Fragment>

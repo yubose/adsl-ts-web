@@ -81,22 +81,26 @@ module.exports = {
         loglevel: 'debug',
         path: `${__dirname}/output`,
         template: path.resolve(`src/templates/page.tsx`),
+        viewport: {
+          width: 1024,
+          height: 768,
+        },
       },
     },
-    {
-      resolve: `gatsby-source-filesystem`,
-      options: {
-        name: `wwwPages`,
-        path: `${__dirname}/output/www/yml`,
-      },
-    },
-    {
-      resolve: `gatsby-source-filesystem`,
-      options: {
-        name: `wwwAssets`,
-        path: `${__dirname}/output/www/assets`,
-      },
-    },
+    // {
+    //   resolve: `gatsby-source-filesystem`,
+    //   options: {
+    //     name: `wwwPages`,
+    //     path: `${__dirname}/output/www/yml`,
+    //   },
+    // },
+    // {
+    //   resolve: `gatsby-source-filesystem`,
+    //   options: {
+    //     name: `wwwAssets`,
+    //     path: `${__dirname}/output/www/assets`,
+    //   },
+    // },
     {
       resolve: `gatsby-source-filesystem`,
       options: {

@@ -15,33 +15,6 @@ export type AppState = typeof initialState
 
 export const initialState = {
   pages: {},
-  components: {},
-}
-
-const collectComponentsToMapping = (obj: unknown, path = []) => {
-  const components = {}
-
-  if (u.isArr(obj)) {
-    obj.forEach((o, index) => collectComponentsToMapping(o, path.concat(index)))
-  } else if (u.isObj(obj)) {
-    if (is.folds.component.any(obj)) {
-      components[obj.id] = {
-        ...obj,
-        __path__: path,
-      }
-    } else {
-      u.entries(obj).forEach(([key, value]) => {
-        const nextPath = path.concat(key)
-        for (const [id, o] of u.entries(
-          collectComponentsToMapping(value, nextPath),
-        )) {
-          components[id] = o
-        }
-      })
-    }
-  }
-
-  return components
 }
 
 function AppProvider({ children }: React.PropsWithChildren<any>) {
@@ -49,32 +22,17 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
   const [state, _setState] = React.useState(() => {
     return {
       ...initialState,
-      components: noodlPages.nodes.reduce((acc, node) => {
-        if (node.isPreload) return acc
-        const pageWrapper = JSON.parse(node.content)
-        const pageObject = pageWrapper[node.name]
-
-        if (pageObject) {
-          const { components = [] } = pageObject
-
-          for (const component of components) {
-            if (u.isObj(component)) {
-              for (const [id, obj] of u.entries(
-                collectComponentsToMapping(component),
-              )) {
-                acc[id] = obj
-              }
-            } else if (!component) {
-              // debugger
-            }
-          }
-        }
-        return acc
-      }, {}),
       pages: u.reduce(
         noodlPages.nodes,
         (acc, node) => {
-          acc[node.name] = node
+          try {
+            acc[node.name] = JSON.parse(node.content)
+          } catch (error) {
+            console.error(
+              error instanceof Error ? error : new Error(String(error)),
+            )
+          }
+
           return acc
         },
         {},

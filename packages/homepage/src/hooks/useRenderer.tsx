@@ -39,11 +39,7 @@ function useRenderer() {
   const builtIns = useBuiltInFns()
 
   const renderComponent = React.useCallback(
-    (
-      componentProp: t.StaticComponentObject,
-      pageContext,
-      // cb?: (args: RenderComponentCallbackArgs) => void,
-    ) => {
+    (componentProp: t.StaticComponentObject, pageContext) => {
       let { id, type, style } = componentProp
       let props = { key: id, style } as Record<string, any>
       let children = [] as React.ReactElement[]
