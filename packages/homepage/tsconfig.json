@@ -17,6 +17,7 @@
       "@/*": ["./src/*"],
       "@/assets/*": ["./src/resources/assets/*"],
       "@/components/*": ["./src/components/*"],
+      "@/consts": ["./src/constants.ts"],
       "@/hooks/*": ["./src/hooks/*"],
       "@/static/*": ["./static/*"]
     },

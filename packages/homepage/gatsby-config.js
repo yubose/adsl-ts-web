@@ -77,11 +77,10 @@ module.exports = {
     {
       resolve: require.resolve(`../gatsby-noodl-plugin`),
       options: {
-        configPrefix: `https://public.aitmed.com/config/`,
         config: 'www',
         loglevel: 'debug',
         path: `${__dirname}/output`,
-        pageTemplate: path.resolve(`src/templates/page.tsx`),
+        template: path.resolve(`src/templates/page.tsx`),
       },
     },
     {
@@ -96,13 +95,6 @@ module.exports = {
       options: {
         name: `wwwAssets`,
         path: `${__dirname}/output/www/assets`,
-      },
-    },
-    {
-      resolve: `gatsby-source-filesystem`,
-      options: {
-        name: `data`,
-        path: `${__dirname}/src/resources/data`,
       },
     },
     {

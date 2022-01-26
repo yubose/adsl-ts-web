@@ -1,5 +1,6 @@
 import React from 'react'
-import { Location, navigate } from '@reach/router'
+import get from 'lodash/get'
+import { Location, useNavigate } from '@reach/router'
 import * as nt from 'noodl-types'
 import { isAction, isActionChain } from 'noodl-action-chain'
 import {
@@ -15,11 +16,16 @@ import type {
   NUITrigger,
 } from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
+import useBuiltInFns from '@/hooks/useBuiltInFns'
 import is from '../utils/is'
 
 export interface UseActionChainOptions {}
 
 function useActionChain({}: UseActionChainOptions = {}) {
+  const navigate = useNavigate()
+
+  const builtIns = useBuiltInFns()
+
   const createActionChain = React.useCallback(
     (trigger: NUITrigger, actions?: NUIActionObject | NUIActionObject[]) => {
       !u.isArr(actions) && (actions = [actions])
@@ -30,7 +36,7 @@ function useActionChain({}: UseActionChainOptions = {}) {
           nuiAction.executor = async function onExecuteAction(
             event: React.SyntheticEvent,
           ) {
-            if (is.folds.goto(obj)) {
+            if (is.goto(obj)) {
               let destination = obj.goto
               if (u.isObj(destination)) destination = destination.goto
               if (nui.getPages().includes(destination)) {
@@ -55,6 +61,38 @@ function useActionChain({}: UseActionChainOptions = {}) {
                   if (el) {
                   }
                 }
+              }
+            } else if (is.folds.emit(obj)) {
+              let { dataKey } = obj.emit || {}
+              let dataObject = actionChain.data.get('dataObject')
+
+              if (u.isStr(dataKey)) {
+                dataKey = dataObject
+              } else if (u.isObj(dataKey)) {
+                dataKey = u
+                  .entries({ ...dataKey })
+                  .reduce((acc, [key, value]) => {
+                    // Hard code for now to get things working quickly then come back later to do an official implementation
+                    // debugger
+                    if (value === 'itemObject') {
+                      acc[key] = dataObject
+                    } else {
+                      acc[key] = get(
+                        dataObject,
+                        value.replace('itemObject.', ''),
+                      )
+                    }
+                    return acc
+                  }, {})
+                const newEmitObject = { ...obj, emit: { ...obj.emit, dataKey } }
+                newEmitObject?.actions?.forEach((action) => {
+                  if (
+                    u.isObj(action) &&
+                    '=.builtIn.object.setProperty' in action
+                  ) {
+                    builtIns['=.builtIn.object.setProperty'](dataObject)
+                  }
+                })
               }
             }
             console.log({ event, obj, nuiAction })
@@ -99,7 +137,7 @@ function useActionChain({}: UseActionChainOptions = {}) {
       actionChain.loadQueue()
       return actionChain
     },
-    [location],
+    [],
   )
 
   return {
