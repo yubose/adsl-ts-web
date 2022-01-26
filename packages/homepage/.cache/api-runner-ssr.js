@@ -1,18 +1,18 @@
 var plugins = [{
       name: 'gatsby-plugin-react-helmet',
-      plugin: require('/Users/christ/aitmed-noodl-web/packages/homepage/node_modules/gatsby-plugin-react-helmet/gatsby-ssr'),
+      plugin: require('C:/Users/Chris/aitmed-noodl-web/packages/homepage/node_modules/gatsby-plugin-react-helmet/gatsby-ssr'),
       options: {"plugins":[]},
     },{
       name: 'gatsby-plugin-image',
-      plugin: require('/Users/christ/aitmed-noodl-web/packages/homepage/node_modules/gatsby-plugin-image/gatsby-ssr'),
+      plugin: require('C:/Users/Chris/aitmed-noodl-web/packages/homepage/node_modules/gatsby-plugin-image/gatsby-ssr'),
       options: {"plugins":[]},
     },{
       name: 'gatsby-plugin-manifest',
-      plugin: require('/Users/christ/aitmed-noodl-web/packages/homepage/node_modules/gatsby-plugin-manifest/gatsby-ssr'),
+      plugin: require('C:/Users/Chris/aitmed-noodl-web/packages/homepage/node_modules/gatsby-plugin-manifest/gatsby-ssr'),
       options: {"plugins":[],"name":"AiTmed Homepage","short_name":"AiTmed","start_url":"/","background_color":"#663399","display":"minimal-ui","icon":"src/resources/images/logo.png","legacy":true,"theme_color_in_head":true,"cache_busting_mode":"query","crossOrigin":"anonymous","include_favicon":true,"cacheDigest":"b1515d058b0ca329c15ff1780f733c1c"},
     },{
       name: 'default-site-plugin',
-      plugin: require('/Users/christ/aitmed-noodl-web/packages/homepage/gatsby-ssr'),
+      plugin: require('C:/Users/Chris/aitmed-noodl-web/packages/homepage/gatsby-ssr'),
       options: {"plugins":[]},
     }]
 /* global plugins */
