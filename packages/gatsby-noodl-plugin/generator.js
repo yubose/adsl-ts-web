@@ -39,12 +39,18 @@ function getPathToEventTargetFile() {
  * @typedef { import('noodl-ui').Viewport } NuiViewport
  * @typedef { import('@babel/traverse').Node } Node
  * @typedef { import('@babel/traverse').NodePath } NodePath
+ *
  * @typedef { object } On
- * @property { NuiOn['createComponent'] } On.createComponent
+ * @property { (args: { nui: import('noodl-ui').NUI, pageName: string, pageObject: nt.PageObject; sdk: import('@aitmed/cadl').CADL  }) => void } On.initPage
  * @property { object } On.patch
  * @property { function } On.patch.addEventListener
  * @property { function } On.patch.removeEventListener
  *
+ * @typedef Use
+ * @property { nt.RootConfig } [Use.config]
+ * @property { nt.AppConfig } [Use.appConfig]
+ * @property { Record<string, Record<string, nt.PageObject>> } [Use.pages]
+ * @property { { width: number; height: number } } [Use.viewport]
  */
 
 /**
@@ -164,22 +170,13 @@ async function monkeyPatchAddEventListener(opts) {
 }
 
 /**
- * @typedef Use
- * @property { nt.RootConfig } [Use.config]
- * @property { nt.AppConfig } [Use.appConfig]
- * @property { Record<string, any> } [Use.appConfig]
- * @property { Record<string, Record<string, nt.PageObject>> } [Use.pages]
- * @property { { width: number; height: number } } [Use.viewport]
- */
-
-/**
  * @param { object } opts
  * @param { string } [opts.configUrl]
  * @param { string } [opts.configKey]
  * @param { string } [opts.ecosEnv]
  * @param { Use } [opts.use]
  * @param { On } [opts.on]
- * @returns { Promise<{ components: nt.ComponentObject[]; nui: typeof NUI; page: NuiPage; sdk: CADL; pages: Record<string, nt.PageObject>; transform: (componentProp: nt.ComponentObject, index?: number) => Promise<NuiComponent.Instance> }> }
+ * @returns { Promise<{ components: nt.ComponentObject[]; nui: typeof NUI; page: NuiPage; sdk: CADL; pages: Record<string, nt.PageObject>; transform: (componentProp: nt.ComponentObject, options: import('noodl-ui').ConsumerOptions) => Promise<NuiComponent.Instance> }> }
  */
 async function getGenerator({
   configKey = 'www',
@@ -204,11 +201,6 @@ async function getGenerator({
 
     await sdk.init()
 
-    // Fixes navbar to stay at the top
-    if (u.isObj(sdk.root?.BaseHeader?.style)) {
-      sdk.root.BaseHeader.style.top = '0'
-    }
-
     nui.use({
       getRoot: () => sdk.root,
       getAssetsUrl: () => sdk.assetsUrl,
@@ -224,12 +216,14 @@ async function getGenerator({
 
     // App pages
     await Promise.all(
-      u.entries(use.pages.json || {}).map(async ([pageName, cadlObject]) => {
-        const cadlYAML = use.pages.serialized[pageName]
+      sdk.cadlEndpoint.page.map(async (pageName) => {
         try {
-          await sdk.initPage({ cadlObject, cadlYAML, pageName }, [], {
+          if (sdk.cadlEndpoint.preload.includes(pageName)) return
+          await sdk.initPage(pageName, [], {
             wrapEvalObjects: false,
           })
+          on?.initPage?.({ nui, pageName, pageObject: sdk.root[pageName], sdk })
+          use.pages.json[pageName] = sdk.root[pageName]
           pages[pageName] = sdk.root[pageName]
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
@@ -243,6 +237,11 @@ async function getGenerator({
       }),
     )
 
+    // Fixes navbar to stay at the top
+    if (u.isObj(sdk.root?.BaseHeader?.style)) {
+      sdk.root.BaseHeader.style.top = '0'
+    }
+
     const transformer = new Transformer()
     const page = nui.getRootPage()
 
@@ -252,19 +251,19 @@ async function getGenerator({
 
     /**
      * @argument { nt.ComponentObject } componentProp
-     * @argument { number } [index]
+     * @argument { import('noodl-ui').ConsumerOptions } [options]
      */
-    async function transform(componentProp, index = 0) {
+    async function transform(componentProp, options) {
       if (!componentProp) componentProp = {}
       const component = nui.createComponent(componentProp, page)
 
       await transformer.transform(
         component,
         nui.getConsumerOptions({
-          context: { path: [index] },
           component,
           page,
           on,
+          ...options,
         }),
       )
 
