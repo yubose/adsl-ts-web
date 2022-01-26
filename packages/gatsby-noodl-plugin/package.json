@@ -14,10 +14,13 @@
   "eslintConfig": {
     "env": {
       "es6": true,
+      "mocha": true,
       "node": true
     },
     "extends": [
-      "prettier"
+      "airbnb/base",
+      "prettier",
+      "plugin:import/recommended"
     ],
     "ignorePatterns": [
       "**/*.js.map",
@@ -30,28 +33,45 @@
       "ecmaVersion": 2020,
       "sourceType": "module"
     },
-    "plugins": [],
+    "plugins": [
+      "prettier"
+    ],
     "root": true,
     "rules": {
       "array-callback-return": "error",
       "arrow-parens": "warn",
       "arrow-spacing": "warn",
+      "camelcase": "off",
       "class-methods-use-this": "warn",
+      "consistent-return": "off",
       "generator-star-spacing": "error",
+      "global-require": "off",
       "import/export": "error",
+      "import/no-extraneous-dependencies": "off",
+      "import/prefer-default-export": "off",
       "no-alert": "off",
       "no-array-constructor": "error",
+      "no-await-in-loop": "off",
+      "no-console": "off",
+      "no-empty-function": "warn",
+      "no-inner-declarations": "off",
+      "no-lone-blocks": "off",
       "no-loop-func": "error",
       "no-new": "off",
       "no-new-func": "error",
+      "no-param-reassign": "off",
+      "no-plusplus": "off",
+      "no-restricted-syntax": "off",
       "no-shadow": "warn",
       "no-undef": "error",
+      "no-underscore-dangle": "off",
       "no-unused-expressions": "warn",
+      "no-unused-vars": "warn",
       "no-useless-escape": "error",
       "prefer-const": "warn",
       "prefer-object-spread": "error",
       "prefer-spread": "warn",
-      "prettier/prettier": 2,
+      "prettier/prettier": "error",
       "space-before-blocks": "error"
     },
     "settings": {

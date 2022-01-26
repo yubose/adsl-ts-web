@@ -6,6 +6,30 @@ const regex = {
   designSuffixPlaceholder: /\${designSuffix}/,
 }
 
+/**
+ * @param { (key: string, value: any, parent: Record<string, any>, path: string[]) => void } cb
+ */
+function makeTraverser(cb) {
+  /**
+   * @param { import('noodl-types').ComponentObject } bp
+   * @param { string[] } [componentPath]
+   */
+  return function traverse(bp, componentPath = []) {
+    if (u.isObj(bp)) {
+      const entries = u.entries(bp)
+      const numEntries = entries.length
+      for (let index = 0; index < numEntries; index++) {
+        const [key, value] = entries[index]
+        const nextPath = componentPath.concat(key)
+        cb(key, value, bp, nextPath)
+        traverse(value, nextPath)
+      }
+    } else if (u.isArr(bp)) {
+      bp.forEach((b, i) => traverse(b, componentPath.concat(i)))
+    }
+  }
+}
+
 const utils = {
   ensureYmlExt(value = '') {
     if (!u.isStr(value)) return value
@@ -19,6 +43,7 @@ const utils = {
   getConfigVersion(config, env = 'stable') {
     return config?.web?.cadlVersion?.[env]
   },
+  makeTraverser,
   regex,
   /**
    * @argument { Record<'cadlBaseUrl' | 'cadlVersion' | 'designSuffix', string> } options
@@ -45,7 +70,7 @@ const utils = {
         }
       }
     } else if (u.isArr(value)) {
-      return value.map((v) => replaceNoodlPlaceholders(options, v))
+      return value.map((v) => this.replaceNoodlPlaceholders(options, v))
     } else if (u.isObj(value)) {
       return u.entries(value).reduce((acc, [k, v]) => {
         acc[k] = this.replaceNoodlPlaceholders(options, v)

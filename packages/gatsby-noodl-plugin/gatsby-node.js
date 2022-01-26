@@ -3,6 +3,7 @@
  * https://www.gatsbyjs.com/docs/reference/config-files/node-api-helpers/
  */
 const u = require('@jsmanifest/utils')
+const { publish } = require('noodl-ui')
 const log = require('loglevel')
 const fs = require('fs-extra')
 const nt = require('noodl-types')
@@ -40,6 +41,7 @@ const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 const data = {
   _components_: {},
+  _context_: {},
   _pages_: {
     json: {},
     serialized: {},
@@ -50,9 +52,6 @@ const data = {
   myBaseUrl: '',
   template: '',
 }
-
-/** @type { import('noodl-ui').Transformer['transform'] } */
-let transformComponent
 
 exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
 
@@ -78,7 +77,7 @@ exports.onPreInit = (args, pluginOptions) => {
   // Replaces backlashes for windows support
   for (const key of ['path', 'template']) {
     if (pluginOptions[key]) {
-      pluginOptions[key] = pluginOptions[key].replaceAll('\\', '/')
+      pluginOptions[key] = pluginOptions[key].replace(/\\/g, '/')
     }
   }
 }
@@ -120,64 +119,28 @@ exports.onCreateNode = async function onCreateNode(args, pluginOptions) {}
 exports.sourceNodes = async (args, pluginOptions) => {
   const { actions, createContentDigest, createNodeId } = args
   const { createNode } = actions
+  const { viewport = { width: 1024, height: 768 } } = pluginOptions
 
   /**
-   * @param { (key: string, value: any, parent: Record<string, any>, path: string[]) => void } cb
+   * @param { import('noodl-ui').NuiComponent.Instance[] } comp
+   * @param { string[] } [_path]
    */
-  function getTraverser(cb) {
-    /**
-     * @param { import('noodl-types').ComponentObject } bp
-     * @param { string[] } [componentPath]
-     */
-    return function traverse(bp, componentPath = []) {
-      if (u.isObj(bp)) {
-        const entries = u.entries(bp)
-        const numEntries = entries.length
-        for (let index = 0; index < numEntries; index++) {
-          const [key, value] = entries[index]
-          const nextPath = componentPath.concat(key)
-          cb(key, value, bp, nextPath)
-          traverse(value, nextPath)
-        }
-      } else if (u.isArr(bp)) {
-        bp.forEach((b, i) => traverse(b, componentPath.concat(i)))
-      }
-    }
-  }
 
-  const builtInPaths = []
-
-  const traverse = getTraverser((key, _, __, componentPath) => {
-    if (key.startsWith('=.builtIn')) {
-      componentPath[componentPath.length - 1] = key.replace(
-        BUILTIN_EVAL_TOKEN,
-        '',
+  function collectChildren(component, _path, index) {
+    return component.children.reduce((acc, child, i) => {
+      const listIndex = u.isNum(index) ? index : i
+      if (!acc[listIndex]) acc[listIndex] = []
+      acc[listIndex].push(component.id)
+      acc[listIndex].push(
+        ...collectChildren(child, _path.concat('children', i), i),
       )
-      builtInPaths.push(componentPath.join('.'))
-    }
-  })
+      return acc
+    }, [])
+  }
 
   const { nui, page, pages, sdk, transform } = await getGenerator({
     configKey: data.configKey,
     on: {
-      createComponent(comp, opts) {
-        const componentId = comp.id || ''
-        const blueprint = u.omit(comp.blueprint, ['children'])
-        const pageName = get(opts, 'page.page', '')
-        const parentId = get(comp, 'parent.id', null)
-        const componentPath = opts.path || []
-
-        if (!data.componentsByPage[pageName]) {
-          data.componentsByPage[pageName] = {}
-        }
-
-        set(data, ['componentsByPage', pageName, componentId], {
-          context: u.assign({}, opts, { page: pageName, parent: parentId }),
-          blueprint,
-        })
-
-        traverse(blueprint, componentPath)
-      },
       patch: u.reduce(
         ['addEventListener', 'removeEventListener'],
         (acc, evtName) => {
@@ -185,7 +148,7 @@ exports.sourceNodes = async (args, pluginOptions) => {
            * @argument { object } args
            * @param { boolean } args.wasPatched
            */
-          acc[evtName] = function ({ wasPatched } = {}) {
+          acc[evtName] = function onPatch({ wasPatched } = {}) {
             let label = ''
             label += u.yellow('EventTarget')
             label += u.magenta('#')
@@ -202,13 +165,11 @@ exports.sourceNodes = async (args, pluginOptions) => {
       ),
     },
     use: {
-      pages: data.pages,
+      pages: data._pages_,
     },
   })
 
-  transformComponent = transform
-
-  // TODO - Remove when official release
+  // TODO - Remove when done
   {
     fs.writeJson(path.join(__dirname, './pages-output.json'), pages, {
       spaces: 2,
@@ -217,19 +178,119 @@ exports.sourceNodes = async (args, pluginOptions) => {
 
   data.startPage = (sdk.cadlEndpoint || {}).startPage || 'HomePage'
 
-  page.viewport.width = 1024
-  page.viewport.height = 768
+  page.viewport.width = viewport.width
+  page.viewport.height = viewport.height
+
+  /**
+   * @param { string } pageName
+   * @param { nt.ComponentObject[] } componentObjects
+   */
+  const generateComponents = async (pageName, componentObjects) => {
+    /**
+     * @param { nt.ComponentObject | nt.ComponentObject[] } value
+     * @returns { Promise<import('./generator').NuiComponent[] }
+     */
+    async function transformAllComponents(value) {
+      const components = []
+      const componentsList = u.filter(Boolean, u.array(value))
+      const numComponents = componentsList.length
+
+      for (let index = 0; index < numComponents; index++) {
+        const transformedComponent = await transform(componentsList[index], {
+          context: {
+            path: [index],
+          },
+          on: {
+            createComponent(comp, opts) {
+              const { iteratorVar, path: componentPath } = opts || {}
+              if (!data._context_[pageName]) data._context_[pageName] = {}
+
+              if (comp.type === 'list') {
+                const componentId = comp.id || ''
+                const listObject = comp.get('listObject') || []
+
+                console.log(`List object length: ${listObject.length}`)
+
+                set(data._context_, `${pageName}.lists.${componentId}`, {
+                  id: componentId,
+                  children: [],
+                  iteratorVar,
+                  listObject,
+                  path: componentPath,
+                })
+              }
+            },
+          },
+        })
+
+        components.push(transformedComponent.toJSON())
+      }
+      return components
+    }
+
+    const transformedComponents = await transformAllComponents(componentObjects)
+
+    log.info(`[${u.yellow(pageName)}] Components generated`)
+    return transformedComponents
+  }
+
+  for (const [name, obj] of u.entries(
+    u.omit(sdk.root, [...sdk.cadlEndpoint.preload, ...sdk.cadlEndpoint.page]),
+  )) {
+    if (obj) {
+      createNode({
+        name,
+        id: createNodeId(name),
+        isPreload: true,
+        content: JSON.stringify(obj),
+        children: [],
+        internal: {
+          contentDigest: createContentDigest(name),
+          type: NOODL_PAGE_NODE_TYPE,
+        },
+      })
+    }
+  }
 
   for (const [name, pageObject] of u.entries(pages)) {
-    data._pages_.json[name] = pageObject
+    page.page = name
+    pageObject.components = await generateComponents(
+      name,
+      pageObject.components,
+    )
+
+    const lists = data._context_[name]?.lists
+
+    pageObject.components.forEach((component) => {
+      publish(component, (comp) => {
+        if (comp.type === 'list') {
+          const ctx = lists[comp.id]
+          if (!ctx.children) ctx.children = []
+
+          comp.children.forEach((child, index) => {
+            if (!ctx.children[index]) ctx.children[index] = []
+            if (!ctx.children[index].includes(child.id)) {
+              ctx.children[index].push(child.id)
+            }
+            publish(child, (c) => {
+              if (!ctx.children[index].includes(c.id)) {
+                ctx.children[index].push(c.id)
+              }
+            })
+          })
+        }
+      })
+    })
+
     data._pages_.serialized[name] = JSON.stringify(pageObject)
+    data._pages_.json[name] = JSON.parse(data._pages_.serialized[name])
 
     createNode({
       name,
       slug: `/${name}/`,
+      id: createNodeId(name),
       content: data._pages_.serialized[name],
       isPreload: false,
-      id: createNodeId(name),
       children: [],
       internal: {
         contentDigest: createContentDigest(data._pages_.serialized[name]),
@@ -253,11 +314,11 @@ exports.createPages = async function createPages(args, pluginOptions) {
       errors,
     } = await graphql(`
       {
-        allNoodlPage {
+        allNoodlPage(filter: { isPreload: { eq: false } }) {
           nodes {
             name
-            slug
             content
+            slug
             isPreload
           }
         }
@@ -271,57 +332,21 @@ exports.createPages = async function createPages(args, pluginOptions) {
 
       log.info(`Creating ${numNoodlPages} pages`)
 
-      /**
-       * @param { nt.ComponentObject[] } componentObjects
-       */
-      const generateComponents = async (componentObjects) => {
-        /**
-         * @param { nt.ComponentObject | nt.ComponentObject[] } value
-         * @returns { Promise<import('./generator').NuiComponent[] }
-         */
-        async function transformAllComponents(value) {
-          const components = []
-          const componentsList = u.filter(Boolean, u.array(value))
-          const numComponents = componentsList.length
-          for (let index = 0; index < numComponents; index++) {
-            const transformedComponent = await transformComponent(
-              componentsList[index],
-            )
-            components.push(transformedComponent.toJSON())
-          }
-          return components
-        }
+      for (const pageName of u.keys(data._pages_.json)) {
+        const slug = `/${pageName}/`
 
-        const transformedComponents = await transformAllComponents(
-          componentObjects,
-        )
-
-        log.info(`${'Components generated'}`)
-        return transformedComponents
-      }
-
-      await Promise.all(
-        u.entries(data._pages_.json).map(async ([pageName, pageObject]) => {
-          pageObject.components = await generateComponents(
+        createPage({
+          path: slug,
+          component: pluginOptions.template,
+          context: {
             pageName,
-            pageObject.components,
-          )
-
-          const slug = `/${pageName}/`
-
-          createPage({
-            path: slug,
-            component: pluginOptions.template,
-            context: {
-              pageName,
-              pageObject: JSON.parse(data._pages_.serialized[pageName]),
-              componentMap: get(data, ['componentsByPage', pageName]) || {},
-              slug,
-              isPreload: false,
-            },
-          })
-        }) || [],
-      )
+            pageObject: u.pick(data._pages_.json[pageName], 'components'),
+            _context_: get(data._context_, pageName) || {},
+            slug,
+            isPreload: false,
+          },
+        })
+      }
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
