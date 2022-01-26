@@ -27,7 +27,7 @@
       "node_modules"
     ],
     "parserOptions": {
-      "ecmaVersion": 2017,
+      "ecmaVersion": 2020,
       "sourceType": "module"
     },
     "plugins": [],
@@ -44,7 +44,6 @@
       "no-loop-func": "error",
       "no-new": "off",
       "no-new-func": "error",
-      "no-plusplus": "warn",
       "no-shadow": "warn",
       "no-undef": "error",
       "no-unused-expressions": "warn",

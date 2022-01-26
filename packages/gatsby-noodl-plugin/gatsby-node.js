@@ -4,8 +4,6 @@
  */
 const u = require('@jsmanifest/utils')
 const log = require('loglevel')
-const attempt = require('lodash/attempt')
-const curry = require('lodash/curry')
 const fs = require('fs-extra')
 const nt = require('noodl-types')
 const nu = require('noodl-utils')
@@ -42,18 +40,17 @@ const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 const data = {
   _components_: {},
+  _pages_: {
+    json: {},
+    serialized: {},
+  },
   cadlBaseUrl: '',
   configKey: '',
   configUrl: '',
   myBaseUrl: '',
-  pages: {
-    json: {},
-    serialized: {},
-  },
   template: '',
 }
 
-let createNode
 /** @type { import('noodl-ui').Transformer['transform'] } */
 let transformComponent
 
@@ -92,15 +89,19 @@ exports.onPreInit = (args, pluginOptions) => {
  */
 exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
   const { cache } = args
-  const { config = 'aitmed', path, template } = pluginOptions || {}
+  const {
+    config = 'aitmed',
+    path: outputPath,
+    template: templatePath,
+  } = pluginOptions || {}
 
   log.debug(`Config key: ${config}`)
-  log.debug(`Output path: ${path}`)
-  log.debug(`Template path: ${template}`)
+  log.debug(`Output path: ${outputPath}`)
+  log.debug(`Template path: ${templatePath}`)
 
   data.configKey = config
   data.configUrl = utils.ensureYmlExt(`${BASE_CONFIG_URL}${config}`)
-  data.template = template
+  data.template = templatePath
 
   await cache.set('configKey', data.configKey)
   await cache.set('configUrl', data.configUrl)
@@ -118,37 +119,41 @@ exports.onCreateNode = async function onCreateNode(args, pluginOptions) {}
  */
 exports.sourceNodes = async (args, pluginOptions) => {
   const { actions, createContentDigest, createNodeId } = args
-  createNode = actions.createNode
+  const { createNode } = actions
 
-  const getTraverse = curry(
+  /**
+   * @param { (key: string, value: any, parent: Record<string, any>, path: string[]) => void } cb
+   */
+  function getTraverser(cb) {
     /**
-     * @param { (key: string, value: any, parent: Record<string, any>) => void } cb
      * @param { import('noodl-types').ComponentObject } bp
+     * @param { string[] } [componentPath]
      */
-    (cb, bp, componentPath = []) => {
+    return function traverse(bp, componentPath = []) {
       if (u.isObj(bp)) {
         const entries = u.entries(bp)
         const numEntries = entries.length
         for (let index = 0; index < numEntries; index++) {
           const [key, value] = entries[index]
-          cb(key, value, bp, componentPath.concat(key))
-          getTraverse(cb, value, componentPath.concat(key))
+          const nextPath = componentPath.concat(key)
+          cb(key, value, bp, nextPath)
+          traverse(value, nextPath)
         }
       } else if (u.isArr(bp)) {
-        bp.forEach((b, i) => getTraverse(cb, b, componentPath.concat(i)))
+        bp.forEach((b, i) => traverse(b, componentPath.concat(i)))
       }
-    },
-  )
+    }
+  }
 
-  const paths = []
+  const builtInPaths = []
 
-  const traverse = getTraverse((key, _, __, componentPath) => {
+  const traverse = getTraverser((key, _, __, componentPath) => {
     if (key.startsWith('=.builtIn')) {
       componentPath[componentPath.length - 1] = key.replace(
         BUILTIN_EVAL_TOKEN,
         '',
       )
-      paths.push(componentPath.join('.'))
+      builtInPaths.push(componentPath.join('.'))
     }
   })
 
@@ -167,7 +172,7 @@ exports.sourceNodes = async (args, pluginOptions) => {
         }
 
         set(data, ['componentsByPage', pageName, componentId], {
-          context: u.assign({}, { opts, page: pageName, parent: parentId }),
+          context: u.assign({}, opts, { page: pageName, parent: parentId }),
           blueprint,
         })
 
@@ -216,18 +221,18 @@ exports.sourceNodes = async (args, pluginOptions) => {
   page.viewport.height = 768
 
   for (const [name, pageObject] of u.entries(pages)) {
-    data.pages.json[name] = pageObject
-    data.pages.serialized[name] = JSON.stringify(pageObject)
+    data._pages_.json[name] = pageObject
+    data._pages_.serialized[name] = JSON.stringify(pageObject)
 
     createNode({
       name,
       slug: `/${name}/`,
-      content: data.pages.serialized[name],
+      content: data._pages_.serialized[name],
       isPreload: false,
       id: createNodeId(name),
       children: [],
       internal: {
-        contentDigest: createContentDigest(data.pages.serialized[name]),
+        contentDigest: createContentDigest(data._pages_.serialized[name]),
         type: NOODL_PAGE_NODE_TYPE,
       },
     })
@@ -296,7 +301,7 @@ exports.createPages = async function createPages(args, pluginOptions) {
       }
 
       await Promise.all(
-        u.entries(data.pages.json).map(async ([pageName, pageObject]) => {
+        u.entries(data._pages_.json).map(async ([pageName, pageObject]) => {
           pageObject.components = await generateComponents(
             pageName,
             pageObject.components,
@@ -309,7 +314,7 @@ exports.createPages = async function createPages(args, pluginOptions) {
             component: pluginOptions.template,
             context: {
               pageName,
-              pageObject: JSON.parse(data.pages.serialized[pageName]),
+              pageObject: JSON.parse(data._pages_.serialized[pageName]),
               componentMap: get(data, ['componentsByPage', pageName]) || {},
               slug,
               isPreload: false,
@@ -323,6 +328,3 @@ exports.createPages = async function createPages(args, pluginOptions) {
     throw err
   }
 }
-
-/** @argument { import('gatsby').CreatePageArgs } args */
-exports.onCreatePage = async (args) => {}

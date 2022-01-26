@@ -1,27 +1,24 @@
-// eslint-disable-next-line
-require('jsdom-global')('', {
+import JSDOM from 'jsdom-global'
+
+JSDOM('', {
   resources: 'usable',
   runScripts: 'dangerously',
   url: `https://127.0.0.1:3001`,
   beforeParse: (win) => {
-    // eslint-disable-next-line
     localStorage = win.localStorage || global.localStorage
   },
 })
 
-const nt = require('noodl-types')
-const u = require('@jsmanifest/utils')
-const fs = require('fs-extra')
-const path = require('path')
-const babel = require('@babel/core')
-const y = require('yaml')
-const has = require('lodash/has')
-const get = require('lodash/get')
-const set = require('lodash/set')
-const { NUI, Transformer } = require('noodl-ui')
-
-const nui = NUI
-const { parse, traverse, types: t, transformFromAstAsync } = babel
+import * as nt from 'noodl-types'
+import * as u from '@jsmanifest/utils'
+import fs from 'fs-extra'
+import path from 'path'
+import { parse, traverse, types as t, transformFromAstAsync } from '@babel/core'
+import y from 'yaml'
+import has from 'lodash/has'
+import get from 'lodash/get'
+import set from 'lodash/set'
+import { NUI, Transformer } from 'noodl-ui'
 
 function getPathToEventTargetFile() {
   return path.resolve(
@@ -32,29 +29,12 @@ function getPathToEventTargetFile() {
   )
 }
 
-/**
- * @typedef { import('noodl-ui').NuiComponent.Instance } NuiComponent
- * @typedef { import('noodl-ui').On } NuiOn
- * @typedef { import('noodl-ui').Page } NuiPage
- * @typedef { import('noodl-ui').Viewport } NuiViewport
- * @typedef { import('@babel/traverse').Node } Node
- * @typedef { import('@babel/traverse').NodePath } NodePath
- * @typedef { object } On
- * @property { NuiOn['createComponent'] } On.createComponent
- * @property { object } On.patch
- * @property { function } On.patch.addEventListener
- * @property { function } On.patch.removeEventListener
- *
- */
-
-/**
- * addEventListener is preving sdk from sandboxing.
- * We must monkey patch the EventTarget
- * @argument { object } opts
- * @param { On['patch'] } opts.onPatch
- * @returns { Promise<{ components: NuiComponent.Instance[]; nui: typeof NUI }> }
- */
-async function monkeyPatchAddEventListener(opts) {
+async function monkeyPatchAddEventListener(opts?: {
+  onPatch?: {
+    addEventListener?: () => void
+    removeEventListener?: () => void
+  }
+}) {
   try {
     const code = await fs.readFile(getPathToEventTargetFile(), 'utf8')
     const ast = parse(code)
@@ -108,7 +88,7 @@ async function monkeyPatchAddEventListener(opts) {
     /**
      * @argument { t.ClassMethod } node
      */
-    function isMethodPatched(node) {
+    function isMethodPatched(node: t.ClassMethod) {
       return (
         t.isBlockStatement(node.body) && t.isReturnStatement(node.body.body[0])
       )
@@ -163,24 +143,6 @@ async function monkeyPatchAddEventListener(opts) {
   }
 }
 
-/**
- * @typedef Use
- * @property { nt.RootConfig } [Use.config]
- * @property { nt.AppConfig } [Use.appConfig]
- * @property { Record<string, any> } [Use.appConfig]
- * @property { Record<string, Record<string, nt.PageObject>> } [Use.pages]
- * @property { { width: number; height: number } } [Use.viewport]
- */
-
-/**
- * @param { object } opts
- * @param { string } [opts.configUrl]
- * @param { string } [opts.configKey]
- * @param { string } [opts.ecosEnv]
- * @param { Use } [opts.use]
- * @param { On } [opts.on]
- * @returns { Promise<{ components: nt.ComponentObject[]; nui: typeof NUI; page: NuiPage; sdk: CADL; pages: Record<string, nt.PageObject>; transform: (componentProp: nt.ComponentObject, index?: number) => Promise<NuiComponent.Instance> }> }
- */
 async function getGenerator({
   configKey = 'www',
   configUrl = `https://public.aitmed.com/config/${configKey}.yml`,
@@ -282,9 +244,4 @@ async function getGenerator({
     const err = error instanceof Error ? error : new Error(String(error))
     throw err
   }
-}
-
-module.exports = {
-  getGenerator,
-  monkeyPatchAddEventListener,
 }
