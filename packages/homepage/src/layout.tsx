@@ -10,6 +10,7 @@ import { useStaticQuery, graphql } from 'gatsby'
 injectGlobal`
   * {
     box-sizing: border-box;
+    top: 0px;
   }
   html {
     -ms-text-size-adjust: 100%;

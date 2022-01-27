@@ -67,6 +67,7 @@ module.exports = {
     siteUrl,
     siteKeywords,
   },
+  pathPrefix: '/',
   plugins: [
     `gatsby-transformer-json`,
     `gatsby-plugin-react-helmet`,

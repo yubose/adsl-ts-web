@@ -214,7 +214,7 @@ exports.sourceNodes = async (args, pluginOptions) => {
                 set(data._context_, `${pageName}.lists.${componentId}`, {
                   id: componentId,
                   children: [],
-                  iteratorVar,
+                  iteratorVar: comp.blueprint.iteratorVar,
                   listObject,
                   path: componentPath,
                 })

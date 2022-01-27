@@ -25,3 +25,24 @@ export type StaticComponentObject = nt.ComponentObject &
       status: ActionChainStatus
     }
   >
+
+export interface PageContext {
+  isPreload: boolean
+  pageName: string
+  pageObject: {
+    components: StaticComponentObject[]
+  }
+  slug: string
+  _context_: {
+    lists?: Record<
+      string,
+      {
+        children: string[][]
+        id: string
+        listObject: any[]
+        iteratorVar: string
+        path: (string | number)[]
+      }
+    >
+  }
+}

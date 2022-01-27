@@ -26,7 +26,7 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
         noodlPages.nodes,
         (acc, node) => {
           try {
-            acc[node.name] = JSON.parse(node.content)
+            acc[node.name] = u.omit(JSON.parse(node.content), ['components'])
           } catch (error) {
             console.error(
               error instanceof Error ? error : new Error(String(error)),
