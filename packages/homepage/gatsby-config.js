@@ -85,7 +85,7 @@ module.exports = {
     {
       resolve: require.resolve(`../gatsby-plugin-noodl`),
       options: {
-        config: 'www',
+        config: 'web',
         loglevel: 'debug',
         path: `${__dirname}/output`,
         template: path.resolve(`src/templates/page.tsx`),
