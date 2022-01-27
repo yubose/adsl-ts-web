@@ -209,8 +209,6 @@ exports.sourceNodes = async (args, pluginOptions) => {
                 const componentId = comp.id || ''
                 const listObject = comp.get('listObject') || []
 
-                console.log(`List object length: ${listObject.length}`)
-
                 set(data._context_, `${pageName}.lists.${componentId}`, {
                   id: componentId,
                   children: [],
