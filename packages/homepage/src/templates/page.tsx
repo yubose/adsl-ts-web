@@ -25,7 +25,7 @@ if (typeof window !== 'undefined') {
 }
 
 function NoodlPageTemplate(props: NoodlPageTemplateProps) {
-  const { location, navigate, params, pageContext } = props
+  const { pageContext } = props
   const { pageName, pageObject } = pageContext
 
   const renderer = useRenderer()
