@@ -9,20 +9,19 @@ require('jsdom-global')('', {
   },
 })
 
-const nt = require('noodl-types')
 const u = require('@jsmanifest/utils')
 const fs = require('fs-extra')
 const path = require('path')
 const babel = require('@babel/core')
-const y = require('yaml')
-const has = require('lodash/has')
-const get = require('lodash/get')
-const set = require('lodash/set')
 const { NUI, Transformer } = require('noodl-ui')
 
 const nui = NUI
 const { parse, traverse, types: t, transformFromAstAsync } = babel
 
+/**
+ * Returns the path to the EventTarget file so it can be patched
+ * @returns { string }
+ */
 function getPathToEventTargetFile() {
   return path.resolve(
     path.join(
@@ -34,10 +33,7 @@ function getPathToEventTargetFile() {
 
 /**
  * @typedef { import('noodl-ui').NuiComponent.Instance } NuiComponent
- * @typedef { import('noodl-ui').On } NuiOn
  * @typedef { import('noodl-ui').Page } NuiPage
- * @typedef { import('noodl-ui').Viewport } NuiViewport
- * @typedef { import('@babel/traverse').Node } Node
  * @typedef { import('@babel/traverse').NodePath } NodePath
  *
  * @typedef { object } On

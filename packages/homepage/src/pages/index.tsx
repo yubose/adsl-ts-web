@@ -1,113 +1,137 @@
 import * as u from '@jsmanifest/utils'
 import React from 'react'
-import set from 'lodash/set'
-import type { ComponentObject } from 'noodl-types'
-import {
-  createAction,
-  createActionChain,
-  NUI as nui,
-  NUITrigger,
-  triggers,
-} from 'noodl-ui'
-import { Link, PageProps } from 'gatsby'
-import { css } from '@emotion/css'
-import Layout from '../layout'
-import Seo from '../components/Seo'
-import useActionChain from '../hooks/useActionChain'
-import useRenderer from '../hooks/useRenderer'
-import is from '../utils/is'
-import * as t from '../types'
-
-nui.use({
-  getRoot: () => ({}),
-  getAssetsUrl: () => 'http://127.0.0.1:3001/assets/',
-  getBaseUrl: () => 'http://127.0.0.1:3001/',
-  getPreloadPages: () => [],
-  getPages: () => ['HomePage'],
-  emit: {
-    onClick: async (action, options) => {
-      console.log(`[emit]`, { action, options })
-    },
-  },
-  evalObject: [
-    async (action, options) => {
-      console.log(`[evalObject]`, { action, options })
-    },
-  ],
-  goto: [
-    async (action, options) => {
-      console.log(`[goto]`, { action, options })
-    },
-  ],
-})
+import { graphql, PageProps } from 'gatsby'
+import { createComponent, publish } from 'noodl-ui'
+import Seo from '@/components/Seo'
+import useRenderer from '@/hooks/useRenderer'
+import usePageCtx, { Provider as PageContextProvider } from '@/usePageCtx'
+import * as t from '@/types'
+import is from '@/utils/is'
 
 const initialState = {
   components: {} as { [id: string]: { parentId: string; type: string } },
 }
 
-const traverse = (
-  component: t.StaticComponentObject,
-  cb: (args: {
-    component: t.StaticComponentObject
-    parent: ComponentObject | null
-  }) => void,
-) => {
-  for (const child of u.array(component.children).filter(Boolean)) {
-    cb({ component: child, parent: component || null })
-    if (child?.children) {
-      traverse(child.children, cb)
-    }
-  }
+interface HomepageProps extends PageProps {
+  pageContext: t.PageContext
 }
 
-function IndexPage(
-  props: PageProps<{}, { components: t.StaticComponentObject[] }>,
-) {
-  // const [state, setState] = React.useState(() => {
-  //   const st = {}
-  //   for (const component of props.pageContext.components) {
-  //     traverse(component, ({ component: comp, parent }) => {
-  //       st[comp.id] = {
-  //         id: comp.id,
-  //         parent: u.omit(parent, ['children', 'parentId']),
-  //       }
-  //     })
-  //   }
-  //   return st
-  // })
+function Homepage(props: PageProps) {
+  const { pageContext } = props
+  const pageName = 'HomePage'
+  const pageObject = pageContext.pageObject
 
-  const ac = useActionChain()
   const renderer = useRenderer()
 
   React.useEffect(() => {
-    // console.log(`[Homepage] state`, state)
-    console.log(`[Homepage] props`, props)
-    console.log(`[Homepage] components`, props.pageContext.components)
+    console.log(`Props`, props)
+    console.log(`Page name`, pageName)
+    console.log(`Page object`, pageObject)
   }, [])
 
   return (
-    <Layout>
+    <>
       <Seo />
-      {/* {props.pageContext.components.map((c) => renderer.renderComponent(c))} */}
-    </Layout>
+      {pageObject.components?.map?.((c: t.StaticComponentObject) => (
+        <React.Fragment key={c.id}>
+          {renderer.renderComponent(c)}
+        </React.Fragment>
+      )) || null}
+    </>
   )
 }
 
-// export async function getServerData() {
-//   try {
-//     const { default: axios } = await import('axios')
-//     const { default: y } = await import('yaml')
-//     const res = await axios.get(`https://public.aitmed.com/config/www.yml`)
-//     return {
-//       props: y.parse(res.data),
-//     }
-//   } catch (error) {
-//     return {
-//       status: 500,
-//       headers: {},
-//       props: {},
-//     }
-//   }
-// }
+export const query = graphql`
+  query {
+    noodlPage(name: { eq: "HomePage" }) {
+      name
+      slug
+      content
+    }
+  }
+`
 
-export default IndexPage
+export default (
+  props: HomepageProps & {
+    data: {
+      noodlPage: {
+        content: string
+        name: string
+        slug: string
+      }
+    }
+  },
+) => {
+  const pageObject = {
+    components: JSON.parse(props.data.noodlPage.content).components,
+  }
+  const lists = {}
+  // Insert all descendants id's to the list component's children list.
+  // This enables the mapping in the client side
+  pageObject.components.forEach((component) => {
+    publish(component, (comp) => {
+      component = createComponent(component)
+
+      if (is.component.list(comp)) {
+        // comp = createComponent(comp)
+
+        const listObject = comp.listObject || []
+
+        if (!lists[comp.id])
+          lists[comp.id] = {
+            id: comp.id,
+            children: [],
+            iteratorVar: comp.iteratorVar,
+            listObject,
+          }
+
+        const ctx = lists[comp.id]
+
+        if (!ctx.children) ctx.children = []
+
+        comp.children.forEach((child, index) => {
+          if (!ctx.children[index]) ctx.children[index] = []
+          if (!ctx.children[index].includes(child.id)) {
+            ctx.children[index].push(child.id)
+          }
+
+          publish(child, (c) => {
+            child = createComponent(child)
+            if (!ctx.children[index].includes(c.id)) {
+              ctx.children[index].push(c.id)
+            }
+          })
+        })
+      }
+    })
+  })
+
+  return (
+    // Simulate the PageContextProvider from NoodlPageTemplate
+    <PageContextProvider
+      value={{
+        _context_: {
+          lists,
+        },
+        isPreload: false,
+        pageName: 'HomePage',
+        pageObject,
+        slug: props.data.noodlPage.slug,
+      }}
+    >
+      <Homepage
+        {...props}
+        pageContext={{
+          ...props.pageContext,
+          _context_: {
+            lists,
+          },
+          isPreload: false,
+          pageName: 'HomePage',
+          pageObject,
+          slug: props.data.noodlPage.slug,
+        }}
+      />
+    </PageContextProvider>
+  )
+}

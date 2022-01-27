@@ -39,11 +39,10 @@ function useActionChain() {
     ) => {
       const action = createAction({ action: emitObject, trigger })
 
-      const { dataObject, iteratorVar = '' } = getListDataObject(
-        pageCtx._context_.lists,
-        component,
-        { include: ['iteratorVar'] },
-      )
+      const { dataObject, iteratorVar = '' } =
+        getListDataObject(pageCtx._context_.lists, component, {
+          include: ['iteratorVar'],
+        }) || {}
 
       if (dataObject) {
         if (u.isStr(action.dataKey)) {

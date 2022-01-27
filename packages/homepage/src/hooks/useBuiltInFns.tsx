@@ -1,26 +1,9 @@
+import * as u from '@jsmanifest/utils'
 import React from 'react'
 import get from 'lodash/get'
-import { Location, useNavigate } from '@reach/router'
-import * as nt from 'noodl-types'
-import { isAction, isActionChain } from 'noodl-action-chain'
-import {
-  createAction,
-  createActionChain as nuiCreateActionChain,
-  NUI as nui,
-} from 'noodl-ui'
-import type {
-  NUIAction,
-  NUIActionObject,
-  NUIActionChain,
-  NuiComponent,
-  NUITrigger,
-} from 'noodl-ui'
-import * as u from '@jsmanifest/utils'
-import useCtx from '../useCtx'
-import is from '../utils/is'
+import useCtx from '@/useCtx'
 
 function useBuiltInFns() {
-  const navigate = useNavigate()
   const ctx = useCtx()
 
   const builtIns = React.useMemo(
@@ -56,17 +39,7 @@ function useBuiltInFns() {
         }
         return str1 === str2
       },
-      [`=.builtIn.object.setProperty`]: ({ dataObject, dataIn, dataOut }) => {
-        debugger
-        // for (const [key, val] of u.entries(obj)) {
-        //   if (keyProp === key) {
-        //     obj[key] = val
-        //   } else {
-        //     obj[key] = value
-        //   }
-        // }
-        // return obj
-      },
+      [`=.builtIn.object.setProperty`]: ({ dataObject, dataIn, dataOut }) => {},
     }),
     [ctx],
   )

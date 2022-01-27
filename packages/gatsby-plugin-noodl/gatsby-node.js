@@ -7,13 +7,10 @@ const { publish } = require('noodl-ui')
 const log = require('loglevel')
 const fs = require('fs-extra')
 const nt = require('noodl-types')
-const nu = require('noodl-utils')
-const has = require('lodash/has')
 const get = require('lodash/get')
 const set = require('lodash/set')
 const path = require('path')
-const y = require('yaml')
-const { getGenerator, monkeyPatchAddEventListener } = require('./generator')
+const { getGenerator } = require('./generator')
 const utils = require('./utils')
 
 log.setDefaultLevel('INFO')
@@ -28,28 +25,21 @@ function unstable_shouldOnCreateNode({ node }) {
 }
 
 /**
- * @typedef PluginOptions
- * @property { import('../homepage/node_modules/gatsby').PluginOptions['plugins'] } options.plugins
- * @property { string } [options.config]
- * @property { string } [options.template]
- * @property { 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn' } [options.loglevel]
+ * @typedef GatsbyNoodlPluginOptions
+ * @type { import('./types').GatsbyNoodlPluginOptions }
  */
 
-const BUILTIN_EVAL_TOKEN = '=.'
 const BASE_CONFIG_URL = `https://public.aitmed.com/config/`
 const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 const data = {
-  _components_: {},
   _context_: {},
   _pages_: {
     json: {},
     serialized: {},
   },
-  cadlBaseUrl: '',
   configKey: '',
   configUrl: '',
-  myBaseUrl: '',
   template: '',
 }
 
@@ -61,7 +51,7 @@ exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
 
 /**
  * @argument { import('gatsby').NodePluginArgs } args
- * @argument { PluginOptions } pluginOptions
+ * @argument { GatsbyNoodlPluginOptions } pluginOptions
  */
 exports.onPreInit = (args, pluginOptions) => {
   const { loglevel } = pluginOptions
@@ -84,7 +74,7 @@ exports.onPreInit = (args, pluginOptions) => {
 
 /**
  * @param { import('gatsby').NodePluginArgs } args
- * @param { PluginOptions } pluginOptions
+ * @param { GatsbyNoodlPluginOptions } pluginOptions
  */
 exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
   const { cache } = args
@@ -107,40 +97,20 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
 }
 
 /**
- * @param { import('gatsby').CreateNodeArgs } args
- * @param { PluginOptions } pluginOptions
- */
-exports.onCreateNode = async function onCreateNode(args, pluginOptions) {}
-
-/**
  * @param { import('gatsby').SourceNodesArgs } args
- * @param { PluginOptions } pluginOptions
+ * @param { GatsbyNoodlPluginOptions } pluginOptions
  */
-exports.sourceNodes = async (args, pluginOptions) => {
+exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   const { actions, createContentDigest, createNodeId } = args
   const { createNode } = actions
   const { viewport = { width: 1024, height: 768 } } = pluginOptions
 
-  /**
-   * @param { import('noodl-ui').NuiComponent.Instance[] } comp
-   * @param { string[] } [_path]
-   */
-
-  function collectChildren(component, _path, index) {
-    return component.children.reduce((acc, child, i) => {
-      const listIndex = u.isNum(index) ? index : i
-      if (!acc[listIndex]) acc[listIndex] = []
-      acc[listIndex].push(component.id)
-      acc[listIndex].push(
-        ...collectChildren(child, _path.concat('children', i), i),
-      )
-      return acc
-    }, [])
-  }
-
-  const { nui, page, pages, sdk, transform } = await getGenerator({
+  const { page, pages, sdk, transform } = await getGenerator({
     configKey: data.configKey,
     on: {
+      /**
+       * Proxy the addEventListener and removeEventListener to the JSDOM events so lvl3 doesn't give the IllegalInvocation error from mismatching instance shapes
+       */
       patch: u.reduce(
         ['addEventListener', 'removeEventListener'],
         (acc, evtName) => {
@@ -165,6 +135,9 @@ exports.sourceNodes = async (args, pluginOptions) => {
       ),
     },
     use: {
+      /**
+       * The generator will be mutating this so ensure that this reference will be stay persistent
+       */
       pages: data._pages_,
     },
   })
@@ -176,16 +149,19 @@ exports.sourceNodes = async (args, pluginOptions) => {
     })
   }
 
+  // TODO - Link src/pages/index.tsx to load using this as a source
   data.startPage = (sdk.cadlEndpoint || {}).startPage || 'HomePage'
 
+  // TODO - Figure out a way to pre-generate component dimensions using the runtime/client's viewport
   page.viewport.width = viewport.width
   page.viewport.height = viewport.height
 
   /**
+   * Transform parsed json components from lvl3 to Component instances in noodl-ui so the props can be consumed in expected formats in the UI
    * @param { string } pageName
    * @param { nt.ComponentObject[] } componentObjects
    */
-  const generateComponents = async (pageName, componentObjects) => {
+  async function generateComponents(pageName, componentObjects) {
     /**
      * @param { nt.ComponentObject | nt.ComponentObject[] } value
      * @returns { Promise<import('./generator').NuiComponent[] }
@@ -201,16 +177,22 @@ exports.sourceNodes = async (args, pluginOptions) => {
             path: [index],
           },
           on: {
+            /**
+             * Called for every component creation (depth-first)
+             */
             createComponent(comp, opts) {
-              const { iteratorVar, path: componentPath } = opts || {}
+              const { path: componentPath } = opts || {}
               if (!data._context_[pageName]) data._context_[pageName] = {}
 
-              if (comp.type === 'list') {
-                const componentId = comp.id || ''
+              if (nt.Identify.component.list(comp)) {
                 const listObject = comp.get('listObject') || []
 
-                set(data._context_, `${pageName}.lists.${componentId}`, {
-                  id: componentId,
+                /**
+                 * This gets passed to props.pageContext inside NoodlPageTemplate
+                 */
+                set(data._context_, `${pageName}.lists.${comp.id}`, {
+                  id: comp.id,
+                  // Descendant component ids will be inserted here later
                   children: [],
                   iteratorVar: comp.blueprint.iteratorVar,
                   listObject,
@@ -221,6 +203,7 @@ exports.sourceNodes = async (args, pluginOptions) => {
           },
         })
 
+        // Serialize the noodl-ui components before they get sent to bootstrap the server-side rendering
         components.push(transformedComponent.toJSON())
       }
       return components
@@ -232,6 +215,9 @@ exports.sourceNodes = async (args, pluginOptions) => {
     return transformedComponents
   }
 
+  /**
+   * Create GraphQL nodes for "preload" pages so they can be queried in the client side
+   */
   for (const [name, obj] of u.entries(
     u.omit(sdk.root, [...sdk.cadlEndpoint.preload, ...sdk.cadlEndpoint.page]),
   )) {
@@ -249,7 +235,9 @@ exports.sourceNodes = async (args, pluginOptions) => {
       })
     }
   }
-
+  /**
+   * Create GraphQL nodes for app pages so they can be queried in the client side
+   */
   for (const [name, pageObject] of u.entries(pages)) {
     page.page = name
     pageObject.components = await generateComponents(
@@ -259,9 +247,11 @@ exports.sourceNodes = async (args, pluginOptions) => {
 
     const lists = data._context_[name]?.lists
 
+    // Insert all descendants id's to the list component's children list.
+    // This enables the mapping in the client side
     pageObject.components.forEach((component) => {
       publish(component, (comp) => {
-        if (comp.type === 'list') {
+        if (nt.Identify.component.list(comp)) {
           const ctx = lists[comp.id]
           if (!ctx.children) ctx.children = []
 
@@ -283,6 +273,10 @@ exports.sourceNodes = async (args, pluginOptions) => {
     data._pages_.serialized[name] = JSON.stringify(pageObject)
     data._pages_.json[name] = JSON.parse(data._pages_.serialized[name])
 
+    /**
+     * Create the GraphQL nodes for page objects
+     * These will be merged and eventually form the noodl root object that wraps our react app so they can be available to page routes to work with
+     */
     createNode({
       name,
       slug: `/${name}/`,
@@ -300,13 +294,16 @@ exports.sourceNodes = async (args, pluginOptions) => {
 
 /**
  * @param { import('gatsby').CreatePagesArgs } args
- * @param { PluginOptions } pluginOptions
+ * @param { GatsbyNoodlPluginOptions } pluginOptions
  */
 exports.createPages = async function createPages(args, pluginOptions) {
   try {
     const { actions, graphql } = args
     const { createPage } = actions
 
+    /**
+     * Query the created GraphQL nodes from app pages
+     */
     const {
       data: { allNoodlPage },
       errors,
@@ -330,11 +327,17 @@ exports.createPages = async function createPages(args, pluginOptions) {
 
       log.info(`Creating ${numNoodlPages} pages`)
 
+      /**
+       * Creates the page route
+       * "context" will be available in the NoodlPageTemplate component as props.pageContext (to ensure we only have the data we care about, we only pick "components" from the page object only.
+       * The rest of the page object props (init, etc) are located into the root noodl object instead)
+       */
       for (const pageName of u.keys(data._pages_.json)) {
+        // Becomes the page route
         const slug = `/${pageName}/`
-
         createPage({
           path: slug,
+          // NoodlPageTemplate
           component: pluginOptions.template,
           context: {
             pageName,

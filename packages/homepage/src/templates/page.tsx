@@ -2,7 +2,6 @@ import React from 'react'
 import * as u from '@jsmanifest/utils'
 import { NUI as nui, NUITrigger, triggers } from 'noodl-ui'
 import { PageProps } from 'gatsby'
-import Layout from '../layout'
 import Seo from '../components/Seo'
 import useRenderer from '../hooks/useRenderer'
 import { Provider as PageContextProvider } from '../usePageCtx'
@@ -37,14 +36,14 @@ function NoodlPageTemplate(props: NoodlPageTemplateProps) {
   }, [])
 
   return (
-    <Layout>
+    <>
       <Seo />
       {pageObject.components?.map?.((c: t.StaticComponentObject) => (
         <React.Fragment key={c.id}>
           {renderer.renderComponent(c)}
         </React.Fragment>
       )) || null}
-    </Layout>
+    </>
   )
 }
 

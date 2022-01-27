@@ -86,7 +86,7 @@
   ],
   "license": "0BSD",
   "main": "index.js",
-  "name": "gatsby-noodl-plugin",
+  "name": "gatsby-plugin-noodl",
   "prettier": {
     "arrowParens": "always",
     "endOfLine": "lf",

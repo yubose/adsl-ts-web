@@ -1,6 +1,5 @@
 import React from 'react'
 import * as u from '@jsmanifest/utils'
-import { useStaticQuery } from 'gatsby'
 import { trimReference } from 'noodl-utils'
 import lodashGet from 'lodash/get'
 import has from 'lodash/has'
@@ -20,12 +19,19 @@ export const initialState = {
 function AppProvider({ children }: React.PropsWithChildren<any>) {
   const { allNoodlPage: noodlPages } = useGetNoodlPages()
   const [state, _setState] = React.useState(() => {
+    /**
+     * This is run during build time so we have can use this data to generate the content for the rest of the pages
+     */
     return {
       ...initialState,
       pages: u.reduce(
         noodlPages.nodes,
         (acc, node) => {
           try {
+            /**
+             * To ensure our app stays performant and minimal as possible we can remove the components from each page in the state here.
+             * Components are instead directly passed to each NoodlPageTemplate in props.pageContext so they manage their own components in a lower level
+             */
             acc[node.name] = u.omit(JSON.parse(node.content), ['components'])
           } catch (error) {
             console.error(

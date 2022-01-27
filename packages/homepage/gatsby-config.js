@@ -1,60 +1,62 @@
+const fs = require('fs-extra')
 const path = require('path')
+const { parse, traverse, types } = require('@babel/core')
 
-const siteTitle = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
-const siteDescription = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
-const siteUrl = `https://aitmed.com/`
-const siteKeywords = [
-  'aitmed',
-  'noodl',
-  'telemedicine',
-  'telehealth',
-  'blockchain Telemedicine',
-  'Fast, Private, Secure',
-  'Blockchain Telehealth Platform',
-  'HIPAA Compliance',
-  'Pandemic',
-  'Covid19',
-  'Wellness and illness',
-  'Telemedicine clinic',
-  'Telemedicine Pediatric',
-  'Telemedicine Urgent Care',
-  'Telemedicine dermatology',
-  'Telemedicine Senior House',
-  'Telemedicine Hospital',
-  'Telemedicine RADIOLOGY',
-  'Telemedicine Neurology',
-  'Telehealth Lab',
-  'Telehealth Pandemic',
-  'Telehealth Covid19',
-  'Telehealth clinic',
-  'Telehealth Pediatric',
-  'Telehealth Urgent Care',
-  'Telehealth dermatology',
-  'Telehealth Senior House',
-  'Telehealth Hospital',
-  'Telehealth RADIOLOGY',
-  'Telehealth Neurology',
-  'Telehealth Lab',
-  'Doctor Virtual Platform',
-  'Telemedicine Imaging',
-  'Online Medical Practice',
-  'Online schedule',
-  'E-prescription',
-  'Virtual Meeting Room',
-  'Virtual platform',
-  'Secure Platform',
-  'Virtual Visit',
-  'Private Visit',
-  'doctor',
-  'patient',
-  'chronic illness',
-  'Medical clinic',
-  'medical platform',
-  'Medical knowledge',
-  'telecommunication',
-  'virtual',
-  'Vital Sign',
-]
+let siteTitle = ''
+let siteDescription = ``
+let siteKeywords = []
+let siteUrl = `https://aitmed.com/`
+
+const webAppWebpackConfigAST = parse(
+  fs.readFileSync(path.join(__dirname, '../../webpack.config.js'), 'utf8'),
+)
+
+traverse(webAppWebpackConfigAST, {
+  enter(path) {
+    if (
+      path.isVariableDeclarator() &&
+      /(TITLE|DESCRIPTION|KEYWORDS)/.test(path.node.id.name)
+    ) {
+      let name = path.node.id.name
+      let value
+      if (path.node.init) {
+        if (types.isLiteral(path.node.init)) {
+          if (path.node.init.type === 'TemplateLiteral') {
+            const quasis = path.node.init.quasis
+            const elem = quasis.find((elem) => !!elem.value.raw)
+            value = elem?.value?.raw || ''
+          } else if (path.node.init.type === 'StringLiteral') {
+            value = path.node.init.value
+          }
+          if (value) {
+            if (name === 'TITLE') siteTitle = value
+            else if (name === 'DESCRIPTION') siteDescription = value
+          }
+        } else if (types.isArrayExpression(path.node.init)) {
+          path.node.init.elements.forEach((elem) => {
+            if (types.isLiteral(elem)) {
+              if (
+                elem.value &&
+                typeof elem.value === 'string' &&
+                !siteKeywords.includes(elem.value)
+              ) {
+                siteKeywords.push(elem.value)
+              }
+            }
+          })
+        }
+      }
+    }
+  },
+})
+
+for (const titleOrDesc of [siteTitle, siteDescription]) {
+  if (!titleOrDesc) {
+    throw new Error(
+      `Missing site title and/or site description. Check gatsby-config.js`,
+    )
+  }
+}
 
 /**
  * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-config/
@@ -67,7 +69,6 @@ module.exports = {
     siteUrl,
     siteKeywords,
   },
-  pathPrefix: '/',
   plugins: [
     `gatsby-transformer-json`,
     `gatsby-plugin-react-helmet`,
@@ -76,7 +77,13 @@ module.exports = {
     `gatsby-plugin-sharp`,
     `gatsby-plugin-emotion`,
     {
-      resolve: require.resolve(`../gatsby-noodl-plugin`),
+      resolve: `gatsby-plugin-layout`,
+      options: {
+        component: require.resolve(`./src/layout.tsx`),
+      },
+    },
+    {
+      resolve: require.resolve(`../gatsby-plugin-noodl`),
       options: {
         config: 'www',
         loglevel: 'debug',
@@ -88,20 +95,6 @@ module.exports = {
         },
       },
     },
-    // {
-    //   resolve: `gatsby-source-filesystem`,
-    //   options: {
-    //     name: `wwwPages`,
-    //     path: `${__dirname}/output/www/yml`,
-    //   },
-    // },
-    // {
-    //   resolve: `gatsby-source-filesystem`,
-    //   options: {
-    //     name: `wwwAssets`,
-    //     path: `${__dirname}/output/www/assets`,
-    //   },
-    // },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
