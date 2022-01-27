@@ -19,7 +19,7 @@ interface NoodlPageTemplateProps extends PageProps {
 if (typeof window !== 'undefined') {
   Object.defineProperties(window, {
     getComponentInfo: {
-      get() {},
+      value: function () {},
     },
   })
 }
