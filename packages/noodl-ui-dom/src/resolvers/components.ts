@@ -383,6 +383,14 @@ const componentsResolver: t.Resolve.Config = {
             args.component
               ?.get?.(c.DATA_VALUE)
               ?.then?.((path: any) => {
+                if (!path) {
+                  console.log(
+                    `%cReceived an empty value from "path=func"! An empty string will be set as the image's "src" attribute`,
+                    `color:#ec0000;`,
+                    args.component,
+                  )
+                }
+
                 if (path && path?.url) {
                   if (path?.type && path.type == 'application/pdf') {
                     //pdf preview
@@ -402,12 +410,14 @@ const componentsResolver: t.Resolve.Config = {
                     setAttr('src', path?.url)
                   }
                 } else {
-                  setAttr('src', args.component?.get?.(c.DATA_SRC))
+                  if (!args.component?.get?.(c.DATA_SRC)) return
+                  setAttr('src', args.component?.get?.(c.DATA_SRC) || '')
                 }
               })
               .catch((error: any) => {
                 console.log(error)
-                setAttr('src', args.component?.get?.(c.DATA_SRC))
+                if (!args.component?.get?.(c.DATA_SRC)) return
+                setAttr('src', args.component?.get?.(c.DATA_SRC) || '')
               })
           }
         }
