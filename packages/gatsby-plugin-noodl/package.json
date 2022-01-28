@@ -1,5 +1,5 @@
 {
-  "author": "Christopher <christopher@gmail.com>",
+  "author": "Christopher <christopher@aitmed.com>",
   "dependencies": {
     "loglevel": "^1.8.0"
   },
@@ -100,7 +100,7 @@
     "build": "echo \"No build script setup\"",
     "test": "mocha --watch --watch-files . \"__tests__/**/*.test.js\""
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "workspaces": [
     "./"
   ]
