@@ -2,6 +2,7 @@
  * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/
  * https://www.gatsbyjs.com/docs/reference/config-files/node-api-helpers/
  */
+const axios = require('axios').default
 const u = require('@jsmanifest/utils')
 const { publish } = require('noodl-ui')
 const log = require('loglevel')
@@ -79,6 +80,7 @@ exports.onPreInit = (args, pluginOptions) => {
 exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
   const { cache } = args
   const {
+    assets: assetsPath,
     config = 'aitmed',
     path: outputPath,
     template: templatePath,
@@ -99,8 +101,9 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
    * Saves config files to an output folder
    * NOTE: This is a temporary and might be removed
    */
-  if (outputPath) {
-    await fs.ensureDir(outputPath)
+  if (outputPath || assetsPath) {
+    if (outputPath) await fs.ensureDir(outputPath)
+    if (assetsPath) await fs.ensureDir(assetsPath)
     const { Loader } = require('noodl')
     const loader = new Loader({
       config: data.configKey,
@@ -113,10 +116,39 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
     await loader.init({
       spread: ['BaseCSS', 'BasePage', 'BaseDataModel', 'BaseMessage'],
     })
-    await fs.ensureDir(path.join(outputPath, `./${data.configKey}`))
-    for (const [name, doc] of loader.root.entries()) {
-      const filepath = path.join(outputPath, `./${data.configKey}/${name}.yml`)
-      fs.writeFile(filepath, doc.toString(), 'utf8')
+
+    const assets = await loader.extractAssets()
+
+    if (outputPath) {
+      await fs.ensureDir(path.join(outputPath, `./${data.configKey}`))
+      for (const [name, doc] of loader.root.entries()) {
+        const filepath = path.join(
+          outputPath,
+          `./${data.configKey}/${name}.yml`,
+        )
+        fs.writeFile(filepath, doc.toString(), 'utf8')
+      }
+    }
+
+    if (assetsPath) {
+      await Promise.all(
+        assets.map(async (asset) => {
+          try {
+            log.info(`Downloading: ${asset.url}`)
+            const resp = await axios.get(asset.url, {
+              responseType: 'stream',
+            })
+            resp.data.pipe(
+              fs.createWriteStream(
+                path.join(assetsPath, `./${asset.filename}${asset.ext}`),
+                { autoClose: true },
+              ),
+            )
+          } catch (error) {
+            log.debug(error instanceof Error ? error : new Error(String(error)))
+          }
+        }),
+      )
     }
   }
 }
@@ -166,13 +198,6 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
       pages: data._pages_,
     },
   })
-
-  // TODO - Remove when done
-  {
-    fs.writeJson(path.join(__dirname, './pages-output.json'), pages, {
-      spaces: 2,
-    })
-  }
 
   // TODO - Link src/pages/index.tsx to load using this as a source
   data.startPage = (sdk.cadlEndpoint || {}).startPage || 'HomePage'

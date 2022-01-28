@@ -5,9 +5,11 @@ import type { PluginOptions as GatsbyPluginOptions } from 'gatsby'
 
 export interface GatsbyNoodlPluginOptions {
   plugins: GatsbyPluginOptions
+  assets?: string
   config?: string
   ecosEnv?: Env
   loglevel?: 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn'
+  path?: string
   template?: string
   viewport?: {
     width: number

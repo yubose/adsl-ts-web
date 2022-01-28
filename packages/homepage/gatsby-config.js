@@ -85,10 +85,13 @@ module.exports = {
     {
       resolve: require.resolve(`../gatsby-plugin-noodl`),
       options: {
+        // If we provide this assets will be downloaded to this path.
+        // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
+        assets: `${__dirname}/src/resources/assets`,
         config: 'web',
         loglevel: 'debug',
-        // If we provide this the yml files and assets will be downloaded here
-        path: `${__dirname}/output`,
+        // If we provide this path the yml files/assets will be made available
+        //          path: `${__dirname}/output`,
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
           width: 1024,
