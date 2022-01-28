@@ -63,9 +63,10 @@
       "no-plusplus": "off",
       "no-restricted-syntax": "off",
       "no-shadow": "warn",
+      "no-template-curly-in-string": "off",
       "no-undef": "error",
       "no-underscore-dangle": "off",
-      "no-unused-expressions": "warn",
+      "no-unused-expressions": "off",
       "no-unused-vars": "warn",
       "no-useless-escape": "error",
       "prefer-const": "warn",
@@ -97,10 +98,9 @@
     "trailingComma": "all"
   },
   "scripts": {
-    "build": "echo \"No build script setup\"",
-    "test": "mocha --watch --watch-files . \"__tests__/**/*.test.js\""
+    "test": "cross-env NODE_ENV=test mocha --watch --watch-files . \"__tests__/**/*.test.js\""
   },
-  "version": "1.0.1",
+  "version": "1.0.3",
   "workspaces": [
     "./"
   ]

@@ -255,12 +255,7 @@ async function getGenerator({
 
       await transformer.transform(
         component,
-        nui.getConsumerOptions({
-          component,
-          page,
-          on,
-          ...options,
-        }),
+        nui.getConsumerOptions({ component, page, on, ...options }),
       )
 
       return component

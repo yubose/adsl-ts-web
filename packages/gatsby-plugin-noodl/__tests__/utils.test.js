@@ -1,4 +1,3 @@
-const u = require('@jsmanifest/utils')
 const { expect } = require('chai')
 const utils = require('../utils')
 

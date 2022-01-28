@@ -101,7 +101,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
    * Saves config files to an output folder
    * NOTE: This is a temporary and might be removed
    */
-  if (outputPath || assetsPath) {
+  if (process.env.NODE_ENV !== 'test' && (outputPath || assetsPath)) {
     if (outputPath) await fs.ensureDir(outputPath)
     if (assetsPath) await fs.ensureDir(assetsPath)
     const { Loader } = require('noodl')
