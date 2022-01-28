@@ -87,6 +87,7 @@ module.exports = {
       options: {
         // If we provide this assets will be downloaded to this path.
         // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
+        // NOTE: If we do this we need to point to this path via `gatsby-source-filesystem` (look below for src/resources/images for an example)
         assets: `${__dirname}/src/resources/assets`,
         config: 'web',
         loglevel: 'debug',
@@ -97,6 +98,14 @@ module.exports = {
           width: 1024,
           height: 768,
         },
+      },
+    },
+    {
+      // Needed if "assets" option is provided to gatsby-plugin-noodl
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `assets`,
+        path: `${__dirname}/src/resources/assets`,
       },
     },
     {
