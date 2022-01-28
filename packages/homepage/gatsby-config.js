@@ -48,7 +48,7 @@ module.exports = {
         // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
         // NOTE: If we do this we need to point to this path via `gatsby-source-filesystem` (look below for src/resources/images for an example)
         assets: `${__dirname}/src/resources/assets`,
-        config: 'web',
+        config: process.env.NOODL_CONFIG || 'web',
         loglevel: 'debug',
         // If we provide this path the yml files/assets will be made available
         path: `${__dirname}/output`,
