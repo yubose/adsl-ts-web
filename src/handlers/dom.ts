@@ -724,21 +724,22 @@ const createExtendedDOMResolvers = function (app: App) {
           const highlightValue = localhighlightValue
             ? localhighlightValue
             : remotehighlightValue
+          if(highlightValue){
+            const highlightStyle = component.get('highlightStyle')
 
-          const highlightStyle = component.get('highlightStyle')
+            let originalValue = node.innerHTML
 
-          let originalValue = node.innerHTML
+            node.innerHTML = ''
+            node.innerHTML = heightLight(originalValue, highlightValue)
 
-          node.innerHTML = ''
-          node.innerHTML = heightLight(originalValue, highlightValue)
-
-          let currentSpans = node.getElementsByClassName('highlight')
-          // let domObj:any = document.getElementsByClassName('highlight')
-          for (let i = 0; i < currentSpans.length; i++) {
-            let currentSpan = currentSpans[i] as HTMLElement
-            u.eachEntries(highlightStyle, (key: any, value) => {
-              currentSpan.style[key] = value
-            })
+            let currentSpans = node.getElementsByClassName('highlight')
+            // let domObj:any = document.getElementsByClassName('highlight')
+            for (let i = 0; i < currentSpans.length; i++) {
+              let currentSpan = currentSpans[i] as HTMLElement
+              u.eachEntries(highlightStyle, (key: any, value) => {
+                currentSpan.style[key] = value
+              })
+            }
           }
         }
       },
