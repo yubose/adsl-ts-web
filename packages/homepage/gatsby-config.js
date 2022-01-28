@@ -2,53 +2,12 @@ const fs = require('fs-extra')
 const path = require('path')
 const { parse, traverse, types } = require('@babel/core')
 
-let siteTitle = ''
-let siteDescription = ``
-let siteKeywords = []
-let siteUrl = `https://aitmed.com/`
-
-const webAppWebpackConfigAST = parse(
-  fs.readFileSync(path.join(__dirname, '../../webpack.config.js'), 'utf8'),
-)
-
-traverse(webAppWebpackConfigAST, {
-  enter(path) {
-    if (
-      path.isVariableDeclarator() &&
-      /(TITLE|DESCRIPTION|KEYWORDS)/.test(path.node.id.name)
-    ) {
-      let name = path.node.id.name
-      let value
-      if (path.node.init) {
-        if (types.isLiteral(path.node.init)) {
-          if (path.node.init.type === 'TemplateLiteral') {
-            const quasis = path.node.init.quasis
-            const elem = quasis.find((elem) => !!elem.value.raw)
-            value = elem?.value?.raw || ''
-          } else if (path.node.init.type === 'StringLiteral') {
-            value = path.node.init.value
-          }
-          if (value) {
-            if (name === 'TITLE') siteTitle = value
-            else if (name === 'DESCRIPTION') siteDescription = value
-          }
-        } else if (types.isArrayExpression(path.node.init)) {
-          path.node.init.elements.forEach((elem) => {
-            if (types.isLiteral(elem)) {
-              if (
-                elem.value &&
-                typeof elem.value === 'string' &&
-                !siteKeywords.includes(elem.value)
-              ) {
-                siteKeywords.push(elem.value)
-              }
-            }
-          })
-        }
-      }
-    }
-  },
-})
+const {
+  title: siteTitle = '',
+  description: siteDescription = '',
+  keywords: siteKeywords,
+  url: siteUrl,
+} = getSiteMetadata('../../webpack.config.js')
 
 for (const titleOrDesc of [siteTitle, siteDescription]) {
   if (!titleOrDesc) {
@@ -92,7 +51,7 @@ module.exports = {
         config: 'web',
         loglevel: 'debug',
         // If we provide this path the yml files/assets will be made available
-        //          path: `${__dirname}/output`,
+        path: `${__dirname}/output`,
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
           width: 1024,
@@ -128,4 +87,60 @@ module.exports = {
     },
     `gatsby-plugin-offline`,
   ],
+}
+
+/**
+ * @param { string } relativePathToWebAppWebpackConfig
+ * @returns { { title: string; description: string; keywords: string[]; url: string }}
+ */
+function getSiteMetadata(relativePathToWebAppWebpackConfig) {
+  const metadata = { keywords: [], url: `https://aitmed.com/` }
+
+  const webAppWebpackConfigAST = parse(
+    fs.readFileSync(
+      path.join(__dirname, relativePathToWebAppWebpackConfig),
+      'utf8',
+    ),
+  )
+
+  traverse(webAppWebpackConfigAST, {
+    enter(path) {
+      if (
+        path.isVariableDeclarator() &&
+        /(TITLE|DESCRIPTION|KEYWORDS)/.test(path.node.id.name)
+      ) {
+        let name = path.node.id.name
+        let value
+        if (path.node.init) {
+          if (types.isLiteral(path.node.init)) {
+            if (path.node.init.type === 'TemplateLiteral') {
+              const quasis = path.node.init.quasis
+              const elem = quasis.find((elem) => !!elem.value.raw)
+              value = elem?.value?.raw || ''
+            } else if (path.node.init.type === 'StringLiteral') {
+              value = path.node.init.value
+            }
+            if (value) {
+              if (name === 'TITLE') metadata.title = value
+              else if (name === 'DESCRIPTION') metadata.description = value
+            }
+          } else if (types.isArrayExpression(path.node.init)) {
+            path.node.init.elements.forEach((elem) => {
+              if (types.isLiteral(elem)) {
+                if (
+                  elem.value &&
+                  typeof elem.value === 'string' &&
+                  !metadata.keywords.includes(elem.value)
+                ) {
+                  metadata.keywords.push(elem.value)
+                }
+              }
+            })
+          }
+        }
+      }
+    },
+  })
+
+  return metadata
 }

@@ -3,6 +3,7 @@
   "bugs": {},
   "dependencies": {
     "@emotion/css": "^11.7.1",
+    "@emotion/react": "^11.7.1",
     "gatsby": "^4.4.0",
     "gatsby-plugin-emotion": "^7.4.0",
     "gatsby-plugin-gatsby-cloud": "^4.4.0",
