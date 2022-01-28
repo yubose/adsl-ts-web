@@ -50,7 +50,7 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
   })
 
   React.useEffect(() => {
-    window.log = log
+    window['log'] = log
   }, [])
 
   const setState = React.useCallback(

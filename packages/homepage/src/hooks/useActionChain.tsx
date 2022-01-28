@@ -2,6 +2,7 @@ import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import React from 'react'
 import get from 'lodash/get'
+import set from 'lodash/set'
 import { navigate } from 'gatsby'
 import { excludeIteratorVar, trimReference } from 'noodl-utils'
 import {
@@ -22,7 +23,7 @@ import log from '@/utils/log'
 export interface UseActionChainOptions {}
 
 function useActionChain() {
-  const { pages: root } = useCtx()
+  const { pages: root, set: setInRoot } = useCtx()
   const pageCtx = usePageCtx()
   const { handleBuiltInFn, ...builtIns } = useBuiltInFns()
 
@@ -106,182 +107,223 @@ function useActionChain() {
     [pageCtx],
   )
 
-  const execute = React.useCallback(async function onExecuteAction({
-    action: obj,
-    component,
-    dataObject,
-    event,
-    trigger = '',
-  }: {
-    action: Record<string, any> | string
-    component?: t.StaticComponentObject
-    dataObject?: any
-    event?: React.SyntheticEvent
-    trigger?: NUITrigger | ''
-  }) {
-    try {
-      // TEMP sharing goto destinations as args
-      if (u.isStr(obj)) {
-        let destination = obj
+  const execute = React.useCallback(
+    async function onExecuteAction({
+      action: obj,
+      component,
+      dataObject,
+      event,
+      trigger = '',
+    }: {
+      action: Record<string, any> | string
+      component?: t.StaticComponentObject
+      dataObject?: any
+      event?: React.SyntheticEvent
+      trigger?: NUITrigger | ''
+    }) {
+      try {
+        // TEMP sharing goto destinations as args
+        if (u.isStr(obj)) {
+          let destination = obj
 
-        if (is.reference(destination)) {
-          const dataPathStr = trimReference(destination)
-          if (is.localReference(destination)) {
-            destination = get(root[pageCtx.pageName], dataPathStr)
-          } else {
-            destination = get(root, dataPathStr)
-          }
-        }
+          if (is.reference(destination)) {
+            const dataPathStr = trimReference(destination)
 
-        // These are values coming from an if object evaluation since we are also using this function for if object strings
-        if (is.isBoolean(destination)) return is.isBooleanTrue(destination)
-
-        let scrollingTo = ''
-
-        if (u.isObj(destination)) {
-          // debugger
-        } else if (u.isStr(destination)) {
-          if (destination.startsWith('^')) {
-            scrollingTo = destination.substring(1)
-            destination = destination.replace('^', '#')
-          }
-        }
-
-        if (root[destination] || scrollingTo) {
-          let scrollingToElem: HTMLElement | undefined
-          let prevId = ''
-
-          if (scrollingTo) {
-            scrollingToElem = document.querySelector(
-              `[data-viewtag=${scrollingTo}]`,
-            )
-            if (scrollingToElem) {
-              prevId = scrollingToElem.id
-              scrollingToElem.id = scrollingTo
+            if (is.localReference(destination)) {
+              destination = get(root[pageCtx.pageName], dataPathStr)
             } else {
-              log.error(
-                `Tried to find an element of viewTag "${scrollingTo}" but it did not exist`,
-              )
+              destination = get(root, dataPathStr)
             }
           }
 
-          if (scrollingToElem && prevId) {
-            return scrollingToElem.scrollIntoView({
-              behavior: 'smooth',
-              inline: 'center',
-            })
-          } else {
-            return navigate(`/${destination}`)
+          // These are values coming from an if object evaluation since we are also using this function for if object strings
+          if (is.isBoolean(destination)) return is.isBooleanTrue(destination)
+
+          let scrollingTo = ''
+
+          if (u.isObj(destination)) {
+            // debugger
+          } else if (u.isStr(destination)) {
+            if (destination.startsWith('^')) {
+              scrollingTo = destination.substring(1)
+              destination = destination.replace('^', '#')
+            }
           }
-        } else {
-          return (window.location.href = destination)
-        }
-      } else if (u.isObj(obj)) {
-        if (is.goto(obj)) {
-          let destination = obj.goto
-          if (u.isObj(destination)) destination = destination.goto
-          if (u.isStr(destination)) {
-            return execute({ action: destination })
-          } else {
-            throw new Error(`Goto destination was not a string`)
-          }
-        } else if (is.action.builtIn(obj)) {
-          const funcName = obj.funcName
-          if (funcName === 'redraw') {
-            const { viewTag } = obj
-            if (viewTag) {
-              const el = document.querySelector(`[data-viewtag=${viewTag}]`)
-              if (el) {
+
+          if (root[destination] || scrollingTo) {
+            let scrollingToElem: HTMLElement | undefined
+            let prevId = ''
+
+            if (scrollingTo) {
+              scrollingToElem = document.querySelector(
+                `[data-viewtag=${scrollingTo}]`,
+              )
+              if (scrollingToElem) {
+                prevId = scrollingToElem.id
+                scrollingToElem.id = scrollingTo
+              } else {
+                log.error(
+                  `Tried to find an element of viewTag "${scrollingTo}" but it did not exist`,
+                )
               }
             }
-          }
-        } else if (is.folds.emit(obj)) {
-        } else if (is.action.evalObject(obj)) {
-          for (const object of u.array(obj.object)) {
-            if (u.isObj(object)) {
-              const result = await onExecuteAction({
-                action: object,
-                component,
-                dataObject,
-                event,
-                trigger,
+
+            if (scrollingToElem && prevId) {
+              return scrollingToElem.scrollIntoView({
+                behavior: 'smooth',
+                inline: 'center',
               })
-              log.debug(
-                `%c[evalObject] object call result`,
-                `color:salmon;`,
-                result,
-              )
-            }
-          }
-        } else if (is.folds.if(obj)) {
-          let [cond, truthy, falsy] = obj.if || []
-          let value
-
-          if (u.isStr(cond)) {
-            value = await onExecuteAction({ action: cond })
-          } else if (isBuiltInEvalFn(cond)) {
-            const key = u.keys(cond)[0] as string
-            const result = await handleBuiltInFn(key, {
-              dataObject,
-              ...cond[key],
-            })
-            value = result ? truthy : falsy
-            log.debug(`%c[if][${key}] Returned:`, `color:#c4a901;`, result)
-          }
-
-          log.debug(`%c[if] Result`, `color:#c4a901;`, {
-            dataObject,
-            ifObject: obj,
-            result: value,
-          })
-
-          if (value === 'continue') {
-            //
-          } else if (u.isBool(value)) {
-            value = value ? truthy : falsy
-          }
-
-          if (is.folds.goto(value)) {
-            await execute({ action: value.goto })
-            value = 'abort'
-          } else if (is.action.popUp(value)) {
-            // TODO - Dismiss on touch outside
-            // TODO - get element by popUpView
-            // TODO - Wait
-            value = 'abort'
-          }
-
-          return value
-        } else {
-          const keys = u.keys(obj)
-          let result
-
-          if (keys.length === 1) {
-            const key = keys[0] as string
-            if (isBuiltInEvalFn(obj)) {
-              result = await handleBuiltInFn(key, {
-                dataObject,
-                ...obj[key],
-              })
-              log.debug(`%c[${key}] Result`, `color:#01a7c4;`, result)
+            } else {
+              return navigate(`/${destination}`)
             }
           } else {
-            log.error(
-              `%cAn action in an action chain is not being handled`,
-              `color:#ec0000;`,
-              obj,
-            )
+            return (window.location.href = destination)
           }
+        } else if (u.isObj(obj)) {
+          if (is.goto(obj)) {
+            let destination = obj.goto
+            if (u.isObj(destination)) destination = destination.goto
+            if (u.isStr(destination)) {
+              return execute({ action: destination })
+            } else {
+              throw new Error(`Goto destination was not a string`)
+            }
+          } else if (is.action.builtIn(obj)) {
+            const funcName = obj.funcName
+            if (funcName === 'redraw') {
+              const { viewTag } = obj
+              if (viewTag) {
+                const el = document.querySelector(`[data-viewtag=${viewTag}]`)
+                if (el) {
+                }
+              }
+            }
+          } else if (is.folds.emit(obj)) {
+          } else if (is.action.evalObject(obj)) {
+            for (const object of u.array(obj.object)) {
+              if (u.isObj(object)) {
+                const result = await onExecuteAction({
+                  action: object,
+                  component,
+                  dataObject,
+                  event,
+                  trigger,
+                })
+                log.debug(
+                  `%c[evalObject] object call result`,
+                  `color:salmon;`,
+                  result,
+                )
+                if (is.action.popUp(result) || is.action.popUpDismiss(result)) {
+                  const el = document.querySelector(
+                    `[data-viewtag=${result.popUpView}]`,
+                  ) as HTMLElement
+                  if (el) {
+                    el.style.visibility =
+                      result.actionType === 'popUpDismiss'
+                        ? 'visible'
+                        : 'hidden'
+                    console.log(el.style.visibility)
+                  } else {
+                    log.error(
+                      `The popUp component with popUpView "${result.popUpView}" is not in the DOM`,
+                      result,
+                    )
+                  }
+                }
+              }
+            }
+          } else if (is.folds.if(obj)) {
+            let [cond, truthy, falsy] = (obj.if || []) as any[]
+            let value: any
 
-          return result
+            if (u.isStr(cond)) {
+              value = await onExecuteAction({ action: cond })
+            } else if (isBuiltInEvalFn(cond)) {
+              const key = u.keys(cond)[0] as string
+              const result = await handleBuiltInFn(key, {
+                dataObject,
+                ...cond[key],
+              })
+              value = result ? truthy : falsy
+              log.debug(`%c[if][${key}] Returned:`, `color:#c4a901;`, result)
+            }
+
+            log.debug(`%c[if] Result`, `color:#c4a901;`, {
+              dataObject,
+              ifObject: obj,
+              result: value,
+            })
+
+            if (value === 'continue') {
+              //
+            } else if (u.isStr(value)) {
+              if (is.reference(value)) {
+                value = await onExecuteAction({ action: value })
+              }
+            } else if (u.isBool(value)) {
+              value = value ? truthy : falsy
+            }
+
+            if (u.isObj(value)) {
+              if (is.folds.goto(value)) {
+                await execute({ action: value.goto })
+                value = 'abort'
+              } else if (is.action.popUp(value)) {
+                // TODO - Dismiss on touch outside
+                // TODO - get element by popUpView
+                // TODO - Wait
+                value = 'abort'
+              } else {
+                for (const [k, v] of u.entries(value)) {
+                  if (is.reference(k)) {
+                    if (k.endsWith('@')) {
+                      let keyDataPath = trimReference(k)
+                      setInRoot((draft) => {
+                        let dataObject = draft.pages
+                        if (is.localReference(k)) {
+                          dataObject = draft[pageCtx.pageName]
+                        }
+                        set(dataObject, keyDataPath, v)
+                      })
+                    }
+                  }
+                }
+              }
+            }
+
+            return value
+          } else {
+            const keys = u.keys(obj)
+            let result
+
+            if (keys.length === 1) {
+              const key = keys[0] as string
+              if (isBuiltInEvalFn(obj)) {
+                result = await handleBuiltInFn(key, {
+                  dataObject,
+                  ...obj[key],
+                })
+                log.debug(`%c[${key}] Result`, `color:#01a7c4;`, result)
+              }
+            } else {
+              log.error(
+                `%cAn action in an action chain is not being handled`,
+                `color:#ec0000;`,
+                obj,
+              )
+            }
+
+            return result
+          }
         }
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        u.logError(err)
       }
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      u.logError(err)
-    }
-  },
-  [])
+    },
+    [root, pageCtx.pageName],
+  )
 
   const createActionChain = React.useCallback(
     (

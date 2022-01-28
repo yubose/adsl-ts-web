@@ -70,7 +70,7 @@ function useBuiltInFns() {
             dataIn,
             ...rest
           }: Parameters<Parameters<typeof createFn>[0]>[0]) {
-            if (u.isObj(dataIn) && u.isObj(dataObject)) {
+            if (u.isObj(dataIn)) {
               dataIn = produce(dataIn, (draft) => {
                 for (const [key, value] of u.entries(draft)) {
                   if (u.isStr(value)) {
@@ -78,25 +78,26 @@ function useBuiltInFns() {
                       const paths = value.split('.').slice(1)
                       draft[key] = get(dataObject, paths)
                     } else if (is.reference(value)) {
-                      let paths = []
+                      const paths = []
                       if (is.localReference(value)) {
                         pageCtx.pageName && paths.push(pageCtx.pageName)
                       }
                       paths.push(...trimReference(value).split('.'))
-                      draft[key] = ctx.get(paths.join('.'))
+                      const result = ctx.get(paths.join('.'))
+                      draft[key] = result
                     }
                   }
                 }
               })
             }
 
-            return fn({ dataObject, dataIn, ...rest })
+            return fn({ ...rest, dataObject, dataIn })
           }
           return acc
         },
         {} as typeof getBuiltInFns,
       ),
-    [ctx, pageCtx.pageName],
+    [ctx.pages, pageCtx.pageName],
   )
 
   return {

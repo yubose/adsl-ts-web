@@ -458,18 +458,31 @@ exports.createPages = async function createPages(args, pluginOptions) {
  *
  * @param { import('gatsby').CreateSchemaCustomizationArgs } args
  */
-exports.createSchemaCustomization = ({ actions }) => {
+exports.createSchemaCustomization = ({ actions, schema }) => {
   const { createTypes } = actions
-  // createTypes(`
-  //   type NoodlPage implements Node {
-  //     featuredImg: File @link(from: "fields.localFile")
-  //   }
-  //   type Frontmatter {
-  //     title: String!
-  //     featuredImgUrl: String
-  //     featuredImgAlt: String
-  //   }
-  // `)
+  const typeDefs = [
+    schema.buildObjectType({
+      name: 'NoodlComponent',
+      fields: {
+        type: 'String!',
+        pageName: 'String',
+        componentId: 'String',
+        componentPath: 'String',
+        parentId: 'String',
+        popUpView: 'String',
+        src: {
+          type: 'String',
+          resolve: (source, a, b, c) => {
+            log.info({ source, a, b, c })
+            return source.src
+          },
+        },
+      },
+      interfaces: ['Node'],
+    }),
+  ]
+
+  createTypes(typeDefs)
 }
 
 /**
@@ -492,8 +505,8 @@ exports.onCreateNode = async ({
     //   getCache,
     // })
     // if the file was created, extend the node with "localFile"
-    if (fileNode) {
-      createNodeField({ node, name: 'localFile', value: fileNode.id })
-    }
+    // if (fileNode) {
+    //   createNodeField({ node, name: 'localFile', value: fileNode.id })
+    // }
   }
 }

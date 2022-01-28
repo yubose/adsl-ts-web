@@ -7,6 +7,7 @@ import * as nt from 'noodl-types'
 import type { NUITrigger } from 'noodl-ui'
 import useActionChain from '@/hooks/useActionChain'
 import useBuiltInFns from '@/hooks/useBuiltInFns'
+import useCtx from '@/useCtx'
 import usePageCtx from '@/usePageCtx'
 import getTagName from '@/utils/getTagName'
 import log from '@/utils/log'
@@ -39,6 +40,7 @@ export interface RenderComponentCallbackArgs {
 }
 
 function useRenderer() {
+  const { pages: root } = useCtx()
   const pageCtx = usePageCtx()
   const ac = useActionChain()
   const builtIns = useBuiltInFns()
@@ -118,7 +120,7 @@ function useRenderer() {
 
       return element
     },
-    [pageCtx],
+    [pageCtx, root],
   )
 
   return {
