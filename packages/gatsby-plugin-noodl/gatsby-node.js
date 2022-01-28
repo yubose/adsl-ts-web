@@ -1,3 +1,5 @@
+const { createRemoteFileNode } = require('gatsby-source-filesystem')
+
 /**
  * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/
  * https://www.gatsbyjs.com/docs/reference/config-files/node-api-helpers/
@@ -34,6 +36,7 @@ const BASE_CONFIG_URL = `https://public.aitmed.com/config/`
 const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 const data = {
+  _assets_: [],
   _context_: {},
   _pages_: {
     json: {},
@@ -138,14 +141,28 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
             const resp = await axios.get(asset.url, {
               responseType: 'stream',
             })
-            resp.data.pipe(
-              fs.createWriteStream(
-                path.join(assetsPath, `./${asset.filename}${asset.ext}`),
-                { autoClose: true },
-              ),
+            const filepath = path.join(
+              assetsPath,
+              `./${asset.filename}${asset.ext}`,
             )
+            resp.data.pipe(fs.createWriteStream(filepath, { autoClose: true }))
+            !data._assets_.includes(filepath) && data._assets_.push(filepath)
           } catch (error) {
-            log.debug(error instanceof Error ? error : new Error(String(error)))
+            const err =
+              error instanceof Error ? error : new Error(String(error))
+            if (axios.isAxiosError(err)) {
+              if (err.response.status === 404) {
+                log.warn(
+                  `The asset "${asset.url}" returned a ${u.red(
+                    '404 Not Found',
+                  )} error`,
+                )
+              }
+            } else {
+              log.debug(
+                error instanceof Error ? error : new Error(String(error)),
+              )
+            }
           }
         }),
       )
@@ -231,7 +248,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
              * Called for every component creation (depth-first)
              */
             createComponent(comp, opts) {
-              const { path: componentPath } = opts || {}
+              const { path: componentPath, page } = opts || {}
               if (!data._context_[pageName]) data._context_[pageName] = {}
 
               if (nt.Identify.component.list(comp)) {
@@ -248,6 +265,38 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                   listObject,
                   path: componentPath,
                 })
+              } else if (
+                [nt.Identify.component.image, nt.Identify.component.popUp].some(
+                  (fn) => fn(comp),
+                )
+              ) {
+                if (comp.type === 'image' && !u.isStr(comp.blueprint.path)) {
+                  return
+                }
+
+                const props = comp.toJSON()
+                const serialized = JSON.stringify(props)
+
+                const nodeProps = {
+                  type: comp.type,
+                  pageName,
+                  componentId: comp.id,
+                  componentPath: opts.path.join('.'),
+                  parentId: comp.parent?.id || null,
+                  id: createNodeId(serialized),
+                  internal: {
+                    contentDigest: createContentDigest(serialized),
+                    type: 'NoodlComponent',
+                  },
+                }
+
+                if (comp.type === 'image') {
+                  nodeProps.src = comp.blueprint.path
+                } else if (comp.type === 'popUp') {
+                  nodeProps.popUpView = comp.blueprint.popUpView
+                }
+
+                createNode(nodeProps)
               }
             },
           },
@@ -261,7 +310,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
 
     const transformedComponents = await transformAllComponents(componentObjects)
 
-    log.info(`[${u.yellow(pageName)}] Components generated`)
+    pageName && log.info(`${u.yellow(pageName)} Components generated`)
     return transformedComponents
   }
 
@@ -402,5 +451,49 @@ exports.createPages = async function createPages(args, pluginOptions) {
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     throw err
+  }
+}
+
+/**
+ *
+ * @param { import('gatsby').CreateSchemaCustomizationArgs } args
+ */
+exports.createSchemaCustomization = ({ actions }) => {
+  const { createTypes } = actions
+  // createTypes(`
+  //   type NoodlPage implements Node {
+  //     featuredImg: File @link(from: "fields.localFile")
+  //   }
+  //   type Frontmatter {
+  //     title: String!
+  //     featuredImgUrl: String
+  //     featuredImgAlt: String
+  //   }
+  // `)
+}
+
+/**
+ *
+ * @param { import('gatsby').CreateNodeArgs } args
+ */
+exports.onCreateNode = async ({
+  node,
+  actions: { createNode, createNodeField },
+  createNodeId,
+  getCache,
+}) => {
+  if (node.internal.type === 'File' && node.sourceInstanceName === 'assets') {
+    // const imageNode =
+    // const fileNode = await createRemoteFileNode({
+    //   url: node.frontmatter.featuredImgUrl, // string that points to the URL of the image
+    //   parentNodeId: node.id, // id of the parent node of the fileNode you are going to create
+    //   createNode, // helper function in gatsby-node to generate the node
+    //   createNodeId, // helper function in gatsby-node to generate the node id
+    //   getCache,
+    // })
+    // if the file was created, extend the node with "localFile"
+    if (fileNode) {
+      createNodeField({ node, name: 'localFile', value: fileNode.id })
+    }
   }
 }
