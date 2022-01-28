@@ -297,7 +297,7 @@ function useActionChain() {
 
             if (el) {
               el.style.visibility =
-                obj.actionType === 'popUpDismiss' ? 'visible' : 'hidden'
+                obj.actionType === 'popUpDismiss' ? 'hidden' : 'visible'
             } else {
               log.error(
                 `The popUp component with popUpView "${obj.popUpView}" is not in the DOM`,
