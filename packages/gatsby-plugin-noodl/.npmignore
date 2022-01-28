@@ -1,0 +1,7 @@
+.vscode
+__tests__
+node_modules
+.gitignore
+LICENSE
+pages-output.json
+readme.md
