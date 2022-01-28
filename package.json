@@ -17,6 +17,7 @@
     "build:deploy:stable": "npm run build:stable && npm run deploy:stable",
     "build:deploy:test": "npm run build:test && npm run deploy:test",
     "build:serve": "cross-env ECOS_ENV=test NODE_ENV=production npm run serve",
+    "build:static": "cross-env NODE_ENV=production lerna exec --scope homepage npm run build",
     "build:stable": "cross-env ECOS_ENV=stable NODE_ENV=production DEPLOYING=true npm run build",
     "build:test": "cross-env ECOS_ENV=test NODE_ENV=production DEPLOYING=true npm run build",
     "deploy:noodltest": "bash s3Deploy.sh build cadltest.aitmed.com",
