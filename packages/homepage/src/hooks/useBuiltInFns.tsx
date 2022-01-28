@@ -36,7 +36,7 @@ function getBuiltInFns({ pages: root, ...opts }: t.AppContext) {
     }),
     [`=.builtIn.object.setProperty`]: createFn(
       ({ dataObject, dataIn, dataOut }) => {
-        debugger
+        // debugger
       },
     ),
   }

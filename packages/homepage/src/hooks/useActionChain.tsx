@@ -139,7 +139,7 @@ function useActionChain() {
         let scrollingTo = ''
 
         if (u.isObj(destination)) {
-          debugger
+          // debugger
         } else if (u.isStr(destination)) {
           if (destination.startsWith('^')) {
             scrollingTo = destination.substring(1)
@@ -195,9 +195,7 @@ function useActionChain() {
               }
             }
           }
-          debugger
         } else if (is.folds.emit(obj)) {
-          debugger
         } else if (is.action.evalObject(obj)) {
           for (const object of u.array(obj.object)) {
             if (u.isObj(object)) {
@@ -250,7 +248,6 @@ function useActionChain() {
             // TODO - Dismiss on touch outside
             // TODO - get element by popUpView
             // TODO - Wait
-            debugger
             value = 'abort'
           }
 
