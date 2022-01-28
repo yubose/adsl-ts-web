@@ -129,7 +129,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
           outputPath,
           `./${data.configKey}/${name}.yml`,
         )
-        fs.writeFile(filepath, doc.toString(), 'utf8')
+        await fs.writeFile(filepath, doc.toString(), 'utf8')
       }
     }
 
@@ -388,6 +388,14 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
         type: NOODL_PAGE_NODE_TYPE,
       },
     })
+  }
+
+  if (pluginOptions.introspection) {
+    await fs.writeJson(
+      path.join(pluginOptions.path, `./${data.configKey}_introspection.json`),
+      pages,
+      { spaces: 2 },
+    )
   }
 }
 

@@ -50,6 +50,8 @@ module.exports = {
         assets: `${__dirname}/src/resources/assets`,
         config: process.env.NOODL_CONFIG || 'web',
         loglevel: 'debug',
+        // If introspection is true, it will dump all of the noodl pages in json to the output path specified below as "<config>.introspection.json" after they have all been parsed and are about to be inserted as GraphQL nodes
+        introspection: true,
         // If we provide this path the yml files/assets will be made available
         path: `${__dirname}/output`,
         template: path.resolve(`src/templates/page.tsx`),

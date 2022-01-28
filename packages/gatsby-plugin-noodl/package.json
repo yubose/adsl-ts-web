@@ -20,7 +20,7 @@
     },
     "extends": [
       "airbnb/base",
-      "prettier",
+      "plugin:prettier/recommended",
       "plugin:import/recommended"
     ],
     "ignorePatterns": [
@@ -34,9 +34,7 @@
       "ecmaVersion": 2020,
       "sourceType": "module"
     },
-    "plugins": [
-      "prettier"
-    ],
+    "plugins": [],
     "root": true,
     "rules": {
       "array-callback-return": "error",
@@ -73,7 +71,6 @@
       "prefer-const": "warn",
       "prefer-object-spread": "error",
       "prefer-spread": "warn",
-      "prettier/prettier": "error",
       "space-before-blocks": "error"
     },
     "settings": {

@@ -22,8 +22,20 @@ import log from '@/utils/log'
 
 export interface UseActionChainOptions {}
 
+export interface ExecuteArgs {
+  action: Record<string, any> | string
+  component?: t.StaticComponentObject
+  dataObject?: any
+  event?: React.SyntheticEvent
+  trigger?: NUITrigger | ''
+}
+
+export interface ExecuteHelpers {
+  requiresDynamicHandling: (obj: any) => boolean
+}
+
 function useActionChain() {
-  const { pages: root, set: setInRoot } = useCtx()
+  const { pages: root, get: getInRoot, set: setInRoot } = useCtx()
   const pageCtx = usePageCtx()
   const { handleBuiltInFn, ...builtIns } = useBuiltInFns()
 
@@ -107,50 +119,53 @@ function useActionChain() {
     [pageCtx],
   )
 
+  /**
+   * Wraps and provides helpers to the execute function as the 2nd argument
+   */
+  const wrapWithHelpers = React.useCallback(
+    (fn: (args: ExecuteArgs, helpers: ExecuteHelpers) => Promise<any>) => {
+      return function (args: ExecuteArgs) {
+        return fn(args, {
+          requiresDynamicHandling: (obj: any) => {
+            return (
+              u.isObj(obj) &&
+              [is.folds.emit, is.folds.goto, is.folds.if, is.action.any].every(
+                (pred) => !pred(obj),
+              )
+            )
+          },
+        })
+      }
+    },
+    [],
+  )
+
   const execute = React.useCallback(
-    async function onExecuteAction({
-      action: obj,
-      component,
-      dataObject,
-      event,
-      trigger = '',
-    }: {
-      action: Record<string, any> | string
-      component?: t.StaticComponentObject
-      dataObject?: any
-      event?: React.SyntheticEvent
-      trigger?: NUITrigger | ''
-    }) {
+    wrapWithHelpers(async function onExecuteAction(
+      { action: obj, component, dataObject, event, trigger = '' },
+      utils,
+    ) {
       try {
-        // TEMP sharing goto destinations as args
+        // TEMP sharing goto destinations and some strings as args
         if (u.isStr(obj)) {
           let destination = obj
+          let scrollingTo = ''
 
-          if (is.reference(destination)) {
-            const dataPathStr = trimReference(destination)
-
-            if (is.localReference(destination)) {
-              destination = get(root[pageCtx.pageName], dataPathStr)
-            } else {
-              destination = get(root, dataPathStr)
-            }
-          }
-
+          if (is.reference(destination)) destination = getInRoot(destination)
           // These are values coming from an if object evaluation since we are also using this function for if object strings
           if (is.isBoolean(destination)) return is.isBooleanTrue(destination)
 
-          let scrollingTo = ''
-
           if (u.isObj(destination)) {
-            // debugger
+            debugger
           } else if (u.isStr(destination)) {
             if (destination.startsWith('^')) {
+              // TODO - Handle goto scrolls when navigating to a different page
               scrollingTo = destination.substring(1)
-              destination = destination.replace('^', '#')
+              destination = destination.replace('^', '')
             }
           }
 
-          if (root[destination] || scrollingTo) {
+          if ((destination && root[destination]) || scrollingTo) {
             let scrollingToElem: HTMLElement | undefined
             let prevId = ''
 
@@ -169,16 +184,18 @@ function useActionChain() {
             }
 
             if (scrollingToElem && prevId) {
-              return scrollingToElem.scrollIntoView({
+              scrollingToElem.scrollIntoView({
                 behavior: 'smooth',
                 inline: 'center',
               })
             } else {
-              return navigate(`/${destination}`)
+              navigate(`/${destination}`)
             }
           } else {
-            return (window.location.href = destination)
+            window.location.href = destination
           }
+          // This can get picked up if evalObject is returning a goto
+          return 'abort'
         } else if (u.isObj(obj)) {
           if (is.goto(obj)) {
             let destination = obj.goto
@@ -196,49 +213,27 @@ function useActionChain() {
                 const el = document.querySelector(`[data-viewtag=${viewTag}]`)
                 if (el) {
                 }
+                debugger
               }
             }
           } else if (is.folds.emit(obj)) {
+            debugger
           } else if (is.action.evalObject(obj)) {
             for (const object of u.array(obj.object)) {
-              if (u.isObj(object)) {
-                const result = await onExecuteAction({
-                  action: object,
-                  component,
-                  dataObject,
-                  event,
-                  trigger,
-                })
-                log.debug(
-                  `%c[evalObject] object call result`,
-                  `color:salmon;`,
-                  result,
-                )
-                if (is.action.popUp(result) || is.action.popUpDismiss(result)) {
-                  const el = document.querySelector(
-                    `[data-viewtag=${result.popUpView}]`,
-                  ) as HTMLElement
-                  if (el) {
-                    el.style.visibility =
-                      result.actionType === 'popUpDismiss'
-                        ? 'visible'
-                        : 'hidden'
-                    console.log(el.style.visibility)
-                  } else {
-                    log.error(
-                      `The popUp component with popUpView "${result.popUpView}" is not in the DOM`,
-                      result,
-                    )
-                  }
-                }
-              }
+              await wrapWithHelpers(onExecuteAction)({
+                action: object,
+                component,
+                dataObject,
+                event,
+                trigger,
+              })
             }
           } else if (is.folds.if(obj)) {
             let [cond, truthy, falsy] = (obj.if || []) as any[]
             let value: any
 
             if (u.isStr(cond)) {
-              value = await onExecuteAction({ action: cond })
+              value = await onExecuteAction({ action: cond }, utils)
             } else if (isBuiltInEvalFn(cond)) {
               const key = u.keys(cond)[0] as string
               const result = await handleBuiltInFn(key, {
@@ -259,22 +254,14 @@ function useActionChain() {
               //
             } else if (u.isStr(value)) {
               if (is.reference(value)) {
-                value = await onExecuteAction({ action: value })
+                value = await onExecuteAction({ action: value }, utils)
               }
             } else if (u.isBool(value)) {
               value = value ? truthy : falsy
             }
 
             if (u.isObj(value)) {
-              if (is.folds.goto(value)) {
-                await execute({ action: value.goto })
-                value = 'abort'
-              } else if (is.action.popUp(value)) {
-                // TODO - Dismiss on touch outside
-                // TODO - get element by popUpView
-                // TODO - Wait
-                value = 'abort'
-              } else {
+              if (utils.requiresDynamicHandling(value)) {
                 for (const [k, v] of u.entries(value)) {
                   if (is.reference(k)) {
                     if (k.endsWith('@')) {
@@ -289,21 +276,49 @@ function useActionChain() {
                     }
                   }
                 }
+              } else {
+                value = await wrapWithHelpers(onExecuteAction)({
+                  action: value,
+                })
               }
             }
 
             return value
+          } else if (
+            [is.action.popUp, is.action.popUpDismiss].some((fn) => fn(obj))
+          ) {
+            // TODO - Dismiss on touch outside
+            // TODO - Wait
+            const el = document.querySelector(
+              `[data-viewtag=${obj.popUpView}]`,
+            ) as HTMLElement
+
+            const visibilityBefore = el?.style?.visibility
+
+            if (el) {
+              el.style.visibility =
+                obj.actionType === 'popUpDismiss' ? 'visible' : 'hidden'
+            } else {
+              log.error(
+                `The popUp component with popUpView "${obj.popUpView}" is not in the DOM`,
+                obj,
+              )
+            }
+
+            log.debug(
+              `[${obj.actionType}] visibility: ${visibilityBefore} --> ${el?.style?.visibility}`,
+            )
+            // TODO - See if we need to move this logic elsewhere
+            // 'abort' is returned so evalObject can abort if it returns popups
+            return 'abort'
           } else {
             const keys = u.keys(obj)
-            let result
+            let result: any
 
             if (keys.length === 1) {
               const key = keys[0] as string
               if (isBuiltInEvalFn(obj)) {
-                result = await handleBuiltInFn(key, {
-                  dataObject,
-                  ...obj[key],
-                })
+                result = await handleBuiltInFn(key, { dataObject, ...obj[key] })
                 log.debug(`%c[${key}] Result`, `color:#01a7c4;`, result)
               }
             } else {
@@ -321,7 +336,7 @@ function useActionChain() {
         const err = error instanceof Error ? error : new Error(String(error))
         u.logError(err)
       }
-    },
+    }),
     [root, pageCtx.pageName],
   )
 
