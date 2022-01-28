@@ -28,9 +28,13 @@ function attachDataAttrs<N extends t.NDOMElement>(
   for (const key of dataAttributes) {
     if (component?.get?.(key)) {
       setDataAttr(key, component.get(key) || '')
-      'value' in node &&
-        key === c.DATA_VALUE &&
-        setAttr('value' as any, component.get(key))
+      if ('value' in node && key === c.DATA_VALUE) {
+        const value = component.get(key)
+        setAttr('value' as any, value)
+        if (u.isStr(value) && /hide_textfield/i.test(value)) {
+          node.style.visibility = 'hidden'
+        }
+      }
     }
   }
 }
@@ -182,7 +186,8 @@ const attributesResolver: t.Resolve.Config = {
             ---- PLACEHOLDERS
           -------------------------------------------------------- */
           if (placeholder) {
-            let value = args.component.get(c.DATA_PLACEHOLDER) ||placeholder || ''
+            let value =
+              args.component.get(c.DATA_PLACEHOLDER) || placeholder || ''
             u.forEach(
               (fn: (...args: any[]) => any) =>
                 fn('placeholder', Identify.folds.emit(value) ? '' : value),

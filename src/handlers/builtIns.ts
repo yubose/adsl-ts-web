@@ -137,7 +137,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
   const exportCSV = async function onExportCSV(options: {
     ecosObj?: EcosDocument
-    obj?:Object
+    obj?: Object
     viewTag?: string
     format?: PdfPageFormat
     download?: boolean
@@ -169,12 +169,12 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
       let csv = options.obj
       // generate header
-      let csvHeader:string|undefined = ''
-      if('header' in options) {
+      let csvHeader: string | undefined = ''
+      if ('header' in options) {
         csvHeader = options.header?.toString()
-        csvHeader+='\r\n'
+        csvHeader += '\r\n'
       }
-      csv = csvHeader?csvHeader+csv:csv
+      csv = csvHeader ? csvHeader + csv : csv
       // formate csv in sdk
       // for (const dataObject of listOfData) {
       //   let entries = u.entries(dataObject).map(([k, v]) => [[k, v]])
@@ -202,13 +202,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const blob = new Blob([csv], { type: 'text/csv' })
       const csvUrl = URL.createObjectURL(blob)
       let filename = ''
-      if ('fileName' in options){
+      if ('fileName' in options) {
         filename = `${options.fileName}.csv`
       } else {
-        filename = `${
-          title ||
-          `data-${new Date().toLocaleDateString().replaceAll('/', '-')}`
-        }` + '.csv'      
+        filename =
+          `${
+            title ||
+            `data-${new Date().toLocaleDateString().replaceAll('/', '-')}`
+          }` + '.csv'
       }
       link.download = filename
       link.href = csvUrl
@@ -237,6 +238,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       log.func('exportPDF')
       log.grey('Downloading PDF file', options)
 
+      // Blob will be returned to sdk and written to dataOut if dataOut is given
+      let pdfBlob: Blob | undefined
+
       const ecosObj = (
         u.isObj(options) && 'ecosObj' in options ? options.ecosObj : options
       ) as EcosDocument
@@ -253,7 +257,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         if (u.isStr(viewTag)) {
           for (const elem of [...u.array(findByViewTag(viewTag))]) {
             if (elem) {
-              await exportToPDF({
+              pdfBlob = await exportToPDF({
                 data: elem,
                 download: shouldDownload,
                 open: shouldOpen,
@@ -274,7 +278,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
           if (data) {
             try {
-              await exportToPDF({
+              pdfBlob = await exportToPDF({
                 data:
                   Identify.mediaType.audio(mediaType) ||
                   Identify.mediaType.font(mediaType) ||
@@ -297,10 +301,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             )
           }
         } else {
-          
           log.red('The name field in an ecosObj was not an object', ecosObj)
         }
       }
+      return pdfBlob
     } catch (error) {
       logError(error)
       throwError(error)
@@ -991,7 +995,11 @@ export const extendedSdkBuiltIns = {
   },
   downloadQRCode(
     this: App,
-    { content, scale,viewTag }: { content?: any; scale?: number,viewTag?:string } = {},
+    {
+      content,
+      scale,
+      viewTag,
+    }: { content?: any; scale?: number; viewTag?: string } = {},
   ) {
     log.func('download (QRCode)')
     // Generate QRCode image
@@ -1001,20 +1009,20 @@ export const extendedSdkBuiltIns = {
     ext = mimeType.substring(mimeType.lastIndexOf('/')).replace('/', '.')
     ext && u.isStr(filename) && (filename += ext)
 
-    if(viewTag){
+    if (viewTag) {
       const node = findByViewTag(viewTag) as HTMLElement
-      html2canvas(node,{
-        allowTaint: true,    //跨域
-        useCORS: true         //跨域
-      }).then(canvas => {
+      html2canvas(node, {
+        allowTaint: true, //跨域
+        useCORS: true, //跨域
+      }).then((canvas) => {
         let url = canvas.toDataURL(mimeType)
         return download(url, filename)
       })
-    }else{
+    } else {
       let text = content
       if (u.isObj(content)) text = JSON.stringify(content)
 
-      let opts:Record<string,any> = {
+      let opts: Record<string, any> = {
         errorCorrectionLevel: 'H',
         type: 'svg',
         quality: 0.3,
@@ -1025,7 +1033,7 @@ export const extendedSdkBuiltIns = {
         },
         scale: scale,
       }
-      
+
       QRCode.toDataURL(text, opts, function (err, url) {
         if (err) throw err
         return download(url, filename)
