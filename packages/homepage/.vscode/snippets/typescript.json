@@ -39,6 +39,10 @@
     "body": "import { cx } from '@emotion/css'",
     "prefix": "cx"
   },
+  "loglevel": {
+    "body": "import log from '@/utils/log'",
+    "prefix": "loglevel"
+  },
   "types": {
     "body": "import * as t from '@/types'",
     "prefix": "types"

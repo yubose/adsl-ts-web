@@ -8,7 +8,10 @@ import produce, { Draft } from 'immer'
 import * as t from '@/types'
 import is from '@/utils/is'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
-import { Provider } from './useCtx'
+import { Provider } from '@/useCtx'
+import log from '@/utils/log'
+
+log.setLevel('DEBUG')
 
 export type AppState = typeof initialState
 
@@ -46,6 +49,10 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
     }
   })
 
+  React.useEffect(() => {
+    window.log = log
+  }, [])
+
   const setState = React.useCallback(
     (stateOrSetter: Partial<AppState> | ((draft: Draft<AppState>) => void)) => {
       _setState(
@@ -73,23 +80,28 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
         if (is.reference(key)) {
           const path = trimReference(key)
           const paths = path.split('.')
+          const dataObject = is.localReference(path)
+            ? state.pages[pageName]
+            : state.pages
 
-          if (is.localReference(path)) {
-            result = lodashGet(state.pages[pageName], paths)
-          } else {
-            result = lodashGet(state.pages, paths)
+          if (!has(dataObject, paths)) {
+            log.error(
+              `%cThe path "${paths.join(
+                '.',
+              )}" does not exist in the root object`,
+              `color:#ec0000;`,
+              state.pages,
+            )
           }
-          result = lodashGet(
-            is.localReference(path) ? state.pages[pageName] : state.pages,
-            paths,
-          )
+
+          result = lodashGet(dataObject, paths)
         } else {
           const paths = key.includes('.') ? key.split('.') : [key]
           result = has(state.pages, paths)
             ? lodashGet(state.pages, paths)
             : lodashGet(state.pages[pageName], paths)
         }
-        console.log(`[AppProvider] Get "${key}" result`, result)
+        log.debug(`[AppProvider] Get "${key}" result`, result)
         return result
       }
     },
@@ -103,17 +115,17 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
   }
 
   React.useEffect(() => {
-    console.log(`[AppProvider] Location: ${location.pathname}`, location.search)
+    log.debug(`[AppProvider] Location: ${location.pathname}`, location.search)
     window['get'] = get
     window['state'] = state
   }, [])
 
   React.useEffect(() => {
-    console.log(`[AppProvider] AppState`, state)
+    log.debug(`[AppProvider] AppState`, state)
   }, [state])
 
   React.useEffect(() => {
-    console.log(`[AppProvider] Noodl pages`, noodlPages)
+    log.debug(`[AppProvider] Noodl pages`, noodlPages)
   }, [noodlPages])
 
   return <Provider value={ctx}>{children}</Provider>

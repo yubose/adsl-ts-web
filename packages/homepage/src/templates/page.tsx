@@ -1,15 +1,10 @@
 import React from 'react'
-import * as u from '@jsmanifest/utils'
-import { NUI as nui, NUITrigger, triggers } from 'noodl-ui'
 import { PageProps } from 'gatsby'
-import Seo from '../components/Seo'
-import useRenderer from '../hooks/useRenderer'
-import { Provider as PageContextProvider } from '../usePageCtx'
-import * as t from '../types'
-
-const initialState = {
-  components: {} as { [id: string]: { parentId: string; type: string } },
-}
+import Seo from '@/components/Seo'
+import useRenderer from '@/hooks/useRenderer'
+import { Provider as PageContextProvider } from '@/usePageCtx'
+import log from '@/utils/log'
+import * as t from '@/types'
 
 interface NoodlPageTemplateProps extends PageProps {
   pageContext: t.PageContext
@@ -25,14 +20,11 @@ if (typeof window !== 'undefined') {
 
 function NoodlPageTemplate(props: NoodlPageTemplateProps) {
   const { pageContext } = props
-  const { pageName, pageObject } = pageContext
-
+  const { pageObject } = pageContext
   const renderer = useRenderer()
 
   React.useEffect(() => {
-    console.log(`Props`, props)
-    console.log(`Page name`, pageName)
-    console.log(`Page object`, pageObject)
+    log.debug(`Props`, props)
   }, [])
 
   return (

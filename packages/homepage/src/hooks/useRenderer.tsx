@@ -9,6 +9,7 @@ import useActionChain from '@/hooks/useActionChain'
 import useBuiltInFns from '@/hooks/useBuiltInFns'
 import usePageCtx from '@/usePageCtx'
 import getTagName from '@/utils/getTagName'
+import log from '@/utils/log'
 import * as t from '@/types'
 import * as c from '@/consts'
 
@@ -79,7 +80,7 @@ function useRenderer() {
               }
             }
           } else {
-            console.log(
+            log.error(
               `%cA value for style was received but it was not an object`,
               `color:#ec0000;`,
               componentProp,

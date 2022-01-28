@@ -5,6 +5,7 @@ import { createComponent, publish } from 'noodl-ui'
 import Seo from '@/components/Seo'
 import useRenderer from '@/hooks/useRenderer'
 import usePageCtx, { Provider as PageContextProvider } from '@/usePageCtx'
+import log from '@/utils/log'
 import * as t from '@/types'
 import is from '@/utils/is'
 
@@ -24,9 +25,9 @@ function Homepage(props: PageProps) {
   const renderer = useRenderer()
 
   React.useEffect(() => {
-    console.log(`Props`, props)
-    console.log(`Page name`, pageName)
-    console.log(`Page object`, pageObject)
+    log.debug(`Props`, props)
+    log.debug(`Page name`, pageName)
+    log.debug(`Page object`, pageObject)
   }, [])
 
   return (

@@ -214,10 +214,10 @@ async function getGenerator({
     await Promise.all(
       sdk.cadlEndpoint.page.map(async (pageName) => {
         try {
-          if (sdk.cadlEndpoint.preload.includes(pageName)) return
-          await sdk.initPage(pageName, [], {
-            wrapEvalObjects: false,
-          })
+          if (sdk.cadlEndpoint.preload.includes(pageName)) {
+            if (/^(Base[a-zA-Z0-9]+)/.test(pageName)) return
+          }
+          await sdk.initPage(pageName, [], { wrapEvalObjects: false })
           on?.initPage?.({ nui, pageName, pageObject: sdk.root[pageName], sdk })
           use.pages.json[pageName] = sdk.root[pageName]
           pages[pageName] = sdk.root[pageName]

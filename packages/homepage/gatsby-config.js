@@ -87,6 +87,7 @@ module.exports = {
       options: {
         config: 'web',
         loglevel: 'debug',
+        // If we provide this the yml files and assets will be downloaded here
         path: `${__dirname}/output`,
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {

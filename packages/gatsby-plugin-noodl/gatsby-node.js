@@ -94,6 +94,31 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
 
   await cache.set('configKey', data.configKey)
   await cache.set('configUrl', data.configUrl)
+
+  /**
+   * Saves config files to an output folder
+   * NOTE: This is a temporary and might be removed
+   */
+  if (outputPath) {
+    await fs.ensureDir(outputPath)
+    const { Loader } = require('noodl')
+    const loader = new Loader({
+      config: data.configKey,
+      dataType: 'map',
+      deviceType: 'web',
+      env: 'stable',
+      loglevel: 'verbose',
+      version: 'latest',
+    })
+    await loader.init({
+      spread: ['BaseCSS', 'BasePage', 'BaseDataModel', 'BaseMessage'],
+    })
+    await fs.ensureDir(path.join(outputPath, `./${data.configKey}`))
+    for (const [name, doc] of loader.root.entries()) {
+      const filepath = path.join(outputPath, `./${data.configKey}/${name}.yml`)
+      fs.writeFile(filepath, doc.toString(), 'utf8')
+    }
+  }
 }
 
 /**

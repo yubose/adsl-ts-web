@@ -1,4 +1,3 @@
-import React from 'react'
 import createCtx from './utils/createCtx'
 import { AppContext } from './types'
 
