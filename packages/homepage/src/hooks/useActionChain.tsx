@@ -90,8 +90,9 @@ function useActionChain() {
                     event,
                     trigger,
                   })
-                  if (result === 'abort') break
-                  else results.push(result)
+                  if (result === 'abort') {
+                    log.debug(`Received "abort"`)
+                  } else results.push(result)
                 }
               } catch (error) {
                 const err =
@@ -106,7 +107,9 @@ function useActionChain() {
 
               return results
             } catch (error) {
-              u.logError(error)
+              log.error(
+                error instanceof Error ? error : new Error(String(error)),
+              )
             }
           }
         })(emitObject.emit.actions, dataObject)
@@ -156,7 +159,7 @@ function useActionChain() {
           if (is.isBoolean(destination)) return is.isBooleanTrue(destination)
 
           if (u.isObj(destination)) {
-            debugger
+            // debugger
           } else if (u.isStr(destination)) {
             if (destination.startsWith('^')) {
               // TODO - Handle goto scrolls when navigating to a different page
@@ -213,11 +216,11 @@ function useActionChain() {
                 const el = document.querySelector(`[data-viewtag=${viewTag}]`)
                 if (el) {
                 }
-                debugger
+                // debugger
               }
             }
           } else if (is.folds.emit(obj)) {
-            debugger
+            // debugger
           } else if (is.action.evalObject(obj)) {
             for (const object of u.array(obj.object)) {
               await wrapWithHelpers(onExecuteAction)({
@@ -236,11 +239,13 @@ function useActionChain() {
               value = await onExecuteAction({ action: cond }, utils)
             } else if (isBuiltInEvalFn(cond)) {
               const key = u.keys(cond)[0] as string
+              // if (obj.if[1]?.popUpView === 'productView') debugger
               const result = await handleBuiltInFn(key, {
                 dataObject,
                 ...cond[key],
               })
               value = result ? truthy : falsy
+              // if (obj.if[1]?.popUpView === 'productView') debugger
               log.debug(`%c[if][${key}] Returned:`, `color:#c4a901;`, result)
             }
 
@@ -307,6 +312,8 @@ function useActionChain() {
 
             log.debug(
               `[${obj.actionType}] visibility: ${visibilityBefore} --> ${el?.style?.visibility}`,
+              '',
+              obj,
             )
             // TODO - See if we need to move this logic elsewhere
             // 'abort' is returned so evalObject can abort if it returns popups
@@ -334,7 +341,7 @@ function useActionChain() {
         }
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
-        u.logError(err)
+        log.error(err)
       }
     }),
     [root, pageCtx.pageName],

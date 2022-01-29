@@ -124,10 +124,6 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
     log.debug(`[AppProvider] AppState`, state)
   }, [state])
 
-  React.useEffect(() => {
-    log.debug(`[AppProvider] Noodl pages`, noodlPages)
-  }, [noodlPages])
-
   return <Provider value={ctx}>{children}</Provider>
 }
 
