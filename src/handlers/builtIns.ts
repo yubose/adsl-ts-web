@@ -897,6 +897,29 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
     log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
+  const dismissOnTouchOutside: Store.BuiltInObject['fn'] = async function onDismissOnTouchOutside(
+    action,
+    options,
+  ){
+    const component = options?.component as NuiComponent.Instance
+    const metadata = getActionMetadata(action, {
+      component,
+      pickKeys: 'viewTag',
+    })
+    const { viewTag } = metadata
+    if (viewTag) {
+      const node = findByViewTag(viewTag.fromAction) as HTMLElement
+      const onTouchOutside = function onTouchOutside(
+        this: HTMLDivElement,
+        e: Event,
+      ) {
+        e.preventDefault()
+        hide(node)
+        document.body.removeEventListener('click', onTouchOutside)
+      }
+      document.body.addEventListener('click', onTouchOutside)
+    }
+  }
 
   const builtIns = {
     checkField,
@@ -915,6 +938,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     goto,
     redraw,
     copy,
+    dismissOnTouchOutside,
   }
 
   /** Shared common logic for both lock/logout logic */
