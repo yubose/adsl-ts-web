@@ -192,7 +192,7 @@
   "scripts": {
     "build": "gatsby build",
     "clean": "gatsby clean",
-    "deploy": "aws s3 cp public/ s3://www.aitmed.com/static/web/latest/",
+    "deploy": "aws s3 rm s3://www.aitmed.com/static/web/latest/ --recursive && aws s3 cp public/ s3://www.aitmed.com/static/web/latest/ --recursive",
     "format": "prettier --write '**/*.{js,jsx,ts,tsx,json,md}'",
     "serve": "gatsby serve -p 3000",
     "start": "gatsby develop -p 3000",

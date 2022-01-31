@@ -5,6 +5,7 @@ import camelCase from 'lodash/camelCase'
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import type { NUITrigger } from 'noodl-ui'
+import createRendererFactory from '@/utils/createRenderer'
 import useActionChain from '@/hooks/useActionChain'
 import useBuiltInFns from '@/hooks/useBuiltInFns'
 import useCtx from '@/useCtx'
@@ -40,10 +41,15 @@ export interface RenderComponentCallbackArgs {
 }
 
 function useRenderer() {
-  const { pages: root } = useCtx()
+  const { pages: root, get: getInRoot, set: setInRoot } = useCtx()
   const pageCtx = usePageCtx()
   const ac = useActionChain()
   const builtIns = useBuiltInFns()
+  const renderer = createRendererFactory({
+    root,
+    getInRoot,
+    setInRoot,
+  })
 
   const renderComponent = React.useCallback(
     (componentProp: t.StaticComponentObject) => {

@@ -447,11 +447,11 @@ exports.createPages = async function createPages(args, pluginOptions) {
           // NoodlPageTemplate
           component: pluginOptions.template,
           context: {
+            _context_: get(data._context_, pageName) || {},
+            isPreload: false,
             pageName,
             pageObject: u.pick(data._pages_.json[pageName], 'components'),
-            _context_: get(data._context_, pageName) || {},
             slug,
-            isPreload: false,
           },
         })
       }
