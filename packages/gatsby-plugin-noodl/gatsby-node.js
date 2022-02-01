@@ -11,8 +11,10 @@ const log = require('loglevel')
 const fs = require('fs-extra')
 const nt = require('noodl-types')
 const get = require('lodash/get')
+const has = require('lodash/has')
 const set = require('lodash/set')
 const path = require('path')
+const { trimReference } = require('noodl-utils')
 const { getGenerator } = require('./generator')
 const utils = require('./utils')
 
@@ -179,7 +181,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   const { createNode } = actions
   const { viewport = { width: 1024, height: 768 } } = pluginOptions
 
-  const { page, pages, sdk, transform } = await getGenerator({
+  const { cache, page, pages, sdk, transform } = await getGenerator({
     configKey: data.configKey,
     on: {
       /**
@@ -263,40 +265,36 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                   children: [],
                   iteratorVar: comp.blueprint.iteratorVar,
                   listObject,
-                  path: componentPath,
+                  path: [pageName, 'components', ...componentPath],
                 })
               } else if (
                 [nt.Identify.component.image, nt.Identify.component.popUp].some(
                   (fn) => fn(comp),
                 )
               ) {
-                if (comp.type === 'image' && !u.isStr(comp.blueprint.path)) {
-                  return
-                }
-
-                const props = comp.toJSON()
-                const serialized = JSON.stringify(props)
-
-                const nodeProps = {
-                  type: comp.type,
-                  pageName,
-                  componentId: comp.id,
-                  componentPath: opts.path.join('.'),
-                  parentId: comp.parent?.id || null,
-                  id: createNodeId(serialized),
-                  internal: {
-                    contentDigest: createContentDigest(serialized),
-                    type: 'NoodlComponent',
-                  },
-                }
-
-                if (comp.type === 'image') {
-                  nodeProps.src = comp.blueprint.path
-                } else if (comp.type === 'popUp') {
-                  nodeProps.popUpView = comp.blueprint.popUpView
-                }
-
-                createNode(nodeProps)
+                // if (comp.type === 'image' && !u.isStr(comp.blueprint.path)) {
+                //   return
+                // }
+                // const props = comp.toJSON()
+                // const serialized = JSON.stringify(props)
+                // const nodeProps = {
+                //   type: comp.type,
+                //   pageName,
+                //   componentId: comp.id,
+                //   componentPath: opts.path.join('.'),
+                //   parentId: comp.parent?.id || null,
+                //   id: createNodeId(serialized),
+                //   internal: {
+                //     contentDigest: createContentDigest(serialized),
+                //     type: 'NoodlComponent',
+                //   },
+                // }
+                // if (comp.type === 'image') {
+                //   nodeProps.src = comp.blueprint.path
+                // } else if (comp.type === 'popUp') {
+                //   nodeProps.popUpView = comp.blueprint.popUpView
+                // }
+                // createNode(nodeProps)
               }
             },
           },
@@ -390,6 +388,122 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
     })
   }
 
+  /**
+   *
+   * @param {{ [page: string]: { componentPath: string[]; path: string[] } }} acc
+   */
+  const findListObjectRefs = (pages) => {
+    const refs = {}
+
+    const find = (component, path = []) => {
+      const refs = {}
+
+      if (u.isObj(component)) {
+        if (component.listObject) {
+          if (
+            u.isStr(component.listObject) &&
+            nt.Identify.reference(component.listObject)
+          ) {
+            const pathsStr = path.join('.')
+            refs[pathsStr] = component.listObject
+
+            const ctxListsObject = u
+              .values(data._context_[path[0]]?.lists || {})
+              .find((o) => o?.path?.join?.('.') === pathsStr)
+
+            if (ctxListsObject) {
+              ctxListsObject.listObjectPath = trimReference(
+                component.listObject,
+              )
+            }
+          }
+        }
+
+        if (component.children) {
+          u.array(component.children).forEach((child, index) => {
+            u.assign(refs, find(child, path.concat('children', index)))
+          })
+        }
+      } else if (u.isStr(component) && nt.Identify.reference(component)) {
+        const datapath = trimReference(component)
+        if (has(cache.pages, datapath)) {
+          refs[path] = find(get(cache.pages, datapath), path)
+        }
+        if (has(cache.pages[path[0]])) {
+          refs[path] = find(get(cache.pages[path[0]], datapath), path)
+        }
+      }
+
+      return refs
+    }
+
+    for (const [page, pageObject] of u.entries(cache.pages)) {
+      if (!pageObject?.components) continue
+      u.array(pageObject.components).forEach((component, index) => {
+        if (!component) return
+        u.assign(refs, find(component, [page, 'components', index]))
+      })
+    }
+
+    return refs
+  }
+
+  // for (let [name, { components }] of u.entries(cache.pages)) {
+  //   if (components) {
+  //     components = u.array(components)
+
+  //     const numComponents = components.length
+
+  //     for (let index = 0; index < numComponents; index++) {
+  //       const path = [name, 'components', index]
+
+  //       /** @type { nt.ComponentObject } */
+  //       const component = components[index]
+
+  //       if (component) {
+  //         for (const [key, value] of u.entries(component)) {
+  //           const currPath = [...path]
+
+  //           if (!value) {
+  //             if (nt.Identify.reference(key)) {
+  //               // Needs to update to changes to root
+  //               if (!data._context_[name]) {
+  //                 data._context_[name] = { componentRefs: [] }
+  //               }
+
+  //               if (!data._context_[name].componentRefs) {
+  //                 data._context_[name].componentRefs = []
+  //               }
+
+  //               data._context_[name].componentRefs.push({
+  //                 page: name,
+  //                 path: currPath.join('.'),
+  //                 reference: key,
+  //               })
+  //             }
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+
+  const componentReferencesNodeContent = findListObjectRefs(cache.pages)
+  data.componentReferencesNodeContent = componentReferencesNodeContent
+
+  createNode({
+    name: 'ComponentReference',
+    id: createNodeId('ComponentReference'),
+    refs: componentReferencesNodeContent,
+    children: [],
+    internal: {
+      contentDigest: createContentDigest(
+        JSON.stringify(componentReferencesNodeContent),
+      ),
+      type: 'ComponentReference',
+    },
+  })
+
   if (pluginOptions.introspection) {
     await fs.writeJson(
       path.join(pluginOptions.path, `./${data.configKey}_introspection.json`),
@@ -468,29 +582,19 @@ exports.createPages = async function createPages(args, pluginOptions) {
  */
 exports.createSchemaCustomization = ({ actions, schema }) => {
   const { createTypes } = actions
-  const typeDefs = [
-    schema.buildObjectType({
-      name: 'NoodlComponent',
-      fields: {
-        type: 'String!',
-        pageName: 'String',
-        componentId: 'String',
-        componentPath: 'String',
-        parentId: 'String',
-        popUpView: 'String',
-        src: {
-          type: 'String',
-          resolve: (source, a, b, c) => {
-            log.info({ source, a, b, c })
-            return source.src
-          },
-        },
-      },
-      interfaces: ['Node'],
-    }),
-  ]
+  // const typeDefs = [
+  //   schema.buildObjectType({
+  //     name: 'ComponentReference',
+  //     fields: {
+  //       page: 'String',
+  //       path: 'String!',
+  //       reference: 'String!',
+  //     },
+  //     interfaces: ['Node'],
+  //   }),
+  // ]
 
-  createTypes(typeDefs)
+  // createTypes(typeDefs)
 }
 
 /**
