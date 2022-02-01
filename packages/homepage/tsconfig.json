@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "baseUrl": ".",
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/assets/*": ["./src/resources/assets/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/gatsby-plugin-noodl": [
+        "../gatsby-plugin-noodl/gatsby-node.js",
+        "../gatsby-plugin-noodl/types.d.ts"
+      ],
+      "@/consts": ["./src/constants.ts"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/static/*": ["./static/*"]
+    },
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "target": "es5"
+  },
+  "exclude": ["node_modules"],
+  "include": ["./src/**/*"]
+}

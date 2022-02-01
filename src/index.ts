@@ -1,6 +1,5 @@
-import yaml from 'yaml'
 import * as u from '@jsmanifest/utils'
-import { Account, CADL } from '@aitmed/cadl'
+import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
 import Logger from 'logsnap'
 import * as lib from 'noodl-ui'
 import {
@@ -29,8 +28,9 @@ import {
   getUserProps as getUserPropsFromLocalStorage,
   saveUserProps as saveUserPropsFromLocalStorage,
 } from './utils/localStorage'
-import AppNotification from './app/Notifications'
 import App from './App'
+import 'tippy.js/dist/tippy.css'
+import 'tippy.js/themes/light.css'
 import 'vercel-toast/dist/vercel-toast.css'
 import './spinner/three-dots.css'
 import './styles.css'
@@ -42,11 +42,11 @@ const log = Logger.create('App.ts')
  * to the global window object
  */
 export async function getWindowHelpers() {
-  const { default: Lvl2 } = await import('@aitmed/ecos-lvl2-sdk')
-  const lvl2sdk = new Lvl2({ env: 'development', configUrl: '' })
+  // const { default: Lvl2 } = await import('@aitmed/ecos-lvl2-sdk')
+  // const lvl2sdk = new Lvl2({ env: 'development', configUrl: '' })
 
   return u.assign({
-    lvl2: lvl2sdk.utilServices,
+    // lvl2: lvl2sdk.utilServices,
     exportToPDF,
     findByDataAttrib,
     findByDataKey,
@@ -76,17 +76,46 @@ let ws: WebSocket
 
 async function initializeApp(
   args: {
-    notification?: AppNotification
     noodl?: CADL
-    Account?: typeof Account
+    Account?: typeof CADLAccount
   } = {},
 ) {
-  let { notification, noodl, Account: accountProp } = args
+  const getAppName = () => {
+    let appName = ''
+    let hostname = location.hostname
+    let hostnameParts = hostname.split('.')
+    if (
+      /(127.0.0.1|localhost)/.test(hostname) ||
+      hostnameParts[1] === 'aitmed'
+    ) {
+      appName = 'aitmed'
+    } else {
+      appName = hostnameParts[0]
+    }
+    return appName
+  }
+  // if (!localStorage.getItem('config')) {
+  //   const { default: axios } = await import('axios')
+  //   const {
+  //     default: { parse },
+  //   } = await import('yaml')
+
+  //   localStorage.setItem(
+  //     'config',
+  //     JSON.stringify(
+  //       parse(
+  //         (await axios.get(`https://public.aitmed.com/config/${getAppName()}.yml`))
+  //           .data,
+  //       ),
+  //     ),
+  //   )
+  // }
+  let { noodl, Account: accountProp } = args
+  let notification = new (await import('./app/Notifications')).default()
   !noodl && (noodl = (await import('./app/noodl')).default)
   !accountProp && (accountProp = (await import('@aitmed/cadl')).Account)
-  !notification &&
-    (notification = new (await import('./app/Notifications')).default())
   if (!app) {
+    const { Account } = await import('@aitmed/cadl')
     app = new App({
       noodl,
       notification,
@@ -101,17 +130,131 @@ async function initializeApp(
       color: '#000', // CSS color or array of colors
       zIndex: 2000000000, // The z-index (defaults to 2e9)
     })
-    app.spinner.spin(document.getElementById('root'))
+    app.spinner.spin(document.getElementById('root') as HTMLDivElement)
   }
-  /* -------------------------------------------------------
-    ---- Testing tracker
-  -------------------------------------------------------- */
   const { trackSdk, trackWebApp } = await import('./app/trackers')
   trackSdk(app)
   trackWebApp(app)
   window.app = app
   ////////////////////////////////////////////////////////////
-  await app.initialize()
+  await app.initialize({
+    async onInitNotification(notification) {
+      try {
+        if (notification.supported) {
+          if (!notification?.initiated) {
+            app.serviceWorkerRegistration =
+              await navigator.serviceWorker?.register(
+                'firebase-messaging-sw.js',
+              )
+
+            app.serviceWorker?.addEventListener('statechange', (evt) => {
+              console.log(
+                `%c[App - serviceWorker] State changed`,
+                `color:#c4a901;`,
+                evt,
+              )
+            })
+
+            const listenForWaitingServiceWorker = (
+              reg: ServiceWorkerRegistration,
+              promptUserToRefresh: (reg: ServiceWorkerRegistration) => void,
+            ) => {
+              const awaitStateChange = async (evt?: Event) => {
+                await app.serviceWorkerRegistration?.update()
+                console.log(
+                  `%c[App - serviceWorkerRegistration] Update found`,
+                  `color:#c4a901;`,
+                  evt,
+                )
+
+                reg.installing?.addEventListener('statechange', function () {
+                  if (this.state === 'installed') promptUserToRefresh(reg)
+                })
+              }
+              if (!reg) return
+              if (reg.waiting) return promptUserToRefresh(reg)
+              if (reg.installing) awaitStateChange()
+              reg.addEventListener('updatefound', awaitStateChange)
+            }
+
+            // Reload once when the new Service Worker starts activating
+            let refreshing = false
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+              if (refreshing) return
+              refreshing = true
+              window.location.reload()
+            })
+
+            navigator.serviceWorker.addEventListener('message', (msg) => {
+              console.log(
+                `%c[App] serviceWorker message`,
+                `color:#00b406;`,
+                msg,
+              )
+              if (msg?.type === 'send-skip-waiting') {
+                app.serviceWorkerRegistration?.waiting?.postMessage(
+                  'skipWaiting',
+                )
+              }
+            })
+
+            listenForWaitingServiceWorker(
+              app.serviceWorkerRegistration,
+              (reg: ServiceWorkerRegistration) => {
+                reg.showNotification(
+                  `There is an update available. Would you like to apply the update?`,
+                  { data: { type: 'update-click' } },
+                )
+                // onClick -->   reg.waiting?.postMessage('skipWaiting')
+              },
+            )
+            notification?.init()
+          }
+        }
+
+        !notification?.initiated && (await notification?.init())
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        console.error(err)
+      }
+    },
+    onSdkInit(sdk) {
+      app.worker?.postMessage({ type: 'ON_INIT_SDK' })
+      sdk.root.builtIn
+        .SignInOk()
+        .then((authed) => {
+          if (authed) {
+            app.worker?.postMessage({ type: 'AUTHENTICATED' })
+            // document.getElementById('root').innerHTML = html
+          }
+        })
+        .catch((error) => {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.error(err)
+        })
+    },
+    onWorker(worker) {
+      worker.addEventListener('message', function (evt) {
+        console.log(
+          `%c[worker] Message`,
+          `color:#00b406;font-weight:bold;`,
+          evt,
+        )
+      })
+
+      worker.addEventListener('messageerror', function (evt) {
+        console.log(
+          `%c[worker] Message error`,
+          `color:tomato;font-weight:bold;`,
+          evt,
+        )
+      })
+
+      worker.addEventListener('error', function (evt) {
+        console.log(`%c[worker] Error`, `color:tomato;font-weight:bold;`, evt)
+      })
+    },
+  })
   // app.navigate('Cov19TestNewPatReviewPage1')
   return app
 }
@@ -128,6 +271,12 @@ async function initializeNoodlPluginRefresher() {
 }
 
 window.addEventListener('load', async (e) => {
+  if (isChrome()) {
+    console.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
+  } else {
+    console.log(`%c[Chrome] You are not using chrome browser`, `color:orange;`)
+  }
+
   try {
     window.build = process.env.BUILD
     window.ac = []
@@ -137,7 +286,9 @@ window.addEventListener('load', async (e) => {
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
 
-    await initializeNoodlPluginRefresher()
+    if (/(127.0.0.1|localhost)/i.test(location.hostname)) {
+      await initializeNoodlPluginRefresher()
+    }
 
     log.grey('Initializing [App] instance')
 
@@ -163,22 +314,13 @@ window.addEventListener('load', async (e) => {
     Object.defineProperties(window, {
       app: { configurable: true, get: () => app },
       build: { configurable: true, value: process.env.BUILD },
-      l: { configurable: true, get: () => app?.meeting.localParticipant },
-      cache: { configurable: true, get: () => app?.cache },
       cp: { configurable: true, get: () => copyToClipboard },
-      noodl: { configurable: true, get: () => noodl },
-      nui: { configurable: true, get: () => app?.nui },
-      ndom: { configurable: true, get: () => app?.ndom },
-      phone: {
-        get: () => app.root.Global?.currentUser?.vertex?.name?.phoneNumber,
-      },
       ...u.reduce(
         u.entries(await getWindowHelpers()),
         (acc, [key, fn]) =>
           u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
         {},
       ),
-      toYml: { configurable: true, get: () => yaml.stringify.bind(yaml) },
     })
 
     window.addEventListener('popstate', createOnPopState(app))
@@ -193,7 +335,7 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gesturechange', (e) => e.preventDefault())
 
   window.addEventListener('storage', (evt) => {
-    console.log(`[storage]`, evt)
+    const { key, storageArea } = evt
   })
 
   const notifiedForChromeDesktop = window.localStorage.getItem(
@@ -209,6 +351,41 @@ window.addEventListener('load', async (e) => {
         type: 'dark',
       })
     }
+  }
+
+  // const pdfElem = findFirstByViewTag('mainView')
+  // window.scrollTo({ left: window.innerWidth })
+  // let interval = setInterval(() => {
+  //   const imgElem = findFirstBySelector(
+  //     `[src="http://127.0.0.1:3001/assets/downLoadBlue.svg"]`,
+  //   )
+  //   if (imgElem) {
+  //     const btn = imgElem.nextElementSibling
+  //     if (btn) {
+  //       btn['click']()
+  //       return clearInterval(interval)
+  //     }
+  //   }
+  // console.log(`[interval] The btn button has not rendered yet`)
+  // }, 150)
+})
+
+window.addEventListener('beforeunload', (evt) => {
+  const html = document.getElementById('root')?.innerHTML || ''
+  if (html) {
+    localStorage.setItem(
+      `__last__`,
+      JSON.stringify({
+        origin: location.origin,
+        page: app.currentPage,
+        startPage: app.startPage,
+        root: html,
+        x: window.scrollX,
+        y: window.scrollY,
+      }),
+    )
+  } else {
+    localStorage.removeItem(`__last__`)
   }
 })
 
@@ -227,21 +404,6 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
-    componentStats: {
-      get() {
-        const pageComponentCount = {} as Record<string, number>
-        for (const obj of app.cache.component) {
-          if (obj) {
-            const pageName = obj.page
-            if (!(pageName in pageComponentCount)) {
-              pageComponentCount[pageName] = 0
-            }
-            pageComponentCount[pageName]++
-          }
-        }
-        return pageComponentCount
-      },
-    },
     pageTable: {
       get() {
         const result = [] as { page: string; ndom: number; nui: number }[]
@@ -287,6 +449,33 @@ function attachDebugUtilsToWindow(app: App) {
         return result
       },
     },
+    getDataValues: {
+      value() {
+        return u.reduce(
+          u.array(findByDataKey()),
+          (acc, el) => {
+            if (el) {
+              if (el.dataset.value === '[object Object]') {
+                const component = app.cache.component.get(el.id)?.component
+                const value = component.get('data-value')
+                if (u.isPromise(value)) {
+                  value.then((result) => {
+                    acc[el.dataset.key as string] = result
+                  })
+                } else {
+                  acc[el.dataset.key as string] = value
+                }
+              } else {
+                acc[el.dataset.key as string] =
+                  'value' in el ? (el as any).value : el.dataset.value
+              }
+            }
+            return acc
+          },
+          {} as Record<string, any>,
+        )
+      },
+    },
     componentCache: {
       value: {
         findComponentsWithKeys: (...keys: string[]) => {
@@ -312,6 +501,38 @@ function attachDebugUtilsToWindow(app: App) {
           app.cache.component.filter(
             (obj) => obj.component?.blueprint?.viewTag === viewTag,
           ),
+      },
+    },
+    findArrOfMinSize: {
+      value: function findArrOfMinSize(
+        root = {} as Record<string, any>,
+        size: number,
+        path = [] as (string | number)[],
+      ) {
+        const results = [] as { arr: any[]; path: (string | number)[] }[]
+
+        if (Array.isArray(root)) {
+          const count = root.length
+
+          if (count >= size) results.push({ arr: root, path })
+
+          for (let index = 0; index < count; index++) {
+            const item = root[index]
+            results.push(...findArrOfMinSize(item, size, path.concat(index)))
+          }
+        } else if (
+          root &&
+          typeof root === 'object' &&
+          typeof root !== 'function'
+        ) {
+          for (const [key, value] of Object.entries(root)) {
+            results.push(...findArrOfMinSize(value, size, path.concat(key)))
+            // if (Array.isArray(value)) {
+            // } else {}
+          }
+        }
+
+        return results
       },
     },
   })

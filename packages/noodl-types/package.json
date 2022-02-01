@@ -24,6 +24,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "build:cjs": "tsc --outDir dist/cjs --project tsconfig.cjs.json",
+    "build:development": "npm run build",
     "build:esm": "tsc --outDir dist --project tsconfig.json",
     "start": "tsc --watch",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha -r source-map-support/register --extensions ts --watch --watch-files src \"src/**/*.test.ts\""

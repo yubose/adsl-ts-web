@@ -1,9 +1,10 @@
 import * as u from '@jsmanifest/utils'
 import startOfDay from 'date-fns/startOfDay'
 import { Identify, userEvent } from 'noodl-types'
-import { dataAttributes, NuiComponent } from 'noodl-ui'
+import { dataAttributes } from 'noodl-ui'
+import type { NuiComponent } from 'noodl-ui'
 import { isDisplayable, normalizeEventName } from '../utils'
-import NDOMResolver from '../Resolver'
+import type NDOMResolver from '../Resolver'
 import * as t from '../types'
 import * as i from '../utils/internal'
 import * as c from '../constants'
@@ -27,9 +28,13 @@ function attachDataAttrs<N extends t.NDOMElement>(
   for (const key of dataAttributes) {
     if (component?.get?.(key)) {
       setDataAttr(key, component.get(key) || '')
-      'value' in node &&
-        key === c.DATA_VALUE &&
-        setAttr('value' as any, component.get(key))
+      if ('value' in node && key === c.DATA_VALUE) {
+        const value = component.get(key)
+        setAttr('value' as any, value)
+        if (u.isStr(value) && /hide_textfield/i.test(value)) {
+          node.style.visibility = 'hidden'
+        }
+      }
     }
   }
 }
@@ -144,6 +149,7 @@ const attributesResolver: t.Resolve.Config = {
           /* -------------------------------------------------------
             ---- NON TEXTFIELDS
           -------------------------------------------------------- */
+
           if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(elementType)) {
             if (
               ['text', c.DATA_PLACEHOLDER, c.DATA_VALUE].some(
@@ -153,6 +159,7 @@ const attributesResolver: t.Resolve.Config = {
               let dataValue = args.component.get(c.DATA_VALUE)
               let placeholder = args.component.get(c.DATA_PLACEHOLDER)
               let text = args.component.get('text')
+
               text = (u.isStr(dataValue) ? dataValue : text) || text || ''
               !text && placeholder && (text = placeholder)
               !text && (text = '')
@@ -179,29 +186,13 @@ const attributesResolver: t.Resolve.Config = {
             ---- PLACEHOLDERS
           -------------------------------------------------------- */
           if (placeholder) {
-            const value =
+            let value =
               args.component.get(c.DATA_PLACEHOLDER) || placeholder || ''
-
-            if (Identify.folds.emit(value)) {
-              u.forEach(
-                // @ts-expect-error
-                (fn) => fn('placeholder', value),
-                [setAttr, setDataAttr],
-              )
-              args.component.on('placeholder', (val) =>
-                u.forEach(
-                  // @ts-expect-error
-                  (fn) => fn('placeholder', val),
-                  [setAttr, setDataAttr],
-                ),
-              )
-            } else {
-              u.forEach(
-                // @ts-expect-error
-                (fn) => fn('placeholder', value),
-                [setAttr, setDataAttr],
-              )
-            }
+            u.forEach(
+              (fn: (...args: any[]) => any) =>
+                fn('placeholder', Identify.folds.emit(value) ? '' : value),
+              [setAttr, setDataAttr],
+            )
           }
 
           /* -------------------------------------------------------

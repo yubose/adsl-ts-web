@@ -2,8 +2,6 @@ import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import 'tippy.js/dist/tippy.css'
-import 'tippy.js/themes/light.css'
 import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
@@ -135,26 +133,27 @@ const createExtendedDOMResolvers = function (app: App) {
     }
 
     return onChange
-  };
+  }
 
-  (function (){
-    let beforeUnload_time = 0, gap_time = 0;
-      window.onunload = function (){
-          gap_time = new Date().getTime() - beforeUnload_time;
-          if(gap_time <= 5){ //浏览器关闭判断
-              clearCookie();
-          }
+  ;(function () {
+    let beforeUnload_time = 0,
+      gap_time = 0
+    window.onunload = function () {
+      gap_time = new Date().getTime() - beforeUnload_time
+      if (gap_time <= 2) {
+        //浏览器关闭判断
+        clearCookie()
       }
-      window.onbeforeunload = function (){
-          beforeUnload_time = new Date().getTime();
-      };
-      function clearCookie() {
-          //清除localstorage
-          window.localStorage.clear();
-      }
-    
-  })();
-  
+    }
+    window.onbeforeunload = function () {
+      beforeUnload_time = new Date().getTime()
+    }
+    function clearCookie() {
+      //清除localstorage
+      window.localStorage.clear()
+    }
+  })()
+
   const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
       cond: 'chart',
@@ -176,7 +175,8 @@ const createExtendedDOMResolvers = function (app: App) {
       //     lazyLoad: true,
       //   },
       // ],
-      resolve({ node, component }) {
+      resolve({ node, component, page }) {
+        const pageName = page.page
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           node.style.width = component.style.width as string
@@ -339,9 +339,9 @@ const createExtendedDOMResolvers = function (app: App) {
                         element.textColor = '#2FB355'
                       }
 
-                      if(((element.tage & 0xf00)>>8)==1){
-                        element.eventColor = '#d11cf9'
-                        element.textColor = '#F0F0F0'
+                      if ((element.tage & 0xf00) >> 8 == 1) {
+                        element.eventColor = '#f9d9da'
+                        element.textColor = '#e24445'
                       }
                       element.backgroundColor = element.eventColor
                       element.borderColor = element.eventColor
@@ -437,6 +437,10 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                     },
                   })
+                  app.instances.FullCalendar = {
+                    inst: calendar,
+                    page: pageName,
+                  }
                   calendar.render()
                   // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
                   window.setTimeout(() => {
@@ -445,6 +449,36 @@ const createExtendedDOMResolvers = function (app: App) {
                         'tbody .fc-timegrid-now-indicator-line',
                       )[0] as HTMLDivElement
                     ).scrollIntoView({ behavior: 'smooth' })
+                    let docEventPrevClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-prev-button',
+                      )[0] as HTMLButtonElement
+                    let docEventNextClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-next-button',
+                      )[0] as HTMLButtonElement
+                    let docEventTimeGridDayClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridDay-button',
+                      )[0] as HTMLButtonElement
+                    let docEventTimeGridWeekClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridWeek-button',
+                      )[0] as HTMLButtonElement
+
+                    // let docEventClick =  document.querySelectorAll("div .fc-header-toolbar")[0];
+                    docEventPrevClick.addEventListener('click', (e) => {
+                      dataValue.data = 'prev'
+                    })
+                    docEventNextClick.addEventListener('click', (e) => {
+                      dataValue.data = 'next'
+                    })
+                    docEventTimeGridDayClick.addEventListener('click', (e) => {
+                      dataValue.data = 'timeGridDay'
+                    })
+                    docEventTimeGridWeekClick.addEventListener('click', (e) => {
+                      dataValue.data = 'timeGridWeek'
+                    })
                   }, 0)
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
@@ -497,7 +531,10 @@ const createExtendedDOMResolvers = function (app: App) {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         if (dataKey) {
-          if(component?.type == 'textField' && component?.contentType == 'password'){
+          if (
+            component?.type == 'textField' &&
+            component?.contentType == 'password'
+          ) {
             node.addEventListener(
               'input',
               getOnChange({
@@ -509,7 +546,7 @@ const createExtendedDOMResolvers = function (app: App) {
                 page,
               }),
             )
-          }else{
+          } else {
             node.addEventListener(
               'change',
               getOnChange({
@@ -687,21 +724,22 @@ const createExtendedDOMResolvers = function (app: App) {
           const highlightValue = localhighlightValue
             ? localhighlightValue
             : remotehighlightValue
+          if(highlightValue){
+            const highlightStyle = component.get('highlightStyle')
 
-          const highlightStyle = component.get('highlightStyle')
+            let originalValue = node.innerHTML
 
-          let originalValue = node.innerHTML
+            node.innerHTML = ''
+            node.innerHTML = heightLight(originalValue, highlightValue)
 
-          node.innerHTML = ''
-          node.innerHTML = heightLight(originalValue, highlightValue)
-
-          let currentSpans = node.getElementsByClassName('highlight')
-          // let domObj:any = document.getElementsByClassName('highlight')
-          for (let i = 0; i < currentSpans.length; i++) {
-            let currentSpan = currentSpans[i] as HTMLElement
-            u.eachEntries(highlightStyle, (key: any, value) => {
-              currentSpan.style[key] = value
-            })
+            let currentSpans = node.getElementsByClassName('highlight')
+            // let domObj:any = document.getElementsByClassName('highlight')
+            for (let i = 0; i < currentSpans.length; i++) {
+              let currentSpan = currentSpans[i] as HTMLElement
+              u.eachEntries(highlightStyle, (key: any, value) => {
+                currentSpan.style[key] = value
+              })
+            }
           }
         }
       },

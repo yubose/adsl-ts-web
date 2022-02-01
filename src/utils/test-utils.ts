@@ -1,8 +1,9 @@
-import { LiteralUnion } from 'type-fest'
+import type { LiteralUnion } from 'type-fest'
+import type { Status } from '@aitmed/ecos-lvl2-sdk'
+import type { LocalParticipant } from 'twilio-video'
+import type { ComponentObject, PageObject } from 'noodl-types'
 import { EventEmitter } from 'events'
-import { Status } from '@aitmed/ecos-lvl2-sdk'
-import { LocalParticipant } from 'twilio-video'
-import { ComponentObject, PageObject } from 'noodl-types'
+import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
 import NOODLDOM, { Page as NOODLDOMPage, Resolve } from 'noodl-ui-dom'
 import {
   actionTypes as nuiActionTypes,
@@ -28,6 +29,9 @@ import getMockParticipant, {
   MockParticipant,
 } from '../__tests__/helpers/getMockParticipant'
 import * as c from '../constants'
+import { getRandomKey } from './common'
+
+export const ui = { ...actionFactory, ...componentFactory }
 
 export const deviceSize = {
   galaxys5: { width: 360, height: 640, aspectRatio: 0.5621345029239766 },
@@ -49,14 +53,7 @@ export const viewport = new Viewport({
   height: deviceSize.iphone6.height,
 })
 
-const defaultResolversKeys = u.keys(
-  defaultResolvers,
-) as (keyof typeof defaultResolvers)[]
-
-type MockDrawResolver =
-  | Resolve.Config
-  | keyof typeof defaultResolvers
-  | (Resolve.Config | keyof typeof defaultResolvers)[]
+type MockDrawResolver = Resolve.Config | Resolve.Config[]
 
 interface MockRenderOptions {
   components?: ComponentObject | ComponentObject[]
@@ -96,20 +93,9 @@ export function createRender(opts: MockRenderOptions) {
     ({ components: opts.components || page?.components || [] } as PageObject)
 
   !page && (page = ndom.page || ndom.createPage(currentPage))
-  !opts.resolver && (opts.resolver = defaultResolversKeys)
 
   if (page.requesting !== pageRequesting) page.requesting = pageRequesting
   if (page.page !== currentPage) page.page = currentPage
-
-  u.array(opts.resolver).forEach(
-    (resolver: Resolve.Config | typeof defaultResolversKeys[number]) => {
-      if (u.isStr(resolver)) {
-        defaultResolvers[resolver] && ndom.register(defaultResolvers[resolver])
-      } else {
-        resolver && ndom.register(resolver)
-      }
-    },
-  )
 
   pageObject = {
     ...root,
@@ -140,6 +126,7 @@ export function createRender(opts: MockRenderOptions) {
 
   ndom.use({
     transaction: {
+      // @ts-expect-error
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
     },
   })
@@ -235,7 +222,7 @@ export class MockNoodl extends EventEmitter {
 export const noodl = new MockNoodl() as MockNoodl
 
 export async function initializeApp(
-  opts?: Parameters<App['initialize']>[0] & {
+  opts?: {
     app?: App
     components?: ComponentObject | ComponentObject[]
     pageName?: string
@@ -295,7 +282,6 @@ export async function initializeApp(
   })
 
   _app.mainPage.requesting = pageName
-  _app.mainPage.components = pageObject.components || []
 
   _app.meeting.room = getMockRoom({
     localParticipant: (room?.localParticipant ||
@@ -336,7 +322,7 @@ export async function initializeApp(
     obj && (obj.fn = fn)
   }
 
-  u.entries(opts).forEach(([key, value]) => {
+  u.entries(opts || {}).forEach(([key, value]) => {
     if (nuiActionTypes.includes(key as NUIActionType)) {
       if (key === 'builtIn') {
         u.entries(value).forEach((args) => handleBuiltIn(...args))
@@ -382,7 +368,7 @@ export async function initializeApp(
     addParticipant(participant: any) {
       const room = _app.meeting.room
       !(room.participants instanceof Map) && (room.participants = new Map())
-      !participant.sid && (participant.sid = u.getRandomKey())
+      !participant.sid && (participant.sid = getRandomKey())
       room.participants.set(participant.sid, participant)
       // TODO - the emit call here is actually not emitting the event
       room.emit('participantConnected', participant)
@@ -393,7 +379,7 @@ export async function initializeApp(
     },
     getComponent(id: string) {
       for (const component of _app.cache.component) {
-        if (component?.id === id) return component
+        if (component?.component.id === id) return component
       }
       return {} as NuiComponent.Instance
     },
@@ -433,11 +419,11 @@ export async function getApp(
   args: Partial<Parameters<typeof initializeApp>[0]> & {
     navigate?: boolean
     preset?: 'meeting'
-  } = {},
+  },
 ) {
   const { navigate, preset, room } = args
 
-  const _args = { pageName: 'SignIn', ...args } as typeof args
+  const _args = { pageName: 'SignIn', ...args }
 
   // _args.pageObject = {
   //   ..._args.root?.[_args.pageName as string],

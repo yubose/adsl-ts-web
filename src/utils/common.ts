@@ -153,31 +153,3 @@ export function throwError(err?: any) {
   throw new Error('Error occurred')
 }
 
-export function queryString({
-  destination,
-  pageUrl,
-  startPage
-}: {
-  destination: string
-  pageUrl: string
-  startPage?: string
-}){
-  const base = 'index.html?'
-  pageUrl = pageUrl.indexOf(base)!==-1 ? pageUrl : pageUrl + base
-  let separator = pageUrl.endsWith('?') ? '' : '-'
-  if (destination !== startPage) {
-    const questionMarkIndex = pageUrl.indexOf(`?${destination}`)
-    const hyphenIndex = pageUrl.indexOf(`-${destination}`)
-    if (questionMarkIndex !== -1) {
-      pageUrl = pageUrl.substring(0, questionMarkIndex + 1)
-      separator = pageUrl.endsWith('?') ? '' : '-'
-    } else if (hyphenIndex !== -1) {
-      pageUrl = pageUrl.substring(0, hyphenIndex)
-      separator = pageUrl.endsWith('?') ? '' : '-'
-    }
-    pageUrl += `${separator}${destination}`
-  } else {
-    pageUrl = base
-  }
-  return pageUrl
-}

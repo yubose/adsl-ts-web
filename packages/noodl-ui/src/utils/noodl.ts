@@ -17,31 +17,6 @@ export function evalIf<O extends IfObject>(val: O) {
 }
 
 /**
- * Traverses the children hierarchy, running the comparator function in each
- * iteration. If a callback returns true, the node in that iteration will become
- * the returned child
- * @param { NuiComponent.Instance } component
- * @param { function } fn - Comparator function
- */
-export function findChild<C extends NuiComponent.Instance>(
-  component: C,
-  fn: (child: NuiComponent.Instance) => boolean,
-): NuiComponent.Instance | null {
-  let child: NuiComponent.Instance | null | undefined
-  let children = component?.children?.slice?.() || []
-
-  if (isComponent(component) && component.length) {
-    child = children.shift()
-    while (child) {
-      if (fn(child)) return child
-      child.children?.forEach((c: NuiComponent.Instance) => children.push(c))
-      child = children.pop()
-    }
-  }
-  return null
-}
-
-/**
  * Traverses the parent hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned parent
@@ -276,27 +251,6 @@ export function getPluginLocation(
     }
   }
   return 'head'
-}
-
-export function getRootParent(component: NuiComponent.Instance) {
-  if (!component.parent) return component
-  const temp = [] as NuiComponent.Instance[]
-  findParent(component, (p) => {
-    p && temp.push(p)
-    return false
-  })
-  const rootParent = temp[0] || null
-  temp.length = 0
-  return rootParent
-}
-
-export function getLast(component: NuiComponent.Instance | undefined) {
-  if (!component?.length) return component
-  const temp = [] as NuiComponent.Instance[]
-  publish(component, (c) => void temp.push(c))
-  const last = temp.length ? temp[temp.length - 1] : null
-  temp.length = 0
-  return last
 }
 
 export function isListConsumer(

@@ -5,7 +5,7 @@ import * as u from '@jsmanifest/utils'
 import curry from 'lodash/curry'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
-import { isPage as isNuiPage, publish, isComponent } from 'noodl-ui'
+import { isPage as isNuiPage } from 'noodl-ui'
 import type { ComponentObject, EcosDocument, NameField } from 'noodl-types'
 import type { NuiComponent, Page as NUIPage } from 'noodl-ui'
 import type { ComponentPage } from '../factory/componentFactory'
@@ -16,7 +16,6 @@ import isComponentPage from './isComponentPage'
 import isNDOMPage from './isPage'
 import { cache } from '../nui'
 import * as c from '../constants'
-import * as t from '../types'
 
 export const _DEV_ = process.env.NODE_ENV === 'development'
 export const _TEST_ = process.env.NODE_ENV === 'test'
@@ -90,19 +89,6 @@ function _createDocIdentifier(
   return identifyDoc
 }
 
-export function _getComponentFromCache(
-  idOrComp: string | NuiComponent.Instance,
-) {
-  let id = isComponent(idOrComp) ? idOrComp.id : String(idOrComp)
-  return (cache.component.get(id)?.component || null) as NuiComponent.Instance
-}
-
-export function _getDescendantIds(component: NuiComponent.Instance): string[] {
-  const ids = [] as string[]
-  publish(component, (child) => ids.push(child.id))
-  return ids
-}
-
 export function _getOrCreateComponentPage(
   componentOrNUIPage: NuiComponent.Instance | NUIPage,
   createPage: NDOM['createPage'],
@@ -117,13 +103,6 @@ export function _getOrCreateComponentPage(
   return findPage(componentOrNUIPage) || createPage(componentOrNUIPage, node)
 }
 
-/**
- * Returns a random 7-character string
- */
-export function _getRandomKey() {
-  return `_${Math.random().toString(36).substr(2, 9)}`
-}
-
 export function _isNUIPage(value: unknown): value is NUIPage {
   return !!(value && isNuiPage(value) && !isNDOMPage(value))
 }
@@ -135,14 +114,6 @@ export function _isPluginComponent(component: NuiComponent.Instance) {
     Identify.component.pluginBodyTop,
     Identify.component.pluginBodyTail,
   ].some((fn) => fn(component))
-}
-
-export function isCssResourceLink(value = '') {
-  return value.endsWith('.css')
-}
-
-export function isJsResourceLink(value = '') {
-  return value.endsWith('.js')
 }
 
 export const isImageDoc = _createDocIdentifier(4, 'image')
@@ -190,15 +161,6 @@ export const _isLinkEl = _isElemFactory<HTMLLinkElement>('LINK')
 export const _isListEl = _isElemFactory<HTMLUListElement>('UL')
 export const _isScriptEl = _isElemFactory<HTMLScriptElement>('SCRIPT')
 export const _isStyleEl = _isElemFactory<HTMLStyleElement>('STYLE')
-
-export function _isHttpUrl(url = '') {
-  return url.startsWith('http')
-}
-
-export function _isRemotePageOrUrl(pageOrUrl: string | NDOMPage) {
-  const pageName = u.isStr(pageOrUrl) ? pageOrUrl : pageOrUrl?.page || ''
-  return pageName.endsWith('.html') || _isHttpUrl(pageName)
-}
 
 export const xKeys = ['width', 'left']
 export const yKeys = ['height', 'top']
@@ -303,28 +265,18 @@ export const _syncPages = (function () {
   >()
 
   const _componentTable = new Map<string, string[]>()
-  const _emptyLabel_ = '<empty or loading>'
   const _emptyKey_ = '_EMPTY_'
   const _getKey = (pageName = '') => pageName || _emptyKey_
 
   cache.component
     .on('add', ({ component, page }) => {
-      // console.log(
-      //   `[componentTable] Added "${component?.type} component" for page "${
-      //     page || _emptyLabel_
-      //   }"`,
-      // )
       const pageKey = _getKey(page)
       if (!_componentTable.has(pageKey)) _componentTable.set(pageKey, [])
       let ids = _componentTable.get(pageKey) as string[]
       !u.isArr(ids) && (ids = u.array(ids))
       !ids.includes(component.id) && ids.push(component.id)
     })
-    .on('remove', ({ id, page }) => {
-      // console.log(
-      //   `[componentTable] Removed "${id}" from page "${_getKey(page)}"`,
-      // )
-    })
+    .on('remove', ({ id, page }) => {})
 
   function syncPages(this: NDOM) {
     const initSlice = (page: NUIPage) => ({
@@ -376,8 +328,6 @@ export const _syncPages = (function () {
             },
           })
 
-          console.log(label)
-
           if (updateType === c.PAGE_CREATED) {
             // Incoming page still in the loading state
             // Remove all previous loading pages since we only support 1 loading page right now
@@ -389,7 +339,6 @@ export const _syncPages = (function () {
                 nuiPage.page === page.page &&
                 nuiPage.id !== 'root'
               ) {
-                // console.log(`REMOVING PAGE`, { page, _page, nuiPage })
                 removePage(nuiPage)
               }
             }
@@ -422,7 +371,6 @@ export const _syncPages = (function () {
             }
 
             if (
-              // !u.isNil(ndomPage?.id) &&
               // @ts-expect-error
               !this.global.pageIds.includes(ndomPage.id)
             ) {
@@ -431,25 +379,6 @@ export const _syncPages = (function () {
 
             if (isComponentPage(ndomPage)) {
               stateSlice.initiated = !!ndomPage.initialized
-            }
-
-            if (page.page === '') {
-              for (const [createTime, stateSlice] of _pageState.entries()) {
-                if (stateSlice.initialPageValue === '') {
-                  if (createTime < page.created) {
-                    // Cleanup previously loading page
-                    // This can happen when the user clicks too quickly to several pages
-                    // const nuiPage = cache.page
-                    //   .get()
-                    //   .find(
-                    //     (obj) =>
-                    //       obj?.page?.created === createTime &&
-                    //       obj?.page?.id !== 'root',
-                    //   )?.page
-                    // nuiPage && removePage(nuiPage)
-                  }
-                }
-              }
             }
           } else if (updateType === c.PAGE_REMOVED) {
             _pageState.delete(page.created)

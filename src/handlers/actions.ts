@@ -38,7 +38,7 @@ import {
   isRootDataKey,
   ParsedPageComponentUrlObject,
 } from 'noodl-utils'
-import { IfObject, Identify } from 'noodl-types'
+import { EmitObjectFold, IfObject, Identify } from 'noodl-types'
 import {
   getBlobFromCanvas,
   getVcodeElem,
@@ -48,9 +48,11 @@ import {
   scrollToElem,
   toast,
 } from '../utils/dom'
+import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
-import { getRandomKey, pickActionKey, pickHasActionKey,queryString } from '../utils/common'
+import { getRandomKey, pickActionKey, pickHasActionKey } from '../utils/common'
 import * as T from '../app/types'
+import axios from 'axios'
 
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey
@@ -71,13 +73,19 @@ const createActions = function createActions(app: App) {
           options: ConsumerOptions,
         ) {
           try {
+            !app.getState().spinner.active && app.enableSpinner()
+
             log.func(`emit [${trigger}]`)
 
             const emitParams = {
               actions: _pick(action, 'actions'),
               pageName:
                 pickNUIPageFromOptions(options)?.page || app.currentPage,
-            } as T.EmitCallParams
+            } as {
+              actions: EmitObjectFold['emit']['actions']
+              dataKey: EmitObjectFold['emit']['dataKey']
+              pageName: string
+            }
 
             if (_has(_pick(action, 'emit'), 'dataKey')) {
               const dataKeyValue = _pick(action, 'dataKey')
@@ -101,6 +109,8 @@ const createActions = function createActions(app: App) {
               : [emitResult]
           } catch (error) {
             console.error(error)
+          } finally {
+            if (!app.noodl.getState().queue?.length) app.disableSpinner()
           }
         },
       }),
@@ -122,7 +132,10 @@ const createActions = function createActions(app: App) {
       actionChain: options?.ref?.snapshot?.(),
       options,
     })
+
+    !app.getState().spinner.active && app.enableSpinner()
     options.ref?.clear('timeout')
+
     try {
       let object = _pick(action, 'object') as
         | IfObject
@@ -263,171 +276,179 @@ const createActions = function createActions(app: App) {
     } catch (error) {
       console.error(error)
       toast(error.message, { type: 'error' })
+    } finally {
+      if (!app.noodl.getState().queue?.length) {
+        app.disableSpinner()
+      }
     }
   }
 
-  const goto: Store.ActionObject['fn'] = async function onGoto(
-    action,
-    options,
-  ) {
-    let goto = _pick(action, 'goto') || ''
-    let ndomPage = pickNDOMPageFromOptions(options)
-    let destProps: ReturnType<typeof app.parse.destination>
 
-    log.func('goto')
-    log.grey(
-      _pick(action, 'goto'),
-      u.isObj(action) ? action?.snapshot?.() : action,
-    )
+  const goto: Store.ActionObject['fn'] = useGotoSpinner(
+    app,
+    async function onGoto(action, options) {
+      let goto = _pick(action, 'goto') || ''
+      let ndomPage = pickNDOMPageFromOptions(options)
+      let destProps: ReturnType<typeof app.parse.destination>
 
-    let destinationParam =
-      (u.isStr(goto)
-        ? goto
-        : u.isObj(goto)
-        ? goto.destination || goto.dataIn?.destination || goto
-        : '') || ''
+      if (!app.getState().spinner.active) app.enableSpinner()
 
-    destProps = app.parse.destination(
-      Identify.pageComponentUrl(destinationParam)
-        ? resolvePageComponentUrl({
-            component: options?.component,
-            page: ndomPage.getNuiPage(),
-            localKey: ndomPage.page,
-            root: app.root,
-            key: 'goto',
-            value: destinationParam,
-          })
-        : destinationParam,
-    )
+      log.func('goto')
+      log.grey(
+        _pick(action, 'goto'),
+        u.isObj(action) ? action?.snapshot?.() : action,
+      )
 
-    let { destination, id = '', isSamePage, duration } = destProps
+      let destinationParam =
+        (u.isStr(goto)
+          ? goto
+          : u.isObj(goto)
+          ? goto.destination || goto.dataIn?.destination || goto
+          : '') || ''
 
-    let pageModifiers = {} as any
+      destProps = app.parse.destination(
+        Identify.pageComponentUrl(destinationParam)
+          ? resolvePageComponentUrl({
+              component: options?.component,
+              page: ndomPage.getNuiPage(),
+              localKey: ndomPage.page,
+              root: app.root,
+              key: 'goto',
+              value: destinationParam,
+            })
+          : destinationParam,
+      )
 
-    if (destination === destinationParam) {
-      ndomPage.requesting = destination
-    }
+      let { destination, id = '', isSamePage, duration } = destProps
 
-    if ('targetPage' in destProps) {
-      // @ts-expect-error
-      const destObj = destProps as ParsedPageComponentUrlObject
-      destination = destObj.targetPage || ''
-      id = destObj.viewTag || ''
-      if (id) {
-        for (const obj of app.cache.component) {
-          if (obj) {
-            if (obj?.component?.blueprint?.id === id) {
-              const pageComponent = obj.component
-              const currentPageName = pageComponent?.get?.('path')
-              ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
-              break
+      let pageModifiers = {} as any
+
+      if (destination === destinationParam) {
+        ndomPage.requesting = destination
+      }
+
+      if ('targetPage' in destProps) {
+        // @ts-expect-error
+        const destObj = destProps as ParsedPageComponentUrlObject
+        destination = destObj.targetPage || ''
+        id = destObj.viewTag || ''
+        if (id) {
+          for (const obj of app.cache.component) {
+            if (obj) {
+              if (obj?.component?.blueprint?.id === id) {
+                const pageComponent = obj.component
+                const currentPageName = pageComponent?.get?.('path')
+                ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+                break
+              }
             }
           }
         }
       }
-    }
 
-    if (u.isObj(goto?.dataIn)) {
-      const dataIn = goto.dataIn
-      'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
-      'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
-    }
+      if (u.isObj(goto?.dataIn)) {
+        const dataIn = goto.dataIn
+        'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
+        'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
+      }
 
-    if (id) {
-      const isInsidePageComponent =
-        isPageConsumer(options.component) || !!destProps.targetPage
-      const node = findByViewTag(id) || findByElementId(id)
-      if (node) {
-        let win: Window | undefined | null
-        let doc: Document | null | undefined
-        if (document.contains?.(node as any)) {
-          win = window
-          doc = window.document
-        } else {
-          win = findWindow((w) => {
-            if (!w) return false
-            return (
-              'contentDocument' in w ? w['contentDocument'] : w.document
-            )?.contains?.(node as HTMLElement)
-          })
-        }
-        function scroll() {
-          if (isInsidePageComponent) {
-            scrollToElem(node, { win, doc, duration })
+      if (id) {
+        const isInsidePageComponent =
+          isPageConsumer(options.component) || !!destProps.targetPage
+        const node = findByViewTag(id) || findByElementId(id)
+        if (node) {
+          let win: Window | undefined | null
+          let doc: Document | null | undefined
+          if (document.contains?.(node as any)) {
+            win = window
+            doc = window.document
           } else {
-            ;(node as HTMLElement)?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'center',
+            win = findWindow((w) => {
+              if (!w) return false
+              return (
+                'contentDocument' in w ? w['contentDocument'] : w.document
+              )?.contains?.(node as HTMLElement)
             })
           }
+          function scroll() {
+            if (isInsidePageComponent) {
+              scrollToElem(node, { win, doc, duration })
+            } else {
+              ;(node as HTMLElement)?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center',
+              })
+            }
+          }
+          if (isSamePage) scroll()
+          else;
+          ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+        } else {
+          log.red(
+            `Could not search for a DOM node with an identity of "${id}"`,
+            {
+              id,
+              destination,
+              isSamePage,
+              duration,
+              action: action?.snapshot?.(),
+            },
+          )
         }
-        if (isSamePage) scroll()
-        else;
-        ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
-      } else {
-        log.red(`Could not search for a DOM node with an identity of "${id}"`, {
-          id,
-          destination,
-          isSamePage,
-          duration,
-          action: action?.snapshot?.(),
-        })
       }
-    }
 
-    if (!destinationParam.startsWith('http')) {
-      // Avoids letting page components (lower level components) from mutating the tab's url
-      if (ndomPage === app.mainPage) {
-        const originUrl = ndomPage.pageUrl
-        // ndomPage.pageUrl = app.parse.queryString({
-        //   destination,
-        //   pageUrl: ndomPage.pageUrl,
-        //   startPage: app.startPage,
-        // })
-        ndomPage.pageUrl = queryString({
-          destination,
-          pageUrl: originUrl,
-          startPage: app.startPage,
-        })
-        log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+      if (!destinationParam.startsWith('http')) {
+        // Avoids letting page components (lower level components) from mutating the tab's url
+        if (ndomPage === app.mainPage) {
+          const originUrl = ndomPage.pageUrl
+          ndomPage.pageUrl = app.parse.queryString({
+            destination,
+            pageUrl: ndomPage.pageUrl,
+            startPage: app.startPage,
+          })
+          log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+        } else {
+          // TODO - Move this to an official location in noodl-ui-dom
+          if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+            if (ndomPage.node.contentDocument?.body) {
+              ndomPage.node.contentDocument.body.textContent = ''
+            }
+          }
+        }
       } else {
-        // TODO - Move this to an official location in noodl-ui-dom
-        if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+        destination = destinationParam
+      }
+
+      log.grey(`Goto info`, {
+        gotoObject: { goto },
+        destinationParam,
+        isSamePage,
+        pageModifiers,
+        updatedQueryString: ndomPage?.pageUrl,
+      })
+
+      if (!isSamePage) {
+        if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
           if (ndomPage.node.contentDocument?.body) {
             ndomPage.node.contentDocument.body.textContent = ''
           }
         }
-      }
-    } else {
-      destination = destinationParam
-    }
-
-    log.grey(`Goto info`, {
-      gotoObject: { goto },
-      destinationParam,
-      isSamePage,
-      pageModifiers,
-      updatedQueryString: ndomPage?.pageUrl,
-    })
-
-    if (!isSamePage) {
-      if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
-        if (ndomPage.node.contentDocument?.body) {
-          ndomPage.node.contentDocument.body.textContent = ''
+        ndomPage.setModifier(destination, pageModifiers)
+        if (ndomPage.page && ndomPage.page !== destination) {
+          // delete app.noodl.root[ndomPage.page]
+        }
+        await app.navigate(ndomPage, destination, { isGoto: true })
+        if (!destination) {
+          log.func('goto')
+          log.red(
+            'Tried to go to a page but could not find information on the whereabouts',
+            { action: action?.snapshot?.(), options },
+          )
         }
       }
-
-      await app.navigate(ndomPage, destination)
-      if (!destination) {
-        log.func('goto')
-        log.red(
-          'Tried to go to a page but could not find information on the whereabouts',
-          { action: action?.snapshot?.(), options },
-        )
-      }
-    }
-  }
+    },
+  )
 
   const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
     async function getInjectBlob(action, options) {
@@ -853,7 +874,6 @@ const createActions = function createActions(app: App) {
           }
         }
 
-
         const params = { dataKey, dataObject }
         log.func('updateObject')
         log.grey(`Calling updateObject`, { params })
@@ -863,6 +883,42 @@ const createActions = function createActions(app: App) {
       console.error(error)
       toast(error.message, { type: 'error' })
     }
+  }
+
+  const getLocationAddress: Store.ActionObject['fn'] = async function onGetLocationAddress(
+    action,
+    options,
+  ){
+    log.func('getLocationAddress')
+    log.grey('', action?.snapshot?.())
+    const types = 'address'
+    const access_token = 'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
+    const host = 'https://api.mapbox.com/geocoding/v5/mapbox.places'
+    const dataKey = _pick(action, 'dataKey')
+    const longitude = localStorage.getItem('longitude')
+    const latitude = localStorage.getItem('latitude')
+    if(longitude && latitude){
+      await axios({
+        method: 'get',
+        url: `${host}/${longitude},${latitude}.json`,
+        params: {
+          // types: types,
+          limit: 1,
+          access_token: access_token
+        }
+      }).then((res)=>{
+        const place_name =  res['data']['features'][0]['place_name']
+        let dataObject = isRootDataKey(dataKey)
+          ? app.root
+          : app.root?.[pickNUIPageFromOptions(options)?.page || '']
+        if(place_name){
+          set(dataObject,dataKey,place_name)
+        }
+      }).catch((error)=>{
+        console.log(error)
+      })
+    }
+
   }
 
   return {
@@ -882,6 +938,7 @@ const createActions = function createActions(app: App) {
     saveSignature,
     toast: toastAction,
     updateObject,
+    getLocationAddress,
   }
 }
 

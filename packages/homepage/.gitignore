@@ -1,0 +1,5 @@
+.cache
+output
+node_modules
+public
+src/resources/assets
