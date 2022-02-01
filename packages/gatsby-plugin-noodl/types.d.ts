@@ -41,15 +41,24 @@ export interface PageContext {
   }
   slug: string
   _context_: {
-    lists?: Record<
-      string,
-      {
-        children: string[][]
-        id: string
-        listObject: any[]
-        iteratorVar: string
-        path: (string | number)[]
-      }
-    >
+    [page: string]: {
+      lists?: Record<
+        string,
+        {
+          children: string[][]
+          id: string
+          listObject: any[]
+          iteratorVar: string
+          path: (string | number)[]
+        }
+      >
+      componentRefs?: ComponentReferencesContext[]
+    }
   }
+}
+
+export interface ComponentReferencesContext {
+  page: string
+  path: string[]
+  reference: string
 }

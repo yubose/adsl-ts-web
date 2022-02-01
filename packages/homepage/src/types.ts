@@ -1,13 +1,16 @@
+import type { Draft } from 'immer'
+import type React from 'react'
 import * as nt from 'noodl-types'
 import type { LiteralUnion } from 'type-fest'
 import type { ActionChainStatus } from 'noodl-action-chain'
 import type { NUIAction, NUIActionObject, NUITrigger } from 'noodl-ui'
 import type { AppState } from './AppProvider'
-import { Draft } from 'immer'
 
 export type AppContext = AppState & {
-  set: ((draft: Draft<AppState>) => void) | Partial<AppState>
-  get: (key: string) => any
+  set: (
+    fnOrState: ((draft: Draft<AppState>) => void) | Partial<AppState>,
+  ) => void
+  get: (key: string, pageName?: string) => any
 }
 
 export type StaticComponentObject = nt.ComponentObject &
@@ -31,18 +34,34 @@ export interface PageContext {
   pageName: string
   pageObject: {
     components: StaticComponentObject[]
-  }
+  } & Record<string, any>
   slug: string
   _context_: {
-    lists?: Record<
-      string,
-      {
-        children: string[][]
-        id: string
-        listObject: any[]
-        iteratorVar: string
-        path: (string | number)[]
-      }
-    >
+    lists?: Record<string, PageContextListContextObject>
   }
+}
+
+export interface PageContextListContextObject {
+  children: string[][]
+  id: string
+  listObject: any[]
+  listObjectPath?: string
+  iteratorVar: string
+  path: (string | number)[]
+}
+
+export interface CreateElementProps<Props = any> {
+  key?: string
+  type: string
+  children?: CreateElementProps<Props>[]
+  style?: React.CSSProperties
+  [key: string]: any
+}
+
+export interface CommonRenderComponentHelpers {
+  _context_: PageContext['_context_']
+  getInRoot: AppContext['get']
+  pageName: string
+  root: AppContext['pages']
+  setInRoot: AppContext['set']
 }

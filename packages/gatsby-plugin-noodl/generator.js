@@ -172,7 +172,7 @@ async function monkeyPatchAddEventListener(opts) {
  * @param { string } [opts.ecosEnv]
  * @param { Use } [opts.use]
  * @param { On } [opts.on]
- * @returns { Promise<{ components: nt.ComponentObject[]; nui: typeof NUI; page: NuiPage; sdk: CADL; pages: Record<string, nt.PageObject>; transform: (componentProp: nt.ComponentObject, options: import('noodl-ui').ConsumerOptions) => Promise<NuiComponent.Instance> }> }
+ * @returns { Promise<{ cache: import('@aitmed/cadl')['cache']; components: nt.ComponentObject[]; nui: typeof NUI; page: NuiPage; sdk: CADL; pages: Record<string, nt.PageObject>; transform: (componentProp: nt.ComponentObject, options: import('noodl-ui').ConsumerOptions) => Promise<NuiComponent.Instance> }> }
  */
 async function getGenerator({
   configKey = 'www',
@@ -191,7 +191,7 @@ async function getGenerator({
     })
 
     // Intentionally using require
-    const { CADL } = require('@aitmed/cadl')
+    const { cache, CADL } = require('@aitmed/cadl')
 
     const sdk = new CADL({ cadlVersion: ecosEnv, configUrl })
 
@@ -217,7 +217,9 @@ async function getGenerator({
           if (sdk.cadlEndpoint.preload.includes(pageName)) {
             if (/^(Base[a-zA-Z0-9]+)/.test(pageName)) return
           }
-          await sdk.initPage(pageName, [], { wrapEvalObjects: false })
+          await sdk.initPage(pageName, ['listObject'], {
+            wrapEvalObjects: false,
+          })
           on?.initPage?.({ nui, pageName, pageObject: sdk.root[pageName], sdk })
           use.pages.json[pageName] = sdk.root[pageName]
           pages[pageName] = sdk.root[pageName]
@@ -261,13 +263,7 @@ async function getGenerator({
       return component
     }
 
-    return {
-      nui: NUI,
-      page,
-      pages,
-      sdk,
-      transform,
-    }
+    return { cache, nui: NUI, page, pages, sdk, transform }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     throw err
