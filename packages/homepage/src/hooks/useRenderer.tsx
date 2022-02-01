@@ -5,28 +5,29 @@ import useActionChain from '@/hooks/useActionChain'
 import useBuiltInFns from '@/hooks/useBuiltInFns'
 import useCtx from '@/useCtx'
 import usePageCtx from '@/usePageCtx'
+import type { ComponentPath, StaticComponentObject } from '@/types'
 
 function useRenderer() {
-  const { pages: root, get: getInRoot, set: setInRoot } = useCtx()
-  const pageCtx = usePageCtx()
+  const { root, getInRoot, setInRoot } = useCtx()
   const ac = useActionChain()
   const builtIns = useBuiltInFns()
+  const pageCtx = usePageCtx()
 
-  const renderComponent = React.useMemo(
+  const renderComponent: (
+    component: string | Partial<StaticComponentObject>,
+    path?: ComponentPath,
+  ) => React.ReactElement<any> = React.useMemo(
     () =>
-      createRendererFactory(
-        {
-          builtIns,
-          createActionChain: ac.createActionChain,
-          root,
-          getInRoot,
-          setInRoot,
-          pageName: pageCtx.pageName,
-          _context_: pageCtx._context_,
-        },
-        getElementProps,
-      ),
-    [ac.createActionChain, pageCtx, root],
+      createRendererFactory({
+        builtIns,
+        createActionChain: ac.createActionChain,
+        root,
+        getInRoot,
+        setInRoot,
+        pageName: pageCtx.pageName,
+        _context_: pageCtx._context_,
+      })(getElementProps),
+    [ac.createActionChain, builtIns, pageCtx, root, getInRoot, setInRoot],
   )
 
   return renderComponent

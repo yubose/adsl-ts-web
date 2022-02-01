@@ -1,13 +1,8 @@
 import React from 'react'
 import * as u from '@jsmanifest/utils'
-import { trimReference } from 'noodl-utils'
-import lodashGet from 'lodash/get'
-import has from 'lodash/has'
-import merge from 'lodash/merge'
-import produce, { Draft } from 'immer'
 import * as t from '@/types'
-import is from '@/utils/is'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
+import useRootObject from '@/hooks/useRootObject'
 import { Provider } from '@/useCtx'
 import log from '@/utils/log'
 
@@ -21,13 +16,10 @@ export const initialState = {
 
 function AppProvider({ children }: React.PropsWithChildren<any>) {
   const { allNoodlPage: noodlPages } = useGetNoodlPages()
-  const [state, _setState] = React.useState(() => {
-    /**
-     * This is run during build time so we have can use this data to generate the content for the rest of the pages
-     */
-    return {
-      ...initialState,
-      pages: u.reduce(
+
+  const initialRootValue = React.useMemo(
+    () =>
+      u.reduce(
         noodlPages?.nodes || [],
         (acc, node) => {
           try {
@@ -46,78 +38,35 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
         },
         {},
       ),
-    }
+    [],
+  )
+
+  const { root, getInRoot, setInRoot } = useRootObject({
+    root: initialRootValue,
+  })
+
+  const [state, _setState] = React.useState(() => {
+    /**
+     * This is run during build time so we have can use this data to generate
+     * the content for the rest of the pages
+     */
+    return { ...initialState, pages: initialRootValue }
   })
 
   React.useEffect(() => {
     window['log'] = log
   }, [])
 
-  const setState = React.useCallback(
-    (stateOrSetter: Partial<AppState> | ((draft: Draft<AppState>) => void)) => {
-      _setState(
-        produce((draft) => {
-          if (u.isFnc(stateOrSetter)) {
-            stateOrSetter(draft)
-          } else if (u.isObj(stateOrSetter)) {
-            merge(draft, stateOrSetter)
-          }
-        }),
-      )
-    },
-    [],
-  )
-
-  const get = React.useCallback(
-    (key = '', pageName = '') => {
-      if (u.isStr(key)) {
-        let result: any
-        pageName =
-          pageName ||
-          (typeof window !== 'undefined'
-            ? location.pathname.replace(/\//g, '')
-            : 'HomePage')
-
-        if (is.reference(key)) {
-          const path = trimReference(key)
-          const paths = path.split('.')
-          const dataObject = is.localReference(path)
-            ? state.pages[pageName]
-            : state.pages
-
-          if (!has(dataObject, paths)) {
-            log.error(
-              `%cThe path "${paths.join(
-                '.',
-              )}" does not exist in the root object`,
-              `color:#ec0000;`,
-              state.pages,
-            )
-          }
-
-          result = lodashGet(dataObject, paths)
-        } else {
-          const paths = key.includes('.') ? key.split('.') : [key]
-          result = has(state.pages, paths)
-            ? lodashGet(state.pages, paths)
-            : lodashGet(state.pages[pageName], paths)
-        }
-        log.debug(`[AppProvider] Get "${key}" result`, result)
-        return result
-      }
-    },
-    [state.pages],
-  )
-
   const ctx: t.AppContext = {
     ...state,
-    set: setState,
-    get,
+    root,
+    setInRoot,
+    getInRoot,
   }
 
   React.useEffect(() => {
     log.debug(`[AppProvider] Location: ${location.pathname}`, location.search)
-    window['get'] = get
+    window['getInRoot'] = getInRoot
     window['state'] = state
   }, [])
 

@@ -1,17 +1,12 @@
-import type { Draft } from 'immer'
 import type React from 'react'
 import * as nt from 'noodl-types'
 import type { LiteralUnion } from 'type-fest'
 import type { ActionChainStatus } from 'noodl-action-chain'
 import type { NUIAction, NUIActionObject, NUITrigger } from 'noodl-ui'
 import type { AppState } from './AppProvider'
+import type useRootObject from './hooks/useRootObject'
 
-export type AppContext = AppState & {
-  set: (
-    fnOrState: ((draft: Draft<AppState>) => void) | Partial<AppState>,
-  ) => void
-  get: (key: string, pageName?: string) => any
-}
+export type AppContext = AppState & ReturnType<typeof useRootObject>
 
 export type StaticComponentObject = nt.ComponentObject &
   Record<
@@ -53,15 +48,15 @@ export interface PageContextListContextObject {
 export interface CreateElementProps<Props = any> {
   key?: string
   type: string
-  children?: CreateElementProps<Props>[]
+  children?: string | number | (string | number | CreateElementProps<Props>)[]
   style?: React.CSSProperties
   [key: string]: any
 }
 
-export interface CommonRenderComponentHelpers {
+export interface CommonRenderComponentHelpers
+  extends Pick<AppContext, 'root' | 'getInRoot' | 'setInRoot'> {
   _context_: PageContext['_context_']
-  getInRoot: AppContext['get']
   pageName: string
-  root: AppContext['pages']
-  setInRoot: AppContext['set']
 }
+
+export type ComponentPath = (string | number)[]

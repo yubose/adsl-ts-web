@@ -9,14 +9,14 @@ import set from 'lodash/set'
 import getTagName from '@/utils/getTagName'
 import log from '@/utils/log'
 import * as t from '@/types'
+import is from '@/utils/is'
 
-export interface GetElementPropsUtils {
+export interface GetElementPropsUtils
+  extends Pick<t.AppContext, 'root' | 'getInRoot' | 'setInRoot'> {
   _context_: t.PageContext['_context_']
   createActionChain: ReturnType<typeof useActionChain>['createActionChain']
-  getInRoot: t.AppContext['get']
+  page?: string
   path?: (string | number)[]
-  root: t.AppContext['pages']
-  setInRoot: t.AppContext['set']
 }
 
 // TODO - Find out a better way to do this
@@ -45,18 +45,39 @@ function getElementProps<Props = any>(
     _context_,
     createActionChain,
     getInRoot,
+    page,
     path: componentPath = [],
     setInRoot,
     root,
   } = utils
 
   if (u.isStr(component)) {
-    return {
-      type: 'div',
-      children: component,
+    if (is.reference(component)) {
+      const referencedComponent = getInRoot(component, page)
+      if (u.isObj(referencedComponent)) {
+        return getElementProps(referencedComponent, utils)
+      } else {
+        log.error(
+          `Tried to retrieve a component by reference but ` +
+            `${typeof referencedComponent} was returned`,
+          { reference: component, ...utils },
+        )
+      }
     }
+
+    return { type: 'div', children: component }
   } else {
-    let { dataKey, id, type } = component
+    let _component = component as t.StaticComponentObject
+
+    if (is.componentByReference(component)) {
+      console.log({ componentByReference: component, root })
+
+      const refResult = getElementProps(u.keys(component)[0], utils)
+      console.log({ refResult })
+      return refResult
+    }
+
+    let { dataKey, id, type } = _component
 
     let props = {
       type: getTagName(type) || 'div',
@@ -68,7 +89,7 @@ function getElementProps<Props = any>(
     if (component.type === 'list') {
       const _pathStr = componentPath.join('.')
 
-      const refObject = u.values(_context_.lists).find((obj) => {
+      const refObject = u.values(_context_?.lists || {}).find((obj) => {
         const listObjectPath = obj?.listObjectPath
         return !!(listObjectPath && obj.path.join('.') === _pathStr)
       })
@@ -131,7 +152,7 @@ function getElementProps<Props = any>(
           const actions = obj?.actions || []
           const trigger = key as NUITrigger
           const actionChain = createActionChain?.(component, trigger, actions)
-          props[trigger] = actionChain.execute.bind(actionChain)
+          props[trigger] = actionChain?.execute?.bind?.(actionChain)
         }
       } else {
         if (!keysToStripRegex.test(key as string)) {

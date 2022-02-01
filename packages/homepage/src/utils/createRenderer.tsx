@@ -1,6 +1,5 @@
 import React from 'react'
 import { trimReference } from 'noodl-utils'
-import curry from 'lodash/curry'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
@@ -12,14 +11,12 @@ import type useBuiltInFns from '@/hooks/useBuiltInFns'
 import log from '@/utils/log'
 import is from '@/utils/is'
 
-export interface CreateRenderFactoryOptions {
+export interface CreateRenderFactoryOptions
+  extends Pick<t.AppContext, 'root' | 'getInRoot' | 'setInRoot'> {
   _context_: t.PageContext['_context_']
   builtIns?: ReturnType<typeof useBuiltInFns>
   createActionChain?: ReturnType<typeof useActionChain>['createActionChain']
   pageName: string
-  root: t.AppContext['pages']
-  getInRoot: t.AppContext['get']
-  setInRoot: t.AppContext['set']
 }
 
 export type RenderUtils = Pick<
@@ -32,30 +29,49 @@ export type RenderUtils = Pick<
   | 'setInRoot'
 > & { path?: (string | number)[] }
 
-const createRendererFactory = curry(
-  (
-    {
-      _context_,
-      builtIns,
-      createActionChain,
-      pageName,
-      getInRoot,
-      setInRoot,
-      root,
-    }: CreateRenderFactoryOptions,
+function createRendererFactory({
+  _context_,
+  builtIns,
+  createActionChain,
+  pageName,
+  getInRoot,
+  setInRoot,
+  root,
+}: CreateRenderFactoryOptions) {
+  return function createRenderer(
     fn: (
-      value: t.StaticComponentObject | nt.ReferenceString,
+      value: Partial<t.StaticComponentObject> | string,
       utils: RenderUtils,
     ) => t.CreateElementProps<any> | null,
-  ) => {
-    return function render(
-      value: Partial<t.StaticComponentObject> | string,
+  ) {
+    /**
+     * Render a NOODL component in one of several ways:
+     *   1. Reference (string)
+     *   2. ReactNode (string)
+     *   3. StaticComponentObject (parsed component object)
+     *
+     * @example
+     * ```jsx
+     * const component1 = renderComponent('.BaseHeader')
+     * const component2 = renderComponent('Submit')
+     * const component3 = renderComponent({
+     *   type: 'button',
+     *   text: 'Submit',
+     *   onClick: [{ emit: { actions: [], dataKey: { var1: 'itemObject' } } }]
+     * })
+     *
+     * ```
+     * @returns { React.ReactElement } React element
+     */
+    return function renderComponent(
+      value: Parameters<typeof fn>[0],
       path?: (string | number)[],
     ) {
       let reference: string | undefined
 
       if (path) {
         const _pathStr = path.join('.')
+
         if (_pathStr) {
           const listContextObject = u.values(_context_.lists).find((obj) => {
             return (
@@ -89,9 +105,11 @@ const createRendererFactory = curry(
         if (is.reference(value)) {
           reference = value
           value = getInRoot(reference) as t.StaticComponentObject
+
           if (!value) {
             log.error(
-              `Did not receive a component object using path referenced in "${reference}". Received a(n) "${typeof value}" instead`,
+              `Did not receive a component object using path referenced in "${reference}". ` +
+                `Received a(n) "${typeof value}" instead`,
               { path, reference },
             )
           }
@@ -137,7 +155,7 @@ const createRendererFactory = curry(
             )
           } else {
             _children.push(
-              <React.Fragment key={renderKey}>{props}</React.Fragment>,
+              <React.Fragment key={renderKey}>{childProps}</React.Fragment>,
             )
           }
           index++
@@ -152,7 +170,7 @@ const createRendererFactory = curry(
 
       return renderElements(u.assign({ path }, props, { type, key, children }))
     }
-  },
-)
+  }
+}
 
 export default createRendererFactory

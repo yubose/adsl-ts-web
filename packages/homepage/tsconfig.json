@@ -9,6 +9,7 @@
     "importHelpers": true,
     "isolatedModules": true,
     "jsx": "preserve",
+    "keyofStringsOnly": true,
     "lib": ["dom", "dom.iterable", "esnext"],
     "module": "esnext",
     "moduleResolution": "node",

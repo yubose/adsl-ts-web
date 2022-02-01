@@ -153,7 +153,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
             const err =
               error instanceof Error ? error : new Error(String(error))
             if (axios.isAxiosError(err)) {
-              if (err.response.status === 404) {
+              if (err.response?.status === 404) {
                 log.warn(
                   `The asset "${asset.url}" returned a ${u.red(
                     '404 Not Found',
@@ -489,7 +489,6 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   // }
 
   const componentReferencesNodeContent = findListObjectRefs(cache.pages)
-  data.componentReferencesNodeContent = componentReferencesNodeContent
 
   createNode({
     name: 'ComponentReference',

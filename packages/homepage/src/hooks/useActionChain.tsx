@@ -35,7 +35,7 @@ export interface ExecuteHelpers {
 }
 
 function useActionChain() {
-  const { pages: root, get: getInRoot, set: setInRoot } = useCtx()
+  const { root, getInRoot, setInRoot } = useCtx()
   const pageCtx = usePageCtx()
   const { handleBuiltInFn, ...builtIns } = useBuiltInFns()
 
@@ -277,9 +277,9 @@ function useActionChain() {
                     if (k.endsWith('@')) {
                       let keyDataPath = trimReference(k)
                       setInRoot((draft) => {
-                        let dataObject = draft.pages
+                        let dataObject = draft.root
                         if (is.localReference(k)) {
-                          dataObject = draft[pageCtx.pageName]
+                          dataObject = draft.root[pageCtx.pageName]
                         }
                         set(dataObject, keyDataPath, v)
                       })
@@ -429,7 +429,7 @@ function useActionChain() {
       actionChain.loadQueue()
       return actionChain
     },
-    [root, pageCtx],
+    [root, getInRoot, setInRoot, pageCtx],
   )
 
   return {

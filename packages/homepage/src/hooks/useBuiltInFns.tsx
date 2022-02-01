@@ -93,7 +93,7 @@ function getBuiltInFns({
     [`=.builtIn.object.setProperty`]: createFn(
       ({ dataObject, dataIn, dataOut }) => {
         setInRoot((draft) => {
-          const _dataIn = get(draft.pages, 'Resource.baseHeaderData')
+          const _dataIn = get(draft.root, 'Resource.baseHeaderData')
           const arr = u.array(_dataIn?.obj).filter(Boolean)
           const numItems = arr.length
           for (let index = 0; index < numItems; index++) {
@@ -129,7 +129,7 @@ function useBuiltInFns() {
   ) {
     const fn = builtIns[key]
     if (u.isFnc(fn)) {
-      return fn.apply.call(this, args)
+      return fn(...args)
     } else {
       log.error(
         `%cYou are missing the builtIn implementation for "${key}"`,
@@ -145,10 +145,10 @@ function useBuiltInFns() {
         u.entries(
           getBuiltInFns({
             _context_: pageCtx._context_,
-            getInRoot: ctx.get,
+            getInRoot: ctx.getInRoot,
             pageName: pageCtx.pageName,
-            root: ctx.pages,
-            setInRoot: ctx.set,
+            root: ctx.root,
+            setInRoot: ctx.setInRoot,
           }),
         ),
         (acc, [key, fn]) => {
