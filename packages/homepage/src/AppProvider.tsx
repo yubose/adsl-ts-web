@@ -28,7 +28,7 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
     return {
       ...initialState,
       pages: u.reduce(
-        noodlPages.nodes,
+        noodlPages?.nodes || [],
         (acc, node) => {
           try {
             /**
@@ -69,13 +69,14 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
   )
 
   const get = React.useCallback(
-    (key = '') => {
+    (key = '', pageName = '') => {
       if (u.isStr(key)) {
         let result: any
-        let pageName =
-          typeof window !== 'undefined'
-            ? location.pathname.replace('/', '')
-            : 'HomePage'
+        pageName =
+          pageName ||
+          (typeof window !== 'undefined'
+            ? location.pathname.replace(/\//g, '')
+            : 'HomePage')
 
         if (is.reference(key)) {
           const path = trimReference(key)

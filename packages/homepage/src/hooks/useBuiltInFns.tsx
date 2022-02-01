@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import { trimReference } from 'noodl-utils'
-import produce, { Draft } from 'immer'
+import produce from 'immer'
 import React from 'react'
 import get from 'lodash/get'
 import useCtx from '@/useCtx'
@@ -9,14 +9,16 @@ import log from '@/utils/log'
 import is from '@/utils/is'
 import * as t from '@/types'
 
+export interface BuiltInFnProps {
+  dataObject: any
+  dataIn: Record<string, any>
+  dataOut?: string
+}
+
 // Using for TypeScript to pick up the args
 const createFn =
   <
-    Args extends {
-      dataObject: any
-      dataIn: Record<string, any>
-      dataOut?: string
-    } = {
+    Args extends BuiltInFnProps = {
       dataObject: any
       dataIn: Record<string, any>
       dataOut?: string
@@ -28,8 +30,17 @@ const createFn =
     fn(opts)
 
 function purgeReferences(
-  { ctx, pageName, dataObject, dataIn, dataOut, ...rest },
-  fn?: any,
+  {
+    getInRoot,
+    pageName,
+    dataObject,
+    dataIn,
+    dataOut,
+    root,
+    setInRoot,
+    ...rest
+  }: t.CommonRenderComponentHelpers & BuiltInFnProps,
+  fn?: (args: BuiltInFnProps) => any,
 ) {
   return produce(dataIn, (draft) => {
     for (const [key, value] of u.entries(draft)) {
@@ -43,7 +54,7 @@ function purgeReferences(
             pageName && paths.push(pageName)
           }
           paths.push(...trimReference(value).split('.'))
-          const result = ctx.get(paths.join('.'))
+          const result = getInRoot(paths.join('.'))
           draft[key] = result
         }
       }
@@ -57,21 +68,32 @@ function purgeReferences(
   })
 }
 
-function getBuiltInFns({ ctx, pageName, pages: root, ...opts }: t.AppContext) {
+function getBuiltInFns({
+  _context_,
+  getInRoot,
+  pageName,
+  root,
+  setInRoot,
+}: t.CommonRenderComponentHelpers) {
   const builtIns = {
     [`=.builtIn.string.equal`]: createFn(({ dataIn, ...rest }) => {
-      dataIn = purgeReferences({ ctx, pageName, dataIn, ...rest })
+      dataIn = purgeReferences({
+        _context_,
+        getInRoot,
+        pageName,
+        dataIn,
+        root,
+        setInRoot,
+        ...rest,
+      })
       const str1 = String(dataIn?.string1 || '')
       const str2 = String(dataIn?.string2 || '')
-      debugger
       return str1 === str2
     }),
     [`=.builtIn.object.setProperty`]: createFn(
       ({ dataObject, dataIn, dataOut }) => {
-        ctx.set((draft) => {
-          draft.pages.as = 'f'
-          const _dataIn = draft.pages.Resource.baseHeaderData
-          // const _dataIn = objs.dataIn
+        setInRoot((draft) => {
+          const _dataIn = get(draft.pages, 'Resource.baseHeaderData')
           const arr = u.array(_dataIn?.obj).filter(Boolean)
           const numItems = arr.length
           for (let index = 0; index < numItems; index++) {
@@ -90,8 +112,6 @@ function getBuiltInFns({ ctx, pageName, pages: root, ...opts }: t.AppContext) {
             }
           }
         })
-
-        debugger
       },
     ),
   }
@@ -103,22 +123,34 @@ function useBuiltInFns() {
   const ctx = useCtx()
   const pageCtx = usePageCtx()
 
-  const handleBuiltInFn = React.useCallback((key = '', ...args: any[]) => {
+  const handleBuiltInFn = React.useCallback(function _handleBuiltInFn(
+    key = '',
+    ...args: any[]
+  ) {
     const fn = builtIns[key]
     if (u.isFnc(fn)) {
-      return (fn as any)(...args)
+      return fn.apply.call(this, args)
     } else {
       log.error(
         `%cYou are missing the builtIn implementation for "${key}"`,
         `color:#ec0000;`,
       )
     }
-  }, [])
+  },
+  [])
 
   const builtIns = React.useMemo(
     () =>
       u.reduce(
-        u.entries(getBuiltInFns({ ctx, pageName: pageCtx.pageName })),
+        u.entries(
+          getBuiltInFns({
+            _context_: pageCtx._context_,
+            getInRoot: ctx.get,
+            pageName: pageCtx.pageName,
+            root: ctx.pages,
+            setInRoot: ctx.set,
+          }),
+        ),
         (acc, [key, fn]) => {
           acc[key] = fn
           // acc[key] = function onBeforeBuiltInInvocation({
@@ -160,7 +192,7 @@ function useBuiltInFns() {
         },
         {} as typeof getBuiltInFns,
       ),
-    [ctx.pages, pageCtx.pageName],
+    [ctx, pageCtx],
   )
 
   return {

@@ -23,7 +23,14 @@
   },
   "description": "AiTmed's landing (home) page",
   "devDependencies": {
-    "tsconfig-paths-webpack-plugin": "^3.5.2"
+    "@babel/preset-typescript": "^7.16.7",
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
+    "babel-preset-gatsby": "^2.6.0",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^27.4.7",
+    "tsconfig-paths-webpack-plugin": "^3.5.2",
+    "tslib": "^1.14.1"
   },
   "eslintConfig": {
     "overrides": [
@@ -125,49 +132,44 @@
   "jest": {
     "cacheDirectory": "<rootDir>/.cache/unit",
     "globals": {
-      "__PATH_PREFIX__": "",
-      "ts-jest": {
-        "tsconfig": "tsconfig.spec.json"
-      }
+      "__PATH_PREFIX__": ""
     },
     "moduleDirectories": [
       "node_modules",
       "src"
     ],
     "moduleFileExtensions": [
+      "js",
       "ts",
       "tsx",
-      "js",
-      "jsx",
-      "json",
-      "node"
+      "json"
     ],
     "moduleNameMapper": {
       ".+\\.(css|styl|less|sass|scss)$": "identity-obj-proxy",
-      ".+\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/file-mock.js",
+      ".+\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/jest/__mocks__/file-mock.js",
       "@/(.*)": "<rootDir>/src/$1"
     },
-    "preset": "ts-jest",
     "rootDir": ".",
     "setupFiles": [
-      "<rootDir>/__helpers__/loadershim.js"
+      "<rootDir>/jest/loadershim.js"
     ],
     "setupFilesAfterEnv": [
-      "<rootDir>/__helpers__/setup.ts"
+      "<rootDir>/jest/jest.setup.js"
     ],
     "testEnvironment": "jsdom",
     "testPathIgnorePatterns": [
-      "<rootDir>/__mocks__/*",
+      "<rootDir>/jest/__mocks__/*",
       "node_modules",
       "\\.cache",
       "<rootDir>.*/public"
     ],
-    "testURL": "http://localhost",
+    "testURL": "http://127.0.0.1",
     "transform": {
-      "^.+\\.[tj]sx?$": "ts-jest"
+      "^.+\\.tsx?$": "<rootDir>/jest/jest-preprocess.js"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(gatsby)/)"
+      "node_modules/(?!(gatsby)/)",
+      "\\.cache"
     ]
   },
   "keywords": [
@@ -196,7 +198,8 @@
     "format": "prettier --write '**/*.{js,jsx,ts,tsx,json,md}'",
     "serve": "gatsby serve -p 3000",
     "start": "gatsby develop -p 3000",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "version": "0.1.0"
 }

@@ -12,13 +12,13 @@ import {
 } from 'noodl-ui'
 import type { NUIActionObject, NUITrigger } from 'noodl-ui'
 import useBuiltInFns from '@/hooks/useBuiltInFns'
-import * as t from '@/types'
-import { getListDataObject } from '@/utils/pageCtx'
 import isBuiltInEvalFn from '@/utils/isBuiltInEvalFn'
 import useCtx from '@/useCtx'
 import usePageCtx from '@/usePageCtx'
 import is from '@/utils/is'
 import log from '@/utils/log'
+import { getListDataObject } from '@/utils/pageCtx'
+import * as t from '@/types'
 
 export interface UseActionChainOptions {}
 
@@ -49,6 +49,10 @@ function useActionChain() {
 
       const { dataObject, iteratorVar = '' } =
         getListDataObject(pageCtx._context_.lists, component, {
+          getInRoot,
+          setInRoot,
+          pageName: pageCtx.pageName,
+          root,
           include: ['iteratorVar'],
         }) || {}
 
@@ -77,10 +81,13 @@ function useActionChain() {
           )
         }
 
-        action.executor = (function (actions = [], dataObject) {
-          return async function onExecuteEmitAction(event) {
+        action.executor = (function (actions: any[] = [], dataObject) {
+          return async function onExecuteEmitAction(
+            event: React.SyntheticEvent,
+          ) {
             try {
               const results = [] as any[]
+
               try {
                 for (const actionObject of actions) {
                   const result = await execute({
@@ -90,15 +97,16 @@ function useActionChain() {
                     event,
                     trigger,
                   })
-                  if (result === 'abort') {
-                    log.debug(`Received "abort"`)
-                  } else results.push(result)
+
+                  if (result === 'abort') log.debug(`Received "abort"`)
+                  else results.push(result)
                 }
               } catch (error) {
                 const err =
                   error instanceof Error ? error : new Error(String(error))
                 log.error(`%c[${err.name}] ${err.message}`, err)
               }
+
               log.debug(
                 `%c[onExecuteEmitAction] Emit actions (results)`,
                 'color:gold',
@@ -119,7 +127,7 @@ function useActionChain() {
         // TODO
       }
     },
-    [pageCtx],
+    [root, pageCtx],
   )
 
   /**
@@ -140,7 +148,7 @@ function useActionChain() {
         })
       }
     },
-    [],
+    [root, pageCtx],
   )
 
   const execute = React.useCallback(
@@ -216,11 +224,10 @@ function useActionChain() {
                 const el = document.querySelector(`[data-viewtag=${viewTag}]`)
                 if (el) {
                 }
-                // debugger
               }
             }
           } else if (is.folds.emit(obj)) {
-            // debugger
+            debugger
           } else if (is.action.evalObject(obj)) {
             for (const object of u.array(obj.object)) {
               await wrapWithHelpers(onExecuteAction)({
@@ -239,13 +246,11 @@ function useActionChain() {
               value = await onExecuteAction({ action: cond }, utils)
             } else if (isBuiltInEvalFn(cond)) {
               const key = u.keys(cond)[0] as string
-              // if (obj.if[1]?.popUpView === 'productView') debugger
               const result = await handleBuiltInFn(key, {
                 dataObject,
                 ...cond[key],
               })
               value = result ? truthy : falsy
-              // if (obj.if[1]?.popUpView === 'productView') debugger
               log.debug(`%c[if][${key}] Returned:`, `color:#c4a901;`, result)
             }
 
@@ -344,12 +349,12 @@ function useActionChain() {
         log.error(err)
       }
     }),
-    [root, pageCtx.pageName],
+    [root, pageCtx],
   )
 
   const createActionChain = React.useCallback(
     (
-      component: t.StaticComponentObject,
+      component: Partial<t.StaticComponentObject>,
       trigger: NUITrigger,
       actions?: NUIActionObject | NUIActionObject[],
     ) => {
@@ -424,7 +429,7 @@ function useActionChain() {
       actionChain.loadQueue()
       return actionChain
     },
-    [],
+    [root, pageCtx],
   )
 
   return {

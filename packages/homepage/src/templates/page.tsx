@@ -1,4 +1,5 @@
 import React from 'react'
+import * as u from '@jsmanifest/utils'
 import { PageProps } from 'gatsby'
 import Seo from '@/components/Seo'
 import useRenderer from '@/hooks/useRenderer'
@@ -20,8 +21,8 @@ if (typeof window !== 'undefined') {
 
 function NoodlPageTemplate(props: NoodlPageTemplateProps) {
   const { pageContext } = props
-  const { pageObject } = pageContext
-  const renderer = useRenderer()
+  const { pageName, pageObject } = pageContext
+  const render = useRenderer()
 
   React.useEffect(() => {
     log.debug(`Props`, props)
@@ -30,11 +31,13 @@ function NoodlPageTemplate(props: NoodlPageTemplateProps) {
   return (
     <>
       <Seo />
-      {pageObject.components?.map?.((c: t.StaticComponentObject) => (
-        <React.Fragment key={c.id}>
-          {renderer.renderComponent(c)}
-        </React.Fragment>
-      )) || null}
+      {pageObject?.components?.map?.(
+        (c: t.StaticComponentObject | string, index) => (
+          <React.Fragment key={u.isStr(c) ? c : c.id || c.dataKey || index}>
+            {render(c, [pageName, 'components', index])}
+          </React.Fragment>
+        ),
+      ) || null}
     </>
   )
 }
