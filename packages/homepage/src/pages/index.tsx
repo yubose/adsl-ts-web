@@ -20,9 +20,9 @@ interface HomepageProps extends PageProps {
 function Homepage(props: PageProps) {
   const { pageContext } = props
   const pageName = 'HomePage'
-  const pageObject = pageContext.pageObject
+  const { pageObject } = pageContext
 
-  const renderer = useRenderer()
+  const render = useRenderer()
 
   React.useEffect(() => {
     log.debug(`Props`, props)
@@ -33,11 +33,13 @@ function Homepage(props: PageProps) {
   return (
     <>
       <Seo />
-      {pageObject.components?.map?.((c: t.StaticComponentObject) => (
-        <React.Fragment key={c.id}>
-          {renderer.renderComponent(c)}
-        </React.Fragment>
-      )) || null}
+      {pageObject.components?.map?.(
+        (c: t.StaticComponentObject, index: number) => (
+          <React.Fragment key={c.id}>
+            {render(c, [pageName, 'components', index])}
+          </React.Fragment>
+        ),
+      ) || null}
     </>
   )
 }

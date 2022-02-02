@@ -47,13 +47,13 @@ module.exports = {
         // If we provide this assets will be downloaded to this path.
         // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
         // NOTE: If we do this we need to point to this path via `gatsby-source-filesystem` (look below for src/resources/images for an example)
-        assets: `${__dirname}/src/resources/assets`,
+        // assets: `${__dirname}/src/resources/assets`,
         config: process.env.NOODL_CONFIG || 'web',
         loglevel: 'debug',
         // If introspection is true, it will dump all of the noodl pages in json to the output path specified below as "<config>.introspection.json" after they have all been parsed and are about to be inserted as GraphQL nodes
-        introspection: true,
+        // introspection: true,
         // If we provide this path the yml files/assets will be made available
-        path: `${__dirname}/output`,
+        // path: `${__dirname}/output`,
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
           width: 1024,

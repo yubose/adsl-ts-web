@@ -24,7 +24,8 @@
       ],
       "@/consts": ["./src/constants.ts"],
       "@/hooks/*": ["./src/hooks/*"],
-      "@/static/*": ["./static/*"]
+      "@/static/*": ["./src/static/*"],
+      "@/test-utils": ["./src/__tests__/test-utils.tsx"]
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,

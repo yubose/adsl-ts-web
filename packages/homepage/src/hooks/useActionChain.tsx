@@ -3,6 +3,7 @@ import * as u from '@jsmanifest/utils'
 import React from 'react'
 import get from 'lodash/get'
 import set from 'lodash/set'
+import produce, { createDraft, isDraft, current, finishDraft } from 'immer'
 import { navigate } from 'gatsby'
 import { excludeIteratorVar, trimReference } from 'noodl-utils'
 import {
@@ -17,13 +18,18 @@ import useCtx from '@/useCtx'
 import usePageCtx from '@/usePageCtx'
 import is from '@/utils/is'
 import log from '@/utils/log'
-import { getListDataObject } from '@/utils/pageCtx'
+import {
+  getIteratorVar,
+  getListDataObject,
+  isListConsumer,
+} from '@/utils/pageCtx'
 import * as t from '@/types'
 
 export interface UseActionChainOptions {}
 
 export interface ExecuteArgs {
   action: Record<string, any> | string
+  actionChain: NUIActionChain
   component?: t.StaticComponentObject
   dataObject?: any
   event?: React.SyntheticEvent
@@ -41,6 +47,7 @@ function useActionChain() {
 
   const createEmit = React.useCallback(
     (
+      actionChain,
       component: t.StaticComponentObject,
       trigger: NUITrigger,
       emitObject: nt.EmitObjectFold,
@@ -50,10 +57,9 @@ function useActionChain() {
       const { dataObject, iteratorVar = '' } =
         getListDataObject(pageCtx._context_.lists, component, {
           getInRoot,
-          setInRoot,
+          include: ['iteratorVar'],
           pageName: pageCtx.pageName,
           root,
-          include: ['iteratorVar'],
         }) || {}
 
       if (dataObject) {
@@ -92,6 +98,7 @@ function useActionChain() {
                 for (const actionObject of actions) {
                   const result = await execute({
                     action: actionObject,
+                    actionChain,
                     component,
                     dataObject,
                     event,
@@ -153,7 +160,7 @@ function useActionChain() {
 
   const execute = React.useCallback(
     wrapWithHelpers(async function onExecuteAction(
-      { action: obj, component, dataObject, event, trigger = '' },
+      { action: obj, actionChain, component, dataObject, event, trigger = '' },
       utils,
     ) {
       try {
@@ -162,7 +169,18 @@ function useActionChain() {
           let destination = obj
           let scrollingTo = ''
 
-          if (is.reference(destination)) destination = getInRoot(destination)
+          if (is.reference(destination)) {
+            // Temp hard code for now
+            if (destination === '.WebsitePathSearch') {
+              destination = 'https://search.aitmed.com'
+            } else {
+              destination = getInRoot(
+                actionChain.data.get('rootDraft') || root,
+                destination,
+                pageCtx.pageName,
+              )
+            }
+          }
           // These are values coming from an if object evaluation since we are also using this function for if object strings
           if (is.isBoolean(destination)) return is.isBooleanTrue(destination)
 
@@ -173,10 +191,37 @@ function useActionChain() {
               // TODO - Handle goto scrolls when navigating to a different page
               scrollingTo = destination.substring(1)
               destination = destination.replace('^', '')
+            } else if (isListConsumer(pageCtx._context_, component)) {
+              const { dataObject, iteratorVar } = getListDataObject(
+                pageCtx._context_?.lists,
+                component,
+                {
+                  root,
+                  getInRoot,
+                  include: ['iteratorVar'],
+                  pageName: pageCtx.pageName,
+                },
+              )
+              if (iteratorVar && destination.startsWith(iteratorVar)) {
+                const originalDest = destination
+                destination = get(
+                  dataObject,
+                  excludeIteratorVar(destination, iteratorVar),
+                )
+                if (!destination) {
+                  log.error(
+                    `A list child using path "${originalDest}" received typeof ${destination}`,
+                    { action: obj, actionChain, component, dataObject },
+                  )
+                }
+              }
             }
           }
 
-          if ((destination && root[destination]) || scrollingTo) {
+          if (
+            !destination?.startsWith?.('http') &&
+            (destination || scrollingTo)
+          ) {
             let scrollingToElem: HTMLElement | undefined
             let prevId = ''
 
@@ -212,7 +257,7 @@ function useActionChain() {
             let destination = obj.goto
             if (u.isObj(destination)) destination = destination.goto
             if (u.isStr(destination)) {
-              return execute({ action: destination })
+              return execute({ action: destination, actionChain, component })
             } else {
               throw new Error(`Goto destination was not a string`)
             }
@@ -227,11 +272,12 @@ function useActionChain() {
               }
             }
           } else if (is.folds.emit(obj)) {
-            debugger
+            // debugger
           } else if (is.action.evalObject(obj)) {
             for (const object of u.array(obj.object)) {
               await wrapWithHelpers(onExecuteAction)({
                 action: object,
+                actionChain,
                 component,
                 dataObject,
                 event,
@@ -243,10 +289,14 @@ function useActionChain() {
             let value: any
 
             if (u.isStr(cond)) {
-              value = await onExecuteAction({ action: cond }, utils)
+              value = await onExecuteAction(
+                { action: cond, actionChain },
+                utils,
+              )
             } else if (isBuiltInEvalFn(cond)) {
               const key = u.keys(cond)[0] as string
               const result = await handleBuiltInFn(key, {
+                actionChain,
                 dataObject,
                 ...cond[key],
               })
@@ -264,7 +314,10 @@ function useActionChain() {
               //
             } else if (u.isStr(value)) {
               if (is.reference(value)) {
-                value = await onExecuteAction({ action: value }, utils)
+                value = await onExecuteAction(
+                  { action: value, actionChain },
+                  utils,
+                )
               }
             } else if (u.isBool(value)) {
               value = value ? truthy : falsy
@@ -272,23 +325,29 @@ function useActionChain() {
 
             if (u.isObj(value)) {
               if (utils.requiresDynamicHandling(value)) {
+                log.debug(
+                  `%c[if] Dynamically handling a value from an if object result`,
+                  `color:#c4a901;`,
+                  value,
+                )
                 for (const [k, v] of u.entries(value)) {
                   if (is.reference(k)) {
                     if (k.endsWith('@')) {
-                      let keyDataPath = trimReference(k)
-                      setInRoot((draft) => {
-                        let dataObject = draft.root
-                        if (is.localReference(k)) {
-                          dataObject = draft.root[pageCtx.pageName]
-                        }
-                        set(dataObject, keyDataPath, v)
-                      })
+                      const keyDataPath = trimReference(k)
+                      const rootDraft = actionChain.data.get('rootDraft')
+                      if (is.localReference(k)) {
+                        set(rootDraft[pageCtx.pageName], keyDataPath, v)
+                      } else {
+                        set(rootDraft, keyDataPath, v)
+                      }
                     }
                   }
                 }
               } else {
                 value = await wrapWithHelpers(onExecuteAction)({
                   action: value,
+                  actionChain,
+                  component,
                 })
               }
             }
@@ -330,7 +389,11 @@ function useActionChain() {
             if (keys.length === 1) {
               const key = keys[0] as string
               if (isBuiltInEvalFn(obj)) {
-                result = await handleBuiltInFn(key, { dataObject, ...obj[key] })
+                result = await handleBuiltInFn(key, {
+                  actionChain,
+                  dataObject,
+                  ...obj[key],
+                })
                 log.debug(`%c[${key}] Result`, `color:#01a7c4;`, result)
               }
             } else {
@@ -349,7 +412,7 @@ function useActionChain() {
         log.error(err)
       }
     }),
-    [root, pageCtx],
+    [root, getInRoot, setInRoot, pageCtx],
   )
 
   const createActionChain = React.useCallback(
@@ -362,7 +425,8 @@ function useActionChain() {
 
       const actionChain = nuiCreateActionChain(trigger, actions, (actions) => {
         return actions.map((obj) => {
-          if (is.folds.emit(obj)) return createEmit(component, trigger, obj)
+          if (is.folds.emit(obj))
+            return createEmit(actionChain, component, trigger, obj)
 
           const nuiAction = createAction({ action: obj, trigger })
 
@@ -371,6 +435,7 @@ function useActionChain() {
           ) {
             const result = await execute({
               action: obj,
+              actionChain,
               component,
               event,
               trigger,
@@ -389,14 +454,14 @@ function useActionChain() {
 
       const getArgs = function (args: IArguments | any[]) {
         if (args.length) {
-          args = [...args].filter(Boolean)
+          args = Array.from(args).filter(Boolean)
           return args.length ? args : ''
         }
         return ''
       }
 
       actionChain.use({
-        onExecuteStart() {
+        onExecuteStart(this: NUIActionChain) {
           log.debug(
             `%c[${trigger}-onExecuteStart] ${actionChain.id}`,
             `color:skyblue`,

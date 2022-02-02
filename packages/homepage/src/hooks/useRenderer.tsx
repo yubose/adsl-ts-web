@@ -27,7 +27,7 @@ function useRenderer() {
         pageName: pageCtx.pageName,
         _context_: pageCtx._context_,
       })(getElementProps),
-    [ac.createActionChain, builtIns, pageCtx, root, getInRoot, setInRoot],
+    [pageCtx, root],
   )
 
   return renderComponent

@@ -8,17 +8,14 @@ import log from '@/utils/log'
 
 log.setLevel('DEBUG')
 
-export type AppState = typeof initialState
-
-export const initialState = {
-  pages: {},
-}
-
-function AppProvider({ children }: React.PropsWithChildren<any>) {
+function AppProvider({
+  children,
+  initialRoot,
+}: React.PropsWithChildren<{ initialRoot?: Record<string, any> }>) {
   const { allNoodlPage: noodlPages } = useGetNoodlPages()
 
-  const initialRootValue = React.useMemo(
-    () =>
+  const { root, getInRoot, setInRoot } = useRootObject(
+    initialRoot ||
       u.reduce(
         noodlPages?.nodes || [],
         (acc, node) => {
@@ -29,50 +26,34 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
              */
             acc[node.name] = u.omit(JSON.parse(node.content), ['components'])
           } catch (error) {
-            console.error(
-              error instanceof Error ? error : new Error(String(error)),
-            )
+            log.error(error instanceof Error ? error : new Error(String(error)))
           }
 
           return acc
         },
         {},
       ),
-    [],
   )
 
-  const { root, getInRoot, setInRoot } = useRootObject({
-    root: initialRootValue,
-  })
-
-  const [state, _setState] = React.useState(() => {
-    /**
-     * This is run during build time so we have can use this data to generate
-     * the content for the rest of the pages
-     */
-    return { ...initialState, pages: initialRootValue }
-  })
-
-  React.useEffect(() => {
-    window['log'] = log
-  }, [])
-
-  const ctx: t.AppContext = {
-    ...state,
-    root,
-    setInRoot,
-    getInRoot,
-  }
+  const ctx: t.AppContext = React.useMemo(
+    () => ({
+      root,
+      setInRoot,
+      getInRoot,
+    }),
+    [root],
+  )
 
   React.useEffect(() => {
     log.debug(`[AppProvider] Location: ${location.pathname}`, location.search)
     window['getInRoot'] = getInRoot
-    window['state'] = state
+    window['log'] = log
+    window['root'] = ctx.root
   }, [])
 
   React.useEffect(() => {
-    log.debug(`[AppProvider] AppState`, state)
-  }, [state])
+    log.debug(`[AppProvider] Root`, ctx.root)
+  }, [ctx.root])
 
   return <Provider value={ctx}>{children}</Provider>
 }

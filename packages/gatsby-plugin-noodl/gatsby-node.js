@@ -1,5 +1,3 @@
-const { createRemoteFileNode } = require('gatsby-source-filesystem')
-
 /**
  * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/
  * https://www.gatsbyjs.com/docs/reference/config-files/node-api-helpers/
@@ -11,11 +9,9 @@ const log = require('loglevel')
 const fs = require('fs-extra')
 const nt = require('noodl-types')
 const get = require('lodash/get')
-const has = require('lodash/has')
 const set = require('lodash/set')
 const path = require('path')
-const { trimReference } = require('noodl-utils')
-const { getGenerator } = require('./generator')
+const getGenerator = require('./generator')
 const utils = require('./utils')
 
 log.setDefaultLevel('INFO')
@@ -246,16 +242,13 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
             path: [index],
           },
           on: {
-            /**
-             * Called for every component creation (depth-first)
-             */
+            /** Called for every component creation (depth-first) */
             createComponent(comp, opts) {
-              const { path: componentPath, page } = opts || {}
+              const { path: componentPath } = opts || {}
               if (!data._context_[pageName]) data._context_[pageName] = {}
 
               if (nt.Identify.component.list(comp)) {
                 const listObject = comp.get('listObject') || []
-
                 /**
                  * This gets passed to props.pageContext inside NoodlPageTemplate
                  */
@@ -265,42 +258,16 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                   children: [],
                   iteratorVar: comp.blueprint.iteratorVar,
                   listObject,
+                  // This path is used to map list objects to their reference getters in the client
                   path: [pageName, 'components', ...componentPath],
                 })
-              } else if (
-                [nt.Identify.component.image, nt.Identify.component.popUp].some(
-                  (fn) => fn(comp),
-                )
-              ) {
-                // if (comp.type === 'image' && !u.isStr(comp.blueprint.path)) {
-                //   return
-                // }
-                // const props = comp.toJSON()
-                // const serialized = JSON.stringify(props)
-                // const nodeProps = {
-                //   type: comp.type,
-                //   pageName,
-                //   componentId: comp.id,
-                //   componentPath: opts.path.join('.'),
-                //   parentId: comp.parent?.id || null,
-                //   id: createNodeId(serialized),
-                //   internal: {
-                //     contentDigest: createContentDigest(serialized),
-                //     type: 'NoodlComponent',
-                //   },
-                // }
-                // if (comp.type === 'image') {
-                //   nodeProps.src = comp.blueprint.path
-                // } else if (comp.type === 'popUp') {
-                //   nodeProps.popUpView = comp.blueprint.popUpView
-                // }
-                // createNode(nodeProps)
               }
             },
           },
         })
 
-        // Serialize the noodl-ui components before they get sent to bootstrap the server-side rendering
+        // Serialize the noodl-ui components before they get sent to
+        // bootstrap the server-side rendering
         components.push(transformedComponent.toJSON())
       }
       return components
@@ -367,7 +334,9 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
       })
     })
 
-    data._pages_.serialized[name] = JSON.stringify(pageObject)
+    data._pages_.serialized[name] = u.isStr(pageObject)
+      ? pageObject
+      : JSON.stringify(pageObject)
     data._pages_.json[name] = JSON.parse(data._pages_.serialized[name])
 
     /**
@@ -392,116 +361,84 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
    *
    * @param {{ [page: string]: { componentPath: string[]; path: string[] } }} acc
    */
-  const findListObjectRefs = (pages) => {
-    const refs = {}
+  // const findListObjectRefs = (cachedJsonPages) => {
+  //   const allRefs = {}
 
-    const find = (component, path = []) => {
-      const refs = {}
+  //   const find = (component, componentPath = []) => {
+  //     const refs = {}
 
-      if (u.isObj(component)) {
-        if (component.listObject) {
-          if (
-            u.isStr(component.listObject) &&
-            nt.Identify.reference(component.listObject)
-          ) {
-            const pathsStr = path.join('.')
-            refs[pathsStr] = component.listObject
+  //     if (u.isObj(component)) {
+  //       if (component.listObject) {
+  //         if (
+  //           u.isStr(component.listObject) &&
+  //           nt.Identify.reference(component.listObject)
+  //         ) {
+  //           const pathsStr = componentPath.join('.')
+  //           refs[pathsStr] = component.listObject
 
-            const ctxListsObject = u
-              .values(data._context_[path[0]]?.lists || {})
-              .find((o) => o?.path?.join?.('.') === pathsStr)
+  //           const ctxListsObject = u
+  //             .values(data._context_[componentPath[0]]?.lists || {})
+  //             .find((o) => o?.path?.join?.('.') === pathsStr)
 
-            if (ctxListsObject) {
-              ctxListsObject.listObjectPath = trimReference(
-                component.listObject,
-              )
-            }
-          }
-        }
-
-        if (component.children) {
-          u.array(component.children).forEach((child, index) => {
-            u.assign(refs, find(child, path.concat('children', index)))
-          })
-        }
-      } else if (u.isStr(component) && nt.Identify.reference(component)) {
-        const datapath = trimReference(component)
-        if (has(cache.pages, datapath)) {
-          refs[path] = find(get(cache.pages, datapath), path)
-        }
-        if (has(cache.pages[path[0]])) {
-          refs[path] = find(get(cache.pages[path[0]], datapath), path)
-        }
-      }
-
-      return refs
-    }
-
-    for (const [page, pageObject] of u.entries(cache.pages)) {
-      if (!pageObject?.components) continue
-      u.array(pageObject.components).forEach((component, index) => {
-        if (!component) return
-        u.assign(refs, find(component, [page, 'components', index]))
-      })
-    }
-
-    return refs
-  }
-
-  // for (let [name, { components }] of u.entries(cache.pages)) {
-  //   if (components) {
-  //     components = u.array(components)
-
-  //     const numComponents = components.length
-
-  //     for (let index = 0; index < numComponents; index++) {
-  //       const path = [name, 'components', index]
-
-  //       /** @type { nt.ComponentObject } */
-  //       const component = components[index]
-
-  //       if (component) {
-  //         for (const [key, value] of u.entries(component)) {
-  //           const currPath = [...path]
-
-  //           if (!value) {
-  //             if (nt.Identify.reference(key)) {
-  //               // Needs to update to changes to root
-  //               if (!data._context_[name]) {
-  //                 data._context_[name] = { componentRefs: [] }
-  //               }
-
-  //               if (!data._context_[name].componentRefs) {
-  //                 data._context_[name].componentRefs = []
-  //               }
-
-  //               data._context_[name].componentRefs.push({
-  //                 page: name,
-  //                 path: currPath.join('.'),
-  //                 reference: key,
-  //               })
-  //             }
+  //           if (ctxListsObject) {
+  //             ctxListsObject.listObjectPath = trimReference(
+  //               component.listObject,
+  //             )
   //           }
   //         }
   //       }
+
+  //       if (component.children) {
+  //         u.array(component.children).forEach((child, index) => {
+  //           u.assign(refs, find(child, componentPath.concat('children', index)))
+  //         })
+  //       }
+  //     } else if (u.isStr(component) && nt.Identify.reference(component)) {
+  //       const datapath = trimReference(component)
+
+  //       if (has(cachedJsonPages, datapath)) {
+  //         refs[componentPath] = find(
+  //           get(cachedJsonPages, datapath),
+  //           componentPath,
+  //         )
+  //       }
+
+  //       if (has(cachedJsonPages[componentPath[0]])) {
+  //         refs[componentPath] = find(
+  //           get(cachedJsonPages[componentPath[0]], datapath),
+  //           componentPath,
+  //         )
+  //       }
   //     }
+
+  //     return refs
   //   }
+
+  //   for (const [pageName, pageObject] of u.entries(cachedJsonPages)) {
+  //     if (!pageObject?.components) continue
+  //     u.forEach(u.array(pageObject.components), (component, index) => {
+  //       if (!component) return
+  //       u.assign(allRefs, find(component, [pageName, 'components', index]))
+  //     })
+  //   }
+
+  //   return allRefs
   // }
 
-  const componentReferencesNodeContent = findListObjectRefs(cache.pages)
+  // const componentReferencesNodeContent = findListObjectRefs(cache.pages)
 
-  createNode({
-    name: 'ComponentReference',
-    id: createNodeId('ComponentReference'),
-    refs: componentReferencesNodeContent,
-    children: [],
-    internal: {
-      contentDigest: createContentDigest(
-        JSON.stringify(componentReferencesNodeContent),
-      ),
-      type: 'ComponentReference',
-    },
-  })
+  // createNode({
+  //   name: 'ComponentReference',
+  //   id: createNodeId('ComponentReference'),
+  //   refs: componentReferencesNodeContent,
+  //   children: [],
+  //   internal: {
+  //     contentDigest: createContentDigest(
+  //       JSON.stringify(componentReferencesNodeContent),
+  //     ),
+  //     type: 'ComponentReference',
+  //   },
+  // })
 
   if (pluginOptions.introspection) {
     await fs.writeJson(
@@ -576,48 +513,6 @@ exports.createPages = async function createPages(args, pluginOptions) {
 }
 
 /**
- *
- * @param { import('gatsby').CreateSchemaCustomizationArgs } args
- */
-exports.createSchemaCustomization = ({ actions, schema }) => {
-  const { createTypes } = actions
-  // const typeDefs = [
-  //   schema.buildObjectType({
-  //     name: 'ComponentReference',
-  //     fields: {
-  //       page: 'String',
-  //       path: 'String!',
-  //       reference: 'String!',
-  //     },
-  //     interfaces: ['Node'],
-  //   }),
-  // ]
-
-  // createTypes(typeDefs)
-}
-
-/**
- *
  * @param { import('gatsby').CreateNodeArgs } args
  */
-exports.onCreateNode = async ({
-  node,
-  actions: { createNode, createNodeField },
-  createNodeId,
-  getCache,
-}) => {
-  if (node.internal.type === 'File' && node.sourceInstanceName === 'assets') {
-    // const imageNode =
-    // const fileNode = await createRemoteFileNode({
-    //   url: node.frontmatter.featuredImgUrl, // string that points to the URL of the image
-    //   parentNodeId: node.id, // id of the parent node of the fileNode you are going to create
-    //   createNode, // helper function in gatsby-node to generate the node
-    //   createNodeId, // helper function in gatsby-node to generate the node id
-    //   getCache,
-    // })
-    // if the file was created, extend the node with "localFile"
-    // if (fileNode) {
-    //   createNodeField({ node, name: 'localFile', value: fileNode.id })
-    // }
-  }
-}
+exports.onCreateNode = async ({ node }) => {}

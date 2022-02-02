@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet'
 import AppProvider from './src/AppProvider'
 import favicon from './src/resources/favicon.ico'
 
-export default ({ element, headComponents }) => {
+export default function ({ element, headComponents }) {
   return (
     <>
       <Helmet htmlAttributes={{ lang: 'en' }}>

@@ -10,26 +10,10 @@ require('jsdom-global')('', {
 })
 
 const u = require('@jsmanifest/utils')
-const fs = require('fs-extra')
-const path = require('path')
-const babel = require('@babel/core')
 const { NUI, Transformer } = require('noodl-ui')
+const monkeyPatchAddEventListener = require('./monkeyPatchAddEventListener')
 
 const nui = NUI
-const { parse, traverse, types: t, transformFromAstAsync } = babel
-
-/**
- * Returns the path to the EventTarget file so it can be patched
- * @returns { string }
- */
-function getPathToEventTargetFile() {
-  return path.resolve(
-    path.join(
-      process.cwd(),
-      '../../node_modules/jsdom/lib/jsdom/living/generated/EventTarget.js',
-    ),
-  )
-}
 
 /**
  * @typedef { import('noodl-ui').NuiComponent.Instance } NuiComponent
@@ -37,10 +21,9 @@ function getPathToEventTargetFile() {
  * @typedef { import('@babel/traverse').NodePath } NodePath
  *
  * @typedef { object } On
+ * @property { import('./monkeyPatchAddEventListener').OnPatch } On.patch
  * @property { (args: { nui: import('noodl-ui').NUI, pageName: string, pageObject: nt.PageObject; sdk: import('@aitmed/cadl').CADL  }) => void } On.initPage
- * @property { object } On.patch
- * @property { function } On.patch.addEventListener
- * @property { function } On.patch.removeEventListener
+
  *
  * @typedef Use
  * @property { nt.RootConfig } [Use.config]
@@ -48,122 +31,6 @@ function getPathToEventTargetFile() {
  * @property { Record<string, Record<string, nt.PageObject>> } [Use.pages]
  * @property { { width: number; height: number } } [Use.viewport]
  */
-
-/**
- * addEventListener is preving sdk from sandboxing.
- * We must monkey patch the EventTarget
- * @argument { object } opts
- * @param { On['patch'] } opts.onPatch
- * @returns { Promise<{ components: NuiComponent.Instance[]; nui: typeof NUI }> }
- */
-async function monkeyPatchAddEventListener(opts) {
-  try {
-    const code = await fs.readFile(getPathToEventTargetFile(), 'utf8')
-    const ast = parse(code)
-
-    /**
-     * Returns true if this node is the wrapper that encapsulates the declaration of class EventTarget
-     * @argument { NodePath } p
-     */
-    function isExportsStatementWrappingEventTarget(p) {
-      if (t.isAssignmentExpression(p.node.expression)) {
-        /** @type { t.AssignmentExpression } */
-        const { left, right, operator } = p.node.expression
-        return (
-          operator === '=' &&
-          t.isMemberExpression(left) &&
-          t.isIdentifier(left.object) &&
-          t.isIdentifier(left.property) &&
-          left.object.name === 'exports' &&
-          left.property.name === 'install' &&
-          t.isArrowFunctionExpression(right)
-        )
-      }
-    }
-
-    /**
-     * @argument { t.ArrowFunctionExpression } expr
-     * @returns { t.ClassDeclaration  }
-     */
-    function getEventTargetClassStatement(expr) {
-      if (t.isBlockStatement(expr.body)) {
-        return expr.body.body.find((statement) =>
-          t.isClassDeclaration(statement),
-        )
-      }
-      return null
-    }
-
-    /**
-     * @argument { t.ClassDeclaration } node
-     * @argument { string } name
-     */
-    function getClassMethod(node, name) {
-      if (t.isClassBody(node.body)) {
-        return node.body.body.find(
-          (o) => t.isClassMethod(o) && o.key.name === name,
-        )
-      }
-      return null
-    }
-
-    /**
-     * @argument { t.ClassMethod } node
-     */
-    function isMethodPatched(node) {
-      return (
-        t.isBlockStatement(node.body) && t.isReturnStatement(node.body.body[0])
-      )
-    }
-
-    let eventListenersWerePatched = true
-
-    traverse(ast, {
-      ExpressionStatement(p) {
-        if (isExportsStatementWrappingEventTarget(p)) {
-          const eventTargetClass = getEventTargetClassStatement(
-            p.node.expression.right,
-          )
-
-          const addEventListenerMethod = getClassMethod(
-            eventTargetClass,
-            'addEventListener',
-          )
-          const removeEventListenerMethod = getClassMethod(
-            eventTargetClass,
-            'removeEventListener',
-          )
-
-          for (const [evtName, method] of [
-            ['addEventListener', addEventListenerMethod],
-            ['removeEventListener', removeEventListenerMethod],
-          ]) {
-            if (isMethodPatched(method)) {
-              opts?.onPatch?.[evtName]?.({ wasPatched: true })
-            } else {
-              eventListenersWerePatched = false
-              opts?.onPatch?.[evtName]?.({ wasPatched: false })
-              if (t.isBlockStatement(method.body)) {
-                method.body.body.unshift(t.returnStatement())
-              }
-            }
-          }
-
-          return p.stop()
-        }
-      },
-    })
-
-    if (!eventListenersWerePatched) {
-      const result = await transformFromAstAsync(ast)
-      await fs.writeFile(getPathToEventTargetFile(), result.code, 'utf8')
-      return result
-    }
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error))
-    throw err
-  }
-}
 
 /**
  * @param { object } opts
@@ -194,7 +61,6 @@ async function getGenerator({
     const { cache, CADL } = require('@aitmed/cadl')
 
     const sdk = new CADL({ cadlVersion: ecosEnv, configUrl })
-
     await sdk.init()
 
     nui.use({
@@ -270,7 +136,4 @@ async function getGenerator({
   }
 }
 
-module.exports = {
-  getGenerator,
-  monkeyPatchAddEventListener,
-}
+module.exports = getGenerator

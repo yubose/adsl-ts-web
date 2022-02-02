@@ -160,6 +160,7 @@
     "testPathIgnorePatterns": [
       "<rootDir>/jest/__mocks__/*",
       "node_modules",
+      "src/__tests__/test-utils.tsx",
       "\\.cache",
       "<rootDir>.*/public"
     ],

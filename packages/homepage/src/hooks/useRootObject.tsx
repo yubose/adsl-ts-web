@@ -9,18 +9,18 @@ import is from '@/utils/is'
 import log from '@/utils/log'
 
 function useRootObject<Root extends Record<string, any>>(
-  initialState = { root: {} as Root },
+  initialState = {} as Root,
 ) {
-  const [state, _setState] = React.useState(initialState)
+  const [root, setRoot] = React.useState(initialState)
 
-  const setState = React.useCallback(
+  const setInRoot = React.useCallback(
     (
       stateOrSetter:
         | ((draft: Draft<typeof initialState>) => void)
         | Partial<typeof initialState>,
     ) => {
-      _setState(
-        produce((draft: Draft<typeof initialState>) => {
+      setRoot(
+        produce((draft) => {
           if (u.isFnc(stateOrSetter)) {
             stateOrSetter(draft)
           } else {
@@ -29,26 +29,44 @@ function useRootObject<Root extends Record<string, any>>(
         }),
       )
     },
-    [state],
+    [root],
   )
 
   const getInRoot = React.useCallback(
-    (key = '', pageName = '') => {
-      if (u.isStr(key)) {
+    (
+      keyOrRoot: string | Draft<Root> | Root,
+      keyOrPageName = '',
+      pageName = '',
+    ) => {
+      let _root: Root
+      let _key = ''
+      let _pageName = ''
+
+      if (u.isObj(keyOrRoot)) {
+        _root = keyOrRoot
+        _key = keyOrPageName
+        _pageName = pageName
+      } else {
+        _root = root
+        _key = keyOrRoot
+        _pageName = keyOrPageName
+      }
+
+      if (u.isStr(_key)) {
         let result: any
-        pageName =
-          pageName ||
+        _pageName =
+          _pageName ||
           (typeof window !== 'undefined'
             ? location.pathname.replace(/\//g, '')
             : 'HomePage')
 
-        if (is.reference(key)) {
-          const path = trimReference(key)
+        if (is.reference(_key)) {
+          const path = trimReference(_key)
           const paths = path.split('.')
 
-          const dataObject = is.localReference(path)
-            ? state.root[pageName]
-            : state.root
+          log.info({ key: _key, pageName, path })
+
+          const dataObject = is.localReference(_key) ? _root[_pageName] : _root
 
           if (!has(dataObject, paths)) {
             log.error(
@@ -56,28 +74,28 @@ function useRootObject<Root extends Record<string, any>>(
                 '.',
               )}" does not exist in the root object`,
               `color:#ec0000;`,
-              state.root,
+              _root,
             )
           }
 
           result = get(dataObject, paths)
         } else {
-          const paths = key.includes('.') ? key.split('.') : [key]
-          result = has(state.root, paths)
-            ? get(state.root, paths)
-            : get(state.root[pageName], paths)
+          const paths = _key.includes('.') ? _key.split('.') : [_key]
+          result = has(_root, paths)
+            ? get(_root, paths)
+            : get(_root[_pageName], paths)
         }
-        log.debug(`[AppProvider] Get "${key}" result`, result)
+        log.debug(`[AppProvider] Get "${_key}" result`, result)
         return result
       }
     },
-    [state],
+    [root],
   )
 
   return {
-    ...state,
+    root,
     getInRoot,
-    setInRoot: setState,
+    setInRoot,
   }
 }
 

@@ -3,26 +3,28 @@ import * as nt from 'noodl-types'
 import type { LiteralUnion } from 'type-fest'
 import type { ActionChainStatus } from 'noodl-action-chain'
 import type { NUIAction, NUIActionObject, NUITrigger } from 'noodl-ui'
-import type { AppState } from './AppProvider'
 import type useRootObject from './hooks/useRootObject'
 
-export type AppContext = AppState & ReturnType<typeof useRootObject>
+export type AppContext = ReturnType<typeof useRootObject>
 
 export type StaticComponentObject = nt.ComponentObject &
-  Record<
-    NUITrigger,
-    {
-      actions: (NUIActionObject & Record<string, any>)[]
-      trigger: LiteralUnion<NUITrigger, string>
-      injected: (NUIActionObject & Record<string, any>)[]
-      queue: NUIAction[]
-      results: {
-        action: NUIActionObject
-        result: any
-      }[]
-      status: ActionChainStatus
-    }
-  >
+  Partial<
+    Record<
+      NUITrigger,
+      {
+        actions: (NUIActionObject & Record<string, any>)[]
+        trigger: LiteralUnion<NUITrigger, string>
+        injected: (NUIActionObject & Record<string, any>)[]
+        queue: NUIAction[]
+        results: {
+          action: NUIActionObject
+          result: any
+        }[]
+        status: ActionChainStatus
+      }
+    >
+  > &
+  Record<string, any>
 
 export interface PageContext {
   isPreload: boolean

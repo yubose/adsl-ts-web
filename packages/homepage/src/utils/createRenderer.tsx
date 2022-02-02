@@ -24,6 +24,7 @@ export type RenderUtils = Pick<
   | '_context_'
   | 'builtIns'
   | 'createActionChain'
+  | 'pageName'
   | 'root'
   | 'getInRoot'
   | 'setInRoot'
@@ -36,7 +37,7 @@ function createRendererFactory({
   pageName,
   getInRoot,
   setInRoot,
-  root,
+  root: rootRef,
 }: CreateRenderFactoryOptions) {
   return function createRenderer(
     fn: (
@@ -73,11 +74,14 @@ function createRendererFactory({
         const _pathStr = path.join('.')
 
         if (_pathStr) {
-          const listContextObject = u.values(_context_.lists).find((obj) => {
-            return (
-              _pathStr === obj.path.join('.') || obj.listObjectPath === _pathStr
-            )
-          }) as t.PageContextListContextObject
+          const listContextObject = u
+            .values(_context_.lists || {})
+            .find((obj) => {
+              return (
+                _pathStr === obj.path?.join?.('.') ||
+                obj.listObjectPath === _pathStr
+              )
+            }) as t.PageContextListContextObject
 
           if (listContextObject?.listObjectPath) {
             const referenceDataPath = trimReference(
@@ -85,8 +89,8 @@ function createRendererFactory({
             )
 
             const dataObject = is.localKey(referenceDataPath)
-              ? root[pageName]
-              : root
+              ? rootRef.current.root[pageName]
+              : rootRef.current.root
 
             if (!has(dataObject, referenceDataPath)) {
               log.error(
@@ -125,7 +129,8 @@ function createRendererFactory({
         _context_,
         builtIns,
         createActionChain,
-        root,
+        pageName,
+        root: rootRef,
         getInRoot,
         setInRoot,
         path,

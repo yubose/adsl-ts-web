@@ -5,7 +5,14 @@ import type { NUITrigger } from 'noodl-ui'
 import type useActionChain from '@/hooks/useActionChain'
 import { triggers } from 'noodl-ui'
 import camelCase from 'lodash/camelCase'
+import cloneDeep from 'lodash/cloneDeep'
+import { createDraft, current as draftToCurrent, finishDraft } from 'immer'
 import set from 'lodash/set'
+import {
+  getListDataObject,
+  getIteratorVar,
+  isListConsumer,
+} from '@/utils/pageCtx'
 import getTagName from '@/utils/getTagName'
 import log from '@/utils/log'
 import * as t from '@/types'
@@ -13,9 +20,9 @@ import is from '@/utils/is'
 
 export interface GetElementPropsUtils
   extends Pick<t.AppContext, 'root' | 'getInRoot' | 'setInRoot'> {
-  _context_: t.PageContext['_context_']
-  createActionChain: ReturnType<typeof useActionChain>['createActionChain']
-  page?: string
+  _context_?: t.PageContext['_context_']
+  createActionChain?: ReturnType<typeof useActionChain>['createActionChain']
+  pageName?: string
   path?: (string | number)[]
 }
 
@@ -45,7 +52,7 @@ function getElementProps<Props = any>(
     _context_,
     createActionChain,
     getInRoot,
-    page,
+    pageName,
     path: componentPath = [],
     setInRoot,
     root,
@@ -53,7 +60,7 @@ function getElementProps<Props = any>(
 
   if (u.isStr(component)) {
     if (is.reference(component)) {
-      const referencedComponent = getInRoot(component, page)
+      const referencedComponent = getInRoot(component, pageName)
       if (u.isObj(referencedComponent)) {
         return getElementProps(referencedComponent, utils)
       } else {
@@ -78,7 +85,9 @@ function getElementProps<Props = any>(
     }
 
     let { dataKey, id, type } = _component
-
+    let iteratorVar = isListConsumer(_context_, _component)
+      ? getIteratorVar(_context_, _component)
+      : ''
     let props = {
       type: getTagName(type) || 'div',
       key: id || dataKey,
@@ -95,10 +104,8 @@ function getElementProps<Props = any>(
       })
 
       if (refObject) {
-        component.children.forEach((child) => {
-          // child[component.iteratorVar] = getInRoot(refObject.listObjectPath)
-        })
-
+        // const listObject = getInRoot(refObject.listObjectPath)
+        // console.log(listObject)
         // debugger
       }
     }
@@ -145,18 +152,56 @@ function getElementProps<Props = any>(
           props.style = {}
         }
       } else if (key === 'text' && !component['data-value']) {
-        value && children.push(getElementProps(value, utils))
+        value &&
+          children.push(
+            is.reference(value) ? getInRoot(value, pageName) : value,
+          )
+        // value && children.push(getElementProps(value, utils))
       } else if (triggers.includes(key as string)) {
         if (nt.userEvent.includes(key as typeof nt.userEvent[number])) {
           const obj = value as t.StaticComponentObject[NUITrigger]
           const actions = obj?.actions || []
           const trigger = key as NUITrigger
           const actionChain = createActionChain?.(component, trigger, actions)
-          props[trigger] = actionChain?.execute?.bind?.(actionChain)
+          props[trigger] = async function onActionChain(evt) {
+            // This root draft will be used throughout the handlers instead of directly accessing root from context. This is to ensure that all the most recent changes are batched onto one single update
+            let clonedRoot = createDraft(cloneDeep(root))
+            let results: any[]
+            actionChain.data.set('rootDraft', clonedRoot)
+            try {
+              results = await actionChain.execute(evt)
+            } catch (error) {
+              log.error(
+                error instanceof Error ? error : new Error(String(error)),
+              )
+            } finally {
+              clonedRoot = finishDraft(clonedRoot)
+              actionChain.data.delete('rootDraft')
+            }
+            setInRoot((draft) => void u.assign(draft, clonedRoot))
+            return results
+          }
         }
       } else {
         if (!keysToStripRegex.test(key as string)) {
           props[key] = value
+        }
+      }
+
+      if (u.isStr(props[key])) {
+        if (is.reference(value)) {
+          props[key] = getInRoot(value, pageName)
+          if (props[key] === value) {
+            log.error(
+              `Tried to retrieve reference "${value}" for key "${key}" but the value stayed as the reference`,
+            )
+          }
+        } else if (
+          key !== 'data-key' &&
+          iteratorVar &&
+          value.startsWith(iteratorVar)
+        ) {
+          props[key] = getListDataObject(_context_?.lists, _component, utils)
         }
       }
     }

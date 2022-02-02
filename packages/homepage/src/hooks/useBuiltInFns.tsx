@@ -1,6 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import { trimReference } from 'noodl-utils'
-import produce from 'immer'
+import type { NUIActionChain } from 'noodl-ui'
+import produce, { isDraft, current as draftToCurrent } from 'immer'
 import React from 'react'
 import get from 'lodash/get'
 import useCtx from '@/useCtx'
@@ -10,6 +11,7 @@ import is from '@/utils/is'
 import * as t from '@/types'
 
 export interface BuiltInFnProps {
+  actionChain: NUIActionChain
   dataObject: any
   dataIn: Record<string, any>
   dataOut?: string
@@ -17,182 +19,108 @@ export interface BuiltInFnProps {
 
 // Using for TypeScript to pick up the args
 const createFn =
-  <
-    Args extends BuiltInFnProps = {
-      dataObject: any
-      dataIn: Record<string, any>
-      dataOut?: string
-    },
-  >(
-    fn: (opts: Args) => any,
+  (
+    options: t.CommonRenderComponentHelpers,
+    fn: (opts: BuiltInFnProps) => any,
   ) =>
-  (opts: Args) =>
-    fn(opts)
+  (opts: BuiltInFnProps) =>
+    fn({ ...opts, dataIn: purgeDataIn({ ...options, ...opts }) })
 
-function purgeReferences(
-  {
-    getInRoot,
-    pageName,
-    dataObject,
-    dataIn,
-    dataOut,
-    root,
-    setInRoot,
-    ...rest
-  }: t.CommonRenderComponentHelpers & BuiltInFnProps,
-  fn?: (args: BuiltInFnProps) => any,
-) {
-  return produce(dataIn, (draft) => {
-    for (const [key, value] of u.entries(draft)) {
-      if (u.isStr(value)) {
-        if (value.startsWith('$')) {
-          const paths = value.split('.').slice(1)
-          draft[key] = get(dataObject, paths)
-        } else if (is.reference(value)) {
-          const paths = []
-          if (is.localReference(value)) {
-            pageName && paths.push(pageName)
-          }
-          paths.push(...trimReference(value).split('.'))
-          const result = getInRoot(paths.join('.'))
-          draft[key] = result
-        }
-      }
-    }
-
-    fn?.({
-      ...rest,
-      dataObject: { ...dataObject },
-      dataIn: draft,
-    })
-  })
-}
-
-function getBuiltInFns({
-  _context_,
+function purgeDataIn({
+  actionChain,
   getInRoot,
   pageName,
-  root,
-  setInRoot,
-}: t.CommonRenderComponentHelpers) {
-  const builtIns = {
-    [`=.builtIn.string.equal`]: createFn(({ dataIn, ...rest }) => {
-      dataIn = purgeReferences({
-        _context_,
-        getInRoot,
-        pageName,
-        dataIn,
-        root,
-        setInRoot,
-        ...rest,
-      })
+  dataObject,
+  dataIn,
+}: Pick<t.CommonRenderComponentHelpers, 'getInRoot' | 'pageName'> &
+  BuiltInFnProps) {
+  for (const [key, value] of u.entries(dataIn)) {
+    if (u.isStr(value)) {
+      if (value.startsWith('$')) {
+        const paths = value.split('.').slice(1)
+        dataIn[key] = get(dataObject, paths)
+      } else if (is.reference(value)) {
+        let paths = []
+        if (is.localReference(value)) pageName && paths.push(pageName)
+        paths = paths.concat(trimReference(value).split('.'))
+        dataIn[key] = getInRoot(
+          actionChain.data.get('rootDraft'),
+          paths.join('.'),
+          pageName,
+        )
+      }
+    }
+  }
+
+  return dataIn
+}
+
+function getBuiltInFns(options: t.CommonRenderComponentHelpers) {
+  const builtInFns = {
+    [`=.builtIn.string.equal`]: ({ dataIn }: BuiltInFnProps) => {
       const str1 = String(dataIn?.string1 || '')
       const str2 = String(dataIn?.string2 || '')
       return str1 === str2
-    }),
-    [`=.builtIn.object.setProperty`]: createFn(
-      ({ dataObject, dataIn, dataOut }) => {
-        setInRoot((draft) => {
-          const _dataIn = get(draft.root, 'Resource.baseHeaderData')
-          const arr = u.array(_dataIn?.obj).filter(Boolean)
-          const numItems = arr.length
-          for (let index = 0; index < numItems; index++) {
-            if (u.isArr(_dataIn.arr)) {
-              for (let i in _dataIn.arr) {
-                if (arr?.[index]?.[_dataIn.label] === _dataIn.text) {
-                  arr[index][arr[i]] = _dataIn.valueArr[i]
-                } else {
-                  arr[index][arr[i]] = _dataIn.errorArr[i]
-                }
-              }
+    },
+    [`=.builtIn.object.setProperty`]: ({ dataIn }: BuiltInFnProps) => {
+      const arr = u.array(dataIn.obj).filter(Boolean)
+      const numItems = arr.length
+      for (let index = 0; index < numItems; index++) {
+        if (u.isArr(dataIn.arr)) {
+          for (let i in dataIn.arr) {
+            if (arr?.[index]?.[dataIn.label] === dataIn.text) {
+              arr[index][arr[i]] = dataIn.valueArr[i]
             } else {
-              log.error(
-                `Expected 'arr' in dataIn to be an array but it was ${typeof dataIn.arr}`,
-              )
+              arr[index][arr[i]] = dataIn.errorArr[i]
             }
           }
-        })
-      },
-    ),
+        } else {
+          log.error(
+            `Expected 'arr' in dataIn to be an array but it was ${typeof dataIn.arr}`,
+          )
+        }
+      }
+      return dataIn
+    },
   }
 
-  return builtIns
+  return u.reduce(
+    u.entries(builtInFns),
+    (acc, [builtInFnName, builtInFn]) => {
+      acc[builtInFnName] = createFn(options, builtInFn)
+      return acc
+    },
+    {} as typeof builtInFns,
+  )
 }
 
 function useBuiltInFns() {
   const ctx = useCtx()
   const pageCtx = usePageCtx()
 
-  const handleBuiltInFn = React.useCallback(function _handleBuiltInFn(
-    key = '',
-    ...args: any[]
-  ) {
-    const fn = builtIns[key]
-    if (u.isFnc(fn)) {
-      return fn(...args)
-    } else {
-      log.error(
-        `%cYou are missing the builtIn implementation for "${key}"`,
-        `color:#ec0000;`,
-      )
-    }
-  },
-  [])
-
   const builtIns = React.useMemo(
     () =>
-      u.reduce(
-        u.entries(
-          getBuiltInFns({
-            _context_: pageCtx._context_,
-            getInRoot: ctx.getInRoot,
-            pageName: pageCtx.pageName,
-            root: ctx.root,
-            setInRoot: ctx.setInRoot,
-          }),
-        ),
-        (acc, [key, fn]) => {
-          acc[key] = fn
-          // acc[key] = function onBeforeBuiltInInvocation({
-          //   dataObject,
-          //   dataIn,
-          //   ...rest
-          // }: Parameters<Parameters<typeof createFn>[0]>[0]) {
-          //   let result
-          //   if (u.isObj(dataIn)) {
-          //     // dataIn = produce(dataIn, (draft) => {
-          //     //   for (const [key, value] of u.entries(draft)) {
-          //     //     if (u.isStr(value)) {
-          //     //       if (value.startsWith('$')) {
-          //     //         const paths = value.split('.').slice(1)
-          //     //         draft[key] = get(dataObject, paths)
-          //     //       } else if (is.reference(value)) {
-          //     //         const paths = []
-          //     //         if (is.localReference(value)) {
-          //     //           pageCtx.pageName && paths.push(pageCtx.pageName)
-          //     //         }
-          //     //         paths.push(...trimReference(value).split('.'))
-          //     //         const result = ctx.get(paths.join('.'))
-          //     //         draft[key] = result
-          //     //       }
-          //     //     }
-          //     //   }
-
-          //     //   result = fn({
-          //     //     ...rest,
-          //     //     dataObject: { ...dataObject },
-          //     //     dataIn: draft,
-          //     //   })
-          //     // })
-          //   }
-
-          //   return result
-          // }
-          return acc
-        },
-        {} as typeof getBuiltInFns,
-      ),
+      getBuiltInFns({
+        ...ctx,
+        _context_: pageCtx._context_,
+        pageName: pageCtx.pageName,
+      }),
     [ctx, pageCtx],
+  )
+
+  const handleBuiltInFn = React.useCallback(
+    function _handleBuiltInFn(key = '', args: BuiltInFnProps) {
+      const fn = builtIns[key]
+      if (u.isFnc(fn)) {
+        return fn(args)
+      } else {
+        log.error(
+          `%cYou are missing the builtIn implementation for "${key}"`,
+          `color:#ec0000;`,
+        )
+      }
+    },
+    [builtIns],
   )
 
   return {
