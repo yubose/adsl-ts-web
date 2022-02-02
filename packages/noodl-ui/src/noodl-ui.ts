@@ -694,7 +694,7 @@ const NUI = (function () {
             }
           }
         } else if (u.isObj(options)) {
-          u.eachEntries(options, (key, val) => {
+          u.entries(options).forEach(([key, val]) => {
             if (register) {
               if (key === 'handler') {
                 register.handler = { ...register.handler, ...options.handler }
@@ -1296,14 +1296,15 @@ const NUI = (function () {
         ) {
           u.forEach(unary(o._experimental.register), u.array(args.register))
         } else {
-          u.eachEntries(args.register, (event, fn: t.Register.Object['fn']) => {
+          u.entries(args.register).forEach(([event, fn]: [event: string, fn: t.Register.Object['fn']]) => {
             u.isFnc(fn) && o._experimental.register(event, fn)
+
           })
         }
       }
 
       if ('transaction' in args) {
-        u.eachEntries(args.transaction, (tid, fn) => {
+        u.entries(args.transaction).forEach(([tid, fn]) => {
           const opts = {} as any
           u.isFnc(fn) ? (opts.fn = fn) : u.isObj(fn) && u.assign(opts, fn)
           cache.transactions.set(tid as t.TransactionId, opts)

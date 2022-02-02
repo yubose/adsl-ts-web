@@ -604,7 +604,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const iframeEl = document.createElement('iframe')
           const onEntry = (k: any, v: any) => (iframeEl.style[k] = v)
           iframeEl.setAttribute('src', img.src)
-          u.eachEntries(component.style, onEntry)
+          u.entries(component.style)?.forEach?.(([k, v]) => onEntry(k, v))
           parent && findFirstByElementId(parent)?.appendChild?.(iframeEl)
         }
       },
@@ -614,22 +614,29 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         if (component?.blueprint?.hover) {
           node?.addEventListener('mouseover', () => {
-            u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
-              value = value.substring(2)
-              node.style[key] = '#' + value
-            })
+            u.entries(component?.blueprint?.hover)?.forEach?.(
+              ([key, value]) => {
+                value = String(value).substring?.(2)
+                node.style[key] = '#' + value
+              },
+            )
           })
           node?.addEventListener('mouseout', function (e) {
-            u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
-              let realvalue = component.style[key]
-              if (typeof realvalue == 'undefined' && key == 'backgroundColor') {
-                realvalue = '#ffffff'
-              }
-              if (typeof realvalue == 'undefined' && key == 'fontColor') {
-                realvalue = '#000000'
-              }
-              node.style[key] = realvalue
-            })
+            u.entries(component?.blueprint?.hover)?.forEach?.(
+              ([key, value]) => {
+                let realvalue = component.style[key]
+                if (
+                  typeof realvalue == 'undefined' &&
+                  key == 'backgroundColor'
+                ) {
+                  realvalue = '#ffffff'
+                }
+                if (typeof realvalue == 'undefined' && key == 'fontColor') {
+                  realvalue = '#000000'
+                }
+                node.style[key] = realvalue
+              },
+            )
           })
         }
       },
@@ -724,7 +731,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const highlightValue = localhighlightValue
             ? localhighlightValue
             : remotehighlightValue
-          if(highlightValue){
+          if (highlightValue) {
             const highlightStyle = component.get('highlightStyle')
 
             let originalValue = node.innerHTML
@@ -736,7 +743,7 @@ const createExtendedDOMResolvers = function (app: App) {
             // let domObj:any = document.getElementsByClassName('highlight')
             for (let i = 0; i < currentSpans.length; i++) {
               let currentSpan = currentSpans[i] as HTMLElement
-              u.eachEntries(highlightStyle, (key: any, value) => {
+              u.entries(highlightStyle)?.forEach?.(([key, value]) => {
                 currentSpan.style[key] = value
               })
             }

@@ -948,7 +948,7 @@ class NDOM extends NDOMInternal {
     resolver && this.consumerResolvers.push(resolver)
 
     if (transaction) {
-      u.eachEntries(transaction, (id, val) => {
+      u.entries(transaction).forEach(([id, val]) => {
         if (id === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
           nui.use({
             transaction: {
