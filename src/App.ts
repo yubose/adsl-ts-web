@@ -324,9 +324,11 @@ class App {
           return void (window.location.href = pageUrl)
         }
         const params = getParams(pageUrl)
-        const curretPage = pageUrl.includes('&')
-          ? pageUrl.substring(0, pageUrl.indexOf('&'))
-          : pageUrl
+        const curretPage = (
+          pageUrl.includes('&')
+            ? pageUrl.substring(0, pageUrl.indexOf('&'))
+            : pageUrl
+        ).replace(/=/g, '')
         if (isNOODLDOMPage(page)) {
           pageRequesting = curretPage
         } else {

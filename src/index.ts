@@ -256,6 +256,7 @@ async function initializeApp(
     },
   })
   // app.navigate('Cov19TestNewPatReviewPage1')
+
   return app
 }
 
@@ -404,6 +405,11 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
+    goToPaymentUrl4: {
+      value: () =>
+        (window.location.href =
+          'http://127.0.0.1:3000/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY'),
+    },
     pageTable: {
       get() {
         const result = [] as { page: string; ndom: number; nui: number }[]
