@@ -73,4 +73,29 @@ describe.only(`ExportPDF`, () => {
     //   exporter.
     // })
   })
+
+  describe(`PatientChart page`, () => {
+    const { A4 } = ExportPdf().sizes
+    const elBoundingClientRect = {
+      x: 0,
+      y: 74.6875,
+      width: 373.5,
+      height: 620,
+      top: 74.6875,
+      right: 373.5,
+      bottom: 694.6875,
+      left: 0,
+    }
+    // Total pages = Total height / A4 height = 3.709675623515439
+    const format = [595, 842] // [A4.width, A4.height]
+    const orientation = 'portrait'
+    const imageSize = { width: 373.5, height: 620 }
+    const outerStartY = 74.6875
+    const totalWidth = 373.5
+    const totalHeight = 3123.546875
+    const viewport = { width: 373.5, height: 747 }
+    const totalPages = Math.ceil(totalHeight / A4.height)
+
+    xit(``, () => {})
+  })
 })

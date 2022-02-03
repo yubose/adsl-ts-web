@@ -255,7 +255,7 @@ async function initializeApp(
       })
     },
   })
-  // app.navigate('Cov19TestNewPatReviewPage1')
+  app.navigate('PatientChart')
   return app
 }
 

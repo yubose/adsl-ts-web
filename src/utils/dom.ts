@@ -188,7 +188,7 @@ export function exportToPDF(
       try {
         doc = u.isStr(data)
           ? await createDocByDataURL(data)
-          : 'tagName' in data
+          : u.isIn('tagName', data)
           ? ((await ExportPdf().create(data, {
               format: formatProp,
             })) as jsPDF)

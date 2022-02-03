@@ -246,12 +246,10 @@ export const ExportPdf = (function () {
       doc.internal.pageSize.height = o.sizes.A4.height
 
       // Canvas + image must share this same size to avoid stretches in fonts
-      const imageSize = {
-        width: totalWidth,
-        height: totalHeight,
-      }
 
       try {
+        let step = el.getBoundingClientRect().height
+
         commonHtml2CanvasOptions = {
           ...commonHtml2CanvasOptions,
           onclone,
@@ -261,29 +259,73 @@ export const ExportPdf = (function () {
           // windowWidth: format[0],
           windowHeight: totalHeight,
           // windowHeight: format[1],
-          width: totalWidth,
+          width,
           // This height expands the VISIBLE content that is cropped off
-          height: totalHeight,
+          height: step,
           // windowWidth: imageSize.width,
           // This height expands the PDF PAGE
           // windowHeight: imageSize.height,
         }
 
-        const image = await html2canvas(el, commonHtml2CanvasOptions)
-        // prettier-ignore
-        doc.addImage(
-         image.toDataURL(), 'png', 0, 0,
-         o.sizes.A4.width, o.sizes.A4.height,
-         'FAST', 'FAST'
-        )
-        console.log({
-          commonHtml2CanvasOptions,
-          generatedCanvasSizes: { width: image.width, height: image.height },
-          pdfPageSizes: {
-            width: doc.internal.pageSize.width,
-            height: doc.internal.pageSize.height,
-          },
-        })
+        let accHeight = 0
+        let currHeight = 0
+
+        while (accHeight < totalHeight) {
+          el.scrollTo({ top: accHeight })
+
+          const image = await html2canvas(el, {
+            ...commonHtml2CanvasOptions,
+            onclone: (d, e) => {
+              let _y = e.getBoundingClientRect().y
+
+              const scrollToLatestHeight = (_el: HTMLElement) => {
+                if (_el) {
+                  const { y } = _el.getBoundingClientRect()
+                  if (y >= _y) {
+                    _y = y
+                    if (_y < accHeight) {
+                      if (el.querySelector(`#${_el.id}`)) debugger
+                      if (e.querySelector(`#${_el.id}`)) debugger
+                      el.querySelector(`#${_el.id}`)?.scrollIntoView()
+                      e.querySelector(`#${_el.id}`)?.scrollIntoView()
+                    }
+                  }
+                  for (const childNode of _el.children) {
+                    scrollToLatestHeight(childNode as HTMLElement)
+                  }
+                }
+              }
+
+              for (const childNode of e.children) {
+                scrollToLatestHeight(childNode as HTMLElement)
+              }
+            },
+          })
+
+          // prettier-ignore
+          doc.addImage(
+           image.toDataURL(), 'png', 0, 0,
+           width, step,
+           'FAST', 'FAST'
+          )
+          // doc.addPage([o.sizes.A4.width, o.sizes.A4.height], orientation)
+          console.log({
+            commonHtml2CanvasOptions,
+            generatedCanvasSizes: { width: image.width, height: image.height },
+            pdfPageSizes: {
+              width: doc.internal.pageSize.width,
+              height: doc.internal.pageSize.height,
+            },
+          })
+
+          if (currHeight > o.sizes.A4.height) {
+            currHeight = currHeight - o.sizes.A4.height
+            doc.addPage([o.sizes.A4.width, o.sizes.A4.height], orientation)
+          }
+
+          accHeight += step
+          currHeight += step
+        }
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
         console.log(
