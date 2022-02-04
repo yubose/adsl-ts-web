@@ -91,198 +91,28 @@ describe.only(`ExportPDF`, () => {
     // })
   })
 
-  describe(`getTotalPages`, () => {
-    it(`should return the expected total of pages`, () => {
-      const [total] = ExportPdf().getTotalPages(300, [1595.59375])
-      expect(total).to.eq(6)
-    })
+  describe(`PatientChart page`, () => {
+    const { A4 } = ExportPdf().sizes
+    const elBoundingClientRect = {
+      x: 0,
+      y: 74.6875,
+      width: 373.5,
+      height: 620,
+      top: 74.6875,
+      right: 373.5,
+      bottom: 694.6875,
+      left: 0,
+    }
+    // Total pages = Total height / A4 height = 3.709675623515439
+    const format = [595, 842] // [A4.width, A4.height]
+    const orientation = 'portrait'
+    const imageSize = { width: 373.5, height: 620 }
+    const outerStartY = 74.6875
+    const totalWidth = 373.5
+    const totalHeight = 3123.546875
+    const viewport = { width: 373.5, height: 747 }
+    const totalPages = Math.ceil(totalHeight / A4.height)
 
-    it(`should return the expected remaining height`, () => {
-      const [_, remaining] = ExportPdf().getTotalPages(300, [1595.59375])
-      expect(remaining).to.eq(95.59375)
-    })
-  })
-
-  describe(`traverseBF`, () => {
-    it(``, () => {
-      traverseBF((sibling) => {
-        console.log(sibling)
-      }, createMockDOMNode(Cov19ResultsAndFluResultsReviewGeneratedData.elementTreeDimensions))
-    })
-  })
-
-  describe(`createBlueprint`, () => {
-    // Tested with window.innerWidth: 1051, window.innerHeight: 823
-    // Tested with viewport.width: 1464.94, viewport.height: 823
-    let blueprint: PdfBlueprint | undefined
-    let format = [sizes.A4.width, sizes.A4.height] as Format
-    let pageWidth = 842
-    let pageHeight = 842
-    let totalWidth = 864.296875
-    let totalHeight = 1459.6875
-
-    beforeEach(() => {
-      blueprint = ExportPdf().createBlueprint(
-        'A4',
-        createMockDOMNode(
-          Cov19ResultsAndFluResultsReviewGeneratedData.elementTreeDimensions,
-        ),
-      )
-    })
-
-    describe.only(`createPageBlueprint`, () => {
-      it.only(`should return the startY and endY`, () => {
-        const pageBlueprint = ExportPdf().createPageBlueprint({
-          pageHeight,
-          totalHeight,
-          path: blueprint?.path,
-        })
-        // expect(pageBlueprint).to.have.property('startY')
-        // expect(pageBlueprint).to.have.property('endY')
-        console.log(pageBlueprint)
-      })
-
-      describe(`when accumulated height exceeds page height`, () => {
-        it(``, () => {
-          const { blueprint } = Cov19ResultsAndFluResultsReviewGeneratedData
-          const pageBlueprint = ExportPdf().createPageBlueprint({
-            format: [sizes.A4.width, sizes.A4.height],
-            pageHeight: sizes.A4.height,
-            path: blueprint.path,
-            totalHeight: blueprint.totalHeight,
-          })
-
-          console.log(pageBlueprint)
-        })
-      })
-
-      describe(`when accumulated height does not exceed page height`, () => {
-        xit(``, () => {
-          //
-        })
-      })
-    })
-
-    describe(`A4`, () => {
-      it(`should set pageWidth / pageHeight to be [${sizes.A4.width}, ${sizes.A4.height}]`, () => {
-        const blueprint = ExportPdf().createBlueprint(
-          [sizes.A4.width, sizes.A4.height],
-          createMockDOMNode({ bounds: {} }),
-        )
-        expect(blueprint).to.have.property('pageWidth', sizes.A4.width)
-        expect(blueprint).to.have.property('pageHeight', sizes.A4.height)
-      })
-
-      it(`should set totalWidth / totalHeight to 864.296875/1459.6875`, () => {
-        const el = createMockDOMNode(
-          Cov19ResultsAndFluResultsReviewGeneratedData.elementTreeDimensions,
-        )
-        const blueprint = ExportPdf().createBlueprint('A4', el)
-        expect(blueprint).to.have.property('totalWidth', 864.296875)
-        expect(blueprint).to.have.property('totalHeight', 1459.6875)
-      })
-
-      it(`should set total pages to 2`, () => {
-        const el = createMockDOMNode(
-          Cov19ResultsAndFluResultsReviewGeneratedData.elementTreeDimensions,
-        )
-        const blueprint = ExportPdf().createBlueprint('A4', el)
-        expect(blueprint).to.have.property('totalPages', 2)
-      })
-
-      describe(`page #1`, () => {
-        it(`should set format to the same as in the pdf blueprint`, () => {
-          const el = createMockDOMNode(
-            Cov19ResultsAndFluResultsReviewGeneratedData.elementTreeDimensions,
-          )
-          const blueprint = ExportPdf().createBlueprint(
-            'A4',
-            el,
-          ) as PdfBlueprint
-          expect(blueprint.pages[0].format[0]).to.eq(blueprint.format[0])
-          expect(blueprint.pages[0].format[1]).to.eq(blueprint.format[1])
-        })
-
-        it(`should set the expected orientation relative to page's width/height`, () => {
-          const el = createMockDOMNode(
-            Cov19ResultsAndFluResultsReviewGeneratedData.elementTreeDimensions,
-          )
-          const blueprint = ExportPdf().createBlueprint(
-            'A4',
-            el,
-          ) as PdfBlueprint
-          expect(blueprint.pages[0]).to.have.property(
-            'orientation',
-            ExportPdf().getOrientation(blueprint.pages[0].container),
-          )
-        })
-
-        it(`should set the the page to 1`, () => {
-          const el = createMockDOMNode(
-            Cov19ResultsAndFluResultsReviewGeneratedData.elementTreeDimensions,
-          )
-          const blueprint = ExportPdf().createBlueprint(
-            'A4',
-            el,
-          ) as PdfBlueprint
-          expect(blueprint.pages[0]).to.have.property('page', 1)
-        })
-
-        it.skip(`should set the currPageHeight to the height size of the content`, () => {
-          const el = createMockDOMNode(
-            Cov19ResultsAndFluResultsReviewGeneratedData.elementTreeDimensions,
-          )
-          const blueprint = ExportPdf().createBlueprint('A4', el)
-          console.dir(blueprint, { depth: 1 })
-          console.log('total height: ' + ExportPdf().getTotalHeight(el)[0])
-
-          // const blueprint = ExportPdf().createBlueprint(
-          //   'A4',
-          //   el,
-          // ) as PdfBlueprint
-          // console.log(blueprint.pages)
-
-          // expect(blueprint.pages[0]).to.have.property('currPageHeight').to.eq(1)
-        })
-
-        it.skip(`should set the remaining to the remaining height at that current point in time`, () => {
-          const el = createMockDOMNode(
-            Cov19ResultsAndFluResultsReviewGeneratedData.elementTreeDimensions,
-          )
-          const blueprint = ExportPdf().createBlueprint(
-            'A4',
-            el,
-          ) as PdfBlueprint
-          expect(blueprint.pages[0]).to.have.property('remaining').to.eq(1)
-        })
-      })
-
-      it(`should set the expected total of pages`, () => {
-        //
-      })
-
-      xit(``, () => {
-        const el = createMockDOMNode({
-          bounds: {
-            x: -90.5,
-            y: 172.8125,
-            width: 864.296875,
-            height: 623.359375,
-            top: 172.8125,
-            right: 773.796875,
-            bottom: 796.171875,
-            left: -90.5,
-          },
-          clientWidth: 865,
-          clientHeight: 623,
-          offsetWidth: 865,
-          offsetHeight: 623,
-          scrollWidth: 865,
-          scrollHeight: 623,
-        })
-        const blueprint = ExportPdf().createBlueprint('A4', el)
-        console.log(blueprint)
-      })
-    })
+    xit(``, () => {})
   })
 })

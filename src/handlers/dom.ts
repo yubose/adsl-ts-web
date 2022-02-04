@@ -3,6 +3,7 @@ import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
+import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
@@ -140,7 +141,7 @@ const createExtendedDOMResolvers = function (app: App) {
       gap_time = 0
     window.onunload = function () {
       gap_time = new Date().getTime() - beforeUnload_time
-      if (gap_time <= 5) {
+      if (gap_time <= 2) {
         //浏览器关闭判断
         clearCookie()
       }
@@ -175,7 +176,8 @@ const createExtendedDOMResolvers = function (app: App) {
       //     lazyLoad: true,
       //   },
       // ],
-      resolve({ node, component }) {
+      resolve({ node, component, page }) {
+        const pageName = page.page
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           node.style.width = component.style.width as string
@@ -436,6 +438,10 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                     },
                   })
+                  app.instances.FullCalendar = {
+                    inst: calendar,
+                    page: pageName,
+                  }
                   calendar.render()
                   // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
                   window.setTimeout(() => {
@@ -599,7 +605,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const iframeEl = document.createElement('iframe')
           const onEntry = (k: any, v: any) => (iframeEl.style[k] = v)
           iframeEl.setAttribute('src', img.src)
-          u.eachEntries(component.style, onEntry)
+          u.entries(component.style)?.forEach?.(([k, v]) => onEntry(k, v))
           parent && findFirstByElementId(parent)?.appendChild?.(iframeEl)
         }
       },
@@ -609,22 +615,29 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         if (component?.blueprint?.hover) {
           node?.addEventListener('mouseover', () => {
-            u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
-              value = value.substring(2)
-              node.style[key] = '#' + value
-            })
+            u.entries(component?.blueprint?.hover)?.forEach?.(
+              ([key, value]) => {
+                value = String(value).substring?.(2)
+                node.style[key] = '#' + value
+              },
+            )
           })
           node?.addEventListener('mouseout', function (e) {
-            u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
-              let realvalue = component.style[key]
-              if (typeof realvalue == 'undefined' && key == 'backgroundColor') {
-                realvalue = '#ffffff'
-              }
-              if (typeof realvalue == 'undefined' && key == 'fontColor') {
-                realvalue = '#000000'
-              }
-              node.style[key] = realvalue
-            })
+            u.entries(component?.blueprint?.hover)?.forEach?.(
+              ([key, value]) => {
+                let realvalue = component.style[key]
+                if (
+                  typeof realvalue == 'undefined' &&
+                  key == 'backgroundColor'
+                ) {
+                  realvalue = '#ffffff'
+                }
+                if (typeof realvalue == 'undefined' && key == 'fontColor') {
+                  realvalue = '#000000'
+                }
+                node.style[key] = realvalue
+              },
+            )
           })
         }
       },
@@ -719,21 +732,22 @@ const createExtendedDOMResolvers = function (app: App) {
           const highlightValue = localhighlightValue
             ? localhighlightValue
             : remotehighlightValue
+          if (highlightValue) {
+            const highlightStyle = component.get('highlightStyle')
 
-          const highlightStyle = component.get('highlightStyle')
+            let originalValue = node.innerHTML
 
-          let originalValue = node.innerHTML
+            node.innerHTML = ''
+            node.innerHTML = heightLight(originalValue, highlightValue)
 
-          node.innerHTML = ''
-          node.innerHTML = heightLight(originalValue, highlightValue)
-
-          let currentSpans = node.getElementsByClassName('highlight')
-          // let domObj:any = document.getElementsByClassName('highlight')
-          for (let i = 0; i < currentSpans.length; i++) {
-            let currentSpan = currentSpans[i] as HTMLElement
-            u.eachEntries(highlightStyle, (key: any, value) => {
-              currentSpan.style[key] = value
-            })
+            let currentSpans = node.getElementsByClassName('highlight')
+            // let domObj:any = document.getElementsByClassName('highlight')
+            for (let i = 0; i < currentSpans.length; i++) {
+              let currentSpan = currentSpans[i] as HTMLElement
+              u.entries(highlightStyle)?.forEach?.(([key, value]) => {
+                currentSpan.style[key] = value
+              })
+            }
           }
         }
       },

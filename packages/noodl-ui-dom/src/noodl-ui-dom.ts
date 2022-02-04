@@ -1,14 +1,14 @@
-import invariant from 'invariant'
 import { Identify } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import {
   findParent,
-  NuiComponent,
   Page as NUIPage,
-  ResolveComponentOptions,
-  Store,
+  findIteratorVar,
+  isComponent,
+  NUI,
+  nuiEmitTransaction,
 } from 'noodl-ui'
-import { findIteratorVar, isComponent, NUI, nuiEmitTransaction } from 'noodl-ui'
+import type { NuiComponent, ResolveComponentOptions, Store } from 'noodl-ui'
 import type { ComponentPage } from './factory/componentFactory'
 import { getElementTag, getNodeIndex, openOutboundURL } from './utils'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
@@ -664,13 +664,17 @@ class NDOM extends NDOMInternal {
     try {
       if (component) {
         if (Identify.component.listItem(component)) {
-          const iteratorVar = findIteratorVar(component) || component?.parent?.blueprint?.iteratorVar
+          const iteratorVar =
+            findIteratorVar(component) ||
+            component?.parent?.blueprint?.iteratorVar
           if (iteratorVar) {
             const index = component.get('index') || 0
             context = { ...context }
             context.index = index
             context.dataObject =
-              context?.dataObject || component.get(iteratorVar) || context.listObject?.[index]
+              context?.dataObject ||
+              component.get(iteratorVar) ||
+              context.listObject?.[index]
             context.iteratorVar = iteratorVar
           }
         }
@@ -944,17 +948,21 @@ class NDOM extends NDOMInternal {
     resolver && this.consumerResolvers.push(resolver)
 
     if (transaction) {
-      u.eachEntries(transaction, (id, val) => {
+      u.entries(transaction).forEach(([id, val]) => {
         if (id === nuiEmitTransaction.REQUEST_PAGE_OBJECT) {
           nui.use({
             transaction: {
               [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (
                 nuiPage: NUIPage,
               ) => {
-                invariant(
-                  u.isFnc(transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT]),
-                  `Missing transaction: ${nuiEmitTransaction.REQUEST_PAGE_OBJECT}`,
-                )
+                if (
+                  !u.isFnc(transaction[nuiEmitTransaction.REQUEST_PAGE_OBJECT])
+                ) {
+                  throw new Error(
+                    `Missing transaction: ${nuiEmitTransaction.REQUEST_PAGE_OBJECT}`,
+                  )
+                }
+
                 let page = this.findPage(nuiPage)
                 if (page) {
                   !page.requesting && (page.requesting = nuiPage?.page || '')

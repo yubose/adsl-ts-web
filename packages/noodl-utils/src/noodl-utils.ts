@@ -42,9 +42,20 @@ export const createNoodlPlaceholderReplacer = (function () {
   const replaceCadlVersion = curry(
     createPlaceholderReplacer('\\${cadlVersion}', 'gi'),
   )
-  const replaceDesignSuffix = curry(
-    createPlaceholderReplacer('\\${designSuffix}', 'gi'),
-  )
+  const replaceDesignSuffix = (
+    str = '',
+    value: Record<string, any> | string,
+  ) => {
+    if (u.isStr(value) || u.isNum(value)) value = String(value)
+    if (u.isObj(value)) {
+      const { greaterEqual, less, widthHeightRatioThreshold } = value
+      value = 1 >= widthHeightRatioThreshold ? greaterEqual : less
+    }
+    return createPlaceholderReplacer('\\${designSuffix}', 'gi')(
+      str,
+      value as string,
+    )
+  }
   const replacerMapper = {
     cadlVersion: replaceCadlVersion,
     designSuffix: replaceDesignSuffix,

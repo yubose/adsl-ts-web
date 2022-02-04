@@ -71,11 +71,7 @@ function createWssObserver(appProp: App | ((fn: WebSocket) => App)) {
         // worker.postMessage(msg)
         ws?.send(JSON.stringify(msg, null, 2))
       } catch (error) {
-        console.error({
-          code: error.code,
-          name: error.name,
-          message: error.message,
-        })
+        console.error(error instanceof Error ? error : new Error(String(error)))
       }
 
       // Send to noodl plugin
@@ -151,21 +147,6 @@ export default createWssObserver
 //   const { CONFIG_KEY } = await import('./app/noodl')
 //   const wssObs = (await import('./handlers/wss')).default
 
-// const worker = new Worker('worker.js')
-
-// worker.postMessage(`Worker started`)
-
-// worker.onmessage = function onMessage(evt) {
-//   console.log(`[index.ts] Received new worker message`, evt)
-// }
-
-// worker.onmessageerror = function onMessageError(evt) {
-//   console.log(`[index.ts] Received an error worker message`, evt)
-// }
-
-// worker.onerror = function onMessageError(err) {
-//   console.log(`[index.ts] Received an error from worker`, err)
-// }
 
 // wssObs(app)
 //   .track('track', {

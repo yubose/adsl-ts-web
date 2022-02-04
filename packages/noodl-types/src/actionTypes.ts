@@ -263,6 +263,13 @@ export interface SaveSignatureActionObject
   [key: string]: any
 }
 
+export interface GetLocationAddressActionObject
+  extends ActionObject,
+    Pick<UncommonActionObjectProps, 'dataKey'> {
+  actionType: 'getLocationAddress'
+  [key: string]: any
+}
+
 /**
  * @example
  * ```json
@@ -276,3 +283,4 @@ export interface SaveSignatureActionObject
 export interface UpdateActionObject
   extends ActionObject,
     Pick<UncommonActionObjectProps, 'dataObject' | 'dataKey'> {}
+

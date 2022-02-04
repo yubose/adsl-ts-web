@@ -9,7 +9,7 @@
 
 ## Correct link to GitLab
 
-- https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/
+- <https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/>
 
 ## Globals
 
@@ -117,6 +117,8 @@ NUI.emit({
 | admind2 | 8883870054 | aitmed      | liz  | Josh Urgent Care |
 | admind2 | 8886540007 | 123         |      | yongjian         |
 | admind2 | 8884565043 | 123         |      | chenchen         |
+| admind2 | 8882320918 | 888666      |      | yuhan            |
+| admind2 | 8882324378 | 888666      |      | austin           |
 | patd    | 8880081221 | letmein123! |      |
 | patd    | 8884240000 | 12345       |      |
 | patd2   | 8881122050 | 123         |      |
@@ -282,3 +284,11 @@ when we do cd and send api to backend, by this time all our bit is 0 (everything
 
 - Fixed evalObject firing twice (API change for DOM addEventListener)
 - Fixed error for accessing reference strings for styles
+
+## PDF Export flow
+
+### Generating images
+
+1. Calculate zero-based `y` position as `startY`
+
+- Last used zero-based `y` position accumulated from `height`

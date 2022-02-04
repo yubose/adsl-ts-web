@@ -421,11 +421,12 @@ function normalizeProps<
               )
             }
           }
-
           // HANDLING ARTBITRARY STYLES
           for (let [styleKey, styleValue] of u.entries(originalValue)) {
+
             if (util.vpHeightKeys.includes(styleKey as any)) {
               if (util.isNoodlUnit(styleValue)) {
+
                 value[styleKey] = String(
                   NuiViewport.getSize(styleValue, viewport?.height as number, {
                     unit: 'px',
@@ -434,6 +435,7 @@ function normalizeProps<
               }
             } else if (util.vpWidthKeys.includes(styleKey as any)) {
               if (util.isNoodlUnit(styleValue)) {
+
                 value[styleKey] = String(
                   NuiViewport.getSize(styleValue, viewport?.width as number, {
                     unit: 'px',
@@ -443,8 +445,10 @@ function normalizeProps<
             }
 
             if (u.isStr(styleValue)) {
+
               // Resolve vm and vh units
               if (styleValue.endsWith('vw') || styleValue.endsWith('vh')) {
+
                 const valueNum =
                   parseFloat(styleValue.substring(0, styleValue.length - 2)) /
                   100
@@ -458,29 +462,31 @@ function normalizeProps<
                   ),
                 )
               }
-
               // Cache this value to the variable so it doesn't get mutated inside this func since there are moments when value is changing before this func ends
               // If the value is a path of a list item data object
               const isListPath =
                 iteratorVar && styleValue.startsWith(iteratorVar)
-
               if (nt.Identify.reference(styleValue)) {
+
                 // Local
                 if (
                   u.isStr(styleValue) &&
                   nt.Identify.localReference(styleValue)
                 ) {
                   styleValue = getByRef(root, styleValue, pageName)
+
                 }
                 // Root
                 else if (u.isStr(styleValue)) {
                   if (nt.Identify.rootReference(styleValue)) {
                     styleValue = getByRef(root, styleValue)
+
                   }
                   if (
                     u.isStr(styleValue) &&
                     (styleValue.endsWith('vw') || styleValue.endsWith('vh'))
                   ) {
+
                     const valueNum =
                       parseFloat(
                         styleValue.substring(0, styleValue.length - 2),
@@ -493,11 +499,27 @@ function normalizeProps<
                           styleValue.endsWith('vw') ? 'width' : 'height'
                         ] as number,
                       ),
+                      
                     )
                   }
                 }
+                if ( 
+                  u.isStr(styleValue) &&
+                  (styleValue.endsWith('vw') || styleValue.endsWith('vh'))
+                ) {
+                  const valueNum =
+                    parseFloat(styleValue.substring(0, styleValue.length - 2)) /
+                    100
+                  value[styleKey] = String(
+                    util.getSize(
+                      valueNum,
+                      viewport?.[
+                        styleValue.endsWith('vw') ? 'width' : 'height'
+                      ] as number,
+                    ),
+                  )
+                } else if (util.vpHeightKeys.includes(styleKey as any)) {
 
-                if (util.vpHeightKeys.includes(styleKey as any)) {
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
                       NuiViewport.getSize(
@@ -506,8 +528,14 @@ function normalizeProps<
                         { unit: 'px' },
                       ),
                     )
+                  } else if (
+                    styleKey == 'borderRadius' &&
+                    u.isStr(styleValue)
+                  ) {
+                    value[styleKey] = styleValue
                   }
                 } else if (util.vpWidthKeys.includes(styleKey as any)) {
+
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
                       NuiViewport.getSize(
@@ -518,6 +546,7 @@ function normalizeProps<
                     )
                   }
                 } else {
+
                   value[styleKey] = com.formatColor(styleValue)
 
                   styleKey == 'pointerEvents' &&
@@ -528,7 +557,6 @@ function normalizeProps<
                     (props.style.visibility = 'hidden')
                 }
               }
-
               // TODO - Find out how to resolve the issue of "value" being undefined without this string check when we already checked above this
               if (
                 u.isStr(styleValue) &&
@@ -545,6 +573,7 @@ function normalizeProps<
                 } else {
                   // Some list item consumers have data keys referencing color data values
                   // They are in the 0x0000000 form so we must convert them to be DOM compatible
+                  
                   if (isListPath) {
                     const dataObject =
                       context?.dataObject || findListDataObject(props)
@@ -553,11 +582,9 @@ function normalizeProps<
                         styleValue,
                         iteratorVar,
                       ) as string
-
                       let _styleValue = com.formatColor(
                         get(dataObject, dataKey),
                       )
-
                       if (util.vpHeightKeys.includes(styleKey as any)) {
                         if (util.isNoodlUnit(_styleValue)) {
                           value[styleKey] = String(
@@ -568,7 +595,18 @@ function normalizeProps<
                             ),
                           )
                         }
-                      } else {
+                      } else if (util.vpWidthKeys.includes(styleKey as any)) {
+                        if (util.isNoodlUnit(_styleValue)) {
+                          value[styleKey] = String(
+                            NuiViewport.getSize(
+                              _styleValue,
+                              viewport?.width as number,
+                              { unit: 'px' },
+                            ),
+                          )
+                        }
+                      } 
+                      else {
                         value[styleKey] = _styleValue
                       }
                     } else {

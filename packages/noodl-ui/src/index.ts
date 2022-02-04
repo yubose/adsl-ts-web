@@ -6,7 +6,6 @@ export { default as PluginCache } from './cache/PluginCache'
 export { default as RegisterCache } from './cache/RegisterCache'
 export { default as TransactionsCache } from './cache/TransactionsCache'
 export { default as EmitAction } from './actions/EmitAction'
-export { default as resolveAsync } from './resolvers/resolveAsync'
 export { default as resolveComponents } from './resolvers/resolveComponents'
 export { default as resolveDataAttribs } from './resolvers/resolveDataAttribs'
 export { default as resolveStyles } from './resolvers/resolveStyles'
@@ -22,6 +21,7 @@ export { default as normalizeProps } from './normalizeProps'
 export { default as resolvePageComponentUrl } from './utils/resolvePageComponentUrl'
 export { default as resolveReference } from './utils/resolveReference'
 export { default as traverse, visitHooks } from './utils/traverse'
+export { default as Transformer } from './Transformer'
 export { default as visit } from './utils/visit'
 export { default as NUI } from './noodl-ui'
 export { default as Page } from './Page'
@@ -34,13 +34,11 @@ export {
 } from './constants'
 export {
   evalIf,
-  findChild,
   findListDataObject,
   findIteratorVar,
   findParent,
   flatten,
   getDataValues,
-  getLast,
   isListConsumer,
   parseReference,
   publish,

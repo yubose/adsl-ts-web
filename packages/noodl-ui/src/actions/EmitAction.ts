@@ -9,6 +9,7 @@ class EmitAction
 {
   actions: any[]
   dataKey: string | Record<string, any> | undefined
+  #executor: Action['executor'] | undefined
 
   constructor(
     trigger: NUITrigger | '',
@@ -21,11 +22,11 @@ class EmitAction
   }
 
   get executor() {
-    return super.executor
+    return this.#executor as EmitAction['executor']
   }
 
   set executor(executor: Action['executor']) {
-    super.executor = executor
+    this.#executor = executor
   }
 
   snapshot() {

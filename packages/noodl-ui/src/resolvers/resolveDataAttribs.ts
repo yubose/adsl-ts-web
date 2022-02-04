@@ -1,6 +1,4 @@
 // Resolve data attributes which get attached to the outcome as data-* properties
-// If any emit objects are encountered the resolveActions resolver should be
-// picking them up
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'

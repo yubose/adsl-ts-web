@@ -71,7 +71,7 @@ export function exportToPDF(
     open?: boolean
     filename?: string
   } = { data: '' },
-): Promise<jsPDF> {
+): Promise<Blob> {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data) reject(new Error(`Cannot export from empty data`))
@@ -186,7 +186,7 @@ export function exportToPDF(
       try {
         doc = u.isStr(data)
           ? await createDocByDataURL(data)
-          : 'tagName' in data
+          : u.isIn('tagName', data)
           ? ((await ExportPdf().create(data, {
               format: formatProp,
             })) as jsPDF)
@@ -217,9 +217,12 @@ export function exportToPDF(
 
       if (!doc) throw new Error(`data is not a string, DOM node or object`)
 
+      let pdfBlob = doc.output('blob')
+
       open && doc.output('pdfobjectnewwindow')
       shouldDownload && download(doc.output('datauristring'), filename)
-      resolve(doc)
+      doc.close()
+      resolve(pdfBlob)
     } catch (error) {
       u.logError(error)
       reject(error instanceof Error ? error : new Error(String(error)))

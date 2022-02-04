@@ -1,5 +1,4 @@
 import resolveSetup from './resolvers/resolveSetup'
-import resolveAsync from './resolvers/resolveAsync'
 import resolveComponents from './resolvers/resolveComponents'
 import resolveStyles from './resolvers/resolveStyles'
 import resolveDataAttribs from './resolvers/resolveDataAttribs'
@@ -15,7 +14,6 @@ class NuiTransformer {
   constructor() {
     this.#transformers.push(
       resolveSetup,
-      resolveAsync,
       resolveComponents,
       resolveStyles,
       resolveDataAttribs,
