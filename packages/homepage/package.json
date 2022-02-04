@@ -12,6 +12,7 @@
     "gatsby-plugin-manifest": "^4.4.0",
     "gatsby-plugin-offline": "^5.4.0",
     "gatsby-plugin-react-helmet": "^5.4.0",
+    "gatsby-plugin-remove-serviceworker": "^1.0.0",
     "gatsby-plugin-sharp": "^4.4.0",
     "gatsby-source-filesystem": "^4.4.0",
     "gatsby-transformer-json": "^4.4.0",
@@ -193,9 +194,9 @@
     "url": "https://github.com/pfftdammitchris/aitmed.com.git"
   },
   "scripts": {
-    "build": "gatsby build",
+    "build": "gatsby build --prefix-paths",
     "clean": "gatsby clean",
-    "deploy": "aws s3 rm s3://www.aitmed.com/static/web/latest/ --recursive && aws s3 cp public/ s3://www.aitmed.com/static/web/latest/ --recursive",
+    "deploy": "aws s3 rm s3://public.aitmed.com/static/web/latest/ --recursive && aws s3 cp public/ s3://public.aitmed.com/static/web/latest/ --recursive",
     "format": "prettier --write '**/*.{js,jsx,ts,tsx,json,md}'",
     "serve": "gatsby serve -p 3000",
     "start": "gatsby develop -p 3000",

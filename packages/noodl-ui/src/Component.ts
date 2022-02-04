@@ -361,7 +361,7 @@ class Component<C extends ComponentObject = ComponentObject> {
     if (u.isFnc(fn)) {
       const props = fn(this.props)
       if (u.isObj(props)) {
-        u.eachEntries(props, (k, v) => {
+        u.entries(props).forEach(([k, v]) => {
           k === 'style' ? u.assign(this.style, v) : (this.props[k] = v)
         })
       }
@@ -376,15 +376,14 @@ class Component<C extends ComponentObject = ComponentObject> {
             } else if (u.isArr(value.remove)) {
               value.remove.forEach((key) => delete obj[key])
             } else if (u.isObj(value.remove)) {
-              u.eachEntries(
-                value.remove,
-                (k, pred) => pred?.() && delete obj[k],
+              u.entries(value.remove).forEach(
+                ([k, pred]) => pred?.() && delete obj[k],
               )
             }
           }
         : undefined
 
-      u.eachEntries(fn, (k, v) => {
+        u.entries(fn).forEach(([k, v]) => {
         if (k === 'style') {
           if (v === null) this.style = {}
           else if (u.isObj(v)) u.assign(this.style, v)

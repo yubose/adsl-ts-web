@@ -7,10 +7,10 @@ function createTextNode(
   const div = document.createElement('div')
   const textNode = document.createTextNode(String(content))
   if (options) {
-    u.eachEntries(options, (key, value) => {
+    u.entries(options).forEach(([key, value]) => {
       if (key === 'style') {
         u.isObj(value) &&
-          u.eachEntries(value, (styleKey, styleValue) => {
+          u.entries(value).forEach(([styleKey, styleValue]) => {
             div.style[styleKey] = styleValue
           })
       } else if (key === 'classList') {
