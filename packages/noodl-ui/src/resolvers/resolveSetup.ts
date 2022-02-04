@@ -148,7 +148,7 @@ setupResolver.setResolver(async function setupResolver(
         }
 
         if (nt.Identify.folds.emit(original[trigger])) {
-          const actionChain = createActionChain('', [
+          const actionChain = createActionChain(trigger, [
             { emit: original[trigger].emit, actionType: 'emit' },
           ])
           on?.actionChain && actionChain.use(on.actionChain)

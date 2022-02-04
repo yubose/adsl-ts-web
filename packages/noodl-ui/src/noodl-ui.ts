@@ -600,7 +600,10 @@ const NUI = (function () {
                 `color:#ec0000;`,
                 c,
               )
-              key === 'data-value' && (nt.Identify.rootReference(value) || nt.Identify.localReference(value)) && c.edit({ [key] : '' })
+              key === 'data-value' &&
+                (nt.Identify.rootReference(value) ||
+                  nt.Identify.localReference(value)) &&
+                c.edit({ [key]: '' })
             }
           }
         }
@@ -698,6 +701,7 @@ const NUI = (function () {
             if (register) {
               if (key === 'handler') {
                 register.handler = { ...register.handler, ...options.handler }
+                // @ts-expect-error
               } else register[key] = val
             }
           })
@@ -1296,14 +1300,17 @@ const NUI = (function () {
         ) {
           u.forEach(unary(o._experimental.register), u.array(args.register))
         } else {
-          u.entries(args.register).forEach(([event, fn]: [event: string, fn: t.Register.Object['fn']]) => {
-            u.isFnc(fn) && o._experimental.register(event, fn)
-
-          })
+          // @ts-expect-error
+          u.entries(args.register).forEach(
+            ([event, fn]: [event: string, fn: t.Register.Object['fn']]) => {
+              u.isFnc(fn) && o._experimental.register(event, fn)
+            },
+          )
         }
       }
 
       if ('transaction' in args) {
+        // @ts-expect-error
         u.entries(args.transaction).forEach(([tid, fn]) => {
           const opts = {} as any
           u.isFnc(fn) ? (opts.fn = fn) : u.isObj(fn) && u.assign(opts, fn)
