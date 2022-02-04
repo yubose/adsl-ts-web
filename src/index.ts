@@ -66,7 +66,6 @@ export async function getWindowHelpers() {
     findFirstByElementId,
     findFirstBySelector,
     findFirstByViewTag,
-    getElementTreeDimensions,
     getVcodeElem,
     getUserPropsFromLocalStorage,
     saveUserPropsFromLocalStorage,
@@ -258,7 +257,8 @@ async function initializeApp(
       })
     },
   })
-  app.navigate('PatientChart')
+  // app.navigate('Cov19TestNewPatReviewPage1')
+
   return app
 }
 
@@ -315,7 +315,6 @@ window.addEventListener('load', async (e) => {
     })
 
     Object.defineProperties(window, {
-      ExportPdf: { configurable: true, get: () => ExportPdf },
       app: { configurable: true, get: () => app },
       build: { configurable: true, value: process.env.BUILD },
       cp: { configurable: true, get: () => copyToClipboard },
@@ -408,6 +407,11 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
+    goToPaymentUrl4: {
+      value: () =>
+        (window.location.href =
+          'http://127.0.0.1:3000/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY'),
+    },
     pageTable: {
       get() {
         const result = [] as { page: string; ndom: number; nui: number }[]
