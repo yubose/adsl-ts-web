@@ -292,3 +292,50 @@ when we do cd and send api to backend, by this time all our bit is 0 (everything
 1. Calculate zero-based `y` position as `startY`
 
 - Last used zero-based `y` position accumulated from `height`
+
+### Generating a PDF page
+
+#### Breaker
+
+Stop if either:
+
+- No more children
+- `offsetEnd` > `totalHeight`
+
+#### Initiation
+
+1. Start with `offsetStart`
+2. Determine `offsetEnd`
+   - `offsetStart` + `pageHeight`
+3. Preparing for finding last child with `bottom` exceeding `offsetEnd`
+   - Perform _(A)_
+
+#### Body
+
+1. _(A)_ If `bottom` exceeds `offsetEnd`
+   - If (`offsetStart` + `scrollHeight`) exceeds `offsetEnd`
+     - If has children,
+       - Find the last child's `bottom` staying within `offsetEnd`
+       - Set to crop using child's `bottom`
+     - Else
+       - Generate image/canvases looping
+         - Split them by (`scrollHeight` / `pageHeight`) # pages
+     - Update `offsetEnd`
+       - `offsetStart` + `pageHeight`
+   - Else
+   - Current `y` for each pdf page
+
+#### Resolution
+
+1. Update `offsetStart`
+   - If last child `bottom`
+     - Use last child's `bottom`
+   - Else if single DOM element
+     - Use DOM element's `bottom`
+2. If more children
+   - Recursive with next child
+
+#### Generating image
+
+- Scroll to `offsetStart` position
+- Remove all elements with `bottom` exceeding `offsetEnd`

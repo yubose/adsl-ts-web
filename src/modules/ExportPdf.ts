@@ -8,6 +8,7 @@ import html2canvas from 'html2canvas'
 import type { Options as Html2CanvasOptions } from 'html2canvas'
 import { isViewport } from 'noodl-ui'
 import isElement from '../utils/isElement'
+import { doc } from 'prettier'
 
 export type Format =
   | [width: number, height: number]
@@ -78,7 +79,12 @@ export const ExportPdf = (function () {
     if (!isElement(el)) return
 
     let doc: jsPDF | undefined
-    let { width, y: startY } = el.getBoundingClientRect()
+    let {
+      width: elWidth,
+      height: elHeight,
+      bottom: elBottom,
+      y: startY,
+    } = el.getBoundingClientRect()
     let format = getFormat(opts?.format)
     let orientation = getOrientation(el) as Orientation
 
@@ -108,11 +114,11 @@ export const ExportPdf = (function () {
      * The first (immediate) child of the container argument is the cloned "el" argument passed above
      *
      * @param _ HTML Document
-     * @param container Container created by html2canvas
+     * @param targetElem Cloned target element
      */
-    const onclone = (_: Document, targetElem: HTMLElement) => {
+    function onclone(_: Document, targetElem: HTMLElement) {
       // Expand all elements to fit their contents in pdf pages
-
+      debugger
       // currElem = targetElem
       let currHeight = 0
       let maxPageHeight = format[0]
@@ -175,81 +181,25 @@ export const ExportPdf = (function () {
       // }
     }
 
-    function getTreeBounds(el) {
-      const obj = {}
-
-      if (!el) return obj
-
-      function getProps(obj, el) {
-        const result = {
-          ...obj,
-          bounds: el.getBoundingClientRect(),
-          id: el.id,
-          clientHeight: el.clientHeight,
-          offsetHeight: el.offsetHeight,
-          scrollHeight: el.scrollHeight,
-          style: {
-            position: el.style.position,
-            display: el.style.display,
-            marginTop: el.style.marginTop,
-            top: el.style.top,
-            left: el.style.left,
-            width: el.style.width,
-            height: el.style.height,
-          },
-        }
-        return result
-      }
-
-      Object.assign(obj, getProps(obj, el), {
-        children: [],
-        path: [],
-        parent: null,
-      })
-
-      function collect(obj = {}, node) {
-        Object.assign(obj, getProps(obj, node))
-        const numChildren = node.children.length
-        numChildren && !obj.children && (obj.children = [])
-        for (let index = 0; index < numChildren; index++) {
-          const childNode = node.children[index]
-          obj.children[index] = collect(
-            { parent: node.id, path: obj.path.concat('children', index) },
-            childNode,
-          )
-        }
-
-        return obj
-      }
-
-      const numChildren = el.children.length
-      numChildren && !obj.children && (obj.children = [])
-      for (let index = 0; index < numChildren; index++) {
-        const childNode = el.children[index]
-        obj.children[index] = collect(
-          { parent: el.id, path: obj.path.concat(`children`, index) },
-          childNode,
-        )
-      }
-
-      return obj
-    }
-
     try {
       doc = new jsPDF(pdfDocOptions)
 
-      doc.canvas.width = o.sizes.A4.width
-      doc.canvas.height = o.sizes.A4.height
-      // doc.internal.pageSize.width = totalWidth
-      // doc.internal.pageSize.height = totalHeight
       doc.internal.pageSize.width = o.sizes.A4.width
       doc.internal.pageSize.height = o.sizes.A4.height
 
       // Canvas + image must share this same size to avoid stretches in fonts
+      doc.canvas.width = o.sizes.A4.width
+      doc.canvas.height = o.sizes.A4.height
+
+      await generatePage({
+        pdf: doc,
+        container: el,
+        el,
+        pageHeight: o.sizes.A4.height,
+        totalHeight,
+      })
 
       try {
-        let step = el.getBoundingClientRect().height
-
         commonHtml2CanvasOptions = {
           ...commonHtml2CanvasOptions,
           onclone,
@@ -259,9 +209,9 @@ export const ExportPdf = (function () {
           // windowWidth: format[0],
           windowHeight: totalHeight,
           // windowHeight: format[1],
-          width,
+          width: elWidth,
           // This height expands the VISIBLE content that is cropped off
-          height: step,
+          height: elHeight,
           // windowWidth: imageSize.width,
           // This height expands the PDF PAGE
           // windowHeight: imageSize.height,
@@ -270,62 +220,60 @@ export const ExportPdf = (function () {
         let accHeight = 0
         let currHeight = 0
 
-        while (accHeight < totalHeight) {
-          el.scrollTo({ top: accHeight })
+        // while (accHeight < totalHeight) {
+        //   el.scrollTo({ top: accHeight })
 
-          const image = await html2canvas(el, {
-            ...commonHtml2CanvasOptions,
-            onclone: (d, e) => {
-              let _y = e.getBoundingClientRect().y
+        //   const image = await html2canvas(el, {
+        //     ...commonHtml2CanvasOptions,
+        //     onclone: (d, e) => {
+        //       let _y = e.getBoundingClientRect().y
 
-              const scrollToLatestHeight = (_el: HTMLElement) => {
-                if (_el) {
-                  const { y } = _el.getBoundingClientRect()
-                  if (y >= _y) {
-                    _y = y
-                    if (_y < accHeight) {
-                      if (el.querySelector(`#${_el.id}`)) debugger
-                      if (e.querySelector(`#${_el.id}`)) debugger
-                      el.querySelector(`#${_el.id}`)?.scrollIntoView()
-                      e.querySelector(`#${_el.id}`)?.scrollIntoView()
-                    }
-                  }
-                  for (const childNode of _el.children) {
-                    scrollToLatestHeight(childNode as HTMLElement)
-                  }
-                }
-              }
+        //       const scrollToLatestHeight = (_el: HTMLElement) => {
+        //         if (_el) {
+        //           const { y } = _el.getBoundingClientRect()
+        //           if (y >= _y) {
+        //             _y = y
+        //             if (_y < accHeight) {
+        //               el.querySelector(`#${_el.id}`)?.scrollIntoView()
+        //               e.querySelector(`#${_el.id}`)?.scrollIntoView()
+        //             }
+        //           }
+        //           for (const childNode of _el.children) {
+        //             scrollToLatestHeight(childNode as HTMLElement)
+        //           }
+        //         }
+        //       }
 
-              for (const childNode of e.children) {
-                scrollToLatestHeight(childNode as HTMLElement)
-              }
-            },
-          })
+        //       for (const childNode of e.children) {
+        //         scrollToLatestHeight(childNode as HTMLElement)
+        //       }
+        //     },
+        //   })
 
-          // prettier-ignore
-          doc.addImage(
-           image.toDataURL(), 'png', 0, 0,
-           width, step,
-           'FAST', 'FAST'
-          )
-          // doc.addPage([o.sizes.A4.width, o.sizes.A4.height], orientation)
-          console.log({
-            commonHtml2CanvasOptions,
-            generatedCanvasSizes: { width: image.width, height: image.height },
-            pdfPageSizes: {
-              width: doc.internal.pageSize.width,
-              height: doc.internal.pageSize.height,
-            },
-          })
+        //   // prettier-ignore
+        //   doc.addImage(
+        //    image.toDataURL(), 'png', 0, 0,
+        //    elWidth, elHeight,
+        //    'FAST', 'FAST'
+        //   )
+        //   // doc.addPage([o.sizes.A4.width, o.sizes.A4.height], orientation)
+        //   console.log({
+        //     commonHtml2CanvasOptions,
+        //     generatedCanvasSizes: { width: image.width, height: image.height },
+        //     pdfPageSizes: {
+        //       width: doc.internal.pageSize.width,
+        //       height: doc.internal.pageSize.height,
+        //     },
+        //   })
 
-          if (currHeight > o.sizes.A4.height) {
-            currHeight = currHeight - o.sizes.A4.height
-            doc.addPage([o.sizes.A4.width, o.sizes.A4.height], orientation)
-          }
+        //   if (currHeight > o.sizes.A4.height) {
+        //     currHeight = currHeight - o.sizes.A4.height
+        //     doc.addPage([o.sizes.A4.width, o.sizes.A4.height], orientation)
+        //   }
 
-          accHeight += step
-          currHeight += step
-        }
+        //   accHeight += elHeight
+        //   currHeight += elHeight
+        // }
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
         console.log(
@@ -337,7 +285,7 @@ export const ExportPdf = (function () {
           autoPaging: 'slice',
           // width: format[0],
           // windowWidth: format[0],
-          width,
+          width: elWidth,
           // windowWidth: totalWidth,
           windowWidth: totalWidth,
           html2canvas: {
@@ -453,6 +401,9 @@ export const ExportPdf = (function () {
 
   const o = {
     create,
+    display,
+    generatePage,
+    generateCanvas,
     getFormat,
     getOrientation,
     getTotalHeightFromElement,
@@ -522,3 +473,466 @@ export const ExportPdf = (function () {
 })()
 
 export default ExportPdf
+
+function getTreeBounds(el) {
+  const obj = {}
+
+  if (!el) return obj
+
+  function getProps(obj, el) {
+    const result = {
+      ...obj,
+      bounds: el.getBoundingClientRect(),
+      id: el.id,
+      clientHeight: el.clientHeight,
+      offsetHeight: el.offsetHeight,
+      scrollHeight: el.scrollHeight,
+      style: {
+        position: el.style.position,
+        display: el.style.display,
+        marginTop: el.style.marginTop,
+        top: el.style.top,
+        left: el.style.left,
+        width: el.style.width,
+        height: el.style.height,
+      },
+    }
+    return result
+  }
+
+  Object.assign(obj, getProps(obj, el), {
+    children: [],
+    path: [],
+    parent: null,
+  })
+
+  function collect(obj = {}, node) {
+    Object.assign(obj, getProps(obj, node))
+    const numChildren = node.children.length
+    numChildren && !obj.children && (obj.children = [])
+    for (let index = 0; index < numChildren; index++) {
+      const childNode = node.children[index]
+      obj.children[index] = collect(
+        { parent: node.id, path: obj.path.concat('children', index) },
+        childNode,
+      )
+    }
+
+    return obj
+  }
+
+  const numChildren = el.children.length
+  numChildren && !obj.children && (obj.children = [])
+  for (let index = 0; index < numChildren; index++) {
+    const childNode = el.children[index]
+    obj.children[index] = collect(
+      { parent: el.id, path: obj.path.concat(`children`, index) },
+      childNode,
+    )
+  }
+
+  return obj
+}
+
+function findBottomPageChild(
+  el: Element | HTMLElement | null | undefined,
+  bottom: number,
+): HTMLElement | null {
+  let result: HTMLElement | null = null
+  if (isElement(el)) {
+    let prevSibling: HTMLElement | null = el
+    let nextSibling = el.nextElementSibling as HTMLElement | null
+    let lastBottom = prevSibling.getBoundingClientRect().bottom
+
+    while (nextSibling) {
+      let nextBottom = nextSibling.getBoundingClientRect().bottom
+
+      if (nextBottom < bottom) {
+        lastBottom = nextBottom
+        prevSibling = nextSibling
+        nextSibling = nextSibling.nextElementSibling as HTMLElement
+        debugger
+      } else {
+        if (
+          prevSibling &&
+          prevSibling?.getBoundingClientRect().bottom < bottom
+        ) {
+          debugger
+          return prevSibling
+        }
+        if (nextSibling.childElementCount) {
+          let prevChild: HTMLElement | null = null
+          let currChild = nextSibling.firstElementChild as HTMLElement
+
+          while (currChild) {
+            const childBottom = currChild.getBoundingClientRect().bottom
+            if (childBottom < bottom) {
+              debugger
+              prevChild = currChild
+              currChild = currChild.firstElementChild as HTMLElement
+            } else {
+              debugger
+              return prevChild || currChild
+            }
+          }
+        }
+
+        nextSibling = nextSibling.nextElementSibling as HTMLElement
+      }
+    }
+
+    result = prevSibling || nextSibling
+
+    if (el.childElementCount) {
+      let prevChild: HTMLElement | null = null
+      let currChild = el.firstElementChild as HTMLElement | null
+
+      // for (let i = 0; i < el.childElementCount; i++) {
+      //   const childNode = el.children[i] as HTMLElement
+      //   const childBottom = childNode.getBoundingClientRect().bottom
+      //   debugger
+      //   if (childBottom > bottom) {
+      //     debugger
+      //     return childNode.previousElementSibling || childNode
+      //   }
+      //   const lastChild = (result = findBottomPageChild(
+      //     container,
+      //     bottom,
+      //     childNode,
+      //   ))
+      //   const lastChildBottom = lastChild?.getBoundingClientRect?.()?.bottom
+      //   debugger
+      //   if (u.isNum(lastChildBottom)) {
+      //     if (lastChildBottom > bottom) return lastChild
+      //     debugger
+      //     return lastChild?.previousElementSibling || lastChild
+      //   }
+      // }
+    }
+  }
+  debugger
+  return result
+}
+
+async function generatePage({
+  pdf,
+  container,
+  el = container,
+  pageHeight,
+  totalHeight,
+  offsetStart = 0,
+  offsetEnd = 0,
+  lastScrolledChildId = el?.id || '',
+  scrolledTimes = 0,
+}: {
+  pdf: jsPDF
+  container: Element | HTMLElement | null | undefined
+  el: Element | HTMLElement | null | undefined
+  pageHeight: number
+  offsetStart?: number
+  offsetEnd?: number
+  totalHeight: number
+  lastScrolledChildId?: string
+  scrolledTimes?: number
+}) {
+  offsetEnd = offsetStart + pageHeight
+
+  const bounds = el?.getBoundingClientRect?.()
+  const bottom = bounds?.bottom as number
+  const width = bounds?.width as number
+  const height = bounds?.height as number
+  const scrollHeight = el?.scrollHeight as number
+  const format = [ExportPdf().sizes.A4.width, ExportPdf().sizes.A4.height]
+
+  let lastChild: HTMLElement | null = null
+  let currPageCount = 0
+
+  function isWithinPage(
+    elOrBottom: Element | number | null,
+    offsetEnd: number,
+  ) {
+    if (u.isNum(elOrBottom)) return elOrBottom > offsetEnd
+    const bottom = elOrBottom?.getBoundingClientRect()?.bottom
+    if (u.isNum(bottom)) return isWithinPage(bottom, offsetEnd)
+    return false
+  }
+
+  if (isElement(el) && isElement(container)) {
+    if (isWithinPage(bottom, offsetEnd)) {
+      lastChild = findBottomPageChild(el.firstElementChild, offsetEnd)
+      const lastChildText = lastChild?.textContent?.trim() || ''
+      const lastChildBounds = lastChild?.getBoundingClientRect?.()
+      debugger
+      if (lastChild) {
+        // lastChild.scrollIntoView()
+
+        {
+          const canvas = await generateCanvas(
+            container,
+            {
+              scrollY: offsetStart,
+            },
+            lastScrolledChildId,
+          )
+          currPageCount++
+
+          const div = await display(canvas)
+          debugger
+          div.click()
+
+          // prettier-ignore
+          pdf.addImage(
+            canvas.toDataURL(), 'png', 0, 0,
+            ExportPdf().sizes.A4.width, ExportPdf().sizes.A4.height,
+            'FAST', 'FAST'
+            )
+
+          container.scrollTo({ top: offsetStart })
+
+          if (
+            lastChild.getBoundingClientRect().bottom < totalHeight &&
+            lastChild.childElementCount
+          ) {
+            const nextOffsetStart = lastChild.getBoundingClientRect().bottom
+            const nextOffsetEnd = nextOffsetStart + pageHeight
+            const nextElementText =
+              lastChild.firstElementChild?.textContent || ''
+            debugger
+            pdf.addPage(
+              [ExportPdf().sizes.A4.width, ExportPdf().sizes.A4.height],
+              'portrait',
+            )
+            lastScrolledChildId = lastChild.id
+            return generatePage({
+              pdf,
+              container,
+              el: lastChild.firstElementChild,
+              pageHeight,
+              totalHeight,
+              lastScrolledChildId,
+              offsetStart: nextOffsetStart,
+              offsetEnd: nextOffsetEnd,
+            })
+          }
+        }
+      }
+    } else {
+      debugger
+      // The actual content is not included in the height
+      // because we have to scroll further for more content
+      // We must find the last child within the offsetStart and offsetEnd
+      if (offsetStart + scrollHeight > offsetEnd) {
+        if (el.childElementCount) {
+          lastChild = findBottomPageChild(el.firstElementChild, offsetEnd)
+          const lastChildText = lastChild?.textContent?.trim() || ''
+          const lastChildBounds =
+            lastChild?.getBoundingClientRect?.() as DOMRect
+          debugger
+
+          if (lastChild) {
+            if (scrolledTimes > 0) {
+              lastScrolledChildId = lastChild.id
+              scrolledTimes++
+            }
+            const canvas = await generateCanvas(
+              container,
+              { scrollY: offsetStart },
+              lastScrolledChildId,
+            )
+
+            currPageCount++
+
+            // prettier-ignore
+            pdf.addImage(
+              canvas.toDataURL(), 'png', 0, 0,
+              width, height,
+              'FAST', 'FAST'
+            )
+
+            const div = await display(canvas)
+            debugger
+            div.click()
+
+            lastScrolledChildId = lastChild.id
+            offsetStart = lastChildBounds.bottom
+            offsetEnd = offsetStart + pageHeight
+
+            if (offsetEnd < totalHeight) {
+              pdf.addPage(
+                [ExportPdf().sizes.A4.width, ExportPdf().sizes.A4.height],
+                'portrait',
+              )
+              debugger
+              return generatePage({
+                pdf,
+                container,
+                el: lastChild,
+                pageHeight,
+                totalHeight,
+                offsetStart,
+                offsetEnd,
+                lastScrolledChildId,
+              })
+            }
+          } else {
+            const canvas = await generateCanvas(
+              container,
+              {
+                scrollY: offsetStart,
+              },
+              lastScrolledChildId,
+            )
+            currPageCount++
+            scrolledTimes++
+
+            const div = await display(canvas)
+            debugger
+            div.click()
+
+            // prettier-ignore
+            pdf.addImage(
+              canvas.toDataURL(), 'png', 0, 0,
+              ExportPdf().sizes.A4.width, ExportPdf().sizes.A4.height,
+              'FAST', 'FAST'
+              )
+            pdf.addPage(
+              [ExportPdf().sizes.A4.width, ExportPdf().sizes.A4.height],
+              'portrait',
+            )
+            throw new Error(
+              `Couldn't find last child within offsetEnd ${offsetEnd}`,
+            )
+          }
+        } else {
+          // The whole element itself is large
+          lastChild = el
+          debugger
+        }
+      } else {
+        // All of the actual content is included in the height
+        const numPages = Math.ceil(scrollHeight / pageHeight)
+        for (let i = 0; i < numPages; i++) {
+          container.scrollTo({ top: offsetEnd })
+
+          const canvas = await generateCanvas(
+            container,
+            { scrollY: offsetEnd },
+            lastScrolledChildId,
+          )
+          scrolledTimes++
+          const div = await display(canvas)
+          debugger
+          div.click()
+          canvas.remove()
+          // prettier-ignore
+          pdf.addImage(
+          canvas.toDataURL(), 'png', 0, 0,
+          ExportPdf().sizes.A4.width, ExportPdf().sizes.A4.height,
+          'FAST', 'FAST'
+          )
+          pdf.addPage(
+            [ExportPdf().sizes.A4.width, ExportPdf().sizes.A4.height],
+            'portrait',
+          )
+        }
+        if (offsetEnd < totalHeight) {
+          offsetStart = offsetEnd
+          offsetEnd = offsetStart + pageHeight
+          debugger
+          return generatePage({
+            pdf,
+            container,
+            el,
+            pageHeight,
+            totalHeight,
+            offsetStart,
+            offsetEnd,
+            lastScrolledChildId,
+          })
+        }
+      }
+    }
+  } else {
+    debugger
+    return {
+      pdf,
+      offsetStart,
+      offsetEnd,
+    }
+  }
+  debugger
+  return {
+    pdf,
+    offsetStart,
+    offsetEnd,
+  }
+}
+
+async function generateCanvas(
+  el: HTMLElement,
+  options?: Partial<Html2CanvasOptions>,
+  idToScrollTo = '',
+) {
+  try {
+    const { width, height } = el.getBoundingClientRect()
+    return html2canvas(el, {
+      width,
+      height,
+      windowWidth: ExportPdf().sizes.A4.width,
+      windowHeight: ExportPdf().sizes.A4.height,
+      useCORS: true,
+      ...options,
+      onclone: (d, e) => {
+        try {
+          d.getElementById(idToScrollTo)?.scrollIntoView?.()
+          e.querySelector(`#${idToScrollTo}`)?.scrollIntoView?.()
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.error(err)
+        }
+      },
+    })
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
+    throw err
+  }
+}
+
+function display(canvas: HTMLCanvasElement): Promise<HTMLDivElement> {
+  return new Promise((resolve, reject) => {
+    const div = document.createElement('div')
+    div.style.position = 'fixed'
+    div.style.top = '0'
+    div.style.right = '0'
+    div.style.bottom = '0'
+    div.style.left = '0'
+    div.style.width = '100%'
+    div.style.height = '100%'
+    div.style.display = 'flex'
+    div.style.justifyContent = 'center'
+    div.style.alignContent = 'center'
+    div.style.background = '#fff'
+    div.style.zIndex = '99999999'
+    const image = new Image()
+    image.src = canvas.toDataURL()
+    image.style.margin = 'auto'
+    image.style.textAlign = 'center'
+    image.style.border = '1px solid tomato'
+    image.onload = () => {
+      resolve(div)
+    }
+    image.onerror = (error) => {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error(err)
+      div.click()
+      reject(err)
+    }
+    div.appendChild(image)
+    const onClick = () => {
+      document.body.removeChild(div)
+      div.removeEventListener('click', onClick)
+    }
+    div.addEventListener('click', onClick)
+    document.body.appendChild(div)
+  })
+}
