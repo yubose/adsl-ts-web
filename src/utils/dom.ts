@@ -189,9 +189,7 @@ export function exportToPDF(
         doc = u.isStr(data)
           ? await createDocByDataURL(data)
           : u.isIn('tagName', data)
-          ? ((await ExportPdf().create(data, {
-              format: formatProp,
-            })) as jsPDF)
+          ? ((await ExportPdf.create(data, formatProp)) as jsPDF)
           : u.isObj(data)
           ? await createDocByObject(data)
           : null
@@ -204,10 +202,7 @@ export function exportToPDF(
           )
 
           try {
-            doc =
-              ((await ExportPdf().create(data, {
-                format: formatProp,
-              })) as jsPDF) || null
+            doc = ((await ExportPdf.create(data, formatProp)) as jsPDF) || null
           } catch (error) {
             console.log(
               `[exportToPDF] Creating a PDF document failed both times`,

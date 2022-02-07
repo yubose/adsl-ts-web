@@ -285,6 +285,8 @@ when we do cd and send api to backend, by this time all our bit is 0 (everything
 - Fixed evalObject firing twice (API change for DOM addEventListener)
 - Fixed error for accessing reference strings for styles
 
+---
+
 ## PDF Export flow
 
 ### Generating images
@@ -339,3 +341,43 @@ Stop if either:
 
 - Scroll to `offsetStart` position
 - Remove all elements with `bottom` exceeding `offsetEnd`
+
+---
+
+### PDF Export Flow V2
+
+1. Set:
+   - `flattened` (accumulating flattened elements)
+   - `accHeight`
+   - `offsetStart`
+   - `offsetEnd`
+   - `pageHeight` (pdf)
+   - `totalHeight`
+2. Init:
+   - Set `flattened` to `[]`
+   - Set `offsetStart` and `accHeight` to `0`
+   - Set `offsetEnd` to `offsetStart` + `pageHeight`
+3. Recursion
+   - Flatten element
+   - Let `offsetStart` be `accHeight`
+   - let `offsetEnd` be `offsetStart` + `pageHeight`
+   - Let `currHeight` be `offsetStart` + `scrollHeight`
+   - If `currHeight` > `offsetEnd`
+     - For loop
+       - Let inner `offsetStart` be `accHeight`
+       - Let inner `offsetEnd` be the same
+       <!-- - Let inner `offsetEnd` be `offsetStart` + (`currHeight` - outer `offsetEnd`) -->
+       - If children
+         - On each child:
+           - Let `innerCurrHeight` be `offsetStart` + child `scrollHeight`
+             - If `innerCurrHeight` > `offsetEnd`
+               - Repeat Recursion _on inner children_ with initial values:
+                 - `offsetStart` to `innerCurrHeight`
+             - Else if child `currHeight` < `offsetEnd`
+               - Keep looping
+       - Else if no children
+         - Set `accHeight` to `currHeight`
+   - Else if `currHeight` < `offsetEnd`
+     - `accHeight += scrollHeight`
+     - Set `offsetStart` to `accHeight`
+     - Next sibling

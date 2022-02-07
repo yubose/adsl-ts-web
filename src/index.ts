@@ -29,6 +29,7 @@ import {
   saveUserProps as saveUserPropsFromLocalStorage,
 } from './utils/localStorage'
 import App from './App'
+import ExportPdf from './modules/ExportPdf'
 import 'tippy.js/dist/tippy.css'
 import 'tippy.js/themes/light.css'
 import 'vercel-toast/dist/vercel-toast.css'
@@ -404,6 +405,7 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
+    ExportPdf: { value: ExportPdf },
     pageTable: {
       get() {
         const result = [] as { page: string; ndom: number; nui: number }[]
