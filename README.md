@@ -286,6 +286,8 @@ when we do cd and send api to backend, by this time all our bit is 0 (everything
 - Fixed evalObject firing twice (API change for DOM addEventListener)
 - Fixed error for accessing reference strings for styles
 
+---
+
 ## PDF Export flow
 
 ### Generating images
@@ -293,3 +295,90 @@ when we do cd and send api to backend, by this time all our bit is 0 (everything
 1. Calculate zero-based `y` position as `startY`
 
 - Last used zero-based `y` position accumulated from `height`
+
+### Generating a PDF page
+
+#### Breaker
+
+Stop if either:
+
+- No more children
+- `offsetEnd` > `totalHeight`
+
+#### Initiation
+
+1. Start with `offsetStart`
+2. Determine `offsetEnd`
+   - `offsetStart` + `pageHeight`
+3. Preparing for finding last child with `bottom` exceeding `offsetEnd`
+   - Perform _(A)_
+
+#### Body
+
+1. _(A)_ If `bottom` exceeds `offsetEnd`
+   - If (`offsetStart` + `scrollHeight`) exceeds `offsetEnd`
+     - If has children,
+       - Find the last child's `bottom` staying within `offsetEnd`
+       - Set to crop using child's `bottom`
+     - Else
+       - Generate image/canvases looping
+         - Split them by (`scrollHeight` / `pageHeight`) # pages
+     - Update `offsetEnd`
+       - `offsetStart` + `pageHeight`
+   - Else
+   - Current `y` for each pdf page
+
+#### Resolution
+
+1. Update `offsetStart`
+   - If last child `bottom`
+     - Use last child's `bottom`
+   - Else if single DOM element
+     - Use DOM element's `bottom`
+2. If more children
+   - Recursive with next child
+
+#### Generating image
+
+- Scroll to `offsetStart` position
+- Remove all elements with `bottom` exceeding `offsetEnd`
+
+---
+
+### PDF Export Flow V2
+
+1. Set:
+   - `flattened` (accumulating flattened elements)
+   - `accHeight`
+   - `offsetStart`
+   - `offsetEnd`
+   - `pageHeight` (pdf)
+   - `totalHeight`
+2. Init:
+   - Set `flattened` to `[]`
+   - Set `offsetStart` and `accHeight` to `0`
+   - Set `offsetEnd` to `offsetStart` + `pageHeight`
+3. Recursion
+   - Flatten element
+   - Let `offsetStart` be `accHeight`
+   - let `offsetEnd` be `offsetStart` + `pageHeight`
+   - Let `currHeight` be `offsetStart` + `scrollHeight`
+   - If `currHeight` > `offsetEnd`
+     - For loop
+       - Let inner `offsetStart` be `accHeight`
+       - Let inner `offsetEnd` be the same
+       <!-- - Let inner `offsetEnd` be `offsetStart` + (`currHeight` - outer `offsetEnd`) -->
+       - If children
+         - On each child:
+           - Let `innerCurrHeight` be `offsetStart` + child `scrollHeight`
+             - If `innerCurrHeight` > `offsetEnd`
+               - Repeat Recursion _on inner children_ with initial values:
+                 - `offsetStart` to `innerCurrHeight`
+             - Else if child `currHeight` < `offsetEnd`
+               - Keep looping
+       - Else if no children
+         - Set `accHeight` to `currHeight`
+   - Else if `currHeight` < `offsetEnd`
+     - `accHeight += scrollHeight`
+     - Set `offsetStart` to `accHeight`
+     - Next sibling

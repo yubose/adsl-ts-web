@@ -30,6 +30,7 @@ import {
   saveUserProps as saveUserPropsFromLocalStorage,
 } from './utils/localStorage'
 import App from './App'
+import ExportPdf from './modules/ExportPdf'
 import 'tippy.js/dist/tippy.css'
 import 'tippy.js/themes/light.css'
 import 'vercel-toast/dist/vercel-toast.css'
@@ -412,6 +413,7 @@ function attachDebugUtilsToWindow(app: App) {
         (window.location.href =
           'http://127.0.0.1:3000/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY'),
     },
+    ExportPdf: { value: ExportPdf },
     pageTable: {
       get() {
         const result = [] as { page: string; ndom: number; nui: number }[]
