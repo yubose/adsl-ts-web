@@ -58,7 +58,7 @@ async function generatePages({
         const w = el.getBoundingClientRect().width
         const h = el.getBoundingClientRect().height
         const ratio = VP.getAspectRatio(w, h)
-        const imageSize = { width: pageWidth, height: pageWidth / ratio }
+        const imageSize = { width: pageWidth, height: pageHeight }
         console.log(`El width: ${w}`)
         console.log(`El height: ${h}`)
         console.log(`Page width: ${pageWidth}`)
@@ -73,6 +73,14 @@ async function generatePages({
           } ${pdf.getNumberOfPages()}`,
           imageSize,
         )
+
+        const getTotalPendingHeight = (...els: HTMLElement[]) => {
+          let height = 0
+          els.forEach((e) => (height += e.getBoundingClientRect().height))
+          return height
+        }
+
+        console.log(`[pendingHeight]: ${pendingHeight}`)
 
         const canvas = await generateCanvas(el, {
           ...generateCanvasOptions,
@@ -101,13 +109,14 @@ async function generatePages({
           },
         })
 
-        // canvas.width = imageSize.width
-        // canvas.height = imageSize.height
-
         pdf.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height)
+
         if (nodes.length || currEl) {
           pdf.addPage([pageWidth, pageHeight], 'portrait')
         }
+
+        // canvas.width = imageSize.width
+        // canvas.height = imageSize.height
 
         pending.length = 0
         if (currEl) pending[0] = currEl as HTMLElement
