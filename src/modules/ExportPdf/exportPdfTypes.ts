@@ -8,6 +8,7 @@ export interface ExportPdfFlattenOptions {
   offsetStart?: number
   offsetEnd?: number
   pageHeight: number
+  ratio: number
 }
 
 export type Format =

@@ -28,11 +28,10 @@ export const ExportPdf = (function () {
    */
   async function create(el: HTMLElement | null | undefined, format?: t.Format) {
     if (!isElement(el)) return
+    el.setAttribute('data-html2canvas-debug', 'all')
 
     let doc: jsPDF | undefined
     let { width: elWidth, height: elHeight } = el.getBoundingClientRect()
-
-    window.scrollTo({ top: el.getBoundingClientRect().y })
 
     let pdfDocOptions = {
       compress: true,
@@ -51,6 +50,8 @@ export const ExportPdf = (function () {
         width: sizes.A4.width,
         height: sizes.A4.height,
         useCORS: true,
+        windowWidth: sizes.A4.width,
+        windowHeight: sizes.A4.height,
       }
 
     try {
@@ -58,15 +59,18 @@ export const ExportPdf = (function () {
       const pageHeight = sizes.A4.height
 
       doc = new jsPDF(pdfDocOptions)
-      doc.canvas.width = pageWidth
-      doc.canvas.height = pageHeight
       doc.internal.pageSize.width = pageWidth
       doc.internal.pageSize.height = pageHeight
 
       try {
+        const w = el.getBoundingClientRect().width
+        const h = el.getBoundingClientRect().height
+        const ratio = VP.getAspectRatio(w, h)
+
         const flattenedElements = await flatten({
           el: el.firstElementChild as HTMLElement,
           pageHeight,
+          ratio,
         })
 
         doc = await generatePages({

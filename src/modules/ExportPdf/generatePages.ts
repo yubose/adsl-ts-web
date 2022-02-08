@@ -58,12 +58,13 @@ async function generatePages({
         const w = el.getBoundingClientRect().width
         const h = el.getBoundingClientRect().height
         const ratio = VP.getAspectRatio(w, h)
-        const imageSize = { width: pageWidth, height: pageHeight }
-        console.log(`El width: ${w}`)
-        console.log(`El height: ${h}`)
-        console.log(`Page width: ${pageWidth}`)
-        console.log(`Page height: ${pageHeight}`)
-        console.log(`Aspect ratio: ${ratio}`)
+        const imageSize = { width: pageWidth, height: w / ratio }
+        console.log(`%cElement width: ${w}, height: ${h}`, 'color:tomato')
+        console.log(
+          `%cPage width: ${pageWidth}, height: ${pageHeight}`,
+          'color:magenta',
+        )
+        console.log(`%cAspect ratio: ${ratio}`, 'color:teal;font-weight:bold')
         console.log(
           `Computed image sizes: [${imageSize.width}/${imageSize.height}]`,
         )
@@ -74,27 +75,29 @@ async function generatePages({
           imageSize,
         )
 
-        const getTotalPendingHeight = (...els: HTMLElement[]) => {
-          let height = 0
-          els.forEach((e) => (height += e.getBoundingClientRect().height))
-          return height
-        }
-
-        console.log(`[pendingHeight]: ${pendingHeight}`)
-
         const canvas = await generateCanvas(el, {
           ...generateCanvasOptions,
           ...imageSize,
-          windowWidth: imageSize.width,
-          windowHeight: imageSize.height,
+          windowWidth: pageWidth,
+          windowHeight: pageHeight,
           onclone: (d, e) => {
             e.style.height = 'auto'
-            // document.body.style.width = `${pageWidth}px`
-            // document.body.style.height = `${pageHeight}px`
             const pendingClonedElems = pending.reduce((acc, pe) => {
               if (pe?.id) {
                 const queriedEl = d.getElementById(pe.id)
-                if (queriedEl) acc.push(queriedEl)
+                if (pe?.textContent?.startsWith?.('Obs')) {
+                  debugger
+                }
+                if (queriedEl) {
+                  acc.push(queriedEl)
+                  queriedEl.style.border = '1px solid red'
+                  if (pe?.textContent?.startsWith?.('Obs')) {
+                    debugger
+                  }
+                  queriedEl.style.border = ''
+                } else {
+                  acc.push(pe)
+                }
               }
               return acc
             }, [] as HTMLElement[])
@@ -109,14 +112,16 @@ async function generatePages({
           },
         })
 
-        pdf.addImage(canvas, 'PNG', 0, 0, canvas.width, canvas.height)
+        console.log(`%cCanvas dimensions`, `color:#c4a901;`, {
+          width: canvas.width,
+          height: canvas.height,
+        })
+
+        pdf.addImage(canvas.toDataURL(), 'PNG', 0, 0, pageWidth, pageHeight)
 
         if (nodes.length || currEl) {
           pdf.addPage([pageWidth, pageHeight], 'portrait')
         }
-
-        // canvas.width = imageSize.width
-        // canvas.height = imageSize.height
 
         pending.length = 0
         if (currEl) pending[0] = currEl as HTMLElement

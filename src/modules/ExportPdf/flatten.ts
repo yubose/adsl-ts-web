@@ -8,6 +8,7 @@ async function flatten({
   pageHeight,
   offsetStart = accHeight,
   offsetEnd = offsetStart + pageHeight,
+  ratio,
 }: ExportPdfFlattenOptions) {
   try {
     if (!el) {
@@ -24,11 +25,13 @@ async function flatten({
       if (currHeight > offsetEnd) {
         if (currEl.childElementCount) {
           for (let childNode of currEl.children) {
-            if (isElement(childNode)) {
-              let innerCurrHeight = offsetStart + childNode.scrollHeight
+            if (isElement(childNode) || 'getBoundingClientRect' in childNode) {
+              let innerCurrHeight =
+                offsetStart + childNode.getBoundingClientRect().height
 
               if (innerCurrHeight > offsetEnd) {
-                childNode = currEl.removeChild(childNode)
+                flattened.push(childNode as HTMLElement)
+                currEl.removeChild(childNode)
                 flatten({
                   el: childNode as HTMLElement,
                   flattened,
@@ -36,7 +39,10 @@ async function flatten({
                   pageHeight,
                   offsetStart,
                   offsetEnd,
+                  ratio,
                 })
+              } else {
+                flattened.push(childNode as HTMLElement)
               }
             }
           }

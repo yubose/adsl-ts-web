@@ -4,7 +4,7 @@ import sizes from './sizes'
 async function generateCanvas(
   el: HTMLElement,
   options?: Partial<Html2CanvasOptions>,
-) {
+): Promise<HTMLCanvasElement> {
   try {
     return html2canvas(el, {
       windowWidth: sizes.A4.width,
