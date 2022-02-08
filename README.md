@@ -382,3 +382,28 @@ Stop if either:
      - `accHeight += scrollHeight`
      - Set `offsetStart` to `accHeight`
      - Next sibling
+
+#### Flattened elements
+
+Input:
+
+- `flattened`
+
+1. Set:
+   - `currEl`
+   - `currPageHeight`
+   - `pageHeight`
+   - `pending`
+2. Init
+   - Set `currPageHeight` to `0`
+3. While `flattened`.length
+   - Set `currEl` to `flattened`.shift()
+   - Set `elHeight` to `currEl` height
+   - Set `nextPageHeight` to `elHeight` + `currPageHeight`
+   - If `nextPageHeight` >= `pageHeight`
+     - Generate PDF page from `pending`
+     - Set `pending` to `[]`
+     - Set `currPageHeight` to `elHeight`
+   - Else if `nextPageHeight` < `pageHeight`
+     - `currPageHeight += elHeight`
+     - `pending`.push(`currEl`)

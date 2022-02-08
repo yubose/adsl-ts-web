@@ -2,11 +2,13 @@
  * Exports a DOM tree to PDF document pages
  */
 import * as u from '@jsmanifest/utils'
+import { Viewport as VP } from 'noodl-ui'
 import jsPDF from 'jspdf'
 import display from './display'
 import isElement from '../../utils/isElement'
 import flatten from './flatten'
-import generateCanvas from './generateCanvas'
+import generatePages from './generatePages'
+import type { GeneratePagesOptions } from './generatePages'
 import sizes from './sizes'
 import * as t from './exportPdfTypes'
 
@@ -30,6 +32,8 @@ export const ExportPdf = (function () {
     let doc: jsPDF | undefined
     let { width: elWidth, height: elHeight } = el.getBoundingClientRect()
 
+    window.scrollTo({ top: el.getBoundingClientRect().y })
+
     let pdfDocOptions = {
       compress: true,
       format,
@@ -37,76 +41,42 @@ export const ExportPdf = (function () {
       unit: 'px',
     } as const
 
-    let commonHtml2CanvasOptions = {
-      async: true,
-      allowTaint: true,
-      logging: true,
-      onclone,
-      // Putting this to true will avoid blank page when they try to re-download
-      removeContainer: true,
-      svgRendering: false,
-      useCORS: true,
-      windowWidth: sizes.A4.width,
-      windowHeight: sizes.A4.height,
-      x: 0,
-      y: 0,
-    }
-
-    /**
-     * Callback called with the cloned element.
-     * Optionally mutate this cloned element to modify the output if needed.
-     * The first (immediate) child of the container argument is the cloned "el" argument passed above
-     *
-     * @param _ HTML Document
-     * @param targetElem Cloned target element
-     */
-    function onclone(_: Document, targetElem: HTMLElement) {
-      //
-    }
+    let commonHtml2CanvasOptions: GeneratePagesOptions['generateCanvasOptions'] =
+      {
+        allowTaint: true,
+        logging: true,
+        // Putting this to true will avoid blank page when they try to re-download
+        removeContainer: true,
+        scale: 1.5,
+        width: sizes.A4.width,
+        height: sizes.A4.height,
+        useCORS: true,
+      }
 
     try {
+      const pageWidth = sizes.A4.width
+      const pageHeight = sizes.A4.height
+
       doc = new jsPDF(pdfDocOptions)
-      doc.internal.pageSize.width = sizes.A4.width
-      doc.internal.pageSize.height = sizes.A4.height
+      doc.canvas.width = pageWidth
+      doc.canvas.height = pageHeight
+      doc.internal.pageSize.width = pageWidth
+      doc.internal.pageSize.height = pageHeight
 
       try {
         const flattenedElements = await flatten({
           el: el.firstElementChild as HTMLElement,
-          pageHeight: sizes.A4.height,
+          pageHeight,
         })
 
-        const pageElements = [] as HTMLElement[][]
-
-        for (const flattenedElement of flattenedElements) {
-          let currPageElements = pageElements[pageElements.length - 1] || []
-
-          if (!pageElements.includes(currPageElements)) {
-            pageElements.push(currPageElements)
-          }
-
-          currPageElements.push(flattenedElement)
-
-          const currPageElementsSize = currPageElements.reduce(
-            (acc, el) => (acc += el.getBoundingClientRect().height),
-            0,
-          )
-
-          if (currPageElementsSize > sizes.A4.height) {
-            const fragment = document.createDocumentFragment()
-            pageElements.splice(pageElements.indexOf(currPageElements), 1)
-            while (currPageElements.length) {
-              fragment.appendChild(currPageElements.shift() as HTMLElement)
-            }
-            const canvas = await generateCanvas(fragment, {
-              ...commonHtml2CanvasOptions,
-            })
-            doc.addImage(canvas, 'PNG', 0, 0, sizes.A4.width, sizes.A4.height)
-            doc.addPage([sizes.A4.width, sizes.A4.height], 'portrait')
-          }
-
-          // await display(el, flattenedElement)
-          // debugger
-        }
+        doc = await generatePages({
+          pdf: doc,
+          el,
+          nodes: flattenedElements,
+          pageWidth,
+          pageHeight,
+          generateCanvasOptions: commonHtml2CanvasOptions,
+        })
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
         console.log(
@@ -135,7 +105,6 @@ export const ExportPdf = (function () {
     create,
     display,
     flatten,
-    generateCanvas,
     sizes,
   }
 })()
