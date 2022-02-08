@@ -25,7 +25,7 @@ function getConfigEndpoint(name: string) {
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
 
-const CONFIG_URL = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
+const CONFIG_URL = "../local.yml"
 // Local server
 // const CONFIG_URL = `../local.yml`
 let noodl: NOODL | undefined

@@ -175,4 +175,5 @@ export const userEvent = [
 	'onMouseLeave',
 	'onMouseOut',
 	'onMouseOver',
+	'onLazyLoading'
 ] as const
