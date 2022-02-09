@@ -914,7 +914,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         e: Event,
       ) {
         e.preventDefault()
-        hide(node)
+        node?.style && (node.style.display = 'none')
         document.body.removeEventListener('click', onTouchOutside)
       }
       document.body.addEventListener('click', onTouchOutside)
