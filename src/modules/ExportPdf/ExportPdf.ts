@@ -6,7 +6,7 @@ import { Viewport as VP } from 'noodl-ui'
 import jsPDF from 'jspdf'
 import display from './display'
 import isElement from '../../utils/isElement'
-import flatten from './flatten'
+import flatten, { flatten_next } from './flatten'
 import generatePages from './generatePages'
 import type { GeneratePagesOptions } from './generatePages'
 import sizes from './sizes'
@@ -67,7 +67,8 @@ export const ExportPdf = (function () {
         const h = el.getBoundingClientRect().height
         const ratio = VP.getAspectRatio(w, h)
 
-        const flattenedElements = await flatten({
+        const flattenedElements = await flatten_next({
+          container: el,
           el: el.firstElementChild as HTMLElement,
           pageHeight,
           ratio,

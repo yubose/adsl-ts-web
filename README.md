@@ -407,3 +407,20 @@ Input:
    - Else if `nextPageHeight` < `pageHeight`
      - `currPageHeight += elHeight`
      - `pending`.push(`currEl`)
+
+#### Flatten_next
+
+1. If `currHeight` > `offsetEnd`
+   - If children
+   - Else if no children
+
+##### `onclone`
+
+1. For each pending element
+   - Let `obj` be the current flat object in the loop
+   - If `obj.before`
+     - Move `obj.childNode` as a child before `obj.before` element
+   - Else If `obj.after`
+     - Move `obj.childNode` as a child after `obj.after` element
+   - Else
+     -

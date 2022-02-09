@@ -2,8 +2,9 @@ import * as u from '@jsmanifest/utils'
 import type { Options as Html2CanvasOptions } from 'html2canvas'
 import type jsPDF from 'jspdf'
 import { Viewport as VP } from 'noodl-ui'
+import { flatten_next } from './flatten'
+import type { FlattenObject } from './flatten'
 import generateCanvas from './generateCanvas'
-import display from './display'
 import * as t from './types'
 
 export interface GeneratePagesOptions {
@@ -80,27 +81,25 @@ async function generatePages({
           ...imageSize,
           windowWidth: pageWidth,
           windowHeight: pageHeight,
-          onclone: (d, e) => {
+          onclone: (d: Document, e) => {
             e.style.height = 'auto'
-            const pendingClonedElems = pending.reduce((acc, pe) => {
-              if (pe?.id) {
-                const queriedEl = d.getElementById(pe.id)
-                if (pe?.textContent?.startsWith?.('Obs')) {
-                  debugger
-                }
-                if (queriedEl) {
-                  acc.push(queriedEl)
-                  queriedEl.style.border = '1px solid red'
-                  if (pe?.textContent?.startsWith?.('Obs')) {
-                    debugger
-                  }
-                  queriedEl.style.border = ''
-                } else {
-                  acc.push(pe)
-                }
+            const ids = pending.map((obj) => obj.id)
+            const pendingClonedElems = [] as HTMLElement[]
+            const numElems = pending.length
+
+            for (let index = 0; index < numElems; index++) {
+              // @ts-expect-error
+              const flatObj = pending[index] as FlattenObject
+              if (!flatObj) continue
+              let clonedEl = d.getElementById(pending[index].id)
+              if (!clonedEl) continue
+              const textContent = clonedEl.textContent
+              console.log(textContent)
+
+              if (clonedEl.id && ids.includes(clonedEl.id)) {
+                pendingClonedElems.push(clonedEl)
               }
-              return acc
-            }, [] as HTMLElement[])
+            }
 
             const modifiedEl = generateCanvasOptions?.onclone?.({
               htmlDocument: d,
