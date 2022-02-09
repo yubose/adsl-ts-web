@@ -2,15 +2,16 @@ import * as u from '@jsmanifest/utils'
 import type { Options as Html2CanvasOptions } from 'html2canvas'
 import type jsPDF from 'jspdf'
 import { Viewport as VP } from 'noodl-ui'
-import { flatten_next } from './flatten'
-import type { FlattenObject } from './flatten'
+import type { flatten_next, FlattenObject } from './flatten'
 import generateCanvas from './generateCanvas'
+import sizes from './sizes'
+import getHeight from '../../utils/getHeight'
 import * as t from './types'
 
 export interface GeneratePagesOptions {
   pdf: jsPDF
   el: HTMLElement
-  nodes: HTMLElement | HTMLElement[]
+  flattener: ReturnType<typeof flatten_next>
   pageWidth: number
   pageHeight: number
   generateCanvasOptions?: Partial<Omit<Html2CanvasOptions, 'onclone'>> & {
@@ -30,36 +31,38 @@ export interface GeneratePagesOptions {
 async function generatePages({
   pdf,
   el,
-  nodes,
+  flattener,
   pageWidth,
   pageHeight,
   generateCanvasOptions,
 }: GeneratePagesOptions) {
   try {
-    if (!u.isArr(nodes)) nodes = u.array(nodes)
-    if (!nodes.length) return pdf
+    const w = el.getBoundingClientRect().width
+    const h = el.getBoundingClientRect().height
+    const ratio = VP.getAspectRatio(w, h)
 
-    let currEl: HTMLElement | undefined
+    pageHeight = el.getBoundingClientRect().width / ratio
+
+    let currFlat: FlattenObject | undefined
     let currPageHeight = 0
-    let pending = [] as HTMLElement[]
-    let elHeight = 0
     let nextPageHeight = 0
+    let pending = [] as FlattenObject[]
+    let flattened = [...flattener.get()]
+    let processedIds = [] as string[]
 
-    // nodes.length === incoming pending elements
+    // flattenedElements.length === incoming pending elements
     // pending.length === elements already pending
 
-    while (nodes.length || pending.length) {
-      currEl = nodes.shift()
-      elHeight = currEl?.scrollHeight || 0
-      nextPageHeight = elHeight + currPageHeight
+    while (flattened.length || pending.length) {
+      currFlat = flattened.shift()
 
-      const isLeftOver = !!(!nodes.length && pending.length)
+      nextPageHeight = (currFlat?.height || 0) + currPageHeight
+
+      const isLeftOver = !!(!flattened.length && pending.length)
 
       if (nextPageHeight > pageHeight || isLeftOver) {
-        const w = el.getBoundingClientRect().width
-        const h = el.getBoundingClientRect().height
-        const ratio = VP.getAspectRatio(w, h)
         const imageSize = { width: pageWidth, height: w / ratio }
+
         console.log(`%cElement width: ${w}, height: ${h}`, 'color:tomato')
         console.log(
           `%cPage width: ${pageWidth}, height: ${pageHeight}`,
@@ -79,25 +82,43 @@ async function generatePages({
         const canvas = await generateCanvas(el, {
           ...generateCanvasOptions,
           ...imageSize,
-          windowWidth: pageWidth,
-          windowHeight: pageHeight,
-          onclone: (d: Document, e) => {
+          windowWidth: sizes.A4.width,
+          windowHeight: sizes.A4.height,
+          onclone: (d: Document, e: HTMLElement) => {
             e.style.height = 'auto'
-            const ids = pending.map((obj) => obj.id)
             const pendingClonedElems = [] as HTMLElement[]
-            const numElems = pending.length
+            const numPending = pending.length
+            let accHeight = 0
 
-            for (let index = 0; index < numElems; index++) {
-              // @ts-expect-error
-              const flatObj = pending[index] as FlattenObject
-              if (!flatObj) continue
-              let clonedEl = d.getElementById(pending[index].id)
+            for (let index = 0; index < numPending; index++) {
+              let flat = pending[index] as FlattenObject
+              let clonedEl = d.getElementById(flat.id)
+
               if (!clonedEl) continue
-              const textContent = clonedEl.textContent
-              console.log(textContent)
 
-              if (clonedEl.id && ids.includes(clonedEl.id)) {
+              if (clonedEl.id && processedIds.includes(clonedEl.id)) {
+                console.log(
+                  `%cSkipping ${clonedEl.id} because it was already processed`,
+                  `color:#ec0000;`,
+                  flat,
+                )
+                continue
+              }
+
+              accHeight += flat.height
+
+              console.log(
+                `[flat object] index: ${index} accHeight: ${accHeight}`,
+                flat,
+              )
+
+              if (flat.parentId) {
+                clonedEl.parentNode?.removeChild?.(clonedEl)
+                pendingClonedElems.unshift(clonedEl)
+              } else {
+                // if (clonedEl?.id && !processedIds.includes(clonedEl.id)) {
                 pendingClonedElems.push(clonedEl)
+                // }
               }
             }
 
@@ -107,6 +128,15 @@ async function generatePages({
               elements: pendingClonedElems,
             })
 
+            processedIds.push(
+              ...pendingClonedElems.reduce(
+                (acc, el) =>
+                  el.id && !processedIds.includes(el.id)
+                    ? acc.concat(el.id)
+                    : acc,
+                [] as string[],
+              ),
+            )
             if (!modifiedEl) e.replaceChildren(...pendingClonedElems)
           },
         })
@@ -118,16 +148,22 @@ async function generatePages({
 
         pdf.addImage(canvas.toDataURL(), 'PNG', 0, 0, pageWidth, pageHeight)
 
-        if (nodes.length || currEl) {
-          pdf.addPage([pageWidth, pageHeight], 'portrait')
+        // flattened.shift()
+
+        if (nextPageHeight > pageHeight) {
+          debugger
+          pdf.addPage([sizes.A4.width, sizes.A4.height], 'portrait')
         }
 
         pending.length = 0
-        if (currEl) pending[0] = currEl as HTMLElement
-        currPageHeight = elHeight
+        // if (currFlat && !processedIds.includes(currFlat.id))
+        //   pending[0] = currFlat
+        currPageHeight = currFlat?.height || 0
       } else {
-        currPageHeight += elHeight
-        if (currEl) pending.push(currEl)
+        // flattened.shift()
+        currPageHeight += currFlat?.height || 0
+        if (currFlat && !processedIds.includes(currFlat.id))
+          pending.push(currFlat)
       }
     }
 

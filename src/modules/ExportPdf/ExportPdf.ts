@@ -48,7 +48,7 @@ export const ExportPdf = (function () {
         removeContainer: true,
         scale: 1.5,
         width: sizes.A4.width,
-        height: sizes.A4.height,
+        // height: sizes.A4.height,
         useCORS: true,
         windowWidth: sizes.A4.width,
         windowHeight: sizes.A4.height,
@@ -67,20 +67,28 @@ export const ExportPdf = (function () {
         const h = el.getBoundingClientRect().height
         const ratio = VP.getAspectRatio(w, h)
 
-        const flattenedElements = await flatten_next({
+        const flattener = flatten_next({
           container: el,
           el: el.firstElementChild as HTMLElement,
           pageHeight,
           ratio,
         })
 
+        let totalH = 0
+        for (const flat of flattener.get()) {
+          totalH += flat.height
+          console.log(
+            `[${totalH}][${flat.id}] ${flat.textContent} ${flat.height}`,
+          )
+        }
+
         doc = await generatePages({
-          pdf: doc,
           el,
-          nodes: flattenedElements,
+          flattener,
+          generateCanvasOptions: commonHtml2CanvasOptions,
           pageWidth,
           pageHeight,
-          generateCanvasOptions: commonHtml2CanvasOptions,
+          pdf: doc,
         })
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))

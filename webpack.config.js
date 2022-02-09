@@ -195,7 +195,6 @@ const webpackOptions = {
   resolve: {
     alias: {
       fs: path.resolve(path.join(process.cwd(), './node_modules/fs-extra')),
-      html2canvas: path.resolve(path.join(process.cwd(), '../html2canvas')),
     },
     cache: true,
     extensions: ['.ts', '.js'],
