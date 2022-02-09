@@ -4,12 +4,12 @@
 import * as u from '@jsmanifest/utils'
 import { Viewport as VP } from 'noodl-ui'
 import jsPDF from 'jspdf'
-import display from './display'
 import isElement from '../../utils/isElement'
-import flatten, { flatten_next } from './flatten'
+import flatten from './flatten'
+import generateCanvas from './generateCanvas'
 import generatePages from './generatePages'
-import type { GeneratePagesOptions } from './generatePages'
 import sizes from './sizes'
+import type { GeneratePagesOptions } from './generatePages'
 import * as t from './exportPdfTypes'
 
 export const ExportPdf = (function () {
@@ -42,45 +42,47 @@ export const ExportPdf = (function () {
 
     let commonHtml2CanvasOptions: GeneratePagesOptions['generateCanvasOptions'] =
       {
-        allowTaint: true,
-        logging: true,
-        // Putting this to true will avoid blank page when they try to re-download
-        removeContainer: true,
-        scale: 1.5,
+        scale: 1.1,
         width: sizes.A4.width,
-        // height: sizes.A4.height,
-        useCORS: true,
+        height: sizes.A4.height,
         windowWidth: sizes.A4.width,
         windowHeight: sizes.A4.height,
       }
+    let flattener: ReturnType<typeof flatten> | undefined
 
     try {
-      const pageWidth = sizes.A4.width
-      const pageHeight = sizes.A4.height
-
       doc = new jsPDF(pdfDocOptions)
+
+      let pageWidth = sizes.A4.width
+      let pageHeight = sizes.A4.height
+
       doc.internal.pageSize.width = pageWidth
       doc.internal.pageSize.height = pageHeight
+
+      if (elWidth > elHeight) {
+        doc.deletePage(1)
+        doc.addPage('A4', 'landscape')
+        pageWidth = sizes.A4.height
+        pageHeight = sizes.A4.width
+        commonHtml2CanvasOptions.width = pageWidth
+        commonHtml2CanvasOptions.height = pageHeight
+        commonHtml2CanvasOptions.windowWidth = pageWidth
+        commonHtml2CanvasOptions.windowHeight = pageHeight
+        doc.internal.pageSize.width = pageWidth
+        doc.internal.pageSize.height = pageHeight
+      }
 
       try {
         const w = el.getBoundingClientRect().width
         const h = el.getBoundingClientRect().height
         const ratio = VP.getAspectRatio(w, h)
 
-        const flattener = flatten_next({
+        flattener = flatten({
           container: el,
           el: el.firstElementChild as HTMLElement,
           pageHeight,
           ratio,
         })
-
-        let totalH = 0
-        for (const flat of flattener.get()) {
-          totalH += flat.height
-          console.log(
-            `[${totalH}][${flat.id}] ${flat.textContent} ${flat.height}`,
-          )
-        }
 
         doc = await generatePages({
           el,
@@ -109,6 +111,8 @@ export const ExportPdf = (function () {
       }
     } catch (error) {
       console.error(error instanceof Error ? error : new Error(String(error)))
+    } finally {
+      flattener?.clear?.()
     }
 
     return doc
@@ -116,8 +120,9 @@ export const ExportPdf = (function () {
 
   return {
     create,
-    display,
     flatten,
+    generatePages,
+    generateCanvas,
     sizes,
   }
 })()

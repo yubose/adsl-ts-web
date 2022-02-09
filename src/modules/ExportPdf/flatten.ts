@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
-import isElement from '../../utils/isElement'
 import getHeight from '../../utils/getHeight'
+import getDeepTotalHeight from '../../utils/getDeepTotalHeight'
 import type { ExportPdfFlattenOptions } from './exportPdfTypes'
 
 export interface FlattenObject {
@@ -25,6 +25,10 @@ const createFlattener = (baseEl: Element | HTMLElement) => {
   }
 
   const o = {
+    clear() {
+      u.keys(_cache).forEach((key) => delete _cache[key])
+      _flattened.length = 0
+    },
     exists: (el: HTMLElement | Element | string | undefined | null) => {
       if (!el) return false
       if (u.isStr(el)) return el in _cache
@@ -69,10 +73,9 @@ const createFlattener = (baseEl: Element | HTMLElement) => {
   return o
 }
 
-export function flatten_next({
+export function flatten({
   container,
   el,
-  flattened = [],
   flattener = createFlattener(container),
   accHeight = 0,
   pageHeight,
@@ -87,7 +90,6 @@ export function flatten_next({
     let currEl = el
 
     while (currEl) {
-      flattener.add(flattener.toFlat(currEl))
       const elHeight = getHeight(currEl)
       const currHeight = offsetStart + elHeight
 
@@ -96,31 +98,22 @@ export function flatten_next({
           for (let childNode of currEl.children) {
             if (childNode) {
               const innerCurrHeight = offsetStart + getHeight(childNode)
-
               // Child is the same height as parent and exceeds page height.
               // Check further children if any
               if (innerCurrHeight > offsetEnd) {
                 flattener.add(flattener.toFlat(childNode, currEl))
-                // currEl.removeChild(childNode)
-                // flatten_next({
-                //   el: childNode as HTMLElement,
-                //   flattened,
-                //   accHeight,
-                //   pageHeight,
-                //   offsetStart,
-                //   offsetEnd,
-                //   ratio,
-                // })
               } else if (childNode?.id) {
                 flattener.add(flattener.toFlat(childNode))
               }
             }
           }
         } else {
+          flattener.add(flattener.toFlat(currEl))
           // Reminder: Single element is bigger than page height here
           accHeight = currHeight
         }
       } else {
+        flattener.add(flattener.toFlat(currEl))
         accHeight += elHeight
         offsetStart = accHeight
       }
@@ -131,69 +124,6 @@ export function flatten_next({
     return flattener
   } catch (error) {
     throw error instanceof Error ? error : new Error(String(error))
-  }
-}
-
-async function flatten({
-  el,
-  flattened = [],
-  accHeight = 0,
-  pageHeight,
-  offsetStart = accHeight,
-  offsetEnd = offsetStart + pageHeight,
-  ratio,
-}: ExportPdfFlattenOptions) {
-  try {
-    if (!el) {
-      throw new Error(`"el" is not an HTML element`)
-    }
-
-    let currEl = el
-
-    while (currEl) {
-      let currHeight = offsetStart + currEl.scrollHeight
-
-      flattened.push(currEl)
-
-      if (currHeight > offsetEnd) {
-        if (currEl.childElementCount) {
-          for (let childNode of currEl.children) {
-            if (isElement(childNode) || 'getBoundingClientRect' in childNode) {
-              let innerCurrHeight =
-                offsetStart + childNode.getBoundingClientRect().height
-
-              if (innerCurrHeight > offsetEnd) {
-                flattened.push(childNode as HTMLElement)
-                currEl.removeChild(childNode)
-                flatten({
-                  el: childNode as HTMLElement,
-                  flattened,
-                  accHeight,
-                  pageHeight,
-                  offsetStart,
-                  offsetEnd,
-                  ratio,
-                })
-              } else {
-                flattened.push(childNode as HTMLElement)
-              }
-            }
-          }
-        } else {
-          accHeight = currHeight
-        }
-      } else {
-        accHeight += currEl.scrollHeight
-        offsetStart = accHeight
-      }
-
-      currEl = currEl.nextElementSibling as HTMLElement
-    }
-
-    return flattened
-  } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error))
-    throw err
   }
 }
 

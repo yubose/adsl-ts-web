@@ -31,6 +31,7 @@ import {
 } from './utils/localStorage'
 import App from './App'
 import ExportPdf from './modules/ExportPdf'
+import getDeepTotalHeight from './utils/getDeepTotalHeight'
 import 'tippy.js/dist/tippy.css'
 import 'tippy.js/themes/light.css'
 import 'vercel-toast/dist/vercel-toast.css'
@@ -67,6 +68,7 @@ export async function getWindowHelpers() {
     findFirstByElementId,
     findFirstBySelector,
     findFirstByViewTag,
+    getDeepTotalHeight,
     getVcodeElem,
     getUserPropsFromLocalStorage,
     saveUserPropsFromLocalStorage,

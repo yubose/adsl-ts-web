@@ -1,17 +1,15 @@
-import * as u from '@jsmanifest/utils'
 import type { Options as Html2CanvasOptions } from 'html2canvas'
 import type jsPDF from 'jspdf'
 import { Viewport as VP } from 'noodl-ui'
-import type { flatten_next, FlattenObject } from './flatten'
+import type { Orientation } from './exportPdfTypes'
+import type { flatten, FlattenObject } from './flatten'
 import generateCanvas from './generateCanvas'
-import sizes from './sizes'
-import getHeight from '../../utils/getHeight'
-import * as t from './types'
 
 export interface GeneratePagesOptions {
   pdf: jsPDF
   el: HTMLElement
-  flattener: ReturnType<typeof flatten_next>
+  flattener: ReturnType<typeof flatten>
+  orientation?: Orientation
   pageWidth: number
   pageHeight: number
   generateCanvasOptions?: Partial<Omit<Html2CanvasOptions, 'onclone'>> & {
@@ -32,6 +30,7 @@ async function generatePages({
   pdf,
   el,
   flattener,
+  orientation = 'portrait',
   pageWidth,
   pageHeight,
   generateCanvasOptions,
@@ -48,78 +47,31 @@ async function generatePages({
     let nextPageHeight = 0
     let pending = [] as FlattenObject[]
     let flattened = [...flattener.get()]
-    let processedIds = [] as string[]
 
     // flattenedElements.length === incoming pending elements
     // pending.length === elements already pending
 
     while (flattened.length || pending.length) {
       currFlat = flattened.shift()
-
       nextPageHeight = (currFlat?.height || 0) + currPageHeight
 
       const isLeftOver = !!(!flattened.length && pending.length)
 
       if (nextPageHeight > pageHeight || isLeftOver) {
         const imageSize = { width: pageWidth, height: w / ratio }
-
-        console.log(`%cElement width: ${w}, height: ${h}`, 'color:tomato')
-        console.log(
-          `%cPage width: ${pageWidth}, height: ${pageHeight}`,
-          'color:magenta',
-        )
-        console.log(`%cAspect ratio: ${ratio}`, 'color:teal;font-weight:bold')
-        console.log(
-          `Computed image sizes: [${imageSize.width}/${imageSize.height}]`,
-        )
-        console.log(
-          `Image size for PDF page no ${
-            pdf.getCurrentPageInfo().pageNumber
-          } ${pdf.getNumberOfPages()}`,
-          imageSize,
-        )
-
         const canvas = await generateCanvas(el, {
-          ...generateCanvasOptions,
           ...imageSize,
-          windowWidth: sizes.A4.width,
-          windowHeight: sizes.A4.height,
+          ...generateCanvasOptions,
           onclone: (d: Document, e: HTMLElement) => {
             e.style.height = 'auto'
+
             const pendingClonedElems = [] as HTMLElement[]
             const numPending = pending.length
-            let accHeight = 0
 
             for (let index = 0; index < numPending; index++) {
               let flat = pending[index] as FlattenObject
               let clonedEl = d.getElementById(flat.id)
-
-              if (!clonedEl) continue
-
-              if (clonedEl.id && processedIds.includes(clonedEl.id)) {
-                console.log(
-                  `%cSkipping ${clonedEl.id} because it was already processed`,
-                  `color:#ec0000;`,
-                  flat,
-                )
-                continue
-              }
-
-              accHeight += flat.height
-
-              console.log(
-                `[flat object] index: ${index} accHeight: ${accHeight}`,
-                flat,
-              )
-
-              if (flat.parentId) {
-                clonedEl.parentNode?.removeChild?.(clonedEl)
-                pendingClonedElems.unshift(clonedEl)
-              } else {
-                // if (clonedEl?.id && !processedIds.includes(clonedEl.id)) {
-                pendingClonedElems.push(clonedEl)
-                // }
-              }
+              clonedEl && pendingClonedElems.push(clonedEl)
             }
 
             const modifiedEl = generateCanvasOptions?.onclone?.({
@@ -128,42 +80,33 @@ async function generatePages({
               elements: pendingClonedElems,
             })
 
-            processedIds.push(
-              ...pendingClonedElems.reduce(
-                (acc, el) =>
-                  el.id && !processedIds.includes(el.id)
-                    ? acc.concat(el.id)
-                    : acc,
-                [] as string[],
-              ),
-            )
             if (!modifiedEl) e.replaceChildren(...pendingClonedElems)
           },
         })
 
-        console.log(`%cCanvas dimensions`, `color:#c4a901;`, {
-          width: canvas.width,
-          height: canvas.height,
-        })
-
-        pdf.addImage(canvas.toDataURL(), 'PNG', 0, 0, pageWidth, pageHeight)
-
-        // flattened.shift()
+        pdf.addImage(
+          canvas.toDataURL(),
+          'PNG',
+          0,
+          0,
+          canvas.width,
+          canvas.height,
+        )
 
         if (nextPageHeight > pageHeight) {
-          debugger
-          pdf.addPage([sizes.A4.width, sizes.A4.height], 'portrait')
+          pdf.addPage([pageWidth, pageHeight], orientation)
         }
 
         pending.length = 0
-        // if (currFlat && !processedIds.includes(currFlat.id))
-        //   pending[0] = currFlat
-        currPageHeight = currFlat?.height || 0
-      } else {
-        // flattened.shift()
-        currPageHeight += currFlat?.height || 0
-        if (currFlat && !processedIds.includes(currFlat.id))
+
+        if (currFlat) {
           pending.push(currFlat)
+          currPageHeight =
+            (currFlat?.height || 0) + (nextPageHeight - pageHeight)
+        }
+      } else {
+        currPageHeight += currFlat?.height || 0
+        if (currFlat) pending.push(currFlat)
       }
     }
 

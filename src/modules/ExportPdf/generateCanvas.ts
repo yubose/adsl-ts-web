@@ -1,5 +1,4 @@
 import type { Options as Html2CanvasOptions } from 'html2canvas'
-import sizes from './sizes'
 
 async function generateCanvas(
   el: HTMLElement,
@@ -7,8 +6,9 @@ async function generateCanvas(
 ): Promise<HTMLCanvasElement> {
   try {
     return html2canvas(el, {
-      windowWidth: sizes.A4.width,
-      windowHeight: sizes.A4.height,
+      allowTaint: true,
+      // Putting this to true will avoid blank page when they try to re-download
+      removeContainer: true,
       useCORS: true,
       ...options,
     })
