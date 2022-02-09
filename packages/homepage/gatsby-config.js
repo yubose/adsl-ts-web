@@ -2,6 +2,12 @@ const fs = require('fs-extra')
 const path = require('path')
 const { parse, traverse, types } = require('@babel/core')
 
+process.env.GATSBY_BUILD = JSON.stringify({
+  timestamp: new Date().toISOString(),
+})
+
+const pathPrefix = `static/web/latest`
+
 const {
   title: siteTitle = '',
   description: siteDescription = '',
@@ -28,6 +34,7 @@ module.exports = {
     siteUrl,
     siteKeywords,
   },
+  pathPrefix,
   plugins: [
     `gatsby-transformer-json`,
     `gatsby-plugin-react-helmet`,
@@ -84,10 +91,29 @@ module.exports = {
         start_url: `/`,
         background_color: `#663399`,
         display: `minimal-ui`,
-        icon: `src/resources/images/logo.png`,
+        icon: `${__dirname}/src/resources/images/logo.png`,
       },
     },
-    `gatsby-plugin-offline`,
+    // 'gatsby-plugin-remove-serviceworker',
+    {
+      resolve: `gatsby-plugin-offline`,
+      options: {
+        workboxConfig: {
+          clientsClaim: true,
+          // dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
+          modifyURLPrefix: {
+            '/': `${pathPrefix}/`,
+          },
+          // runtimeCaching: [
+          //   {
+          //     urlPattern: /(\.js$|\.css$|static\/)/,
+          //     handler: `CacheFirst`,
+          //   },
+          // ],
+          skipWaiting: true,
+        },
+      },
+    },
   ],
 }
 

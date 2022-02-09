@@ -186,7 +186,7 @@ const webpackOptions = {
         use: [
           {
             loader: 'esbuild-loader',
-            options: { loader: 'ts', target: 'es2017' },
+            options: { loader: 'ts', target: 'es2017', minify: false },
           },
         ],
       },
@@ -280,7 +280,7 @@ const webpackOptions = {
       favicon: FAVICON,
       cache: true,
       scriptLoading: 'defer',
-      minify: true,
+      // minify: true,
       meta: {
         description: DESCRIPTION,
         keywords: KEYWORDS.join(', '),
@@ -312,7 +312,7 @@ const webpackOptions = {
       ? {
           concatenateModules: true,
           mergeDuplicateChunks: true,
-          minimize: true,
+          minimize: false,
           nodeEnv: 'production',
           removeEmptyChunks: true,
           splitChunks: {

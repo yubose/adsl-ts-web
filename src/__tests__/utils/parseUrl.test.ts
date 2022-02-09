@@ -116,6 +116,7 @@ describe(`parseUrl`, () => {
     })
   })
 
+  // const url4 = `https://patd3.aitmed.io/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY`
   const url4 = `https://patd3.aitmed.io/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY`
 
   it(
@@ -167,6 +168,18 @@ describe(`parseUrl`, () => {
         'https://patd3.aitmed.io/index.html?PaymentConfirmation',
       )
       console.log(parsedUrl)
+      function getParams(pageName: string) {
+        const nameParts = pageName.split('&')
+        let params = {}
+        if (nameParts.length > 1) {
+          for (let i = 1; i < nameParts.length; i++) {
+            const partItem = nameParts[i]
+            const parts = partItem.split('=')
+            params[parts[0]] = parts[1]
+          }
+        }
+        return params
+      }
     },
   )
 })

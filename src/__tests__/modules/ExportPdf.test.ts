@@ -7,10 +7,22 @@ import * as u from '@jsmanifest/utils'
 import * as nc from 'noodl-common'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
+import { findFirstByViewTag } from 'noodl-ui-dom'
 import cheerio from 'cheerio'
 import jsdom from 'jsdom-global'
-import { findFirstByViewTag } from 'noodl-ui-dom'
-import ExportPdf from '../../modules/ExportPdf'
+import type {
+  Format,
+  Orientation,
+  PageBlueprint,
+  PdfBlueprint,
+  PathObject,
+} from '../../modules/ExportPdf'
+import ExportPdf, { traverseBF } from '../../modules/ExportPdf'
+import Cov19ResultsAndFluResultsReviewGeneratedData from '../fixtures/Cov19ResultsAndFluResultsReview.json'
+import getElementTreeDimensions from '../../utils/getElementTreeDimensions'
+
+const viewport = { width: 1464.94, height: 823 }
+const { sizes } = ExportPdf()
 
 const getAbsFilePath = (...s: string[]) =>
   path.resolve(path.join(process.cwd(), ...s))
@@ -35,16 +47,21 @@ function loadHtmlToEnvironment(html = '') {
 
 const renderedPseudoDOMElementMap = {}
 
-function createMockDOMNode(pseudoElem) {
+function createMockDOMNode(
+  pseudoElem: Partial<
+    Record<keyof HTMLElement | 'bounds' | 'parent' | 'path', any>
+  >,
+) {
   renderedPseudoDOMElementMap[pseudoElem.id] = pseudoElem
   const node = u.omit(pseudoElem, ['bounds', 'parent', 'path'])
   node.getBoundingClientRect = () => pseudoElem.bounds
+  node.children = pseudoElem.children?.map?.(createMockDOMNode) || []
   node.parentElement = renderedPseudoDOMElementMap[pseudoElem.parent] || null
   return node as HTMLElement
 }
 
 describe.only(`ExportPDF`, () => {
-  describe(`DWCFormRFAReview page`, () => {
+  xdescribe(`DWCFormRFAReview page`, () => {
     beforeEach(() => {
       loadHtmlToEnvironment(loadHtml.DWCFormRFAReview())
     })

@@ -516,3 +516,27 @@ exports.createPages = async function createPages(args, pluginOptions) {
  * @param { import('gatsby').CreateNodeArgs } args
  */
 exports.onCreateNode = async ({ node }) => {}
+
+/**
+ * @argument { import('gatsby').CreatePageArgs } opts
+ */
+exports.onCreatePage = async function onCreatePage(opts) {
+  const { actions, page } = opts
+  const { createPage, deletePage } = actions
+
+  if (page.path === '/') {
+    const oldPage = u.assign({}, page)
+    const pageName = 'HomePage'
+    const slug = `/${pageName}/`
+    page.context = {
+      _context_: get(data._context_, pageName) || {},
+      isPreload: false,
+      pageName,
+      pageObject: u.pick(data._pages_.json[pageName], 'components'),
+      slug,
+    }
+
+    deletePage(oldPage)
+    createPage(page)
+  }
+}

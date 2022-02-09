@@ -1,8 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import jsPDF from 'jspdf'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
-import { Options as Html2CanvasOptions } from 'html2canvas'
-import { Viewport as NuiViewport } from 'noodl-ui'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 import { isDataUrl } from './common'
@@ -189,9 +187,7 @@ export function exportToPDF(
         doc = u.isStr(data)
           ? await createDocByDataURL(data)
           : u.isIn('tagName', data)
-          ? ((await ExportPdf().create(data, {
-              format: formatProp,
-            })) as jsPDF)
+          ? ((await ExportPdf.create(data, formatProp)) as jsPDF)
           : u.isObj(data)
           ? await createDocByObject(data)
           : null
@@ -204,10 +200,7 @@ export function exportToPDF(
           )
 
           try {
-            doc =
-              ((await ExportPdf().create(data, {
-                format: formatProp,
-              })) as jsPDF) || null
+            doc = ((await ExportPdf.create(data, formatProp)) as jsPDF) || null
           } catch (error) {
             console.log(
               `[exportToPDF] Creating a PDF document failed both times`,

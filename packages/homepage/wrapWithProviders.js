@@ -12,6 +12,9 @@ export default function ({ element, headComponents }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         {headComponents}
         <link rel="icon" type="image/png" href={favicon} sizes="32x32" />
+        <link rel="icon" type="image/png" href={favicon} sizes="42x42" />
+        <meta name="say-hello" content="hello" />
+        <meta name="build-timestamp" content={new Date().toISOString()} />
       </Helmet>
       <AppProvider>{element}</AppProvider>
     </>

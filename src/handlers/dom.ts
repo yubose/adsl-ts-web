@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
