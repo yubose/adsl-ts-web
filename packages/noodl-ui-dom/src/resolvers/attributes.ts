@@ -59,18 +59,25 @@ function attachUserEvents<N extends t.NDOMElement>(
        */
       if (eventType === 'onLazyLoading') {
         let event:Event = new Event("onLazyLoading",{"bubbles":true, "cancelable":false});
-          window.addEventListener('scroll', (...args) =>{
-            let viewHeight =  document.documentElement.clientHeight;
-            let contentHeight = document.documentElement.scrollHeight;//内容高度
-            let scrollTop = document.documentElement.scrollTop;
+          node.addEventListener('scroll', (...args) =>{
+            let viewHeight =  node.clientHeight||document.documentElement.clientHeight;
+            let contentHeight = node.scrollHeight || document.documentElement.scrollHeight;//内容高度
+            let scrollTop =  node.scrollTop || document.documentElement.scrollTop;
             if (contentHeight - viewHeight - scrollTop === 0) { //到达底部0px时,加载新内容
-                window.dispatchEvent(event);
+                node.dispatchEvent(event);
             }
+            
           }
           )
-        window.addEventListener('onLazyLoading',(...args)=>{
-          setTimeout(() => component.get?.(eventType)?.execute?.(...args));
+        node.addEventListener('onLazyLoading',(...args)=>{
+          // console.log('GGGG', node.scrollTop)
+          //@ts-ignore
+          setTimeout(() => {component.get?.(eventType)?.execute?.(...args);
+        });
         })
+        // window.setTimeout(()=>{
+        //   node.scrollTop = node.scrollHeight - 1000;
+        // })
         return
       }
       node.addEventListener(normalizeEventName(eventType), (...args) =>
