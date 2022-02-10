@@ -33,43 +33,43 @@ export const ExportPdf = (function () {
     let doc: jsPDF | undefined
     let { width: elWidth, height: elHeight } = el.getBoundingClientRect()
 
+    let flattener: ReturnType<typeof flatten> | undefined
+    let pageWidth = sizes.A4.width
+    let pageHeight = sizes.A4.height
     let pdfDocOptions = {
       compress: true,
-      format,
+      format: [pageWidth, pageHeight],
       orientation: 'portrait' as t.Orientation,
-      unit: 'px',
-    } as const
+      unit: 'px' as const,
+    }
 
     let commonHtml2CanvasOptions: GeneratePagesOptions['generateCanvasOptions'] =
       {
-        scale: 1.1,
         width: sizes.A4.width,
         height: sizes.A4.height,
         windowWidth: sizes.A4.width,
         windowHeight: sizes.A4.height,
       }
-    let flattener: ReturnType<typeof flatten> | undefined
+
+    if (elWidth > elHeight) {
+      pdfDocOptions.orientation = 'landscape'
+      pageWidth = sizes.A4.height
+      pageHeight = sizes.A4.width
+      commonHtml2CanvasOptions.width = pageWidth
+      commonHtml2CanvasOptions.height = pageHeight
+      commonHtml2CanvasOptions.windowWidth = pageWidth
+      commonHtml2CanvasOptions.windowHeight = pageHeight
+    }
 
     try {
       doc = new jsPDF(pdfDocOptions)
 
-      let pageWidth = sizes.A4.width
-      let pageHeight = sizes.A4.height
-
       doc.internal.pageSize.width = pageWidth
       doc.internal.pageSize.height = pageHeight
 
-      if (elWidth > elHeight) {
+      if (pdfDocOptions.orientation === 'landscape') {
         doc.deletePage(1)
-        doc.addPage('A4', 'landscape')
-        pageWidth = sizes.A4.height
-        pageHeight = sizes.A4.width
-        commonHtml2CanvasOptions.width = pageWidth
-        commonHtml2CanvasOptions.height = pageHeight
-        commonHtml2CanvasOptions.windowWidth = pageWidth
-        commonHtml2CanvasOptions.windowHeight = pageHeight
-        doc.internal.pageSize.width = pageWidth
-        doc.internal.pageSize.height = pageHeight
+        doc.addPage([pageWidth, pageHeight], 'landscape')
       }
 
       try {
@@ -88,6 +88,7 @@ export const ExportPdf = (function () {
           el,
           flattener,
           generateCanvasOptions: commonHtml2CanvasOptions,
+          orientation: pdfDocOptions.orientation,
           pageWidth,
           pageHeight,
           pdf: doc,

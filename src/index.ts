@@ -32,6 +32,7 @@ import {
 import App from './App'
 import ExportPdf from './modules/ExportPdf'
 import getDeepTotalHeight from './utils/getDeepTotalHeight'
+import getElementTreeDimensions from './utils/getElementTreeDimensions'
 import 'tippy.js/dist/tippy.css'
 import 'tippy.js/themes/light.css'
 import 'vercel-toast/dist/vercel-toast.css'
@@ -69,6 +70,7 @@ export async function getWindowHelpers() {
     findFirstBySelector,
     findFirstByViewTag,
     getDeepTotalHeight,
+    getElementTreeDimensions,
     getVcodeElem,
     getUserPropsFromLocalStorage,
     saveUserPropsFromLocalStorage,

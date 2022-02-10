@@ -1,6 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import getHeight from '../../utils/getHeight'
 import getDeepTotalHeight from '../../utils/getDeepTotalHeight'
+import isElement from '../../utils/isElement'
 import type { ExportPdfFlattenOptions } from './exportPdfTypes'
 
 export interface FlattenObject {
@@ -67,6 +68,13 @@ const createFlattener = (baseEl: Element | HTMLElement) => {
         textContent: textStart + textEnd,
       }
 
+      if (isElement(el)) {
+        el.scrollIntoView()
+        el.style.border = '1px solid red'
+        debugger
+        el.style.border = ''
+      }
+
       return flattenedObject
     },
   }
@@ -94,19 +102,16 @@ export function flatten({
       const currHeight = offsetStart + elHeight
 
       if (currHeight > offsetEnd) {
-        if (currEl.childElementCount) {
-          for (let childNode of currEl.children) {
-            if (childNode) {
-              const innerCurrHeight = offsetStart + getHeight(childNode)
-              // Child is the same height as parent and exceeds page height.
-              // Check further children if any
-              if (innerCurrHeight > offsetEnd) {
-                flattener.add(flattener.toFlat(childNode, currEl))
-              } else if (childNode?.id) {
-                flattener.add(flattener.toFlat(childNode))
-              }
-            }
-          }
+        if (currEl.children.length) {
+          flatten({
+            container,
+            el: currEl.firstChild,
+            flattener,
+            accHeight,
+            pageHeight,
+            offsetStart,
+            offsetEnd: currHeight,
+          })
         } else {
           flattener.add(flattener.toFlat(currEl))
           // Reminder: Single element is bigger than page height here
@@ -118,7 +123,7 @@ export function flatten({
         offsetStart = accHeight
       }
 
-      currEl = currEl.nextElementSibling as HTMLElement
+      currEl = currEl.nextSibling as HTMLElement
     }
 
     return flattener
