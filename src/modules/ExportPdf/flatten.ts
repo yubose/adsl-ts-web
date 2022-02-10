@@ -69,10 +69,10 @@ const createFlattener = (baseEl: Element | HTMLElement) => {
       }
 
       if (isElement(el)) {
-        el.scrollIntoView()
-        el.style.border = '1px solid red'
-        debugger
-        el.style.border = ''
+        // el.scrollIntoView()
+        // el.style.border = '1px solid red'
+        // debugger
+        // el.style.border = ''
       }
 
       return flattenedObject
