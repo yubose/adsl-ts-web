@@ -1,24 +1,11 @@
 import * as u from '@jsmanifest/utils'
 import getHeight from '../../utils/getHeight'
-import getDeepTotalHeight from '../../utils/getDeepTotalHeight'
 import isElement from '../../utils/isElement'
-import type { ExportPdfFlattenOptions } from './exportPdfTypes'
+import type { FlatObject, FlattenOptions } from './exportPdfTypes'
 
-export interface FlattenObject {
-  baseId: string
-  id: string
-  children: FlattenObject[]
-  parentId: string | null
-  height: number
-  scrollHeight: number
-  tagName: string
-  textContent: string
-}
-
-const createFlattener = (baseEl: Element | HTMLElement) => {
-  const _baseElId = baseEl.id
-  const _cache = {} as Record<string, FlattenObject>
-  const _flattened = [] as FlattenObject[]
+export const createFlattener = (baseEl: Element | HTMLElement) => {
+  const _cache = {} as Record<string, FlatObject>
+  const _flattened = [] as FlatObject[]
 
   const _get = (el: Element | HTMLElement | string) => {
     if (u.isStr(el)) return _cache[el]
@@ -36,14 +23,14 @@ const createFlattener = (baseEl: Element | HTMLElement) => {
       if (!el.id) return false
       return el.id in _cache
     },
-    add: (obj: FlattenObject) => {
+    add: (obj: FlatObject) => {
       if (!o.exists(obj.id)) _flattened.push(obj)
     },
     get: () => _flattened,
     toFlat(
       el: Element | HTMLElement,
       parent?: Element | HTMLElement,
-    ): FlattenObject {
+    ): FlatObject {
       if (o.exists(el)) return _get(el)
 
       let text = el?.textContent || ''
@@ -58,22 +45,21 @@ const createFlattener = (baseEl: Element | HTMLElement) => {
       }
 
       const flattenedObject = {
-        baseId: _baseElId,
         id: el?.id || '',
         children: [],
         parentId: parent?.id || null,
         height: getHeight(el),
         scrollHeight: el?.scrollHeight || 0,
-        tagName: el?.tagName || '',
+        tagName: el?.tagName?.toLocaleLowerCase() || '',
         textContent: textStart + textEnd,
       }
 
-      if (isElement(el)) {
-        // el.scrollIntoView()
-        // el.style.border = '1px solid red'
-        // debugger
-        // el.style.border = ''
-      }
+      // if (isElement(el)) {
+      //   el.scrollIntoView()
+      //   el.style.border = '1px solid red'
+      //   debugger
+      //   el.style.border = ''
+      // }
 
       return flattenedObject
     },
@@ -82,18 +68,14 @@ const createFlattener = (baseEl: Element | HTMLElement) => {
 }
 
 export function flatten({
-  container,
-  el,
-  flattener = createFlattener(container),
+  baseEl,
+  el = baseEl?.firstElementChild as HTMLElement,
+  flattener = createFlattener(el as HTMLElement),
   accHeight = 0,
   pageHeight,
   offsetStart = accHeight,
   offsetEnd = offsetStart + pageHeight,
-}: Omit<ExportPdfFlattenOptions, 'flattened'> & {
-  container: HTMLElement
-  flattened?: FlattenObject[]
-  flattener?: ReturnType<typeof createFlattener>
-}) {
+}: FlattenOptions) {
   try {
     let currEl = el
 
@@ -103,24 +85,36 @@ export function flatten({
 
       if (currHeight > offsetEnd) {
         if (currEl.children.length) {
-          flatten({
-            container,
-            el: currEl.firstChild,
-            flattener,
-            accHeight,
-            pageHeight,
-            offsetStart,
-            offsetEnd: currHeight,
-          })
+          if (elHeight < pageHeight) {
+            flattener.add(flattener.toFlat(currEl))
+            accHeight = currHeight
+          } else {
+            // One of the children is exceeding the offsetEnd
+            // Sent that children along with its next siblings to be flattened
+            // debugger
+            flatten({
+              baseEl,
+              el: currEl.firstChild as HTMLElement,
+              flattener,
+              accHeight,
+              pageHeight,
+              offsetStart,
+              offsetEnd: currHeight,
+            })
+          }
         } else {
-          flattener.add(flattener.toFlat(currEl))
           // Reminder: Single element is bigger than page height here
+          // So they are being flattened
+          flattener.add(flattener.toFlat(currEl))
           accHeight = currHeight
+          offsetStart = accHeight
+          offsetEnd = offsetEnd + pageHeight - elHeight
         }
       } else {
         flattener.add(flattener.toFlat(currEl))
         accHeight += elHeight
         offsetStart = accHeight
+        offsetEnd = offsetStart + pageHeight
       }
 
       currEl = currEl.nextSibling as HTMLElement
