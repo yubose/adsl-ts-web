@@ -573,6 +573,19 @@ const createExtendedDOMResolvers = function (app: App) {
                 }),
               )
             }
+            if (component?.type == 'textView') {
+              node.addEventListener(
+                'input',
+                getOnChange({
+                  component,
+                  dataKey,
+                  evtName: 'onInput',
+                  node: node as NDOMElement,
+                  iteratorVar,
+                  page,
+                }),
+              )
+            }
           }
         }
 
