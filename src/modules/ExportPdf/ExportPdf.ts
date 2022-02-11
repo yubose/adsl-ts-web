@@ -59,6 +59,8 @@ export const ExportPdf = (function () {
       commonHtml2CanvasOptions.height = pageHeight
       commonHtml2CanvasOptions.windowWidth = pageWidth
       commonHtml2CanvasOptions.windowHeight = pageHeight
+      // Correctly positions the form (Still needs testing)
+      commonHtml2CanvasOptions.x = -100
     }
 
     try {

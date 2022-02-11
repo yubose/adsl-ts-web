@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import getHeight from '../../utils/getHeight'
 import getDeepTotalHeight from '../../utils/getDeepTotalHeight'
 import isElement from '../../utils/isElement'
-import type { ExportPdfFlattenOptions } from './exportPdfTypes'
+import type { FlattenOptions } from './exportPdfTypes'
 
 export interface FlattenObject {
   baseId: string
@@ -15,7 +15,7 @@ export interface FlattenObject {
   textContent: string
 }
 
-const createFlattener = (baseEl: Element | HTMLElement) => {
+export const createFlattener = (baseEl: Element | HTMLElement) => {
   const _baseElId = baseEl.id
   const _cache = {} as Record<string, FlattenObject>
   const _flattened = [] as FlattenObject[]
@@ -69,10 +69,10 @@ const createFlattener = (baseEl: Element | HTMLElement) => {
       }
 
       if (isElement(el)) {
-        // el.scrollIntoView()
-        // el.style.border = '1px solid red'
-        // debugger
-        // el.style.border = ''
+        el.scrollIntoView()
+        el.style.border = '1px solid red'
+        debugger
+        el.style.border = ''
       }
 
       return flattenedObject
@@ -82,18 +82,14 @@ const createFlattener = (baseEl: Element | HTMLElement) => {
 }
 
 export function flatten({
-  container,
-  el,
-  flattener = createFlattener(container),
+  baseEl,
+  el = baseEl.firstElementChild as HTMLElement,
+  flattener = createFlattener(el as HTMLElement),
   accHeight = 0,
   pageHeight,
   offsetStart = accHeight,
   offsetEnd = offsetStart + pageHeight,
-}: Omit<ExportPdfFlattenOptions, 'flattened'> & {
-  container: HTMLElement
-  flattened?: FlattenObject[]
-  flattener?: ReturnType<typeof createFlattener>
-}) {
+}: FlattenOptions) {
   try {
     let currEl = el
 
@@ -104,8 +100,8 @@ export function flatten({
       if (currHeight > offsetEnd) {
         if (currEl.children.length) {
           flatten({
-            container,
-            el: currEl.firstChild,
+            baseEl,
+            el: currEl.firstChild as HTMLElement,
             flattener,
             accHeight,
             pageHeight,
@@ -115,7 +111,7 @@ export function flatten({
         } else {
           flattener.add(flattener.toFlat(currEl))
           // Reminder: Single element is bigger than page height here
-          accHeight = currHeight
+          accHeight = offsetStart + elHeight
         }
       } else {
         flattener.add(flattener.toFlat(currEl))

@@ -1,14 +1,18 @@
-export interface ExportPdfFlattenOptions {
+import type { createFlattener } from './flatten'
+
+export type Flattener = ReturnType<typeof createFlattener>
+
+export interface FlattenOptions {
   /**
    * El must be the firstElementChild of the target element
    */
-  el: HTMLElement | null | undefined
-  flattened?: HTMLElement[]
+  baseEl: HTMLElement
+  el?: HTMLElement | null | undefined
+  flattener?: Flattener
   accHeight?: number
   offsetStart?: number
   offsetEnd?: number
   pageHeight: number
-  ratio: number
 }
 
 export type Format =
