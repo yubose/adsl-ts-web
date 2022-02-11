@@ -95,10 +95,11 @@ export function flatten({
 
     while (currEl) {
       const elHeight = getHeight(currEl)
-      const currHeight = offsetStart + elHeight
+      const nextAccHeight = offsetStart + elHeight
 
-      if (currHeight > offsetEnd) {
+      if (nextAccHeight > offsetEnd) {
         if (currEl.children.length) {
+          // Skips currEl and recurses children instead
           flatten({
             baseEl,
             el: currEl.firstChild as HTMLElement,
@@ -106,12 +107,12 @@ export function flatten({
             accHeight,
             pageHeight,
             offsetStart,
-            offsetEnd: currHeight,
+            offsetEnd: nextAccHeight,
           })
         } else {
           flattener.add(flattener.toFlat(currEl))
           // Reminder: Single element is bigger than page height here
-          accHeight = offsetStart + elHeight
+          accHeight = nextAccHeight
         }
       } else {
         flattener.add(flattener.toFlat(currEl))
