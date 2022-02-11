@@ -75,16 +75,7 @@ export const ExportPdf = (function () {
       }
 
       try {
-        const w = el.getBoundingClientRect().width
-        const h = el.getBoundingClientRect().height
-        const ratio = VP.getAspectRatio(w, h)
-
-        flattener = flatten({
-          container: el,
-          el: el.firstElementChild as HTMLElement,
-          pageHeight,
-          ratio,
-        })
+        flattener = flatten({ baseEl: el, pageHeight })
 
         doc = await generatePages({
           el,
