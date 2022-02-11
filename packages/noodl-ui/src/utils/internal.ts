@@ -116,17 +116,6 @@ export function getStartOfDay(dirtyDate: Date) {
   return date
 }
 
-// Custom formatting output for NodeJS console
-// https://nodejs.org/api/util.html#util_util_inspect_custom
-export const inspect = Symbol.for('nodejs.util.inspect.custom')
-
-export function mapKeysToOwnArrays<K extends string, A = any>(keys: K[]) {
-  return keys.reduce(
-    (acc, key) => u.assign(acc, { [key]: [] }),
-    {} as Record<K, A[]>,
-  )
-}
-
 /**
  * Fallback "if" resolver if a custom resolver was not provided in hooks
  * @param ifObject
@@ -155,19 +144,6 @@ export function defaultResolveReference(
   reference: nt.ReferenceString,
 ) {
   const datapath = nu.trimReference(reference)
-
-  // while (nt.Identify.reference(value)) {
-  //   let nextDataPathStr = nu.trimReference(value)
-  //   let nextDataPath = nu.toDataPath(nextDataPathStr)
-  //   let nextRootKey = nt.Identify.rootKey(nextDataPathStr)
-  //     ? nextDataPath[0]
-  //     : ''
-  //   value = get(
-  //     u.isFnc(root) ? root() : root,
-  //     nextRootKey ? [nextRootKey, ...nextDataPath] : nextDataPath,
-  //   )
-  // }
-
   if (nt.Identify.localKey(datapath)) {
     return get(
       u.isFnc(root) ? root() : root,

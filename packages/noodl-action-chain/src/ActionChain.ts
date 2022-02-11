@@ -1,9 +1,10 @@
-import { ActionObject } from 'noodl-types'
+import type { ActionObject } from 'noodl-types'
+import type Action from './Action'
 import AbortExecuteError from './AbortExecuteError'
-import Action from './Action'
 import createAction from './utils/createAction'
+import isAction from './utils/isAction'
 import { createId, isArray, isPlainObject, isString } from './utils/common'
-import {
+import type {
   ActionChainInstancesLoader,
   ActionChainIteratorResult,
   ActionChainStatus,
@@ -26,7 +27,7 @@ class ActionChain<
   >
   #id: string
   #injected: Action<A['actionType'], T>[] = []
-  #loader: ActionChainInstancesLoader<A, T> | undefined
+  #loader: ActionChainInstancesLoader | undefined
   #obs = {} as Partial<
     Record<
       keyof ActionChainObserver<A>,
@@ -67,7 +68,7 @@ class ActionChain<
   constructor(
     trigger: T,
     actions: A[],
-    loader?: ActionChainInstancesLoader<A, T>,
+    loader?: ActionChainInstancesLoader,
     id = createId(),
   ) {
     this.#id = id
@@ -96,7 +97,7 @@ class ActionChain<
     return this.#queue
   }
 
-  set loader(loader: ActionChainInstancesLoader<A, T> | undefined) {
+  set loader(loader: ActionChainInstancesLoader | undefined) {
     this.#loader = loader
   }
 
@@ -104,24 +105,29 @@ class ActionChain<
    * Aborts the action chain from executing further
    * @param { string | string[] | undefined } reason
    */
-  async abort(_reason?: string | string[]) {
-    this.#emit('onAbortStart')
-
+  async abort(_reason?: Error | string | string[]) {
     let reason: string | string[] | undefined
 
     if (_reason) {
       if (isArray(_reason) && _reason.length > 1) _reason.push(..._reason)
       else if (isArray(_reason)) reason = _reason[0]
-      else if (_reason) reason = _reason
+      else if (_reason instanceof Error) {
+        reason = _reason.message
+        this.#error = _reason
+      } else if (_reason) reason = _reason
     }
 
+    this.#emit('onAbortStart', reason)
     this.#setStatus(c.ABORTED, reason)
 
-    // The loop below should handle the current pending action. Since this.current is never
-    // in the queue, we have to insert it back to the list for the while loop to pick it up
+    // The loop below should handle the current pending action.
+    // Since this.current is never in the queue, we have to insert it back to the list for the while loop to pick it up
     if (this.current && !this.current.executed) {
       this.#queue.unshift(this.current)
     }
+
+    let aborted = [] as Action[]
+    let error = [] as Action[]
 
     // Exhaust the remaining actions in the queue and abort them
     while (this.#queue.length) {
@@ -144,10 +150,17 @@ class ActionChain<
         }
       }
     }
+
     this.#current = null
-    this.#emit('onAbortEnd')
+    this.#emit('onAbortEnd', { aborted, error })
     return this.#results
   }
+
+  #getDefaultCallbackArgs = () => ({
+    actions: this.actions,
+    data: this.data,
+    trigger: this.trigger,
+  })
 
   clear(
     key?:
@@ -191,7 +204,13 @@ class ActionChain<
     try {
       this.#results = []
       this.#setStatus(c.IN_PROGRESS)
-      this.#emit('onExecuteStart')
+      this.#emit('onExecuteStart', {
+        ...this.#getDefaultCallbackArgs(),
+        args,
+        queue: this.queue,
+        timeout,
+      })
+
       let action: Action<A['actionType'], T> | undefined
       let iterator: IteratorResult<Action, ActionChainIteratorResult<A, T>[]>
       let result: any
@@ -199,7 +218,7 @@ class ActionChain<
       // Initiates the generator (note: this first invocation does not execute
       // any actions, it steps into it so the actual execution of actions
       // begins at the second call to this.next)
-      iterator = await this.next()
+      iterator = await this.next?.()
 
       if (iterator) {
         while (!iterator?.done) {
@@ -223,7 +242,11 @@ class ActionChain<
                 action = iterator?.value as Action<A['actionType'], T>
 
                 if (action?.status !== 'aborted') {
-                  this.#emit('onBeforeActionExecute', { action, args })
+                  this.#emit('onBeforeActionExecute', {
+                    ...this.#getDefaultCallbackArgs(),
+                    action,
+                    args,
+                  })
                   result = await action?.execute?.(args)
                   this.#emit('onExecuteResult', result)
                   this.#results.push({
@@ -239,12 +262,6 @@ class ActionChain<
               )
             }
 
-            // iterator = await this.next(result)
-
-            // if (!iterator?.done) {
-            // 	action = iterator?.value as Action<A['actionType'], T>
-            // }
-
             if (isPlainObject(result) && 'wait' in result) {
               // This block is mostly intended for popUps to "wait" for a user interaction
               await this?.abort?.(
@@ -252,7 +269,6 @@ class ActionChain<
               )
             }
           } catch (error) {
-            this.#emit('onExecuteError', this.current as Action, error as Error)
             // TODO - replace throw with appending the error to the result item instead
             throw error
           } finally {
@@ -261,17 +277,27 @@ class ActionChain<
         }
       }
     } catch (error) {
-      await this.abort?.((error as Error).message)
+      const err = error instanceof Error ? error : new Error(String(error))
+      this.#emit('onExecuteError', {
+        ...this.#getDefaultCallbackArgs(),
+        current: this.current as Action,
+        error: err,
+      })
+      await this.abort?.(err.message)
       // throw new AbortExecuteError(error.message)
     } finally {
       this.#refresh?.()
-      this.#emit('onExecuteEnd')
+      this.#emit('onExecuteEnd', this.#getDefaultCallbackArgs())
     }
     return this.#results
   }
 
   inject(action: A | ActionObject) {
-    this.#emit('onBeforeInject', action)
+    this.#emit('onBeforeInject', {
+      ...this.#getDefaultCallbackArgs(),
+      action,
+      current: this.current as Action,
+    })
     const inst = this.load(action)
     this.#queue.unshift(inst)
     this.#injected.push(inst)
@@ -312,7 +338,6 @@ class ActionChain<
       this.#loader?.(this.actions) || ([] as Action<A['actionType'], T>[])
 
     if (!Array.isArray(actions)) actions = [actions]
-    //
 
     actions.forEach(
       (action: any, index: number) => (this.#queue[index] = action),
@@ -323,7 +348,7 @@ class ActionChain<
     }
     // @ts-expect-error
     this.#gen = ActionChain.createGenerator<A, T>(this)
-    return this.queue
+    return this.#queue
   }
 
   /**
@@ -331,9 +356,9 @@ class ActionChain<
    * @param { any } callerResult - Result of previous call passes as arguments to the generator yielder
    */
   async next(callerResult?: any) {
-    const result = await this.#gen?.next(callerResult)
+    const result = await this.#gen?.next?.(callerResult)
     if (result) {
-      if (!result.done && result.value instanceof Action) {
+      if (!result.done && isAction(result.value)) {
         this.#current = result.value
       }
       if (result.done) {
@@ -407,6 +432,17 @@ class ActionChain<
       })
     }
     return this
+  }
+
+  toJSON() {
+    return {
+      actions: this.actions,
+      trigger: this.trigger,
+      // injected: this.injected,
+      // queue: this.queue,
+      // results: this.#results,
+      // status: this.#status,
+    }
   }
 }
 

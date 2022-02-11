@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import * as u from '@jsmanifest/utils'
-import * as nc from 'noodl-common'
 import * as lib from './noodl-ui-test-utils'
 
 const createTest = <Exp extends Record<string, any>>({
@@ -11,12 +10,12 @@ const createTest = <Exp extends Record<string, any>>({
   expected: Exp
 }) => [value, expected] as [any, Exp]
 
-describe(nc.coolGold(`noodl-ui-test-utils`), () => {
-  describe(nc.italic('createActionObject'), () => {
+describe(u.yellow(`noodl-ui-test-utils`), () => {
+  describe(u.italic('createActionObject'), () => {
     //
   })
 
-  describe(nc.italic(`createComponent`), () => {
+  describe(u.italic(`createComponent`), () => {
     it(`should spread the props`, () => {
       const component = lib.getPopUpComponent({ global: true })
       expect(component).to.have.property('global', true)
@@ -25,7 +24,7 @@ describe(nc.coolGold(`noodl-ui-test-utils`), () => {
     })
   })
 
-  describe(nc.italic('getBuiltInAction'), () => {
+  describe(u.italic('getBuiltInAction'), () => {
     ;[
       createTest({
         value: { funcName: 'show' },
@@ -58,7 +57,7 @@ describe(nc.coolGold(`noodl-ui-test-utils`), () => {
     })
   })
 
-  describe(nc.italic('getListComponent'), () => {
+  describe(u.italic('getListComponent'), () => {
     it(`should return a list component object`, () => {
       const list = lib.getListComponent({
         listObject: lib.getGenderListObject(),

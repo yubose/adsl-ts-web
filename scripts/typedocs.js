@@ -8,7 +8,7 @@ const chalk = require('chalk')
 const path = require('path')
 const Typedoc = require('typedoc')
 const fs = require('fs-extra')
-const S3 = require('aws-sdk/clients/s3')
+// const S3 = require('aws-sdk/clients/s3')
 const globby = require('globby')
 const mime = require('mime')
 const chokidar = require('chokidar')
@@ -41,10 +41,11 @@ const tag = {
     app.bootstrap({
       // highlightTheme: 'material-lighter',
       exclude: ['**/*.test.ts'],
-      entryPoints: ['packages/noodl-ui/src/index.ts'],
-      tsconfig: 'packages/noodl-ui/tsconfig.json',
-      name: 'noodl-ui',
-      theme: './scripts/typedoc-theme',
+      entryPoints: ['packages/noodl-types/src/index.ts'],
+      tsconfig: 'packages/noodl-types/tsconfig.json',
+      name: 'noodl-types',
+      // theme: './typedoc-theme',
+      theme: 'default',
       // watch: !!cli.flags.watch,
       hideGenerator: true,
       pretty: true,
@@ -67,7 +68,7 @@ const tag = {
 
       let wss = new ws.Server({ host: '127.0.0.1', port: 3002 })
       let watcher = chokidar.watch('**/*', {
-        cwd: 'scripts/typedoc-theme',
+        cwd: './scripts/typedoc-theme',
         ignoreInitial: true,
         persistent: true,
       })
@@ -125,13 +126,13 @@ const tag = {
         const bucket = 'nui-typedoc'
         const region = 'us-west-1'
         const url = 'https://nui-typedoc.s3.us-west-1.amazonaws.com/index.html'
-        const s3 = new S3({
-          region,
-          credentials: {
-            accessKeyId: process.env.AWS_ACCESS_KEY_JSM,
-            secretAccessKey: process.env.AWS_SECRET_KEY_JSM,
-          },
-        })
+        // const s3 = new S3({
+        //   region,
+        //   credentials: {
+        //     accessKeyId: process.env.AWS_ACCESS_KEY_JSM,
+        //     secretAccessKey: process.env.AWS_SECRET_KEY_JSM,
+        //   },
+        // })
 
         async function upload(filepath) {
           return new Promise(async (resolve, reject) => {
@@ -148,28 +149,28 @@ const tag = {
               key,
             })
 
-            s3.putObject(
-              {
-                Bucket: bucket,
-                Body: fs.readFileSync(
-                  path.resolve(
-                    path.join(
-                      process.cwd(),
-                      baseDir,
-                      fileInfo.dir,
-                      fileInfo.base,
-                    ),
-                  ),
-                ),
-                Key: key,
-                ContentEncoding: 'utf8',
-                ContentType: contentType,
-              },
-              (err, data) => {
-                if (err) reject(err)
-                resolve(data)
-              },
-            )
+            // s3.putObject(
+            //   {
+            //     Bucket: bucket,
+            //     Body: fs.readFileSync(
+            //       path.resolve(
+            //         path.join(
+            //           process.cwd(),
+            //           baseDir,
+            //           fileInfo.dir,
+            //           fileInfo.base,
+            //         ),
+            //       ),
+            //     ),
+            //     Key: key,
+            //     ContentEncoding: 'utf8',
+            //     ContentType: contentType,
+            //   },
+            //   (err, data) => {
+            //     if (err) reject(err)
+            //     resolve(data)
+            //   },
+            // )
           })
         }
 
@@ -208,7 +209,7 @@ const tag = {
           })
         }
 
-        await deleteBucketObjects(await getBucketObjects())
+        // await deleteBucketObjects(await getBucketObjects())
         await app.generateDocs(project, './docs')
 
         console.log(u.green(`Docs generated`))

@@ -2,8 +2,6 @@ import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import 'tippy.js/dist/tippy.css'
-import 'tippy.js/themes/light.css'
 import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
@@ -31,9 +29,6 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { hide } from '../utils/dom'
-import { isArray } from 'lodash'
-import { addClassName } from 'noodl-ui-dom/dist/utils'
-import { isArr } from '@jsmanifest/utils'
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -41,6 +36,15 @@ type ToolbarInput = any
 const log = Logger.create('dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
+  /**
+   * Creates an onChange function which should be used as a handler on the
+   * addEventListener of a DOM element. This is the first thing that happens
+   * when the entire process is called, so updating DOM values happens here.
+   * Calls from the SDK/noodl will be invoked at the end of this function call
+   *
+   * @param args
+   * @returns onChange function
+   */
   const getOnChange = function _getOnChangeFn(args: {
     component: NuiComponent.Instance
     dataKey: string
@@ -66,12 +70,13 @@ const createExtendedDOMResolvers = function (app: App) {
             excludeIteratorVar(dataKey, iteratorVar) as string,
             value,
           )
+
           component.edit('data-value', value)
           node.dataset.value = value
         } else {
           log.red(
             `A ${component.type} component from a "${evtName}" handler tried ` +
-            `to update its value but a dataObject was not found`,
+              `to update its value but a dataObject was not found`,
             { component, dataKey, pageName },
           )
         }
@@ -86,20 +91,14 @@ const createExtendedDOMResolvers = function (app: App) {
             if (!has(draft?.[pageName], dataKey)) {
               const paths = dataKey.split('.')
               const property = paths.length ? paths[paths.length - 1] : ''
-              log.orange(
-                `Warning: The${property ? ` property "${property}" in the` : ''
-                } ` +
-                `dataKey path "${dataKey}" did not exist in the local root object ` +
-                `If this is intended then ignore this message.`,
-                {
-                  component,
-                  dataKey,
-                  node,
-                  pageName,
-                  pageObject: app.root[pageName],
-                  value,
-                },
-              )
+
+              let warningMsg = 'Warning: The'
+              warningMsg += property ? ` property "${property}" in the ` : ' '
+              warningMsg += `dataKey path "${dataKey}" did not exist `
+              warningMsg += `in the local root object. `
+              warningMsg += `If this is intended then ignore this message.`
+
+              log.orange(warningMsg, { component, dataKey, pageName, value })
             }
             set(draft?.[pageName], dataKey, value)
             component.edit('data-value', value)
@@ -111,15 +110,14 @@ const createExtendedDOMResolvers = function (app: App) {
                 const pathToTage = 'verificationCode.response.edge.tage'
                 if (has(app.root?.[pageName], pathToTage)) {
                   app.updateRoot(`${pageName}.${pathToTage}`, value)
-                  console.log(`Updated: SettingsUpdate.${pathToTage}`)
                 }
               }
             }
+
             if (!iteratorVar) {
               u.array(asHtmlElement(findByDataKey(dataKey)))?.forEach(
                 (node) => {
-                  // Since select elements have options as children, we should not
-                  // edit by innerHTML or we would have to unnecessarily re-render the nodes
+                  // Since select elements have options as children, we should not edit by innerHTML or we would have to unnecessarily re-render the nodes
                   if (node && node.tagName !== 'SELECT') {
                     if (isTextFieldLike(node)) node.dataset.value = value
                     else node.innerHTML = `${value || ''}`
@@ -136,6 +134,25 @@ const createExtendedDOMResolvers = function (app: App) {
 
     return onChange
   }
+
+  ;(function () {
+    let beforeUnload_time = 0,
+      gap_time = 0
+    window.onunload = function () {
+      gap_time = new Date().getTime() - beforeUnload_time
+      if (gap_time <= 2) {
+        //浏览器关闭判断
+        clearCookie()
+      }
+    }
+    window.onbeforeunload = function () {
+      beforeUnload_time = new Date().getTime()
+    }
+    function clearCookie() {
+      //清除localstorage
+      window.localStorage.clear()
+    }
+  })()
 
   const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
@@ -158,7 +175,8 @@ const createExtendedDOMResolvers = function (app: App) {
       //     lazyLoad: true,
       //   },
       // ],
-      resolve({ node, component }) {
+      resolve({ node, component, page }) {
+        const pageName = page.page
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           node.style.width = component.style.width as string
@@ -310,17 +328,35 @@ const createExtendedDOMResolvers = function (app: App) {
                       element.timeLength = duration / 60
                       element.title = element.patientName
                       element.name = element.visitReason
+                      if (((element.subtype & 0xf0000) >> 16) % 2 === 0) {
+                        element.eventColor = '#FDE7C0'
+                        element.textColor = '#EB9C0C'
+                      } else if (
+                        ((element.subtype & 0xf0000) >> 16) % 2 ===
+                        1
+                      ) {
+                        element.eventColor = '#DDEFC8'
+                        element.textColor = '#2FB355'
+                      }
+
+                      if ((element.tage & 0xf00) >> 8 == 1) {
+                        element.eventColor = '#f9d9da'
+                        element.textColor = '#e24445'
+                      }
+                      element.backgroundColor = element.eventColor
+                      element.borderColor = element.eventColor
                       delete element.stime
                       delete element.etime
                       delete element.visitReason
+                      delete element.eventColor
                     })
                   } else {
-                    defaultData = {}
+                    defaultData = []
                   }
                   let calendar = new FullCalendar.Calendar(node, {
                     dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
-                    height: '83vh',
+                    height: '77.9vh',
                     allDaySlot: false, // 是否显示表头的全天事件栏
                     initialView: 'timeGridDay',
                     //locale: 'zh-cn',             // 区域本地化
@@ -346,7 +382,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
-                    viewDidMount(mountArg) { },
+                    viewDidMount(mountArg) {},
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -374,7 +410,7 @@ const createExtendedDOMResolvers = function (app: App) {
                             new Date(
                               info.event._instance.range.start,
                             ).getTime() +
-                            new Date().getTimezoneOffset() * 60 * 1000,
+                              new Date().getTimezoneOffset() * 60 * 1000,
                             'HH:mm:ss',
                           ) +
                           '</div>\
@@ -401,9 +437,49 @@ const createExtendedDOMResolvers = function (app: App) {
                       }
                     },
                   })
-
+                  app.instances.FullCalendar = {
+                    inst: calendar,
+                    page: pageName,
+                  }
                   calendar.render()
+                  // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
+                  window.setTimeout(() => {
+                    ;(
+                      document.querySelectorAll(
+                        'tbody .fc-timegrid-now-indicator-line',
+                      )[0] as HTMLDivElement
+                    ).scrollIntoView({ behavior: 'smooth' })
+                    let docEventPrevClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-prev-button',
+                      )[0] as HTMLButtonElement
+                    let docEventNextClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-next-button',
+                      )[0] as HTMLButtonElement
+                    let docEventTimeGridDayClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridDay-button',
+                      )[0] as HTMLButtonElement
+                    let docEventTimeGridWeekClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridWeek-button',
+                      )[0] as HTMLButtonElement
 
+                    // let docEventClick =  document.querySelectorAll("div .fc-header-toolbar")[0];
+                    docEventPrevClick.addEventListener('click', (e) => {
+                      dataValue.data = 'prev'
+                    })
+                    docEventNextClick.addEventListener('click', (e) => {
+                      dataValue.data = 'next'
+                    })
+                    docEventTimeGridDayClick.addEventListener('click', (e) => {
+                      dataValue.data = 'timeGridDay'
+                    })
+                    docEventTimeGridWeekClick.addEventListener('click', (e) => {
+                      dataValue.data = 'timeGridWeek'
+                    })
+                  }, 0)
                   // This is to fix the issue of calendar being blank when switching back from
                   // display: none to display: block
                   Object.defineProperty(calendar.el.style, 'display', {
@@ -441,12 +517,12 @@ const createExtendedDOMResolvers = function (app: App) {
     '[App] data-value': {
       cond: ({ node }) => isTextFieldLike(node),
       before({ node, component }) {
-        ; (node as HTMLInputElement).value = component.get('data-value') || ''
+        ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
           if ((node as HTMLSelectElement).length) {
             // Put the default value to the first option in the list
-            ; (node as HTMLSelectElement)['selectedIndex'] = 0
+            ;(node as HTMLSelectElement)['selectedIndex'] = 0
           }
         }
       },
@@ -455,19 +531,10 @@ const createExtendedDOMResolvers = function (app: App) {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         if (dataKey) {
-          node.addEventListener(
-            'change',
-            getOnChange({
-              component,
-              dataKey,
-              evtName: 'onChange',
-              node: node as NDOMElement,
-              iteratorVar,
-              page,
-            }),
-          )
-
-          if (component?.type == 'textField') {
+          if (
+            component?.type == 'textField' &&
+            component?.contentType == 'password'
+          ) {
             node.addEventListener(
               'input',
               getOnChange({
@@ -479,6 +546,32 @@ const createExtendedDOMResolvers = function (app: App) {
                 page,
               }),
             )
+          } else {
+            node.addEventListener(
+              'change',
+              getOnChange({
+                component,
+                dataKey,
+                evtName: 'onChange',
+                node: node as NDOMElement,
+                iteratorVar,
+                page,
+              }),
+            )
+
+            if (component?.type == 'textField') {
+              node.addEventListener(
+                'input',
+                getOnChange({
+                  component,
+                  dataKey,
+                  evtName: 'onInput',
+                  node: node as NDOMElement,
+                  iteratorVar,
+                  page,
+                }),
+              )
+            }
           }
         }
 
@@ -511,7 +604,7 @@ const createExtendedDOMResolvers = function (app: App) {
           const iframeEl = document.createElement('iframe')
           const onEntry = (k: any, v: any) => (iframeEl.style[k] = v)
           iframeEl.setAttribute('src', img.src)
-          u.eachEntries(component.style, onEntry)
+          u.entries(component.style)?.forEach?.(([k, v]) => onEntry(k, v))
           parent && findFirstByElementId(parent)?.appendChild?.(iframeEl)
         }
       },
@@ -521,23 +614,72 @@ const createExtendedDOMResolvers = function (app: App) {
       resolve({ node, component }) {
         if (component?.blueprint?.hover) {
           node?.addEventListener('mouseover', () => {
-            u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
-              value = value.substring(2)
-              node.style[key] = '#' + value
-            })
+            u.entries(component?.blueprint?.hover)?.forEach?.(
+              ([key, value]) => {
+                value = String(value).substring?.(2)
+                node.style[key] = '#' + value
+              },
+            )
           })
           node?.addEventListener('mouseout', function (e) {
-            u.eachEntries(component?.blueprint?.hover, (key: any, value) => {
-              let realvalue = component.style[key]
-              if (typeof realvalue == 'undefined' && key == 'backgroundColor') {
-                realvalue = '#ffffff'
-              }
-              if (typeof realvalue == 'undefined' && key == 'fontColor') {
-                realvalue = '#000000'
-              }
-              node.style[key] = realvalue
-            })
+            u.entries(component?.blueprint?.hover)?.forEach?.(
+              ([key, value]) => {
+                let realvalue = component.style[key]
+                if (
+                  typeof realvalue == 'undefined' &&
+                  key == 'backgroundColor'
+                ) {
+                  realvalue = '#ffffff'
+                }
+                if (typeof realvalue == 'undefined' && key == 'fontColor') {
+                  realvalue = '#000000'
+                }
+                node.style[key] = realvalue
+              },
+            )
           })
+        }
+      },
+    },
+    '[App] dbEvents': {
+      cond: ({ component }) => component.has('dbEvents'),
+      resolve({ node, component }) {
+        if (
+          component?.blueprint?.dbEvents &&
+          component?.blueprint?.dbEvents === 'pare'
+        ) {
+          node?.addEventListener(
+            'touchstart',
+            (e) => {
+              e.preventDefault()
+            },
+            false,
+          )
+        }
+        if (
+          component?.blueprint?.dbEvents &&
+          component?.blueprint?.dbEvents === 'child'
+        ) {
+          node?.addEventListener(
+            'touchstart',
+            (e) => {
+              e.stopPropagation()
+            },
+            false,
+          )
+        }
+
+        if (
+          component?.blueprint?.dbEvents &&
+          component?.blueprint?.dbEvents === 'pointer-events'
+        ) {
+          node?.addEventListener(
+            'click',
+            (e) => {
+              node.style.pointerEvents = 'none'
+            },
+            false,
+          )
         }
       },
     },
@@ -551,7 +693,7 @@ const createExtendedDOMResolvers = function (app: App) {
             text = JSON.stringify(dataValue)
           }
 
-          let opts:any = {
+          let opts: any = {
             errorCorrectionLevel: 'H',
             type: 'svg',
             quality: 0.3,
@@ -565,7 +707,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
           QRCode.toDataURL(text, opts, function (err, url) {
             // if (err) throw err
-            (node as HTMLImageElement).src = url
+            ;(node as HTMLImageElement).src = url
           })
         }
       },
@@ -574,47 +716,38 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'label',
       resolve({ node, component }) {
         if (component.has('highlightKey') && component.has('highlightStyle')) {
-
           function heightLight(string, keyword) {
-              let reg = new RegExp(keyword, "gi")
-              string = string.replace(reg, function(txt){
-                  return `<span class="highlight" >${txt}</span>`
-              })
-              return string
+            let reg = new RegExp(keyword, 'gi')
+            string = string.replace(reg, function (txt) {
+              return `<span class="highlight">${txt}</span>`
+            })
+            return string
           }
 
           const highlightKey = component.get('highlightKey')
           const pageName = app.currentPage
           const localhighlightValue = get(app.root[pageName], highlightKey)
           const remotehighlightValue = get(app.root, highlightKey)
-          const highlightValue = localhighlightValue ? localhighlightValue : remotehighlightValue
-          const highlightStyle = component.get('highlightStyle')
+          const highlightValue = localhighlightValue
+            ? localhighlightValue
+            : remotehighlightValue
+          if (highlightValue) {
+            const highlightStyle = component.get('highlightStyle')
 
-          let originalValue = node.innerHTML
+            let originalValue = node.innerHTML
 
-          node.innerHTML = ""
-          node.innerHTML = heightLight(originalValue,highlightValue)
+            node.innerHTML = ''
+            node.innerHTML = heightLight(originalValue, highlightValue)
 
-          let domObj:any = document.getElementsByClassName('highlight')
-          domObj.forEach(element=>{
-            u.eachEntries(highlightStyle, (key: any, value) => {
-              element.style[key] = value
-            })
-          })
-
-          // const span = document.createElement('span')
-          // span.innerText = highlightValue
-          // u.eachEntries(highlightStyle, (key: any, value) => {
-          //   span.style[key] = value
-          // })
-          // node.innerHTML = ""
-          // node.appendChild(span)
-
-          // let otherValue = originalValue.substring(highlightValue.length)
-          // const otherspan = document.createElement('span')
-          // otherspan.innerText = otherValue
-          // node.appendChild(otherspan )
-
+            let currentSpans = node.getElementsByClassName('highlight')
+            // let domObj:any = document.getElementsByClassName('highlight')
+            for (let i = 0; i < currentSpans.length; i++) {
+              let currentSpan = currentSpans[i] as HTMLElement
+              u.entries(highlightStyle)?.forEach?.(([key, value]) => {
+                currentSpan.style[key] = value
+              })
+            }
+          }
         }
       },
     },
@@ -814,8 +947,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -846,22 +979,13 @@ const createExtendedDOMResolvers = function (app: App) {
             if (flag) {
               let featuresData: any[] = []
               dataValue.data.forEach((element: any) => {
-                var str = "";
-                var showName = ""
-                var specialityArr = element.information.speciality;
-                var Name = element.information.name;
-                if (specialityArr) {
-                  for (var i = 0; i < specialityArr.length; i++) {
-                    str += specialityArr[i] + ", ";
-                  }
-                  if (str.length > 0) {
-                    str = str.substr(0, str.length - 2);
-                  }
-                } else {
-                  str = "No Speciality"
-                }
-                if (Name == "undefined undefined") {
-                  showName = "No Name"
+                var str = ''
+                var showName = ''
+                var specialityArr = element.information.speciality
+                var Name = element.information.name
+                str = specialityArr
+                if (Name == 'undefined undefined') {
+                  showName = 'No Name'
                 } else {
                   showName = Name
                 }
@@ -996,14 +1120,14 @@ const createExtendedDOMResolvers = function (app: App) {
                     .setLngLat(coordinates)
                     .setHTML(
                       '<span style="font-size: 1vh;">' +
-                      Name +
-                      ' </span><br> <span style="font-size: 1vh;">' +
-                      Speciality +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      phoneNumber +
-                      '</span><br> <span style="font-size: 1vh;">' +
-                      address +
-                      '</span>',
+                        Name +
+                        ' </span><br> <span style="font-size: 1vh;">' +
+                        Speciality +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        phoneNumber +
+                        '</span><br> <span style="font-size: 1vh;">' +
+                        address +
+                        '</span>',
                     )
                     .addTo(map)
                 })
@@ -1034,8 +1158,8 @@ const createExtendedDOMResolvers = function (app: App) {
             let flag = !dataValue.hasOwnProperty('data')
               ? false
               : dataValue.data.length == 0
-                ? false
-                : true
+              ? false
+              : true
             let initcenter = flag
               ? dataValue.data[0].data
               : [-117.9086, 33.8359]
@@ -1120,7 +1244,7 @@ const createExtendedDOMResolvers = function (app: App) {
               log.func('[App] onMeetingComponent')
               log.red(
                 `Attempted to add an element to a subStream but it ` +
-                `already exists in the subStreams container`,
+                  `already exists in the subStreams container`,
                 app.subStreams.snapshot(),
               )
             }
@@ -1128,7 +1252,7 @@ const createExtendedDOMResolvers = function (app: App) {
             log.func('[App] onMeetingComponent')
             log.red(
               `Attempted to create "subStreams" but a container (DOM element) ` +
-              `was not available`,
+                `was not available`,
               { node, component, ...app.streams.snapshot() },
             )
           }
@@ -1199,12 +1323,13 @@ const createExtendedDOMResolvers = function (app: App) {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
             setTimeout(() => {
               const assetsUrl = app.nui.getAssetsUrl() || ''
-              const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
-              const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
+              const eyeOpened = assetsUrl + 'makePasswordVisiableEye.svg'
+              const eyeClosed = assetsUrl + 'makePasswordInvisibleEye.svg'
               const originalParent = node?.parentNode as HTMLDivElement
               const newParent = document.createElement('div')
               const eyeContainer = document.createElement('button')
               const eyeIcon = document.createElement('img')
+              // const eyeIcon = originalParent.getElementsByTagName("img")[0] as HTMLImageElement||document.createElement('img')
 
               // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
               // prettier-ignore
@@ -1218,7 +1343,8 @@ const createExtendedDOMResolvers = function (app: App) {
 
               newParent.style.display = 'flex'
               newParent.style.alignItems = 'center'
-              newParent.style.background = 'none'
+              // newParent.style.background = 'none'
+              // newParent.style.borderBottom = '1px solid #767676'
 
               node && (node.style.width = '100%')
               node && (node.style.height = '100%')
@@ -1226,12 +1352,17 @@ const createExtendedDOMResolvers = function (app: App) {
               eyeContainer.style.top = '0px'
               eyeContainer.style.bottom = '0px'
               eyeContainer.style.right = '6px'
-              eyeContainer.style.width = '42px'
               eyeContainer.style.background = 'none'
               eyeContainer.style.border = '0px'
+              eyeContainer.style.display = 'flex'
+              eyeContainer.style.alignItems = 'center'
               eyeContainer.style.outline = 'none'
+              eyeContainer.style.marginLeft = '8px'
+              eyeContainer.style.marginRight = '16px'
 
-              eyeIcon.style.width = '100%'
+              // eyeIcon.style.width = '100%'
+              // eyeIcon.style.height = '100%'
+              eyeIcon.style.width = '18px'
               eyeIcon.style.height = '100%'
               eyeIcon.style.userSelect = 'none'
 
@@ -1251,6 +1382,8 @@ const createExtendedDOMResolvers = function (app: App) {
               originalParent?.appendChild(newParent)
               eyeContainer.appendChild(eyeIcon)
               newParent.appendChild(node)
+              // node.appendChild(eyeContainer);
+              // newParent.appendChild(img)
               newParent.appendChild(eyeContainer)
 
               let selected = true

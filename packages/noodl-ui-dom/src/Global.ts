@@ -1,6 +1,6 @@
 import Timers from './global/Timers'
-import NDOMPage from './Page'
-import { ComponentPage } from './factory/componentFactory'
+import type NDOMPage from './Page'
+import type { ComponentPage } from './factory/componentFactory'
 import * as t from './types'
 
 let _global: NDOMGlobal

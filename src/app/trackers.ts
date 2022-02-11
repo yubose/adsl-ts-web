@@ -1,6 +1,4 @@
 import * as u from '@jsmanifest/utils'
-import formatDate from 'date-fns/format'
-import subMs from 'date-fns/subMilliseconds'
 import Logger from 'logsnap'
 import { Identify, ReferenceString } from 'noodl-types'
 import { trimReference } from 'noodl-utils'
@@ -20,9 +18,6 @@ function validateRef(
     const pathInSplits = datapath.split('.')
     if (Identify.localKey(datapath)) {
       if (!has(app.root?.[page], pathInSplits)) {
-        // const otherOpts = {} as Record<string, any>
-        // if (app.root?.[page]) otherOpts.snapshot = cloneDeep(app.root?.[page])
-
         log.red(
           `The reference "${key}" is not found in the local root object for page "${page}"`,
           { datapath, key, page, pathInSplits },
@@ -30,15 +25,6 @@ function validateRef(
       }
       return get(app.root?.[page], pathInSplits)
     }
-    if (!has(app.root, pathInSplits)) {
-      log.red(`The reference "${key}" is not found in the root object`, {
-        datapath,
-        key,
-        pathInSplits,
-        // snapshot: cloneDeep(app.root),
-      })
-    }
-
     return get(app.root, pathInSplits)
   }
 }

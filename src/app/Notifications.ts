@@ -35,10 +35,7 @@ class AppNotification {
   #unsubscribe: firebase.Unsubscribe | undefined
   client: firebase.app.App | undefined
   initiated = false
-  messaging: FirebaseMessaging | undefined
-  workerRegistration: ServiceWorkerRegistration | undefined
-
-  static path = 'firebase-messaging-sw.js';
+  messaging: FirebaseMessaging | undefined;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -63,7 +60,7 @@ class AppNotification {
     this.#unsubscribe = unsubscribe
   }
 
-  async init(registration: ServiceWorkerRegistration) {
+  async init() {
     try {
       if (this.supported) {
         this.client = firebase.initializeApp(credentials)
@@ -106,7 +103,6 @@ class AppNotification {
         )
       }
       this.initiated = true
-      this.workerRegistration = registration
       this.emit('initiated', this.client as firebase.app.App)
       return this.client
     } catch (error) {
@@ -122,9 +118,6 @@ class AppNotification {
     try {
       if (this.supported) {
         opts = { vapidKey, ...opts }
-        if (this.workerRegistration) {
-          opts.serviceWorkerRegistration = this.workerRegistration
-        }
         token = (await this.messaging?.getToken(opts)) || ''
       }
       this.emit('token', token)

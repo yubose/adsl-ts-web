@@ -3,7 +3,6 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import { isAction } from 'noodl-action-chain'
-import jsPDF from 'jspdf'
 import {
   findListDataObject,
   findIteratorVar,
@@ -27,6 +26,7 @@ import {
   findWindow,
   isPageConsumer,
   Page as NDOMPage,
+  findFirstByElementId,
 } from 'noodl-ui-dom'
 import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
 import Logger from 'logsnap'
@@ -46,6 +46,7 @@ import {
   throwError,
 } from '../utils/common'
 import App from '../App'
+import { useGotoSpinner } from './shared/goto'
 import {
   LocalAudioTrack,
   LocalAudioTrackPublication,
@@ -53,6 +54,7 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
+import type { Format as PdfPageFormat } from '../modules/ExportPdf'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -133,6 +135,93 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }
 
+  const exportCSV = async function onExportCSV(options: {
+    ecosObj?: EcosDocument
+    obj?: Object
+    viewTag?: string
+    format?: PdfPageFormat
+    download?: boolean
+    open?: boolean
+    header?: Array<any>
+    fileName?: string
+  }) {
+    try {
+      let listOfData = u.isArr(options) ? options : ([] as any[])
+      let title = new Date().toLocaleDateString().replaceAll('/', '-')
+
+      if (u.isObj(options)) {
+        if ('ecosObj' in options) {
+          listOfData.push(options.ecosObj?.name || {})
+          if (options.ecosObj?.name?.title) title = options.ecosObj.name.title
+        } else {
+          listOfData.push(options)
+        }
+      } else if (u.isStr(options)) {
+        try {
+          let data = JSON.parse(options)
+          listOfData.push(data)
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.error(err)
+          listOfData.push(options)
+        }
+      }
+
+      let csv = options.obj
+      // generate header
+      let csvHeader: string | undefined = ''
+      if ('header' in options) {
+        csvHeader = options.header?.toString()
+        csvHeader += '\r\n'
+      }
+      csv = csvHeader ? csvHeader + csv : csv
+      // formate csv in sdk
+      // for (const dataObject of listOfData) {
+      //   let entries = u.entries(dataObject).map(([k, v]) => [[k, v]])
+      //   let numEntries = entries.length
+
+      //   //1st loop is to extract each row
+      //   for (let i = 0; i < numEntries; i++) {
+      //     let row = ''
+      //     //2nd loop will extract each column and convert it in string comma-seprated
+      //     for (const index in entries[i]) {
+      //       row += '"' + entries[i][index] + '",'
+      //     }
+      //     row.slice(0, row.length - 1)
+      //     //add a line break after each row
+      //     csv += row + '\r\n'
+      //   }
+
+      //   numEntries && (csv += '\r\n')
+      // }
+
+      const link = document.createElement('a')
+      link.id = 'lnkDwnldLnk'
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const csvUrl = URL.createObjectURL(blob)
+      let filename = ''
+      if ('fileName' in options) {
+        filename = `${options.fileName}.csv`
+      } else {
+        filename =
+          `${
+            title ||
+            `data-${new Date().toLocaleDateString().replaceAll('/', '-')}`
+          }` + '.csv'
+      }
+      link.download = filename
+      link.href = csvUrl
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(csvUrl)
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error(err)
+    }
+  }
+
   /**
    * Initiates a download window to export PDF using the information inside the document object
    * @param { object } options
@@ -141,39 +230,41 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   const exportPDF: any = async function onExportPDF(options: {
     ecosObj: EcosDocument
     viewTag?: string
+    format?: PdfPageFormat
+    download?: boolean
+    open?: boolean
   }) {
     try {
       log.func('exportPDF')
       log.grey('Downloading PDF file', options)
+
+      // Blob will be returned to sdk and written to dataOut if dataOut is given
+      let pdfBlob: Blob | undefined
 
       const ecosObj = (
         u.isObj(options) && 'ecosObj' in options ? options.ecosObj : options
       ) as EcosDocument
 
       const viewTag = u.isObj(options) && options.viewTag
-      const fileName = ecosObj.name?.title
+      const format = u.isObj(options) ? options.format : undefined
+      const fileName = ecosObj.name?.title || ''
+      const shouldDownload = u.isBool(options?.download)
+        ? options.download
+        : true
+      const shouldOpen = u.isBool(options?.open) ? options.open : false
 
       if (viewTag) {
         if (u.isStr(viewTag)) {
-          const snaps = [] as { pdf: jsPDF; canvas: HTMLCanvasElement }[]
-          const elems = findByViewTag(viewTag)
-
-          if (u.isArr(elems)) {
-            for (const node of elems) {
-              const pdf = await exportToPDF({
-                data: node,
-                download: true,
+          for (const elem of [...u.array(findByViewTag(viewTag))]) {
+            if (elem) {
+              pdfBlob = await exportToPDF({
+                data: elem,
+                download: shouldDownload,
+                open: shouldOpen,
                 filename: fileName,
-                viewport: app.viewport,
+                format,
               })
             }
-          } else if (elems) {
-            const pdf = await exportToPDF({
-              data: elems,
-              download: true,
-              filename: fileName,
-              viewport: app.viewport,
-            })
           }
         } else if (u.isObj(viewTag)) {
           // Future support
@@ -187,7 +278,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
 
           if (data) {
             try {
-              await exportToPDF({
+              pdfBlob = await exportToPDF({
                 data:
                   Identify.mediaType.audio(mediaType) ||
                   Identify.mediaType.font(mediaType) ||
@@ -196,7 +287,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
                     ? data
                     : { title: title || (u.isStr(content) && content) || data },
                 labels: true,
-                download: true,
+                download: shouldDownload,
+                open: shouldOpen,
                 filename: title,
               })
               log.green('Exported successfully')
@@ -212,6 +304,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           log.red('The name field in an ecosObj was not an object', ecosObj)
         }
       }
+      return pdfBlob
     } catch (error) {
       logError(error)
       throwError(error)
@@ -233,15 +326,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action?.snapshot?.())
     const reload = _pick(action, 'reload')
     const ndomPage = pickNDOMPageFromOptions(options)
-
     if (ndomPage) {
       ndomPage.requesting = ndomPage.previous
       // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
-      if (u.isBool(reload)) {
-        ndomPage.setModifier(ndomPage.previous, { reload })
-      }
+      ndomPage.setModifier(ndomPage.previous, {
+        reload: Identify.isBooleanFalse(reload) ? false : true,
+      })
     }
+
+    if (!app.getState().spinner.active) app.enableSpinner()
 
     window.history.back()
   }
@@ -456,225 +550,239 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     window.location.reload()
   }
 
-  const goto = createBuiltInHandler(async function onGoto(action, options) {
-    log.func('goto')
-    log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
+  const goto = createBuiltInHandler(
+    useGotoSpinner(app, async function onGoto(action, options) {
+      log.func('goto')
+      log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
 
-    let destinationParam = ''
-    let reload: boolean | undefined
-    let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
-    let ndomPage = pickNDOMPageFromOptions(options)
-    let dataIn: any // sdk use
+      if (!app.getState().spinner.active) app.enableSpinner()
 
-    let destProps: ReturnType<typeof app.parse.destination>
-    let destination = ''
-    let id = ''
-    let isSamePage = false
-    let duration = 350
+      let destinationParam = ''
+      let reload: boolean | undefined
+      let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
+      let ndomPage = pickNDOMPageFromOptions(options)
+      let dataIn: any // sdk use
 
-    if (u.isStr(action)) {
-      destinationParam = action
-    } else if (isAction(action)) {
-      const gotoObj = action?.original
-      if (u.isStr(gotoObj)) {
-        destinationParam = gotoObj
-      } else if (u.isObj(gotoObj)) {
-        if ('goto' in gotoObj) {
-          if (u.isObj(gotoObj.goto)) {
-            destinationParam = _pick(gotoObj.goto, 'destination')
-            'reload' in gotoObj.goto && (reload = _pick(gotoObj.goto, 'reload'))
-            'pageReload' in gotoObj.goto &&
-              (pageReload = _pick(gotoObj.goto, 'pageReload'))
-            'dataIn' in gotoObj.goto && (dataIn = _pick(gotoObj.goto, 'dataIn'))
-          } else if (u.isStr(gotoObj.goto)) {
-            destinationParam = gotoObj.goto
-          }
+      let destProps: ReturnType<typeof app.parse.destination>
+      let destination = ''
+      let id = ''
+      let isSamePage = false
+      let duration = 350
+
+      if (u.isStr(action)) {
+        destinationParam = action
+      } else if (isAction(action)) {
+        const gotoObj = action?.original
+        if (u.isStr(gotoObj)) {
+          destinationParam = gotoObj
         } else if (u.isObj(gotoObj)) {
-          destinationParam = gotoObj.destination
-          'reload' in gotoObj && (reload = gotoObj.reload)
-          'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
-          'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
-        }
-      }
-    } else if (u.isObj(action)) {
-      if ('destination' in action || 'goto' in action) {
-        destinationParam = _pick(action, 'destination', _pick(action, 'goto'))
-        'reload' in action && (reload = _pick(action, 'reload'))
-        'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
-        'dataIn' in action && _pick(action, 'dataIn')
-      }
-    }
-
-    destProps = app.parse.destination(
-      Identify.pageComponentUrl(destinationParam)
-        ? resolvePageComponentUrl({
-            component: options?.component,
-            page: ndomPage.getNuiPage(),
-            localKey: ndomPage.page,
-            root: app.root,
-            key: 'goto',
-            value: destinationParam,
-          })
-        : destinationParam,
-    )
-
-    /** PARSE FOR DESTINATION PROPS */
-
-    if ('destination' in destProps) {
-      destination = destProps.destination || ''
-      id = destProps.id || id
-      isSamePage = !!destProps.isSamePage
-      duration = destProps.duration || duration
-      ndomPage = options?.page
-      const pageComponentParent = Identify.component.page(options?.component)
-        ? options.component
-        : findParent(options?.component, Identify.component.page)
-
-      if (!ndomPage || isNuiPage(ndomPage)) {
-        ndomPage =
-          app.ndom.findPage(pageComponentParent || options.component) ||
-          app.mainPage
-      }
-    } else if ('targetPage' in destProps) {
-      destination = destProps.targetPage || ''
-      id = destProps.viewTag || ''
-      if (id) {
-        const pageNode = findByViewTag(id)
-        const pageComponent = Array.from(app.cache.component || [])?.find(
-          (obj) => obj?.component?.blueprint?.viewTag === id,
-        )?.component
-        if (pageNode) {
-          if (pageNode instanceof HTMLIFrameElement) {
-            //
-          }
-        }
-        const currentPageName = pageComponent?.get?.('path')
-        ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
-      }
-    }
-
-    if (destination === destinationParam) {
-      ndomPage.requesting = destination
-    }
-
-    if (!u.isUnd(reload)) {
-      ndomPage.setModifier(destinationParam, { reload })
-    }
-    if (!u.isUnd(pageReload)) {
-      ndomPage.setModifier(destinationParam, { pageReload })
-    }
-    if (!u.isUnd(dataIn)) {
-      ndomPage.setModifier(destinationParam, { ...dataIn })
-    }
-
-    log.grey(`Goto info`, {
-      action: action?.snapshot?.(),
-      ...destProps,
-      destinationParam,
-      reload,
-      pageReload,
-    })
-
-    if (destination.startsWith('http')) {
-      // This is for testing in mobile mode to prevent the auto-redirection to google play store
-      // return
-    }
-
-    if (id) {
-      const isInsidePageComponent =
-        isPageConsumer(options?.component) || !!destProps.targetPage
-      const node = findByViewTag(id) || findFirstByElementId(id)
-
-      if (node) {
-        let win: Window | undefined | null
-        let doc: Document | null | undefined
-        if (document.contains?.(node as HTMLElement)) {
-          win = window
-          doc = window.document
-        } else {
-          win = findWindow((w: any) => {
-            if (w) {
-              if ('contentDocument' in w) {
-                doc = (w as any).contentDocument
-              } else {
-                doc = w.document
-              }
-              return doc?.contains?.(node as HTMLElement)
+          if ('goto' in gotoObj) {
+            if (u.isObj(gotoObj.goto)) {
+              destinationParam = _pick(gotoObj.goto, 'destination')
+              'reload' in gotoObj.goto &&
+                (reload = _pick(gotoObj.goto, 'reload'))
+              'pageReload' in gotoObj.goto &&
+                (pageReload = _pick(gotoObj.goto, 'pageReload'))
+              'dataIn' in gotoObj.goto &&
+                (dataIn = _pick(gotoObj.goto, 'dataIn'))
+            } else if (u.isStr(gotoObj.goto)) {
+              destinationParam = gotoObj.goto
             }
-            return false
-          })
-        }
-        const scroll = () => {
-          if (isInsidePageComponent) {
-            scrollToElem(node, { win, doc, duration })
-          } else {
-            ;(node as HTMLElement).scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'center',
-            })
+          } else if (u.isObj(gotoObj)) {
+            destinationParam = gotoObj.destination
+            'reload' in gotoObj && (reload = gotoObj.reload)
+            'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
+            'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
           }
         }
-        if (isSamePage) {
-          scroll()
-        } else {
-          ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+      } else if (u.isObj(action)) {
+        if ('destination' in action || 'goto' in action) {
+          destinationParam = _pick(action, 'destination', _pick(action, 'goto'))
+          'reload' in action && (reload = _pick(action, 'reload'))
+          'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
+          'dataIn' in action && _pick(action, 'dataIn')
         }
-      } else {
-        log.red(`Could not search for a DOM node with an identity of "${id}"`, {
-          action: action?.snapshot?.(),
-          node,
-          id,
-          destination,
-          isSamePage,
-          duration,
-          options,
+      }
+
+      destProps = app.parse.destination(
+        Identify.pageComponentUrl(destinationParam)
+          ? resolvePageComponentUrl({
+              component: options?.component,
+              page: ndomPage.getNuiPage(),
+              localKey: ndomPage.page,
+              root: app.root,
+              key: 'goto',
+              value: destinationParam,
+            })
+          : destinationParam,
+      )
+
+      /** PARSE FOR DESTINATION PROPS */
+
+      if ('destination' in destProps) {
+        destination = destProps.destination || ''
+        id = destProps.id || id
+        isSamePage = !!destProps.isSamePage
+        duration = destProps.duration || duration
+        ndomPage = options?.page
+        const pageComponentParent = Identify.component.page(options?.component)
+          ? options.component
+          : findParent(options?.component, Identify.component.page)
+
+        if (!ndomPage || isNuiPage(ndomPage)) {
+          ndomPage =
+            app.ndom.findPage(pageComponentParent || options.component) ||
+            app.mainPage
+        }
+      } else if ('targetPage' in destProps) {
+        destination = destProps.targetPage || ''
+        id = destProps.viewTag || ''
+        if (id) {
+          const pageNode = findByViewTag(id)
+          const pageComponent = Array.from(app.cache.component || [])?.find(
+            (obj) => obj?.component?.blueprint?.viewTag === id,
+          )?.component
+          if (pageNode) {
+            if (pageNode instanceof HTMLIFrameElement) {
+              //
+            }
+          }
+          const currentPageName = pageComponent?.get?.('path')
+          ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+        }
+      }
+
+      if (destination === destinationParam) {
+        ndomPage.requesting = destination
+      }
+
+      if (!u.isNil(reload)) {
+        // reload = Identify.isBooleanFalse(reload) ? false : true
+        ndomPage.setModifier(destinationParam, {
+          reload,
         })
       }
-    }
 
-    if (!destinationParam.startsWith('http')) {
-      ndomPage.pageUrl = app.parse.queryString({
-        destination,
-        pageUrl: ndomPage.pageUrl,
-        startPage: app.startPage,
+      if (!u.isUnd(pageReload)) {
+        ndomPage.setModifier(destinationParam, { pageReload })
+      }
+      if (!u.isUnd(dataIn)) {
+        ndomPage.setModifier(destinationParam, { ...dataIn })
+      }
+
+      log.grey(`Goto info`, {
+        action: action?.snapshot?.(),
+        ...destProps,
+        destinationParam,
+        reload,
+        pageReload,
       })
-    } else {
-      destination = destinationParam
-    }
 
-    if (!isSamePage) {
-      if (reload) {
-        let urlToGoToInstead = ''
-        const parts = ndomPage.pageUrl.split('-')
-        if (parts.length > 1) {
-          if (!parts[0].startsWith('index.html')) {
-            parts.unshift(BASE_PAGE_URL)
-            parts.push(destination)
-            urlToGoToInstead = parts.join('-')
+      if (destination.startsWith('http')) {
+        // This is for testing in mobile mode to prevent the auto-redirection to google play store
+        // return
+      }
+
+      if (id) {
+        const isInsidePageComponent =
+          isPageConsumer(options?.component) || !!destProps.targetPage
+        const node = findByViewTag(id) || findFirstByElementId(id)
+
+        if (node) {
+          let win: Window | undefined | null
+          let doc: Document | null | undefined
+          if (document.contains?.(node as HTMLElement)) {
+            win = window
+            doc = window.document
+          } else {
+            win = findWindow((w: any) => {
+              if (w) {
+                if ('contentDocument' in w) {
+                  doc = (w as any).contentDocument
+                } else {
+                  doc = w.document
+                }
+                return doc?.contains?.(node as HTMLElement)
+              }
+              return false
+            })
+          }
+          const scroll = () => {
+            if (isInsidePageComponent) {
+              scrollToElem(node, { win, doc, duration })
+            } else {
+              ;(node as HTMLElement).scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center',
+              })
+            }
+          }
+          if (isSamePage) {
+            scroll()
+          } else {
+            ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
           }
         } else {
-          urlToGoToInstead = BASE_PAGE_URL + destination
+          log.red(
+            `Could not search for a DOM node with an identity of "${id}"`,
+            {
+              action: action?.snapshot?.(),
+              node,
+              id,
+              destination,
+              isSamePage,
+              duration,
+              options,
+            },
+          )
         }
-        window.location.href = urlToGoToInstead
-      } else {
-        if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
-          if (ndomPage.node.contentDocument?.body) {
-            ndomPage.node.contentDocument.body.textContent = ''
-          }
-        }
-        await app.navigate(ndomPage, destination)
       }
 
-      if (!destination) {
-        log.func('builtIn')
-        log.red(
-          'Tried to go to a page but could not find information on the whereabouts',
-          { action, snapshot: action?.snapshot?.(), ...options },
-        )
+      if (!destinationParam.startsWith('http')) {
+        const originUrl = ndomPage.pageUrl
+        ndomPage.pageUrl = app.parse.queryString({
+          destination,
+          pageUrl: ndomPage.pageUrl,
+          startPage: app.startPage,
+        })
+      } else {
+        destination = destinationParam
       }
-    }
-  })
+
+      if (!isSamePage) {
+        if (reload) {
+          let urlToGoToInstead = ''
+          const parts = ndomPage.pageUrl.split('-')
+          if (parts.length > 1) {
+            if (!parts[0].startsWith('index.html')) {
+              parts.unshift(BASE_PAGE_URL)
+              parts.push(destination)
+              urlToGoToInstead = parts.join('-')
+            }
+          } else {
+            urlToGoToInstead = BASE_PAGE_URL + destination
+          }
+          window.location.href = urlToGoToInstead
+        } else {
+          if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+            if (ndomPage.node.contentDocument?.body) {
+              ndomPage.node.contentDocument.body.textContent = ''
+            }
+          }
+          await app.navigate(ndomPage, destination, { isGoto: true })
+        }
+
+        if (!destination) {
+          log.func('builtIn')
+          log.red(
+            'Tried to go to a page but could not find information on the whereabouts',
+            { action, snapshot: action?.snapshot?.(), ...options },
+          )
+        }
+      }
+    }),
+  )
 
   const redraw: Store.BuiltInObject['fn'] = async function onRedraw(
     action,
@@ -722,38 +830,101 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         })
       }
 
-      await Promise.all(
-        components.map(async function redrawComponents(_component) {
-          const _node = findFirstBySelector(`#${_component?.id}`)
-          if (!_node) {
-            log.func('redraw')
-            log.red(
-              `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
-              { component: _component, node: _node },
-            )
-          } else {
-            const ctx = {} as any
-            if (isListConsumer(_component)) {
-              const dataObject = findListDataObject(_component)
-              dataObject && (ctx.dataObject = dataObject)
+      for (const _component of components) {
+        const _node = findFirstBySelector(`#${_component?.id}`)
+        if (!_node) {
+          log.func('redraw')
+          log.red(
+            `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+            { component: _component, node: _node },
+          )
+        } else {
+          const ctx = {} as any
+          if (isListConsumer(_component)) {
+            const dataObject = findListDataObject(_component)
+            dataObject && (ctx.dataObject = dataObject)
+            if (Identify.component.list(_component)) {
+              ctx.listObject =
+                _component.get?.('listObject') ||
+                _component.blueprint?.listObject ||
+                _component?.['listObject']
+              ctx.index = 0
+              ctx.dataObject = ctx.listObject?.[0]
+              ctx.iteratorVar = _component.blueprint?.iteratorVar
             }
-            const ndomPage = pickNDOMPageFromOptions(options)
-            return app.ndom.redraw(_node, _component, ndomPage, {
-              context: ctx,
-            })
           }
-        }),
-      )
+          const ndomPage = pickNDOMPageFromOptions(options)
+          await app.ndom.redraw(_node, _component, ndomPage, {
+            context: ctx,
+          })
+          // const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
+          //   context: ctx,
+          // })
+          // return redrawed
+        }
+      }
+
+      // await Promise.all(
+      //   components.map(async function redrawComponents(_component) {
+      //     const _node = findFirstBySelector(`#${_component?.id}`)
+      //     if (!_node) {
+      //       log.func('redraw')
+      //       log.red(
+      //         `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+      //         { component: _component, node: _node },
+      //       )
+      //     } else {
+      //       const ctx = {} as any
+      //       if (isListConsumer(_component)) {
+      //         const dataObject = findListDataObject(_component)
+      //         dataObject && (ctx.dataObject = dataObject)
+      //       }
+      //       const ndomPage = pickNDOMPageFromOptions(options)
+      //       const redrawed = await app.ndom.redraw(
+      //         _node,
+      //         _component,
+      //         ndomPage,
+      //         { context: ctx },
+      //       )
+      //       debugger
+      //       return redrawed
+      //     }
+      //   }),
+      // )
     } catch (error) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
     }
     log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
+  const dismissOnTouchOutside: Store.BuiltInObject['fn'] = async function onDismissOnTouchOutside(
+    action,
+    options,
+  ){
+    const component = options?.component as NuiComponent.Instance
+    const metadata = getActionMetadata(action, {
+      component,
+      pickKeys: 'viewTag',
+    })
+    const { viewTag } = metadata
+    if (viewTag) {
+      const node = findByViewTag(viewTag.fromAction) as HTMLElement
+      const onTouchOutside = function onTouchOutside(
+        this: HTMLDivElement,
+        e: Event,
+      ) {
+        e.preventDefault()
+        hide(node)
+        document.body.removeEventListener('click', onTouchOutside)
+      }
+      document.body.addEventListener('click', onTouchOutside)
+    }
+  }
 
   const builtIns = {
     checkField,
     disconnectMeeting,
+    exportCSV,
     exportPDF,
     goBack,
     hide: hideAction,
@@ -767,6 +938,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     goto,
     redraw,
     copy,
+    dismissOnTouchOutside,
   }
 
   /** Shared common logic for both lock/logout logic */
@@ -847,68 +1019,50 @@ export const extendedSdkBuiltIns = {
   },
   downloadQRCode(
     this: App,
-    { content, scale }: { content?: any; scale?: number } = {},
+    {
+      content,
+      scale,
+      viewTag,
+    }: { content?: any; scale?: number; viewTag?: string } = {},
   ) {
     log.func('download (QRCode)')
     // Generate QRCode image
-    let text = content
-    if (u.isObj(content)) text = JSON.stringify(content)
-
-    let opts = {
-      errorCorrectionLevel: 'H',
-      type: 'svg',
-      quality: 0.3,
-      margin: 1,
-      color: {
-        dark: '#000000',
-        light: '#ffffff',
-      },
-      scale: scale,
-    }
-    let data
-    QRCode.toDataURL(text, opts, function (err, url) {
-      if (err) throw err
-      data = url
-    })
-
-    // transform base64 to blob
-    let dataURLtoBlob = (dataurl) => {
-      let arr = dataurl.split(',')
-      //注意base64的最后面中括号和引号是不转译的
-      let _arr = arr[1].substring(0, arr[1].length - 2)
-      let mime = arr[0].match(/:(.*?);/)[1],
-        bstr = atob(_arr),
-        n = bstr.length,
-        u8arr = new Uint8Array(n)
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n)
-      }
-      return new Blob([u8arr], {
-        type: mime,
-      })
-    }
-    let blobSrc = dataURLtoBlob(data)
-    console.log('test', blobSrc)
     let ext = ''
     let filename = ('QRCode' || '') as string
     let mimeType = ('image/png' || '') as string
-
-    if (mimeType && u.isStr(mimeType)) {
-      // Assuming these are note docs since we are storing their data in json
-      if (mimeType.endsWith('json')) {
-        ext = '.txt'
-        const title = filename
-        const body = blobSrc
-        const note = `${title}\n\n${body}`
-        data = new Blob([note], { type: 'text/plain' })
-      } else {
-        ext = mimeType.substring(mimeType.lastIndexOf('/')).replace('/', '.')
-      }
-    }
-
+    ext = mimeType.substring(mimeType.lastIndexOf('/')).replace('/', '.')
     ext && u.isStr(filename) && (filename += ext)
-    !data && (data = blobSrc || '')
-    return download(data, filename)
+
+    if (viewTag) {
+      const node = findByViewTag(viewTag) as HTMLElement
+      html2canvas(node, {
+        allowTaint: true, //跨域
+        useCORS: true, //跨域
+      }).then((canvas) => {
+        let url = canvas.toDataURL(mimeType)
+        return download(url, filename)
+      })
+    } else {
+      let text = content
+      if (u.isObj(content)) text = JSON.stringify(content)
+
+      let opts: Record<string, any> = {
+        errorCorrectionLevel: 'H',
+        type: 'svg',
+        quality: 0.3,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+        scale: scale,
+      }
+
+      QRCode.toDataURL(text, opts, function (err, url) {
+        if (err) throw err
+        return download(url, filename)
+      })
+    }
   },
   /**
    * Called during "init" when navigating to VideoChat

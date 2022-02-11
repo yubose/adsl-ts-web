@@ -2,9 +2,19 @@ import type { EmitObjectFold, IfObject } from './uncategorizedTypes'
 import type { OrArray } from './_internal/types'
 
 export type RootConfig = {
-  /** Example: albh2.aitmed.io */
+  /**
+   * @example
+   * ```json
+   * { "apiHost": "albh2.aitmed.io" }
+   * ```
+   */
   apiHost: string
-  /** Example: 443 */
+  /**
+   * @example
+   * ```
+   * const apiPort = '443'
+   * ```
+   */
   apiPort: string | number
   /**
    * Can be a variable (example: apiHost which re-uses the value of
@@ -31,9 +41,19 @@ export type RootConfig = {
    * For example, if cadlMain is "cadlEndpoint.yml", the app should pick up
    * "${cadlBaseUrl}/cadlEndpoint.yml" where ${cadlBaseUrl} is a placeholder
    * for the cadlBaseUrl variable
+   * @example
+   * ```js
+   * const cadlMain = 'cadlEndpoint.yml'
+   * ```
    */
   cadlMain: string
-  /** Defaults to "console_log_api" */
+  /**
+   * Defaults to "console_log_api"
+   * @example
+   * ```json
+   * { "debug": "console_log_api" }
+   * ```
+   */
   debug: string
   /** If this is specified the app should transform this to a plugin component */
   bodyTopPplugin?: string
@@ -43,13 +63,36 @@ export type RootConfig = {
   headPlugin?: string
   /**
    * The timestamp the config was last created or modified.
-   * This is used to invalidate the config cache
+   * This is used to invalidate the config cache.
+   * @example
+   * ```json
+   * { "timestamp": "092142419232" }
+   * ```
    */
   timestamp: number
+  /**
+   * @example
+   * ```json
+   * {
+   *   "web": {
+   *      "cadlVersion": {
+   *        "test": "0.7d",
+   *        "stable": "0.7d"
+   *     }
+   *   }
+   * }
+   * ```
+   */
   web: RootConfigDeviceVersionObject
   ios: RootConfigDeviceVersionObject
   android: RootConfigDeviceVersionObject
   keywords: string[]
+  /**
+   * @example
+   * ```json
+   * { "viewWidthHeightRatio": { "min": "7", "max": "8" } }
+   * ```
+   */
   viewWidthHeightRatio?: {
     min: number
     max: number
@@ -57,19 +100,58 @@ export type RootConfig = {
 } & Record<DeviceType, RootConfigDeviceVersionObject> & { [key: string]: any }
 
 export interface AppConfig {
+  /**
+   * @example
+   * ```js
+   * const assetsUrl = `${baseUrl}assets
+   * ```
+   */
   assetsUrl: string
   /** The equivalent of "cadlBaseUrl" from the root config */
   baseUrl: string
+  /**
+   * @example
+   * ```json
+   * {
+   *   "languageSuffix": {
+   *      "en": "en-US",
+   *      "es": "en-ES"
+   *   }
+   * }
+   * ```
+   */
   languageSuffix: { [lang: string]: string }
+  /**
+   * @example
+   * ```js
+   * const fileSuffix = '.yml'
+   * ```
+   */
   fileSuffix: string
   /**
    * The default page for user sessions where they haven't visited any pages
    * Also the default page for unauthorized users
+   * @example
+   * ```json
+   * { "startPage": "SignIn.yml" }
+   * ```
    */
   startPage: string
-  /** Pages to be loaded before loading other pages */
+  /**
+   * Pages to be loaded before loading other pages
+   * @example
+   * ```js
+   * const preload = ['BaseCSS', 'BaseDataModel', 'BasePage']
+   * ```
+   */
   preload: string[]
-  /** Pages to be loaded and treated as routes in the runtime */
+  /**
+   * Pages to be loaded and treated as routes in the runtime
+   * @example
+   * ```js
+   * const page = ['PatientDashboard', 'SignIn', 'SignUp', 'CreateNewAccount']
+   * ```
+   */
   page: string[]
   [key: string]: any
 }
@@ -81,11 +163,39 @@ export interface RootConfigDeviceVersionObject {
   }
 }
 
+/**
+ * Objects that become builtIn functions during runtime.
+ *
+ * Built in eval objects are implemented in the application, making
+ * it an app level implementation
+ *
+ * @example
+ * ```json
+ * {
+ *   "=.builtIn.string.concat": [
+ *      "+1",
+ *      " ",
+ *      "8882468442"
+ *   ]
+ * }
+ * ```
+ * becomes:
+ * ```js
+ * const myBuiltIn = function(...strings) {
+ *   return strings.reduce((acc, str) => acc.concat(str))
+ * }
+ * ```
+ */
 export type BuiltInEvalObject<S extends string = string> = Record<
   ReferenceString<`builtIn${S}`, '=.'>,
   Partial<Record<'dataIn' | 'dataOut', OrArray<DataIn | DataOut>>> | string
 >
 
+/**
+ * Strings that represent data that may mutate a value depending on if it is referencing a path.
+ * If the eval reference is an object then it is transformed into a function instead.
+ *  - This function mutates the value at the referenced path (if any).
+ */
 export type BuiltInEvalReference<S extends string> = ReferenceString<
   `builtIn${S}`,
   '=.'
@@ -195,6 +305,16 @@ export type VideoMediaType = 9
 
 export type ReferenceSymbol = '.' | '..' | '=' | '~/' | '@'
 
+/**
+ * Strings that behave like placeholders which in addition mutates the value at referenced path when updates occur.
+ * They are prefixed with "=" followed by a reference symbol such as ".", "..", "~", etc.
+ *
+ * @example
+ * ```js
+ * const pageObject = { SignIn: { formData: { email: 'pfft@gmail.com' } } }
+ * const refString = '.SignIn.formData.email' // Value should result to "pfft@gmail.com" when parsed
+ * ```
+ */
 export type ReferenceString<
   K extends string = string,
   S extends ReferenceSymbol | '=.' | '=..' = ReferenceSymbol | '=.' | '=..',

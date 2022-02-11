@@ -1,4 +1,4 @@
-import Viewport from '../Viewport'
+import type Viewport from '../Viewport'
 
 function isViewport(value: any): value is Viewport {
   if (

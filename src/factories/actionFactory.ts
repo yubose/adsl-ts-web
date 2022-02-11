@@ -66,7 +66,6 @@ const actionFactory = function (app: App) {
    */
   async function runMiddleware(args: ActionHandlerArgs) {
     args = u.array(args)
-    console.log(`%cRUN MIDDLEWARE ARGS`, `color:#c4a901;`, args)
     await Promise.all(middlewares.map(async (mo) => mo.fn?.(args)))
     return args
   }

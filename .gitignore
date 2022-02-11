@@ -4,5 +4,7 @@ generated
 node_modules
 server
 noodl.yml
+./docs
 .env
-.gitignore
+public/admin
+public/aitmed

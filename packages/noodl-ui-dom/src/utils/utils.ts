@@ -1,25 +1,17 @@
-import { OrArray } from '@jsmanifest/typefest'
-import {
+import type { OrArray } from '@jsmanifest/typefest'
+import type {
   DataAttribute,
-  findParent,
-  isComponent,
   NuiComponent,
   NuiComponentType,
-  pullFromComponent,
   SelectOption,
 } from 'noodl-ui'
+import { findParent, isComponent, pullFromComponent } from 'noodl-ui'
+import type { LiteralUnion } from 'type-fest'
 import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
-import { LiteralUnion } from 'type-fest'
 import findElement from './findElement'
 import { dataAttributes } from '../constants'
 import * as t from '../types'
-
-export function addClassName(className: string, node: HTMLElement) {
-  if (!node.classList.contains(className)) {
-    node.classList.add(className)
-  }
-}
 
 /**
  * Normalizes the queried nodes to an HTMLElement or an array of HTMLElement
@@ -66,6 +58,7 @@ export function getElementTag(
 }
 
 getElementTag.prototype.elementMap = {
+  span: 'span',
   br: 'br',
   button: 'button',
   canvas: 'canvas',

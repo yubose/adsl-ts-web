@@ -1,3 +1,4 @@
+import * as nt from 'noodl-types'
 import {
   PluginBodyTailComponentObject,
   PluginComponentObject,
@@ -12,7 +13,7 @@ const createPlugins = function _createPluginHandlers(app: App) {
     | PluginBodyTailComponentObject
   )[]
 
-  const config = app.noodl.getConfig()
+  const config = app.noodl.config as nt.RootConfig
 
   config.headPlugin &&
     plugins.push({ type: 'pluginHead', path: config.headPlugin })

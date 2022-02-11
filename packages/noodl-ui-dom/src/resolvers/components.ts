@@ -1,25 +1,25 @@
 import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
 import { createEmitDataKey } from 'noodl-utils'
-import SignaturePad from 'signature_pad'
+import { Identify } from 'noodl-types'
+import { formatColor, isComponent, publish } from 'noodl-ui'
 import has from 'lodash/has'
-import { ComponentObject, Identify } from 'noodl-types'
-import {
-  formatColor,
-  isComponent,
-  NuiComponent,
-  SelectOption,
-  Plugin,
-  NUIActionChain,
+import type SignaturePad from 'signature_pad'
+import type { ComponentObject } from 'noodl-types'
+import type {
   EmitAction,
+  NUIActionChain,
+  NuiComponent,
+  Plugin,
+  SelectOption,
 } from 'noodl-ui'
 import { findFirstByElementId, toSelectOption } from '../utils'
-import { ComponentPage } from '../factory/componentFactory'
 import createEcosDocElement from '../utils/createEcosDocElement'
 import applyStyles from '../utils/applyStyles'
 import copyStyles from '../utils/copyStyles'
-import NDOM from '../noodl-ui-dom'
-import NDOMPage from '../Page'
+import type NDOM from '../noodl-ui-dom'
+import type NDOMPage from '../Page'
+import type { ComponentPage } from '../factory/componentFactory'
 import * as t from '../types'
 import * as i from '../utils/internal'
 import * as c from '../constants'
@@ -28,14 +28,6 @@ const componentsResolver: t.Resolve.Config = {
   name: `[noodl-ui-dom] components`,
   async before(args) {
     try {
-      // Prevents continuous clicks
-      ;(args.node as HTMLElement).addEventListener('click', () => {
-        ;(args.node as HTMLElement).style.pointerEvents = 'none'
-        setTimeout(() => {
-          ;(args.node as HTMLElement).style.pointerEvents = ''
-        }, 400)
-      })
-
       if (
         Identify.component.page(args.component) &&
         args.component.get('page')
@@ -388,38 +380,44 @@ const componentsResolver: t.Resolve.Config = {
           // load promise return to image
           if (args.component.blueprint?.['path=func']) {
             // ;(node as HTMLImageElement).src = '../waiting.png'
-            setAttr('src', args.component?.get?.(c.DATA_SRC))
             args.component
               ?.get?.(c.DATA_VALUE)
-              .then?.((path: any) => {
-                if (path || path?.url) {
+              ?.then?.((path: any) => {
+                if (!path) {
+                  console.log(
+                    `%cReceived an empty value from "path=func"! An empty string will be set as the image's "src" attribute`,
+                    `color:#ec0000;`,
+                    args.component,
+                  )
+                }
 
-                  if(path?.type && path.type == 'application/pdf'){
+                if (path && path?.url) {
+                  if (path?.type && path.type == 'application/pdf') {
                     //pdf preview
                     let key
                     let iframe = document.createElement('iframe')
                     iframe.src = `${path.url}#toolbar=0&navpanes=0&scrollbar=0`
                     iframe.style.border = 'none'
-                    for(let i=0;i<args.node.style.length;i++){
+                    for (let i = 0; i < args.node.style.length; i++) {
                       key = args.node.style[i]
                       iframe.style[key] = args.node.style[key]
                     }
                     let parent = args.node.parentNode
                     parent?.appendChild(iframe)
                     parent?.removeChild(args.node)
-                    
-                  }else{
-                    path = path?.url? path.url: path
+                  } else {
                     console.log('load path', path)
-                    setAttr('src', path)
+                    setAttr('src', path?.url)
                   }
                 } else {
-                  setAttr('src', args.component?.get?.(c.DATA_SRC))
+                  if (!args.component?.get?.(c.DATA_SRC)) return
+                  setAttr('src', args.component?.get?.(c.DATA_SRC) || '')
                 }
               })
               .catch((error: any) => {
                 console.log(error)
-                setAttr('src', args.component?.get?.(c.DATA_SRC))
+                if (!args.component?.get?.(c.DATA_SRC)) return
+                setAttr('src', args.component?.get?.(c.DATA_SRC) || '')
               })
           }
         }
@@ -653,7 +651,15 @@ const componentsResolver: t.Resolve.Config = {
                     }
 
                     if (componentPage?.component) {
-                      const descendentIds = i._getDescendantIds(
+                      const getDescendantIds = (
+                        component: NuiComponent.Instance,
+                      ): string[] => {
+                        const ids = [] as string[]
+                        publish(component, (child) => ids.push(child.id))
+                        return ids
+                      }
+
+                      const descendentIds = getDescendantIds(
                         componentPage.component,
                       )
                       for (const id of descendentIds) {
@@ -770,7 +776,9 @@ const componentsResolver: t.Resolve.Config = {
               optionNode.id = option.key
               optionNode.value = option.value
               optionNode.textContent = option.label
-              if (option?.value === args.component.props[c.DATA_VALUE]) {
+              if (
+                option?.value === args.component.props[c.DATA_VALUE]?.toString()
+              ) {
                 // Default to the selected index if the user already has a state set before
                 _node.selectedIndex = index
                 _node.dataset.value = option.value
@@ -917,22 +925,32 @@ const componentsResolver: t.Resolve.Config = {
           let sourceEl: HTMLSourceElement
           let notSupportedEl: HTMLParagraphElement
           videoEl.controls = Identify.isBooleanTrue(controls)
-          if (poster)
-            videoEl.setAttribute('poster', args.component.get('poster'))
-          if (args.component.blueprint?.['path']) {
-            args.component.on('path', (res) => {
-              sourceEl = document.createElement('source')
-              notSupportedEl = document.createElement('p')
-              if (videoType) sourceEl.setAttribute('type', videoType)
-              sourceEl.setAttribute('src', res)
-              notSupportedEl.style.textAlign = 'center'
-              // This text will not appear unless the browser isn't able to play the video
-              notSupportedEl.innerHTML =
-                "Sorry, your browser doesn's support embedded videos."
-              videoEl.appendChild(sourceEl)
-              videoEl.appendChild(notSupportedEl)
-            })
-          }
+
+          const attrs = ['poster', ['src', 'path']]
+
+          attrs.forEach((attr) => {
+            if (u.isArr(attr)) {
+              const [attrib, key] = attr
+              const value = args.component.props[key]
+              !u.isNil(value) && setAttr(attrib, value)
+
+              if (attrib === 'src') {
+                sourceEl = document.createElement('source')
+                notSupportedEl = document.createElement('p')
+                if (videoType) sourceEl.setAttribute('type', videoType)
+                sourceEl.setAttribute('src', value)
+                notSupportedEl.style.textAlign = 'center'
+                // This text will not appear unless the browser isn't able to play the video
+                notSupportedEl.innerHTML =
+                  "Sorry, your browser doesn's support embedded videos."
+                videoEl.appendChild(sourceEl)
+                videoEl.appendChild(notSupportedEl)
+              }
+            } else {
+              const value = args.component.props[attr]
+              !u.isNil(value) && setAttr(attr, value)
+            }
+          })
 
           videoEl.style.objectFit = 'contain'
         }

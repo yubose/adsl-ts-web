@@ -1,9 +1,10 @@
 import { CADL as NOODL } from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
+import { Client as SearchClient } from 'elasticsearch-browser'
 
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'meetd2'
+export const CONFIG_KEY = 'patd3'
 // const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
@@ -47,6 +48,7 @@ export function resetInstance() {
     configUrl: CONFIG_URL,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
     dbConfig: undefined,
+    SearchClient,
   })
   return noodl
 }

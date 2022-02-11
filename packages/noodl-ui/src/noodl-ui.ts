@@ -3,7 +3,6 @@ import * as nt from 'noodl-types'
 import unary from 'lodash/unary'
 import type { ActionChainObserver } from 'noodl-action-chain'
 import type { OrArray } from '@jsmanifest/typefest'
-import invariant from 'invariant'
 import merge from 'lodash/merge'
 import get from 'lodash/get'
 import set from 'lodash/set'
@@ -27,7 +26,6 @@ import isViewport from './utils/isViewport'
 import NuiPage from './Page'
 import Transformer from './Transformer'
 import VP from './Viewport'
-import { promiseAllSafely } from './utils/common'
 import {
   findIteratorVar,
   findListDataObject,
@@ -38,7 +36,6 @@ import {
 import { groupedActionTypes, nuiEmitType } from './constants'
 import isNuiPage from './utils/isPage'
 import cache from './_cache'
-import * as c from './constants'
 import * as t from './types'
 
 const NUI = (function () {
@@ -199,7 +196,7 @@ const NUI = (function () {
               { iteratorVar },
             )
           }
-          emitAction.executor = async () => {
+          emitAction.executor = async function () {
             const callbacks = (o.cache.actions.emit.get('path') || []).reduce(
               (acc, obj) =>
                 obj?.trigger === 'path' ? acc.concat(obj as any) : acc,
@@ -222,7 +219,7 @@ const NUI = (function () {
             return (u.isArr(result) ? result[0] : result) || ''
           }
           // Result returned should be a string type
-          let result = (await emitAction.execute(args)) as
+          let result = (await emitAction.execute.call(emitAction, args)) as
             | string
             | Promise<string>
 
@@ -603,6 +600,10 @@ const NUI = (function () {
                 `color:#ec0000;`,
                 c,
               )
+              key === 'data-value' &&
+                (nt.Identify.rootReference(value) ||
+                  nt.Identify.localReference(value)) &&
+                c.edit({ [key]: '' })
             }
           }
         }
@@ -696,10 +697,11 @@ const NUI = (function () {
             }
           }
         } else if (u.isObj(options)) {
-          u.eachEntries(options, (key, val) => {
+          u.entries(options).forEach(([key, val]) => {
             if (register) {
               if (key === 'handler') {
                 register.handler = { ...register.handler, ...options.handler }
+                // @ts-expect-error
               } else register[key] = val
             }
           })
@@ -943,23 +945,30 @@ const NUI = (function () {
             options: t.ConsumerOptions,
           ) {
             return async function executeActionChain(event?: Event) {
-              let results = [] as (Error | any)[]
               if (fns.length) {
-                const callbacks = fns.map(
-                  async (obj: t.Store.ActionObject | t.Store.BuiltInObject) =>
-                    obj.fn?.(action as any, {
-                      ...options,
-                      component: opts?.component,
-                      event,
-                      ref: actionChain,
-                    }),
-                )
-                results = await promiseAllSafely(
-                  callbacks,
-                  (err, result) => err || result,
-                )
+                const results = [
+                  ...(
+                    await Promise.allSettled(
+                      fns.map(
+                        async (
+                          obj: t.Store.ActionObject | t.Store.BuiltInObject,
+                        ) => {
+                          const result = await obj.fn?.(action as any, {
+                            ...options,
+                            component: opts?.component,
+                            event,
+                            ref: actionChain,
+                          })
+                          return result
+                        },
+                      ),
+                    )
+                  ).values(),
+                ]
+                return results.length < 2
+                  ? results[0]?.['value']
+                  : [...results?.values()]
               }
-              return results.length < 2 ? results[0] : results
             }
           }
 
@@ -1205,10 +1214,11 @@ const NUI = (function () {
       for (const actionType of groupedActionTypes) {
         if (actionType in args) {
           u.forEach((fn) => {
-            invariant(
-              u.isFnc(fn),
-              `fn is required for handling actionType "${actionType}"`,
-            )
+            if (!u.isFnc(fn)) {
+              throw new Error(
+                `fn is required for handling actionType "${actionType}"`,
+              )
+            }
             cache.actions[actionType]?.push({ actionType, fn })
           }, u.array(args[actionType]))
         }
@@ -1217,7 +1227,9 @@ const NUI = (function () {
       if ('builtIn' in args) {
         u.forEach(([funcName, fn]: [string, t.Store.BuiltInObject['fn']]) => {
           u.forEach((f) => {
-            invariant(!!funcName, `"Missing funcName in a builtIn handler`)
+            if (!funcName) {
+              throw new Error(`Missing funcName in a builtIn handler`)
+            }
             if (!cache.actions.builtIn.has(funcName)) {
               cache.actions.builtIn.set(funcName, [])
             }
@@ -1288,14 +1300,18 @@ const NUI = (function () {
         ) {
           u.forEach(unary(o._experimental.register), u.array(args.register))
         } else {
-          u.eachEntries(args.register, (event, fn: t.Register.Object['fn']) => {
-            u.isFnc(fn) && o._experimental.register(event, fn)
-          })
+          // @ts-expect-error
+          u.entries(args.register).forEach(
+            ([event, fn]: [event: string, fn: t.Register.Object['fn']]) => {
+              u.isFnc(fn) && o._experimental.register(event, fn)
+            },
+          )
         }
       }
 
       if ('transaction' in args) {
-        u.eachEntries(args.transaction, (tid, fn) => {
+        // @ts-expect-error
+        u.entries(args.transaction).forEach(([tid, fn]) => {
           const opts = {} as any
           u.isFnc(fn) ? (opts.fn = fn) : u.isObj(fn) && u.assign(opts, fn)
           cache.transactions.set(tid as t.TransactionId, opts)

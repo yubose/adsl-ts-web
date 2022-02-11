@@ -21,7 +21,6 @@ import {
   findFirstByElementId,
   findFirstBySelector,
   findFirstByViewTag,
-  getFirstByElementId,
 } from '../utils'
 import { cache } from '../nui'
 import ComponentPage from '../factory/componentFactory/ComponentPage'
@@ -340,7 +339,7 @@ describe(nc.coolGold('components'), () => {
       await render()
       await waitFor(() => {
         expect(
-          getFirstByElementId('page123') as HTMLIFrameElement,
+          findFirstByElementId('page123') as HTMLIFrameElement,
         ).to.be.instanceOf(HTMLIFrameElement)
       })
     })
@@ -349,11 +348,11 @@ describe(nc.coolGold('components'), () => {
       const { render } = createRender()
       await render()
       await waitFor(() => {
-        const pageElem = getFirstByElementId('page123') as HTMLIFrameElement
+        const pageElem = findFirstByElementId('page123') as HTMLIFrameElement
         const pageElemBody = pageElem?.contentDocument?.body
         expect(pageElemBody).to.exist
         expect(pageElemBody?.childElementCount).to.be.greaterThan(0)
-        expect(getFirstByElementId('donutInput')).to.exist
+        expect(findFirstByElementId('donutInput')).to.exist
       })
     })
 
@@ -425,7 +424,7 @@ describe(nc.coolGold('components'), () => {
         await render()
         await waitForPageChildren()
         expect(getPageElemBody().children[0].children[0]).to.eq(
-          getFirstByElementId('donutInput'),
+          findFirstByElementId('donutInput'),
         )
         const component = cache.component.get('page123').component
         const ndomPage = ndom.findPage(component.get('page') as NuiPage)
@@ -451,7 +450,7 @@ describe(nc.coolGold('components'), () => {
       let _ids = [] as number[]
 
       const getPageElem = () =>
-        getFirstByElementId('page123') as HTMLIFrameElement
+        findFirstByElementId('page123') as HTMLIFrameElement
 
       const getRoot = (currentRoot?: Record<string, any>) => ({
         Tiger: {
@@ -570,7 +569,7 @@ describe(nc.coolGold('components'), () => {
 
           await waitFor(() => {
             expect(
-              getFirstByElementId(pageComponent).contentDocument.body.children,
+              findFirstByElementId(pageComponent).contentDocument.body.children,
             )
               .to.have.property('length')
               .greaterThan(0)
@@ -710,7 +709,9 @@ describe(nc.coolGold('components'), () => {
       const view = await render()
       const pageComponent = view.child()
       await waitFor(() => {
-        const pageNode = getFirstByElementId(pageComponent) as HTMLIFrameElement
+        const pageNode = findFirstByElementId(
+          pageComponent,
+        ) as HTMLIFrameElement
         const pageBody = pageNode?.contentDocument?.body
         expect(pageBody).to.exist
         expect(pageBody?.childElementCount).to.eq(
@@ -782,7 +783,7 @@ describe(nc.coolGold('components'), () => {
         },
       })
       const textField = await render()
-      const input = getFirstByElementId(textField)
+      const input = findFirstByElementId(textField)
       expect(input.dataset).to.have.property('value', 'pw123')
       expect(input).to.have.property('value', 'pw123')
     })
@@ -799,7 +800,7 @@ describe(nc.coolGold('components'), () => {
         }),
       })
       const component = await render()
-      const node = getFirstByElementId(component)
+      const node = findFirstByElementId(component)
       const select = document.getElementById(node.id)
       await waitFor(() => {
         expect(select.childNodes.length).to.equal(3)
@@ -867,10 +868,30 @@ describe(nc.coolGold('components'), () => {
         },
       })
       const component = await render()
-      const node = getFirstByElementId(component)
+      const node = findFirstByElementId(component)
       const ulList = node.getElementsByTagName('ul')
       await waitFor(() => {
         expect(ulList.length).to.eq(4)
+      })
+    })
+  })
+
+  describe(`video`, () => {
+    it(`should set the poster (cover image)`, async () => {
+      const { assetsUrl, render } = _createRender(
+        ui.video({ poster: 'abc.png' }),
+      )
+      const el = findFirstByElementId(await render()) as HTMLVideoElement
+      expect(el).to.have.property('poster', `${assetsUrl}abc.png`)
+    })
+
+    it(`should set the src`, async () => {
+      const { assetsUrl, render } = _createRender(
+        ui.video({ path: 'twenty.jpeg' }),
+      )
+      const el = findFirstByElementId(await render()) as HTMLVideoElement
+      await waitFor(() => {
+        expect(el).to.have.property('src', `${assetsUrl}twenty.jpeg`)
       })
     })
   })

@@ -15,6 +15,7 @@ import {
   getUpdateObjectAction,
 } from './helpers'
 import createAction from '../utils/createAction'
+import isAction from '../utils/isAction'
 
 export const coolGold = (...s: any[]) => chalk.keyword('navajowhite')(...s)
 export const italic = (...s: any[]) => chalk.italic(chalk.white(...s))
@@ -53,9 +54,13 @@ describe(coolGold(`ActionChain`), () => {
         })
         ac.loadQueue()
         let result = await ac.next()
-        expect(result).to.have.property('value').to.be.instanceOf(Action)
+        expect(result)
+          .to.have.property('value')
+          .to.satisfy(() => isAction(result.value))
         result = await ac.next()
-        expect(result).to.have.property('value').to.be.instanceOf(Action)
+        expect(result)
+          .to.have.property('value')
+          .to.satisfy(() => isAction(result.value))
       })
 
       it(`should never return the same action in subsequent iterations`, async () => {
@@ -96,7 +101,7 @@ describe(coolGold(`ActionChain`), () => {
           const results = await ac.execute()
           expect(results).to.be.an('array').with.lengthOf(2)
           results.forEach((res) => {
-            expect(res).to.have.property('action').to.be.instanceOf(Action)
+            expect(isAction(res.action)).to.be.true
             expect(res).to.have.property('result')
           })
         })
@@ -110,7 +115,7 @@ describe(coolGold(`ActionChain`), () => {
         actions: [getBuiltInAction(), getEvalObjectAction()],
         trigger: 'onMouseOver',
       })
-      ac.queue.forEach((a) => expect(a).to.be.instanceOf(Action))
+      ac.queue.forEach((a) => expect(isAction(a)).to.be.true)
     })
   })
 
@@ -147,11 +152,11 @@ describe(coolGold(`ActionChain`), () => {
       })
       expect(ac.current).to.be.null
       let result = await ac.next()
-      expect(ac.current).to.be.instanceOf(Action)
+      expect(isAction(ac.current)).to.be.true
       expect(ac.current).to.have.property('actionType', 'builtIn')
       expect(ac.current).to.eq(result.value)
       result = await ac.next()
-      expect(ac.current).to.be.instanceOf(Action)
+      expect(isAction(ac.current)).to.be.true
       expect(ac.current).to.have.property('actionType', 'evalObject')
       expect(ac.current).to.eq(result.value)
     })
@@ -163,7 +168,7 @@ describe(coolGold(`ActionChain`), () => {
           trigger: 'onChange',
         })
         const action = ac.inject(new Action(ac.trigger, getPopUpAction()))
-        expect(action).to.be.instanceOf(Action)
+        expect(isAction(action)).to.be.true
       })
 
       it(`should add the new action in the beginning of the queue`, () => {

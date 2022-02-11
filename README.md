@@ -9,7 +9,7 @@
 
 ## Correct link to GitLab
 
-- https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/
+- <https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/>
 
 ## Globals
 
@@ -103,26 +103,31 @@ NUI.emit({
 
 ## Accounts
 
-| app     | phone #    | password    | who  | Notes            |
-| ------- | ---------- | ----------- | ---- | ---------------- |
-| admin   | 8882005050 | password    |      |
-| admin   | 7144480995 | Baby2020!   |      |
-| admin   | 5594215342 | Family3496  | toni |                  |
-| admin   | 8884210047 | aitmed      | toni |                  |
-| admind2 | 8880000301 |             |      |
-| admind2 | 8885509773 | 123         |      |
-| admind2 | 8886006001 | password    |      |
-| admind2 | 8886006002 | password    |      |
-| admind2 | 2134628002 | letmein123! |      |
-| admind2 | 8883870054 | aitmed      | liz  | Josh Urgent Care |
-| admind2 | 8886540007 | 123         |      | yongjian         |
-| patd    | 8880081221 | letmein123! |      |
-| patd    | 8884240000 | 12345       |      |
-| patd2   | 8881122050 | 123         |      |
-| prod    | 8885550010 | password    |      |
-| meet4d  | 8882465555 | 142251      |      |
-| meet4d  | 8882468491 | 142251      |      |
-| meet4d  | 8882461234 | 142251      |      |
+| app     | phone #    | password    | who    | Notes            |
+| ------- | ---------- | ----------- | ------ | ---------------- |
+| admin   | 8882005050 | password    |        |
+| admin   | 7144480995 | Baby2020!   |        |
+| admin   | 5594215342 | Family3496  | toni   |                  |
+| admin   | 8884210047 | aitmed      | toni   |                  |
+| admind2 | 8880000301 |             |        |
+| admind2 | 8885509773 | 123         |        |
+| admind2 | 8886006001 | password    |        |
+| admind2 | 8886006002 | password    |        |
+| admind2 | 2134628002 | letmein123! |        |
+| admind2 | 8883870054 | aitmed      | liz    | Josh Urgent Care |
+| admind2 | 8886540007 | 123         |        | yongjian         |
+| admind2 | 8884565043 | 123         |        | chenchen         |
+| admind2 | 8882320918 | 888666      |        | yuhan            |
+| admind2 | 8882324378 | 888666      |        | austin           |
+| patd    | 8880081221 | letmein123! |        |
+| patd    | 8884240000 | 12345       |        |
+| patd2   | 8881122050 | 123         |        |
+| patd3   | 8884565432 | 123         | jiahao |
+| prod    | 8885550010 | password    |        |
+| prod    | 8884210053 | aitmed      | toni   |
+| meet4d  | 8882465555 | 142251      |        |
+| meet4d  | 8882468491 | 142251      |        |
+| meet4d  | 8882461234 | 142251      |        |
 
 ## Ecos types
 
@@ -218,3 +223,65 @@ let overallHeight = 3033
     - record the current child's index
     - restart (recursion) the call and:
       - make the start of the index the recorded index from the current child
+
+## Debug tips
+
+### Local gRPC server
+
+- To reproduce `JWT_EXPIRED` error:
+  1. Call `ce` using type `10` (clears cache then triggers jwt expired in server)
+
+## error code 4 --> delay by 1+ seconds --> retry again
+
+## 11/24/21
+
+- Fixed error when populating strings and locations is null or undefined
+- Debugging `replaceEvalObject` async in forEach
+  - Used in initPage + runInit
+  - Switch forEach loop with a better looping method
+- Debugging `replaceIfObject` async in forEach
+  - Used in initPage + runInit
+  - Switch forEach loop with a better looping method
+
+pushed @aitmed/cadl 1.0.450:
+
+- the entire sdk is now sandboxed, we can start digging deeper into all the functions and behavior and understand/fix them in a very very very low level
+- written unit tests on `populateKeys` --> this function is good and stable (also the most important in the sdk)
+- fixed error when populating strings and locations is invalid
+- fixed `replaceEvalObject` (unit tests exposed a hidden flaw in this func) async loop to use a better/accurate async way
+  - this mainly used in `init` and `initPage`
+  - this might have fixed some important random behavior on an `evalObject` _during init_ when a `goto` is called _while init is still running_
+- unit tests on `populateString`
+  - revealed 2 flaws on this function. this function is not doing what we expect so working on refactoring
+- unit tests on `populateVars`
+  - somewhat stable, but can be improved by implementing recursion on it
+- unit tests on `lookUp` (needs to expand to support local root)
+- unit tests on `replaceVars` (stable)
+
+deployed:
+
+- updated @aitmed/cadl sdk
+
+## 11/24/21 backwards compatible subtype switching
+
+if subtype is 0, we should automatically copy to type
+
+if document subtype is 0, set it to -1 (backend will see this and set it to 0)
+when we do cd and send api to backend, by this time all our bit is 0 (everything is 0). if so set these to -1
+
+## 11/30/21
+
+- Fixed a hidden issue in sdk where a doc is erased when merging a list of docs
+- Fixed empty configUrl after logging out
+
+## onChange call flow
+
+1. should go through the handler created on `.addEventListener` from `noodl-ui-dom` first to update any data values accordingly
+2. should then go to the handler created on `noodl-ui`
+3. should call the `onChange` noodl function inside this call
+4. should then end up back to the caller from `noodl-ui`
+
+## 12/06/21
+
+- Fixed evalObject firing twice (API change for DOM addEventListener)
+- Fixed error for accessing reference strings for styles

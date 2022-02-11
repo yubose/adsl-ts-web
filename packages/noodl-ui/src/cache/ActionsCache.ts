@@ -1,7 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import type { LiteralUnion } from 'type-fest'
 import type { ICache, NUIActionType, NUITrigger, Store } from '../types'
-import { inspect } from '../utils/internal'
 import {
   actionTypes as allActionTypes,
   groupedActionTypes,
@@ -69,7 +68,7 @@ class ActionsCache<ETrigger extends string = string> implements ICache {
     }
   }
 
-  [inspect]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       ...this,
       length: this.length,

@@ -452,7 +452,7 @@ describe(u.italic(`getBuiltIns`), () => {
     }
     NUI.use({ builtIn })
     const builtIns = NUI.getBuiltIns()
-    u.eachEntries(builtIn, (funcName, fn) => {
+    u.entries(builtIn).forEach(([funcName, fn]) => {
       expect(builtIns.has(funcName)).to.be.true
       expect(builtIns.get(funcName)).to.satisfy((arr: any) =>
         arr.some((obj: any) => obj.fn === fn),
