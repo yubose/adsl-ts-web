@@ -113,6 +113,8 @@ export function flatten({
           flattener.add(flattener.toFlat(currEl))
           // Reminder: Single element is bigger than page height here
           accHeight = nextAccHeight
+          offsetStart = accHeight
+          offsetEnd = accHeight + pageHeight
         }
       } else {
         flattener.add(flattener.toFlat(currEl))
