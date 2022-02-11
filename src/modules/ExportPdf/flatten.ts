@@ -54,12 +54,12 @@ export const createFlattener = (baseEl: Element | HTMLElement) => {
         textContent: textStart + textEnd,
       }
 
-      // if (isElement(el)) {
-      //   el.scrollIntoView()
-      //   el.style.border = '1px solid red'
-      //   debugger
-      //   el.style.border = ''
-      // }
+      if (isElement(el)) {
+        el.scrollIntoView()
+        el.style.border = '1px solid red'
+        debugger
+        el.style.border = ''
+      }
 
       return flattenedObject
     },
@@ -84,11 +84,15 @@ export function flatten({
       const currHeight = offsetStart + elHeight
 
       if (currHeight > offsetEnd) {
+        debugger
         if (currEl.children.length) {
+          debugger
           if (elHeight < pageHeight) {
+            debugger
             flattener.add(flattener.toFlat(currEl))
             accHeight = currHeight
           } else {
+            debugger
             // One of the children is exceeding the offsetEnd
             // Sent that children along with its next siblings to be flattened
             // debugger
@@ -103,18 +107,19 @@ export function flatten({
             })
           }
         } else {
+          debugger
           // Reminder: Single element is bigger than page height here
           // So they are being flattened
           flattener.add(flattener.toFlat(currEl))
           accHeight = currHeight
           offsetStart = accHeight
-          offsetEnd = offsetEnd + pageHeight - elHeight
+          offsetEnd += pageHeight - elHeight
         }
       } else {
+        debugger
         flattener.add(flattener.toFlat(currEl))
         accHeight += elHeight
         offsetStart = accHeight
-        offsetEnd = offsetStart + pageHeight
       }
 
       currEl = currEl.nextSibling as HTMLElement

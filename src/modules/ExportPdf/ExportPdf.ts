@@ -2,7 +2,6 @@
  * Exports a DOM tree to PDF document pages
  */
 import * as u from '@jsmanifest/utils'
-import { Viewport as VP } from 'noodl-ui'
 import jsPDF from 'jspdf'
 import isElement from '../../utils/isElement'
 import flatten from './flatten'
@@ -59,6 +58,7 @@ export const ExportPdf = (function () {
       commonHtml2CanvasOptions.height = pageHeight
       commonHtml2CanvasOptions.windowWidth = pageWidth
       commonHtml2CanvasOptions.windowHeight = pageHeight
+      // commonHtml2CanvasOptions.x = -100
     }
 
     try {
@@ -73,10 +73,6 @@ export const ExportPdf = (function () {
       }
 
       try {
-        const w = el.getBoundingClientRect().width
-        const h = el.getBoundingClientRect().height
-        const ratio = VP.getAspectRatio(w, h)
-
         flattener = flatten({ baseEl: el, pageHeight })
 
         doc = await generatePages({

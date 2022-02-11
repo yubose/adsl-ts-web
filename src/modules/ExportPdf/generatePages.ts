@@ -1,8 +1,8 @@
 import type { Options as Html2CanvasOptions } from 'html2canvas'
 import type jsPDF from 'jspdf'
 import { Viewport as VP } from 'noodl-ui'
-import type { Orientation } from './exportPdfTypes'
-import type { flatten, FlattenObject } from './flatten'
+import type { FlatObject, Orientation, SizeObject } from './exportPdfTypes'
+import type { flatten } from './flatten'
 import generateCanvas from './generateCanvas'
 
 export interface GeneratePagesOptions {
@@ -24,41 +24,59 @@ export interface GeneratePagesOptions {
       elements: HTMLElement[]
     }) => HTMLElement | undefined | null
   }
+  use?: {
+    addImage?: (
+      args: SizeObject & {
+        ratio: number
+        pageWidth: number
+        pageHeight: number
+        currFlat?: FlatObject
+      },
+    ) => { width: number; height: number }
+    clonedContainer?: (args: {
+      htmlDocument: Document
+      el: Element | HTMLElement
+      elements: HTMLElement[]
+    }) => HTMLElement
+  }
 }
 
 async function generatePages({
   pdf,
   el,
   flattener,
+  generateCanvasOptions,
   orientation = 'portrait',
   pageWidth,
   pageHeight,
-  generateCanvasOptions,
+  use,
 }: GeneratePagesOptions) {
   try {
     const w = el.getBoundingClientRect().width
     const h = el.getBoundingClientRect().height
     const ratio = VP.getAspectRatio(w, h)
 
-    pageHeight = el.getBoundingClientRect().width / ratio
+    pageHeight = w / ratio
 
-    let currFlat: FlattenObject | undefined
+    let currFlat: FlatObject | undefined
     let currPageHeight = 0
-    let nextPageHeight = 0
-    let pending = [] as FlattenObject[]
     let flattened = [...flattener.get()]
+    let nextPageHeight = 0
+    let pending = [] as FlatObject[]
 
     // flattenedElements.length === incoming pending elements
     // pending.length === elements already pending
 
     while (flattened.length || pending.length) {
-      currFlat = flattened.shift()
-      nextPageHeight = (currFlat?.height || 0) + currPageHeight
-
+      const currFlatObjectHeight = currFlat?.height || 0
       const isLeftOver = !!(!flattened.length && pending.length)
+
+      currFlat = flattened.shift()
+      nextPageHeight = currFlatObjectHeight + currPageHeight
 
       if (nextPageHeight > pageHeight || isLeftOver) {
         const imageSize = { width: pageWidth, height: w / ratio }
+
         const canvas = await generateCanvas(el, {
           ...imageSize,
           ...generateCanvasOptions,
@@ -69,12 +87,12 @@ async function generatePages({
             const numPending = pending.length
 
             for (let index = 0; index < numPending; index++) {
-              let flat = pending[index] as FlattenObject
+              let flat = pending[index] as FlatObject
               let clonedEl = d.getElementById(flat.id)
               clonedEl && pendingClonedElems.push(clonedEl)
             }
 
-            const modifiedEl = generateCanvasOptions?.onclone?.({
+            const modifiedEl = use?.clonedContainer?.({
               htmlDocument: d,
               el: e,
               elements: pendingClonedElems,
@@ -83,6 +101,22 @@ async function generatePages({
             if (!modifiedEl) e.replaceChildren(...pendingClonedElems)
           },
         })
+
+        // {
+        //   // FOR DEBUGGING
+        //   const _els = pending.map((obj) => {
+        //     const _el = document.getElementById(obj.id) as HTMLElement
+        //     _el.style.border = '1px solid red'
+        //     return _el
+        //   })
+
+        //   _els[0].scrollIntoView()
+
+        //   debugger
+
+        //   _els.forEach((_el) => (_el.style.border = ''))
+        //   _els.length = 0
+        // }
 
         pdf.addImage(
           canvas.toDataURL(),
@@ -101,11 +135,10 @@ async function generatePages({
 
         if (currFlat) {
           pending.push(currFlat)
-          currPageHeight =
-            (currFlat?.height || 0) + (nextPageHeight - pageHeight)
+          currPageHeight = currFlatObjectHeight + (nextPageHeight - pageHeight)
         }
       } else {
-        currPageHeight += currFlat?.height || 0
+        currPageHeight += currFlatObjectHeight
         if (currFlat) pending.push(currFlat)
       }
     }
