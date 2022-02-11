@@ -50,14 +50,36 @@ function attachUserEvents<N extends t.NDOMElement>(
      * - onChange
      * - onInput
      */
-
-    if (eventType === 'onChange') return
+    if (eventType === 'onChange') return;
     if (u.isFnc(component.get?.(eventType)?.execute)) {
       /**
        * Putting a setTimeout here helps to avoid the race condition in
        * where the emitted action handlers are being called before local
        * root object gets their data values updated.
        */
+      if (eventType === 'onLazyLoading') {
+        let event:Event = new Event("onLazyLoading",{"bubbles":true, "cancelable":false});
+          node.addEventListener('scroll', (...args) =>{
+            let viewHeight =  node.clientHeight||document.documentElement.clientHeight;
+            let contentHeight = node.scrollHeight || document.documentElement.scrollHeight;//内容高度
+            let scrollTop =  node.scrollTop || document.documentElement.scrollTop;
+            if (contentHeight - viewHeight - scrollTop === 0) { //到达底部0px时,加载新内容
+                node.dispatchEvent(event);
+            }
+            
+          }
+          )
+        node.addEventListener('onLazyLoading',(...args)=>{
+          // console.log('GGGG', node.scrollTop)
+          //@ts-ignore
+          setTimeout(() => {component.get?.(eventType)?.execute?.(...args);
+        });
+        })
+        // window.setTimeout(()=>{
+        //   node.scrollTop = node.scrollHeight - 1000;
+        // })
+        return
+      }
       node.addEventListener(normalizeEventName(eventType), (...args) =>
         setTimeout(() => component.get?.(eventType)?.execute?.(...args)),
       )

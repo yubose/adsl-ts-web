@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
@@ -560,6 +561,19 @@ const createExtendedDOMResolvers = function (app: App) {
             )
 
             if (component?.type == 'textField') {
+              node.addEventListener(
+                'input',
+                getOnChange({
+                  component,
+                  dataKey,
+                  evtName: 'onInput',
+                  node: node as NDOMElement,
+                  iteratorVar,
+                  page,
+                }),
+              )
+            }
+            if (component?.type == 'textView') {
               node.addEventListener(
                 'input',
                 getOnChange({
