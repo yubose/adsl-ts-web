@@ -1,10 +1,6 @@
 import { expect } from 'chai'
 import * as u from '@jsmanifest/utils'
-import fs from 'fs-extra'
-import path from 'path'
 import flatten from '../modules/ExportPdf/flatten'
-import { getBounds } from '../utils/getElementTreeDimensions'
-import getDeepTotalHeight from '../utils/getDeepTotalHeight'
 // data from getElementTreeDimensions(document.querySelector(`[data-viewtag=mainView]`))
 import { traverseDFS } from '../utils/dom'
 import data from './fixtures/flatten_data.json'
@@ -37,12 +33,11 @@ function createMockElement(
     }
   }
 
-  Object.defineProperty(el, 'getBoundingClientRect', {
-    value: () => {
-      console.log(getBounds(el))
-      return getBounds(el)
-    },
-  })
+  // Object.defineProperty(el, 'getBoundingClientRect', {
+  //   value: () => {
+  //     return getBounds(el)
+  //   },
+  // })
 
   if (!el.id) el.id = u.getRandomKey()
 
@@ -94,8 +89,11 @@ describe(`flatten`, () => {
   })
 
   it(`should flatten the child`, () => {
-    const el = createMockElement('div', { style: { height: 340 } })
-    const child = createMockElement('label')
+    const el = createMockElement('div', {
+      style: { height: 340 },
+      scrollHeight: 340,
+    })
+    const child = createMockElement('label', { scrollHeight: 120 })
     child.id = 'apple'
     el.appendChild(child)
     flattener = flatten({ baseEl: el, pageHeight: 552 })
@@ -163,7 +161,7 @@ describe(`flatten`, () => {
         expect(flattener.has(child3)).to.be.true
       })
 
-      xit(`should flatten the element that exceeds pageHeight from currPageHeight`, () => {
+      it(`should flatten the element that exceeds pageHeight from currPageHeight`, () => {
         const el1 = createMockElement('div', { scrollHeight: 900 })
         const el2 = createMockElement('div', { scrollHeight: 640 })
         el1.appendChild(el2)
