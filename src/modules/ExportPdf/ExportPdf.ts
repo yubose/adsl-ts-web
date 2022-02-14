@@ -37,7 +37,7 @@ export const ExportPdf = (function () {
     let pageHeight = sizes.A4.height
     let pdfDocOptions = {
       compress: true,
-      format: [pageWidth, pageHeight],
+      format: [pageWidth, pageHeight] as string | number[],
       orientation: 'portrait' as t.Orientation,
       unit: 'px' as const,
     }
@@ -51,9 +51,10 @@ export const ExportPdf = (function () {
       }
 
     if (elWidth > elHeight) {
-      pdfDocOptions.orientation = 'landscape'
       pageWidth = sizes.A4.height
       pageHeight = sizes.A4.width
+      pdfDocOptions.format = [pageWidth, pageHeight]
+      pdfDocOptions.orientation = 'landscape'
       commonHtml2CanvasOptions.width = pageWidth
       commonHtml2CanvasOptions.height = pageHeight
       commonHtml2CanvasOptions.windowWidth = pageWidth
@@ -72,10 +73,6 @@ export const ExportPdf = (function () {
         doc.deletePage(1)
         doc.addPage([pageWidth, pageHeight], 'landscape')
       }
-
-      const w = el.getBoundingClientRect().width
-      const h = el.getBoundingClientRect().height
-      const ratio = w / h
 
       try {
         flattener = flatten({ baseEl: el, pageHeight })

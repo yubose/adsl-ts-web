@@ -11,7 +11,7 @@ export interface Dimensions {
   children?: Dimensions[]
 }
 
-function getBounds(
+export function getBounds(
   el: Element | HTMLElement | null | undefined,
 ): Omit<Dimensions, 'scrollHeight'> {
   const bounds = (el?.getBoundingClientRect?.() || {}) as DOMRect

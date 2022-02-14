@@ -1,7 +1,7 @@
 import type { Options as Html2CanvasOptions } from 'html2canvas'
 import type jsPDF from 'jspdf'
 import { Viewport as VP } from 'noodl-ui'
-import type { FlatObject, Orientation, SizeObject } from './exportPdfTypes'
+import type { FlatObject, Orientation } from './exportPdfTypes'
 import type { flatten } from './flatten'
 import generateCanvas from './generateCanvas'
 import sizes from './sizes'
@@ -27,7 +27,7 @@ export interface GeneratePagesOptions {
   }
   use?: {
     addImage?: (
-      args: SizeObject & {
+      args: { width: number; height: number } & {
         ratio: number
         pageWidth: number
         pageHeight: number
@@ -57,34 +57,25 @@ async function generatePages({
     const h = el.getBoundingClientRect().height
     const ratio = VP.getAspectRatio(w, h)
 
-    pageHeight = w / ratio
-
+    let flattened = [...flattener.get()]
     let pdfPageWidth =
       orientation === 'landscape' ? sizes.A4.height : sizes.A4.width
     let pdfPageHeight =
       orientation === 'landscape' ? sizes.A4.width : sizes.A4.height
-
-    let currFlat: FlattenObject | undefined
-    let currPageHeight = 0
-    let flattened = [...flattener.get()]
-    let nextPageHeight = 0
     let pending = [] as FlatObject[]
-
     // flattenedElements.length === incoming pending elements
     // pending.length === elements already pending
 
-    while (flattened.length || pending.length) {
-      let currFlatHeight = 0
-      const isLeftOver = !!(!flattened.length && pending.length)
+    let currPageHeight = 0
 
-      currFlat = flattened.shift()
-      currFlatHeight = currFlat?.height || 0
-      nextPageHeight = currFlatHeight + currPageHeight
+    for (const currFlat of flattened) {
+      let currFlatHeight = currFlat?.height || 0
+      let isLast = flattened[flattened.length - 1] === currFlat
 
-      if (nextPageHeight > pdfPageHeight || isLeftOver) {
-        const imageSize = { width: pageWidth, height: pageHeight }
+      if (currFlatHeight + currPageHeight > pageHeight || isLast) {
+        if (isLast) pending.push(currFlat)
+
         const canvas = await generateCanvas(el, {
-          ...imageSize,
           ...generateCanvasOptions,
           onclone: (d: Document, e: HTMLElement) => {
             e.style.height = 'auto'
@@ -93,9 +84,9 @@ async function generatePages({
             const numPending = pending.length
 
             for (let index = 0; index < numPending; index++) {
-              let flat = pending[index] as FlatObject
-              let clonedEl = d.getElementById(flat.id)
-              clonedEl && pendingClonedElems.push(clonedEl)
+              const flat = pending[index] as FlatObject
+              const clonedEl = d.getElementById(flat.id)
+              if (clonedEl) pendingClonedElems.push(clonedEl)
             }
 
             const modifiedEl = use?.clonedContainer?.({
@@ -108,50 +99,20 @@ async function generatePages({
           },
         })
 
-        // {
-        //   // FOR DEBUGGING
-        //   const _els = pending.map((obj) => {
-        //     const _el = document.getElementById(obj.id) as HTMLElement
-        //     _el.style.border = '1px solid red'
-        //     return _el
-        //   })
+        pdf.setDisplayMode(1)
 
-        //   _els[0].scrollIntoView()
+        pdf.addImage(canvas, 'PNG', 0, 0, pdfPageWidth, pdfPageHeight)
 
-        //   debugger
-
-        //   _els.forEach((_el) => (_el.style.border = ''))
-        //   _els.length = 0
-        // }
-
-        pdf.addImage(
-          canvas.toDataURL(),
-          'PNG',
-          0,
-          0,
-          canvas.width,
-          canvas.height,
-        )
-
-        if (nextPageHeight > pdfPageHeight) {
+        if (currFlatHeight + currPageHeight > pdfPageHeight) {
           pdf.addPage([pdfPageWidth, pdfPageHeight], orientation)
-        } else {
         }
 
         pending.length = 0
-
-        if (currFlat) {
-          pending.push(currFlat)
-          currPageHeight = currFlatHeight + (nextPageHeight - pdfPageHeight)
-        }
+        pending[0] = currFlat
+        currPageHeight = currFlatHeight
       } else {
         currPageHeight += currFlatHeight
-        const ee = document.getElementById(currFlat.id) as HTMLElement
-        ee.style.border = '1px solid magenta'
-        ee.scrollIntoView()
-        if (currFlat) pending.push(currFlat)
-        debugger
-        ee.style.border = ''
+        pending.push(currFlat)
       }
     }
 

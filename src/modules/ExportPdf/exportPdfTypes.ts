@@ -2,6 +2,16 @@ import type { createFlattener } from './flatten'
 
 export type Flattener = ReturnType<typeof createFlattener>
 
+export interface FlatObject {
+  id: string
+  children: FlatObject[]
+  parentId: string | null
+  height: number
+  scrollHeight: number
+  tagName: string
+  textContent: string
+}
+
 export interface FlattenOptions {
   /**
    * El must be the firstElementChild of the target element
@@ -9,7 +19,7 @@ export interface FlattenOptions {
   baseEl: HTMLElement
   el?: HTMLElement | null | undefined
   flattener?: Flattener
-  accHeight?: number
+  currPageHeight?: number
   offsetStart?: number
   offsetEnd?: number
   pageHeight: number

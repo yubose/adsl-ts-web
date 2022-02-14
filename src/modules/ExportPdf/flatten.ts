@@ -1,23 +1,10 @@
 import * as u from '@jsmanifest/utils'
-import getHeight from '../../utils/getHeight'
-import isElement from '../../utils/isElement'
-import type { FlattenOptions } from './exportPdfTypes'
-
-export interface FlattenObject {
-  baseId: string
-  id: string
-  children: FlattenObject[]
-  parentId: string | null
-  height: number
-  scrollHeight: number
-  tagName: string
-  textContent: string
-}
+import getDeepTotalHeight from '../../utils/getDeepTotalHeight'
+import type { FlatObject, FlattenOptions } from './exportPdfTypes'
 
 export const createFlattener = (baseEl: Element | HTMLElement) => {
-  const _baseElId = baseEl?.id
-  const _cache = {} as Record<string, FlattenObject>
-  const _flattened = [] as FlattenObject[]
+  const _cache = {} as Record<string, FlatObject>
+  const _flattened = [] as FlatObject[]
 
   const _get = (el: Element | HTMLElement | string) => {
     if (u.isStr(el)) return _cache[el]
@@ -39,6 +26,11 @@ export const createFlattener = (baseEl: Element | HTMLElement) => {
       if (!o.exists(obj.id)) _flattened.push(obj)
     },
     get: () => _flattened,
+    has: (idOrEl: string | Element | HTMLElement) => {
+      const id = u.isStr(idOrEl) ? idOrEl : idOrEl.id
+      if (!id) return false
+      return o.get().some((flat) => flat.id === id)
+    },
     toFlat(
       el: Element | HTMLElement,
       parent?: Element | HTMLElement,
@@ -60,18 +52,18 @@ export const createFlattener = (baseEl: Element | HTMLElement) => {
         id: el?.id || '',
         children: [],
         parentId: parent?.id || null,
-        height: getHeight(el),
+        height: el.getBoundingClientRect().height,
         scrollHeight: el?.scrollHeight || 0,
         tagName: el?.tagName?.toLocaleLowerCase() || '',
         textContent: textStart + textEnd,
       }
 
-      if (isElement(el)) {
-        el.scrollIntoView()
-        el.style.border = '1px solid red'
-        debugger
-        el.style.border = ''
-      }
+      // if (isElement(el)) {
+      //   el.scrollIntoView?.()
+      //   el.style.border = '1px solid red'
+      //   debugger
+      //   el.style.border = ''
+      // }
 
       return flattenedObject
     },
@@ -83,87 +75,71 @@ export function flatten({
   baseEl,
   el = baseEl?.firstElementChild as HTMLElement,
   flattener = createFlattener(el as HTMLElement),
-  accHeight = 0,
+  currPageHeight = 0,
   pageHeight,
-  offsetStart = accHeight,
+  offsetStart = currPageHeight,
   offsetEnd = offsetStart + pageHeight,
 }: FlattenOptions) {
   try {
     let currEl = el
 
     while (currEl) {
-      currEl.scrollIntoView()
-      currEl.style.border = '1px solid red'
+      const totalHeight = getDeepTotalHeight(currEl)
+      const lastPosFromOffsetStart = offsetStart + totalHeight
+      const isWithinOffset = lastPosFromOffsetStart < offsetEnd
+      const isWithinPageBoundaries = totalHeight < pageHeight
 
-      let elHeight = getHeight(currEl)
-      let totalHeight = getDeepTotalHeight(currEl)
-      let nextAccHeight = offsetStart + elHeight
+      if (!currEl.children.length) {
+        flattener.add(flattener.toFlat(currEl))
 
-      const yFromOffsetStart = offsetStart + elHeight
-      const offsetHeight = offsetEnd - offsetStart
-
-      const isCurrElTooBig = elHeight > pageHeight
-      const isMoreContentInScrollBars = totalHeight > yFromOffsetStart
-
-      // if (isMoreContentInScrollBars) {
-      //   elHeight = totalHeight
-      //   nextAccHeight = offsetStart + totalHeight
-      // }
-
-      if (totalHeight > offsetHeight) {
-        if (currEl.children.length) {
+        if (isWithinPageBoundaries) {
+          currPageHeight += totalHeight
+          offsetStart += totalHeight
+        } else {
+          currPageHeight = 0
+          offsetStart = lastPosFromOffsetStart
+          offsetEnd = offsetStart + pageHeight
+        }
+      } else {
+        if (isWithinPageBoundaries) {
+          if (isWithinOffset) {
+            flattener.add(flattener.toFlat(currEl))
+            currPageHeight += totalHeight
+            offsetStart = lastPosFromOffsetStart
+          } else {
+            flatten({
+              baseEl,
+              el: currEl.firstChild as HTMLElement,
+              currPageHeight,
+              flattener,
+              pageHeight,
+              offsetStart,
+              offsetEnd,
+            })
+            // debugger
+            currPageHeight = 0
+            offsetStart = lastPosFromOffsetStart
+            offsetEnd = offsetStart + pageHeight
+          }
+        } else {
           currEl.style.border = ''
           // Skips currEl and recurses children instead
           flatten({
             baseEl,
             el: currEl.firstChild as HTMLElement,
+            currPageHeight,
             flattener,
-            accHeight,
             pageHeight,
             offsetStart,
             offsetEnd,
           })
-          // Go straight to next sibling
-        } else {
-          debugger
-          // Reminder: Single element is bigger than page height here
-          accHeight += totalHeight
-          offsetStart = accHeight
+          currPageHeight = 0
+          offsetStart = lastPosFromOffsetStart
           offsetEnd = offsetStart + pageHeight
         }
-      } else {
-        // if (!currEl.nextSibling) {
-        //   flattener.add(flattener.toFlat(currEl))
-        //   debugger
-        //   currEl.style.border = ''
-        //   break
-        // } else {
-        //   if (currEl.children.length) {
-        //     accHeight = offsetStart += totalHeight
-        //     currEl.style.border = ''
-        //     flatten({
-        //       baseEl,
-        //       el: currEl.firstChild as HTMLElement,
-        //       flattener,
-        //       accHeight,
-        //       pageHeight,
-        //       offsetStart,
-        //       offsetEnd,
-        //     })
-        //   } else {
-        //     flattener.add(flattener.toFlat(currEl))
-        //     accHeight += totalHeight
-        //     offsetStart = accHeight
-        //   }
-        //   debugger
-        // }
       }
 
-      currEl.style.border = ''
-
       currEl = currEl.nextSibling as HTMLElement
-      currEl.style.border = '1px solid red'
-      debugger
     }
 
     return flattener
