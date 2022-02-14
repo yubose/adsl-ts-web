@@ -1,4 +1,10 @@
 {
+  "typedocOptions": {
+    "entryPoints": [
+      "./src/index.ts",
+    ],
+    "name": "noodl-types",
+  },
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "baseUrl": "./src",
