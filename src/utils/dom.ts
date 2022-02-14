@@ -5,6 +5,7 @@ import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 import { isDataUrl } from './common'
 import ExportPdf from '../modules/ExportPdf'
+import isElement from './isElement'
 import type {
   Format as PdfPageFormat,
   Orientation as PDFPageOrientation,
@@ -426,4 +427,30 @@ export function getBlobFromCanvas(
   quality: number = 8,
 ): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob(resolve, mimeType, quality))
+}
+
+/**
+ * Deeply traverse a DOM element's children (Depth first)
+ */
+export function traverseDFS<R = any>(
+  cb: (
+    childNode: Element | HTMLElement,
+    index: number,
+    parent: Element | HTMLElement | null,
+  ) => R,
+  el: Element | HTMLElement | null | undefined,
+): R[] {
+  const results = [] as R[]
+
+  if (el?.children?.length) {
+    ;[...el.children].forEach((childNode, index) => {
+      if (isElement(childNode)) {
+        const result = cb(childNode, index, el)
+        if (result !== undefined) results.push(result)
+        traverseDFS(cb, childNode)
+      }
+    })
+  }
+
+  return results
 }

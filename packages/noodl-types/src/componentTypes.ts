@@ -1,5 +1,6 @@
 import type { ActionObject } from './actionTypes'
 import type { ContentType, EventType } from './constantTypes'
+import type { ReferenceString } from './ecosTypes'
 import type {
   StyleObject,
   StyleTextAlign,
@@ -8,7 +9,9 @@ import type {
 import type {
   ActionChain,
   EmitObject,
+  EmitObjectFold,
   GotoObject,
+  IfObject,
   Path,
   TextBoardObject,
 } from './uncategorizedTypes'
@@ -20,25 +23,25 @@ export type UncommonComponentObjectProps = {
   audioStream?: boolean
   contentType?: ContentType
   chatItem?: Partial<ComponentObject>
-  dataKey?: string
-  ecosObj?: any
+  dataKey?: string | EmitObjectFold | IfObject
+  ecosObj?: Record<string, any>
   emit?: EmitObject
   global?: true
   image?: string
-  isEditable?: boolean
+  isEditable?: string | boolean
   iteratorVar?: string
-  listObject?: string | any[]
+  listObject?: '' | ReferenceString | any[]
   onEvent?: string
   optionKey?: string
-  options?: any[]
+  options?: '' | ReferenceString | any[]
   path?: Path
   pathSelected?: string
-  placeholder?: string | EmitObject
+  placeholder?: string | EmitObjectFold | IfObject
   popUpView?: string
   poster?: string
   refresh?: boolean
-  required?: boolean
-  text?: string
+  required?: string | boolean
+  text?: string | EmitObjectFold | IfObject
   textBoard?: TextBoardObject
   textAlign?: StyleTextAlign | StyleTextAlignObject
   'text=func'?: string

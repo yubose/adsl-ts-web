@@ -58,7 +58,8 @@ export const ExportPdf = (function () {
       commonHtml2CanvasOptions.height = pageHeight
       commonHtml2CanvasOptions.windowWidth = pageWidth
       commonHtml2CanvasOptions.windowHeight = pageHeight
-      // commonHtml2CanvasOptions.x = -100
+      // Correctly positions the form (Still needs testing)
+      commonHtml2CanvasOptions.x = -100
     }
 
     try {
@@ -71,6 +72,10 @@ export const ExportPdf = (function () {
         doc.deletePage(1)
         doc.addPage([pageWidth, pageHeight], 'landscape')
       }
+
+      const w = el.getBoundingClientRect().width
+      const h = el.getBoundingClientRect().height
+      const ratio = w / h
 
       try {
         flattener = flatten({ baseEl: el, pageHeight })

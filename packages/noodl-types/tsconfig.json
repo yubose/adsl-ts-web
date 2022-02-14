@@ -1,10 +1,12 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "baseUrl": "./src",
     "declarationDir": "./dist",
     "module": "commonjs",
     "outDir": "./dist",
-    "target": "es2017"
+    "target": "es2017",
+    "rootDir": "./src"
   },
   "include": ["./src"]
 }

@@ -1,11 +1,23 @@
 import * as u from '@jsmanifest/utils'
 import getHeight from '../../utils/getHeight'
 import isElement from '../../utils/isElement'
-import type { FlatObject, FlattenOptions } from './exportPdfTypes'
+import type { FlattenOptions } from './exportPdfTypes'
+
+export interface FlattenObject {
+  baseId: string
+  id: string
+  children: FlattenObject[]
+  parentId: string | null
+  height: number
+  scrollHeight: number
+  tagName: string
+  textContent: string
+}
 
 export const createFlattener = (baseEl: Element | HTMLElement) => {
-  const _cache = {} as Record<string, FlatObject>
-  const _flattened = [] as FlatObject[]
+  const _baseElId = baseEl?.id
+  const _cache = {} as Record<string, FlattenObject>
+  const _flattened = [] as FlattenObject[]
 
   const _get = (el: Element | HTMLElement | string) => {
     if (u.isStr(el)) return _cache[el]
@@ -80,49 +92,78 @@ export function flatten({
     let currEl = el
 
     while (currEl) {
-      const elHeight = getHeight(currEl)
-      const currHeight = offsetStart + elHeight
+      currEl.scrollIntoView()
+      currEl.style.border = '1px solid red'
 
-      if (currHeight > offsetEnd) {
-        debugger
+      let elHeight = getHeight(currEl)
+      let totalHeight = getDeepTotalHeight(currEl)
+      let nextAccHeight = offsetStart + elHeight
+
+      const yFromOffsetStart = offsetStart + elHeight
+      const offsetHeight = offsetEnd - offsetStart
+
+      const isCurrElTooBig = elHeight > pageHeight
+      const isMoreContentInScrollBars = totalHeight > yFromOffsetStart
+
+      // if (isMoreContentInScrollBars) {
+      //   elHeight = totalHeight
+      //   nextAccHeight = offsetStart + totalHeight
+      // }
+
+      if (totalHeight > offsetHeight) {
         if (currEl.children.length) {
-          debugger
-          if (elHeight < pageHeight) {
-            debugger
-            flattener.add(flattener.toFlat(currEl))
-            accHeight = currHeight
-          } else {
-            debugger
-            // One of the children is exceeding the offsetEnd
-            // Sent that children along with its next siblings to be flattened
-            // debugger
-            flatten({
-              baseEl,
-              el: currEl.firstChild as HTMLElement,
-              flattener,
-              accHeight,
-              pageHeight,
-              offsetStart,
-              offsetEnd: currHeight,
-            })
-          }
+          currEl.style.border = ''
+          // Skips currEl and recurses children instead
+          flatten({
+            baseEl,
+            el: currEl.firstChild as HTMLElement,
+            flattener,
+            accHeight,
+            pageHeight,
+            offsetStart,
+            offsetEnd,
+          })
+          // Go straight to next sibling
         } else {
           debugger
           // Reminder: Single element is bigger than page height here
-          // So they are being flattened
-          flattener.add(flattener.toFlat(currEl))
-          accHeight = currHeight
+          accHeight += totalHeight
           offsetStart = accHeight
-          offsetEnd += pageHeight - elHeight
+          offsetEnd = offsetStart + pageHeight
         }
       } else {
-        debugger
-        flattener.add(flattener.toFlat(currEl))
-        accHeight += elHeight
-        offsetStart = accHeight
+        // if (!currEl.nextSibling) {
+        //   flattener.add(flattener.toFlat(currEl))
+        //   debugger
+        //   currEl.style.border = ''
+        //   break
+        // } else {
+        //   if (currEl.children.length) {
+        //     accHeight = offsetStart += totalHeight
+        //     currEl.style.border = ''
+        //     flatten({
+        //       baseEl,
+        //       el: currEl.firstChild as HTMLElement,
+        //       flattener,
+        //       accHeight,
+        //       pageHeight,
+        //       offsetStart,
+        //       offsetEnd,
+        //     })
+        //   } else {
+        //     flattener.add(flattener.toFlat(currEl))
+        //     accHeight += totalHeight
+        //     offsetStart = accHeight
+        //   }
+        //   debugger
+        // }
       }
 
+      currEl.style.border = ''
+
       currEl = currEl.nextSibling as HTMLElement
+      currEl.style.border = '1px solid red'
+      debugger
     }
 
     return flattener
