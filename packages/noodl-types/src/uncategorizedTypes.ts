@@ -15,7 +15,9 @@ export interface EmitObject {
   [key: string]: any
 }
 
-export type EmitObjectFold<O = any> = {
+export type EmitObjectFold<
+  O extends Record<string, any> = Record<string, any>,
+> = {
   emit: EmitObject
 } & O
 
