@@ -1,18 +1,23 @@
 export default function getDeepTotalHeight(
   el: Element | HTMLElement | null | undefined,
+  accHeight = 0,
 ) {
   if (!el) return 0
 
-  let accHeight = 0
-  let scrollHeight = el.scrollHeight
-
   if (el.childElementCount) {
-    for (const childNode of el.children) {
-      accHeight += getDeepTotalHeight(childNode)
+    let currChild = el.firstElementChild
+
+    while (currChild) {
+      if (currChild.scrollHeight > accHeight) {
+        accHeight = currChild.scrollHeight
+        const accChildrenHeight = getDeepTotalHeight(currChild, accHeight)
+        if (accChildrenHeight > accHeight) accHeight = accChildrenHeight
+      }
+      currChild = currChild.nextElementSibling
     }
   } else {
-    accHeight += scrollHeight
+    accHeight += el.scrollHeight
   }
 
-  return accHeight
+  return el.scrollHeight > accHeight ? el.scrollHeight : accHeight
 }

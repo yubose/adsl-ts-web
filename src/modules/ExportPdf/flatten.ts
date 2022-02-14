@@ -16,7 +16,7 @@ export interface FlattenObject {
 }
 
 export const createFlattener = (baseEl: Element | HTMLElement) => {
-  const _baseElId = baseEl.id
+  const _baseElId = baseEl?.id
   const _cache = {} as Record<string, FlattenObject>
   const _flattened = [] as FlattenObject[]
 
@@ -69,10 +69,10 @@ export const createFlattener = (baseEl: Element | HTMLElement) => {
       }
 
       if (isElement(el)) {
-        el.scrollIntoView()
-        el.style.border = '1px solid red'
-        debugger
-        el.style.border = ''
+        // el.scrollIntoView()
+        // el.style.border = '1px solid red'
+        // debugger
+        // el.style.border = ''
       }
 
       return flattenedObject
@@ -83,7 +83,7 @@ export const createFlattener = (baseEl: Element | HTMLElement) => {
 
 export function flatten({
   baseEl,
-  el = baseEl.firstElementChild as HTMLElement,
+  el = baseEl?.firstElementChild as HTMLElement,
   flattener = createFlattener(el as HTMLElement),
   accHeight = 0,
   pageHeight,
@@ -94,11 +94,27 @@ export function flatten({
     let currEl = el
 
     while (currEl) {
-      const elHeight = getHeight(currEl)
-      const nextAccHeight = offsetStart + elHeight
+      currEl.scrollIntoView()
+      currEl.style.border = '1px solid red'
 
-      if (nextAccHeight > offsetEnd) {
+      let elHeight = getHeight(currEl)
+      let totalHeight = getDeepTotalHeight(currEl)
+      let nextAccHeight = offsetStart + elHeight
+
+      const yFromOffsetStart = offsetStart + elHeight
+      const offsetHeight = offsetEnd - offsetStart
+
+      const isCurrElTooBig = elHeight > pageHeight
+      const isMoreContentInScrollBars = totalHeight > yFromOffsetStart
+
+      // if (isMoreContentInScrollBars) {
+      //   elHeight = totalHeight
+      //   nextAccHeight = offsetStart + totalHeight
+      // }
+
+      if (totalHeight > offsetHeight) {
         if (currEl.children.length) {
+          currEl.style.border = ''
           // Skips currEl and recurses children instead
           flatten({
             baseEl,
@@ -107,22 +123,49 @@ export function flatten({
             accHeight,
             pageHeight,
             offsetStart,
-            offsetEnd: nextAccHeight,
+            offsetEnd,
           })
+          // Go straight to next sibling
         } else {
           flattener.add(flattener.toFlat(currEl))
           // Reminder: Single element is bigger than page height here
-          accHeight = nextAccHeight
+          accHeight += totalHeight
           offsetStart = accHeight
-          offsetEnd = accHeight + pageHeight
+          offsetEnd = offsetStart + pageHeight
         }
       } else {
-        flattener.add(flattener.toFlat(currEl))
-        accHeight += elHeight
-        offsetStart = accHeight
+        // if (!currEl.nextSibling) {
+        //   flattener.add(flattener.toFlat(currEl))
+        //   debugger
+        //   currEl.style.border = ''
+        //   break
+        // } else {
+        //   if (currEl.children.length) {
+        //     accHeight = offsetStart += totalHeight
+        //     currEl.style.border = ''
+        //     flatten({
+        //       baseEl,
+        //       el: currEl.firstChild as HTMLElement,
+        //       flattener,
+        //       accHeight,
+        //       pageHeight,
+        //       offsetStart,
+        //       offsetEnd,
+        //     })
+        //   } else {
+        //     flattener.add(flattener.toFlat(currEl))
+        //     accHeight += totalHeight
+        //     offsetStart = accHeight
+        //   }
+        //   debugger
+        // }
       }
 
+      currEl.style.border = ''
+
       currEl = currEl.nextSibling as HTMLElement
+      currEl.style.border = '1px solid red'
+      debugger
     }
 
     return flattener

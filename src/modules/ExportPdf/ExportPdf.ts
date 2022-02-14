@@ -74,6 +74,10 @@ export const ExportPdf = (function () {
         doc.addPage([pageWidth, pageHeight], 'landscape')
       }
 
+      const w = el.getBoundingClientRect().width
+      const h = el.getBoundingClientRect().height
+      const ratio = w / h
+
       try {
         flattener = flatten({ baseEl: el, pageHeight })
 

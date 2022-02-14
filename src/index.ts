@@ -412,6 +412,16 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
+    mainView: {
+      get() {
+        return findFirstByViewTag('mainView')
+      },
+    },
+    scrollView: {
+      get() {
+        return findFirstByClassName('scroll-view')
+      },
+    },
     goToPaymentUrl4: {
       value: () =>
         (window.location.href =

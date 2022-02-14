@@ -4,6 +4,7 @@ import { Viewport as VP } from 'noodl-ui'
 import type { Orientation } from './exportPdfTypes'
 import type { flatten, FlattenObject } from './flatten'
 import generateCanvas from './generateCanvas'
+import sizes from './sizes'
 
 export interface GeneratePagesOptions {
   pdf: jsPDF
@@ -42,6 +43,11 @@ async function generatePages({
 
     pageHeight = el.getBoundingClientRect().width / ratio
 
+    let pdfPageWidth =
+      orientation === 'landscape' ? sizes.A4.height : sizes.A4.width
+    let pdfPageHeight =
+      orientation === 'landscape' ? sizes.A4.width : sizes.A4.height
+
     let currFlat: FlattenObject | undefined
     let currPageHeight = 0
     let nextPageHeight = 0
@@ -52,13 +58,15 @@ async function generatePages({
     // pending.length === elements already pending
 
     while (flattened.length || pending.length) {
-      currFlat = flattened.shift()
-      nextPageHeight = (currFlat?.height || 0) + currPageHeight
-
+      let currFlatHeight = 0
       const isLeftOver = !!(!flattened.length && pending.length)
 
-      if (nextPageHeight > pageHeight || isLeftOver) {
-        const imageSize = { width: pageWidth, height: w / ratio }
+      currFlat = flattened.shift()
+      currFlatHeight = currFlat?.height || 0
+      nextPageHeight = currFlatHeight + currPageHeight
+
+      if (nextPageHeight > pdfPageHeight || isLeftOver) {
+        const imageSize = { width: pageWidth, height: pageHeight }
         const canvas = await generateCanvas(el, {
           ...imageSize,
           ...generateCanvasOptions,
@@ -93,20 +101,25 @@ async function generatePages({
           canvas.height,
         )
 
-        if (nextPageHeight > pageHeight) {
-          pdf.addPage([pageWidth, pageHeight], orientation)
+        if (nextPageHeight > pdfPageHeight) {
+          pdf.addPage([pdfPageWidth, pdfPageHeight], orientation)
+        } else {
         }
 
         pending.length = 0
 
         if (currFlat) {
           pending.push(currFlat)
-          currPageHeight =
-            (currFlat?.height || 0) + (nextPageHeight - pageHeight)
+          currPageHeight = currFlatHeight + (nextPageHeight - pdfPageHeight)
         }
       } else {
-        currPageHeight += currFlat?.height || 0
+        currPageHeight += currFlatHeight
+        const ee = document.getElementById(currFlat.id) as HTMLElement
+        ee.style.border = '1px solid magenta'
+        ee.scrollIntoView()
         if (currFlat) pending.push(currFlat)
+        debugger
+        ee.style.border = ''
       }
     }
 
