@@ -6,7 +6,7 @@ process.env.GATSBY_BUILD = JSON.stringify({
   timestamp: new Date().toISOString(),
 })
 
-const pathPrefix = `static/web/latest`
+const pathPrefix = ``
 
 const {
   title: siteTitle = '',
