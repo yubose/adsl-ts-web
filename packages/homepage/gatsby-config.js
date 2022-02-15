@@ -46,6 +46,7 @@ module.exports = {
     `gatsby-transformer-sharp`,
     `gatsby-plugin-sharp`,
     `gatsby-plugin-emotion`,
+    `gatsby-plugin-sitemap`,
     {
       resolve: `gatsby-plugin-layout`,
       options: {
@@ -88,6 +89,50 @@ module.exports = {
       },
     },
     {
+      resolve: `gatsby-plugin-feed`,
+      options: {
+        query: `
+          {
+            site {
+              siteMetadata {
+                title: siteTitle
+                description: siteDescription
+                siteUrl
+                site_url: siteUrl
+              }
+            }
+          }
+        `,
+        feeds: [
+          {
+            serialize: ({ query: { site, allNoodlPage } }) => {
+              return allNoodlPage.nodes.map((node) => {
+                return Object.assign({}, node, {
+                  name: node.name,
+                  id: node.id,
+                  url: site.siteMetadata.siteUrl + node.slug,
+                  custom_elements: [{ 'content:encoded': node.content }],
+                })
+              })
+            },
+            query: `
+              {
+                allNoodlPage {
+                  nodes {
+                    name
+                    content
+                    url
+                  }
+                }
+              }
+            `,
+            output: '/rss.xml',
+            title: 'AiTmed RSS Feed',
+          },
+        ],
+      },
+    },
+    {
       resolve: `gatsby-plugin-manifest`,
       options: {
         name: `AiTmed Homepage`,
@@ -126,7 +171,7 @@ module.exports = {
  * @returns { { title: string; description: string; keywords: string[]; url: string }}
  */
 function getSiteMetadata(relativePathToWebAppWebpackConfig) {
-  const metadata = { keywords: [], url: `https://aitmed.com/` }
+  const metadata = { keywords: [], url: `https://aitmed.com` }
 
   const webAppWebpackConfigAST = parse(
     fs.readFileSync(
