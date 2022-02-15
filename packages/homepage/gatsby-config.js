@@ -6,7 +6,8 @@ process.env.GATSBY_BUILD = JSON.stringify({
   timestamp: new Date().toISOString(),
 })
 
-const pathPrefix = `static/web/latest`
+//const pathPrefix = `static/web/latest` // if deployed not to root directory
+const pathPrefix = `` // deployed to root directory
 
 const {
   title: siteTitle = '',
