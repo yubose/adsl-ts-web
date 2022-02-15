@@ -119,9 +119,10 @@ module.exports = {
               {
                 allNoodlPage {
                   nodes {
+                    id
                     name
                     content
-                    url
+                    slug
                   }
                 }
               }
