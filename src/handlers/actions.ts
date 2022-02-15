@@ -516,7 +516,7 @@ const createActions = function createActions(app: App) {
         const { ref } = options
         const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
         const popUpView = _pick(action, 'popUpView')
-        const popUpDismiss = _pick(action, 'popUpDismiss')
+        const popDismiss = _pick(action, 'popUpDismiss')
         let isWaiting = false
         u.arrayEach(asHtmlElement(findByUX(popUpView)), (elem) => {
           if (dismissOnTouchOutside) {
@@ -531,9 +531,10 @@ const createActions = function createActions(app: App) {
             document.body.addEventListener('click', onTouchOutside)
           }
           if (elem?.style) {
-            if (Identify.action.popUp(action)) {
+            if (Identify.action.popUp(action)&&!u.isNum(_pick(action, 'wait'))) {
               show(elem)
-            } else if (Identify.action.popUpDismiss(action) || popUpDismiss) {
+            } else if (u.isNum(_pick(action, 'wait'))) {
+              show(elem)
               let wait = _pick(action, 'wait')
               if (Identify.isBooleanTrue(wait)) wait = 0
               if (u.isNum(wait)) isWaiting = true
@@ -541,6 +542,15 @@ const createActions = function createActions(app: App) {
                 hide(elem)
                 resolve()
               }, wait)
+            }
+            else if(Identify.action.popUpDismiss(action)){
+              hide(elem)
+            }
+            if(u.isNum(popDismiss)){
+              setTimeout(()=>{
+                hide(elem)
+              },popDismiss)
+
             }
             // Some popup components render values using the dataKey. There is a bug
             // where an action returns a popUp action from an evalObject action. At
@@ -602,7 +612,7 @@ const createActions = function createActions(app: App) {
                   `waiting on a response. Aborting now...`,
                 action?.snapshot?.(),
               )
-              debugger
+              // debugger
               ref?.abort?.()
             }
           } else {
