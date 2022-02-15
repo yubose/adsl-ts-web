@@ -10,19 +10,12 @@ import * as nu from 'noodl-utils'
 import { findFirstByViewTag } from 'noodl-ui-dom'
 import cheerio from 'cheerio'
 import jsdom from 'jsdom-global'
-import type {
-  Format,
-  Orientation,
-  PageBlueprint,
-  PdfBlueprint,
-  PathObject,
-} from '../../modules/ExportPdf'
-import ExportPdf, { traverseBF } from '../../modules/ExportPdf'
+import ExportPdf from '../../modules/ExportPdf'
 import Cov19ResultsAndFluResultsReviewGeneratedData from '../fixtures/Cov19ResultsAndFluResultsReview.json'
 import getElementTreeDimensions from '../../utils/getElementTreeDimensions'
 
 const viewport = { width: 1464.94, height: 823 }
-const { sizes } = ExportPdf()
+const { sizes } = ExportPdf
 
 const getAbsFilePath = (...s: string[]) =>
   path.resolve(path.join(process.cwd(), ...s))
@@ -92,7 +85,7 @@ describe.only(`ExportPDF`, () => {
   })
 
   describe(`PatientChart page`, () => {
-    const { A4 } = ExportPdf().sizes
+    const { A4 } = ExportPdf.sizes
     const elBoundingClientRect = {
       x: 0,
       y: 74.6875,

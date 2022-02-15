@@ -1,9 +1,10 @@
 import type { Options as Html2CanvasOptions } from 'html2canvas'
 import type jsPDF from 'jspdf'
 import { Viewport as VP } from 'noodl-ui'
-import type { Orientation } from './exportPdfTypes'
-import type { flatten, FlattenObject } from './flatten'
+import type { FlatObject, Orientation } from './exportPdfTypes'
+import type { flatten } from './flatten'
 import generateCanvas from './generateCanvas'
+import sizes from './sizes'
 
 export interface GeneratePagesOptions {
   pdf: jsPDF
@@ -24,43 +25,57 @@ export interface GeneratePagesOptions {
       elements: HTMLElement[]
     }) => HTMLElement | undefined | null
   }
+  use?: {
+    addImage?: (
+      args: { width: number; height: number } & {
+        ratio: number
+        pageWidth: number
+        pageHeight: number
+        currFlat?: FlatObject
+      },
+    ) => { width: number; height: number }
+    clonedContainer?: (args: {
+      htmlDocument: Document
+      el: Element | HTMLElement
+      elements: HTMLElement[]
+    }) => HTMLElement
+  }
 }
 
 async function generatePages({
   pdf,
   el,
   flattener,
+  generateCanvasOptions,
   orientation = 'portrait',
   pageWidth,
   pageHeight,
-  generateCanvasOptions,
+  use,
 }: GeneratePagesOptions) {
   try {
     const w = el.getBoundingClientRect().width
     const h = el.getBoundingClientRect().height
     const ratio = VP.getAspectRatio(w, h)
 
-    pageHeight = el.getBoundingClientRect().width / ratio
-
-    let currFlat: FlattenObject | undefined
-    let currPageHeight = 0
-    let nextPageHeight = 0
-    let pending = [] as FlattenObject[]
     let flattened = [...flattener.get()]
-
+    let pdfPageWidth =
+      orientation === 'landscape' ? sizes.A4.height : sizes.A4.width
+    let pdfPageHeight =
+      orientation === 'landscape' ? sizes.A4.width : sizes.A4.height
+    let pending = [] as FlatObject[]
     // flattenedElements.length === incoming pending elements
     // pending.length === elements already pending
 
-    while (flattened.length || pending.length) {
-      currFlat = flattened.shift()
-      nextPageHeight = (currFlat?.height || 0) + currPageHeight
+    let currPageHeight = 0
 
-      const isLeftOver = !!(!flattened.length && pending.length)
+    for (const currFlat of flattened) {
+      let currFlatHeight = currFlat?.height || 0
+      let isLast = flattened[flattened.length - 1] === currFlat
 
-      if (nextPageHeight > pageHeight || isLeftOver) {
-        const imageSize = { width: pageWidth, height: w / ratio }
+      if (currFlatHeight + currPageHeight > pageHeight || isLast) {
+        if (isLast) pending.push(currFlat)
+
         const canvas = await generateCanvas(el, {
-          ...imageSize,
           ...generateCanvasOptions,
           onclone: (d: Document, e: HTMLElement) => {
             e.style.height = 'auto'
@@ -69,12 +84,12 @@ async function generatePages({
             const numPending = pending.length
 
             for (let index = 0; index < numPending; index++) {
-              let flat = pending[index] as FlattenObject
-              let clonedEl = d.getElementById(flat.id)
-              clonedEl && pendingClonedElems.push(clonedEl)
+              const flat = pending[index] as FlatObject
+              const clonedEl = d.getElementById(flat.id)
+              if (clonedEl) pendingClonedElems.push(clonedEl)
             }
 
-            const modifiedEl = generateCanvasOptions?.onclone?.({
+            const modifiedEl = use?.clonedContainer?.({
               htmlDocument: d,
               el: e,
               elements: pendingClonedElems,
@@ -84,29 +99,20 @@ async function generatePages({
           },
         })
 
-        pdf.addImage(
-          canvas.toDataURL(),
-          'PNG',
-          0,
-          0,
-          canvas.width,
-          canvas.height,
-        )
+        pdf.setDisplayMode(1)
 
-        if (nextPageHeight > pageHeight) {
-          pdf.addPage([pageWidth, pageHeight], orientation)
+        pdf.addImage(canvas, 'PNG', 0, 0, pdfPageWidth, pdfPageHeight)
+
+        if (currFlatHeight + currPageHeight > pdfPageHeight) {
+          pdf.addPage([pdfPageWidth, pdfPageHeight], orientation)
         }
 
         pending.length = 0
-
-        if (currFlat) {
-          pending.push(currFlat)
-          currPageHeight =
-            (currFlat?.height || 0) + (nextPageHeight - pageHeight)
-        }
+        pending[0] = currFlat
+        currPageHeight = currFlatHeight
       } else {
-        currPageHeight += currFlat?.height || 0
-        if (currFlat) pending.push(currFlat)
+        currPageHeight += currFlatHeight
+        pending.push(currFlat)
       }
     }
 
