@@ -4,11 +4,18 @@
  */
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin')
 
-/** @argument { import('gatsby').CreateWebpackConfigArgs } args */
-exports.onCreateWebpackConfig = (args) => {
-  args.actions.setWebpackConfig({
+/** @argument { import('gatsby').CreateWebpackConfigArgs } */
+exports.onCreateWebpackConfig = ({ actions, stage }) => {
+  actions.setWebpackConfig({
     resolve: {
       plugins: [new TsconfigPathsPlugin()],
     },
   })
+
+  if (stage === `build-javascript`) {
+    // Disables source maps (decreases file size immensely)
+    actions.setWebpackConfig({
+      devtool: false,
+    })
+  }
 }
