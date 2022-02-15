@@ -1,5 +1,6 @@
 .cache
 output
 node_modules
+package-lock.json
 public
 src/resources/assets
