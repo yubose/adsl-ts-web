@@ -11,7 +11,7 @@ export interface Dimensions {
   children?: Dimensions[]
 }
 
-function getBounds(
+export function getBounds(
   el: Element | HTMLElement | null | undefined,
 ): Omit<Dimensions, 'scrollHeight'> {
   const bounds = (el?.getBoundingClientRect?.() || {}) as DOMRect
@@ -42,21 +42,12 @@ function getElementTreeDimensions(
 ): Dimensions {
   const dimensions = getDimensions(el)
 
-  let currChild: typeof el | null = el?.firstElementChild || null
-
-  while (currChild) {
-    const dims = getDimensions(currChild)
-
-    if (!dimensions.children) dimensions.children = []
-
-    dimensions.children.push(dims)
-
-    for (const childNode of currChild.children) {
-      dimensions.children.push(getElementTreeDimensions(childNode))
-    }
-
-    currChild = currChild.nextElementSibling
+  if (el?.children.length) {
+    dimensions.children = [...el.children].map((childNode) =>
+      getElementTreeDimensions(childNode),
+    )
   }
+
   return dimensions
 }
 

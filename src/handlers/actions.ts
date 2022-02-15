@@ -283,7 +283,6 @@ const createActions = function createActions(app: App) {
     }
   }
 
-
   const goto: Store.ActionObject['fn'] = useGotoSpinner(
     app,
     async function onGoto(action, options) {
@@ -509,99 +508,119 @@ const createActions = function createActions(app: App) {
   const pageJump: Store.ActionObject['fn'] = (action) =>
     app.navigate(_pick(action, 'destination'))
 
-  const popUp: Store.ActionObject['fn'] = async function onPopUp(
-    action,
-    options,
-  ) {
+  const popUp: Store.ActionObject['fn'] = function onPopUp(action, options) {
     log.func('popUp')
     log.grey('', action?.snapshot?.())
-    const { ref } = options
-    const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
-    const popUpView = _pick(action, 'popUpView')
-    const popUpDismiss = _pick(action, 'popUpDismiss')
-    u.arrayEach(asHtmlElement(findByUX(popUpView)), (elem) => {
-      if (dismissOnTouchOutside) {
-        const onTouchOutside = function onTouchOutside(
-          this: HTMLDivElement,
-          e: Event,
-        ) {
-          e.preventDefault()
-          hide(elem)
-          document.body.removeEventListener('click', onTouchOutside)
-        }
-        document.body.addEventListener('click', onTouchOutside)
-      }
-      if (elem?.style) {
-        if (Identify.action.popUp(action)) show(elem)
-        else if (Identify.action.popUpDismiss(action)) hide(elem)
-        if (popUpDismiss) {
-          setTimeout(() => {
-            hide(elem)
-          }, popUpDismiss)
-        }
-        // Some popup components render values using the dataKey. There is a bug
-        // where an action returns a popUp action from an evalObject action. At
-        // this moment the popup is not aware that it needs to read the dataKey if
-        // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
-
-        // Auto prefills the verification code when ECOS_ENV === 'test'
-        // and when the entered phone number starts with 888
-        if (process.env.ECOS_ENV === 'test') {
-          const currentPage =
-            pickNUIPageFromOptions(options)?.page || app.currentPage
-          const vcodeInput = getVcodeElem()
-          const phoneInput = u.array(
-            asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
-          )[0] as HTMLInputElement
-          let phoneNumber = String(
-            phoneInput?.value || phoneInput?.dataset?.value,
-          )
-          if (!phoneNumber && phoneInput?.dataset?.key) {
-            const value = get(app.root[currentPage], phoneInput.dataset.key)
-            value && (phoneNumber = value)
-          }
-          const is888 =
-            phoneNumber.startsWith('888') ||
-            phoneNumber.startsWith('+1888') ||
-            phoneNumber.startsWith('+1 888')
-
-          if (vcodeInput && is888 && action?.actionType !== 'popUpDismiss') {
-            let pathToTage = 'verificationCode.response.edge.tage'
-            let vcode = get(app.root?.[currentPage], pathToTage, '')
-            if (vcode) {
-              vcode = String(vcode)
-              vcodeInput.value = vcode
-              vcodeInput.dataset.value = vcode
-              app.updateRoot(
-                `${currentPage}.${vcodeInput.dataset.key || 'formData.code'}`,
-                vcode,
-              )
-            } else {
-              log.orange(
-                `Could not find a verification code at path "${pathToTage}"`,
-              )
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { ref } = options
+        const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
+        const popUpView = _pick(action, 'popUpView')
+        const popUpDismiss = _pick(action, 'popUpDismiss')
+        let isWaiting = false
+        u.arrayEach(asHtmlElement(findByUX(popUpView)), (elem) => {
+          if (dismissOnTouchOutside) {
+            const onTouchOutside = function onTouchOutside(
+              this: HTMLDivElement,
+              e: Event,
+            ) {
+              e.preventDefault()
+              hide(elem)
+              document.body.removeEventListener('click', onTouchOutside)
             }
+            document.body.addEventListener('click', onTouchOutside)
           }
-        }
+          if (elem?.style) {
+            if (Identify.action.popUp(action)) {
+              show(elem)
+            } else if (Identify.action.popUpDismiss(action) || popUpDismiss) {
+              let wait = _pick(action, 'wait')
+              if (Identify.isBooleanTrue(wait)) wait = 0
+              if (u.isNum(wait)) isWaiting = true
+              setTimeout(() => {
+                hide(elem)
+                resolve()
+              }, wait)
+            }
+            // Some popup components render values using the dataKey. There is a bug
+            // where an action returns a popUp action from an evalObject action. At
+            // this moment the popup is not aware that it needs to read the dataKey if
+            // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
 
-        // If popUp has wait: true, the action chain should pause until a response
-        // is received from something (ex: waiting on user confirming their password)
-        if (Identify.isBooleanTrue(_pick(action, 'wait'))) {
-          log.grey(
-            `Popup action for popUpView "${popUpView}" is ` +
-              `waiting on a response. Aborting now...`,
-            action?.snapshot?.(),
-          )
-          ref?.abort?.()
-        }
-      } else {
-        let msg = `Tried to ${action?.actionType === 'popUp' ? 'show' : 'hide'}`
-        log.func(action?.actionType)
-        log.red(
-          `${msg} a ${action?.actionType} element but the element ` +
-            `was null or undefined`,
-          { action: action?.snapshot?.(), popUpView },
-        )
+            // Removed 02/14/2022 - noodl implements auto filling
+            // Auto prefills the verification code when ECOS_ENV === 'test'
+            // and when the entered phone number starts with 888
+            // if (process.env.ECOS_ENV === 'test') {
+            //   const currentPage =
+            //     pickNUIPageFromOptions(options)?.page || app.currentPage
+            //   const vcodeInput = getVcodeElem()
+            //   const phoneInput = u.array(
+            //     asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
+            //   )[0] as HTMLInputElement
+            //   let phoneNumber = String(
+            //     phoneInput?.value || phoneInput?.dataset?.value,
+            //   )
+            //   if (!phoneNumber && phoneInput?.dataset?.key) {
+            //     const value = get(app.root[currentPage], phoneInput.dataset.key)
+            //     value && (phoneNumber = value)
+            //   }
+            //   const is888 =
+            //     phoneNumber.startsWith('888') ||
+            //     phoneNumber.startsWith('+1888') ||
+            //     phoneNumber.startsWith('+1 888')
+
+            //   if (
+            //     vcodeInput &&
+            //     is888 &&
+            //     action?.actionType !== 'popUpDismiss'
+            //   ) {
+            //     let pathToTage = 'verificationCode.response.edge.tage'
+            //     let vcode = get(app.root?.[currentPage], pathToTage, '')
+            //     if (vcode) {
+            //       vcode = String(vcode)
+            //       vcodeInput.value = vcode
+            //       vcodeInput.dataset.value = vcode
+            //       app.updateRoot(
+            //         `${currentPage}.${
+            //           vcodeInput.dataset.key || 'formData.code'
+            //         }`,
+            //         vcode,
+            //       )
+            //     } else {
+            //       log.orange(
+            //         `Could not find a verification code at path "${pathToTage}"`,
+            //       )
+            //     }
+            //   }
+            // }
+
+            // If popUp has wait: true, the action chain should pause until a response
+            // is received from something (ex: waiting on user confirming their password)
+            if (Identify.isBooleanTrue(_pick(action, 'wait'))) {
+              log.grey(
+                `Popup action for popUpView "${popUpView}" is ` +
+                  `waiting on a response. Aborting now...`,
+                action?.snapshot?.(),
+              )
+              debugger
+              ref?.abort?.()
+            }
+          } else {
+            let msg = `Tried to ${
+              action?.actionType === 'popUp' ? 'show' : 'hide'
+            }`
+            log.func(action?.actionType)
+            log.red(
+              `${msg} a ${action?.actionType} element but the element ` +
+                `was null or undefined`,
+              { action: action?.snapshot?.(), popUpView },
+            )
+          }
+
+          if (!isWaiting) resolve()
+        })
+      } catch (error) {
+        reject(error instanceof Error ? error : new Error(String(error)))
       }
     })
   }
@@ -885,41 +904,41 @@ const createActions = function createActions(app: App) {
     }
   }
 
-  const getLocationAddress: Store.ActionObject['fn'] = async function onGetLocationAddress(
-    action,
-    options,
-  ){
-    log.func('getLocationAddress')
-    log.grey('', action?.snapshot?.())
-    const types = 'address'
-    const access_token = 'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
-    const host = 'https://api.mapbox.com/geocoding/v5/mapbox.places'
-    const dataKey = _pick(action, 'dataKey')
-    const longitude = localStorage.getItem('longitude')
-    const latitude = localStorage.getItem('latitude')
-    if(longitude && latitude){
-      await axios({
-        method: 'get',
-        url: `${host}/${longitude},${latitude}.json`,
-        params: {
-          // types: types,
-          limit: 1,
-          access_token: access_token
-        }
-      }).then((res)=>{
-        const place_name =  res['data']['features'][0]['place_name']
-        let dataObject = isRootDataKey(dataKey)
-          ? app.root
-          : app.root?.[pickNUIPageFromOptions(options)?.page || '']
-        if(place_name){
-          set(dataObject,dataKey,place_name)
-        }
-      }).catch((error)=>{
-        console.log(error)
-      })
+  const getLocationAddress: Store.ActionObject['fn'] =
+    async function onGetLocationAddress(action, options) {
+      log.func('getLocationAddress')
+      log.grey('', action?.snapshot?.())
+      const types = 'address'
+      const access_token =
+        'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
+      const host = 'https://api.mapbox.com/geocoding/v5/mapbox.places'
+      const dataKey = _pick(action, 'dataKey')
+      const longitude = localStorage.getItem('longitude')
+      const latitude = localStorage.getItem('latitude')
+      if (longitude && latitude) {
+        await axios({
+          method: 'get',
+          url: `${host}/${longitude},${latitude}.json`,
+          params: {
+            // types: types,
+            limit: 1,
+            access_token: access_token,
+          },
+        })
+          .then((res) => {
+            const place_name = res['data']['features'][0]['place_name']
+            let dataObject = isRootDataKey(dataKey)
+              ? app.root
+              : app.root?.[pickNUIPageFromOptions(options)?.page || '']
+            if (place_name) {
+              set(dataObject, dataKey, place_name)
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      }
     }
-
-  }
 
   return {
     anonymous,

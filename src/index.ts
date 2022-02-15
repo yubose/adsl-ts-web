@@ -412,6 +412,36 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
+    mainView: {
+      get() {
+        return findFirstByViewTag('mainView')
+      },
+    },
+    scrollView: {
+      get() {
+        return findFirstByClassName('scroll-view')
+      },
+    },
+    goToForm: {
+      value: {
+        AbsentNoteReview: () => app.navigate('AbsentNoteReview'),
+        BlankNoteReview: () => app.navigate('BlankNoteReview'),
+        DWCFormRFAReview: () => app.navigate('DWCFormRFAReview'),
+        EvaluationNoteReview: () => app.navigate('EvaluationNoteReview'),
+        InitEvalReportReview: () => app.navigate('InitEvalReportReview'),
+        PatientConsentFormHIPPAReview: () =>
+          app.navigate('PatientConsentFormHIPPAReview'),
+        ProgressReportReview: () => app.navigate('ProgressReportReview'),
+        PROneReview: () => app.navigate('PROneReview'),
+        PRTwoReview: () => app.navigate('PRTwoReview'),
+        PrescriptionShared: () => app.navigate('PrescriptionShared'),
+        SurgeryAuthorizationReview: () =>
+          app.navigate('SurgeryAuthorizationReview'),
+        Cov19ResultsAndFluResultsReview: () =>
+          app.navigate('Cov19ResultsAndFluResultsReview'),
+        WorkStatusFormReview: () => app.navigate('WorkStatusFormReview'),
+      },
+    },
     goToPaymentUrl4: {
       value: () =>
         (window.location.href =

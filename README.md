@@ -287,3 +287,27 @@ when we do cd and send api to backend, by this time all our bit is 0 (everything
 - Fixed error for accessing reference strings for styles
 
 ---
+
+## 02/10/22 Flow
+
+- Input:
+  - `baseEl`
+  - `el`
+  - `pageHeight`
+- Init
+  - Let `offsetStart` be `0`
+  - Let `offsetEnd` be `0`
+- While `currEl`
+  - Let `elHeight` be element's height
+  - Let `accHeight` be the accumulating height
+  - If `accHeight` > `offsetEnd`
+    - If `currEl` has children
+      - If `elHeight` < `pageHeight`
+        - Flatten
+      - Else if `elHeight` > `pageHeight`
+        - Flatten _Recursion_ on children beginning with `currEl.firstChild`
+    - Else if `currEl` does _not_ have children
+      - Flatten
+      - Set `offsetStart` to `accHeight`
+      - Set `offsetEnd` to `pageHeight` + `elHeight`
+  - Else if `accHeight` < `offsetEnd`

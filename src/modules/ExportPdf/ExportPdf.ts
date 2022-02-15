@@ -2,7 +2,6 @@
  * Exports a DOM tree to PDF document pages
  */
 import * as u from '@jsmanifest/utils'
-import { Viewport as VP } from 'noodl-ui'
 import jsPDF from 'jspdf'
 import isElement from '../../utils/isElement'
 import flatten from './flatten'
@@ -38,7 +37,7 @@ export const ExportPdf = (function () {
     let pageHeight = sizes.A4.height
     let pdfDocOptions = {
       compress: true,
-      format: [pageWidth, pageHeight],
+      format: [pageWidth, pageHeight] as string | number[],
       orientation: 'portrait' as t.Orientation,
       unit: 'px' as const,
     }
@@ -52,13 +51,16 @@ export const ExportPdf = (function () {
       }
 
     if (elWidth > elHeight) {
-      pdfDocOptions.orientation = 'landscape'
       pageWidth = sizes.A4.height
       pageHeight = sizes.A4.width
+      pdfDocOptions.format = [pageWidth, pageHeight]
+      pdfDocOptions.orientation = 'landscape'
       commonHtml2CanvasOptions.width = pageWidth
       commonHtml2CanvasOptions.height = pageHeight
       commonHtml2CanvasOptions.windowWidth = pageWidth
       commonHtml2CanvasOptions.windowHeight = pageHeight
+      // Correctly positions the form (Still needs testing)
+      commonHtml2CanvasOptions.x = -100
     }
 
     try {
@@ -73,16 +75,7 @@ export const ExportPdf = (function () {
       }
 
       try {
-        const w = el.getBoundingClientRect().width
-        const h = el.getBoundingClientRect().height
-        const ratio = VP.getAspectRatio(w, h)
-
-        flattener = flatten({
-          container: el,
-          el: el.firstElementChild as HTMLElement,
-          pageHeight,
-          ratio,
-        })
+        flattener = flatten({ baseEl: el, pageHeight })
 
         doc = await generatePages({
           el,
