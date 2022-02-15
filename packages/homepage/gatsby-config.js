@@ -1,3 +1,4 @@
+const u = require('@jsmanifest/utils')
 const fs = require('fs-extra')
 const path = require('path')
 const { parse, traverse, types } = require('@babel/core')
@@ -19,7 +20,9 @@ const {
 for (const titleOrDesc of [siteTitle, siteDescription]) {
   if (!titleOrDesc) {
     throw new Error(
-      `Missing site title and/or site description. Check gatsby-config.js`,
+      `Missing site title and/or site description. ` +
+        `Check ${u.cyan('webpack.config.js')} at ` +
+        `${u.yellow(path.resolve(__dirname, '../../webpack.config.js'))}`,
     )
   }
 }
