@@ -44,6 +44,7 @@ import {
   openFileSelector,
   scrollToElem,
   toast,
+  hide,
 } from '../utils/dom'
 import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
