@@ -7,6 +7,13 @@
 - git commit -a -m "update aitmed sdk"
 - git push
 
+## Install order in precedence to ensure build succeeds
+
+1. noodl-types
+2. noodl-utils + noodl-action-chain
+3. noodl-ui-test-utils
+4. noodl-ui + noodl-ui-dom
+
 ## Correct link to GitLab
 
 - <https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/>
@@ -94,13 +101,6 @@ NUI.emit({
 
 ---
 
-## Todos
-
-- [ ] Input focus for vcode input
-- [ ] PasswordRecoveryHelper (Jiahao)
-- [ ] redraw transition (`effect: slideLeft`)
-- [ ] curry func utility to finalize parsings
-
 ## Accounts
 
 | app     | phone #    | password    | who    | Notes            |
@@ -155,8 +155,6 @@ NUI.emit({
 
 - Some apis like signing on does not provide a new jwt, but most do
 - If an error occurred with jwt, attempt to relogin with an existing token
-
-## Transactions
 
 ### Navigate
 

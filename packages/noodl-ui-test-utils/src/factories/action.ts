@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
-import { PartialDeep } from 'type-fest'
-import {
+import type { PartialDeep } from 'type-fest'
+import type {
   BuiltInActionObject,
   EcosDocument,
   EmitObject,

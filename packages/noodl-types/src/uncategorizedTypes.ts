@@ -1,4 +1,4 @@
-import { ReferenceString } from 'ecosTypes'
+import type { ReferenceString } from './ecosTypes'
 import type { ActionObject } from './actionTypes'
 import type { StyleObject } from './styleTypes'
 

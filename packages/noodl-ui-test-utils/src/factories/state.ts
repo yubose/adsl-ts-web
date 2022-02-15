@@ -1,6 +1,6 @@
 import curry from 'lodash/curry'
 import set from 'lodash/set'
-import { ComponentObject, ComponentType, PageObject } from 'noodl-types'
+import { PageObject } from 'noodl-types'
 
 const stateFactory = function <
   O extends Record<keyof PageObject, PageObject[keyof PageObject]>,

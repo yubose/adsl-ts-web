@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import {
+import type {
   ButtonComponentObject,
   CanvasComponentObject, // 9
   DividerComponentObject,

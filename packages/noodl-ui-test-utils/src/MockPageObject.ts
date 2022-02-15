@@ -1,13 +1,10 @@
 import * as u from '@jsmanifest/utils'
-import { OrArray } from '@jsmanifest/typefest'
 import {
   ActionObject,
   ComponentObject,
   PageObject,
   userEvent,
 } from 'noodl-types'
-import actionFactory from './factories/action'
-import componentFactory from './factories/component'
 import stateFactory from './factories/state'
 
 interface Api<C extends ComponentObject> {

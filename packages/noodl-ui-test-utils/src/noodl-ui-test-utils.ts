@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
-import { PartialDeep } from 'type-fest'
-import {
+import type { PartialDeep } from 'type-fest'
+import type {
   BuiltInActionObject,
   ButtonComponentObject,
   CanvasComponentObject, // 9
@@ -44,11 +44,8 @@ import {
   VideoComponentObject,
   ViewComponentObject,
 } from 'noodl-types'
-import {
-  ComponentProps,
-  createActionObject_next,
-  createComponentObject,
-} from './utils'
+import type { ComponentProps } from './utils'
+import { createActionObject_next, createComponentObject } from './utils'
 import ecosJpgDoc from './fixtures/jpg.json'
 import ecosNoteDoc from './fixtures/note.json'
 import ecosPdfDoc from './fixtures/pdf.json'

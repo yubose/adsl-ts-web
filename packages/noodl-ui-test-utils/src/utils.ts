@@ -1,5 +1,5 @@
 import curry from 'lodash/curry'
-import {
+import type {
   ActionObject,
   ComponentObject,
   userEvent,
