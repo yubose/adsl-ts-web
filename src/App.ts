@@ -14,13 +14,12 @@ import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
 import * as nu from 'noodl-utils'
-import { AppConfig, Identify, PageObject, ReferenceString } from 'noodl-types'
-import { Identify as is } from 'noodl-types'
+import { AppConfig, PageObject, ReferenceString } from 'noodl-types'
 import {
   NUI,
-  Page as NUIPage,
   NUIActionObject,
   NUITrigger,
+  Page as NUIPage,
   resolveAssetUrl,
   Viewport as VP,
 } from 'noodl-ui'
@@ -42,6 +41,7 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
+import is from './utils/is'
 import parseUrl from './utils/parseUrl'
 import Spinner from './spinner'
 import { getSdkHelpers } from './handlers/sdk'
@@ -694,7 +694,7 @@ class App {
               const datapath = nu.trimReference(ref as ReferenceString)
               const location = ref.startsWith(`=.builtIn`)
                 ? 'root'
-                : Identify.localKey(datapath)
+                : is.localKey(datapath)
                 ? 'local'
                 : 'root'
               if (
@@ -729,8 +729,8 @@ class App {
 
             const validateObject = (obj: Record<string, any>) => {
               for (const [key, value] of u.entries(obj)) {
-                Identify.reference(key) && validateReference(key)
-                Identify.reference(value) && validateReference(value)
+                is.reference(key) && validateReference(key)
+                is.reference(value) && validateReference(value)
                 if (u.isObj(value)) validateObject(value)
               }
             }

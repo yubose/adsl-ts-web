@@ -10,14 +10,11 @@ import {
   findWindow,
   findByElementId,
   findByViewTag,
-  findByDataAttrib,
   findByUX,
   isPageConsumer,
-  NDOMTrigger,
   Page as NDOMPage,
   SignaturePad,
   findFirstByDataKey,
-  BASE_PAGE_URL,
 } from 'noodl-ui-dom'
 import {
   ConsumerOptions,
@@ -38,11 +35,11 @@ import {
   isRootDataKey,
   ParsedPageComponentUrlObject,
 } from 'noodl-utils'
-import { EmitObjectFold, IfObject, Identify } from 'noodl-types'
+import { EmitObjectFold, IfObject } from 'noodl-types'
+import axios from 'axios'
 import {
   getBlobFromCanvas,
   getVcodeElem,
-  hide,
   show,
   openFileSelector,
   scrollToElem,
@@ -50,9 +47,9 @@ import {
 } from '../utils/dom'
 import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
-import { getRandomKey, pickActionKey, pickHasActionKey } from '../utils/common'
-import * as T from '../app/types'
-import axios from 'axios'
+import { pickActionKey, pickHasActionKey } from '../utils/common'
+import is from '../utils/is'
+import * as t from '../app/types'
 
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey
@@ -209,7 +206,7 @@ const createActions = function createActions(app: App) {
                     const destination = result.goto || result.destination || ''
                     const pageComponentParent = findParent(
                       options?.component,
-                      Identify.component.page,
+                      is.component.page,
                     )
                     if (
                       pageComponentParent &&
@@ -245,8 +242,8 @@ const createActions = function createActions(app: App) {
           const pageName = pickNUIPageFromOptions(options)?.page || ''
           object = evalIf((valEvaluating) => {
             let value
-            if (Identify.isBoolean(valEvaluating)) {
-              return Identify.isBooleanTrue(valEvaluating)
+            if (is.isBoolean(valEvaluating)) {
+              return is.isBooleanTrue(valEvaluating)
             }
             if (u.isStr(valEvaluating)) {
               if (valEvaluating.includes('.')) {
@@ -256,7 +253,7 @@ const createActions = function createActions(app: App) {
                   value = get(app.root[pageName], valEvaluating)
                 }
               }
-              if (Identify.isBoolean(value)) Identify.isBooleanTrue(value)
+              if (is.isBoolean(value)) is.isBooleanTrue(value)
             }
             return !!value
           }, ifObj)
@@ -306,7 +303,7 @@ const createActions = function createActions(app: App) {
           : '') || ''
 
       destProps = app.parse.destination(
-        Identify.pageComponentUrl(destinationParam)
+        is.pageComponentUrl(destinationParam)
           ? resolvePageComponentUrl({
               component: options?.component,
               page: ndomPage.getNuiPage(),
@@ -517,7 +514,10 @@ const createActions = function createActions(app: App) {
         const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
         const popUpView = _pick(action, 'popUpView')
         const popDismiss = _pick(action, 'popUpDismiss')
-        let isWaiting = false
+        const wait = _pick(action, 'wait')
+
+        let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
+
         u.arrayEach(asHtmlElement(findByUX(popUpView)), (elem) => {
           if (dismissOnTouchOutside) {
             const onTouchOutside = function onTouchOutside(
@@ -531,26 +531,24 @@ const createActions = function createActions(app: App) {
             document.body.addEventListener('click', onTouchOutside)
           }
           if (elem?.style) {
-            if (Identify.action.popUp(action)&&!u.isNum(_pick(action, 'wait'))) {
+            if (is.action.popUp(action) && !u.isNum(_pick(action, 'wait'))) {
               show(elem)
             } else if (u.isNum(_pick(action, 'wait'))) {
               show(elem)
               let wait = _pick(action, 'wait')
-              if (Identify.isBooleanTrue(wait)) wait = 0
+              if (is.isBooleanTrue(wait)) wait = 0
               if (u.isNum(wait)) isWaiting = true
               setTimeout(() => {
                 hide(elem)
                 resolve()
               }, wait)
-            }
-            else if(Identify.action.popUpDismiss(action)){
+            } else if (is.action.popUpDismiss(action)) {
               hide(elem)
             }
-            if(u.isNum(popDismiss)){
-              setTimeout(()=>{
+            if (u.isNum(popDismiss)) {
+              setTimeout(() => {
                 hide(elem)
-              },popDismiss)
-
+              }, popDismiss)
             }
             // Some popup components render values using the dataKey. There is a bug
             // where an action returns a popUp action from an evalObject action. At
@@ -606,7 +604,7 @@ const createActions = function createActions(app: App) {
 
             // If popUp has wait: true, the action chain should pause until a response
             // is received from something (ex: waiting on user confirming their password)
-            if (Identify.isBooleanTrue(_pick(action, 'wait'))) {
+            if (is.isBooleanTrue(_pick(action, 'wait'))) {
               log.grey(
                 `Popup action for popUpView "${popUpView}" is ` +
                   `waiting on a response. Aborting now...`,
@@ -676,7 +674,7 @@ const createActions = function createActions(app: App) {
               let nameField
               const [nameFieldPath, save] = obj
               if (u.isStr(nameFieldPath) && u.isFnc(save)) {
-                if (Identify.reference(nameFieldPath)) {
+                if (is.reference(nameFieldPath)) {
                   nameField = parseReference(nameFieldPath, {
                     page: currentPage,
                     root: getRoot(),

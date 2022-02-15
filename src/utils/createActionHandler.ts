@@ -1,5 +1,4 @@
 import * as u from '@jsmanifest/utils'
-import * as nt from 'noodl-types'
 import { isAction } from 'noodl-action-chain'
 import {
   ConsumerOptions,
@@ -9,6 +8,7 @@ import {
   NUIActionObject,
   Store,
 } from 'noodl-ui'
+import is from './is'
 
 export type ActionKind = 'action' | 'builtIn'
 
@@ -111,11 +111,11 @@ function createActionHandler<K extends ActionKind>(
           //
         }
       } else if (u.isObj(action)) {
-        if (nt.Identify.action.any(action)) {
+        if (is.action.any(action)) {
           _action = createAction({ action, trigger: 'onClick' })
-        } else if (nt.Identify.folds.emit(action)) {
+        } else if (is.folds.emit(action)) {
           _action = createAction({ action, trigger: 'onClick' })
-        } else if (nt.Identify.goto(action)) {
+        } else if (is.goto(action)) {
           _action = createAction({ action, trigger: 'onClick' })
         } else {
           //

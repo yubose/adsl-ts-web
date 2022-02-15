@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
-import { Identify, PageObject } from 'noodl-types'
+import { PageObject } from 'noodl-types'
 import {
   createAction,
   EmitAction,
@@ -10,6 +10,7 @@ import {
 } from 'noodl-ui'
 import App from '../App'
 import { copyToClipboard } from '../utils/dom'
+import is from '../utils/is'
 import { GlobalRegisterComponent } from '../app/types'
 
 type Room = any
@@ -140,7 +141,7 @@ function createRegisters(app: App) {
       log.func('onInitPage')
 
       for (const componentObject of app.globalRegister) {
-        if (Identify.component.register(componentObject)) {
+        if (is.component.register(componentObject)) {
           // Already attached a function
           if (u.isFnc(componentObject.onEvent)) continue
           if (!componentObject.onEvent) {

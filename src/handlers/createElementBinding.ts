@@ -1,7 +1,7 @@
 import Logger from 'logsnap'
-import { Identify } from 'noodl-types'
 import { isComponent, NuiComponent } from 'noodl-ui'
 import App from '../App'
+import is from '../utils/is'
 import { isVisible } from '../utils/dom'
 
 const log = Logger.create('createElementBinding')
@@ -94,11 +94,11 @@ function createElementBindingFactory(app: App) {
               }
             })
 
-            if (Identify.isBoolean(isAudioStreamBinding)) {
+            if (is.isBoolean(isAudioStreamBinding)) {
               let previousSnapshot = selfStream.snapshot()
               let audioElem = selfStream.getAudioElement()
 
-              if (Identify.isBooleanTrue(isAudioStreamBinding)) {
+              if (is.isBooleanTrue(isAudioStreamBinding)) {
                 log.grey(
                   `audioStream is set to true. Proceeding to turn on audio streaming now...`,
                 )
@@ -153,10 +153,10 @@ function createElementBindingFactory(app: App) {
               }
             }
 
-            if (Identify.isBoolean(isVideoStreamBinding)) {
+            if (is.isBoolean(isVideoStreamBinding)) {
               let videoElem = selfStream.getVideoElement()
 
-              if (Identify.isBooleanTrue(isVideoStreamBinding)) {
+              if (is.isBooleanTrue(isVideoStreamBinding)) {
                 log.grey(
                   `videoStream is set to true. Proceeding to turn on video streaming now...`,
                 )

@@ -28,7 +28,7 @@ import {
   Page as NDOMPage,
   findFirstByElementId,
 } from 'noodl-ui-dom'
-import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
+import { BuiltInActionObject, EcosDocument } from 'noodl-types'
 import Logger from 'logsnap'
 import {
   download,
@@ -45,6 +45,7 @@ import {
   pickActionKey,
   throwError,
 } from '../utils/common'
+import is from '../utils/is'
 import App from '../App'
 import { useGotoSpinner } from './shared/goto'
 import {
@@ -280,10 +281,10 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
             try {
               pdfBlob = await exportToPDF({
                 data:
-                  Identify.mediaType.audio(mediaType) ||
-                  Identify.mediaType.font(mediaType) ||
-                  Identify.mediaType.image(mediaType) ||
-                  Identify.mediaType.video(mediaType)
+                  is.mediaType.audio(mediaType) ||
+                  is.mediaType.font(mediaType) ||
+                  is.mediaType.image(mediaType) ||
+                  is.mediaType.video(mediaType)
                     ? data
                     : { title: title || (u.isStr(content) && content) || data },
                 labels: true,
@@ -331,7 +332,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
       ndomPage.setModifier(ndomPage.previous, {
-        reload: Identify.isBooleanFalse(reload) ? false : true,
+        reload: is.isBooleanFalse(reload) ? false : true,
       })
     }
 
@@ -424,9 +425,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         dataObject = findListDataObject(component)
         previousDataValue = get(dataObject, parts)
         dataValue = previousDataValue
-        if (Identify.isBoolean(dataValue)) {
+        if (is.isBoolean(dataValue)) {
           // true -> false / false -> true
-          nextDataValue = !Identify.isBooleanTrue(dataValue)
+          nextDataValue = !is.isBooleanTrue(dataValue)
         } else {
           // Set to true if am item exists
           nextDataValue = !dataValue
@@ -438,8 +439,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           { updateDraft }: { updateDraft?: { path: string } } = {},
         ) => {
           let nextValue: any
-          if (Identify.isBoolean(prevValue)) {
-            nextValue = !Identify.isBooleanTrue(prevValue)
+          if (is.isBoolean(prevValue)) {
+            nextValue = !is.isBooleanTrue(prevValue)
           }
           nextValue = !prevValue
           if (updateDraft) {
@@ -605,7 +606,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       destProps = app.parse.destination(
-        Identify.pageComponentUrl(destinationParam)
+        is.pageComponentUrl(destinationParam)
           ? resolvePageComponentUrl({
               component: options?.component,
               page: ndomPage.getNuiPage(),
@@ -625,9 +626,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         isSamePage = !!destProps.isSamePage
         duration = destProps.duration || duration
         ndomPage = options?.page
-        const pageComponentParent = Identify.component.page(options?.component)
+        const pageComponentParent = is.component.page(options?.component)
           ? options.component
-          : findParent(options?.component, Identify.component.page)
+          : findParent(options?.component, is.component.page)
 
         if (!ndomPage || isNuiPage(ndomPage)) {
           ndomPage =
@@ -657,7 +658,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
 
       if (!u.isNil(reload)) {
-        // reload = Identify.isBooleanFalse(reload) ? false : true
+        // reload = is.isBooleanFalse(reload) ? false : true
         ndomPage.setModifier(destinationParam, {
           reload,
         })
@@ -843,7 +844,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           if (isListConsumer(_component)) {
             const dataObject = findListDataObject(_component)
             dataObject && (ctx.dataObject = dataObject)
-            if (Identify.component.list(_component)) {
+            if (is.component.list(_component)) {
               ctx.listObject =
                 _component.get?.('listObject') ||
                 _component.blueprint?.listObject ||
@@ -897,29 +898,27 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
     log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
-  const dismissOnTouchOutside: Store.BuiltInObject['fn'] = async function onDismissOnTouchOutside(
-    action,
-    options,
-  ){
-    const component = options?.component as NuiComponent.Instance
-    const metadata = getActionMetadata(action, {
-      component,
-      pickKeys: 'viewTag',
-    })
-    const { viewTag } = metadata
-    if (viewTag) {
-      const node = findByViewTag(viewTag.fromAction) as HTMLElement
-      const onTouchOutside = function onTouchOutside(
-        this: HTMLDivElement,
-        e: Event,
-      ) {
-        e.preventDefault()
-        node?.style && (node.style.display = 'none')
-        document.body.removeEventListener('click', onTouchOutside)
+  const dismissOnTouchOutside: Store.BuiltInObject['fn'] =
+    async function onDismissOnTouchOutside(action, options) {
+      const component = options?.component as NuiComponent.Instance
+      const metadata = getActionMetadata(action, {
+        component,
+        pickKeys: 'viewTag',
+      })
+      const { viewTag } = metadata
+      if (viewTag) {
+        const node = findByViewTag(viewTag.fromAction) as HTMLElement
+        const onTouchOutside = function onTouchOutside(
+          this: HTMLDivElement,
+          e: Event,
+        ) {
+          e.preventDefault()
+          node?.style && (node.style.display = 'none')
+          document.body.removeEventListener('click', onTouchOutside)
+        }
+        document.body.addEventListener('click', onTouchOutside)
       }
-      document.body.addEventListener('click', onTouchOutside)
     }
-  }
 
   const builtIns = {
     checkField,
@@ -1131,20 +1130,20 @@ export const extendedSdkBuiltIns = {
         const enable = toggle('enable')
         const disable = toggle('disable')
 
-        if (Identify.isBoolean(cameraOn)) {
-          if (Identify.isBooleanTrue(cameraOn)) {
+        if (is.isBoolean(cameraOn)) {
+          if (is.isBooleanTrue(cameraOn)) {
             enable(localParticipant?.videoTracks)
-          } else if (Identify.isBooleanFalse(cameraOn)) {
+          } else if (is.isBooleanFalse(cameraOn)) {
             disable(localParticipant?.videoTracks)
           }
         } else {
           // Automatically disable by default
           disable(localParticipant?.videoTracks)
         }
-        if (Identify.isBoolean(micOn)) {
-          if (Identify.isBooleanTrue(micOn)) {
+        if (is.isBoolean(micOn)) {
+          if (is.isBooleanTrue(micOn)) {
             enable(localParticipant?.audioTracks)
-          } else if (Identify.isBooleanFalse(micOn)) {
+          } else if (is.isBooleanFalse(micOn)) {
             disable(localParticipant?.audioTracks)
           }
         } else {

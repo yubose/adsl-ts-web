@@ -1,5 +1,4 @@
 import * as u from '@jsmanifest/utils'
-import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
@@ -9,7 +8,6 @@ import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
-import { Identify } from 'noodl-types'
 import QRCode from 'qrcode'
 import {
   asHtmlElement,
@@ -29,6 +27,7 @@ import {
   NuiComponent,
 } from 'noodl-ui'
 import App from '../App'
+import is from '../utils/is'
 import { hide } from '../utils/dom'
 
 type ToolbarInput = any
@@ -83,7 +82,7 @@ const createExtendedDOMResolvers = function (app: App) {
         }
 
         // TODO - Come back to this to provide more robust functionality
-        if (Identify.folds.emit(component.blueprint.dataValue)) {
+        if (is.folds.emit(component.blueprint.dataValue)) {
           await actionChain?.execute?.(event)
         }
       } else {
