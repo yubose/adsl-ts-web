@@ -32,7 +32,7 @@ let noodl: NOODL | undefined
 
 // const dbConfig = {
 //   locateFile: (filename) => {
-//     return `https://cdn.jsdelivr.net/npm/sql-wasm@1.1.4/dist/cjs/sql-wasm.min.js`
+//     return `https://cdn.jsdelivr.net/npm/sql.js@1.6.2/dist/sql-wasm.wasm`
 //   },
 // }
 
