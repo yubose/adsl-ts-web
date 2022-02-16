@@ -28,6 +28,7 @@ export type StaticComponentObject = nt.ComponentObject &
 
 export interface PageContext {
   isPreload: boolean
+  startPage?: string
   pageName: string
   pageObject: {
     components: StaticComponentObject[]

@@ -63,15 +63,21 @@ module.exports = {
       resolve: require.resolve(`../gatsby-plugin-noodl`),
       options: {
         // If we provide this assets will be downloaded to this path.
+
         // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
+
         // NOTE: If we do this we need to point to this path via `gatsby-source-filesystem` (look below for src/resources/images for an example)
-        // assets: `${__dirname}/src/resources/assets`,
-        config: 'web',
+        assets: `${__dirname}/src/resources/assets`,
+        config: 'mob',
         loglevel: 'debug',
-        // If introspection is true, it will dump all of the noodl pages in json to the output path specified below as "<config>.introspection.json" after they have all been parsed and are about to be inserted as GraphQL nodes
+        // This will be used in the plugin to grab the version in the config object
+        deviceType: 'web',
+        // If introspection is true, it will dump all of the TRANSFORMED noodl // pages in json to the output path specified below as "<config>.// introspection.json"
         // introspection: true,
         // If we provide this path the yml files/assets will be made available
         path: `${__dirname}/output`,
+        // If we don't provide this, it will use the startPage in cadlEndpoint in the yaml. If it is not in cadlEndpoint, the fallback is 'HomePage'
+        // startPage: 'MobHomePage',
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
           width: 1024,
