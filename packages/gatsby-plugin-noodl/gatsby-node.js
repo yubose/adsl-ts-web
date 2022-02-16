@@ -12,6 +12,7 @@ const get = require('lodash/get')
 const set = require('lodash/set')
 const path = require('path')
 const getGenerator = require('./generator')
+const GatsbyPluginNoodlCache = require('./Cache')
 const utils = require('./utils')
 
 log.setDefaultLevel('INFO')
@@ -32,6 +33,9 @@ function unstable_shouldOnCreateNode({ node }) {
 
 const BASE_CONFIG_URL = `https://public.aitmed.com/config/`
 const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
+
+/** @type { GatsbyPluginNoodlCache } */
+let cache
 
 const data = {
   _assets_: [],
@@ -79,10 +83,13 @@ exports.onPreInit = (args, pluginOptions) => {
  * @param { GatsbyNoodlPluginOptions } pluginOptions
  */
 exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
-  const { cache } = args
+  cache = new GatsbyPluginNoodlCache(args.cache)
+
   const {
     assets: assetsPath,
     config = 'aitmed',
+    ecosEnv = 'stable',
+    version = 'latest',
     path: outputPath,
     template: templatePath,
   } = pluginOptions || {}
@@ -97,6 +104,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
 
   await cache.set('configKey', data.configKey)
   await cache.set('configUrl', data.configUrl)
+  if (version && version !== 'latest') await cache.set('configVersion', version)
 
   /**
    * Saves config files to an output folder
@@ -110,10 +118,17 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
       config: data.configKey,
       dataType: 'map',
       deviceType: 'web',
-      env: 'stable',
+      env: ecosEnv,
       loglevel: 'verbose',
       version: 'latest',
     })
+    // const rootConfigDoc = await loader.loadRootConfig(data.configKey)
+    // const rootConfigVers = rootConfigDoc.getIn(`web.cadlVersion.${ecosEnv}`)
+    // const cachedRootConfig = await cache.get('config')
+    // if (rootConfigVers && await cache.get('configVersion') === rootConfigVers) {
+    //   const y = require('yaml')
+    //   await loader.loadRootConfig(y.parseDocument(await cache.get('rootConfig')))
+    // }
     await loader.init({
       spread: ['BaseCSS', 'BasePage', 'BaseDataModel', 'BaseMessage'],
     })
@@ -121,13 +136,11 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
     const assets = await loader.extractAssets()
 
     if (outputPath) {
-      await fs.ensureDir(path.join(outputPath, `./${data.configKey}`))
+      const outputDir = path.join(outputPath, `./${data.configKey}`)
+      await fs.ensureDir(outputDir)
       for (const [name, doc] of loader.root.entries()) {
-        const filepath = path.join(
-          outputPath,
-          `./${data.configKey}/${name}.yml`,
-        )
-        await fs.writeFile(filepath, doc.toString(), 'utf8')
+        const filepath = path.join(outputDir, `${name}.yml`)
+        if (!fs.existsSync(filepath)) await fs.writeFile(filepath, doc)
       }
     }
 
@@ -135,16 +148,17 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
       await Promise.all(
         assets.map(async (asset) => {
           try {
-            log.info(`Downloading: ${asset.url}`)
-            const resp = await axios.get(asset.url, {
-              responseType: 'stream',
-            })
-            const filepath = path.join(
-              assetsPath,
-              `./${asset.filename}${asset.ext}`,
-            )
-            resp.data.pipe(fs.createWriteStream(filepath, { autoClose: true }))
-            !data._assets_.includes(filepath) && data._assets_.push(filepath)
+            const fullFileName = `./${asset.filename}${asset.ext}`
+            const filepath = path.join(assetsPath, fullFileName)
+            if (!fs.existsSync(filepath)) {
+              log.info(`Downloading: ${asset.url}`)
+              const reqOptions = { responseType: 'stream' }
+              const resp = await axios.get(asset.url, reqOptions)
+              resp.data.pipe(
+                fs.createWriteStream(filepath, { autoClose: true }),
+              )
+              !data._assets_.includes(filepath) && data._assets_.push(filepath)
+            }
           } catch (error) {
             const err =
               error instanceof Error ? error : new Error(String(error))
@@ -177,7 +191,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   const { createNode } = actions
   const { viewport = { width: 1024, height: 768 } } = pluginOptions
 
-  const { cache, page, pages, sdk, transform } = await getGenerator({
+  const { page, pages, sdk, transform } = await getGenerator({
     configKey: data.configKey,
     on: {
       /**
@@ -279,12 +293,11 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
     return transformedComponents
   }
 
+  const allYmlNames = [...sdk.cadlEndpoint.preload, ...sdk.cadlEndpoint.page]
   /**
    * Create GraphQL nodes for "preload" pages so they can be queried in the client side
    */
-  for (const [name, obj] of u.entries(
-    u.omit(sdk.root, [...sdk.cadlEndpoint.preload, ...sdk.cadlEndpoint.page]),
-  )) {
+  for (const [name, obj] of u.entries(u.omit(sdk.root, allYmlNames))) {
     if (obj) {
       createNode({
         name,
@@ -299,10 +312,13 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
       })
     }
   }
+
   /**
    * Create GraphQL nodes for app pages so they can be queried in the client side
    */
   for (const [name, pageObject] of u.entries(pages)) {
+    console.log(`Generating non-preload: ${name}`)
+
     page.page = name
     pageObject.components = await generateComponents(
       name,
@@ -358,88 +374,8 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   }
 
   /**
-   *
    * @param {{ [page: string]: { componentPath: string[]; path: string[] } }} acc
    */
-  // const findListObjectRefs = (cachedJsonPages) => {
-  //   const allRefs = {}
-
-  //   const find = (component, componentPath = []) => {
-  //     const refs = {}
-
-  //     if (u.isObj(component)) {
-  //       if (component.listObject) {
-  //         if (
-  //           u.isStr(component.listObject) &&
-  //           nt.Identify.reference(component.listObject)
-  //         ) {
-  //           const pathsStr = componentPath.join('.')
-  //           refs[pathsStr] = component.listObject
-
-  //           const ctxListsObject = u
-  //             .values(data._context_[componentPath[0]]?.lists || {})
-  //             .find((o) => o?.path?.join?.('.') === pathsStr)
-
-  //           if (ctxListsObject) {
-  //             ctxListsObject.listObjectPath = trimReference(
-  //               component.listObject,
-  //             )
-  //           }
-  //         }
-  //       }
-
-  //       if (component.children) {
-  //         u.array(component.children).forEach((child, index) => {
-  //           u.assign(refs, find(child, componentPath.concat('children', index)))
-  //         })
-  //       }
-  //     } else if (u.isStr(component) && nt.Identify.reference(component)) {
-  //       const datapath = trimReference(component)
-
-  //       if (has(cachedJsonPages, datapath)) {
-  //         refs[componentPath] = find(
-  //           get(cachedJsonPages, datapath),
-  //           componentPath,
-  //         )
-  //       }
-
-  //       if (has(cachedJsonPages[componentPath[0]])) {
-  //         refs[componentPath] = find(
-  //           get(cachedJsonPages[componentPath[0]], datapath),
-  //           componentPath,
-  //         )
-  //       }
-  //     }
-
-  //     return refs
-  //   }
-
-  //   for (const [pageName, pageObject] of u.entries(cachedJsonPages)) {
-  //     if (!pageObject?.components) continue
-  //     u.forEach(u.array(pageObject.components), (component, index) => {
-  //       if (!component) return
-  //       u.assign(allRefs, find(component, [pageName, 'components', index]))
-  //     })
-  //   }
-
-  //   return allRefs
-  // }
-
-  // const componentReferencesNodeContent = findListObjectRefs(cache.pages)
-
-  // createNode({
-  //   name: 'ComponentReference',
-  //   id: createNodeId('ComponentReference'),
-  //   refs: componentReferencesNodeContent,
-  //   children: [],
-  //   internal: {
-  //     contentDigest: createContentDigest(
-  //       JSON.stringify(componentReferencesNodeContent),
-  //     ),
-  //     type: 'ComponentReference',
-  //   },
-  // })
-
   if (pluginOptions.introspection) {
     await fs.writeJson(
       path.join(pluginOptions.path, `./${data.configKey}_introspection.json`),
@@ -513,11 +449,6 @@ exports.createPages = async function createPages(args, pluginOptions) {
 }
 
 /**
- * @param { import('gatsby').CreateNodeArgs } args
- */
-exports.onCreateNode = async ({ node }) => {}
-
-/**
  * @argument { import('gatsby').CreatePageArgs } opts
  */
 exports.onCreatePage = async function onCreatePage(opts) {
@@ -535,7 +466,6 @@ exports.onCreatePage = async function onCreatePage(opts) {
       pageObject: u.pick(data._pages_.json[pageName], 'components'),
       slug,
     }
-
     deletePage(oldPage)
     createPage(page)
   }

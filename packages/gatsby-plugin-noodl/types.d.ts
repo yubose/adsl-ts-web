@@ -17,6 +17,13 @@ export interface GatsbyNoodlPluginOptions {
   }
 }
 
+export interface GatsbyNoodlPluginCacheObject {
+  configKey?: string
+  configUrl?: string
+  configVersion?: string
+  rootConfig?:
+}
+
 export type StaticComponentObject = ComponentObject &
   Record<
     string,

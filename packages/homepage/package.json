@@ -199,7 +199,6 @@
     "build": "gatsby build --prefix-paths",
     "clean": "gatsby clean",
     "deploy": "aws s3 rm s3://public.aitmed.com/static/web/latest/ --recursive && aws s3 cp public/ s3://public.aitmed.com/static/web/latest/ --recursive",
-    "format": "prettier --write '**/*.{js,jsx,ts,tsx,json,md}'",
     "serve": "gatsby serve -p 3000",
     "start": "gatsby develop -p 3000",
     "test": "jest",

@@ -9,12 +9,15 @@ export default function ({ element, headComponents }) {
       <Helmet htmlAttributes={{ lang: 'en' }}>
         <meta charSet="utf-8" />
         <meta httpEquiv="x-ua-compatible" content="ie=edge; charset=UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         {headComponents}
         <link rel="icon" type="image/png" href={favicon} sizes="32x32" />
         <link rel="icon" type="image/png" href={favicon} sizes="42x42" />
-        <meta name="say-hello" content="hello" />
         <meta name="build-timestamp" content={new Date().toISOString()} />
+        <meta
+          name="google-site-verification"
+          content="ftZTuRqMUQ4uHXtPrSeyqxtArLLI3q9BvqvVVo9pfdc"
+        />
       </Helmet>
       <AppProvider>{element}</AppProvider>
     </>

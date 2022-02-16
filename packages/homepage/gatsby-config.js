@@ -11,16 +11,19 @@ process.env.GATSBY_BUILD = JSON.stringify({
 const pathPrefix = `` // deployed to root directory
 
 const {
+  name: siteName,
   title: siteTitle = '',
   description: siteDescription = '',
   keywords: siteKeywords,
+  logo: siteLogo,
   url: siteUrl,
+  video: siteVideo,
 } = getSiteMetadata('../../webpack.config.js')
 
-for (const titleOrDesc of [siteTitle, siteDescription]) {
-  if (!titleOrDesc) {
+for (const titleOrDescOrName of [siteName, siteTitle, siteDescription]) {
+  if (!titleOrDescOrName) {
     throw new Error(
-      `Missing site title and/or site description. ` +
+      `Missing site name, title, and/or site description. ` +
         `Check ${u.cyan('webpack.config.js')} at ` +
         `${u.yellow(path.resolve(__dirname, '../../webpack.config.js'))}`,
     )
@@ -33,10 +36,13 @@ for (const titleOrDesc of [siteTitle, siteDescription]) {
  */
 module.exports = {
   siteMetadata: {
+    siteName,
     siteTitle,
     siteDescription,
+    siteLogo,
     siteUrl,
     siteKeywords,
+    siteVideo,
   },
   pathPrefix,
   plugins: [
@@ -60,12 +66,12 @@ module.exports = {
         // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
         // NOTE: If we do this we need to point to this path via `gatsby-source-filesystem` (look below for src/resources/images for an example)
         // assets: `${__dirname}/src/resources/assets`,
-        config: process.env.NOODL_CONFIG || 'web',
+        config: 'web',
         loglevel: 'debug',
         // If introspection is true, it will dump all of the noodl pages in json to the output path specified below as "<config>.introspection.json" after they have all been parsed and are about to be inserted as GraphQL nodes
         // introspection: true,
         // If we provide this path the yml files/assets will be made available
-        // path: `${__dirname}/output`,
+        path: `${__dirname}/output`,
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
           width: 1024,
@@ -95,10 +101,13 @@ module.exports = {
           {
             site {
               siteMetadata {
+                siteName,
                 title: siteTitle
                 description: siteDescription
+                siteLogo
                 siteUrl
                 site_url: siteUrl
+                siteVideo
               }
             }
           }
@@ -136,8 +145,8 @@ module.exports = {
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
-        name: `AiTmed Homepage`,
-        short_name: `AiTmed`,
+        name: `${siteName} Homepage`,
+        short_name: siteName,
         start_url: `/`,
         background_color: `#663399`,
         display: `minimal-ui`,
@@ -169,10 +178,18 @@ module.exports = {
 
 /**
  * @param { string } relativePathToWebAppWebpackConfig
- * @returns { { title: string; description: string; keywords: string[]; url: string }}
+ * @returns { { name: string; title: string; description: string; keywords: string[]; url: string }}
  */
 function getSiteMetadata(relativePathToWebAppWebpackConfig) {
-  const metadata = { keywords: [], url: `https://aitmed.com` }
+  const metadata = {
+    // TODO - Extract name from webpack.config.js instead
+    name: 'AiTmed',
+    keywords: [],
+    logo: 'https://public.aitmed.com/cadl/www3.83/assets/aitmedLogo.png',
+    url: `https://aitmed.com`,
+    video:
+      'https://public.aitmed.com/commonRes/video/aitmed228FromBlair11192020.mp4',
+  }
 
   const webAppWebpackConfigAST = parse(
     fs.readFileSync(

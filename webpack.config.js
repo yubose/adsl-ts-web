@@ -14,7 +14,8 @@ const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
 del.sync(path.resolve(path.join(process.cwd(), 'build')))
 
-const TITLE = 'AiTmed: Start your E-health Journey Anywhere, Anytime'
+const NAME = 'AiTmed'
+const TITLE = `${NAME}: Start your E-health Journey Anywhere, Anytime`
 const DESCRIPTION = `Anyone, Anywhere, Anytime Start Your E-health Journey With Us`
 const KEYWORDS = [
   'aitmed',
@@ -376,6 +377,7 @@ function webpackProgress(percentage, msg, ...args) {
   }\n\n`)
 }
 
+module.exports.NAME = NAME
 module.exports.TITLE = TITLE
 module.exports.DESCRIPTION = DESCRIPTION
 module.exports.KEYWORDS = KEYWORDS

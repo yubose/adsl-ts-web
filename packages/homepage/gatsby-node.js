@@ -13,7 +13,7 @@ exports.onCreateWebpackConfig = ({ actions, stage }) => {
   })
 
   if (stage === `build-javascript`) {
-    // Disables source maps (decreases file size immensely)
+    // Comment to disable source maps (decreases file size)
     actions.setWebpackConfig({
       devtool: false,
     })
