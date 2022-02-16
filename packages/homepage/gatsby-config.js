@@ -155,11 +155,12 @@ module.exports = {
     },
     // 'gatsby-plugin-remove-serviceworker',
     {
+      // https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/
       resolve: `gatsby-plugin-offline`,
       options: {
         workboxConfig: {
           clientsClaim: true,
-          // dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
+          dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
           modifyURLPrefix: {
             '/': `${pathPrefix}/`,
           },
