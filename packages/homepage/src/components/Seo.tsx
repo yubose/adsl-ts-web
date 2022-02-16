@@ -7,7 +7,7 @@ import { Helmet } from 'react-helmet'
 import { useStaticQuery, graphql } from 'gatsby'
 
 export interface SeoProps {
-  title: string
+  title?: string
   description?: string
   canonical?: string
   lang?: string
