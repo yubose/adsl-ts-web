@@ -1,7 +1,33 @@
 import type { LiteralUnion } from 'type-fest'
-import type { ActionObject, ComponentObject, Env } from 'noodl-types'
+import type {
+  ActionObject,
+  ComponentObject,
+  Env,
+  DeviceType,
+  PageObject,
+} from 'noodl-types'
 import type { Action } from 'noodl-action-chain'
 import type { PluginOptions as GatsbyPluginOptions } from 'gatsby'
+import type { data } from './gatsby-node'
+
+export interface InternalData {
+  _assets_: string[]
+  _context_: {
+    [page: string]: {
+      lists?: ListComponentsContext
+      componentRefs?: ComponentReferencesContext[]
+    }
+  }
+  _pages_: {
+    json: Record<string, PageObject>
+    serialized: Record<string, any>
+  }
+  configKey: string
+  configUrl: string
+  deviceType: DeviceType
+  startPage: string
+  template: string
+}
 
 export interface GatsbyNoodlPluginOptions {
   plugins: GatsbyPluginOptions
@@ -23,7 +49,7 @@ export interface GatsbyNoodlPluginCacheObject {
   configKey?: string
   configUrl?: string
   configVersion?: string
-  rootConfig?:
+  // rootConfig?: any
 }
 
 export type StaticComponentObject = ComponentObject &
@@ -51,18 +77,19 @@ export interface PageContext {
   slug: string
   _context_: {
     [page: string]: {
-      lists?: Record<
-        string,
-        {
-          children: string[][]
-          id: string
-          listObject: any[]
-          iteratorVar: string
-          path: (string | number)[]
-        }
-      >
+      lists?: ListComponentsContext
       componentRefs?: ComponentReferencesContext[]
     }
+  }
+}
+
+export interface ListComponentsContext {
+  [key: string]: {
+    children: string[][]
+    id: string
+    listObject: any[]
+    iteratorVar: string
+    path: (string | number)[]
   }
 }
 

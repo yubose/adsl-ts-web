@@ -15,14 +15,15 @@ const getGenerator = require('./generator')
 const GatsbyPluginNoodlCache = require('./Cache')
 const utils = require('./utils')
 
-log.setDefaultLevel('INFO')
-
+const DEFAULT_LOG_LEVEL = 'INFO'
+const DEFAULT_VIEWPORT_WIDTH = 1024
+const DEFAULT_VIEWPORT_HEIGHT = 768
 const NOODL_PAGE_NODE_TYPE = 'NoodlPage'
 
+log.setDefaultLevel(DEFAULT_LOG_LEVEL)
+
 function unstable_shouldOnCreateNode({ node }) {
-  if (node.internal.mediaType === `text/yaml`) {
-    return true
-  }
+  if (node.internal.mediaType === `text/yaml`) return true
   return false
 }
 
@@ -37,6 +38,7 @@ const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 /** @type { GatsbyPluginNoodlCache } */
 let cache
 
+/** @type { import('./types').InternalData } */
 const data = {
   _assets_: [],
   _context_: {},
@@ -51,6 +53,7 @@ const data = {
   template: '',
 }
 
+exports.data = data
 exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
 
 /**
@@ -66,7 +69,7 @@ exports.onPreInit = (args, pluginOptions) => {
 
   if (
     u.isStr(loglevel) &&
-    loglevel !== 'INFO' &&
+    loglevel !== DEFAULT_LOG_LEVEL &&
     LOGLEVELS.includes(loglevel)
   ) {
     log.setLevel(loglevel)
@@ -93,24 +96,31 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
     deviceType = 'web',
     ecosEnv = 'stable',
     loglevel,
-    version = 'latest',
     path: outputPath,
     startPage,
     template: templatePath,
+    version = 'latest',
   } = pluginOptions || {}
 
+  if (assetsPath) log.debug(`Assets path: ${assetsPath}`)
+  if (deviceType) log.debug(`Device type set to: ${deviceType}`)
+
   log.debug(`Config key: ${config}`)
+  log.debug(`Ecos environment: ${ecosEnv}`)
   log.debug(`Output path: ${outputPath}`)
+  log.debug(`Start page: ${startPage}`)
   log.debug(`Template path: ${templatePath}`)
 
   data.configKey = config
   data.configUrl = utils.ensureYmlExt(`${BASE_CONFIG_URL}${config}`)
   data.deviceType = deviceType
   data.template = templatePath
+
   if (startPage) data.startPage = startPage
 
   await cache.set('configKey', data.configKey)
   await cache.set('configUrl', data.configUrl)
+
   if (version && version !== 'latest') await cache.set('configVersion', version)
 
   /**
@@ -209,7 +219,12 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
 exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   const { actions, createContentDigest, createNodeId } = args
   const { createNode } = actions
-  const { viewport = { width: 1024, height: 768 } } = pluginOptions
+  const {
+    viewport = {
+      width: DEFAULT_VIEWPORT_WIDTH,
+      height: DEFAULT_VIEWPORT_HEIGHT,
+    },
+  } = pluginOptions
 
   const { page, pages, sdk, transform } = await getGenerator({
     configKey: data.configKey,
@@ -338,7 +353,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
    * Create GraphQL nodes for app pages so they can be queried in the client side
    */
   for (const [name, pageObject] of u.entries(pages)) {
-    console.log(`Generating non-preload: ${name}`)
+    log.debug(`Generating non-preload: ${name}`)
 
     page.page = name
     pageObject.components = await generateComponents(
@@ -479,6 +494,7 @@ exports.onCreatePage = async function onCreatePage(opts) {
   const { actions, page } = opts
   const { createPage, deletePage } = actions
 
+  // Binds homepage to startPage
   if (page.path === '/') {
     const oldPage = u.assign({}, page)
     const pageName = data.startPage
@@ -490,6 +506,7 @@ exports.onCreatePage = async function onCreatePage(opts) {
       pageObject: data._pages_.json?.[pageName],
       slug,
     }
+    log.info(`Home route '/' is bound to ${pageName}`)
     deletePage(oldPage)
     createPage(page)
   }
