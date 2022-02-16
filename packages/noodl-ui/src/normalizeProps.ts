@@ -376,7 +376,7 @@ function normalizeProps<
             ---- SIZES
           -------------------------------------------------------- */
 
-          const { width, height, maxHeight, maxWidth, minHeight, minWidth } =
+          const { width, height, maxHeight, maxWidth, minHeight, minWidth,lineHeight} =
             originalValue || {}
 
           if (viewport) {
@@ -419,6 +419,9 @@ function normalizeProps<
               value.minWidth = String(
                 util.getSize(minWidth as any, viewport.width),
               )
+            }
+            if (!u.isNil(lineHeight)) {
+              value.lineHeight = String(util.getSize(lineHeight, viewport.height))
             }
           }
           // HANDLING ARTBITRARY STYLES
