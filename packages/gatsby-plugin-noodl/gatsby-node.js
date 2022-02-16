@@ -140,7 +140,10 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
       await fs.ensureDir(outputDir)
       for (const [name, doc] of loader.root.entries()) {
         const filepath = path.join(outputDir, `${name}.yml`)
-        if (!fs.existsSync(filepath)) await fs.writeFile(filepath, doc)
+        if (!fs.existsSync(filepath)) {
+          await fs.ensureDir(path.parse(filepath).dir)
+          await fs.writeFile(filepath, doc?.toString?.() || '')
+        }
       }
     }
 
