@@ -7,9 +7,11 @@ export interface GatsbyNoodlPluginOptions {
   plugins: GatsbyPluginOptions
   assets?: string
   config?: string
+  deviceType?: 'web' | 'android' | 'ios'
   ecosEnv?: Env
   loglevel?: 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn'
   path?: string
+  startPage?: string
   template?: string
   viewport?: {
     width: number

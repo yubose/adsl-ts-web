@@ -1,6 +1,7 @@
 import * as u from '@jsmanifest/utils'
+import type { PageObject } from 'noodl-types'
 import React from 'react'
-import { PageProps } from 'gatsby'
+import type { PageProps } from 'gatsby'
 import Seo from '@/components/Seo'
 import useRenderer from '@/hooks/useRenderer'
 import { Provider as PageContextProvider } from '@/usePageCtx'
@@ -13,7 +14,7 @@ interface HomepageProps extends PageProps {
 
 function Homepage(props: HomepageProps) {
   const { pageContext } = props
-  const { pageObject } = pageContext
+  const { pageObject = {} as PageObject } = pageContext
 
   const render = useRenderer()
 
@@ -28,7 +29,11 @@ function Homepage(props: HomepageProps) {
       {pageObject.components?.map?.(
         (c: t.StaticComponentObject, index: number) => (
           <React.Fragment key={c.id}>
-            {render(c, ['HomePage', 'components', index])}
+            {render(c, [
+              pageContext?.startPage || 'HomePage',
+              'components',
+              index,
+            ])}
           </React.Fragment>
         ),
       ) || null}

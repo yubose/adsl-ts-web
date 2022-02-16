@@ -46,6 +46,8 @@ const data = {
   },
   configKey: '',
   configUrl: '',
+  deviceType: '',
+  startPage: '',
   template: '',
 }
 
@@ -88,9 +90,12 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
   const {
     assets: assetsPath,
     config = 'aitmed',
+    deviceType = 'web',
     ecosEnv = 'stable',
+    loglevel,
     version = 'latest',
     path: outputPath,
+    startPage,
     template: templatePath,
   } = pluginOptions || {}
 
@@ -100,7 +105,9 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
 
   data.configKey = config
   data.configUrl = utils.ensureYmlExt(`${BASE_CONFIG_URL}${config}`)
+  data.deviceType = deviceType
   data.template = templatePath
+  if (startPage) data.startPage = startPage
 
   await cache.set('configKey', data.configKey)
   await cache.set('configUrl', data.configUrl)
@@ -117,10 +124,10 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
     const loader = new Loader({
       config: data.configKey,
       dataType: 'map',
-      deviceType: 'web',
+      deviceType,
       env: ecosEnv,
-      loglevel: 'verbose',
-      version: 'latest',
+      loglevel: loglevel || 'verbose',
+      version,
     })
     // const rootConfigDoc = await loader.loadRootConfig(data.configKey)
     // const rootConfigVers = rootConfigDoc.getIn(`web.cadlVersion.${ecosEnv}`)
@@ -133,14 +140,27 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
       spread: ['BaseCSS', 'BasePage', 'BaseDataModel', 'BaseMessage'],
     })
 
-    const assets = await loader.extractAssets()
+    /** @type { import('noodl').LinkStructure[] } */
+    let assets
+
+    try {
+      assets = await loader.extractAssets()
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error(
+        `[${u.yellow(err.name)}] Extracting assets: ${u.red(err.message)}`,
+      )
+    }
 
     if (outputPath) {
       const outputDir = path.join(outputPath, `./${data.configKey}`)
       await fs.ensureDir(outputDir)
       for (const [name, doc] of loader.root.entries()) {
         const filepath = path.join(outputDir, `${name}.yml`)
-        if (!fs.existsSync(filepath)) await fs.writeFile(filepath, doc)
+        if (!fs.existsSync(filepath)) {
+          await fs.ensureDir(path.parse(filepath).dir)
+          await fs.writeFile(filepath, doc?.toString?.() || '')
+        }
       }
     }
 
@@ -229,7 +249,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   })
 
   // TODO - Link src/pages/index.tsx to load using this as a source
-  data.startPage = (sdk.cadlEndpoint || {}).startPage || 'HomePage'
+  if (!data.startPage) data.startPage = (sdk.cadlEndpoint || {}).startPage
 
   // TODO - Figure out a way to pre-generate component dimensions using the runtime/client's viewport
   page.viewport.width = viewport.width
@@ -437,7 +457,10 @@ exports.createPages = async function createPages(args, pluginOptions) {
             _context_: get(data._context_, pageName) || {},
             isPreload: false,
             pageName,
-            pageObject: u.pick(data._pages_.json[pageName], 'components'),
+            // Intentionally leaving out other props from the page object since they are provided in the root object (available in the React context that wraps our app)
+            pageObject: {
+              components: u.pick(data._pages_.json[pageName], 'components'),
+            },
             slug,
           },
         })
@@ -458,13 +481,13 @@ exports.onCreatePage = async function onCreatePage(opts) {
 
   if (page.path === '/') {
     const oldPage = u.assign({}, page)
-    const pageName = 'HomePage'
+    const pageName = data.startPage
     const slug = `/${pageName}/`
     page.context = {
       _context_: get(data._context_, pageName) || {},
       isPreload: false,
       pageName,
-      pageObject: u.pick(data._pages_.json[pageName], 'components'),
+      pageObject: data._pages_.json?.[pageName],
       slug,
     }
     deletePage(oldPage)
