@@ -8,6 +8,7 @@ import * as c from '@/consts'
 import * as t from '@/types'
 import type useActionChain from '@/hooks/useActionChain'
 import type useBuiltInFns from '@/hooks/useBuiltInFns'
+import NoodlImage from '@/components/Image'
 import log from '@/utils/log'
 import is from '@/utils/is'
 
@@ -164,6 +165,12 @@ function createRendererFactory({
             )
           }
           index++
+        }
+
+        if (type === 'img') {
+          // @ts-expect-error
+          type = NoodlImage
+          rest.src = rest.src || rest['data-src'] || rest.path
         }
 
         return React.createElement(

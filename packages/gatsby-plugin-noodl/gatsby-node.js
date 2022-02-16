@@ -293,11 +293,12 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
     return transformedComponents
   }
 
-  const allYmlNames = [...sdk.cadlEndpoint.preload, ...sdk.cadlEndpoint.page]
   /**
    * Create GraphQL nodes for "preload" pages so they can be queried in the client side
    */
-  for (const [name, obj] of u.entries(u.omit(sdk.root, allYmlNames))) {
+  for (const [name, obj] of u.entries(
+    u.omit(sdk.root, sdk.cadlEndpoint.page),
+  )) {
     if (obj) {
       createNode({
         name,
