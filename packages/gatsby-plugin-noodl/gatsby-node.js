@@ -309,6 +309,23 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                   // This path is used to map list objects to their reference getters in the client
                   path: [pageName, 'components', ...componentPath],
                 })
+              } else if (nt.Identify.component.image(comp)) {
+                comp.set('_path_', comp.get('path'))
+              }
+
+              if (
+                u.isStr(comp?.style?.fontSize) &&
+                comp?.style?.fontSize.endsWith('px')
+              ) {
+                const rounded = String(
+                  parseInt(
+                    comp?.style?.fontSize.replace(/[a-zA-Z]+/gi, ''),
+                    10,
+                  ),
+                )
+                if (utils.fontSize[rounded]) {
+                  comp.style.fontSize = utils.fontSize[rounded]
+                }
               }
             },
           },
@@ -471,7 +488,7 @@ exports.createPages = async function createPages(args, pluginOptions) {
             pageName,
             // Intentionally leaving out other props from the page object since they are provided in the root object (available in the React context that wraps our app)
             pageObject: {
-              components: u.pick(data._pages_.json[pageName], 'components'),
+              components: data._pages_.json?.[pageName]?.components,
             },
             slug,
           },
