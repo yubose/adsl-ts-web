@@ -310,12 +310,13 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                   path: [pageName, 'components', ...componentPath],
                 })
               } else if (nt.Identify.component.image(comp)) {
+                // This is mapped to the client side to pick up the static image
                 comp.set('_path_', comp.get('path'))
               }
 
               if (
                 u.isStr(comp?.style?.fontSize) &&
-                comp?.style?.fontSize.endsWith('px')
+                comp.style.fontSize.endsWith('px')
               ) {
                 const rounded = String(
                   parseInt(
@@ -370,10 +371,9 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
    */
   for (const [name, pageObject] of u.entries(pages)) {
     page.page = name
-    pageObject.components = await generateComponents(
-      name,
-      pageObject.components,
-    )
+    const { components } = pageObject
+    for (const k of u.keys(pageObject)) delete pageObject[k]
+    pageObject.components = await generateComponents(name, components)
 
     const lists = data._context_[name]?.lists
 
@@ -488,7 +488,10 @@ exports.createPages = async function createPages(args, pluginOptions) {
             pageName,
             // Intentionally leaving out other props from the page object since they are provided in the root object (available in the React context that wraps our app)
             pageObject: {
-              components: data._pages_.json?.[pageName]?.components,
+              components:
+                data._pages_.json?.[pageName]?.components ||
+                data._pages_.json?.[pageName]?.components?.components ||
+                [],
             },
             slug,
           },
@@ -517,7 +520,12 @@ exports.onCreatePage = async function onCreatePage(opts) {
       _context_: get(data._context_, pageName) || {},
       isPreload: false,
       pageName,
-      pageObject: data._pages_.json?.[pageName],
+      pageObject: {
+        components:
+          data._pages_.json?.[pageName]?.components ||
+          data._pages_.json?.[pageName]?.components?.components ||
+          [],
+      },
       slug,
     }
     log.info(`Home route '${u.cyan('/')}' is bound to ${u.yellow(pageName)}`)
