@@ -8,9 +8,10 @@ import type { IGatsbyImageData } from 'gatsby-plugin-image'
 
 export type AppContext = ReturnType<typeof useRootObject> & {
   images: {
-    [path: string]: {
+    [filename: string]: {
       data: IGatsbyImageData
-      id: string
+      filename: string
+      url: string
     }
   }
 }
