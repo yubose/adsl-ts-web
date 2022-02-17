@@ -29,7 +29,7 @@ function useStaticImages() {
       }[]
     }
   }>(graphql`
-    query NoodlStaticImageQuery {
+    {
       allFile(
         filter: { sourceInstanceName: { eq: "assets" }, ext: { ne: ".svg" } }
       ) {
@@ -48,7 +48,7 @@ function useStaticImages() {
       }
     }
   `)
-  return { allStaticImageFile }
+  return allStaticImageFile
 }
 
 export default useStaticImages
