@@ -60,7 +60,11 @@ async function getGenerator({
     // Intentionally using require
     const { cache, CADL } = require('@aitmed/cadl')
 
-    const sdk = new CADL({ cadlVersion: ecosEnv, configUrl })
+    const sdk = new CADL({
+      // aspectRatio: 0.59375,
+      cadlVersion: ecosEnv,
+      configUrl,
+    })
     await sdk.init()
 
     nui.use({

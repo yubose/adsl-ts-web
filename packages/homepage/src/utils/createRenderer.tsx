@@ -3,8 +3,6 @@ import { trimReference } from 'noodl-utils'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
-import * as nt from 'noodl-types'
-import * as c from '@/consts'
 import * as t from '@/types'
 import type useActionChain from '@/hooks/useActionChain'
 import type useBuiltInFns from '@/hooks/useBuiltInFns'
@@ -17,6 +15,9 @@ export interface CreateRenderFactoryOptions
   _context_: t.PageContext['_context_']
   builtIns?: ReturnType<typeof useBuiltInFns>
   createActionChain?: ReturnType<typeof useActionChain>['createActionChain']
+  static: {
+    images: t.AppContext['images']
+  }
   pageName: string
 }
 
@@ -35,6 +36,7 @@ function createRendererFactory({
   _context_,
   builtIns,
   createActionChain,
+  static: { images },
   pageName,
   getInRoot,
   setInRoot,
@@ -167,10 +169,13 @@ function createRendererFactory({
           index++
         }
 
-        if (type === 'img') {
+        if (type === 'img' && u.isStr(rest._path_) && images[rest._path_]) {
           // @ts-expect-error
           type = NoodlImage
-          rest.src = rest.src || rest['data-src'] || rest.path
+          rest.alt = rest._path_
+          rest.data = images[rest._path_].data
+          rest.id = images[rest._path_].id
+          rest.title = rest._path_
         }
 
         return React.createElement(

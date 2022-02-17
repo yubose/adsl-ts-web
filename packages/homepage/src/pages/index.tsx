@@ -18,11 +18,6 @@ function Homepage(props: HomepageProps) {
 
   const render = useRenderer()
 
-  React.useEffect(() => {
-    log.debug(`Props`, props)
-    log.debug(`Page object`, pageObject)
-  }, [])
-
   return (
     <>
       <Seo />

@@ -12,7 +12,7 @@ function AppProvider({
   children,
   initialRoot,
 }: React.PropsWithChildren<{ initialRoot?: Record<string, any> }>) {
-  const { allNoodlPage: noodlPages } = useGetNoodlPages()
+  const { allNoodlPage: noodlPages, allStaticImageFile } = useGetNoodlPages()
 
   const { root, getInRoot, setInRoot } = useRootObject(
     initialRoot ||
@@ -40,6 +40,14 @@ function AppProvider({
       root,
       setInRoot,
       getInRoot,
+      images: allStaticImageFile.nodes.reduce((acc, node) => {
+        if (!node?.childImageSharp?.gatsbyImageData) return acc
+        acc[node.base] = {
+          data: node.childImageSharp.gatsbyImageData,
+          id: node.id,
+        }
+        return acc
+      }, {}),
     }),
     [root],
   )
@@ -50,10 +58,6 @@ function AppProvider({
     window['log'] = log
     window['root'] = ctx.root
   }, [])
-
-  React.useEffect(() => {
-    log.debug(`[AppProvider] Root`, ctx.root)
-  }, [ctx.root])
 
   return <Provider value={ctx}>{children}</Provider>
 }

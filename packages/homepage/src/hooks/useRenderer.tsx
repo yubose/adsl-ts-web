@@ -8,7 +8,7 @@ import usePageCtx from '@/usePageCtx'
 import type { ComponentPath, StaticComponentObject } from '@/types'
 
 function useRenderer() {
-  const { root, getInRoot, setInRoot } = useCtx()
+  const { root, getInRoot, setInRoot, images } = useCtx()
   const ac = useActionChain()
   const builtIns = useBuiltInFns()
   const pageCtx = usePageCtx()
@@ -24,6 +24,7 @@ function useRenderer() {
         root,
         getInRoot,
         setInRoot,
+        static: { images },
         pageName: pageCtx.pageName,
         _context_: pageCtx._context_,
       })(getElementProps),

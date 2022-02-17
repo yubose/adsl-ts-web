@@ -3,10 +3,6 @@ const fs = require('fs-extra')
 const path = require('path')
 const { parse, traverse, types } = require('@babel/core')
 
-process.env.GATSBY_BUILD = JSON.stringify({
-  timestamp: new Date().toISOString(),
-})
-
 //const pathPrefix = `static/web/latest` // if deployed not to root directory
 const pathPrefix = `` // deployed to root directory
 
@@ -50,9 +46,27 @@ module.exports = {
     `gatsby-plugin-react-helmet`,
     `gatsby-plugin-image`,
     `gatsby-transformer-sharp`,
-    `gatsby-plugin-sharp`,
     `gatsby-plugin-emotion`,
     `gatsby-plugin-sitemap`,
+    {
+      resolve: `gatsby-plugin-sharp`,
+      options: {
+        defaults: {
+          avifOptions: {},
+          backgroundColor: 'transparent',
+          blurredOptions: {},
+          breakpoints: [480, 720, 1024, 1920],
+          jpgOptions: {},
+          pngOptions: {},
+          quality: 50,
+          tracedSVGOptions: {
+            color: '#d6ede4',
+          },
+          webpOptions: {},
+        },
+        failOnError: false,
+      },
+    },
     {
       resolve: `gatsby-plugin-layout`,
       options: {
@@ -72,16 +86,18 @@ module.exports = {
         loglevel: 'debug',
         // This will be used in the plugin to grab the version in the config object
         deviceType: 'web',
-        // If introspection is true, it will dump all of the TRANSFORMED noodl // pages in json to the output path specified below as "<config>.// introspection.json"
-        // introspection: true,
+        // If introspection is true, it will dump all of the TRANSFORMED noodl
+        // pages in json to the output path specified below as
+        //  "<outputPath>/<config>.introspection.json"
+        introspection: false,
         // If we provide this path the yml files/assets will be made available
         path: `${__dirname}/output`,
         // If we don't provide this, it will use the startPage in cadlEndpoint in the yaml. If it is not in cadlEndpoint, the fallback is 'HomePage'
         // startPage: 'MobHomePage',
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
-          width: 1024,
-          height: 768,
+          // width: 540,
+          // height: 720,
         },
       },
     },
@@ -154,7 +170,7 @@ module.exports = {
         name: `${siteName} Homepage`,
         short_name: siteName,
         start_url: `/`,
-        background_color: `#663399`,
+        background_color: `#2596be`,
         display: `minimal-ui`,
         icon: `${__dirname}/src/resources/images/logo.png`,
       },

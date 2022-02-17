@@ -1,8 +1,9 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
+import useStaticImages from '@/hooks/useStaticImages'
 
 function useGetNoodlPages() {
-  const query = useStaticQuery<{
+  const { allNoodlPage } = useStaticQuery<{
     allNoodlPage: {
       nodes: {
         name: string
@@ -26,7 +27,12 @@ function useGetNoodlPages() {
     `,
   )
 
-  return query
+  const { allStaticImageFile } = useStaticImages()
+
+  return {
+    allNoodlPage,
+    allStaticImageFile,
+  }
 }
 
 export default useGetNoodlPages

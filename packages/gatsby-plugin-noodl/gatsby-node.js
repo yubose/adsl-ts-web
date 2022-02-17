@@ -53,7 +53,6 @@ const data = {
   template: '',
 }
 
-exports.data = data
 exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
 
 /**
@@ -157,7 +156,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
       assets = await loader.extractAssets()
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
-      console.error(
+      log.error(
         `[${u.yellow(err.name)}] Extracting assets: ${u.red(err.message)}`,
       )
     }
@@ -196,7 +195,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
               if (err.response?.status === 404) {
                 log.warn(
                   `The asset "${asset.url}" returned a ${u.red(
-                    '404 Not Found',
+                    `404 Not Found`,
                   )} error`,
                 )
               }
@@ -353,8 +352,6 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
    * Create GraphQL nodes for app pages so they can be queried in the client side
    */
   for (const [name, pageObject] of u.entries(pages)) {
-    log.debug(`Generating non-preload: ${name}`)
-
     page.page = name
     pageObject.components = await generateComponents(
       name,
@@ -506,7 +503,7 @@ exports.onCreatePage = async function onCreatePage(opts) {
       pageObject: data._pages_.json?.[pageName],
       slug,
     }
-    log.info(`Home route '/' is bound to ${pageName}`)
+    log.info(`Home route '${u.cyan('/')}' is bound to ${u.yellow(pageName)}`)
     deletePage(oldPage)
     createPage(page)
   }
