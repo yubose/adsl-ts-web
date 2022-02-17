@@ -4,11 +4,11 @@ import has from 'lodash/has'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
 import * as t from '@/types'
-import type useActionChain from '@/hooks/useActionChain'
-import type useBuiltInFns from '@/hooks/useBuiltInFns'
 import NoodlImage from '@/components/Image'
 import log from '@/utils/log'
 import is from '@/utils/is'
+import type useActionChain from '@/hooks/useActionChain'
+import type useBuiltInFns from '@/hooks/useBuiltInFns'
 
 export interface CreateRenderFactoryOptions
   extends Pick<t.AppContext, 'root' | 'getInRoot' | 'setInRoot'> {

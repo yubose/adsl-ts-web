@@ -96,8 +96,8 @@ module.exports = {
         // startPage: 'MobHomePage',
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
-          // width: 540,
-          // height: 720,
+          width: 540,
+          height: 720,
         },
       },
     },
@@ -162,6 +162,15 @@ module.exports = {
             title: 'AiTmed RSS Feed',
           },
         ],
+      },
+    },
+    {
+      resolve: 'gatsby-plugin-webpack-bundle-analyser-v2',
+      options: {
+        analyzerMode: 'server',
+        analyzerPort: '3003',
+        defaultSizes: 'gzip',
+        disable: true,
       },
     },
     {
