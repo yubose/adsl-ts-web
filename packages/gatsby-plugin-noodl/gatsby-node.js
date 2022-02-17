@@ -37,12 +37,13 @@ const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 /** @type { GatsbyPluginNoodlCache } */
 let cache
-let nui = NUI
+const nui = NUI
 
 /** @type { import('./types').InternalData } */
 const data = {
   _assets_: [],
   _context_: {},
+  _loggedAssets_: [],
   _pages_: {
     json: {},
     serialized: {},
@@ -213,7 +214,10 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
             const fullFileName = `./${asset.filename}${asset.ext}`
             const filepath = path.join(assetsPath, fullFileName)
             if (!fs.existsSync(filepath)) {
-              log.info(`Downloading: ${asset.url}`)
+              if (!data._loggedAssets_.includes(asset.url)) {
+                data._loggedAssets_.push(asset.url)
+                log.info(`Downloading: ${asset.url}`)
+              }
               const reqOptions = { responseType: 'stream' }
               const resp = await axios.get(asset.url, reqOptions)
               resp.data.pipe(

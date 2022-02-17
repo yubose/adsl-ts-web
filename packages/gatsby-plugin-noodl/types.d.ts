@@ -24,6 +24,10 @@ export interface InternalData {
       componentRefs?: ComponentReferencesContext[]
     }
   }
+  /**
+   * Asset urls that were reported
+   */
+  _loggedAssets_: string[]
   _pages_: {
     /**
      * Used in lvl3 and noodl-ui
