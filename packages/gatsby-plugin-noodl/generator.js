@@ -28,6 +28,7 @@ const nui = NUI
  * @typedef Use
  * @property { nt.RootConfig } [Use.config]
  * @property { nt.AppConfig } [Use.appConfig]
+ * @property { (component: import('noodl-ui').NUI.getBaseStyles) } [Use.getBaseStyles]
  * @property { Record<string, Record<string, nt.PageObject>> } [Use.pages]
  * @property { { width: number; height: number } } [Use.viewport]
  */
@@ -111,11 +112,11 @@ async function getGenerator({
     }
 
     const transformer = new Transformer()
-    const page = nui.getRootPage()
-
-    page.page = sdk.cadlEndpoint.startPage || ''
-    page.viewport.width = use?.viewport?.width || 0
-    page.viewport.height = use?.viewport?.height || 0
+    const page = nui.createPage({
+      id: 'root',
+      name: sdk.cadlEndpoint.startPage || '',
+      viewport: use?.viewport || { width: 0, height: 0 },
+    })
 
     /**
      * @argument { nt.ComponentObject } componentProp
@@ -124,11 +125,16 @@ async function getGenerator({
     async function transform(componentProp, options) {
       if (!componentProp) componentProp = {}
       const component = nui.createComponent(componentProp, page)
-
-      await transformer.transform(
+      const consumerOptions = nui.getConsumerOptions({
         component,
-        nui.getConsumerOptions({ component, page, on, ...options }),
-      )
+        getBaseStyles: use?.getBaseStyles,
+        page,
+        on,
+        viewport: use.viewport || page.viewport,
+        ...options,
+      })
+
+      await transformer.transform(component, consumerOptions)
 
       return component
     }

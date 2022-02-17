@@ -1086,6 +1086,7 @@ const NUI = (function () {
       on,
       page,
       context,
+      ...rest
     }: {
       callback?(
         component: t.NuiComponent.Instance,
@@ -1109,6 +1110,7 @@ const NUI = (function () {
 
       return {
         ...o,
+        ...rest,
         callback,
         cache,
         component,
@@ -1156,7 +1158,7 @@ const NUI = (function () {
           return _emit
         },
         get getBaseStyles() {
-          return o.getBaseStyles
+          return rest.getBaseStyles || o.getBaseStyles
         },
         get getQueryObjects() {
           return _getQueryObjects

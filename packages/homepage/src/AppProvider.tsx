@@ -3,6 +3,7 @@ import * as u from '@jsmanifest/utils'
 import * as t from '@/types'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
 import useRootObject from '@/hooks/useRootObject'
+import useStaticImages from '@/hooks/useStaticImages'
 import { Provider } from '@/useCtx'
 import log from '@/utils/log'
 
@@ -12,7 +13,8 @@ function AppProvider({
   children,
   initialRoot,
 }: React.PropsWithChildren<{ initialRoot?: Record<string, any> }>) {
-  const { allNoodlPage: noodlPages, allStaticImageFile } = useGetNoodlPages()
+  const noodlPages = useGetNoodlPages()
+  const staticImages = useStaticImages()
 
   const { root, getInRoot, setInRoot } = useRootObject(
     initialRoot ||
@@ -40,7 +42,7 @@ function AppProvider({
       root,
       setInRoot,
       getInRoot,
-      images: allStaticImageFile.nodes.reduce((acc, node) => {
+      images: staticImages.nodes.reduce((acc, node) => {
         if (!node?.childImageSharp?.gatsbyImageData) return acc
         acc[node.base] = {
           data: node.childImageSharp.gatsbyImageData,
