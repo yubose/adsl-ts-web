@@ -4,7 +4,7 @@
  */
 const axios = require('axios').default
 const u = require('@jsmanifest/utils')
-const { publish } = require('noodl-ui')
+const { NUI, publish } = require('noodl-ui')
 const log = require('loglevel')
 const fs = require('fs-extra')
 const nt = require('noodl-types')
@@ -37,6 +37,7 @@ const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 /** @type { GatsbyPluginNoodlCache } */
 let cache
+let nui = NUI
 
 /** @type { import('./types').InternalData } */
 const data = {
@@ -60,10 +61,10 @@ exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
  */
 
 /**
- * @argument { import('gatsby').NodePluginArgs } args
+ * @argument { import('gatsby').NodePluginArgs } _
  * @argument { GatsbyNoodlPluginOptions } pluginOptions
  */
-exports.onPreInit = (args, pluginOptions) => {
+exports.onPreInit = (_, pluginOptions) => {
   const { loglevel } = pluginOptions
 
   if (
@@ -161,14 +162,46 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
       )
     }
 
+    // TEMPORARY - This is here to bypass the build failing when using geolocation in lvl3
+    global.window = {
+      location: { href: 'http://127.0.0.1:3000' },
+      navigator: {
+        geolocation: {
+          getCurrentPosition: () => ({
+            coords: { latitude: 0, longitude: 0, altitude: null, accuracy: 11 },
+            timestamp: Date.now(),
+          }),
+        },
+      },
+    }
+
     if (outputPath) {
       const outputDir = path.join(outputPath, `./${data.configKey}`)
       await fs.ensureDir(outputDir)
+
       for (const [name, doc] of loader.root.entries()) {
+        let serializedDoc = ''
+
+        if (doc?.errors?.length) {
+          doc.errors.forEach((err) => {
+            log.error(
+              `Error occurred in parsing ${u.yellow(name)} [${u.yellow(
+                err.name,
+              )}]: ${err.message}`,
+            )
+          })
+          // This prevents the build from failing
+          doc.errors.length = 0
+          serializedDoc = doc.toString()
+        } else {
+          serializedDoc = doc?.toString?.() || ''
+        }
+
         const filepath = path.join(outputDir, `${name}.yml`)
+
         if (!fs.existsSync(filepath)) {
           await fs.ensureDir(path.parse(filepath).dir)
-          await fs.writeFile(filepath, doc?.toString?.() || '')
+          await fs.writeFile(filepath, serializedDoc)
         }
       }
     }
@@ -259,6 +292,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
        * The generator will be mutating this so ensure that this reference will be stay persistent
        */
       pages: data._pages_,
+      viewport,
     },
   })
 
