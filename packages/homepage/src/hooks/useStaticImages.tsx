@@ -1,29 +1,16 @@
 import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
+import type { IGatsbyImageData } from 'gatsby-plugin-image'
 
 function useStaticImages() {
-  const { allFile: allStaticImageFile } = useStaticQuery<{
+  const { allFile: staticImages } = useStaticQuery<{
     allFile: {
-      nodes: {
-        base: string
-        id: string
-        childImageSharp: {
-          gatsbyImageData: {
-            backgroundColor: string
-            layout: string
-            images: {
-              fallback: {
-                src: string
-                srcset: string
-                sizes: string
-              }
-              sources: any[]
-            }
-            placeholder: {
-              fallback: string
-            }
-            width: number
-            height: number
+      edges: {
+        node: {
+          base: string
+          publicURL: string
+          childImageSharp: {
+            gatsbyImageData: IGatsbyImageData
           }
         }
       }[]
@@ -31,24 +18,24 @@ function useStaticImages() {
   }>(graphql`
     {
       allFile(
-        filter: { sourceInstanceName: { eq: "assets" }, ext: { ne: ".svg" } }
+        filter: {
+          sourceInstanceName: { eq: "assets" }
+          extension: { ne: "svg" }
+        }
       ) {
-        nodes {
-          id
-          base
-          childImageSharp {
-            gatsbyImageData(
-              formats: WEBP
-              placeholder: TRACED_SVG
-              layout: FULL_WIDTH
-            )
+        edges {
+          node {
+            base
+            publicURL
+            childImageSharp {
+              gatsbyImageData
+            }
           }
         }
-        totalCount
       }
     }
   `)
-  return allStaticImageFile
+  return staticImages
 }
 
 export default useStaticImages

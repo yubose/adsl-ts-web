@@ -45,14 +45,15 @@ function AppProvider({
       root,
       setInRoot,
       getInRoot,
-      images: staticImages.nodes.reduce((acc, node) => {
+      images: staticImages.edges.reduce((acc, { node }) => {
         if (!node?.childImageSharp?.gatsbyImageData) return acc
         acc[node.base] = {
           data: node.childImageSharp.gatsbyImageData,
-          id: node.id,
+          filename: node.base,
+          url: node.publicURL,
         }
         return acc
-      }, {}),
+      }, {} as t.AppContext['images']),
     }),
     [root],
   )
