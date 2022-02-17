@@ -11,7 +11,13 @@ import type { PluginOptions as GatsbyPluginOptions } from 'gatsby'
 import type { data } from './gatsby-node'
 
 export interface InternalData {
+  /**
+   * Used in the client side
+   */
   _assets_: string[]
+  /**
+   * Used in the client side
+   */
   _context_: {
     [page: string]: {
       lists?: ListComponentsContext
@@ -19,13 +25,34 @@ export interface InternalData {
     }
   }
   _pages_: {
+    /**
+     * Used in lvl3 and noodl-ui
+     */
     json: Record<string, PageObject>
+    /**
+     * Used in GrapQL
+     */
     serialized: Record<string, any>
   }
+  /**
+   * Passed to Loader, lvl3, and output dir
+   */
   configKey: string
+  /**
+   * Not being used atm
+   */
   configUrl: string
+  /**
+   * Used in retrieving version in root config
+   */
   deviceType: DeviceType
+  /**
+   * Bound to main '/' route
+   */
   startPage: string
+  /**
+   * Used as the page component renderer
+   */
   template: string
 }
 
@@ -45,6 +72,9 @@ export interface GatsbyNoodlPluginOptions {
   }
 }
 
+/**
+ * NOTE: Currently not being used
+ */
 export interface GatsbyNoodlPluginCacheObject {
   configKey?: string
   configUrl?: string
@@ -52,6 +82,9 @@ export interface GatsbyNoodlPluginCacheObject {
   // rootConfig?: any
 }
 
+/**
+ * Component static objects used in the client side to render react elements
+ */
 export type StaticComponentObject = ComponentObject &
   Record<
     string,
@@ -68,6 +101,9 @@ export type StaticComponentObject = ComponentObject &
     }
   >
 
+/**
+ * Context for pages. Populated from gatsby-node.js
+ */
 export interface PageContext {
   isPreload: boolean
   pageName: string
@@ -83,6 +119,11 @@ export interface PageContext {
   }
 }
 
+/**
+ * Components context populated from gatsby-node.js
+ * This serves as a mapping for list data objects for list descendants
+ * to retrieve their data
+ */
 export interface ListComponentsContext {
   [key: string]: {
     children: string[][]
@@ -93,6 +134,9 @@ export interface ListComponentsContext {
   }
 }
 
+/**
+ * NOTE: Currently not being used
+ */
 export interface ComponentReferencesContext {
   page: string
   path: string[]

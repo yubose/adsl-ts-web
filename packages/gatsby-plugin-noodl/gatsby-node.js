@@ -60,10 +60,10 @@ exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
  */
 
 /**
- * @argument { import('gatsby').NodePluginArgs } args
+ * @argument { import('gatsby').NodePluginArgs } _
  * @argument { GatsbyNoodlPluginOptions } pluginOptions
  */
-exports.onPreInit = (args, pluginOptions) => {
+exports.onPreInit = (_, pluginOptions) => {
   const { loglevel } = pluginOptions
 
   if (

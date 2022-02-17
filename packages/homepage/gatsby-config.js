@@ -5,6 +5,8 @@ const { parse, traverse, types } = require('@babel/core')
 
 //const pathPrefix = `static/web/latest` // if deployed not to root directory
 const pathPrefix = `` // deployed to root directory
+// CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
+const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'mob'
 
 const {
   name: siteName,
@@ -82,7 +84,7 @@ module.exports = {
 
         // NOTE: If we do this we need to point to this path via `gatsby-source-filesystem` (look below for src/resources/images for an example)
         assets: `${__dirname}/src/resources/assets`,
-        config: 'mob',
+        config: configKey,
         loglevel: 'debug',
         // This will be used in the plugin to grab the version in the config object
         deviceType: 'web',
