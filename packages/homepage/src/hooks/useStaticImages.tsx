@@ -1,3 +1,4 @@
+import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
 
 function useStaticImages() {

@@ -23,8 +23,11 @@ function AppProvider({
         (acc, node) => {
           try {
             /**
-             * To ensure our app stays performant and minimal as possible we can remove the components from each page in the state here.
-             * Components are instead directly passed to each NoodlPageTemplate in props.pageContext so they manage their own components in a lower level
+             * To ensure our app stays performant and minimal as possible we
+             * can remove the components from each page in the state here.
+             * Components are instead directly passed to each NoodlPageTemplate
+             * in props.pageContext so they manage their own components in a
+             * lower level
              */
             acc[node.name] = u.omit(JSON.parse(node.content), ['components'])
           } catch (error) {

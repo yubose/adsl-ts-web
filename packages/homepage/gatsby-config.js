@@ -167,6 +167,15 @@ module.exports = {
       },
     },
     {
+      resolve: 'gatsby-plugin-webpack-bundle-analyser-v2',
+      options: {
+        analyzerMode: 'server',
+        analyzerPort: '3003',
+        defaultSizes: 'gzip',
+        disable: true,
+      },
+    },
+    {
       resolve: `gatsby-plugin-manifest`,
       options: {
         name: `${siteName} Homepage`,
