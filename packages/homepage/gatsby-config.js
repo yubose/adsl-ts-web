@@ -66,7 +66,7 @@ module.exports = {
           },
           webpOptions: {},
         },
-        failOnError: false,
+        failOnError: true,
       },
     },
     {
@@ -98,8 +98,8 @@ module.exports = {
         // startPage: 'MobHomePage',
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
-          width: 540,
-          height: 720,
+          width: 375,
+          height: 667,
         },
       },
     },
@@ -118,63 +118,63 @@ module.exports = {
         path: `${__dirname}/src/resources/images`,
       },
     },
-    {
-      resolve: `gatsby-plugin-feed`,
-      options: {
-        query: `
-          {
-            site {
-              siteMetadata {
-                siteName,
-                title: siteTitle
-                description: siteDescription
-                siteLogo
-                siteUrl
-                site_url: siteUrl
-                siteVideo
-              }
-            }
-          }
-        `,
-        feeds: [
-          {
-            serialize: ({ query: { site, allNoodlPage } }) => {
-              return allNoodlPage.nodes.map((node) => {
-                return Object.assign({}, node, {
-                  name: node.name,
-                  id: node.id,
-                  url: site.siteMetadata.siteUrl + node.slug,
-                  custom_elements: [{ 'content:encoded': node.content }],
-                })
-              })
-            },
-            query: `
-              {
-                allNoodlPage {
-                  nodes {
-                    id
-                    name
-                    content
-                    slug
-                  }
-                }
-              }
-            `,
-            output: '/rss.xml',
-            title: 'AiTmed RSS Feed',
-          },
-        ],
-      },
-    },
-    {
-      resolve: 'gatsby-plugin-webpack-bundle-analyser-v2',
-      options: {
-        analyzerMode: 'server',
-        analyzerPort: '3003',
-        defaultSizes: 'gzip',
-        disable: true,
-      },
-    },
+    // {
+    //   resolve: `gatsby-plugin-feed`,
+    //   options: {
+    //     query: `
+    //       {
+    //         site {
+    //           siteMetadata {
+    //             siteName,
+    //             title: siteTitle
+    //             description: siteDescription
+    //             siteLogo
+    //             siteUrl
+    //             site_url: siteUrl
+    //             siteVideo
+    //           }
+    //         }
+    //       }
+    //     `,
+    //     feeds: [
+    //       {
+    //         serialize: ({ query: { site, allNoodlPage } }) => {
+    //           return allNoodlPage.nodes.map((node) => {
+    //             return Object.assign({}, node, {
+    //               name: node.name,
+    //               id: node.id,
+    //               url: site.siteMetadata.siteUrl + node.slug,
+    //               custom_elements: [{ 'content:encoded': node.content }],
+    //             })
+    //           })
+    //         },
+    //         query: `
+    //           {
+    //             allNoodlPage {
+    //               nodes {
+    //                 id
+    //                 name
+    //                 content
+    //                 slug
+    //               }
+    //             }
+    //           }
+    //         `,
+    //         output: '/rss.xml',
+    //         title: 'AiTmed RSS Feed',
+    //       },
+    //     ],
+    //   },
+    // },
+    // {
+    //   resolve: 'gatsby-plugin-webpack-bundle-analyser-v2',
+    //   options: {
+    //     analyzerMode: 'server',
+    //     analyzerPort: '3003',
+    //     defaultSizes: 'gzip',
+    //     disable: true,
+    //   },
+    // },
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
@@ -193,16 +193,37 @@ module.exports = {
       options: {
         workboxConfig: {
           clientsClaim: true,
-          dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
           modifyURLPrefix: {
             '/': `${pathPrefix}/`,
           },
-          // runtimeCaching: [
-          //   {
-          //     urlPattern: /(\.js$|\.css$|static\/)/,
-          //     handler: `CacheFirst`,
-          //   },
-          // ],
+          /**
+           * This will prevent browsers from caching these types of files and
+           * let the file name do the versioning to determine freshness instead
+           *
+           * For more info check this link:
+           * https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/#overriding-workbox-configuration
+           */
+          dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
+          runtimeCaching: [
+            {
+              // Same reason as above
+              urlPattern: /(\.js$|\.css$|static\/)/,
+              handler: `CacheFirst`,
+            },
+            {
+              urlPattern: /^https?:.*\/page-data\/.*\.json/,
+              handler: `StaleWhileRevalidate`,
+            },
+            {
+              urlPattern:
+                /^https?:.*\.(png|jpg|jpeg|webp|svg|gif|tiff|js|woff|woff2|json|css)$/,
+              handler: `StaleWhileRevalidate`,
+            },
+            {
+              urlPattern: /^https?:\/\/fonts\.googleapis\.com\/css/,
+              handler: `StaleWhileRevalidate`,
+            },
+          ],
           skipWaiting: true,
         },
       },
