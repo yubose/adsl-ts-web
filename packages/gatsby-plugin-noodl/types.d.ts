@@ -67,6 +67,10 @@ export interface GatsbyNoodlPluginOptions {
   deviceType?: 'web' | 'android' | 'ios'
   ecosEnv?: Env
   loglevel?: 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn'
+  output?: {
+    assets?: string
+    pages?: string
+  }
   path?: string
   startPage?: string
   template?: string
