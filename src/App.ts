@@ -561,7 +561,7 @@ class App {
         this.#noodl?.cadlEndpoint as AppConfig,
         window.location.href,
       )
-
+      
       let startPage = parsedUrl.startPage
 
       if (parsedUrl.hasParams) {
@@ -599,8 +599,12 @@ class App {
       if (!ls.getTimestampKey() && ls.configExists()) ls.cacheTimestamp()
 
       if (this.mainPage && location.href && !parsedUrl.hasParams) {
+        let url = location.href
+        if(url.includes('&checkoutId=')){
+          url = parsedUrl.pageUrl
+        }
         let { startPage = '' } = this.noodl.cadlEndpoint || {}
-        const urlParts = location.href.split('/')
+        const urlParts = url.split('/')
         const pathname = urlParts[urlParts.length - 1]
 
         if (!ls.isTimestampEq()) {
