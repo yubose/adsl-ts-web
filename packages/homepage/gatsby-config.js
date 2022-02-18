@@ -188,7 +188,7 @@ module.exports = {
         icon: `${__dirname}/src/resources/images/logo.png`,
       },
     },
-    // 'gatsby-plugin-remove-serviceworker',
+    'gatsby-plugin-remove-serviceworker',
     // {
     // https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/
     // resolve: `gatsby-plugin-offline`,
