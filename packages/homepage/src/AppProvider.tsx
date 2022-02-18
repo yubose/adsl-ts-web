@@ -45,7 +45,8 @@ function AppProvider({
       root,
       setInRoot,
       getInRoot,
-      images: staticImages.edges.reduce((acc, { node }) => {
+      // @ts-expect-error
+      images: (staticImages?.edges || []).reduce((acc, { node } = {}) => {
         if (!node?.childImageSharp?.gatsbyImageData) return acc
         acc[node.base] = {
           data: node.childImageSharp.gatsbyImageData,
