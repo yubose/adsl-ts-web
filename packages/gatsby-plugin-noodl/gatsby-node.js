@@ -103,14 +103,14 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
     version = 'latest',
   } = pluginOptions || {}
 
-  if (assetsPath) log.debug(`Assets path: ${assetsPath}`)
-  if (deviceType) log.debug(`Device type set to: ${deviceType}`)
+  if (assetsPath) log.debug(`Assets path: ${u.yellow(assetsPath)}`)
+  if (deviceType) log.debug(`Device type set to: ${u.yellow(deviceType)}`)
 
-  log.debug(`Config key: ${config}`)
-  log.debug(`Ecos environment: ${ecosEnv}`)
-  log.debug(`Output path: ${outputPath}`)
-  log.debug(`Start page: ${startPage}`)
-  log.debug(`Template path: ${templatePath}`)
+  log.debug(`Config key: ${u.yellow(config)}`)
+  log.debug(`Ecos environment: ${u.yellow(ecosEnv)}`)
+  log.debug(`Output path: ${u.yellow(outputPath)}`)
+  log.debug(`Start page: ${u.yellow(startPage)}`)
+  log.debug(`Template path: ${u.yellow(templatePath)}`)
 
   data.configKey = config
   data.configUrl = utils.ensureYmlExt(`${BASE_CONFIG_URL}${config}`)

@@ -91,15 +91,15 @@ module.exports = {
         // If introspection is true, it will dump all of the TRANSFORMED noodl
         // pages in json to the output path specified below as
         //  "<outputPath>/<config>.introspection.json"
-        introspection: false,
+        introspection: true,
         // If we provide this path the yml files/assets will be made available
         path: `${__dirname}/output`,
         // If we don't provide this, it will use the startPage in cadlEndpoint in the yaml. If it is not in cadlEndpoint, the fallback is 'HomePage'
         // startPage: 'MobHomePage',
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
-          width: 375,
-          height: 667,
+          width: 520,
+          height: 740,
         },
       },
     },

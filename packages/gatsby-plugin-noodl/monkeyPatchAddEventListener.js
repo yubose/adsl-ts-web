@@ -135,7 +135,7 @@ async function monkeyPatchAddEventListener(opts) {
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    throw err
+    console.log(`[${u.yellow(err.name)}] ${u.red(err.message)}`)
   }
 }
 
