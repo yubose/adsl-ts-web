@@ -45,6 +45,7 @@ function AppProvider({
       root,
       setInRoot,
       getInRoot,
+      // NOTE: This is purposely (temporarily) not being received results due to static images having errors in production. Images fall back to loading images normally if static images aren't available (see createRenderer.tsx)
       // @ts-expect-error
       images: (staticImages?.edges || []).reduce((acc, { node } = {}) => {
         if (!node?.childImageSharp?.gatsbyImageData) return acc
