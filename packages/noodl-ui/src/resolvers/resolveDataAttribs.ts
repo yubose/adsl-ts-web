@@ -9,6 +9,7 @@ import {
   getStartOfDay,
 } from '../utils/internal'
 import Resolver from '../Resolver'
+import log from '../utils/log'
 import * as n from '../utils/noodl'
 
 const dataAttribsResolver = new Resolver('resolveDataAttribs')
@@ -259,7 +260,7 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
           component.emit('options', component.get('data-options')),
         )
       } else {
-        console.log(
+        log.error(
           `%cCould not find the list of options for a select component using the path "${selectOptions}"`,
           `color:#ec0000;`,
           component,

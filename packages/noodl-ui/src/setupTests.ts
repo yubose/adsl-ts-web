@@ -1,4 +1,3 @@
-import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import chai from 'chai'
 import { assetsUrl, baseUrl, getPresetPageObjects } from './utils/test-utils'
@@ -8,13 +7,8 @@ import * as c from './constants'
 
 chai.use(sinonChai)
 
-let logSpy: sinon.SinonStub
-let invariantStub: sinon.SinonStub
-
 before(() => {
   console.clear()
-  logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
-  invariantStub = sinon.stub(global.console, 'error').callsFake(() => () => {})
 })
 
 beforeEach(() => {
@@ -35,9 +29,4 @@ beforeEach(() => {
 afterEach(() => {
   document.body.textContent = ''
   nui.reset()
-})
-
-after(() => {
-  invariantStub.restore()
-  logSpy.restore?.()
 })

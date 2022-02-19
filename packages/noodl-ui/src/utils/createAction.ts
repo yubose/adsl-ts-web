@@ -10,6 +10,7 @@ import type {
   NUIActionObjectInput,
   NUITrigger,
 } from '../types'
+import log from '../utils/log'
 import EmitAction from '../actions/EmitAction'
 
 type EmitLikeObject = Extract<NUIActionObjectInput, EmitObjectFold>
@@ -58,7 +59,7 @@ function createAction(
 
   if (action?.original) {
     getActionObjectErrors(action.original).forEach((errMsg) => {
-      console.log(`%c${errMsg}`, `color:#ec0000;`, action?.original)
+      log.error(`%c${errMsg}`, `color:#ec0000;`, action?.original)
     })
   }
 

@@ -179,12 +179,6 @@ class NOODLViewport {
       this.#onResize = () => {
         const previousWidth = this.width
         const previousHeight = this.height
-        console.log(`%c`, `color:#95a5a6;`, {
-          previousWidth,
-          previousHeight,
-          newWidth: window.innerWidth,
-          newHeight: window.innerHeight,
-        })
         this.width = window.innerWidth
         this.height = window.innerHeight
 

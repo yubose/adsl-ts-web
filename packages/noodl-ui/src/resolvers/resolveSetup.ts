@@ -4,6 +4,7 @@ import * as nt from 'noodl-types'
 import Resolver from '../Resolver'
 import resolveReference from '../utils/resolveReference'
 import resolvePageComponentUrl from '../utils/resolvePageComponentUrl'
+import log from '../utils/log'
 import * as i from '../utils/internal'
 import * as t from '../types'
 
@@ -162,7 +163,7 @@ setupResolver.setResolver(async function setupResolver(
       }
     }
   } catch (error) {
-    console.error(error)
+    log.error(error instanceof Error ? error : new Error(String(error)))
   }
 
   return next?.()

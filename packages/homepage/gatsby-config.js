@@ -205,30 +205,30 @@ module.exports = {
      * For more info check this link:
      * https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/#overriding-workbox-configuration
      */
-    //   dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
-    //   runtimeCaching: [
-    //     {
-    //       // Same reason as above
-    //       urlPattern: /(\.js$|\.css$|static\/)/,
-    //       handler: `CacheFirst`,
+    //       dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
+    //       runtimeCaching: [
+    //         {
+    //           // Same reason as above
+    //           urlPattern: /(\.js$|\.css$|static\/)/,
+    //           handler: `CacheFirst`,
+    //         },
+    //         {
+    //           urlPattern: /^https?:.*\/page-data\/.*\.json/,
+    //           handler: `StaleWhileRevalidate`,
+    //         },
+    //         {
+    //           urlPattern:
+    //             /^https?:.*\.(png|jpg|jpeg|webp|svg|gif|tiff|js|woff|woff2|json|css)$/,
+    //           handler: `StaleWhileRevalidate`,
+    //         },
+    //         {
+    //           urlPattern: /^https?:\/\/fonts\.googleapis\.com\/css/,
+    //           handler: `StaleWhileRevalidate`,
+    //         },
+    //       ],
+    //       skipWaiting: true,
     //     },
-    //     {
-    //       urlPattern: /^https?:.*\/page-data\/.*\.json/,
-    //       handler: `StaleWhileRevalidate`,
-    //     },
-    //     {
-    //       urlPattern:
-    //         /^https?:.*\.(png|jpg|jpeg|webp|svg|gif|tiff|js|woff|woff2|json|css)$/,
-    //       handler: `StaleWhileRevalidate`,
-    //     },
-    //     {
-    //       urlPattern: /^https?:\/\/fonts\.googleapis\.com\/css/,
-    //       handler: `StaleWhileRevalidate`,
-    //     },
-    //   ],
-    //   skipWaiting: true,
-    // },
-    // },
+    //   },
     // },
   ],
 }

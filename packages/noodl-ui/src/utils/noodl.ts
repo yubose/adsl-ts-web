@@ -4,6 +4,7 @@ import type { ComponentObject, IfObject } from 'noodl-types'
 import { Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isComponent from './isComponent'
+import log from '../utils/log'
 import type { NuiComponent } from '../types'
 
 export function evalIf<O extends IfObject>(val: O) {
@@ -134,7 +135,7 @@ export function getDataFields(
             `[data-key="${dataset.key}"]`,
           )
         } else {
-          console.log(
+          log.error(
             `%cInvalid data name and/or data key`,
             'color:#e74c3c;font-weight:bold;',
             { dataset, node },
@@ -167,7 +168,7 @@ function getDataValue(node: string | null | Element): string | number | null {
             node as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
           ).value
         case 'HTMLButtonElement':
-          console.log(
+          log.error(
             `%c[getDataValue] ` +
               `Tried to retrieve a data value from a button element but there ` +
               `is no implementation for it. Perhaps it needs to be supported?`,
@@ -213,7 +214,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
         if (node) {
           result[key] = getDataValue(node)
         } else {
-          console.log(
+          log.error(
             `%c[getDataValues] ` +
               `Attempted to find a node for key ${key} but received null or ` +
               `undefined. The program should not have gotten here`,
@@ -225,7 +226,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
       Object.keys(allNodes).forEach(fn)
     }
   } else {
-    console.log(
+    log.error(
       `%c[getDataValues] ` + `nodes is not an array or object`,
       'color:#e74c3c;font-weight:bold;',
       nodes,

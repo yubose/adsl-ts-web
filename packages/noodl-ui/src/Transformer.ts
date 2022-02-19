@@ -1,3 +1,4 @@
+import log from './utils/log'
 import resolveSetup from './resolvers/resolveSetup'
 import resolveComponents from './resolvers/resolveComponents'
 import resolveStyles from './resolvers/resolveStyles'
@@ -37,7 +38,7 @@ class NuiTransformer {
     try {
       await this.#transform?.(component, options)
     } catch (error) {
-      console.error(error)
+      log.error(error instanceof Error ? error : new Error(String(error)))
     }
   }
 }
