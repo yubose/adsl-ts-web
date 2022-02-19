@@ -40,7 +40,7 @@ describe('normalizeProps', () => {
       })
     })
 
-    it.only(`should parse options references`, () => {
+    xit(`should parse options references`, () => {
       expect(normalizeProps({ options: 'SignIn.profile.options' }))
         .to.have.property('options')
         .deep.eq(['1AM', '2AM', '3AM'])
