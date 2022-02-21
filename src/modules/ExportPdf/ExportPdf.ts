@@ -7,6 +7,7 @@ import isElement from '../../utils/isElement'
 import flatten from './flatten'
 import generateCanvas from './generateCanvas'
 import generatePages from './generatePages'
+import getDeepTotalHeight from '../../utils/getDeepTotalHeight'
 import sizes from './sizes'
 import type { GeneratePagesOptions } from './generatePages'
 import * as t from './exportPdfTypes'
@@ -55,12 +56,23 @@ export const ExportPdf = (function () {
       pageHeight = sizes.A4.width
       pdfDocOptions.format = [pageWidth, pageHeight]
       pdfDocOptions.orientation = 'landscape'
-      commonHtml2CanvasOptions.width = pageWidth
-      commonHtml2CanvasOptions.height = pageHeight
-      commonHtml2CanvasOptions.windowWidth = pageWidth
-      commonHtml2CanvasOptions.windowHeight = pageHeight
-      // Correctly positions the form (Still needs testing)
-      commonHtml2CanvasOptions.x = -100
+
+      if (elWidth > pageWidth) {
+        commonHtml2CanvasOptions.width = elWidth
+        commonHtml2CanvasOptions.windowWidth = elWidth
+        commonHtml2CanvasOptions.x = -el.getBoundingClientRect().x
+        commonHtml2CanvasOptions.y = -el.getBoundingClientRect().y
+        debugger
+      } else {
+        commonHtml2CanvasOptions.width = pageWidth
+        commonHtml2CanvasOptions.windowWidth = elWidth
+        commonHtml2CanvasOptions.height = pageHeight * (elWidth / elHeight)
+        commonHtml2CanvasOptions.windowHeight =
+          pageHeight * (elWidth / elHeight)
+        // Correctly positions the form (Still needs testing)
+        commonHtml2CanvasOptions.x = -100
+        commonHtml2CanvasOptions.y = -el.getBoundingClientRect().y + 100
+      }
     }
 
     try {

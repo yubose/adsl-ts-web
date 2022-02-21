@@ -80,13 +80,21 @@ async function generatePages({
           onclone: (d: Document, e: HTMLElement) => {
             e.style.height = 'auto'
 
+            e.style.maxWidth = pageWidth + 'px'
+            e.style.overflowX = 'hidden'
+
             const pendingClonedElems = [] as HTMLElement[]
             const numPending = pending.length
 
             for (let index = 0; index < numPending; index++) {
               const flat = pending[index] as FlatObject
               const clonedEl = d.getElementById(flat.id)
-              if (clonedEl) pendingClonedElems.push(clonedEl)
+              if (clonedEl) {
+                clonedEl.style.maxWidth = pageWidth + 'px'
+                clonedEl.style.textOverflow = 'ellipsis'
+                clonedEl.style.wordWrap = 'nowrap'
+                pendingClonedElems.push(clonedEl)
+              }
             }
 
             const modifiedEl = use?.clonedContainer?.({
@@ -101,7 +109,14 @@ async function generatePages({
 
         pdf.setDisplayMode(1)
 
-        pdf.addImage(canvas, 'PNG', 0, 0, pdfPageWidth, pdfPageHeight)
+        pdf.addImage(
+          canvas.toDataURL('image/png'),
+          'PNG',
+          0,
+          0,
+          pdfPageWidth,
+          pdfPageHeight,
+        )
 
         if (currFlatHeight + currPageHeight > pdfPageHeight) {
           pdf.addPage([pdfPageWidth, pdfPageHeight], orientation)

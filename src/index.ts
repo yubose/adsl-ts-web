@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
+import axios from 'axios'
 import Logger from 'logsnap'
 import * as lib from 'noodl-ui'
 import {
@@ -446,6 +447,14 @@ function attachDebugUtilsToWindow(app: App) {
       value: () =>
         (window.location.href =
           'http://127.0.0.1:3000/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY'),
+    },
+    replaceHtml: {
+      value: function (pageName: string) {
+        return axios
+          .get(`http://127.0.0.1:3003/${pageName}`)
+          .then(({ data }) => document.write(data))
+          .catch(console.error)
+      },
     },
     ExportPdf: { value: ExportPdf },
     pageTable: {
