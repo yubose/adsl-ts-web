@@ -2,7 +2,7 @@ import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
 
 function useGetNoodlPages() {
-  const query = useStaticQuery<{
+  const { allNoodlPage } = useStaticQuery<{
     allNoodlPage: {
       nodes: {
         name: string
@@ -25,8 +25,7 @@ function useGetNoodlPages() {
       }
     `,
   )
-
-  return query
+  return allNoodlPage
 }
 
 export default useGetNoodlPages

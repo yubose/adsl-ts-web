@@ -4,8 +4,17 @@ import type { LiteralUnion } from 'type-fest'
 import type { ActionChainStatus } from 'noodl-action-chain'
 import type { NUIAction, NUIActionObject, NUITrigger } from 'noodl-ui'
 import type useRootObject from './hooks/useRootObject'
+import type { IGatsbyImageData } from 'gatsby-plugin-image'
 
-export type AppContext = ReturnType<typeof useRootObject>
+export type AppContext = ReturnType<typeof useRootObject> & {
+  images: {
+    [filename: string]: {
+      data: IGatsbyImageData
+      filename: string
+      url: string
+    }
+  }
+}
 
 export type StaticComponentObject = nt.ComponentObject &
   Partial<

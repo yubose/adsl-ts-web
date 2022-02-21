@@ -6,13 +6,14 @@ import nui from './noodl-ui'
 import NuiViewport from './Viewport'
 import { presets } from './constants'
 import { findIteratorVar, findListDataObject } from './utils/noodl'
+import is from './utils/is'
 import * as com from './utils/common'
 import * as util from './utils/style'
 
 function getByRef(root = {}, ref = '', rootKey = '') {
-  if (nt.Identify.localReference(ref)) {
+  if (is.localReference(ref)) {
     if (rootKey) return get(root[rootKey], nu.toDataPath(nu.trimReference(ref)))
-  } else if (nt.Identify.rootReference(ref)) {
+  } else if (is.rootReference(ref)) {
     return get(root, nu.toDataPath(nu.trimReference(ref)))
   }
   return ref
@@ -85,21 +86,21 @@ function normalizeProps<
 
       if (originalKey === 'dataKey') {
         if (u.isStr(originalValue)) {
-          if (nt.Identify.reference(originalValue)) {
+          if (is.reference(originalValue)) {
             props['data-value'] = getByRef(root, originalValue, pageName)
           } else {
-            const isLocalKey = nt.Identify.localKey(originalKey)
+            const isLocalKey = is.localKey(originalKey)
             const paths = originalValue.split('.') as string[]
             isLocalKey && paths[0] === pageName && paths.shift()
             props['data-value'] = get(isLocalKey ? root[pageName] : root, paths)
             continue
           }
-          if (nt.Identify.component.select(blueprint)) {
+          if (is.component.select(blueprint)) {
             props['data-value'] = getByRef(root, originalValue, pageName)
           }
         }
       } else if (originalKey === 'options') {
-        if (nt.Identify.component.select(blueprint)) {
+        if (is.component.select(blueprint)) {
           const { dataKey } = blueprint
           const isUsingDataKey = !!(
             (dataKey && u.isStr(dataKey)) ||
@@ -111,19 +112,20 @@ function normalizeProps<
             let dataObject: any
             let isListPath = !!(iteratorVar && dataPath.startsWith(iteratorVar))
 
+            value = dataPath ? get(dataObject, dataPath) : dataObject
             if (!u.isArr(value)) {
               if (isListPath) {
                 dataPath = nu.excludeIteratorVar(dataPath, iteratorVar)
                 dataObject = context?.dataObject || findListDataObject(props)
-                value = dataPath ? get(dataObject, dataPath) : dataObject
+                console.log({ dataPathdataPathdataPath: dataPath })
               } else {
                 dataPath = nu.trimReference(dataPath)
                 value = getByRef(root, dataPath, pageName)
               }
             }
-
-            value && (props['data-options'] = value || [])
           }
+
+          props['data-options'] = value || []
         }
       } else if (originalKey === 'style') {
         if (u.isObj(originalValue)) {
@@ -181,7 +183,7 @@ function normalizeProps<
             }
             // { x, y }
             else if (u.isObj(textAlign)) {
-              if (textAlign.x != undefined) {
+              if (!u.isNil(textAlign.x)) {
                 value.textAlign =
                   textAlign.x === 'centerX' ? 'center' : textAlign.x
               }
@@ -376,7 +378,7 @@ function normalizeProps<
             ---- SIZES
           -------------------------------------------------------- */
 
-          const { width, height, maxHeight, maxWidth, minHeight, minWidth,lineHeight} =
+          const { width, height, maxHeight, maxWidth, minHeight, minWidth } =
             originalValue || {}
 
           if (viewport) {
@@ -420,16 +422,14 @@ function normalizeProps<
                 util.getSize(minWidth as any, viewport.width),
               )
             }
-            if (!u.isNil(lineHeight)) {
-              value.lineHeight = String(util.getSize(lineHeight, viewport.height))
-            }
+            // if (!u.isNil(lineHeight)) {
+            //   value.lineHeight = String(util.getSize(lineHeight, viewport.height))
+            // }
           }
           // HANDLING ARTBITRARY STYLES
           for (let [styleKey, styleValue] of u.entries(originalValue)) {
-
             if (util.vpHeightKeys.includes(styleKey as any)) {
               if (util.isNoodlUnit(styleValue)) {
-
                 value[styleKey] = String(
                   NuiViewport.getSize(styleValue, viewport?.height as number, {
                     unit: 'px',
@@ -438,7 +438,6 @@ function normalizeProps<
               }
             } else if (util.vpWidthKeys.includes(styleKey as any)) {
               if (util.isNoodlUnit(styleValue)) {
-
                 value[styleKey] = String(
                   NuiViewport.getSize(styleValue, viewport?.width as number, {
                     unit: 'px',
@@ -448,10 +447,8 @@ function normalizeProps<
             }
 
             if (u.isStr(styleValue)) {
-
               // Resolve vm and vh units
               if (styleValue.endsWith('vw') || styleValue.endsWith('vh')) {
-
                 const valueNum =
                   parseFloat(styleValue.substring(0, styleValue.length - 2)) /
                   100
@@ -469,27 +466,20 @@ function normalizeProps<
               // If the value is a path of a list item data object
               const isListPath =
                 iteratorVar && styleValue.startsWith(iteratorVar)
-              if (nt.Identify.reference(styleValue)) {
-
+              if (is.reference(styleValue)) {
                 // Local
-                if (
-                  u.isStr(styleValue) &&
-                  nt.Identify.localReference(styleValue)
-                ) {
+                if (u.isStr(styleValue) && is.localReference(styleValue)) {
                   styleValue = getByRef(root, styleValue, pageName)
-
                 }
                 // Root
                 else if (u.isStr(styleValue)) {
-                  if (nt.Identify.rootReference(styleValue)) {
+                  if (is.rootReference(styleValue)) {
                     styleValue = getByRef(root, styleValue)
-
                   }
                   if (
                     u.isStr(styleValue) &&
                     (styleValue.endsWith('vw') || styleValue.endsWith('vh'))
                   ) {
-
                     const valueNum =
                       parseFloat(
                         styleValue.substring(0, styleValue.length - 2),
@@ -502,11 +492,10 @@ function normalizeProps<
                           styleValue.endsWith('vw') ? 'width' : 'height'
                         ] as number,
                       ),
-                      
                     )
                   }
                 }
-                if ( 
+                if (
                   u.isStr(styleValue) &&
                   (styleValue.endsWith('vw') || styleValue.endsWith('vh'))
                 ) {
@@ -522,7 +511,6 @@ function normalizeProps<
                     ),
                   )
                 } else if (util.vpHeightKeys.includes(styleKey as any)) {
-
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
                       NuiViewport.getSize(
@@ -538,7 +526,6 @@ function normalizeProps<
                     value[styleKey] = styleValue
                   }
                 } else if (util.vpWidthKeys.includes(styleKey as any)) {
-
                   if (util.isNoodlUnit(styleValue)) {
                     value[styleKey] = String(
                       NuiViewport.getSize(
@@ -549,14 +536,13 @@ function normalizeProps<
                     )
                   }
                 } else {
-
                   value[styleKey] = com.formatColor(styleValue)
 
                   styleKey == 'pointerEvents' &&
                     styleValue != 'none' &&
                     delete value['pointerEvents']
                   styleKey == 'isHidden' &&
-                    nt.Identify.isBooleanTrue(styleValue) &&
+                    is.isBooleanTrue(styleValue) &&
                     (props.style.visibility = 'hidden')
                 }
               }
@@ -576,7 +562,7 @@ function normalizeProps<
                 } else {
                   // Some list item consumers have data keys referencing color data values
                   // They are in the 0x0000000 form so we must convert them to be DOM compatible
-                  
+
                   if (isListPath) {
                     const dataObject =
                       context?.dataObject || findListDataObject(props)
@@ -608,8 +594,7 @@ function normalizeProps<
                             ),
                           )
                         }
-                      } 
-                      else {
+                      } else {
                         value[styleKey] = _styleValue
                       }
                     } else {
@@ -635,9 +620,9 @@ function normalizeProps<
       ---- COMPONENTS
     -------------------------------------------------------- */
 
-    if (nt.Identify.component.header(blueprint)) {
+    if (is.component.header(blueprint)) {
       props.style.zIndex = 100
-    } else if (nt.Identify.component.image(blueprint)) {
+    } else if (is.component.image(blueprint)) {
       if (u.isObj(blueprint.style)) {
         // Remove the height to maintain the aspect ratio since images are
         // assumed to have an object-fit of 'contain'
@@ -650,7 +635,7 @@ function normalizeProps<
         }
       }
     } else if (
-      nt.Identify.component.listLike(blueprint) &&
+      is.component.listLike(blueprint) &&
       props.style.display !== 'none'
     ) {
       props.style.display =
@@ -660,23 +645,23 @@ function normalizeProps<
           : 'block'
       props.style.listStyle = 'none'
       props.style.padding = '0px'
-    } else if (nt.Identify.component.listItem(blueprint)) {
+    } else if (is.component.listItem(blueprint)) {
       // Flipping the position to relative to make the list items stack on top of eachother.
       //    Since the container is a type: list and already has their entire height defined in absolute values,
       //    this shouldn't have any UI issues because they'll stay contained within
       props.style.listStyle = 'none'
       props.style.padding = 0
-    } else if (nt.Identify.component.popUp(blueprint)) {
+    } else if (is.component.popUp(blueprint)) {
       props.style.visibility = 'hidden'
     } else if (
-      nt.Identify.component.scrollView(blueprint) &&
+      is.component.scrollView(blueprint) &&
       props.style.display !== 'none'
     ) {
       props.style.display = 'block'
-    } else if (nt.Identify.component.textView(blueprint)) {
+    } else if (is.component.textView(blueprint)) {
       props.style.rows = 10
       props.style.resize = 'none'
-    } else if (nt.Identify.component.video(blueprint)) {
+    } else if (is.component.video(blueprint)) {
       props.style.objectFit = 'contain'
     }
 
@@ -685,18 +670,18 @@ function normalizeProps<
     -------------------------------------------------------- */
 
     // Shadow
-    if (nt.Identify.isBooleanTrue(blueprint?.style?.shadow)) {
+    if (is.isBooleanTrue(blueprint?.style?.shadow)) {
       props.style.boxShadow = '5px 5px 10px 3px rgba(0, 0, 0, 0.015)'
       delete props.style.shadow
     }
 
     // Visibility
-    nt.Identify.isBooleanTrue(blueprint?.style?.isHidden) &&
+    is.isBooleanTrue(blueprint?.style?.isHidden) &&
       (props.style.visibility = 'hidden')
 
     // ??
-    if (nt.Identify.isBoolean(blueprint?.required)) {
-      props.required = nt.Identify.isBooleanTrue(blueprint?.required)
+    if (is.isBoolean(blueprint?.required)) {
+      props.required = is.isBooleanTrue(blueprint?.required)
     }
   }
 

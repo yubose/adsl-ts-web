@@ -80,9 +80,10 @@ function renderMediaMetaTag(
   if (value && u.isObj(value)) {
     return (
       <>
-        {assetType === 'image' && value.alt && (
-          <meta property="og:image:alt" content={value.alt} />
-        )}
+        {(assetType === 'image' && value.alt && (
+          <meta property="og:image:alt" content={String(value.alt)} />
+        )) ||
+          null}
         <meta property={`${property}:width`} content={String(value.width)} />
         <meta property={`${property}:height`} content={String(value.height)} />
       </>

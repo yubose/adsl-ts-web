@@ -4,7 +4,7 @@
  */
 const axios = require('axios').default
 const u = require('@jsmanifest/utils')
-const { publish } = require('noodl-ui')
+const { NUI, publish } = require('noodl-ui')
 const log = require('loglevel')
 const fs = require('fs-extra')
 const nt = require('noodl-types')
@@ -15,14 +15,15 @@ const getGenerator = require('./generator')
 const GatsbyPluginNoodlCache = require('./Cache')
 const utils = require('./utils')
 
-log.setDefaultLevel('INFO')
-
+const DEFAULT_LOG_LEVEL = 'INFO'
+const DEFAULT_VIEWPORT_WIDTH = 1024
+const DEFAULT_VIEWPORT_HEIGHT = 768
 const NOODL_PAGE_NODE_TYPE = 'NoodlPage'
 
+log.setDefaultLevel(DEFAULT_LOG_LEVEL)
+
 function unstable_shouldOnCreateNode({ node }) {
-  if (node.internal.mediaType === `text/yaml`) {
-    return true
-  }
+  if (node.internal.mediaType === `text/yaml`) return true
   return false
 }
 
@@ -36,10 +37,13 @@ const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 /** @type { GatsbyPluginNoodlCache } */
 let cache
+const nui = NUI
 
+/** @type { import('./types').InternalData } */
 const data = {
   _assets_: [],
   _context_: {},
+  _loggedAssets_: [],
   _pages_: {
     json: {},
     serialized: {},
@@ -58,15 +62,15 @@ exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
  */
 
 /**
- * @argument { import('gatsby').NodePluginArgs } args
+ * @argument { import('gatsby').NodePluginArgs } _
  * @argument { GatsbyNoodlPluginOptions } pluginOptions
  */
-exports.onPreInit = (args, pluginOptions) => {
+exports.onPreInit = (_, pluginOptions) => {
   const { loglevel } = pluginOptions
 
   if (
     u.isStr(loglevel) &&
-    loglevel !== 'INFO' &&
+    loglevel !== DEFAULT_LOG_LEVEL &&
     LOGLEVELS.includes(loglevel)
   ) {
     log.setLevel(loglevel)
@@ -93,24 +97,31 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
     deviceType = 'web',
     ecosEnv = 'stable',
     loglevel,
-    version = 'latest',
     path: outputPath,
     startPage,
     template: templatePath,
+    version = 'latest',
   } = pluginOptions || {}
 
-  log.debug(`Config key: ${config}`)
-  log.debug(`Output path: ${outputPath}`)
-  log.debug(`Template path: ${templatePath}`)
+  if (assetsPath) log.debug(`Assets path: ${u.yellow(assetsPath)}`)
+  if (deviceType) log.debug(`Device type set to: ${u.yellow(deviceType)}`)
+
+  log.debug(`Config key: ${u.yellow(config)}`)
+  log.debug(`Ecos environment: ${u.yellow(ecosEnv)}`)
+  log.debug(`Output path: ${u.yellow(outputPath)}`)
+  log.debug(`Start page: ${u.yellow(startPage)}`)
+  log.debug(`Template path: ${u.yellow(templatePath)}`)
 
   data.configKey = config
   data.configUrl = utils.ensureYmlExt(`${BASE_CONFIG_URL}${config}`)
   data.deviceType = deviceType
   data.template = templatePath
+
   if (startPage) data.startPage = startPage
 
   await cache.set('configKey', data.configKey)
   await cache.set('configUrl', data.configUrl)
+
   if (version && version !== 'latest') await cache.set('configVersion', version)
 
   /**
@@ -147,19 +158,51 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
       assets = await loader.extractAssets()
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
-      console.error(
+      log.error(
         `[${u.yellow(err.name)}] Extracting assets: ${u.red(err.message)}`,
       )
+    }
+
+    // TEMPORARY - This is here to bypass the build failing when using geolocation in lvl3
+    global.window = {
+      location: { href: 'http://127.0.0.1:3000' },
+      navigator: {
+        geolocation: {
+          getCurrentPosition: () => ({
+            coords: { latitude: 0, longitude: 0, altitude: null, accuracy: 11 },
+            timestamp: Date.now(),
+          }),
+        },
+      },
     }
 
     if (outputPath) {
       const outputDir = path.join(outputPath, `./${data.configKey}`)
       await fs.ensureDir(outputDir)
+
       for (const [name, doc] of loader.root.entries()) {
+        let serializedDoc = ''
+
+        if (doc?.errors?.length) {
+          doc.errors.forEach((err) => {
+            log.error(
+              `Error occurred in parsing ${u.yellow(name)} [${u.yellow(
+                err.name,
+              )}]: ${err.message}`,
+            )
+          })
+          // This prevents the build from failing
+          doc.errors.length = 0
+          serializedDoc = doc.toString()
+        } else {
+          serializedDoc = doc?.toString?.() || ''
+        }
+
         const filepath = path.join(outputDir, `${name}.yml`)
+
         if (!fs.existsSync(filepath)) {
           await fs.ensureDir(path.parse(filepath).dir)
-          await fs.writeFile(filepath, doc?.toString?.() || '')
+          await fs.writeFile(filepath, serializedDoc)
         }
       }
     }
@@ -171,7 +214,10 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
             const fullFileName = `./${asset.filename}${asset.ext}`
             const filepath = path.join(assetsPath, fullFileName)
             if (!fs.existsSync(filepath)) {
-              log.info(`Downloading: ${asset.url}`)
+              if (!data._loggedAssets_.includes(asset.url)) {
+                data._loggedAssets_.push(asset.url)
+                log.info(`Downloading: ${asset.url}`)
+              }
               const reqOptions = { responseType: 'stream' }
               const resp = await axios.get(asset.url, reqOptions)
               resp.data.pipe(
@@ -186,7 +232,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
               if (err.response?.status === 404) {
                 log.warn(
                   `The asset "${asset.url}" returned a ${u.red(
-                    '404 Not Found',
+                    `404 Not Found`,
                   )} error`,
                 )
               }
@@ -209,7 +255,12 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
 exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   const { actions, createContentDigest, createNodeId } = args
   const { createNode } = actions
-  const { viewport = { width: 1024, height: 768 } } = pluginOptions
+  const {
+    viewport = {
+      width: DEFAULT_VIEWPORT_WIDTH,
+      height: DEFAULT_VIEWPORT_HEIGHT,
+    },
+  } = pluginOptions
 
   const { page, pages, sdk, transform } = await getGenerator({
     configKey: data.configKey,
@@ -245,6 +296,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
        * The generator will be mutating this so ensure that this reference will be stay persistent
        */
       pages: data._pages_,
+      viewport,
     },
   })
 
@@ -295,6 +347,24 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                   // This path is used to map list objects to their reference getters in the client
                   path: [pageName, 'components', ...componentPath],
                 })
+              } else if (nt.Identify.component.image(comp)) {
+                // This is mapped to the client side to pick up the static image
+                comp.set('_path_', comp.get('path'))
+              }
+
+              if (
+                u.isStr(comp?.style?.fontSize) &&
+                comp.style.fontSize.endsWith('px')
+              ) {
+                const rounded = String(
+                  parseInt(
+                    comp?.style?.fontSize.replace(/[a-zA-Z]+/gi, ''),
+                    10,
+                  ),
+                )
+                if (utils.fontSize[rounded]) {
+                  comp.style.fontSize = utils.fontSize[rounded]
+                }
               }
             },
           },
@@ -313,11 +383,12 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
     return transformedComponents
   }
 
-  const allYmlNames = [...sdk.cadlEndpoint.preload, ...sdk.cadlEndpoint.page]
   /**
    * Create GraphQL nodes for "preload" pages so they can be queried in the client side
    */
-  for (const [name, obj] of u.entries(u.omit(sdk.root, allYmlNames))) {
+  for (const [name, obj] of u.entries(
+    u.omit(sdk.root, sdk.cadlEndpoint.page),
+  )) {
     if (obj) {
       createNode({
         name,
@@ -337,13 +408,10 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
    * Create GraphQL nodes for app pages so they can be queried in the client side
    */
   for (const [name, pageObject] of u.entries(pages)) {
-    console.log(`Generating non-preload: ${name}`)
-
     page.page = name
-    pageObject.components = await generateComponents(
-      name,
-      pageObject.components,
-    )
+    const { components } = pageObject
+    for (const k of u.keys(pageObject)) delete pageObject[k]
+    pageObject.components = await generateComponents(name, components)
 
     const lists = data._context_[name]?.lists
 
@@ -458,7 +526,10 @@ exports.createPages = async function createPages(args, pluginOptions) {
             pageName,
             // Intentionally leaving out other props from the page object since they are provided in the root object (available in the React context that wraps our app)
             pageObject: {
-              components: u.pick(data._pages_.json[pageName], 'components'),
+              components:
+                data._pages_.json?.[pageName]?.components ||
+                data._pages_.json?.[pageName]?.components?.components ||
+                [],
             },
             slug,
           },
@@ -478,6 +549,7 @@ exports.onCreatePage = async function onCreatePage(opts) {
   const { actions, page } = opts
   const { createPage, deletePage } = actions
 
+  // Binds homepage to startPage
   if (page.path === '/') {
     const oldPage = u.assign({}, page)
     const pageName = data.startPage
@@ -486,9 +558,15 @@ exports.onCreatePage = async function onCreatePage(opts) {
       _context_: get(data._context_, pageName) || {},
       isPreload: false,
       pageName,
-      pageObject: data._pages_.json?.[pageName],
+      pageObject: {
+        components:
+          data._pages_.json?.[pageName]?.components ||
+          data._pages_.json?.[pageName]?.components?.components ||
+          [],
+      },
       slug,
     }
+    log.info(`Home route '${u.cyan('/')}' is bound to ${u.yellow(pageName)}`)
     deletePage(oldPage)
     createPage(page)
   }

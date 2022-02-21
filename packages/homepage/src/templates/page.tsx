@@ -4,19 +4,10 @@ import { PageProps } from 'gatsby'
 import Seo from '@/components/Seo'
 import useRenderer from '@/hooks/useRenderer'
 import { Provider as PageContextProvider } from '@/usePageCtx'
-import log from '@/utils/log'
 import * as t from '@/types'
 
 interface NoodlPageTemplateProps extends PageProps {
   pageContext: t.PageContext
-}
-
-if (typeof window !== 'undefined') {
-  Object.defineProperties(window, {
-    getComponentInfo: {
-      value: function () {},
-    },
-  })
 }
 
 function NoodlPageTemplate(props: NoodlPageTemplateProps) {
@@ -25,7 +16,8 @@ function NoodlPageTemplate(props: NoodlPageTemplateProps) {
   const render = useRenderer()
 
   React.useEffect(() => {
-    log.debug(`Props`, props)
+    console.log(`pageContext`, pageContext)
+    console.log(`pageObject`, pageObject)
   }, [])
 
   return (

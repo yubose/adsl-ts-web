@@ -3,12 +3,10 @@ const fs = require('fs-extra')
 const path = require('path')
 const { parse, traverse, types } = require('@babel/core')
 
-process.env.GATSBY_BUILD = JSON.stringify({
-  timestamp: new Date().toISOString(),
-})
-
 //const pathPrefix = `static/web/latest` // if deployed not to root directory
 const pathPrefix = `` // deployed to root directory
+// CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
+const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'mob'
 
 const {
   name: siteName,
@@ -50,9 +48,29 @@ module.exports = {
     `gatsby-plugin-react-helmet`,
     `gatsby-plugin-image`,
     `gatsby-transformer-sharp`,
-    `gatsby-plugin-sharp`,
     `gatsby-plugin-emotion`,
     `gatsby-plugin-sitemap`,
+    {
+      resolve: `gatsby-plugin-sharp`,
+      options: {
+        defaults: {
+          avifOptions: {},
+          backgroundColor: 'transparent',
+          blurredOptions: {},
+          breakpoints: [480, 720, 1024, 1920],
+          formats: ['auto', 'webp'],
+          jpgOptions: {},
+          pngOptions: {},
+          quality: 50,
+          tracedSVGOptions: {
+            color: '#d6ede4',
+          },
+          webpOptions: {},
+        },
+        defaultQuality: 50,
+        failOnError: true,
+      },
+    },
     {
       resolve: `gatsby-plugin-layout`,
       options: {
@@ -68,20 +86,22 @@ module.exports = {
 
         // NOTE: If we do this we need to point to this path via `gatsby-source-filesystem` (look below for src/resources/images for an example)
         assets: `${__dirname}/src/resources/assets`,
-        config: 'mob',
+        config: configKey,
         loglevel: 'debug',
         // This will be used in the plugin to grab the version in the config object
         deviceType: 'web',
-        // If introspection is true, it will dump all of the TRANSFORMED noodl // pages in json to the output path specified below as "<config>.// introspection.json"
-        // introspection: true,
+        // If introspection is true, it will dump all of the TRANSFORMED noodl
+        // pages in json to the output path specified below as
+        //  "<outputPath>/<config>.introspection.json"
+        introspection: true,
         // If we provide this path the yml files/assets will be made available
         path: `${__dirname}/output`,
         // If we don't provide this, it will use the startPage in cadlEndpoint in the yaml. If it is not in cadlEndpoint, the fallback is 'HomePage'
         // startPage: 'MobHomePage',
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
-          width: 1024,
-          height: 768,
+          width: 520,
+          height: 740,
         },
       },
     },
@@ -100,85 +120,116 @@ module.exports = {
         path: `${__dirname}/src/resources/images`,
       },
     },
-    {
-      resolve: `gatsby-plugin-feed`,
-      options: {
-        query: `
-          {
-            site {
-              siteMetadata {
-                siteName,
-                title: siteTitle
-                description: siteDescription
-                siteLogo
-                siteUrl
-                site_url: siteUrl
-                siteVideo
-              }
-            }
-          }
-        `,
-        feeds: [
-          {
-            serialize: ({ query: { site, allNoodlPage } }) => {
-              return allNoodlPage.nodes.map((node) => {
-                return Object.assign({}, node, {
-                  name: node.name,
-                  id: node.id,
-                  url: site.siteMetadata.siteUrl + node.slug,
-                  custom_elements: [{ 'content:encoded': node.content }],
-                })
-              })
-            },
-            query: `
-              {
-                allNoodlPage {
-                  nodes {
-                    id
-                    name
-                    content
-                    slug
-                  }
-                }
-              }
-            `,
-            output: '/rss.xml',
-            title: 'AiTmed RSS Feed',
-          },
-        ],
-      },
-    },
+    // {
+    //   resolve: `gatsby-plugin-feed`,
+    //   options: {
+    //     query: `
+    //       {
+    //         site {
+    //           siteMetadata {
+    //             siteName,
+    //             title: siteTitle
+    //             description: siteDescription
+    //             siteLogo
+    //             siteUrl
+    //             site_url: siteUrl
+    //             siteVideo
+    //           }
+    //         }
+    //       }
+    //     `,
+    //     feeds: [
+    //       {
+    //         serialize: ({ query: { site, allNoodlPage } }) => {
+    //           return allNoodlPage.nodes.map((node) => {
+    //             return Object.assign({}, node, {
+    //               name: node.name,
+    //               id: node.id,
+    //               url: site.siteMetadata.siteUrl + node.slug,
+    //               custom_elements: [{ 'content:encoded': node.content }],
+    //             })
+    //           })
+    //         },
+    //         query: `
+    //           {
+    //             allNoodlPage {
+    //               nodes {
+    //                 id
+    //                 name
+    //                 content
+    //                 slug
+    //               }
+    //             }
+    //           }
+    //         `,
+    //         output: '/rss.xml',
+    //         title: 'AiTmed RSS Feed',
+    //       },
+    //     ],
+    //   },
+    // },
+    // {
+    //   resolve: 'gatsby-plugin-webpack-bundle-analyser-v2',
+    //   options: {
+    //     analyzerMode: 'server',
+    //     analyzerPort: '3003',
+    //     defaultSizes: 'gzip',
+    //     disable: true,
+    //   },
+    // },
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
         name: `${siteName} Homepage`,
         short_name: siteName,
         start_url: `/`,
-        background_color: `#663399`,
+        background_color: `#2596be`,
         display: `minimal-ui`,
         icon: `${__dirname}/src/resources/images/logo.png`,
       },
     },
-    // 'gatsby-plugin-remove-serviceworker',
-    {
-      resolve: `gatsby-plugin-offline`,
-      options: {
-        workboxConfig: {
-          clientsClaim: true,
-          // dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
-          modifyURLPrefix: {
-            '/': `${pathPrefix}/`,
-          },
-          // runtimeCaching: [
-          //   {
-          //     urlPattern: /(\.js$|\.css$|static\/)/,
-          //     handler: `CacheFirst`,
-          //   },
-          // ],
-          skipWaiting: true,
-        },
-      },
-    },
+    'gatsby-plugin-remove-serviceworker',
+    // {
+    // https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/
+    // resolve: `gatsby-plugin-offline`,
+    // options: {
+    //   workboxConfig: {
+    //     clientsClaim: true,
+    //     modifyURLPrefix: {
+    //       '/': `${pathPrefix}/`,
+    //     },
+    /**
+     * This will prevent browsers from caching these types of files and
+     * let the file name do the versioning to determine freshness instead
+     *
+     * For more info check this link:
+     * https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/#overriding-workbox-configuration
+     */
+    //       dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
+    //       runtimeCaching: [
+    //         {
+    //           // Same reason as above
+    //           urlPattern: /(\.js$|\.css$|static\/)/,
+    //           handler: `CacheFirst`,
+    //         },
+    //         {
+    //           urlPattern: /^https?:.*\/page-data\/.*\.json/,
+    //           handler: `StaleWhileRevalidate`,
+    //         },
+    //         {
+    //           urlPattern:
+    //             /^https?:.*\.(png|jpg|jpeg|webp|svg|gif|tiff|js|woff|woff2|json|css)$/,
+    //           handler: `StaleWhileRevalidate`,
+    //         },
+    //         {
+    //           urlPattern: /^https?:\/\/fonts\.googleapis\.com\/css/,
+    //           handler: `StaleWhileRevalidate`,
+    //         },
+    //       ],
+    //       skipWaiting: true,
+    //     },
+    //   },
+    // },
   ],
 }
 

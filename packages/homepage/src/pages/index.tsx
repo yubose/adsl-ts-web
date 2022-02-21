@@ -1,11 +1,9 @@
-import * as u from '@jsmanifest/utils'
 import type { PageObject } from 'noodl-types'
 import React from 'react'
 import type { PageProps } from 'gatsby'
 import Seo from '@/components/Seo'
 import useRenderer from '@/hooks/useRenderer'
 import { Provider as PageContextProvider } from '@/usePageCtx'
-import log from '@/utils/log'
 import * as t from '@/types'
 
 interface HomepageProps extends PageProps {
@@ -19,8 +17,7 @@ function Homepage(props: HomepageProps) {
   const render = useRenderer()
 
   React.useEffect(() => {
-    log.debug(`Props`, props)
-    log.debug(`Page object`, pageObject)
+    console.log(props)
   }, [])
 
   return (

@@ -17,6 +17,7 @@ injectGlobal`
     -moz-osx-font-smoothing: grayscale;
     color: hsla(0, 0%, 0%, 0.8);
     font-family: Arial, serif;
+    font-size: 16px;
     font-weight: normal;
     font-kerning: normal;
   }

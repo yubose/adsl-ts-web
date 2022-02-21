@@ -34,6 +34,10 @@ const getParamsAndPages = (url: URL) => {
  * @param value url string
  */
 function parseUrl(appConfig: nt.AppConfig, value = '') {
+  if(value.includes('&checkoutId=')){
+    const index = value.indexOf('&checkoutId=')
+    value = value.substring(0,index)
+  }
   const url = new URL(value)
   const { params, pages } = getParamsAndPages(url)
 

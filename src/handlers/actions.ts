@@ -612,7 +612,8 @@ const createActions = function createActions(app: App) {
                 action?.snapshot?.(),
               )
               // debugger
-              ref?.abort?.()
+              ref?.abort?.();
+              resolve();
             }
           } else {
             let msg = `Tried to ${

@@ -1,19 +1,7 @@
 {
   "import { ui } from './test-utils'": {
     "body": "import { ui } from './test-utils'",
-    "prefix": "mock"
-  },
-  "prettyDOM": {
-    "body": "import { prettyDOM } from '@testing-library/dom'",
-    "prefix": "importpdom"
-  },
-  "prettyDOM() log": {
-    "body": "console.info(prettyDOM())",
-    "prefix": "pdom"
-  },
-  "spy": {
-    "body": "const spy = sinon.spy()",
-    "prefix": "spy"
+    "prefix": "ui"
   },
   "taglog": {
     "body": "log(`\\${tag}$1`, style, $2)",

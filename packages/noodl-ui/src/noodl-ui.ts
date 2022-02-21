@@ -33,6 +33,7 @@ import {
   isListConsumer,
   resolveAssetUrl,
 } from './utils/noodl'
+import log from './utils/log'
 import { groupedActionTypes, nuiEmitType } from './constants'
 import isNuiPage from './utils/isPage'
 import cache from './_cache'
@@ -108,7 +109,6 @@ const NUI = (function () {
     return (fn: t.GotoFn) => {
       fns.push(fn)
       return (args: Parameters<t.GotoFn>[0]) => {
-        console.log(`%c[_gotoFactory] fns`, `color:#c4a901;`, fns)
         return fns.map((fn) => fn?.(args))
       }
     }
@@ -279,7 +279,7 @@ const NUI = (function () {
           if (obj.handler) {
             const callback = obj.handler.fn
             if (u.isFnc(callback)) {
-              console.log(
+              log.debug(
                 `%cThe callback exists in the handler object. It will be invoked`,
                 `color:#95a5a6;`,
               )
@@ -293,7 +293,7 @@ const NUI = (function () {
             }
             return results
           } else {
-            console.log(
+            log.debug(
               `%cA handler object did not exist. A default function will be used that calls the functions in the callbacks list by default`,
               `color:#95a5a6;`,
             )
@@ -301,7 +301,7 @@ const NUI = (function () {
             return obj.fn?.(obj, params as t.Register.ParamsObject)
           }
         } else {
-          console.log(
+          log.debug(
             `%cWarning: Emitted a register object that was not in the store`,
             `color:#FF5722;`,
             opts,
@@ -311,8 +311,9 @@ const NUI = (function () {
         return cache.transactions.get(opts.transaction)?.fn?.(opts.params)
       }
     } catch (error) {
-      console.error(error)
-      throw error
+      const err = error instanceof Error ? error : new Error(String(error))
+      log.error(err)
+      throw err
     }
   }
 
@@ -349,7 +350,7 @@ const NUI = (function () {
           if (_path.startsWith(iteratorVar)) {
             _path = excludeIteratorVar(_path, iteratorVar) || ''
             if (!dataObject) {
-              console.log(
+              log.debug(
                 `%cAttempting to retrieve a value from a list data object but a data object was not provided. This may result in an unexpected value being returned`,
                 `color:#ec0000;`,
               )
@@ -393,7 +394,7 @@ const NUI = (function () {
         if (dataObject) {
           queries.push(dataObject)
         } else {
-          console.log(
+          log.debug(
             `%cCould not find a data object for a list consumer "${opts.component.type}" component`,
             `color:#ec0000;`,
             opts.component,
@@ -573,14 +574,14 @@ const NUI = (function () {
                     if (styleValue) {
                       c.edit({ style: { [styleKey]: styleValue } })
                     } else {
-                      console.log(
+                      log.debug(
                         `%cEncountered an unparsed style value "${cachedValue}" for style key "${styleKey}"`,
                         `color:#ec0000;`,
                         { component: c, possibleValue: styleValue },
                       )
                     }
                   } else if (nt.Identify.reference(styleValue)) {
-                    console.log(
+                    log.debug(
                       `%cEncountered an unparsed style value "${styleValue}" for style key "${styleKey}"`,
                       `color:#ec0000;`,
                       c,
@@ -595,7 +596,7 @@ const NUI = (function () {
           if (nt.Identify.reference(value)) {
             // Do one final check for the "get" method, since some custom getters are defined on component.get() even though it returns the same component object when using component.props
             if (nt.Identify.reference(c.get(key))) {
-              console.log(
+              log.debug(
                 `%cEncountered an unparsed reference value "${value}" for key "${key}"`,
                 `color:#ec0000;`,
                 c,
@@ -707,7 +708,7 @@ const NUI = (function () {
           })
         }
         if (u.isFnc(register.handler?.fn) && u.isFnc(register.fn)) {
-          console.log(
+          log.debug(
             `%cSetting register.fn to undefined because a custom handler fn was provided`,
             `color:#95a5a6;`,
             register,
@@ -763,9 +764,8 @@ const NUI = (function () {
 
       return cache.register.set(event, register as t.Register.Object)
     } catch (error) {
-      if (error instanceof Error) {
-        console.error(`[${error.name}] ${error.message}`)
-      } else console.error(error)
+      const err = error instanceof Error ? error : new Error(String(error))
+      log.error(err)
     }
   }
 
@@ -925,7 +925,7 @@ const NUI = (function () {
             const errors = getActionObjectErrors(obj)
             errors.length &&
               u.forEach(
-                (errMsg) => console.log(`%c${errMsg}`, `color:#ec0000;`, obj),
+                (errMsg) => log.debug(`%c${errMsg}`, `color:#ec0000;`, obj),
                 errors,
               )
             if (u.isObj(obj) && !('actionType' in obj)) {
@@ -1086,6 +1086,7 @@ const NUI = (function () {
       on,
       page,
       context,
+      ...rest
     }: {
       callback?(
         component: t.NuiComponent.Instance,
@@ -1109,6 +1110,7 @@ const NUI = (function () {
 
       return {
         ...o,
+        ...rest,
         callback,
         cache,
         component,
@@ -1156,7 +1158,7 @@ const NUI = (function () {
           return _emit
         },
         get getBaseStyles() {
-          return o.getBaseStyles
+          return rest.getBaseStyles || o.getBaseStyles
         },
         get getQueryObjects() {
           return _getQueryObjects
@@ -1210,6 +1212,7 @@ const NUI = (function () {
       o._defineGetter('getPreloadPages', () => [])
       o._defineGetter('getRoot', () => '')
     },
+    setLogLevel: (level: keyof typeof log.levels) => log.setLevel(level),
     use(args: t.UseArg) {
       for (const actionType of groupedActionTypes) {
         if (actionType in args) {

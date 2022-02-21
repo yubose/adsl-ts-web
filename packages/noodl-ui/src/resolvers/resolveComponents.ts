@@ -18,6 +18,7 @@ import {
   isListLike,
   resolveAssetUrl,
 } from '../utils/noodl'
+import log from '../utils/log'
 import type { ConsumerOptions, NuiComponent, NUIActionObject } from '../types'
 import type NuiPage from '../Page'
 import cache from '../_cache'
@@ -71,7 +72,7 @@ componentResolver.setResolver(async (component, options, next) => {
           nameField: ecosObj.name,
         })
       } else {
-        console.log(
+        log.error(
           `%cAn ecosDoc component had an empty "ecosObj" value`,
           `color:#ec0000;`,
           component,
@@ -236,7 +237,9 @@ componentResolver.setResolver(async (component, options, next) => {
               })
               page.emit(c.nuiEvent.component.page.PAGE_CHANGED)
             } catch (error) {
-              console.error(error)
+              log.error(
+                error instanceof Error ? error : new Error(String(error)),
+              )
             }
           }
 
@@ -252,11 +255,13 @@ componentResolver.setResolver(async (component, options, next) => {
                 page.page = pageName
               }
             }
-          } catch (err: any) {
-            console.error(
+          } catch (error) {
+            const err =
+              error instanceof Error ? error : new Error(String(error))
+            log.error(
               `[Page component] ` +
                 `Error attempting to get the page object for a page component]: ${err.message}`,
-              err.stack?.() || new Error(err),
+              err.stack,
             )
           }
 
@@ -270,7 +275,7 @@ componentResolver.setResolver(async (component, options, next) => {
           )
         }
       } else {
-        console.log(
+        log.error(
           `%cThe pageName was not a string when resolving the page name for a page component`,
           `color:#ec0000;`,
           component.toJSON(),
@@ -313,8 +318,9 @@ componentResolver.setResolver(async (component, options, next) => {
         const content = await res?.json?.()
         plugin && (plugin.content = component.get('content'))
         setTimeout(() => component.emit('content', content || ''))
-      } catch (err: any) {
-        console.error(`[${err.name}]: ${err.message}`, err)
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        log.error(`[${err.name}]: ${err.message}`, err)
       } finally {
         plugin.initiated = true
       }
@@ -327,7 +333,7 @@ componentResolver.setResolver(async (component, options, next) => {
     if (is.component.label(original) && 'textBoard' in original) {
       if (u.isArr(textBoard)) {
         if (u.isStr(text)) {
-          console.log(
+          log.error(
             `%cA component cannot have a "text" and "textBoard" property because ` +
               `they both overlap. The "text" will take precedence.`,
             `color:#ec0000;font-weight:bold;`,
@@ -426,7 +432,7 @@ componentResolver.setResolver(async (component, options, next) => {
           }
         })
       } else {
-        console.log(
+        log.error(
           `%cExpected textBoard to be an array but received "${typeof textBoard}". ` +
             `This part of the component will not be included in the output`,
           `color:#ec0000;font-weight:bold;`,
@@ -454,7 +460,7 @@ componentResolver.setResolver(async (component, options, next) => {
       }
 
       if (u.isUnd(dataValue)) {
-        console.log(
+        log.error(
           `%cNo data object or value could be found for a component with contentType: "timer".`,
           `color:#ec0000;`,
           { component, dataKey, dataObject, dataValue },
@@ -499,7 +505,7 @@ componentResolver.setResolver(async (component, options, next) => {
     }
     !cache.component.has(component) && cache.component.add(component, page)
   } catch (error) {
-    console.error(error)
+    log.error(error instanceof Error ? error : new Error(String(error)))
   }
 
   u.isObj(mergingProps) && component.edit(mergingProps)
