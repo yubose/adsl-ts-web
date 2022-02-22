@@ -21,8 +21,14 @@ import is from '@/utils/is'
 export interface GetElementPropsUtils
   extends Pick<t.AppContext, 'root' | 'getInRoot' | 'setInRoot'> {
   _context_?: t.PageContext['_context_']
+  /**
+   * By default this is coming from useActionChain but can be overrided
+   */
   createActionChain?: ReturnType<typeof useActionChain>['createActionChain']
   pageName?: string
+  /**
+   * Path to the component starting from pageContext.pageObject.components
+   */
   path?: (string | number)[]
 }
 
@@ -96,18 +102,15 @@ function getElementProps<Props = any>(
     let children = [] as t.CreateElementProps<Props>[]
 
     if (component.type === 'list') {
-      const _pathStr = componentPath.join('.')
-
-      const refObject = u.values(_context_?.lists || {}).find((obj) => {
-        const listObjectPath = obj?.listObjectPath
-        return !!(listObjectPath && obj.path.join('.') === _pathStr)
-      })
-
-      if (refObject) {
-        // const listObject = getInRoot(refObject.listObjectPath)
-        // console.log(listObject)
-        // debugger
-      }
+      // const _pathStr = componentPath.join('.')
+      // const refObject = u.values(_context_?.lists || {}).find((obj) => {
+      //   const listObjectPath = obj?.listObjectPath
+      //   return !!(listObjectPath && obj.path.join('.') === _pathStr)
+      // })
+      // if (refObject) {
+      // const listObject = getInRoot(refObject.listObjectPath)
+      // console.log(listObject)
+      // }
     }
 
     for (let [key, value] of u.entries(component)) {
@@ -163,22 +166,29 @@ function getElementProps<Props = any>(
           const actions = obj?.actions || []
           const trigger = key as NUITrigger
           const actionChain = createActionChain?.(component, trigger, actions)
-          props[trigger] = async function onActionChain(evt) {
+
+          props[trigger] = async function onExecuteActionChain(
+            evt: React.SyntheticEvent<HTMLElement>,
+          ) {
             // This root draft will be used throughout the handlers instead of directly accessing root from context. This is to ensure that all the most recent changes are batched onto one single update
-            let clonedRoot = createDraft(cloneDeep(root))
             let results: any[]
-            actionChain.data.set('rootDraft', clonedRoot)
+            let clonedRoot = createDraft(cloneDeep(root))
+            actionChain?.data.set('rootDraft', clonedRoot)
+
             try {
-              results = await actionChain.execute(evt)
+              results = await actionChain?.execute(evt)
             } catch (error) {
               log.error(
                 error instanceof Error ? error : new Error(String(error)),
               )
             } finally {
               clonedRoot = finishDraft(clonedRoot)
-              actionChain.data.delete('rootDraft')
+              actionChain?.data.delete('rootDraft')
             }
-            setInRoot((draft) => void u.assign(draft, clonedRoot))
+
+            setInRoot((draft) => {
+              u.entries(clonedRoot).forEach(([k, v]) => void (draft[k] = v))
+            })
             return results
           }
         }

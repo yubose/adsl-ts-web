@@ -13,9 +13,11 @@ import createRendererFactory from '@/utils/createRenderer'
 import getElementProps from '@/utils/getElementProps'
 import is from '@/utils/is'
 import * as t from '@/types'
+import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
+
+export const ui = { ...actionFactory, ...componentFactory }
 
 jest.mock('@/hooks/useGetNoodlPages')
-jest.mock('@/hooks/useRootObject')
 
 function getAllProviders({
   pageContext = {},
@@ -37,6 +39,7 @@ export type AppTestRenderOptions = Partial<
   builtIns?: ReturnType<typeof useBuiltInFns>
   createActionChain?: ReturnType<typeof useActionChain>['createActionChain']
   pageName?: string
+  static?: { images?: any[] }
 }
 
 export function renderComponent(
@@ -47,10 +50,8 @@ export function renderComponent(
   {
     builtIns,
     createActionChain,
-    getInRoot,
     pageName = 'HomePage',
-    root = {},
-    setInRoot,
+    root: rootProp = {},
     ...renderOptions
   }: Omit<RenderOptions, 'wrapper'> & AppTestRenderOptions = {},
 ) {
@@ -59,49 +60,57 @@ export function renderComponent(
     allNoodlPage: { nodes: [] },
   })
 
-  // @ts-expect-error
-  useRootObject.mockResolvedValue({
-    root,
-    getInRoot: (key = '') => {
-      let datapath = ''
-      if (is.reference(key)) {
-        if (is.localReference(key)) {
-          datapath = `${pageName}.${trimReference(key)}`
-        }
-      }
-      return get(root, datapath)
-    },
-  })
+  rootProp[pageName] = {
+    ...rootProp[pageName],
+    components: [
+      ...((component ? u.array(component) : rootProp[pageName]?.components) ||
+        []),
+      ...(rootProp[pageName]?.components || []),
+    ],
+  }
 
   const pageContext = {
     isPreload: false,
     pageName,
-    pageObject: {
-      ...root[pageName],
-      components: component ? u.array(component) : root[pageName]?.components,
-    },
+    pageObject: rootProp[pageName],
     slug: `/${pageName}/`,
     _context_: { lists: {} },
   } as t.PageContext
 
-  let node: React.ReactElement | undefined
+  const Component = () => {
+    const { root, getInRoot, setInRoot } = useRootObject(rootProp)
 
-  if (React.isValidElement(component)) {
-    node = component
-  } else {
-    node = createRendererFactory({
-      _context_: pageContext._context_,
-      builtIns,
-      createActionChain,
-      getInRoot,
-      pageName: pageContext.pageName,
-      root,
-      setInRoot,
-    })(getElementProps)(component)
+    let node: React.ReactElement | undefined
+
+    if (React.isValidElement(component)) {
+      node = component
+    } else {
+      const renderComponent = createRendererFactory({
+        root,
+        getInRoot,
+        setInRoot,
+        _context_: pageContext._context_,
+        builtIns,
+        createActionChain,
+        pageName: pageContext.pageName,
+        static: { images: [] },
+      })(getElementProps)
+
+      node = (
+        <>
+          {u.array(component).map((c) => (
+            <React.Fragment key={c.id}>{renderComponent(c)}</React.Fragment>
+          ))}
+        </>
+      )
+    }
+
+    return node
   }
 
-  return originalRender(node, {
+  return originalRender(<Component />, {
     wrapper: getAllProviders({ pageContext }),
+    static: { ...renderOptions?.static, images: [] },
     ...renderOptions,
   })
 }

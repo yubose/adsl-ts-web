@@ -22,7 +22,7 @@ const nui = NUI
  *
  * @typedef { object } On
  * @property { import('./monkeyPatchAddEventListener').OnPatch } On.patch
- * @property { (args: { nui: import('noodl-ui').NUI, pageName: string, pageObject: nt.PageObject; sdk: import('@aitmed/cadl').CADL  }) => void } On.initPage
+ * @property { (args: { cache: import('@aitmed/cadl')['cache']; nui: import('noodl-ui').NUI, pageName: string, pageObject: nt.PageObject; sdk: import('@aitmed/cadl').CADL  }) => void } On.initPage
 
  *
  * @typedef Use
@@ -88,10 +88,16 @@ async function getGenerator({
           if (sdk.cadlEndpoint.preload.includes(pageName)) {
             if (/^(Base[a-zA-Z0-9]+)/.test(pageName)) return
           }
-          await sdk.initPage(pageName, ['listObject'], {
+          await sdk.initPage(pageName, ['list', 'listObject'], {
             wrapEvalObjects: false,
           })
-          on?.initPage?.({ nui, pageName, pageObject: sdk.root[pageName], sdk })
+          on?.initPage?.({
+            cache,
+            nui,
+            pageName,
+            pageObject: sdk.root[pageName],
+            sdk,
+          })
           use.pages.json[pageName] = sdk.root[pageName]
           pages[pageName] = sdk.root[pageName]
         } catch (error) {

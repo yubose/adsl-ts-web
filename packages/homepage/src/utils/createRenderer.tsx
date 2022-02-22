@@ -30,7 +30,7 @@ export type RenderUtils = Pick<
   | 'root'
   | 'getInRoot'
   | 'setInRoot'
-> & { path?: (string | number)[] }
+> & { path?: t.ComponentPath }
 
 function createRendererFactory({
   _context_,
@@ -69,7 +69,7 @@ function createRendererFactory({
      */
     return function renderComponent(
       value: Parameters<typeof fn>[0],
-      path?: (string | number)[],
+      path?: t.ComponentPath,
     ) {
       let reference: string | undefined
 
@@ -123,6 +123,8 @@ function createRendererFactory({
         }
       }
 
+      if (!u.isObj(value)) return null
+
       const {
         type,
         key,
@@ -146,8 +148,7 @@ function createRendererFactory({
         children = [],
         ...rest
       }: t.CreateElementProps<any>) => {
-        const _children = [] as React.ReactElement[]
-
+        let _children = [] as React.ReactElement[]
         let index = 0
 
         for (const childProps of u.array(children)) {
@@ -174,13 +175,13 @@ function createRendererFactory({
           type = NoodlImage
           rest.alt = rest._path_
           rest.data = images[rest._path_].data
-          rest.id = images[rest._path_].id
+          rest.id = images[rest._path_]['id']
           rest.title = rest._path_
         }
 
         return React.createElement(
           type,
-          u.assign({}, rest, { key }),
+          { ...rest, key },
           _children.length ? _children : undefined,
         )
       }

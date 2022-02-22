@@ -11,6 +11,7 @@ const nt = require('noodl-types')
 const get = require('lodash/get')
 const set = require('lodash/set')
 const path = require('path')
+const { trimReference } = require('noodl-utils')
 const getGenerator = require('./generator')
 const GatsbyPluginNoodlCache = require('./Cache')
 const utils = require('./utils')
@@ -37,6 +38,8 @@ const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
 
 /** @type { GatsbyPluginNoodlCache } */
 let cache
+/** @type { import('@aitmed/cadl')['cache'] } */
+let sdkCache
 const nui = NUI
 
 /** @type { import('./types').InternalData } */
@@ -262,9 +265,19 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
     },
   } = pluginOptions
 
-  const { page, pages, sdk, transform } = await getGenerator({
+  const {
+    cache: sdkCache,
+    page,
+    pages,
+    sdk,
+    transform,
+  } = await getGenerator({
     configKey: data.configKey,
     on: {
+      initPage: ({ cache: sdkCache, pageName }) => {
+        // const pageObject = sdkCache.pages[pageName]
+        // console.log({ pageObject })
+      },
       /**
        * Proxy the addEventListener and removeEventListener to the JSDOM events so lvl3 doesn't give the IllegalInvocation error from mismatching instance shapes
        */
@@ -334,7 +347,11 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
               if (!data._context_[pageName]) data._context_[pageName] = {}
 
               if (nt.Identify.component.list(comp)) {
+                let listObjectPath
                 const listObject = comp.get('listObject') || []
+                // Path to component from the page object as opposed to from the "components" list
+                const absolutePath = [pageName, 'components', ...componentPath]
+
                 /**
                  * This gets passed to props.pageContext inside NoodlPageTemplate
                  */
@@ -344,8 +361,9 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                   children: [],
                   iteratorVar: comp.blueprint.iteratorVar,
                   listObject,
+                  listObjectPath,
                   // This path is used to map list objects to their reference getters in the client
-                  path: [pageName, 'components', ...componentPath],
+                  path: absolutePath,
                 })
               } else if (nt.Identify.component.image(comp)) {
                 // This is mapped to the client side to pick up the static image
@@ -410,7 +428,6 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   for (const [name, pageObject] of u.entries(pages)) {
     page.page = name
     const { components } = pageObject
-    for (const k of u.keys(pageObject)) delete pageObject[k]
     pageObject.components = await generateComponents(name, components)
 
     const lists = data._context_[name]?.lists
@@ -440,8 +457,8 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
 
     data._pages_.serialized[name] = u.isStr(pageObject)
       ? pageObject
-      : JSON.stringify(pageObject)
-    data._pages_.json[name] = JSON.parse(data._pages_.serialized[name])
+      : JSON.stringify(u.omit(pageObject, 'components'))
+    data._pages_.json[name] = pageObject
 
     /**
      * Create the GraphQL nodes for page objects
