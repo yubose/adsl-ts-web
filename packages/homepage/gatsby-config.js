@@ -7,6 +7,9 @@ const { parse, traverse, types } = require('@babel/core')
 const pathPrefix = `` // deployed to root directory
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
 const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'mob'
+const viewport = process.env.MOBILE
+  ? { width: 414, height: 736 } // iPhone 8 Plus
+  : { width: 1024, height: 768 }
 
 const {
   name: siteName,
@@ -99,10 +102,7 @@ module.exports = {
         // If we don't provide this, it will use the startPage in cadlEndpoint in the yaml. If it is not in cadlEndpoint, the fallback is 'HomePage'
         // startPage: 'MobHomePage',
         template: path.resolve(`src/templates/page.tsx`),
-        viewport: {
-          width: 1024,
-          height: 768,
-        },
+        viewport,
       },
     },
     {
