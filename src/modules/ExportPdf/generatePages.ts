@@ -80,21 +80,13 @@ async function generatePages({
           onclone: (d: Document, e: HTMLElement) => {
             e.style.height = 'auto'
 
-            e.style.maxWidth = pageWidth + 'px'
-            e.style.overflowX = 'hidden'
-
             const pendingClonedElems = [] as HTMLElement[]
             const numPending = pending.length
 
             for (let index = 0; index < numPending; index++) {
               const flat = pending[index] as FlatObject
               const clonedEl = d.getElementById(flat.id)
-              if (clonedEl) {
-                clonedEl.style.maxWidth = pageWidth + 'px'
-                clonedEl.style.textOverflow = 'ellipsis'
-                clonedEl.style.wordWrap = 'nowrap'
-                pendingClonedElems.push(clonedEl)
-              }
+              if (clonedEl) pendingClonedElems.push(clonedEl)
             }
 
             const modifiedEl = use?.clonedContainer?.({
