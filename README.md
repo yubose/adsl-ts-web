@@ -105,7 +105,7 @@ NUI.emit({
 
 | app       | phone #    | password    | who    | Notes            |
 | --------- | ---------- | ----------- | ------ | ---------------- |
-| aitmedPay | 8884567890 | 123         | dazhou |                  |
+| aitmedPay | 8884567890 | 123         | dazhou |
 | admin     | 8882005050 | password    |        |
 | admin     | 7144480995 | Baby2020!   |        |
 | admin     | 5594215342 | Family3496  | toni   |                  |
