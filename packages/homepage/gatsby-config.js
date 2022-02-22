@@ -100,8 +100,8 @@ module.exports = {
         // startPage: 'MobHomePage',
         template: path.resolve(`src/templates/page.tsx`),
         viewport: {
-          width: 520,
-          height: 740,
+          width: 1024,
+          height: 768,
         },
       },
     },
