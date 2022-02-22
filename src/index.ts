@@ -413,16 +413,10 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
-    mainView: {
-      get() {
-        return findFirstByViewTag('mainView')
-      },
-    },
-    scrollView: {
-      get() {
-        return findFirstByClassName('scroll-view')
-      },
-    },
+    mainView: { get: () => findFirstByViewTag('mainView') },
+    pdfViewTag: { get: () => findFirstByViewTag('pdfViewTag') },
+    tableView: { get: () => findFirstByViewTag('tableView') },
+    scrollView: { get: () => findFirstByClassName('scroll-view') },
     goToForm: {
       value: {
         AbsentNoteReview: () => app.navigate('AbsentNoteReview'),
