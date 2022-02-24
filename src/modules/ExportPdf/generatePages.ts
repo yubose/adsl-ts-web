@@ -101,7 +101,14 @@ async function generatePages({
 
         pdf.setDisplayMode(1)
 
-        pdf.addImage(canvas, 'PNG', 0, 0, pdfPageWidth, pdfPageHeight)
+        pdf.addImage(
+          canvas.toDataURL('image/png'),
+          'PNG',
+          0,
+          0,
+          pdfPageWidth,
+          pdfPageHeight,
+        )
 
         if (currFlatHeight + currPageHeight > pdfPageHeight) {
           pdf.addPage([pdfPageWidth, pdfPageHeight], orientation)

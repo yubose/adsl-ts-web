@@ -1,0 +1,9 @@
+/^$/d
+/^a$/d
+/^an$/d
+/^our$/d
+/^the$/d
+/^to$/d
+/^us$/d
+/^you$/d
+/^about$/d

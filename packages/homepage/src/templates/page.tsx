@@ -25,7 +25,7 @@ function NoodlPageTemplate(props: NoodlPageTemplateProps) {
       <Seo />
       {pageObject?.components?.map?.(
         (c: t.StaticComponentObject | string, index) => (
-          <React.Fragment key={u.isStr(c) ? c : c.id || c.dataKey || index}>
+          <React.Fragment key={u.isStr(c) ? c : c?.id || c?.dataKey || index}>
             {render(c, [pageName, 'components', index])}
           </React.Fragment>
         ),

@@ -5,7 +5,7 @@ import get from 'lodash/get'
 import set from 'lodash/set'
 import produce, { createDraft, isDraft, current, finishDraft } from 'immer'
 import { navigate } from 'gatsby'
-import { excludeIteratorVar, trimReference } from 'noodl-utils'
+import { excludeIteratorVar, trimReference, toDataPath } from 'noodl-utils'
 import {
   createAction,
   createActionChain as nuiCreateActionChain,
@@ -348,6 +348,8 @@ function useActionChain() {
                   action: value,
                   actionChain,
                   component,
+                  event,
+                  trigger,
                 })
               }
             }
@@ -395,6 +397,53 @@ function useActionChain() {
                   ...obj[key],
                 })
                 log.debug(`%c[${key}] Result`, `color:#01a7c4;`, result)
+              } else {
+                let isAwaiting = false
+                let isLocal = true
+                let value = obj[key]
+
+                if (is.reference(key)) {
+                  isLocal = is.localReference(key)
+                  isAwaiting = is.awaitReference(key)
+                }
+
+                if (u.isStr(value)) {
+                  if (is.reference(value)) {
+                    value = getInRoot(value, pageCtx.pageName)
+                  }
+                }
+
+                if (isAwaiting) {
+                  if (isLocal) {
+                    const incKey = [
+                      pageCtx.pageName,
+                      ...toDataPath(trimReference(key)).filter(Boolean),
+                    ]
+                    const incValue = u.values(obj)[0]
+                    console.log({
+                      incKey: incKey.join('.'),
+                      incValue,
+                      pageName: pageCtx.pageName,
+                      value,
+                    })
+                    set(actionChain.data.get('rootDraft'), incKey, incValue)
+                  } else {
+                    const root = actionChain.data.get('rootDraft')
+                    const incKey = toDataPath(trimReference(key))
+                    const incValue = getInRoot(root, incKey)
+                    console.log({
+                      incKey,
+                      incValue,
+                      root,
+                      pageName: pageCtx.pageName,
+                      value,
+                    })
+
+                    set(root, incKey, incValue)
+                  }
+                } else {
+                  result = value
+                }
               }
             } else {
               log.error(
@@ -425,8 +474,9 @@ function useActionChain() {
 
       const actionChain = nuiCreateActionChain(trigger, actions, (actions) => {
         return actions.map((obj) => {
-          if (is.folds.emit(obj))
+          if (is.folds.emit(obj)) {
             return createEmit(actionChain, component, trigger, obj)
+          }
 
           const nuiAction = createAction({ action: obj, trigger })
 
@@ -440,13 +490,15 @@ function useActionChain() {
               event,
               trigger,
             })
-            log.debug(
-              `%c[${nuiAction.actionType}]${
-                is.action.builtIn(obj) ? ` ${obj.funcName}` : ''
-              } Execute result`,
-              `color:#ee36df;`,
-              result || '<empty>',
-            )
+            if (result) {
+              log.debug(
+                `%c[${nuiAction.actionType}]${
+                  is.action.builtIn(obj) ? ` ${obj.funcName}` : ''
+                } Execute result`,
+                `color:#ee36df;`,
+                result,
+              )
+            }
           }
           return nuiAction
         })

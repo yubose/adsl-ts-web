@@ -64,8 +64,6 @@ function useRootObject<Root extends Record<string, any>>(
           const path = trimReference(_key)
           const paths = path.split('.')
 
-          log.info({ key: _key, pageName, path })
-
           const dataObject = is.localReference(_key) ? _root[_pageName] : _root
 
           if (!has(dataObject, paths)) {

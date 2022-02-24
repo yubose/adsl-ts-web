@@ -30,6 +30,7 @@
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "babel-preset-gatsby": "^2.6.0",
+    "eslint-plugin-jest": "^26.1.1",
     "gatsby-plugin-webpack-bundle-analyser-v2": "^1.1.26",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^27.4.7",
@@ -51,7 +52,8 @@
           "sourceType": "module"
         },
         "plugins": [
-          "@typescript-eslint/eslint-plugin"
+          "@typescript-eslint/eslint-plugin",
+          "jest"
         ],
         "rules": {
           "@typescript-eslint/explicit-function-return-type": "off",
@@ -85,6 +87,11 @@
             }
           ],
           "import/no-unresolved": 0,
+          "jest/no-disabled-tests": "warn",
+          "jest/no-focused-tests": "error",
+          "jest/no-identical-title": "error",
+          "jest/prefer-to-have-length": "warn",
+          "jest/valid-expect": "error",
           "no-use-before-define": [
             0
           ],

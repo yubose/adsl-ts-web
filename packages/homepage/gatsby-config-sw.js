@@ -7,9 +7,6 @@ const { parse, traverse, types } = require('@babel/core')
 const pathPrefix = `` // deployed to root directory
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
 const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'mob'
-const viewport = process.env.MOBILE
-  ? { width: 414, height: 736 } // iPhone 8 Plus
-  : { width: 1024, height: 768 }
 
 const {
   name: siteName,
@@ -102,7 +99,10 @@ module.exports = {
         // If we don't provide this, it will use the startPage in cadlEndpoint in the yaml. If it is not in cadlEndpoint, the fallback is 'HomePage'
         // startPage: 'MobHomePage',
         template: path.resolve(`src/templates/page.tsx`),
-        viewport,
+        viewport: {
+          width: 520,
+          height: 740,
+        },
       },
     },
     {
@@ -188,48 +188,48 @@ module.exports = {
         icon: `${__dirname}/src/resources/images/logo.png`,
       },
     },
-    'gatsby-plugin-remove-serviceworker',
-    // {
-    // https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/
-    // resolve: `gatsby-plugin-offline`,
-    // options: {
-    //   workboxConfig: {
-    //     clientsClaim: true,
-    //     modifyURLPrefix: {
-    //       '/': `${pathPrefix}/`,
-    //     },
-    /**
-     * This will prevent browsers from caching these types of files and
-     * let the file name do the versioning to determine freshness instead
-     *
-     * For more info check this link:
-     * https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/#overriding-workbox-configuration
-     */
-    //       dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
-    //       runtimeCaching: [
-    //         {
-    //           // Same reason as above
-    //           urlPattern: /(\.js$|\.css$|static\/)/,
-    //           handler: `CacheFirst`,
-    //         },
-    //         {
-    //           urlPattern: /^https?:.*\/page-data\/.*\.json/,
-    //           handler: `StaleWhileRevalidate`,
-    //         },
-    //         {
-    //           urlPattern:
-    //             /^https?:.*\.(png|jpg|jpeg|webp|svg|gif|tiff|js|woff|woff2|json|css)$/,
-    //           handler: `StaleWhileRevalidate`,
-    //         },
-    //         {
-    //           urlPattern: /^https?:\/\/fonts\.googleapis\.com\/css/,
-    //           handler: `StaleWhileRevalidate`,
-    //         },
-    //       ],
-    //       skipWaiting: true,
-    //     },
-    //   },
-    // },
+    // 'gatsby-plugin-remove-serviceworker',
+    {
+      // https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/
+      resolve: `gatsby-plugin-offline`,
+      options: {
+        workboxConfig: {
+          clientsClaim: true,
+          modifyURLPrefix: {
+            '/': `${pathPrefix}/`,
+          },
+          /**
+           * This will prevent browsers from caching these types of files and
+           * let the file name do the versioning to determine freshness instead
+           *
+           * For more info check this link:
+           * https://www.gatsbyjs.com/plugins/gatsby-plugin-offline/#overriding-workbox-configuration
+           */
+          dontCacheBustURLsMatching: /(\.js$|\.css$|static\/)/,
+          runtimeCaching: [
+            {
+              // Same reason as above
+              urlPattern: /(\.js$|\.css$|static\/)/,
+              handler: `CacheFirst`,
+            },
+            {
+              urlPattern: /^https?:.*\/page-data\/.*\.json/,
+              handler: `StaleWhileRevalidate`,
+            },
+            {
+              urlPattern:
+                /^https?:.*\.(png|jpg|jpeg|webp|svg|gif|tiff|js|woff|woff2|json|css)$/,
+              handler: `StaleWhileRevalidate`,
+            },
+            {
+              urlPattern: /^https?:\/\/fonts\.googleapis\.com\/css/,
+              handler: `StaleWhileRevalidate`,
+            },
+          ],
+          skipWaiting: true,
+        },
+      },
+    },
   ],
 }
 

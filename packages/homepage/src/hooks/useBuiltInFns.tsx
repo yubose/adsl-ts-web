@@ -43,8 +43,9 @@ function purgeDataIn({
         let paths = []
         if (is.localReference(value)) pageName && paths.push(pageName)
         paths = paths.concat(trimReference(value).split('.'))
+
         dataIn[key] = getInRoot(
-          actionChain.data.get('rootDraft'),
+          actionChain?.data?.get('rootDraft'),
           paths.join('.'),
           pageName,
         )
