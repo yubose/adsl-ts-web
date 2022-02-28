@@ -460,6 +460,7 @@ const createActions = function createActions(app: App) {
           const ac = options?.ref
           const comp = options?.component
           const dataKey = _pick(action, 'dataKey')
+          const fileFormat = _pick(action,'fileFormat')
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
             if (u.isStr(dataKey)) {
@@ -473,6 +474,10 @@ const createActions = function createActions(app: App) {
               file: files?.[0],
               actionChain: ac,
             })
+            if(fileFormat){
+              ac.data.set(fileFormat, files?.[0]?.type)
+              app.updateRoot(fileFormat, ac.data.get(fileFormat))
+            }
           } else {
             log.red(
               `%cBoth action and component is needed to inject a blob to the action chain`,
