@@ -581,7 +581,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   node: node as NDOMElement,
                   iteratorVar,
                   page,
-                }),400):
+                }),500):
                 getOnChange({
                   component,
                   dataKey,
