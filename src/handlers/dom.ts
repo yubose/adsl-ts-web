@@ -573,7 +573,6 @@ const createExtendedDOMResolvers = function (app: App) {
               node.addEventListener(
                 'input',
                 component.blueprint.antiShake?
-                
                 antiShake(getOnChange({
                   component,
                   dataKey,
@@ -581,7 +580,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   node: node as NDOMElement,
                   iteratorVar,
                   page,
-                }),500):
+                }),component.blueprint.antiShake):
                 getOnChange({
                   component,
                   dataKey,
