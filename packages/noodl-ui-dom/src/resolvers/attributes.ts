@@ -51,6 +51,8 @@ function attachUserEvents<N extends t.NDOMElement>(
      * - onInput
      */
     if (eventType === 'onChange') return;
+    if (eventType === 'onInput') return;
+
     if (u.isFnc(component.get?.(eventType)?.execute)) {
       /**
        * Putting a setTimeout here helps to avoid the race condition in

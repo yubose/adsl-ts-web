@@ -1,9 +1,10 @@
 /^$/d
-/^a$/d
-/^an$/d
+/^.$/d
+/^..$/d
+/^and$/d
 /^our$/d
 /^the$/d
-/^to$/d
-/^us$/d
 /^you$/d
 /^about$/d
+s/$/',/
+s/^/'/

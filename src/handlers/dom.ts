@@ -154,6 +154,15 @@ const createExtendedDOMResolvers = function (app: App) {
     }
   })()
 
+  const antiShake = (fn, wait)=> {
+    let timer;
+    return function () {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            fn.apply(this, arguments)
+        }, wait);
+    }
+}
   const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
       cond: 'chart',
@@ -560,8 +569,18 @@ const createExtendedDOMResolvers = function (app: App) {
             )
 
             if (component?.type == 'textField') {
+              
               node.addEventListener(
                 'input',
+                component.blueprint.debounce?
+                antiShake(getOnChange({
+                  component,
+                  dataKey,
+                  evtName: 'onInput',
+                  node: node as NDOMElement,
+                  iteratorVar,
+                  page,
+                }),component.blueprint.debounce):
                 getOnChange({
                   component,
                   dataKey,
@@ -569,12 +588,14 @@ const createExtendedDOMResolvers = function (app: App) {
                   node: node as NDOMElement,
                   iteratorVar,
                   page,
-                }),
+                })
+                
               )
             }
             if (component?.type == 'textView') {
               node.addEventListener(
                 'input',
+                
                 getOnChange({
                   component,
                   dataKey,
