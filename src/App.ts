@@ -561,7 +561,7 @@ class App {
         this.#noodl?.cadlEndpoint as AppConfig,
         window.location.href,
       )
-      
+
       let startPage = parsedUrl.startPage
 
       if (parsedUrl.hasParams) {
@@ -600,7 +600,7 @@ class App {
 
       if (this.mainPage && location.href && !parsedUrl.hasParams) {
         let url = location.href
-        if(url.includes('&checkoutId=')){
+        if (url.includes('&checkoutId=')) {
           url = parsedUrl.pageUrl
         }
         let { startPage = '' } = this.noodl.cadlEndpoint || {}
@@ -683,7 +683,7 @@ class App {
       if (page.previous === page.requesting) page.previous = page.page
 
       isAbortedFromSDK = (
-        await this.noodl?.initPage(pageRequesting, ['listObject', 'list'], {
+        await this.noodl?.initPage(pageRequesting, [], {
           ...(page.modifiers?.[pageRequesting] as any),
           builtIn: this.#sdkHelpers.initPageBuiltIns,
           onBeforeInit: (init) => {
@@ -758,8 +758,6 @@ class App {
           },
           onAfterInit: (err, init) => {
             if (err) throw err
-            log.func('onAfterInit')
-            log.grey('', { err, init, page: pageRequesting })
             let currentIndex = this.loadingPages[pageRequesting]?.findIndex?.(
               (o) => o.id === page.id,
             )
@@ -771,6 +769,14 @@ class App {
                 this.loadingPages[pageRequesting].shift()
               }
             }
+          },
+          // Currently used on list components to re-retrieve listObject by refs
+          shouldAttachRef(key, value, parent) {
+            return (
+              parent?.type === 'list' &&
+              key === 'listObject' &&
+              is.reference(value)
+            )
           },
         })
       )?.aborted
