@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
+import { Account, cache as sdkCache } from '@aitmed/cadl'
 import axios from 'axios'
 import Logger from 'logsnap'
 import * as lib from 'noodl-ui'
@@ -280,6 +281,7 @@ async function initializeNoodlPluginRefresher() {
 }
 
 window.addEventListener('load', async (e) => {
+  window.sdkCache = sdkCache
   if (isChrome()) {
     console.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
   } else {
@@ -413,6 +415,7 @@ if (module.hot) {
 
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(window, {
+    Account: { value: Account },
     mainView: { get: () => findFirstByViewTag('mainView') },
     pdfViewTag: { get: () => findFirstByViewTag('pdfViewTag') },
     tableView: { get: () => findFirstByViewTag('tableView') },
@@ -582,6 +585,7 @@ function attachDebugUtilsToWindow(app: App) {
         return results
       },
     },
+    sdkCache: { value: sdkCache },
   })
 
   attachDebugUtilsToWindow.attached = true
