@@ -43,6 +43,28 @@ button:hover {
 input::placeholder {
   opacity: 0.6;
 }
+textarea::-webkit-input-placeholder { /* WebKit browsers */
+  color: #A9AAAA;
+  }
+  textarea:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+  color: #A9AAAA;
+  }
+  textarea::-moz-placeholder { /* Mozilla Firefox 19+ */
+  color: #A9AAAA;
+  
+  }
+
+  input::-webkit-input-placeholder { /* WebKit browsers */
+  color: #A9AAAA;
+  }
+  input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+  color: #A9AAAA;
+  
+  }
+  input::-moz-placeholder { /* Mozilla Firefox 19+ */
+  color: #A9AAAA;
+  
+  }
 
 .actions button,
 input,
