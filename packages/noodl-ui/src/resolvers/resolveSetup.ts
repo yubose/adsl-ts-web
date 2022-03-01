@@ -28,6 +28,18 @@ setupResolver.setResolver(async function setupResolver(
       ) {
         let value = this.blueprint[key]
 
+        if (original?._key_ === key && original?._ref_) {
+          return resolveReference({
+            component,
+            page,
+            key: original._key_,
+            value: original._ref_,
+            localKey: page?.page,
+            on,
+            root: getRoot,
+          })
+        }
+
         if (u.isStr(value)) {
           if (nt.Identify.pageComponentUrl(value)) {
             return resolvePageComponentUrl({
