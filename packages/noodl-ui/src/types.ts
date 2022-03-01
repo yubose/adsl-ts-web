@@ -234,6 +234,10 @@ export type ConsumerOptions<Trig extends string = string> = Omit<
     component: NuiComponent.Instance,
   ): StyleObject & { [key: string]: any }
   ref?: NUIActionChain
+} & Partial<ConsumerOptionsHelpers>
+
+export interface ConsumerOptionsHelpers {
+  resolveReference: (key: string, value?: any) => any
 }
 
 export interface On {
