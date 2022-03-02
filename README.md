@@ -105,30 +105,33 @@ NUI.emit({
 
 | app       | phone #    | password    | who    | Notes            |
 | --------- | ---------- | ----------- | ------ | ---------------- |
-| aitmedPay | 8884567890 | 123         | dazhou |
-| admin     | 8882005050 | password    |        |
+| aitmedPay | 8864567890 | 123         | dazhou |
+| admin     | 8862005050 | password    |        |
 | admin     | 7144480995 | Baby2020!   |        |
 | admin     | 5594215342 | Family3496  | toni   |                  |
-| admin     | 8884210047 | aitmed      | toni   |                  |
-| admind2   | 8880000301 |             |        |
-| admind2   | 8885509773 | 123         |        |
-| admind2   | 8886006001 | password    |        |
-| admind2   | 8886006002 | password    |        |
+| admin     | 8864210047 | aitmed      | toni   |                  |
+| admind2   | 8860000301 |             |        |
+| admind2   | 8865509773 | 123         |        |
+| admind2   | 8866006001 | password    |        |
+| admind2   | 8866006002 | password    |        |
 | admind2   | 2134628002 | letmein123! |        |
-| admind2   | 8883870054 | aitmed      | liz    | Josh Urgent Care |
-| admind2   | 8886540007 | 123         |        | yongjian         |
-| admind2   | 8884565043 | 123         |        | chenchen         |
-| admind2   | 8882320918 | 888666      |        | yuhan            |
-| admind2   | 8882324378 | 888666      |        | austin           |
-| patd      | 8880081221 | letmein123! |        |
-| patd      | 8884240000 | 12345       |        |
-| patd2     | 8881122050 | 123         |        |
-| patd3     | 8884565432 | 123         | jiahao |
-| prod      | 8885550010 | password    |        |
-| prod      | 8884210053 | aitmed      | toni   |
-| meet4d    | 8882465555 | 142251      |        |
-| meet4d    | 8882468491 | 142251      |        |
-| meet4d    | 8882461234 | 142251      |        |
+| admind2   | 8863870054 | aitmed      | liz    | Josh Urgent Care |
+| admind2   | 8866540007 | 123         |        | yongjian         |
+| admind2   | 8864565043 | 123         |        | chenchen         |
+| admind2   | 8862320918 | 888666      |        | yuhan            |
+| admind2   | 8862324378 | 888666      |        | austin           |
+| patient   | 8862465555 | 123         | me     |                  |
+| provider  | 8882465555 | 123         | me     |                  |
+| provider  | 8882461211 | 123         | me     |                  |
+| patd      | 8860081221 | letmein123! |        |
+| patd      | 8864240000 | 12345       |        |
+| patd2     | 8861122050 | 123         |        |
+| patd3     | 8864565432 | 123         | jiahao |
+| prod      | 8865550010 | password    |        |
+| prod      | 8864210053 | aitmed      | toni   |
+| meet4d    | 8862465555 | 142251      |        |
+| meet4d    | 8862468491 | 142251      |        |
+| meet4d    | 8862461234 | 142251      |        |
 
 ## Ecos types
 

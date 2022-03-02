@@ -1,4 +1,5 @@
 import * as u from '@jsmanifest/utils'
+import resolveReference from './utils/resolveReference'
 import type { NuiComponent, ConsumerOptions } from './types'
 
 export interface IResolver<
@@ -45,6 +46,32 @@ class ComponentResolver<
 > extends Resolver<Func, ComponentResolver<Func>> {
   #isInternal: boolean = false
   #name: string
+
+  static withHelpers<Fn extends (...args: ResolverArgs) => any>(
+    resolverFn: ComponentResolver<Fn>['resolver'],
+  ) {
+    const wrap = (fn: typeof resolverFn) => {
+      const onResolveWithHelpers = (...args: Parameters<typeof resolverFn>) => {
+        const optionsWithHelpers: ConsumerOptions = {
+          ...args[1],
+          resolveReference: (key, value) => {
+            return resolveReference({
+              component: args[0],
+              localKey: args[1]?.page?.page,
+              on: args[1]?.on,
+              page: args[1]?.page,
+              root: args[1]?.getRoot,
+              key,
+              value,
+            })
+          },
+        }
+        return fn(args[0], optionsWithHelpers, args[2])
+      }
+      return onResolveWithHelpers
+    }
+    return wrap(resolverFn)
+  }
 
   constructor(name = '', resolver?: Func) {
     super()
