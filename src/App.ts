@@ -423,11 +423,16 @@ class App {
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
-      if (!this.notification) {
+      // if (!this.notification) {
+      try {
         this.#notification = new (await import('./app/Notifications')).default()
         log.grey(`Initialized notifications`, this.#notification)
         onInitNotification && (await onInitNotification?.(this.#notification))
+      } catch (error) {
+        console.error(error instanceof Error ? error : new Error(String(error)))
       }
+
+      // }
 
       this.noodl.on('QUEUE_START', () => {
         if (!this.getState().spinner.active) this.enableSpinner()

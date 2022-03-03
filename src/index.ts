@@ -1,7 +1,12 @@
 import * as u from '@jsmanifest/utils'
 import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
 import { Account, cache as sdkCache } from '@aitmed/cadl'
-import axios from 'axios'
+import curry from 'lodash/curry'
+import partial from 'lodash/partial'
+import partialRight from 'lodash/partialRight'
+import unary from 'lodash/unary'
+import get from 'lodash/get'
+import has from 'lodash/has'
 import Logger from 'logsnap'
 import * as lib from 'noodl-ui'
 import {
@@ -24,9 +29,16 @@ import {
   findWindowDocument,
   Page as NDOMPage,
 } from 'noodl-ui-dom'
-import { findReferences } from 'noodl-utils'
-import { copyToClipboard, exportToPDF, getVcodeElem, toast } from './utils/dom'
+import { findReferences, trimReference, toDataPath } from 'noodl-utils'
+import {
+  copyToClipboard,
+  exportToPDF,
+  fromClipboard,
+  getVcodeElem,
+  toast,
+} from './utils/dom'
 import { isChrome } from './utils/common'
+import is from './utils/is'
 import {
   getUserProps as getUserPropsFromLocalStorage,
   saveUserProps as saveUserPropsFromLocalStorage,
@@ -414,181 +426,206 @@ if (module.hot) {
 }
 
 function attachDebugUtilsToWindow(app: App) {
-  Object.defineProperties(window, {
-    Account: { value: Account },
-    mainView: { get: () => findFirstByViewTag('mainView') },
-    pdfViewTag: { get: () => findFirstByViewTag('pdfViewTag') },
-    tableView: { get: () => findFirstByViewTag('tableView') },
-    scrollView: { get: () => findFirstByClassName('scroll-view') },
-    goToForm: {
-      value: {
-        AbsentNoteReview: () => app.navigate('AbsentNoteReview'),
-        BlankNoteReview: () => app.navigate('BlankNoteReview'),
-        DWCFormRFAReview: () => app.navigate('DWCFormRFAReview'),
-        EvaluationNoteReview: () => app.navigate('EvaluationNoteReview'),
-        InitEvalReportReview: () => app.navigate('InitEvalReportReview'),
-        PatientConsentFormHIPPAReview: () =>
-          app.navigate('PatientConsentFormHIPPAReview'),
-        ProgressReportReview: () => app.navigate('ProgressReportReview'),
-        PROneReview: () => app.navigate('PROneReview'),
-        PRTwoReview: () => app.navigate('PRTwoReview'),
-        PrescriptionShared: () => app.navigate('PrescriptionShared'),
-        SurgeryAuthorizationReview: () =>
-          app.navigate('SurgeryAuthorizationReview'),
-        Cov19ResultsAndFluResultsReview: () =>
-          app.navigate('Cov19ResultsAndFluResultsReview'),
-        WorkStatusFormReview: () => app.navigate('WorkStatusFormReview'),
-      },
-    },
-    goToPaymentUrl4: {
-      value: () =>
-        (window.location.href =
-          'http://127.0.0.1:3000/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY'),
-    },
-    replaceHtml: {
-      value: function (pageName: string) {
-        return axios
-          .get(`http://127.0.0.1:3003/${pageName}`)
-          .then(({ data }) => document.write(data))
-          .catch(console.error)
-      },
-    },
-    ExportPdf: { value: ExportPdf },
-    pageTable: {
-      get() {
-        const result = [] as { page: string; ndom: number; nui: number }[]
-        const getKey = (page: NDOMPage | lib.Page) =>
-          page.page === '' ? 'unknown' : page.page
-        const pagesList = [] as string[]
+  const navigate = (destination: string) => () => app.navigate(destination)
+  const filterComponentCache =
+    <Arg>(fn: (arg: Arg, obj: lib.ComponentCacheObject) => boolean) =>
+    (arg: Arg): any =>
+      app.cache.component.filter(partial(fn, arg))
 
-        for (const { page } of app.cache.page.get().values()) {
-          if (!pagesList.includes(page.page)) pagesList.push(page.page)
-          const index = pagesList.indexOf(page.page)
-          const obj = result[index]
-          const pageKey = getKey(page) as keyof typeof result[number]
+  const values = { Account, cp: copyToClipboard, ExportPdf }
 
-          if (!obj) {
-            result[index] = {
-              ndom: 0,
-              nui: 0,
-              page: pageKey,
-            }
-          }
-          result[index].nui++
-          result[index].page = pageKey
-        }
-
-        const ndomPagesEntries = u.entries(app.ndom.pages)
-
-        for (let index = 0; index < ndomPagesEntries.length; index++) {
-          const [_, ndomPage] = ndomPagesEntries[index]
-          const pageKey = getKey(ndomPage) as keyof typeof result[number]
-          const obj = result[index]
-          if (!pagesList.includes(pageKey)) pagesList.push(pageKey)
-          if (!obj) {
-            result[index] = {
-              ndom: 0,
-              nui: 0,
-              page: pageKey,
-            }
-          }
-          result[index].ndom++
-          result[index].page = pageKey
-        }
-
-        return result
-      },
-    },
-    getDataValues: {
-      value() {
-        return u.reduce(
-          u.array(findByDataKey()),
-          (acc, el) => {
-            if (el) {
-              if (el.dataset.value === '[object Object]') {
-                const component = app.cache.component.get(el.id)?.component
-                const value = component.get('data-value')
-                if (u.isPromise(value)) {
-                  value.then((result) => {
-                    acc[el.dataset.key as string] = result
-                  })
-                } else {
-                  acc[el.dataset.key as string] = value
-                }
-              } else {
-                acc[el.dataset.key as string] =
-                  'value' in el ? (el as any).value : el.dataset.value
-              }
-            }
-            return acc
-          },
-          {} as Record<string, any>,
+  const funcs = {
+    componentCache: {
+      findComponentsWithKeys: (...keys: string[]) => {
+        const regexp = new RegExp(`(${keys.join('|')})`)
+        return app.cache.component.filter((obj) =>
+          Array.from(
+            new Set(
+              u
+                .keys(obj?.component?.blueprint || {})
+                .concat(u.keys(obj?.component?.props || {})),
+            ),
+          ).some((key) => regexp.test(key)),
         )
       },
+      findByComponentType: filterComponentCache<string>(
+        (type, obj) => obj.component?.type === type,
+      ),
+      findById: filterComponentCache<string>(
+        (id, obj) => obj.component?.id === id,
+      ),
+      findByPopUpView: filterComponentCache<string>(
+        (popUpView, obj) => obj.component?.blueprint?.popUpView === popUpView,
+      ),
+      findByViewTag: filterComponentCache<string>(
+        (viewTag, obj) => obj.component?.blueprint?.viewTag === viewTag,
+      ),
     },
-    componentCache: {
-      value: {
-        findComponentsWithKeys: (...keys: string[]) => {
-          const regexp = new RegExp(`(${keys.join('|')})`)
-          return app.cache.component.filter((obj) =>
-            [
-              ...new Set([
-                ...u.keys(obj?.component?.blueprint || {}),
-                ...u.keys(obj?.component?.props || {}),
-              ]),
-            ].some((key) => regexp.test(key)),
-          )
-        },
-        findByComponentType: (type: string) =>
-          app.cache.component.filter((obj) => obj.component?.type === type),
-        findById: (id: string) =>
-          app.cache.component.filter((obj) => obj.component?.id === id),
-        findByPopUpView: (popUpView: string) =>
-          app.cache.component.filter(
-            (obj) => obj.component?.blueprint?.popUpView === popUpView,
-          ),
-        findByViewTag: (viewTag: string) =>
-          app.cache.component.filter(
-            (obj) => obj.component?.blueprint?.viewTag === viewTag,
-          ),
-      },
-    },
-    findArrOfMinSize: {
-      value: function findArrOfMinSize(
-        root = {} as Record<string, any>,
-        size: number,
-        path = [] as (string | number)[],
-      ) {
-        const results = [] as { arr: any[]; path: (string | number)[] }[]
+    currentUser: () => app.root.Global?.currentUser,
+    findArrOfMinSize: function findArrOfMinSize(
+      root = {} as Record<string, any>,
+      size: number,
+      path = [] as (string | number)[],
+    ) {
+      const results = [] as { arr: any[]; path: (string | number)[] }[]
 
-        if (Array.isArray(root)) {
-          const count = root.length
+      if (Array.isArray(root)) {
+        const count = root.length
 
-          if (count >= size) results.push({ arr: root, path })
+        if (count >= size) results.push({ arr: root, path })
 
-          for (let index = 0; index < count; index++) {
-            const item = root[index]
-            results.push(...findArrOfMinSize(item, size, path.concat(index)))
-          }
-        } else if (
-          root &&
-          typeof root === 'object' &&
-          typeof root !== 'function'
-        ) {
-          for (const [key, value] of Object.entries(root)) {
-            results.push(...findArrOfMinSize(value, size, path.concat(key)))
-            // if (Array.isArray(value)) {
-            // } else {}
-          }
+        for (let index = 0; index < count; index++) {
+          const item = root[index]
+          results.push(...findArrOfMinSize(item, size, path.concat(index)))
         }
+      } else if (
+        root &&
+        typeof root === 'object' &&
+        typeof root !== 'function'
+      ) {
+        for (const [key, value] of Object.entries(root)) {
+          results.push(...findArrOfMinSize(value, size, path.concat(key)))
+          // if (Array.isArray(value)) {
+          // } else {}
+        }
+      }
 
-        return results
-      },
+      return results
     },
-    sdkCache: { value: sdkCache },
+    // Retrieve value of a reference or a regular data path (using root object)
+    get: (path: string) => {
+      const getValue = (str: string) => {
+        let path = trimReference(str)
+        return get(
+          (is.reference(str) && is.localReference(str)) ||
+            (!is.reference(str) && is.localKey(path))
+            ? app.root[app.currentPage]
+            : app.root,
+          path,
+        )
+      }
+      if (!path) {
+        fromClipboard()
+          .then((path) =>
+            !path
+              ? console.error(
+                  new Error(
+                    `Nothing was passed in and nothing was in the clipboard`,
+                  ),
+                )
+              : console.log((window['v'] = getValue(path))),
+          )
+          .catch(console.error)
+      } else {
+        console.log((window['v'] = getValue(path)))
+      }
+    },
+    getDataValues: () =>
+      u.reduce(
+        u.array(findByDataKey()),
+        (acc, el) => {
+          if (el) {
+            if (el.dataset.value === '[object Object]') {
+              const component = app.cache.component.get(el.id)?.component
+              const value = component.get('data-value')
+              if (u.isPromise(value)) {
+                value.then((result) => (acc[el.dataset.key as string] = result))
+              } else acc[el.dataset.key as string] = value
+            } else {
+              acc[el.dataset.key as string] =
+                'value' in el ? (el as any).value : el.dataset.value
+            }
+          }
+          return acc
+        },
+        {} as Record<string, any>,
+      ),
+    mainView: partialRight(unary(findFirstByViewTag), 'mainView'),
+    pdfViewTag: partialRight(unary(findFirstByViewTag), 'pdfViewTag'),
+    tableView: partialRight(unary(findFirstByViewTag), 'tableView'),
+    scrollView: partialRight(unary(findFirstByClassName), 'scroll-view'),
+    goto: {
+      AbsentNoteReview: navigate('AbsentNoteReview'),
+      BlankNoteReview: navigate('BlankNoteReview'),
+      DWCFormRFAReview: navigate('DWCFormRFAReview'),
+      EvaluationNoteReview: navigate('EvaluationNoteReview'),
+      InitEvalReportReview: navigate('InitEvalReportReview'),
+      PatientConsentFormHIPPAReview: navigate('PatientConsentFormHIPPAReview'),
+      ProgressReportReview: navigate('ProgressReportReview'),
+      PROneReview: navigate('PROneReview'),
+      PRTwoReview: navigate('PRTwoReview'),
+      PrescriptionShared: navigate('PrescriptionShared'),
+      SurgeryAuthorizationReview: navigate('SurgeryAuthorizationReview'),
+      Cov19ResultsAndFluResultsReview: navigate(
+        'Cov19ResultsAndFluResultsReview',
+      ),
+      WorkStatusFormReview: navigate('WorkStatusFormReview'),
+    },
+    goToPaymentUrl4: () =>
+      (window.location.href =
+        'http://127.0.0.1:3000/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY'),
+    pageTable: () => {
+      const pagesList = [] as string[]
+      const result = [] as { page: string; ndom: number; nui: number }[]
+      const getKey = (page: NDOMPage | lib.Page) =>
+        page.page === '' ? 'unknown' : page.page
+
+      const nuiCachePageEntries = [...app.cache.page.get().values()]
+      const ndomPagesEntries = u.entries(app.ndom.pages)
+
+      const add = (
+        index: number,
+        page: NDOMPage | lib.Page,
+        ndomOrNui: 'ndom' | 'nui',
+      ) => {
+        const pageKey = getKey(page)
+        if (!pagesList.includes(pageKey)) pagesList.push(pageKey)
+        if (!result[index]) result[index] = { ndom: 0, nui: 0, page: pageKey }
+        result[index][ndomOrNui]++
+        result[index].page = pageKey
+      }
+
+      for (const [ndomOrNui, entries] of [
+        ['nui', nuiCachePageEntries],
+        ['ndom', ndomPagesEntries],
+      ] as const) {
+        const numEntries = entries.length
+        const lastKey = ndomOrNui === 'nui' ? 'page' : 1
+        for (let index = 0; index < numEntries; index++) {
+          add(index, entries[lastKey], ndomOrNui)
+        }
+      }
+
+      return result
+    },
+    sdkCache,
+    uid: () => app.root.Global?.currentUser?.vertex?.uid,
+  }
+
+  Object.defineProperties(window, {
+    ...u.entries(funcs).reduce((acc, [key, getter]) => {
+      acc[key] = {
+        configurable: true,
+        enumerable: true,
+        get: () => getter,
+      }
+      return acc
+    }, {} as Record<string, PropertyDescriptor>),
+    ...u.entries(values).reduce((acc, [key, value]) => {
+      acc[key] = {
+        configurable: true,
+        enumerable: true,
+        value,
+      }
+      return acc
+    }, {}),
   })
 
   attachDebugUtilsToWindow.attached = true
 }
+
+window.addEventListener('keydown', (evt) => {
+  if (evt.key === '0' && evt.metaKey) window.get()
+})
 
 attachDebugUtilsToWindow.attached = false

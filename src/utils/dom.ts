@@ -23,6 +23,10 @@ export function copyToClipboard(value: string) {
   return null
 }
 
+export function fromClipboard() {
+  return navigator.clipboard.readText()
+}
+
 export function isHtmlElement(node: Node): node is HTMLElement {
   return node.nodeType === Node.ELEMENT_NODE && 'style' in node
 }

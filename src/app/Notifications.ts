@@ -1,6 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import firebase from 'firebase/app'
+import { firebase as firebaseConfig } from './config'
 import 'firebase/auth'
 import 'firebase/messaging'
 import {
@@ -11,18 +12,6 @@ import {
 } from './types'
 
 const log = Logger.create('Notifications.ts')
-
-const credentials = {
-  apiKey: 'AIzaSyCjNVKmHuDKra5Ct1MKAJ5fI0iQ3UnK7Ho',
-  authDomain: 'aitmessage.firebaseapp.com',
-  databaseURL: 'https://aitmessage.firebaseio.com',
-  projectId: 'aitmessage',
-  storageBucket: 'aitmessage.appspot.com',
-  messagingSenderId: '121837683309',
-  appId: '1:121837683309:web:7fda76efe79928215f3564',
-}
-const vapidKey =
-  'BMVzqbFGARITrYSAi2mPaEMEl6WFBzkliYC8r92Ru3SGtyywC7t4boMPlwnFIeNSEBSyaxV6ue_uo2SMf7rdEHs'
 
 export interface Options {}
 
@@ -63,7 +52,7 @@ class AppNotification {
   async init() {
     try {
       if (this.supported) {
-        this.client = firebase.initializeApp(credentials)
+        this.client = firebase.initializeApp(firebaseConfig.webPatient.config)
         this.messaging = firebase.messaging()
 
         const onMessageNextOrObserver = (
@@ -117,7 +106,7 @@ class AppNotification {
     let token = ''
     try {
       if (this.supported) {
-        opts = { vapidKey, ...opts }
+        opts = { vapidKey: firebaseConfig.webPatient.vapidKey, ...opts }
         token = (await this.messaging?.getToken(opts)) || ''
       }
       this.emit('token', token)

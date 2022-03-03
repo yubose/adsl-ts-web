@@ -40,6 +40,7 @@ declare global {
     build: any
     cache: any
     chrome: any
+    get: () => any
     noodl: any
     env: string | undefined
     FCMOnTokenReceive: any

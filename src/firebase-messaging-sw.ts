@@ -26,7 +26,7 @@ firebase.initializeApp({
   projectId: 'aitmessage',
   storageBucket: 'aitmessage.appspot.com',
   messagingSenderId: '121837683309',
-  appId: '1:121837683309:web:7fda76efe79928215f3564',
+  appId: '1:121837683309:web:c74076cea3ba35c35f3564',
 })
 
 // @ts-expect-error
@@ -75,7 +75,8 @@ self.addEventListener('message', function (messageEvent) {
 })
 
 self.addEventListener('fetch', function onFetch(event) {
-  log(`${tag} fetch`, { event })
+  log(`${tag} fetch (${event.request.url})`)
+
   // event.respondWith(
   //   (async () => {
   //     if (

@@ -27,6 +27,9 @@ function createRegisters(app: App) {
           (obj) => obj?.eventId === 'onNewEcosDoc',
         )
         onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+      } else {
+        console.log({ message })
+        debugger
       }
     }
   })
@@ -232,6 +235,11 @@ function createRegisters(app: App) {
         return error
       }
     },
+    async onNotificationClicked(obj: Register.Object, arg) {
+      log.func('onNotificationClicked')
+      log.hotpink('', { obj, arg })
+      debugger
+    },
     twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
       log.func('twilioOnPeopleJoin')
       log.grey(`%c[twilioOnPeopleJoin]`, `color:#95a5a6;`, {
@@ -249,6 +257,12 @@ function createRegisters(app: App) {
       if (room?.participants?.size === 0) {
         app.meeting.showWaitingOthersMessage()
       }
+    },
+
+    async twilioOnPeopleShowRoom(obj: Register.Object, arg) {
+      log.func('twilioOnPeopleShowRoom')
+      log.hotpink('', { obj, arg })
+      debugger
     },
   } as const
 

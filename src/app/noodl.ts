@@ -4,7 +4,7 @@ import { isStable } from 'noodl-utils'
 import { Client as SearchClient } from 'elasticsearch-browser'
 
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'aitmedPay'
+export const CONFIG_KEY = 'patient'
 // const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')

@@ -1,18 +1,7 @@
 import firebase from 'firebase'
-<<<<<<< HEAD
-import CADL, { Account } from '@aitmed/cadl'
+import type { CADL, Account } from '@aitmed/cadl'
 import { NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
 import { ActionObject, PageObject, RegisterComponentObject } from 'noodl-types'
-=======
-import type { Account, CADL } from '@aitmed/cadl'
-import { NUI, NUIAction, NUITrigger, Store, Viewport } from 'noodl-ui'
-import {
-  ActionObject,
-  EmitObjectFold,
-  PageObject,
-  RegisterComponentObject,
-} from 'noodl-types'
->>>>>>> dev2
 import NOODLDOM from 'noodl-ui-dom'
 import AppNotification from '../Notifications'
 import createMeetingFns from '../../meeting'

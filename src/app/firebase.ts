@@ -9,4 +9,4 @@ export function isSupported() {
 
 export default process.env.NODE_ENV === 'test'
   ? null
-  : firebase.initializeApp(firebaseConfiguration.config)
+  : firebase.initializeApp(firebaseConfiguration.webPatient.config)
