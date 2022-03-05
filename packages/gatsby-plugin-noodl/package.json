@@ -68,6 +68,12 @@
       "no-underscore-dangle": "off",
       "no-unused-expressions": "off",
       "no-unused-vars": "warn",
+      "no-use-before-define": [
+        "error",
+        {
+          "functions": false
+        }
+      ],
       "no-useless-escape": "error",
       "prefer-const": "warn",
       "prefer-object-spread": "error",

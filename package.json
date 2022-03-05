@@ -133,7 +133,7 @@
     "mutation-observer": "^1.0.3",
     "nock": "^13.1.4",
     "nodemon": "^2.0.9",
-    "noodl": "^0.0.21",
+    "noodl": "^0.0.28",
     "noodl-action-chain": "file:packages/noodl-action-chain",
     "noodl-common": "^0.0.45",
     "noodl-types": "file:packages/noodl-types",

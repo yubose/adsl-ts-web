@@ -43,7 +43,7 @@ const configs = [
         exclude: /node_modules/,
         minify: !_DEV_,
         minifyIdentifiers: false,
-        target: 'es2015',
+        target: 'es2018',
       }),
     ],
   },

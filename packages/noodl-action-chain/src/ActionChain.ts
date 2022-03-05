@@ -17,7 +17,7 @@ class ActionChain<
   T extends string = string,
 > {
   #abortReason: string | string[] | undefined
-  #actions: A[]
+  #actions: A[] = []
   #current: Action<A['actionType'], T> | null = null
   #error: null | Error | AbortExecuteError = null
   #gen = {} as AsyncGenerator<

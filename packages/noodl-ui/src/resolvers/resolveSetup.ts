@@ -10,7 +10,12 @@ import * as t from '../types'
 const setupResolver = new Resolver('resolveSetup')
 
 setupResolver.setResolver(
-  Resolver.withHelpers(async function setupResolver(component, options, next) {
+  Resolver.withHelpers(async function setupResolver(
+    this: Resolver,
+    component,
+    options,
+    next,
+  ) {
     try {
       const { createActionChain, getRoot, on, page, resolveReference } = options
       const original = component.blueprint || {}

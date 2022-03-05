@@ -29,6 +29,8 @@ const nui = NUI
  * @property { nt.RootConfig } [Use.config]
  * @property { nt.AppConfig } [Use.appConfig]
  * @property { (component: import('noodl-ui').NUI.getBaseStyles) } [Use.getBaseStyles]
+ * @property { import('loglevel') } [Use.log]
+ * @property { Record<string, Record<string, Record<string, any>>> } [Use.preload]
  * @property { Record<string, Record<string, nt.PageObject>> } [Use.pages]
  * @property { { width: number; height: number } } [Use.viewport]
  */
@@ -49,6 +51,8 @@ async function getGenerator({
   on,
   use = {},
 } = {}) {
+  const log = use.log || console
+
   try {
     // Patches the EventTarget so we can sandbox the sdk
     await monkeyPatchAddEventListener({
@@ -66,7 +70,14 @@ async function getGenerator({
       cadlVersion: ecosEnv,
       configUrl,
     })
-    await sdk.init()
+
+    await sdk.init({
+      use: {
+        ...use.preload,
+        config: use.config,
+        cadlEndpoint: use.appConfig,
+      },
+    })
 
     nui.use({
       getRoot: () => sdk.root,
@@ -88,9 +99,15 @@ async function getGenerator({
           if (sdk.cadlEndpoint.preload.includes(pageName)) {
             if (/^(Base[a-zA-Z0-9]+)/.test(pageName)) return
           }
-          await sdk.initPage(pageName, ['list', 'listObject'], {
+
+          const pageArg = use.pages?.json?.[pageName]
+            ? { pageName, cadlObject: use.pages?.json?.[pageName] }
+            : pageName
+
+          await sdk.initPage(pageArg, [], {
             wrapEvalObjects: false,
           })
+
           on?.initPage?.({
             cache,
             nui,
@@ -98,7 +115,7 @@ async function getGenerator({
             pageObject: sdk.root[pageName],
             sdk,
           })
-          use.pages.json[pageName] = sdk.root[pageName]
+          if (use.pages) use.pages.json[pageName] = sdk.root[pageName]
           pages[pageName] = sdk.root[pageName]
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))

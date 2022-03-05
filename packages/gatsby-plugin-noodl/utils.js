@@ -1,9 +1,33 @@
+const axios = require('axios').default
 const u = require('@jsmanifest/utils')
+const fs = require('fs-extra')
+const path = require('path')
+
+const getRelPath = (baseDir, ...s) => path.join(baseDir, ...s)
 
 const regex = {
   cadlBaseUrlPlaceholder: /\${cadlBaseUrl}/,
   cadlVersionPlaceholder: /\${cadlVersion}/,
   designSuffixPlaceholder: /\${designSuffix}/,
+}
+
+async function downloadFile(log, url, filename, dir) {
+  try {
+    const destination = path.join(dir, filename)
+    const { data } = await axios.get(url, { responseType: 'text' })
+    await fs.writeFile(destination, data, 'utf8')
+    return data
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
+    // log.error(`[${u.yellow(err.name)}] ${u.red(err.message)}`)
+    if (axios.isAxiosError(err)) {
+      if (err.response?.status === 404) {
+        log.warn(`The file "${url}" returned a ${u.red(`404 Not Found`)} error`)
+      }
+    } else {
+      throw err
+    }
+  }
 }
 
 /**
@@ -30,16 +54,51 @@ function makeTraverser(cb) {
   }
 }
 
+function getConfigUrl(configKey = '') {
+  return `https://public.aitmed.com/config/${ensureExt(configKey, 'yml')}`
+}
+
+function configDirExists(baseDir, configKey) {
+  return fs.existsSync(getConfigDir(baseDir, configKey))
+}
+
+function ensureExt(value = '', ext = 'yml') {
+  if (!u.isStr(value)) return value
+  if (value === '') return `.${ext}`
+  if (value.endsWith(`.${ext}`)) return value
+  if (value.endsWith('.')) return `${value}${ext}`
+  return `${value}.${ext}`
+}
+
+/**
+ * @param { string } url
+ * @returns { Promise<string> }
+ */
+async function fetchYml(url = '') {
+  return axios.get(url).then((resp) => resp.data)
+}
+
+function removeExt(str, ext = 'yml') {
+  return path.basename(str, `.${ext}`)
+}
+
+function getAssetFilePath(srcPath, filename) {
+  return path.join(srcPath, `./${filename}`)
+}
+
+function getConfigDir(baseDir, configKey) {
+  return getRelPath(baseDir, removeExt(configKey, 'yml'))
+}
+
 const utils = {
-  ensureYmlExt(value = '') {
-    if (!u.isStr(value)) return value
-    if (value === '') return '.yml'
-    if (value.endsWith('.yml')) return value
-    if (value.endsWith('.ym')) return `${value}l`
-    if (value.endsWith('.y')) return `${value}ml`
-    if (value.endsWith('.')) return `${value}yml`
-    return `${value}.yml`
-  },
+  configDirExists,
+  downloadFile,
+  ensureExt,
+  fetchYml,
+  getAssetFilePath,
+  getConfigDir,
+  getConfigUrl,
+  removeExt,
   fontSize: {
     '10px': '0.625rem',
     '11px': '0.6875rem',

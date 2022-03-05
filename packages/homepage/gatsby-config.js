@@ -5,6 +5,8 @@ const { parse, traverse, types } = require('@babel/core')
 
 //const pathPrefix = `static/web/latest` // if deployed not to root directory
 const pathPrefix = `` // deployed to root directory
+// If buildSource is "local" it will build using files locally (using "path" configured above). If buildSource is "remote" it will build files remotely using the "config" key as the endpoint. Defaults to "remote"
+const buildSource = process.env.BUILD_SOURCE || 'remote'
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
 const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'mob'
 const viewport = process.env.MOBILE
@@ -54,6 +56,38 @@ module.exports = {
     `gatsby-plugin-emotion`,
     `gatsby-plugin-sitemap`,
     {
+      resolve: require.resolve(`../gatsby-plugin-noodl`),
+      options: {
+        // Defaults to "remote"
+        buildSource,
+        // Defaults to "aitmed"
+        config: configKey,
+        // Defaults to current directory
+        cwd: __dirname,
+        // Used to grab the version in the config object (defaults to "web")
+        deviceType: 'web',
+        // Defaults to "INFO"
+        loglevel: 'debug',
+        // If introspection is true, it will dump all of the TRANSFORMED noodl
+        // pages in json to the output path specified below as
+        //  "<outputPath>/<config>.introspection.json"
+        introspection: true,
+        paths: {
+          // If we provide this assets will be downloaded to this path.
+
+          // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
+
+          // If we provide this path the yml files/assets will be made available
+          output: `${__dirname}/output`,
+          // Ensures the assets will be correctly located
+          src: `${__dirname}/src`,
+          template: path.resolve(`src/templates/page.tsx`),
+        },
+        // Defaults to { width: 1024, height: 768 }
+        viewport,
+      },
+    },
+    {
       resolve: `gatsby-plugin-sharp`,
       options: {
         defaults: {
@@ -80,39 +114,13 @@ module.exports = {
         component: require.resolve(`./src/layout.tsx`),
       },
     },
-    {
-      resolve: require.resolve(`../gatsby-plugin-noodl`),
-      options: {
-        // If we provide this assets will be downloaded to this path.
-
-        // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
-
-        // NOTE: If we do this we need to point to this path via `gatsby-source-filesystem` (look below for src/resources/images for an example)
-        assets: `${__dirname}/src/resources/assets`,
-        config: configKey,
-        loglevel: 'debug',
-        // This will be used in the plugin to grab the version in the config object
-        deviceType: 'web',
-        // If introspection is true, it will dump all of the TRANSFORMED noodl
-        // pages in json to the output path specified below as
-        //  "<outputPath>/<config>.introspection.json"
-        introspection: true,
-        // If we provide this path the yml files/assets will be made available
-        path: `${__dirname}/output`,
-        // If we don't provide this, it will use the startPage in cadlEndpoint in the yaml. If it is not in cadlEndpoint, the fallback is 'HomePage'
-        // startPage: 'MobHomePage',
-        template: path.resolve(`src/templates/page.tsx`),
-        viewport,
-      },
-    },
-    {
-      // Needed if "assets" option is provided to gatsby-plugin-noodl
-      resolve: `gatsby-source-filesystem`,
-      options: {
-        name: `assets`,
-        path: `${__dirname}/src/resources/assets`,
-      },
-    },
+    // {
+    //   resolve: `gatsby-source-filesystem`,
+    //   options: {
+    //     name: `assets`,
+    //     path: `${__dirname}/src/resources/assets`,
+    //   },
+    // },
     {
       resolve: `gatsby-source-filesystem`,
       options: {

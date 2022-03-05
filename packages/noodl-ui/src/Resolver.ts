@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import resolveReference from './utils/resolveReference'
-import type { NuiComponent, ConsumerOptions } from './types'
+import type { NUIActionChain, NuiComponent, ConsumerOptions } from './types'
 
 export interface IResolver<
   Func extends (...args: any[]) => Promise<void>,
@@ -51,7 +51,7 @@ class ComponentResolver<
     resolverFn: ComponentResolver<Fn>['resolver'],
   ) {
     const wrap = (fn: typeof resolverFn) => {
-      const onResolveWithHelpers = (...args: Parameters<typeof resolverFn>) => {
+      function onResolveWithHelpers(...args: Parameters<typeof resolverFn>) {
         const optionsWithHelpers: ConsumerOptions = {
           ...args[1],
           resolveReference: (key, value) => {

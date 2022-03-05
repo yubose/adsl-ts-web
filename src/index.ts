@@ -1,98 +1,19 @@
 import * as u from '@jsmanifest/utils'
 import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
-import { Account, cache as sdkCache } from '@aitmed/cadl'
-import curry from 'lodash/curry'
-import partial from 'lodash/partial'
-import partialRight from 'lodash/partialRight'
-import unary from 'lodash/unary'
-import get from 'lodash/get'
-import has from 'lodash/has'
 import Logger from 'logsnap'
-import * as lib from 'noodl-ui'
-import {
-  asHtmlElement,
-  findByDataAttrib,
-  findByDataKey,
-  findByElementId,
-  findByGlobalId,
-  findByPlaceholder,
-  findBySelector,
-  findBySrc,
-  findByViewTag,
-  findByUX,
-  findFirstByClassName,
-  findFirstByDataKey,
-  findFirstByElementId,
-  findFirstBySelector,
-  findFirstByViewTag,
-  findWindow,
-  findWindowDocument,
-  Page as NDOMPage,
-} from 'noodl-ui-dom'
-import { findReferences, trimReference, toDataPath } from 'noodl-utils'
-import {
-  copyToClipboard,
-  exportToPDF,
-  fromClipboard,
-  getVcodeElem,
-  toast,
-} from './utils/dom'
+import { asHtmlElement, findByViewTag } from 'noodl-ui-dom'
+import { toast } from './utils/dom'
 import { isChrome } from './utils/common'
-import is from './utils/is'
-import {
-  getUserProps as getUserPropsFromLocalStorage,
-  saveUserProps as saveUserPropsFromLocalStorage,
-} from './utils/localStorage'
 import App from './App'
-import ExportPdf from './modules/ExportPdf'
-import getDeepTotalHeight from './utils/getDeepTotalHeight'
-import getElementTreeDimensions from './utils/getElementTreeDimensions'
+import { getWindowDebugUtils } from './utils/windowDebugUtils'
 import 'tippy.js/dist/tippy.css'
 import 'tippy.js/themes/light.css'
 import 'vercel-toast/dist/vercel-toast.css'
 import './spinner/three-dots.css'
 import './styles.css'
 
-const log = Logger.create('App.ts')
-
-/**
- * Just a helper to return the utilities that are meant to be attached
- * to the global window object
- */
-export async function getWindowHelpers() {
-  // const { default: Lvl2 } = await import('@aitmed/ecos-lvl2-sdk')
-  // const lvl2sdk = new Lvl2({ env: 'development', configUrl: '' })
-
-  return u.assign({
-    // lvl2: lvl2sdk.utilServices,
-    exportToPDF,
-    findByDataAttrib,
-    findByDataKey,
-    findByElementId,
-    findByGlobalId,
-    findByPlaceholder,
-    findBySelector,
-    findBySrc,
-    findByViewTag,
-    findByUX,
-    findReferences,
-    findWindow,
-    findWindowDocument,
-    findFirstByClassName,
-    findFirstByDataKey,
-    findFirstByElementId,
-    findFirstBySelector,
-    findFirstByViewTag,
-    getDeepTotalHeight,
-    getElementTreeDimensions,
-    getVcodeElem,
-    getUserPropsFromLocalStorage,
-    saveUserPropsFromLocalStorage,
-    toast,
-  })
-}
-
 let app: App
+let log = Logger.create('App.ts')
 let ws: WebSocket
 
 async function initializeApp(
@@ -101,36 +22,6 @@ async function initializeApp(
     Account?: typeof CADLAccount
   } = {},
 ) {
-  const getAppName = () => {
-    let appName = ''
-    let hostname = location.hostname
-    let hostnameParts = hostname.split('.')
-    if (
-      /(127.0.0.1|localhost)/.test(hostname) ||
-      hostnameParts[1] === 'aitmed'
-    ) {
-      appName = 'aitmed'
-    } else {
-      appName = hostnameParts[0]
-    }
-    return appName
-  }
-  // if (!localStorage.getItem('config')) {
-  //   const { default: axios } = await import('axios')
-  //   const {
-  //     default: { parse },
-  //   } = await import('yaml')
-
-  //   localStorage.setItem(
-  //     'config',
-  //     JSON.stringify(
-  //       parse(
-  //         (await axios.get(`https://public.aitmed.com/config/${getAppName()}.yml`))
-  //           .data,
-  //       ),
-  //     ),
-  //   )
-  // }
   let { noodl, Account: accountProp } = args
   let notification = new (await import('./app/Notifications')).default()
   !noodl && (noodl = (await import('./app/noodl')).default)
@@ -157,7 +48,6 @@ async function initializeApp(
   trackSdk(app)
   trackWebApp(app)
   window.app = app
-  ////////////////////////////////////////////////////////////
   await app.initialize({
     async onInitNotification(notification) {
       try {
@@ -262,7 +152,6 @@ async function initializeApp(
           evt,
         )
       })
-
       worker.addEventListener('messageerror', function (evt) {
         console.log(
           `%c[worker] Message error`,
@@ -270,7 +159,6 @@ async function initializeApp(
           evt,
         )
       })
-
       worker.addEventListener('error', function (evt) {
         console.log(`%c[worker] Error`, `color:tomato;font-weight:bold;`, evt)
       })
@@ -293,7 +181,6 @@ async function initializeNoodlPluginRefresher() {
 }
 
 window.addEventListener('load', async (e) => {
-  window.sdkCache = sdkCache
   if (isChrome()) {
     console.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
   } else {
@@ -337,13 +224,6 @@ window.addEventListener('load', async (e) => {
     Object.defineProperties(window, {
       app: { configurable: true, get: () => app },
       build: { configurable: true, value: process.env.BUILD },
-      cp: { configurable: true, get: () => copyToClipboard },
-      ...u.reduce(
-        u.entries(await getWindowHelpers()),
-        (acc, [key, fn]) =>
-          u.assign(acc, { [key]: { configurable: true, get: () => fn } }),
-        {},
-      ),
     })
 
     window.addEventListener('popstate', createOnPopState(app))
@@ -356,10 +236,6 @@ window.addEventListener('load', async (e) => {
   document.addEventListener('gesturestart', (e) => e.preventDefault())
   document.addEventListener('gestureend', (e) => e.preventDefault())
   document.addEventListener('gesturechange', (e) => e.preventDefault())
-
-  window.addEventListener('storage', (evt) => {
-    const { key, storageArea } = evt
-  })
 
   const notifiedForChromeDesktop = window.localStorage.getItem(
     'notified-chrome-desktop',
@@ -375,22 +251,6 @@ window.addEventListener('load', async (e) => {
       })
     }
   }
-
-  // const pdfElem = findFirstByViewTag('mainView')
-  // window.scrollTo({ left: window.innerWidth })
-  // let interval = setInterval(() => {
-  //   const imgElem = findFirstBySelector(
-  //     `[src="http://127.0.0.1:3001/assets/downLoadBlue.svg"]`,
-  //   )
-  //   if (imgElem) {
-  //     const btn = imgElem.nextElementSibling
-  //     if (btn) {
-  //       btn['click']()
-  //       return clearInterval(interval)
-  //     }
-  //   }
-  // console.log(`[interval] The btn button has not rendered yet`)
-  // }, 150)
 })
 
 window.addEventListener('beforeunload', (evt) => {
@@ -412,6 +272,11 @@ window.addEventListener('beforeunload', (evt) => {
   }
 })
 
+window.addEventListener('keydown', (evt) => {
+  // Secret helper to quickly get values of reference in runtime
+  if (evt.key === '0' && evt.metaKey) window.get()
+})
+
 if (module.hot) {
   module.hot.accept()
   if (module.hot.status() === 'apply') {
@@ -426,206 +291,14 @@ if (module.hot) {
 }
 
 function attachDebugUtilsToWindow(app: App) {
-  const navigate = (destination: string) => () => app.navigate(destination)
-  const filterComponentCache =
-    <Arg>(fn: (arg: Arg, obj: lib.ComponentCacheObject) => boolean) =>
-    (arg: Arg): any =>
-      app.cache.component.filter(partial(fn, arg))
-
-  const values = { Account, cp: copyToClipboard, ExportPdf }
-
-  const funcs = {
-    componentCache: {
-      findComponentsWithKeys: (...keys: string[]) => {
-        const regexp = new RegExp(`(${keys.join('|')})`)
-        return app.cache.component.filter((obj) =>
-          Array.from(
-            new Set(
-              u
-                .keys(obj?.component?.blueprint || {})
-                .concat(u.keys(obj?.component?.props || {})),
-            ),
-          ).some((key) => regexp.test(key)),
-        )
-      },
-      findByComponentType: filterComponentCache<string>(
-        (type, obj) => obj.component?.type === type,
-      ),
-      findById: filterComponentCache<string>(
-        (id, obj) => obj.component?.id === id,
-      ),
-      findByPopUpView: filterComponentCache<string>(
-        (popUpView, obj) => obj.component?.blueprint?.popUpView === popUpView,
-      ),
-      findByViewTag: filterComponentCache<string>(
-        (viewTag, obj) => obj.component?.blueprint?.viewTag === viewTag,
-      ),
-    },
-    currentUser: () => app.root.Global?.currentUser,
-    findArrOfMinSize: function findArrOfMinSize(
-      root = {} as Record<string, any>,
-      size: number,
-      path = [] as (string | number)[],
-    ) {
-      const results = [] as { arr: any[]; path: (string | number)[] }[]
-
-      if (Array.isArray(root)) {
-        const count = root.length
-
-        if (count >= size) results.push({ arr: root, path })
-
-        for (let index = 0; index < count; index++) {
-          const item = root[index]
-          results.push(...findArrOfMinSize(item, size, path.concat(index)))
-        }
-      } else if (
-        root &&
-        typeof root === 'object' &&
-        typeof root !== 'function'
-      ) {
-        for (const [key, value] of Object.entries(root)) {
-          results.push(...findArrOfMinSize(value, size, path.concat(key)))
-          // if (Array.isArray(value)) {
-          // } else {}
-        }
-      }
-
-      return results
-    },
-    // Retrieve value of a reference or a regular data path (using root object)
-    get: (path: string) => {
-      const getValue = (str: string) => {
-        let path = trimReference(str)
-        return get(
-          (is.reference(str) && is.localReference(str)) ||
-            (!is.reference(str) && is.localKey(path))
-            ? app.root[app.currentPage]
-            : app.root,
-          path,
-        )
-      }
-      if (!path) {
-        fromClipboard()
-          .then((path) =>
-            !path
-              ? console.error(
-                  new Error(
-                    `Nothing was passed in and nothing was in the clipboard`,
-                  ),
-                )
-              : console.log((window['v'] = getValue(path))),
-          )
-          .catch(console.error)
-      } else {
-        console.log((window['v'] = getValue(path)))
-      }
-    },
-    getDataValues: () =>
-      u.reduce(
-        u.array(findByDataKey()),
-        (acc, el) => {
-          if (el) {
-            if (el.dataset.value === '[object Object]') {
-              const component = app.cache.component.get(el.id)?.component
-              const value = component.get('data-value')
-              if (u.isPromise(value)) {
-                value.then((result) => (acc[el.dataset.key as string] = result))
-              } else acc[el.dataset.key as string] = value
-            } else {
-              acc[el.dataset.key as string] =
-                'value' in el ? (el as any).value : el.dataset.value
-            }
-          }
-          return acc
-        },
-        {} as Record<string, any>,
-      ),
-    mainView: partialRight(unary(findFirstByViewTag), 'mainView'),
-    pdfViewTag: partialRight(unary(findFirstByViewTag), 'pdfViewTag'),
-    tableView: partialRight(unary(findFirstByViewTag), 'tableView'),
-    scrollView: partialRight(unary(findFirstByClassName), 'scroll-view'),
-    goto: {
-      AbsentNoteReview: navigate('AbsentNoteReview'),
-      BlankNoteReview: navigate('BlankNoteReview'),
-      DWCFormRFAReview: navigate('DWCFormRFAReview'),
-      EvaluationNoteReview: navigate('EvaluationNoteReview'),
-      InitEvalReportReview: navigate('InitEvalReportReview'),
-      PatientConsentFormHIPPAReview: navigate('PatientConsentFormHIPPAReview'),
-      ProgressReportReview: navigate('ProgressReportReview'),
-      PROneReview: navigate('PROneReview'),
-      PRTwoReview: navigate('PRTwoReview'),
-      PrescriptionShared: navigate('PrescriptionShared'),
-      SurgeryAuthorizationReview: navigate('SurgeryAuthorizationReview'),
-      Cov19ResultsAndFluResultsReview: navigate(
-        'Cov19ResultsAndFluResultsReview',
-      ),
-      WorkStatusFormReview: navigate('WorkStatusFormReview'),
-    },
-    goToPaymentUrl4: () =>
-      (window.location.href =
-        'http://127.0.0.1:3000/index.html?PaymentConfirmation=&checkoutId=CBASEGgNoO4yMDXtGxoZf3Q0hG0&transactionId=rt1gucryhQv4MEZ4tHoZnKdpVIRZY'),
-    pageTable: () => {
-      const pagesList = [] as string[]
-      const result = [] as { page: string; ndom: number; nui: number }[]
-      const getKey = (page: NDOMPage | lib.Page) =>
-        page.page === '' ? 'unknown' : page.page
-
-      const nuiCachePageEntries = [...app.cache.page.get().values()]
-      const ndomPagesEntries = u.entries(app.ndom.pages)
-
-      const add = (
-        index: number,
-        page: NDOMPage | lib.Page,
-        ndomOrNui: 'ndom' | 'nui',
-      ) => {
-        const pageKey = getKey(page)
-        if (!pagesList.includes(pageKey)) pagesList.push(pageKey)
-        if (!result[index]) result[index] = { ndom: 0, nui: 0, page: pageKey }
-        result[index][ndomOrNui]++
-        result[index].page = pageKey
-      }
-
-      for (const [ndomOrNui, entries] of [
-        ['nui', nuiCachePageEntries],
-        ['ndom', ndomPagesEntries],
-      ] as const) {
-        const numEntries = entries.length
-        const lastKey = ndomOrNui === 'nui' ? 'page' : 1
-        for (let index = 0; index < numEntries; index++) {
-          add(index, entries[lastKey], ndomOrNui)
-        }
-      }
-
-      return result
-    },
-    sdkCache,
-    uid: () => app.root.Global?.currentUser?.vertex?.uid,
-  }
-
-  Object.defineProperties(window, {
-    ...u.entries(funcs).reduce((acc, [key, getter]) => {
-      acc[key] = {
-        configurable: true,
-        enumerable: true,
-        get: () => getter,
-      }
+  Object.defineProperties(
+    window,
+    u.entries(getWindowDebugUtils(app)).reduce((acc, [key, value]) => {
+      acc[key] = { configurable: true, enumerable: true, value }
       return acc
     }, {} as Record<string, PropertyDescriptor>),
-    ...u.entries(values).reduce((acc, [key, value]) => {
-      acc[key] = {
-        configurable: true,
-        enumerable: true,
-        value,
-      }
-      return acc
-    }, {}),
-  })
-
+  )
   attachDebugUtilsToWindow.attached = true
 }
-
-window.addEventListener('keydown', (evt) => {
-  if (evt.key === '0' && evt.metaKey) window.get()
-})
 
 attachDebugUtilsToWindow.attached = false

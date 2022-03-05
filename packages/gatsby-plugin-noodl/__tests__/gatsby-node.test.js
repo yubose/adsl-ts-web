@@ -42,7 +42,7 @@ describe(`gatsby-node.js`, () => {
   })
 
   describe(`onPluginInit`, () => {
-    it(`should set the configKey and configUrl in cache`, async () => {
+    xit(`should set the configKey and configUrl in cache`, async () => {
       const cache = getMockCache()
       await onPluginInit(
         { cache },

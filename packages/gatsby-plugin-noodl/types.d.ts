@@ -38,6 +38,11 @@ export interface InternalData {
      */
     serialized: Record<string, any>
   }
+  _paths_: {
+    output: string
+    template: string
+  }
+  appKey: string
   /**
    * Passed to Loader, lvl3, and output dir
    */
@@ -50,10 +55,8 @@ export interface InternalData {
    * Used in retrieving version in root config
    */
   deviceType: DeviceType
-  /**
-   * Bound to main '/' route
-   */
-  startPage: string
+  ecosEnv: Env
+  loglevel: string
   /**
    * Used as the page component renderer
    */
@@ -62,18 +65,26 @@ export interface InternalData {
 
 export interface GatsbyNoodlPluginOptions {
   plugins: GatsbyPluginOptions
-  assets?: string
+  /**
+   * If buildSource is "local" it will build using files locally (using "path" configured above).
+   *
+   * If buildSource is "remote" it will build files remotely using the "config" key as the endpoint.
+   *
+   * Defaults to "remote"
+   */
+  buildSource?: string
   config?: string
+  cwd?: string
   deviceType?: 'web' | 'android' | 'ios'
   ecosEnv?: Env
   loglevel?: 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn'
-  output?: {
-    assets?: string
-    pages?: string
+  paths?: {
+    // assets?: string
+    output?: string
+    src?: string
+    template?: string
   }
-  path?: string
   startPage?: string
-  template?: string
   viewport?: {
     width: number
     height: number

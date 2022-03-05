@@ -12,9 +12,6 @@ Enter this into your `gatsby-config.js` inside `plugins`:
 
 ```js
 module.exports = {
-  siteMetadata: {
-    siteTitle: '',
-  },
   plugins: ['gatsby-plugin-noodl'],
 }
 ```
@@ -29,11 +26,21 @@ module.exports = {
   plugins: [
     {
       resolve: 'gatsby-plugin-noodl',
+      // Default options
       options: {
         assets: './src/resources/assets',
+        buildSource: 'remote',
         config: 'www',
+        deviceType: 'web',
         ecosEnv: 'test',
+        loglevel: 'debug',
+        path: '',
+        startPage: 'HomePage',
         template: require.resolve('./src/templates/page.tsx'),
+        viewport: {
+          width: 1024,
+          height: 768,
+        },
       },
     },
   ],
@@ -50,13 +57,21 @@ The path to the template page that will be rendering noodl pages
 
 The path to save downloaded assets to
 
-### `config` (optional)
+### `buildSource` (optional, defaults to `"remote"`)
+
+If buildSource is "local" it will build using files locally (using "path" configured above).
+
+If buildSource is "remote" it will build files remotely using the "config" key as the endpoint.
+
+### `config` (optional, defaults to `"aitmed"`)
 
 The config name (example: `'meetd2'`)
 
 Defaults to `aitmed`
 
-### `ecosEnv` (optional)
+### `deviceType` (optional, defaults to `"web"`)
+
+### `ecosEnv` (optional, defaults to `"stable"`)
 
 The eCOS environment. Defaults to `stable`
 
@@ -65,9 +80,9 @@ The eCOS environment. Defaults to `stable`
 | Stable      | `'stable'` |
 | Test        | `'test'`   |
 
-### `loglevel`(optional)
+### `loglevel`(optional, defaults to `"info"`)
 
-Logging output level. Defaults to `info`
+Logging output level.
 
 | Level      | Description                        |
 | ---------- | ---------------------------------- |
@@ -81,8 +96,8 @@ Logging output level. Defaults to `info`
 
 The path to save yml files to
 
-### `viewport` (optional)
+### `startPage` (optional, defaults to `"HomePage"`)
+
+### `viewport` (optional, defaults to `{ width: 1024, height: 768 }`)
 
 The viewport used to calculate the dimensions for static pages
-
-Defaults to `{ width: 1024, height: 768 }`

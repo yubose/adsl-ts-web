@@ -4,7 +4,8 @@
     "declarationDir": "./dist",
     "module": "commonjs",
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "target": "es2018"
   },
   "exclude": ["./src/**/*.test.ts", "./src/__tests__"],
   "include": ["./src/**/*"]
