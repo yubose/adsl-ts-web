@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import jsPDF from 'jspdf'
+import camelCase from 'lodash/camelCase'
 import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
@@ -431,6 +432,22 @@ export function getBlobFromCanvas(
   quality: number = 8,
 ): Promise<Blob | null> {
   return new Promise((resolve) => canvas.toBlob(resolve, mimeType, quality))
+}
+
+export function parseCssText(cssText: string): CSSStyleDeclaration {
+  if (cssText) {
+    return cssText.split('; ').reduce((acc, str) => {
+      let [key, value] = str.trim().split(': ')
+      // Skip the empty string
+      if (key) {
+        if (key.includes('-')) key = camelCase(key)
+        if (value.endsWith(';')) value = value.substring(0, value.length - 1)
+        acc[key] = value
+      }
+      return acc
+    }, {} as CSSStyleDeclaration)
+  }
+  return {} as CSSStyleDeclaration
 }
 
 /**
