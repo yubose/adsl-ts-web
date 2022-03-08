@@ -63,7 +63,7 @@
   },
   "devDependencies": {
     "@aitmed/cadl": "^1.0.576",
-    "@aitmed/ecos-lvl2-sdk": "^1.4.185",
+    "@aitmed/ecos-lvl2-sdk": "^1.4.186",
     "@aws-sdk/client-s3": "^3.51.0",
     "@babel/core": "^7.14.3",
     "@babel/plugin-transform-runtime": "^7.14.3",
