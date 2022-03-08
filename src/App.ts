@@ -33,7 +33,6 @@ import createGoto from './handlers/shared/goto'
 import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
-import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
 import createNoodlConfigValidator from './modules/NoodlConfigValidator'
@@ -540,7 +539,8 @@ class App {
       this.ndom.use({ builtIn: builtIns })
       this.ndom.use({ plugin: plugins })
       this.ndom.use({ transaction: transactions })
-      this.ndom.use({ createElementBinding: createElementBinding(this) })
+      // TODO - Create composer for createElementBinding
+      this.ndom.use({ createElementBinding: meetingfns.createElementBinding })
 
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
       u.forEach(

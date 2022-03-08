@@ -14,7 +14,8 @@ class GlobalComponentRecord extends GlobalRecord<'component'> {
   #id: string = ''
   componentId: string
   nodeId: string | undefined
-  pageId: string;
+  pageId: string
+  pageName: string;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.toJSON()
@@ -32,6 +33,7 @@ class GlobalComponentRecord extends GlobalRecord<'component'> {
     this.componentId = component.id
     this.nodeId = node?.id || component.id || ''
     this.pageId = page.id as string
+    this.pageName = page.page || ''
   }
 
   get globalId() {

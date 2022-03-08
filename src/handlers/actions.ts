@@ -4,6 +4,7 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
+import partialRight from 'lodash/partialRight'
 import {
   asHtmlElement,
   eventId as ndomEventId,
@@ -164,10 +165,9 @@ const createActions = function createActions(app: App) {
 
               if (result.abort) {
                 strategies.push({ type: 'abort-true', object: result })
-
                 log.grey(
-                  `An evalObject returned an object with abort: true. The action chain ` +
-                    `will no longer proceed`,
+                  `An evalObject returned an object with abort: true. ` +
+                    `The action chain will no longer proceed`,
                   { actionChain, injectedObject: result },
                 )
                 if (actionChain) {
@@ -176,17 +176,18 @@ const createActions = function createActions(app: App) {
                   for (const action of actionChain.queue) {
                     const popUpView = _pick(action, 'popUpView')
                     if (popUpView) {
-                      if (app.ndom.global.components.has(popUpView)) {
-                        log.salmon(
-                          `An "abort: true" was injected from evalObject but a global component ` +
-                            `with popUpView "${popUpView}" was found. These popUp actions will ` +
-                            `still be called to ensure the behavior persists for global popUps`,
-                          {
-                            globalObject:
-                              app.ndom.global.components.get(popUpView),
-                          },
-                        )
-                        await action?.execute()
+                      const globalPopUp =
+                        app.ndom.global.components.get(popUpView)
+                      if (globalPopUp) {
+                        const msg = [
+                          `An "abort: true" was injected from evalObject`,
+                          `but a global component with popUpView`,
+                          `"${popUpView}" was found.`,
+                          `These popUp actions will still be called to ensure`,
+                          `the behavior persists for global popUps`,
+                        ].join(' ')
+                        log.salmon(msg, globalPopUp)
+                        await action?.execute?.()
                       }
                     }
                   }
@@ -460,7 +461,7 @@ const createActions = function createActions(app: App) {
           const ac = options?.ref
           const comp = options?.component
           const dataKey = _pick(action, 'dataKey')
-          const fileFormat = _pick(action,'fileFormat')
+          const fileFormat = _pick(action, 'fileFormat')
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
             if (u.isStr(dataKey)) {
@@ -474,7 +475,7 @@ const createActions = function createActions(app: App) {
               file: files?.[0],
               actionChain: ac,
             })
-            if(fileFormat){
+            if (fileFormat) {
               ac.data.set(fileFormat, files?.[0]?.type)
               app.updateRoot(fileFormat, ac.data.get(fileFormat))
             }
@@ -617,8 +618,8 @@ const createActions = function createActions(app: App) {
                 action?.snapshot?.(),
               )
               // debugger
-              ref?.abort?.();
-              resolve();
+              ref?.abort?.()
+              resolve()
             }
           } else {
             let msg = `Tried to ${

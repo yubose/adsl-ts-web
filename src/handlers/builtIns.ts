@@ -749,6 +749,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         })
       } else {
         destination = destinationParam
+        // if (/apple|store/i.test(destination)) destination = 'SignIn'
       }
 
       if (!isSamePage) {
