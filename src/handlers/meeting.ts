@@ -15,6 +15,7 @@ import {
 import { isVisible, parseCssText, toast } from '../utils/dom'
 import is from '../utils/is'
 import App from '../App'
+import { LocalParticipant } from 'twilio-video'
 
 const log = Logger.create('meeting(handlers).ts')
 
@@ -278,31 +279,24 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
                 if (!isStreamingLocalParticipant) {
                   // debugger
                   if (selfStream.hasParticipant()) {
-                    if (app.mainStream.getParticipant() !== localParticipant) {
-                      // Swap the mainStream and selfStream
-                      const remoteParticipant =
-                        app.selfStream.getParticipant() as RemoteParticipant
-                      const selfStream = app.selfStream.unpublish()
-                      const mainStream = app.mainStream.unpublish()
-                      selfStream.setParticipant(localParticipant)
-                      mainStream.setParticipant(remoteParticipant)
-                    }
+                    app.meeting.swapParticipantStream(
+                      app.selfStream,
+                      app.mainStream,
+                      localParticipant,
+                      app.mainStream.getParticipant() as LocalParticipant,
+                    )
                   }
                 }
               } else if (remoteParticipants.size) {
                 // Change the stream to a remote participant so the local participant is watching them while away from the VideoChat page
                 if (isStreamingLocalParticipant) {
                   if (app.mainStream.hasParticipant()) {
-                    if (app.mainStream.getParticipant() !== localParticipant) {
-                      // Swap the mainStream and selfStream
-                      const remoteParticipant =
-                        app.mainStream.getParticipant() as RemoteParticipant
-                      const selfStream = app.selfStream.unpublish()
-                      const mainStream = app.mainStream.unpublish()
-                      selfStream.setParticipant(remoteParticipant)
-                      mainStream.setParticipant(localParticipant)
-                      // debugger
-                    }
+                    app.meeting.swapParticipantStream(
+                      app.mainStream,
+                      app.selfStream,
+                      app.mainStream.getParticipant() as RemoteParticipant,
+                      localParticipant,
+                    )
                   } else {
                     // Check subStreams
                   }

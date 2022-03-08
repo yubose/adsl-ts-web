@@ -420,6 +420,28 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     removeFalseParticipants(participants: any[]) {
       return participants.filter((p) => !!p?.sid)
     },
+    /**
+     * Switches a participant's stream to another participant's stream
+     * @param { Stream } stream1
+     * @param { Stream } stream2
+     * @param { t.RoomParticipant } participant1
+     * @param { t.RoomParticipant } participant2
+     */
+    swapParticipantStream(
+      stream1: Stream, // participant1 should currently be inside stream1
+      stream2: Stream, // participant2 should currently be inside stream2
+      participant1: t.RoomParticipant,
+      participant2: t.RoomParticipant,
+    ) {
+      if (stream1 && stream2 && stream1.isParticipant(participant1)) {
+        if (stream1.getParticipant() !== participant2) {
+          stream1.unpublish()
+          stream2.unpublish()
+          stream1.setParticipant(participant2)
+          stream2.setParticipant(participant1)
+        }
+      }
+    },
   }
 
   return o as typeof o & {
