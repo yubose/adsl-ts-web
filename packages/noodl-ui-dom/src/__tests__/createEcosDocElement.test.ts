@@ -99,7 +99,7 @@ describe(coolGold(`createEcosDocElement`), () => {
         const { iframe } = await getEcosDocLoadResult(component)
         await waitFor(() => {
           expect(ecosObj.name?.data).to.exist
-          expect(iframe).to.have.property('src', 'http://localhost:3000/')
+          expect(iframe).to.have.property('src', 'http://127.0.0.1:3000/')
         })
       })
     })

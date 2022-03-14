@@ -1,7 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import { component, EcosDocument, Identify, NameField } from 'noodl-types'
 import { classes } from '../constants'
-import createAsyncImageElement from './createAsyncImageElement'
 import createTextNode from './createTextNode'
 
 const is = Identify.ecosObj
@@ -90,6 +89,10 @@ function createEcosDocElement<
             getBody(iframe)?.appendChild(iframeContent)
             // TODO - Move this part in their own function somewhere at the end of this file
             getBody(iframe)?.classList?.add(classes.ECOS_DOC_NOTE_DATA)
+            // TODO - Move this part in their own function somewhere at the end of this file
+            if (/json/i.test(mimeType)) {
+              iframeContent.classList.add(classes.ECOS_DOC_NOTE_DATA)
+            }
           }
         } catch (error) {
           console.error(error)

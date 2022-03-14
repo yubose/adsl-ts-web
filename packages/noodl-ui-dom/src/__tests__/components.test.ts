@@ -9,6 +9,7 @@ import { event as nuiEvent, NUI, NuiComponent } from 'noodl-ui'
 import {
   _defaults,
   createRender as _createRender,
+  getDescendantIds,
   ui,
   ndom,
   waitForPageChildren,
@@ -576,7 +577,7 @@ describe(nc.coolGold('components'), () => {
           })
 
           expect(cache.component.length).to.eq(expectedCurrentComponentCount)
-          const pageChildrenIds = i._getDescendantIds(pageComponent)
+          const pageChildrenIds = getDescendantIds(pageComponent)
           const cachedComponentIds = [...cache.component.get().values()].map(
             (obj) => obj.component.id,
           )
@@ -591,7 +592,7 @@ describe(nc.coolGold('components'), () => {
           const pageComponent = cache.component.get('p2').component.child()
           const componentPage = ndom.findPage(pageComponent)
           await waitForPageChildren()
-          const oldPageChildrenIds = i._getDescendantIds(pageComponent)
+          const oldPageChildrenIds = getDescendantIds(pageComponent)
           oldPageChildrenIds.forEach((id) => {
             expect(cache.component.get(id)).to.exist
           })
@@ -624,7 +625,7 @@ describe(nc.coolGold('components'), () => {
             pageComponent = cache.component.get('p2').component.child()
 
             await waitFor(() => {
-              const ids = i._getDescendantIds(pageComponent)
+              const ids = getDescendantIds(pageComponent)
               expect(ids).to.have.lengthOf(3)
               expect(ids).to.have.all.members([
                 'tigerView',

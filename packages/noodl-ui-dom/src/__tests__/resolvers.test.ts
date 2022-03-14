@@ -18,7 +18,7 @@ describe(coolGold(`resolvers`), () => {
   it(`should attach the component id as the element id`, async () => {
     const { render } = createRender(ui.label())
     const component = await render()
-    expect(n.getFirstByElementId(component))
+    expect(n.findFirstByElementId(component))
       .to.have.property('id')
       .eq(component.id)
   })
@@ -30,7 +30,7 @@ describe(coolGold(`resolvers`), () => {
       pageObject: { formData: { password: dataValue } },
       components: ui.label({ dataKey: 'F.formData.password' }),
     })
-    expect(n.getFirstByElementId(await render()).textContent).to.eq(dataValue)
+    expect(n.findFirstByElementId(await render()).textContent).to.eq(dataValue)
   })
 
   describe(italic(`button`), () => {
@@ -38,7 +38,7 @@ describe(coolGold(`resolvers`), () => {
       const { render } = createRender(
         ui.button({ text: 'hello', onClick: [mock.getFoldedEmitObject()] }),
       )
-      expect(n.getFirstByElementId(await render()).style)
+      expect(n.findFirstByElementId(await render()).style)
         .to.have.property('cursor')
         .eq('pointer')
     })
@@ -106,7 +106,7 @@ describe(italic(`ecosDoc`), () => {
       ui.ecosDocComponent({ id: 'hello', ecosObj }),
     )
     await render()
-    const node = n.getFirstByElementId('hello')
+    const node = n.findFirstByElementId('hello')
     await waitFor(() => {
       const child = node.firstElementChild as HTMLIFrameElement
       expect(node).to.have.property('tagName').not.to.eq('IFRAME')
@@ -124,7 +124,7 @@ describe(italic(`ecosDoc`), () => {
     })
     const { render } = createRender(imageComponentObject)
     await render()
-    const node = n.getFirstByElementId('hello')
+    const node = n.findFirstByElementId('hello')
     const iframe = node.firstElementChild as HTMLIFrameElement
     await waitFor(() => {
       const image = iframe?.contentDocument?.body.querySelector('img')
@@ -143,15 +143,11 @@ describe(italic(`ecosDoc`), () => {
       })
       const { render } = createRender(componentObject)
       const component = await render()
-      const node = n.getFirstByElementId(component.id)
+      const node = n.findFirstByElementId(component.id)
       const iframe = node.firstElementChild as HTMLIFrameElement
       await waitFor(() => {
         expect(iframe).to.exist
-        expect(iframe).to.have.property(
-          'src',
-          'http://localhost:3000/',
-          // componentObject.ecosObj.name.data,
-        )
+        expect(iframe).to.have.property('src', 'http://127.0.0.1:3000/')
         expect(iframe.classList.contains(c.classes.ECOS_DOC_PDF)).to.be.true
       })
     })
@@ -172,7 +168,7 @@ describe(italic(`ecosDoc`), () => {
         })
         const { render } = createRender(componentObject)
         const component = await render()
-        const node = n.getFirstByElementId(component.id)
+        const node = n.findFirstByElementId(component.id)
         const iframe = node.firstElementChild as HTMLIFrameElement
         await waitFor(() => {
           const text = iframe?.contentDocument?.body.getElementsByClassName(
@@ -204,7 +200,7 @@ describe(italic(`ecosDoc`), () => {
         const component = await createRender(
           ui.ecosDocComponent('note'),
         ).render()
-        const node = n.getFirstByElementId(component)
+        const node = n.findFirstByElementId(component)
         const iframe = node.firstElementChild as HTMLIFrameElement
         await waitFor(() => {
           const body = iframe.contentDocument?.body as HTMLBodyElement
@@ -226,14 +222,14 @@ describe(italic(`ecosDoc`), () => {
 describe(italic(`image`), () => {
   it('should attach the pointer cursor if it has onClick', async () => {
     const { render } = createRender(ui.image({ onClick: [] }))
-    expect(n.getFirstByElementId(await render())?.style)
+    expect(n.findFirstByElementId(await render())?.style)
       .to.have.property('cursor')
       .eq('pointer')
   })
 
   it('should set width and height to 100% if it has children (deprecate soon)', async () => {
     const { render } = createRender(ui.image({ children: [] }))
-    const node = n.getFirstByElementId(await render())
+    const node = n.findFirstByElementId(await render())
     expect(node?.style).to.have.property('width').eq('100%')
     expect(node?.style).to.have.property('height').eq('100%')
   })
@@ -242,7 +238,7 @@ describe(italic(`image`), () => {
 describe(italic(`label`), () => {
   it('should attach the pointer cursor if it has onClick', async () => {
     const { render } = createRender(ui.image({ onClick: [] }))
-    expect(n.getFirstByElementId(await render()).style)
+    expect(n.findFirstByElementId(await render()).style)
       .to.have.property('cursor')
       .eq('pointer')
   })
@@ -301,7 +297,7 @@ describe(italic(`page`), () => {
         ],
       }),
     })
-    const node = n.getFirstByElementId(await render())
+    const node = n.findFirstByElementId(await render())
     expect(node).to.have.property('tagName', 'IFRAME')
   })
 
@@ -398,7 +394,7 @@ describe(italic(`styles`), () => {
         const button = component.child(1)
         const testSubjects = [component, label, button]
         testSubjects.forEach((component) => {
-          const node = n.getFirstByElementId(component)
+          const node = n.findFirstByElementId(component)
           expect(node.style).to.have.property('top').to.exist
           expect(node.style).to.have.property('height').to.exist
         })
@@ -554,7 +550,7 @@ describe(italic(`text=func`), () => {
         },
       })
       const component = await render()
-      expect(n.getFirstByElementId(component).textContent).to.eq(date)
+      expect(n.findFirstByElementId(component).textContent).to.eq(date)
     })
   })
 })
@@ -660,7 +656,7 @@ describe(italic(`video`), () => {
   it('should have object-fit set to "contain"', async () => {
     const { render } = createRender({ type: 'video', videoFormat: 'mp4' })
     const component = await render()
-    expect(n.getFirstByElementId(component)?.style.objectFit).to.equal(
+    expect(n.findFirstByElementId(component)?.style.objectFit).to.equal(
       'contain',
     )
   })
@@ -671,24 +667,24 @@ describe(italic(`video`), () => {
       path: 'asdloldlas.mp4',
       videoFormat: 'mp4',
     })
-    const node = n.getFirstByElementId(await render())
+    const node = n.findFirstByElementId(await render())
     await waitFor(() => {
       const sourceEl = node?.querySelector('source')
       expect(sourceEl).to.be.instanceOf(HTMLElement)
     })
   })
 
-  it('should have src set on the child source element instead of the video element itself', async () => {
+  it('should have src set on the child source element ', async () => {
     const path = 'asdloldlas.mp4'
     const { assetsUrl, render } = createRender({
       type: 'video',
       path: 'asdloldlas.mp4',
       videoFormat: 'mp4',
     })
-    const node = n.getFirstByElementId(await render())
+    const component = await render()
+    const node = n.findFirstByElementId(component)
     await waitFor(() => {
       const sourceEl = node?.querySelector('source')
-      expect(node?.getAttribute('src')).not.to.equal(assetsUrl + path)
       expect(sourceEl?.getAttribute('src')).to.equal(assetsUrl + path)
     })
   })
@@ -702,7 +698,7 @@ describe(italic(`video`), () => {
         path: 'abc123.mp4',
         videoFormat: 'mp4',
       })
-      const node = n.getFirstByElementId(await render())
+      const node = n.findFirstByElementId(await render())
       await waitFor(() => {
         const sourceEl = node?.querySelector('source')
         expect(node?.getAttribute('type')).not.to.equal('mp4')
@@ -717,7 +713,7 @@ describe(italic(`video`), () => {
       path: 'abc.jpeg',
       videoFormat: 'mp4',
     })
-    const node = n.getFirstByElementId(await render())
+    const node = n.findFirstByElementId(await render())
     await waitFor(() => {
       const p = node.querySelector('p')
       expect(/sorry/i.test(p?.textContent as string)).to.be.true
@@ -732,7 +728,7 @@ describe(italic(`video`), () => {
       videoFormat: 'mp4',
       id: 'id123',
     })
-    const node = n.getFirstByElementId(await render())
+    const node = n.findFirstByElementId(await render())
     await waitFor(() => {
       const sourceElem = node.querySelector('source')
       expect(sourceElem?.getAttribute('src')).to.equal(assetsUrl + path)

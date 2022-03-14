@@ -202,6 +202,10 @@ export const findFirstByDataKey = makeFindFirstBy<string>((doc, dataKey) =>
   doc.querySelector(`[data-key="${dataKey}"]`),
 )
 
+export const findFirstByGlobalId = makeFindFirstBy<string>((doc, globalId) =>
+  doc.querySelector(`[data-globalid="${globalId}"]`),
+)
+
 export const findFirstByViewTag = makeFindFirstBy<string>((doc, viewTag) =>
   doc.querySelector(`[data-viewtag="${viewTag}"]`),
 )

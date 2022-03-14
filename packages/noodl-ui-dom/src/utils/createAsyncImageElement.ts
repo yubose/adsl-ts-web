@@ -8,8 +8,8 @@ function createAsyncImageElement(
   return new Promise((resolve, reject) => {
     const node = new Image()
 
-    node.addEventListener('load', () => resolve(node))
-    node.addEventListener('error', reject)
+    node.onload = () => resolve(node)
+    node.onerror = reject
 
     try {
       if (!container) resolve(node)

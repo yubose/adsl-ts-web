@@ -8,9 +8,8 @@ import { flatten, Page as NuiPage, NUI, nuiEmitTransaction } from 'noodl-ui'
 import {
   findFirstByClassName,
   findFirstByElementId,
-  findFirstBySelector,
   findFirstByViewTag,
-  getFirstByGlobalId,
+  findFirstByGlobalId,
 } from '../utils'
 import { ndom, createRender, ui, waitMs } from '../test-utils'
 import GlobalComponentRecord from '../global/GlobalComponentRecord'
@@ -104,7 +103,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           expect(globalObj).to.have.property('pageId', page.id)
           expect(globalObj).to.have.property(
             'nodeId',
-            getFirstByGlobalId(globalId).id,
+            findFirstByGlobalId(globalId).id,
           )
         },
       )
@@ -124,14 +123,14 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           })
           let component = await render()
           const globalId = component.get('data-globalid')
-          const prevNode = getFirstByGlobalId(globalId)
+          const prevNode = findFirstByGlobalId(globalId)
           const globalObject = ndom.global.components.get(
             globalId,
           ) as GlobalComponentRecord
           expect(globalObject.nodeId).to.eq(prevNode.id)
           component = await render('Hello')
           await waitFor(() => {
-            const newNode = getFirstByGlobalId(`cerealView`)
+            const newNode = findFirstByGlobalId(`cerealView`)
             expect(globalObject.nodeId).not.to.eq(prevNode.id)
             expect(globalObject.nodeId).to.eq(newNode.id)
           })
@@ -165,7 +164,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           })
           const req = await request()
           const [select, button, popUp] = req.render()
-          const globalPopUpNode = getFirstByGlobalId('cerealView')
+          const globalPopUpNode = findFirstByGlobalId('cerealView')
           const globalRecord = ndom.global.components.get('cerealView')
           expect(document.body.contains(globalPopUpNode)).to.be.true
           expect(globalRecord).to.have.property('componentId', popUp.id)
@@ -177,7 +176,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
             }),
           ]
           const newPopUp = await render()
-          const newPopUpNode = getFirstByGlobalId('cerealView')
+          const newPopUpNode = findFirstByGlobalId('cerealView')
           expect(globalRecord).to.have.property('componentId').not.eq(popUp.id)
           expect(globalRecord)
             .to.have.property('nodeId')
@@ -203,7 +202,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
           })
           const req = await request()
           const [select, button, popUp] = req.render()
-          const globalPopUpNode = getFirstByGlobalId('cerealView')
+          const globalPopUpNode = findFirstByGlobalId('cerealView')
           expect(document.body.contains(globalPopUpNode)).to.be.true
           expect(ndom.cache.component.has(popUp)).to.be.true
           page.components = [
@@ -213,7 +212,7 @@ describe(nc.coolGold(`noodl-ui-dom`), () => {
             }),
           ]
           const newPopUp = await render()
-          const newPopUpNode = getFirstByGlobalId('cerealView')
+          const newPopUpNode = findFirstByGlobalId('cerealView')
           expect(document.body.contains(globalPopUpNode)).to.be.false
           expect(ndom.cache.component.has(popUp)).to.be.false
           expect(document.body.contains(newPopUpNode)).to.be.true
