@@ -48,4 +48,7 @@ const configs = [
   },
 ]
 
+// "presets": ["@babel/env"],
+// "plugins": ["@babel/plugin-transform-runtime"]
+
 export default configs

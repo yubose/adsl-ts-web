@@ -51,3 +51,60 @@ export * from './types'
 
 import { lib } from './constants'
 export const dataAttributes = lib.dataAttributes
+
+/* -------------------------------------------------------
+  ---- TEMP exports - To be reworked
+-------------------------------------------------------- */
+
+export { default as ComponentPage } from './dom/factory/componentFactory/ComponentPage'
+export { default as Global } from './dom/Global'
+export { default as GlobalComponentRecord } from './dom/global/GlobalComponentRecord'
+export { default as GlobalRecord } from './dom/global/GlobalRecord'
+export { default as GlobalTimer } from './dom/global/Timer'
+export { default as GlobalTimers } from './dom/global/Timers'
+export { default as NDOM } from './dom/noodl-ui-dom'
+export { default as NDOMPage } from './dom/Page'
+export { default as NDOMResolver } from './dom/Resolver'
+
+export {
+  _DEV_,
+  _TEST_,
+  addClassName,
+  asHtmlElement,
+  getElementTag,
+  findByClassName,
+  findByDataAttrib,
+  findByDataKey,
+  findByElementId,
+  findByGlobalId,
+  findByPlaceholder,
+  findBySelector,
+  findBySrc,
+  findByUX,
+  findByViewTag,
+  findFirstByClassName,
+  findFirstByDataKey,
+  findFirstByElementId,
+  findFirstByGlobalId,
+  findFirstBySelector,
+  findFirstByViewTag,
+  isDisplayable,
+  isImageDoc,
+  isMarkdownDoc,
+  isNoteDoc,
+  isPageConsumer,
+  isPdfDoc,
+  isTextDoc,
+  isTextFieldLike,
+  isWordDoc,
+  makeElemFn,
+  makeFindByAttr,
+  makeFindFirstBy,
+  normalizeEventName,
+  openOutboundURL,
+  posKeys,
+  resourceTypes,
+  toSelectOption,
+  xKeys,
+  yKeys,
+} from './dom/utils'
