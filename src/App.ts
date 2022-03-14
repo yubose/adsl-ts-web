@@ -66,6 +66,7 @@ class App {
       timeout: null,
       trigger: null,
     } as t.SpinnerState,
+    tracking: {},
   }
   #instances = {
     FullCalendar: {
@@ -141,7 +142,7 @@ class App {
   }
 
   get aspectRatio() {
-    return this.noodl.aspectRatio
+    return this.noodl?.aspectRatio || 1
   }
 
   set aspectRatio(aspectRatio) {
@@ -819,16 +820,16 @@ class App {
   }
 
   getRoomParticipants() {
-    return this.meeting.room.participants
+    return this.meeting.room.participants || null
   }
 
-  getSdkParticipants(root = this.noodl.root): t.RemoteParticipant[] {
-    return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)
+  getSdkParticipants(root = this.noodl?.root): t.RemoteParticipant[] {
+    return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) || null
   }
 
   setSdkParticipants(participants: any[]) {
     this.updateRoot(PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, participants)
-    return this.getSdkParticipants()
+    return this.getSdkParticipants() || null
   }
 
   observeViewport(viewport: VP) {
