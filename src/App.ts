@@ -530,7 +530,7 @@ class App {
       const actions = createActions(this)
       const builtIns = createBuiltIns(this)
       const plugins = createPlugins(this)
-      const registers = createRegisters(this)
+      // const registers = createRegisters(this)
       const doms = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
       const middlewares = createMiddleware(this)
@@ -544,10 +544,10 @@ class App {
       this.ndom.use({ createElementBinding: meetingfns.createElementBinding })
 
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
-      u.forEach(
-        (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),
-        registers,
-      )
+      // u.forEach(
+      //   (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),
+      //   registers,
+      // )
       u.entries(middlewares).forEach(([id, fn]) =>
         this.actionFactory.createMiddleware(id, fn),
       )

@@ -5,6 +5,7 @@ import { trimReference } from 'noodl-utils'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import App from '../App'
+import createRegisters from '../handlers/register'
 
 const log = Logger.create(`trackers`)
 
@@ -172,6 +173,17 @@ const trackProperty = function trackProperty({
         }
       }
 
+      if(combinedArgs?.key && combinedArgs?.key?.indexOf('storeCredentials') !== -1){
+        let key = combinedArgs?.key
+        let datain = combinedArgs?.['command']?.[key]?.['dataIn']
+        if(datain?.hasOwnProperty('userId')){
+          const registers = createRegisters(app)
+          u.forEach(
+            (keyVal) => app.nui._experimental?.['register' as any]?.(...keyVal),
+            registers,
+          )
+        }
+      }
       console.log(
         `%c${category ? `[${category}]` : ''}${label}`,
         `color:${colorProp};`,
