@@ -42,18 +42,10 @@ function createEcosDocElement<
     const iframe = document.createElement('iframe')
     let iframeContent: any // HTML element, direct child of iframe's contentDocument.body node
 
-    let ecosObj: EcosDocument<N> | undefined
+    let ecosObj: EcosDocument<N> = opts?.ecosObj || opts
     let mimeType = ''
 
-    if (u.isObj(opts)) {
-      if ('ecosObj' in opts) {
-        ecosObj = opts.ecosObj
-      } else {
-        ecosObj = opts
-      }
-    }
-
-    ecosObj?.name?.type && (mimeType = ecosObj.name.type)
+    if (ecosObj?.name?.type) mimeType = ecosObj.name.type
 
     iframe.classList.add(classes.ECOS_DOC)
     iframe.style.width = '100%'
@@ -61,68 +53,68 @@ function createEcosDocElement<
     iframe.style.border = 'none'
     iframe.title = ecosObj?.name?.title || 'eCOS Document'
 
-    /** LOADED */
-    iframe.addEventListener('load', async function onLoadEcosDocElement(event) {
-      let className = ''
-      if (is.doc(ecosObj)) {
-        if (/json/i.test(mimeType)) {
-          className = classes.ECOS_DOC_NOTE
-        } else if (/pdf/i.test(mimeType)) {
-          // className added in the render block somewhere below
+    if (!is.image(ecosObj)) {
+      /** LOADED */
+      iframe.onload = async function onLoadEcosDocElement(event) {
+        let className = ''
+        if (is.doc(ecosObj)) {
+          if (/json/i.test(mimeType)) {
+            className = classes.ECOS_DOC_NOTE
+          } else if (/pdf/i.test(mimeType)) {
+            // className added in the render block somewhere below
+          }
+        } else if (is.text(ecosObj)) {
+          if (/css/i.test(mimeType)) {
+            className = classes.ECOS_DOC_TEXT_CSS
+          } else if (/html/i.test(mimeType)) {
+            className = classes.ECOS_DOC_TEXT_HTML
+          } else if (/javascript/i.test(mimeType)) {
+            className = classes.ECOS_DOC_TEXT_JAVASCRIPT
+          } else if (/plain/i.test(mimeType)) {
+            className = classes.ECOS_DOC_TEXT_PLAIN
+          } else if (/markdown/i.test(mimeType)) {
+            className = classes.ECOS_DOC_TEXT_MARKDOWN
+          }
+        } else if (is.video(ecosObj)) {
+          className = classes.ECOS_DOC_VIDEO
         }
-      } else if (is.image(ecosObj)) {
-        className = classes.ECOS_DOC_IMAGE
-      } else if (is.text(ecosObj)) {
-        if (/css/i.test(mimeType)) {
-          className = classes.ECOS_DOC_TEXT_CSS
-        } else if (/html/i.test(mimeType)) {
-          className = classes.ECOS_DOC_TEXT_HTML
-        } else if (/javascript/i.test(mimeType)) {
-          className = classes.ECOS_DOC_TEXT_JAVASCRIPT
-        } else if (/plain/i.test(mimeType)) {
-          className = classes.ECOS_DOC_TEXT_PLAIN
-        } else if (/markdown/i.test(mimeType)) {
-          className = classes.ECOS_DOC_TEXT_MARKDOWN
+
+        try {
+          if (
+            // REMINDER: Images aren't running this block.
+            // They have their own onload/onerror handlers in their own block
+            iframeContent &&
+            iframe?.contentDocument?.body &&
+            !iframe.contentDocument.body.contains(iframeContent)
+          ) {
+            getBody(iframe)?.appendChild(iframeContent)
+            // TODO - Move this part in their own function somewhere at the end of this file
+            getBody(iframe)?.classList?.add(classes.ECOS_DOC_NOTE_DATA)
+          }
+        } catch (error) {
+          console.error(error)
         }
-      } else if (is.video(ecosObj)) {
-        className = classes.ECOS_DOC_VIDEO
+
+        className && getBody(iframe)?.classList.add(className)
+
+        resolve({
+          iframe,
+          event,
+          width,
+          height,
+          src: ecosObj?.name?.data || '',
+          title: ecosObj?.name?.title,
+        })
       }
 
-      try {
-        if (
-          !is.image(ecosObj) &&
-          // REMINDER: Images aren't running this block.
-          // They have their own onload/onerror handlers in their own block
-          iframeContent &&
-          iframe?.contentDocument?.body &&
-          !iframe.contentDocument.body.contains(iframeContent)
-        ) {
-          getBody(iframe)?.appendChild(iframeContent)
-        }
-      } catch (error) {
-        console.error(error)
-      }
-
-      className && getBody(iframe)?.classList.add(className)
-
-      resolve({
-        iframe,
-        event,
-        width,
-        height,
-        src: ecosObj?.name?.data || '',
-        title: ecosObj?.name?.title,
-      })
-    })
-
-    /** ERROR */
-    iframe.addEventListener('error', reject)
+      iframe.addEventListener('error', reject)
+    }
 
     /* -------------------------------------------------------
     ---- IMAGE DOCUMENTS
   -------------------------------------------------------- */
     if (is.image(ecosObj)) {
-      iframe.addEventListener('load', async function () {
+      iframe.onload = async function (event) {
         if (iframe.contentDocument?.body) {
           try {
             // The result could not be returned
@@ -134,12 +126,22 @@ function createEcosDocElement<
             img.style.width = '100%'
             img.style.height = '100%'
             iframeContent = img
+
             getBody(iframe)?.appendChild?.(iframeContent)
+            getBody(iframe)?.classList?.add?.(classes.ECOS_DOC_IMAGE)
+            resolve({
+              iframe,
+              event,
+              width,
+              height,
+              src: ecosObj?.name?.data || '',
+              title: ecosObj?.name?.title,
+            })
           } catch (error) {
             reject(error)
           }
         }
-      })
+      }
       iframe.addEventListener('error', reject)
     } else if (is.doc(ecosObj)) {
       if (/pdf/i.test(ecosObj.name?.type || '')) {

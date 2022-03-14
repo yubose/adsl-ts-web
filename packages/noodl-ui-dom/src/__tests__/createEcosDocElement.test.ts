@@ -1,8 +1,8 @@
 import * as u from '@jsmanifest/utils'
 import { NuiComponent } from 'noodl-ui'
-import { prettyDOM, waitFor } from '@testing-library/dom'
+import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
-import { coolGold, italic, magenta, white } from 'noodl-common'
+import { coolGold, italic, white } from 'noodl-common'
 import {
   ComponentObject,
   EcosDocComponentObject,
@@ -11,9 +11,8 @@ import {
 } from 'noodl-types'
 import { classes } from '../constants'
 import createEcosDocElement from '../utils/createEcosDocElement'
-import { getFirstByElementId } from '../utils'
 import { nui } from '../nui'
-import { createRender, createDataKeyReference, ndom, ui } from '../test-utils'
+import { ui } from '../test-utils'
 import * as c from '../constants'
 
 async function getEcosDocLoadResult(
@@ -21,15 +20,14 @@ async function getEcosDocLoadResult(
     | NuiComponent.Instance
     | ComponentObject
     | undefined
-    | null = ui.ecosDocComponent(),
+    | null = ui.ecosDocComponent('image'),
   container = document.body,
 ) {
   return createEcosDocElement(
     container,
-    u.isFnc(componentObject?.get)
-      ? componentObject?.get('ecosObj') ||
-          componentObject?.blueprint?.['ecosObj']
-      : componentObject?.['ecosObj'],
+    componentObject?.get?.('ecosObj') ||
+      componentObject?.blueprint?.['ecosObj'] ||
+      componentObject?.['ecosObj'],
   )
 }
 
@@ -58,7 +56,7 @@ async function getEcosDocRenderResults<N extends NameField = NameField>({
   }
 }
 
-describe(coolGold(`createEcosDocElement`), async () => {
+describe(coolGold(`createEcosDocElement`), () => {
   it(`should create an iframe element`, async () => {
     const { iframe } = await getEcosDocLoadResult()
     expect(iframe).to.have.property('tagName', 'IFRAME')
@@ -107,8 +105,6 @@ describe(coolGold(`createEcosDocElement`), async () => {
     })
 
     describe(white(`text documents`), () => {
-      xdescribe(white(`markdown`), () => {})
-
       describe(white(`plain text`), async () => {
         it(`should show the title and content`, async () => {
           const customEcosObj = ui.ecosDoc({
@@ -170,30 +166,6 @@ describe(coolGold(`createEcosDocElement`), async () => {
     })
 
     describe(white(`note`), () => {
-      xit(
-        `should attach the class name "${c.classes.ECOS_DOC_NOTE_TITLE}" on ` +
-          `note title elements that explicitly reference it`,
-        async () => {
-          const ecosObj = ui.ecosDoc('note')
-          ecosObj.name.title = `SignIn.gender.key`
-          const components = [{ ...ui.ecosDocComponent({ ecosObj }) }]
-          const { render } = createRender({ components })
-          createDataKeyReference({
-            pageName: 'SignIn',
-            pageObject: { gender: { key: 'hello123' }, components },
-          })
-          const component = await render()
-          const node = getFirstByElementId(component)
-          await waitFor(() => {
-            const titleElem = node.getElementsByClassName(
-              c.classes.ECOS_DOC_NOTE_TITLE,
-            )[0]
-            expect(node).to.exist
-            expect(titleElem).to.exist
-          })
-        },
-      )
-
       it(
         `should attach the class name "${c.classes.ECOS_DOC_NOTE}" on note ` +
           `elements`,
@@ -221,7 +193,6 @@ describe(coolGold(`createEcosDocElement`), async () => {
         async () => {
           let loadResult = await getEcosDocLoadResult(
             ui.ecosDocComponent('note'),
-            document.body,
           )
           await waitFor(() => {
             expect(
