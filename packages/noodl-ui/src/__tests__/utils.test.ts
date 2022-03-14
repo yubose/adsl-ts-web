@@ -5,6 +5,11 @@ import { coolGold, italic } from 'noodl-common'
 import * as n from '../utils/noodl'
 import { createDataKeyReference, ui } from '../utils/test-utils'
 import NUI from '../noodl-ui'
+import NUIPage from '../Page'
+import Viewport from '../Viewport'
+import isPage from '../utils/isPage'
+import isViewport from '../utils/isViewport'
+import log from '../utils/log'
 
 /** REMINDER: Total components created should be 9 for this func */
 const getResolvedListComponentPreset = async () =>
@@ -39,12 +44,13 @@ describe(coolGold(`Utils`), () => {
     })
   })
 
-  describe(italic(`findIteratorVar`), async () => {
+  describe(italic(`findIteratorVar`), () => {
     it(`should get the iteratorVar if its a list`, async () => {
-      const list = await NUI.resolveComponents(
-        ui.list({ iteratorVar: 'hello' }),
-      )
-      expect(n.findIteratorVar(list)).to.eq('hello')
+      expect(
+        n.findIteratorVar(
+          await NUI.resolveComponents(ui.list({ iteratorVar: 'hello' })),
+        ),
+      ).to.eq('hello')
     })
 
     it(`should get the iteratorVar if its a listItem`, async () => {
@@ -82,14 +88,6 @@ describe(coolGold(`Utils`), () => {
     })
   })
 
-  describe(italic(`findChild`), () => {
-    it(`should call the callback on all children including the last one if none of the conditions are passing`, async () => {
-      const spy = sinon.spy()
-      n.findChild(await getResolvedListComponentPreset(), spy)
-      expect(spy).to.have.callCount(8)
-    })
-  })
-
   xdescribe(italic(`findParent`), async () => {
     it(
       `should call the callback on all parents including the last one ` +
@@ -100,26 +98,6 @@ describe(coolGold(`Utils`), () => {
         expect(spy).to.have.callCount(8)
       },
     )
-  })
-
-  xdescribe(italic(`getRootParent`), () => {
-    it(`should return the root ancestor`, async () => {
-      const list = await getResolvedListComponentPreset()
-      const lastChild = n.getLast(list) as any
-      // expect(n.getRootParent(lastChild)).to.eq(list)
-      // console.info()
-      n.getRootParent(lastChild)
-    })
-  })
-
-  describe(italic(`getLast`), () => {
-    it(`should return the last component in its tree hierarchy`, async () => {
-      const list = await getResolvedListComponentPreset()
-      await waitFor(() => {
-        const lastChild = list.child().child().child(4).child()
-        expect(n.getLast(list)).to.eq(lastChild)
-      })
-    })
   })
 
   describe(italic(`isListConsumer`), () => {
@@ -134,6 +112,7 @@ describe(coolGold(`Utils`), () => {
     })
 
     it(`should return true for deeply nested descendants of a list`, async () => {
+      log.disableAll()
       const preset = await getResolvedListComponentPreset()
       expect(
         n.isListConsumer(
@@ -144,6 +123,7 @@ describe(coolGold(`Utils`), () => {
             .child(),
         ),
       ).to.be.true
+      log.setLevel('ERROR')
     })
   })
 
@@ -206,3 +186,16 @@ describe(italic(`resolveAssetUrl`), () => {
     )
   })
 })
+
+for (const [name, fn, Construct] of [
+  ['isPage', isPage, NUIPage],
+  ['isViewport', isViewport, Viewport],
+] as const) {
+  it(`[${name}] should return true`, () => {
+    expect(fn(new Construct())).to.be.true
+  })
+
+  it(`[${name}] should return false`, () => {
+    expect(fn({})).to.be.false
+  })
+}

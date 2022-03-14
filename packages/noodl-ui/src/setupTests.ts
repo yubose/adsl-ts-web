@@ -2,6 +2,7 @@ import sinonChai from 'sinon-chai'
 import chai from 'chai'
 import { assetsUrl, baseUrl, getPresetPageObjects } from './utils/test-utils'
 import nui from './noodl-ui'
+import log from './utils/log'
 import type NuiPage from './Page'
 import * as c from './constants'
 
@@ -9,6 +10,7 @@ chai.use(sinonChai)
 
 before(() => {
   console.clear()
+  log.setLevel('error')
 })
 
 beforeEach(() => {

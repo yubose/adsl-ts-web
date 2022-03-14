@@ -35,6 +35,7 @@ import {
 } from './utils/noodl'
 import log from './utils/log'
 import { groupedActionTypes, nuiEmitType } from './constants'
+import { isUnitTestEnv } from './utils/common'
 import isNuiPage from './utils/isPage'
 import cache from './_cache'
 import * as t from './types'
@@ -418,7 +419,7 @@ const NUI = (function () {
   >(
     opts: t.ResolveComponentOptions<C, Context>,
   ): Promise<
-    C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
+    C extends C[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
   >
 
   async function _resolveComponents<
@@ -431,7 +432,7 @@ const NUI = (function () {
       | t.ResolveComponentOptions<C, Context>['callback']
       | t.ResolveComponentOptions<C, Context>,
   ): Promise<
-    C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
+    C extends C[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
   >
 
   async function _resolveComponents<
@@ -441,7 +442,7 @@ const NUI = (function () {
     component: C,
     callback?: t.ResolveComponentOptions<C, Context>['callback'],
   ): Promise<
-    C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
+    C extends C[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
   >
 
   async function _resolveComponents<
@@ -451,7 +452,7 @@ const NUI = (function () {
     component: C,
     options?: Omit<t.ResolveComponentOptions<C, Context>, 'component'>,
   ): Promise<
-    C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
+    C extends C[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
   >
 
   async function _resolveComponents<
@@ -923,11 +924,11 @@ const NUI = (function () {
           actions,
           (acc: t.NUIActionObject[], obj) => {
             const errors = getActionObjectErrors(obj)
-            errors.length &&
-              u.forEach(
-                (errMsg) => log.debug(`%c${errMsg}`, `color:#ec0000;`, obj),
-                errors,
+            if (errors.length && !isUnitTestEnv()) {
+              errors.forEach((errMsg) =>
+                log.error(`%c${errMsg}`, `color:#ec0000;`, obj),
               )
+            }
             if (u.isObj(obj) && !('actionType' in obj)) {
               obj = { ...obj, actionType: getActionType(obj) }
             } else if (u.isFnc(obj)) {

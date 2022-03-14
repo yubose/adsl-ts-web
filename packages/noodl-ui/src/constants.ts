@@ -8,7 +8,7 @@ import type { NUIActionType } from './types'
 // Extended constants from this lib
 export const lib = {
   actionTypes: ['anonymous', 'emit', 'goto', 'toast'],
-  components: ['br','span'],
+  components: ['br', 'span'],
   emitTriggers: [
     'dataKey',
     'dataValue',
@@ -112,6 +112,5 @@ export const trigger = {
   ON_MOUSELEAVE: 'onMouseLeave',
   ON_MOUSEOUT: 'onMouseOut',
   ON_MOUSEOVER: 'onMouseOver',
-  ON_LAZYLOADING:'onLazyLoading'
-  
+  ON_LAZYLOADING: 'onLazyLoading',
 } as const

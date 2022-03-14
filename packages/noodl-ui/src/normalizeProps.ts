@@ -117,7 +117,6 @@ function normalizeProps<
               if (isListPath) {
                 dataPath = nu.excludeIteratorVar(dataPath, iteratorVar)
                 dataObject = context?.dataObject || findListDataObject(props)
-                console.log({ dataPathdataPathdataPath: dataPath })
               } else {
                 dataPath = nu.trimReference(dataPath)
                 value = getByRef(root, dataPath, pageName)

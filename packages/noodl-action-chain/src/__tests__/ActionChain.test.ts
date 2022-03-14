@@ -309,7 +309,6 @@ describe(coolGold(`ActionChain`), () => {
           actions: [getBuiltInAction(), getEvalObjectAction()],
           trigger: 'onMouseLeave',
         })
-        // @ts-expect-error
         ac.loader = (actions) => {
           return actions.map((a) =>
             createAction({ action: a, trigger: 'onClick' }),

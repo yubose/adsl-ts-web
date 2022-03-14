@@ -42,6 +42,7 @@
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src",
     "test:ndom": "lerna exec --scope noodl-ui-dom \"npm run test\"",
     "test:ndom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
+    "test:nui": "lerna exec --scope noodl-ui \"npm run test\"",
     "test:nui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
