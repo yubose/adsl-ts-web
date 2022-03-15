@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import jsPDF from 'jspdf'
 import camelCase from 'lodash/camelCase'
-import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui-dom'
+import { asHtmlElement, findByDataKey, makeElemFn } from 'noodl-ui'
 import { createToast, Toast } from 'vercel-toast'
 import { FileSelectorResult, FileSelectorCanceledResult } from '../app/types'
 import { isDataUrl } from './common'

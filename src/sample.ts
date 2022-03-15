@@ -1,9 +1,6 @@
-import * as u from '@jsmanifest/utils'
 import axios from 'axios'
 import Logger from 'logsnap'
-import yaml from 'yaml'
 import {
-  eventId as ndomEventId,
   findByDataAttrib,
   findByDataKey,
   findByElementId,
@@ -15,8 +12,8 @@ import {
   findByUX,
   findWindow,
   findWindowDocument,
-} from 'noodl-ui-dom'
-import { download, exportToPDF, getDataUrl } from './utils/dom'
+} from 'noodl-ui'
+import { exportToPDF } from './utils/dom'
 /**
  * Just a helper to return the utilities that are meant to be attached
  * to the global window object

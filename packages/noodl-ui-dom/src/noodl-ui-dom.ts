@@ -309,7 +309,7 @@ class NDOM extends NDOMInternal {
    * The page.requesting value should be set prior to calling this method unless
    * pageRequesting is provided. If it is provided, it will be set automatically
    */
-  async request(page = this.page, pageRequesting = '') {
+  async request(page = this.page, pageRequesting = '', opts?: { on }) {
     // Cache the currently requesting page to detect for newer requests during the call
     pageRequesting = pageRequesting || page.requesting || ''
     try {
@@ -403,6 +403,7 @@ class NDOM extends NDOMInternal {
     page.setStatus(c.eventId.page.status.RESOLVING_COMPONENTS)
     this.reset('componentCache', page)
     const nuiPage = page.getNuiPage()
+
     const components = u.array(
       await nui.resolveComponents({
         components: page.components,
@@ -479,7 +480,7 @@ class NDOM extends NDOMInternal {
       hooks.setup && (currentHooks.setup = hooks.setup)
     }
 
-    if (page.id) {
+    if (page?.id) {
       if (page.requesting === '') {
         if (this.renderState.draw.active[page.id]) {
           delete this.renderState.draw.active[page.id]
@@ -619,7 +620,6 @@ class NDOM extends NDOMInternal {
               ...options,
               on: hooks,
             })) as HTMLElement
-
             childNode && childrenContainer?.appendChild(childNode)
           }
 
@@ -636,7 +636,7 @@ class NDOM extends NDOMInternal {
       console.error(error)
       throw error
     } finally {
-      if (u.isStr(page.id)) {
+      if (u.isStr(page?.id)) {
         delete this.renderState.draw.active[page.id]
         delete this.renderState.draw.loading[page.id]
       }

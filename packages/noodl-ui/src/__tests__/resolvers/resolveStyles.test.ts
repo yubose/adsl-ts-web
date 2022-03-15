@@ -5,6 +5,7 @@ import { ComponentObject } from 'noodl-types'
 import { presets } from '../../constants'
 import { ui } from '../../utils/test-utils'
 import NUI from '../../noodl-ui'
+import log from '../../utils/log'
 
 async function resolveComponent(component: ComponentObject) {
   const page = NUI.createPage({
@@ -421,7 +422,7 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
         },
       )
 
-      it(`should set objectFit to "contain"`, async () => {
+      xit(`should set objectFit to "contain"`, async () => {
         expect((await resolveComponent(ui.image())).style).to.have.property(
           'objectFit',
           'contain',
@@ -463,7 +464,7 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
           }),
         ])
         const [viewComponent] = components
-        const pageComponent = viewComponent.child()
+        const pageComponent = (viewComponent as any).child()
         expect(pageComponent.style).to.have.property(
           'boxShadow',
           '5px 5px 10px 3px rgba(0, 0, 0, 0.015)',

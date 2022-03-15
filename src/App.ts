@@ -1,10 +1,4 @@
 import Logger from 'logsnap'
-import NOODLDOM, {
-  BASE_PAGE_URL,
-  eventId,
-  isPage as isNOODLDOMPage,
-  Page as NOODLDOMPage,
-} from 'noodl-ui-dom'
 import type { ActionChainIteratorResult } from 'noodl-action-chain'
 import { Account } from '@aitmed/cadl'
 import type { CADL } from '@aitmed/cadl'
@@ -16,6 +10,11 @@ import set from 'lodash/set'
 import * as nu from 'noodl-utils'
 import { AppConfig, PageObject, ReferenceString } from 'noodl-types'
 import {
+  BASE_PAGE_URL,
+  eventId,
+  isNDOMPage,
+  NDOM,
+  NDOMPage,
   NUI,
   NUIActionObject,
   NUITrigger,
@@ -66,6 +65,7 @@ class App {
       timeout: null,
       trigger: null,
     } as t.SpinnerState,
+    tracking: {},
   }
   #instances = {
     FullCalendar: {
@@ -88,7 +88,7 @@ class App {
   goto: ReturnType<typeof createGoto>
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
-  mainPage: NOODLDOM['page']
+  mainPage: NDOM['page']
   pickNUIPage = createPickNUIPage(this)
   pickNDOMPage = createPickNDOMPage(this);
 
@@ -119,7 +119,7 @@ class App {
     noodl,
     notification,
     nui = NUI,
-    ndom = new NOODLDOM(),
+    ndom = new NDOM(),
     viewport = new VP(),
   }: t.AppConstructorOptions = {}) {
     this.getStatus = getStatus
@@ -141,7 +141,7 @@ class App {
   }
 
   get aspectRatio() {
-    return this.noodl.aspectRatio
+    return this.noodl?.aspectRatio || 1
   }
 
   set aspectRatio(aspectRatio) {
@@ -280,17 +280,17 @@ class App {
    * Navigates to a page specified in page.requesting
    * The value set in page.requesting should be set prior to this call unless pageRequesting is provided where it will be set to it automatically
    * If only a page name is provided, by default the main page instance will be used
-   * @param { NOODLDOMPage } page
+   * @param { NDOMPage } page
    * @param { string | undefined } pageRequesting
    */
   async navigate(
-    page: NOODLDOMPage,
+    page: NDOMPage,
     pageRequesting?: string,
     opts?: { isGoto?: boolean },
   ): Promise<void>
   async navigate(pageRequesting?: string): Promise<void>
   async navigate(
-    page?: NOODLDOMPage | string,
+    page?: NDOMPage | string,
     pageRequesting?: string,
     { isGoto }: { isGoto?: boolean } = {},
   ) {
@@ -308,13 +308,13 @@ class App {
     }
 
     try {
-      let _page: NOODLDOMPage
+      let _page: NDOMPage
       let _pageRequesting = ''
 
       const ls = window.localStorage
       let pageUrl = pageRequesting ? pageRequesting : page
 
-      if (isNOODLDOMPage(pageUrl)) {
+      if (isNDOMPage(pageUrl)) {
         pageUrl = pageUrl.page
       }
 
@@ -328,7 +328,7 @@ class App {
             ? pageUrl.substring(0, pageUrl.indexOf('&'))
             : pageUrl
         ).replace(/=/g, '')
-        if (isNOODLDOMPage(page)) {
+        if (isNDOMPage(page)) {
           pageRequesting = curretPage
         } else {
           page = curretPage
@@ -336,7 +336,7 @@ class App {
         ls.setItem('tempParams', JSON.stringify(params))
       }
 
-      if (isNOODLDOMPage(page)) {
+      if (isNDOMPage(page)) {
         _page = page
         pageRequesting && (_pageRequesting = pageRequesting)
       } else {
@@ -649,7 +649,7 @@ class App {
     }
   }
 
-  async getPageObject(page: NOODLDOMPage): Promise<void | { aborted: true }> {
+  async getPageObject(page: NDOMPage): Promise<void | { aborted: true }> {
     if (!this.getState().spinner.active) {
       this.enableSpinner({ target: page?.node || this.mainPage?.node })
     }
@@ -778,7 +778,7 @@ class App {
           // Currently used on list components to re-retrieve listObject by refs
           shouldAttachRef(key, value, parent) {
             return (
-              parent?.type === 'list' &&
+              parent?.['type'] === 'list' &&
               key === 'listObject' &&
               is.reference(value)
             )
@@ -819,16 +819,16 @@ class App {
   }
 
   getRoomParticipants() {
-    return this.meeting.room.participants
+    return this.meeting.room.participants || null
   }
 
-  getSdkParticipants(root = this.noodl.root): t.RemoteParticipant[] {
-    return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)
+  getSdkParticipants(root = this.noodl?.root): t.RemoteParticipant[] {
+    return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) || null
   }
 
   setSdkParticipants(participants: any[]) {
     this.updateRoot(PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, participants)
-    return this.getSdkParticipants()
+    return this.getSdkParticipants() || null
   }
 
   observeViewport(viewport: VP) {
@@ -907,7 +907,7 @@ class App {
     }
   }
 
-  observePages(page: NOODLDOMPage) {
+  observePages(page: NDOMPage) {
     const onNavigateStart = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
         log.func('onNavigateStart')
@@ -919,7 +919,7 @@ class App {
     const onNavigateStale = (args: {
       previouslyRequesting: string
       newPageRequesting: string
-      snapshot: ReturnType<NOODLDOMPage['snapshot']>
+      snapshot: ReturnType<NDOMPage['snapshot']>
     }) => {
       log.func('onNavigateStale')
       if (args.newPageRequesting) {
@@ -951,7 +951,7 @@ class App {
       }
     }
 
-    const onComponentsRendered = (page: NOODLDOMPage) => {
+    const onComponentsRendered = (page: NDOMPage) => {
       log.func('onComponentsRendered')
       log.grey(`Done rendering DOM nodes for ${page.page}`)
       if (page.page === 'VideoChat') {
@@ -983,7 +983,7 @@ class App {
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
   }
 
-  async render(page: NOODLDOMPage) {
+  async render(page: NDOMPage) {
     try {
       if (!page) {
         if (arguments.length) {

@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import startOfDay from 'date-fns/startOfDay'
 import { Identify, userEvent } from 'noodl-types'
-import { dataAttributes } from 'noodl-ui'
+import { dataAttributes, NUIActionChain } from 'noodl-ui'
 import type { NuiComponent } from 'noodl-ui'
 import { isDisplayable, normalizeEventName } from '../utils'
 import type NDOMResolver from '../Resolver'
@@ -50,8 +50,8 @@ function attachUserEvents<N extends t.NDOMElement>(
      * - onChange
      * - onInput
      */
-    if (eventType === 'onChange') return;
-    if (eventType === 'onInput') return;
+    if (eventType === 'onChange') return
+    if (eventType === 'onInput') return
 
     if (u.isFnc(component.get?.(eventType)?.execute)) {
       /**
@@ -60,22 +60,27 @@ function attachUserEvents<N extends t.NDOMElement>(
        * root object gets their data values updated.
        */
       if (eventType === 'onLazyLoading') {
-        let event:Event = new Event("onLazyLoading",{"bubbles":true, "cancelable":false});
-          node.addEventListener('scroll', (...args) =>{
-            let viewHeight =  node.clientHeight||document.documentElement.clientHeight;
-            let contentHeight = node.scrollHeight || document.documentElement.scrollHeight;//内容高度
-            let scrollTop =  node.scrollTop || document.documentElement.scrollTop;
-            if (contentHeight - viewHeight - scrollTop === 0) { //到达底部0px时,加载新内容
-                node.dispatchEvent(event);
-            }
-            
+        let event: Event = new Event('onLazyLoading', {
+          bubbles: true,
+          cancelable: false,
+        })
+        node.addEventListener('scroll', (...args) => {
+          let viewHeight =
+            node.clientHeight || document.documentElement.clientHeight
+          let contentHeight =
+            node.scrollHeight || document.documentElement.scrollHeight //内容高度
+          let scrollTop = node.scrollTop || document.documentElement.scrollTop
+          if (contentHeight - viewHeight - scrollTop === 0) {
+            //到达底部0px时,加载新内容
+            node.dispatchEvent(event)
           }
-          )
-        node.addEventListener('onLazyLoading',(...args)=>{
+        })
+        node.addEventListener('onLazyLoading', (...args) => {
           // console.log('GGGG', node.scrollTop)
           //@ts-ignore
-          setTimeout(() => {component.get?.(eventType)?.execute?.(...args);
-        });
+          setTimeout(() => {
+            ;(component.get?.(eventType) as NUIActionChain)?.execute?.(...args)
+          })
         })
         // window.setTimeout(()=>{
         //   node.scrollTop = node.scrollHeight - 1000;

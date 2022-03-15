@@ -7,26 +7,8 @@ import { Account, cache as sdkCache } from '@aitmed/cadl'
 import get from 'lodash/get'
 import partial from 'lodash/partial'
 import partialRight from 'lodash/partialRight'
+import pick from 'lodash/pick'
 import unary from 'lodash/unary'
-import {
-  findByDataAttrib,
-  findByDataKey,
-  findByElementId,
-  findByGlobalId,
-  findByPlaceholder,
-  findBySelector,
-  findBySrc,
-  findByViewTag,
-  findByUX,
-  findFirstByClassName,
-  findFirstByDataKey,
-  findFirstByElementId,
-  findFirstBySelector,
-  findFirstByViewTag,
-  findWindow,
-  findWindowDocument,
-  Page as NDOMPage,
-} from 'noodl-ui-dom'
 import { trimReference } from 'noodl-utils'
 import getDeepTotalHeight from './getDeepTotalHeight'
 import getElementTreeDimensions from './getElementTreeDimensions'
@@ -49,26 +31,28 @@ export function getWindowDebugUtils(app: App) {
     cp: copyToClipboard,
     ExportPdf,
     exportToPDF,
-    findByDataAttrib,
-    findByDataKey,
-    findByElementId,
-    findByGlobalId,
-    findByPlaceholder,
-    findBySelector,
-    findBySrc,
-    findByViewTag,
-    findByUX,
-    findWindow,
-    findWindowDocument,
-    findFirstByClassName,
-    findFirstByDataKey,
-    findFirstByElementId,
-    findFirstBySelector,
-    findFirstByViewTag,
     getDeepTotalHeight,
     getElementTreeDimensions,
     sdkCache,
     toast,
+    ...pick(lib, [
+      'findByDataAttrib',
+      'findByDataKey',
+      'findByElementId',
+      'findByGlobalId',
+      'findByPlaceholder',
+      'findBySelector',
+      'findBySrc',
+      'findByViewTag',
+      'findByUX',
+      'findWindow',
+      'findWindowDocument',
+      'findFirstByClassName',
+      'findFirstByDataKey',
+      'findFirstByElementId',
+      'findFirstBySelector',
+      'findFirstByViewTag',
+    ]),
     // Inlined function implementations
     componentCache: {
       findComponentsWithKeys: (...keys: string[]) => {
@@ -169,7 +153,7 @@ export function getWindowDebugUtils(app: App) {
     },
     getDataValues: () =>
       u.reduce(
-        u.array(findByDataKey()),
+        u.array(lib.findByDataKey()),
         (acc, el) => {
           if (el) {
             if (el.dataset.value === '[object Object]') {
@@ -187,10 +171,10 @@ export function getWindowDebugUtils(app: App) {
         },
         {} as Record<string, any>,
       ),
-    mainView: partialRight(unary(findFirstByViewTag), 'mainView'),
-    pdfViewTag: partialRight(unary(findFirstByViewTag), 'pdfViewTag'),
-    tableView: partialRight(unary(findFirstByViewTag), 'tableView'),
-    scrollView: partialRight(unary(findFirstByClassName), 'scroll-view'),
+    mainView: partialRight(unary(lib.findFirstByViewTag), 'mainView'),
+    pdfViewTag: partialRight(unary(lib.findFirstByViewTag), 'pdfViewTag'),
+    tableView: partialRight(unary(lib.findFirstByViewTag), 'tableView'),
+    scrollView: partialRight(unary(lib.findFirstByClassName), 'scroll-view'),
     goto: {
       AbsentNoteReview: navigate('AbsentNoteReview'),
       BlankNoteReview: navigate('BlankNoteReview'),
@@ -214,7 +198,7 @@ export function getWindowDebugUtils(app: App) {
     pageTable: () => {
       const pagesList = [] as string[]
       const result = [] as { page: string; ndom: number; nui: number }[]
-      const getKey = (page: NDOMPage | lib.Page) =>
+      const getKey = (page: lib.NDOMPage | lib.Page) =>
         page.page === '' ? 'unknown' : page.page
 
       const nuiCachePageEntries = [...app.cache.page.get().values()]
@@ -222,7 +206,7 @@ export function getWindowDebugUtils(app: App) {
 
       const add = (
         index: number,
-        page: NDOMPage | lib.Page,
+        page: lib.NDOMPage | lib.Page,
         ndomOrNui: 'ndom' | 'nui',
       ) => {
         const pageKey = getKey(page)

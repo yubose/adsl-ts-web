@@ -1,6 +1,5 @@
 import { PageObject } from 'noodl-types'
-import { nuiEmitTransaction, Page as NUIPage } from 'noodl-ui'
-import { NDOMTransaction } from 'noodl-ui-dom'
+import { nuiEmitTransaction, NDOMTransaction, Page as NUIPage } from 'noodl-ui'
 import App from '../App'
 
 const createTransactions = function _createTransactions(app: App) {
@@ -12,7 +11,6 @@ const createTransactions = function _createTransactions(app: App) {
       page: NUIPage,
     ): Promise<{ aborted: true } | PageObject> {
       return (
-        // @ts-expect-error
         (await app.getPageObject.call(app, page)) || {
           components: [],
         }

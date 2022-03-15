@@ -9,6 +9,7 @@ import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
 import QRCode from 'qrcode'
+import { excludeIteratorVar } from 'noodl-utils'
 import {
   asHtmlElement,
   ComponentPage,
@@ -16,15 +17,12 @@ import {
   findFirstByElementId,
   isTextFieldLike,
   NDOMElement,
-  Page as NDOMPage,
-  Resolve,
-} from 'noodl-ui-dom'
-import { excludeIteratorVar } from 'noodl-utils'
-import {
+  NDOMPage,
   findIteratorVar,
   findListDataObject,
   NUIActionChain,
   NuiComponent,
+  Resolve,
 } from 'noodl-ui'
 import App from '../App'
 import is from '../utils/is'

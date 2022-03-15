@@ -212,47 +212,6 @@ describe(coolGold(`resolveDataAttrs`), () => {
     },
   )
 
-  describe('when handling dataValue emits', () => {
-    it('should retrieve the value from their dataObject', async () => {
-      const dataObject = { fruit: 'apple' }
-      const spy = sinon.spy(async () => (dataObject.fruit = 'iamjoshua'))
-      const iteratorVar = 'hello'
-      const listObject = [dataObject, { fruit: 'orange' }]
-      NUI.use({ emit: { dataValue: spy as any } })
-      const { component: view } = await resolveComponent(
-        ui.view({
-          children: [
-            ui.list({
-              contentType: 'listObject',
-              listObject,
-              iteratorVar,
-              children: [
-                ui.listItem({
-                  [iteratorVar]: '',
-                  children: [
-                    ui.textField({
-                      dataKey: `${iteratorVar}.fruit`,
-                      dataValue: ui.emitObject({
-                        dataKey: { var1: iteratorVar },
-                      }),
-                    }),
-                  ],
-                }),
-              ],
-            }),
-          ],
-        }),
-      )
-      const list = view.child()
-      const listItem = list.child()
-      const textField = listItem.child()
-      await waitFor(() => {
-        const val = textField.get('data-value')
-        expect(val).to.eq('iamjoshua')
-      })
-    })
-  })
-
   it('should look in the page object to find its dataObject (non list consumers)', async () => {
     const pageObject = { hello: { gender: 'Female' } }
     createDataKeyReference({ pageObject })

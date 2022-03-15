@@ -153,7 +153,6 @@ const FAVICON = 'public/favicon.ico'
 
 const pkg = fs.readJsonSync('./package.json')
 const nuiPkg = fs.readJsonSync('./packages/noodl-ui/package.json')
-const ndomPkg = fs.readJsonSync('./packages/noodl-ui-dom/package.json')
 const ntypesPkg = fs.readJsonSync('./packages/noodl-types/package.json')
 const nutilsPkg = fs.readJsonSync('./packages/noodl-utils/package.json')
 
@@ -188,7 +187,6 @@ if (!Number.isNaN(pkgVersionRev)) {
 const pkgJson = {
   root: pkg,
   nui: nuiPkg,
-  ndom: ndomPkg,
   nTypes: ntypesPkg,
   nutils: nutilsPkg,
 }
@@ -201,7 +199,6 @@ const version = {
     pkgJson.root.dependencies['@aitmed/ecos-lvl2-sdk'] ||
     pkgJson.root.devDependencies['@aitmed/ecos-lvl2-sdk'],
   nui: pkgJson.nui.version,
-  ndom: pkgJson.ndom.version,
   nutil: pkgJson.nutils.version,
   nTypes: pkgJson.nTypes.version,
 }
@@ -336,7 +333,6 @@ const webpackOptions = {
           'noodl-types': version.nTypes,
           'noodl-ui': version.nui,
           'noodl-utils': version.nutil,
-          'noodl-ui-dom': version.ndom,
         },
         timestamp: new Date().toLocaleString(),
       },
@@ -444,12 +440,12 @@ function webpackProgress(percentage, msg, ...args) {
   Status:    ${u.cyan(msg.toUpperCase())}
   File:      ${u.magenta(args[0])}
   Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
+
   ${u.cyan('eCOS packages')}:
   ${u.white(`@aitmed/cadl`)}:            ${u.magenta(version.noodlSdk)}
   ${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(version.ecosSdk)}
   ${u.white(`noodl-types`)}:             ${u.magenta(version.nTypes)}
   ${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
-  ${u.white(`noodl-ui-dom`)}:            ${u.magenta(version.ndom)}
   ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
   ${MODE === 'production'
       ? `\nAn ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(TITLE)}`

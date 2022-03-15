@@ -10,7 +10,9 @@ import {
   nuiEmitTransaction,
   NUIComponent as NuiComponent,
   NUI,
+  On as NUIOn,
   Page as NUIPage,
+  publish,
   Viewport,
 } from 'noodl-ui'
 import NOODLDOM from './noodl-ui-dom'
@@ -20,10 +22,13 @@ import { findBySelector, findFirstByClassName } from './utils'
 import { nui } from './nui'
 import * as t from './types'
 
+export const baseUrl = 'http://127.0.0.1:3000/'
 export const ui = { ...actionFactory, ...componentFactory }
 
 export const _defaults = {
-  baseUrl: 'https://aitmed.com/',
+  get baseUrl() {
+    return baseUrl
+  },
   get assetsUrl() {
     return _defaults.baseUrl + 'assets/'
   },
@@ -60,6 +65,7 @@ interface MockRenderOptions {
   components?: OrArray<ComponentObject>
   currentPage?: string
   getPageObject?: (page?: string) => Promise<Partial<PageObject>>
+  on?: NUIOn
   page?: NDOMPage
   pageName?: string
   pageObject?: Partial<PageObject>
@@ -103,7 +109,7 @@ export interface CreateRenderResult {
   page: NDOMPage
   pageObject: PageObject
   request(pgName?: string): Promise<{
-    render: () => Promise<NuiComponent.Instance[]>
+    render: (opts?: { on?: NUIOn }) => Promise<NuiComponent.Instance[]>
   }>
   render(pgName?: string): Promise<NuiComponent.Instance>
 }
@@ -132,6 +138,7 @@ export function createRender<Opts extends MockRenderOptions>(
   let pageRequesting = ''
   let page: NDOMPage | undefined
   let pageObject: Partial<PageObject> = {}
+  let on: NUIOn | undefined
   let root = _defaults.root
 
   if (u.isFnc(opts)) {
@@ -144,6 +151,7 @@ export function createRender<Opts extends MockRenderOptions>(
     opts.pageName && (pageRequesting = opts.pageName)
     opts.pageObject && u.assign(pageObject, opts.pageObject)
     opts.page && (page = page)
+    opts.on && (on = opts.on)
     opts.root && (root = opts.root)
 
     !pageRequesting && (pageRequesting = _defaults.pageRequesting)
@@ -220,7 +228,7 @@ export function createRender<Opts extends MockRenderOptions>(
     },
     render: async (pgName = ''): Promise<NuiComponent.Instance> => {
       const req = await o.request(pgName || page?.requesting)
-      return u.array(await req?.render?.())?.[0] as NuiComponent.Instance
+      return u.array(await req?.render?.({ on }))?.[0] as NuiComponent.Instance
     },
   } as CreateRenderResult
 
@@ -250,6 +258,12 @@ export async function waitForPageChildren(
 
 export function getAllElementCount(selector = '') {
   return u.array(findBySelector(selector)).filter(Boolean).length
+}
+
+export function getDescendantIds(component: NuiComponent.Instance): string[] {
+  const ids = [] as string[]
+  publish(component, (child) => ids.push(child.id))
+  return ids
 }
 
 export function getPageComponentChildIds(component: NuiComponent.Instance) {

@@ -7,15 +7,16 @@ import log from '../utils/log'
 import * as i from '../utils/internal'
 import * as t from '../types'
 
+export const emitHooks = [
+  'path',
+  'placeholder',
+  { trigger: 'dataValue', datasetKey: 'value' },
+] as const
+
 const setupResolver = new Resolver('resolveSetup')
 
 setupResolver.setResolver(
-  Resolver.withHelpers(async function setupResolver(
-    this: Resolver,
-    component,
-    options,
-    next,
-  ) {
+  Resolver.withHelpers(async function setupResolver(component, options, next) {
     try {
       const { createActionChain, getRoot, on, page, resolveReference } = options
       const original = component.blueprint || {}
@@ -113,11 +114,7 @@ setupResolver.setResolver(
         ---- EMITS
       -------------------------------------------------------- */
 
-        for (const prop of [
-          'path',
-          'placeholder',
-          { trigger: 'dataValue', datasetKey: 'value' },
-        ]) {
+        for (const prop of emitHooks) {
           let datasetKey = ''
           let trigger = '' as LiteralUnion<t.NUITrigger, string>
 

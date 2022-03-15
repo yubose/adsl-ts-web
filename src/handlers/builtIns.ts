@@ -4,11 +4,20 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import { isAction } from 'noodl-action-chain'
 import {
+  BASE_PAGE_URL,
+  eventId as ndomEventId,
   findListDataObject,
   findIteratorVar,
+  findByViewTag,
+  findByUX,
+  findFirstBySelector,
+  findFirstByElementId,
+  findWindow,
   getDataValues,
   isPage as isNuiPage,
+  isPageConsumer,
   NuiComponent,
+  NDOMPage,
   resolvePageComponentUrl,
   Store,
   Viewport as VP,
@@ -17,17 +26,6 @@ import {
   findParent,
 } from 'noodl-ui'
 import QRCode from 'qrcode'
-import {
-  BASE_PAGE_URL,
-  eventId as ndomEventId,
-  findByViewTag,
-  findByUX,
-  findFirstBySelector,
-  findWindow,
-  isPageConsumer,
-  Page as NDOMPage,
-  findFirstByElementId,
-} from 'noodl-ui-dom'
 import { BuiltInActionObject, EcosDocument } from 'noodl-types'
 import Logger from 'logsnap'
 import {

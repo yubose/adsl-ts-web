@@ -11,6 +11,7 @@ import type {
   NUITrigger,
 } from '../types'
 import log from '../utils/log'
+import { isUnitTestEnv } from './common'
 import EmitAction from '../actions/EmitAction'
 
 type EmitLikeObject = Extract<NUIActionObjectInput, EmitObjectFold>
@@ -57,7 +58,7 @@ function createAction(
     }
   }
 
-  if (action?.original) {
+  if (action?.original && !isUnitTestEnv()) {
     getActionObjectErrors(action.original).forEach((errMsg) => {
       log.error(`%c${errMsg}`, `color:#ec0000;`, action?.original)
     })

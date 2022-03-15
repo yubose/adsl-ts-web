@@ -121,14 +121,18 @@ NUI.emit({
 | admind2   | 8862320918 | 888666      |        | yuhan            |
 | admind2   | 8862324378 | 888666      |        | austin           |
 | patient   | 8872465555 | 123         | me     |                  |
+| patient   | 8862325577 | 111         | yuhan  |                  |
 | provider  | 8882465555 | 123         | me     |                  |
 | provider  | 8882461211 | 123         | me     |                  |
 | patd      | 8860081221 | letmein123! |        |
 | patd      | 8864240000 | 12345       |        |
 | patd2     | 8861122050 | 123         |        |
 | patd3     | 8864565432 | 123         | jiahao |
+| patd3     | 8862325577 | 111         | yuhan  |
 | prod      | 8865550010 | password    |        |
 | prod      | 8864210053 | aitmed      | toni   |
+| meet      | 8882465555 | 123         | me     |
+| meet      | 8882461211 | 123         | me     |
 | meet4d    | 8862465555 | 142251      |        |
 | meet4d    | 8862468491 | 142251      |        |
 | meet4d    | 8862461234 | 142251      |        |
@@ -313,3 +317,103 @@ when we do cd and send api to backend, by this time all our bit is 0 (everything
       - Set `offsetStart` to `accHeight`
       - Set `offsetEnd` to `pageHeight` + `elHeight`
   - Else if `accHeight` < `offsetEnd`
+
+## Twilio handling todos
+
+- [ParticipantNotFoundError](https://sdk.twilio.com/js/video/releases/2.21.0/docs/ParticipantNotFoundError.html)
+
+```js
+switch (error.code) {
+  // 'Invalid Access Token header'
+  case 20102:
+    return toast(error.message, { type: 'error' })
+  // 'Invalid Access Token'
+  case 20101:
+  // 'Access Token expired or expiration date invalid
+  case 20104:
+  // 'Access Token not yet valid'
+  case 20105:
+  // 'Invalid Access Token grants'
+  case 20106:
+  // 'Invalid Access Token signature'
+  case 20107:
+  // 'Invalid Access Token issuer/subject'
+  case 20103:
+    // TODO - Try reconnecting
+    break
+  // 'Signaling connection error'
+  case 53000:
+  // 'Signaling connection disconnected'
+  case 53001:
+  // 'Signaling connection timed out'
+  case 53002:
+  // 'Video server is busy'
+  case 53006:
+  // 'Room name is invalid'
+  case 53100:
+  // 'Room name is too long'
+  case 53101:
+  // 'Room name contains invalid characters'
+  case 53102:
+    // Raised whenever a Client is unable to connect to a Room
+    // 'Unable to create Room'
+    return toast(`The server was unable to create a room`, {
+      type: 'error',
+    })
+  case 53103:
+  // 'Unable to connect to Room'
+  case 53104:
+  // 'Room contains too many Participants'
+  case 53105:
+  // 'Room not found'
+  case 53106:
+    return toast(error.message, { type: 'error' })
+  // 'The subscription operation requested is not supported for the Room type
+  case 53117:
+  // 'Participant identity is invalid'
+  case 53200:
+  // 'Participant identity is too long'
+  case 53201:
+  // 'Participant identity contains invalid characters'
+  case 53202:
+  // 'The maximum number of published tracks allowed in the Room at the same time has been reached'
+  case 53203:
+  // 'Participant not found'
+  case 53204:
+  // 'Participant disconnected because of duplicate identity'
+  case 53205:
+    return toast(error.message, { type: 'error' })
+  // 'Track is invalid'
+  case 53300:
+  // 'Track name is invalid'
+  case 53301:
+  // 'Track name is too long'
+  case 53302:
+  // 'Track name contains invalid characters'
+  case 53303:
+  // 'Track name is duplicated'
+  case 53304:
+  // 'The server has reached capacity and cannot fulfill this request'
+  case 53305:
+  // 'No supported codec'
+  case 53404:
+    // TODO - Try re-creating the failed track
+    return toast(
+      `Could not find a supported codec when publishing a track. Check microphone/camera to see if they are working`,
+      { type: 'error' },
+    )
+  // 'Media connection failed or Media activity ceased'
+  case 53405:
+  // 'Media connection failed due to DTLS handshake failure'
+  case 53407:
+    return toast(
+      `Could not establish a secure connection with the server. Please refresh the page and try again, or try again later.`,
+      { type: 'error' },
+    )
+  // Occurs during preflight test
+  // 'Unable to acquire TURN credentials'
+  case 53501:
+  default:
+    throw error instanceof Error ? error : new Error(String(error))
+}
+```

@@ -24,3 +24,11 @@ export function hasDecimal(value: any): boolean {
 export function hasLetter(value: any): boolean {
   return /[a-zA-Z]/i.test(String(value))
 }
+
+/**
+ * Returns true if process.env.NODE_ENV === 'test'
+ * @returns { boolean }
+ */
+export function isUnitTestEnv() {
+  return process.env.NODE_ENV === 'test'
+}

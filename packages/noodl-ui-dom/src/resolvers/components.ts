@@ -348,9 +348,8 @@ const componentsResolver: t.Resolve.Config = {
           }
 
           iframe && (iframe.id = `${idLabel}-document-${args.component.id}`)
-          iframe.addEventListener('error', (err) =>
-            console.error(`[ERROR]: In ecosDoc component: ${err.message}`, err),
-          )
+          iframe.onerror = (err) =>
+            console.error(`[ERROR]: In ecosDoc component: ${err.message}`, err)
 
           args.node?.appendChild(iframe)
         }
@@ -539,7 +538,7 @@ const componentsResolver: t.Resolve.Config = {
                     resolvers: args.resolvers,
                   })
                 } else {
-                  componentPage.window?.addEventListener('load', (evt) =>
+                  componentPage.window.onload = (evt) =>
                     onLoad({
                       event: evt,
                       createPage: args.createPage,
@@ -547,12 +546,11 @@ const componentsResolver: t.Resolve.Config = {
                       node: args.node as HTMLIFrameElement,
                       findPage: args.findPage,
                       resolvers: args.resolvers,
-                    }),
-                  )
+                    })
                 }
 
                 // args.node.src = args.component.get('page')?.page || ''
-                componentPage.node?.addEventListener('error', console.error)
+                componentPage.node.onload = console.error
               } else {
                 /**
                  * If this page component is not remote, it is loading a page
@@ -713,7 +711,7 @@ const componentsResolver: t.Resolve.Config = {
                   }
                 }
 
-                args.node.addEventListener('load', onPageComponents)
+                args.node.onload = onPageComponents
                 args.component
                   .get?.('page')
                   ?.on?.('PAGE_CHANGED', onPageComponents)

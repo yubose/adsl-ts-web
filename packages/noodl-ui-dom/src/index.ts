@@ -26,6 +26,7 @@ export {
   findFirstByClassName,
   findFirstByDataKey,
   findFirstByElementId,
+  findFirstByGlobalId,
   findFirstBySelector,
   findFirstByViewTag,
   getElementTag,

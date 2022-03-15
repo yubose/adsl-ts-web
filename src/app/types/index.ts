@@ -1,8 +1,7 @@
 import firebase from 'firebase'
 import type { CADL, Account } from '@aitmed/cadl'
-import { NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
+import { NDOM, NUI, NUIAction, NUITrigger, Viewport } from 'noodl-ui'
 import { ActionObject, PageObject, RegisterComponentObject } from 'noodl-types'
-import NOODLDOM from 'noodl-ui-dom'
 import AppNotification from '../Notifications'
 import createMeetingFns from '../../meeting'
 export * from './domTypes'
@@ -14,7 +13,7 @@ export interface AppConstructorOptions {
   meeting?: Meeting | typeof createMeetingFns
   notification?: AppNotification
   noodl?: CADL
-  ndom?: NOODLDOM
+  ndom?: NDOM
   nui?: typeof NUI
   viewport?: Viewport
 }

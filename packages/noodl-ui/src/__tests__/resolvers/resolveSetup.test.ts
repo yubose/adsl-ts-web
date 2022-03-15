@@ -6,6 +6,7 @@ import * as u from '@jsmanifest/utils'
 import * as nu from 'noodl-utils'
 import * as i from '../../utils/internal'
 import { assetsUrl, baseUrl, createOn, nui, ui } from '../../utils/test-utils'
+import { emitHooks } from '../../resolvers/resolveSetup'
 import NuiPage from '../../Page'
 
 let on: ReturnType<typeof createOn>
@@ -27,7 +28,6 @@ describe(u.yellow(`resolveSetup`), () => {
 
       it(`should return value at index 2 if false`, async () => {
         const component = await nui.resolveComponents({
-          // @ts-expect-error
           components: ui.label({ text: { if: [1, 'abc', 'wow'] } }),
           on: { if: () => false },
         })
@@ -62,48 +62,23 @@ describe(u.yellow(`resolveSetup`), () => {
     })
 
     describe(`pageComponentUrl`, () => {
-      describe(`TargetPage@CurrentPage#viewTag`, () => {
-        it(`should use the hook reference if found`, async () => {
-          const spy = sinon.spy()
-          const component = await nui.resolveComponents({
-            components: ui.label({
-              goto: '.Power.patientInfoPage@Sun#.Sun.viewTag',
-            }),
-            on: { pageComponentUrl: spy },
-          })
-          component.get('goto')
-          expect(spy).to.be.calledOnce
+      it(`should resolve TargetPage@CurrentPage#viewTag`, async () => {
+        u.assign(nui.getRoot(), {
+          Power: { patientInfoPage: 'Rawr' },
         })
-
-        it(`should use the fallback pageComponentUrl resolver if no hook resolver is provided`, async () => {
-          u.assign(nui.getRoot(), {
-            Power: { patientInfoPage: 'Rawr' },
-          })
-          const component = await nui.resolveComponents({
-            components: ui.label({
-              goto: '.Power.patientInfoPage@Sun#..formData.password',
-            }),
-          })
-          const result = component.get('goto')
-          expect(result).to.eq(
-            `Rawr@Sun#${nui.getRoot().Hello.formData.password}`,
-          )
+        const component = await nui.resolveComponents({
+          components: ui.label({
+            goto: '.Power.patientInfoPage@Sun#..formData.password',
+          }),
         })
+        const result = component.get('goto')
+        expect(result).to.eq(
+          `Rawr@Sun#${nui.getRoot().Hello.formData.password}`,
+        )
       })
     })
 
     describe(`reference`, () => {
-      it(`should use the hook reference if found`, async () => {
-        const spy = sinon.spy()
-        ;(
-          await nui.resolveComponents({
-            components: ui.label({ text: '..formData.password' }),
-            on: { reference: spy },
-          })
-        ).get('text')
-        expect(spy).to.be.calledOnce
-      })
-
       it(`should use the fallback reference resolver if no hook resolver is provided`, async () => {
         expect(
           (
@@ -186,21 +161,27 @@ describe(u.yellow(`resolveSetup`), () => {
       await waitFor(() => expect(spy).to.be.calledOnce)
     })
 
-    it(`should call on.emit.createActionChain subscriber with the expected args`, async () => {
-      const spy = sinon.spy()
-      const component = await nui.resolveComponents({
-        components: ui.label({
-          emit: ui.emitObject({ dataKey: { var1: 'itemObject' }, actions: [] }),
-        }),
-        on: {
-          emit: {
-            createActionChain: spy,
-          },
-        },
+    for (const obs of emitHooks) {
+      const hookName = u.isObj(obs) ? obs.trigger : obs
+      it(`should call on.emit.createActionChain hook with the expected args for "${hookName}"`, async () => {
+        const spy = sinon.spy()
+        await nui.resolveComponents({
+          components: ui.label({
+            [hookName]: ui.emitObject({
+              dataKey: { var1: 'itemObject' },
+              actions: [],
+            }),
+          }),
+          on: { emit: { createActionChain: spy } },
+        })
+        const args = spy.args[0][0]
+        expect(spy).to.be.calledOnce
+        expect(args).to.be.an('object')
+        expect(args).to.have.property('actionChain')
+        expect(args).to.have.property('actions')
+        expect(args).to.have.property('component')
+        expect(args).to.have.property('trigger')
       })
-      console.info(component.props)
-
-      expect(spy).to.be.calledOnce
-    })
+    }
   })
 })

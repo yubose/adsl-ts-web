@@ -4,33 +4,31 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import partialRight from 'lodash/partialRight'
+import * as imageConversion from 'image-conversion';
 import {
   asHtmlElement,
+  ConsumerOptions,
   eventId as ndomEventId,
+  EmitAction,
+  findListDataObject,
+  findIteratorVar,
   findWindow,
   findByElementId,
   findByViewTag,
   findByUX,
-  isPageConsumer,
-  Page as NDOMPage,
-  SignaturePad,
   findFirstByDataKey,
-} from 'noodl-ui-dom'
-import {
-  ConsumerOptions,
-  EmitAction,
-  findListDataObject,
-  findIteratorVar,
   findParent,
   getActionObjectErrors,
   isComponent,
+  isPageConsumer,
+  NDOMPage,
   parseReference,
   Page as NUIPage,
   resolvePageComponentUrl,
   Store,
   triggers,
 } from 'noodl-ui'
+import SignaturePad from 'signature_pad'
 import {
   evalIf,
   isRootDataKey,
@@ -40,7 +38,6 @@ import { EmitObjectFold, IfObject } from 'noodl-types'
 import axios from 'axios'
 import {
   getBlobFromCanvas,
-  getVcodeElem,
   show,
   openFileSelector,
   scrollToElem,
@@ -51,7 +48,6 @@ import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
-import * as t from '../app/types'
 
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey
@@ -461,11 +457,14 @@ const createActions = function createActions(app: App) {
           const ac = options?.ref
           const comp = options?.component
           const dataKey = _pick(action, 'dataKey')
+          const size = _pick(action, 'size')&&((+_pick(action, 'size'))/1000);
           const fileFormat = _pick(action, 'fileFormat')
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
             if (u.isStr(dataKey)) {
-              app.updateRoot(dataKey, ac.data.get(dataKey))
+            await imageConversion.compressAccurately(ac.data.get(dataKey),size).then(res=>{
+              app.updateRoot(dataKey, new File([res],ac.data.get(dataKey).name),ac.data.get(dataKey).type)
+              });
             } else {
               log.red(
                 `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,

@@ -4,12 +4,12 @@ import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import { _syncPages } from './utils/internal'
-import { ndom } from './test-utils'
+import { baseUrl, ndom } from './test-utils'
 
 JSDOM('', {
   resources: 'usable',
   runScripts: 'dangerously',
-  url: 'http://localhost:3000',
+  url: baseUrl,
   pretendToBeVisual: true,
 })
 
