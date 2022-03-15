@@ -4,6 +4,7 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
+import * as imageConversion from 'image-conversion';
 import {
   asHtmlElement,
   ConsumerOptions,
@@ -456,11 +457,14 @@ const createActions = function createActions(app: App) {
           const ac = options?.ref
           const comp = options?.component
           const dataKey = _pick(action, 'dataKey')
+          const size = _pick(action, 'size')&&((+_pick(action, 'size'))/1000);
           const fileFormat = _pick(action, 'fileFormat')
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
             if (u.isStr(dataKey)) {
-              app.updateRoot(dataKey, ac.data.get(dataKey))
+            await imageConversion.compressAccurately(ac.data.get(dataKey),size).then(res=>{
+              app.updateRoot(dataKey, new File([res],ac.data.get(dataKey).name),ac.data.get(dataKey).type)
+              });
             } else {
               log.red(
                 `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,
