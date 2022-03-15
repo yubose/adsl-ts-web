@@ -1,4 +1,4 @@
-import { ComponentPage } from '../factory/componentFactory'
+import { ComponentPage } from '../dom/factory/componentFactory'
 import isNDOMPage from './isPage'
 
 function isComponentPage(value: any): value is ComponentPage {

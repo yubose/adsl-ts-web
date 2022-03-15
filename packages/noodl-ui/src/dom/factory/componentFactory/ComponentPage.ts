@@ -1,10 +1,12 @@
 import * as u from '@jsmanifest/utils'
 import type { OrArray } from '@jsmanifest/typefest'
-import type { NuiComponent, Page as NUIPage } from 'noodl-ui'
-import { isComponent, isPage as isNuiPage } from 'noodl-ui'
 import NDOMPage from '../../Page'
+import NUIPage from '../../../Page'
 import copyAttributes from '../../../utils/copyAttributes'
+import isComponent from '../../../utils/isComponent'
+import isNuiPage from '../../../utils/isPage'
 import * as c from '../../../constants'
+import * as t from '../../../types'
 
 export type ComponentPageEvent =
   typeof c.eventId.componentPage.on[keyof typeof c.eventId.componentPage.on]
@@ -22,7 +24,7 @@ export type OnMessage = (evt: MessageEvent) => void
 class ComponentPage<
   N extends HTMLIFrameElement = HTMLIFrameElement,
 > extends NDOMPage {
-  #component: NuiComponent.Instance
+  #component: t.NuiComponent.Instance
   #hooks = {
     [c.eventId.componentPage.on.ON_LOAD]: [],
     [c.eventId.componentPage.on.ON_ERROR]: [],
@@ -43,7 +45,7 @@ class ComponentPage<
   }
 
   constructor(
-    component: NuiComponent.Instance,
+    component: t.NuiComponent.Instance,
     options?: { onLoad?: OnLoad; onError?: OnError; node?: any },
   ) {
     // console.info(`[ComponentPage]`, { component, options })
@@ -346,7 +348,7 @@ class ComponentPage<
     return this
   }
 
-  patch(value: NUIPage | NuiComponent.Instance) {
+  patch(value: NUIPage | t.NuiComponent.Instance) {
     if (isNuiPage(value)) {
       // Update our current page to be in sync
       if (value.page !== this.page) this.page = value.page

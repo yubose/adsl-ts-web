@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
 import Logger from 'logsnap'
-import { asHtmlElement, findByViewTag } from 'noodl-ui-dom'
+import { asHtmlElement, findByViewTag } from 'noodl-ui'
 import { toast } from './utils/dom'
 import { isChrome } from './utils/common'
 import App from './App'

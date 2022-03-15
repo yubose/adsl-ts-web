@@ -4,33 +4,30 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import partialRight from 'lodash/partialRight'
 import {
   asHtmlElement,
+  ConsumerOptions,
   eventId as ndomEventId,
+  EmitAction,
+  findListDataObject,
+  findIteratorVar,
   findWindow,
   findByElementId,
   findByViewTag,
   findByUX,
-  isPageConsumer,
-  Page as NDOMPage,
-  SignaturePad,
   findFirstByDataKey,
-} from 'noodl-ui-dom'
-import {
-  ConsumerOptions,
-  EmitAction,
-  findListDataObject,
-  findIteratorVar,
   findParent,
   getActionObjectErrors,
   isComponent,
+  isPageConsumer,
+  NDOMPage,
   parseReference,
   Page as NUIPage,
   resolvePageComponentUrl,
   Store,
   triggers,
 } from 'noodl-ui'
+import SignaturePad from 'signature_pad'
 import {
   evalIf,
   isRootDataKey,
@@ -40,7 +37,6 @@ import { EmitObjectFold, IfObject } from 'noodl-types'
 import axios from 'axios'
 import {
   getBlobFromCanvas,
-  getVcodeElem,
   show,
   openFileSelector,
   scrollToElem,
@@ -51,7 +47,6 @@ import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
-import * as t from '../app/types'
 
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey

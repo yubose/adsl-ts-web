@@ -1,6 +1,5 @@
 import { ComponentObject } from 'noodl-types'
-import { NUI } from 'noodl-ui'
-import { NDOMElement } from 'noodl-ui-dom'
+import { NUI, NDOMElement } from 'noodl-ui'
 import { RoomParticipant } from '../app/types'
 import Stream from '../meeting/Stream'
 import Substreams from '../meeting/Substreams'

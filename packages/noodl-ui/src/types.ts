@@ -641,12 +641,14 @@ export type NDOMTransactionId = keyof NDOMTransaction
 export type NDOMTrigger = typeof triggers[number]
 
 export interface UseObject {
+  builtIn?: any
   createElementBinding?(
     component: NuiComponent.Instance,
   ): HTMLElement | null | void
   emit: Partial<
     Record<NDOMTrigger, OrArray<Store.ActionObject<'emit', NDOMTrigger>['fn']>>
   >
+  plugin?: any
   resolver?: Resolve.Config
   transaction?: Partial<NDOMTransaction>
 }

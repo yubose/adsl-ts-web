@@ -4,10 +4,11 @@ import type { LocalParticipant } from 'twilio-video'
 import type { ComponentObject, PageObject } from 'noodl-types'
 import { EventEmitter } from 'events'
 import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
-import NOODLDOM, { Page as NOODLDOMPage, Resolve } from 'noodl-ui-dom'
 import {
   actionTypes as nuiActionTypes,
   nuiEmitTransaction,
+  NDOM,
+  NDOMPage,
   NUI,
   NUIActionType,
   NuiComponent,
@@ -16,6 +17,7 @@ import {
   NUIActionObjectInput,
   Page as NUIPage,
   Register,
+  Resolve,
   Store,
   Viewport,
 } from 'noodl-ui'
@@ -46,7 +48,7 @@ export const getMostRecentApp = () => _app
 export const baseUrl = 'https://aitmed.com/'
 export const assetsUrl = `${baseUrl}assets/`
 export const nui = NUI
-export const ndom = new NOODLDOM()
+export const ndom = new NDOM()
 export const root = { GeneralInfo: { Radio: [{ key: 'Gender', value: '' }] } }
 export const viewport = new Viewport({
   width: deviceSize.iphone6.width,
@@ -58,7 +60,7 @@ type MockDrawResolver = Resolve.Config | Resolve.Config[]
 interface MockRenderOptions {
   components?: ComponentObject | ComponentObject[]
   currentPage?: string
-  page?: NOODLDOMPage
+  page?: NDOMPage
   pageName?: string
   pageObject?: PageObject
   resolver?: MockDrawResolver
@@ -76,7 +78,7 @@ export function createRender(opts: MockRenderOptions) {
 
   let currentPage = ''
   let pageRequesting = ''
-  let page: NOODLDOMPage | undefined
+  let page: NDOMPage | undefined
   let pageObject: Partial<PageObject> | undefined
   let root = { ...NUI.getRoot(), ...opts?.root }
 

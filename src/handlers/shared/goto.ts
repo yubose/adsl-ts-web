@@ -1,16 +1,13 @@
 /**
  * PLAN TO BE USED AS THE ONE MAIN GOTO FUNCTION
  */
-import * as u from '@jsmanifest/utils'
-import curry from 'lodash/curry'
 import type {
   ConsumerOptions,
   NUIAction,
-  EmitAction,
-  Store,
+  NDOMPage,
   NUITrigger,
+  Store,
 } from 'noodl-ui'
-import type { Page as NDOMPage } from 'noodl-ui-dom'
 import App from '../../App'
 
 function getNDOMPage(app: App, opts: ConsumerOptions) {

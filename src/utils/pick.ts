@@ -3,11 +3,8 @@
  */
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
-import { isPage as isNuiPage } from 'noodl-ui'
-import { isPage as isNdomPage } from 'noodl-ui-dom'
-import type { Page as NuiPage } from 'noodl-ui'
-import type { Page as NDOMPage } from 'noodl-ui-dom'
-import type NDOM from 'noodl-ui-dom'
+import { isPage as isNuiPage, isNDOMPage } from 'noodl-ui'
+import type { NDOM, NDOMPage, Page as NuiPage } from 'noodl-ui'
 import type App from '../App'
 
 export function pickDestination(
@@ -22,7 +19,7 @@ export function pickDestination(
 }
 
 export function pickNuiPage(value: string | NuiPage | NDOMPage | undefined) {
-  if (isNdomPage(value)) return value.getNuiPage()
+  if (isNDOMPage(value)) return value.getNuiPage()
   return value as NuiPage
 }
 

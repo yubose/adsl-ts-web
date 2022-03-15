@@ -1,10 +1,18 @@
 import sinonChai from 'sinon-chai'
 import chai from 'chai'
+import JSDOM from 'jsdom-global'
 import { assetsUrl, baseUrl, getPresetPageObjects } from './utils/test-utils'
 import nui from './noodl-ui'
 import log from './utils/log'
 import type NuiPage from './Page'
 import * as c from './constants'
+
+JSDOM('', {
+  resources: 'usable',
+  runScripts: 'dangerously',
+  url: baseUrl,
+  pretendToBeVisual: true,
+})
 
 chai.use(sinonChai)
 

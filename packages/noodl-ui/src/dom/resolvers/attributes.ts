@@ -1,9 +1,12 @@
 import * as u from '@jsmanifest/utils'
 import startOfDay from 'date-fns/startOfDay'
 import { Identify, userEvent } from 'noodl-types'
-import { dataAttributes } from 'noodl-ui'
-import type { NuiComponent } from 'noodl-ui'
-import { isDisplayable, normalizeEventName } from '../utils'
+import {
+  _isScriptEl,
+  addClassName,
+  isDisplayable,
+  normalizeEventName,
+} from '../utils'
 import type NDOMResolver from '../Resolver'
 import * as t from '../../types'
 import * as i from '../../utils/internal'
@@ -21,11 +24,11 @@ function attachText<N extends t.NDOMElement>(node: N, ...text: string[]) {
 
 function attachDataAttrs<N extends t.NDOMElement>(
   node: N,
-  component: NuiComponent.Instance,
+  component: t.NuiComponent.Instance,
   setAttr: ReturnType<NDOMResolver['getOptions']>['setAttr'],
   setDataAttr: ReturnType<NDOMResolver['getOptions']>['setDataAttr'],
 ) {
-  for (const key of dataAttributes) {
+  for (const key of c.lib.dataAttributes) {
     if (component?.get?.(key)) {
       setDataAttr(key, component.get(key) || '')
       if ('value' in node && key === c.DATA_VALUE) {
@@ -41,7 +44,7 @@ function attachDataAttrs<N extends t.NDOMElement>(
 
 function attachUserEvents<N extends t.NDOMElement>(
   node: N,
-  component: NuiComponent.Instance,
+  component: t.NuiComponent.Instance,
 ) {
   userEvent.forEach((eventType: string) => {
     /**
@@ -77,9 +80,11 @@ function attachUserEvents<N extends t.NDOMElement>(
         })
         node.addEventListener('onLazyLoading', (...args) => {
           // console.log('GGGG', node.scrollTop)
-          //@ts-ignore
           setTimeout(() => {
-            component.get?.(eventType)?.execute?.(...args)
+            // @ts-expect-error
+            ;(component.get?.(eventType) as t.NUIActionChain)?.execute?.(
+              ...args,
+            )
           })
         })
         // window.setTimeout(()=>{
@@ -227,7 +232,7 @@ const attributesResolver: t.Resolve.Config = {
           /* -------------------------------------------------------
             ---- STYLES
           -------------------------------------------------------- */
-          if (!i._isScriptEl(args.node) && u.isObj(style)) {
+          if (!_isScriptEl(args.node) && u.isObj(style)) {
             u.isObj(args.component.style.textAlign) &&
               delete args.component.style.textAlign
 
@@ -306,7 +311,7 @@ const attributesResolver: t.Resolve.Config = {
           const classes = {
             canvas: 'canvas',
             global: {
-              identify: (c: NuiComponent.Instance) => c.has('global'),
+              identify: (c: t.NuiComponent.Instance) => c.has('global'),
               className: 'global',
             },
             label: 'label',
@@ -321,7 +326,7 @@ const attributesResolver: t.Resolve.Config = {
               [is.component[name] || classes[name]?.['identify']].find(
                 u.isFnc,
               )?.(args.component) &&
-              i.addClassName(
+              addClassName(
                 u.isStr(className)
                   ? className
                   : classes[name]?.['className'] || '',

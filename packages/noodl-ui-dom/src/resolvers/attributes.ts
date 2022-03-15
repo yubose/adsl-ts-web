@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import startOfDay from 'date-fns/startOfDay'
 import { Identify, userEvent } from 'noodl-types'
-import { dataAttributes } from 'noodl-ui'
+import { dataAttributes, NUIActionChain } from 'noodl-ui'
 import type { NuiComponent } from 'noodl-ui'
 import { isDisplayable, normalizeEventName } from '../utils'
 import type NDOMResolver from '../Resolver'
@@ -79,7 +79,7 @@ function attachUserEvents<N extends t.NDOMElement>(
           // console.log('GGGG', node.scrollTop)
           //@ts-ignore
           setTimeout(() => {
-            component.get?.(eventType)?.execute?.(...args)
+            ;(component.get?.(eventType) as NUIActionChain)?.execute?.(...args)
           })
         })
         // window.setTimeout(()=>{

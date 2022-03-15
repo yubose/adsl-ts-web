@@ -1,5 +1,5 @@
 import * as u from '@jsmanifest/utils'
-import { isAction, isActionChain } from 'noodl-action-chain'
+import { isAction } from 'noodl-action-chain'
 import { createAction } from 'noodl-ui'
 import { ActionHandlerArgs, MiddlewareFn } from '../../factories/actionFactory'
 import Logger from 'logsnap'
@@ -41,7 +41,7 @@ const registerMiddleware = function (app: App) {
         args[0] = createAction({
           action: {
             actionType: 'goto',
-            goto: args[0]?.destination || args[0]?.goto,
+            goto: args[0]?.['destination'] || args[0]?.goto,
           },
           trigger: 'onClick',
         })

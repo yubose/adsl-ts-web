@@ -8,7 +8,6 @@
  */
 
 import * as u from '@jsmanifest/utils'
-import { GotoObject } from 'noodl-types'
 import {
   ConsumerOptions,
   NUIAction,
@@ -64,9 +63,11 @@ const actionFactory = function (app: App) {
    * @param { ActionHandlerArgs } args
    * @returns { Promise<any>[] }
    */
-  async function runMiddleware(args: ActionHandlerArgs) {
+  async function runMiddleware(args: ActionHandlerArgs | ActionHandlerArgs[]) {
     args = u.array(args)
-    await Promise.all(middlewares.map(async (mo) => mo.fn?.(args)))
+    await Promise.all(
+      middlewares.map(async (mo) => mo.fn?.(args as ActionHandlerArgs)),
+    )
     return args
   }
 

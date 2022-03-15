@@ -2,17 +2,9 @@ import * as u from '@jsmanifest/utils'
 import { isActionChain } from 'noodl-action-chain'
 import { createEmitDataKey } from 'noodl-utils'
 import { Identify } from 'noodl-types'
-import { formatColor, isComponent, publish } from 'noodl-ui'
 import has from 'lodash/has'
 import type SignaturePad from 'signature_pad'
 import type { ComponentObject } from 'noodl-types'
-import type {
-  EmitAction,
-  NUIActionChain,
-  NuiComponent,
-  Plugin,
-  SelectOption,
-} from 'noodl-ui'
 import {
   _getOrCreateComponentPage,
   _isDivEl,
@@ -28,6 +20,10 @@ import createEcosDocElement from '../../utils/createEcosDocElement'
 import applyStyles from '../../utils/applyStyles'
 import copyStyles from '../../utils/copyStyles'
 import cache from '../../_cache'
+import EmitAction from '../../actions/EmitAction'
+import { formatColor } from '../../utils/common'
+import isComponent from '../../utils/isComponent'
+import { publish } from '../../utils/noodl'
 import type NDOM from '../noodl-ui-dom'
 import type NDOMPage from '../Page'
 import type { ComponentPage } from '../factory/componentFactory'
@@ -72,7 +68,7 @@ const componentsResolver: t.Resolve.Config = {
         if (_isPluginComponent(args.component)) {
           let path = (args.component.get('path') ||
             args.component.blueprint.path) as string
-          let plugin = args.component.get('plugin') as Plugin.Object
+          let plugin = args.component.get('plugin') as t.Plugin.Object
           let tagName = '' // 'div', etc
           let type = '' // text/html, etc
 
@@ -116,22 +112,22 @@ const componentsResolver: t.Resolve.Config = {
           }
 
           function loadAttribs(
-            component: NuiComponent.Instance,
+            component: t.NuiComponent.Instance,
             elem: HTMLLinkElement | null,
             data: any,
           ): HTMLLinkElement
           function loadAttribs(
-            component: NuiComponent.Instance,
+            component: t.NuiComponent.Instance,
             elem: HTMLScriptElement | null,
             data: any,
           ): HTMLScriptElement
           function loadAttribs(
-            component: NuiComponent.Instance,
+            component: t.NuiComponent.Instance,
             elem: HTMLStyleElement | null,
             data: any,
           ): HTMLStyleElement
           function loadAttribs(
-            component: NuiComponent.Instance,
+            component: t.NuiComponent.Instance,
             elem: HTMLIFrameElement | null,
             data: any,
           ): HTMLIFrameElement
@@ -141,7 +137,7 @@ const componentsResolver: t.Resolve.Config = {
               | HTMLScriptElement
               | HTMLStyleElement
               | HTMLIFrameElement,
-          >(component: NuiComponent.Instance, elem: N | null, data: any) {
+          >(component: t.NuiComponent.Instance, elem: N | null, data: any) {
             if (!elem) return elem
             elem.id = component.id
             if (_isLinkEl(elem)) {
@@ -185,7 +181,7 @@ const componentsResolver: t.Resolve.Config = {
             if (pluginNode) {
               const insert = (
                 node: HTMLElement | null,
-                location: Plugin.Location | undefined,
+                location: t.Plugin.Location | undefined,
               ) => {
                 const appendChild = (
                   page: NDOMPage,
@@ -477,7 +473,7 @@ const componentsResolver: t.Resolve.Config = {
                     if (isActionChain(args.component.get('postMessage'))) {
                       const actionChain = args.component.get(
                         'postMessage',
-                      ) as NUIActionChain
+                      ) as t.NUIActionChain
 
                       const postMessageAction = actionChain.queue.find(
                         (action) => action.trigger === 'postMessage',
@@ -514,7 +510,7 @@ const componentsResolver: t.Resolve.Config = {
                 function onLoad(opts: {
                   event?: Event
                   node: t.NDOMElement<'page'>
-                  component: NuiComponent.Instance
+                  component: t.NuiComponent.Instance
                   createPage: NDOM['createPage']
                   findPage: NDOM['findPage']
                   resolvers: NDOM['resolvers']
@@ -661,7 +657,7 @@ const componentsResolver: t.Resolve.Config = {
 
                     if (componentPage?.component) {
                       const getDescendantIds = (
-                        component: NuiComponent.Instance,
+                        component: t.NuiComponent.Instance,
                       ): string[] => {
                         const ids = [] as string[]
                         publish(component, (child) => ids.push(child.id))
@@ -778,7 +774,7 @@ const componentsResolver: t.Resolve.Config = {
           }
 
           function setSelectOptions(_node: HTMLSelectElement, opts: any[]) {
-            u.array(opts).forEach((option: SelectOption, index) => {
+            u.array(opts).forEach((option: t.SelectOption, index) => {
               option = toSelectOption(option)
               const optionNode = document.createElement('option')
               _node.appendChild(optionNode)

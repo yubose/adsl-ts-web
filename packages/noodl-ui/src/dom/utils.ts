@@ -7,12 +7,6 @@ import curry from 'lodash/curry'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
 import { OrArray } from '@jsmanifest/typefest'
-import {
-  findParent,
-  isComponent,
-  isPage as isNuiPage,
-  pullFromComponent,
-} from 'noodl-ui'
 import type { ComponentObject, EcosDocument, NameField } from 'noodl-types'
 import type { ComponentPage } from './factory/componentFactory'
 import type GlobalComponentRecord from './global/GlobalComponentRecord'
@@ -21,9 +15,12 @@ import type NDOMPage from './Page'
 import type NUIPage from '../Page'
 import cache from '../_cache'
 import findElement from '../utils/findElement'
+import { findParent, pullFromComponent } from '../utils/noodl'
 import is from '../utils/is'
+import isComponent from '../utils/isComponent'
 import isComponentPage from '../utils/isComponentPage'
 import isNDOMPage from '../utils/isNDOMPage'
+import isNuiPage from '../utils/isPage'
 import * as t from '../types'
 import * as c from '../constants'
 

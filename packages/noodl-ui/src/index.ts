@@ -66,6 +66,7 @@ export { default as NDOM } from './dom/noodl-ui-dom'
 export { default as NDOMPage } from './dom/Page'
 export { default as NDOMResolver } from './dom/Resolver'
 
+export { BASE_PAGE_URL, eventId } from './constants'
 export {
   _DEV_,
   _TEST_,
@@ -108,3 +109,8 @@ export {
   xKeys,
   yKeys,
 } from './dom/utils'
+export { default as findDocument } from './utils/findDocument'
+export { default as findElement } from './utils/findElement'
+export { default as findWindow } from './utils/findWindow'
+export { default as findWindowDocument } from './utils/findWindowDocument'
+export { default as isNDOMPage } from './utils/isNDOMPage'

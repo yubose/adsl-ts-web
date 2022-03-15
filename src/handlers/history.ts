@@ -1,7 +1,7 @@
 /**
  * Handlers for window.history listeners
  */
-import { BASE_PAGE_URL } from 'noodl-ui-dom'
+import { BASE_PAGE_URL } from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 import curry from 'lodash/curry'
 import set from 'lodash/set'

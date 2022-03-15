@@ -1,5 +1,5 @@
-import { NuiComponent } from 'noodl-ui'
-import { getElementTag } from './utils'
+import { getElementTag } from '../dom/utils'
+import type { NuiComponent } from '../types'
 
 function createElement(
   component: NuiComponent.Instance | NuiComponent.Type | undefined,

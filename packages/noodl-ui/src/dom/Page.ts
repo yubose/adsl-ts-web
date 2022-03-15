@@ -1,6 +1,7 @@
 import * as u from '@jsmanifest/utils'
-import { Page as NUIPage, Viewport } from 'noodl-ui'
 import { BASE_PAGE_URL, eventId } from '../constants'
+import NUIPage from '../Page'
+import NUIViewport from '../Viewport'
 import * as t from '../types'
 
 class Page {
@@ -152,7 +153,7 @@ class Page {
   }
 
   get viewport() {
-    return this.#nuiPage?.viewport as Viewport
+    return this.#nuiPage?.viewport as NUIViewport
   }
 
   set viewport(viewport) {

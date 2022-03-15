@@ -3,7 +3,6 @@ import * as nt from 'noodl-types'
 import SignaturePad from 'signature_pad'
 import type { LiteralUnion } from 'type-fest'
 import type { OrArray } from '@jsmanifest/typefest'
-import type { Component, ResolveComponentOptions } from 'noodl-ui'
 import type NDOM from './noodl-ui-dom'
 import type NDOMPage from './Page'
 import { getPageAncestor } from './utils'
@@ -14,7 +13,7 @@ import nui from '../noodl-ui'
 import * as t from '../types'
 
 export default class NDOMResolver {
-  createStyleEditor(component: Component) {
+  createStyleEditor(component: t.NuiComponent.Instance) {
     function editComponentStyles(
       styles: Record<string, any> | undefined,
       { remove }: { remove?: string | string[] | false } = {},
@@ -32,7 +31,7 @@ export default class NDOMResolver {
     N extends t.NDOMElement<T> = t.NDOMElement<T>,
   >(
     args: t.Resolve.BaseOptions<T, N> & {
-      on?: ResolveComponentOptions<any>['on']
+      on?: t.ResolveComponentOptions<any>['on']
       ndom: NDOM
     },
   ) {
@@ -115,7 +114,7 @@ export default class NDOMResolver {
     page,
     resolvers,
   }: Pick<t.Resolve.BaseOptions<T, N>, 'node' | 'component'> & {
-    on?: ResolveComponentOptions<any>['on']
+    on?: t.ResolveComponentOptions<any>['on']
     ndom: NDOM
     page?: NDOMPage
     resolvers: OrArray<t.Resolve.Config<T, N>>

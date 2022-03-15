@@ -1,5 +1,5 @@
 import { Viewport } from 'noodl-ui'
-import NOODLOM, { Page } from 'noodl-ui-dom'
+import { NDOM, NDOMPage } from 'noodl-ui'
 import tw from 'twilio-video'
 
 /**
@@ -24,8 +24,8 @@ export type RoomTrack = tw.LocalTrack | tw.RemoteTrack
 export type Room = tw.Room
 
 export interface InitializeMeetingOptions {
-  ndom: NOODLOM
-  page: Page
+  ndom: NDOM
+  page: NDOMPage
   viewport: Viewport
 }
 
