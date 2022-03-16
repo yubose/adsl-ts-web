@@ -18,6 +18,10 @@
 
 - <https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/>
 
+## Storage API
+
+For local storage / caching use the functions at `src/utils/lf.ts`
+
 ## Globals
 
 These variables are available globally:

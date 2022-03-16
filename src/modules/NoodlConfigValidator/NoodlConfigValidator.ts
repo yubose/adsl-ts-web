@@ -3,26 +3,28 @@ import * as u from '@jsmanifest/utils'
 export interface ConfigValidatorOptions {
   configKey: string
   timestampKey: string
-  get?: (key: string) => any
-  set?: (key: string, value?: any) => void
+  get?: (key: string) => Promise<any>
+  set?: (key: string, value: any) => Promise<void>
 }
 
 function createNoodlConfigValidator({
   configKey = '',
   timestampKey = '',
-  get = () => {},
-  set = () => {},
+  get = async () => {},
+  set = async () => {},
 }: ConfigValidatorOptions) {
-  const _cacheTimestamp = () => set(_getTimestampKey(), _getCurrentTimestamp())
-  const _configExists = () => !!get(configKey)
-  const _getConfigObject = () => _getStoredConfigObject()
-  const _getStoredTimestamp = () => get(_getTimestampKey())
-  const _getCurrentTimestamp = () => _getConfigObject()?.[timestampKey] || ''
-  const _isTimestampEq = () => _getStoredTimestamp() == _getCurrentTimestamp()
+  const _cacheTimestamp = async () =>
+    set(await _getTimestampKey(), await _getCurrentTimestamp())
+  const _configExists = async () => !!(await get(configKey))
+  const _getStoredTimestamp = async () => get(await _getTimestampKey())
+  const _getCurrentTimestamp = async () =>
+    (await _getStoredConfigObject())?.[timestampKey] || ''
+  const _isTimestampEq = async () =>
+    (await _getStoredTimestamp()) == (await _getCurrentTimestamp())
 
-  function _getStoredConfigObject() {
+  async function _getStoredConfigObject() {
     try {
-      let cfg = get(configKey)
+      let cfg = await get(configKey)
       if (u.isStr(cfg)) return JSON.parse(cfg)
       return cfg
     } catch (error) {
@@ -30,8 +32,8 @@ function createNoodlConfigValidator({
     }
   }
 
-  function _getTimestampKey() {
-    const cfg = _getConfigObject()
+  async function _getTimestampKey() {
+    const cfg = await _getStoredConfigObject()
     if (u.isObj(cfg) && timestampKey in cfg) return String(cfg[timestampKey])
     return ''
   }

@@ -1,3 +1,7 @@
+/**
+ * @DEPRECATED
+ * Use the localForage api at src/utils/lf.ts instead
+ */
 import type { CADL } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
 

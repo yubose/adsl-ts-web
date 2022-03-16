@@ -14,6 +14,7 @@ import getDeepTotalHeight from './getDeepTotalHeight'
 import getElementTreeDimensions from './getElementTreeDimensions'
 import ExportPdf from '../modules/ExportPdf'
 import { copyToClipboard, exportToPDF, fromClipboard, toast } from './dom'
+import * as lf from './lf'
 import type App from '../App'
 import is from './is'
 
@@ -175,6 +176,7 @@ export function getWindowDebugUtils(app: App) {
     pdfViewTag: partialRight(unary(lib.findFirstByViewTag), 'pdfViewTag'),
     tableView: partialRight(unary(lib.findFirstByViewTag), 'tableView'),
     scrollView: partialRight(unary(lib.findFirstByClassName), 'scroll-view'),
+    lf,
     goto: {
       AbsentNoteReview: navigate('AbsentNoteReview'),
       BlankNoteReview: navigate('BlankNoteReview'),

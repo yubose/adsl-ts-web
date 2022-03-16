@@ -39,6 +39,7 @@ import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
+import * as lf from './utils/lf'
 import is from './utils/is'
 import parseUrl from './utils/parseUrl'
 import Spinner from './spinner'
@@ -101,7 +102,6 @@ class App {
       currentPage: this.currentPage,
       requestingPage: this.mainPage.requesting,
       aspectRatio: this.aspectRatio,
-      cachedPages: this.getCachedPages(),
       roomParticipants: this.getRoomParticipants(),
       sdkParticipants: this.getSdkParticipants(),
       viewport: {
@@ -311,7 +311,6 @@ class App {
       let _page: NDOMPage
       let _pageRequesting = ''
 
-      const ls = window.localStorage
       let pageUrl = pageRequesting ? pageRequesting : page
 
       if (isNDOMPage(pageUrl)) {
@@ -333,7 +332,7 @@ class App {
         } else {
           page = curretPage
         }
-        ls.setItem('tempParams', JSON.stringify(params))
+        await lf.setItem('tempParams', params)
       }
 
       if (isNDOMPage(page)) {
@@ -445,60 +444,60 @@ class App {
       await this.noodl.init()
       onSdkInit?.(this.noodl)
 
-      const lastDOM = localStorage.getItem('__last__') || ''
-      if (lastDOM) {
-        const renderCachedState = (
-          rootEl: HTMLElement,
-          lastState: t.StoredDOMState,
-        ) => {
-          rootEl.innerHTML = lastState.root
+      // const lastDOM = (await lf.getItem('__last__')) || ''
+      // if (lastDOM) {
+      //   const renderCachedState = (
+      //     rootEl: HTMLElement,
+      //     lastState: t.StoredDOMState,
+      //   ) => {
+      //     rootEl.innerHTML = lastState.root
 
-          if (u.isNum(lastState.x) && u.isNum(lastState.y)) {
-            window.scrollTo({
-              behavior: 'auto',
-              left: lastState.x,
-              top: lastState.y,
-            })
-          }
+      //     if (u.isNum(lastState.x) && u.isNum(lastState.y)) {
+      //       window.scrollTo({
+      //         behavior: 'auto',
+      //         left: lastState.x,
+      //         top: lastState.y,
+      //       })
+      //     }
 
-          for (const btn of Array.from(rootEl.querySelectorAll('button'))) {
-            btn.textContent = 'Loading...'
-            btn.style.userSelect = 'none'
-            btn.style.pointerEvents = 'none'
-          }
+      //     for (const btn of Array.from(rootEl.querySelectorAll('button'))) {
+      //       btn.textContent = 'Loading...'
+      //       btn.style.userSelect = 'none'
+      //       btn.style.pointerEvents = 'none'
+      //     }
 
-          for (const inputEl of [
-            ...rootEl.querySelectorAll('input'),
-            ...rootEl.querySelectorAll('select'),
-            ...rootEl.querySelectorAll('textarea'),
-          ]) {
-            inputEl.disabled = true
-          }
-        }
+      //     for (const inputEl of [
+      //       ...rootEl.querySelectorAll('input'),
+      //       ...rootEl.querySelectorAll('select'),
+      //       ...rootEl.querySelectorAll('textarea'),
+      //     ]) {
+      //       inputEl.disabled = true
+      //     }
+      //   }
 
-        try {
-          // const lastState = JSON.parse(lastDOM) as t.StoredDOMState
-          // if (lastState?.root && lastState.origin === location.origin) {
-          //   const rootEl = document.getElementById('root')
-          //   if (rootEl) {
-          //     if (lastState.page !== lastState.startPage) {
-          //       if (await this.noodl.root.builtIn.SignInOk()) {
-          //         renderCachedState(rootEl, lastState)
-          //       }
-          //     } else {
-          //       renderCachedState(rootEl, lastState)
-          //     }
-          //   }
-          // }
-        } catch (error) {
-          const err = error instanceof Error ? error : new Error(String(error))
-          console.log(
-            `%c[Rehydration] ${err.name}: ${err.message}`,
-            'color:tomato',
-            err,
-          )
-        }
-      }
+      //   try {
+      //     // const lastState = JSON.parse(lastDOM) as t.StoredDOMState
+      //     // if (lastState?.root && lastState.origin === location.origin) {
+      //     //   const rootEl = document.getElementById('root')
+      //     //   if (rootEl) {
+      //     //     if (lastState.page !== lastState.startPage) {
+      //     //       if (await this.noodl.root.builtIn.SignInOk()) {
+      //     //         renderCachedState(rootEl, lastState)
+      //     //       }
+      //     //     } else {
+      //     //       renderCachedState(rootEl, lastState)
+      //     //     }
+      //     //   }
+      //     // }
+      //   } catch (error) {
+      //     const err = error instanceof Error ? error : new Error(String(error))
+      //     console.log(
+      //       `%c[Rehydration] ${err.name}: ${err.message}`,
+      //       'color:tomato',
+      //       err,
+      //     )
+      //   }
+      // }
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -585,7 +584,7 @@ class App {
       }
 
       // Override the start page if they were on a previous page
-      const cachedPages = this.getCachedPages()
+      const cachedPages = await this.getCachedPages()
       const cachedPage = cachedPages[0]
 
       if (cachedPages?.length) {
@@ -594,14 +593,17 @@ class App {
         }
       }
 
-      const ls = createNoodlConfigValidator({
+      const cfgStore = createNoodlConfigValidator({
         configKey: 'config',
         timestampKey: 'timestamp',
-        get: (key: string) => localStorage.getItem(key),
-        set: (key: string, value: any) => void localStorage.setItem(key, value),
+        get: (key: string) => lf.getItem(key),
+        set: (key: string, value: any) => lf.setItem(key, value),
       })
 
-      if (!ls.getTimestampKey() && ls.configExists()) ls.cacheTimestamp()
+      const isTimestampCached = !!(await cfgStore.getTimestampKey())
+      const isConfigCached = !!(await cfgStore.configExists())
+
+      if (!isTimestampCached && isConfigCached) await cfgStore.cacheTimestamp()
 
       if (this.mainPage && location.href && !parsedUrl.hasParams) {
         let url = location.href
@@ -612,12 +614,12 @@ class App {
         const urlParts = url.split('/')
         const pathname = urlParts[urlParts.length - 1]
 
-        if (!ls.isTimestampEq()) {
+        if (!(await cfgStore.isTimestampEq())) {
           // Set the URL / cached pages to their base state
-          localStorage.setItem('CACHED_PAGES', JSON.stringify([]))
+          await lf.setItem(c.CACHED_PAGES, [])
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
-          ls.cacheTimestamp()
+          await cfgStore.cacheTimestamp()
         } else if (!pathname?.startsWith(BASE_PAGE_URL)) {
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
@@ -1240,28 +1242,20 @@ class App {
    * Adds the current page name to the end in the list of cached pages
    * @param { string } name - Page name
    */
-  cachePage(name: string) {
+  async cachePage(name: string) {
     const cacheObj = { name } as CachedPageObject
-    const prevCache = this.getCachedPages()
+    const prevCache = await this.getCachedPages()
     if (prevCache[0]?.name === name) return
     const cache = [cacheObj, ...prevCache]
     if (cache.length >= 12) cache.pop()
     cacheObj.timestamp = Date.now()
-    window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+    await lf.setItem(CACHED_PAGES, cache)
   }
 
   /** Retrieves a list of cached pages */
-  getCachedPages(): t.CachedPageObject[] {
-    let result: CachedPageObject[] = []
-    const pageHistory = localStorage.getItem(CACHED_PAGES)
-    if (pageHistory) {
-      try {
-        result = JSON.parse(pageHistory) || []
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    return result
+  async getCachedPages(): Promise<t.CachedPageObject[]> {
+    const pageHistory = await lf.getItem(CACHED_PAGES)
+    return (pageHistory as t.CachedPageObject[]) || []
   }
 }
 
