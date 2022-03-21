@@ -674,42 +674,29 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
-    '[App] dbEvents': {
-      cond: ({ component }) => component.has('dbEvents'),
+    '[App] BubbleCaptureEvent': {
+      cond: ({ component }) => component.has('bubble')||component.has('defaultEvent'),
       resolve({ node, component }) {
         if (
-          component?.blueprint?.dbEvents &&
-          component?.blueprint?.dbEvents === 'pare'
+          component?.blueprint?.bubble &&
+          component?.blueprint?.bubble === true
         ) {
           node?.addEventListener(
-            'touchstart',
-            (e) => {
-              e.preventDefault()
-            },
-            false,
-          )
-        }
-        if (
-          component?.blueprint?.dbEvents &&
-          component?.blueprint?.dbEvents === 'child'
-        ) {
-          node?.addEventListener(
-            'touchstart',
+            'click',
             (e) => {
               e.stopPropagation()
             },
             false,
           )
         }
-
         if (
-          component?.blueprint?.dbEvents &&
-          component?.blueprint?.dbEvents === 'pointer-events'
+          component?.blueprint?.defaultEvent  &&
+          component?.blueprint?.defaultEvent  === true
         ) {
           node?.addEventListener(
             'click',
             (e) => {
-              node.style.pointerEvents = 'none'
+              e.preventDefault()
             },
             false,
           )
