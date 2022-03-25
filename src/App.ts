@@ -332,7 +332,8 @@ class App {
         } else {
           page = curretPage
         }
-        await lf.setItem('tempParams', params)
+        localStorage.setItem('tempParams',JSON.stringify(params))
+        // await lf.setItem('tempParams', params)
       }
 
       if (isNDOMPage(page)) {
