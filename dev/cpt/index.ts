@@ -1,30 +1,11 @@
 import axios from 'axios'
 import * as u from '@jsmanifest/utils'
-import {
-  h,
-  init,
-  toVNode,
-  eventListenersModule,
-  VNode,
-  VNodeChildren,
-} from 'snabbdom'
-import {
-  lf,
-  clear,
-  each,
-  getKeys,
-  getKeyCount,
-  getItem,
-  setItem,
-  supportsIndexedDB,
-  supportsWebSQL,
-} from './lf'
+import { h, init, toVNode, eventListenersModule, VNode } from 'snabbdom'
 
 const patch = init([eventListenersModule])
 
 window.addEventListener('load', async function (evt) {
   const rootEl = document.getElementById('root')
-  const rootVNode = toVNode(rootEl)
 
   const worker = new Worker(
     'piWorker.js',
