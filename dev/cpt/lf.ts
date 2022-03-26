@@ -1,4 +1,4 @@
-const localForage = require('localforage')
+import localForage from 'localforage'
 
 const lf = localForage.createInstance({
   driver: [localForage.INDEXEDDB, localForage.WEBSQL, localForage.LOCALSTORAGE],
@@ -48,12 +48,14 @@ function supportsWebSQL() {
   return localForage.supports(localForage.WEBSQL)
 }
 
-exports.lf = lf
-exports.clear = clear
-exports.each = each
-exports.getKeys = getKeys
-exports.getKeyCount = getKeyCount
-exports.getItem = getItem
-exports.setItem = setItem
-exports.supportsIndexedDB = supportsIndexedDB
-exports.supportsWebSQL = supportsWebSQL
+export {
+  lf,
+  clear,
+  each,
+  getKeys,
+  getKeyCount,
+  getItem,
+  setItem,
+  supportsIndexedDB,
+  supportsWebSQL,
+}

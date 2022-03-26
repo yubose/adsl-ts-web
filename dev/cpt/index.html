@@ -1,0 +1,27 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Noodl CPT dev</title>
+  <script type="text/javascript" src="./index.js"></script>
+  <link href="styles.css" rel="stylesheet"></link>
+</head>
+<body>
+  <div id="root">
+    <div id="settings">
+      <div>Tab: <span>CPT</span></div>
+      <div id="mode">Mode: <span>Code</span></div>
+      <select name="select-mode"  value="code">
+        <option value="code">Code</option>
+        <option value="text">Text</option>
+      </select>
+    </div>
+    <input id="search" type="text" placeholder="Search" />
+    <div class="divider"></div>
+    <div id="results">
+      <ul id="list"></ul>
+    </div>
+  </div>
+</body>
+</html>

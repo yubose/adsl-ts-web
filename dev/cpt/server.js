@@ -5,6 +5,8 @@ const u = require('@jsmanifest/utils')
 const y = require('yaml')
 const webpack = require('webpack')
 const WebpackDevServer = require('webpack-dev-server')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 
 const host = '127.0.0.1'
 const port = 3000
@@ -29,31 +31,52 @@ const cptContent = cptData.CPT.content
 const cptContentVersion = cptData.CPT.version
 
 const compiler = webpack({
-  entry: path.join(__dirname, 'index.js'),
+  entry: path.join(__dirname, './index.ts'),
   output: {
     clean: true,
     filename: 'index.js',
-    path: path.join(__dirname, '../../dist'),
+    // path: path.join(__dirname, './dist'),
   },
   devtool: false,
   mode: 'development',
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+        exclude: /\.module\.css$/,
+      },
+      {
+        test: /\.(js|ts)?$/,
+        exclude: /node_modules/,
+        include: path.join(__dirname),
+        use: [
+          {
+            loader: 'esbuild-loader',
+            options: { loader: 'ts', target: 'es2017' },
+          },
+        ],
+      },
+    ],
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      filename: './index.html',
+      publicPath: __dirname,
+      template: './index.html',
+    }),
+    new CopyPlugin({
+      patterns: [{ from: 'dist/piWorker.js', to: 'piWorker.js' }],
+    }),
+  ],
+  resolve: {
+    extensions: ['.ts', '.js'],
+  },
 })
 
 const devServer = new WebpackDevServer(
   {
-    client: {
-      logging: 'verbose',
-      progress: true,
-      reconnect: true,
-      overlay: true,
-    },
     compress: true,
-    devMiddleware: {
-      stats: { all: true },
-      writeToDisk: true,
-    },
-    hot: true,
-    liveReload: true,
     host,
     port,
     setupMiddlewares(middlewares, server) {
@@ -65,6 +88,7 @@ const devServer = new WebpackDevServer(
   },
   compiler,
 )
+
 devServer.startCallback((err) => {
   if (err) {
     console.error(`[${u.yellow(err.name)}] ${u.red(err.message)}`)
