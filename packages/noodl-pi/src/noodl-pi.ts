@@ -1,0 +1,5 @@
+export { default as FuzzyWorker } from './FuzzyWorker'
+export { default as FuzzyIndexCreator } from './IndexCreator'
+export * from './FuzzyWorker'
+export * from './constants'
+export * from './types'

@@ -7,6 +7,22 @@ const webpack = require('webpack')
 const WebpackDevServer = require('webpack-dev-server')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
+const meow = require('meow')
+
+const cli = meow('', {
+  flags: {
+    worker: { alias: 'w', type: 'boolean' },
+  },
+})
+
+const { flags } = cli
+
+if (flags.worker) {
+  require('execa').command(
+    `lerna exec --scope noodl-pi "npm run types -- -w"`,
+    { shell: true, stdio: 'inherit' },
+  )
+}
 
 const host = '127.0.0.1'
 const port = 3000
@@ -62,11 +78,14 @@ const compiler = webpack({
   plugins: [
     new HtmlWebpackPlugin({
       filename: './index.html',
-      publicPath: __dirname,
+      publicPath: path.join(__dirname, 'dist'),
       template: './index.html',
     }),
     new CopyPlugin({
-      patterns: [{ from: 'dist/piWorker.js', to: 'piWorker.js' }],
+      patterns: [
+        { from: 'dist/piWorker.js', to: 'piWorker.js' },
+        { from: 'styles.css', to: 'dist/styles.css' },
+      ],
     }),
   ],
   resolve: {

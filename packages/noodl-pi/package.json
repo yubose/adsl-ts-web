@@ -1,0 +1,34 @@
+{
+  "author": "Christopher Tran <pfftdammitchris@gmail.com>",
+  "description": "Noodl Personal Index Worker for Web Apps",
+  "directories": {
+    "dist": "dist"
+  },
+  "files": [
+    "dist/noodl-pi.js"
+  ],
+  "homepage": "",
+  "keywords": [
+    "noodl",
+    "pi",
+    "fuzzy",
+    "index",
+    "worker",
+    "ecos"
+  ],
+  "license": "MIT",
+  "main": "dist/noodl-pi.js",
+  "module": "dist/noodl-pi.js",
+  "name": "noodl-pi",
+  "repository": {
+    "type": "git",
+    "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production node build.js",
+    "start": "npm run build -- --watch",
+    "test": "echo \"Error: run tests from root\" && exit 1",
+    "types": "tsc --declaration --declarationDir dist --emitDeclarationOnly --lib WebWorker"
+  },
+  "version": "0.0.1"
+}

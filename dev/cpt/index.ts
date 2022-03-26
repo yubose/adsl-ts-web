@@ -5,10 +5,8 @@ import { h, init, toVNode, eventListenersModule, VNode } from 'snabbdom'
 const patch = init([eventListenersModule])
 
 window.addEventListener('load', async function (evt) {
-  const rootEl = document.getElementById('root')
-
   const worker = new Worker(
-    'piWorker.js',
+    'FuzzyWorker.js',
     // @ts-expect-error
     import.meta.url,
   )
