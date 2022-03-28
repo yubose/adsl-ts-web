@@ -466,9 +466,10 @@ const createActions = function createActions(app: App) {
               app.updateRoot(fileFormat, ac.data.get(fileFormat))
             }
             if (u.isStr(dataKey)) {
-            await imageConversion.compressAccurately(ac.data.get(dataKey),size).then(res=>{
-              app.updateRoot(dataKey, new File([res],ac.data.get(dataKey).name),ac.data.get(dataKey).type)
-              });
+              await imageConversion.compressAccurately(ac.data.get(dataKey),size).then(res=>{
+                let newFile = new File([res],ac.data.get(dataKey).name,{type: files?.[0].type})
+                app.updateRoot(dataKey, newFile)
+                });
             } else {
               log.red(
                 `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,
