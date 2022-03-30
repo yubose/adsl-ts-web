@@ -14,9 +14,9 @@ console.log('HEY')
  * @type { import('rollup').RollupOptions }
  */
 const config = {
-  input: 'src/noodl-pi.ts',
+  input: 'src/index.ts',
   output: {
-    file: path.join(__dirname, './dist/noodl-pi.js'),
+    file: path.join(__dirname, './dist/index.js'),
     exports: 'named',
     format: 'umd',
     name: 'noodlPi',
@@ -42,8 +42,5 @@ const config = {
     }),
   ],
 }
-
-// "presets": ["@babel/env"],
-// "plugins": ["@babel/plugin-transform-runtime"]
 
 module.exports = config

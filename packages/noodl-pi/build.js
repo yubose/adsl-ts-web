@@ -2,6 +2,12 @@ const childProcess = require('child_process')
 const u = require('@jsmanifest/utils')
 const meow = require('meow')
 const rollup = require('rollup')
+const partialRight = require('lodash/partialRight')
+
+// const partialRight =
+//   (fn, ...args) =>
+//   (...rest) =>
+//     fn(...args, ...rest)
 
 const {
   flags: { watch },
@@ -9,19 +15,11 @@ const {
 
 if (watch) {
   let spawnOptions = { encoding: 'utf8', shell: true, stdio: 'inherit' }
-
-  let rollupShell = childProcess.spawnSync(
-    `rollup -c rollup.config.js -w BUILD:development`,
-    spawnOptions,
+  const shell = partialRight(childProcess.spawnSync, spawnOptions)
+  shell(`rollup -c rollup.config.js -w BUILD:development`)
+  shell(
+    `tsc --declaration --emitDeclarationOnly --declarationDir dist --skipLibCheck -w`,
   )
-
-  let tscShell = childProcess.spawnSync(
-    `tsc --declaration --emitDeclarationOnly -w`,
-    spawnOptions,
-  )
-
-  if (rollupShell.error) throw rollupShell.error
-  if (tscShell.error) throw tscShell.error
 } else {
   const rollupConfig = require('./rollup.config.js')
   rollup

@@ -1,67 +1,119 @@
-import axios from 'axios'
 import * as u from '@jsmanifest/utils'
 import { h, init, toVNode, eventListenersModule, VNode } from 'snabbdom'
+import unset from 'lodash/unset'
+import { c } from 'noodl-pi'
 
+const table = {
+  cpt: 'CPT',
+  cptMod: 'CPTMod',
+} as const
+
+const _color = 'navajowhite'
+const storeNames = [table.cpt]
+const mode = 'text'
 const patch = init([eventListenersModule])
 
-window.addEventListener('load', async function (evt) {
-  const worker = new Worker(
-    'FuzzyWorker.js',
-    // @ts-expect-error
-    import.meta.url,
-  )
+let listEl: HTMLUListElement
+let cptCodes: Record<string, string>
 
-  worker.addEventListener('message', async function (evt) {
-    console.log(`%c[client-Message] Message`, `color:#00b406;`, evt)
-    const { data: msgData } = evt
-    const data = (await axios.get(`http://127.0.0.1:3000/cpt`)).data
-    const cptCodes = data?.CPT?.content
+const withSendMessage = (worker) => {
+  Object.defineProperty(worker, 'sendMessage', {
+    value: function (...args) {
+      console.log(`%c[client] Sending "${args[0]?.type}"`, `color:${_color};`)
+      return this.postMessage(...args)
+    },
+  })
+  return worker as Worker & { sendMessage: Worker['postMessage'] }
+}
 
-    if (u.isObj(msgData)) {
-      if (msgData.type) {
-        switch (msgData.type) {
-          case 'REQUEST_STORE_DATA':
-            return this.postMessage({
-              type: 'REQUESTED_STORE_DATA',
-              storeName: msgData.storeName,
-              data: cptCodes,
+window.addEventListener('load', async (evt) => {
+  const worker = withSendMessage(new Worker('piWorker.js'))
+  listEl = document.querySelector('ul') as HTMLUListElement
+  console.log(`%c[client] Worker constructed`, `color:${_color};`, worker)
+
+  worker.addEventListener('message', async (evt2) => {
+    const data = evt2.data
+    const type = data?.type
+
+    console.log(`%c[client] Received: "${type}"`, `color:${_color};`, data)
+
+    if (type) {
+      switch (type) {
+        case c.storeEvt.STORE_EMPTY: {
+          break
+        }
+        case c.storeEvt.SEARCH_RESULT: {
+          cptCodes = data.result
+          startListener('code')
+          return renderResults()
+        }
+        case c.storeEvt.FETCHED_STORE_DATA: {
+          const { storeName, cachedVersion, response } = data
+          const responseDataVersion = response?.CPT?.version
+          if (responseDataVersion && cachedVersion !== responseDataVersion) {
+            return worker.sendMessage({
+              type: c.storeEvt.STORE_DATA_VERSION_UPDATE,
+              storeName,
+              data: response?.CPT?.content,
+              version: responseDataVersion,
             })
-          case 'STORE_DATA':
-            const { storeName, name, data } = msgData
-            switch (storeName) {
-              case 'cpt':
-                const container = document.querySelector('ul')
-                const cptCodes = data
-                startListener('code', container, cptCodes)
-                return renderResults(container, cptCodes)
+          }
+          break
+        }
+        case c.WORKER_INITIATED: {
+          return storeNames.forEach((storeName) =>
+            worker.sendMessage({
+              type: c.storeEvt.SEARCH,
+              storeName,
+            }),
+          )
+        }
+        case c.TABLE_CONTENTS: {
+          switch (data.storeName) {
+            case table.cpt: {
+              if (data.value) cptCodes = data.value
+              else throw new Error(`Did not receive data for CPT codes`)
+              startListener('code')
+              return renderResults()
             }
-          default:
-            break
+          }
+          break
+        }
+        case c.TABLE_NOT_FOUND: {
+          switch (data.storeName) {
+            case table.cpt:
+              const resp = await (
+                await fetch(`http://127.0.0.1:3000/cpt`)
+              ).json()
+              cptCodes = resp.data?.[table.cpt]?.content
+              worker.sendMessage({
+                type: c.SET_STORE_DATA,
+                storeName: data.storeName,
+                version: resp.data[table.cpt]?.version,
+                data: resp.data[table.cpt]?.content,
+              })
+              startListener('code')
+              return renderResults()
+          }
         }
       }
     }
   })
-
-  worker.addEventListener('messageerror', function (evt) {
-    console.log(`%c[client-MessageError]`, `color:tomato;`, evt)
+  worker.addEventListener('messageerror', function (evt2) {
+    console.log(`%c[client] MessageError`, `color:tomato;`, evt2)
   })
-
-  worker.addEventListener('error', function (evt) {
-    console.log(`%c[client-Error]`, `color:tomato;`, evt)
+  worker.addEventListener('error', function (evt2) {
+    console.log(`%c[client] Error`, `color:tomato;`, evt2)
   })
 })
 
-/**
- * @param { string } mode
- * @param { HTMLUListElement } container
- * @param { Record<string, string> } cptCodes
- */
-function startListener(mode, container, cptCodes) {
+function startListener(mode) {
   const startKeywordInputListener = () => {
-    /** @type { HTMLInputElement } */
     const inputEl = document.querySelector(`input#search`) as HTMLInputElement
     const inputVNode = toVNode(inputEl)
-
+    unset(inputVNode, 'data.on.input')
+    unset(inputVNode, 'data.on.keydown')
+    if (!inputVNode.data) inputVNode.data = {}
     inputVNode.data.on = {
       input: [
         function (evt) {
@@ -69,35 +121,38 @@ function startListener(mode, container, cptCodes) {
           switch (mode) {
             case 'code':
               if (value.length >= 4) {
-                return filterByCode(container, value, cptCodes)
+                return filterBy('code', value)
               } else if (!value) {
-                return renderResults(container, cptCodes)
+                return renderResults()
               }
               break
             case 'text':
               if (value.includes(' ')) {
                 const [first, second, ...rest] = value
               }
-              return filterByKeyword(container, value, cptCodes)
+              return filterBy('keyword', value)
             default:
               break
           }
         },
       ],
       keydown: [
-        function onKeyDown(this: VNode, evt: KeyboardEvent) {
-          const el = this.elm as HTMLSelectElement
+        function onKeyDown(this: VNode, evt) {
+          const el = this.elm as HTMLInputElement
           if (evt.key === 'Enter') {
             if (el.value === '') {
-              return renderResults(container, cptCodes)
+              return renderResults()
             } else {
-              return filterByCode(container, el.value, cptCodes)
+              return filterBy('code', el.value)
             }
           }
         },
       ],
     }
-    console.log(`Listening on keyword input element`)
+    console.log(
+      `%c[client] Listening on keyword input element`,
+      `color:${_color};`,
+    )
     return patch(inputEl, inputVNode)
   }
 
@@ -105,77 +160,77 @@ function startListener(mode, container, cptCodes) {
     const el = document.querySelector(
       `select[name=select-mode]`,
     ) as HTMLSelectElement
+
     const vnode = toVNode(el)
-    const childrenVNodes = [...el.children].map((c) => toVNode(c)) as (
-      | string
-      | VNode
-    )[]
+    const childrenVNodes = [...el.children].map((c2) => toVNode(c2))
+
+    unset(vnode, 'data.on.change')
+
+    if (!vnode.data) vnode.data = {}
     vnode.data.on = {
-      change(this: VNode, evt: Event) {
-        const evtTarget: any = evt.target
-        const el = document.querySelector(
+      change(this: VNode, evt) {
+        const evtTarget = evt.target as any
+        const el2 = document.querySelector(
           `select[name=select-mode]`,
         ) as HTMLSelectElement
-        console.log(`[select_onchange] New value: ${evtTarget.value}`)
-        el.value = evtTarget.value
-        startListener(evtTarget.value, container, cptCodes)
+        console.log(
+          `%c[client] New value: ${evtTarget.value}`,
+          `color:${_color}`,
+        )
+        el2.value = evtTarget.value
+        startListener(evtTarget.value)
       },
     }
-    vnode.children = []
-    // @ts-expect-error
-    vnode.children.push(childrenVNodes)
-    console.log(`Listening on select element`)
+    vnode.children = [] as VNode[]
+    vnode.children.push(childrenVNodes as any)
+    console.log(`%c[client] Listening on select element`, `color:${_color};`)
     return patch(el, vnode)
+  }
+  const startClearButtonListener = () => {
+    const clearBtn = document.getElementById('clear') as HTMLButtonElement
+    clearBtn.onclick = (evt) => {
+      window.indexedDB.deleteDatabase('noodl')
+      window.location.reload()
+    }
   }
 
   startKeywordInputListener()
   startSelectListener()
+  startClearButtonListener()
 }
 
-/**
- * @param { HTMLElement } container
- * @param { string | number } code
- * @param { Record<string, string> } cptCodes
- */
-function filterByCode(container, code, codes) {
-  return renderResults(container, codes[code] ? { [code]: codes[code] } : {})
+function filterBy(filterType: 'code' | 'keyword', args: any) {
+  switch (filterType) {
+    case 'code':
+      return renderResults(cptCodes[args] ? { [args]: cptCodes[args] } : {})
+    case 'keyword':
+      return renderResults(
+        args
+          ? u.entries(cptCodes).reduce((acc, [code, desc]) => {
+              if (code.includes(args)) acc[code] = desc
+              return acc
+            }, {})
+          : cptCodes,
+      )
+    default:
+      return cptCodes
+  }
 }
 
-/**
- * @param { HTMLElement } container
- * @param { string | number } code
- * @param { Record<string, string> } cptCodes
- */
-function filterByKeyword(container, keyword, codes) {
-  return renderResults(
-    container,
-    keyword
-      ? // @ts-expect-error
-        u.entries(codes).reduce((acc, [code, desc]: [string, string]) => {
-          if (code.includes(keyword)) acc[code] = desc
-          return acc
-        }, {})
-      : codes,
-  )
-}
-
-/**
- * @param { HTMLUListElement } container
- * @param { Record<string, string> } cptCodes
- */
-function renderResults(container, cptCodes) {
-  if (container.children.length) {
-    for (const childNode of container.children) {
-      container.removeChild(childNode)
+function renderResults(codes = cptCodes) {
+  if (listEl.children.length) {
+    for (const childNode of listEl.children) {
+      listEl.removeChild(childNode)
     }
   }
-  const sel = `${container.tagName.toLowerCase()}#${container.id}`
+
+  const sel = `${listEl.tagName.toLowerCase()}#${listEl.id}`
   const vnode = h(
     sel,
-    u.entries(cptCodes).map(([code, description]) => {
-      return h('li', `${code as string}: ${description}`)
+    u.entries(codes).map(([code, description]) => {
+      return h('li', `${code}: ${description}`)
     }),
   )
 
-  patch(toVNode(container), vnode)
+  patch(toVNode(listEl), vnode)
 }
