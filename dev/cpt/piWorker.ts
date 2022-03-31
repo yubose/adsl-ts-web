@@ -1,11 +1,10 @@
 /// <reference lib="WebWorker" />
 importScripts('https://cdn.jsdelivr.net/npm/idb@7/build/umd.js')
 importScripts('https://cdn.jsdelivr.net/npm/jsbi@3.1.0/dist/jsbi-umd.js')
-import type { ValueOf, LiteralUnion } from 'type-fest'
 import type IDB from 'idb'
 import type _JSBI from 'jsbi/jsbi'
 import * as u from '@jsmanifest/utils'
-import { DATA_TYPE, IDataBase, IColumn, ITable, Connection } from 'jsstore'
+import { DATA_TYPE, Connection } from 'jsstore'
 import { c, Worker as PiWorker } from 'noodl-pi'
 
 const dbName = 'noodl'
@@ -36,20 +35,20 @@ idbConnection.initDb({
     },
     {
       name: 'api_hash_table',
-      columns: [
-        { name: 'api_input_hash', dataType: DATA_TYPE.String },
-        { name: 'resultId', dataType: DATA_TYPE.String },
-      ],
+      columns: {
+        api_input_hash: { dataType: DATA_TYPE.String },
+        resultId: { dataType: DATA_TYPE.String },
+      },
     },
     {
       name: 'index_tables',
-      columns: [
-        { name: 'fkey', dataType: DATA_TYPE.Number },
-        { name: 'kText', dataType: DATA_TYPE.String },
-        { name: 'docId', dataType: DATA_TYPE.String },
-        { name: 'docType', dataType: DATA_TYPE.Number },
-        { name: 'score', dataType: DATA_TYPE.Number },
-      ] as IColumn[],
+      columns: {
+        fkey: { dataType: DATA_TYPE.Number },
+        kText: { dataType: DATA_TYPE.String },
+        docId: { dataType: DATA_TYPE.String },
+        docType: { dataType: DATA_TYPE.Number },
+        score: { dataType: DATA_TYPE.Number },
+      },
     },
   ],
   version: 1,
