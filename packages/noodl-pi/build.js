@@ -4,11 +4,6 @@ const meow = require('meow')
 const rollup = require('rollup')
 const partialRight = require('lodash/partialRight')
 
-// const partialRight =
-//   (fn, ...args) =>
-//   (...rest) =>
-//     fn(...args, ...rest)
-
 const {
   flags: { watch },
 } = meow('', { flags: { watch: { alias: 'w', type: 'boolean' } } })

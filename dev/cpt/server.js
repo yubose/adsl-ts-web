@@ -33,7 +33,7 @@ const pathToDataSourceDir = path.join(
 const pathToCptFile = path.join(pathToDataSourceDir, 'CPT_shrinked.yml')
 // const pathToCptFile = path.join(pathToDataSourceDir, 'CPT.yml')
 const pathToCptModFile = path.join(pathToDataSourceDir, 'CPTMod.yml')
-
+const publicPath = path.join(__dirname, './dist')
 const cptYml = fs.readFileSync(pathToCptFile, 'utf8')
 // const cptModYml = fs.readFileSync(pathToCptModFile, 'utf8')
 
@@ -46,13 +46,8 @@ const cptData = y.parse(cptYml)
 const cptContent = cptData.CPT.content
 const cptContentVersion = cptData.CPT.version
 
-const compiler = webpack({
-  entry: path.join(__dirname, './index.ts'),
-  output: {
-    clean: true,
-    filename: 'index.js',
-    // path: path.join(__dirname, './dist'),
-  },
+/** @type { import('webpack').Configuration } */
+const commonWebpackConfig = {
   devtool: false,
   mode: 'development',
   module: {
@@ -75,27 +70,53 @@ const compiler = webpack({
       },
     ],
   },
-  plugins: [
-    new HtmlWebpackPlugin({
-      filename: './index.html',
-      publicPath: path.join(__dirname, 'dist'),
-      template: './index.html',
-    }),
-    new CopyPlugin({
-      patterns: [
-        { from: 'dist/piWorker.js', to: 'piWorker.js' },
-        { from: 'styles.css', to: 'dist/styles.css' },
-      ],
-    }),
-  ],
   resolve: {
     extensions: ['.ts', '.js'],
   },
-})
+}
+
+const compiler = webpack([
+  {
+    ...commonWebpackConfig,
+    entry: path.join(__dirname, './piWorker.ts'),
+    output: {
+      clean: true,
+      filename: 'piWorker.js',
+      path: publicPath,
+    },
+  },
+  {
+    ...commonWebpackConfig,
+    entry: path.join(__dirname, './index.ts'),
+    output: {
+      clean: true,
+      filename: 'index.js',
+      path: publicPath,
+      // publicPath,
+    },
+    plugins: [
+      new HtmlWebpackPlugin({
+        filename: './index.html',
+        showErrors: true,
+        template: './index.html',
+      }),
+      new CopyPlugin({
+        patterns: [
+          // { from: 'dist/piWorker.js', to: 'dist/piWorker.js' },
+          { from: 'styles.css', to: 'dist/styles.css' },
+        ],
+      }),
+    ],
+  },
+])
 
 const devServer = new WebpackDevServer(
   {
     compress: true,
+    devMiddleware: {
+      // publicPath,
+      writeToDisk: true,
+    },
     host,
     port,
     setupMiddlewares(middlewares, server) {
@@ -103,6 +124,10 @@ const devServer = new WebpackDevServer(
         res.json(cptData)
       })
       return middlewares
+    },
+    static: {
+      // publicPath: '/',
+      directory: 'dist',
     },
   },
   compiler,

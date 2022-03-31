@@ -261,7 +261,9 @@ class NoodlPiWorker<
     Args extends Parameters<t.Hooks<S, SNames>[Evt]> = Parameters<
       t.Hooks<S, SNames>[Evt]
     >,
-  >(evtName: Evt, arg?: Arg, ...args: Args) {
+  >(evtName: Evt, arg?: Arg | undefined, ...args: Args) {
+    // @ts-expect-error
+    this.hooks.all?.call(this, evtName, arg, ...args)
     return this.hooks[evtName as any]?.call(this, arg, ...args)
   }
 

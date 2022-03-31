@@ -1,4 +1,6 @@
+// @ts-nocheck
 import orderBy from 'lodash.orderby'
+import type IDB from 'idb'
 import type { DB } from '../types'
 import { isObj, uint8ArrayToBase64 } from '../utils'
 

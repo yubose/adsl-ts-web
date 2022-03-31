@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { DB } from '../types'
 import { isObj, uint8ArrayToBase64 } from '../utils'
 

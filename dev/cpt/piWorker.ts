@@ -43,7 +43,7 @@ pi.use({
       return pi.setStoreData({
         storeName,
         version: response?.CPT?.version,
-        data: response.CPT?.content,
+        data: response.CPT,
       })
     }
   },

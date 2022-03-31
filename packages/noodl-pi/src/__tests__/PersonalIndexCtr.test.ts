@@ -6,10 +6,55 @@ import PersonalIndexCtr from '../PersonalIndexCtr'
 
 describe('PersonalIndexCtr', () => {
   const doc = [
-        {"docType":102401,"id":"XYE3UwAAAABLgAJCrBIABQ==","kText":["applicationjson","2","Drive","License","jnyi020822","yi","Joseph","1","8881230922"],"mTime":1645036602},
-        {"docType":102401,"id":"XYE3UwAAAABBwAJCrBIABQ==","kText":["applicationjson","2","yi","Joseph","1","8881230922","asap020922","Drive","License"],"mTime":1645036602},
-        {"docType":102401,"id":"XXxrpgAAAABFxAJCrBIABQ==","kText":["applicationjson","2","jnyi020822","02112006","brother","yi","Joseph","Drive","License","1"],"mTime":1645036602},
-    ]
+    {
+      docType: 102401,
+      id: 'XYE3UwAAAABLgAJCrBIABQ==',
+      kText: [
+        'applicationjson',
+        '2',
+        'Drive',
+        'License',
+        'jnyi020822',
+        'yi',
+        'Joseph',
+        '1',
+        '8881230922',
+      ],
+      mTime: 1645036602,
+    },
+    {
+      docType: 102401,
+      id: 'XYE3UwAAAABBwAJCrBIABQ==',
+      kText: [
+        'applicationjson',
+        '2',
+        'yi',
+        'Joseph',
+        '1',
+        '8881230922',
+        'asap020922',
+        'Drive',
+        'License',
+      ],
+      mTime: 1645036602,
+    },
+    {
+      docType: 102401,
+      id: 'XXxrpgAAAABFxAJCrBIABQ==',
+      kText: [
+        'applicationjson',
+        '2',
+        'jnyi020822',
+        '02112006',
+        'brother',
+        'yi',
+        'Joseph',
+        'Drive',
+        'License',
+        '1',
+      ],
+      mTime: 1645036602,
+    },
   ]
   let frontEndDb: FrontEndDB
   let indexTablesDao
