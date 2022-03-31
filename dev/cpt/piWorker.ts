@@ -7,7 +7,6 @@ import * as u from '@jsmanifest/utils'
 import { DATA_TYPE, Connection } from 'jsstore'
 import { c, Worker as PiWorker } from 'noodl-pi'
 
-const dbName = 'noodl'
 const idbConnection = new Connection(self)
 
 idbConnection.initDb({
