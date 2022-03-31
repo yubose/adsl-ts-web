@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "declarationDir": "./dist",
+    "lib": ["WebWorker", "WebWorker.ImportScripts"],
+    "module": "esnext",
+    "outDir": "./dist",
+    "target": "esnext"
+  },
+  "exclude": ["./dist", "node_modules"],
+  "include": ["./src/**/*"]
+}

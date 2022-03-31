@@ -373,10 +373,10 @@ const webpackOptions = {
     }),
     new CopyPlugin({
       patterns: [
-        // {
-        //   from: 'public/worker.js',
-        //   to: 'worker.js',
-        // },
+        {
+          from: 'public/worker.js',
+          to: 'worker.js',
+        },
         { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
       ],
     }),
