@@ -1,0 +1,2056 @@
+CPT:
+  version: 1.0.3
+  content:
+    '99509': >-
+      A home health provider, such as a registered nurse, or a non nursing
+      practitioner, visits a patient to provide help with activities of daily
+      living, or ADLs, and self care.
+    '99510': >-
+      A licensed psychologist or social worker visits the patient in his home
+      to provide counseling.
+    '99511': >-
+      The provider visits a patient at home to manage treatment for and remove
+      the patient’s fecal impaction.
+    '99512': >-
+      The provider visits the patient at home to provide hemodialysis, which
+      removes waste from the blood in a patient with kidney failure.
+    '99600': >-
+      Use 99600 to report a home visit service or procedure that does not have
+      a specific code.
+    '99601': >-
+      The provider visits the patient at home to provide an infusion or
+      administer a specialty drug. Use this code for up to the first two hours
+      of a visit.
+    '99602': >-
+      The provider visits the patient at home to provide an infusion or
+      administer a specialty drug. Use this code for each additional hour of
+      the visit after the first two hours.
+    '99605': >-
+      The pharmacist provides a 15–minute, in–person, patient–specific
+      medication evaluation for a new patient based on factors such as the
+      patient’s history and medication list.
+    '99606': >-
+      The pharmacist provides a 15–minute, in–person, patient–specific
+      medication evaluation for an established patient based on factors such
+      as the patient’s history and medication list.
+    '99607': >-
+      After an initial 15 minutes, the pharmacist provides an additional
+      15–minutes of an in–person, patient–specific medication evaluation for a
+      patient based on factors such as the patient’s history and medication
+      list.
+    0042T: >-
+      The provider obtains a measurement of regional cerebral blood flow
+      through analysis of computed tomography (CT) scans by taking sequential
+      images of sections of the brain while administering intravenous
+      contrast. This procedure is done to evaluate patients suspected of
+      having a stroke.
+    0054T: >-
+      The provider uses a computer equipped with surgical navigation
+      technology to help guide and validate the type and position of an
+      orthopedic implant using fluoroscopy. A provider uses this service most
+      often to assist with accurate placement and positioning of the implant
+      prosthesis in reconstruction or replacement of a knee or hip.
+    0055T: >-
+      The provider uses a computer equipped with surgical navigation
+      technology to help guide and validate the type and position of an
+      orthopedic implant using computed tomography, or CT, or magnetic
+      resonance imaging, or MRI. A provider uses this service most often to
+      assist with accurate placement and positioning of the implant prosthesis
+      in reconstruction or replacement of a knee or hip.
+    0072T: >-
+      The provider uses magnetic resonance imaging guided focused ultrasound,
+      or MRgFUS, to heat and destroy a noncancerous growth of the uterus,
+      called a leiomyomata, whose total volume is 200 cc of tissue or greater.
+      The procedure is done with a patient inside a magnetic resonance imaging
+      scanner, which monitors temperature and guides the provider to the
+      precise location of the leiomyomata, or uterine fibroids.
+    0075T: >-
+      In this procedure, the provider places a stent through an incision in
+      the skin into a vessel of the extracranial vertebral artery, to treat a
+      stenosis or blockage. This code includes imaging for determination of
+      the need for stenting along with radiological supervision and
+      interpretation of same.
+    0071T: >-
+      The provider uses magnetic resonance imaging guided focused ultrasound, or MRgFUS, to heat and destroy a noncancerous growth of the uterus, called a leiomyomata, whose total volume is not greater than 200 cc of tissue. \_The procedure is done with a patient inside a magnetic resonance imaging scanner, which monitors temperature and guides the provider to the precise location of the leiomyomata, or uterine fibroids.
+    0076T: >-
+      In this procedure, at the same time as placement of an initial stent,
+      the provider places an additional stent through an incision in the skin
+      into an additional vessel of the extracranial vertebral artery to treat
+      stenosis or blockage. This procedure includes imaging to determine the
+      need for stent placement along with radiologic supervision and
+      interpretation.
+    '10040': >-
+      The provider may extract the contents of an acne lesion with a
+      suction–type instrument or excise or perform marsupialization on larger
+      lesions or cysts.
+    '10140': >-
+      The provider makes an incision into the hematoma, seroma, or other
+      collection of fluid and bluntly penetrates it to allow fluid evacuation.
+    '10081': >-
+      The provider opens (incises) and drains the contents of a pilonidal
+      cyst, a nest of hair and debris that forms at the base of the spine; the
+      procedure requires extra time and technique to perform.
+    '10080': >-
+      The provider open (incises) and drains the contents of a pilonidal cyst.
+    '10120': >-
+      The provider removes a foreign body such as a thorn, piece of wood,
+      sliver of glass or fishook, from the lower layer of skin.
+    '10061': >-
+      The provider incises the area of abscess and drains the collection of
+      pus, such as those related to a carbuncle, hidradenitis, cyst, furuncle,
+      or paronychia, with the help of surgical instruments. A complicated
+      incision and drainage can involve multiple incisions, drain placements,
+      extensive packing, and a more complicated wound closure.
+    '10060': >-
+      The provider incises the area of abscess and drains the collection of
+      pus from a lesion, such as a carbuncle, hidradenitis, cyst, furuncle, or
+      paronychia, with the help of surgical instruments. A simple incision and
+      drainage usually involves a single incision of an abscess situated just
+      below the skin's surface.
+    '10121': >-
+      The provider removes a foreign body such as a thorn, piece of wood,
+      sliver of glass or fishook, from the lower layer of skin; the incision
+      and removal may be complicated by the need for extensive dissection,
+      imaging guidance, or layered closure.
+    '10021': >-
+      The provider performs a fine needle aspiration (FNA), a diagnostic
+      procedure that involves collecting a small number of cells, a small
+      amount of tissue, or fluid from a cyst or mass using a specialized
+      needle and syringe. Report this code for the first lesion biopsied.
+    '11004': >-
+      The provider evaluates the extent of necrotic tissue in external
+      genitalia and the perineum, and debrides the infected necrotic skin,
+      subcutaneous tissue, muscle, and fascia.
+    '11006': >-
+      The provider evaluates the extent of necrotic tissue in the external
+      genitalia, perineum, and abdominal wall and debrides the infected
+      necrotic skin, subcutaneous tissue, muscle and fascia.
+    '10180': >-
+      The provider incises the area of infection and drains any fluid
+      collection, with the help of surgical instruments; the procedure may be
+      complicated requiring more time and more extensive technique.
+    '11001': >-
+      In this add–on procedure, the provider uses surgical instruments to
+      debride the dead tissue from up to an additional 10 percent of skin
+      after debriding the initial 10 percent at the same encounter.
+    '10160': >-
+      The provider inserts a needle into a fluid deposit area on the skin and
+      aspirates fluid or pus to obtain a culture.
+    '11005': >-
+      The provider evaluates the extent of necrotic tissue in the abdominal
+      wall and debrides the infected necrotic skin, subcutaneous tissue,
+      muscle, and fascia.
+    '11000': >-
+      The provider uses surgical instruments to debride the dead tissue in
+      skin for up to 10 percent of the body surface.
+    '11010': >-
+      The provider removes necrotic tissue along with\_all foreign materials from skin and subcutaneous tissues in and around the site of an open fracture or dislocation.
+    '11008': >-
+      The provider uses surgical instruments to remove prosthetic materials or
+      mesh from the abdominal wall as part of treating an infection. He
+      performs this service at the same session as a separately reportable
+      debridement or incision and drainage procedure.
+    '11011': >-
+      The provider removes necrotic tissue along with all foreign materials
+      from skin, subcutaneous tissues, muscle fascia, and muscle in and around
+      the site of an open fracture and/or open dislocation.
+    '11042': >-
+      The provider uses surgical instruments to remove the dead tissue in skin
+      down to the subcutaneous layer and including the epidermis and dermis,
+      up to the first 20 cm2.
+    '11043': >-
+      The provider uses surgical instruments to remove the dead tissue in
+      muscle and/or fascia, including any debridement of the epidermis,
+      dermis, and subcutaneous tissue, for the first or only 20 cm2 or less.
+    '11012': >-
+      The provider removes necrotic tissue along with all foreign materials
+      from skin, subcutaneous tissue, muscle fascia, muscle, and bone in and
+      around the site of an open fracture and/or open dislocation.
+    '11056': >-
+      The provider removes 2 to 4 benign hyperkeratotic lesions by using
+      surgical instruments like a scalpel or curette.
+    '11307': >-
+      The provider shaves off a single epidermal or dermal lesion 1.1 to 2.0
+      cm in diameter from the skin of the scalp, neck, hands, feet, or
+      genitals.
+    '11303': >-
+      The provider shaves off a single epidermal or dermal lesion greater than
+      2.0 cm in diameter from the skin of the trunk, arms, or legs.
+    '11055': >-
+      The provider removes a single benign hyperkeratotic lesion by using
+      surgical instruments like a scalpel or curette.
+    '11302': >-
+      The provider shaves off a single epidermal or dermal lesion of 1.1 to
+      2.0 cm in diameter from the skin of the trunk, arms, or legs.
+    '11057': >-
+      The provider removes more than 4 benign hyperkeratotic lesions by using
+      surgical instruments like a scalpel or curette.
+    '11301': >-
+      The provider shaves off a single epidermal or dermal lesion of 0.6 to
+      1.0 cm in diameter from the skin of the trunk, arms, or legs.
+    '11306': >-
+      The provider shaves off a single epidermal or dermal lesion of 0.6 to
+      1.0 cm in diameter from the skin of the scalp, neck, hands, feet, or
+      genitals.
+    '11044': >-
+      The provider uses surgical instruments to remove the dead, infected
+      tissue in bone, also including the epidermis, dermis, subcutaneous
+      tissue, muscle, and/or fascia as needed. This code covers the first or
+      only 20 cm2 or less.
+    '11305': >-
+      The provider shaves off a single epidermal or dermal lesion of 0.5 cm or
+      less in diameter from the scalp, neck, hands, feet, or genitals.
+    '11300': >-
+      The provider removes one epidermal or dermal lesion of 0.5 cm diameter
+      or less from the trunk, arms, or legs.
+    '11200': >-
+      The provider removes skin tags in any area of the body, up to and
+      including 15 lesions.
+    '11201': >-
+      The provider removes up to 10 additional skin tags in any area of the
+      body, after removing an initial 15 lesions.
+    '11400': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 0.5
+      cm or less in diameter, including margins, from the skin of the trunk,
+      arms, or legs.
+    '11310': >-
+      The provider shaves off a single epidermal or dermal lesion of 0.5 cm or
+      less in diameter from the face, ears, eyelids, nose, lips, or mucous
+      membranes.
+    '11404': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 3.1
+      to 4.0 cm in diameter, including margins, from the skin of the trunk,
+      arms, or legs.
+    '11422': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 1.1
+      to 2.0 cm in diameter, including margins, from the skin of the scalp,
+      neck, hands, feet, or genitals.
+    '11420': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 0.5
+      cm or less in diameter, including margins, from the skin of the scalp,
+      neck, hands, feet, or genitals.
+    '11423': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 2.1
+      to 3.0 cm in diameter, including margins, from the skin of the scalp,
+      neck, hands, feet, or genitals.
+    '11402': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 1.1
+      to 2.0 cm in diameter, including margins, from the skin of the trunk,
+      arms, or legs.
+    '11312': >-
+      The provider shaves off a single epidermal or dermal lesion of 1.1 to
+      2.0 cm in diameter from the face, ears, eyelids, nose, lips, or mucous
+      membranes.
+    '11401': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 0.6
+      to 1.0 cm in diameter, including margins, from the skin of the trunk,
+      arms, or legs.
+    '11403': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 2.1
+      to 3.0 cm in diameter, including margins, from the skin of the trunk,
+      arms, or legs.
+    '11406': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of
+      greater than 4.0 cm in diameter, including margins, from the skin of the
+      trunk, arms, or legs.
+    '11421': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 0.6
+      to 1.0 cm in diameter, including margins, from the skin of the scalp,
+      neck, hands, feet, or genitals.
+    '11313': >-
+      The provider shaves off a single epidermal or dermal lesion of 2.0 cm or
+      greater in diameter from the face, ears, eyelids, nose, lips, or mucous
+      membranes.
+    '11311': >-
+      The provider shaves off a single epidermal or dermal lesion of 0.6 to
+      1.0 cm in diameter from the face, ears, eyelids, nose, lips, or mucous
+      membranes.
+    '11308': >-
+      The provider shaves off a single epidermal or dermal lesion greater than
+      2.0 cm in diameter from the skin of the scalp, neck, hands, feet, or
+      genitals.
+    '11440': >-
+      The provider excises a benign (noncancerous) lesion including margins from the face, ears, eyelids, nose, lips, or mucous membrane that is 0.5 cm in diameter or less\_and also performs a simple (nonlayered) closure.
+    '11441': >-
+      The provider excises a benign (noncancerous) lesion including margins from the face, ears, eyelids, nose, lips, or mucous membrane that is\_0.6 to 1.0 cm in diameter and also performs a simple (nonlayered) closure.
+    '11463': >-
+      The provider excises inguinal skin and subcutaneous tissue involved with
+      hidradenitis (painful lesions associated with sweat glands); he closes
+      the excision site using complex repair techniques.
+    '11443': >-
+      The provider excises a benign (noncancerous) lesion including margins from the face, ears, eyelids, nose, lips, or mucous membrane that is 2.1 to 3.0 cm in diameter or less\_and also performs a simple (nonlayered) closure.
+    '11470': >-
+      The provider excises perianal, perineal, or umbilical skin and
+      subcutaneous tissue involved with hidradenitis (painful lesions
+      associated with sweat glands); he closes the excision site using simple
+      or intermediate repair techniques.
+    '11444': >-
+      The provider excises a benign (noncancerous) lesion including margins from the face, ears, eyelids, nose, lips, or mucous membrane that is 3.1 to 4.0 cm in diameter or less\_and also performs a simple (nonlayered) closure.
+    '11462': >-
+      The provider excises inguinal skin and subcutaneous tissue involved with
+      hidradenitis (painful lesions associated with sweat glands); he closes
+      the excision site using simple or intermediate repair techniques.
+    '11442': >-
+      The provider excises a benign (noncancerous) lesion including margins
+      from the face, ears, eyelids, nose, lips, or mucous membrane that is 1.1
+      to 2.0 cm in diameter and also performs a simple (nonlayered) closure.
+    '11426': >-
+      The provider excises a noncancerous lesion, excluding a skin tag,
+      greater than 4.0 cm in diameter, including margins, from the skin of the
+      scalp, neck, hands, feet, or genitals.
+    '11424': >-
+      The provider excises a noncancerous lesion, excluding a skin tag, of 3.1
+      to 4.0 cm in diameter, including margins, from the skin of the scalp,
+      neck, hands, feet, or genitals.
+    '11450': >-
+      The provider excises axillary skin and subcutaneous tissue involved with
+      hidradenitis (painful lesions associated with sweat glands); he closes
+      the excision site using simple or intermediate repair techniques.
+    '11471': >-
+      The provider excises perianal, perineal, or umbilical skin and
+      subcutaneous tissue involved with hidradenitis (painful lesions
+      associated with sweat glands); he closes the excision site using complex
+      repair techniques.
+    '11600': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 0.5 cm or less in diameter, from the skin of the trunk, arms, or
+      legs.
+    '11451': >-
+      The provider excises axillary skin and subcutaneous tissue involved with
+      hidradenitis (painful lesions associated with sweat glands); he closes
+      the excision site using complex repair techniques.
+    '11446': >-
+      The provider excises a benign (noncancerous) lesion including margins
+      from the face, ears, eyelids, nose, lips, or mucous membrane that is
+      over 4.0 cm in diameter and also performs a simple (nonlayered) closure.
+    '11643': >-
+      The provider excises a cancerous (malignant) lesion, including margins, of 2.1 to 3.0 cm in diameter, from the skin of the\_face, ears, eyelids, nose, lips.
+    '11620': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 0.5 cm or less in diameter, from the skin of the scalp, neck, hands,
+      feet, or genitalia (sex organs).
+    '11641': >-
+      The provider excises a cancerous (malignant) lesion, including margins, of 0.6 to 1.0 cm in diameter, from the skin of the\_face, ears, eyelids, nose, lips.
+    '11601': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 0.6 to 1.0 cm or less in diameter, from the skin of the trunk, arms,
+      or legs.
+    '11621': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 0.6 to 1.0 cm or less in diameter, from the skin of the scalp, neck,
+      hands, feet, or genitalia (sex organs).
+    '11622': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 1.1 to 2.0 cm in diameter, from the skin of the scalp, neck, hands,
+      feet, or genitalia (sex organs).
+    '11623': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 2.1 to 3.0 cm in diameter, from the skin of the scalp, neck, hands,
+      feet, or genitalia (sex organs).
+    '11626': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of over 4.0 cm in diameter, from the skin of the scalp, neck, hands,
+      feet, or genitalia (sex organs).
+    '11603': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 2.1 to 3.0 cm in diameter, from the skin of the trunk, arms, or legs.
+    '11606': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      over 4.0 cm in diameter, from the skin of the trunk, arms, or legs.
+    '11604': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 3.1 to 4.0 cm in diameter, from the skin of the trunk, arms, or legs.
+    '11640': >-
+      The provider excises a cancerous (malignant) lesion, including margins, of 0.5 cm or less in diameter, from the skin of the\_face, ears, eyelids, nose, lips.
+    '11624': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 3.1 to 4.0 cm in diameter, from the skin of the scalp, neck, hands,
+      feet, or genitalia (sex organs).
+    '11602': >-
+      The provider excises a cancerous (malignant) lesion, including margins,
+      of 1.1 to 2.0 cm in diameter, from the skin of the trunk, arms, or legs.
+    '11642': >-
+      The provider excises a cancerous (malignant) lesion, including margins, of 1.1 to 2.0 cm in diameter, from the skin of the\_face, ears, eyelids, nose, lips.
+    '11646': >-
+      The provider excises a cancerous (malignant) lesion, including margins, over 4.0 cm in diameter, from the skin of the\_face, ears, eyelids, nose, lips.
+    '11732': >-
+      The provider removes part or all of an additional nail plate after the
+      first using simple avulsion techniques.
+    '11730': >-
+      The provider removes part or all of a single nail plate\_using simple avulsion techniques.
+    '11719': >-
+      The provider performs trimming of one or more normally developed nails
+      of the fingers or toes.
+    '11740': >-
+      Use CPT code 11740 if the physician 'evacuates a nail hematoma,' which
+      is another way of saying that he or she drained blood from under the
+      nail.
+    '11760': >-
+      The nail bed can be injured due to laceration, crush, or avulsion. \_This procedure is performed to repair such damage.
+    '11721': >-
+      The provider surgically\_debrides (debulks or removes) 6 or more abnormal, diseased, or infected nails.
+    '11750': >-
+      The provider removes part or all of a fingernail or toenail, including
+      the nail plate and matrix and including the lunula if the excision is
+      complete.
+    '11644': >-
+      The provider excises a cancerous (malignant) lesion, including margins, of 3.1 to 4.0 cm in diameter, from the skin of the\_face, ears, eyelids, nose, lips.
+    '11755': >-
+      This procedural code is used when the physician biopsies the nail plate, bed,\_hyponychium, proximal nail folds, or lateral nail folds. \_Each one is a separate procedure.
+    '11765': >-
+      The provider performs a wedge excision of the skin of the nail fold at
+      the lateral margin (groove) of a nail, such as an ingrown toenail.
+    '11720': >-
+      The provider surgically debrides (debulks or removes) 1 to 5 abnormal,
+      diseased, or infected nails.
+    '11770': >-
+      The provider excises a pilonidal cyst or sinus not requiring extensive
+      dissection and without complication.
+    '11762': >-
+      The nail bed can be injured due to laceration, crush, or avulsion. The
+      provider repairs the damage using a graft.
+    '11971': >-
+      The provider removes a tissue expander without inserting an implant.
+    '11952': >-
+      The provider injects 5.1 cc to 10.0 cc of collagen into the subcutaneous
+      layer of skin.
+    '11954': >-
+      The provider injects more than 10.0 cc of collagen into the subcutaneous
+      layer of skin.
+    '11951': >-
+      The provider injects 1.1 cc to 5.0 cc of collagen into the subcutaneous
+      layer of skin.
+    '11901': >-
+      This code describes an intralesional injection of a corticosteroid, such
+      as triamcinolone acetonide, for treatment of large nodules, keloids,
+      lichenified hyperkeratotic lesions, and numerous other conditions.
+    '11771': >-
+      The provider excises a pilonidal cyst or sinus that requires extensive
+      dissection into deeper subcutaneous tissues.
+    '11900': >-
+      This code describes an intralesional injection of a corticosteroid, such
+      as triamcinolone acetonide, for treatment of large nodules, keloids,
+      lichenified hyperkeratotic lesions, and numerous other conditions.
+    '11960': >-
+      The provider inserts one or more implants under the patient’s skin that
+      helps to expand the tissues. This code represents placement of expanders
+      anywhere in the patient’s body, except the breast, for reconstruction of
+      tissue defects.
+    '11772': >-
+      The provider excises a pilonidal cyst or sinus requiring extensive
+      dissection and without complication.
+    '11950': >-
+      The provider injects 1 cc or less of collagen into the subcutaneous
+      tissue.
+    '11920': >-
+      The provider tattoos an area of skin measuring 6.0 cm2 in size or less using intradermal insoluble opaque pigments\_to correct skin color defects, which happen because of congenital defects, breast reconstruction, burns, vitiligo, birthmarks, and other such conditions. The procedure provides a 'permanent camouflage' for the defect.
+    '11922': >-
+      The provider tattoos an area of skin using intradermal insoluble opaque pigments\_to correct skin color defects, which happen because of congenital defects, breast reconstruction, burns, vitiligo, birthmarks, and other such conditions. The procedure provides a 'permanent camouflage' for the defect. This code represents each additional 20.0 cm2, or part thereof, after the first 20.0 cm2.
+    '11921': >-
+      The provider tattoos an area of skin measuring 6.1 to 20.0 cm2 in size using intradermal insoluble opaque pigments\_to correct skin color defects, which happen because of congenital defects, breast reconstruction, burns, vitiligo, birthmarks, and other such conditions. The procedure provides a 'permanent camouflage' for the defect.
+    '11970': >-
+      The provider fits a permanent implant in the patient’s body in place of
+      a previously placed tissue expander.
+    '11976': >-
+      Contraceptive capsules (e.g. Levonorgestrel) are inserted subdermally, under the patient's arm skin. \_These capsules then release levels of synthetic hormones to prevent pregnancy. \_These capsules eventually release all of their synthetic hormone and have to be removed and/or replaced if the patient chooses.
+      This CPT code is used for the removal of implantable contraceptive
+      capsules that have been previously implanted under the skin of the
+      patient's arms and now need to be removed.
+    '12005': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      scalp, neck, axillae, external genitalia, trunk, and/or extremities
+      (including the hands and feet) that are 12.6 to 20 cm in size.
+    '11980': >-
+      The provider inserts hormone pellets subdermally, normally under the patient's arm skin. \_These pellets then release levels of synthetic hormones (testosterone and/or estradiol) to treat menopausal symptoms in women or testosterone deficiency in males.
+    '12011': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      face, ears, eyelids, nose, lips, and/or mucous membranes, that are 2.5
+      cm or less in size.
+    '12007': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      scalp, neck, axillae, external genitalia, trunk, and/or extremities
+      (including the hands and feet) that are over 30.0 cm in size or more.
+    '12004': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      scalp, neck, axillae, external genitalia, trunk, and/or extremities
+      (including the hands and feet) that are 7.6 to 12.5 cm in size.
+    '11982': >-
+      The provider removes a non–biodegradable implant (a capsule or pellet
+      with controlled–release properties containing a drug for long term
+      delivery).
+    '12002': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      scalp, neck, axillae, external genitalia, trunk, and/or extremities
+      (including the hands and feet) that are 2.6 to 7.5 cm in size.
+    '12014': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      face, ears, eyelids, nose, lips, and/or mucous membranes, that are 5.1
+      t0 7.5 cm in size.
+    '11981': >-
+      The provider inserts a\_bioresorbable, biodegradable, or\_non–biodegradable implant, such as\_a capsule or pellet,\_containing a drug for long–term delivery.
+    '11983': >-
+      The provider removes a non–biodegradable implant (a capsule or pellet
+      with controlled–release properties containing a drug for long term
+      delivery) after which he inserts a new one.
+    '12001': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      scalp, neck, axillae, external genitalia, trunk, and/or extremities
+      (including the hands and feet) that are 2.5 cm or less in size.
+    '12013': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      face, ears, eyelids, nose, lips and/or mucous membranes, that are 2.6 to
+      5.0 cm in size.
+    '12006': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      scalp, neck, axillae, external genitalia, trunk, and/or extremities
+      (including the hands and feet) that are 20.1 to 30 cm in size.
+    '12016': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      face, ears, eyelids, nose, lips, and/or mucous membranes, that are 12.6
+      to 20 cm in size.
+    '12035': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      scalp, axillae, trunk, and/or extremities (excluding hands and feet)
+      that are 12.6 to 20 cm in size.
+    '12021': >-
+      Wound dehiscence usually describes opening up of a previously sutured
+      area that has become infected. In this procedure, the provider treats a
+      superficial wound dehiscence with packing.
+    '12031': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      scalp, axillae, trunk, and/or extremities (excluding hands and feet)
+      that are 2.5 cm or less in size.
+    '12037': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      scalp, axillae, trunk, and/or extremities (excluding hands and feet)
+      that are over 30.0 cm or greater in size.
+    '12020': >-
+      Wound dehiscence usually describes opening up a previously sutured area
+      that has become infected. The provider cleans the wound and closes it
+      with a simple closure.
+    '12015': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      face, ears, eyelids, nose, lips, and/or mucous membranes, that are 7.6
+      to 12.5 cm in size.
+    '12036': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      scalp, axillae, trunk, and/or extremities (excluding hands and feet)
+      that are 20.1 to 30 cm in size.
+    '12032': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      scalp, axillae, trunk and/or extremities (excluding hands and feet) that
+      are 2.6 to 7.5 cm in size.
+    '12044': >-
+      This CPT® code is used for the intermediate repair of superficial wounds
+      to the neck, hands, feet, and/or external genitalia that are 7.6 to 12.5
+      cm in size.
+    '12041': >-
+      This CPT® code is used for the intermediate repair of superficial wounds
+      to the neck, hands, feet and/or external genitalia that are 2.5 cm or
+      less in size.
+    '12018': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      face, ears, eyelids, nose, lips and/or mucous membranes, that are more
+      than 30.0 cm or greater in size.
+    '12042': >-
+      This CPT® code is used for the intermediate repair of superficial wounds
+      to the neck, hands, feet, and/or external genitalia that are 2.6 to 7.5
+      cm in size.
+    '12034': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      scalp, axillae, trunk and/or extremities (excluding hands and feet) that
+      are 7.6 to 12.5 cm in size.
+    '12017': >-
+      This CPT code is used for the simple repair of superficial wounds to the
+      face, ears, eyelids, nose, lips and/or mucous membranes that are 20.1 to
+      30 cm in size.
+    '12047': >-
+      This CPT® code is used for the intermediate repair of superficial wounds
+      to the neck, hands, feet and/or external genitalia that are over 30.0 cm
+      or greater in size.
+    '13121': >-
+      This is for a complex repair of a wound to the scalp, arms, and/or legs. \_This wound should be 2.6 to 7.5 cm in size.
+    '12052': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      face, ears, eyelids, nose, lips and/or mucous membranes that are 2.6 to
+      5.0 cm in size.
+    '13102': >-
+      This is for a complex repair of each additional 5 cm or less of a wound to the trunk. \_ This CPT code is listed separately in addition to the code for the primary procedure and covers additional wounds.
+    '13100': >-
+      This is for a complex repair of a wound to the trunk. \_This wound should be 1.1 to 2.5 cm in size.
+    '12046': >-
+      This CPT® code is used for the intermediate repair of superficial wounds
+      to the neck, hands, feet and/or external genitalia that are 20.1 to 30
+      cm in size.
+    '13120': >-
+      This is for a complex repair of a wound 1.1 to 2.5 cm in size on the
+      scalp, arms, and/or legs.
+    '12054': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      face, ears, eyelids, nose, lips, and/or mucous membranes that are 7.6 to
+      12.5 cm in size.
+    '12045': >-
+      This CPT® code is used for the intermediate repair of superficial wounds
+      to the neck, hands, feet and/or external genitalia that are 12.6 to 20
+      cm in size.
+    '12056': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      face, ears, eyelids, nose, lips and/or mucous membranes that are 20.1 to
+      30 cm in size.
+    '13101': >-
+      This is for a complex repair of a wound to the trunk. \_This wound should be 2.6 to 7.5 cm in size.
+    '12053': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      face, ears, eyelids, nose, lips, and/or mucous membranes that are 5.1 to
+      7.5 cm in size.
+    '12051': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      face, ears, eyelids, nose, lips, and/or mucous membranes that are 2.5 cm
+      or less in size.
+    '12055': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      face, ears, eyelids, nose, lips and/or mucous membranes that are 12.6 to
+      20 cm in size.
+    '12057': >-
+      This CPT® code is used for the intermediate repair of wounds to the
+      face, ears, eyelids, nose, lips and/or mucous membranes that are over
+      30.0 cm or greater in size.
+    '14041': >-
+      The provider replaces the lesions in the forehead, cheeks, chin, mouth,
+      neck, axillae or armpits, genitalia, hands, or feet with the healthy
+      tissues from an adjacent site. This code represents a defect of 10.1 cm2
+      to 30.0 cm2.
+    '13152': >-
+      The physician performs closure of a wound/laceration for at least one of
+      the following anatomic areas: eyelids, nose, ears, lips. The repair
+      performed is of a complex nature, which involves more than a layered
+      type closure. Total length or wound diameter repaired in a complex
+      manner must be from 2.6 cm to 7.5 cm.
+    '13122': >-
+      This is for a complex repair of a wound to the scalp, arms, and/or legs.
+      This code is for each additional 5 cm or less, in addition to the
+      primary wound. This CPT code is listed separately to denote an
+      additional procedure to the primary procedure.
+    '13131': >-
+      The provider repairs a wound measuring 1.1 cm to 2.5 cm in size of the cheeks, chin, mouth, neck, axillae, genitalia, hands, and/or feet, which may require\_scar revision, debridement extensive undermining of tissues, and stents or retention sutures in addition to a layered closure.
+    '14000': >-
+      In an adjacent tissue transfer (ATT) of the trunk, the provider transfers a skin part to another skin segment on the trunk.\_ This code is for an ATT 10 cm2 in size or less.
+    '13153': >-
+      The provider performs closure of a wound/laceration for at least one of
+      the following anatomic areas: eyelids, nose, ears, lips. The repair
+      performed is of a complex nature, which involves more than a layered
+      type closure. This code represents repair of an additional 5 cm or less
+      after a separately reportable 7.5 cm repair.
+    '14001': >-
+      The provider repairs defects in the patient’s trunk by using healthy
+      tissues from an adjacent body part. This code represents transfer of
+      adjacent tissue for defects that equal 10.1 cm2 and up to 30.0 cm2.
+    '14020': >-
+      The provider repairs the defects in the patient’s scalp, arms, and/or
+      legs by using healthy tissues from an adjacent site. This code
+      represents services for defects of 10 cm2 or less.
+    '14040': >-
+      The provider repairs lesions in the patient’s forehead, cheeks, chin,
+      mouth, neck, axillae or armpits, genitalia, hands, and/or feet by using
+      healthy tissues from an adjacent site. This code represents a defect of
+      10 cm2 or less.
+    '13133': >-
+      The provider repairs a wound of the cheeks, chin, mouth, neck, axillae, genitalia, hands, and/or feet, which may require\_scar revision, debridement extensive undermining of tissues, and stents or retention sutures in addition to a layered closure. Report this code for each additional 5 cm or less over and above the initial repair.
+    '14021': >-
+      The provider repairs lesions in the patient’s scalp, arms, or legs by
+      using the healthy tissues from an adjacent site. This code represents a
+      defect of 10.1 cm2 to 30.0 cm2.
+    '13160': >-
+      This procedure is performed on sites of injury such as abdominal wounds
+      and/or contaminated lacerations to avoid infection and re–epithelialize
+      new tissue.
+    '13132': >-
+      The provider repairs a wound measuring 2.6 cm to 7.5 cm in size of the cheeks, chin, mouth, neck, axillae, genitalia, hands, and/or feet, which may require\_scar revision, debridement extensive undermining of tissues, and stents or retention sutures in addition to a layered closure.
+    '13151': >-
+      The provider performs closure of a wound/laceration for at least one of
+      the following anatomic areas: eyelids, nose, ears, lips. The repair
+      performed is of a complex nature, which involves more than a layered
+      type closure. Total length or wound diameter repaired in a complex
+      manner must be from 1.1 cm to 2.5 cm.
+    '14061': >-
+      The provider replaces the lesions in the eyelids, nose, ears, or lips, with the healthy tissues from an adjacent site. This code represents a defect of\_10.1 cm2 to 30.0 cm2 in size.
+    '15221': >-
+      This code is for a free full–thickness skin graft of the scalp, arms, and/or legs. \_This code is used for each additional 20 cm2 or part thereof, of skin used.
+    '15100': >-
+      This procedure is a split–thickness autograft from the trunk, arms, or legs. \_This excision and placement is for the first 100 cm2 or less or one percent of the body area of an infant or child.
+    '15220': >-
+      This CPT code is for a free full–thickness skin graft of the scalp,
+      arms, and/or legs that is 20 cm2 or less in size.
+    '14060': >-
+      The provider replaces the lesions in the eyelids, nose, ears, or lips,
+      with the healthy tissues from an adjacent site. This code represents a
+      defect of 10 cm2 or less.
+    '15101': >-
+      This procedure is a split–thickness autograft from the trunk, arms, or legs. \_This excision and placement is for each additional 100 cm2 or less or each additional one percent of the body area of an infant or child. \_This code is listed separately in addition to the code for the primary procedure.
+    '15120': >-
+      This procedure is a split–thickness autograft of the\_face, scalp, eyelids, mouth, neck, ears, orbits, genitalia, hands, feet, and/or multiple digits. \_This excision and placement is for the first 100 square cm or less or 1% of the body area of an infant or child.
+    '15050': >-
+      The provider surgically removes one or more patches of skin, called
+      pinch grafts, from a healthy donor site and fixes them to the affected
+      part or the recipient site. This procedure helps to cover small ulcers,
+      a toe or fingertip, or other small area up to 2 cm diameter
+    '15121': >-
+      This procedure is a split thickness autograft of the\_face, scalp, eyelids, mouth, neck, ears, orbits, genitalia, hands, feet, and or multiple digits. \_This excision and placement is for an additional 100 square cm, or less, or 1% of the body area of an infant or child.
+    '14350': >-
+      The provider replaces the affected site with a finger or toe fillet
+      flap, which helps the affected site to regain its function.
+    '15201': >-
+      This code is for a free full–thickness skin graft of the trunk. This
+      code is used for each additional 20 cm2 (or part thereof).
+    '15200': >-
+      The provider performs a free full–thickness skin graft of the trunk
+      covering an area of 20 cm2 or less; this code includes direct closure of
+      the donor site as well.
+    '15260': >-
+      This code is for a free full–thickness skin graft of the nose, ears, eyelids, and/or lips\_that is 20 cm2 or less in size.
+    '15600': >-
+      The provider divides a previously created pedicled flap from its base
+      and completes the inset of the graft at the trunk as well as repairs the
+      remaining wound where the flap was pedicled.
+    '15576': >-
+      The provider prepares a direct or tubed pedicle skin flap with the
+      patient’s healthy skin and tissue to cover an injury or wound on the
+      body. The provider may or may not transfer the flap to the recipient
+      site. This code is specific to the eyelids, nose, ears, lips, or
+      intraoral space.
+    '15572': >-
+      The provider prepares a direct or tubed pedicle skin flap with the
+      patient’s healthy skin and tissue to cover an injury or wound on the
+      body. The provider may or may not transfer the flap to the recipient
+      site. This code is specific to the scalp, arms, or legs.
+    '15240': >-
+      This code is for a free full–thickness skin graft of the forehead, cheeks, chin, mouth, neck, axillae, genitalia, hands, and/or feet\_that is 20 cm2 or less in size.
+    '15261': >-
+      This code is for a free full–thickness skin graft of the\_nose, ears, eyelids, and/or lips. \_This code is used for each additional graft of 20 cm2 or part thereof.
+    '15241': >-
+      This CPT code is for a free full–thickness skin graft of the forehead, cheeks, chin, mouth, neck, axillae, genitalia, hands, and/or feet. \_This CPT code is used for each additional 20 cm2, or part thereof, of skin used.
+    '15570': >-
+      The provider prepares a direct or tubed pedicle skin flap with the
+      patient’s healthy skin and tissue to cover an injury or wound on the
+      body. The provider may or may not transfer the flap to the recipient
+      site. This code is specific to the trunk.
+    '15574': >-
+      The provider prepares a direct or tubed pedicle skin flap with the
+      patient’s healthy skin and tissue to cover an injury or wound on the
+      body. The provider may or may not transfer the flap to the recipient
+      site. This code is specific to the forehead, cheeks, chin, mouth, neck,
+      axillae, genitalia, hands or feet.
+    '15750': >-
+      The provider creates an island pedicle flap by incising the healthy skin
+      and tissue around the donor site, elevating it, and placing it on an
+      area of wound or injury. This flap is rich in blood supply because it
+      retains a connection to a named blood vessel from the donor site. The
+      flap also has a nerve that remains attached for transmission of motor
+      and sensory signals.
+    '15740': >-
+      The provider creates an island pedicle flap by incising the healthy skin
+      and tissue around the donor site, elevating it, and placing it on an
+      area of wound or injury. This flap is rich in blood supply because it
+      retains a connection to a named blood vessel from the donor site.
+    '15734': >-
+      The provider develops a muscle, myocutaneous, or fasciocutaneous flap
+      obtained from the trunk (the area between the neck and the waist) and
+      places it over a defect on the patient's body.
+    '15738': >-
+      The provider creates a muscle, myocutaneous, or fasciocutaneous flap
+      from a lower extremity of the patient to treat injury or open wounds on
+      an affected area.
+    '15756': >-
+      Myocutaneous (muscle) flaps are used for cosmetic procedures and to aid in repairing a wound. A myocutaneous flap includes the muscle tissue and the skin layers above it. The flap is taken from a donor site and placed at the wound site. Blood circulation to\_the flap is restored through microvascular reconstruction – a process where the physician joins the existing blood vessels on the flap to the vessels at the wound site under microscopic guidance. This ensures quick healing. This method is called a Free Flap.\_ In a local flap, the flap is taken from the area surrounding the wound. In such cases one end of the flap remains connected to the skin to maintain blood supply to the flap.
+    '15736': >-
+      The provider creates a muscle, myocutaneous, or fasciocutaneous flap
+      from an upper extremity of the patient to treat an injury or open wound
+      on an affected area.
+    '15757': >-
+      The provider creates a free skin flap using microvascular techniques. He uses a flap\_\_taken from a donor site and placed at the wound site, connecting vessels in the donor flap to vessels in the wound.
+    '15758': >-
+      The provider takes a free fascial flap, a piece of skin along with the
+      underlying fascial tissue and blood vessels, from a donor site in the
+      body and planted at the site of repair using microscopic techniques to
+      attach the blood vessels in the flap to those in the donor site.
+    '15650': >-
+      The provider moves a previously created pedicle flap from its donor site
+      to a different location on the patient’s body.
+    '15630': >-
+      The provider divides a previously created pedicled flap from its base
+      and completes the inset of the graft at eyelids, nose, ears, or lips as
+      well as repairs the remaining wound where the flap was pedicled.
+    '15770': >-
+      The provider harvests a composite graft consisting of dermis, fat, and
+      fascia, or a combination thereof, and sutures the graft into a recipient
+      site.
+    '15620': >-
+      The provider divides a previously created pedicled flap from its base and completes the inset of the graft at\_forehead, cheeks, chin, neck, axillae, genitalia, hands, or feet as well as repairs the remaining wound where the flap was pedicled.
+    '15760': >-
+      The provider performs an excision of the skin graft from the donor site,
+      such as from the external part of the patient’s ear or nasal ala, which
+      is the external wing part of the nose that includes cartilage. He places
+      this graft on the recipient site to cover its defects. He then closes
+      the donor area with sutures.
+    '15610': >-
+      The provider divides a previously created pedicled flap from its base
+      and completes the inset of the graft at the scalp, arms, or legs as well
+      as repairs the remaining wound where the flap was pedicled.
+    '15781': >-
+      In this procedure, the provider removes acne scars, various types of
+      facial lesions, and tattoos on a portion of the face by lightly sanding
+      the surface of the skin with a specialized tool.
+    '15787': >-
+      In this procedure, the provider removes one to four additional lesions,
+      such as scars or abnormal growths, by lightly sanding the surface of the
+      skin with a specialized tool, after removing an initial lesion.
+    '15789': >-
+      A chemical peel, also called chemexfoliation, is the application of
+      chemical agents (e.g. alpha–hydroxy acid, retinoic acid, or phenol) in a
+      controlled manner to remove a superficial scar, sun damage, or acne. It
+      involves the epidermis partially or completely. It may or may not
+      involve the dermis depending on the duration and requirements of the
+      procedure.
+    '15783': >-
+      In this procedure, the provider removes tattoos and very light scars or
+      lesions on the surface of the skin anywhere in the body by very lightly
+      sanding the area with a specialized tool.
+    '15782': >-
+      In this procedure, the provider removes acne scars, lesions, or tattoos
+      from an area of the body other than the face by lightly sanding the
+      surface of the skin with a specialized tool.
+    '15819': >-
+      Cervicoplasty, aka neck lift, is done to improve the appearance of the
+      neck by removing loose skin and fat from the region and giving a taut
+      look to the skin. Slack skin in the neck may be ascribed to advancing
+      age. Other conditions such as fat deposits in the neck, and retrognathia
+      (a condition in which a receding jaw gives the impression of absence of
+      jawline or chin) may necessitate a cervicoplasty. Fat deposits under the
+      skin in the neck area are sometimes removed through liposuction which is
+      followed by removal of excess skin.
+    '15786': >-
+      In this procedure, the provider removes a single lesion, such as a scar
+      or an abnormal growth, by lightly sanding the surface of the skin with a
+      specialized tool.
+    '15780': >-
+      The provider rotates a specialized machine on the patient’s face to
+      treat acne, scars, wrinkles, or bumps of the total face.
+    '15776': >-
+      The provider prepares more than 15 hair grafts for the patient, from a
+      site of the scalp that bears hair. He then prepares the site devoid of
+      hair and transfers the grafts to the target site.
+    '15788': >-
+      A chemical peel,\_also called chemexfoliation, is the application of chemical agents (e.g. alpha–hydroxy acid, retinoic acid, or phenol) in a controlled manner to remove a superficial scar, sun damage, or acne. It involves the epidermis partially or completely. It may or may not involve the dermis depending on the duration and requirements of the procedure.
+    '15793': >-
+      A chemical peel, also called chemexfoliaiton, is the application of
+      chemical agents (e.g. alpha–hydroxy acid, retinoic acid, or phenol) in a
+      controlled manner to remove a superficial scar, sun damage, or acne. It
+      involves the epidermis partially or completely. It may or may not
+      involve the dermis depending on the duration and requirements of the
+      procedure.
+    '15792': >-
+      A chemical peel, also called chemexfoliation, is the application of
+      chemical agents (e.g. alpha–hydroxy acid, retinoic acid, or phenol) in a
+      controlled manner to remove a superficial scar, sun damage, or acne. It
+      involves the epidermis partially or completely. It may or may not
+      involve the dermis depending on the duration and requirements of the
+      procedure.
+    '15775': >-
+      The provider prepares 1 to 15 hair grafts for the patient, from a site
+      of the scalp that bears hair. He then prepares the site devoid of hair
+      by making small holes using a punching instrument and transfers the
+      grafts to the target site.
+    '15823': >-
+      In this procedure, the provider surgically trims excessive skin that
+      weighs down the upper eyelid, typically to improve the cosmetic
+      appearance of the face and due to the interference of the tissue in the
+      patient’s vision.
+    '15832': >-
+      This code is used for removal of excessive skin and subcutaneous tissue
+      of the thigh.
+    '15822': >-
+      In this procedure, the provider surgically trims excess skin from below
+      the upper eyelid, typically to improve the cosmetic appearance of the
+      face.
+    '15828': >-
+      The provider performs a rhitidectomy by removing excess skin and fat,
+      thus tightening the skin in the cheek, chin, and neck region.
+    '15820': >-
+      In this procedure, the provider surgically trims excess skin from below
+      the lower eyelid, typically to improve the cosmetic appearance of the
+      face.
+    '15835': >-
+      This code is used for removal of excessive skin and subcutaneous tissue
+      of the buttock.
+    '15825': >-
+      In this procedure, the provider surgically tightens loose skin and
+      tissues around the jaw and neck to improve a patient’s cosmetic
+      appearance.
+    '15836': >-
+      This code is used for removal of excessive skin and subcutaneous tissue
+      of the arm.
+    '15833': >-
+      This code is used for removal of excessive skin and subcutaneous tissue
+      of the leg.
+    '15824': >-
+      The provider performs a rhytidectomy of the forehead ('brow lift') to
+      smooth out the wrinkled skin of the forehead.
+    '15821': >-
+      In this procedure, the provider surgically trims the excess skin and
+      bulging fatty tissue below the lower eyelid, typically to improve the
+      cosmetic appearance of the face.
+    '15829': >-
+      The provider performs a rhitidectomy (facelift) by removing excess skin
+      and fat to tighten up the skin and remove wrinkles from the face.
+    '15826': >-
+      Rhytidectomy of the forehead (also known as a 'brow lift')\_smoothes\_out the wrinkled skin of the forehead. \_In this case, the goal is to reduce or remove \"frown lines\" located at the glabella.
+    '15834': >-
+      This code is used for removal of excessive skin and subcutaneous tissue
+      of the hip.
+    '15877': >-
+      The provider performs suction–assisted lipectomy (liposuction) of the
+      trunk regions to remove the fat deposits.
+    '15838': >-
+      This code is used for removal of excessive skin and subcutaneous tissue
+      of the submental fat pad or double chin.
+    '15879': >-
+      The provider performs suction–assisted lipectomy (liposuction) of the
+      lower extremity to remove the fat deposits, primarily from the thigh and
+      knee areas.
+    '15845': >-
+      The provider transfers muscle tissue from one area of the head or face
+      to a part of the face afflicted with facial nerve paralysis to restore a
+      more normal appearance to the face. The provider rotates the grafted
+      muscle into place without impacting the nerve and vascular supply in the
+      transferred muscle.
+    '15851': >-
+      A different provider than the one who originally sutures a wound removes
+      the sutures in a patient who requires general anesthesia due to the
+      painful nature of the suture removal or in a patient unable to cooperate
+      with the procedure while awake.
+    '15839': >-
+      The provider excises excessive skin and subcutaneous tissue of an area not\_specified\_in another CPT code.
+    '15878': >-
+      The provider performs suction–assisted lipectomy (liposuction) of the
+      upper extremity to remove the fat deposits, primarily from the under
+      arm.
+    '15876': >-
+      The provider performs suction–assisted lipectomy (liposuction) in the
+      neck (submental lipectomy) and head regions to remove the fat deposits
+      that give a double–chin look.
+    '15842': >-
+      The provider removes a removes a piece of muscle tissue from an area of
+      the body like the back, chest, abdomen, or thigh, and attaches it to the
+      face to restore a more normal appearance in a patient suffering from
+      facial nerve paralysis. He uses a surgical microscope and small
+      instruments to connect the tiny vessels in the grafted tissue to the
+      vessels in its new location in the face.
+    '15840': >-
+      The provider removes a removes a piece of tissue from below the skin,
+      from an area of the body like the thigh, and attaches it to the face to
+      restore a more normal appearance in a patient suffering from facial
+      nerve paralysis.
+    '15841': >-
+      The provider removes a removes a piece of muscle tissue from an area of
+      the body like the back, chest, abdomen, or thigh, and attaches it to the
+      face to restore a more normal appearance in a patient suffering from
+      facial nerve paralysis.
+    '15852': >-
+      The provider changes the dressing on a wound, unrelated to a burn, in a
+      patient who requires general anesthesia due to the painful nature of the
+      dressing change or in a patient unable to cooperate with a dressing
+      change while awake.
+    '15860': >-
+      The provider assesses the blood flow in grafted tissue by injecting an
+      illuminating dye to ensure the graft has an adequate blood supply and
+      will remain healthy.
+    '15850': >-
+      The same provider who sutures a wound removes the sutures in a patient
+      who requires general anesthesia due to the painful nature of the suture
+      removal or in a patient unable to cooperate with the procedure while
+      awake.
+    '15837': >-
+      This code is used for removal of excessive skin and subcutaneous tissue
+      of the forearm or hand.
+    '15951': >-
+      The provider removes the pressure ulcer and underlying bone of the
+      trochanter of the hip area. He sutures the site to close the wound.
+    '15944': >-
+      The provider removes a pressure sore in the hip area and closes the
+      wound with a skin flap to ensure complete healing and avoid recurrence.
+    '15931': >-
+      The provider removes a pressure sore at the base of the spine. He
+      sutures the skin edges together to heal the wound and prevent infection.
+    '15946': >-
+      The provider removes a pressure sore and its underlying bone in the hip
+      area, when infection in the wound has spread to bone. He prepares the
+      wound for closure with the use of a graft of skin or skin and muscle.
+    '15950': >-
+      The provider removes a pressure ulcer of the trochanter of the hip area
+      and sutures the site to close the wound.
+    '15937': >-
+      The provider removes a pressure sore and its underlying bone in the
+      sacral area. He prepares the wound for closure with the use of a graft
+      of skin or skin and muscle.
+    '15934': >-
+      The provider removes a pressure sore at the base of the spine and closes
+      the wound with a skin flap to ensure complete healing and avoid
+      recurrence.
+    '15940': >-
+      The provider removes a pressure sore from the hip area. He sutures the
+      skin edges together to heal the wound and prevent infection.
+    '15922': >-
+      The provider removes a pressure ulcer of the tailbone area and removes a
+      portion of underlying infected bone. He closes the wound with a skin
+      flap to ensure complete healing and avoid recurrence.
+    '15920': >-
+      The provider removes a pressure sore over the tailbone area and removes
+      a portion of underlying infected bone. He sutures the site to heal the
+      wound.
+    '15945': >-
+      The provider removes a pressure sore and its underlying bone in the hip
+      area when infection in the wound has spread down to bone. He closes the
+      wound with a skin flap to ensure complete healing and avoid recurrence.
+    '15933': >-
+      The provider removes a pressure sore and its underlying bone at the base
+      of the spine. He sutures the site to heal the wound.
+    '15935': >-
+      The provider removes a pressure sore and its underlying bone in the
+      sacral area. He closes the wound with a skin flap to ensure complete
+      healing and avoid recurrence.
+    '15936': >-
+      The provider removes a pressure sore in at the base of the spine. He
+      prepares the wound for closure with the use of a graft of skin or skin
+      and muscle.
+    '15941': >-
+      The provider removes a pressure sore and its underlying bone in the hip
+      area when infection in the wound has spread down to bone. He sutures the
+      site to heal the wound.
+    '15999': >-
+      Use 15999 to report procedures for pressure ulcer excision that do not
+      have a specific code.
+    '16036': >-
+      The provider incises the eschar to release the underlying pressure and
+      avoid restriction of blood supply. The provider usually performs this
+      service for third degree burns. This code represents each additional
+      incision after the first.
+    '17000': >-
+      The provider destroys a premalignant lesion using techniques such as
+      chemosurgery, cryosurgery, electrosurgery, or others. This code reports
+      the destruction of the first or only lesion.
+    '15953': >-
+      The provider removes the pressure ulcer and underlying bone of the
+      trochanter of the hip area. He closes the wound with a skin flap.
+    '16000': >-
+      The provider washes the first degree burn with plenty of cold water and
+      wraps it in clean sterile gauze.
+    '16020': >-
+      This CPT code is for the dressing and/or debridement of a
+      partial–thickness burn (either initially or subsequently). In this
+      instance the burn is small (less than 5% of the total body surface
+      area).
+    '15956': >-
+      The provider removes the pressure ulcer of the trochanter of the hip
+      area. He prepares the wound for closure by a myocutaneous flap or skin
+      graft.
+    '16030': >-
+      This code is for the dressing and/or debridement of a partial–thickness
+      burn (either initially or subsequently). In this instance the burn is
+      large (more than one extremity or greater than 10% of the total body
+      surface area).
+    '15952': >-
+      The provider removes the pressure ulcer of the trochanter of the hip
+      area and closes the wound with a skin flap.
+    '16025': >-
+      This CPT code is for the dressing and/or debridement of a partial–thickness burn (either initially or subsequently). In this instance the burn is medium (whole face or\_extremity, or 5 percent to 10 percent of the total body surface area).
+    '16035': >-
+      The provider incises the eschar to release the underlying pressure and
+      avoid restriction of blood supply. The provider usually performs this
+      service for third degree burns. This code represents the first incision.
+    '17003': >-
+      In this add–on procedure, the provider destroys a premalignant lesion
+      using techniques such as chemosurgery, cryosurgery, electrosurgery, or
+      others. This code is appropriate for the second through the 14th lesion
+      destroyed in an encounter, with one unit representing a single lesion.
+    '15958': >-
+      The provider removes a pressure ulcer and underlying bone of the
+      trochanter of the hip area. He prepares the wound for closure by a
+      myocutaneous flap or skin graft.
+    '17107': >-
+      Cutaneous vascular destruction is generally performed with a laser (e.g. Argon, pulsed dye, and YAG). This is a bloodless surgery due to the fact that there is no incision made in the skin. \_This code covers destruction of a cutaneous vascular proliferative lesion that is 10.0 cm2 to 50.0 cm2 in area.
+    '17266': >-
+      The provider destroys a malignant lesion on the trunk, arms, or legs
+      using techniques such as chemosurgery, cryosurgery, electrosurgery, or
+      others. The malignant lesion is over 4.0 cm in diameter.
+    '17111': >-
+      The provider destroys benign lesions using techniques such as
+      chemosurgery, cryosurgery, electrosurgery, or others. This code reports
+      the destruction of 15 lesions or more, other than skin tags or cutaneous
+      vascular proliferative lesions.
+    '17262': >-
+      The provider destroys a malignant lesion on the trunk, arms, or legs
+      using techniques such as chemosurgery, cryosurgery, electrosurgery, or
+      others. The malignant lesion is 1.1 cm to 2.0 cm in diameter.
+    '17271': >-
+      The provider destroys a malignant lesion on the scalp, neck, hands,
+      feet, or genitalia using techniques such as chemosurgery, cryosurgery,
+      electrosurgery, or others. The malignant lesion is 0.6 cm to 1.0 cm in
+      diameter.
+    '17270': >-
+      The provider destroys a malignant lesion on the scalp, neck, hands,
+      feet, or genitalia using techniques such as chemosurgery, cryosurgery,
+      electrosurgery, or others. The malignant lesion is 0.5 cm or less in
+      diameter.
+    '17110': >-
+      The provider destroys benign lesions using techniques such as
+      chemosurgery, cryosurgery, electrosurgery, or others. This code reports
+      the destruction of one to 14 lesions other than skin tags or cutaneous
+      vascular proliferative lesions.
+    '17250': >-
+      The provider cauterizes granulation tissue using chemicals like silver
+      nitrate or potassium hydroxide to heal the injured tissue.
+    '17106': >-
+      Cutaneous vascular destruction is generally performed with a laser (e.g.
+      Argon, pulsed dye, and YAG). This is a bloodless surgery due to the fact
+      that there is no incision made in the skin. This code covers destruction
+      of a cutaneous vascular proliferative lesion that is less than 10 cm2 in
+      area.
+    '17263': >-
+      The provider destroys a malignant lesion on the trunk, arms, or legs
+      using techniques such as chemosurgery, cryosurgery, electrosurgery, or
+      others. The malignant lesion is 2.1 cm to 3.0 cm in diameter.
+    '17108': >-
+      Cutaneous vascular destruction is generally performed with a laser (e.g. Argon, pulsed dye, and YAG). This is a bloodless surgery due to the fact that there is no incision made in the skin. \_This code covers destruction of a cutaneous vascular proliferative lesion that is greater than 50 cm2 in size.
+    '17260': >-
+      The provider destroys a malignant lesion on the trunk, arms, or legs
+      using techniques such as chemosurgery, cryosurgery, electrosurgery, or
+      others. The malignant lesion is 0.5 cm or less in diameter.
+    '17004': >-
+      The provider destroys 15 or more premalignant lesions using techniques
+      such as chemosurgery, cryosurgery, electrosurgery, or others.
+    '17264': >-
+      The provider destroys a malignant lesion on the trunk, arms, or legs
+      using techniques such as chemosurgery, cryosurgery, electrosurgery, or
+      others. The malignant lesion is 3.1 cm to 4.0 cm in diameter.
+    '17261': >-
+      The provider destroys a malignant lesion on the trunk, arms, or legs
+      using techniques such as chemosurgery, cryosurgery, electrosurgery, or
+      others. The malignant lesion is 0.6 cm to 1.0 cm in diameter.
+    '17274': >-
+      The provider destroys a malignant lesion on the scalp, neck, hands,
+      feet, or genitalia using techniques such as chemosurgery, cryosurgery,
+      electrosurgery, or others. The malignant lesion is 3.1 cm to 4.0 cm in
+      diameter.
+    '17284': >-
+      The provider destroys a malignant lesion on the face, ears, eyelids,
+      nose, lips, or mucous membrane using techniques such as chemosurgery,
+      cryosurgery, electrosurgery, or others. The malignant lesion is 3.1 cm
+      to 4.0 cm in diameter.
+    '17281': >-
+      The provider destroys a malignant lesion on the face, ears, eyelids,
+      nose, lips, or mucous membrane using techniques such as chemosurgery,
+      cryosurgery, electrosurgery, or others. The malignant lesion is 0.6 cm
+      to 1.0 cm in diameter.
+    '17282': >-
+      The provider destroys a malignant lesion on the face, ears, eyelids,
+      nose, lips, or mucous membrane using techniques such as chemosurgery,
+      cryosurgery, electrosurgery, or others. The malignant lesion is 1.1 cm
+      to 2.0 cm in diameter.
+    '17276': >-
+      The provider destroys a malignant lesion on the scalp, neck, hands,
+      feet, or genitalia using techniques such as chemosurgery, cryosurgery,
+      electrosurgery, or others. The malignant lesion is over 4.0 cm in
+      diameter.
+    '17280': >-
+      The provider destroys a malignant lesion on the face, ears, eyelids,
+      nose, lips, or mucous membrane using techniques such as chemosurgery,
+      cryosurgery, electrosurgery, or others. The malignant lesion is 0.5 cm
+      or less in diameter.
+    '17286': >-
+      The provider destroys a malignant lesion on the face, ears, eyelids,
+      nose, lips, or mucous membrane using techniques such as chemosurgery,
+      cryosurgery, electrosurgery, or others. The malignant lesion is over 4.0
+      cm in diameter.
+    '17273': >-
+      The provider destroys a malignant lesion on the scalp, neck, hands,
+      feet, or genitalia using techniques such as chemosurgery, cryosurgery,
+      electrosurgery, or others. The malignant lesion is 2.1 cm to 3.0 cm in
+      diameter.
+    '17283': >-
+      The provider destroys a malignant lesion on the face, ears, eyelids,
+      nose, lips, or mucous membrane using techniques such as chemosurgery,
+      cryosurgery, electrosurgery, or others. The malignant lesion is 2.1 cm
+      to 3.0 cm in diameter.
+    '17272': >-
+      The provider destroys a malignant lesion on the scalp, neck, hands,
+      feet, or genitalia using techniques such as chemosurgery, cryosurgery,
+      electrosurgery, or others. The malignant lesion is 1.1 cm to 2.0 cm in
+      diameter.
+    '19100': >-
+      In this procedure, the provider removes a core tissue sample from a
+      breast lesion to diagnose conditions such as breast cancer.
+    '17360': >-
+      The provider uses chemical agents to peel off the acne.
+    '19000': >-
+      The provider drains out the fluid from a breast cyst by inserting a
+      needle into it.
+    '19120': >-
+      The provider excises one or more suspicious breast lesions in a man or
+      woman using an open approach.
+    '19112': >-
+      The provider excises (removes) a fistula (a tubular connection) between
+      a lactiferous (milk) duct and the skin.
+    '19020': >-
+      The provider performs a mastotomy (incision into the breast) and
+      explores and/or drains a deep abscess in the breast.
+    '19001': >-
+      In this add on procedure, the provider performs puncture aspiration of
+      each additional cyst after the first. She might also use separately
+      reportable image guidance during the procedure.
+    '17340': >-
+      The provider uses cryotherapy to treat acne, typically after the acne
+      fails to respond to topical or systemic medications.
+    '17380': >-
+      The provider uses short wave diathermy current to destroy and remove
+      unwanted hair and prevent further hair growth.
+    '19030': >-
+      The provider injects a contrast agent into the breast of a patient for
+      the purpose of performing a mammary ductogram or galactogram to image
+      the mammary (milk) ducts of the breast.
+    '19101': >-
+      In this procedure, the provider removes a small amount of tissue from a
+      breast lesion to identify any abnormality present. The provider uses an
+      open incisional approach.
+    '17999': >-
+      'Unlisted procedure, skin, mucous membrane, and subcutaneous tissue.'
+    '19110': >-
+      The provider explores the nipple through an incision and may or may not excise (remove) a single lactiferous (milk) duct\_or a papilloma (benign tumor) lactiferous duct.
+    '19126': >-
+      The provider excises an additional lesion previously identified by a
+      preoperative radiological marker through an open incision after excising
+      an initial lesion from the same breast.
+    '19125': >-
+      The provider excises a single lesion previously identified by a
+      preoperative radiological marker through an open incision.
+    '19355': >-
+      In this procedure, the provider corrects inverted nipples by releasing
+      the ducts and fibers holding the nipples.
+    '19328': >-
+      This procedure is for the removal of a previously placed breast implant.
+    '19342': >-
+      After some period of time following a mastectomy (breast excision), the
+      provider performs another procedure to insert or replace a breast
+      implant.
+    '19340': >-
+      The physician immediately inserts a breast implant following a
+      mastectomy (breast excision).
+    '19325': >-
+      In this procedure, the provider increases the size and volume of the
+      breast by placing a breast implant.
+    '19357': >-
+      In this procedure, the provider places a tissue expander into the skin
+      and pectoralis major muscles of the chest. The patient has the procedure
+      to increase the size and volume of the breast to make space for a
+      permanent implant, such as following a mastectomy. The provider performs
+      the subsequent expansion portion of the procedure over a period of
+      several weeks.
+    '19297': >-
+      In this add on procedure, the provider inserts a single or
+      multichanneled expandable balloon catheter for radiotherapy treatment at
+      the same session as partial mastectomy. She uses image guidance for the
+      correct placement of the catheter.
+    '19316': >-
+      Mastopexy, also called a breast lift, refers to skin reduction with removal or reduction of underlying breast muscles to reorient the breasts into a higher position. \_This procedure can be a concentric, vertical, or circumareolar mastopexy.
+    '19330': >-
+      Breast implant material is removed if there is an implant rupture.
+    '19298': >-
+      In this procedure, the provider, places multiple tube and button type
+      after loading brachytherapy catheters at the treatment site for
+      radiotherapy treatment. He uses image guidance for the correct placement
+      of the catheter. This service may take place at the same session as a
+      partial mastectomy or at a later date.
+    '19296': >-
+      In this procedure, the provider, places a single or multichanneled expandable balloon catheter for radiotherapy treatment at the treatment site\_after partial mastectomy. He uses image guidance for the correct placement of the catheter.
+    '19318': >-
+      Breast reduction is the removal of excess breast tissue which results
+      from top scarring, calcification, or architectural distortion.
+    '19350': >-
+      There are several techniques for nipple and areolar reconstruction. \_The physician can perform nipple sharing, skate flap, C–v flap, or a local flap.
+    '19361': >-
+      The provider artificially creates the contour of a breast with a flap of
+      tissue and muscle harvested from behind the shoulder and sutured at the
+      site of the breast to restore cosmetic appearance following a modified
+      or radical mastectomy, or to repair a defect.
+    '19380': >-
+      Breast revision is performed to improve unacceptable cosmetic appearance
+      or other complication.
+    '19371': >-
+      In this procedure, the provider surgically releases a capsule, or scar
+      tissue, that forms within the breast tissue around a previous implant.
+      He also removes all intracapsular contents such as tissues and fibrous
+      scar.
+    '19364': >-
+      The provider artificially creates the contour of a breast by harvesting
+      a free flap of skin and muscle and/or fat from another site such as the
+      inner thigh, buttock, or lower abdomen and suturing it at the site of
+      the breast to restore cosmetic appearance following a modified or
+      radical mastectomy, or to repair a defect.
+    '19370': >-
+      In this procedure, the provider surgically releases a capsule, or the
+      scar tissue, that forms within the breast tissue around a previous
+      implant. The provider performs this procedure to relieve pain from the
+      contraction of the scar tissue or to address malpositioning of the
+      breast implant.
+    '19396': >-
+      The provider makes a mold, or a model that closely configures to a
+      mastectomy patient’s remaining breast. He performs this procedure to
+      create a customized breast implant that includes identification of any
+      chest wall or other deformity to ensure a good reconstruction.
+    '19367': >-
+      The provider artificially creates the contour of a breast by harvesting a flap of skin, fat, and transverse rectus abdominis\_muscle (TRAM) from the lower abdomen, leaving a small strip of vascularized tissue connected to the original site, and sutures the flap to the location of the original breast to restore cosmetic appearance following breast removal surgery or to repair a defect.
+    '20100': >-
+      The provider explores a penetrating wound in the neck, such as from a
+      sharp object or gunshot, to assess and repair internal damage and remove
+      any foreign material retained in the wound.
+    '19369': >-
+      The provider artificially creates the contour of a breast by harvesting
+      a flap of skin, fat, and transverse rectus abdominis muscle from both
+      sides of the lower abdomen, leaving two strips of vascularized tissue
+      connected to the original site, and sutures the flap to the location of
+      the original breast to restore cosmetic appearance following breast
+      removal surgery or to repair a defect.
+    '19499': >-
+      Use this code to report a procedure on the breast for which there is no
+      specific code available.
+    '19368': >-
+      The provider artificially creates the contour of a breast by harvesting a flap of skin, fat, and\_transverse rectus abdominis muscle from the lower abdomen, leaving a small strip of vascularized tissue connected to the original site, sutures the flap to the location of the original breast, and connects the small vessels in the flap to the mastectomy site using microvascular technique to restore cosmetic appearance following breast removal surgery or to repair a defect.
+    '20240': >-
+      An open, superficial bone biopsy is a procedure to obtain a sample of
+      bone tissue to further analyze a suspected medical condition or
+      infection.
+    '20102': >-
+      The provider carefully examines the inside of a penetrating wound of the abdomen, flank, or back to assess the extent of damage to underlying tissues and structures as well as to identify and remove any foreign bodies that may have entered the wound, such as bullet fragments or a knife tip. In the case of a gunshot wound, a bullet may enter the body at one point and exit at another, causing\_perforation and damage to internal organs and tissues along its path.
+    '20250': >-
+      Open biopsy of the vertebral body of the thoracic spine is a procedure
+      done to a obtain tissue samples for diagnostic study of suspected
+      disease conditions, such as a malignancy or an infection, like
+      osteomyelitis.
+    '20220': >-
+      A superficial bone biopsy is a procedure to obtain a sample of bone
+      tissue to further analyze a suspected medical condition or infection.
+    '20245': >-
+      An open bone biopsy is a procedure to obtain sample bone tissue,
+      typically from a lesion, to further analyze a suspected medical
+      condition or infection.
+    '20251': >-
+      Open biopsy of the vertebral body of the lumbar or cervical spine is a
+      procedure done to a obtain tissue samples, typically from a lesion, for
+      diagnostic study of suspected disease conditions, such as a malignancy
+      or an infection, like osteomyelitis.
+    '20205': >-
+      A muscle biopsy is a procedure to obtain sample of deep muscle tissue to
+      further analyze a suspected medical condition or infection. Deep muscle
+      tissue is well below the fascia or beneath other muscles or bones.
+    '20501': >-
+      The provider injects a diagnostic agent, such as contrast material, into
+      a sinus tract that connects an abscess in the body to the skin. The
+      provider may use imaging guidance to visualize the procedure. The
+      procedure helps to identify and locate the extent of inflammation,
+      abscess, cyst, or lesion.
+    '20225': >-
+      The provider extracts samples of bone tissue from a bone in the deep
+      tissue, such as a back bone or thigh bone, using a needle or trocar. He
+      submits the specimen for laboratory analysis to determine the presence
+      of bone disease.
+    '20103': >-
+      The provider carefully examines the inside of a penetrating wound to an extremity to assess the extent of damage to underlying tissues and structures as well as to identify and remove any foreign bodies that may have entered the wound, such as bullet fragments or a knife tip. In the case of a gunshot wound, a bullet may enter the body at one point and exit at another, causing\_perforation and damage to tissues along its path.
+    '20206': >-
+      A percutaneous needle muscle biopsy is a surgical procedure to obtain a
+      sample of muscle tissue to further analyze a suspected medical condition
+      or infection.
+    '20500': >-
+      The provider injects a therapeutic agent, such as an antibiotic, into a sinus tract that connects an abscess in the body to the skin. The provider may use \_imaging guidance \_to visualize \_the procedure.
+    '20150': >-
+      The epiphyseal bar, or physis bar, refers to a deformity of the long
+      bones that a fracture, injury, or infection cause. It leads to fusion of
+      the epiphysis to metaphysis and results in premature arrest, or
+      stoppage, of bone growth. By excising the epiphyseal bar and replacing
+      it with autogenous fat tissue, the provider can restore the process of
+      bone growth.
+    '20101': >-
+      The provider carefully examines the inside of a penetrating chest wound to assess the extent of damage to underlying tissues and structures as well as to identify and remove any foreign bodies that may have entered the wound, such as bullet fragments or a knife tip. In the case of a gunshot wound, a bullet may enter the body at one point and exit at another, causing\_perforation and damage to internal organs and tissues along its path.
+    '20200': >-
+      A muscle biopsy is a surgical procedure to obtain sample of superficial
+      muscle tissue to further analyze a suspected medical condition or
+      infection. Superficial muscle tissue is just below the surface of the
+      skin or fascia.
+    '20661': >-
+      A cranial halo is a ring shaped device on the head that applies a
+      traction force to the skull to stabilize the cervical spine in patients
+      with cervical injuries or fractures. A plastic vest the patient wears
+      attaches to the cranial halo and provides further immobilization. This
+      service also includes removal of the halo.
+    '20600': >-
+      In this procedure, the provider inserts a needle through the skin of a
+      patient and into a small joint or bursa and then uses the syringe
+      attachment to the needle to remove fluid or he may inject a drug into
+      the joint for therapeutic purpose. He performs this procedure without
+      using ultrasound guidance.
+    '20553': >-
+      Trigger point injection, or TPI, is a medical procedure in which the
+      provider injects an anesthetic or corticosteroid substance into three or
+      more muscles to relieve painful areas or knots in muscles that form when
+      muscles don’t relax.
+    '20612': >-
+      A ganglion cyst is an abnormal fluid filled mass, or lump, arising from
+      a tendon or joint, commonly occurring in the hand or wrist but can occur
+      in the foot or ankle. Treatment is not required for a ganglion cyst
+      unless it causes pain or restricts movement. Nonsurgical treatment
+      includes aspiration to remove the fluid from the cyst or injection with
+      a substance that destroys the cyst.
+    '20605': >-
+      In this procedure, the provider inserts a needle through the skin of a
+      patient and into an intermediate joint or bursa and then uses the
+      syringe attachment to the needle to remove fluid or he may inject a drug
+      into the joint for therapeutic purposes. He performs this procedure
+      without using ultrasound guidance.
+    '20526': >-
+      The provider injects medication into the carpal tunnel to provide short
+      term relief of symptoms of carpal tunnel syndrome, or CTS. CTS is a
+      condition where the patient experiences pain, numbness, and tingling
+      affecting the fingers and hand, resulting from compression of the median
+      nerve within the carpal tunnel.
+    '20552': >-
+      Trigger point injection, or TPI, is a medical procedure that involves
+      injecting an anesthetic or corticosteroid substance to relieve a trigger
+      point, which is a painful area or knot in a muscle.
+    '20525': >-
+      The provider removes a foreign body, such as a thorn, wood particle,
+      bullet, or gravel, lodged deeply in the muscle or tendon sheath through
+      a surgical incision at the site to relieve swelling, pain, and
+      difficulty in movement of the body part.
+    '20551': >-
+      The provider injects a drug into the origin or insertion site of a
+      tendon to relieve pain, inflammation, and swelling from a diseased or
+      damaged tendon.
+    '20520': >-
+      The provider removes a foreign body, such as a thorn, wood particle,
+      bullet, or gravel, lodged in the muscle or tendon sheath through a
+      surgical incision at the site to relieve swelling, pain, and difficulty
+      in movement of the body part.
+    '20615': >-
+      A bone cyst is a common, benign, fluid filled sac, usually occurring in
+      the metaphysis of long bones. A bone cyst can contain purulent material
+      or clear fluid. Nonsurgical treatment of a bone cyst includes aspiration
+      to remove the fluid from the cyst and injection with a substance that
+      destroys the cyst.
+    '20550': >-
+      Aponeurosis is an abnormal sheet like extension of the tendon. Injection
+      of a tendon or ligament is the medical therapeutic procedure to reduce
+      the aponeurosis formation.
+    '20660': >-
+      Cranial tongs, calipers, or stereotactic frames are devices that apply
+      traction force to the cervical spine for treatment of cervical spine
+      fractures, dislocations, or spinal cord injuries. These devices also
+      help in maintaining proper alignment of the spine during diagnostic or
+      therapeutic procedures, such as spinal surgery or a magnetic resonance
+      imaging, or MRI procedure. This service includes applying the traction
+      force and removing it.
+    '20610': >-
+      In this procedure, the provider inserts a needle through the skin of a
+      patient and into a major joint or bursa and then uses the syringe
+      attachment to the needle to remove fluid or he may inject a drug into
+      the joint for therapeutic purpose. He performs this procedure without
+      using ultrasound guidance.
+    '20650': >-
+      Skeletal traction applies a pulling force on bones to treat skeletal
+      disorders and fractures. It aligns and immobilizes bones, while
+      relieving pressure on the muscles and nerves. This allows normal healing
+      of a defect or fracture. Skeletal traction requires the insertion of
+      pins, screws, or wires through the skin and bone and the attachment of
+      weights to the traction device to produce the desired amount of pulling
+      force. This service also includes removal of the traction device.
+    '20694': >-
+      The provider removes an external fixation system while the patient is
+      under anesthesia. Skeletal fixation devices are used to join two
+      skeletal parts and maintain their normal alignment while helping in
+      faster healing. An external fixation system, also called an external
+      fixator or ex fix, is a fixation device that is placed inside of bones,
+      and the device itself remains outside of the body, It enables the
+      provider to make adjustments to the fixation externally and eliminates
+      the need for invasive procedures. Once the defect has healed, the
+      provider removes the external fixation system and any associated
+      implants.
+    '20816': >-
+      The replantation of a digit, or finger, excluding the thumb, after
+      complete amputation is a major, or open, invasive medical procedure to
+      reattach the amputated body part at the relevant body area.
+    '20692': >-
+      The provider applies a multiplane external fixation system to one side
+      of the patient's body. Skeletal deformities or injuries such as
+      fractures often require the use of skeletal fixation devices to join
+      skeletal parts and maintain their normal alignment as healing takes
+      place. An external fixation system, also called an external fixator or
+      ex fix, is a fixation device that is placed inside of bones, and the
+      device itself remains outside of the body. It enables the provider to
+      make adjustments to the fixation externally and eliminates the need for
+      additional invasive procedures.
+    '20663': >-
+      Halo femoral traction is an effective procedure for treating spinal deformities, particularly scoliosis, an abnormal curvature of the spine. The provider affixes halo rings \_to the femoral bones through threaded pins inserted near the bone ends. This service also includes removal of the halo.
+    '20690': >-
+      The provider applies a uniplane external fixation on one side of the
+      body. Skeletal deformities or injuries such as fractures often require
+      the use of skeletal fixation devices to join skeletal parts and maintain
+      their normal alignment as healing takes place. An external fixation
+      system, also called an external fixator or ex fix, is a fixation device
+      that is placed inside of bones, and the device itself remains outside of
+      the body. It enables the provider to make adjustments to the fixation
+      externally and eliminates the need for additional invasive procedures.
+    '20665': >-
+      The provider removes tongs or a halo that another provider applied.
+      Halos and tongs apply traction, or pulling force, to correct a spinal
+      deformity, such as scoliosis, an abnormal rightward or leftward
+      curvature of the spine. A halo is a ring shaped device made of steel,
+      and a tong is a U shaped device. The provider applies weighted traction
+      to the halo or tong over time until proper alignment of the bones is
+      achieved. The provider then removes the halo or tongs.
+    '20802': >-
+      The provider replants, or surgically reattaches, the arm after complete
+      amputation. This is a major, i.e., open, invasive medical procedure to
+      reattach the amputated, or severed, arm.
+    '20805': >-
+      The replantation of a forearm after complete amputation is a major, or
+      open, invasive medical procedure to reattach the amputated body part at
+      the relevant body area.
+    '20670': >-
+      Skeletal deformities or injuries such as fractures often require the use
+      of skeletal fixation devices, like pins, rods, or wires, to join
+      skeletal parts and maintain their normal alignment as healing takes
+      place. Once the defect has healed, the provider then removes the
+      implant.
+    '20822': >-
+      The replantation of a digit, or finger, excluding the thumb, after
+      complete amputation is a major, or open, invasive medical procedure to
+      reattach the amputated body part at the relevant body area.
+    '20808': >-
+      The replantation of a hand after complete amputation is a major, or
+      open, invasive medical procedure to reattach the amputated body part at
+      the relevant body area.
+    '20680': >-
+      Skeletal deformities or injuries such as fractures often require the use
+      of skeletal fixation devices, like pins, rods, wires, bands, or plates,
+      to join skeletal parts and maintain their normal alignment as healing
+      takes place. Once the defect has healed, the provider then removes the
+      implant.
+    '20664': >-
+      Providers apply a cranial halo to correct a deformity or injury to the
+      cervical spine in a patient with an abnormal skull shape. The procedure
+      requires the use of six more pins to secure the halo ring with
+      significantly less force applied to the pins to avoid damage to the
+      skull or nervous system. The patient also wears a vest that attaches to
+      the halo for further stabilization.
+      Pediatric patients with abnormal skull shapes benefit from this
+      procedure. Disorders such as hydrocephalus, a fluid accumulation in the
+      brain, or osteogenesis imperfecta, a bone formation disorder that
+      results in brittle bones, result in abnormal skull shapes.
+      This service also includes removal of the halo.
+    '20693': >-
+      The provider adjusts an external fixation system while the patient is
+      under anesthesia. Skeletal fixation devices, such as an external
+      fixation, or ex fit, system, a fixation device that is placed inside of
+      bones, and the device itself remains outside of the body, are used to
+      join two skeletal parts and maintain their normal alignment while
+      helping in faster healing. Postoperative adjustment or revision of the
+      external fixation component may be required to treat postoperative
+      complications, improper healing of fractured bone, or mechanical failure
+      or malfunctioning of the fixator device.
+    '20662': >-
+      Halo pelvic fixation uses traction force for correction of spinal
+      curvature or dislocation, such as lumbosacral spondylolisthesis,
+      scoliosis, or tuberculous kyphosis, as well as for immobilizing the
+      spine. The pelvic halo consists of a pelvic hoop with two pins, a skull
+      halo, and four vertical threaded bars that connect the pelvic hoop and
+      the skull halo. This service also includes removal of the pelvic halo.
+    '20912': >-
+      Cartilage grafting is a procedure to obtain a cartilage graft from a
+      donor area to fill a larger defect of other cartilage or bones like the
+      temporomandibular joint. Providers use cartilage grafts harvested from
+      the nasal septum in reconstruction of the nose, or revision rhinoplasty,
+      and larynx, following hemilaryngectomy, taking care to avoid any
+      cosmetic or functional disorder following the cartilage harvest.
+    '20900': >-
+      A bone graft restores structural integrity and natural osseous, or bony,
+      tissue to the site of a bony defect, which increases its strength so it
+      will last over a period of time. The provider generally obtains a bone
+      graft from the iliac crest or ribs; however, the preferred site is the
+      fibula because of its versatility, shape, size, and strength.
+    '20827': >-
+      The provider reattaches, or replants, the thumb after complete
+      amputation, which is a major, or open, invasive medical procedure to
+      reattach the amputated thumb.
+    '20924': >-
+      A provider repairs damage to tendons and ligaments by harvesting graft
+      material from tendons elsewhere in the patient’s body, such as the
+      palmaris tendon in the palm of the hand, the toe extensor tendon in the
+      toes of the feet, or the plantaris tendon in the ankle.
+    '20922': >-
+      The fascia lata, the deep fascia of the thigh, is a good source of
+      fascial graft for repairing ruptured tendons, e.g., Achilles tendon,
+      chest wall defects, or eyelid and orbital defects, and for treatment of
+      fecal incontinence through unilateral gluteoplasty. The provider
+      harvests complex or larger sheet grafts through an open excision
+      procedure.
+    '20931': >-
+      A provider uses a structural allograft, a type of donor bone, to fill in
+      bony defects as she performs a spinal surgery procedure.
+    '20910': >-
+      Cartilage grafting is a procedure to obtain a cartilage graft from a
+      donor area to fill a larger defect of other cartilage or bones like the
+      temporomandibular joint. A provider uses a costochondral, or rib,
+      cartilage graft in the reconstruction of facial defects, including those
+      of the nose and temporomandibular joint, and in repair of the trachea.
+    '20937': >-
+      The provider uses an autograft, a type of donor bone, to fill in bony
+      defects as she performs a spinal surgery procedure. She extracts the
+      autograft from the patient’s own body during the surgical procedure,
+      through a separate incision.
+    '20930': >-
+      The provider applies small pieces of donor or synthetic bone graft
+      material during a spinal surgery to encourage bone growth during the
+      healing period.
+    '20902': >-
+      A bone graft restores structural integrity and natural osseous, or bony,
+      tissue to the site of a bony defect, which increases its strength so it
+      will last over a period of time. The provider generally obtains a bone
+      graft from the iliac crest or ribs; however, the preferred site is the
+      fibula because of its versatility, shape, size, and strength.
+    '20936': >-
+      A provider uses an autograft, a type of donor bone, to fill in bony
+      defects as she performs a spinal surgery procedure. She extracts the
+      autograft from the patient’s own bone, taken from the same surgical
+      incision.
+    '20824': >-
+      The replantation of a thumb after complete amputation is a major, or
+      open, invasive medical procedure to reattach the amputated body part at
+      the relevant body area.
+    '20920': >-
+      The fascia lata, the deep fascia of the thigh, is a good source of
+      fascial graft for repairing ruptured tendons, e.g., Achilles tendon,
+      chest wall defects, eyelid and orbital defects, and for treatment of
+      fecal incontinence through unilateral gluteoplasty. The provider uses a
+      stripper device to obtain the graft.
+    '20838': >-
+      Replantation is the reattachment of a body part, such as the foot, that
+      has been amputated, or severed, from a person's body.
+    '20969': >-
+      The provider harvests bone graft material, along with its active
+      vascular supply, arteries and veins, and an attached layer of cutaneous
+      tissue, or skin, to fill a bony defect at the recipient site and to
+      compensate for soft tissue loss due to trauma or disease.
+    '20975': >-
+      The provider surgically implants a device that emits electrical impulses
+      at the site of a broken bone to promote bone healing.
+    '20999': >-
+      Use 20999 to report procedures in the musculoskeletal system that do not
+      have a specific code.
+    '20970': >-
+      The provider harvests bone graft material from the iliac crest, along
+      with its active vascular supply and an attached layer of cutaneous
+      tissue, or skin, to fill a bony defect at the recipient site and to
+      compensate for soft tissue loss due to trauma or disease.
+    '20950': >-
+      The provider measures interstitial fluid pressure to check for the
+      presence of compartment syndrome, an abnormal buildup of fluid in the
+      tissues within a muscle compartment, a space partitioned by a layer of
+      fascia, which can occur following injury, surgery, or repetitive muscle
+      use. Increasing fluid pressure within a muscle compartment compresses
+      small blood vessels and nerves, requiring immediate attention to avoid
+      permanent tissue damage.
+    '20979': >-
+      The provider administers low–intensity ultrasound stimulation at the
+      site of a broken bone to promote bone healing.
+    '20973': >-
+      The provider harvests bone graft material from the great toe, along with
+      its active vascular supply and an attached layer of cutaneous tissue, or
+      skin, to fill a bony defect at the recipient site and to compensate for
+      soft tissue loss due to trauma or disease.
+    '20957': >-
+      A provider obtains bone graft material from metatarsal bone along with
+      its active vascular supply, arteries and veins, to fill a major bone
+      defect at the recipient site along with the regained vascular supply.
+      The regained vascular supply promotes faster healing and growth at the
+      recipient site.
+    '20972': >-
+      The provider harvests bone graft material from a metatarsal bone, along
+      with its active vascular supply and an attached layer of cutaneous
+      tissue, or skin, to fill a bony defect at the recipient site and to
+      compensate for soft tissue loss due to trauma or disease.
+    '20956': >-
+      The provider harvests bone graft material, along with its attached
+      vascular supply, from the hip bone. With the aid of an operative
+      microscope, he reconnects the vascular supply at the recipient site to
+      promote faster healing where bone was missing or damaged due to injury
+      or disease.
+    '20974': >-
+      The provider places a device that emits electrical impulses at the site
+      of a broken bone to promote bone healing.
+    '20955': >-
+      A provider obtains bone graft material from the fibula along with its
+      active vascular supply, arteries and veins, to fill a major bone defect
+      at the recipient site along with the regained vascular supply. The
+      regained vascular supply promotes faster healing and growth at the
+      recipient site.
+    '20962': >-
+      A provider obtains bone graft material from an area other than the
+      fibula, iliac crest, or metatarsal bones, along with its active vascular
+      supply, arteries and veins, to fill a major bone defect at the recipient
+      site along with the regained vascular supply. The regained vascular
+      supply promotes faster healing and growth at the recipient site.
+    '20938': >-
+      The provider uses an autograft, a type of donor bone, to fill in bony
+      defects as she performs a spinal surgery procedure. She extracts the
+      autograft from the patient's own body during the surgical procedure,
+      through a separate incision.
+    '20982': >-
+      In this procedure, the provider uses radiofrequency ablation, a type of
+      heat energy, that he applies percutaneously, or through the skin, to
+      destroy one or more metastatic bone tumors. He also destroys the
+      adjacent soft tissue affected by the tumor and may or may not use
+      imaging guidance to help identify and target the diseased tissue, and to
+      visualize and control the treatment of the tumor during the procedure.
+    '21047': >-
+      The provider excises a benign, or noncancerous, mass of the mandible, or
+      lower jaw bone, such as a tumor or cyst. Due to the aggressive growth or
+      destructive nature of the mass, the provider removes a portion of the
+      lower jaw. He uses an extraoral approach, accessing the jaw through an
+      incision in the skin of the face or neck.
+    '21045': >-
+      A malignant, or cancerous, tumor of the mandible, or lower jaw bone, is
+      removed in an open surgical procedure. The provider may use either an
+      intraoral approach, through the mouth, or an extraoral approach, through
+      the skin. For an extensive tumor, he performs radical dissection,
+      surgically removing the blood supply and lymph system surrounding the
+      tumor for laboratory analysis.
+    '21034': >-
+      A malignant, or cancerous, tumor of the maxilla, the upper jaw bone, or
+      zygoma, the cheekbone, is removed in an open surgical procedure. The
+      provider may use either an intraoral approach, through the mouth, or an
+      extraoral approach, through the skin.
+    '21030': >-
+      A provider removes benign, or noncancerous, tumors of the upper jaw and
+      cheekbone by enucleation and or curettage. Enucleation is the process of
+      removal of an entire tumor as a single mass. Curettage refers to removal
+      of diseased tissue through scraping, using a tool called a curette.
+    '21015': >-
+      The provider excises a small tumor, or abnormal mass, from the face or
+      scalp, in a radical, or extensive resection procedure to ensure the
+      tumor has not spread to the surrounding area. He performs a radical
+      resection when the tumor is known or suspected to be malignant, or
+      cancerous.
+    '21048': >-
+      A benign, or noncancerous, tumor of the maxilla, the upper jaw bone, is
+      removed in an open surgical procedure. The provider performs an
+      intraoral osteotomy, cutting into the maxillary bone, to remove a fast
+      growing or destructive tumor.
+    '21010': >-
+      The provider incises, or cuts into, the temporomandibular joint on one
+      side of the jaw, to facilitate inspection of the joint for the presence
+      of adhesions, infection, tumors, or other conditions, including
+      temporomandibular joint disorder. He performs minor debridement and
+      irrigation, as required.
+    '21031': >-
+      Torus mandibularis is abnormal bone growth with resulting protrusion of
+      the mandible, or lower jaw bone, near the side of the tongue. The
+      provider excises the torus mandibularis to remove the abnormal bone
+      growth of the mandible.
+    '21026': >-
+      In osteomyelitis, the facial bones and surrounding soft tissue become
+      inflamed due to a bacterial infection, such as Staphylococcus aureus,
+      which may have spread from an infected tooth. An abscess cavity, or
+      pocket of infection, in the bone may also be present. The provider
+      excises the diseased bone to control the infection and prevent further
+      spread.
+    '21032': >-
+      Torus palatinus is an abnormal bone growth, or protrusion, of the hard
+      palate, or roof of the mouth, near the intermaxillary line. The provider
+      excises the torus palatinus to remove the abnormal bone growth of the
+      hard palate.
+    '21029': >-
+      Removal of a benign, or noncancerous, tumor by contouring is a major
+      invasive procedure used to treat severe congenital bone abnormalities,
+      like fibrous dysplasia, a condition in which normal bone growth is
+      disrupted by abnormal embedded fibrous tissue, resulting in abnormal
+      shape of the bone and surrounding soft tissues. The provider removes the
+      abnormal tissue by surgically contouring, or reshaping, it.
+    '21046': >-
+      A cyst or other benign, or noncancerous, tumor of the mandible, or lower
+      jaw bone, is removed in an open surgical procedure. The provider may use
+      either an intraoral approach, through the mouth, or an extraoral
+      approach, through the skin. For an aggressive, or fast growing, tumor,
+      he performs intraoral osteotomy, cutting into bone to completely excise
+      the tumor.
+    '21044': >-
+      A malignant, or cancerous, tumor of the mandible, or lower jaw bone, is
+      removed in an open surgical procedure. The provider may use either an
+      intraoral approach, through the mouth, or an extraoral approach, through
+      the skin.
+    '21025': >-
+      In mandibular osteomyelitis, the mandible, or lower jaw bone, and its
+      surrounding soft tissue become inflamed due to a bacterial infection,
+      such as Staphylococcus aureus, which may have spread from an infected
+      tooth. An abscess cavity, or pocket of infection, in the bone may
+      result. The provider cleans the area and removes infected or dead bone
+      tissue to control the infection and prevent further spread.
+    '21040': >-
+      Benign, or noncancerous, tumors of the mandible, the bone of the lower
+      jaw, are removed by enucleation and or curettage. Enucleation is the
+      process of removal of an entire tumor as a single mass. Curettage refers
+      to removal of diseased tissue through scraping using a tool called a
+      curette.
+    '21077': >-
+      An orbital prosthesis is an artificial implant made to fill the empty
+      socket following the removal of an eye. The provider applies a substance
+      that conforms to the patient’s orbital structure in order to form an
+      impression, or negative imprint, from which a mold will be built. The
+      final prosthesis restores the patient’s cosmetic appearance.
+    '21076': >-
+      A surgical obturator prosthesis is a specially molded device used to
+      block a surgically created opening, such as from removal of the palate,
+      the roof of the mouth. The provider applies a substance that conforms to
+      the patient’s intraoral structures in order to form an impression, or
+      negative imprint, from which a mold will be built. A prosthesis to
+      replace a palate, for example, restores the ability of the patient to
+      speak and swallow.
+    '21085': >-
+      The provider fabricates an oral surgical splint to match the patient’s
+      facial contours by taking an impression, or negative imprint, of the
+      patient's face. An oral surgical splint supports a patient’s facial
+      structures in orthognathic reconstruction, or surgical repositioning of
+      the jaws, and in other oral surgeries, such as when the mandible, or
+      lower jaw, has been removed due to trauma or ablative surgery.
+    '21087': >-
+      The provider fabricates a nasal prosthesis by taking an impression, or
+      negative imprint, of the patient's nasal area. A nasal prosthesis
+      replaces a patient's nose that is partially or totally missing due to
+      surgery, trauma, or a congenital defect.
+    '21079': >-
+      An interim obturator prosthesis is a temporary prosthetic implant used
+      to close the cavity created in the mouth after surgical resection of a
+      part or the whole of maxilla, or upper jaw bone. The provider applies a
+      substance that conforms to the patient’s intraoral structures in order
+      to form an impression, or negative imprint, from which a mold will be
+      built.
+    '21080': >-
+      The provider fabricates an obturator prosthesis by taking an impression,
+      or negative imprint, of the patient's oral cavity. A definitive
+      obturator prosthesis replaces an interim obturator prosthesis used to
+      close a cavity created in the mouth after a partial or complete surgical
+      resection of the maxilla, or upper jaw bone.
+    '21049': >-
+      A benign, or noncancerous, tumor of the maxilla, the upper jaw bone, is
+      removed in an open surgical procedure. The provider performs an
+      extraoral osteotomy, cutting into the maxillary bone, and a partial
+      maxillectomy to remove a fast growing or destructive tumor.
+    '21081': >-
+      The provider fabricates a mandibular resection prosthesis by taking an
+      impression, or negative imprint, of the patient's oral cavity. A
+      mandibular resection prosthesis, a prosthetic device, aids in reforming
+      the jaw during the healing process after a complex surgical resection of
+      the mandible.
+    '21083': >-
+      The provider fabricates a palatal lift prosthesis by taking an
+      impression, or negative imprint, of the patient's oral cavity. The
+      palatal lift prosthesis, a removable device, aids in velopharyngeal
+      closure by elevating an incompetent soft palate that is dysfunctional
+      due to clefting, surgery, trauma, or paralysis.
+    '21060': >-
+      A provider performs a partial or complete meniscectomy, an open surgical
+      procedure to remove the meniscus of the temporomandibular joint (TMJ),
+      to treat a meniscal tear, injury, ankylosis, arthritis, etc.
+    '21070': >-
+      A provider performs a partial or complete coronoidectomy, an open
+      surgical procedure to remove the coronoid process of the mandible, or
+      lower jaw bone, to treat injury, ankylosis, arthritis, etc.
+    '21082': >-
+      The provider prepares a custom palatal augmentation prosthesis to aid in
+      reshaping of the hard palate, or roof of the mouth. Use of the
+      prosthesis improves tongue and palate contact during speech and
+      swallowing in patients with impaired tongue mobility. He prepares the
+      prosthesis by taking an impression, or negative imprint, and building a
+      mold.
+    '21050': >-
+      A provider performs a condylectomy, or surgical excision of the rounded
+      ends of the mandible, or lower jaw bone, where they connect to the
+      temporomandibular joint (TMJ) to treat dislocated or diseased condyles
+      that interfere with movement of the joint or cause pain.
+    '21086': >-
+      The provider fabricates an auricular prosthesis by taking an impression,
+      or negative imprint, of the patient's ear. An auricular prosthesis
+      replaces an ear that is partially or totally missing due to surgery,
+      trauma, or a congenital defect.
+    '21084': >-
+      The provider fabricates a speech aid prosthesis by taking an impression,
+      or negative imprint, of the patient's oral cavity. A speech aid
+      prosthesis, a removable device, aids in restoring soft palate defects. A
+      portion of the prosthesis extends into the throat to separate the
+      oropharynx and nasopharynx during swallowing and speech.
+    '21125': >-
+      A provider performs mandibular augmentation, enlarging the mandible, or
+      lower jaw bone, with placement of an implant. She performs the procedure
+      to improve cosmetic appearance or for reasons of medical necessity, such
+      as correcting problems with a patient’s bite.
+    '21137': >-
+      The provider contours the forehead to reduce the size of the forehead
+      and lower the brow or hairline. A provider performs a forehead reduction
+      to correct a facial abnormality, or more commonly, as cosmetic surgery.
+    '21127': >-
+      The provider enlarges the lower jaw by applying bone graft material on
+      top of the jaw bone to build it up or by inserting the graft material
+      into layers of the bony tissue of the jaw. She performs mandibular
+      augmentation as a cosmetic procedure or for reasons of medical
+      necessity, such as correcting problems with a patient’s bite.
+    '21088': >-
+      The provider fabricates a facial prosthesis by taking an impression, or
+      negative imprint, of the patient's face. A facial prosthesis restores
+      the normal look of the face after any part of the face has been deformed
+      or lost following surgery or trauma.
+    '21110': >-
+      A provider applies an interdental fixation device to treat conditions
+      like obstructive sleep apnea. In maxillary mandibular advancement, or
+      MMA, surgery, or repositioning of the upper and lower jaws, the surgeon
+      may place upper and lower arch bars to promote stability of the area
+      while a patient is healing.
+    '21121': >-
+      A provider changes the appearance of a receding chin in a genioplasty
+      procedure. He incises the jaw bone and slides it forward. He performs
+      the procedure to improve cosmetic appearance or for reasons of medical
+      necessity, such as correcting problems with a patient’s bite or to treat
+      obstructive sleep apnea.
+    '21100': >-
+      A provider applies a halo type appliance to treat maxillofacial defects,
+      which may be congenital in nature or acquired, resulting from trauma,
+      bone growth disturbance, maxillary, or mandibular neoplastic or
+      degenerative processes. The appliance allows for gradual skeletal
+      lengthening and advancement, enabling the skin and soft tissue envelope
+      to adapt to and accommodate the skeletal movement.
+    '21141': >-
+      The provider reconstructs the patient's facial bones in a LeFort I
+      midface surgery to correct congenital or acquired deformities such as
+      long face syndrome, an elongation of the lower face caused by childhood
+      mouth breathing. The provider moves the maxilla, or upper jaw bone, and
+      associated bones forward, repositioning the teeth bearing part of the
+      maxilla.
+    '21120': >-
+      A provider augments a receding chin with the use of a chin implant, in a
+      genioplasty procedure. He performs the procedure to improve cosmetic
+      appearance or for reasons of medical necessity, such as correcting
+      problems with a patient’s bite.
+    '21089': >-
+      Use 21089 to report maxillofacial prosthetic procedures that do not have
+      a specific code.
+    '21122': >-
+      A provider corrects an asymmetrical chin in a genioplasty procedure. He
+      incises the jaw in two or more places and removes or repositions wedges
+      of bone. Genioplasty improves cosmetic appearance but may also be
+      performed to improve conditions like obstructive sleep apnea.
+    '21138': >-
+      The provider reshapes the forehead using contouring and placement of
+      prosthetic material or bone graft from the patient’s own body to lower a
+      patient's brow or hairline. He performs forehead reduction to correct a
+      facial abnormality, or more commonly, to improve cosmetic appearance.
+    '21123': >-
+      The provider augments a patient's chin in a sliding genioplasty. He
+      slides the chin bone forward to improve the cosmetic appearance of the
+      face or to treat medical conditions like obstructive sleep apnea. He
+      uses bone graft from the patient’s own body to augment, or build up, the
+      chin bone in layers.
+    '21139': >-
+      The provider reshapes the forehead to correct a facial abnormality or
+      improve appearance. She contours the forehead and incises the underlying
+      wall of the frontal sinus cavity
+    '21116': >-
+      The provider injects contrast material into the temporomandibular joint
+      (TMJ) for imaging during TMJ arthrography.
+    '21160': >-
+      The provider performs extensive reconstruction of the patient's facial
+      bones, including reshaping the forehead, utilizing bone graft material
+      obtained from another location in the patient’s body. She performs this
+      procedure to correct severe facial deformities resulting from trauma,
+      disease, or conditions present from birth, such as Apert syndrome.
+    '21143': >-
+      The provider reconstructs the patient's facial bones to correct
+      congenital or acquired deformities. She moves the maxilla, or upper jaw
+      bone, and associated bones forward, in 3 or more segments, repositioning
+      the teeth bearing part of the maxilla, in a LeFort I procedure of the
+      midface.
+    '21145': >-
+      In a LeFort I midface surgery, the provider reconstructs the patient's
+      facial bones using microsurgery and bone grafting to correct congenital
+      or acquired deformities. The provider moves the maxilla, or upper jaw
+      bone, and associated bones forward, repositioning the teeth bearing part
+      of the maxilla.
+    '21159': >-
+      In a LeFort III midface surgery, the provider performs extensive
+      reconstruction of the patient's facial bones, including advancing, or
+      moving forward, the forehead, using microsurgery and bone grafting to
+      correct deformities, acquired or congenital, such as Apert Syndrome.
+    '21154': >-
+      In a LeFort III midface surgery, the provider performs extensive
+      reconstruction of the patient's facial bones using microsurgery and bone
+      grafting to correct deformities, acquired or congenital.
+    '21142': >-
+      The provider moves the maxilla, or upper jaw bone, and associated bones
+      forward, in two segments, repositioning the teeth bearing part of the
+      maxilla in a LeFort I procedure of the midface. She reconstructs the
+      patient's facial bones to correct congenital or acquired deformities.
+    '21150': >-
+      In a LeFort II midface surgery, the provider reconstructs the patient's
+      facial bones to correct deformities, acquired or congenital, such as
+      Treacher Collins syndrome.
+    '21146': >-
+      In a LeFort I midface surgery, the provider reconstructs the patient's
+      facial bones using microsurgery and bone grafting to correct congenital
+      deformities or acquired deformities. The provider moves the maxilla, or
+      upper jaw bone, and associated bones forward, repositioning the teeth
+      bearing part of the maxilla.
+    '21155': >-
+      In a LeFort III midface surgery, in association with a LeFort I
+      procedure, the provider performs extensive reconstruction of the
+      patient's facial bones using microsurgery and bone grafting to correct
+      deformities, acquired or congenital, such as Apert Syndrome or Crouzon
+      syndrome.
+    '21147': >-
+      In a LeFort I midface surgery, the provider reconstructs the patient's
+      facial bones using microsurgery and bone grafting to correct congenital
+      or acquired deformities. The provider moves the maxilla, or upper jaw
+      bone, and associated bones forward, repositioning the teeth bearing part
+      of the maxilla.
+    '21172': >-
+      The provider performs extensive reconstruction of the patient's facial
+      bones, including reshaping the forehead, utilizing bone graft material
+      obtained from another location in the patient’s body. She performs this
+      procedure to correct severe facial deformities resulting from trauma,
+      disease, or conditions present from birth.
+    '21175': >-
+      The provider performs extensive reconstruction of the bones of the upper
+      face, over the eye sockets, including reshaping the forehead, and may
+      use bone graft material obtained from another location in the patient’s
+      body. She performs this procedure to correct severe facial deformities
+      resulting from trauma, disease, or conditions present from birth.
+    '21180': >-
+      The provider performs extensive reconstruction of the bones of the upper
+      face, over the eye sockets, reshaping the forehead, utilizing bone graft
+      material obtained from another location in the patient’s body. She
+      performs this procedure to correct severe facial deformities resulting
+      from trauma, disease, or conditions present from birth.
+    '21179': >-
+      A provider reconstructs most or all of the forehead and or the
+      supraorbital rims, the bony structure surrounding the eyes, with
+      placement of prosthetic material or allograft, donor bone. He performs
+      the reconstruction to repair forehead defects due to congenital
+      malformations, cancer surgery, or trauma.
+    '21151': >-
+      In a LeFort II midface surgery, the provider reconstructs the patient's
+      facial bones using microsurgery and bone grafting to correct
+      deformities, acquired or congenital, such as Treacher Collins syndrome.
+

@@ -5,7 +5,55 @@ import type { ValueOf, LiteralUnion } from 'type-fest'
 import type IDB from 'idb'
 import type _JSBI from 'jsbi/jsbi'
 import * as u from '@jsmanifest/utils'
+import { DATA_TYPE, IDataBase, IColumn, ITable, Connection } from 'jsstore'
 import { c, Worker as PiWorker } from 'noodl-pi'
+
+const dbName = 'noodl'
+const idbConnection = new Connection(self)
+
+idbConnection.initDb({
+  name: 'noodl',
+  tables: [
+    {
+      name: 'ecos_doc_table',
+      columns: {
+        ctime: { dataType: DATA_TYPE.Number },
+        mtime: { dataType: DATA_TYPE.Number },
+        atime: { dataType: DATA_TYPE.Number },
+        atimes: { dataType: DATA_TYPE.Number },
+        bsig: { dataType: DATA_TYPE.String },
+        eid: { dataType: DATA_TYPE.String },
+        fid: { dataType: DATA_TYPE.String },
+        id: { dataType: DATA_TYPE.String, notNull: true, primaryKey: true },
+        deat: { dataType: DATA_TYPE.String },
+        name: { dataType: DATA_TYPE.String },
+        size: { dataType: DATA_TYPE.Number },
+        subtype: { dataType: DATA_TYPE.Number },
+        type: { dataType: DATA_TYPE.Number },
+        tage: { dataType: DATA_TYPE.Number },
+      },
+      alter: [],
+    },
+    {
+      name: 'api_hash_table',
+      columns: [
+        { name: 'api_input_hash', dataType: DATA_TYPE.String },
+        { name: 'resultId', dataType: DATA_TYPE.String },
+      ],
+    },
+    {
+      name: 'index_tables',
+      columns: [
+        { name: 'fkey', dataType: DATA_TYPE.Number },
+        { name: 'kText', dataType: DATA_TYPE.String },
+        { name: 'docId', dataType: DATA_TYPE.String },
+        { name: 'docType', dataType: DATA_TYPE.Number },
+        { name: 'score', dataType: DATA_TYPE.Number },
+      ] as IColumn[],
+    },
+  ],
+  version: 1,
+})
 
 declare global {
   const ipb: typeof IDB

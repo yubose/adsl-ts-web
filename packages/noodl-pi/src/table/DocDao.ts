@@ -1,20 +1,27 @@
-// @ts-nocheck
+import type IDB from 'idb'
 import type { DB } from '../types'
 import { isObj, uint8ArrayToBase64 } from '../utils'
 
-class DocTableDao<D extends IDB.DBSchema = IDB.DBSchema> {
-  db: DB<D>
+class DocTableDao<
+  S extends IDB.DBSchema,
+  N extends IDB.StoreNames<S>,
+  Skey extends IDB.StoreKey<S, N> = IDB.StoreKey<S, N>,
+> {
+  #db: DB<S>
+  storeName: N // ecos_doc_table
 
-  constructor(db: DB<D>) {
-    this.db = db
+  constructor(db: DB<S>, storeName: N) {
+    this.#db = db
+    this.storeName = storeName
   }
 
-  getDocById(did: string, sCondition?: string | undefined) {
+  async getDocById(did: Skey, sCondition?: string | undefined) {
+    const result = await this.#db.get(this.storeName, did)
     const sqlstr = `SELECT * FROM ecos_doc_table WHERE id = :did ${
       sCondition ? 'AND ' + sCondition : ''
     } LIMIT 1`
     const params = { ':did': did }
-    const res = this.db.exec(sqlstr, params)
+    const res = this.#db.exec(sqlstr, params)
     return res
   }
 
@@ -27,7 +34,7 @@ class DocTableDao<D extends IDB.DBSchema = IDB.DBSchema> {
       sqlstr += key + (index === dids.length - 1 ? ')' : ',')
       params[key] = did
     })
-    const res = this.db.exec(sqlstr, params)
+    const res = this.#db.exec(sqlstr, params)
     return res
   }
 
@@ -45,7 +52,7 @@ class DocTableDao<D extends IDB.DBSchema = IDB.DBSchema> {
         params[`:${key}`] = val
       }
     }
-    const res = this.db.exec(sqlstr, params)
+    const res = this.#db.exec(sqlstr, params)
     return res
   }
 
@@ -54,25 +61,25 @@ class DocTableDao<D extends IDB.DBSchema = IDB.DBSchema> {
     const params = {
       [':did']: did,
     }
-    const res = this.db.exec(sqlstr, params)
+    const res = this.#db.exec(sqlstr, params)
     return res
   }
 
   getDocsByPageId(pageId: string) {
     const sqlstr = `SELECT * FROM ecos_doc_table WHERE pageId = ${pageId}`
-    const res = this.db.exec(sqlstr)
+    const res = this.#db.exec(sqlstr)
     return res
   }
 
   getLastestDocsByType(type) {
     const sqlstr = `SELECT id FROM ecos_doc_table WHERE type = ${type} LIMIT 1 `
-    const res = this.db.exec(sqlstr)
+    const res = this.#db.exec(sqlstr)
     return res
   }
 
   getAllDocsByType(type: string) {
     const sqlstr = `SELECT * FROM ecos_doc_table WHERE type = ${type}`
-    let res = this.db.exec(sqlstr)
+    let res = this.#db.exec(sqlstr)
     res = this.convertSqlToObject(res)
     return res
   }

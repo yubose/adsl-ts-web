@@ -8,12 +8,12 @@ import { replaceUint8ArrayWithBase64 } from './utils'
 import type IndexDao from './table/IndexDao'
 
 class PersonalIndexCtr {
-  private mTime: number = 0
-  private user_vid
-  private indexTablesDao
-  private isadmin
-  private rootNoteBookId
-  private PI_docID
+  #mTime: number = 0
+  #user_vid
+  #indexTablesDao
+  #isadmin
+  #rootNoteBookId
+  #PI_docID
 
   constructor(indexTablesDao: IndexDao) {
     this.indexTablesDao = indexTablesDao
@@ -23,7 +23,9 @@ class PersonalIndexCtr {
   /**
    * backupPI
    */
-  async backUpPI(piDoc?: Record<string, any>) {
+  async backUpPI<O extends Record<string, any> = Record<string, any>>(
+    piDoc?: O,
+  ) {
     const rootNoteBookId = this.rootNoteBookId
     const user_vid = this.getUser_Vid()
     const pItoS3Helper = new PItoS3Helper(this.indexTablesDao)

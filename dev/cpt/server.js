@@ -26,10 +26,7 @@ if (flags.worker) {
 
 const host = '127.0.0.1'
 const port = 3000
-const pathToDataSourceDir = path.join(
-  __dirname,
-  '../../generated/provider/dataSource',
-)
+const pathToDataSourceDir = path.join(__dirname, './data')
 const pathToCptFile = path.join(pathToDataSourceDir, 'CPT_shrinked.yml')
 // const pathToCptFile = path.join(pathToDataSourceDir, 'CPT.yml')
 const pathToCptModFile = path.join(pathToDataSourceDir, 'CPTMod.yml')
