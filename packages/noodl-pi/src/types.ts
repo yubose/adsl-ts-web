@@ -12,6 +12,7 @@ export interface HookHandler<
 > {
   (this: PiWorker<S, SNames>, arg: Arg, ...args: Args[]): any
 }
+f
 
 export interface Hooks<
   S extends IDB.DBSchema = IDB.DBSchema,

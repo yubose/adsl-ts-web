@@ -114,7 +114,6 @@ const devServer = new WebpackDevServer(
   {
     compress: true,
     devMiddleware: {
-      // publicPath,
       writeToDisk: true,
     },
     host,

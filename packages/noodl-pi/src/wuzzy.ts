@@ -1,3 +1,7 @@
+/**
+ * Extracted from: https://github.com/xupit3r/wuzzy
+ */
+
 import intersection from 'lodash.intersection'
 import union from 'lodash.union'
 import { isArr } from './utils'

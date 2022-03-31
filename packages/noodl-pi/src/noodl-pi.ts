@@ -6,11 +6,11 @@
  * const piWorker = new Worker('./dist/noodl-pi.js')
  * ```
  */
-import type { LiteralUnion, ValueOf } from 'type-fest'
+import type { LiteralUnion } from 'type-fest'
 import type IDB from 'idb'
 import type _JSBI from 'jsbi/jsbi'
 import FuzzyIndexCreator from './IndexCreator'
-import { isArr, isObj, toArr, spread } from './utils'
+import { isObj, toArr, spread } from './utils'
 import * as c from './constants'
 import * as t from './types'
 
@@ -237,23 +237,6 @@ class NoodlPiWorker<
     console.log(`%c[lib] Sending "${args[0].type}"`, `color:${_color};`)
     return this.#self.postMessage(...args)
   }
-  // createPersonalIndex(cb: <O extends Record<string, any>>(pIndex: t.PersonalIndexObjectBase) => O & t.PersonalIndexObjectBase, kTexts: string[] | string) {
-  //   return toArr(kTexts).map((kText) => {
-  //     var _a, _b, _c
-  //     const initMapping =
-  //       (_a = this.indexCreator) == null ? void 0 : _a.initialMapping(kText)
-  //     const fKey =
-  //       (_b = this.indexCreator) == null ? void 0 : _b.toFuzzyInt64(initMapping)
-  //     const fKeyHex =
-  //       (_c = this.indexCreator) == null ? void 0 : _c.toFuzzyHex(initMapping)
-  //     return cb({
-  //       kText,
-  //       fKey,
-  //       fKeyHex,
-  //       initMapping,
-  //     })
-  //   })
-  // }
 
   emit<
     Evt extends keyof t.Hooks<S, SNames>,

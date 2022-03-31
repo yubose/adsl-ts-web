@@ -36,7 +36,7 @@ const pi = new PiWorker<Schema, StoreNames>([
 
 pi.use({
   all(evtName, ...args) {
-    console.log(`%c[worker] ${evtName}`, `color:${_color};`, args)
+    console.log(`%c[worker](all) ${evtName}`, `color:${_color};`, args)
   },
   storeDataFetchResponse({ cachedVersion, response, storeName, url }) {
     if (storeName === 'CPT') {
