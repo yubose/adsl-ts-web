@@ -1,14 +1,26 @@
-// @ts-nocheck
+import type IDB from 'idb'
 import { expect } from 'chai'
 import sinon from 'sinon'
 import nock from 'nock'
-import * as u from '@jsmanifest/utils'
 import PiWorker from '../noodl-pi'
-import { createMockDb } from './helpers'
+import { createMockDb, mockFetchResponse } from './helpers'
 import * as c from '../constants'
+import * as u from '../utils'
 import * as t from '../types'
 
-const getDbCache = (db) => db.cache
+interface MyDB extends IDB.DBSchema {
+  CPT: {
+    key: 'version' | 'content'
+    value: string | Record<string, string>
+  }
+}
+
+let getDbCache = (db) => db.cache
+let pi: PiWorker<MyDB, 'CPT'>
+
+beforeEach(() => {
+  pi = new PiWorker([{ storeName: 'CPT', url: 'https://127.0.0.1:3000' }])
+})
 
 describe(`noodl-pi`, () => {
   for (const evtName of [
@@ -54,14 +66,10 @@ describe(`noodl-pi`, () => {
   describe(`when initializing`, () => {
     it(`should initialize the store object to database if it doesnt exist`, async () => {
       const spy = sinon.spy()
-      const pi = new PiWorker([
-        {
-          storeName: 'CPT',
-          url: `http://127.0.0.1:3000/cpt`,
-          version: '1.0.3',
-        },
-      ])
-      const db = createMockDb({ addEventListener: spy })
+      const db = createMockDb({
+        addEventListener: spy,
+        initialValue: { CPT: {} },
+      })
       await pi.init(db)
       expect(pi.db.objectStoreNames.contains('CPT')).to.be.true
     })
@@ -84,22 +92,16 @@ describe(`noodl-pi`, () => {
     })
 
     it(`should fetch the store data if url was provided`, async () => {
-      nock(`http://127.0.0.1:3000`)
-        .get('/cpt')
-        .reply(200, { CPT: { version: '1.0.3', content: { C0: 'Abcasd' } } })
+      mockFetchResponse({
+        CPT: { version: '1.0.3', content: { C0: 'Abcasd' } },
+      })
       const spy = sinon.spy()
       const fetchedSpy = sinon.spy()
-      const pi = new PiWorker([
-        {
-          storeName: 'CPT',
-          url: `http://127.0.0.1:3000/cpt`,
-          version: '1.0.3',
-        },
-      ])
       pi.use({ [c.storeEvt.FETCHED_STORE_DATA]: fetchedSpy })
-      const db = createMockDb({ addEventListener: spy })
-      getDbCache(db).CPT = { version: '1.0.1' }
-      await db.add('CPT', 'abc', 'content')
+      const db = createMockDb({
+        addEventListener: spy,
+        initialValue: { CPT: { abc: 'content', version: '1.0.1' } },
+      })
       await pi.init(db)
       expect(fetchedSpy).to.be.calledOnce
       expect(fetchedSpy.firstCall.args[0])
@@ -113,26 +115,16 @@ describe(`noodl-pi`, () => {
     })
 
     it(`should pass in the cached version along with the response when emitting ${c.storeEvt.FETCHED_STORE_DATA}`, async () => {
-      nock(`http://127.0.0.1:3000`)
-        .get('/cpt')
-        .reply(200, { CPT: { version: '1.0.5', content: { C0: 'Abcasd' } } })
-      const spy = sinon.spy()
+      const resp = { CPT: { version: '1.0.5', content: { C0: 'Abcasd' } } }
+      mockFetchResponse(resp)
       const fetchedSpy = sinon.spy()
-      const pi = new PiWorker([
-        {
-          storeName: 'CPT',
-          url: `http://127.0.0.1:3000/cpt`,
-          version: '1.0.3',
-        },
-      ])
       pi.use({ [c.storeEvt.FETCHED_STORE_DATA]: fetchedSpy })
-      const db = createMockDb({ addEventListener: spy })
-      getDbCache(db).version = { CPT: '1.0.3' }
-      getDbCache(db).CPT = {}
-      await db.add('CPT', 'abc', 'content')
+      const db = createMockDb({
+        initialValue: { CPT: { version: '0.0.001', content: 'hi' } },
+      })
       await pi.init(db)
       const args = fetchedSpy.firstCall.args[0]
-      expect(args).to.have.property('cachedVersion', '1.0.3')
+      expect(args).to.have.property('cachedVersion', '0.0.001')
     })
   })
 })

@@ -41,8 +41,8 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production node build.js",
     "start": "npm run build -- --watch",
-    "test": "ts-mocha --extensions ts --watch --watch-files src src/__tests__/**/*.test.ts --file src/__tests__/setupTests.ts",
-    "test:file": "ts-mocha --extensions ts --file src/__tests__/setupTests.ts --watch --watch-files src",
+    "test": "ts-mocha -p tsconfig.test.json --extensions ts --watch --watch-files src src/__tests__/**/*.test.ts --module commonjs --target es2015 --file src/__tests__/setupTests.ts",
+    "test:file": "ts-mocha -p tsconfig.test.json --file src/__tests__/setupTests.ts --watch --watch-files src",
     "types": "tsc --declaration --declarationDir dist --emitDeclarationOnly --lib WebWorker --skipLibCheck"
   },
   "types": "dist/index.d.ts",

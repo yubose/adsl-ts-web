@@ -7,6 +7,8 @@ chai.use(sinonChai)
 beforeEach(() => {
   global.self = {
     addEventListener: () => {},
+    // @ts-expect-error
+    fetch: () => ({ json: () => {} }),
   }
 })
 

@@ -42,6 +42,7 @@ class NoodlPiWorker<
 
   constructor(stores: t.WorkerStoreObject<S, SNames>[]) {
     this.#self = self as DedicatedWorkerGlobalScope
+
     toArr(stores).forEach((obj) => {
       if (!obj.storeName) throw new Error(`storeName is missing`)
 
@@ -118,7 +119,6 @@ class NoodlPiWorker<
   async init(db: IDB.IDBPDatabase<S>) {
     try {
       this.#db = db
-
       this.db.addEventListener('error', function (evt) {
         console.log(`%c[lib] Error`, `color:tomato;`, evt)
       })
@@ -145,7 +145,6 @@ class NoodlPiWorker<
               .store.getAllKeys()
 
             const isEmpty = !keys?.length
-
             if (isEmpty) this.emit(c.storeEvt.STORE_EMPTY, storeInfo)
             if (storeInfo.url) {
               const cachedVersion = isEmpty
@@ -156,7 +155,7 @@ class NoodlPiWorker<
                 storeName,
                 cachedVersion,
                 response: respData,
-                url: c.storeInfo.url,
+                url: storeInfo.url,
               })
             }
           } catch (error) {
@@ -175,7 +174,7 @@ class NoodlPiWorker<
   }
 
   async isStale<SName extends SNames>(storeName: SName, vers: string) {
-    const cachedVersion = await this.db.get(storeName, 'version')
+    const cachedVersion = await this.db.get(storeName, 'version' as any)
     return cachedVersion !== vers
   }
 
@@ -197,10 +196,7 @@ class NoodlPiWorker<
     return this.db.get(storeName, 'version' as any)
   }
 
-  getStoreData<SName extends SNames>(
-    storeName: SName,
-    key: IDBKeyRange | SName,
-  ) {
+  getStoreData<SName extends SNames>(storeName: SName, key: IDBKeyRange) {
     return this.db.get(storeName, key)
   }
 
@@ -241,9 +237,7 @@ class NoodlPiWorker<
   emit<
     Evt extends keyof t.Hooks<S, SNames>,
     Arg = any,
-    Args extends Parameters<t.Hooks<S, SNames>[Evt]> = Parameters<
-      t.Hooks<S, SNames>[Evt]
-    >,
+    Args extends any[] = any[],
   >(evtName: Evt, arg?: Arg | undefined, ...args: Args) {
     // @ts-expect-error
     this.hooks.all?.call(this, evtName, arg, ...args)
