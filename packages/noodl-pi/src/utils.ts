@@ -1,4 +1,23 @@
-import cloneDeep from 'lodash.clonedeep'
+/**
+ * Returns a deep clone of the value
+ * @param value
+ * @returns { any }
+ */
+export function cloneDeep<O = any[]>(value: O): O
+export function cloneDeep<O = any>(value: O): O
+export function cloneDeep<O = any>(value: O | O[]) {
+  if (isArr(value)) {
+    return value.map((v) => (isObj(v) ? cloneDeep(v) : v))
+  }
+  if (isObj(value)) {
+    return Object.keys(value).reduce((acc, key) => {
+      if (isObj(value[key])) acc[key] = cloneDeep(value[key])
+      else acc[key] = value[key]
+      return acc
+    }, {} as O)
+  }
+  return value
+}
 
 type Path = (string | symbol | number)[]
 

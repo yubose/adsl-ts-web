@@ -1,10 +1,9 @@
 // @ts-nocheck
 import { expect } from 'chai'
-import FrontEndDB from '../../FrontEndDB'
 import PItoS3Helper from '../S3Convert/PItoS3Helper'
-import PersonalIndexCtr from '../getPersonalIndexCtr'
+import getPersonalIndexCtr from '../getPersonalIndexCtr'
 
-describe('PersonalIndexCtr', () => {
+describe('getPersonalIndexCtr', () => {
   const doc = [
     {
       docType: 102401,
@@ -69,7 +68,7 @@ describe('PersonalIndexCtr', () => {
     frontEndDb = new FrontEndDB()
     await frontEndDb.getDatabase(config)
     indexTablesDao = frontEndDb.IndexTablesDao
-    personalIndexCtr = new PersonalIndexCtr(indexTablesDao)
+    personalIndexCtr = getPersonalIndexCtr(indexTablesDao)
   })
 
   describe('PersonalIndexCtr', () => {

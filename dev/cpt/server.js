@@ -91,7 +91,6 @@ const compiler = webpack([
       clean: true,
       filename: 'index.js',
       path: publicPath,
-      // publicPath,
     },
     plugins: [
       new HtmlWebpackPlugin({
@@ -100,10 +99,7 @@ const compiler = webpack([
         template: './index.html',
       }),
       new CopyPlugin({
-        patterns: [
-          // { from: 'dist/piWorker.js', to: 'dist/piWorker.js' },
-          { from: 'styles.css', to: 'dist/styles.css' },
-        ],
+        patterns: [{ from: 'styles.css', to: 'dist/styles.css' }],
       }),
     ],
   },
@@ -124,7 +120,6 @@ const devServer = new WebpackDevServer(
       return middlewares
     },
     static: {
-      // publicPath: '/',
       directory: 'dist',
     },
   },
@@ -135,7 +130,6 @@ devServer.startCallback((err) => {
   if (err) {
     console.error(`[${u.yellow(err.name)}] ${u.red(err.message)}`)
   } else {
-    // console.log(stats)
     console.log(`${u.cyan(`Server listening at http://${host}:${port}`)}`)
   }
 })
