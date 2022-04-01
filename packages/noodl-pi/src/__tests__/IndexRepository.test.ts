@@ -1,15 +1,22 @@
-// @ts-nocheck
-import IndexRepository from './'
-import store from '../../common/store'
-import FuzzyIndexCreator from '../utils/FuzzyIndexCreator'
+import { uint8ArrayToBase64 } from '../utils'
+import getIndexRepository from '../getIndexRepository'
+import getFuzzyIndexCreator from '../getFuzzyIndexCreator'
+
+let indexRepository: ReturnType<typeof getIndexRepository>
+let fuzzyIndexCreator: ReturnType<typeof getFuzzyIndexCreator>
+
+beforeEach(() => {
+  indexRepository = getIndexRepository()
+  fuzzyIndexCreator = getFuzzyIndexCreator()
+})
 
 describe('IndexRepository', () => {
-  let docId1 = store.level2SDK.utilServices.uint8ArrayToBase64(
+  let docId1 = uint8ArrayToBase64(
     new Uint8Array([
       29, 164, 186, 209, 158, 40, 65, 115, 81, 170, 1, 201, 161, 10, 219, 16,
     ]),
   )
-  let docId2 = store.level2SDK.utilServices.uint8ArrayToBase64(
+  let docId2 = uint8ArrayToBase64(
     new Uint8Array([
       137, 233, 149, 162, 86, 51, 79, 174, 70, 117, 236, 109, 213, 32, 243, 57,
     ]),
@@ -78,15 +85,14 @@ describe('IndexRepository', () => {
     type: 1025,
   }
   const input = 'hello'
-  const fuzzyCreator = new FuzzyIndexCreator()
-  const initMapping = fuzzyCreator.initialMapping(input)
-  const fuzzyInd = fuzzyCreator.toFuzzyHex(initMapping)
-  const fkey = fuzzyCreator.toFuzzyInt64(initMapping)
+  const initMapping = fuzzyIndexCreator.initialMapping(input)
+  const fuzzyInd = fuzzyIndexCreator.toFuzzyHex(initMapping)
+  const fkey = fuzzyIndexCreator.toFuzzyInt64(initMapping)
 
   const input2 = 'walrus'
-  const initMapping2 = fuzzyCreator.initialMapping(input2)
-  const fuzzyInd2 = fuzzyCreator.toFuzzyHex(initMapping2)
-  const fkey2 = fuzzyCreator.toFuzzyInt64(initMapping2)
+  const initMapping2 = fuzzyIndexCreator.initialMapping(input2)
+  const fuzzyInd2 = fuzzyIndexCreator.toFuzzyHex(initMapping2)
+  const fkey2 = fuzzyIndexCreator.toFuzzyInt64(initMapping2)
   let ind1 = {
     id: 1,
     fkey,
@@ -127,7 +133,6 @@ describe('IndexRepository', () => {
         return `./node_modules/sql.js/dist/${filename}`
       },
     }
-    indexRepository = new IndexRepository()
     await indexRepository.getDataBase(config)
   })
 
