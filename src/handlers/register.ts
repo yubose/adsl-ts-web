@@ -139,7 +139,7 @@ function createRegisters(app: App) {
     },
   }
 
-  function onInitPage(pageObject: PageObject) {
+  function onInitPage() {
     if (app.globalRegister) {
       log.func('onInitPage')
 
@@ -267,7 +267,9 @@ function createRegisters(app: App) {
   } as const
 
   if (u.isFnc(app.listen)) {
-    app.listen('onInitPage', onInitPage)
+    // console.log('prepare onInitPage')
+    // app.listen('onInitPage', onInitPage)
+    onInitPage()
   } else {
     console.log(
       `%cThe "listen" method on App was skipped because it was undefined`,
