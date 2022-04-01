@@ -89,7 +89,7 @@ componentResolver.setResolver(async (component, options, next) => {
       /** Filter invalid values (0 is a valid value)  */
       function getListObject(opts: ConsumerOptions) {
         let listObject =
-          component.get('listObject') || component.blueprint.listObject
+        component.blueprint.listObject || component.get('listObject')
         if (is.reference(listObject)) {
           let page = opts.page
           let pageName = ''
