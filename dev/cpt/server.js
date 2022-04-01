@@ -61,7 +61,7 @@ const commonWebpackConfig = {
         use: [
           {
             loader: 'esbuild-loader',
-            options: { loader: 'ts', target: 'es2017' },
+            options: { loader: 'ts', target: 'es2017', sourcemap: 'inline' },
           },
         ],
       },
@@ -76,6 +76,7 @@ const compiler = webpack([
   {
     ...commonWebpackConfig,
     entry: path.join(__dirname, './piWorker.ts'),
+    devtool: 'source-map',
     output: {
       clean: true,
       filename: 'piWorker.js',
@@ -85,6 +86,7 @@ const compiler = webpack([
   {
     ...commonWebpackConfig,
     entry: path.join(__dirname, './index.ts'),
+    devtool: 'source-map',
     output: {
       clean: true,
       filename: 'index.js',

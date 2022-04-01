@@ -1,28 +1,18 @@
-import type IDB from 'idb'
 import type PiWorker from './noodl-pi'
 import type { storeEvt } from './constants'
 
-export type DB<S extends IDB.DBSchema = IDB.DBSchema> = IDB.IDBPDatabase<S>
-
-export interface HookHandler<
-  S extends IDB.DBSchema,
-  SNames extends IDB.StoreNames<S>,
-  Arg = any,
-  Args = any,
-> {
-  (this: PiWorker<S, SNames>, arg: Arg, ...args: Args[]): any
+export interface ExecuteSQL<Q extends string = string> {
+  (query: Q): Promise<any>
 }
-f
 
-export interface Hooks<
-  S extends IDB.DBSchema = IDB.DBSchema,
-  SNames extends IDB.StoreNames<S> = IDB.StoreNames<S>,
-> {
-  all: HookHandler<S, SNames, keyof Hooks<S, SNames>>
-  [storeEvt.STORE_EMPTY]: HookHandler<S, SNames, WorkerStoreObject<S, SNames>>
+export interface HookHandler<Arg = any, Args = any> {
+  (this: PiWorker, arg: Arg, ...args: Args[]): any
+}
+
+export interface Hooks<SNames extends string = string> {
+  all: HookHandler<keyof Hooks>
+  [storeEvt.STORE_EMPTY]: HookHandler<WorkerStoreObject>
   [storeEvt.FETCHED_STORE_DATA]: HookHandler<
-    S,
-    SNames,
     HookCRUDFnArgs<SNames> & {
       cachedVersion: number | null
       response: any
@@ -30,34 +20,27 @@ export interface Hooks<
     }
   >
   [storeEvt.STORE_DATA_VERSION_UPDATE]: HookHandler<
-    S,
-    SNames,
     HookCRUDFnArgs<SNames> & {
       data: any
       version: number
     }
   >
-  [storeEvt.STORE_DATA_CLEARED]: HookHandler<S, SNames, SNames>
-  [storeEvt.STORE_CREATED]: HookHandler<S, SNames, HookCRUDFnArgs<SNames>>
+  [storeEvt.STORE_DATA_CLEARED]: HookHandler<SNames>
+  [storeEvt.STORE_CREATED]: HookHandler<HookCRUDFnArgs<SNames>>
   [storeEvt.SEARCH]: HookHandler<
-    S,
-    SNames,
     HookCRUDFnArgs<SNames> & {
       query?: any
     }
   >
-  [storeEvt.GET]: HookHandler<S, SNames, HookCRUDFnArgs<SNames>>
-  [storeEvt.DELETE]: HookHandler<S, SNames, HookCRUDFnArgs<SNames>>
-  [storeEvt.UPDATE]: HookHandler<S, SNames, HookCRUDFnArgs<SNames>>
+  [storeEvt.GET]: HookHandler<HookCRUDFnArgs<SNames>>
+  [storeEvt.DELETE]: HookHandler<HookCRUDFnArgs<SNames>>
+  [storeEvt.UPDATE]: HookHandler<HookCRUDFnArgs<SNames>>
 }
 export interface HookCRUDFnArgs<SName> {
   storeName: SName
 }
-export interface WorkerStoreObject<
-  S extends IDB.DBSchema,
-  SName extends IDB.StoreNames<S>,
-> {
-  storeName: SName
+export interface WorkerStoreObject {
+  storeName: string
   version?: number | string
   url?: string
 }

@@ -11,7 +11,7 @@ const {
 if (watch) {
   let spawnOptions = { encoding: 'utf8', shell: true, stdio: 'inherit' }
   const shell = partialRight(childProcess.spawnSync, spawnOptions)
-  shell(`rollup -c rollup.config.js -w BUILD:development`)
+  shell(`rollup -c -w rollup.config.js BUILD:development`)
   shell(
     `tsc --declaration --emitDeclarationOnly --declarationDir dist --skipLibCheck -w`,
   )

@@ -6,89 +6,89 @@
  * const piWorker = new Worker('./dist/noodl-pi.js')
  * ```
  */
-import type { LiteralUnion } from 'type-fest'
-import type IDB from 'idb'
-import type _JSBI from 'jsbi/jsbi'
-import FuzzyIndexCreator from './IndexCreator'
-import { isObj, toArr, spread } from './utils'
+import getFuzzyIndexCreator from './getFuzzyIndexCreator'
+import getApiHashDaoQueries from './getApiHashDaoQueries'
+import getDocDaoQueries from './getDocDaoQueries'
+import getIndexDaoQueries from './getIndexDaoQueries'
+import getIndexRepository from './getIndexRepository'
+import getJsonIndex from './getJsonIndex'
+import getPersonalIndexCtr from './getPersonalIndexCtr'
+import getPersonalIndexToS3Queries from './getPersonalIndexToS3Queries'
+import { isObj } from './utils'
 import * as c from './constants'
 import * as t from './types'
 
 const _color = ''
 
-class NoodlPiWorker<
-  S extends IDB.DBSchema,
-  SNames extends IDB.StoreNames<S> = IDB.StoreNames<S>,
-> {
-  #db: IDB.IDBPDatabase<S> | null = null
+class NoodlPiWorker {
+  #run: t.ExecuteSQL<string>
   #self: DedicatedWorkerGlobalScope
-  #stores = new Map<
-    LiteralUnion<SNames, string>,
-    t.WorkerStoreObject<S, SNames>
-  >()
+  #stores = new Map<string, t.WorkerStoreObject>()
   #hooks = ['all', ...Object.values(c.storeEvt)].reduce((acc, evtName) => {
     acc[evtName] = () => {}
     return acc
-  }, {} as Record<keyof t.Hooks<S, SNames>, t.Hooks<S, SNames>[keyof t.Hooks<S, SNames>]>)
-  indexCreator: FuzzyIndexCreator | null = null;
+  }, {} as Record<keyof t.Hooks, t.Hooks[keyof t.Hooks]>)
+  indexCreator: ReturnType<typeof getFuzzyIndexCreator> | null = null;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
-      db: this.db,
+      hasSqlExecutor: typeof this.#run === 'function',
+      subscribedHooks: Object.entries(this.#hooks).reduce((acc, [key, fn]) => {
+        if (typeof fn === 'function') acc[key] = true
+        else acc[key] = false
+        return acc
+      }, {} as Record<keyof t.Hooks, boolean>),
       self: this.#self,
       stores: this.#stores,
     }
   }
 
-  constructor(stores: t.WorkerStoreObject<S, SNames>[]) {
+  constructor(run: t.ExecuteSQL<string>) {
+    if (!run) throw new Error(`"run" function was not provided`)
+    this.#run = run
+    // this.#stores.set(obj.storeName, {
+    //   storeName: obj.storeName,
+    //   url: obj.url,
+    //   ...('version' in obj ? { version: obj.version } : undefined),
+    // })
     this.#self = self as DedicatedWorkerGlobalScope
 
-    toArr(stores).forEach((obj) => {
-      if (!obj.storeName) throw new Error(`storeName is missing`)
-
-      this.#stores.set(obj.storeName, {
-        storeName: obj.storeName,
-        url: obj.url,
-        ...('version' in obj ? { version: obj.version } : undefined),
-      })
-
-      this.#self.addEventListener('message', async (evt) => {
-        const data = evt.data
-        const type = data?.type
-        console.log(`%c[lib] Received "${type}"`, `color:${_color};`, data)
-        switch (type) {
-          case c.storeEvt.SEARCH:
-          case c.storeEvt.GET:
-          case c.storeEvt.DELETE:
-          case c.storeEvt.UPDATE: {
-            return this.emit(type, data)
-          }
-          case c.storeEvt.STORE_DATA_VERSION_UPDATE: {
-            await this.clearStoreData(data.storeName)
-            return this.setStoreData({
-              storeName: data.storeName,
-              data: data.data,
-              version: data.version,
-            })
-          }
+    this.#self.addEventListener('message', async (evt) => {
+      const data = evt.data
+      const type = data?.type
+      console.log(`%c[lib] Received "${type}"`, `color:${_color};`, data)
+      switch (type) {
+        case c.storeEvt.SEARCH:
+        case c.storeEvt.GET:
+        case c.storeEvt.DELETE:
+        case c.storeEvt.UPDATE: {
+          return this.emit(type, data)
         }
-      })
+        // case c.storeEvt.STORE_DATA_VERSION_UPDATE: {
+        //   await this.clearStoreData(data.storeName)
+        //   return this.setStoreData({
+        //     storeName: data.storeName,
+        //     data: data.data,
+        //     version: data.version,
+        //   })
+        // }
+      }
+    })
 
-      this.#self.addEventListener('messageerror', (evt) => {
-        console.log(`%c[lib] Message error`, `color:tomato;`, evt)
-      })
+    this.#self.addEventListener('messageerror', (evt) => {
+      console.log(`%c[lib] Message error`, `color:tomato;`, evt)
+    })
 
-      this.#self.addEventListener('error', (evt) => {
-        console.log(`%c[lib] Error`, `color:tomato;`, evt)
-      })
+    this.#self.addEventListener('error', (evt) => {
+      console.log(`%c[lib] Error`, `color:tomato;`, evt)
+    })
 
-      this.#self.addEventListener('rejectionhandled', (evt) => {
-        console.log(`%c[lib] Rejection`, `color:tomato;`, evt)
-      })
+    this.#self.addEventListener('rejectionhandled', (evt) => {
+      console.log(`%c[lib] Rejection`, `color:tomato;`, evt)
+    })
 
-      this.#self.addEventListener('unhandledrejection', (evt) => {
-        console.log(`%c[lib] Unhandled rejection`, `color:tomato;`, evt)
-      })
+    this.#self.addEventListener('unhandledrejection', (evt) => {
+      console.log(`%c[lib] Unhandled rejection`, `color:tomato;`, evt)
     })
   }
 
@@ -104,125 +104,50 @@ class NoodlPiWorker<
     }
   }
 
-  get db() {
-    return this.#db as IDB.IDBPDatabase<S>
-  }
-
   get hooks() {
     return this.#hooks
+  }
+
+  get run() {
+    return this.#run
   }
 
   get stores() {
     return this.#stores
   }
 
-  async init(db: IDB.IDBPDatabase<S>) {
-    try {
-      this.#db = db
-      this.db.addEventListener('error', function (evt) {
-        console.log(`%c[lib] Error`, `color:tomato;`, evt)
-      })
-      this.db.addEventListener('abort', function (evt) {
-        console.log(`%c[lib] Aborted`, `color:tomato;`, evt)
-      })
-      this.db.addEventListener('close', function (evt) {
-        console.log(`%c[lib] Closed`, `color:tomato;`, evt)
-      })
-      this.db.addEventListener('versionchange', function (evt) {
-        console.log(`%c[lib] Version changed`, `color:tomato;`, evt)
-      })
-
-      await Promise.all(
-        this.getStoreNames().map(async (storeName) => {
-          try {
-            const storeInfo = this.stores.get(storeName) as t.WorkerStoreObject<
-              S,
-              SNames
-            >
-
-            const keys = await this.#db
-              ?.transaction(storeName as SNames)
-              .store.getAllKeys()
-
-            const isEmpty = !keys?.length
-            if (isEmpty) this.emit(c.storeEvt.STORE_EMPTY, storeInfo)
-            if (storeInfo.url) {
-              const cachedVersion = isEmpty
-                ? null
-                : await this.getStoreVersion(storeName as SNames)
-              const respData = await this.#fetchData(storeInfo.url)
-              return this.emit(c.storeEvt.FETCHED_STORE_DATA, {
-                storeName,
-                cachedVersion,
-                response: respData,
-                url: storeInfo.url,
-              })
-            }
-          } catch (error) {
-            const err =
-              error instanceof Error ? error : new Error(String(error))
-            throw err
-          }
-        }),
-      )
-
-      return this.db
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      throw err
-    }
+  getApiHashDaoQueries(tableName?: string) {
+    return getApiHashDaoQueries(this.run, tableName || '')
   }
 
-  async isStale<SName extends SNames>(storeName: SName, vers: string) {
-    const cachedVersion = await this.db.get(storeName, 'version' as any)
-    return cachedVersion !== vers
+  getDocDaoQueries(tableName?: string) {
+    return getDocDaoQueries(this.run, tableName || '')
   }
 
-  hasStore<SName extends SNames>(storeName: SName) {
-    return this.db.objectStoreNames.contains(storeName)
+  getIndexDaoQueries(tableName?: string) {
+    return getIndexDaoQueries(this.run, tableName || '')
   }
 
-  async createStore(storeName, options) {
-    const store = this.db.createObjectStore(storeName, options)
-    this.stores.set(storeName, { ...this.#stores.get(storeName), storeName })
-    return store
+  getIndexRepository(tableName?: string) {
+    return getIndexRepository(this.run, tableName || '')
   }
 
-  getStoreNames() {
-    return [...this.stores.keys()]
+  getJsonIndex(id: string, docType: number, kText: string[]) {
+    return getJsonIndex(this.run, { id, docType, kText })
   }
 
-  getStoreVersion<SName extends SNames>(storeName: SName) {
-    return this.db.get(storeName, 'version' as any)
+  getPersonalIndexCtr(
+    tableName?: string,
+    indexDao = getIndexDaoQueries(this.run, tableName || ''),
+  ) {
+    return getPersonalIndexCtr(this.run, indexDao)
   }
 
-  getStoreData<SName extends SNames>(storeName: SName, key: IDBKeyRange) {
-    return this.db.get(storeName, key)
-  }
-
-  async clearStoreData<SName extends SNames>(storeName: SName) {
-    await this.db.clear(storeName)
-    return this.emit(c.storeEvt.STORE_DATA_CLEARED, storeName)
-  }
-
-  async setStoreData<N extends SNames>({
-    storeName,
-    data,
-    version,
-  }: {
-    storeName: N
-    data: IDB.StoreValue<S, N>
-    version?: number
-  }) {
-    if (isObj(data)) {
-      const fn = spread(this.setValue.bind(this, storeName))
-      await Promise.all(Object.entries(data).map(fn))
-    }
-    if (version) await this.db.put(storeName, version as any, 'version' as any)
-  }
-
-  setValue<N extends SNames>(storeName: N, key: any, value: any) {
-    return this.db.put(storeName, value, key)
+  getPersonalIndexToS3Queries(
+    tableName?: string,
+    indexDao = getIndexDaoQueries(this.run, tableName || ''),
+  ) {
+    return getPersonalIndexToS3Queries(this.run, indexDao)
   }
 
   sendMessage(
@@ -234,17 +159,17 @@ class NoodlPiWorker<
     return this.#self.postMessage(...args)
   }
 
-  emit<
-    Evt extends keyof t.Hooks<S, SNames>,
-    Arg = any,
-    Args extends any[] = any[],
-  >(evtName: Evt, arg?: Arg | undefined, ...args: Args) {
+  emit<Evt extends keyof t.Hooks, Arg = any, Args extends any[] = any[]>(
+    evtName: Evt,
+    arg?: Arg | undefined,
+    ...args: Args
+  ) {
     // @ts-expect-error
     this.hooks.all?.call(this, evtName, arg, ...args)
     return this.hooks[evtName as any]?.call(this, arg, ...args)
   }
 
-  use(options: Partial<t.Hooks<S, SNames>>) {
+  use(options: Partial<t.Hooks>) {
     if (isObj(options)) {
       for (const [key, value] of Object.entries(options)) {
         if (key in this.#hooks) this.#hooks[key] = value

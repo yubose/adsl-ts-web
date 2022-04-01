@@ -2,7 +2,7 @@
 import { expect } from 'chai'
 import FrontEndDB from '../../FrontEndDB'
 import PItoS3Helper from '../S3Convert/PItoS3Helper'
-import PersonalIndexCtr from '../PersonalIndexCtr'
+import PersonalIndexCtr from '../getPersonalIndexCtr'
 
 describe('PersonalIndexCtr', () => {
   const doc = [

@@ -2,6 +2,8 @@ import * as u from '@jsmanifest/utils'
 import { h, init, toVNode, eventListenersModule, VNode } from 'snabbdom'
 import unset from 'lodash/unset'
 import { c } from 'noodl-pi'
+// import * as jss from 'jsstore'
+// import SqlWeb from 'sqlweb'
 
 const table = {
   cpt: 'CPT',
@@ -28,6 +30,7 @@ const withSendMessage = (worker) => {
 
 window.addEventListener('load', async (evt) => {
   const worker = withSendMessage(new Worker('piWorker.js'))
+
   listEl = document.querySelector('ul') as HTMLUListElement
   console.log(`%c[client] Worker constructed`, `color:${_color};`, worker)
 
