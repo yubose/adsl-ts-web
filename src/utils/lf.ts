@@ -1,11 +1,13 @@
 import localForage from 'localforage'
 
 export const lf = localForage.createInstance({
-  driver: [localForage.INDEXEDDB, localForage.WEBSQL, localForage.LOCALSTORAGE],
+  // driver: [localForage.INDEXEDDB, localForage.WEBSQL, localForage.LOCALSTORAGE],
+  driver: [localForage.LOCALSTORAGE],
   storeName: 'noodl',
   description: 'Storage for noodl web apps',
   name: 'noodl',
   size: 1000000000, // 1 gb
+  version: 1,
 })
 
 export async function clear() {

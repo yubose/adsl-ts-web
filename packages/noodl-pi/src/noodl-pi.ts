@@ -15,139 +15,101 @@ import getJsonIndex from './getJsonIndex'
 import getPersonalIndexCtr from './getPersonalIndexCtr'
 import getPersonalIndexToS3Queries from './getPersonalIndexToS3Queries'
 import { isObj } from './utils'
-import * as c from './constants'
 import * as t from './types'
 
-const _color = ''
+const _color = 'gold'
 
 class NoodlPiWorker {
-  #run: t.ExecuteSQL<string>
+  #hooks = [
+    'all',
+    'message',
+    'messageError',
+    'rejectionHandled',
+    'rejectionunHandled',
+  ].reduce(
+    (acc, evtName) => Object.assign(acc, { [evtName]: () => {} }),
+    {} as t.Hooks,
+  )
+  #runSql: t.ExecuteSQL<string>
   #self: DedicatedWorkerGlobalScope
-  #stores = new Map<string, t.WorkerStoreObject>()
-  #hooks = ['all', ...Object.values(c.storeEvt)].reduce((acc, evtName) => {
-    acc[evtName] = () => {}
-    return acc
-  }, {} as Record<keyof t.Hooks, t.Hooks[keyof t.Hooks]>)
-  indexCreator: ReturnType<typeof getFuzzyIndexCreator> | null = null;
+  dbName: string;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
-      hasSqlExecutor: typeof this.#run === 'function',
+      dbName: this.dbName,
+      hasSqlExecutor: typeof this.#runSql === 'function',
       subscribedHooks: Object.entries(this.#hooks).reduce((acc, [key, fn]) => {
         if (typeof fn === 'function') acc[key] = true
         else acc[key] = false
         return acc
       }, {} as Record<keyof t.Hooks, boolean>),
       self: this.#self,
-      stores: this.#stores,
     }
   }
 
-  constructor(run: t.ExecuteSQL<string>) {
+  constructor(dbName: string, run: t.ExecuteSQL<string>) {
     if (!run) throw new Error(`"run" function was not provided`)
-    this.#run = run
-    // this.#stores.set(obj.storeName, {
-    //   storeName: obj.storeName,
-    //   url: obj.url,
-    //   ...('version' in obj ? { version: obj.version } : undefined),
-    // })
+    this.dbName = dbName
+    this.#runSql = run
     this.#self = self as DedicatedWorkerGlobalScope
 
-    this.#self.addEventListener('message', async (evt) => {
-      const data = evt.data
-      const type = data?.type
-      console.log(`%c[lib] Received "${type}"`, `color:${_color};`, data)
-      switch (type) {
-        case c.storeEvt.SEARCH:
-        case c.storeEvt.GET:
-        case c.storeEvt.DELETE:
-        case c.storeEvt.UPDATE: {
-          return this.emit(type, data)
-        }
-        // case c.storeEvt.STORE_DATA_VERSION_UPDATE: {
-        //   await this.clearStoreData(data.storeName)
-        //   return this.setStoreData({
-        //     storeName: data.storeName,
-        //     data: data.data,
-        //     version: data.version,
-        //   })
-        // }
-      }
+    this.#self.addEventListener('message', (evt) => {
+      return this.#hooks?.message?.call(this.#self, evt)
     })
-
-    this.#self.addEventListener('messageerror', (evt) => {
-      console.log(`%c[lib] Message error`, `color:tomato;`, evt)
-    })
-
-    this.#self.addEventListener('error', (evt) => {
-      console.log(`%c[lib] Error`, `color:tomato;`, evt)
-    })
-
-    this.#self.addEventListener('rejectionhandled', (evt) => {
-      console.log(`%c[lib] Rejection`, `color:tomato;`, evt)
-    })
-
-    this.#self.addEventListener('unhandledrejection', (evt) => {
-      console.log(`%c[lib] Unhandled rejection`, `color:tomato;`, evt)
-    })
+    this.#self.addEventListener('messageerror', (evt) =>
+      this.#hooks.messageError?.call(this.#self, evt),
+    )
+    this.#self.addEventListener('rejectionhandled', (evt) =>
+      this.#hooks.rejectionHandled?.call(this.#self, evt),
+    )
+    this.#self.addEventListener('unhandledrejection', (evt) =>
+      this.#hooks.rejectionUnhandled?.call(this.#self, evt),
+    )
   }
 
-  #fetchData = async (url: string) => {
-    try {
-      const response = await this.#self.fetch(url)
-      const respData = await response.json()
-      console.log(`%c[lib] Response data`, `color:${_color};`, respData)
-      return respData
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      throw err
-    }
-  }
-
-  get hooks() {
-    return this.#hooks
-  }
-
-  get run() {
-    return this.#run
-  }
-
-  get stores() {
-    return this.#stores
+  /**
+   * Returns the function that runs SQL queries against the IndexedDB database when called
+   */
+  get runSql() {
+    return this.#runSql
   }
 
   getApiHashDaoQueries(tableName?: string) {
-    return getApiHashDaoQueries(this.run, tableName || '')
+    return getApiHashDaoQueries(this.runSql, tableName || '')
   }
 
   getDocDaoQueries(tableName?: string) {
-    return getDocDaoQueries(this.run, tableName || '')
+    return getDocDaoQueries(this.runSql, tableName || '')
+  }
+
+  getFuzzyIndexCreator() {
+    return getFuzzyIndexCreator()
   }
 
   getIndexDaoQueries(tableName?: string) {
-    return getIndexDaoQueries(this.run, tableName || '')
+    return getIndexDaoQueries(this.runSql, tableName || '')
   }
 
   getIndexRepository(tableName?: string) {
-    return getIndexRepository(this.run, tableName || '')
+    return getIndexRepository(this.runSql, tableName || '')
   }
 
   getJsonIndex(id: string, docType: number, kText: string[]) {
-    return getJsonIndex(this.run, { id, docType, kText })
+    return getJsonIndex(this.runSql, { id, docType, kText })
   }
 
   getPersonalIndexCtr(
     tableName?: string,
-    indexDao = getIndexDaoQueries(this.run, tableName || ''),
+    indexDao = getIndexDaoQueries(this.runSql, tableName || ''),
   ) {
-    return getPersonalIndexCtr(this.run, indexDao)
+    return getPersonalIndexCtr(this.runSql, indexDao)
   }
 
   getPersonalIndexToS3Queries(
     tableName?: string,
-    indexDao = getIndexDaoQueries(this.run, tableName || ''),
+    indexDao = getIndexDaoQueries(this.runSql, tableName || ''),
   ) {
-    return getPersonalIndexToS3Queries(this.run, indexDao)
+    return getPersonalIndexToS3Queries(this.runSql, indexDao)
   }
 
   sendMessage(
@@ -164,9 +126,8 @@ class NoodlPiWorker {
     arg?: Arg | undefined,
     ...args: Args
   ) {
-    // @ts-expect-error
-    this.hooks.all?.call(this, evtName, arg, ...args)
-    return this.hooks[evtName as any]?.call(this, arg, ...args)
+    this.#hooks.all?.call(this, evtName, arg, ...args)
+    return this.#hooks[evtName as any]?.call(this, arg, ...args)
   }
 
   use(options: Partial<t.Hooks>) {

@@ -18,7 +18,7 @@ function getDocDaoQueries(run: ExecuteSQL, tableName: string) {
       }
     },
     deleteDocById(did: string) {
-      return run(`DELETE FROM ecos_doc_table WHERE id = ${did}`)
+      return run(`DELETE FROM ${tableName} WHERE id = ${did}`)
     },
     getDocById(did: string, sCondition?: string) {
       return run(
@@ -49,7 +49,7 @@ function getDocDaoQueries(run: ExecuteSQL, tableName: string) {
     },
     insertDoc(doc: any = {}) {
       let str = `INSERT INTO ${tableName} VALUES (:ctime, :mtime, :atime, :atimes, :id, :name, :deat, :size, :fid, :eid, :bsig, :esig, :subtype, :type, :tage);`
-      for (const [key, val] of Object.entries(doc)) {
+      for (const val of Object.values(doc)) {
         if (val instanceof Uint8Array) {
           str += `${uint8ArrayToBase64(val)},`
         } else if (isObj(val)) {

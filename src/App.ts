@@ -83,8 +83,7 @@ class App {
   #spinner: Spinner
   #sdkHelpers: ReturnType<typeof getSdkHelpers>
   #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
-  #worker: Worker | null = null
-  // #worker: ReturnType<typeof NoodlWorker>
+  #piBackgroundWorker: Worker | null = null
   actionFactory = actionFactory(this)
   goto: ReturnType<typeof createGoto>
   obs: t.AppObservers = new Map()
@@ -264,17 +263,13 @@ class App {
     return this.mainPage.viewport as VP
   }
 
-  get worker() {
-    return this.#worker
+  get piBackgroundWorker() {
+    return this.#piBackgroundWorker as Worker
   }
 
   getState() {
     return this.#state
   }
-
-  // get worker() {
-  //   return this.#worker
-  // }
 
   /**
    * Navigates to a page specified in page.requesting
@@ -332,7 +327,7 @@ class App {
         } else {
           page = curretPage
         }
-        localStorage.setItem('tempParams',JSON.stringify(params))
+        localStorage.setItem('tempParams', JSON.stringify(params))
         // await lf.setItem('tempParams', params)
       }
 
@@ -405,18 +400,11 @@ class App {
   async initialize({
     onInitNotification,
     onSdkInit,
-    onWorker,
   }: {
     onInitNotification?: (notification: AppNotification) => Promise<void>
     onSdkInit?: (sdk: CADL) => void
-    onWorker?: (worker: Worker) => void
   } = {}) {
     try {
-      // if (process.env.NODE_ENV !== 'test' && window.Worker) {
-      //   this.#worker = new Worker('worker.js')
-      //   onWorker?.(this.worker as Worker)
-      // }
-
       if (!this.getState().spinner.active) this.enableSpinner()
       if (!this.getStatus) this.getStatus = Account.getStatus
 

@@ -12,7 +12,6 @@ const table = {
 
 const _color = 'navajowhite'
 const storeNames = [table.cpt]
-const mode = 'text'
 const patch = init([eventListenersModule])
 
 let listEl: HTMLUListElement
@@ -38,12 +37,36 @@ window.addEventListener('load', async (evt) => {
     const data = evt2.data
     const type = data?.type
 
-    console.log(`%c[client] Received: "${type}"`, `color:${_color};`, data)
+    if (evt2.data?.result?.database) {
+      // Message sent from jsstore
+      const { isCreated, database, oldVersion, newVersion } = evt2.data.result
+      if (isCreated) {
+        // First time instantiation
+        console.log(
+          `%c[client] Database "${database.name}" created with ${database.tables.length} tables`,
+          `color:${_color};`,
+          database,
+        )
+      } else {
+        console.log(
+          `%c[client] Database tables`,
+          `color:${_color};`,
+          database.tables,
+        )
+      }
+    } else {
+      console.log(`%c[client] Message "${type}"`, `color:${_color};`, data)
+    }
 
     if (type) {
       switch (type) {
-        case c.storeEvt.STORE_EMPTY: {
-          break
+        case 'workerInitiated': {
+          return storeNames.forEach((storeName) =>
+            worker.sendMessage({
+              type: c.storeEvt.SEARCH,
+              storeName,
+            }),
+          )
         }
         case c.storeEvt.SEARCH_RESULT: {
           cptCodes = data.result
@@ -63,14 +86,7 @@ window.addEventListener('load', async (evt) => {
           }
           break
         }
-        case c.WORKER_INITIATED: {
-          return storeNames.forEach((storeName) =>
-            worker.sendMessage({
-              type: c.storeEvt.SEARCH,
-              storeName,
-            }),
-          )
-        }
+
         case c.TABLE_CONTENTS: {
           switch (data.storeName) {
             case table.cpt: {

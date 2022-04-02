@@ -6,7 +6,7 @@ import type { ExecuteSQL } from './types'
 function getIndexDaoQueries(run: ExecuteSQL, tableName: string) {
   return {
     deleteIndexByDocId(did: string) {
-      return run(`DELETE FROM index_tables WHERE docId = ${did}`)
+      return run(`DELETE FROM ${tableName} WHERE docId = ${did}`)
     },
     async extendAndFuzzySearch({
       kInput,
@@ -64,32 +64,32 @@ function getIndexDaoQueries(run: ExecuteSQL, tableName: string) {
       return res
     },
     getAllDoc() {
-      return run(`SELECT * FROM index_tables`)
+      return run(`SELECT * FROM ${tableName}`)
     },
     /* for update to S3 */
     getAllDocId() {
-      return run(`SELECT DISTINCT docId FROM index_tables`)
+      return run(`SELECT DISTINCT docId FROM ${tableName}`)
     },
     getAllkTextByDid(did: string) {
       return run(
-        `SELECT kText FROM index_tables WHERE docId = ${did} ORDER BY score`,
+        `SELECT kText FROM ${tableName} WHERE docId = ${did} ORDER BY score`,
       )
     },
     getAllScoreByDid(did: string) {
       return run(
-        `SELECT score FROM index_tables WHERE docId = ${did} ORDER By score`,
+        `SELECT score FROM ${tableName} WHERE docId = ${did} ORDER By score`,
       )
     },
     getTypeById(did: string) {
       return run(
-        `SELECT DISTINCT docType FROM index_tables WHERE docId = ${did}`,
+        `SELECT DISTINCT docType FROM ${tableName} WHERE docId = ${did}`,
       )
     },
     getmTimeById(did: string) {
-      return run(`SELECT DISTINCT mTime FROM index_tables WHERE docId = ${did}`)
+      return run(`SELECT DISTINCT mTime FROM ${tableName} WHERE docId = ${did}`)
     },
     async getLatestDocId() {
-      const res = await run(`SELECT docId FROM index_tables LIMIT 1`)
+      const res = await run(`SELECT docId FROM ${tableName} LIMIT 1`)
       if (res.length) {
         const { columns, values } = res[0]
         return values[0][0]
@@ -97,7 +97,7 @@ function getIndexDaoQueries(run: ExecuteSQL, tableName: string) {
     },
     async getPI_mtime() {
       const res = await run(
-        `SELECT mTime FROM index_tables ORDER BY mtime desc LIMIT 1`,
+        `SELECT mTime FROM ${tableName} ORDER BY mtime desc LIMIT 1`,
       )
       if (res.length) {
         const { columns, values } = res[0]
@@ -109,10 +109,10 @@ function getIndexDaoQueries(run: ExecuteSQL, tableName: string) {
       return run(`SELECT COUNT(*) FROM ${tableName}`)
     },
     getPIByDocId(did: string) {
-      return run(`SELECT * FROM index_tables WHERE docId = ${did}`)
+      return run(`SELECT * FROM ${tableName} WHERE docId = ${did}`)
     },
     async indexTableIsEmpty() {
-      const res = await run(`SELECT COUNT(*) FROM index_tables`)
+      const res = await run(`SELECT COUNT(*) FROM ${tableName}`)
       const count = res[0].values[0][0]
       if (count) return false
       return true

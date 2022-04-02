@@ -8,8 +8,6 @@ const progress = require('rollup-plugin-progress')
 const commonjs = require('@rollup/plugin-commonjs')
 const esbuild = require('rollup-plugin-esbuild').default
 
-console.log('HEY')
-
 /**
  * @type { import('rollup').RollupOptions }
  */
@@ -22,6 +20,8 @@ const config = {
     name: 'noodlPi',
     sourcemap: true,
   },
+  preserveSymlinks: true,
+  treeshake: true,
   context: 'this',
   plugins: [
     resolve({

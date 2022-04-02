@@ -1,5 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import type { Account as CADLAccount, CADL } from '@aitmed/cadl'
+import type * as jss from 'jsstore'
 import Logger from 'logsnap'
 import { asHtmlElement, findByViewTag } from 'noodl-ui'
 import { toast } from './utils/dom'
@@ -130,38 +131,7 @@ async function initializeApp(
       }
     },
     onSdkInit(sdk) {
-      app.worker?.postMessage({ type: 'ON_INIT_SDK' })
-      sdk.root.builtIn
-        .SignInOk()
-        .then((authed) => {
-          if (authed) {
-            app.worker?.postMessage({ type: 'AUTHENTICATED' })
-            // document.getElementById('root').innerHTML = html
-          }
-        })
-        .catch((error) => {
-          const err = error instanceof Error ? error : new Error(String(error))
-          console.error(err)
-        })
-    },
-    onWorker(worker) {
-      worker.addEventListener('message', function (evt) {
-        console.log(
-          `%c[worker] Message`,
-          `color:#00b406;font-weight:bold;`,
-          evt,
-        )
-      })
-      worker.addEventListener('messageerror', function (evt) {
-        console.log(
-          `%c[worker] Message error`,
-          `color:tomato;font-weight:bold;`,
-          evt,
-        )
-      })
-      worker.addEventListener('error', function (evt) {
-        console.log(`%c[worker] Error`, `color:tomato;font-weight:bold;`, evt)
-      })
+      initPiBackgroundWorker(new Worker('piBackgroundWorker.js'))
     },
   })
   // app.navigate('Cov19TestNewPatReviewPage1')
@@ -277,19 +247,6 @@ window.addEventListener('keydown', (evt) => {
   if (evt.key === '0' && evt.metaKey) window.get()
 })
 
-if (module.hot) {
-  module.hot.accept()
-  if (module.hot.status() === 'apply') {
-    app = window.app as App
-    window.app.reset(true)
-    delete window.app
-  }
-
-  module.hot.dispose((data = {}) => {
-    u.keys(data).forEach((key) => delete data[key])
-  })
-}
-
 function attachDebugUtilsToWindow(app: App) {
   Object.defineProperties(
     window,
@@ -302,3 +259,120 @@ function attachDebugUtilsToWindow(app: App) {
 }
 
 attachDebugUtilsToWindow.attached = false
+
+/**
+ * Initializes the Personal Index Worker
+ * @param { Worker } worker
+ */
+function initPiBackgroundWorker(worker: Worker) {
+  const _color = 'navajowhite'
+
+  /**
+   * Wraps the worker with a "sendMessage" method. This is the same as postMessage but is being used here so we don't write "console.log" every time to debug logs
+   * @param worker
+   * @returns { Worker }
+   */
+  const withSendMessage = (worker: Worker) => {
+    Object.defineProperty(worker, 'sendMessage', {
+      value: function (this: Worker, ...args: any[]) {
+        console.log(
+          `%c[client] Sending "${args[0]?.type}"`,
+          `color:${_color};`,
+          args[0],
+        )
+        // @ts-expect-error
+        return worker.postMessage(...args)
+      },
+    })
+    return worker as Worker & { sendMessage: Worker['postMessage'] }
+  }
+
+  const piWorker = withSendMessage(worker)
+
+  // piWorker.sendMessage({
+  //   type: 'search',
+  //   table: 'CPT',
+  // })
+
+  piWorker.addEventListener('message', async function (evt) {
+    const data = evt.data
+    const type = data?.type
+
+    if (evt.data?.result?.database) {
+      // Message sent from jsstore on initiation
+      const result = evt.data.result as {
+        isCreated: boolean
+        database: jss.IDataBase
+        oldVersion: number
+        newVersion: number
+      }
+      const { database, isCreated } = result
+      log.func('message')
+      log.grey(
+        `Database ${
+          isCreated
+            ? `"${database.name}" created with ${database.tables.length} tables`
+            : `tables`
+        }`,
+        isCreated ? database : database.tables,
+      )
+    } else {
+      log.grey(`Message "${type}"`, data)
+    }
+
+    switch (String(type)) {
+      case 'workerInitiated': {
+        const resp = await fetch(`/cpt`)
+        const respData = await resp.json()
+        piWorker.sendMessage({
+          type: 'storeData',
+          table: 'CPT',
+          data: [respData.CPT.version, respData.CPT.content],
+        })
+        return piWorker.sendMessage({
+          type: 'search',
+          storeName: 'CPT',
+        })
+      }
+      case 'searchResult': {
+        const { table, result, query } = data
+        const resp = await fetch('/cpt')
+        const respData = await resp.json()
+        console.log(`searchResult`, result)
+        break
+      }
+      // case 'FETCHED_STORE_DATA': {
+      //   const { storeName, cachedVersion, response } = data
+      //   const responseDataVersion = response?.CPT?.version
+      //   if (responseDataVersion && cachedVersion !== responseDataVersion) {
+      //     return piWorker.sendMessage({
+      //       type: storeEvt.STORE_DATA_VERSION_UPDATE,
+      //       storeName,
+      //       data: response?.CPT?.content,
+      //       version: responseDataVersion,
+      //     })
+      //   }
+      //   break
+      // }
+    }
+  })
+  piWorker.addEventListener('messageerror', function (evt) {
+    console.log(`%c[client] MessageError`, `color:tomato;`, evt)
+  })
+  piWorker.addEventListener('error', function (evt) {
+    console.log(`%c[client] Error`, `color:tomato;`, evt)
+  })
+}
+
+if (module.hot) {
+  module.hot.accept()
+  if (module.hot.status() === 'apply') {
+    app = window.app as App
+    window.app.reset(true)
+    delete window.app
+  }
+
+  module.hot.dispose((data = {}) => {
+    u.keys(data).forEach((key) => delete data[key])
+  })
+}

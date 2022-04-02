@@ -10,11 +10,9 @@ const {
 
 if (watch) {
   let spawnOptions = { encoding: 'utf8', shell: true, stdio: 'inherit' }
-  const shell = partialRight(childProcess.spawnSync, spawnOptions)
-  shell(`rollup -c -w rollup.config.js BUILD:development`)
-  shell(
-    `tsc --declaration --emitDeclarationOnly --declarationDir dist --skipLibCheck -w`,
-  )
+  const shell = partialRight(childProcess.spawn, spawnOptions)
+  shell(`cross-env NODE_ENV=development rollup -w -c rollup.config.js`)
+  shell(`npm run types -- -w`)
 } else {
   const rollupConfig = require('./rollup.config.js')
   rollup

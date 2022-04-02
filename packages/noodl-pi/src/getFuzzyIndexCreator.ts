@@ -1,5 +1,4 @@
-// @ts-expect-error
-import { BigInt, bitwiseOr, leftShift } from 'jsbi/jsbi'
+import { BigInt, bitwiseOr, leftShift } from 'jsbi/dist/jsbi-cjs'
 
 function getFuzzyIndexCreator() {
   return {

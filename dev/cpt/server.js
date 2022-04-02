@@ -45,7 +45,7 @@ const cptContentVersion = cptData.CPT.version
 
 /** @type { import('webpack').Configuration } */
 const commonWebpackConfig = {
-  devtool: false,
+  devtool: 'source-map',
   mode: 'development',
   module: {
     rules: [
@@ -81,6 +81,7 @@ const compiler = webpack([
       clean: true,
       filename: 'piWorker.js',
       path: publicPath,
+      // workerChunkLoadin
     },
   },
   {
@@ -99,7 +100,10 @@ const compiler = webpack([
         template: './index.html',
       }),
       new CopyPlugin({
-        patterns: [{ from: 'styles.css', to: 'dist/styles.css' }],
+        patterns: [
+          { from: 'jsstoreWorker.min.js', to: 'jsstoreWorker.min.js' },
+          { from: 'styles.css', to: 'styles.css' },
+        ],
       }),
     ],
   },

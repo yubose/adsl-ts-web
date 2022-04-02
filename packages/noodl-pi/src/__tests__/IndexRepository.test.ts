@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { uint8ArrayToBase64 } from '../utils'
 import getIndexRepository from '../getIndexRepository'
 import getFuzzyIndexCreator from '../getFuzzyIndexCreator'
