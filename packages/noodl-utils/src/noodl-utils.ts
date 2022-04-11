@@ -229,6 +229,21 @@ export const hasNoodlPlaceholder = (function () {
   return hasPlaceholder
 })()
 
+export function isOldConfig<C extends nt.RootConfig & Record<string, any>>({
+  config,
+  deviceType = 'web',
+  env = 'stable',
+  version,
+}: {
+  deviceType?: nt.DeviceType
+  config: C
+  env?: nt.Env
+  version: string
+}) {
+  const configVersion = get(config, `${deviceType}.cadlVersion.${env}`)
+  return configVersion == version
+}
+
 export function isOutboundLink(s: string | undefined = '') {
   return /https?:\/\//.test(s)
 }
