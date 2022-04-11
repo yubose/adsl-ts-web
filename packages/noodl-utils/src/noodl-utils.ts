@@ -244,6 +244,7 @@ export function isOldConfig<C extends nt.RootConfig & Record<string, any>>({
     const configVersion = Number(
       get(config, `${deviceType}.cadlVersion.${env}`),
     )
+    //
     version = Number(version)
     if (Number.isNaN(version)) return true
     if (Number.isNaN(configVersion)) return true
