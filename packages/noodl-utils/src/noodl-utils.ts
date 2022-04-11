@@ -238,10 +238,19 @@ export function isOldConfig<C extends nt.RootConfig & Record<string, any>>({
   deviceType?: nt.DeviceType
   config: C
   env?: nt.Env
-  version: string
+  version: string | number
 }) {
-  const configVersion = get(config, `${deviceType}.cadlVersion.${env}`)
-  return configVersion == version
+  try {
+    const configVersion = Number(
+      get(config, `${deviceType}.cadlVersion.${env}`),
+    )
+    version = Number(version)
+    if (Number.isNaN(version)) return true
+    if (Number.isNaN(configVersion)) return true
+    return configVersion > version
+  } catch (error) {
+    return true
+  }
 }
 
 export function isOutboundLink(s: string | undefined = '') {
