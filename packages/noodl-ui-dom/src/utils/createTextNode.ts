@@ -14,7 +14,7 @@ function createTextNode(
             div.style[styleKey] = styleValue
           })
       } else if (key === 'classList') {
-        u.arrayEach(value, (className) => {
+        u.array(value).forEach((className) => {
           className && div.classList.add(className)
         })
       } else div.setAttribute(key, value)

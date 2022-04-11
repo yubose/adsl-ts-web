@@ -129,7 +129,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action?.snapshot?.())
     const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
-      u.arrayEach(findByUX(_pick(action, 'contentType')), (n) => n && show(n))
+      u.array(findByUX(_pick(action, 'contentType'))).forEach(
+        (n) => n && show(n),
+      )
     }
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
   }

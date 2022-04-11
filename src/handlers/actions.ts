@@ -4,7 +4,7 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import * as imageConversion from 'image-conversion';
+import * as imageConversion from 'image-conversion'
 import {
   asHtmlElement,
   ConsumerOptions,
@@ -457,7 +457,7 @@ const createActions = function createActions(app: App) {
           const ac = options?.ref
           const comp = options?.component
           const dataKey = _pick(action, 'dataKey')
-          const size = _pick(action, 'size')&&((+_pick(action, 'size'))/1000);
+          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000
           const fileFormat = _pick(action, 'fileFormat')
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
@@ -466,10 +466,14 @@ const createActions = function createActions(app: App) {
               app.updateRoot(fileFormat, ac.data.get(fileFormat))
             }
             if (u.isStr(dataKey)) {
-              await imageConversion.compressAccurately(ac.data.get(dataKey),size).then(res=>{
-                let newFile = new File([res],ac.data.get(dataKey).name,{type: files?.[0].type})
-                app.updateRoot(dataKey, newFile)
-                });
+              await imageConversion
+                .compressAccurately(ac.data.get(dataKey), size)
+                .then((res) => {
+                  let newFile = new File([res], ac.data.get(dataKey).name, {
+                    type: files?.[0].type,
+                  })
+                  app.updateRoot(dataKey, newFile)
+                })
             } else {
               log.red(
                 `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,
@@ -525,7 +529,7 @@ const createActions = function createActions(app: App) {
 
         let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
 
-        u.arrayEach(asHtmlElement(findByUX(popUpView)), (elem) => {
+        u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
           if (dismissOnTouchOutside) {
             const onTouchOutside = function onTouchOutside(
               this: HTMLDivElement,

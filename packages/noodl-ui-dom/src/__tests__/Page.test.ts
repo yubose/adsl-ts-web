@@ -10,7 +10,7 @@ import Page from '../Page'
 const createPage = ({ pageUrl }: { pageUrl?: OrArray<string> } = {}) => {
   const page = new Page(NUI.createPage() as NUIPage)
   if (pageUrl) {
-    u.arrayEach(pageUrl, (part) => {
+    u.array(pageUrl).forEach((part) => {
       if (page.pageUrl === BASE_PAGE_URL) page.pageUrl += part
       else page.pageUrl += `-${part}`
     })

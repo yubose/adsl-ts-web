@@ -330,7 +330,7 @@ class Component<C extends ComponentObject = ComponentObject> {
           this.#hooks[evt].length = 0
       })
     if (filter) {
-      u.arrayEach(filter, (s) =>
+      u.array(filter).forEach((s) =>
         s === 'children' ? _clearChildren(this.#children) : _clearHooks(),
       )
       return this
@@ -383,7 +383,7 @@ class Component<C extends ComponentObject = ComponentObject> {
           }
         : undefined
 
-        u.entries(fn).forEach(([k, v]) => {
+      u.entries(fn).forEach(([k, v]) => {
         if (k === 'style') {
           if (v === null) this.style = {}
           else if (u.isObj(v)) u.assign(this.style, v)
@@ -391,7 +391,7 @@ class Component<C extends ComponentObject = ComponentObject> {
           remove?.('style')
         } else {
           this.props[k] = v
-          if(v===0){
+          if (v === 0) {
             this.props[k] = `${v}`
           }
           remove?.()
