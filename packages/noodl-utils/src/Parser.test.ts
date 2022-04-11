@@ -38,56 +38,52 @@ describe(u.yellow(`Parser`), () => {
   })
 
   describe(u.italic('destination'), () => {
-    u.eachEntries(
-      {
-        '^RedTag': {
-          msg: `should result to { isSamePage: true, id: 'RedTag' }`,
-          props: { isSamePage: true, id: 'RedTag', destination: '' },
-        },
-        GotoSignIn: {
-          msg: `should result to { isSamePage: false, id: '' }`,
-          props: { isSamePage: false, id: '', destination: 'GotoSignIn' },
-        },
-        'Soda^RedTag': {
-          msg: `should result to { isSamePage: false, id: 'RedTag' }`,
-          props: { isSamePage: false, id: 'RedTag', destination: 'Soda' },
-        },
-        'TestSearch@TestTypePage#iframeTag': {
-          msg: `should result to: { targetPage: 'TestSearch', currentPage: 'TestTypePage', viewTagA: 'iframeTag' }`,
-          props: {
-            targetPage: 'TestSearch',
-            currentPage: 'TestTypePage',
-            viewTag: 'iframeTag',
-          },
-        },
-      } as const,
-      (destination, { msg, props }) => {
-        it(msg, () => {
-          const obj = parse.destination(destination)
-          u.eachEntries(props, (key, value) => expect(obj[key]).to.eq(value))
-        })
+    u.entries({
+      '^RedTag': {
+        msg: `should result to { isSamePage: true, id: 'RedTag' }`,
+        props: { isSamePage: true, id: 'RedTag', destination: '' },
       },
-    )
+      GotoSignIn: {
+        msg: `should result to { isSamePage: false, id: '' }`,
+        props: { isSamePage: false, id: '', destination: 'GotoSignIn' },
+      },
+      'Soda^RedTag': {
+        msg: `should result to { isSamePage: false, id: 'RedTag' }`,
+        props: { isSamePage: false, id: 'RedTag', destination: 'Soda' },
+      },
+      'TestSearch@TestTypePage#iframeTag': {
+        msg: `should result to: { targetPage: 'TestSearch', currentPage: 'TestTypePage', viewTagA: 'iframeTag' }`,
+        props: {
+          targetPage: 'TestSearch',
+          currentPage: 'TestTypePage',
+          viewTag: 'iframeTag',
+        },
+      },
+    }).forEach(([destination, { msg, props }]: any) => {
+      it(msg, () => {
+        const obj = parse.destination(destination)
+        u.entries(props).forEach((key, value) =>
+          expect(obj[key as any]).to.eq(value),
+        )
+      })
+    })
   })
 
   describe(u.italic(`queryString`), () => {
-    u.eachEntries(
-      {
-        RedTag: {
-          msg: `should result to %s from %dest`,
-          result: `index.html?RedTag`,
-        },
-      } as const,
-      (destination, { msg, result }) => {
-        it(msg.replace('%dest', destination).replace('%s', result), () => {
-          const pageUrl = parse.queryString({
-            destination,
-            pageUrl: 'index.html?',
-            startPage: 'SignIn',
-          })
-          expect(pageUrl).to.eq(result)
-        })
+    u.entries({
+      RedTag: {
+        msg: `should result to %s from %dest`,
+        result: `index.html?RedTag`,
       },
-    )
+    }).forEach(([destination, { msg, result }]) => {
+      it(msg.replace('%dest', destination).replace('%s', result), () => {
+        const pageUrl = parse.queryString({
+          destination,
+          pageUrl: 'index.html?',
+          startPage: 'SignIn',
+        })
+        expect(pageUrl).to.eq(result)
+      })
+    })
   })
 })
