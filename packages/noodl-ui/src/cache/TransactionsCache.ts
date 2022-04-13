@@ -1,4 +1,4 @@
-import { Transaction, TransactionId } from '../types'
+import type { Transaction, TransactionId } from '../types'
 
 class TransactionCache {
   #cache = new Map<TransactionId, Transaction[TransactionId]>()

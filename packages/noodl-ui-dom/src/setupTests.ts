@@ -1,18 +1,19 @@
+import * as u from '@jsmanifest/utils'
 import JSDOM from 'jsdom-global'
 import chai from 'chai'
 import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
-import chaiAsPromised from 'chai-as-promised'
-import { ndom } from './test-utils'
+import { _syncPages } from './utils/internal'
+import { baseUrl, ndom } from './test-utils'
 
 JSDOM('', {
   resources: 'usable',
   runScripts: 'dangerously',
-  // pretendToBeVisual: true,
+  url: baseUrl,
+  pretendToBeVisual: true,
 })
 
 chai.use(sinonChai)
-chai.use(chaiAsPromised)
 
 let logStub: sinon.SinonStub
 // let invariantStub: sinon.SinonStub<any>
@@ -22,10 +23,18 @@ before(() => {
   logStub = sinon.stub(global.console, 'log').callsFake(() => () => {})
 })
 
+beforeEach(() => {
+  // ndom.resync()
+})
+
 afterEach(() => {
   document.head.textContent = ''
   document.body.textContent = ''
+  // ndom.reset()
+  // console.info(`[${u.yellow('afterEach')}] cleanup start`)
   ndom.reset()
+  ndom.resync()
+  // console.info(`[${u.yellow('afterEach')}] cleanup end`)
 })
 
 after(() => {

@@ -1,9 +1,11 @@
-import NOODL from '@aitmed/cadl'
+import { CADL as NOODL } from '@aitmed/cadl'
 import { Viewport as VP } from 'noodl-ui'
 import { isStable } from 'noodl-utils'
+import { Client as SearchClient } from 'elasticsearch-browser'
 
 const BASE = 'https://public.aitmed.com/config'
-export const CONFIG_KEY = 'web'
+export const CONFIG_KEY = 'provider'
+// const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const LOCAL_SERVER = `http://127.0.0.1:3001/${CONFIG_KEY}.yml`
 const SAFE_DEPLOY_URL = getConfigEndpoint('meet2d')
 
@@ -11,9 +13,7 @@ function getConfigEndpoint(name: string) {
   let path = ''
   const isLocal = process.env.NODE_ENV === 'development'
   const isLocalExplicit = process.env.USE_DEV_PATHS
-  if (isLocal || isLocalExplicit) {
-    path = `/${name}.yml`
-  }
+  if (isLocal || isLocalExplicit) path = `/${name}.yml`
   return BASE + path
 }
 
@@ -25,19 +25,16 @@ function getConfigEndpoint(name: string) {
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : MEET2D
 //    ex ---> process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
 
-// China Sever
-// const configUrl = `${BASE}/${document.domain.split('.')[0]}.yml?`
-
 const CONFIG_URL = process.env.DEPLOYING ? SAFE_DEPLOY_URL : LOCAL_SERVER
-// China Sever
-// const CONFIG_URL = `https://public.ahmucel.com/config/${document.domain.split('.')[0]}.yml?`
+// Local server
+// const CONFIG_URL = `../local.yml`
 let noodl: NOODL | undefined
 
-const dbConfig = {
-  locateFile: (filename) => {
-    return `https://cdn.jsdelivr.net/npm/sql-wasm@1.1.4/dist/cjs/sql-wasm.min.js`
-  },
-}
+// const dbConfig = {
+//   locateFile: (filename) => {
+//     return `https://cdn.jsdelivr.net/npm/sql.js@1.6.2/dist/sql-wasm.wasm`
+//   },
+// }
 
 resetInstance()
 
@@ -50,7 +47,8 @@ export function resetInstance() {
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: CONFIG_URL,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
-    // dbConfig,
+    dbConfig: undefined,
+    SearchClient,
   })
   return noodl
 }

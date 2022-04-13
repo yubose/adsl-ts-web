@@ -1,70 +1,187 @@
-const { spawn, exec, execFile } = require('child_process')
-const chalk = require('chalk')
+const execa = require('execa')
+const u = require('@jsmanifest/utils')
+const fs = require('fs-extra')
+const path = require('path')
+const cpy = require('cpy')
+
+const log = console.log
+const normalizePath = (s = '') => s.replace(/\\/g, '/')
+const tag = (s) => `[${u.cyan(s)}]`
 
 /**
  *
  * @param { import('./op') } props
  */
-async function split(props) {
-  console.log('props', props)
+async function sync() {
+  const shellArgs = { shell: true, stdio: 'inherit' }
+  const command = async (cmd = '') => execa(cmd, shellArgs)
 
-  const syncDirName = sync
-  const baseDir = path.join(process.cwd(), '../cadl')
-  const configDir = path.join(baseDir, 'config')
-  const fromDir = path.join(baseDir, syncDirName)
-  const toDir = path.join(process.cwd(), './server')
-  const configFileName = `${configId}.yml`
-  console.log(`${tag('Syncing')} from ${magenta(baseDir)}`)
+  async function syncRepos(repos) {
+    /**
+     * @param { string } url - Git repo url
+     * @param { string } baseDir - Base directory
+     * @param { string } appDir - Directory to the app files (.yml/assets)
+     * @param { string | string[] } configFilePath - Filepath to the config file
+     */
+    async function syncRepo(repo) {
+      const { url = '', from, to } = repo
 
-  if (!fs.existsSync(toDir)) {
-    fs.ensureDirSync(toDir)
-    console.log(
-      `${tag(`New directory`)} Created a new directory at ${magenta(toDir)}`,
-    )
+      log(`${tag('syncing')} repo ${u.yellow(url)}`)
+
+      try {
+        let { baseDir, appFiles, configFrom } = from
+        let { targetDir } = to
+        let targetAssetsDir
+
+        baseDir = normalizePath(path.resolve(baseDir))
+        appFiles = normalizePath(path.join(baseDir, appFiles))
+        configFrom = u
+          .array(configFrom)
+          .map((c) => normalizePath(path.join(baseDir, c)))
+        targetDir = normalizePath(
+          path.resolve(process.cwd(), targetDir).replace(/\\/g, '/'),
+        )
+        targetAssetsDir = path.join(targetDir, 'assets')
+
+        if (fs.existsSync(baseDir)) {
+          await command(`cd ${baseDir}`)
+          await command(`git pull -f`)
+        } else {
+          await command(`git clone ${url} ${baseDir}`)
+          log(`${tag('git cloned')} to ${u.yellow(baseDir)}`)
+        }
+
+        if (!fs.existsSync(targetDir)) {
+          await fs.ensureDir(targetDir)
+          log(`${tag('created output directory')} ${u.yellow(targetDir)}`)
+        }
+
+        await Promise.all(
+          u.array(configFrom).map(async (filepath) => {
+            try {
+              const yml = await fs.readFile(filepath, 'utf8')
+              const configName = path.basename(filepath)
+              await fs.writeFile(path.join(targetDir, configName), yml, 'utf8')
+              return yml
+            } catch (error) {
+              log(`${tag('Error')}: ${error.message}`)
+            }
+          }),
+        )
+
+        await cpy(path.join(appFiles, '*'), targetDir)
+        await cpy(path.join(appFiles, 'assets/**/*'), targetAssetsDir)
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
+    try {
+      await Promise.all(repos.map(async (repo) => syncRepo(repo)))
+    } catch (error) {
+      console.error(error)
+    }
   }
 
-  if (!configId) {
-    throw new Error(
-      red(
-        `Please choose a config to use (${cyan('ex:')} "${italic(
-          'meet4.yml',
-        )}" to use ${italic('meet4')} config)`,
-      ),
-    )
-  }
-
-  try {
-    console.log(
-      `${tag('Copying')} ${yellow(configId)} config from ${magenta(
-        path.join(configDir, configFileName),
-      )} to ${magenta(path.join(toDir, configFileName))}`,
-    )
-    await fs.copyFile(
-      path.join(configDir, configFileName),
-      path.join(toDir, configFileName),
-    )
-    const files = await fs.readdir(fromDir)
-    console.log(
-      `${tag(`Copying`)} ${yellow(`${files.length} files`)} from ${magenta(
-        fromDir,
-      )}`,
-    )
-    await fs.copy(fromDir, toDir, {
-      errorOnExist: false,
-      preserveTimestamps: false,
-      overwrite: true,
-      recursive: true,
-    })
-    console.log(
-      `${tag(`Copied`)} ${yellow(`${files.length} files`)} to ${magenta(
-        toDir,
-      )}`,
-    )
-    console.log('')
-  } catch (err) {
-    console.log('')
-    throw new Error(err.message)
-  }
+  await syncRepos([
+    {
+      url: 'http://gitlab.aitmed.com/production/superAdmin.git',
+      from: {
+        baseDir: '../superadmin',
+        appFiles: 'superadmin',
+        configFrom: 'config/sadmind.yml',
+      },
+      to: {
+        targetDir: 'generated/sadmind',
+      },
+    },
+    {
+      url: 'http://gitlab.aitmed.com/production/admin.git',
+      from: {
+        baseDir: '../admind2',
+        appFiles: 'admin',
+        configFrom: [
+          'config/admin.yml',
+          'config/admind.yml',
+          'config/admind2.yml',
+        ],
+      },
+      to: {
+        targetDir: 'generated/admind2',
+      },
+    },
+    {
+      url: 'http://gitlab.aitmed.com/production/search.git',
+      from: {
+        baseDir: '../searchd2',
+        appFiles: 'search',
+        configFrom: [
+          'config/search.yml',
+          'config/searchd.yml',
+          'config/searchd2.yml',
+        ],
+      },
+      to: {
+        targetDir: 'generated/searchd2',
+      },
+    },
+    {
+      url: 'http://gitlab.aitmed.com/production/aitmed.git',
+      from: {
+        baseDir: '../aitmed',
+        appFiles: 'patient',
+        configFrom: [
+          'config/patient.yml',
+          'config/patd.yml',
+          'config/patd2.yml',
+        ],
+      },
+      to: {
+        targetDir: 'generated/patd2',
+      },
+    },
+    {
+      url: 'http://gitlab.aitmed.com/production/aitmed.git',
+      from: {
+        baseDir: '../aitmed',
+        appFiles: 'provider',
+        configFrom: [
+          'config/provider.yml',
+          'config/prod.yml',
+          'config/prod2.yml',
+        ],
+      },
+      to: {
+        targetDir: 'generated/prod2',
+      },
+    },
+    {
+      url: 'http://gitlab.aitmed.com/production/cadl.git',
+      from: {
+        baseDir: '../cadl',
+        appFiles: 'meet3',
+        configFrom: [
+          'config/meet.yml',
+          'config/meetd.yml',
+          'config/meetd2.yml',
+        ],
+      },
+      to: {
+        targetDir: 'generated/meetd2',
+      },
+    },
+    {
+      url: 'http://gitlab.aitmed.com/production/cadl.git',
+      from: {
+        baseDir: '../cadl',
+        appFiles: 'testpage',
+        configFrom: 'config/testpage.yml',
+      },
+      to: {
+        targetDir: 'generated/testpage',
+      },
+    },
+  ])
 }
 
-module.exports = split
+module.exports = sync

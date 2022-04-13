@@ -1,5 +1,4 @@
-import invariant from 'invariant'
-import { ICache, Plugin } from '../types'
+import type { ICache, Plugin } from '../types'
 
 const _locations = ['head', 'body-top', 'body-bottom'] as Plugin.Location[]
 
@@ -32,12 +31,14 @@ class PluginCache implements ICache {
   }
 
   add(location: Plugin.Location, obj: Plugin.Object) {
-    invariant(
-      _locations.includes(location),
-      `Invalid plugin location "${location}". Available options are: ${_locations.join(
-        ', ',
-      )}`,
-    )
+    if (!_locations.includes(location)) {
+      throw new Error(
+        `Invalid plugin location "${location}". Available options are: ${_locations.join(
+          ', ',
+        )}`,
+      )
+    }
+
     const id = obj.id || ''
     if (location === 'head') this.#head.set(id, obj)
     else if (location === 'body-top') this.#bodyTop.set(id, obj)

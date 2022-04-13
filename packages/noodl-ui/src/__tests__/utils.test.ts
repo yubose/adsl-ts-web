@@ -1,27 +1,34 @@
 import sinon from 'sinon'
 import { expect } from 'chai'
+import { waitFor } from '@testing-library/dom'
 import { coolGold, italic } from 'noodl-common'
-import * as mock from 'noodl-ui-test-utils'
 import * as n from '../utils/noodl'
-import { createDataKeyReference } from '../utils/test-utils'
+import { createDataKeyReference, ui } from '../utils/test-utils'
 import NUI from '../noodl-ui'
+import NUIPage from '../Page'
+import Viewport from '../Viewport'
+import isPage from '../utils/isPage'
+import isViewport from '../utils/isViewport'
+import log from '../utils/log'
 
 /** REMINDER: Total components created should be 9 for this func */
-const getResolvedListComponentPreset = () =>
+const getResolvedListComponentPreset = async () =>
   NUI.resolveComponents(
-    mock.getListComponent({
+    ui.list({
+      contentType: 'listObject',
       iteratorVar: 'iceCream',
       listObject: [{ key: 'Gender', value: 'Male' }],
       children: [
-        mock.getListItemComponent({
+        ui.listItem({
+          iceCream: '',
           children: [
-            mock.getViewComponent({
+            ui.view({
               children: [
-                mock.getSelectComponent(),
-                mock.getButtonComponent(),
-                mock.getTextFieldComponent(),
-                mock.getViewComponent({ children: [] }),
-                mock.getViewComponent({ children: [mock.getLabelComponent()] }),
+                ui.select([]),
+                ui.button(),
+                ui.textField(),
+                ui.view({ children: [] }),
+                ui.view({ children: [ui.label()] }),
               ],
             }),
           ],
@@ -38,30 +45,29 @@ describe(coolGold(`Utils`), () => {
   })
 
   describe(italic(`findIteratorVar`), () => {
-    it(`should get the iteratorVar if its a list`, () => {
-      const list = NUI.resolveComponents(
-        mock.getListComponent({ iteratorVar: 'hello' }),
-      )
-      expect(n.findIteratorVar(list)).to.eq('hello')
+    it(`should get the iteratorVar if its a list`, async () => {
+      expect(
+        n.findIteratorVar(
+          await NUI.resolveComponents(ui.list({ iteratorVar: 'hello' })),
+        ),
+      ).to.eq('hello')
     })
 
-    it(`should get the iteratorVar if its a listItem`, () => {
-      const list = NUI.resolveComponents(
-        mock.getListComponent({ iteratorVar: 'trap' }),
-      )
+    it(`should get the iteratorVar if its a listItem`, async () => {
+      const list = await NUI.resolveComponents(ui.list({ iteratorVar: 'trap' }))
       const listItem = list.child()
       expect(n.findIteratorVar(listItem)).to.eq('trap')
     })
 
-    it(`should get the iteratorVar if its a deeply nested descendant`, () => {
-      const list = NUI.resolveComponents(
-        mock.getListComponent({
+    it(`should get the iteratorVar if its a deeply nested descendant`, async () => {
+      const list = await NUI.resolveComponents(
+        ui.list({
           iteratorVar: 'iceCream',
           children: [
-            mock.getListItemComponent({
+            ui.listItem({
               children: [
-                mock.getViewComponent({
-                  children: [mock.getButtonComponent()],
+                ui.view({
+                  children: [ui.button],
                 }),
               ],
             }),
@@ -74,107 +80,80 @@ describe(coolGold(`Utils`), () => {
   })
 
   describe(italic(`flatten`), () => {
-    it(`should flatten into an array of all the components`, () => {
-      expect(n.flatten(getResolvedListComponentPreset())).to.have.lengthOf(9)
+    it(`should flatten into an array of all the components`, async () => {
+      const resolved = await getResolvedListComponentPreset()
+      await waitFor(async () => {
+        expect(n.flatten(resolved)).to.have.lengthOf(9)
+      })
     })
   })
 
-  describe(italic(`findChild`), () => {
-    it(`should call the callback on all children including the last one if none of the conditions are passing`, () => {
-      const spy = sinon.spy()
-      n.findChild(getResolvedListComponentPreset(), spy)
-      expect(spy).to.have.callCount(8)
-    })
-  })
-
-  xdescribe(italic(`findParent`), () => {
+  xdescribe(italic(`findParent`), async () => {
     it(
       `should call the callback on all parents including the last one ` +
         `if none of the conditions are passing`,
-      () => {
+      async () => {
         const spy = sinon.spy()
-        n.findParent(getResolvedListComponentPreset(), spy)
+        n.findParent(await getResolvedListComponentPreset(), spy)
         expect(spy).to.have.callCount(8)
       },
     )
   })
 
-  xdescribe(italic(`getRootParent`), () => {
-    it(`should return the root ancestor`, () => {
-      const list = getResolvedListComponentPreset()
-      const lastChild = n.getLast(list) as any
-      // expect(n.getRootParent(lastChild)).to.eq(list)
-      // console.info()
-      n.getRootParent(lastChild)
-    })
-  })
-
-  describe(italic(`getLast`), () => {
-    it(`should return the last component in its tree hierarchy`, () => {
-      const list = getResolvedListComponentPreset()
-      const lastChild = list.child().child().child(4).child()
-      expect(n.getLast(list)).to.eq(lastChild)
-    })
-  })
-
   describe(italic(`isListConsumer`), () => {
-    it(`should return true for list components`, () => {
-      expect(n.isListConsumer(NUI.resolveComponents(mock.getListComponent())))
+    it(`should return true for list components`, async () => {
+      expect(n.isListConsumer(await NUI.resolveComponents(ui.list()))).to.be
+        .true
+    })
+
+    it(`should return true for listItem components`, async () => {
+      expect(n.isListConsumer((await NUI.resolveComponents(ui.list())).child()))
         .to.be.true
     })
 
-    it(`should return true for listItem components`, () => {
+    it(`should return true for deeply nested descendants of a list`, async () => {
+      log.disableAll()
+      const preset = await getResolvedListComponentPreset()
       expect(
         n.isListConsumer(
-          NUI.resolveComponents(mock.getListComponent()).child(),
-        ),
-      ).to.be.true
-    })
-
-    it(`should return true for deeply nested descendants of a list`, () => {
-      expect(
-        n.isListConsumer(
-          NUI.resolveComponents(getResolvedListComponentPreset())
+          (await NUI.resolveComponents(preset))
             .child()
             .child()
             .child(4)
             .child(),
         ),
       ).to.be.true
+      log.setLevel('ERROR')
     })
   })
 
   describe(italic(`isListLike`), () => {
-    it(`should return true for list components`, () => {
-      expect(n.isListLike(NUI.resolveComponents(mock.getListComponent()))).to.be
-        .true
+    it(`should return true for list components`, async () => {
+      expect(
+        n.isListLike(
+          await NUI.resolveComponents(
+            ui.list({
+              contentType: 'listObject',
+              iteratorVar: 'itemObject',
+              children: [ui.listItem({ itemObject: '' })],
+            }),
+          ),
+        ),
+      ).to.be.true
     })
 
-    it(`should return true for chatList components`, () => {
-      expect(n.isListLike(NUI.resolveComponents({ type: 'chatList' }))).to.be
-        .true
-    })
-  })
-
-  describe(italic(`parseReference`), () => {
-    xit(`should be able to parse a local reference`, () => {
-      //
-    })
-
-    xit(`should be able to parse a root reference`, () => {
-      //
-    })
-
-    xit(`should be able to parse a data object from a listObject reference`, () => {
-      //
+    it(`should return true for chatList components`, async () => {
+      expect(n.isListLike(await NUI.resolveComponents({ type: 'chatList' }))).to
+        .be.true
     })
   })
 
   describe(italic(`publish`), () => {
-    it(`should call the callback on every child including the last one`, () => {
+    it(`should call the callback on every child including the last one`, async () => {
       const spy = sinon.spy()
-      n.publish(getResolvedListComponentPreset(), spy)
-      expect(spy).to.have.callCount(8)
+      const components = await getResolvedListComponentPreset()
+      n.publish(components, spy)
+      await waitFor(() => expect(spy).to.have.callCount(8))
     })
   })
 })
@@ -191,8 +170,8 @@ describe(italic(`resolveAssetUrl`), () => {
       number: 1,
     }
 
-    it.only(
-      `should return the correct url using the list item ` + `iteratorVar way`,
+    it(
+      `should return the correct url using the list item ` + `iteratorVar`,
       () => {
         expect(
           n.resolveAssetUrl(src, { assetsUrl, dataObject, iteratorVar }),
@@ -207,3 +186,16 @@ describe(italic(`resolveAssetUrl`), () => {
     )
   })
 })
+
+for (const [name, fn, Construct] of [
+  ['isPage', isPage, NUIPage],
+  ['isViewport', isViewport, Viewport],
+] as const) {
+  it(`[${name}] should return true`, () => {
+    expect(fn(new Construct())).to.be.true
+  })
+
+  it(`[${name}] should return false`, () => {
+    expect(fn({})).to.be.false
+  })
+}

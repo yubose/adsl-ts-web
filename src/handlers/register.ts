@@ -1,16 +1,16 @@
 import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
-import { Identify, PageObject } from 'noodl-types'
-// import { Room } from 'twilio-video'
+import { PageObject } from 'noodl-types'
 import {
   createAction,
   EmitAction,
-  NUIComponent,
+  NuiComponent,
   Register,
   Store,
 } from 'noodl-ui'
 import App from '../App'
 import { copyToClipboard } from '../utils/dom'
+import is from '../utils/is'
 import { GlobalRegisterComponent } from '../app/types'
 
 type Room = any
@@ -27,6 +27,9 @@ function createRegisters(app: App) {
           (obj) => obj?.eventId === 'onNewEcosDoc',
         )
         onNewEcosDocRegisterComponent?.onEvent?.(data.did)
+      } else {
+        console.log({ message })
+        debugger
       }
     }
   })
@@ -44,7 +47,7 @@ function createRegisters(app: App) {
   }
 
   const registrees = {
-    FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
+    async FCMOnTokenReceive(componentObject: GlobalRegisterComponent) {
       log.func('FCMOnTokenReceive')
 
       componentObject.eventId = 'FCMOnTokenReceive'
@@ -54,9 +57,9 @@ function createRegisters(app: App) {
         trigger: 'register',
       }) as EmitAction
 
-      const component = app.nui?.resolveComponents(
+      const component = (await app.nui?.resolveComponents(
         componentObject,
-      ) as NUIComponent.Instance
+      )) as NuiComponent.Instance
 
       componentObject.onEvent = async function FCMOnTokenReceive(
         token: string,
@@ -81,14 +84,20 @@ function createRegisters(app: App) {
       }
 
       app.notification
-        ?.getToken()
+        ?.getToken({
+          serviceWorkerRegistration:
+            app.serviceWorkerRegistration as ServiceWorkerRegistration,
+        })
         .then(async (token) => {
-          log.grey(token)
+          log.grey('', {
+            token,
+            serviceWorkerRegistration: app.serviceWorkerRegistration,
+          })
           await componentObject.onEvent?.(token)
         })
         .catch((err) => log.red(`[Error]: ${err.message}`))
     },
-    onNewEcosDoc(componentObject: GlobalRegisterComponent) {
+    async onNewEcosDoc(componentObject: GlobalRegisterComponent) {
       log.func('onNewEcosDoc')
 
       componentObject.eventId = 'onNewEcosDoc'
@@ -98,9 +107,9 @@ function createRegisters(app: App) {
         trigger: 'register',
       }) as EmitAction
 
-      const component = app.nui?.resolveComponents(
+      const component = (await app.nui?.resolveComponents(
         componentObject,
-      ) as NUIComponent.Instance
+      )) as NuiComponent.Instance
 
       componentObject.onEvent = async function onNewEcosDoc(did: string) {
         log.func('onNewEcosDoc onEvent')
@@ -130,12 +139,12 @@ function createRegisters(app: App) {
     },
   }
 
-  function onInitPage(pageObject: PageObject) {
+  function onInitPage() {
     if (app.globalRegister) {
       log.func('onInitPage')
 
       for (const componentObject of app.globalRegister) {
-        if (Identify.component.register(componentObject)) {
+        if (is.component.register(componentObject)) {
           // Already attached a function
           if (u.isFnc(componentObject.onEvent)) continue
           if (!componentObject.onEvent) {
@@ -215,13 +224,21 @@ function createRegisters(app: App) {
             app,
           )
         }
-        const token = await app.notification?.getToken()
+        const token = await app.notification?.getToken({
+          serviceWorkerRegistration:
+            app.serviceWorkerRegistration as ServiceWorkerRegistration,
+        })
         copyToClipboard(token as string)
         return token
       } catch (error) {
         console.error(error)
         return error
       }
+    },
+    async onNotificationClicked(obj: Register.Object, arg) {
+      log.func('onNotificationClicked')
+      log.hotpink('', { obj, arg })
+      debugger
     },
     twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
       log.func('twilioOnPeopleJoin')
@@ -241,12 +258,20 @@ function createRegisters(app: App) {
         app.meeting.showWaitingOthersMessage()
       }
     },
+
+    async twilioOnPeopleShowRoom(obj: Register.Object, arg) {
+      log.func('twilioOnPeopleShowRoom')
+      log.hotpink('', { obj, arg })
+      debugger
+    },
   } as const
 
   if (u.isFnc(app.listen)) {
-    app.listen('onInitPage', onInitPage)
+    // console.log('prepare onInitPage')
+    // app.listen('onInitPage', onInitPage)
+    onInitPage()
   } else {
-    console.info(
+    console.log(
       `%cThe "listen" method on App was skipped because it was undefined`,
       'color:red;font-weight:bold',
     )

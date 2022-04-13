@@ -1,93 +1,45 @@
 import * as u from '@jsmanifest/utils'
 import { evalIf as _evalIf, excludeIteratorVar } from 'noodl-utils'
-import { ComponentObject, Identify, IfObject, PageObject } from 'noodl-types'
+import type { ComponentObject, IfObject } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isComponent from './isComponent'
-import { NUIComponent } from '../types'
+import log from '../utils/log'
+import type { NuiComponent } from '../types'
 
-export function evalIf<O extends IfObject>(
-  val: O,
-  // opts?: {
-  //   root?: Record<string, any>
-  //   pageObject?: PageObject
-  //   dataObject?: Record<string, any>
-  //   iteratorVar?: string
-  // },
-) {
-  return _evalIf((value) => {
-    if (Identify.isBoolean(value)) return Identify.isBooleanTrue(value)
-    if (u.isFnc(value)) return value()
-    if (value) return true
-    return false
-    // if (u.isStr(value)) {
-    //   if (Identify.reference(value)) {
-    //     const dataKey = Identify.reference.format(value)
-    //     if (Identify.reference.isLocal(value)) {
-    //       if (opts?.pageObject) return get(opts.pageObject, dataKey)
-    //     }
-    //     if (Identify.reference.isRoot(value)) {
-    //       if (opts?.root) return get(opts.root, dataKey)
-    //     }
-    //   } else if (opts?.iteratorVar && value.startsWith(opts.iteratorVar)) {
-    //     if (opts?.dataObject) {
-    //       return get(
-    //         opts?.dataObject,
-    //         excludeIteratorVar(value, opts.iteratorVar) || '',
-    //       )
-    //     }
-    //   }
-    // }
-  }, val)
-}
-
-/**
- * Traverses the children hierarchy, running the comparator function in each
- * iteration. If a callback returns true, the node in that iteration will become
- * the returned child
- * @param { NUIComponent.Instance } component
- * @param { function } fn - Comparator function
- */
-export function findChild<C extends NUIComponent.Instance>(
-  component: C,
-  fn: (child: NUIComponent.Instance) => boolean,
-): NUIComponent.Instance | null {
-  let child: NUIComponent.Instance | null | undefined
-  let children = component?.children?.slice?.() || []
-
-  if (isComponent(component) && component.length) {
-    child = children.shift()
-    while (child) {
-      if (fn(child)) return child
-      child.children?.forEach((c: NUIComponent.Instance) => children.push(c))
-      child = children.pop()
-    }
+export function evalIf<O extends IfObject>(val: O) {
+  const [value, valTrue, valFalse] = val?.if || []
+  if (Identify.isBoolean(value)) {
+    return Identify.isBooleanTrue(value) ? valTrue : valFalse
   }
-  return null
+  if (u.isFnc(value)) return value() ? valTrue : valFalse
+  if (value) return valTrue
+  return valFalse
 }
 
 /**
  * Traverses the parent hierarchy, running the comparator function in each
  * iteration. If a callback returns true, the node in that iteration will become
  * the returned parent
- * @param { NUIComponent.Instance } component
+ * @param { NuiComponent.Instance } component
  * @param { function } fn
  */
-export function findParent<C extends NUIComponent.Instance>(
+export function findParent<C extends NuiComponent.Instance>(
   component: C | undefined,
-  fn: (parent: NUIComponent.Instance | null) => boolean,
+  fn: (parent: NuiComponent.Instance | null) => boolean,
 ) {
   if (!component) return null
-  let parent = component?.parent as NUIComponent.Instance
+  let parent = component?.parent as NuiComponent.Instance
   if (fn(parent)) return parent
   while (parent) {
     if (fn(parent.parent)) return parent.parent
-    parent = parent.parent as NUIComponent.Instance
+    parent = parent.parent as NuiComponent.Instance
   }
   return parent || null
 }
 
 export function findListDataObject(
-  component: NUIComponent.Instance | undefined,
+  component: NuiComponent.Instance | Record<string, any> | undefined,
 ) {
   if (!isComponent(component) || !isListConsumer(component)) return null
 
@@ -129,7 +81,7 @@ export function findListDataObject(
 }
 
 export function findIteratorVar(
-  component: NUIComponent.Instance | undefined,
+  component: NuiComponent.Instance | Record<string, any> | undefined,
 ): string {
   if (isComponent(component)) {
     if (Identify.component.list(component)) {
@@ -144,10 +96,10 @@ export function findIteratorVar(
 }
 
 export function flatten(
-  component: NUIComponent.Instance | undefined,
-): NUIComponent.Instance[] {
+  component: NuiComponent.Instance | undefined,
+): NuiComponent.Instance[] {
   if (!component) return []
-  const children = [component] as NUIComponent.Instance[]
+  const children = [component] as NuiComponent.Instance[]
   publish(component, (child) => children.push(child))
   return children
 }
@@ -183,7 +135,7 @@ export function getDataFields(
             `[data-key="${dataset.key}"]`,
           )
         } else {
-          console.log(
+          log.error(
             `%cInvalid data name and/or data key`,
             'color:#e74c3c;font-weight:bold;',
             { dataset, node },
@@ -216,7 +168,7 @@ function getDataValue(node: string | null | Element): string | number | null {
             node as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
           ).value
         case 'HTMLButtonElement':
-          console.log(
+          log.error(
             `%c[getDataValue] ` +
               `Tried to retrieve a data value from a button element but there ` +
               `is no implementation for it. Perhaps it needs to be supported?`,
@@ -262,7 +214,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
         if (node) {
           result[key] = getDataValue(node)
         } else {
-          console.log(
+          log.error(
             `%c[getDataValues] ` +
               `Attempted to find a node for key ${key} but received null or ` +
               `undefined. The program should not have gotten here`,
@@ -274,7 +226,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
       Object.keys(allNodes).forEach(fn)
     }
   } else {
-    console.log(
+    log.error(
       `%c[getDataValues] ` + `nodes is not an array or object`,
       'color:#e74c3c;font-weight:bold;',
       nodes,
@@ -286,7 +238,7 @@ export function getDataValues<Fields, K extends keyof Fields>(
 }
 
 export function getPluginLocation(
-  obj: NUIComponent.Instance | ComponentObject | string | undefined,
+  obj: NuiComponent.Instance | ComponentObject | string | undefined,
 ) {
   let type: string | undefined
   // if (typeof obj === 'string') type = obj
@@ -302,35 +254,14 @@ export function getPluginLocation(
   return 'head'
 }
 
-export function getRootParent(component: NUIComponent.Instance) {
-  if (!component.parent) return component
-  const temp = [] as NUIComponent.Instance[]
-  findParent(component, (p) => {
-    p && temp.push(p)
-    return false
-  })
-  const rootParent = temp[0] || null
-  temp.length = 0
-  return rootParent
-}
-
-export function getLast(component: NUIComponent.Instance | undefined) {
-  if (!component?.length) return component
-  const temp = [] as NUIComponent.Instance[]
-  publish(component, (c) => void temp.push(c))
-  const last = temp.length ? temp[temp.length - 1] : null
-  temp.length = 0
-  return last
-}
-
 export function isListConsumer(
   component: unknown,
-): component is NUIComponent.Instance {
+): component is NuiComponent.Instance {
   if (!isComponent(component)) return false
   return !!findIteratorVar(component)
 }
 
-export function isListLike(component: NUIComponent.Instance) {
+export function isListLike(component: NuiComponent.Instance) {
   return component.type === 'chatList' || component.type === 'list'
 }
 
@@ -352,20 +283,21 @@ export function parseReference(
 
 export function pullFromComponent(
   key: string | undefined,
-  component: NUIComponent.Instance | undefined | null,
+  component: NuiComponent.Instance | undefined | null,
 ) {
   if (!key || !isComponent(component)) return null
   return (
     component.get(key) ||
     component[key] ||
-    (component.has(key) && component.blueprint?.[key]) ||
+    ((component.has(key) || component.props?.[key]) &&
+      component.blueprint?.[key]) ||
     null
   )
 }
 
 export function find(
   key: string | string[] | undefined,
-  component: NUIComponent.Instance | null | undefined,
+  component: NuiComponent.Instance | null | undefined,
 ) {
   const keys = u.array(key)
   const numKeys = keys.length
@@ -378,19 +310,50 @@ export function find(
 
 /**
  * Recursively invokes the provided callback on each child.
- * @param { NUIComponent.Instance } component
+ * @param { NuiComponent.Instance } component
  * @param { function } cb
  */
 export function publish(
-  component: NUIComponent.Instance | undefined,
-  cb: (child: NUIComponent.Instance) => void,
+  cb: (child: NuiComponent.Instance) => void,
+  component: NuiComponent.Instance | undefined,
+): void
+export function publish(
+  component: NuiComponent.Instance | undefined,
+  cb: (child: NuiComponent.Instance) => void,
+): void
+export function publish(
+  component:
+    | NuiComponent.Instance
+    | ((child: NuiComponent.Instance) => void)
+    | undefined,
+  cb:
+    | ((child: NuiComponent.Instance) => void)
+    | NuiComponent.Instance
+    | undefined,
 ) {
-  component?.children?.forEach?.((child: NUIComponent.Instance) => {
-    cb(child)
-    publish(child, cb)
-  })
+  let _component: NuiComponent.Instance | undefined
+  let _cb: ((child: NuiComponent.Instance) => void) | undefined
+
+  if (u.isFnc(component)) {
+    _component = cb as NuiComponent.Instance
+    _cb = component
+  } else {
+    _component = component
+    _cb = cb as (child: NuiComponent.Instance) => void
+  }
+
+  if (_component && u.isArr(_component.children)) {
+    for (const child of _component.children) {
+      _cb?.(child)
+      _cb && publish(child, _cb)
+    }
+  }
+
+  _component = undefined
+  _cb = undefined
 }
 
+// TODO - This overload doesn't work when doing resolveAssetUrl("SquarePayment.html", { assetsUrl: getAssetsUrl() })
 export function resolveAssetUrl(
   pathValue: string | undefined,
   opts: {
@@ -433,17 +396,20 @@ export function resolveAssetUrl(
     // TODO - Fix this
     src = pathValue || ''
     let { dataObject, iteratorVar = '' } = options
-    if (u.isObj(dataObject) && u.isStr(src) && u.isStr(iteratorVar)) {
-      if (iteratorVar && src.startsWith(iteratorVar)) {
-        src = excludeIteratorVar(src, iteratorVar) || ''
+    if (u.isStr(src)) {
+      if (src.startsWith('http')) return src
+      if (u.isObj(dataObject) && u.isStr(iteratorVar)) {
+        if (iteratorVar && src.startsWith(iteratorVar)) {
+          src = excludeIteratorVar(src, iteratorVar) || ''
+        }
+        src = get(dataObject, src)
+        if (u.isStr(src)) {
+          if (/^(http|blob)/i.test(src)) src = src
+          else if (src.startsWith('~/')) {
+            // Should be handled by an SDK
+          } else src = `${assetsUrl}${src}`
+        } else src = `${assetsUrl}${src}`
       }
-      src = get(dataObject, src)
-      if (u.isStr(src)) {
-        if (/^(http|blob)/i.test(src)) src = src
-        else if (src.startsWith('~/')) {
-          // Should be handled by an SDK
-        } else src = assetsUrl + src
-      } else src = `${assetsUrl}${src}`
     }
   }
 

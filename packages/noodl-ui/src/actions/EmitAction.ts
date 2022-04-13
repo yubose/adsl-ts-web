@@ -1,6 +1,7 @@
-import { EmitObjectFold } from 'noodl-types'
-import { Action, IAction } from 'noodl-action-chain'
-import { EmitActionObject, NUITrigger } from '../types'
+import type { EmitObjectFold } from 'noodl-types'
+import type { IAction } from 'noodl-action-chain'
+import { Action } from 'noodl-action-chain'
+import type { EmitActionObject, NUITrigger } from '../types'
 
 class EmitAction
   extends Action<'emit', NUITrigger | ''>
@@ -8,6 +9,7 @@ class EmitAction
 {
   actions: any[]
   dataKey: string | Record<string, any> | undefined
+  #executor: Action['executor'] | undefined
 
   constructor(
     trigger: NUITrigger | '',
@@ -20,11 +22,11 @@ class EmitAction
   }
 
   get executor() {
-    return super.executor
+    return this.#executor as EmitAction['executor']
   }
 
   set executor(executor: Action['executor']) {
-    super.executor = executor
+    this.#executor = executor
   }
 
   snapshot() {

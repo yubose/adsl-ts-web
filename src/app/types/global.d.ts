@@ -1,21 +1,30 @@
-import { NOODL, NOODLComponent, ProxiedComponent } from 'noodl-ui'
-import {
+import type { NOODL, NOODLComponent, ProxiedComponent } from 'noodl-ui'
+import type {
   Room,
   Participant,
   LocalParticipant,
   RemoteParticipant,
 } from 'twilio-video'
-import NOODLDOM from 'noodl-ui-dom'
-import echarts from '@types/echarts'
-import Modal from 'components/NOODLModal'
-import Meeting from '../../meeting'
-import { App } from '../../app'
-import { TwilioVideo } from './twilio'
+import type HTML2Canvas, { Options } from 'html2canvas'
+import type * as jsPDF from 'jspdf'
+import type NOODLDOM from 'noodl-ui-dom'
+import type echarts from '@types/echarts'
+import type { Calendar } from '@fullcalendar/core'
+import type Modal from 'components/NOODLModal'
+import type Meeting from '../../meeting'
+import type { App } from '../../app'
+import type { TwilioVideo } from './twilio'
 
 declare global {
   const echarts: echarts
   const gridjs: any
-  const FullCalendar: any
+  export const FullCalendar: {
+    Calendar: typeof Calendar
+  }
+
+  export const html2canvas: typeof HTML2Canvas
+  export const jspdf: typeof jsPDF
+
   const mapboxgl: any
   export const self: DedicatedWorkerGlobalScope
 
@@ -30,10 +39,11 @@ declare global {
     app: any
     build: any
     cache: any
+    chrome: any
+    get: () => any
     noodl: any
     env: string | undefined
     FCMOnTokenReceive: any
-    getByDataUX: any
     getDataValues: any
     components: NOODLComponent[]
     pageObject: any

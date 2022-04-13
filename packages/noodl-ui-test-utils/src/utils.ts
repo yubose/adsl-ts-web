@@ -1,31 +1,35 @@
-import { PartialDeep } from 'type-fest'
-import { ActionObject, ComponentObject } from 'noodl-types'
-import {
-  NUIAction,
-  NUIActionObjectInput,
-  NUIComponent,
-  NUITrigger,
-} from 'noodl-ui'
+import curry from 'lodash/curry'
+import type {
+  ActionObject,
+  ComponentObject,
+  userEvent,
+  UncommonActionObjectProps,
+  UncommonComponentObjectProps,
+} from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 
-export type ActionProps<C extends PartialDeep<ActionObject> = ActionObject> = C
+export type ActionProps<C extends Partial<ActionObject> = ActionObject> =
+  Partial<UncommonActionObjectProps> & C
 
-export type ComponentProps<
-  C extends Partial<ComponentObject> | NUIComponent.Instance,
-> = Partial<
-  Record<
-    NUITrigger,
-    (C extends ComponentObject ? NUIActionObjectInput : NUIAction)[]
-  >
+export type ComponentProps<C extends Partial<ComponentObject>> = Partial<
+  Record<keyof typeof userEvent, ActionObject[]>
 > &
+  Partial<UncommonComponentObjectProps> &
   C
 
-export function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
+export function createActionObject_next<
+  T extends string,
+  O extends ActionObject<T>,
+>(actionType: T) {
+  return (obj?: Partial<O>) => ({ ...obj, actionType } as O)
+}
+
+export function createActionObject<O extends ActionObject>(
   defaultProps: Partial<O>,
   key: keyof O,
 ) {
-  const createObj = (props?: string | ActionProps<O>): O => {
-    const obj = { ...(defaultProps as object) } as NUIActionObjectInput
+  return function (props?: string | ActionProps<O>): O {
+    const obj = { ...(defaultProps as object) } as ActionObject
     if (u.isStr(key)) {
       if (u.isObj(props)) {
         if (key in props) u.assign(obj, props)
@@ -36,14 +40,20 @@ export function createActionWithKeyOrProps<O extends NUIActionObjectInput>(
     u.isObj(props) && u.assign(obj, props)
     return obj as O
   }
-  return createObj
 }
 
-export function createComponentWithKeyOrProps<
-  O extends Partial<ComponentObject> | NUIComponent.Instance,
->(defaultProps: Partial<O>, key: string | Partial<Record<string, any>>) {
-  const createObj = (props?: string | Partial<O>): O => {
-    const obj = { ...defaultProps } as O
+export const createComponentObject_next = curry(
+  <T extends string, O extends ComponentObject<T>>(componentType: T) =>
+    (obj?: Partial<O>) =>
+      ({ ...obj, type: componentType } as O),
+)
+
+export function createComponentObject<
+  O extends ComponentObject,
+  K extends keyof O = keyof O,
+>(defaultProps: Partial<O>, key?: K) {
+  return function create<P extends K | Partial<O>>(props?: P): O {
+    const obj = { ...defaultProps } as ComponentObject
     if (u.isStr(key)) {
       if (u.isObj(props)) {
         if (key in props) u.assign(obj, props)
@@ -54,5 +64,4 @@ export function createComponentWithKeyOrProps<
     u.isObj(props) && u.assign(obj, props)
     return obj as O
   }
-  return createObj
 }

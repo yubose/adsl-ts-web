@@ -1,36 +1,52 @@
 import Logger from 'logsnap'
-import NOODLDOM, {
-  BASE_PAGE_URL,
-  eventId,
-  isPage as isNOODLDOMPage,
-  Page as NOODLDOMPage,
-} from 'noodl-ui-dom'
+import type { ActionChainIteratorResult } from 'noodl-action-chain'
+import { Account } from '@aitmed/cadl'
+import type { CADL } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
+import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import set from 'lodash/set'
-import { isOutboundLink, Parser } from 'noodl-utils'
-import { PageObject } from 'noodl-types'
-import { NUI, Page as NUIPage, Viewport as VP } from 'noodl-ui'
+import * as nu from 'noodl-utils'
+import { AppConfig, PageObject, ReferenceString } from 'noodl-types'
+import {
+  BASE_PAGE_URL,
+  eventId,
+  isNDOMPage,
+  NDOM,
+  NDOMPage,
+  NUI,
+  NUIActionObject,
+  NUITrigger,
+  Page as NUIPage,
+  resolveAssetUrl,
+  Viewport as VP,
+} from 'noodl-ui'
 import { CACHED_PAGES, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT } from './constants'
 import { AuthStatus, CachedPageObject } from './app/types'
 import AppNotification from './app/Notifications'
 import actionFactory from './factories/actionFactory'
 import createActions from './handlers/actions'
-import createBuiltIns, { extendedSdkBuiltIns } from './handlers/builtIns'
+import createBuiltIns from './handlers/builtIns'
+import createGoto from './handlers/shared/goto'
 import createPlugins from './handlers/plugins'
 import createRegisters from './handlers/register'
 import createExtendedDOMResolvers from './handlers/dom'
-import createElementBinding from './handlers/createElementBinding'
 import createMeetingHandlers from './handlers/meeting'
 import createMeetingFns from './meeting'
+import createNoodlConfigValidator from './modules/NoodlConfigValidator'
 import createPickNUIPage from './utils/createPickNUIPage'
 import createPickNDOMPage from './utils/createPickNDOMPage'
-import createResources from './handlers/resources'
 import createTransactions from './handlers/transactions'
 import createMiddleware from './handlers/shared/middlewares'
+import * as lf from './utils/lf'
+import is from './utils/is'
+import parseUrl from './utils/parseUrl'
+import Spinner from './spinner'
+import { getSdkHelpers } from './handlers/sdk'
 import { setDocumentScrollTop, toast } from './utils/dom'
 import { isUnitTestEnv } from './utils/common'
+import * as c from './constants'
 import * as t from './app/types'
 
 const log = Logger.create('App.ts')
@@ -39,17 +55,40 @@ class App {
   #state = {
     authStatus: '' as AuthStatus | '',
     initialized: false,
+    loadingPages: {} as Record<string, { id: string; init: boolean }[]>,
+    spinner: {
+      active: false,
+      config: {
+        delay: c.DEFAULT_SPINNER_DELAY,
+        timeout: c.DEFAULT_SPINNER_TIMEOUT,
+      },
+      page: null,
+      timeout: null,
+      trigger: null,
+    } as t.SpinnerState,
+    tracking: {},
+  }
+  #instances = {
+    FullCalendar: {
+      inst: null as null | InstanceType<typeof FullCalendar.Calendar>,
+      page: '',
+    },
   }
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
   #nui: t.AppConstructorOptions['nui']
   #ndom: t.AppConstructorOptions['ndom']
-  #parser: Parser
+  #parser: nu.Parser
+  #spinner: Spinner
+  #sdkHelpers: ReturnType<typeof getSdkHelpers>
+  #serviceWorkerRegistration: ServiceWorkerRegistration | null = null
+  #piBackgroundWorker: Worker | null = null
   actionFactory = actionFactory(this)
+  goto: ReturnType<typeof createGoto>
   obs: t.AppObservers = new Map()
   getStatus: t.AppConstructorOptions['getStatus']
-  mainPage: NOODLDOM['page']
+  mainPage: NDOM['page']
   pickNUIPage = createPickNUIPage(this)
   pickNDOMPage = createPickNDOMPage(this);
 
@@ -62,7 +101,6 @@ class App {
       currentPage: this.currentPage,
       requestingPage: this.mainPage.requesting,
       aspectRatio: this.aspectRatio,
-      cachedPages: this.getCachedPages(),
       roomParticipants: this.getRoomParticipants(),
       sdkParticipants: this.getSdkParticipants(),
       viewport: {
@@ -72,13 +110,15 @@ class App {
     }
   }
 
+  static id = `aitmed-noodl-web`
+
   constructor({
     getStatus,
     meeting,
     noodl,
     notification,
     nui = NUI,
-    ndom = new NOODLDOM(nui),
+    ndom = new NDOM(),
     viewport = new VP(),
   }: t.AppConstructorOptions = {}) {
     this.getStatus = getStatus
@@ -91,13 +131,16 @@ class App {
     this.#notification = notification
     this.#ndom = ndom
     this.#nui = nui
+    this.#sdkHelpers = getSdkHelpers(this)
+    this.#spinner = new Spinner()
+    this.goto = createGoto(this)
 
     noodl && (this.#noodl = noodl)
-    this.#parser = new Parser()
+    this.#parser = new nu.Parser()
   }
 
   get aspectRatio() {
-    return this.noodl.aspectRatio
+    return this.noodl?.aspectRatio || 1
   }
 
   set aspectRatio(aspectRatio) {
@@ -117,11 +160,23 @@ class App {
   }
 
   get config() {
-    return this.noodl.getConfig()
+    return this.noodl.config
   }
 
   get cache() {
     return this.nui.cache
+  }
+
+  get instances() {
+    return this.#instances
+  }
+
+  get spinner() {
+    return this.#spinner
+  }
+
+  get pendingPage() {
+    return this.mainPage.requesting || ''
   }
 
   get currentPage() {
@@ -133,8 +188,11 @@ class App {
   }
 
   get globalRegister() {
-    return this.noodl.root?.Global?.globalRegister as
-      | t.GlobalRegisterComponent[]
+    return this.noodl.root?.Global?.globalRegister
+  }
+
+  get loadingPages() {
+    return this.#state.loadingPages
   }
 
   get initialized() {
@@ -146,7 +204,7 @@ class App {
   }
 
   get noodl() {
-    return this.#noodl as NonNullable<t.AppConstructorOptions['noodl']>
+    return this.#noodl as CADL
   }
 
   get nui() {
@@ -173,6 +231,18 @@ class App {
     return this.#meeting.selfStream
   }
 
+  get serviceWorker() {
+    return this.#serviceWorkerRegistration?.active as ServiceWorker
+  }
+
+  get serviceWorkerRegistration() {
+    return this.#serviceWorkerRegistration
+  }
+
+  set serviceWorkerRegistration(reg: ServiceWorkerRegistration | null) {
+    this.#serviceWorkerRegistration = reg
+  }
+
   get subStreams() {
     return this.meeting.subStreams
   }
@@ -193,21 +263,75 @@ class App {
     return this.mainPage.viewport as VP
   }
 
+  get piBackgroundWorker() {
+    return this.#piBackgroundWorker as Worker
+  }
+
+  getState() {
+    return this.#state
+  }
+
   /**
    * Navigates to a page specified in page.requesting
    * The value set in page.requesting should be set prior to this call unless pageRequesting is provided where it will be set to it automatically
    * If only a page name is provided, by default the main page instance will be used
-   * @param { NOODLDOMPage } page
+   * @param { NDOMPage } page
    * @param { string | undefined } pageRequesting
    */
-  async navigate(page: NOODLDOMPage, pageRequesting?: string): Promise<void>
+  async navigate(
+    page: NDOMPage,
+    pageRequesting?: string,
+    opts?: { isGoto?: boolean },
+  ): Promise<void>
   async navigate(pageRequesting?: string): Promise<void>
-  async navigate(page?: NOODLDOMPage | string, pageRequesting?: string) {
+  async navigate(
+    page?: NDOMPage | string,
+    pageRequesting?: string,
+    { isGoto }: { isGoto?: boolean } = {},
+  ) {
+    function getParams(pageName: string) {
+      const nameParts = pageName.split('&')
+      let params = {}
+      if (nameParts.length > 1) {
+        for (let i = 1; i < nameParts.length; i++) {
+          const partItem = nameParts[i]
+          const parts = partItem.split('=')
+          params[parts[0]] = parts[1]
+        }
+      }
+      return params
+    }
+
     try {
-      let _page: NOODLDOMPage
+      let _page: NDOMPage
       let _pageRequesting = ''
 
-      if (isNOODLDOMPage(page)) {
+      let pageUrl = pageRequesting ? pageRequesting : page
+
+      if (isNDOMPage(pageUrl)) {
+        pageUrl = pageUrl.page
+      }
+
+      if (pageUrl && pageUrl.includes('&')) {
+        if (nu.isOutboundLink(pageUrl)) {
+          return void (window.location.href = pageUrl)
+        }
+        const params = getParams(pageUrl)
+        const curretPage = (
+          pageUrl.includes('&')
+            ? pageUrl.substring(0, pageUrl.indexOf('&'))
+            : pageUrl
+        ).replace(/=/g, '')
+        if (isNDOMPage(page)) {
+          pageRequesting = curretPage
+        } else {
+          page = curretPage
+        }
+        localStorage.setItem('tempParams', JSON.stringify(params))
+        // await lf.setItem('tempParams', params)
+      }
+
+      if (isNDOMPage(page)) {
         _page = page
         pageRequesting && (_pageRequesting = pageRequesting)
       } else {
@@ -217,17 +341,55 @@ class App {
       if (_pageRequesting && _page.requesting !== _pageRequesting) {
         _page.requesting = _pageRequesting
       }
-      if (isOutboundLink(_pageRequesting)) {
+      if (nu.isOutboundLink(_pageRequesting)) {
         _page.requesting = ''
         return void (window.location.href = _pageRequesting)
       }
-      // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside
-      // our init() method. Page.components should also contain the components retrieved from
-      // that page object
+
+      if (_page.page && _page.requesting && _page.page !== _page.requesting) {
+        // If this is a goto, we must delete the page we are redirecting to if it previously was used in the root object
+        if (isGoto) {
+          if (_page.requesting in this.noodl.root) {
+            if (location.search) {
+              // If we are going to a page where we were from before, we must destroy the pages that followed it
+              const parts = (
+                location.search.startsWith('?')
+                  ? location.search.slice(1)
+                  : location.search
+              ).split('-')
+
+              if (parts.includes(_page.requesting)) {
+                let pageToDestroy = parts.pop()
+
+                while (pageToDestroy && pageToDestroy !== _page.requesting) {
+                  if (pageToDestroy in this.noodl.root) {
+                    delete this.noodl.root[pageToDestroy]
+                    console.log(
+                      `%cRemoved "${pageToDestroy}" from the page stack`,
+                      `color:#00b406;`,
+                    )
+                  }
+                  pageToDestroy = parts.pop()
+                }
+              }
+            }
+            if (_page.requesting in this.noodl.root) {
+              delete this.noodl.root[_page.requesting]
+            }
+          }
+        } else {
+          // Otherwise if this is a goBack we must delete the current page
+          delete this.noodl.root[_page.page]
+        }
+      }
+
+      // Retrieves the page object by using the GET_PAGE_OBJECT transaction registered inside our init() method. Page.components should also contain the components retrieved from that page object
       const req = await this.ndom.request(_page)
       if (req) {
-        const components = req.render()
-        window.pcomponents = components
+        // @ts-expect-error
+        delete window.pcomponents
+        const components = await this.render(_page)
+        window.pcomponents = components as any
       }
     } catch (error) {
       console.error(error)
@@ -235,32 +397,96 @@ class App {
     }
   }
 
-  async initialize() {
+  async initialize({
+    onInitNotification,
+    onSdkInit,
+  }: {
+    onInitNotification?: (notification: AppNotification) => Promise<void>
+    onSdkInit?: (sdk: CADL) => void
+  } = {}) {
     try {
-      if (!this.getStatus) {
-        this.getStatus = (await import('@aitmed/cadl')).Account.getStatus
-      }
+      if (!this.getState().spinner.active) this.enableSpinner()
+      if (!this.getStatus) this.getStatus = Account.getStatus
 
       !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
 
-      await this.noodl.init()
-
-      if (!this.notification) {
+      // if (!this.notification) {
+      try {
         this.#notification = new (await import('./app/Notifications')).default()
         log.grey(`Initialized notifications`, this.#notification)
+        onInitNotification && (await onInitNotification?.(this.#notification))
+      } catch (error) {
+        console.error(error instanceof Error ? error : new Error(String(error)))
       }
 
-      this.#notification?.on('message', (obs) => {
-        if (u.isFnc(obs)) {
-          obs
-        } else {
-          obs
-        }
+      // }
+
+      this.noodl.on('QUEUE_START', () => {
+        if (!this.getState().spinner.active) this.enableSpinner()
       })
 
-      if (!this.notification?.initiated) {
-        await this.notification?.init()
-      }
+      this.noodl.on('QUEUE_END', () => {
+        if (!this.noodl.getState().queue?.length) {
+          if (this.getState().spinner.active) this.disableSpinner()
+        }
+      })
+      await this.noodl.init()
+      onSdkInit?.(this.noodl)
+
+      // const lastDOM = (await lf.getItem('__last__')) || ''
+      // if (lastDOM) {
+      //   const renderCachedState = (
+      //     rootEl: HTMLElement,
+      //     lastState: t.StoredDOMState,
+      //   ) => {
+      //     rootEl.innerHTML = lastState.root
+
+      //     if (u.isNum(lastState.x) && u.isNum(lastState.y)) {
+      //       window.scrollTo({
+      //         behavior: 'auto',
+      //         left: lastState.x,
+      //         top: lastState.y,
+      //       })
+      //     }
+
+      //     for (const btn of Array.from(rootEl.querySelectorAll('button'))) {
+      //       btn.textContent = 'Loading...'
+      //       btn.style.userSelect = 'none'
+      //       btn.style.pointerEvents = 'none'
+      //     }
+
+      //     for (const inputEl of [
+      //       ...rootEl.querySelectorAll('input'),
+      //       ...rootEl.querySelectorAll('select'),
+      //       ...rootEl.querySelectorAll('textarea'),
+      //     ]) {
+      //       inputEl.disabled = true
+      //     }
+      //   }
+
+      //   try {
+      //     // const lastState = JSON.parse(lastDOM) as t.StoredDOMState
+      //     // if (lastState?.root && lastState.origin === location.origin) {
+      //     //   const rootEl = document.getElementById('root')
+      //     //   if (rootEl) {
+      //     //     if (lastState.page !== lastState.startPage) {
+      //     //       if (await this.noodl.root.builtIn.SignInOk()) {
+      //     //         renderCachedState(rootEl, lastState)
+      //     //       }
+      //     //     } else {
+      //     //       renderCachedState(rootEl, lastState)
+      //     //     }
+      //     //   }
+      //     // }
+      //   } catch (error) {
+      //     const err = error instanceof Error ? error : new Error(String(error))
+      //     console.log(
+      //       `%c[Rehydration] ${err.name}: ${err.message}`,
+      //       'color:tomato',
+      //       err,
+      //     )
+      //   }
+      // }
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -279,7 +505,9 @@ class App {
       }
 
       this.nui.use({
-        getAssetsUrl: () => this.noodl.assetsUrl,
+        getAssetsUrl: () => {
+          return this.noodl.assetsUrl
+        },
         getBaseUrl: () => this.noodl.cadlBaseUrl || '',
         getPreloadPages: () => this.noodl.cadlEndpoint?.preload || [],
         getPages: () => this.noodl.cadlEndpoint?.page || [],
@@ -289,22 +517,24 @@ class App {
       const actions = createActions(this)
       const builtIns = createBuiltIns(this)
       const plugins = createPlugins(this)
-      const registers = createRegisters(this)
+      // const registers = createRegisters(this)
       const doms = createExtendedDOMResolvers(this)
       const meetingfns = createMeetingHandlers(this)
       const middlewares = createMiddleware(this)
-      const resources = createResources(this)
       const transactions = createTransactions(this)
 
       this.ndom.use(actions)
       this.ndom.use({ builtIn: builtIns })
       this.ndom.use({ plugin: plugins })
-      this.ndom.use({ resource: resources })
       this.ndom.use({ transaction: transactions })
-      this.ndom.use({ createElementBinding: createElementBinding(this) })
+      // TODO - Create composer for createElementBinding
+      this.ndom.use({ createElementBinding: meetingfns.createElementBinding })
 
-      doms.forEach((obj) => this.ndom.use({ resolver: obj }))
-      registers.forEach((keyVal) => this.nui._experimental.register(...keyVal))
+      u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
+      // u.forEach(
+      //   (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),
+      //   registers,
+      // )
       u.entries(middlewares).forEach(([id, fn]) =>
         this.actionFactory.createMiddleware(id, fn),
       )
@@ -317,13 +547,33 @@ class App {
       this.observeViewport(this.viewport)
       this.observePages(this.mainPage)
 
-      /* -------------------------------------------------------
-      ---- LOCAL STORAGE
-    -------------------------------------------------------- */
-      let startPage = this.noodl.cadlEndpoint?.startPage
+      /**
+       * Determining the start page or initial action
+       */
+      const parsedUrl = parseUrl(
+        this.#noodl?.cadlEndpoint as AppConfig,
+        window.location.href,
+      )
+
+      let startPage = parsedUrl.startPage
+
+      if (parsedUrl.hasParams) {
+        this.mainPage.pageUrl = parsedUrl.pageUrl
+        if (u.isArr(this.noodl?.cadlEndpoint?.page)) {
+          if (!this.noodl?.cadlEndpoint?.page.includes(parsedUrl.startPage)) {
+            // Fall back to the original start page if it is an invalid page
+            startPage = this.noodl?.cadlEndpoint?.startPage || startPage || ''
+            this.mainPage.pageUrl = BASE_PAGE_URL
+          }
+        }
+        this.mainPage.pageUrl = this.mainPage.pageUrl + parsedUrl?.paramsStr
+        await this.navigate(this.mainPage, parsedUrl?.currentPage)
+      } else {
+        startPage = this.noodl.cadlEndpoint?.startPage || ''
+      }
 
       // Override the start page if they were on a previous page
-      const cachedPages = this.getCachedPages()
+      const cachedPages = await this.getCachedPages()
       const cachedPage = cachedPages[0]
 
       if (cachedPages?.length) {
@@ -332,30 +582,33 @@ class App {
         }
       }
 
-      const ls = window.localStorage
+      const cfgStore = createNoodlConfigValidator({
+        configKey: 'config',
+        timestampKey: 'timestamp',
+        get: (key: string) => lf.getItem(key),
+        set: (key: string, value: any) => lf.setItem(key, value),
+      })
 
-      if (!ls.getItem('tempConfigKey') && ls.getItem('config')) {
-        ls.setItem(
-          'tempConfigKey',
-          JSON.parse(ls.getItem('config') || '')?.timestamp,
-        )
-      }
+      const isTimestampCached = !!(await cfgStore.getTimestampKey())
+      const isConfigCached = !!(await cfgStore.configExists())
 
-      if (this.mainPage && location.href) {
-        let { startPage } = this.noodl.cadlEndpoint
-        const urlParts = location.href.split('/')
+      if (!isTimestampCached && isConfigCached) await cfgStore.cacheTimestamp()
+
+      if (this.mainPage && location.href && !parsedUrl.hasParams) {
+        let url = location.href
+        if (url.includes('&checkoutId=')) {
+          url = parsedUrl.pageUrl
+        }
+        let { startPage = '' } = this.noodl.cadlEndpoint || {}
+        const urlParts = url.split('/')
         const pathname = urlParts[urlParts.length - 1]
-        const localConfig = JSON.parse(ls.getItem('config') || '{}') || {}
-        const tempConfigKey = ls.getItem('tempConfigKey')
 
-        if (
-          tempConfigKey &&
-          tempConfigKey !== JSON.stringify(localConfig.timestamp)
-        ) {
+        if (!(await cfgStore.isTimestampEq())) {
           // Set the URL / cached pages to their base state
-          ls.setItem('CACHED_PAGES', JSON.stringify([]))
+          await lf.setItem(c.CACHED_PAGES, [])
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
+          await cfgStore.cacheTimestamp()
         } else if (!pathname?.startsWith(BASE_PAGE_URL)) {
           this.mainPage.pageUrl = BASE_PAGE_URL
           await this.navigate(this.mainPage, startPage)
@@ -378,75 +631,195 @@ class App {
     } catch (error) {
       console.error(error)
       throw error
+    } finally {
+      if (!this.noodl.getState()?.queue?.length) {
+        if (this.getState().spinner?.active) {
+          this.disableSpinner()
+        }
+      }
     }
   }
 
-  async getPageObject(page: NOODLDOMPage) {
+  async getPageObject(page: NDOMPage): Promise<void | { aborted: true }> {
+    if (!this.getState().spinner.active) {
+      this.enableSpinner({ target: page?.node || this.mainPage?.node })
+    }
+
     try {
       const pageRequesting = page.requesting
       const currentPage = page.page
-      log.func('getPageObject')
-      log.grey(
-        `Running noodl.initPage for page "${pageRequesting}"`,
-        page.snapshot(),
-      )
+      const loadingState = this.#state.loadingPages?.[pageRequesting] || []
 
-      let self = this
-      await this.noodl?.initPage(pageRequesting, [], {
-        ...(page.modifiers[pageRequesting] as any),
-        builtIn: {
-          EcosObj: {
-            download: extendedSdkBuiltIns.download.bind(this),
+      if (!(pageRequesting in this.loadingPages)) {
+        this.loadingPages[pageRequesting] = loadingState
+      }
+
+      const currentIndex = loadingState.findIndex((o) => o.id === page.id)
+
+      if (currentIndex === -1) {
+        loadingState.push({ id: page.id as string, init: true })
+      }
+
+      log.func('getPageObject')
+      log.teal(`Running noodl.initPage for page "${pageRequesting}"`)
+
+      if (pageRequesting === currentPage) {
+        console.log(
+          `%cYou are already on the "${pageRequesting}" page. ` +
+            `The page is unnecessarily rendering twice to the DOM`,
+          `color:#ec0000;`,
+        )
+      } else {
+        // delete this.noodl.root[currentPage]
+      }
+
+      let isAborted = false
+      let isAbortedFromSDK = false as boolean | undefined
+
+      if (page.previous === page.requesting) page.previous = page.page
+
+      isAbortedFromSDK = (
+        await this.noodl?.initPage(pageRequesting, [], {
+          ...(page.modifiers?.[pageRequesting] as any),
+          builtIn: this.#sdkHelpers.initPageBuiltIns,
+          onBeforeInit: (init) => {
+            log.func('onBeforeInit')
+            log.grey('', { init, page: pageRequesting })
           },
-          FCMOnTokenReceive: async (options?: any) => {
-            const token = await this.nui.emit({
-              type: 'register',
-              event: 'FCMOnTokenReceive',
-              params: options,
-            })
-            log.func('FCMOnTokenReceive')
-            log.grey(token)
-            return token
-          },
-          FCMOnTokenRefresh: this.notification?.supported
-            ? this.notification.messaging?.onTokenRefresh.bind(
-                this.notification.messaging,
+          onInit: async (current, index, init) => {
+            log.func('onInit')
+            log.grey('', { current, index, init, page: pageRequesting })
+
+            const validateReference = (ref: string) => {
+              const datapath = nu.trimReference(ref as ReferenceString)
+              const location = ref.startsWith(`=.builtIn`)
+                ? 'root'
+                : is.localKey(datapath)
+                ? 'local'
+                : 'root'
+              if (
+                !has(
+                  location === 'local' ? this.root[pageRequesting] : this.root,
+                  datapath.split('.'),
+                )
+              ) {
+                log.func(`${pageRequesting} init`)
+                log.red(
+                  `The reference "${ref}" is missing from the ${
+                    location === 'local'
+                      ? `local root for page "${pageRequesting}"`
+                      : 'root'
+                  }`,
+                  {
+                    previous: init[index - 1],
+                    current: { value: current, index },
+                    next: init[index + 1],
+                    datapath,
+                    location,
+                    page: pageRequesting,
+                    snapshot: cloneDeep(
+                      location === 'root'
+                        ? this.root
+                        : this.root[pageRequesting],
+                    ),
+                  },
+                )
+              }
+            }
+
+            const validateObject = (obj: Record<string, any>) => {
+              for (const [key, value] of u.entries(obj)) {
+                is.reference(key) && validateReference(key)
+                is.reference(value) && validateReference(value)
+                if (u.isObj(value)) validateObject(value)
+              }
+            }
+
+            u.isObj(current) && validateObject(current)
+
+            if (!isAborted) {
+              let currentIndex = this.loadingPages[pageRequesting]?.findIndex?.(
+                (o) => o.id === page.id,
               )
-            : undefined,
-          checkField: self.builtIns.get('checkField')?.find(Boolean)?.fn,
-          goto: self.builtIns.get('goto')?.find(Boolean)?.fn,
-          hide: self.builtIns.get('hide')?.find(Boolean)?.fn,
-          show: self.builtIns.get('show')?.find(Boolean)?.fn,
-          redraw: self.builtIns.get('redraw')?.find(Boolean)?.fn,
-          videoChat: extendedSdkBuiltIns.videoChat.bind(this),
-        },
-      })
+
+              if (currentIndex > -1) {
+                if (currentIndex > 0) {
+                  isAborted = true
+                  this.loadingPages[pageRequesting].splice(currentIndex, 1)
+                } else {
+                  this.loadingPages[pageRequesting].shift()
+                }
+              }
+            }
+          },
+          onAfterInit: (err, init) => {
+            if (err) throw err
+            let currentIndex = this.loadingPages[pageRequesting]?.findIndex?.(
+              (o) => o.id === page.id,
+            )
+            if (currentIndex > -1) {
+              if (currentIndex > 0) {
+                isAborted = true
+                this.loadingPages[pageRequesting].splice(currentIndex, 1)
+              } else {
+                this.loadingPages[pageRequesting].shift()
+              }
+            }
+          },
+          // Currently used on list components to re-retrieve listObject by refs
+          shouldAttachRef(key, value, parent) {
+            return (
+              parent?.['type'] === 'list' &&
+              key === 'listObject' &&
+              is.reference(value)
+            )
+          },
+        })
+      )?.aborted
+
       log.func('createPreparePage')
       log.grey(`Ran noodl.initPage on page "${pageRequesting}"`, {
         pageRequesting,
         pageModifiers: page.modifiers,
         pageObject: this?.root[pageRequesting],
-        snapshot: page.snapshot(),
+        ...page.snapshot(),
       })
+
+      if (isAbortedFromSDK) {
+        log.hotpink(
+          `Aborting from ${pageRequesting} due to abort request from lvl3`,
+        )
+        return { aborted: true }
+      }
+
+      if (isAborted) {
+        log.hotpink(
+          `Aborting from ${pageRequesting} because a newer call was instantiated`,
+        )
+        return { aborted: true }
+      }
+
       this.emit('onInitPage', this.root[pageRequesting] as PageObject)
       return this.root[pageRequesting]
     } catch (error) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
+    } finally {
+      this.disableSpinner()
     }
   }
 
   getRoomParticipants() {
-    return this.meeting.room.participants
+    return this.meeting.room.participants || null
   }
 
-  getSdkParticipants(root = this.noodl.root): t.RemoteParticipant[] {
-    return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT)
+  getSdkParticipants(root = this.noodl?.root): t.RemoteParticipant[] {
+    return get(root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) || null
   }
 
   setSdkParticipants(participants: any[]) {
     this.updateRoot(PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT, participants)
-    return this.getSdkParticipants()
+    return this.getSdkParticipants() || null
   }
 
   observeViewport(viewport: VP) {
@@ -518,30 +891,14 @@ class App {
         refreshWidthAndHeight()
         document.body.style.width = `${args.width}px`
         document.body.style.height = `${args.height}px`
-        this.mainPage.rootNode.style.width = `${args.width}px`
-        this.mainPage.rootNode.style.height = `${args.height}px`
-        this.ndom.render(this.mainPage)
+        this.mainPage.node.style.width = `${args.width}px`
+        this.mainPage.node.style.height = `${args.height}px`
+        await this.render(this.mainPage)
       }
     }
-
-    // document.addEventListener('gesturechange', (args) => {
-    //   if (
-    //     args.width !== args.previousWidth ||
-    //     args.height !== args.previousHeight
-    //   ) {
-    //     if (this.currentPage === 'VideoChat') return
-    //     this.aspectRatio = aspectRatio
-    //     refreshWidthAndHeight()
-    //     document.body.style.width = `${args.width}px`
-    //     document.body.style.height = `${args.height}px`
-    //     this.mainPage.rootNode.style.width = `${args.width}px`
-    //     this.mainPage.rootNode.style.height = `${args.height}px`
-    //     this.ndom.render(this.mainPage)
-    //   }
-    // })
   }
 
-  observePages(page: NOODLDOMPage) {
+  observePages(page: NDOMPage) {
     const onNavigateStart = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
         log.func('onNavigateStart')
@@ -553,7 +910,7 @@ class App {
     const onNavigateStale = (args: {
       previouslyRequesting: string
       newPageRequesting: string
-      snapshot: ReturnType<NOODLDOMPage['snapshot']>
+      snapshot: ReturnType<NDOMPage['snapshot']>
     }) => {
       log.func('onNavigateStale')
       if (args.newPageRequesting) {
@@ -568,9 +925,9 @@ class App {
       }
     }
 
-    const onBeforeClearRootNode = () => {
+    const onBeforeClearnode = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
-        log.func('onBeforeClearRootNode')
+        log.func('onBeforeClearnode')
         const _log = (label: 'selfStream' | 'mainStream' | 'subStreams') => {
           const getSnapshot = () => this[label]?.snapshot()
           const before = getSnapshot()
@@ -585,30 +942,9 @@ class App {
       }
     }
 
-    const onBeforRenderComponents: NOODLDOMPage['hooks']['ON_BEFORE_RENDER_COMPONENTS'][number]['fn'] =
-      (snapshot: any) => {
-        log.func('onBeforRenderComponents')
-        log.grey(`onBeforRenderComponents`, snapshot)
-        const pageIds = []
-        const currentPageNames = []
-
-        for (const ndomPage of u.values(this.ndom.pages)) {
-          pageIds.push(ndomPage.id)
-          currentPageNames.push(ndomPage.page)
-        }
-
-        for (const obj of this.cache.component) {
-          if (obj) {
-            if (!currentPageNames.includes(obj.page)) {
-              this.cache.component.remove(obj.component)
-            }
-          }
-        }
-      }
-
-    const onComponentsRendered = (page: NOODLDOMPage) => {
+    const onComponentsRendered = (page: NDOMPage) => {
       log.func('onComponentsRendered')
-      log.grey(`Done rendering DOM nodes for ${page.page}`, page.snapshot())
+      log.grey(`Done rendering DOM nodes for ${page.page}`)
       if (page.page === 'VideoChat') {
         if (this.meeting.isConnected && !this.meeting.calledOnConnected) {
           this.meeting.onConnected(this.meeting.room)
@@ -634,12 +970,103 @@ class App {
     page
       .on(eventId.page.on.ON_NAVIGATE_START, onNavigateStart)
       .on(eventId.page.on.ON_NAVIGATE_STALE, onNavigateStale)
-      .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearRootNode)
-      .on(
-        eventId.page.on.ON_BEFORE_RENDER_COMPONENTS,
-        onBeforRenderComponents as any,
-      )
+      .on(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, onBeforeClearnode)
       .on(eventId.page.on.ON_COMPONENTS_RENDERED, onComponentsRendered)
+  }
+
+  async render(page: NDOMPage) {
+    try {
+      if (!page) {
+        if (arguments.length) {
+          log.func('render')
+          log.red(
+            `The page instance passed to App.render is null or undefined. The root page be used instead`,
+          )
+        }
+        page = this.mainPage
+      }
+
+      if (this.instances.FullCalendar.inst) {
+        this.instances.FullCalendar.inst.destroy()
+        this.instances.FullCalendar.inst = null
+        this.instances.FullCalendar.page = ''
+      }
+
+      return this.ndom.render(page, {
+        on: {
+          actionChain: {
+            // onBeforeInject() {
+            //   console.log(`[onBeforeInject]`, this)
+            // },
+            // onAfterInject() {
+            //   console.log(`[onAfterInject]`, this)
+            // },
+            // onAbortEnd() {
+            //   console.log(`[onAbortEnd]`, this)
+            // },
+            // onAbortStart() {
+            //   console.log(`[onAbortStart]`, this)
+            // },
+            // onAbortError() {
+            //   console.log(`[onAbortError]`, this)
+            // },
+            onExecuteStart: () => {
+              // console.log(`[onExecuteStart]`, this)
+              // this.enableSpinner({ target: document.body, page: page?.page })
+            },
+            // onBeforeActionExecute() {
+            //   console.log(`[onBeforeActionExecute]`, this)
+            // },
+            onExecuteError: () => {
+              //   console.log(`[onExecuteError]`, this)
+              // this.disableSpinner()
+            },
+            onExecuteEnd: () => {
+              // console.log(`[onExecuteEnd]`, this)
+              // this.disableSpinner()
+            },
+          },
+          emit: {
+            createActionChain: async ({ actionChain, component, trigger }) => {
+              let results: ActionChainIteratorResult<
+                NUIActionObject,
+                NUITrigger
+              >[] = []
+              let result: any
+
+              if (/(dataValue|path|placeholder)/.test(trigger)) {
+                results = await actionChain?.execute?.()
+                result = results.find((val) => !!val?.result)?.result
+
+                let datasetKey = ''
+
+                if (trigger === 'path') {
+                  datasetKey = 'src'
+                  if (!is.component.page(component)) {
+                    result = result
+                      ? resolveAssetUrl(result, this.nui.getAssetsUrl())
+                      : ''
+                    component.edit({ src: result })
+                    component.edit({ 'data-src': result })
+                    component.emit('path', result)
+                  }
+                } else if (trigger === 'dataValue') {
+                  datasetKey = 'value'
+                } else {
+                  datasetKey = trigger.toLowerCase()
+                }
+                component.edit({ [`data-${datasetKey}`]: result })
+                component.emit(trigger as any, result)
+              }
+            },
+          },
+        },
+      })
+    } catch (error) {
+      console.error(error)
+      if (error instanceof Error) toast(`[${error.name}] ${error.message}`)
+      else if (error) toast(`[Error] ${String(error)}`)
+    }
   }
 
   reset(soft?: boolean): Promise<void>
@@ -655,7 +1082,8 @@ class App {
           const currentPage = this.mainPage.page
           delete currentRoot[currentPage]
           this.#noodl = resetSdk()
-          await this.#noodl.init()
+          await this.noodl.init()
+
           u.assign(this.#noodl.root, currentRoot)
           this.cache.component.clear()
           this.mainPage.page = this.mainPage.getPreviousPage(this.startPage)
@@ -675,7 +1103,7 @@ class App {
           this.cache.page.length
             ? this.nui.getRootPage()
             : this.nui.createPage({ viewport: this.viewport }),
-        ) as NOODLDOMPage
+        )
         this.ndom.page = this.mainPage
       }
       has(this.noodl.root, PATH_TO_REMOTE_PARTICIPANTS_IN_ROOT) &&
@@ -740,6 +1168,62 @@ class App {
     fns && fns.forEach((fn) => u.isFnc(fn) && fn(params as P))
   }
 
+  enableSpinner({
+    delay,
+    page: pageName,
+    target = document.body,
+    timeout,
+    trigger,
+  }: {
+    delay?: number
+    page?: string
+    target?: HTMLElement
+    timeout?: number
+    trigger?: t.SpinnerState['trigger']
+  } = {}) {
+    if (this.#state.spinner.ref || this.#state.spinner.timeout) {
+      this.disableSpinner()
+    }
+
+    if (pageName) this.#state.spinner.page = pageName
+    else this.#state.spinner.page = null
+
+    if (trigger) this.#state.spinner.trigger = trigger
+    else this.#state.spinner.trigger = null
+
+    this.#state.spinner.ref = setTimeout(
+      () => {
+        this.#spinner.spin(target)
+        this.#state.spinner.active = true
+      },
+      u.isNum(delay) ? delay : this.#state.spinner.config.delay,
+    )
+
+    this.#state.spinner.timeout = setTimeout(
+      () => this.disableSpinner(),
+      u.isNum(timeout) ? timeout : this.#state.spinner.config.timeout,
+    )
+  }
+
+  disableSpinner() {
+    this.#spinner.stop()
+
+    this.#state.spinner.active = false
+    this.#state.spinner.page = null
+    this.#state.spinner.timeout = null
+    this.#state.spinner.trigger = null
+
+    if (this.#state.spinner.ref) {
+      clearTimeout(this.#state.spinner.ref)
+      this.#state.spinner.ref = null
+    }
+
+    if (this.#state.spinner.timeout) {
+      clearTimeout(this.#state.spinner.timeout)
+      this.#state.spinner.timeout = null
+    }
+  }
+
   /* -------------------------------------------------------
     ---- LOCAL STORAGE HELPERS FOR CACHED PAGES
   -------------------------------------------------------- */
@@ -747,28 +1231,20 @@ class App {
    * Adds the current page name to the end in the list of cached pages
    * @param { string } name - Page name
    */
-  cachePage(name: string) {
+  async cachePage(name: string) {
     const cacheObj = { name } as CachedPageObject
-    const prevCache = this.getCachedPages()
+    const prevCache = await this.getCachedPages()
     if (prevCache[0]?.name === name) return
     const cache = [cacheObj, ...prevCache]
     if (cache.length >= 12) cache.pop()
     cacheObj.timestamp = Date.now()
-    window.localStorage.setItem(CACHED_PAGES, JSON.stringify(cache))
+    await lf.setItem(CACHED_PAGES, cache)
   }
 
   /** Retrieves a list of cached pages */
-  getCachedPages(): t.CachedPageObject[] {
-    let result: CachedPageObject[] = []
-    const pageHistory = localStorage.getItem(CACHED_PAGES)
-    if (pageHistory) {
-      try {
-        result = JSON.parse(pageHistory) || []
-      } catch (error) {
-        console.error(error)
-      }
-    }
-    return result
+  async getCachedPages(): Promise<t.CachedPageObject[]> {
+    const pageHistory = await lf.getItem(CACHED_PAGES)
+    return (pageHistory as t.CachedPageObject[]) || []
   }
 }
 

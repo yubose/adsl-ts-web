@@ -1,174 +1,341 @@
+import * as u from '@jsmanifest/utils'
+import startOfDay from 'date-fns/startOfDay'
 import { Identify, userEvent } from 'noodl-types'
-import { dataAttributes } from 'noodl-ui'
-import { isActionChain } from 'noodl-action-chain'
-import { Resolve, UseObject } from '../types'
-import { isTextFieldLike, normalizeEventName } from '../utils'
-import * as u from '../utils/internal'
+import { dataAttributes, NUIActionChain } from 'noodl-ui'
+import type { NuiComponent } from 'noodl-ui'
+import { isDisplayable, normalizeEventName } from '../utils'
+import type NDOMResolver from '../Resolver'
+import * as t from '../types'
+import * as i from '../utils/internal'
+import * as c from '../constants'
 
-/* -------------------------------------------------------
-  ---- DEFAULT RESOLVERS
--------------------------------------------------------- */
+const is = Identify
 
-const resolveAttributes: Resolve.Config = {
-  name: `[noodl-ui-dom] Default Common Resolvers`,
-  resolve(node, component, { ndom }) {
-    const original = component?.blueprint || {}
-    const { contentType, text, placeholder, path } = original
+function attachText<N extends t.NDOMElement>(node: N, ...text: string[]) {
+  if (!node.innerHTML.trim()) {
+    const value = text.find(Boolean) || ''
+    node.innerHTML = isDisplayable(value) ? value : ''
+  }
+  return node
+}
 
-    if (component && node && !u.isFnc(node)) {
-      node.id = component.id
-      /* -------------------------------------------------------
-        ---- ELEMENT TO ELEMENT BINDINGS
-      -------------------------------------------------------- */
-      if (component.has('videoStream')) {
-        if (Identify.isBooleanTrue(component.get('videoStream'))) {
-          const resolve = ndom
-            .resolvers()
-            .find((obj) =>
-              /videoStream/i.test(obj.name || ''),
-            ) as UseObject['createElementBinding']
+function attachDataAttrs<N extends t.NDOMElement>(
+  node: N,
+  component: NuiComponent.Instance,
+  setAttr: ReturnType<NDOMResolver['getOptions']>['setAttr'],
+  setDataAttr: ReturnType<NDOMResolver['getOptions']>['setDataAttr'],
+) {
+  for (const key of dataAttributes) {
+    if (component?.get?.(key)) {
+      setDataAttr(key, component.get(key) || '')
+      if ('value' in node && key === c.DATA_VALUE) {
+        const value = component.get(key)
+        setAttr('value' as any, value)
+        if (u.isStr(value) && /hide_textfield/i.test(value)) {
+          node.style.visibility = 'hidden'
+        }
+      }
+    }
+  }
+}
 
-          if (u.isFnc(resolve)) {
-            const childNode = resolve(component)
-            if (childNode) {
-              node.appendChild(childNode)
-              console.log(`%cBound videoStream to a node`, `color:#95a5a6;`, {
-                node,
-                boundNode: childNode,
-              })
-            }
+function attachUserEvents<N extends t.NDOMElement>(
+  node: N,
+  component: NuiComponent.Instance,
+) {
+  userEvent.forEach((eventType: string) => {
+    /**
+     * TODO - Don't include DOM events in this loop. Instead, the user can register them via noodl-ui-dom resolve API
+     * - onBlur
+     * - onChange
+     * - onInput
+     */
+    if (eventType === 'onChange') return
+    if (eventType === 'onInput') return
+
+    if (u.isFnc(component.get?.(eventType)?.execute)) {
+      /**
+       * Putting a setTimeout here helps to avoid the race condition in
+       * where the emitted action handlers are being called before local
+       * root object gets their data values updated.
+       */
+      if (eventType === 'onLazyLoading') {
+        let event: Event = new Event('onLazyLoading', {
+          bubbles: true,
+          cancelable: false,
+        })
+        node.addEventListener('scroll', (...args) => {
+          let viewHeight =
+            node.clientHeight || document.documentElement.clientHeight
+          let contentHeight =
+            node.scrollHeight || document.documentElement.scrollHeight //内容高度
+          let scrollTop = node.scrollTop || document.documentElement.scrollTop
+          if (contentHeight - viewHeight - scrollTop === 0) {
+            //到达底部0px时,加载新内容
+            node.dispatchEvent(event)
           }
-        }
-      }
-      if (component.has('audioStream')) {
-        if (Identify.isBooleanTrue(component.get('audioStream'))) {
-          const resolve = ndom
-            .resolvers()
-            .find((obj) =>
-              /audioStream/i.test(obj.name || ''),
-            ) as UseObject['createElementBinding']
-
-          if (u.isFnc(resolve)) {
-            const childNode = resolve(component)
-            if (childNode) {
-              node.appendChild(childNode)
-              console.log(`%cBound audioStream to a node`, `color:#95a5a6;`, {
-                node,
-                boundNode: childNode,
-              })
-            }
-          }
-        }
-      }
-      /* -------------------------------------------------------
-        ---- DATA ATTRIBUTES
-      -------------------------------------------------------- */
-      dataAttributes.forEach(
-        (key) =>
-          !u.isUnd(original[key]) &&
-          (node.dataset[key.replace('data-', '')] = original[key]),
-      )
-      // NON-INPUT FIELDS DISPLAYABLE VALUES (ex: label, p, span, etc)
-      if (!isTextFieldLike(node)) {
-        if (text || placeholder || original['data-value']) {
-          const dataValue = original['data-value']
-          let textVal = u.isStr(dataValue) ? dataValue : text || text || ''
-          if (!textVal && placeholder) textVal = placeholder
-          if (!textVal) textVal = ''
-          if (textVal && node) node.innerHTML = `${textVal}`
-        }
-      }
-      // INPUT FIELDS DISPLAYABLE VALUES (ex: input, textarea, select, etc)
-      if (component.get('data-placeholder')) {
-        if (Identify.folds.emit(original.placeholder)) {
-          component.on('placeholder', (src: string) => {
-            setTimeout(
-              () => node && ((node as HTMLInputElement).placeholder = src),
-            )
+        })
+        node.addEventListener('onLazyLoading', (...args) => {
+          // console.log('GGGG', node.scrollTop)
+          //@ts-ignore
+          setTimeout(() => {
+            ;(component.get?.(eventType) as NUIActionChain)?.execute?.(...args)
           })
-        } else {
-          ;(node as HTMLInputElement).placeholder =
-            component.get('data-placeholder')
-        }
+        })
+        // window.setTimeout(()=>{
+        //   node.scrollTop = node.scrollHeight - 1000;
+        // })
+        return
       }
-      // MEDIA (images / videos)
-      if (path && component.get('data-src')) {
-        // Images
-        if (node.tagName !== 'VIDEO' && node.tagName !== 'IFRAME') {
-          ;(node as HTMLImageElement).src = component.get('data-src') || ''
-        }
-      }
-      // TEXTFUNC ('text=func') [date components most likely]
-      if (u.isFnc(original['text=func']) && contentType === 'timer') {
-        node.textContent = component.get('data-value') || ''
-      }
-      /* -------------------------------------------------------
-        ---- USER EVENTS
-      -------------------------------------------------------- */
-      // Jump to next input field when user presses their enter key
-      if (node.tagName === 'INPUT') {
-        node.onkeypress = function onKeyPress(keyboardEvent: KeyboardEvent) {
-          if (keyboardEvent.key === 'Enter') {
-            const inputs = document.querySelectorAll('input')
-            const currentIndex = [...inputs].findIndex((el) =>
-              node.isEqualNode(el),
-            )
-            const targetIndex = (currentIndex + 1) % inputs.length
-            if (currentIndex + 1 < inputs.length) inputs[targetIndex]?.focus?.()
-          }
-        }
-      }
+      node.addEventListener(normalizeEventName(eventType), (...args) =>
+        setTimeout(() => component.get?.(eventType)?.execute?.(...args)),
+      )
+    }
+  })
+}
 
-      // Attach event handlers on user events (ex: onClick, onHover, etc)
-      userEvent.forEach((eventType) => {
-        const actionChain = component.get(eventType)
-        if (isActionChain(actionChain)) {
-          // Putting a setTimeout here helps to avoid the race condition in where
-          // the emitted action handlers are being called before local root object
-          // gets their data values updated.
-          // TODO - Unit test + think of a better solution
-          node.addEventListener(
-            normalizeEventName(eventType),
-            async function onClickEvent(mouseEvent) {
-              if (!isActionChain(actionChain)) {
-                console.log(
-                  `%cUser event for "${eventType}" was not an ActionChain. ` +
-                    `This will not take any effect`,
-                  `color:#ec0000;`,
-                  { actionChain, node, component, mouseEvent },
+function handleKeyPress<N extends t.NDOMElement>(node: N) {
+  function onKeyPress(n: N, evt: KeyboardEvent) {
+    if (evt.key === 'Enter') {
+      const inputs = document.querySelectorAll('input')
+      const currentIndex = [...inputs].findIndex((el) => n.isEqualNode(el))
+      const targetIndex = (currentIndex + 1) % inputs.length
+      if (currentIndex + 1 < inputs.length) inputs[targetIndex]?.focus?.()
+    }
+  }
+  node.addEventListener('keypress', onKeyPress.bind(null, node))
+}
+
+const attributesResolver: t.Resolve.Config = {
+  name: `[noodl-ui-dom] attributes`,
+  async before({
+    componentType,
+    elementType,
+    component,
+    node,
+    setAttr,
+    setStyleAttr,
+  }) {
+    try {
+      if (node && component) {
+        setAttr('id', component.id || '')
+        if (elementType === 'SCRIPT') {
+          if (component.has('global')) {
+            if (!component.get('data-src')) {
+              component.on('image', (src: string) =>
+                setStyleAttr('backgroundImage', `url("${src}")`),
+              )
+            }
+            setStyleAttr(
+              'backgroundImage',
+              `url("${component.get('data-src')}")`,
+            )
+          }
+        } else if (componentType === 'page' && elementType === 'IFRAME') {
+          // Set default values now but can be overriden when we go over the style resolvers
+          node.style.position = 'absolute'
+          node.style.width = '100%'
+          node.style.height = '100%'
+        }
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  },
+  async resolve(args) {
+    const { elementType, setAttr, setDataAttr, setStyleAttr } = args
+
+    try {
+      if (args.node) {
+        if (args.component) {
+          if (Identify.component.page(args.component)) {
+            // console.info(`PAGE COMPONENT`, args.global.pages)
+          }
+
+          const { path, placeholder, style, textBoard } =
+            args.component.blueprint || {}
+
+          /* -------------------------------------------------------
+            ---- GENERAL / COMMON DOM NODES
+          -------------------------------------------------------- */
+          attachText(
+            args.node,
+            args.component?.get?.(c.DATA_VALUE),
+            args.component?.blueprint?.text,
+          )
+          /* -------------------------------------------------------
+            ---- DATA-ATTRIBUTES
+          -------------------------------------------------------- */
+          attachDataAttrs(args.node, args.component, setAttr, setDataAttr)
+          /* -------------------------------------------------------
+            ---- EVENTS
+          -------------------------------------------------------- */
+          attachUserEvents(args.node, args.component)
+          /* -------------------------------------------------------
+            ---- ENTER KEY FOR INPUTS
+          -------------------------------------------------------- */
+          elementType === 'INPUT' && handleKeyPress(args.node)
+          /* -------------------------------------------------------
+            ---- NON TEXTFIELDS
+          -------------------------------------------------------- */
+
+          if (!['INPUT', 'SELECT', 'TEXTAREA'].includes(elementType)) {
+            if (
+              ['text', c.DATA_PLACEHOLDER, c.DATA_VALUE].some(
+                (key) => !!args.component.get(key),
+              )
+            ) {
+              let dataValue = args.component.get(c.DATA_VALUE)
+              let placeholder = args.component.get(c.DATA_PLACEHOLDER)
+              let text = args.component.get('text')
+
+              text = (u.isStr(dataValue) ? dataValue : text) || text || ''
+              !text && placeholder && (text = placeholder)
+              !text && (text = '')
+              text && args.node && setAttr('innerHTML', `${text}`)
+            }
+          }
+
+          /* -------------------------------------------------------
+            ---- PATHS (non videos)
+          -------------------------------------------------------- */
+          if (path && !['IFRAME', 'VIDEO'].includes(elementType)) {
+            if (args.component.get(c.DATA_SRC)) {
+              const src = args.component.get(c.DATA_SRC)
+              // @ts-expect-error
+              u.forEach((fn) => fn('src', src), [setAttr, setDataAttr])
+              args.component.on('path', (result) =>
+                // @ts-expect-error
+                u.forEach((fn) => fn('src', result), [setAttr, setDataAttr]),
+              )
+            }
+          }
+
+          /* -------------------------------------------------------
+            ---- PLACEHOLDERS
+          -------------------------------------------------------- */
+          if (placeholder) {
+            let value =
+              args.component.get(c.DATA_PLACEHOLDER) || placeholder || ''
+            u.forEach(
+              (fn: (...args: any[]) => any) =>
+                fn('placeholder', Identify.folds.emit(value) ? '' : value),
+              [setAttr, setDataAttr],
+            )
+          }
+
+          /* -------------------------------------------------------
+            ---- STYLES
+          -------------------------------------------------------- */
+          if (!i._isScriptEl(args.node) && u.isObj(style)) {
+            u.isObj(args.component.style.textAlign) &&
+              delete args.component.style.textAlign
+
+            if (
+              !('marginTop' in args.component.style) ||
+              !('marginTop' in (style || {}))
+            ) {
+              args.component.style.marginTop = '0px'
+            }
+
+            for (const [k, v] of u.entries(args.component.style)) {
+              if (Number.isFinite(Number(k))) continue
+              args.node.style && setStyleAttr(k as any, String(v))
+            }
+
+            if (Identify.component.canvas(args.component)) {
+              if (args.node.parentElement) {
+                const parentWidth = args.node.parentElement.style.width
+                const parentHeight = args.node.parentElement.style.height
+                setAttr('width', Number(parentWidth.replace(/[a-zA-Z]+/g, '')))
+                setAttr(
+                  'height',
+                  Number(parentHeight.replace(/[a-zA-Z]+/g, '')),
                 )
+                setStyleAttr('width', parentWidth)
+                setStyleAttr('height', parentHeight)
               }
-              await actionChain?.execute?.(mouseEvent)
+            }
+          }
+
+          /* -------------------------------------------------------
+            ---- TEXT=FUNC
+          -------------------------------------------------------- */
+          if (args.component.blueprint?.['text=func']) {
+            if (args.component.contentType === 'timer') {
+              const dataKey = args.component.blueprint?.dataKey as string
+              // TODO - Refactor a better way to get the initial value since the
+              // call order isn't guaranteed
+              args.component.on('timer:init', (initialValue?: Date) => {
+                const pageName = args.page.page
+                const timer =
+                  args.global.timers.get(dataKey) ||
+                  args.global.timers.set(dataKey, {
+                    initialValue: initialValue || startOfDay(new Date()),
+                    pageName,
+                  })
+
+                if (initialValue && timer.value !== initialValue) {
+                  timer.value = initialValue
+                }
+
+                timer.pageName !== pageName && (timer.pageName = pageName)
+
+                timer.on('increment', (v: any) =>
+                  args.component.emit('timer:interval', v),
+                )
+                // @ts-expect-error
+                args.component.emit('timer:ref', timer)
+
+                args.page.once(c.eventId.page.on.ON_DOM_CLEANUP, () => {
+                  timer.clear()
+                  timer.onClear = undefined
+                  timer.onIncrement = undefined
+                  args.component.clear('hooks')
+                })
+              })
+            } else {
+              args.node &&
+                setAttr('textContent', args.component.get('data-value') || '')
+            }
+          }
+
+          /* -------------------------------------------------------
+            ---- TEMP - Experimenting CSS
+          -------------------------------------------------------- */
+          const classes = {
+            canvas: 'canvas',
+            global: {
+              identify: (c: NuiComponent.Instance) => c.has('global'),
+              className: 'global',
             },
+            label: 'label',
+            page: 'page',
+            popUp: 'popup',
+            scrollView: 'scroll-view',
+            textBoard: 'text-board',
+          } as const
+
+          u.forEach(
+            ([name, className]) =>
+              [is.component[name] || classes[name]?.['identify']].find(
+                u.isFnc,
+              )?.(args.component) &&
+              i.addClassName(
+                u.isStr(className)
+                  ? className
+                  : classes[name]?.['className'] || '',
+                args.node,
+              ),
+            u.entries(classes),
           )
         }
-      })
-      /* -------------------------------------------------------
-        ---- STYLES
-      -------------------------------------------------------- */
-      if (node.tagName !== 'SCRIPT') {
-        if (u.isObj(component.style) && node.style) {
-          for (const [key, value] of Object.entries(component.style)) {
-            node.style[key] = value
-          }
-        }
       }
-      // TEMP - Experimenting CSS
-      if (component.type === 'scrollView') {
-        u.addClassName('scroll-view', node)
-      }
-      if (component.has('textBoard')) {
-        u.addClassName('text-board', node)
-      }
-    } else {
-      // Plugins
+    } catch (error) {
+      console.error(error)
+      throw error
     }
   },
 }
 
-const createResolveAttributes: Resolve.Func =
-  function _createResolverAttributes(ndom) {
-    return resolveAttributes
-  }
-
-export default createResolveAttributes
+export default attributesResolver

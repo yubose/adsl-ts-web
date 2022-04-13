@@ -1,0 +1,14 @@
+{
+  "ts-node": {
+    "transpileOnly": true
+  },
+  "compilerOptions": {
+    "lib": ["es2020", "WebWorker"],
+    "module": "commonjs",
+    "noEmitOnError": false,
+    "target": "es2017"
+  },
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules",],
+  "include": []
+}

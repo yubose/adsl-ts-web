@@ -4,39 +4,48 @@ import has from 'lodash/has'
 import set from 'lodash/set'
 import { isAction } from 'noodl-action-chain'
 import {
+  BASE_PAGE_URL,
+  eventId as ndomEventId,
   findListDataObject,
   findIteratorVar,
+  findByViewTag,
+  findByUX,
+  findFirstBySelector,
+  findFirstByElementId,
+  findWindow,
   getDataValues,
-  NUIComponent,
-  Page as NUIPage,
+  isPage as isNuiPage,
+  isPageConsumer,
+  NuiComponent,
+  NDOMPage,
+  resolvePageComponentUrl,
   Store,
   Viewport as VP,
   isListConsumer,
   ConsumerOptions,
+  findParent,
 } from 'noodl-ui'
-import {
-  BASE_PAGE_URL,
-  eventId as ndomEventId,
-  findByViewTag,
-  findByUX,
-  findWindow,
-  getByDataUX,
-  getFirstByElementId,
-  isPageConsumer,
-  Page as NDOMPage,
-} from 'noodl-ui-dom'
-import { BuiltInActionObject, EcosDocument, Identify } from 'noodl-types'
+import QRCode from 'qrcode'
+import { BuiltInActionObject, EcosDocument } from 'noodl-types'
 import Logger from 'logsnap'
 import {
   download,
+  exportToPDF,
   isVisible,
   hide,
   show,
   scrollToElem,
   toast,
 } from '../utils/dom'
-import { getActionMetadata, pickActionKey } from '../utils/common'
+import {
+  getActionMetadata,
+  logError,
+  pickActionKey,
+  throwError,
+} from '../utils/common'
+import is from '../utils/is'
 import App from '../App'
+import { useGotoSpinner } from './shared/goto'
 import {
   LocalAudioTrack,
   LocalAudioTrackPublication,
@@ -44,6 +53,7 @@ import {
   LocalVideoTrackPublication,
   Room,
 } from '../app/types'
+import type { Format as PdfPageFormat } from '../modules/ExportPdf'
 
 const log = Logger.create('builtIns.ts')
 const _pick = pickActionKey
@@ -82,6 +92,35 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       })
     }
   }
+  const copy: Store.BuiltInObject['fn'] = async function onCopy(
+    action,
+    options,
+  ) {
+    log.func('copy')
+    log.grey('', action?.snapshot?.())
+    const viewTag = _pick(action, 'viewTag')
+    const node: any = findByViewTag(viewTag)
+    !node && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    try {
+      if (node) {
+        const range = document.createRange()
+        range.selectNode(node)
+        const select = window.getSelection()
+        if (select) {
+          select.removeAllRanges()
+          select.addRange(range)
+          document.execCommand('copy')
+          select.removeAllRanges()
+          log.grey(`Copy successfully in viewTag "${viewTag}"`)
+          // toast('Copy successfully')
+        }
+      } else {
+        log.red(`Copy failed in viewTag "${viewTag}"`)
+      }
+    } catch (e) {
+      log.red(`Copy failed in viewTag "${viewTag}"`)
+    }
+  }
 
   const checkField: Store.BuiltInObject['fn'] = async function onCheckField(
     action,
@@ -90,9 +129,187 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action?.snapshot?.())
     const delay: number | boolean = _pick(action, 'wait')
     const onCheckField = () => {
-      u.arrayEach(findByUX(_pick(action, 'contentType')), (n) => n && show(n))
+      u.array(findByUX(_pick(action, 'contentType'))).forEach(
+        (n) => n && show(n),
+      )
     }
     u.isNum(delay) ? setTimeout(() => onCheckField(), delay) : onCheckField()
+  }
+
+  const exportCSV = async function onExportCSV(options: {
+    ecosObj?: EcosDocument
+    obj?: Object
+    viewTag?: string
+    format?: PdfPageFormat
+    download?: boolean
+    open?: boolean
+    header?: Array<any>
+    fileName?: string
+  }) {
+    try {
+      let listOfData = u.isArr(options) ? options : ([] as any[])
+      let title = new Date().toLocaleDateString().replaceAll('/', '-')
+
+      if (u.isObj(options)) {
+        if ('ecosObj' in options) {
+          listOfData.push(options.ecosObj?.name || {})
+          if (options.ecosObj?.name?.title) title = options.ecosObj.name.title
+        } else {
+          listOfData.push(options)
+        }
+      } else if (u.isStr(options)) {
+        try {
+          let data = JSON.parse(options)
+          listOfData.push(data)
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.error(err)
+          listOfData.push(options)
+        }
+      }
+
+      let csv = options.obj
+      // generate header
+      let csvHeader: string | undefined = ''
+      if ('header' in options) {
+        csvHeader = options.header?.toString()
+        csvHeader += '\r\n'
+      }
+      csv = csvHeader ? csvHeader + csv : csv
+      // formate csv in sdk
+      // for (const dataObject of listOfData) {
+      //   let entries = u.entries(dataObject).map(([k, v]) => [[k, v]])
+      //   let numEntries = entries.length
+
+      //   //1st loop is to extract each row
+      //   for (let i = 0; i < numEntries; i++) {
+      //     let row = ''
+      //     //2nd loop will extract each column and convert it in string comma-seprated
+      //     for (const index in entries[i]) {
+      //       row += '"' + entries[i][index] + '",'
+      //     }
+      //     row.slice(0, row.length - 1)
+      //     //add a line break after each row
+      //     csv += row + '\r\n'
+      //   }
+
+      //   numEntries && (csv += '\r\n')
+      // }
+
+      const link = document.createElement('a')
+      link.id = 'lnkDwnldLnk'
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const csvUrl = URL.createObjectURL(blob)
+      let filename = ''
+      if ('fileName' in options) {
+        filename = `${options.fileName}.csv`
+      } else {
+        filename =
+          `${
+            title ||
+            `data-${new Date().toLocaleDateString().replaceAll('/', '-')}`
+          }` + '.csv'
+      }
+      link.download = filename
+      link.href = csvUrl
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(csvUrl)
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error(err)
+    }
+  }
+
+  /**
+   * Initiates a download window to export PDF using the information inside the document object
+   * @param { object } options
+   * @param { EcosDocument } options.ecosObj - eCOS document object
+   */
+  const exportPDF: any = async function onExportPDF(options: {
+    ecosObj: EcosDocument
+    viewTag?: string
+    format?: PdfPageFormat
+    download?: boolean
+    open?: boolean
+  }) {
+    try {
+      log.func('exportPDF')
+      log.grey('Downloading PDF file', options)
+
+      // Blob will be returned to sdk and written to dataOut if dataOut is given
+      let pdfBlob: Blob | undefined
+
+      const ecosObj = (
+        u.isObj(options) && 'ecosObj' in options ? options.ecosObj : options
+      ) as EcosDocument
+
+      const viewTag = u.isObj(options) && options.viewTag
+      const format = u.isObj(options) ? options.format : undefined
+      const fileName = ecosObj.name?.title || ''
+      const shouldDownload = u.isBool(options?.download)
+        ? options.download
+        : true
+      const shouldOpen = u.isBool(options?.open) ? options.open : false
+
+      if (viewTag) {
+        if (u.isStr(viewTag)) {
+          for (const elem of [...u.array(findByViewTag(viewTag))]) {
+            if (elem) {
+              pdfBlob = await exportToPDF({
+                data: elem,
+                download: shouldDownload,
+                open: shouldOpen,
+                filename: fileName,
+                format,
+              })
+            }
+          }
+        } else if (u.isObj(viewTag)) {
+          // Future support
+        }
+      } else if (u.isObj(ecosObj)) {
+        const { name, subtype } = ecosObj
+        const mediaType = subtype?.mediaType
+
+        if (u.isObj(name)) {
+          const { content, data, title } = name
+
+          if (data) {
+            try {
+              pdfBlob = await exportToPDF({
+                data:
+                  is.mediaType.audio(mediaType) ||
+                  is.mediaType.font(mediaType) ||
+                  is.mediaType.image(mediaType) ||
+                  is.mediaType.video(mediaType)
+                    ? data
+                    : { title: title || (u.isStr(content) && content) || data },
+                labels: true,
+                download: shouldDownload,
+                open: shouldOpen,
+                filename: title,
+              })
+              log.green('Exported successfully')
+            } catch (error) {
+              console.error(error)
+            }
+          } else {
+            log.red(
+              `Tried to export the document to PDF but the "data" property is empty`,
+            )
+          }
+        } else {
+          log.red('The name field in an ecosObj was not an object', ecosObj)
+        }
+      }
+      return pdfBlob
+    } catch (error) {
+      logError(error)
+      throwError(error)
+    }
   }
 
   const disconnectMeeting: Store.BuiltInObject['fn'] =
@@ -110,37 +327,16 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     log.grey('', action?.snapshot?.())
     const reload = _pick(action, 'reload')
     const ndomPage = pickNDOMPageFromOptions(options)
-
     if (ndomPage) {
       ndomPage.requesting = ndomPage.previous
       // TODO - Find out why the line below is returning the requesting page instead of the correct one above this line. getPreviousPage is planned to be deprecated
       // app.mainPage.requesting = app.mainPage.getPreviousPage(app.startPage).trim()
-      if (u.isBool(reload)) {
-        ndomPage.setModifier(ndomPage.previous, { reload })
-      }
-      if (
-        ndomPage.requesting === ndomPage.page &&
-        ndomPage.page === ndomPage.previous
-      ) {
-        console.log(
-          `%cLOOK HERE: All three (previous, current, requesting) value of the page name in the noodl-ui-dom instance are the same`,
-          `color:#ec0000;background:#000`,
-        )
-      } else {
-        if (ndomPage.previous === ndomPage.page) {
-          console.log(
-            `%cLOOK HERE: The current page is the same as the "previous" page on the noodl-ui-dom page`,
-            `color:deepOrange;background:#000`,
-          )
-        }
-        if (ndomPage.page === ndomPage.requesting) {
-          console.log(
-            `%cLOOK HERE: The current page is the same as the "requesting" page on the noodl-ui-dom page`,
-            `color:orange;background:#000`,
-          )
-        }
-      }
+      ndomPage.setModifier(ndomPage.previous, {
+        reload: is.isBooleanFalse(reload) ? false : true,
+      })
     }
+
+    if (!app.getState().spinner.active) app.enableSpinner()
 
     window.history.back()
   }
@@ -157,8 +353,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         node.style.display === 'none' && (node.style.display = 'block')
       }
     }
-    let elemCount
     const onHide = () => {
+      let elemCount
       elemCount = hide(findByViewTag(viewTag), onElem)
       !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
     }
@@ -175,21 +371,18 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     let wait = _pick(action, 'wait') || 0
     const onElem = (node: HTMLElement) => {
       const component = options.component
-      if (component && VP.isNil(node.style.top)) {
+      if (component && (node.style.top === '0' || node.style.top === '')) {
         !isVisible(node) && (node.style.visibility = 'visible')
         node.style.display === 'none' && (node.style.display = 'block')
       }
     }
-    let elemCount
-    if (!u.isUnd(wait)) {
-      setTimeout(
-        () => void (elemCount = show(findByViewTag(viewTag), onElem)),
-        wait === true ? 0 : wait,
-      )
-    } else {
-      elemCount = show(findByViewTag(viewTag), onElem)
+    const showNode = (vTag: string) => {
+      let elemCount = show(findByViewTag(vTag), onElem)
+      !elemCount && log.red(`Cannot find a DOM node for viewTag "${vTag}"`)
     }
-    !elemCount && log.red(`Cannot find a DOM node for viewTag "${viewTag}"`)
+    if (!u.isUnd(wait)) {
+      setTimeout(() => showNode(viewTag), wait === true ? 0 : wait)
+    } else showNode(viewTag)
   }
 
   const toggleCameraOnOff: Store.BuiltInObject['fn'] =
@@ -216,7 +409,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       const { component, getAssetsUrl } = options
       const dataKey = _pick(action, 'dataKey') || ''
       const iteratorVar = findIteratorVar(component)
-      const node = getFirstByElementId(component)
+      const node = findFirstByElementId(component)
       const ndomPage = pickNDOMPageFromOptions(options)
       const pageName = ndomPage?.page || ''
       let path = component?.get('path')
@@ -232,9 +425,9 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         dataObject = findListDataObject(component)
         previousDataValue = get(dataObject, parts)
         dataValue = previousDataValue
-        if (Identify.isBoolean(dataValue)) {
+        if (is.isBoolean(dataValue)) {
           // true -> false / false -> true
-          nextDataValue = !Identify.isBooleanTrue(dataValue)
+          nextDataValue = !is.isBooleanTrue(dataValue)
         } else {
           // Set to true if am item exists
           nextDataValue = !dataValue
@@ -246,8 +439,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           { updateDraft }: { updateDraft?: { path: string } } = {},
         ) => {
           let nextValue: any
-          if (Identify.isBoolean(prevValue)) {
-            nextValue = !Identify.isBooleanTrue(prevValue)
+          if (is.isBoolean(prevValue)) {
+            nextValue = !is.isBooleanTrue(prevValue)
           }
           nextValue = !prevValue
           if (updateDraft) {
@@ -358,221 +551,253 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     window.location.reload()
   }
 
-  const goto = createBuiltInHandler(async function onGoto(action, options) {
-    log.func('goto')
-    log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
+  const goto = createBuiltInHandler(
+    useGotoSpinner(app, async function onGoto(action, options) {
+      log.func('goto')
+      log.grey('', u.isObj(action) ? action?.snapshot?.() : action)
 
-    let destinationParam = ''
-    let reload: boolean | undefined
-    let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
-    let ndomPage = pickNDOMPageFromOptions(options)
-    let dataIn: any // sdk use
+      if (!app.getState().spinner.active) app.enableSpinner()
 
-    let destProps: ReturnType<typeof app.parse.destination>
-    let destination = ''
-    let id = ''
-    let isSamePage = false
-    let duration = 350
+      let destinationParam = ''
+      let reload: boolean | undefined
+      let pageReload: boolean | undefined // If true, gets passed to sdk initPage to disable the page object's "init" from being run
+      let ndomPage = pickNDOMPageFromOptions(options)
+      let dataIn: any // sdk use
 
-    if (u.isStr(action)) {
-      destinationParam = action
-    } else if (isAction(action)) {
-      const gotoObj = action?.original
-      if (u.isStr(gotoObj)) {
-        destinationParam = gotoObj
-      } else if (u.isObj(gotoObj)) {
-        if ('goto' in gotoObj) {
-          if (u.isObj(gotoObj.goto)) {
-            destinationParam = _pick(gotoObj.goto, 'destination')
-            'reload' in gotoObj.goto && (reload = _pick(gotoObj.goto, 'reload'))
-            'pageReload' in gotoObj.goto &&
-              (pageReload = _pick(gotoObj.goto, 'pageReload'))
-            'dataIn' in gotoObj.goto && (dataIn = _pick(gotoObj.goto, 'dataIn'))
-          } else if (u.isStr(gotoObj.goto)) {
-            destinationParam = gotoObj.goto
-          }
+      let destProps: ReturnType<typeof app.parse.destination>
+      let destination = ''
+      let id = ''
+      let isSamePage = false
+      let duration = 350
+
+      if (u.isStr(action)) {
+        destinationParam = action
+      } else if (isAction(action)) {
+        const gotoObj = action?.original
+        if (u.isStr(gotoObj)) {
+          destinationParam = gotoObj
         } else if (u.isObj(gotoObj)) {
-          destinationParam = gotoObj.destination
-          'reload' in gotoObj && (reload = gotoObj.reload)
-          'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
-          'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
-        }
-      }
-    } else if (u.isObj(action)) {
-      if ('destination' in action || 'goto' in action) {
-        destinationParam = _pick(action, 'destination', _pick(action, 'goto'))
-        'reload' in action && (reload = _pick(action, 'reload'))
-        'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
-        'dataIn' in action && _pick(action, 'dataIn')
-      }
-    }
-
-    destProps = app.parse.destination(destinationParam)
-
-    /** PARSE FOR DESTINATION PROPS */
-
-    if ('destination' in destProps) {
-      destination = destProps.destination || ''
-      id = destProps.id || id
-      isSamePage = !!destProps.isSamePage
-      duration = destProps.duration || duration
-    } else if ('targetPage' in destProps) {
-      destination = destProps.targetPage || ''
-      id = destProps.viewTag || ''
-      if (id) {
-        const pageNode = findByViewTag(id)
-        const pageComponent = Array.from(app.cache.component || [])?.find(
-          (obj) => obj?.component?.blueprint?.viewTag === id,
-        )?.component
-        if (pageNode) {
-          if (pageNode instanceof HTMLIFrameElement) {
-            //
-          }
-        }
-        const currentPageName = pageComponent?.get?.('path')
-        ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
-      }
-    }
-
-    if (destination === destinationParam) {
-      ndomPage.requesting = destination
-    }
-
-    if (!u.isUnd(reload)) {
-      ndomPage.setModifier(destinationParam, { reload })
-    }
-    if (!u.isUnd(pageReload)) {
-      ndomPage.setModifier(destinationParam, { pageReload })
-    }
-    if (!u.isUnd(dataIn)) {
-      ndomPage.setModifier(destinationParam, { ...dataIn })
-    }
-
-    log.grey(`Goto info`, {
-      action: action?.snapshot?.(),
-      ...destProps,
-      destinationParam,
-      reload,
-      pageReload,
-    })
-
-    if (destination.startsWith('http')) {
-      // This is for testing in mobile mode to prevent the auto-redirection to google play store
-      return
-    }
-
-    if (id) {
-      const isInsidePageComponent =
-        isPageConsumer(options?.component) || !!destProps.targetPage
-      const node = findByViewTag(id) || getFirstByElementId(id)
-
-      if (node) {
-        let win: Window | undefined | null
-        let doc: Document | null | undefined
-        if (document.contains?.(node as HTMLElement)) {
-          win = window
-          doc = window.document
-        } else {
-          win = findWindow((w: any) => {
-            if (w) {
-              if ('contentDocument' in w) {
-                doc = (w as any).contentDocument
-              } else {
-                doc = w.document
-              }
-              return doc?.contains?.(node as HTMLElement)
+          if ('goto' in gotoObj) {
+            if (u.isObj(gotoObj.goto)) {
+              destinationParam = _pick(gotoObj.goto, 'destination')
+              'reload' in gotoObj.goto &&
+                (reload = _pick(gotoObj.goto, 'reload'))
+              'pageReload' in gotoObj.goto &&
+                (pageReload = _pick(gotoObj.goto, 'pageReload'))
+              'dataIn' in gotoObj.goto &&
+                (dataIn = _pick(gotoObj.goto, 'dataIn'))
+            } else if (u.isStr(gotoObj.goto)) {
+              destinationParam = gotoObj.goto
             }
-            return false
-          })
-        }
-        const scroll = () => {
-          if (isInsidePageComponent) {
-            scrollToElem(node, { win, doc, duration })
-          } else {
-            ;(node as HTMLElement).scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'center',
-            })
+          } else if (u.isObj(gotoObj)) {
+            destinationParam = gotoObj.destination
+            'reload' in gotoObj && (reload = gotoObj.reload)
+            'pageReload' in gotoObj && (pageReload = gotoObj.pageReload)
+            'dataIn' in gotoObj && (dataIn = gotoObj.dataIn)
           }
         }
-        if (isSamePage) {
-          scroll()
-        } else {
-          ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+      } else if (u.isObj(action)) {
+        if ('destination' in action || 'goto' in action) {
+          destinationParam = _pick(action, 'destination', _pick(action, 'goto'))
+          'reload' in action && (reload = _pick(action, 'reload'))
+          'pageReload' in action && (pageReload = _pick(action, 'pageReload'))
+          'dataIn' in action && _pick(action, 'dataIn')
         }
-      } else {
-        log.red(`Could not search for a DOM node with an identity of "${id}"`, {
-          action: action?.snapshot?.(),
-          node,
-          id,
-          destination,
-          isSamePage,
-          duration,
-          options,
+      }
+
+      destProps = app.parse.destination(
+        is.pageComponentUrl(destinationParam)
+          ? resolvePageComponentUrl({
+              component: options?.component,
+              page: ndomPage.getNuiPage(),
+              localKey: ndomPage.page,
+              root: app.root,
+              key: 'goto',
+              value: destinationParam,
+            })
+          : destinationParam,
+      )
+
+      /** PARSE FOR DESTINATION PROPS */
+
+      if ('destination' in destProps) {
+        destination = destProps.destination || ''
+        id = destProps.id || id
+        isSamePage = !!destProps.isSamePage
+        duration = destProps.duration || duration
+        ndomPage = options?.page
+        const pageComponentParent = is.component.page(options?.component)
+          ? options.component
+          : findParent(options?.component, is.component.page)
+
+        if (!ndomPage || isNuiPage(ndomPage)) {
+          ndomPage =
+            app.ndom.findPage(pageComponentParent || options.component) ||
+            app.mainPage
+        }
+      } else if ('targetPage' in destProps) {
+        destination = destProps.targetPage || ''
+        id = destProps.viewTag || ''
+        if (id) {
+          const pageNode = findByViewTag(id)
+          const pageComponent = Array.from(app.cache.component || [])?.find(
+            (obj) => obj?.component?.blueprint?.viewTag === id,
+          )?.component
+          if (pageNode) {
+            if (pageNode instanceof HTMLIFrameElement) {
+              //
+            }
+          }
+          const currentPageName = pageComponent?.get?.('path')
+          ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+        }
+      }
+
+      if (destination === destinationParam) {
+        ndomPage.requesting = destination
+      }
+
+      if (!u.isNil(reload)) {
+        // reload = is.isBooleanFalse(reload) ? false : true
+        ndomPage.setModifier(destinationParam, {
+          reload,
         })
       }
-    }
 
-    if (!destinationParam.startsWith('http')) {
-      ndomPage.pageUrl = app.parse.queryString({
-        destination,
-        pageUrl: ndomPage.pageUrl,
-        startPage: app.startPage,
+      if (!u.isUnd(pageReload)) {
+        ndomPage.setModifier(destinationParam, { pageReload })
+      }
+      if (!u.isUnd(dataIn)) {
+        ndomPage.setModifier(destinationParam, { ...dataIn })
+      }
+
+      log.grey(`Goto info`, {
+        action: action?.snapshot?.(),
+        ...destProps,
+        destinationParam,
+        reload,
+        pageReload,
       })
-    } else {
-      destination = destinationParam
-    }
 
-    if (!isSamePage) {
-      if (reload) {
-        let urlToGoToInstead = ''
-        const parts = ndomPage.pageUrl.split('-')
-        if (parts.length > 1) {
-          if (!parts[0].startsWith('index.html')) {
-            parts.unshift(BASE_PAGE_URL)
-            parts.push(destination)
-            urlToGoToInstead = parts.join('-')
+      if (destination.startsWith('http')) {
+        // This is for testing in mobile mode to prevent the auto-redirection to google play store
+        // return
+      }
+
+      if (id) {
+        const isInsidePageComponent =
+          isPageConsumer(options?.component) || !!destProps.targetPage
+        const node = findByViewTag(id) || findFirstByElementId(id)
+
+        if (node) {
+          let win: Window | undefined | null
+          let doc: Document | null | undefined
+          if (document.contains?.(node as HTMLElement)) {
+            win = window
+            doc = window.document
+          } else {
+            win = findWindow((w: any) => {
+              if (w) {
+                if ('contentDocument' in w) {
+                  doc = (w as any).contentDocument
+                } else {
+                  doc = w.document
+                }
+                return doc?.contains?.(node as HTMLElement)
+              }
+              return false
+            })
+          }
+          const scroll = () => {
+            if (isInsidePageComponent) {
+              scrollToElem(node, { win, doc, duration })
+            } else {
+              ;(node as HTMLElement).scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center',
+              })
+            }
+          }
+          if (isSamePage) {
+            scroll()
+          } else {
+            ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
           }
         } else {
-          urlToGoToInstead = BASE_PAGE_URL + destination
+          log.red(
+            `Could not search for a DOM node with an identity of "${id}"`,
+            {
+              action: action?.snapshot?.(),
+              node,
+              id,
+              destination,
+              isSamePage,
+              duration,
+              options,
+            },
+          )
         }
-        window.location.href = urlToGoToInstead
+      }
+
+      if (!destinationParam.startsWith('http')) {
+        const originUrl = ndomPage.pageUrl
+        ndomPage.pageUrl = app.parse.queryString({
+          destination,
+          pageUrl: ndomPage.pageUrl,
+          startPage: app.startPage,
+        })
       } else {
-        if (
-          ndomPage.rootNode &&
-          ndomPage.rootNode instanceof HTMLIFrameElement
-        ) {
-          if (ndomPage.rootNode.contentDocument?.body) {
-            ndomPage.rootNode.contentDocument.body.textContent = ''
+        destination = destinationParam
+        // if (/apple|store/i.test(destination)) destination = 'SignIn'
+      }
+
+      if (!isSamePage) {
+        if (reload) {
+          let urlToGoToInstead = ''
+          const parts = ndomPage.pageUrl.split('-')
+          if (parts.length > 1) {
+            if (!parts[0].startsWith('index.html')) {
+              parts.unshift(BASE_PAGE_URL)
+              parts.push(destination)
+              urlToGoToInstead = parts.join('-')
+            }
+          } else {
+            urlToGoToInstead = BASE_PAGE_URL + destination
           }
+          window.location.href = urlToGoToInstead
+        } else {
+          if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+            if (ndomPage.node.contentDocument?.body) {
+              ndomPage.node.contentDocument.body.textContent = ''
+            }
+          }
+          await app.navigate(ndomPage, destination, { isGoto: true })
         }
 
-        await app.navigate(ndomPage, destination)
+        if (!destination) {
+          log.func('builtIn')
+          log.red(
+            'Tried to go to a page but could not find information on the whereabouts',
+            { action, snapshot: action?.snapshot?.(), ...options },
+          )
+        }
       }
-
-      if (!destination) {
-        log.func('builtIn')
-        log.red(
-          'Tried to go to a page but could not find information on the whereabouts',
-          { action, snapshot: action?.snapshot?.(), ...options },
-        )
-      }
-    }
-  })
+    }),
+  )
 
   const redraw: Store.BuiltInObject['fn'] = async function onRedraw(
     action,
     options,
   ) {
-    const component = options?.component as NUIComponent.Instance
+    const component = options?.component as NuiComponent.Instance
     const metadata = getActionMetadata(action, {
       component,
       pickKeys: 'viewTag',
     })
     const { viewTag } = metadata
 
-    let components = [] as NUIComponent.Instance[]
+    let components = [] as NuiComponent.Instance[]
     let numComponents = 0
 
     for (const obj of app.cache.component) {
@@ -601,36 +826,106 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       if (!numComponents) {
         log.red(`Could not find any components to redraw`, action?.snapshot?.())
       } else {
-        log.grey(`Redrawing ${numComponents} components`, components)
-      }
-
-      let startCount = 0
-
-      while (startCount < numComponents) {
-        const _component = components[startCount]
-        const _node = getFirstByElementId(_component)
-        const ctx = {} as any
-        if (isListConsumer(_component)) {
-          const dataObject = findListDataObject(_component)
-          dataObject && (ctx.dataObject = dataObject)
-        }
-        const ndomPage = pickNDOMPageFromOptions(options)
-        const redrawed = app.ndom.redraw(_node, _component, ndomPage, {
-          context: ctx,
+        log.grey(`Redrawing ${numComponents} components`, {
+          components,
+          nodes: components.map((c) => findFirstBySelector(`#${c?.id}`)),
         })
-        app.cache.component.add(redrawed[1], ndomPage.getNuiPage()) &&
-          startCount++
       }
+
+      for (const _component of components) {
+        const _node = findFirstBySelector(`#${_component?.id}`)
+        if (!_node) {
+          log.func('redraw')
+          log.red(
+            `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+            { component: _component, node: _node },
+          )
+        } else {
+          const ctx = {} as any
+          if (isListConsumer(_component)) {
+            const dataObject = findListDataObject(_component)
+            dataObject && (ctx.dataObject = dataObject)
+            if (is.component.list(_component)) {
+              ctx.listObject =
+                _component.get?.('listObject') ||
+                _component.blueprint?.listObject ||
+                _component?.['listObject']
+              ctx.index = 0
+              ctx.dataObject = ctx.listObject?.[0]
+              ctx.iteratorVar = _component.blueprint?.iteratorVar
+            }
+          }
+          const ndomPage = pickNDOMPageFromOptions(options)
+          await app.ndom.redraw(_node, _component, ndomPage, {
+            context: ctx,
+          })
+          // const redrawed = await app.ndom.redraw(_node, _component, ndomPage, {
+          //   context: ctx,
+          // })
+          // return redrawed
+        }
+      }
+
+      // await Promise.all(
+      //   components.map(async function redrawComponents(_component) {
+      //     const _node = findFirstBySelector(`#${_component?.id}`)
+      //     if (!_node) {
+      //       log.func('redraw')
+      //       log.red(
+      //         `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+      //         { component: _component, node: _node },
+      //       )
+      //     } else {
+      //       const ctx = {} as any
+      //       if (isListConsumer(_component)) {
+      //         const dataObject = findListDataObject(_component)
+      //         dataObject && (ctx.dataObject = dataObject)
+      //       }
+      //       const ndomPage = pickNDOMPageFromOptions(options)
+      //       const redrawed = await app.ndom.redraw(
+      //         _node,
+      //         _component,
+      //         ndomPage,
+      //         { context: ctx },
+      //       )
+      //       debugger
+      //       return redrawed
+      //     }
+      //   }),
+      // )
     } catch (error) {
       console.error(error)
       error instanceof Error && toast(error.message, { type: 'error' })
     }
     log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
+  const dismissOnTouchOutside: Store.BuiltInObject['fn'] =
+    async function onDismissOnTouchOutside(action, options) {
+      const component = options?.component as NuiComponent.Instance
+      const metadata = getActionMetadata(action, {
+        component,
+        pickKeys: 'viewTag',
+      })
+      const { viewTag } = metadata
+      if (viewTag) {
+        const node = findByViewTag(viewTag.fromAction) as HTMLElement
+        const onTouchOutside = function onTouchOutside(
+          this: HTMLDivElement,
+          e: Event,
+        ) {
+          e.preventDefault()
+          node?.style && (node.style.display = 'none')
+          document.body.removeEventListener('click', onTouchOutside)
+        }
+        document.body.addEventListener('click', onTouchOutside)
+      }
+    }
 
   const builtIns = {
     checkField,
     disconnectMeeting,
+    exportCSV,
+    exportPDF,
     goBack,
     hide: hideAction,
     show: showAction,
@@ -642,12 +937,14 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     logout,
     goto,
     redraw,
+    copy,
+    dismissOnTouchOutside,
   }
 
   /** Shared common logic for both lock/logout logic */
   async function _onLockLogout() {
     const dataValues = getDataValues() as { password: string }
-    const hiddenPwLabel = getByDataUX('passwordHidden') as HTMLDivElement
+    const hiddenPwLabel = findByUX('passwordHidden') as HTMLDivElement
     const password = dataValues.password || ''
     // Reset the visible status since this is a new attempt
     if (hiddenPwLabel) {
@@ -720,6 +1017,53 @@ export const extendedSdkBuiltIns = {
     !data && (data = ecosObj.name?.data || '')
     return download(data, filename)
   },
+  downloadQRCode(
+    this: App,
+    {
+      content,
+      scale,
+      viewTag,
+    }: { content?: any; scale?: number; viewTag?: string } = {},
+  ) {
+    log.func('download (QRCode)')
+    // Generate QRCode image
+    let ext = ''
+    let filename = ('QRCode' || '') as string
+    let mimeType = ('image/png' || '') as string
+    ext = mimeType.substring(mimeType.lastIndexOf('/')).replace('/', '.')
+    ext && u.isStr(filename) && (filename += ext)
+
+    if (viewTag) {
+      const node = findByViewTag(viewTag) as HTMLElement
+      html2canvas(node, {
+        allowTaint: true, //跨域
+        useCORS: true, //跨域
+      }).then((canvas) => {
+        let url = canvas.toDataURL(mimeType)
+        return download(url, filename)
+      })
+    } else {
+      let text = content
+      if (u.isObj(content)) text = JSON.stringify(content)
+
+      let opts: Record<string, any> = {
+        errorCorrectionLevel: 'H',
+        type: 'svg',
+        quality: 0.3,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff',
+        },
+        scale: scale,
+      }
+
+      QRCode.toDataURL(text, opts, function (err, url) {
+        if (err) throw err
+        return download(url, filename)
+      })
+    }
+  },
   /**
    * Called during "init" when navigating to VideoChat
    */
@@ -787,20 +1131,20 @@ export const extendedSdkBuiltIns = {
         const enable = toggle('enable')
         const disable = toggle('disable')
 
-        if (Identify.isBoolean(cameraOn)) {
-          if (Identify.isBooleanTrue(cameraOn)) {
+        if (is.isBoolean(cameraOn)) {
+          if (is.isBooleanTrue(cameraOn)) {
             enable(localParticipant?.videoTracks)
-          } else if (Identify.isBooleanFalse(cameraOn)) {
+          } else if (is.isBooleanFalse(cameraOn)) {
             disable(localParticipant?.videoTracks)
           }
         } else {
           // Automatically disable by default
           disable(localParticipant?.videoTracks)
         }
-        if (Identify.isBoolean(micOn)) {
-          if (Identify.isBooleanTrue(micOn)) {
+        if (is.isBoolean(micOn)) {
+          if (is.isBooleanTrue(micOn)) {
             enable(localParticipant?.audioTracks)
-          } else if (Identify.isBooleanFalse(micOn)) {
+          } else if (is.isBooleanFalse(micOn)) {
             disable(localParticipant?.audioTracks)
           }
         } else {

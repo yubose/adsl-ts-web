@@ -1,17 +1,11 @@
+import * as u from '@jsmanifest/utils'
 import { Page as NUIPage, Viewport } from 'noodl-ui'
 import { BASE_PAGE_URL, eventId } from './constants'
-import * as u from './utils/internal'
-import * as T from './types'
-
-const getDefaultRenderState = (
-  initialState?: Record<string, any>,
-): T.Page.State['render'] => ({
-  ...initialState,
-})
+import * as t from './types'
 
 class Page {
   #nuiPage: NUIPage
-  #state: T.Page.State = {
+  #state: t.Page.State = {
     aspectRatio: 1,
     aspectRatioMin: 1,
     aspectRatioMax: 1,
@@ -20,18 +14,18 @@ class Page {
     modifiers: {} as {
       [pageName: string]: { reload?: boolean } & Record<string, any>
     },
-    status: eventId.page.status.IDLE as T.Page.Status,
-    rootNode: false,
-    render: getDefaultRenderState(),
+    status: eventId.page.status.IDLE as t.Page.Status,
+    node: false,
   }
   #hooks = u
     .values(eventId.page.on)
     .reduce((acc, key) => u.assign(acc, { [key]: [] }), {}) as Record<
-    T.Page.HookEvent,
-    T.Page.HookDescriptor[]
+    t.Page.HookEvent,
+    t.Page.HookDescriptor[]
   >
-  pageUrl: string = BASE_PAGE_URL
-  rootNode: HTMLDivElement;
+  // @ts-expect-error
+  #node: this['id'] extends 'root' ? HTMLDivElement : HTMLIFrameElement
+  pageUrl: string = BASE_PAGE_URL;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -42,25 +36,27 @@ class Page {
 
   constructor(nuiPage: NUIPage) {
     this.#nuiPage = nuiPage
-    this.clearRootNode()
+    this.clearNode()
+    if (this.id === 'root' && !document.body.contains(this.node)) {
+      document.body.appendChild(this.node)
+    }
   }
 
-  clearRootNode() {
-    if (!this.rootNode) {
-      this.rootNode = (document.getElementById(String(this.id)) ||
-        document.createElement('div')) as HTMLDivElement
-      this.rootNode.id = this.id as string
+  clearNode() {
+    if (!this.node) {
+      // @ts-expect-error
+      this.node =
+        document.getElementById(String(this.id)) ||
+        document.createElement('div')
+      this.node.id = this.id as string
     }
-    this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.rootNode)
-    this.rootNode.textContent = ''
-    this.rootNode.style.cssText = ''
-    this.rootNode.style.position = 'absolute'
-    this.rootNode.style.width = '100%'
-    this.rootNode.style.height = '100%'
+    this.emitSync(eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE, this.node)
+    this.node.textContent = ''
+    this.node.style.cssText = ''
+    this.node.style.position = 'absolute'
+    this.node.style.width = '100%'
+    this.node.style.height = '100%'
 
-    if (!document.body.contains(this.rootNode)) {
-      document.body.appendChild(this.rootNode)
-    }
     return this
   }
 
@@ -93,7 +89,15 @@ class Page {
   }
 
   get components() {
-    return this.#nuiPage?.components
+    return this.#nuiPage?.components || null
+  }
+
+  get created() {
+    return this.#nuiPage?.created || null
+  }
+
+  get history() {
+    return this.getNuiPage()?.history || []
   }
 
   get hooks() {
@@ -101,7 +105,7 @@ class Page {
   }
 
   get id() {
-    return this.#nuiPage.id as string
+    return (this.#nuiPage?.id as string) || null
   }
 
   get modifiers() {
@@ -114,7 +118,7 @@ class Page {
   }
 
   set page(page: string) {
-    this.#nuiPage.page = page || ''
+    this.#nuiPage && (this.#nuiPage.page = page || '')
   }
 
   get previous() {
@@ -134,8 +138,21 @@ class Page {
     this.#state.requesting = pageName || ''
   }
 
+  get node() {
+    return this.#node
+  }
+
+  set node(node) {
+    this.#node = node
+    this.emitSync(eventId.page.on.ON_SET_ROOT_NODE, { node })
+  }
+
+  get tagName() {
+    return this.node?.tagName?.toLowerCase?.() || ''
+  }
+
   get viewport() {
-    return this.#nuiPage.viewport as Viewport
+    return this.#nuiPage?.viewport as Viewport
   }
 
   set viewport(viewport) {
@@ -151,9 +168,9 @@ class Page {
   }
 
   clearCbs() {
-    u.values(this.hooks).forEach((arr) => {
+    u.forEach((arr) => {
       while (arr.length) arr.pop()
-    })
+    }, u.values(this.hooks))
     return this
   }
 
@@ -181,6 +198,7 @@ class Page {
     opts?: OtherProps,
   ) {
     const snapshot = {
+      created: this.created,
       id: this.id,
       components: this.components,
       modifiers: this.modifiers,
@@ -193,61 +211,64 @@ class Page {
         width: this.viewport?.width,
         height: this.viewport?.height,
       },
-      rootNode: {
-        id: this.rootNode.id,
-        width: this.rootNode.style.width,
-        height: this.rootNode.style.height,
-        childrenCount: this.rootNode.children?.length || 0,
+      node: {
+        id: this.node.id,
+        width: this.node.style.width,
+        height: this.node.style.height,
+        childElementCount: this.node.childElementCount,
+        tagName: this.node.tagName,
       },
+      tagName: this.tagName,
       ...opts,
     }
     return snapshot as typeof snapshot & OtherProps
   }
 
-  on<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+  on<K extends t.Page.HookEvent>(evt: K, fn: t.Page.Hook[K]) {
     if (this.hooks[evt] && !this.hooks[evt].some((o) => o.id === evt)) {
       this.hooks[evt].push({ id: evt, fn })
     }
     return this
   }
 
-  off<K extends T.Page.HookEvent>(evt: K, fn: T.Page.Hook[K]) {
+  off<K extends t.Page.HookEvent>(evt: K, fn: t.Page.Hook[K]) {
     const index = this.hooks[evt]?.findIndex?.((o) => o.fn === fn) || -1
     if (index !== -1) this.hooks[evt].splice(index, 1)
     return this
   }
 
-  once<Evt extends T.Page.HookEvent>(evt: Evt, fn: T.Page.Hook[Evt]) {
-    const descriptor: T.Page.HookDescriptor<Evt> = { id: evt, once: true, fn }
+  once<Evt extends t.Page.HookEvent>(evt: Evt, fn: t.Page.Hook[Evt]) {
+    const descriptor: t.Page.HookDescriptor<Evt> = { id: evt, once: true, fn }
     this.hooks[evt].push(descriptor)
     return this
   }
 
-  async emitAsync<K extends T.Page.HookEvent>(
+  async emitAsync<K extends t.Page.HookEvent>(
     evt: K,
-    ...args: Parameters<T.Page.Hook[K]>
+    ...args: Parameters<t.Page.Hook[K]>
   ) {
     let results
     if (u.isArr(this.hooks[evt])) {
       results = await Promise.all(
-        this.hooks[evt].map((o) => (o.fn as any)(...args)),
+        u.map((o) => (o.fn as any)(...args), this.hooks[evt]),
       )
     }
     return results ? results.find(Boolean) : results
   }
 
-  emitSync<K extends T.Page.HookEvent>(
+  emitSync<K extends t.Page.HookEvent>(
     evt: K,
-    ...args: Parameters<T.Page.Hook[K]>
+    ...args: Parameters<t.Page.Hook[K]>
   ) {
-    this.hooks[evt]?.forEach?.((d, index) => {
+    u.forEach?.((d, index) => {
+      // @ts-expect-error
       d.fn?.call?.(this, ...args)
       if (d.once) this.hooks[evt].splice(index, 1)
-    })
+    }, this.hooks[evt] || [])
     return this
   }
 
-  setStatus(status: T.Page.Status) {
+  setStatus(status: t.Page.Status) {
     this.#state.status = status
     if (status === eventId.page.status.IDLE) this.requesting = ''
     else if (status === eventId.page.status.NAVIGATE_ERROR) this.requesting = ''
@@ -263,31 +284,16 @@ class Page {
 
   remove() {
     try {
-      this.rootNode.innerHTML = ''
-      if (this.rootNode.parentNode) {
-        this.rootNode.parentNode?.removeChild?.(this.rootNode)
-        console.log(
-          `%c[Page] Removed rootNode from parentNode`,
-          `color:#00b406;`,
-        )
-      } else {
-        this.rootNode.remove?.()
-      }
-      this.#nuiPage.viewport = null as any
+      this.#nuiPage?.viewport && (this.#nuiPage.viewport = null as any)
       u.isArr(this.components) && (this.components.length = 0)
-      u.values(this.#hooks).forEach((v) => v && (v.length = 0))
+      u.forEach((v) => v && (v.length = 0), u.values(this.#hooks))
     } catch (error) {
       console.error(error)
     }
   }
 
-  reset<K extends keyof T.Page.State = keyof T.Page.State>(slice?: K) {
-    if (slice) {
-      if (slice === 'render') this.#state.render = getDefaultRenderState()
-    } else {
-      this.#state.render = getDefaultRenderState()
-      this.remove()
-    }
+  toJSON() {
+    return this.snapshot()
   }
 }
 

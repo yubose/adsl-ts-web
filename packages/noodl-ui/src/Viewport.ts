@@ -173,17 +173,12 @@ class NOODLViewport {
     ) => Promise<any> | any,
   ) {
     if (typeof window !== 'undefined') {
+      const userAgent = window.navigator.userAgent || window.navigator.vendor
       window.removeEventListener('resize', this.#onResize)
 
       this.#onResize = () => {
         const previousWidth = this.width
         const previousHeight = this.height
-        console.log(`%c`, `color:#95a5a6;`, {
-          previousWidth,
-          previousHeight,
-          newWidth: window.innerWidth,
-          newHeight: window.innerHeight,
-        })
         this.width = window.innerWidth
         this.height = window.innerHeight
 
@@ -209,6 +204,10 @@ class NOODLViewport {
         // window.addEventListener('gesturechange', this.#onResize)
         window.addEventListener('resize', this.#onResize)
         window.addEventListener('unload', onUnload)
+      }
+      if (/android/i.test(userAgent)) {
+        window.removeEventListener('resize', this.#onResize)
+        window.removeEventListener('unload', onUnload)
       }
     }
   }

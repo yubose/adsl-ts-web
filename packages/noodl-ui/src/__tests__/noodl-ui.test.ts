@@ -1,13 +1,11 @@
 import * as u from '@jsmanifest/utils'
-import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import sample from 'lodash/sample'
 import { waitFor } from '@testing-library/dom'
-import { ActionChain, isActionChain } from 'noodl-action-chain'
-import { coolGold, italic, magenta } from 'noodl-common'
-import { ComponentObject, EmitObject, userEvent } from 'noodl-types'
+import { isActionChain } from 'noodl-action-chain'
+import { userEvent } from 'noodl-types'
 import { expect } from 'chai'
-import { createDataKeyReference, nui } from '../utils/test-utils'
+import { createDataKeyReference, nui, ui } from '../utils/test-utils'
 import {
   groupedActionTypes,
   nuiEmitType,
@@ -15,25 +13,22 @@ import {
   triggers as nuiTriggers,
 } from '../constants'
 import Component from '../Component'
-import Page from '../Page'
+import NuiPage from '../Page'
 import NUI from '../noodl-ui'
 
-describe(italic(`createActionChain`), () => {
+const viewport = { width: 375, height: 667 }
+
+describe(u.italic(`createActionChain`), () => {
   it(`should create and return an ActionChain instance`, () => {
-    expect(
-      isActionChain(
-        nui.createActionChain('onBlur', [mock.getDividerComponent()]),
-      ),
-    ).to.be.true
+    expect(isActionChain(nui.createActionChain('onBlur', [ui.divider()]))).to.be
+      .true
   })
 
   userEvent.forEach((evt) => {
-    it(`should attach the ActionChain instance to ${magenta(evt)}`, () => {
+    it(`should attach the ActionChain instance to ${u.magenta(evt)}`, () => {
       const ac = nui.createActionChain(
         'onClick',
-        mock.getVideoComponent({
-          [sample(userEvent) as any]: [mock.getPopUpAction()],
-        }),
+        ui.video({ [sample(userEvent) as any]: [ui.popUp()] }),
       )
       expect(isActionChain(ac)).to.be.true
     })
@@ -63,18 +58,18 @@ describe(italic(`createActionChain`), () => {
     const ac = nui.createActionChain(
       'onFocus',
       [
-        mock.getPageJumpAction(),
-        mock.getFoldedEmitObject(),
-        mock.getGotoObject(),
-        mock.getBuiltInAction({ funcName: 'too' }),
-        mock.getRefreshAction(),
-        mock.getSaveObjectAction(),
-        mock.getUpdateObjectAction(),
-        mock.getEvalObjectAction(),
+        ui.pageJump(),
+        ui.emitObject(),
+        ui.gotoObject(),
+        ui.builtIn({ funcName: 'too' } as any),
+        ui.refresh(),
+        ui.saveObject(),
+        ui.updateObject(),
+        ui.evalObject(),
       ],
       {
-        component: nui.resolveComponents({
-          components: mock.getViewComponent(),
+        component: await nui.resolveComponents({
+          components: ui.view(),
           page,
         }),
         loadQueue: true,
@@ -92,13 +87,10 @@ describe(italic(`createActionChain`), () => {
     const page = nui.createPage()
     const ac = nui.createActionChain(
       'onHover',
-      [
-        mock.getBuiltInAction({ funcName: 'kitty' }),
-        mock.getBuiltInAction({ funcName: 'cereal' }),
-      ],
+      [ui.builtIn('kitty'), ui.builtIn('cereal')],
       {
-        component: nui.resolveComponents({
-          components: mock.getLabelComponent(),
+        component: await nui.resolveComponents({
+          components: ui.label(),
           page,
         }),
         loadQueue: true,
@@ -137,18 +129,18 @@ describe(italic(`createActionChain`), () => {
       const ac = nui.createActionChain(
         'onFocus',
         [
-          mock.getPageJumpAction(),
-          mock.getFoldedEmitObject(),
-          mock.getGotoObject(),
-          mock.getBuiltInAction({ funcName: 'too' }),
-          mock.getRefreshAction(),
-          mock.getSaveObjectAction(),
-          mock.getUpdateObjectAction(),
-          mock.getEvalObjectAction(),
+          ui.pageJump(),
+          ui.emitObject(),
+          ui.gotoObject(),
+          ui.builtIn('too'),
+          ui.refresh(),
+          ui.saveObject(),
+          ui.updateObject(),
+          ui.evalObject(),
         ],
         {
-          component: nui.resolveComponents({
-            components: mock.getViewComponent(),
+          component: await nui.resolveComponents({
+            components: ui.view(),
             page,
           }),
           loadQueue: true,
@@ -159,140 +151,236 @@ describe(italic(`createActionChain`), () => {
       spies.forEach((s, i) => {
         expect(s).to.be.calledOnce
       })
-      // await ac.execute()
-      // spies.forEach((s) => expect(s).to.be.calledTwice)
     },
   )
+
+  xit(`should always pass the dataObject, index and iteratorVar to context in consumer options for list consumers`, () => {
+    //
+  })
 })
 
-describe.only(italic(`createComponent`), () => {
+describe(u.italic(`createComponent`), () => {
   it(`should add the component to the component cache`, () => {
-    const component = nui.createComponent(mock.getButtonComponent())
+    // @ts-expect-error
+    const component = nui.createComponent(ui.button())
     expect(nui.cache.component.has(component)).to.be.true
   })
 })
 
-describe(italic(`createPage`), () => {
+describe(u.italic(`createPage`), () => {
+  beforeEach(() => {
+    nui.reset()
+    nui.getRootPage().page = 'SignIn'
+  })
+
+  it(`should set the page to the page name if passed as args`, () => {
+    const page = nui.createPage('Coffee')
+    expect(page).to.have.property('page', 'Coffee')
+  })
+
+  it(`should set the page to the page name and id to id`, () => {
+    const args = { id: 'abc', name: 'Shoe' }
+    const page = nui.createPage(args)
+    expect(page).to.have.property('id', 'abc')
+    expect(page).to.have.property('page', 'Shoe')
+  })
+
   it(`should create and return a new Page instance from the PageCache`, () => {
+    const page = nui.createPage({ name: 'Hello', viewport })
+    expect(page).to.be.instanceOf(NuiPage)
+    expect(nui.cache.page.has(page?.id || '')).to.be.true
+    expect(nui.cache.page.get(page?.id || '').page).to.eq(page)
+  })
+
+  it(`should create a new page even if the page name is being used in another page`, () => {
+    const page = nui.createPage('SignIn')
+    expect(page).not.to.eq(nui.getRootPage())
+  })
+
+  it(
+    `should set the onChange fn and not add duplicates if it is already in ` +
+      `the fns list`,
+    () => {
+      const spy = sinon.spy()
+      const page = nui.createPage({
+        name: 'SignIn',
+        onChange: { id: 'me', fn: spy },
+      })
+      expect(page.onChange.get('me')).to.be.a('function')
+    },
+  )
+
+  it(`should call the provided fn on page change`, () => {
+    nui.reset()
+    const spy = sinon.spy()
     const page = nui.createPage({
-      name: 'Hello',
-      viewport: { width: 375, height: 667 },
+      name: 'SignIn',
+      onChange: { id: 'me', fn: spy },
     })
-    expect(page).to.be.instanceOf(Page)
-    expect(nui.cache.page.has(page.id)).to.be.true
-    expect(nui.cache.page.get(page.id).page).to.eq(page)
+    page.page = 'Hello'
+    expect(spy).to.be.calledOnce
+    expect(spy.args[0][0]).to.eq('SignIn')
+    expect(spy.args[0][1]).to.eq('Hello')
+  })
+
+  it(
+    `should default to creating a new page if another page instance is on the same ` +
+      `page but no page component or NuiPage was provided`,
+    () => {
+      const page1 = nui.createPage('Cereal')
+      const page2 = nui.createPage('Cereal')
+      expect(page1).to.be.instanceOf(NuiPage)
+      expect(page2).to.be.instanceOf(NuiPage)
+      expect(page1.id).to.not.eq(page2.id)
+      expect(page1.key).not.to.eq(page2.key)
+      expect(page1).not.to.eq(page2)
+    },
+  )
+
+  it(`should return the NuiPage back if it was provided`, () => {
+    const page = nui.createPage('Cereal')
+    expect(nui.createPage(page)).to.eq(page)
+  })
+
+  it(
+    `should return the existing NuiPage if the component is a page component ` +
+      `sharing the same id`,
+    async () => {
+      const componentObject = ui.view({
+        children: [ui.page({ path: 'Cereal' })],
+      })
+      const component = await nui.resolveComponents(componentObject)
+      const pageComponent = component.child()
+      const page = nui.cache.page.get(pageComponent.id).page
+      expect(page).to.have.property('id').to.eq(pageComponent.id)
+      expect(nui.cache.page.length).to.eq(2)
+      expect(nui.createPage(pageComponent)).to.eq(page)
+    },
+  )
+
+  describe(`when reusing page instances`, () => {
+    it(
+      `should not duplicate another instance when providing an ` +
+        `existing page component`,
+      async () => {
+        const componentObject = ui.view({
+          children: [ui.page({ path: 'Cereal' })],
+        })
+        expect(nui.cache.page.length).to.eq(1)
+        const component = await nui.resolveComponents(componentObject)
+        expect(nui.cache.page.length).to.eq(2)
+        const pageComponent = component.child()
+        const page = nui.cache.page.get(pageComponent.id).page
+        await nui.resolveComponents({ components: pageComponent, page })
+        expect(nui.cache.page.length).to.eq(2)
+        expect(page).to.eq(pageComponent.get('page'))
+      },
+    )
+  })
+
+  it(`should not duplicate another instance`, async () => {
+    nui.reset()
+    nui.getRootPage()
+    const componentObject = ui.view({
+      children: [ui.page({ path: 'Cereal' })],
+    })
+    expect(nui.cache.page.length).to.eq(1)
+    const component = await nui.resolveComponents(componentObject)
+    expect(nui.cache.page.length).to.eq(2)
+    const pageComponent = component.child()
+    const page = nui.cache.page.get(pageComponent.id).page
+    pageComponent.edit('page', page)
+    await nui.resolveComponents({
+      components: componentObject,
+      page,
+    })
+    await nui.resolveComponents({
+      components: componentObject,
+      page,
+    })
+    await nui.resolveComponents({
+      components: componentObject,
+      page,
+    })
+    expect(nui.cache.page.length).to.eq(2)
+    expect(page).to.eq(pageComponent.get('page'))
   })
 })
 
-describe(italic(`createPlugin`), () => {
-  it(`should add plugins of ${magenta('head')}`, () => {
+describe(u.italic(`createPlugin`), () => {
+  it(`should add plugins of ${u.magenta('head')}`, () => {
     let obj = { location: 'head', path: 'abc.html' } as any
     expect(NUI.cache.plugin.has(NUI.createPlugin('head', obj).id as string)).to
       .be.true
   })
 
-  it(`should add plugins of ${magenta('body-top')}`, () => {
+  it(`should add plugins of ${u.magenta('body-top')}`, () => {
     let obj = { location: 'body-top', path: 'abc.html' } as any
     expect(NUI.cache.plugin.has(nui.createPlugin('body-top', obj).id as string))
       .to.be.true
   })
 
-  it(`should add plugins of ${magenta('body-bottom')}`, () => {
+  it(`should add plugins of ${u.magenta('body-bottom')}`, () => {
     let obj = { location: 'body-bottom', path: 'abc.html' } as any
     const { id } = nui.createPlugin('body-bottom', obj)
     expect(NUI.cache.plugin.has(id as string)).to.be.true
   })
 })
 
-describe(italic(`createSrc`), () => {
+describe(u.italic(`createSrc`), () => {
   describe(`when passing in a string`, () => {
-    it(`should just return the url untouched if it starts with http`, () => {
+    it(`should just return the url untouched if it starts with http`, async () => {
       const url = `https://www.google.com/hello.jpeg`
-      expect(nui.createSrc(url)).to.eq(url)
+      expect(await nui.createSrc(url)).to.eq(url)
     })
 
-    it(`should format and prepend the assetsUrl if it does not start with http`, () => {
+    it(`should format and prepend the assetsUrl if it does not start with http`, async () => {
       const path = `abc.jpeg`
-      expect(nui.createSrc(path)).to.eq(nui.getAssetsUrl() + path)
+      expect(await nui.createSrc(path)).to.eq(nui.getAssetsUrl() + path)
     })
   })
 
   describe(`when passing in an emit object`, () => {
-    it(`should format the string if it doesn't start with http`, () => {
+    it(`should format the string if it doesn't start with http`, async () => {
       const path = 'too.jpg'
       const emit = { emit: { dataKey: { var1: 'abc' }, actions: [] } }
-      nui.use({ emit: { path: () => Promise.resolve(path) as any } })
-      return expect(nui.createSrc(emit)).to.eventually.eq(
-        nui.getAssetsUrl() + path,
-      )
+      nui.use({ emit: { path: async () => path as any } })
+      const res = await nui.createSrc(emit)
+      await waitFor(() => expect(res).to.eq(nui.getAssetsUrl() + path))
     })
 
-    it(`should resolve to the returned value from the promise if it starts with http`, () => {
+    it(`should resolve to the returned value from the promise if it starts with http`, async () => {
       const path = 'https://www.google.com/too.jpg'
       const emit = { emit: { path: { var1: 'abc' }, actions: [] } }
-      nui.use({ emit: { path: () => Promise.resolve(path) as any } })
-      return expect(nui.createSrc(emit)).to.eventually.eq(path)
+      nui.use({ emit: { path: async () => path as any } })
+      const res = await nui.createSrc(emit)
+      await waitFor(() => expect(res).to.eq(path))
     })
 
     it(`should be able to resolve emit paths from list consumers`, async () => {
       const path = { emit: { dataKey: { var1: 'cereal.fruit' }, actions: [] } }
-      nui.use({ emit: { path: () => Promise.resolve('halloween.jpg') as any } })
+      nui.use({ emit: { path: async () => 'halloween.jpg' as any } })
       const listObject = [{ fruit: 'apple.jpg' }, { fruit: 'orange.jpg' }]
       createDataKeyReference({ pageObject: { info: { people: listObject } } })
       const page = nui.createPage()
-      const component = nui.resolveComponents({
-        components: mock.getListComponent({
+      const component = await nui.resolveComponents({
+        components: ui.list({
           contentType: 'listObject',
           listObject,
           iteratorVar: 'cereal',
-          children: [
-            mock.getListItemComponent({
-              cereal: '',
-              children: [mock.getImageComponent({ path })],
-            }),
-          ],
+          children: [ui.listItem({ cereal: '', children: [ui.image(path)] })],
         }),
         page,
       })
       const expectedResult = nui.getAssetsUrl() + 'halloween.jpg'
       const src = await nui.createSrc(path, { component })
-      expect(src).to.eq(expectedResult)
-    })
-
-    it(`should emit the "path" event after receiving the value from an emit object`, (done) => {
-      const path = { emit: { dataKey: { var1: 'cereal.fruit' }, actions: [] } }
-      nui.use({ emit: { path: () => Promise.resolve('halloween.jpg') as any } })
-      const listObject = [{ fruit: 'apple.jpg' }, { fruit: 'orange.jpg' }]
-      createDataKeyReference({ pageObject: { info: { people: listObject } } })
-      const page = nui.createPage()
-      const component = nui.resolveComponents({
-        components: mock.getListComponent({
-          contentType: 'listObject',
-          listObject,
-          iteratorVar: 'cereal',
-          children: [
-            mock.getListItemComponent({
-              cereal: '',
-              children: [mock.getImageComponent({ path })],
-            }),
-          ],
-        }),
-        page,
-      })
-      const image = component.child().child()
-      image?.on('path', (s) => {
-        const expectedResult = nui.getAssetsUrl() + 'halloween.jpg'
-        expect(s).to.eq(expectedResult)
-        expect(image.get('data-src')).to.eq(expectedResult)
-        done()
-      })
-      nui.createSrc(path, { component })
+      await waitFor(() => expect(src).to.eq(expectedResult))
     })
   })
 })
 
-describe(italic(`emit`), () => {
-  describe(`type: ${magenta(nuiEmitType.REGISTER)}`, () => {
+describe(u.italic(`emit`), () => {
+  describe(`type: ${u.magenta(nuiEmitType.REGISTER)}`, () => {
     it(`should pass the register object to the callback as args`, async () => {
       const spy = sinon.spy(() => Promise.resolve())
       const params = {}
@@ -329,7 +417,7 @@ describe(italic(`emit`), () => {
     })
   })
 
-  describe(`type: ${magenta(nuiEmitTransaction.REQUEST_PAGE_OBJECT)}`, () => {
+  describe(`type: ${u.magenta(nuiEmitTransaction.REQUEST_PAGE_OBJECT)}`, () => {
     it(`should call the function`, async () => {
       const cbSpy = sinon.spy()
       NUI.use({
@@ -346,13 +434,13 @@ describe(italic(`emit`), () => {
   })
 })
 
-describe(italic(`getActions`), () => {
+describe(u.italic(`getActions`), () => {
   it(`should return the map of non-builtIn actions`, () => {
     expect(NUI.getActions()).to.eq(NUI.cache.actions)
   })
 })
 
-describe(italic(`getBuiltIns`), () => {
+describe(u.italic(`getBuiltIns`), () => {
   it(`should return the map of builtIn actions`, () => {
     const spy1 = sinon.spy()
     const spy2 = sinon.spy()
@@ -364,29 +452,23 @@ describe(italic(`getBuiltIns`), () => {
     }
     NUI.use({ builtIn })
     const builtIns = NUI.getBuiltIns()
-    u.eachEntries(builtIn, (funcName, fn) => {
+    u.entries(builtIn).forEach(([funcName, fn]) => {
       expect(builtIns.has(funcName)).to.be.true
-      expect(builtIns.get(funcName)).to.satisfy((arr) =>
-        arr.some((obj) => obj.fn === fn),
+      expect(builtIns.get(funcName)).to.satisfy((arr: any) =>
+        arr.some((obj: any) => obj.fn === fn),
       )
     })
   })
 })
 
-describe(italic(`getTransactions`), () => {
-  it(`should return the transactions`, () => {
-    expect(NUI.getTransactions()).to.eq(NUI.cache.transactions)
-  })
-})
-
-describe(italic(`getConsumerOptions`), () => {
-  it(`should return the expected consumer options`, () => {
+describe(u.italic(`getConsumerOptions`), () => {
+  it(`should return the expected consumer options`, async () => {
     const page = nui.createPage()
-    const component = nui.resolveComponents({
-      components: mock.getDividerComponent(),
+    const component = await nui.resolveComponents({
+      components: ui.divider(),
       page,
     })
-    const consumerOptions = nui.getConsumerOptions({ component, page })
+    const consumerOptions = nui.getConsumerOptions({ component, page } as any)
     expect(consumerOptions).to.have.property('cache', nui.cache)
     expect(consumerOptions).to.have.property('component', component)
     expect(consumerOptions).to.have.property('context')
@@ -405,7 +487,7 @@ describe(italic(`getConsumerOptions`), () => {
     expect(consumerOptions).to.have.property('getRootPage')
     expect(consumerOptions).to.have.property('page', page)
     expect(consumerOptions).to.have.property('resolveComponents')
-    expect(consumerOptions).to.have.property('viewport', page.viewport)
+    expect(consumerOptions).to.have.property('viewport', page?.viewport)
   })
 })
 
@@ -413,12 +495,12 @@ describe(`when handling register objects`, () => {
   describe(`when emitting the register objects`, () => {
     it(`should call all the callbacks and return those results`, async () => {
       const spy = sinon.spy(async () => 'abc') as any
-      const component = mock.getRegisterComponent({
+      const component = ui.register({
         onEvent: 'helloEvent',
-        emit: mock.getEmitObject().emit as any,
+        emit: ui.emitObject().emit as any,
       })
       nui.use({ register: component })
-      const obj = nui.cache.register.get(component.onEvent)
+      const obj = nui.cache.register.get(component.onEvent as string)
       obj.callbacks = Array(4).fill(undefined).map(spy) as any
       const results = await nui.emit({ type: 'register', event: 'helloEvent' })
       expect(spy).to.have.callCount(4)
@@ -428,16 +510,16 @@ describe(`when handling register objects`, () => {
   })
 })
 
-describe(italic(`resolveComponents`), () => {
-  it(`should return component instances`, () => {
+describe(u.italic(`resolveComponents`), () => {
+  it(`should return component instances`, async () => {
     const page = nui.createPage({ name: 'Hello' })
     expect(
-      nui.resolveComponents({ page, components: mock.getDividerComponent() }),
+      await nui.resolveComponents({ page, components: ui.divider() }),
     ).to.be.instanceOf(Component)
   })
 })
 
-describe(italic(`use`), () => {
+describe(u.italic(`use`), () => {
   groupedActionTypes.forEach((actionType) => {
     it(`should take { [${actionType}]: <function> }`, () => {
       const spy = sinon.spy()
@@ -456,7 +538,7 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic(`builtIn`), () => {
+  describe(u.italic(`builtIn`), () => {
     const spy = sinon.spy()
     const builtIns = {
       hello: spy,
@@ -468,18 +550,18 @@ describe(italic(`use`), () => {
         it(`should take { [${funcName}]: <function>[] }`, () => {
           NUI.use({ builtIn: builtIns })
           expect(NUI.cache.actions.builtIn.has(funcName)).to.be.true
-          expect(NUI.cache.actions.builtIn.get(funcName)).to.satisfy((arr) =>
-            arr.some((obj) => obj.fn === f),
+          expect(NUI.cache.actions.builtIn.get(funcName)).to.satisfy(
+            (arr: any) => arr.some((obj: any) => obj.fn === f),
           )
         })
       })
     })
   })
 
-  describe(italic(`emit`), () => {
+  describe(u.italic(`emit`), () => {
     const getEmits = () => NUI.getActions('emit')
 
-    nuiTriggers.forEach((trigger) => {
+    nuiTriggers.forEach((trigger: any) => {
       it(`should support { [${trigger}]: <function> }`, () => {
         const spy = sinon.spy(async () => 'hello') as any
         expect(getEmits().get(trigger)).to.have.lengthOf(0)
@@ -506,43 +588,29 @@ describe(italic(`use`), () => {
     })
   })
 
-  describe(italic(`plugin`), () => {
-    it(`should set the plugin id`, () => {
+  describe(u.italic(`plugin`), () => {
+    it(`should set the plugin id`, async () => {
       expect(
-        NUI.resolveComponents(
-          mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
+        (
+          await NUI.resolveComponents(ui.pluginBodyTail({ path: 'coffee' }))
         ).get('plugin'),
-      ).to.have.property('id', 'coffee.js')
+      ).to.have.property('id', 'coffee')
     })
 
-    it(`should not do anything if the plugin was previously added`, () => {
+    it(`should not do anything if the plugin was previously added`, async () => {
       expect(NUI.getPlugins('body-bottom').size).to.eq(0)
-      NUI.resolveComponents(
-        mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
-      )
+      await NUI.resolveComponents(ui.pluginBodyTail({ path: 'coffee' }))
       expect(NUI.getPlugins('body-bottom').size).to.eq(1)
-      NUI.resolveComponents(
-        mock.getPluginBodyTailComponent({ path: 'coffee.js' }),
-      )
+      await NUI.resolveComponents(ui.pluginBodyTail({ path: 'coffee' }))
       expect(NUI.getPlugins('body-bottom').size).to.eq(1)
     })
 
-    it(
-      `should set the fetched plugin contents on the "content" property ` +
-        `and emit the "content" event`,
-      async () => {
-        const spy = sinon.spy()
-        const component = NUI.resolveComponents(
-          mock.getPluginComponent({ path: 'coffee.js' }),
-        ).on('content', spy)
-        const spy2 = sinon.spy(component, 'set')
-        await waitFor(() => {
-          expect(spy).to.be.calledOnce
-          expect(spy2).to.be.calledOnce
-          expect(spy2).to.be.calledWith('content')
-        })
-      },
-    )
+    it(`should set the fetched plugin contents on the "content" property`, async () => {
+      const component = await NUI.resolveComponents(
+        ui.plugin({ path: 'coffee' } as any),
+      )
+      expect(component.has('content')).to.be.true
+    })
   })
 
   it(`should use the getAssetsUrl provided function`, () => {
@@ -578,18 +646,18 @@ describe(italic(`use`), () => {
     expect(nui.getRoot()).to.deep.eq(['apple'])
   })
 
-  describe(italic(`globalRegister`), () => {
+  describe(u.italic(`globalRegister`), () => {
     it(`should add register components to the store`, () => {
-      const component = mock.getRegisterComponent({ onEvent: 'helloEvent' })
+      const component = ui.register({ onEvent: 'helloEvent' })
       nui._experimental.register(component)
-      const storeObject = nui.cache.register.get(component.onEvent)
+      const storeObject = nui.cache.register.get(component.onEvent as string)
       expect(storeObject).to.have.property('name', 'helloEvent')
       expect(storeObject).to.have.property('fn').is.a('function')
       expect(storeObject).to.have.property('page', '_global')
     })
   })
 
-  describe(italic(`register`), () => {
+  describe(u.italic(`register`), () => {
     it(`should support args: [<register event>, <function>]`, () => {
       const spy = sinon.spy()
       expect(NUI.cache.register.has('hello')).to.be.false
@@ -603,39 +671,39 @@ describe(italic(`use`), () => {
 
     it(`should default the page to "_global" if it is not provided`, () => {
       expect(nui.cache.register.has('hello')).to.be.false
-      const componentObject = mock.getRegisterComponent('hello')
+      const componentObject = ui.register('hello')
       nui.use({ register: componentObject })
       expect(nui.cache.register.has(componentObject.onEvent)).to.be.true
-      expect(nui.cache.register.get(componentObject.onEvent)).have.property(
-        'page',
-        '_global',
-      )
+      expect(
+        nui.cache.register.get(componentObject.onEvent || ''),
+      ).have.property('page', '_global')
     })
   })
 
-  describe(italic(`transaction`), () => {
+  describe(u.italic(`transaction`), () => {
     it(`should add the transaction to the store`, () => {
+      nui.reset()
       const spy = sinon.spy()
-      expect(nui.getTransactions().has(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
+      expect(nui.cache.transactions.has(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
         .to.be.false
       nui.use({
         transaction: {
           [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: spy,
         },
       })
-      expect(nui.getTransactions().get(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
+      expect(nui.cache.transactions.get(nuiEmitTransaction.REQUEST_PAGE_OBJECT))
         .to.exist
       expect(
-        nui.getTransactions().get(nuiEmitTransaction.REQUEST_PAGE_OBJECT),
+        nui.cache.transactions.get(nuiEmitTransaction.REQUEST_PAGE_OBJECT),
       ).to.have.property('fn', spy)
     })
   })
 
-  describe(italic(coolGold(`_experimental`)), () => {
-    describe(magenta(`register`), () => {
+  describe(u.italic(u.yellow(`_experimental`)), () => {
+    describe(u.magenta(`register`), () => {
       it(`should remove the default "fn" if a handler fn was provided`, () => {
         const spy = sinon.spy()
-        nui.use({ register: mock.getRegisterComponent('hello') })
+        nui.use({ register: ui.register('hello') })
         let register = nui.cache.register.get('hello')
         expect(register).to.have.property('fn').to.be.a('function')
         expect(register.handler).to.be.undefined
@@ -667,7 +735,7 @@ describe(italic(`use`), () => {
       })
 
       it(`should be able to process a register component object`, () => {
-        const register = nui._experimental.register(mock.getRegisterComponent())
+        const register = nui._experimental.register(ui.register())
         expect(register).to.exist
         expect(nui.cache.register.get(register.name)).to.eq(register)
       })
@@ -679,13 +747,13 @@ describe(italic(`use`), () => {
       })
 
       it(`should initiate a default "fn" function if "handler" is not provided`, () => {
-        const register = nui._experimental.register(mock.getRegisterComponent())
+        const register = nui._experimental.register(ui.register())
         expect(register).to.have.property('fn').is.a('function')
       })
 
       it(`should not initiate a "fn" function if "handler" is provided`, () => {
         const spy = sinon.spy()
-        const componentObject = mock.getRegisterComponent()
+        const componentObject = ui.register()
         const register = nui._experimental.register(componentObject, {
           handler: { fn: spy },
         })
@@ -694,9 +762,9 @@ describe(italic(`use`), () => {
       })
 
       it(`should convert emit objects to action chains`, async () => {
-        const component = mock.getRegisterComponent({
+        const component = ui.register({
           onEvent: 'helloEvent',
-          emit: mock.getEmitObject(),
+          emit: ui.emitObject(),
         })
         const register = nui._experimental.register(component)
         expect(register.callbacks).to.have.length.greaterThan(0)
@@ -705,9 +773,9 @@ describe(italic(`use`), () => {
 
       it(`should insert any created action chains to the callbacks list`, () => {
         const spy = sinon.spy()
-        const component = mock.getRegisterComponent({
+        const component = ui.register({
           onEvent: 'helloEvent',
-          emit: mock.getEmitObject(),
+          emit: ui.emitObject(),
         })
         const register = nui._experimental.register(component, {
           handler: { fn: spy },
@@ -716,19 +784,57 @@ describe(italic(`use`), () => {
         expect(isActionChain(register.callbacks[0])).to.be.true
       })
 
-      xdescribe(`when handling register object's with ${magenta(
+      xdescribe(`when handling register object's with ${u.magenta(
         'onNewEcosDoc',
       )}`, () => {
-        it(`should pass the "${magenta(`did`)}" (${italic(
+        it(`should pass the "${u.magenta(`did`)}" (${u.italic(
           `ecos document id`,
         )}) received from onNewEcosDoc to the executor handler`, async () => {
           const event = 'helloAll'
-          const component = mock.getRegisterComponent({ onEvent: event })
+          const component = ui.register({ onEvent: event })
           nui.use({ register: component })
           const obj = nui.cache.register.get(event)
           const did = 'docId123'
-          await nui.emit({ type: 'register', event, params: did })
+          await nui.emit({ type: 'register', event, params: did } as any)
         })
+      })
+    })
+  })
+
+  describe(u.italic('hooks'), () => {
+    describe('page', () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe('setup', () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe('create', () => {
+      xit(`should transform the return value to a NuiComponent`, () => {
+        //
+      })
+    })
+
+    describe('if', () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe('emit', () => {
+      xit(``, () => {
+        //
+      })
+    })
+
+    describe('reference', () => {
+      xit(``, () => {
+        //
       })
     })
   })

@@ -98,8 +98,6 @@ describe(coolGold(`dom (utils)`), () => {
           const component = await render()
           const vTagNode = findByViewTag(viewTag) as HTMLElement
           const btnNode = findByViewTag(btnTag)
-          console.info(prettyDOM(btnNode as HTMLElement))
-
           getFirstByViewTag(btnTag)?.click()
           await waitFor(() => {
             expect(vTagNode.style[key as any]).to.eq(val)

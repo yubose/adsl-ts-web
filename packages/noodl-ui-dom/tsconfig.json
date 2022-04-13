@@ -1,23 +1,11 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "allowJs": false,
-    "allowSyntheticDefaultImports": true,
-    "declaration": true,
-    "declarationDir": "dist",
-    "esModuleInterop": true,
-    "keyofStringsOnly": true,
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "declarationDir": "./dist",
     "module": "esnext",
-    "moduleResolution": "node",
-    "noEmitOnError": false,
-    "noImplicitAny": true,
-    "outDir": "dist",
-    "sourceMap": true,
-    "strictNullChecks": true,
-    "skipLibCheck": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "target": "esnext"
+    "outDir": "./dist",
+    "target": "es2017"
   },
-  "exclude": ["node_modules/**/*", "src/**/*.test.ts"],
-  "include": ["src/**/*"]
+  "exclude": ["./src/**/*.test.ts"],
+  "include": ["./src/**/*"]
 }

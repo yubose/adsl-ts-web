@@ -1,96 +1,50 @@
 import { LiteralUnion } from 'type-fest'
-import { AcceptArray } from '@jsmanifest/typefest'
+import { OrArray, OrPromise } from '@jsmanifest/typefest'
 import { ComponentObject, ComponentType } from 'noodl-types'
-import { Component, NUIComponent, NUI, UseArg as NUIUseObject } from 'noodl-ui'
-import MiddlewareUtils from './MiddlewareUtils'
-import NOODLDOM from './noodl-ui-dom'
-import NOODLDOMPage from './Page'
-import createResolver from './createResolver'
+import {
+  Component,
+  NuiComponent,
+  Store,
+  UseArg as NUIUseObject,
+} from 'noodl-ui'
+import NDOM from './noodl-ui-dom'
+import NDOMPage from './Page'
+import NDOMResolver from './Resolver'
 import GlobalComponentRecord from './global/GlobalComponentRecord'
-import GlobalCssResourceRecord from './global/GlobalCssResourceRecord'
-import GlobalJsResourceRecord from './global/GlobalJsResourceRecord'
 import GlobalTimers from './global/Timers'
-import { eventId, dataAttributes } from './constants'
-import { resourceTypes } from './utils/internal'
+import { ComponentPage } from './factory/componentFactory'
+import { eventId, triggers } from './constants'
 
 export interface IGlobalObject<T extends string = string> {
   type: T
 }
 
-export interface GlobalMap<ResourceKey extends string = string> {
+export interface GlobalMap {
   components: Map<string, GlobalComponentRecord>
-  pages: Record<string, NOODLDOMPage>
-  resources: {
-    css: Record<ResourceKey, GlobalResourceObject<'css'>>
-    js: Record<ResourceKey, GlobalResourceObject<'js'>>
-  }
+  hooks: Map<string, Record<string, ((...args: any[]) => any)[]>>
+  mapping: Map<
+    string,
+    {
+      componentId: string
+      pageId: string
+      children: { componentId: string; pageId: string }[]
+    }[]
+  >
+  pages: Record<string, NDOMPage | ComponentPage>
   timers: GlobalTimers
 }
 
-export interface GlobalResourceObject<Type extends GlobalResourceType> {
-  isActive(): boolean
-  onCreateRecord?: (<T extends GlobalResourceType>(
-    record: GetGlobalResourceRecordAlias<T>,
-  ) => Promise<void> | void)[]
-  onLoad?: <T extends GlobalResourceType>(args?: {
-    node: GetGlobalResourceElementAlias<T>
-    record: GetGlobalResourceRecordAlias<T>
-  }) => Promise<void> | void
-  record: GetGlobalResourceRecordAlias<Type>
-  lazyLoad?: boolean
+export interface Hooks {
+  onRedrawStart(args: {
+    parent: NuiComponent.Instance | null
+    component: NuiComponent.Instance
+    context?: { dataObject?: any }
+    node: HTMLElement | null
+    page: NDOMPage
+  }): OrPromise<void>
+  onBeforeRequestPageObject(page: NDOMPage): void
+  onAfterRequestPageObject(page: NDOMPage): void
 }
-
-export type GlobalResourceType = typeof resourceTypes[number]
-
-export type GetGlobalResourceRecordAlias<Type extends GlobalResourceType> =
-  Type extends 'css' ? GlobalCssResourceRecord : GlobalJsResourceRecord
-
-export type GetGlobalResourceObjectAlias<Type extends GlobalResourceType> =
-  Type extends 'css' ? GlobalCssResourceObject : GlobalJsResourceObject
-
-export type GetGlobalResourceElementAlias<Type extends GlobalResourceType> =
-  Type extends 'css'
-    ? HTMLLinkElement
-    : Type extends 'js'
-    ? HTMLScriptElement
-    : HTMLElement
-
-export type GlobalResourceRecord =
-  | GlobalCssResourceRecord
-  | GlobalJsResourceRecord
-
-export interface GlobalResourceObjectBase<T extends string = string> {
-  cond?: Resolve.Config['cond']
-  type: T
-  [key: string]: any
-}
-
-export interface GlobalCssResourceObject
-  extends GlobalResourceObjectBase<'css'> {
-  href: string
-  [key: string]: any
-}
-
-export interface GlobalJsResourceObject extends GlobalResourceObjectBase<'js'> {
-  src: string
-  [key: string]: any
-}
-
-export interface GlobalComponentRecordObject {
-  type: 'component'
-  record: GlobalComponentRecord
-}
-
-export interface GlobalPageRecordObject {
-  type: 'page'
-  record: NOODLDOMPage
-}
-
-export type GlobalStoreRecordObject =
-  | GlobalComponentRecordObject
-  | GlobalPageRecordObject
-
-export type GlobalRecordType = GlobalStoreRecordObject['type']
 
 export type DOMNodeInput =
   | NodeListOf<any>
@@ -100,109 +54,103 @@ export type DOMNodeInput =
   | HTMLElement[]
   | null
 
-export type NOODLDOMDataAttribute = typeof dataAttributes[number]
-export type NOODLDOMDataValueElement =
-  | HTMLInputElement
-  | HTMLSelectElement
-  | HTMLTextAreaElement
-export type NOODLDOMElement = Extract<
-  NOODLDOMElements[NOODLDOMElementTypes],
-  HTMLElement
->
-export type NOODLDOMElements = Pick<
-  HTMLElementTagNameMap,
-  | 'br'
-  | 'button'
-  | 'canvas'
-  | 'div'
-  | 'footer'
-  | 'img'
-  | 'input'
-  | 'iframe'
-  | 'label'
-  | 'li'
-  | 'link'
-  | 'ol'
-  | 'option'
-  // | 'script'
-  | 'select'
-  | 'span'
-  | 'textarea'
-  | 'ul'
-  | 'video'
->
-
-export type NOODLDOMElementTypes = keyof NOODLDOMElements
+export type NDOMElement<T extends string = string> = T extends 'button'
+  ? HTMLButtonElement
+  : T extends 'canvas'
+  ? HTMLCanvasElement
+  : T extends 'chart'
+  ? HTMLDivElement
+  : T extends 'chatList'
+  ? HTMLUListElement
+  : T extends 'divider'
+  ? HTMLHRElement
+  : T extends 'ecosDoc'
+  ? HTMLDivElement
+  : T extends 'footer'
+  ? HTMLDivElement
+  : T extends 'header'
+  ? HTMLDivElement
+  : T extends 'label'
+  ? HTMLDivElement
+  : T extends 'map'
+  ? HTMLDivElement
+  : T extends 'iframe' | 'page'
+  ? HTMLIFrameElement
+  : T extends 'plugin' | 'pluginHead' | 'pluginBodyTop' | 'pluginBodyTail'
+  ? HTMLDivElement | HTMLScriptElement | HTMLLinkElement | HTMLStyleElement
+  : T extends 'popUp'
+  ? HTMLDivElement
+  : T extends 'image'
+  ? HTMLImageElement
+  : T extends 'textField'
+  ? HTMLInputElement
+  : T extends 'list'
+  ? HTMLUListElement
+  : T extends 'listItem'
+  ? HTMLLIElement
+  : T extends 'register'
+  ? HTMLElement
+  : T extends 'stylesheet'
+  ? HTMLLinkElement
+  : T extends 'script'
+  ? HTMLScriptElement
+  : T extends 'select'
+  ? HTMLSelectElement
+  : T extends 'style'
+  ? HTMLStyleElement
+  : T extends 'textView'
+  ? HTMLTextAreaElement
+  : T extends 'video'
+  ? HTMLVideoElement
+  : T extends 'view'
+  ? HTMLDivElement
+  : HTMLElement
 
 export type ElementBinding = Map<
   'audioStream' | 'videoStream',
-  (component: NUIComponent.Instance) => HTMLElement | null
+  (component: NuiComponent.Instance) => HTMLElement | null
 >
 
-/**
- * Type utility/factory to construct node resolver func types. Node resolver
- * funcs in noodl-ui-dom are any functions that take a DOM node as the first
- * argument and a component instance as the second, at its base structure
- */
-
-export interface Parse<C extends Component = any> {
-  (component: C, container?: NOODLDOMElement | null): NOODLDOMElement | null
-}
-
-export type Redraw = any
-
 export namespace Resolve {
-  export type BaseArgs = [node: HTMLElement, component: Component]
+  export interface BaseOptions<
+    T extends string = string,
+    N extends NDOMElement<T> = NDOMElement<T>,
+  > {
+    node: N
+    component: NuiComponent.Instance
+    page?: NDOMPage
+  }
 
-  export interface Config {
+  export interface Config<
+    T extends string = string,
+    N extends NDOMElement<T> = NDOMElement<T>,
+  > {
     name?: string
-    cond?: LiteralUnion<ComponentType, string> | Resolve.Func
-    init?: Resolve.Func
-    before?: Resolve.Func
-    resolve?: Resolve.Func | Resolve.Hooks
-    after?: Resolve.Func
-    resource?: UseObject['resource']
+    cond?: LiteralUnion<ComponentType, string> | Resolve.Func<T, N, boolean>
+    init?: Resolve.Func<T, N>
+    before?: Resolve.Func<T, N>
+    resolve?: Resolve.Func<T, N>
+    after?: Resolve.Func<T, N>
   }
 
-  export interface Func<RT = any> {
+  export interface Func<
+    T extends string = string,
+    N extends NDOMElement<T> = NDOMElement<T>,
+    RT = void,
+  > {
     (
-      node: HTMLElement | null,
-      component: NUIComponent.Instance,
-      options: Resolve.Options,
-    ): RT | void | Promise<RT | void>
-  }
-
-  export interface Hooks {
-    onResource?: Record<string, ResourceOnLoadHook>
-  }
-
-  export interface ResourceOnLoadHook {
-    (options: {
-      node: HTMLElement | null
-      component: NUIComponent.Instance
-      options: Resolve.Options
-      resource: {
-        node: HTMLElement | null
-        record: GlobalResourceRecord
-      }
-    }): Promise<void> | void
+      options: ReturnType<NDOMResolver['getOptions']> &
+        Resolve.BaseOptions<T, N>,
+    ): RT
   }
 
   export interface LifeCycle {
-    before: Resolve.Func[]
-    resolve: (Resolve.Func | Resolve.Hooks)[]
-    after: Resolve.Func[]
+    before: Resolve.Config[]
+    resolve: Resolve.Config[]
+    after: Resolve.Config[]
   }
 
   export type LifeCycleEvent = 'before' | 'resolve' | 'after'
-
-  export type Options = ReturnType<
-    ReturnType<typeof createResolver>['utils']['options']
-  >
-}
-
-export namespace Middleware {
-  export type Utils = MiddlewareUtils
 }
 
 export namespace Render {
@@ -213,9 +161,6 @@ export namespace Render {
 
 export type RegisterOptions = Resolve.Config
 
-/* -------------------------------------------------------
-  ---- PAGE TYPES
--------------------------------------------------------- */
 export namespace Page {
   export type HookEvent = keyof Hook
 
@@ -223,37 +168,41 @@ export namespace Page {
     [eventId.page.on.ON_ASPECT_RATIO_MIN](prevMin: number, min: number): void
     [eventId.page.on.ON_ASPECT_RATIO_MAX](prevMax: number, max: number): void
     [eventId.page.on.ON_STATUS_CHANGE](status: Page.Status): void
-    [eventId.page.on.ON_NAVIGATE_START](page: NOODLDOMPage): void
+    [eventId.page.on.ON_NAVIGATE_START](page: NDOMPage): void
     [eventId.page.on.ON_NAVIGATE_STALE](args: {
       previouslyRequesting: string
       newPageRequesting: string
       snapshot: Snapshot
     }): void
-    [eventId.page.on.ON_NAVIGATE_ABORT](snapshot: Snapshot): void
     [eventId.page.on.ON_NAVIGATE_ERROR](
       snapshot: Snapshot & { error: Error },
     ): void
-    [eventId.page.on.ON_OUTBOUND_REDIRECT](snapshot: Snapshot): void
-    [eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE](rootNode: HTMLElement): void
+    [eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE](node: HTMLElement): void
     [eventId.page.on.ON_DOM_CLEANUP](args: {
-      global: NOODLDOM['global']
-      rootNode: NOODLDOM['page']['rootNode']
+      global: NDOM['global']
+      node: NDOM['page']['node']
     }): void
     [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
-      snapshot: Snapshot & { components: NUIComponent.Instance[] },
+      snapshot: Snapshot & { components: NuiComponent.Instance[] },
     ): void
-    [eventId.page.on.ON_COMPONENTS_RENDERED](page: NOODLDOMPage): void
+    [eventId.page.on.ON_COMPONENTS_RENDERED](page: NDOMPage): void
     [eventId.page.on.ON_APPEND_NODE](args: {
-      page: NOODLDOMPage
+      page: NDOMPage
       parentNode: HTMLElement
       node: HTMLElement
       component: Component
     }): void
     // Redraw events
-    [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](
-      node: HTMLElement | null,
-      component: Component,
-    ): void
+    [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](args: {
+      parent: NuiComponent.Instance | null
+      component: NuiComponent.Instance
+      context?: { dataObject?: any }
+      node: HTMLElement | null
+      page: NDOMPage
+    }): void
+    [eventId.page.on.ON_SET_ROOT_NODE](args: {
+      node: HTMLDivElement | HTMLIFrameElement | null
+    }): void
   }
 
   export interface HookDescriptor<Evt extends Page.HookEvent = Page.HookEvent> {
@@ -273,32 +222,35 @@ export namespace Page {
         [key: string]: any
       }
     }
-    render: {}
     status: Status
-    rootNode: boolean
+    node: boolean
   }
 
   export type Status =
     typeof eventId.page.status[keyof typeof eventId.page.status]
 
-  export type Snapshot = ReturnType<NOODLDOMPage['snapshot']>
+  export type Snapshot = ReturnType<NDOMPage['snapshot']>
 }
 
 export interface NDOMTransaction {
-  REQUEST_PAGE_OBJECT(page: NOODLDOMPage): Promise<NOODLDOMPage>
+  REQUEST_PAGE_OBJECT(page: NDOMPage): Promise<NDOMPage>
 }
 
 export type NDOMTransactionId = keyof NDOMTransaction
 
+export type NDOMTrigger = typeof triggers[number]
+
 export interface UseObject
   extends Omit<
     NUIUseObject<NDOMTransaction, NDOMTransactionId>,
-    'transaction'
+    'emit' | 'transaction'
   > {
   createElementBinding?(
-    component: NUIComponent.Instance,
+    component: NuiComponent.Instance,
   ): HTMLElement | null | void
+  emit: Partial<
+    Record<NDOMTrigger, OrArray<Store.ActionObject<'emit', NDOMTrigger>['fn']>>
+  >
   resolver?: Resolve.Config
-  resource?: AcceptArray<Parameters<NOODLDOM['createResource']>[0]>
   transaction?: Partial<NDOMTransaction>
 }

@@ -2,7 +2,7 @@ import * as u from '@jsmanifest/utils'
 import { EventEmitter } from 'events'
 import unary from 'lodash/unary'
 import Logger from 'logsnap'
-import { getFirstByViewTag, findByUX } from 'noodl-ui-dom'
+import { findFirstByViewTag, findByUX } from 'noodl-ui'
 import { isMobile, isUnitTestEnv } from '../utils/common'
 import { hide, show, toast } from '../utils/dom'
 import App from '../App'
@@ -192,7 +192,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
      * @param { RemoteParticipant } participant
      * @param { object } options - This is temporarily used for debugging
      */
-    addRemoteParticipant(
+    async addRemoteParticipant(
       participant: t.RoomParticipant,
       {
         force = false,
@@ -219,7 +219,7 @@ const createMeetingFns = function _createMeetingFns(app: App) {
           // Just set the participant as the mainStream  since it's open
           if (!o.mainStream.hasParticipant()) {
             o.mainStream.setParticipant(participant)
-            app.meeting.onAddRemoteParticipant?.(
+            await app.meeting.onAddRemoteParticipant?.(
               participant as t.RemoteParticipant,
               o.mainStream,
             )
@@ -232,12 +232,12 @@ const createMeetingFns = function _createMeetingFns(app: App) {
               log.func('addRemoteParticipant')
               // Create a new DOM node
               const props = o.subStreams.blueprint
-              const node = app.ndom.draw(
+              const node = (await app.ndom.draw(
                 // TODO - Replace this resolver call and do a cleaner
-                o.subStreams.resolver?.(props) || props,
+                (await o.subStreams.resolver?.(props)) || props,
                 undefined,
                 app.mainPage,
-              ) as any
+              )) as any
               const subStream = o.subStreams
                 .create({
                   node,
@@ -357,35 +357,35 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     },
     /** Element used for the dominant/main speaker */
     getMainStreamElement(): HTMLDivElement | null {
-      return getFirstByViewTag('mainStream') as HTMLDivElement
+      return findFirstByViewTag('mainStream') as HTMLDivElement
     },
     /** Element that the local participant uses (self mirror) */
     getSelfStreamElement(): HTMLDivElement | null {
-      return getFirstByViewTag('selfStream') as HTMLDivElement
+      return findFirstByViewTag('selfStream') as HTMLDivElement
     },
     /** Element that renders a remote participant into the participants list */
     getSubStreamElement(): HTMLDivElement | HTMLDivElement[] | null {
-      return getFirstByViewTag('subStream') as HTMLDivElement
+      return findFirstByViewTag('subStream') as HTMLDivElement
     },
     /** Element that toggles the camera on/off */
     getCameraElement(): HTMLImageElement | null {
-      return getFirstByViewTag('camera') as HTMLImageElement
+      return findFirstByViewTag('camera') as HTMLImageElement
     },
     /** Element that toggles the microphone on/off */
     getMicrophoneElement(): HTMLImageElement | null {
-      return getFirstByViewTag('microphone') as HTMLImageElement
+      return findFirstByViewTag('microphone') as HTMLImageElement
     },
     /** Element that completes the meeting when clicked */
     getHangUpElement(): HTMLImageElement | null {
-      return getFirstByViewTag('hangUp') as HTMLImageElement
+      return findFirstByViewTag('hangUp') as HTMLImageElement
     },
     /** Element to invite other participants into the meeting */
     getInviteOthersElement(): HTMLImageElement | null {
-      return getFirstByViewTag('inviteOthers') as HTMLImageElement
+      return findFirstByViewTag('inviteOthers') as HTMLImageElement
     },
     /** Element that renders a list of remote participants on the bottom */
     getParticipantsListElement(): HTMLUListElement | null {
-      return getFirstByViewTag('videoSubStream') as HTMLUListElement
+      return findFirstByViewTag('videoSubStream') as HTMLUListElement
     },
     getVideoChatElements() {
       return {
@@ -419,6 +419,28 @@ const createMeetingFns = function _createMeetingFns(app: App) {
     },
     removeFalseParticipants(participants: any[]) {
       return participants.filter((p) => !!p?.sid)
+    },
+    /**
+     * Switches a participant's stream to another participant's stream
+     * @param { Stream } stream1
+     * @param { Stream } stream2
+     * @param { t.RoomParticipant } participant1
+     * @param { t.RoomParticipant } participant2
+     */
+    swapParticipantStream(
+      stream1: Stream, // participant1 should currently be inside stream1
+      stream2: Stream, // participant2 should currently be inside stream2
+      participant1: t.RoomParticipant,
+      participant2: t.RoomParticipant,
+    ) {
+      if (stream1 && stream2 && stream1.isParticipant(participant1)) {
+        if (stream1.getParticipant() !== participant2) {
+          stream1.unpublish()
+          stream2.unpublish()
+          stream1.setParticipant(participant2)
+          stream2.setParticipant(participant1)
+        }
+      }
     },
   }
 

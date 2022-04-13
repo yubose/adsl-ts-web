@@ -1,9 +1,23 @@
+* {
+  padding: 0;
+  margin: 0;
+  /* border-width: 0 ; */
+}
+
 html {
   -webkit-text-size-adjust: none !important;
   /* -ms-touch-action: none !important; */
   /* touch-action: none !important; Prevents user scaling */
 }
 
+input::-ms-clear,
+input::-ms-reveal {
+  display: none;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button{
+    -webkit-appearance: none !important;
+}
 body {
   margin: 0;
   padding: 0;
@@ -32,6 +46,28 @@ button:hover {
 input::placeholder {
   opacity: 0.6;
 }
+textarea::-webkit-input-placeholder { /* WebKit browsers */
+  color: #A9AAAA;
+  }
+  textarea:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+  color: #A9AAAA;
+  }
+  textarea::-moz-placeholder { /* Mozilla Firefox 19+ */
+  color: #A9AAAA;
+  
+  }
+
+  input::-webkit-input-placeholder { /* WebKit browsers */
+  color: #A9AAAA;
+  }
+  input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+  color: #A9AAAA;
+  
+  }
+  input::-moz-placeholder { /* Mozilla Firefox 19+ */
+  color: #A9AAAA;
+  
+  }
 
 .actions button,
 input,
@@ -59,6 +95,14 @@ iframe.ecosdoc-text-title {
 iframe.ecosdoc-text-body {
 }
 
+.fc-col-header,
+.fc-timegrid-body,
+.fc-timegrid-body table,
+.fc-timegrid-body colgroup,
+.fc-timegrid-body .fc-timegrid-slot {
+  width: 100% !important;
+}
+
 video::-webkit-media-controls-fullscreen-button {
   display: none;
 }
@@ -76,6 +120,7 @@ div.pluginBodyTail {
 
 .page {
   overflow-y: auto !important;
+  border: none;
 }
 
 .grid-lines {
@@ -103,6 +148,11 @@ div.pluginBodyTail {
   /* visibility: hidden; */
 }
 
+textarea {
+  /* Fixed size */
+  resize: none;
+}
+
 .popup-global {
   border: 1px solid magenta;
   /* position: fixed; */
@@ -118,4 +168,49 @@ div.pluginBodyTail {
   /* margin-left: -200px; */
   /* max-height: 80%; */
   box-sizing: border-box;
+}
+
+@keyframes spinner-line-fade-more {
+  0%,
+  100% {
+    opacity: 0; /* minimum opacity */
+  }
+  1% {
+    opacity: 1;
+  }
+}
+
+@keyframes spinner-line-fade-quick {
+  0%,
+  39%,
+  100% {
+    opacity: 0.25; /* minimum opacity */
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes spinner-line-fade-default {
+  0%,
+  100% {
+    opacity: 0.22; /* minimum opacity */
+  }
+  1% {
+    opacity: 1;
+  }
+}
+
+@keyframes spinner-line-shrink {
+  0%,
+  25%,
+  100% {
+    /* minimum scale and opacity */
+    transform: scale(0.5);
+    opacity: 0.25;
+  }
+  26% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }

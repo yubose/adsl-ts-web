@@ -1,13 +1,8 @@
 {
-  "ts-node": {
-    "transpileOnly": true
-  },
   "compilerOptions": {
     "module": "commonjs",
-    "strict": false,
     "target": "es2017"
   },
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules"],
   "include": ["src/**/*.test.ts"]
 }

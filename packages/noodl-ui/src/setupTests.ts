@@ -1,43 +1,42 @@
-import sinon from 'sinon'
 import sinonChai from 'sinon-chai'
 import chai from 'chai'
-import chaiAsPromised from 'chai-as-promised'
-import { assetsUrl } from './utils/test-utils'
-import NUI from './noodl-ui'
+import JSDOM from 'jsdom-global'
+import { assetsUrl, baseUrl, getPresetPageObjects } from './utils/test-utils'
+import nui from './noodl-ui'
+import log from './utils/log'
+import type NuiPage from './Page'
+import * as c from './constants'
+
+JSDOM('', {
+  resources: 'usable',
+  runScripts: 'dangerously',
+  url: baseUrl,
+  pretendToBeVisual: true,
+})
 
 chai.use(sinonChai)
-chai.use(chaiAsPromised)
-
-let logSpy: sinon.SinonStub
-let invariantStub: sinon.SinonStub
-
-let defaultPage = 'Hello'
-let defaultPageObject = { formData: { password: 'abc123' } }
-let defaultRoot = { [defaultPage]: defaultPageObject }
 
 before(() => {
   console.clear()
-  logSpy = sinon.stub(global.console, 'log').callsFake(() => () => {})
-  invariantStub = sinon.stub(global.console, 'error').callsFake(() => () => {})
+  log.setLevel('error')
 })
 
 beforeEach(() => {
-  NUI.createPage({ name: defaultPage, viewport: { width: 375, height: 667 } })
-  NUI.use({
+  const root = getPresetPageObjects()
+  nui.createPage({ name: 'Hello', viewport: { width: 375, height: 667 } })
+  nui.use({
     getAssetsUrl: () => assetsUrl,
-    getBaseUrl: () => 'https://google.com/',
-    getRoot: () => ({ ...defaultRoot }),
-    getPreloadPages: () => [],
-    getPages: () => [defaultPage],
+    getBaseUrl: () => baseUrl,
+    getPages: () => Object.keys(root),
+    getRoot: () => root,
+    transaction: {
+      [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (page: NuiPage) =>
+        nui.getRoot()[page.page],
+    },
   })
 })
 
 afterEach(() => {
   document.body.textContent = ''
-  NUI.reset()
-})
-
-after(() => {
-  invariantStub.restore()
-  logSpy.restore?.()
+  nui.reset()
 })

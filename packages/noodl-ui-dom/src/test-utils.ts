@@ -1,30 +1,34 @@
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
-import * as mock from 'noodl-ui-test-utils'
-import { AcceptArray } from '@jsmanifest/typefest'
 import isNil from 'lodash/isNil'
-import sinon from 'sinon'
-import { ComponentObject, PageObject } from 'noodl-types'
+import { expect } from 'chai'
+import { waitFor } from '@testing-library/dom'
+import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
+import { OrArray } from '@jsmanifest/typefest'
+import { ComponentObject, PageObject, userEvent } from 'noodl-types'
 import {
   nuiEmitTransaction,
-  NUIComponent,
+  NUIComponent as NuiComponent,
   NUI,
+  On as NUIOn,
   Page as NUIPage,
+  publish,
   Viewport,
 } from 'noodl-ui'
-import {
-  GlobalCssResourceObject,
-  GlobalJsResourceObject,
-  NOODLDOMElement,
-  Resolve,
-  UseObject,
-} from './types'
-import { array, keys, isArr, isStr, isUnd } from './utils/internal'
 import NOODLDOM from './noodl-ui-dom'
-import NOODLDOMPage from './Page'
-import * as defaultResolvers from './resolvers'
+import NDOMPage from './Page'
+import { _syncPages } from './utils/internal'
+import { findBySelector, findFirstByClassName } from './utils'
+import { nui } from './nui'
+import * as t from './types'
+
+export const baseUrl = 'http://127.0.0.1:3000/'
+export const ui = { ...actionFactory, ...componentFactory }
 
 export const _defaults = {
-  baseUrl: 'https://aitmed.com/',
+  get baseUrl() {
+    return baseUrl
+  },
   get assetsUrl() {
     return _defaults.baseUrl + 'assets/'
   },
@@ -37,8 +41,8 @@ export const _defaults = {
   pageObject: {
     formData: { email: 'pfft@gmail.com', password: 'ab123', user: 'Bob' },
     components: [
-      mock.getViewComponent({
-        children: [mock.getLabelComponent({ dataKey: 'formData.email' })],
+      ui.view({
+        children: [ui.label({ dataKey: 'formData.email' })],
       }),
     ],
   } as PageObject,
@@ -48,34 +52,24 @@ export const _defaults = {
         ..._defaults.nui.getRoot()[_defaults.pageName],
         ..._defaults.pageObject,
       },
-    }
+    } as Record<string, PageObject>
   },
 }
 
 export const baseUrl = _defaults.baseUrl
 export const assetsUrl = _defaults.assetsUrl
-export let ndom = new NOODLDOM(NUI)
+export const ndom = new NOODLDOM()
 export const viewport = new Viewport({ width: 375, height: 667 })
 
-const defaultResolversKeys = keys(
-  defaultResolvers,
-) as (keyof typeof defaultResolvers)[]
-
-type MockDrawResolver =
-  | Resolve.Config
-  | keyof typeof defaultResolvers
-  | (Resolve.Config | keyof typeof defaultResolvers)[]
-
 interface MockRenderOptions {
-  components?: AcceptArray<ComponentObject>
+  components?: OrArray<ComponentObject>
   currentPage?: string
-  getPageObject?: (page: string) => Promise<Partial<PageObject>>
-  page?: NOODLDOMPage
+  getPageObject?: (page?: string) => Promise<Partial<PageObject>>
+  on?: NUIOn
+  page?: NDOMPage
   pageName?: string
   pageObject?: Partial<PageObject>
-  resolver?: MockDrawResolver
-  resource?: UseObject['resource']
-  root?: Record<string, any>
+  root?: Record<string, PageObject>
 }
 
 export function createDataKeyReference({
@@ -112,13 +106,15 @@ export interface CreateRenderResult {
   baseUrl: string
   nui: typeof NUI
   ndom: NOODLDOM
-  page: NOODLDOMPage
+  page: NDOMPage
   pageObject: PageObject
   request(pgName?: string): Promise<{
-    render: () => NUIComponent.Instance[]
+    render: (opts?: { on?: NUIOn }) => Promise<NuiComponent.Instance[]>
   }>
-  render(pgName?: string): Promise<NUIComponent.Instance>
+  render(pgName?: string): Promise<NuiComponent.Instance>
 }
+
+export function createRender(fn: () => CreateRenderResult): CreateRenderResult
 
 /**
  * A helper that tests a noodl-ui-dom DOM resolver. This helps to automatically prepare
@@ -127,161 +123,195 @@ export interface CreateRenderResult {
  * to provide a getRoot function in that case
  */
 export function createRender(
-  components: AcceptArray<ComponentObject>,
+  components: OrArray<ComponentObject>,
 ): CreateRenderResult
-export function createRender(opts: MockRenderOptions): CreateRenderResult
-export function createRender(
-  opts: AcceptArray<ComponentObject> | MockRenderOptions,
-) {
-  ndom.reset()
 
+export function createRender(opts: MockRenderOptions): CreateRenderResult
+
+export function createRender<Opts extends MockRenderOptions>(
+  opts:
+    | OrArray<ComponentObject>
+    | Opts
+    | ((opts: CreateRenderResult) => CreateRenderResult),
+) {
   let currentPage = ''
   let pageRequesting = ''
-  let page: NOODLDOMPage | undefined
-  let pageObject: Partial<PageObject>
+  let page: NDOMPage | undefined
+  let pageObject: Partial<PageObject> = {}
+  let on: NUIOn | undefined
   let root = _defaults.root
-  let resolver: AcceptArray<MockDrawResolver> | undefined
-  let resource: MockRenderOptions['resource'] | undefined
 
-  if (u.isArr(opts) || 'type' in opts) {
+  if (u.isFnc(opts)) {
     pageRequesting = _defaults.pageRequesting
+  } else if (u.isArr(opts) || 'type' in (opts || {})) {
+    pageRequesting = _defaults.pageRequesting
+    pageObject.components = u.array(opts) as PageObject['components']
   } else {
-    currentPage = opts.currentPage || ''
-    page = opts.page
-    root = { ...root, ...opts?.root }
-    resource = opts.resource
-  }
+    opts.currentPage && (currentPage = opts.currentPage)
+    opts.pageName && (pageRequesting = opts.pageName)
+    opts.pageObject && u.assign(pageObject, opts.pageObject)
+    opts.page && (page = page)
+    opts.on && (on = opts.on)
+    opts.root && (root = opts.root)
 
-  !page && (page = ndom.page || ndom.createPage(pageRequesting))
+    !pageRequesting && (pageRequesting = _defaults.pageRequesting)
 
-  if (u.isArr(opts) || 'type' in opts) {
-    pageObject = _defaults.root[pageRequesting] || { components: [] }
-    u.arrayEach(opts, (obj) => pageObject.components?.push(obj))
-    page?.requesting !== pageRequesting &&
-      ((page as NOODLDOMPage).requesting = pageRequesting)
-  } else {
-    pageRequesting =
-      opts.pageName || page?.requesting || _defaults.pageRequesting
-    pageObject = opts.pageObject || {
-      ...root[pageRequesting],
-    }
-    pageObject.components =
-      opts.components ||
-      opts.pageObject?.components ||
-      pageObject?.components ||
-      root[pageRequesting]?.components ||
-      root[_defaults.pageName]?.components ||
-      _defaults.pageObject.components
-  }
-
-  !resolver && (resolver = defaultResolversKeys)
-
-  if (page.requesting !== pageRequesting) page.requesting = pageRequesting
-  if (currentPage && page.page !== currentPage) page.page = currentPage
-
-  array(resolver).forEach(
-    (r: Resolve.Config | typeof defaultResolversKeys[number]) => {
-      if (isStr(r)) {
-        defaultResolvers[r] && ndom.register(defaultResolvers[r])
-      } else {
-        r && ndom.register(r)
+    if (opts.root?.[pageRequesting]) {
+      u.assign(pageObject, opts.root[pageRequesting])
+      if (opts.root[pageRequesting].components) {
+        pageObject.components = u.array(opts.root[pageRequesting].components)
       }
-    },
-  )
+    }
+    if (opts.pageObject) u.assign(pageObject, opts.pageObject)
+    if (opts.components) {
+      pageObject.components = u.array(opts.components)
+      if (!root[pageRequesting]) root[pageRequesting] = {} as PageObject
+      root[pageRequesting].components = pageObject.components
+    }
+  }
 
-  if (page && (isUnd(page?.viewport.width) || isUnd(page?.viewport.height))) {
+  root?.[pageRequesting] && (root[pageRequesting] = pageObject as PageObject)
+  !page &&
+    (page = ndom.page || ndom.pages.root || ndom.createPage(pageRequesting))
+  currentPage ? (page.page = currentPage) : (page.page = '')
+  pageRequesting && (page.requesting = pageRequesting)
+
+  if (u.isUnd(page?.viewport.width) || u.isUnd(page?.viewport.height)) {
     page.viewport.width = page.viewport.width || 375
     page.viewport.height = page.viewport.height || 667
   }
 
+  const getPageObject = (pageProp = page as NDOMPage | string) => {
+    return new Promise((resolve) => {
+      // Simulate a real world request delay
+      setTimeout(() => {
+        const result = use.getRoot()[
+          u.isStr(pageProp)
+            ? pageProp
+            : (pageProp as NDOMPage)?.requesting ||
+              (pageProp as NDOMPage)?.page ||
+              ''
+        ] as PageObject
+        resolve(result)
+      })
+    })
+  }
+
+  pageObject = { ...root?.[pageRequesting], ...pageObject }
+
   const use = {
     getAssetsUrl: () => _defaults.assetsUrl,
     getBaseUrl: () => _defaults.baseUrl,
-    getPageObject: async () => pageObject as PageObject,
+    getPageObject,
     getPages: () => [pageRequesting],
     getPreloadPages: () => [],
-    getRoot: () => {
-      const result = {
-        ...root,
-        ...opts?.['root'],
-        [pageRequesting]: {
-          ...opts?.['root']?.[pageRequesting],
-          ...root[pageRequesting],
-          ...pageObject,
-        },
-      }
-      return result
-    },
-    resource,
-    transaction: {
-      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () =>
-        use.getRoot()[page?.page || ''],
-    },
+    getRoot: () => ({ ...root, [pageRequesting]: pageObject }),
+    transaction: { [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: getPageObject },
   }
 
+  // @ts-expect-error
   ndom.use(use)
 
-  const o: CreateRenderResult = {
+  const o = {
     ...use,
     assetsUrl: _defaults.assetsUrl,
     baseUrl: _defaults.baseUrl,
     nui: _defaults.nui,
     ndom,
-    page: page as NOODLDOMPage,
-    pageObject: pageObject as PageObject,
-    request: (pgName?: string) => {
+    page,
+    get pageObject() {
+      return use.getRoot()[pageRequesting] as PageObject
+    },
+    request: async (pgName = '') => {
       pgName && page && (page.requesting = pgName)
-      return ndom.request(page) as Promise<{
-        render: () => NUIComponent.Instance[]
-      }>
+      return ndom.request(page)
     },
-    render: async (pgName?: string): Promise<NUIComponent.Instance> => {
+    render: async (pgName = ''): Promise<NuiComponent.Instance> => {
       const req = await o.request(pgName || page?.requesting)
-      return req?.render?.()[0] as NUIComponent.Instance
+      return u.array(await req?.render?.({ on }))?.[0] as NuiComponent.Instance
     },
-  }
+  } as CreateRenderResult
+
+  if (u.isFnc(opts)) return opts(o)
 
   return o
 }
 
-export function createMockCssResource({
-  href = 'https://some-mock-link.com/chart.min.css',
-  ...rest
-}: Partial<GlobalCssResourceObject> = {}) {
-  return { ...rest, type: 'css', href } as GlobalCssResourceObject
+createRender.userEvents = userEvent.slice()
+
+export async function waitForPageChildren(
+  getPageElem = () => findFirstByClassName('page'),
+) {
+  await waitFor(() => {
+    const pageElem = getPageElem() as HTMLIFrameElement
+    const pageBodyElem = pageElem?.contentDocument?.body as HTMLBodyElement
+    expect(pageBodyElem, "expected page component's HTMLBodyElement to exist")
+      .to.exist
+    expect(
+      pageBodyElem,
+      "expected page component's HTMLBodyElement to have children",
+    )
+      .to.have.property('children')
+      .with.length.greaterThan(0)
+  })
 }
 
-export function createMockJsResource({
-  src = 'https://some-mock-link.com/chart.min.js',
-  ...rest
-}: Partial<GlobalJsResourceObject> = {}) {
-  return { ...rest, type: 'js', src } as GlobalJsResourceObject
+export function getAllElementCount(selector = '') {
+  return u.array(findBySelector(selector)).filter(Boolean).length
 }
 
-export function stubInvariant() {
-  const stub = sinon.stub(global.console, 'error').callsFake(() => {})
-  return stub
+export function getDescendantIds(component: NuiComponent.Instance): string[] {
+  const ids = [] as string[]
+  publish(component, (child) => ids.push(child.id))
+  return ids
 }
 
-export function toDOM<
-  N extends NOODLDOMElement = NOODLDOMElement,
-  C extends NUIComponent.Instance = NUIComponent.Instance,
->(props: any) {
-  let node: N | null = null
-  let component: C | undefined
-  let page = ndom.page
-  !ndom && (ndom = new NOODLDOM(NUI))
-  !page && (page = ndom.createPage())
-  if (typeof props?.props === 'function') {
-    node = ndom.draw(props as any) as N
-    component = props as any
-  } else if (u.isObj(props)) {
-    component = NOODLDOM._nui.resolveComponents({
-      components: [props as ComponentObject],
-      page: NOODLDOM._nui.getRootPage(),
-    }) as any
-    node = ndom.draw(component as C, ndom.page.rootNode) as N
+export function getPageComponentChildIds(component: NuiComponent.Instance) {
+  const pageName = component.get('page')?.page
+  return ndom.cache.component.reduce((acc, obj) => {
+    return obj.page === pageName ? acc.concat(obj.component.id) : acc
+  }, [] as string[])
+}
+
+export function render(components: ComponentObject[]): Promise<t.NDOMElement[]>
+// @ts-expect-error
+export function render(component: ComponentObject): Promise<t.NDOMElement>
+export async function render(options: ComponentObject | ComponentObject[]) {
+  let components: ComponentObject[] = []
+  let isArr = false
+  let page = ndom.createPage(nui.createPage({ id: 'root' }) as NUIPage)
+  page.requesting = _defaults.pageName || ''
+  let pageObject = { ..._defaults.root[page.requesting] }
+  let root = { ..._defaults.root }
+  page.requesting && (root[page.requesting] = { ...pageObject })
+
+  if (u.isArr(options)) {
+    isArr = true
+    components.push(...(await nui.resolveComponents(options)))
+  } else if (u.isObj(options)) {
+    if ('type' in options) {
+      components.push(await nui.resolveComponents(options))
+    }
   }
-  if (node) document.body.appendChild(node as any)
-  return [node, component] as [NonNullable<N>, C]
+
+  ndom.use({
+    getAssetsUrl: () => _defaults.assetsUrl,
+    getBaseUrl: () => _defaults.baseUrl,
+    getPages: () => [page.requesting],
+    getPreloadPages: () => [],
+    getRoot: () => ({ ...root, [page.requesting]: root[_defaults.pageName] }),
+    transaction: {
+      // @ts-expect-error
+      [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async (page) =>
+        root[page.requesting],
+    },
+  })
+
+  return isArr ? u.array(await ndom.render(page)) : await ndom.render(page)
+}
+
+export function waitMs(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
 }

@@ -1,12 +1,22 @@
 import * as u from '@jsmanifest/utils'
-import { NUIComponent, ConsumerOptions } from './types'
+import resolveReference from './utils/resolveReference'
+import type { NUIActionChain, NuiComponent, ConsumerOptions } from './types'
 
-export interface IResolver<Func extends (...args: any[]) => any, Inst = any> {
+export interface IResolver<
+  Func extends (...args: any[]) => Promise<void>,
+  Inst = any,
+> {
   next: Inst | null
   resolver: Func
 }
 
-class Resolver<Func extends (...args: any[]) => any, Inst = any>
+type ResolverArgs = [
+  component: NuiComponent.Instance,
+  options: ConsumerOptions,
+  next: (opts?: Record<string, any>) => Promise<void>,
+]
+
+class Resolver<Func extends (...args: any[]) => Promise<void>, Inst = any>
   implements IResolver<Func>
 {
   #resolve = {} as IResolver<Func>['resolver']
@@ -30,17 +40,43 @@ class Resolver<Func extends (...args: any[]) => any, Inst = any>
 }
 
 class ComponentResolver<
-  Func extends (...args: NUIComponent.ResolverArgs) => void = (
-    ...args: NUIComponent.ResolverArgs
-  ) => void,
+  Func extends (...args: ResolverArgs) => Promise<void> = (
+    ...args: ResolverArgs
+  ) => Promise<void>,
 > extends Resolver<Func, ComponentResolver<Func>> {
   #isInternal: boolean = false
   #name: string
 
+  static withHelpers<Fn extends (...args: ResolverArgs) => any>(
+    resolverFn: ComponentResolver<Fn>['resolver'],
+  ) {
+    const wrap = (fn: typeof resolverFn) => {
+      function onResolveWithHelpers(...args: Parameters<typeof resolverFn>) {
+        const optionsWithHelpers: ConsumerOptions = {
+          ...args[1],
+          resolveReference: (key, value) => {
+            return resolveReference({
+              component: args[0],
+              localKey: args[1]?.page?.page,
+              on: args[1]?.on,
+              page: args[1]?.page,
+              root: args[1]?.getRoot,
+              key,
+              value,
+            })
+          },
+        }
+        return fn(args[0], optionsWithHelpers, args[2])
+      }
+      return onResolveWithHelpers
+    }
+    return wrap(resolverFn)
+  }
+
   constructor(name = '', resolver?: Func) {
     super()
     this.#name = name
-    if (resolver) this.resolver = resolver
+    resolver && this.setResolver(resolver)
   }
 
   get internal() {
@@ -65,25 +101,17 @@ class ComponentResolver<
     return this
   }
 
-  resolve(component: NUIComponent.Instance, options: ConsumerOptions) {
-    if (!component) {
-      console.log(`Component is null or undefined`, {
-        ...options,
-        componentResolverId: this.name,
-      })
-      return
-    }
-    const resolveNext = function _resolveNext(
+  async resolve(component: NuiComponent.Instance, options: ConsumerOptions) {
+    if (!component) return
+    const resolveNext = async function _resolveNext(
       this: ComponentResolver<Func>,
       opts?: Record<string, any>,
     ) {
       if (u.isObj(opts)) options = { ...options, ...opts }
-      this.next?.resolve?.(component, options)
+      await this.next?.resolve?.(component, options)
     }.bind(this)
 
-    this.resolver?.(component, options, resolveNext)
-
-    return this
+    await this.resolver?.(component, options, resolveNext)
   }
 
   toString() {
@@ -110,21 +138,17 @@ export class InternalComponentResolver {
 
   setResolver(
     resolver: (
-      component: NUIComponent.Instance,
+      component: NuiComponent.Instance,
       consumerOptions: ConsumerOptions,
-      next?: () => void,
-    ) => void,
+      next?: () => Promise<void>,
+    ) => Promise<void>,
   ) {
     this.#resolver = resolver.bind(this)
     return this
   }
 
-  resolve(
-    component: NUIComponent.Instance,
-    options: ConsumerOptions,
-    ref: any,
-  ) {
-    this.#resolver?.(component, options, ref)
+  async resolve(component: NuiComponent.Instance, options: ConsumerOptions) {
+    await this.#resolver?.(component, options)
     return this
   }
 

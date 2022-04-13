@@ -24,12 +24,17 @@ else
 fi
 
 BackupBucket='backup.aitmed.com'
-TimeStamp=$(date "+%Y-%m-%dT%Hh%Mm%Ss")
+TimeStamp=$(date "+%Y%m%dT%Hh%Mm")
 BackupDirName=${DBucket}${TimeStamp}
+gittag=${DBBucket}${TimeStamp}
 
 # create
 aws s3 cp s3://${DBucket}/latest/ s3://${BackupBucket}/${BackupDirName}/ --recursive
 aws s3 rm s3://${DBucket}/latest/ --recursive
 aws s3 cp ${DDIR}/ s3://${DBucket}/latest/ --recursive
+
+git tag -a $gittag -m "s3Deploy.sh"
+git push origin $gittag
+
 #aws s3 cp ${DDIR}/index.html s3://${DBucket} --content-type text/html --cache-control no-cache,no-store,must-revalidate --expires "0"
 #disable invalidate aws cloudfront create-invalidation --distribution-id ${CloudFrontID} --paths "/*"

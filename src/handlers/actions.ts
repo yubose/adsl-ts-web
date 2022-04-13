@@ -4,46 +4,50 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
+import * as imageConversion from 'image-conversion'
 import {
   asHtmlElement,
-  eventId as ndomEventId,
-  findWindow,
-  findByElementId,
-  findByViewTag,
-  findByDataAttrib,
-  findByUX,
-  isPageConsumer,
-  Page as NDOMPage,
-  SignaturePad,
-  getFirstByDataKey,
-} from 'noodl-ui-dom'
-import {
   ConsumerOptions,
+  eventId as ndomEventId,
   EmitAction,
   findListDataObject,
   findIteratorVar,
+  findWindow,
+  findByElementId,
+  findByViewTag,
+  findByUX,
+  findFirstByDataKey,
+  findParent,
   getActionObjectErrors,
   isComponent,
-  NUITrigger,
+  isPageConsumer,
+  NDOMPage,
   parseReference,
   Page as NUIPage,
+  resolvePageComponentUrl,
   Store,
   triggers,
 } from 'noodl-ui'
-import { evalIf, isRootDataKey } from 'noodl-utils'
-import { IfObject, Identify } from 'noodl-types'
+import SignaturePad from 'signature_pad'
+import {
+  evalIf,
+  isRootDataKey,
+  ParsedPageComponentUrlObject,
+} from 'noodl-utils'
+import { EmitObjectFold, IfObject } from 'noodl-types'
+import axios from 'axios'
 import {
   getBlobFromCanvas,
-  getVcodeElem,
-  hide,
   show,
   openFileSelector,
   scrollToElem,
   toast,
+  hide,
 } from '../utils/dom'
+import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
-import * as T from '../app/types'
+import is from '../utils/is'
 
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey
@@ -57,44 +61,36 @@ const createActions = function createActions(app: App) {
     (app.pickNDOMPage(options.page) || app.mainPage) as NDOMPage
 
   const emit = triggers.reduce(
-    (
-      acc: Partial<Record<NUITrigger, Store.ActionObject<'emit'>['fn']>>,
-      trigger,
-    ) =>
+    (acc: Partial<Record<string, Store.ActionObject<'emit'>['fn']>>, trigger) =>
       u.assign(acc, {
-        [trigger]: async function (
+        [trigger]: async function onEmitAction(
           action: EmitAction,
           options: ConsumerOptions,
         ) {
           try {
+            !app.getState().spinner.active && app.enableSpinner()
+
             log.func(`emit [${trigger}]`)
-            log.grey('', action?.snapshot?.())
 
             const emitParams = {
               actions: _pick(action, 'actions'),
               pageName:
                 pickNUIPageFromOptions(options)?.page || app.currentPage,
-            } as T.EmitCallParams
+            } as {
+              actions: EmitObjectFold['emit']['actions']
+              dataKey: EmitObjectFold['emit']['dataKey']
+              pageName: string
+            }
 
             if (_has(_pick(action, 'emit'), 'dataKey')) {
               const dataKeyValue = _pick(action, 'dataKey')
               emitParams.dataKey = dataKeyValue
-              if (dataKeyValue == undefined) {
-                log.red(
-                  `An undefined value was set for "dataKey" as arguments to emitCall`,
-                  { action: action?.snapshot?.(), emitParams },
-                )
-              }
             }
 
-            log.grey('Emitting', {
-              action: action?.snapshot?.(),
-              emitParams,
-              options,
-            })
             const emitResult = u.array(
               await app.noodl.emitCall(emitParams as any),
             )
+
             log.grey(`Emitted`, {
               action: action?.snapshot?.(),
               emitParams,
@@ -108,6 +104,8 @@ const createActions = function createActions(app: App) {
               : [emitResult]
           } catch (error) {
             console.error(error)
+          } finally {
+            if (!app.noodl.getState().queue?.length) app.disableSpinner()
           }
         },
       }),
@@ -130,67 +128,108 @@ const createActions = function createActions(app: App) {
       options,
     })
 
+    !app.getState().spinner.active && app.enableSpinner()
+    options.ref?.clear('timeout')
+
     try {
       let object = _pick(action, 'object') as
         | IfObject
         | ((...args: any[]) => any)
 
       if (u.isFnc(object)) {
+        const strategies = [] as {
+          type: 'abort-true' | 'abort-wait'
+          object?: any
+        }[]
         const result = await object()
         if (result) {
           const { ref: actionChain } = options
-          if (u.isObj(result)) {
-            getActionObjectErrors(result).forEach((errMsg: string) =>
-              log.red(errMsg, result),
-            )
-            if (result.abort) {
-              log.grey(
-                `An evalObject returned an object with abort: true. The action chain ` +
-                  `will no longer proceed`,
-                { actionChain, injectedObject: result },
+          const results = u.array(result)
+
+          while (results.length) {
+            let result = results.shift()
+
+            if (u.isArr(result)) {
+              results.push(...result)
+              result = results.shift()
+            }
+
+            if (u.isObj(result)) {
+              getActionObjectErrors(result).forEach((errMsg: string) =>
+                log.red(errMsg, result),
               )
-              if (actionChain) {
-                // There is a bug with global popups not being able to be visible because of this abort block.
-                // For now until a better solution is implemented we can do a check here
-                for (const action of actionChain.queue) {
-                  const popUpView = _pick(action, 'popUpView')
-                  if (popUpView) {
-                    if (app.ndom.global.components.has(popUpView)) {
-                      log.salmon(
-                        `An "abort: true" was injected from evalObject but a global component ` +
-                          `with popUpView "${popUpView}" was found. These popUp actions will ` +
-                          `still be called to ensure the behavior persists for global popUps`,
-                        {
-                          globalObject:
-                            app.ndom.global.components.get(popUpView),
-                        },
-                      )
-                      await action?.execute()
+
+              if (result.abort) {
+                strategies.push({ type: 'abort-true', object: result })
+                log.grey(
+                  `An evalObject returned an object with abort: true. ` +
+                    `The action chain will no longer proceed`,
+                  { actionChain, injectedObject: result },
+                )
+                if (actionChain) {
+                  // There is a bug with global popups not being able to be visible because of this abort block.
+                  // For now until a better solution is implemented we can do a check here
+                  for (const action of actionChain.queue) {
+                    const popUpView = _pick(action, 'popUpView')
+                    if (popUpView) {
+                      const globalPopUp =
+                        app.ndom.global.components.get(popUpView)
+                      if (globalPopUp) {
+                        const msg = [
+                          `An "abort: true" was injected from evalObject`,
+                          `but a global component with popUpView`,
+                          `"${popUpView}" was found.`,
+                          `These popUp actions will still be called to ensure`,
+                          `the behavior persists for global popUps`,
+                        ].join(' ')
+                        log.salmon(msg, globalPopUp)
+                        await action?.execute?.()
+                      }
                     }
                   }
+                  if (!actionChain.isAborted()) {
+                    await actionChain.abort(
+                      `An evalObject is requesting to abort using the "abort" key`,
+                    )
+                  }
                 }
-                await actionChain.abort(
-                  `An evalObject is requesting to abort using the "abort" key`,
-                )
-              }
-            } else {
-              const isPossiblyAction = 'actionType' in result
-              const isPossiblyToastMsg = 'message' in result
-              const isPossiblyGoto = 'goto' in result || 'destination' in result
+              } else {
+                const isPossiblyAction = 'actionType' in result
+                const isPossiblyToastMsg = 'message' in result
+                const isPossiblyGoto =
+                  'goto' in result || 'destination' in result
 
-              if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
-                log.grey(
-                  `An evalObject action is injecting a new object to the chain`,
-                  {
-                    actionChain,
-                    instance: actionChain?.inject.call(
+                if (isPossiblyAction || isPossiblyToastMsg || isPossiblyGoto) {
+                  if (isPossiblyGoto) {
+                    const destination = result.goto || result.destination || ''
+                    const pageComponentParent = findParent(
+                      options?.component,
+                      is.component.page,
+                    )
+                    if (
+                      pageComponentParent &&
+                      pageComponentParent.get('page')
+                    ) {
+                      const ndomPage = app.ndom.findPage(pageComponentParent)
+                      if (ndomPage && ndomPage.requesting !== destination) {
+                        ndomPage.requesting = destination
+                      }
+                    }
+                  }
+
+                  log.grey(
+                    `An evalObject action is injecting a new object to the chain`,
+                    {
                       actionChain,
-                      result as any,
-                    ),
-                    object: result,
-                    queue: actionChain?.queue.slice(),
-                  },
-                )
+                      instance: actionChain?.inject.call(
+                        actionChain,
+                        result as any,
+                      ),
+                      object: result,
+                      queue: actionChain?.queue.slice(),
+                    },
+                  )
+                }
               }
             }
           }
@@ -201,8 +240,8 @@ const createActions = function createActions(app: App) {
           const pageName = pickNUIPageFromOptions(options)?.page || ''
           object = evalIf((valEvaluating) => {
             let value
-            if (Identify.isBoolean(valEvaluating)) {
-              return Identify.isBooleanTrue(valEvaluating)
+            if (is.isBoolean(valEvaluating)) {
+              return is.isBooleanTrue(valEvaluating)
             }
             if (u.isStr(valEvaluating)) {
               if (valEvaluating.includes('.')) {
@@ -212,7 +251,7 @@ const createActions = function createActions(app: App) {
                   value = get(app.root[pageName], valEvaluating)
                 }
               }
-              if (Identify.isBoolean(value)) Identify.isBooleanTrue(value)
+              if (is.isBoolean(value)) is.isBooleanTrue(value)
             }
             return !!value
           }, ifObj)
@@ -232,162 +271,182 @@ const createActions = function createActions(app: App) {
     } catch (error) {
       console.error(error)
       toast(error.message, { type: 'error' })
+    } finally {
+      if (!app.noodl.getState().queue?.length) {
+        app.disableSpinner()
+      }
     }
   }
 
-  const goto: Store.ActionObject['fn'] = async function onGoto(
-    action,
-    options,
-  ) {
-    let goto = _pick(action, 'goto') || ''
-    let ndomPage = pickNDOMPageFromOptions(options)
-    let destProps: ReturnType<typeof app.parse.destination>
+  const goto: Store.ActionObject['fn'] = useGotoSpinner(
+    app,
+    async function onGoto(action, options) {
+      let goto = _pick(action, 'goto') || ''
+      let ndomPage = pickNDOMPageFromOptions(options)
+      let destProps: ReturnType<typeof app.parse.destination>
 
-    log.func('goto')
-    log.grey(
-      _pick(action, 'goto'),
-      u.isObj(action) ? action?.snapshot?.() : action,
-    )
+      if (!app.getState().spinner.active) app.enableSpinner()
 
-    let destinationParam =
-      (u.isStr(goto)
-        ? goto
-        : u.isObj(goto)
-        ? goto.destination || goto.dataIn?.destination || goto
-        : '') || ''
+      log.func('goto')
+      log.grey(
+        _pick(action, 'goto'),
+        u.isObj(action) ? action?.snapshot?.() : action,
+      )
 
-    destProps = app.parse.destination(destinationParam)
+      let destinationParam =
+        (u.isStr(goto)
+          ? goto
+          : u.isObj(goto)
+          ? goto.destination || goto.dataIn?.destination || goto
+          : '') || ''
 
-    let { destination, id = '', isSamePage, duration } = destProps
+      destProps = app.parse.destination(
+        is.pageComponentUrl(destinationParam)
+          ? resolvePageComponentUrl({
+              component: options?.component,
+              page: ndomPage.getNuiPage(),
+              localKey: ndomPage.page,
+              root: app.root,
+              key: 'goto',
+              value: destinationParam,
+            })
+          : destinationParam,
+      )
 
-    let pageModifiers = {} as any
+      let { destination, id = '', isSamePage, duration } = destProps
 
-    if (destination === destinationParam) {
-      ndomPage.requesting = destination
-    }
+      let pageModifiers = {} as any
 
-    if ('targetPage' in destProps) {
-      destination = destProps.targetPart || ''
-      id = destProps.viewTag || ''
-      if (id) {
-        const pageNode = findByViewTag(id)
-        const pageComponent = Array.from(app.cache.component || [])?.find(
-          (obj) => obj?.component?.blueprint?.viewTag === id,
-        )?.component
-        if (pageNode) {
-          if (pageNode instanceof HTMLIFrameElement) {
-            //
+      if (destination === destinationParam) {
+        ndomPage.requesting = destination
+      }
+
+      if ('targetPage' in destProps) {
+        // @ts-expect-error
+        const destObj = destProps as ParsedPageComponentUrlObject
+        destination = destObj.targetPage || ''
+        id = destObj.viewTag || ''
+        if (id) {
+          for (const obj of app.cache.component) {
+            if (obj) {
+              if (obj?.component?.blueprint?.id === id) {
+                const pageComponent = obj.component
+                const currentPageName = pageComponent?.get?.('path')
+                ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
+                break
+              }
+            }
           }
         }
-        const currentPageName = pageComponent?.get?.('path')
-        ndomPage = app.ndom.findPage(currentPageName) as NDOMPage
       }
-    }
 
-    if (u.isObj(goto?.dataIn)) {
-      const dataIn = goto.dataIn
-      'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
-      'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
-    }
+      if (u.isObj(goto?.dataIn)) {
+        const dataIn = goto.dataIn
+        'reload' in dataIn && (pageModifiers.reload = dataIn.reload)
+        'pageReload' in dataIn && (pageModifiers.pageReload = dataIn.pageReload)
+      }
 
-    if (id) {
-      const isInsidePageComponent =
-        isPageConsumer(options.component) || !!destProps.targetPage
-      const node = findByViewTag(id) || findByElementId(id)
-      if (node) {
-        let win: Window | undefined | null
-        let doc: Document | null | undefined
-        if (document.contains?.(node as any)) {
-          win = window
-          doc = window.document
-        } else {
-          win = findWindow((w) => {
-            if (!w) return false
-            return (
-              'contentDocument' in w ? w['contentDocument'] : w.document
-            )?.contains?.(node as HTMLElement)
-          })
-        }
-        function scroll() {
-          if (isInsidePageComponent) {
-            scrollToElem(node, { win, doc, duration })
+      if (id) {
+        const isInsidePageComponent =
+          isPageConsumer(options.component) || !!destProps.targetPage
+        const node = findByViewTag(id) || findByElementId(id)
+        if (node) {
+          let win: Window | undefined | null
+          let doc: Document | null | undefined
+          if (document.contains?.(node as any)) {
+            win = window
+            doc = window.document
           } else {
-            ;(node as HTMLElement)?.scrollIntoView({
-              behavior: 'smooth',
-              block: 'center',
-              inline: 'center',
+            win = findWindow((w) => {
+              if (!w) return false
+              return (
+                'contentDocument' in w ? w['contentDocument'] : w.document
+              )?.contains?.(node as HTMLElement)
             })
           }
+          function scroll() {
+            if (isInsidePageComponent) {
+              scrollToElem(node, { win, doc, duration })
+            } else {
+              ;(node as HTMLElement)?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+                inline: 'center',
+              })
+            }
+          }
+          if (isSamePage) scroll()
+          else;
+          ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
+        } else {
+          log.red(
+            `Could not search for a DOM node with an identity of "${id}"`,
+            {
+              id,
+              destination,
+              isSamePage,
+              duration,
+              action: action?.snapshot?.(),
+            },
+          )
         }
-        if (isSamePage) scroll()
-        else;
-        ndomPage.once(ndomEventId.page.on.ON_COMPONENTS_RENDERED, scroll)
-      } else {
-        log.red(`Could not search for a DOM node with an identity of "${id}"`, {
-          id,
-          destination,
-          isSamePage,
-          duration,
-          action: action?.snapshot?.(),
-        })
       }
-    }
 
-    if (!destinationParam.startsWith('http')) {
-      // Avoids letting page components (lower level components) from mutating the tab's url
-      if (ndomPage === app.mainPage) {
-        ndomPage.pageUrl = app.parse.queryString({
-          destination,
-          pageUrl: ndomPage.pageUrl,
-          startPage: app.startPage,
-        })
-        log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
-      } else {
-        // TODO - Move this to an official location in noodl-ui-dom
-        if (
-          ndomPage.rootNode &&
-          ndomPage.rootNode instanceof HTMLIFrameElement
-        ) {
-          if (ndomPage.rootNode.contentDocument?.body) {
-            ndomPage.rootNode.contentDocument.body.textContent = ''
+      if (!destinationParam.startsWith('http')) {
+        // Avoids letting page components (lower level components) from mutating the tab's url
+        if (ndomPage === app.mainPage) {
+          const originUrl = ndomPage.pageUrl
+          ndomPage.pageUrl = app.parse.queryString({
+            destination,
+            pageUrl: ndomPage.pageUrl,
+            startPage: app.startPage,
+          })
+          log.grey(`Page URL evaluates to: ${ndomPage.pageUrl}`)
+        } else {
+          // TODO - Move this to an official location in noodl-ui-dom
+          if (ndomPage.node && ndomPage.node instanceof HTMLIFrameElement) {
+            if (ndomPage.node.contentDocument?.body) {
+              ndomPage.node.contentDocument.body.textContent = ''
+            }
           }
         }
+      } else {
+        destination = destinationParam
       }
-    } else {
-      destination = destinationParam
-    }
 
-    log.grey(`Goto info`, {
-      gotoObject: { goto },
-      destinationParam,
-      isSamePage,
-      pageModifiers,
-      updatedQueryString: ndomPage?.pageUrl,
-    })
+      log.grey(`Goto info`, {
+        gotoObject: { goto },
+        destinationParam,
+        isSamePage,
+        pageModifiers,
+        updatedQueryString: ndomPage?.pageUrl,
+      })
 
-    if (!isSamePage) {
-      if (
-        ndomPage?.rootNode &&
-        ndomPage.rootNode instanceof HTMLIFrameElement
-      ) {
-        if (ndomPage.rootNode.contentDocument?.body) {
-          ndomPage.rootNode.contentDocument.body.textContent = ''
+      if (!isSamePage) {
+        if (ndomPage?.node && ndomPage.node instanceof HTMLIFrameElement) {
+          if (ndomPage.node.contentDocument?.body) {
+            ndomPage.node.contentDocument.body.textContent = ''
+          }
+        }
+        ndomPage.setModifier(destination, pageModifiers)
+        if (ndomPage.page && ndomPage.page !== destination) {
+          // delete app.noodl.root[ndomPage.page]
+        }
+        await app.navigate(ndomPage, destination, { isGoto: true })
+        if (!destination) {
+          log.func('goto')
+          log.red(
+            'Tried to go to a page but could not find information on the whereabouts',
+            { action: action?.snapshot?.(), options },
+          )
         }
       }
-
-      await app.navigate(ndomPage, destination)
-      if (!destination) {
-        log.func('goto')
-        log.red(
-          'Tried to go to a page but could not find information on the whereabouts',
-          { action: action?.snapshot?.(), options },
-        )
-      }
-    }
-  }
+    },
+  )
 
   const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
     async function getInjectBlob(action, options) {
+      options.ref?.clear('timeout')
       log.func(name)
       log.gold('', action?.snapshot?.())
       const result = await openFileSelector()
@@ -398,10 +457,23 @@ const createActions = function createActions(app: App) {
           const ac = options?.ref
           const comp = options?.component
           const dataKey = _pick(action, 'dataKey')
+          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000
+          const fileFormat = _pick(action, 'fileFormat')
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0])
+            if (fileFormat) {
+              ac.data.set(fileFormat, files?.[0]?.type)
+              app.updateRoot(fileFormat, ac.data.get(fileFormat))
+            }
             if (u.isStr(dataKey)) {
-              app.updateRoot(dataKey, ac.data.get(dataKey))
+              await imageConversion
+                .compressAccurately(ac.data.get(dataKey), size)
+                .then((res) => {
+                  let newFile = new File([res], ac.data.get(dataKey).name, {
+                    type: files?.[0].type,
+                  })
+                  app.updateRoot(dataKey, newFile)
+                })
             } else {
               log.red(
                 `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,
@@ -426,10 +498,7 @@ const createActions = function createActions(app: App) {
           break
         case 'canceled':
           await options?.ref?.abort?.('File input window was closed')
-          return log.red(
-            `File was not selected for action "${name}" and the operation was aborted`,
-            action?.snapshot?.(),
-          )
+          break
         case 'error':
           return void log.red(`An error occurred for action "${name}"`, {
             action: action?.snapshot?.(),
@@ -447,93 +516,131 @@ const createActions = function createActions(app: App) {
   const pageJump: Store.ActionObject['fn'] = (action) =>
     app.navigate(_pick(action, 'destination'))
 
-  const popUp: Store.ActionObject['fn'] = async function onPopUp(
-    action,
-    options,
-  ) {
+  const popUp: Store.ActionObject['fn'] = function onPopUp(action, options) {
     log.func('popUp')
     log.grey('', action?.snapshot?.())
-    const { ref } = options
-    const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
-    const popUpView = _pick(action, 'popUpView')
-    u.arrayEach(asHtmlElement(findByUX(popUpView)), (elem) => {
-      if (dismissOnTouchOutside) {
-        const onTouchOutside = function onTouchOutside(
-          this: HTMLDivElement,
-          e: Event,
-        ) {
-          e.preventDefault()
-          hide(elem)
-          document.body.removeEventListener('click', onTouchOutside)
-        }
-        document.body.addEventListener('click', onTouchOutside)
-      }
-      if (elem?.style) {
-        if (Identify.action.popUp(action)) show(elem)
-        else if (Identify.action.popUpDismiss(action)) hide(elem)
-        // Some popup components render values using the dataKey. There is a bug
-        // where an action returns a popUp action from an evalObject action. At
-        // this moment the popup is not aware that it needs to read the dataKey if
-        // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { ref } = options
+        const dismissOnTouchOutside = _pick(action, 'dismissOnTouchOutside')
+        const popUpView = _pick(action, 'popUpView')
+        const popDismiss = _pick(action, 'popUpDismiss')
+        const wait = _pick(action, 'wait')
 
-        // Auto prefills the verification code when ECOS_ENV === 'test'
-        // and when the entered phone number starts with 888
-        if (process.env.ECOS_ENV === 'test') {
-          const currentPage =
-            pickNUIPageFromOptions(options)?.page || app.currentPage
-          const vcodeInput = getVcodeElem()
-          const phoneInput = u.array(
-            asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
-          )[0] as HTMLInputElement
-          let phoneNumber = String(
-            phoneInput?.value || phoneInput?.dataset?.value,
-          )
-          if (!phoneNumber && phoneInput?.dataset?.key) {
-            const value = get(app.root[currentPage], phoneInput.dataset.key)
-            value && (phoneNumber = value)
-          }
-          const is888 =
-            phoneNumber.startsWith('888') ||
-            phoneNumber.startsWith('+1888') ||
-            phoneNumber.startsWith('+1 888')
+        let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
 
-          if (vcodeInput && is888 && action?.actionType !== 'popUpDismiss') {
-            let pathToTage = 'verificationCode.response.edge.tage'
-            let vcode = get(app.root?.[currentPage], pathToTage, '')
-            if (vcode) {
-              vcode = String(vcode)
-              vcodeInput.value = vcode
-              vcodeInput.dataset.value = vcode
-              app.updateRoot(
-                `${currentPage}.${vcodeInput.dataset.key || 'formData.code'}`,
-                vcode,
-              )
-            } else {
-              log.orange(
-                `Could not find a verification code at path "${pathToTage}"`,
-              )
+        u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
+          if (dismissOnTouchOutside) {
+            const onTouchOutside = function onTouchOutside(
+              this: HTMLDivElement,
+              e: Event,
+            ) {
+              e.preventDefault()
+              hide(elem)
+              document.body.removeEventListener('click', onTouchOutside)
             }
+            document.body.addEventListener('click', onTouchOutside)
           }
-        }
+          if (elem?.style) {
+            if (is.action.popUp(action) && !u.isNum(_pick(action, 'wait'))) {
+              show(elem)
+            } else if (u.isNum(_pick(action, 'wait'))) {
+              show(elem)
+              let wait = _pick(action, 'wait')
+              if (is.isBooleanTrue(wait)) wait = 0
+              if (u.isNum(wait)) isWaiting = true
+              setTimeout(() => {
+                hide(elem)
+                resolve()
+              }, wait)
+            } else if (is.action.popUpDismiss(action)) {
+              hide(elem)
+            }
+            if (u.isNum(popDismiss)) {
+              setTimeout(() => {
+                hide(elem)
+              }, popDismiss)
+            }
+            // Some popup components render values using the dataKey. There is a bug
+            // where an action returns a popUp action from an evalObject action. At
+            // this moment the popup is not aware that it needs to read the dataKey if
+            // it is not triggered by some NOODLDOMDataValueElement. So we need to do a check here
 
-        // If popUp has wait: true, the action chain should pause until a response
-        // is received from something (ex: waiting on user confirming their password)
-        if (Identify.isBooleanTrue(_pick(action, 'wait'))) {
-          log.grey(
-            `Popup action for popUpView "${popUpView}" is ` +
-              `waiting on a response. Aborting now...`,
-            action?.snapshot?.(),
-          )
-          ref?.abort?.()
-        }
-      } else {
-        let msg = `Tried to ${action?.actionType === 'popUp' ? 'show' : 'hide'}`
-        log.func(action?.actionType)
-        log.red(
-          `${msg} a ${action?.actionType} element but the element ` +
-            `was null or undefined`,
-          { action: action?.snapshot?.(), popUpView },
-        )
+            // Removed 02/14/2022 - noodl implements auto filling
+            // Auto prefills the verification code when ECOS_ENV === 'test'
+            // and when the entered phone number starts with 888
+            // if (process.env.ECOS_ENV === 'test') {
+            //   const currentPage =
+            //     pickNUIPageFromOptions(options)?.page || app.currentPage
+            //   const vcodeInput = getVcodeElem()
+            //   const phoneInput = u.array(
+            //     asHtmlElement(findByDataAttrib('data-name', 'phoneNumber')),
+            //   )[0] as HTMLInputElement
+            //   let phoneNumber = String(
+            //     phoneInput?.value || phoneInput?.dataset?.value,
+            //   )
+            //   if (!phoneNumber && phoneInput?.dataset?.key) {
+            //     const value = get(app.root[currentPage], phoneInput.dataset.key)
+            //     value && (phoneNumber = value)
+            //   }
+            //   const is888 =
+            //     phoneNumber.startsWith('888') ||
+            //     phoneNumber.startsWith('+1888') ||
+            //     phoneNumber.startsWith('+1 888')
+
+            //   if (
+            //     vcodeInput &&
+            //     is888 &&
+            //     action?.actionType !== 'popUpDismiss'
+            //   ) {
+            //     let pathToTage = 'verificationCode.response.edge.tage'
+            //     let vcode = get(app.root?.[currentPage], pathToTage, '')
+            //     if (vcode) {
+            //       vcode = String(vcode)
+            //       vcodeInput.value = vcode
+            //       vcodeInput.dataset.value = vcode
+            //       app.updateRoot(
+            //         `${currentPage}.${
+            //           vcodeInput.dataset.key || 'formData.code'
+            //         }`,
+            //         vcode,
+            //       )
+            //     } else {
+            //       log.orange(
+            //         `Could not find a verification code at path "${pathToTage}"`,
+            //       )
+            //     }
+            //   }
+            // }
+
+            // If popUp has wait: true, the action chain should pause until a response
+            // is received from something (ex: waiting on user confirming their password)
+            if (is.isBooleanTrue(_pick(action, 'wait'))) {
+              log.grey(
+                `Popup action for popUpView "${popUpView}" is ` +
+                  `waiting on a response. Aborting now...`,
+                action?.snapshot?.(),
+              )
+              // debugger
+              ref?.abort?.()
+              resolve()
+            }
+          } else {
+            let msg = `Tried to ${
+              action?.actionType === 'popUp' ? 'show' : 'hide'
+            }`
+            log.func(action?.actionType)
+            log.red(
+              `${msg} a ${action?.actionType} element but the element ` +
+                `was null or undefined`,
+              { action: action?.snapshot?.(), popUpView },
+            )
+          }
+
+          if (!isWaiting) resolve()
+        })
+      } catch (error) {
+        reject(error instanceof Error ? error : new Error(String(error)))
       }
     })
   }
@@ -579,7 +686,7 @@ const createActions = function createActions(app: App) {
               let nameField
               const [nameFieldPath, save] = obj
               if (u.isStr(nameFieldPath) && u.isFnc(save)) {
-                if (Identify.reference(nameFieldPath)) {
+                if (is.reference(nameFieldPath)) {
                   nameField = parseReference(nameFieldPath, {
                     page: currentPage,
                     root: getRoot(),
@@ -620,11 +727,12 @@ const createActions = function createActions(app: App) {
         log.func('removeSignature')
         log.grey('', { action: action?.snapshot?.(), options })
         const dataKey = _pick(action, 'dataKey')
-        const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
+        const node = findFirstByDataKey(dataKey) as HTMLCanvasElement
         if (node) {
           const component = app.cache.component.get(node.id)?.component
           if (isComponent(component)) {
             const signaturePad = component.get('signaturePad') as SignaturePad
+            console.log('test', signaturePad)
             if (signaturePad) {
               signaturePad.clear()
               log.grey(
@@ -660,11 +768,12 @@ const createActions = function createActions(app: App) {
       log.grey('', { action: action?.snapshot?.(), options })
       const dataKey = _pick(action, 'dataKey')
       if (dataKey) {
-        const node = getFirstByDataKey(dataKey) as HTMLCanvasElement
+        const node = findFirstByDataKey(dataKey) as HTMLCanvasElement
         const component = app.cache.component.get(node.id)?.component
         if (component) {
           const signaturePad = component.get('signaturePad') as SignaturePad
           if (signaturePad) {
+            let isEmpty = _pick(action, 'isEmpty')
             let dataKey = _pick(action, 'dataKey')
             let dataObject = isRootDataKey(dataKey)
               ? app.root
@@ -673,6 +782,9 @@ const createActions = function createActions(app: App) {
             let mimeType = dataUrl.split(';')[0].split(':')[1] || ''
             if (has(dataObject, dataKey)) {
               getBlobFromCanvas(node, mimeType).then((blob) => {
+                if (isEmpty) {
+                  set(dataObject, isEmpty, signaturePad._isEmpty)
+                }
                 set(dataObject, dataKey, blob)
                 log.func('saveSignature')
                 log.grey(`Saved blob to "${dataKey}"`, {
@@ -732,6 +844,7 @@ const createActions = function createActions(app: App) {
     action,
     { component, ref },
   ) {
+    ref?.clear('timeout')
     log.func('updateObject')
     log.grey('', action?.snapshot?.())
 
@@ -800,23 +913,52 @@ const createActions = function createActions(app: App) {
           }
         }
 
-        if (dataObject) {
-          const params = { dataKey, dataObject }
-          log.func('updateObject')
-          log.grey(`Calling updateObject`, { params })
-          await app.noodl.updateObject(params)
-        } else {
-          log.red(`Invalid/empty dataObject`, {
-            action: action?.snapshot?.(),
-            dataObject,
-          })
-        }
+        const params = { dataKey, dataObject }
+        log.func('updateObject')
+        log.grey(`Calling updateObject`, { params })
+        await app.noodl.updateObject(params)
       }
     } catch (error) {
       console.error(error)
       toast(error.message, { type: 'error' })
     }
   }
+
+  const getLocationAddress: Store.ActionObject['fn'] =
+    async function onGetLocationAddress(action, options) {
+      log.func('getLocationAddress')
+      log.grey('', action?.snapshot?.())
+      const types = 'address'
+      const access_token =
+        'pk.eyJ1IjoiamllamlleXV5IiwiYSI6ImNrbTFtem43NzF4amQyd3A4dmMyZHJhZzQifQ.qUDDq-asx1Q70aq90VDOJA'
+      const host = 'https://api.mapbox.com/geocoding/v5/mapbox.places'
+      const dataKey = _pick(action, 'dataKey')
+      const longitude = localStorage.getItem('longitude')
+      const latitude = localStorage.getItem('latitude')
+      if (longitude && latitude) {
+        await axios({
+          method: 'get',
+          url: `${host}/${longitude},${latitude}.json`,
+          params: {
+            // types: types,
+            limit: 1,
+            access_token: access_token,
+          },
+        })
+          .then((res) => {
+            const place_name = res['data']['features'][0]['place_name']
+            let dataObject = isRootDataKey(dataKey)
+              ? app.root
+              : app.root?.[pickNUIPageFromOptions(options)?.page || '']
+            if (place_name) {
+              set(dataObject, dataKey, place_name)
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+          })
+      }
+    }
 
   return {
     anonymous,
@@ -835,6 +977,7 @@ const createActions = function createActions(app: App) {
     saveSignature,
     toast: toastAction,
     updateObject,
+    getLocationAddress,
   }
 }
 

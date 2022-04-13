@@ -1,8 +1,8 @@
 import * as u from '@jsmanifest/utils'
-import _get from 'lodash/get'
-import { Identify, PageObject } from 'noodl-types'
-import { excludeIteratorVar } from 'noodl-utils'
-import { NUIComponent } from '../types'
+import * as nt from 'noodl-types'
+import * as nu from 'noodl-utils'
+import get from 'lodash/get'
+import type { NuiComponent } from '../types'
 
 interface Duration {
   years?: number
@@ -87,7 +87,7 @@ export default function addMonths(dirtyDate: Date, dirtyAmount: number): Date {
 }
 
 export function createGlobalComponentId(
-  component: NUIComponent.Instance | string | undefined,
+  component: NuiComponent.Instance | string | undefined,
 ) {
   return !u.isUnd(component)
     ? u.isStr(component)
@@ -116,13 +116,39 @@ export function getStartOfDay(dirtyDate: Date) {
   return date
 }
 
-// Custom formatting output for NodeJS console
-// https://nodejs.org/api/util.html#util_util_inspect_custom
-export const inspect = Symbol.for('nodejs.util.inspect.custom')
+/**
+ * Fallback "if" resolver if a custom resolver was not provided in hooks
+ * @param ifObject
+ * @returns
+ */
+export function defaultResolveIf(ifObject: nt.IfObject) {
+  const [cond, valOnTrue, valOnFalse] = ifObject.if || []
+  if (u.isFnc(cond)) return cond?.() ? valOnTrue : valOnFalse
+  return cond ? valOnTrue : valOnFalse
+}
 
-export function mapKeysToOwnArrays<K extends string, A = any>(keys: K[]) {
-  return keys.reduce(
-    (acc, key) => u.assign(acc, { [key]: [] }),
-    {} as Record<K, A[]>,
-  )
+export function resolveDataPath(datapath: string, rootKey?: string) {
+  if (nt.Identify.rootKey(datapath)) {
+    return nu.toDataPath(datapath)
+  } else if (nt.Identify.localKey(datapath)) {
+    return rootKey
+      ? [rootKey, ...nu.toDataPath(datapath)]
+      : nu.toDataPath(datapath)
+  }
+  return []
+}
+
+export function defaultResolveReference(
+  root: Record<string, any> | (() => Record<string, any>),
+  rootKey = '',
+  reference: nt.ReferenceString,
+) {
+  const datapath = nu.trimReference(reference)
+  if (nt.Identify.localKey(datapath)) {
+    return get(
+      u.isFnc(root) ? root() : root,
+      resolveDataPath(datapath, rootKey),
+    )
+  }
+  return get(u.isFnc(root) ? root() : root, nu.toDataPath(datapath))
 }

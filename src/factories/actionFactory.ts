@@ -8,24 +8,20 @@
  */
 
 import * as u from '@jsmanifest/utils'
-import { isAction } from 'noodl-action-chain'
-import { Identify } from 'noodl-types'
 import {
   ConsumerOptions,
-  createAction,
   NUIAction,
   NUIActionGroupedType,
   NUIActionObject,
   Store,
 } from 'noodl-ui'
 import App from '../App'
-import * as t from '../app/types'
 
 export type ActionKind = 'action' | 'builtIn'
 
 export type ActionHandlerArgs =
   | [destination: string, ...rest: any[]]
-  | [actionObject: NUIActionObject, ...rest: any[]]
+  | [obj: NUIActionObject | { pageName: string; goto: string }, ...rest: any[]]
   | Parameters<Store.ActionObject['fn']>
   | Parameters<Store.BuiltInObject['fn']>
 
@@ -48,7 +44,7 @@ class Middleware {
   #run: MiddlewareObject['fn']
 
   constructor(middleware: MiddlewareObject) {
-    this.#id = middleware.id
+    this.#id = middleware?.id
     this.#middleware = middleware
     this.#run = middleware.fn
   }
@@ -67,10 +63,11 @@ const actionFactory = function (app: App) {
    * @param { ActionHandlerArgs } args
    * @returns { Promise<any>[] }
    */
-  async function runMiddleware(args: ActionHandlerArgs) {
+  async function runMiddleware(args: ActionHandlerArgs | ActionHandlerArgs[]) {
     args = u.array(args)
-    console.log(`%cRUN MIDDLEWARE ARGS`, `color:#c4a901;`, args)
-    await Promise.all(middlewares.map(async (mo) => mo.fn?.(args)))
+    await Promise.all(
+      middlewares.map(async (mo) => mo.fn?.(args as ActionHandlerArgs)),
+    )
     return args
   }
 

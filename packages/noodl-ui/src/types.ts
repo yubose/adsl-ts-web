@@ -1,12 +1,11 @@
-import { AcceptArray } from '@jsmanifest/typefest'
-import {
+import type { OrArray, OrPromise } from '@jsmanifest/typefest'
+import type {
   ActionObject,
   ActionType,
   BuiltInActionObject,
   ComponentObject,
   ComponentType,
   EventType,
-  EmitObject,
   EmitObjectFold,
   EvalActionObject,
   GotoObject,
@@ -23,32 +22,48 @@ import {
   PluginComponentObject,
   PluginHeadComponentObject,
   PluginBodyTailComponentObject,
+  PluginBodyTopComponentObject,
+  ReferenceString,
+  IfObject,
+  PageComponentUrl,
 } from 'noodl-types'
-import { Action, ActionChain } from 'noodl-action-chain'
-import { LiteralUnion } from 'type-fest'
-import ComponentBase from './Component'
-import _ComponentCache from './cache/ComponentCache'
-import _PluginCache from './cache/PluginCache'
-import EmitAction from './actions/EmitAction'
-import NUI from './noodl-ui'
-import NUIPage from './Page'
-import Viewport from './Viewport'
+import type {
+  Action,
+  ActionChain,
+  ActionChainObserver,
+} from 'noodl-action-chain'
+import type { LiteralUnion } from 'type-fest'
+import type ComponentBase from './Component'
+import type _ComponentCache from './cache/ComponentCache'
+import type _PluginCache from './cache/PluginCache'
+import type EmitAction from './actions/EmitAction'
+import type NUI from './noodl-ui'
+import type NuiPage from './Page'
+import type Viewport from './Viewport'
 import {
+  eventId,
   nuiEvent,
   groupedActionTypes,
   lib,
   nuiEmitType,
   nuiEmitTransaction,
+  triggers,
 } from './constants'
+import type ComponentPage from './dom/factory/componentFactory/ComponentPage'
+import type GlobalComponentRecord from './dom/global/GlobalComponentRecord'
+import type GlobalTimers from './dom/global/Timers'
+import type NDOM from './dom/noodl-ui-dom'
+import type NDOMPage from './dom/Page'
+import type NDOMResolver from './dom/Resolver'
 
 export type NUIActionType = ActionType | typeof lib.actionTypes[number]
 export type NUIActionGroupedType = typeof groupedActionTypes[number]
-export type NUIComponentType = ComponentType | typeof lib.components[number]
+export type NuiComponentType = ComponentType | typeof lib.components[number]
 export type NUITrigger = EventType | typeof lib.emitTriggers[number]
 export type DataAttribute = typeof lib.dataAttributes[number]
 
 /* -------------------------------------------------------
-  ---- ACTIONS 
+  ---- ACTIONS
 -------------------------------------------------------- */
 
 export type NUIActionChain = ActionChain<NUIActionObject, NUITrigger>
@@ -61,8 +76,9 @@ export type NUIActionObjectInput =
   | ToastObject
 
 export interface ComponentCacheObject {
-  component: NUIComponent.Instance
+  component: NuiComponent.Instance
   page: string
+  pageId?: string
 }
 
 export namespace NUIEmit {
@@ -116,6 +132,10 @@ export interface ToastActionObject extends ActionObject, ToastObject {
   [key: string]: any
 }
 
+export interface GotoFn {
+  (goto: string | GotoObject): any
+}
+
 export interface ICache {
   clear(): void
   length: number
@@ -127,11 +147,8 @@ export interface IPage {
   viewport: Viewport
 }
 
-export namespace NUIComponent {
-  export type CreateType =
-    | ComponentType
-    | ComponentObject
-    | NUIComponent.Instance
+export namespace NuiComponent {
+  export type CreateType = ComponentObject | NuiComponent.Instance
 
   export interface EditResolutionOptions {
     remove?: string | string[] | Record<string, () => boolean>
@@ -144,38 +161,26 @@ export namespace NUIComponent {
       dataObject: any
       index: number
     }): void
-    [nuiEvent.component.list.DELETE_DATA_OBJECT](args: {
-      component: NUIComponent.Instance
-      dataObject: any
-      index: number
+    [nuiEvent.component.page.PAGE_CREATED](page: NuiPage): void
+    [nuiEvent.component.page.PAGE_CHANGED](): void
+    [nuiEvent.component.page.PAGE_COMPONENTS](options: {
+      page: NuiPage
+      type: 'init' | 'update'
     }): void
-    [nuiEvent.component.list.UPDATE_DATA_OBJECT](args: {
-      dataObject: any
-      index: number
-    }): void
-    [nuiEvent.component.page.PAGE_INSTANCE_CREATED](page: NUIPage): void
-    [nuiEvent.component.page.PAGE_OBJECT](
-      component: NUIComponent.Instance,
-      options: ConsumerOptions,
-    ): Promise<void | PageObject>
-    [nuiEvent.component.page.PAGE_COMPONENTS](
-      components: ComponentObject[],
-    ): void
-    [nuiEvent.component.register.ONEVENT](): void
     content(pluginContent: string): void
-    dataValue(dataValue: any): void
+    'data-value'(dataValue: any): void
     'data-src'(src: string): void
     image(src: string): void
     options(options: any[]): void
     path(src: string): void
     placeholder(src: string): void
   } & Partial<
-    Record<TimerHook<'init'>, (fn: (initialTimer: Date) => void) => void> &
+    Record<TimerHook<'init'>, (initialValue?: Date) => void> &
       Record<
         TimerHook<'interval'>,
         (args: {
           value: Date | undefined
-          component: NUIComponent.Instance
+          component: NuiComponent.Instance
           node: HTMLElement
         }) => void
       > &
@@ -195,33 +200,22 @@ export namespace NUIComponent {
       | ((args: {
           value: Date | undefined
           node: HTMLElement
-          component: NUIComponent.Instance
+          component: NuiComponent.Instance
         }) => void)
       | null
   }
 
   export type Instance = ComponentBase
 
-  export type ResolverArgs = [
-    component: NUIComponent.Instance,
-    options: ConsumerOptions,
-    next: (opts?: Record<string, any>) => void,
-  ]
-
-  export type Type = NUIComponentType
+  export type Type = NuiComponentType
 }
 
 export namespace Plugin {
   export type ComponentObject =
     | PluginComponentObject
     | PluginHeadComponentObject
+    | PluginBodyTopComponentObject
     | PluginBodyTailComponentObject
-
-  export type CreateType =
-    | string
-    | NUIComponent.Instance
-    | Plugin.ComponentObject
-    | Plugin.Object
 
   export type Location = 'head' | 'body-top' | 'body-bottom'
 
@@ -234,20 +228,75 @@ export namespace Plugin {
   }
 }
 
-export type ConsumerOptions = Omit<
-  ReturnType<typeof NUI['getConsumerOptions']>,
+export type ConsumerOptions<Trig extends string = string> = Omit<
+  ReturnType<typeof NUI.getConsumerOptions>,
   'createActionChain' | 'getBaseStyles'
 > & {
   createActionChain(
-    trigger: NUITrigger,
-    actions: NUIActionObject | NUIActionObject[],
+    trigger: LiteralUnion<NUITrigger | Trig, string>,
+    actions: OrArray<NUIActionObject>,
     opts?: { loadQueue?: boolean },
   ): NUIActionChain
   event?: Event
   getBaseStyles(
-    component: NUIComponent.Instance,
+    component: NuiComponent.Instance,
   ): StyleObject & { [key: string]: any }
   ref?: NUIActionChain
+} & Partial<ConsumerOptionsHelpers>
+
+export interface ConsumerOptionsHelpers {
+  resolveReference: (key: string, value?: any) => any
+}
+
+export interface On {
+  actionChain?: ActionChainObserver
+  page?(page: NuiPage): OrPromise<void>
+  setup?(component: NuiComponent.Instance): OrPromise<void>
+  /**
+   * Called whenever a NuiComponent instance is created (depth-first)
+   * @param component NuiComponent
+   * @param args Context
+   */
+  createComponent?(
+    component: NuiComponent.Instance,
+    args: {
+      path?: (string | number)[]
+      page?: NuiPage
+      parent: NuiComponent.Instance | null
+      index?: number
+      iteratorVar?: number
+      dataObject?: number
+    },
+  ): OrPromise<void>
+  if?(args: {
+    component?: NuiComponent.Instance
+    page?: NuiPage
+    key: string
+    value: IfObject
+  }): boolean | null | undefined
+  emit?: {
+    createActionChain?(opts: {
+      actionChain: NUIActionChain
+      actions: NUIActionObject
+      component: NuiComponent.Instance
+      shouldExecuteImmediately?:
+        | boolean
+        | ((actionChain: NUIActionChain) => boolean)
+      trigger: NUITrigger
+    }): Promise<void> | void
+  }
+  pageComponentUrl?(args: {
+    component?: NuiComponent.Instance
+    page?: NuiPage
+    key: string
+    value: PageComponentUrl
+  }): string
+  reference?<S extends string = string>(args: {
+    component?: NuiComponent.Instance
+    page?: NuiPage
+    key: string
+    value: ReferenceString<S>
+  }): any
 }
 
 export namespace Register {
@@ -266,7 +315,10 @@ export namespace Register {
     ) => Promise<any>
   }
 
-  export type Params<RT = any> = ParamsObject | ParamsGetter<RT>
+  export type Params<RT = any> =
+    | ParamsObject
+    | ((obj: Register.Object) => RT | Promise<RT>)
+
   export type ParamsObject<K extends string = string> = Record<
     LiteralUnion<K, string>,
     any
@@ -274,39 +326,41 @@ export namespace Register {
     args?: any[]
     data?: K | Record<K, any>
   }
-  export type ParamsGetter<RT> = (obj: Register.Object) => RT | Promise<RT>
 
   export type Page<P extends string = '_global'> = LiteralUnion<P, string>
+}
+
+export interface ResolveComponentOptions<
+  C extends OrArray<NuiComponent.CreateType>,
+  Context extends Record<string, any> = Record<string, any>,
+> {
+  callback?(component: NuiComponent.Instance): NuiComponent.Instance | undefined
+  components: C
+  context?: Context
+  on?: On
+  page?: NuiPage
 }
 
 export namespace Store {
   export interface ActionObject<
     AType extends NUIActionType = NUIActionType,
-    ATrigger extends NUITrigger = NUITrigger,
+    ATrigger extends string = string,
   > {
     actionType: AType
     fn(
       action: AType extends 'emit' ? EmitAction : Action<AType, ATrigger>,
       options: ConsumerOptions,
     ): Promise<any[] | void>
-    trigger?: ATrigger
+    trigger?: LiteralUnion<NUITrigger | ATrigger, string>
   }
 
   export interface BuiltInObject<
     FuncName extends string = string,
-    ATrigger extends NUITrigger = NUITrigger,
+    ATrigger extends string = string,
   > {
     actionType: 'builtIn'
     fn(action: Action<'builtIn', ATrigger>, options: any): Promise<any[] | void>
     funcName: FuncName
-  }
-
-  export interface Plugins {
-    head: Plugin.Object[]
-    body: {
-      top: Plugin.Object[]
-      bottom: Plugin.Object[]
-    }
   }
 }
 
@@ -319,7 +373,7 @@ export interface SelectOption {
 export interface Transaction {
   [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: {
     params: { page: string; modifiers?: Record<string, any> }
-    fn(page: NUIPage | NUIPage['page']): Promise<PageObject>
+    fn(page: NuiPage | NuiPage['page']): Promise<PageObject>
     callback(pageObject: PageObject): void
   }
   [key: string]: any
@@ -331,15 +385,9 @@ export interface UseArg<
   TObj extends Record<string, any> = Record<string, any>,
   TName extends TransactionId = TransactionId,
 > extends Partial<
-    Record<
-      NUIActionGroupedType,
-      Store.ActionObject['fn'] | Store.ActionObject['fn'][]
-    >
+    Record<NUIActionGroupedType, OrArray<Store.ActionObject['fn']>>
   > {
-  builtIn?: Record<
-    string,
-    Store.BuiltInObject['fn'] | Store.BuiltInObject['fn'][]
-  >
+  builtIn?: Record<string, OrArray<Store.BuiltInObject['fn']>>
   emit?: Partial<
     Record<
       NUITrigger,
@@ -351,13 +399,256 @@ export interface UseArg<
   getPages?: () => string[]
   getPreloadPages?: () => string[]
   getRoot?: () => Record<string, any>
-  plugin?: ComponentObject | ComponentObject[]
+  on?: On
+  plugin?: OrArray<ComponentObject>
   register?:
     | Record<string, Register.Object['fn']>
-    | AcceptArray<
+    | OrArray<
         RegisterComponentObject & { handler?: Register.Object['handler'] }
       >
   transaction?: Partial<
     Record<LiteralUnion<TName, string>, TObj[TName] | TObj[TName]['fn']>
   >
+}
+
+/* -------------------------------------------------------
+  ---- DOM
+-------------------------------------------------------- */
+
+export interface IGlobalObject<T extends string = string> {
+  type: T
+}
+
+export interface GlobalMap {
+  components: Map<string, GlobalComponentRecord>
+  hooks: Map<string, Record<string, ((...args: any[]) => any)[]>>
+  mapping: Map<
+    string,
+    {
+      componentId: string
+      pageId: string
+      children: { componentId: string; pageId: string }[]
+    }[]
+  >
+  pages: Record<string, NDOMPage | ComponentPage>
+  timers: GlobalTimers
+}
+
+export interface Hooks {
+  onRedrawStart(args: {
+    parent: NuiComponent.Instance | null
+    component: NuiComponent.Instance
+    context?: { dataObject?: any }
+    node: HTMLElement | null
+    page: NDOMPage
+  }): OrPromise<void>
+  onBeforeRequestPageObject(page: NDOMPage): void
+  onAfterRequestPageObject(page: NDOMPage): void
+}
+
+export type DOMNodeInput =
+  | NodeListOf<any>
+  | NodeList
+  | HTMLCollection
+  | HTMLElement
+  | HTMLElement[]
+  | null
+
+export type NDOMElement<T extends string = string> = T extends 'button'
+  ? HTMLButtonElement
+  : T extends 'canvas'
+  ? HTMLCanvasElement
+  : T extends 'chart'
+  ? HTMLDivElement
+  : T extends 'chatList'
+  ? HTMLUListElement
+  : T extends 'divider'
+  ? HTMLHRElement
+  : T extends 'ecosDoc'
+  ? HTMLDivElement
+  : T extends 'footer'
+  ? HTMLDivElement
+  : T extends 'header'
+  ? HTMLDivElement
+  : T extends 'label'
+  ? HTMLDivElement
+  : T extends 'map'
+  ? HTMLDivElement
+  : T extends 'iframe' | 'page'
+  ? HTMLIFrameElement
+  : T extends 'plugin' | 'pluginHead' | 'pluginBodyTop' | 'pluginBodyTail'
+  ? HTMLDivElement | HTMLScriptElement | HTMLLinkElement | HTMLStyleElement
+  : T extends 'popUp'
+  ? HTMLDivElement
+  : T extends 'image'
+  ? HTMLImageElement
+  : T extends 'textField'
+  ? HTMLInputElement
+  : T extends 'list'
+  ? HTMLUListElement
+  : T extends 'listItem'
+  ? HTMLLIElement
+  : T extends 'register'
+  ? HTMLElement
+  : T extends 'stylesheet'
+  ? HTMLLinkElement
+  : T extends 'script'
+  ? HTMLScriptElement
+  : T extends 'select'
+  ? HTMLSelectElement
+  : T extends 'style'
+  ? HTMLStyleElement
+  : T extends 'textView'
+  ? HTMLTextAreaElement
+  : T extends 'video'
+  ? HTMLVideoElement
+  : T extends 'view'
+  ? HTMLDivElement
+  : HTMLElement
+
+export type ElementBinding = Map<
+  'audioStream' | 'videoStream',
+  (component: NuiComponent.Instance) => HTMLElement | null
+>
+
+export namespace Resolve {
+  export interface BaseOptions<
+    T extends string = string,
+    N extends NDOMElement<T> = NDOMElement<T>,
+  > {
+    node: N
+    component: NuiComponent.Instance
+    page?: NDOMPage
+  }
+
+  export interface Config<
+    T extends string = string,
+    N extends NDOMElement<T> = NDOMElement<T>,
+  > {
+    name?: string
+    cond?: LiteralUnion<ComponentType, string> | Resolve.Func<T, N, boolean>
+    init?: Resolve.Func<T, N>
+    before?: Resolve.Func<T, N>
+    resolve?: Resolve.Func<T, N>
+    after?: Resolve.Func<T, N>
+  }
+
+  export interface Func<
+    T extends string = string,
+    N extends NDOMElement<T> = NDOMElement<T>,
+    RT = void,
+  > {
+    (
+      options: ReturnType<NDOMResolver['getOptions']> &
+        Resolve.BaseOptions<T, N>,
+    ): RT
+  }
+
+  export interface LifeCycle {
+    before: Resolve.Config[]
+    resolve: Resolve.Config[]
+    after: Resolve.Config[]
+  }
+
+  export type LifeCycleEvent = 'before' | 'resolve' | 'after'
+}
+
+export namespace Render {
+  export interface Func {
+    (components: ComponentObject | ComponentObject[]): NuiComponent.Instance[]
+  }
+}
+
+export type RegisterOptions = Resolve.Config
+
+export namespace Page {
+  export type HookEvent = keyof Hook
+
+  export type Hook = {
+    [eventId.page.on.ON_ASPECT_RATIO_MIN](prevMin: number, min: number): void
+    [eventId.page.on.ON_ASPECT_RATIO_MAX](prevMax: number, max: number): void
+    [eventId.page.on.ON_STATUS_CHANGE](status: Page.Status): void
+    [eventId.page.on.ON_NAVIGATE_START](page: NDOMPage): void
+    [eventId.page.on.ON_NAVIGATE_STALE](args: {
+      previouslyRequesting: string
+      newPageRequesting: string
+      snapshot: Snapshot
+    }): void
+    [eventId.page.on.ON_NAVIGATE_ERROR](
+      snapshot: Snapshot & { error: Error },
+    ): void
+    [eventId.page.on.ON_BEFORE_CLEAR_ROOT_NODE](node: HTMLElement): void
+    [eventId.page.on.ON_DOM_CLEANUP](args: {
+      global: NDOM['global']
+      node: NDOM['page']['node']
+    }): void
+    [eventId.page.on.ON_BEFORE_RENDER_COMPONENTS](
+      snapshot: Snapshot & { components: NuiComponent.Instance[] },
+    ): void
+    [eventId.page.on.ON_COMPONENTS_RENDERED](page: NDOMPage): void
+    [eventId.page.on.ON_APPEND_NODE](args: {
+      page: NDOMPage
+      parentNode: HTMLElement
+      node: HTMLElement
+      component: NuiComponent.Instance
+    }): void
+    // Redraw events
+    [eventId.page.on.ON_REDRAW_BEFORE_CLEANUP](args: {
+      parent: NuiComponent.Instance | null
+      component: NuiComponent.Instance
+      context?: { dataObject?: any }
+      node: HTMLElement | null
+      page: NDOMPage
+    }): void
+    [eventId.page.on.ON_SET_ROOT_NODE](args: {
+      node: HTMLDivElement | HTMLIFrameElement | null
+    }): void
+  }
+
+  export interface HookDescriptor<Evt extends Page.HookEvent = Page.HookEvent> {
+    id: Evt
+    once?: boolean
+    fn: Page.Hook[Evt]
+  }
+
+  export interface State {
+    aspectRatio: number
+    aspectRatioMin: number
+    aspectRatioMax: number
+    previous: string
+    requesting: string
+    modifiers: {
+      [pageName: string]: { reload?: boolean } & {
+        [key: string]: any
+      }
+    }
+    status: Status
+    node: boolean
+  }
+
+  export type Status =
+    typeof eventId.page.status[keyof typeof eventId.page.status]
+
+  export type Snapshot = ReturnType<NDOMPage['snapshot']>
+}
+
+export interface NDOMTransaction {
+  REQUEST_PAGE_OBJECT(page: NDOMPage): Promise<NDOMPage>
+}
+
+export type NDOMTransactionId = keyof NDOMTransaction
+
+export type NDOMTrigger = typeof triggers[number]
+
+export interface UseObject {
+  builtIn?: any
+  createElementBinding?(
+    component: NuiComponent.Instance,
+  ): HTMLElement | null | void
+  emit: Partial<
+    Record<NDOMTrigger, OrArray<Store.ActionObject<'emit', NDOMTrigger>['fn']>>
+  >
+  plugin?: any
+  resolver?: Resolve.Config
+  transaction?: Partial<NDOMTransaction>
 }

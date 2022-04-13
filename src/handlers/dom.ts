@@ -2,50 +2,61 @@ import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
 import add from 'date-fns/add'
 import startOfDay from 'date-fns/startOfDay'
-import 'tippy.js/dist/tippy.css'
-import 'tippy.js/themes/light.css'
 import tippy, { followCursor, MultipleTargets } from 'tippy.js'
 import formatDate from 'date-fns/format'
 import findIndex from 'lodash/findIndex'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
-import { Identify } from 'noodl-types'
-import {
-  asHtmlElement,
-  findByDataKey,
-  getFirstByElementId,
-  isTextFieldLike,
-  NOODLDOMDataValueElement,
-  Resolve,
-} from 'noodl-ui-dom'
+import QRCode from 'qrcode'
 import { excludeIteratorVar } from 'noodl-utils'
 import {
+  asHtmlElement,
+  ComponentPage,
+  findByDataKey,
+  findFirstByElementId,
+  isTextFieldLike,
+  NDOMElement,
+  NDOMPage,
   findIteratorVar,
   findListDataObject,
   NUIActionChain,
-  NUIComponent,
+  NuiComponent,
+  Resolve,
 } from 'noodl-ui'
 import App from '../App'
+import is from '../utils/is'
 import { hide } from '../utils/dom'
+
+type ToolbarInput = any
 // import { isArray } from 'lodash'
 
 const log = Logger.create('dom.ts')
 
 const createExtendedDOMResolvers = function (app: App) {
+  /**
+   * Creates an onChange function which should be used as a handler on the
+   * addEventListener of a DOM element. This is the first thing that happens
+   * when the entire process is called, so updating DOM values happens here.
+   * Calls from the SDK/noodl will be invoked at the end of this function call
+   *
+   * @param args
+   * @returns onChange function
+   */
   const getOnChange = function _getOnChangeFn(args: {
-    component: NUIComponent.Instance
+    component: NuiComponent.Instance
     dataKey: string
-    node: NOODLDOMDataValueElement
+    node: NDOMElement
     evtName: string
     iteratorVar: string
+    page: NDOMPage | ComponentPage
   }) {
-    let { component, dataKey, node, evtName, iteratorVar = '' } = args
+    let { component, dataKey, node, evtName, iteratorVar = '', page } = args
     let actionChain = component.get(evtName) as NUIActionChain | undefined
-    let pageName = app.currentPage
+    let pageName = page.page
 
     async function onChange(event: Event) {
-      pageName !== app.currentPage && (pageName = app.currentPage)
+      pageName !== page.page && (pageName = page.page)
 
       const value = (event.target as any)?.value || ''
 
@@ -57,6 +68,7 @@ const createExtendedDOMResolvers = function (app: App) {
             excludeIteratorVar(dataKey, iteratorVar) as string,
             value,
           )
+
           component.edit('data-value', value)
           node.dataset.value = value
         } else {
@@ -68,7 +80,7 @@ const createExtendedDOMResolvers = function (app: App) {
         }
 
         // TODO - Come back to this to provide more robust functionality
-        if (Identify.folds.emit(component.blueprint.dataValue)) {
+        if (is.folds.emit(component.blueprint.dataValue)) {
           await actionChain?.execute?.(event)
         }
       } else {
@@ -77,21 +89,14 @@ const createExtendedDOMResolvers = function (app: App) {
             if (!has(draft?.[pageName], dataKey)) {
               const paths = dataKey.split('.')
               const property = paths.length ? paths[paths.length - 1] : ''
-              log.orange(
-                `Warning: The${
-                  property ? ` property "${property}" in the` : ''
-                } ` +
-                  `dataKey path "${dataKey}" did not exist in the local root object ` +
-                  `If this is intended then ignore this message.`,
-                {
-                  component,
-                  dataKey,
-                  node,
-                  pageName,
-                  pageObject: app.root[pageName],
-                  value,
-                },
-              )
+
+              let warningMsg = 'Warning: The'
+              warningMsg += property ? ` property "${property}" in the ` : ' '
+              warningMsg += `dataKey path "${dataKey}" did not exist `
+              warningMsg += `in the local root object. `
+              warningMsg += `If this is intended then ignore this message.`
+
+              log.orange(warningMsg, { component, dataKey, pageName, value })
             }
             set(draft?.[pageName], dataKey, value)
             component.edit('data-value', value)
@@ -103,15 +108,14 @@ const createExtendedDOMResolvers = function (app: App) {
                 const pathToTage = 'verificationCode.response.edge.tage'
                 if (has(app.root?.[pageName], pathToTage)) {
                   app.updateRoot(`${pageName}.${pathToTage}`, value)
-                  console.log(`Updated: SettingsUpdate.${pathToTage}`)
                 }
               }
             }
+
             if (!iteratorVar) {
               u.array(asHtmlElement(findByDataKey(dataKey)))?.forEach(
                 (node) => {
-                  // Since select elements have options as children, we should not
-                  // edit by innerHTML or we would have to unnecessarily re-render the nodes
+                  // Since select elements have options as children, we should not edit by innerHTML or we would have to unnecessarily re-render the nodes
                   if (node && node.tagName !== 'SELECT') {
                     if (isTextFieldLike(node)) node.dataset.value = value
                     else node.innerHTML = `${value || ''}`
@@ -129,7 +133,35 @@ const createExtendedDOMResolvers = function (app: App) {
     return onChange
   }
 
-  const domResolvers: Record<string, Omit<Resolve.Config, 'name'>> = {
+  ;(function () {
+    let beforeUnload_time = 0,
+      gap_time = 0
+    window.onunload = function () {
+      gap_time = new Date().getTime() - beforeUnload_time
+      if (gap_time <= 2) {
+        //浏览器关闭判断
+        clearCookie()
+      }
+    }
+    window.onbeforeunload = function () {
+      beforeUnload_time = new Date().getTime()
+    }
+    function clearCookie() {
+      //清除localstorage
+      window.localStorage.clear()
+    }
+  })()
+
+  const antiShake = (fn, wait) => {
+    let timer
+    return function () {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        fn.apply(this, arguments)
+      }, wait)
+    }
+  }
+  const domResolvers: Record<string, Resolve.Config> = {
     '[App] chart': {
       cond: 'chart',
       // resource: [
@@ -150,7 +182,8 @@ const createExtendedDOMResolvers = function (app: App) {
       //     lazyLoad: true,
       //   },
       // ],
-      resolve(node, component) {
+      resolve({ node, component, page }) {
+        const pageName = page.page
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           node.style.width = component.style.width as string
@@ -284,41 +317,55 @@ const createExtendedDOMResolvers = function (app: App) {
                   // script.onload = () => {
                   //   console.log('APPENDED js to body')
 
-                  let headerBar = {
+                  let headerBar: ToolbarInput = {
                     left: 'prev next',
                     center: 'title',
                     right: 'timeGridDay,timeGridWeek',
                   }
                   let defaultData = dataValue.chartData
                   if (u.isArr(defaultData)) {
-                    
                     defaultData.forEach((element) => {
-                      let duration = element.etime-element.stime
-                      if(duration/60<=15){
+                      let duration = element.etime - element.stime
+                      if (duration / 60 <= 15) {
                         // display min: 15min
                         element.etime = element.stime + 900
                       }
                       element.start = new Date(element.stime * 1000)
                       element.end = new Date(element.etime * 1000)
-                      element.timeLength = duration/60
+                      element.timeLength = duration / 60
                       element.title = element.patientName
                       element.name = element.visitReason
+                      if (((element.subtype & 0xf0000) >> 16) % 2 === 0) {
+                        element.eventColor = '#FDE7C0'
+                        element.textColor = '#EB9C0C'
+                      } else if (
+                        ((element.subtype & 0xf0000) >> 16) % 2 ===
+                        1
+                      ) {
+                        element.eventColor = '#DDEFC8'
+                        element.textColor = '#2FB355'
+                      }
 
-                      // element.name = element.patientName
+                      if ((element.tage & 0xf00) >> 8 == 1) {
+                        element.eventColor = '#f9d9da'
+                        element.textColor = '#e24445'
+                      }
+                      element.backgroundColor = element.eventColor
+                      element.borderColor = element.eventColor
                       delete element.stime
                       delete element.etime
                       delete element.visitReason
-                      // delete element.patientName
-                      // delete element.visitType
+                      delete element.eventColor
                     })
                   } else {
-                    defaultData = {}
+                    defaultData = []
                   }
                   let calendar = new FullCalendar.Calendar(node, {
+                    dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
-                    height: 'auto',
+                    height: '77.9vh',
                     allDaySlot: false, // 是否显示表头的全天事件栏
-                    initialView: 'timeGridWeek',
+                    initialView: 'timeGridDay',
                     //locale: 'zh-cn',             // 区域本地化
                     firstDay: 0, // 每周的第一天： 0:周日
                     nowIndicator: true, // 是否显示当前时间的指示条
@@ -342,6 +389,7 @@ const createExtendedDOMResolvers = function (app: App) {
                         buttonText: '2 day',
                       },
                     },
+                    viewDidMount(mountArg) {},
                     events: defaultData,
                     handleWindowResize: true,
                     eventLimit: true,
@@ -355,9 +403,15 @@ const createExtendedDOMResolvers = function (app: App) {
                       tippy(info.el, {
                         content:
                           '<div >\
-                                        <div style="padding-top:2px">Patient Name ：' +info.event._def.extendedProps.patientName+'</div>\
-                                        <div style="padding-top:2px">Appointment Type ：' +info.event._def.extendedProps.visitType+'</div>\
-                                        <div style="padding-top:3px">Reason ：' +info.event._def.extendedProps.name +'</div>\
+                                        <div style="padding-top:2px">Patient Name ：' +
+                          info.event._def.extendedProps.patientName +
+                          '</div>\
+                                        <div style="padding-top:2px">Appointment Type ：' +
+                          info.event._def.extendedProps.visitType +
+                          '</div>\
+                                        <div style="padding-top:3px">Reason ：' +
+                          info.event._def.extendedProps.name +
+                          '</div>\
                                         <div style="padding:4px 0">StartTime：' +
                           formatDate(
                             new Date(
@@ -367,8 +421,9 @@ const createExtendedDOMResolvers = function (app: App) {
                             'HH:mm:ss',
                           ) +
                           '</div>\
-                          <div>Duration：' + info.event._def.extendedProps.timeLength +' minutes' + 
-                            
+                          <div>Duration：' +
+                          info.event._def.extendedProps.timeLength +
+                          ' minutes' +
                           '</div>\
 　　　　　　        　</div>',
                         allowHTML: true,
@@ -380,19 +435,66 @@ const createExtendedDOMResolvers = function (app: App) {
                         duration: [0, 0],
                       })
                     },
-
                     //eventColor: 'red',
-
                     eventClick: function (event: {
                       event: { _def: { publicId: any } }
                     }) {
                       if (event.event._def) {
                         dataValue.response = event.event._def.publicId
                       }
-                      console.log(event)
                     },
                   })
+                  app.instances.FullCalendar = {
+                    inst: calendar,
+                    page: pageName,
+                  }
                   calendar.render()
+                  // (document.querySelectorAll("tbody .fc-timegrid-now-indicator-arrow")[0] as HTMLDivElement);
+                  window.setTimeout(() => {
+                    ;(
+                      document.querySelectorAll(
+                        'tbody .fc-timegrid-now-indicator-line',
+                      )[0] as HTMLDivElement
+                    ).scrollIntoView({ behavior: 'smooth' })
+                    let docEventPrevClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-prev-button',
+                      )[0] as HTMLButtonElement
+                    let docEventNextClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-next-button',
+                      )[0] as HTMLButtonElement
+                    let docEventTimeGridDayClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridDay-button',
+                      )[0] as HTMLButtonElement
+                    let docEventTimeGridWeekClick: HTMLButtonElement =
+                      document.querySelectorAll(
+                        '.fc-timeGridWeek-button',
+                      )[0] as HTMLButtonElement
+
+                    // let docEventClick =  document.querySelectorAll("div .fc-header-toolbar")[0];
+                    docEventPrevClick.addEventListener('click', (e) => {
+                      dataValue.data = 'prev'
+                    })
+                    docEventNextClick.addEventListener('click', (e) => {
+                      dataValue.data = 'next'
+                    })
+                    docEventTimeGridDayClick.addEventListener('click', (e) => {
+                      dataValue.data = 'timeGridDay'
+                    })
+                    docEventTimeGridWeekClick.addEventListener('click', (e) => {
+                      dataValue.data = 'timeGridWeek'
+                    })
+                  }, 0)
+                  // This is to fix the issue of calendar being blank when switching back from
+                  // display: none to display: block
+                  Object.defineProperty(calendar.el.style, 'display', {
+                    set(value) {
+                      if (value === 'none') return
+                      this.display = value
+                    },
+                  })
                 }
 
                 // script.src =
@@ -420,8 +522,8 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] data-value': {
-      cond: (node) => isTextFieldLike(node),
-      before(node, component) {
+      cond: ({ node }) => isTextFieldLike(node),
+      before({ node, component }) {
         ;(node as HTMLInputElement).value = component.get('data-value') || ''
         node.dataset.value = component.get('data-value') || ''
         if (node.tagName === 'SELECT') {
@@ -431,45 +533,91 @@ const createExtendedDOMResolvers = function (app: App) {
           }
         }
       },
-      resolve(node, component) {
+      resolve({ node, component, page }) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         if (dataKey) {
-          node.addEventListener(
-            'change',
-            getOnChange({
-              component,
-              dataKey,
-              evtName: 'onChange',
-              node: node as NOODLDOMDataValueElement,
-              iteratorVar,
-            }),
-          )
-
-          if (component?.type == 'textField') {
+          if (
+            component?.type == 'textField' &&
+            component?.contentType == 'password'
+          ) {
             node.addEventListener(
               'input',
               getOnChange({
                 component,
                 dataKey,
                 evtName: 'onInput',
-                node: node as NOODLDOMDataValueElement,
+                node: node as NDOMElement,
                 iteratorVar,
+                page,
               }),
             )
+          } else {
+            node.addEventListener(
+              'change',
+              getOnChange({
+                component,
+                dataKey,
+                evtName: 'onChange',
+                node: node as NDOMElement,
+                iteratorVar,
+                page,
+              }),
+            )
+
+            if (component?.type == 'textField') {
+              node.addEventListener(
+                'input',
+                component.blueprint.debounce
+                  ? antiShake(
+                      getOnChange({
+                        component,
+                        dataKey,
+                        evtName: 'onInput',
+                        node: node as NDOMElement,
+                        iteratorVar,
+                        page,
+                      }),
+                      component.blueprint.debounce,
+                    )
+                  : getOnChange({
+                      component,
+                      dataKey,
+                      evtName: 'onInput',
+                      node: node as NDOMElement,
+                      iteratorVar,
+                      page,
+                    }),
+              )
+            }
+            if (component?.type == 'textView') {
+              node.addEventListener(
+                'input',
+
+                getOnChange({
+                  component,
+                  dataKey,
+                  evtName: 'onInput',
+                  node: node as NDOMElement,
+                  iteratorVar,
+                  page,
+                }),
+              )
+            }
           }
         }
 
-        if (component.has('onBlur')) {
+        if (component.blueprint?.onBlur) {
           node.addEventListener(
             'blur',
             getOnChange({
-              node: node as NOODLDOMDataValueElement,
+              node: node as NDOMElement,
               component,
               dataKey,
               evtName: 'onBlur',
               iteratorVar,
+              page,
             }),
           )
         }
@@ -477,7 +625,7 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] image': {
       cond: 'image',
-      async resolve(node, component) {
+      async resolve({ node, component }) {
         const img = node as HTMLImageElement
         const parent = component.parent
         const pageObject = app.root[app.currentPage || ''] || {}
@@ -489,39 +637,143 @@ const createExtendedDOMResolvers = function (app: App) {
           const iframeEl = document.createElement('iframe')
           const onEntry = (k: any, v: any) => (iframeEl.style[k] = v)
           iframeEl.setAttribute('src', img.src)
-          u.eachEntries(component.style, onEntry)
-          parent && getFirstByElementId(parent)?.appendChild?.(iframeEl)
+          u.entries(component.style)?.forEach?.(([k, v]) => onEntry(k, v))
+          parent && findFirstByElementId(parent)?.appendChild?.(iframeEl)
         }
       },
     },
     '[App] Hover': {
-      cond: (n, c) => c.has('hover'),
-      resolve(node, component) {
-        if (component?.original?.hover) {
-          node?.addEventListener('mouseover', function (e) {
-            u.eachEntries(component?.original?.hover, (key: any, value) => {
-              value = value.substring(2)
-              node.style[key] = '#' + value
-            })
+      cond: ({ component }) => component.has('hover'),
+      resolve({ node, component }) {
+        if (component?.blueprint?.hover) {
+          node?.addEventListener('mouseover', () => {
+            u.entries(component?.blueprint?.hover)?.forEach?.(
+              ([key, value]) => {
+                value = String(value).substring?.(2)
+                node.style[key] = '#' + value
+              },
+            )
           })
           node?.addEventListener('mouseout', function (e) {
-            u.eachEntries(component?.original?.hover, (key: any, value) => {
-              let realvalue = component.style[key]
-              if (typeof realvalue == 'undefined' && key == 'backgroundColor') {
-                realvalue = '#ffffff'
-              }
-              if (typeof realvalue == 'undefined' && key == 'fontColor') {
-                realvalue = '#000000'
-              }
-              node.style[key] = realvalue
-            })
+            u.entries(component?.blueprint?.hover)?.forEach?.(
+              ([key, value]) => {
+                let realvalue = component.style[key]
+                if (
+                  typeof realvalue == 'undefined' &&
+                  key == 'backgroundColor'
+                ) {
+                  realvalue = '#ffffff'
+                }
+                if (typeof realvalue == 'undefined' && key == 'fontColor') {
+                  realvalue = '#000000'
+                }
+                node.style[key] = realvalue
+              },
+            )
           })
+        }
+      },
+    },
+    '[App] BubbleCaptureEvent': {
+      cond: ({ component }) => component.has('bubble')||component.has('defaultEvent'),
+      resolve({ node, component }) {
+        if (
+          component?.blueprint?.bubble &&
+          component?.blueprint?.bubble === true
+        ) {
+          node?.addEventListener(
+            'click',
+            (e) => {
+              e.stopPropagation()
+            },
+            false,
+          )
+        }
+        if (
+          component?.blueprint?.defaultEvent  &&
+          component?.blueprint?.defaultEvent  === true
+        ) {
+          node?.addEventListener(
+            'click',
+            (e) => {
+              e.preventDefault()
+            },
+            false,
+          )
+        }
+      },
+    },
+    '[App] QRCode': {
+      cond: 'image',
+      resolve({ node, component }) {
+        if (node && component && component.contentType === 'QRCode') {
+          const dataValue = component.get('data-value') || '' || 'dataKey'
+          let text = dataValue
+          if (u.isObj(dataValue)) {
+            text = JSON.stringify(dataValue)
+          }
+
+          let opts: any = {
+            errorCorrectionLevel: 'H',
+            type: 'svg',
+            quality: 0.3,
+            margin: 1,
+            color: {
+              dark: '#000000',
+              light: '#ffffff',
+            },
+            scale: 8,
+          }
+
+          QRCode.toDataURL(text, opts, function (err, url) {
+            // if (err) throw err
+            ;(node as HTMLImageElement).src = url
+          })
+        }
+      },
+    },
+    '[App] highLight': {
+      cond: 'label',
+      resolve({ node, component }) {
+        if (component.has('highlightKey') && component.has('highlightStyle')) {
+          function heightLight(string, keyword) {
+            let reg = new RegExp(keyword, 'gi')
+            string = string.replace(reg, function (txt) {
+              return `<span class="highlight">${txt}</span>`
+            })
+            return string
+          }
+
+          const highlightKey = component.get('highlightKey')
+          const pageName = app.currentPage
+          const localhighlightValue = get(app.root[pageName], highlightKey)
+          const remotehighlightValue = get(app.root, highlightKey)
+          const highlightValue = localhighlightValue
+            ? localhighlightValue
+            : remotehighlightValue
+          if (highlightValue) {
+            const highlightStyle = component.get('highlightStyle')
+
+            let originalValue = node.innerHTML
+
+            node.innerHTML = ''
+            node.innerHTML = heightLight(originalValue, highlightValue)
+
+            let currentSpans = node.getElementsByClassName('highlight')
+            // let domObj:any = document.getElementsByClassName('highlight')
+            for (let i = 0; i < currentSpans.length; i++) {
+              let currentSpan = currentSpans[i] as HTMLElement
+              u.entries(highlightStyle)?.forEach?.(([key, value]) => {
+                currentSpan.style[key] = value
+              })
+            }
+          }
         }
       },
     },
     '[App] dropDown': {
       cond: 'textField',
-      resolve(node, component) {
+      resolve({ node, component }) {
         if (component.contentType === 'dropDown') {
           const iteratorVar = findIteratorVar(component)
           const dataKey =
@@ -622,7 +874,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
                 li.onclick = function () {
                   console.log(li.innerHTML)
-                  node.value = li.innerHTML
+                  node.innerHTML = li.innerHTML
                   node.setAttribute('data-value', li.innerHTML)
                   ul.innerHTML = ''
                   ul.style.display = 'none'
@@ -642,7 +894,7 @@ const createExtendedDOMResolvers = function (app: App) {
               let count = 0
               json1.forEach((element) => {
                 let name = element.name.toLowerCase()
-                let key = node.value.toLowerCase()
+                let key = node.innerHTML.toLowerCase()
                 if (name.indexOf(key) != -1) {
                   count = count + 1
                   let li = document.createElement('li')
@@ -667,7 +919,7 @@ const createExtendedDOMResolvers = function (app: App) {
 
                   li.onclick = function () {
                     console.log(li.innerHTML)
-                    node.value = li.innerHTML
+                    node.innerHTML = li.innerHTML
                     node.setAttribute('data-value', li.innerHTML)
                     ul.innerHTML = ''
                     ul.style.display = 'none'
@@ -692,7 +944,7 @@ const createExtendedDOMResolvers = function (app: App) {
     },
     '[App] Map': {
       cond: 'map',
-      resolve(node, component) {
+      resolve({ node, component }) {
         const dataValue = component.get('data-value') || '' || 'dataKey'
         if (node) {
           const parent = component.parent
@@ -706,7 +958,8 @@ const createExtendedDOMResolvers = function (app: App) {
           //Austin Yu 8/6/2021
           // link.href = 'https://cdn.bootcdn.net/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
           // link.href = 'https://cdnjs.cloudflare.com/ajax/libs/mapbox-gl/2.1.1/mapbox-gl.css'
-          link.href = 'https://cdn.jsdelivr.net/npm/mapbox-gl@2.1.1/dist/mapbox-gl.css'
+          link.href =
+            'https://cdn.jsdelivr.net/npm/mapbox-gl@2.1.1/dist/mapbox-gl.css'
           link.rel = 'stylesheet'
           document.head.appendChild(link)
           if (dataValue.mapType == 1) {
@@ -746,11 +999,21 @@ const createExtendedDOMResolvers = function (app: App) {
             if (flag) {
               let featuresData: any[] = []
               dataValue.data.forEach((element: any) => {
+                var str = ''
+                var showName = ''
+                var specialityArr = element.information.speciality
+                var Name = element.information.name
+                str = specialityArr
+                if (Name == 'undefined undefined') {
+                  showName = 'No Name'
+                } else {
+                  showName = Name
+                }
                 let item = {
                   type: 'Feature',
                   properties: {
-                    name: element.information.name,
-                    speciality: element.information.speciality,
+                    name: showName,
+                    speciality: str,
                     phoneNumber: element.information.phoneNumber,
                     address: element.information.address,
                   },
@@ -957,8 +1220,8 @@ const createExtendedDOMResolvers = function (app: App) {
       },
     },
     '[App] Meeting': {
-      cond: (node, component) => !!(node && component),
-      resolve: function onMeetingComponent(node, component) {
+      cond: ({ node, component }) => !!(node && component),
+      resolve: function onMeetingComponent({ node, component }) {
         const viewTag = component.blueprint?.viewTag || ''
         const setImportantStream = (label: 'mainStream' | 'selfStream') => {
           if (!app[label].isSameElement(node)) {
@@ -1016,20 +1279,77 @@ const createExtendedDOMResolvers = function (app: App) {
         }
       },
     },
+    // TODO - Move to default noodl-ui-dom lib implementation
+    '[App] Page component': {
+      cond: ({ component, elementType }) =>
+        elementType === 'IFRAME' &&
+        String(component?.blueprint?.path)?.endsWith('.html'),
+      resolve({ component, node, findPage }) {
+        // const iframeEl = node as HTMLIFrameElement
+        // const componentPage = findPage(component) as ComponentPage
+        // try {
+        //   iframeEl.addEventListener('message', function (msg) {
+        //     const postMessage = component.get('postMessage') as NUIActionChain
+        //     const dataObject = msg.data
+        //     log.func('postMessage (iframeEl)')
+        //     log.green(`%cReceived message in page component`, {
+        //       dataObject,
+        //       message: msg,
+        //       postMessage,
+        //     })
+        //     postMessage.data.set('someData', dataObject)
+        //     postMessage?.execute?.(msg)
+        //   })
+        // } catch (error) {
+        //   console.error(error)
+        // }
+        // iframeEl.addEventListener('load', function (evt) {
+        //   log.func('load')
+        //   log.grey(`Entered onload event for page remote (http) component`)
+        //   log.grey('', this)
+        //   log.green(
+        //     `[ComponentPage] Attaching MutationObserver to body element`,
+        //     { componentPage, thisValue: this, window: this.contentWindow },
+        //   )
+        // const obs = new MutationObserver((mutations) => {
+        //   console.log(`[ComponentPage] Mutations`, mutations)
+        // })
+        // obs.observe(this, {
+        //   attributes: true,
+        //   childList: true,
+        //   subtree: true,
+        //   characterData: true,
+        // })
+        // this.contentWindow.addEventListener('message', function (msg) {
+        //   const postMessage = component.get('postMessage') as NUIActionChain
+        //   const dataObject = msg.data
+        //   log.func('postMessage (parent)')
+        //   log.green(`%cReceived message in page component`, {
+        //     dataObject,
+        //     message: msg,
+        //     postMessage,
+        //   })
+        //   postMessage.data.set('someData', dataObject)
+        //   postMessage?.execute?.(msg)
+        // })
+        // })
+      },
+    },
     '[App] Password textField': {
       cond: 'textField',
-      resolve(node, component) {
+      resolve({ node, component }) {
         // Password inputs
         if (component.contentType === 'password') {
           if (!node?.dataset.mods?.includes('[password.eye.toggle]')) {
             setTimeout(() => {
               const assetsUrl = app.nui.getAssetsUrl() || ''
-              const eyeOpened = assetsUrl + 'makePasswordVisiable.png'
-              const eyeClosed = assetsUrl + 'makePasswordInvisible.png'
+              const eyeOpened = assetsUrl + 'makePasswordVisiableEye.svg'
+              const eyeClosed = assetsUrl + 'makePasswordInvisibleEye.svg'
               const originalParent = node?.parentNode as HTMLDivElement
               const newParent = document.createElement('div')
               const eyeContainer = document.createElement('button')
               const eyeIcon = document.createElement('img')
+              // const eyeIcon = originalParent.getElementsByTagName("img")[0] as HTMLImageElement||document.createElement('img')
 
               // Transfering the positioning/sizing attrs to the parent so we can customize with icons and others
               // prettier-ignore
@@ -1043,7 +1363,8 @@ const createExtendedDOMResolvers = function (app: App) {
 
               newParent.style.display = 'flex'
               newParent.style.alignItems = 'center'
-              newParent.style.background = 'none'
+              // newParent.style.background = 'none'
+              // newParent.style.borderBottom = '1px solid #767676'
 
               node && (node.style.width = '100%')
               node && (node.style.height = '100%')
@@ -1051,12 +1372,17 @@ const createExtendedDOMResolvers = function (app: App) {
               eyeContainer.style.top = '0px'
               eyeContainer.style.bottom = '0px'
               eyeContainer.style.right = '6px'
-              eyeContainer.style.width = '42px'
               eyeContainer.style.background = 'none'
               eyeContainer.style.border = '0px'
+              eyeContainer.style.display = 'flex'
+              eyeContainer.style.alignItems = 'center'
               eyeContainer.style.outline = 'none'
+              eyeContainer.style.marginLeft = '8px'
+              eyeContainer.style.marginRight = '16px'
 
-              eyeIcon.style.width = '100%'
+              // eyeIcon.style.width = '100%'
+              // eyeIcon.style.height = '100%'
+              eyeIcon.style.width = '18px'
               eyeIcon.style.height = '100%'
               eyeIcon.style.userSelect = 'none'
 
@@ -1076,6 +1402,8 @@ const createExtendedDOMResolvers = function (app: App) {
               originalParent?.appendChild(newParent)
               eyeContainer.appendChild(eyeIcon)
               newParent.appendChild(node)
+              // node.appendChild(eyeContainer);
+              // newParent.appendChild(img)
               newParent.appendChild(eyeContainer)
 
               let selected = true
@@ -1098,14 +1426,23 @@ const createExtendedDOMResolvers = function (app: App) {
             })
           }
         } else {
-          // Set to "text" by default
-          node.setAttribute('type', 'text')
+          const contentType = component?.contentType || ''
+          // Default === 'text'
+          node.setAttribute(
+            'type',
+            /number|integer/i.test(contentType)
+              ? 'number'
+              : u.isStr(contentType)
+              ? contentType
+              : 'text',
+          )
         }
       },
     },
     '[App] VideoChat Timer': {
-      cond: (n, c) => c.has('text=func') && c.contentType === 'timer',
-      resolve: (node, component) => {
+      cond: ({ component: c }) =>
+        c.has('text=func') && c.contentType === 'timer',
+      resolve: ({ node, component }) => {
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
         const textFunc = component.get('text=func') || ((x: any) => x)
@@ -1143,7 +1480,6 @@ const createExtendedDOMResolvers = function (app: App) {
         })
 
         // Set the initial value
-        // @ts-expect-error
         component.emit('timer:init', initialValue)
       },
     },
@@ -1158,43 +1494,3 @@ const createExtendedDOMResolvers = function (app: App) {
 }
 
 export default createExtendedDOMResolvers
-
-if (module.hot) {
-  module.hot.accept()
-
-  if (module.hot.status() === 'apply') {
-    console.log(
-      `%c[apply-dom] Module hot data`,
-      `color:#e50087;`,
-      module.hot.data,
-    )
-    module.hot.data.fruits = ['apple']
-    console.log(
-      `%c[apply-dom] Module hot data now`,
-      `color:#e50087;`,
-      module.hot.data,
-    )
-    // module.hot?.data.app.reset()
-    // app = module.hot?.data.app
-  }
-
-  if (module.hot.status() === 'idle') {
-    console.log(
-      `%c[idle-dom] Module hot data`,
-      `color:#00b406;`,
-      module.hot.data,
-    )
-  }
-
-  if (module.hot.status() === 'prepare') {
-    console.log(
-      `%c[prepare-dom] Module hot data`,
-      `color:#3498db;`,
-      module.hot.data,
-    )
-  }
-
-  if (module.hot.status() === 'watch') {
-    console.log(`%c[watch-dom]`, `color:#FF5722;`, module.hot.data)
-  }
-}

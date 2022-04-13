@@ -1,3 +1,20 @@
+export interface StoredDOMState {
+  origin: string
+  page: string
+  startPage: string
+  root: string
+  x: number
+  y: number
+}
+
+export type ElementArg<N extends HTMLElement = HTMLElement> =
+  | null
+  | undefined
+  | HTMLElement
+  | HTMLElement[]
+  | HTMLCollection
+  | NodeListOf<N>
+
 export type FileInputEvent = Event & {
   target: Event['target'] & { files: FileList }
 }

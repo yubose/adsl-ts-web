@@ -1,11 +1,12 @@
-import Viewport from '../Viewport'
+import type Viewport from '../Viewport'
 
 function isViewport(value: any): value is Viewport {
   if (
     value &&
     typeof value === 'object' &&
-    'isNoodlUnit' in value &&
-    'applyMinMax' in value
+    'getWidth' in value &&
+    'getHeight' in value &&
+    'onResize' in value
   ) {
     return true
   }

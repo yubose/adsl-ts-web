@@ -1,33 +1,26 @@
 import * as u from '@jsmanifest/utils'
-import { AcceptArray } from '@jsmanifest/typefest'
-import { ComponentObject, StyleObject } from 'noodl-types'
+import type { OrArray } from '@jsmanifest/typefest'
+import type { ComponentObject, StyleObject } from 'noodl-types'
 import { getRandomKey } from './utils/internal'
 import isComponent from './utils/isComponent'
-import * as T from './types'
+import * as t from './types'
 
 type Hooks = Record<
-  T.NUIComponent.HookEvent,
-  T.NUIComponent.Hook[T.NUIComponent.HookEvent][]
+  t.NuiComponent.HookEvent,
+  t.NuiComponent.Hook[t.NuiComponent.HookEvent][]
 >
 
-/**
- * noodl-ui Component
- */
 class Component<C extends ComponentObject = ComponentObject> {
   #blueprint: ComponentObject
-  // This cache is used internally to cache original objects (ex: action objects)
-  #cache: { [key: string]: any }
   #hooks = {} as Hooks
   #hookCbIds: string[] = []
   #component: ComponentObject
-  #children: T.NUIComponent.Instance[] = []
+  #children: t.NuiComponent.Instance[] = []
   #id = ''
-  #parent: T.NUIComponent.Instance | null = null
-  #propPath = ''
-  original: ComponentObject
+  #parent: t.NuiComponent.Instance | null = null
   type: C['type']
 
-  static isComponent(component: unknown): component is T.NUIComponent.Instance {
+  static isComponent(component: unknown): component is t.NuiComponent.Instance {
     return isComponent(component)
   }
 
@@ -43,12 +36,11 @@ class Component<C extends ComponentObject = ComponentObject> {
     }
   }
 
-  [u.inspect]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       ...this.toJSON(),
       type: this.type,
       blueprint: this.#blueprint,
-      cache: this.#cache,
       hooks: this.hooks,
       hookIds: this.#hookCbIds,
     }
@@ -58,13 +50,11 @@ class Component<C extends ComponentObject = ComponentObject> {
     this.#blueprint = Component.isComponent(component)
       ? component.blueprint
       : component
-    this.#cache = {}
     this.#component = {
       ...this.#blueprint,
       style: { ...this.#blueprint.style },
     }
     this.#id = opts?.id || this.#component.id || getRandomKey()
-    this.original = this.#blueprint
     this.type = this.#blueprint.type
   }
 
@@ -79,7 +69,7 @@ class Component<C extends ComponentObject = ComponentObject> {
   }
 
   get contentType() {
-    return this.blueprint?.contentType
+    return this.blueprint?.contentType || ''
   }
 
   get hooks() {
@@ -150,9 +140,8 @@ class Component<C extends ComponentObject = ComponentObject> {
     key: K,
     styleKey?: keyof StyleObject,
   ) => {
-    let value
+    let value: any
 
-    if (key === 'cache') return this.#cache
     if (key === 'style') {
       // Retrieve the entire style object
       if (u.isUnd(styleKey)) {
@@ -177,9 +166,9 @@ class Component<C extends ComponentObject = ComponentObject> {
   }
 
   /**
-   * Sets a property's value on the component, or sets a property's value on the style
-   * object if the key is "style", value is the styleKey and styleChanges is the value to update
-   * on the style object's styleKey
+   * Sets a property's value on the component, or sets a property's value on
+   * the style object if the key is "style", value is the styleKey and
+   * styleChanges is the value to update on the style object's styleKey
    * @param { string } key - Key of component or "style" to update the style object using value
    * @param { any? } value - Value to update key, or styleKey to update the style object if key === 'style'
    * @param { any? } styleChanges - Value to set on a style object if key === 'style'
@@ -197,12 +186,12 @@ class Component<C extends ComponentObject = ComponentObject> {
 
   /**
    * Returns true if the key exists on the blueprint
-   * NOTE: It is very important to remember that this method only cares about
-   * the blueprint!
+   * NOTE: This method is for keys that have explicitly been set via
+   * this.set
    * @param { string } key - Component property or "style" if using styleKey for style lookups
    */
   has<K extends keyof ComponentObject>(key: K) {
-    return key in (this.blueprint || {})
+    return key in (this.props || {})
   }
 
   /**
@@ -221,26 +210,6 @@ class Component<C extends ComponentObject = ComponentObject> {
     return this
   }
 
-  get ppath() {
-    return this.#propPath
-  }
-
-  set ppath(path) {
-    this.#propPath = path
-  }
-
-  /**
-   * Returns the most recent
-   * component object at the time of this call.
-   * If it is still a draft it is converted into plain JS
-   */
-  snapshot() {
-    return {
-      ...this.toJSON(),
-      _cache: this.#cache,
-    }
-  }
-
   /**
    * Returns a stringified JSON object of the current component
    * @param { number | undefined } spaces - Spaces to indent in the JSON string
@@ -249,7 +218,7 @@ class Component<C extends ComponentObject = ComponentObject> {
     return JSON.stringify(this.toJSON(), null, spaces)
   }
 
-  setParent(parent: T.NUIComponent.Instance | null) {
+  setParent(parent: t.NuiComponent.Instance | null) {
     this.#parent = parent
     return this
   }
@@ -269,7 +238,7 @@ class Component<C extends ComponentObject = ComponentObject> {
    * Creates and appends the new child instance to the childrens list
    * @param { IComponentType } props
    */
-  createChild<C extends T.NUIComponent.Instance>(child: C): C {
+  createChild<C extends t.NuiComponent.Instance>(child: C): C {
     child?.setParent?.(this)
     this.#children.push(child)
     return child
@@ -279,15 +248,15 @@ class Component<C extends ComponentObject = ComponentObject> {
    * Removes a child from its children. You can pass in either the instance
    * directly, the index leading to the child, the component's id, or leave the args empty to
    * remove the first child by default
-   * @param { T.NUIComponent.Instance | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
+   * @param { t.NuiComponent.Instance | string | number | undefined } child - Child component, id, index, or no arg (to remove the first child by default)
    */
-  removeChild(index: number): T.NUIComponent.Instance | undefined
-  removeChild(id: string): T.NUIComponent.Instance | undefined
+  removeChild(index: number): t.NuiComponent.Instance | undefined
+  removeChild(id: string): t.NuiComponent.Instance | undefined
   removeChild(
-    child: T.NUIComponent.Instance,
-  ): T.NUIComponent.Instance | undefined
-  removeChild(): T.NUIComponent.Instance | undefined
-  removeChild(child?: T.NUIComponent.Instance | number | string) {
+    child: t.NuiComponent.Instance,
+  ): t.NuiComponent.Instance | undefined
+  removeChild(): t.NuiComponent.Instance | undefined
+  removeChild(child?: t.NuiComponent.Instance | number | string) {
     if (child == undefined) {
       return this.children.shift()
     } else if (u.isNum(child)) {
@@ -300,9 +269,9 @@ class Component<C extends ComponentObject = ComponentObject> {
     }
   }
 
-  on<Evt extends T.NUIComponent.HookEvent>(
+  on<Evt extends t.NuiComponent.HookEvent>(
     eventName: Evt,
-    cb: T.NUIComponent.Hook[Evt],
+    cb: t.NuiComponent.Hook[Evt],
     id = '',
   ) {
     if (id) {
@@ -315,9 +284,9 @@ class Component<C extends ComponentObject = ComponentObject> {
     return this
   }
 
-  off<Evt extends T.NUIComponent.HookEvent>(
+  off<Evt extends t.NuiComponent.HookEvent>(
     eventName: Evt,
-    cb: T.NUIComponent.Hook[Evt],
+    cb: t.NuiComponent.Hook[Evt],
   ) {
     if (!u.isArr(this.hooks[eventName])) return this
     if (this.hooks[eventName]?.includes(cb)) {
@@ -329,17 +298,20 @@ class Component<C extends ComponentObject = ComponentObject> {
     return this
   }
 
-  emit<Evt extends T.NUIComponent.HookEvent>(
+  async emit<Evt extends t.NuiComponent.HookEvent>(
     eventName: Evt,
-    ...args: Parameters<NonNullable<T.NUIComponent.Hook[Evt]>>
+    ...args: Parameters<NonNullable<t.NuiComponent.Hook[Evt]>>
   ) {
-    this.#hooks[eventName]?.forEach((cb) => (cb as any)(...args))
-    return this
+    if (u.isArr(this.#hooks[eventName])) {
+      return Promise.allSettled(
+        this.#hooks[eventName].map((cb) => (cb as any)?.(...args)),
+      )
+    }
   }
 
-  clear(filter?: AcceptArray<'children' | 'hooks'>) {
+  clear(filter?: OrArray<'children' | 'hooks'>) {
     const _clearChildren = (
-      children: T.NUIComponent.Instance[] | undefined,
+      children: t.NuiComponent.Instance[] | undefined,
     ) => {
       if (u.isArr(children)) {
         children.forEach?.((child) => {
@@ -353,9 +325,12 @@ class Component<C extends ComponentObject = ComponentObject> {
       }
     }
     const _clearHooks = () =>
-      u.keys(this.#hooks).forEach((evt) => (this.#hooks[evt].length = 0))
+      u.keys(this.#hooks).forEach((evt) => {
+        if (!['PAGE_COMPONENTS', 'PAGE_CHANGED', 'PAGE_CREATED'].includes(evt))
+          this.#hooks[evt].length = 0
+      })
     if (filter) {
-      u.arrayEach(filter, (s) =>
+      u.array(filter).forEach((s) =>
         s === 'children' ? _clearChildren(this.#children) : _clearHooks(),
       )
       return this
@@ -373,7 +348,7 @@ class Component<C extends ComponentObject = ComponentObject> {
   edit(fn: (props: ComponentObject) => ComponentObject | undefined | void): void
   edit(
     prop: Record<string, any>,
-    opts?: T.NUIComponent.EditResolutionOptions,
+    opts?: t.NuiComponent.EditResolutionOptions,
   ): void
   edit(prop: string, value: any): void
   edit(
@@ -381,12 +356,12 @@ class Component<C extends ComponentObject = ComponentObject> {
       | Record<string, any>
       | string
       | ((props: ComponentObject) => ComponentObject | undefined | void),
-    value?: T.NUIComponent.EditResolutionOptions,
+    value?: t.NuiComponent.EditResolutionOptions,
   ) {
     if (u.isFnc(fn)) {
       const props = fn(this.props)
       if (u.isObj(props)) {
-        u.eachEntries(props, (k, v) => {
+        u.entries(props).forEach(([k, v]) => {
           k === 'style' ? u.assign(this.style, v) : (this.props[k] = v)
         })
       }
@@ -401,15 +376,14 @@ class Component<C extends ComponentObject = ComponentObject> {
             } else if (u.isArr(value.remove)) {
               value.remove.forEach((key) => delete obj[key])
             } else if (u.isObj(value.remove)) {
-              u.eachEntries(
-                (k, pred) => pred?.() && delete obj[k],
-                value.remove,
+              u.entries(value.remove).forEach(
+                ([k, pred]) => pred?.() && delete obj[k],
               )
             }
           }
         : undefined
 
-      u.eachEntries(fn, (k, v) => {
+      u.entries(fn).forEach(([k, v]) => {
         if (k === 'style') {
           if (v === null) this.style = {}
           else if (u.isObj(v)) u.assign(this.style, v)
@@ -417,6 +391,9 @@ class Component<C extends ComponentObject = ComponentObject> {
           remove?.('style')
         } else {
           this.props[k] = v
+          if (v === 0) {
+            this.props[k] = `${v}`
+          }
           remove?.()
         }
       })

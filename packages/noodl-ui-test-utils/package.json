@@ -1,16 +1,15 @@
 {
-  "name": "noodl-ui-test-utils",
-  "version": "0.0.12",
+  "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "description": "Test utilities for the noodl-ui library",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "jsnext:main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "start": "tsc -w",
-    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\""
+  "directories": {
+    "dist": "dist"
   },
+  "files": [
+    "dist"
+  ],
+  "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
+  "homepage": "",
+  "jsnext:main": "dist/noodl-ui-test-utils.js",
   "keywords": [
     "noodl-ui",
     "noodl",
@@ -19,27 +18,19 @@
     "noodlui",
     "aitmed"
   ],
-  "author": "Christopher Tran <pfftdammitchris@gmail.com>",
-  "homepage": "",
   "license": "ISC",
-  "directories": {
-    "dist": "dist"
-  },
-  "files": [
-    "dist"
-  ],
+  "main": "dist/noodl-ui-test-utils.js",
+  "module": "dist/noodl-ui-test-utils.js",
+  "name": "noodl-ui-test-utils",
   "repository": {
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
   },
-  "prettier": {
-    "arrowParens": "always",
-    "endOfLine": "lf",
-    "printWidth": 80,
-    "semi": false,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "all"
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc -w",
+    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\""
   },
-  "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc"
+  "typings": "dist/noodl-ui-test-utils.d.ts",
+  "version": "0.0.13"
 }

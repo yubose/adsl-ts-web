@@ -1,14 +1,17 @@
 import * as u from '@jsmanifest/utils'
-import { EmitObjectFold, Identify } from 'noodl-types'
+import type { EmitObjectFold } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import { Action, createAction as __createAction } from 'noodl-action-chain'
 import getActionType from './getActionType'
 import getActionObjectErrors from './getActionObjectErrors'
-import {
+import type {
   NUIAction,
   NUIActionObject,
   NUIActionObjectInput,
   NUITrigger,
 } from '../types'
+import log from '../utils/log'
+import { isUnitTestEnv } from './common'
 import EmitAction from '../actions/EmitAction'
 
 type EmitLikeObject = Extract<NUIActionObjectInput, EmitObjectFold>
@@ -55,9 +58,9 @@ function createAction(
     }
   }
 
-  if (action?.original) {
+  if (action?.original && !isUnitTestEnv()) {
     getActionObjectErrors(action.original).forEach((errMsg) => {
-      console.log(`%c${errMsg}`, `color:#ec0000;`, action?.original)
+      log.error(`%c${errMsg}`, `color:#ec0000;`, action?.original)
     })
   }
 

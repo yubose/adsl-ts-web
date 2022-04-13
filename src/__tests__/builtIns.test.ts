@@ -2,12 +2,13 @@ import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'
-import { Identify, PageObject } from 'noodl-types'
+import { PageObject } from 'noodl-types'
 import { prettyDOM, waitFor } from '@testing-library/dom'
-import { getFirstByElementId, getFirstByViewTag } from 'noodl-ui-dom'
-import { NUIComponent, createAction } from 'noodl-ui'
+import { findFirstByElementId, findFirstByViewTag } from 'noodl-ui-dom'
+import { NuiComponent, createAction } from 'noodl-ui'
 import { getApp } from '../utils/test-utils'
 import { isVisible } from '../utils/dom'
+import is from '../utils/is'
 import getVideoChatPageObject, {
   cameraOnSrc,
   cameraOffSrc,
@@ -76,11 +77,11 @@ describe(coolGold(`builtIn`), () => {
     it(`should navigate to the destination`, async () => {
       const app = await getApp({ pageName: 'Abc', root: getRoot() })
       await app.navigate()
-      await waitFor(() => expect(getFirstByElementId('hello')).to.exist)
-      await waitFor(() => expect(getFirstByElementId('block')).not.to.exist)
+      await waitFor(() => expect(findFirstByElementId('hello')).to.exist)
+      await waitFor(() => expect(findFirstByElementId('block')).not.to.exist)
       await app.navigate('Abc')
-      expect(getFirstByElementId('block')).not.to.exist
-      expect(getFirstByElementId('hello')).to.exist
+      expect(findFirstByElementId('block')).not.to.exist
+      expect(findFirstByElementId('hello')).to.exist
     })
 
     it(
@@ -93,11 +94,11 @@ describe(coolGold(`builtIn`), () => {
         // prettier-ignore
         const app = await getApp({ navigate: true, pageName: 'Abc', root: getRoot({Cereal:thirdPageObject}) })
         expect(app.mainPage.page).to.eq('Abc')
-        expect(getFirstByViewTag('helloTag')).to.exist
+        expect(findFirstByViewTag('helloTag')).to.exist
         await app.actions.builtIn.get('goto')?.[0].fn({ destination: 'Hello' })
-        expect(getFirstByElementId('block')).to.exist
+        expect(findFirstByElementId('block')).to.exist
         await app.actions.builtIn.get('goto')?.[0].fn({ goto: 'Cereal' })
-        expect(getFirstByViewTag('dividerTag')).to.exist
+        expect(findFirstByViewTag('dividerTag')).to.exist
       },
     )
 
@@ -105,9 +106,9 @@ describe(coolGold(`builtIn`), () => {
       // prettier-ignore
       const app = await getApp({ navigate: true, pageName: 'Abc', root: getRoot() })
       expect(app.mainPage.page).to.eq('Abc')
-      expect(getFirstByViewTag('helloTag')).to.exist
+      expect(findFirstByViewTag('helloTag')).to.exist
       await app.actions.builtIn.get('goto')?.[0].fn('Hello')
-      expect(getFirstByElementId('block')).to.exist
+      expect(findFirstByElementId('block')).to.exist
     })
 
     it(
@@ -117,10 +118,10 @@ describe(coolGold(`builtIn`), () => {
         // prettier-ignore
         const app = await getApp({ navigate: true, pageName: 'Abc', root: getRoot() })
         expect(app.mainPage.page).to.eq('Abc')
-        expect(getFirstByViewTag('helloTag')).to.exist
+        expect(findFirstByViewTag('helloTag')).to.exist
         const action = createAction('onClick', { goto: 'Hello' })
         await app.actions.builtIn.get('goto')?.[0].fn(action)
-        await waitFor(() => expect(getFirstByElementId('block')).to.exist)
+        await waitFor(() => expect(findFirstByElementId('block')).to.exist)
       },
     )
   })
@@ -137,8 +138,8 @@ describe(coolGold(`builtIn`), () => {
             mock.getButtonComponent({ id: 'hello', onClick: [actionObject] }),
           ],
         })
-        const node = getFirstByViewTag(viewTag)
-        const btn = getFirstByElementId('hello')
+        const node = findFirstByViewTag(viewTag)
+        const btn = findFirstByElementId('hello')
         expect(isVisible(node)).to.be.true
         btn.click()
         await waitFor(
@@ -159,7 +160,7 @@ describe(coolGold(`builtIn`), () => {
             mock.getButtonComponent({ id: 'abc', onClick: [actionObject] }),
           ],
         })
-        const node = getFirstByViewTag(viewTag)
+        const node = findFirstByViewTag(viewTag)
         const button = app._test.getComponent('abc')
         expect(isVisible(node)).to.be.true
         await app._test.triggerAction({
@@ -189,7 +190,7 @@ describe(coolGold(`builtIn`), () => {
           }),
         ],
       })
-      const node = getFirstByElementId('hello')
+      const node = findFirstByElementId('hello')
       const redraws = app.cache.actions.builtIn.get('redraw')
       let spy: sinon.SinonSpy | undefined
       if (redraws) {
@@ -215,8 +216,8 @@ describe(coolGold(`builtIn`), () => {
           mock.getButtonComponent({ id: 'hello', onClick: [redrawObject] }),
         ],
       })
-      let node = getFirstByViewTag(viewTag)
-      let btn = getFirstByElementId('hello')
+      let node = findFirstByViewTag(viewTag)
+      let btn = findFirstByElementId('hello')
       await waitFor(() => {
         expect(node).to.exist
         expect(document.body.contains(node)).to.be.true
@@ -224,22 +225,22 @@ describe(coolGold(`builtIn`), () => {
       })
       btn.click()
       await waitFor(() => {
-        node = getFirstByElementId(node.id) as any
-        expect(getFirstByViewTag(viewTag)).to.exist
-        expect(getFirstByViewTag(viewTag)).not.to.eq(node)
+        node = findFirstByElementId(node.id) as any
+        expect(findFirstByViewTag(viewTag)).to.exist
+        expect(findFirstByViewTag(viewTag)).not.to.eq(node)
         // expect(document.getElementById(nextNode.id)).to.exist
       })
       // const id = nextNode?.id || ''
       // expect(id).to.exist
       // expect(document.getElementById(id)).to.exist
-      // getFirstByElementId('hello').click()
+      // findFirstByElementId('hello').click()
       // await waitFor(() => {
       //   expect(document.getElementById(id)).not.to.exist
       // })
     })
 
     it(`should still rerender normally when given a plain object as the first arg`, async () => {
-      let button: NUIComponent.Instance | undefined
+      let button: NuiComponent.Instance | undefined
       let viewTag = 'helloTag'
       let redrawObject = mock.getBuiltInAction({
         funcName: 'redraw',
@@ -253,9 +254,9 @@ describe(coolGold(`builtIn`), () => {
         ],
       })
       for (const component of app.cache.component) {
-        Identify.component.button(component) && (button = component)
+        is.component.button(component) && (button = component)
       }
-      let node = getFirstByViewTag(viewTag)
+      let node = findFirstByViewTag(viewTag)
       await waitFor(() => {
         expect(node).to.exist
         // expect(document.body.contains(node)).to.be.true
@@ -265,7 +266,7 @@ describe(coolGold(`builtIn`), () => {
       // expect(document.getElementById(node.id)).to.exist
       // await app._test.triggerAction({ action: redrawObject, component: button })
       // node = document.getElementById(node.id) as any
-      // let nextNode = getFirstByViewTag(viewTag)
+      // let nextNode = findFirstByViewTag(viewTag)
       // let id = nextNode.id
       // expect(nextNode).to.exist
       // expect(nextNode).not.to.eq(node)
@@ -288,7 +289,7 @@ describe(coolGold(`builtIn`), () => {
         pageName,
         pageObject,
       })
-      const node = getFirstByViewTag('microphone')
+      const node = findFirstByViewTag('microphone')
       expect(pageObject.micOn).to.be.true
       node.click()
       await waitFor(() => {
@@ -327,7 +328,7 @@ describe(coolGold(`builtIn`), () => {
         pageName,
         pageObject,
       })
-      const node = getFirstByViewTag('camera')
+      const node = findFirstByViewTag('camera')
       expect(pageObject.cameraOn).to.be.true
       node.click()
       await waitFor(() => {
@@ -352,7 +353,7 @@ describe(coolGold(`builtIn`), () => {
         pageName,
         pageObject,
       })
-      const node = getFirstByViewTag('camera') as HTMLImageElement
+      const node = findFirstByViewTag('camera') as HTMLImageElement
       // node.click()
       await waitFor(() => {
         expect(node.src).to.eq(cameraOnSrc)

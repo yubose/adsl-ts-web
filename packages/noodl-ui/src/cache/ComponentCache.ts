@@ -1,15 +1,19 @@
 import * as u from '@jsmanifest/utils'
-import isComponent from '../utils/isComponent'
-import { ComponentCacheObject, NUIComponent } from '../types'
-import isNUIPage from '../utils/isPage'
-import NUIPage from '../Page'
+import type { LiteralUnion } from 'type-fest'
+import type { ComponentCacheObject, NuiComponent } from '../types'
+import type NuiPage from '../Page'
+import isNuiPage from '../utils/isPage'
 
 type ComponentCacheHookEvent = 'add' | 'clear' | 'remove'
 
 interface ComponentCacheHook {
-  add(component: NUIComponent.Instance): void
-  clear(components: { [id: string]: NUIComponent.Instance }): void
-  remove(component: ReturnType<NUIComponent.Instance['toJSON']>): void
+  add(args: {
+    component: NuiComponent.Instance
+    page: LiteralUnion<'unknown', string>
+    pageId?: string
+  }): void
+  clear(components: { [id: string]: NuiComponent.Instance }): void
+  remove(args: { id: string | undefined; page: string | undefined }): void
 }
 
 class ComponentCache {
@@ -31,7 +35,6 @@ class ComponentCache {
       if (obj) {
         if (!(obj.page in result.components)) {
           result.components[obj.page] = {} as typeof result.components[string]
-          if (typeof obj.page !== 'string') debugger
         }
 
         const item = result.components[obj.page]
@@ -83,25 +86,27 @@ class ComponentCache {
     evt: Evt,
     ...args: Parameters<ComponentCacheHook[Evt]>
   ) {
-    this.#observers[evt]?.forEach?.((fn: any) => fn(...args))
-    return this
+    return this.#observers[evt]?.map?.((fn: any) => fn(...args)) || []
   }
 
   add(
-    component: NUIComponent.Instance,
-    page: NUIPage | string | undefined,
+    component: NuiComponent.Instance,
+    page: NuiPage | string | undefined,
   ): ComponentCacheObject {
     if (component) {
-      this.#cache.set(component.id, {
-        component,
-        page:
-          (isNUIPage(page)
-            ? page.page
-            : u.isObj(page)
-            ? page.page || ''
-            : page) || '',
-      })
-      this.emit('add', component)
+      const pageName = isNuiPage(page)
+        ? page.page
+        : u.isObj(page)
+        ? page.page || ''
+        : page || ''
+      const value = { component, page: pageName } as {
+        component: NuiComponent.Instance
+        page: string
+        pageId?: string
+      }
+      isNuiPage(page) && (value.pageId = page.id as string)
+      this.#cache.set(component.id, value)
+      this.emit('add', value)
     }
     return this.get(component)
   }
@@ -111,12 +116,20 @@ class ComponentCache {
     let remove = (obj: ComponentCacheObject) => {
       const id = obj?.component?.id || ''
       removed[id] = obj
-      this.#cache.delete(id)
+      this.remove(obj.component)
     }
 
     for (const obj of this.#cache.values()) {
-      if (page) page === obj.page && remove(obj)
-      else remove(obj)
+      if (page !== undefined) {
+        if (page === obj.page) remove(obj)
+        else if (
+          obj.pageId &&
+          page?.startsWith('#') &&
+          obj.pageId === page.substring(1)
+        ) {
+          remove(obj)
+        }
+      } else remove(obj)
     }
 
     this.emit('clear', removed)
@@ -125,30 +138,83 @@ class ComponentCache {
     return this
   }
 
-  get(
-    component: NUIComponent.Instance | string | undefined,
+  find(kind: 'page', pageName: string): ComponentCacheObject
+  find(
+    cb: (obj: ComponentCacheObject) => boolean | null | undefined,
   ): ComponentCacheObject
+  find(
+    cbOrKind:
+      | 'page'
+      | ((obj: ComponentCacheObject) => boolean | null | undefined),
+    pageName = '',
+  ) {
+    if (u.isFnc(cbOrKind)) return [...this].find((obj) => obj && cbOrKind(obj))
+    return [...this].find((obj) => obj?.page === pageName)
+  }
+
   get(): Map<string, ComponentCacheObject>
-  get(component?: NUIComponent.Instance | string | undefined) {
-    if (isComponent(component)) return this.#cache.get(component.id)
-    if (u.isStr(component)) return this.#cache.get(component)
+  get(
+    component: NuiComponent.Instance | string | undefined,
+  ): ComponentCacheObject
+  get(component?: NuiComponent.Instance | string | undefined) {
+    if (u.isObj(component)) return this.#cache.get(component.id)
+    if (component) return this.#cache.get(component)
     return this.#cache
   }
 
-  has(component: NUIComponent.Instance | string | undefined) {
-    if (!component) return false
-    return this.#cache.has(u.isStr(component) ? component : component.id || '')
+  has(component: NuiComponent.Instance | string | undefined) {
+    if (u.isNil(component)) return false
+    return this.#cache.has(!u.isObj(component) ? component : component.id || '')
   }
 
-  remove(component: NUIComponent.Instance | string) {
-    if (u.isStr(component)) {
-      component = this.#cache.get(component)?.component as NUIComponent.Instance
-    }
-    if (isComponent(component)) {
-      this.#cache.delete(component.id)
-      this.emit('remove', component.toJSON())
+  remove(component: NuiComponent.Instance | string) {
+    if (!u.isObj(component)) {
+      if (this.#cache.has(component)) {
+        const id = component
+        const pageName = this.#cache.get(id)?.page
+        this.#cache.delete(id)
+        this.emit('remove', { id, page: pageName })
+      }
+    } else if (component) {
+      if (this.#cache.has(component.id)) {
+        const id = component.id
+        const pageName = this.#cache.get(component.id)?.page
+        this.#cache.delete(component.id)
+        this.emit('remove', { id, page: pageName })
+      }
     }
     return this
+  }
+
+  /**
+   * Filter results by page name (if cb is a string) or callback (if by function)
+   * @param cb Page name or callback function
+   * @returns { ComponentCacheObject[] }
+   */
+  filter(cb: string | ((obj: ComponentCacheObject) => boolean)) {
+    if (u.isStr(cb)) {
+      return this.reduce(
+        (acc, obj) => (obj.page === cb ? acc.concat(obj) : acc),
+        [] as ComponentCacheObject[],
+      )
+    }
+    return this.reduce(
+      (acc, obj) => (cb(obj) ? acc.concat(obj) : acc),
+      [] as ComponentCacheObject[],
+    )
+  }
+
+  forEach(cb: (obj: ComponentCacheObject) => void) {
+    for (const obj of this) obj && cb(obj)
+  }
+
+  map(cb: <V>(obj: ComponentCacheObject) => V) {
+    return [...this].map((v) => v && cb(v))
+  }
+
+  reduce<A>(cb: (acc: A, obj: ComponentCacheObject) => A, initialValue: A) {
+    // @ts-expect-error
+    return u.reduce([...this], cb, initialValue)
   }
 }
 

@@ -1,29 +1,33 @@
-import * as mock from 'noodl-ui-test-utils'
 import sinon from 'sinon'
 import { ComponentObject } from 'noodl-types'
 import { waitFor } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic } from 'noodl-common'
 import NUI from '../../noodl-ui'
-import { createDataKeyReference } from '../../utils/test-utils'
+import { createDataKeyReference, ui } from '../../utils/test-utils'
 
-function resolveComponent(component: ComponentObject) {
+async function resolveComponent(component: ComponentObject) {
   const page = NUI.createPage({
     name: 'Hello',
     viewport: { width: 375, height: 667 },
   })
-
   return {
-    component: NUI.resolveComponents({ components: component, page }),
+    component: await NUI.resolveComponents({ components: component, page }),
     page,
   }
 }
 
+const getGenderListObject = () => [
+  { key: 'Gender', value: 'Male' },
+  { key: 'Gender', value: 'Female' },
+  { key: 'Gender', value: 'Other' },
+]
+
 describe(coolGold(`resolveDataAttrs`), () => {
   describe(italic(`data-key`), () => {
-    it('should set the data-key and remove the dataKey property', () => {
-      const { component } = resolveComponent(
-        mock.getLabelComponent({ dataKey: 'formData.password' }),
+    it('should set the data-key and remove the dataKey property', async () => {
+      const { component } = await resolveComponent(
+        ui.label({ dataKey: 'formData.password' }),
       )
       expect(component.get('data-key')).to.eq('formData.password')
       expect('dataKey' in component.props).to.be.false
@@ -31,19 +35,19 @@ describe(coolGold(`resolveDataAttrs`), () => {
   })
 
   describe(italic(`data-value`), () => {
-    it('should set the data-value for list consumers', () => {
+    it('should set the data-value for list consumers', async () => {
       createDataKeyReference({
-        pageObject: { info: { gender: mock.getGenderListObject() } },
+        pageObject: { info: { gender: getGenderListObject() } },
       })
-      const { component } = resolveComponent(
-        mock.getListComponent({
-          listObject: mock.getGenderListObject(),
+      const { component } = await resolveComponent(
+        ui.list({
+          listObject: getGenderListObject(),
           iteratorVar: 'cereal',
           children: [
-            mock.getListItemComponent({
+            ui.listItem({
               children: [
-                mock.getLabelComponent({ dataKey: 'cereal.key' }),
-                mock.getTextFieldComponent({ dataKey: 'cereal.value' }),
+                ui.label({ dataKey: 'cereal.key' }),
+                ui.textField({ dataKey: 'cereal.value' }),
               ],
             }),
           ],
@@ -57,17 +61,19 @@ describe(coolGold(`resolveDataAttrs`), () => {
     })
   })
 
-  it('should set the data-value for non list consumers', () => {
+  it('should set the data-value for non list consumers', async () => {
     createDataKeyReference({
       pageObject: { formData: { email: 'pfft@gmail.com' } },
     })
     expect(
-      NUI.resolveComponents({
-        components: mock.getLabelComponent({
-          type: 'label',
-          dataKey: 'formData.email',
-        }),
-      }).get('data-value'),
+      (
+        await NUI.resolveComponents({
+          components: ui.label({
+            type: 'label',
+            dataKey: 'formData.email',
+          }),
+        })
+      ).get('data-value'),
     ).eq('pfft@gmail.com')
   })
 
@@ -88,17 +94,15 @@ describe(coolGold(`resolveDataAttrs`), () => {
 
     describe(`when options is provided through a reference string`, () => {
       it(`should use options as the dataKey to get its options`, async () => {
-        const component = NUI.resolveComponents(
-          mock.getListComponent({
+        const component = await NUI.resolveComponents(
+          ui.list({
             contentType: 'listObject',
             iteratorVar,
             listObject,
             children: [
-              mock.getListItemComponent({
+              ui.listItem({
                 [iteratorVar]: '',
-                children: [
-                  mock.getSelectComponent({ options: 'itemObject.doc' } as any),
-                ],
+                children: [ui.select({ options: 'itemObject.doc' } as any)],
               }),
             ],
           }),
@@ -118,17 +122,15 @@ describe(coolGold(`resolveDataAttrs`), () => {
       const spy1 = sinon.spy()
       const spy2 = sinon.spy()
       const spy3 = sinon.spy()
-      const component = NUI.resolveComponents(
-        mock.getListComponent({
+      const component = await NUI.resolveComponents(
+        ui.list({
           contentType: 'listObject',
           iteratorVar,
           listObject,
           children: [
-            mock.getListItemComponent({
+            ui.listItem({
               [iteratorVar]: '',
-              children: [
-                mock.getSelectComponent({ options: 'itemObject.doc' }),
-              ],
+              children: [ui.select({ options: 'itemObject.doc' })],
             }),
           ],
         }),
@@ -147,28 +149,29 @@ describe(coolGold(`resolveDataAttrs`), () => {
   })
 
   describe(italic(`data-viewtag`), () => {
-    it('should attach viewTag as the value for data-viewtag', () => {
+    it('should attach viewTag as the value for data-viewtag', async () => {
       expect(
-        NUI.resolveComponents({
-          components: mock.getLabelComponent({
-            type: 'label',
-            viewTag: 'hello',
-          }),
-        }).get('data-viewtag'),
+        (
+          await NUI.resolveComponents({
+            components: ui.label({ type: 'label', viewTag: 'hello' }),
+          })
+        ).get('data-viewtag'),
       ).to.eq('hello')
     })
   })
 
   describe(italic(`data-listid`), () => {
-    it('should attach data-listid for list components', () => {
+    it('should attach data-listid for list components', async () => {
       expect(
-        NUI.resolveComponents({
-          components: mock.getListComponent({
-            type: 'list',
-            listObject: [{ george: 'what' }],
-            children: [],
-          }),
-        }).get('data-listid'),
+        (
+          await NUI.resolveComponents({
+            components: ui.list({
+              type: 'list',
+              listObject: [{ george: 'what' }],
+              children: [],
+            }),
+          })
+        ).get('data-listid'),
       ).to.exist
     })
   })
@@ -177,9 +180,9 @@ describe(coolGold(`resolveDataAttrs`), () => {
     it(
       `should attach the data attribute for contentType: passwordHidden ` +
         `components and its value as passwordHidden`,
-      () => {
-        const label = NUI.resolveComponents({
-          components: mock.getLabelComponent({
+      async () => {
+        const label = await NUI.resolveComponents({
+          components: ui.label({
             type: 'label',
             contentType: 'passwordHidden',
           }),
@@ -192,66 +195,31 @@ describe(coolGold(`resolveDataAttrs`), () => {
   it(
     `should use the dataKey and text=func function to resolve the ` +
       `expected data-value for date (text=func) components`,
-    () => {
+    async () => {
       const result = '10 seconds ago'
       expect(
-        resolveComponent(
-          mock.getLabelComponent({
-            type: 'label',
-            text: '2020/08/02',
-            dataKey: 'hello12345',
-            textfunc: () => result,
-          }),
+        (
+          await resolveComponent(
+            ui.label({
+              type: 'label',
+              text: '2020/08/02',
+              dataKey: 'hello12345',
+              textfunc: () => result,
+            }),
+          )
         ).component.get('data-value'),
       )
     },
   )
 
-  describe('when handling dataValue emits', () => {
-    it('should pass the value from the emit executor', async () => {
-      const spy = sinon.spy(() => Promise.resolve('iamjoshua'))
-      const dataObject = { fruit: 'apple' }
-      const iteratorVar = 'hello'
-      const listObject = [dataObject, { fruit: 'orange' }]
-      NUI.use({ emit: { dataValue: spy } })
-      const { component: view } = resolveComponent(
-        mock.getViewComponent({
-          children: [
-            mock.getListComponent({
-              contentType: 'listObject',
-              listObject,
-              iteratorVar,
-              children: [
-                mock.getListItemComponent({
-                  children: [
-                    mock.getTextFieldComponent({
-                      dataKey: `${iteratorVar}.fruit`,
-                      dataValue: mock.getFoldedEmitObject({
-                        dataKey: { var1: iteratorVar },
-                      }),
-                    }),
-                  ],
-                }),
-              ],
-            }),
-          ],
-        }),
-      )
-      const list = view.child()
-      const listItem = list.child()
-      const textField = listItem.child()
-      await waitFor(() => {
-        expect(textField.get('data-value')).to.eq('iamjoshua')
-      })
-    })
-  })
-
-  it('should look in the page object to find its dataObject (non list consumers)', () => {
+  it('should look in the page object to find its dataObject (non list consumers)', async () => {
     const pageObject = { hello: { gender: 'Female' } }
     createDataKeyReference({ pageObject })
     expect(
-      NUI.resolveComponents(
-        mock.getLabelComponent({ type: 'label', dataKey: 'hello.gender' }),
+      (
+        await NUI.resolveComponents(
+          ui.label({ type: 'label', dataKey: 'hello.gender' }),
+        )
       ).get('data-value'),
     ).to.eq('Female')
   })
@@ -259,15 +227,17 @@ describe(coolGold(`resolveDataAttrs`), () => {
   it(
     'should attempt to look into the root object if a dataObject ' +
       'isnt available in the page object',
-    () => {
+    async () => {
       const pageObject = { hello: { gender: 'Female' } }
       createDataKeyReference({ pageName: 'SignIn', pageObject })
       expect(
-        NUI.resolveComponents(
-          mock.getLabelComponent({
-            type: 'label',
-            dataKey: 'SignIn.hello.gender',
-          }),
+        (
+          await NUI.resolveComponents(
+            ui.label({
+              type: 'label',
+              dataKey: 'SignIn.hello.gender',
+            }),
+          )
         ).get('data-value'),
       ).to.eq('Female')
     },
@@ -300,7 +270,7 @@ describe(coolGold(`resolveDataAttrs`), () => {
       }[]
     }
 
-    beforeEach(() => {
+    beforeEach(async () => {
       listObject = [
         { key: 'gender', value: 'Male' },
         { key: 'gender', value: 'Female' },
@@ -313,8 +283,8 @@ describe(coolGold(`resolveDataAttrs`), () => {
           actions: [],
         },
       }
-      list = resolveComponent(
-        mock.getListComponent({
+      list = await resolveComponent(
+        ui.list({
           type: 'list',
           iteratorVar,
           listObject,

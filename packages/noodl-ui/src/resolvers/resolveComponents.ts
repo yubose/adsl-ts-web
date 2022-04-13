@@ -1,463 +1,515 @@
 import * as u from '@jsmanifest/utils'
 import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
-import has from 'lodash/has'
 import set from 'lodash/set'
-import {
-  ComponentObject,
-  EcosDocument,
-  EmitObjectFold,
-  Identify,
-  PageObject,
-} from 'noodl-types'
-import { findDataValue } from 'noodl-utils'
+import { userEvent } from 'noodl-types'
+import { excludeIteratorVar, findDataValue } from 'noodl-utils'
+import type { ComponentObject, EcosDocument } from 'noodl-types'
 import Resolver from '../Resolver'
-import NUIPage from '../Page'
-import createComponent from '../utils/createComponent'
 import VP from '../Viewport'
-import { formatColor, isPromise } from '../utils/common'
+import isNuiPage from '../utils/isPage'
+import resolveReference from '../utils/resolveReference'
+import { formatColor } from '../utils/common'
+import is from '../utils/is'
 import {
-  evalIf,
   findIteratorVar,
   findListDataObject,
   isListConsumer,
   isListLike,
-  publish,
   resolveAssetUrl,
 } from '../utils/noodl'
-import { ConsumerOptions, NUIComponent } from '../types'
+import log from '../utils/log'
+import type { ConsumerOptions, NuiComponent, NUIActionObject } from '../types'
+import type NuiPage from '../Page'
+import cache from '../_cache'
 import * as c from '../constants'
 
 const componentResolver = new Resolver('resolveComponents')
 
-componentResolver.setResolver((component, options, next) => {
+componentResolver.setResolver(async (component, options, next) => {
   const {
-    cache,
+    callback,
     context,
+    createComponent,
     createPage,
     createPlugin,
     createSrc,
     emit,
-    get: enhancedGet, // A more optimized getter. TODO: Replace regular get func calls with this one
     getAssetsUrl,
+    getPages,
     getRoot,
     getRootPage,
+    on,
     page,
     resolveComponents,
   } = options
 
-  const original = component.blueprint || {}
-  const originalStyle = original.style || {}
-  const { contentType, dataKey, path, text, textBoard } = original
-  const iteratorVar =
-    context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
+  callback?.(component)
 
-  /* -------------------------------------------------------
-    ---- ECOSDOC
-  -------------------------------------------------------- */
+  const mergingProps = on?.createComponent?.(component, {
+    page,
+    parent: component.parent,
+    ...context,
+  })
 
-  if (Identify.component.ecosDoc(component)) {
-    const ecosObj = component.get('ecosObj') as EcosDocument
-    if (u.isObj(ecosObj)) {
-      component.edit({
-        mediaType: ecosObj.subtype?.mediaType,
-        mimeType: ecosObj.name?.type,
-        nameField: ecosObj.name,
-      })
-      if (!u.isObj(ecosObj.name)) {
-        console.log(
-          `%cAn ecosObj was received with a "name" field that was not an object. ` +
-            `This will rely on the subtype to determine the type of document ` +
-            `to generate the metadata for`,
-          `color:#FF5722;`,
-          { component, ecosObj },
-        )
-      }
-    } else {
-      console.log(
-        `%cAn ecosDoc component did not have a valid "ecosObj" value`,
-        `color:#ec0000;`,
-        component,
-      )
-    }
-  }
+  try {
+    const original = component.blueprint || {}
+    const originalStyle = original.style || {}
+    const { contentType, dataKey, path, text, textBoard } = original
+    const iteratorVar =
+      context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
 
-  /* -------------------------------------------------------
-    ---- LIST
-  -------------------------------------------------------- */
+    /* -------------------------------------------------------
+      ---- ECOSDOC
+    -------------------------------------------------------- */
 
-  if (isListLike(component)) {
-    const listItemBlueprint = getRawBlueprint(component)
-
-    function getChildrenKey(component: NUIComponent.Instance) {
-      return component.type === 'chatList' ? 'chatItem' : 'children'
-    }
-
-    function getListObject() {
-      if (u.isArr(component.blueprint.listObject)) {
-        return component.blueprint.listObject
-      }
-      return []
-    }
-
-    function getRawBlueprint(component: NUIComponent.Instance) {
-      const childrenKey = getChildrenKey(component)
-      const children = component.blueprint.children
-      const blueprint = cloneDeep(u.isArr(children) ? children[0] : children)
-      if (u.isObj(blueprint) && childrenKey === 'chatItem') {
-        blueprint.type = 'listItem'
-      }
-      return blueprint as ComponentObject
-    }
-
-    // Creates list items as new data objects are added
-    component.on(
-      c.nuiEvent.component.list.ADD_DATA_OBJECT,
-      ({ index, dataObject }) => {
-        const ctx = { index, iteratorVar, dataObject }
-        let listItem = component.createChild(createComponent(listItemBlueprint))
-        listItem.ppath = `${component.ppath}.children[${index}]`
-        listItem.edit({ index, [iteratorVar]: dataObject })
-        listItem = resolveComponents({
-          components: listItem,
-          context: ctx,
-          page,
+    if (is.component.ecosDoc(component)) {
+      const ecosObj = component.get('ecosObj') as EcosDocument
+      if (u.isObj(ecosObj)) {
+        component.edit({
+          mediaType: ecosObj.subtype?.mediaType,
+          mimeType: ecosObj.name?.type,
+          nameField: ecosObj.name,
         })
-        cache.component.add(listItem, page)
-        const numGeneratedChildren = listItem.length
-        const expectedNumChildren = listItem.blueprint?.children?.length
-        if (listItem.length > (listItem.blueprint?.children?.length || 0)) {
-          console.log(
-            `%cA listItem has more children (${numGeneratedChildren}) than what its blueprint represents (${expectedNumChildren})`,
-            `color:#ec0000;`,
-            { list: component, listItem, dataObject, index },
-          )
-        }
-      },
-      'ADD_DATA_OBJECT',
-    )
-
-    // Removes list items when their data object is removed
-    component.on(
-      c.nuiEvent.component.list.DELETE_DATA_OBJECT,
-      (args) => {
-        const listItem = component?.children?.find(
-          (child) => child.get(iteratorVar) === args.dataObject,
+      } else {
+        log.error(
+          `%cAn ecosDoc component had an empty "ecosObj" value`,
+          `color:#ec0000;`,
+          component,
         )
-        if (listItem) {
-          const liProps = listItem.props
-          liProps[iteratorVar] = ''
-          if (listItem) {
-            component.removeChild(listItem)
-            cache.component.remove(listItem)
-            publish(listItem, (c) => {
-              console.log(`%cRemoving from cache: ${c.id}`, `color:#00b406`)
-              cache.component.remove(c)
-            })
+      }
+    }
+
+    /* -------------------------------------------------------
+      ---- LIST
+    -------------------------------------------------------- */
+
+    if (isListLike(component)) {
+      const listItemBlueprint = getRawBlueprint(component)
+      /** Filter invalid values (0 is a valid value)  */
+      function getListObject(opts: ConsumerOptions) {
+        let listObject =
+        component.blueprint.listObject || component.get('listObject')
+        if (is.reference(listObject)) {
+          let page = opts.page
+          let pageName = ''
+          if (u.isStr(page)) {
+            pageName = page
+            page = opts.getRootPage()
+          } else if (isNuiPage(page)) {
+            pageName = page.page
           }
+          component.edit(
+            'listObject',
+            resolveReference({
+              component: opts.component,
+              localKey: pageName,
+              root: opts.getRoot(),
+              key: 'listObject',
+              page,
+              value: listObject,
+            }),
+          )
+          listObject = component.get('listObject')
         }
-      },
-      'DELETE_DATA_OBJECT',
-    )
-
-    // Updates list items with new updates to their data object
-    component.on(
-      c.nuiEvent.component.list.UPDATE_DATA_OBJECT,
-      (args) => {
-        component.children?.[args.index]?.edit?.({
-          [iteratorVar]: args.dataObject,
-        })
-      },
-      'UPDATE_DATA_OBJECT',
-    )
-
-    // Removes the placeholder (first child)
-    component.clear('children')
-
-    // Customly create the listItem children using a dataObject as the data source
-    getListObject().forEach((dataObject: any, index: number) => {
-      component.emit(c.nuiEvent.component.list.ADD_DATA_OBJECT, {
-        index,
-        dataObject,
-      })
-    })
-  }
-
-  /* -------------------------------------------------------
-    ---- PAGE
-  -------------------------------------------------------- */
-
-  if (Identify.component.page(component)) {
-    let nuiPage = cache.page.get(component.id)?.page
-    let pageName = ''
-
-    if (!nuiPage) {
-      if (Identify.if(path)) {
-        pageName = evalIf(path)
-        if (u.isStr(pageName)) {
-          if (Identify.reference(pageName)) pageName = enhancedGet(pageName)
-        }
-      } else if (u.isStr(path)) {
-        pageName = Identify.reference(path) ? enhancedGet(path) : path
+        return listObject
       }
 
-      nuiPage = createPage({ id: component.id, name: pageName }) as NUIPage
+      function getRawBlueprint(component: NuiComponent.Instance) {
+        const childrenKey =
+          component.type === 'chatList' ? 'chatItem' : 'children'
+        const children = component.blueprint.children
+        const blueprint = cloneDeep(u.isArr(children) ? children[0] : children)
+        if (u.isObj(blueprint) && childrenKey === 'chatItem') {
+          blueprint.type = 'listItem'
+        }
+        return blueprint as ComponentObject
+      }
 
-      if (pageName) {
-        ;(async () => {
-          try {
-            nuiPage.page = pageName
-            const pageObject = await emit({
-              type: c.nuiEmitType.TRANSACTION,
-              transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
-              params: nuiPage,
-            })
-            component.edit('page', nuiPage)
-            component.emit(
-              c.nuiEvent.component.page.PAGE_COMPONENTS,
-              pageObject.components || nuiPage.components || [],
+      // Removes the placeholder (first child)
+      component.clear('children')
+
+      // Customly create the listItem children using a dataObject as the data source
+      let dataObjects = getListObject(options)
+      if (
+        u.isStr(dataObjects) &&
+        ((iteratorVar && dataObjects.startsWith(iteratorVar)) ||
+          dataObjects.startsWith('itemObject'))
+      ) {
+        let dataKey: any = dataObjects.toString()
+        dataKey = excludeIteratorVar(dataKey, iteratorVar)
+        dataObjects = get(findListDataObject(component), dataKey)
+      }
+      if (u.isArr(dataObjects)) {
+        const numDataObjects = dataObjects.length
+        for (let index = 0; index < numDataObjects; index++) {
+          const dataObject = dataObjects[index]
+          const ctx = { index, iteratorVar, dataObject }
+          let listItem = createComponent(listItemBlueprint, page)
+          listItem = component.createChild(listItem)
+          listItem.edit({ index, [iteratorVar]: dataObject })
+          listItem = await resolveComponents({
+            callback,
+            components: listItem,
+            context: {
+              ...context,
+              ...ctx,
+              path: context?.path
+                ? context.path.concat('children', index)
+                : ['children', index],
+            },
+            on: options.on,
+            page,
+          })
+        }
+      }
+    }
+
+    /* -------------------------------------------------------
+      ---- PAGE
+    -------------------------------------------------------- */
+
+    if (is.component.page(component)) {
+      let pageName = component.get('path')
+      let page: NuiPage
+
+      if (isNuiPage(options.page) && options.page.id !== 'root') {
+        page = options.page
+      } else {
+        page = component.get('page') as NuiPage
+      }
+
+      if (!page) {
+        if (cache.page.has(component.id)) {
+          page = cache.page.get(component.id).page
+        } else {
+          page = createPage(component)
+        }
+      }
+
+      page !== component.get('page') && component.edit('page', page)
+      !page.viewport && (page.viewport = new VP())
+
+      let viewportWidth = originalStyle.width
+      let viewportHeight = originalStyle.height
+
+      for (const key of ['width', 'height']) {
+        const vpSize = key === 'width' ? viewportWidth : viewportHeight
+        page.viewport[key] = VP.isNil(vpSize)
+          ? getRootPage().viewport[key]
+          : Number(
+              VP.getSize(vpSize, options.viewport?.[key], {
+                toFixed: 2,
+              }),
             )
-          } catch (err) {
-            throw new Error(
+      }
+
+      const isRemote = (str = '') =>
+        str.startsWith('http') || str.endsWith('.html')
+
+      if (u.isStr(pageName)) {
+        const isEqual = page.page === pageName
+        if (isEqual && !isRemote(pageName)) {
+          u.isObj(mergingProps) && component.edit(mergingProps)
+          return next?.()
+        } else {
+          if (page.page === '' && pageName) {
+            // Assuming it was loading its page object and just received it
+          } else if (page.page && pageName === '') {
+            // Assuming it was active but is now entering in its idle/closing state
+          } else if (!isEqual) {
+            // Transitioning from a previous page to a new page
+            if (!component.get('page')) {
+              if (cache.page.has(component.id)) {
+                component.set('page', cache.page.get(component.id).page)
+              }
+            }
+          }
+
+          !isEqual && (page.page = pageName)
+
+          const onPageChange = async (page: NuiPage) => {
+            try {
+              await emit({
+                type: c.nuiEmitType.TRANSACTION,
+                transaction: c.nuiEmitTransaction.REQUEST_PAGE_OBJECT,
+                params: page,
+              })
+              page.emit(c.nuiEvent.component.page.PAGE_CHANGED)
+            } catch (error) {
+              log.error(
+                error instanceof Error ? error : new Error(String(error)),
+              )
+            }
+          }
+
+          try {
+            // If the path corresponds to a page in the noodl, then the behavior is that it will navigate to the page in a window using the page object
+            if (getPages().includes(pageName) || pageName === '') {
+              getPages().includes(page.page) && (await onPageChange(page))
+            } else {
+              // Otherwise if it is a link (Only supporting html links / full URL's for now), treat it as an outside link
+              if (!pageName.startsWith('http')) {
+                page.page = resolveAssetUrl(pageName, getAssetsUrl())
+              } else {
+                page.page = pageName
+              }
+            }
+          } catch (error) {
+            const err =
+              error instanceof Error ? error : new Error(String(error))
+            log.error(
               `[Page component] ` +
                 `Error attempting to get the page object for a page component]: ${err.message}`,
+              err.stack,
             )
           }
-        })()
+
+          const wrapOnPageChange =
+            (fn: (...args: any[]) => any, page: NuiPage) => () =>
+              fn(page)
+
+          page.on(
+            c.nuiEvent.component.page.PAGE_CHANGED,
+            wrapOnPageChange(onPageChange, page),
+          )
+        }
       } else {
-        console.log(
-          `%cCould not resolve the page name for a page component`,
+        log.error(
+          `%cThe pageName was not a string when resolving the page name for a page component`,
           `color:#ec0000;`,
-          { component, options },
-        )
-      }
-    }
-
-    let viewport = nuiPage.viewport || new VP()
-
-    if (VP.isNil(originalStyle.width)) {
-      viewport.width = getRootPage().viewport.width
-    } else {
-      viewport.width = Number(
-        VP.getSize(originalStyle.width, options.viewport?.width, {
-          toFixed: 2,
-        }),
-      )
-    }
-
-    if (VP.isNil(originalStyle.height)) {
-      viewport.height = getRootPage().viewport.height
-    } else {
-      viewport.height = Number(
-        VP.getSize(originalStyle.height, options.viewport?.height, {
-          toFixed: 2,
-        }),
-      )
-    }
-  }
-
-  /* -------------------------------------------------------
-    ---- PLUGIN
-  -------------------------------------------------------- */
-
-  if (
-    Identify.component.plugin(component) ||
-    Identify.component.pluginHead(component) ||
-    Identify.component.pluginBodyTail(component)
-  ) {
-    /**
-     * Resolves the path, returning the final url
-     * @param { string } path - Image path
-     * @param { string } assetsUrl - Assets url
-     * @param { function } createSrc
-     */
-    async function getPluginUrl(
-      path: string,
-      assetsUrl: string,
-      createSrc: ConsumerOptions['createSrc'],
-    ) {
-      let url = createSrc(path)
-      if (isPromise(url)) {
-        const finalizedUrl = await url
-        url = resolveAssetUrl(finalizedUrl, assetsUrl)
-      }
-      return url
-    }
-
-    if (cache.plugin.has(path)) return
-
-    const plugin = createPlugin(component)
-    component.set('plugin', plugin)
-
-    getPluginUrl(path, getAssetsUrl(), createSrc)
-      .then((src) => {
-        // src is also being resolved in the resolveDataAttrs resolver
-        // so we don't need to handle setting the data-src and emitting the
-        // path event here
-        if (src) return window.fetch?.(src)
-      })
-      .then((res) => res?.json?.())
-      .then((content) => {
-        plugin && (plugin.content = content)
-        component.set('content', content).emit('content', content || '')
-      })
-      .catch((err) => console.error(`[${err.name}]: ${err.message}`, err))
-      .finally(() => (plugin.initiated = true))
-  }
-
-  /* -------------------------------------------------------
-    ---- TEXTBOARD (LABEL)
-  -------------------------------------------------------- */
-
-  if (Identify.component.label(original) && 'textBoard' in original) {
-    if (u.isArr(textBoard)) {
-      if (u.isStr(text)) {
-        console.log(
-          `%cA component cannot have a "text" and "textBoard" property because ` +
-            `they both overlap. The "text" will take precedence.`,
-          `color:#ec0000;font-weight:bold;`,
           component.toJSON(),
         )
       }
+    }
 
-      textBoard.forEach((item) => {
-        if (Identify.textBoardItem(item)) {
-          component.createChild(createComponent('br'))
+    /* -------------------------------------------------------
+      ---- PLUGIN
+    -------------------------------------------------------- */
+
+    if (
+      is.component.plugin(component) ||
+      is.component.pluginHead(component) ||
+      is.component.pluginBodyTop(component) ||
+      is.component.pluginBodyTail(component)
+    ) {
+      if (cache.plugin.has(path)) return next?.()
+
+      const plugin = createPlugin(component)
+      component.set('plugin', plugin)
+
+      try {
+        // src is also being resolved in the resolveDataAttrs resolver
+        // so we don't need to handle setting the data-src and emitting the
+        // path event here
+        const src = resolveAssetUrl(
+          // @ts-expect-error
+          await createSrc(path, { component, key: 'path', page }),
+          getAssetsUrl(),
+        )
+        const res = await window.fetch?.(src)
+        const headers = res?.headers
+        const contentType = headers?.get?.('Content-Type') || ''
+        if (/(text|javascript)/i.test(contentType)) {
+          component.edit('content', await res?.text?.())
         } else {
-          /**
-           * NOTE: Normally in the return type we would return the child
-           * component wrapped with a resolveComponent call but it is conflicting
-           * with our custom implementation because its being assigned unwanted style
-           * attributes like "position: absolute" which disrupts the text display.
-           * TODO: Instead of a resolverComponent, we should make a resolveStyles
-           * to get around this issue. For now we'll hard code known props like "color"
-           * color ---> color
-           * fontSize----> fontSize
-           * fontWeight---> normal | bold | number
-           */
-          const text = createComponent({
-            type: 'label',
-            style: {
-              display: 'inline-block',
-              ...('color' in item
-                ? { color: formatColor(item.color || '') }
-                : undefined),
-              ...('fontSize' in item
-                ? {
-                    fontSize:
-                      item.fontSize.search(/[a-z]/gi) != -1
-                        ? item.fontSize
-                        : item.fontSize + 'px',
-                  }
-                : undefined),
-              ...('fontWeight' in item
-                ? { fontWeight: item.fontWeight }
-                : undefined),
-              ...('left' in item
-                ? {
-                    marginLeft: item.left.includes('px')
-                      ? item.left
-                      : `${item.left}px`,
-                  }
-                : undefined),
-              ...('top' in item
-                ? {
-                    marginTop: item.top.includes('px')
-                      ? item.top
-                      : `${item.top}px`,
-                  }
-                : undefined),
-            },
-            text: 'text' in item ? item.text : '',
-          })
-          component.createChild(text)
+          component.edit('content', await res?.json?.())
         }
-      })
-    } else {
-      console.log(
-        `%cExpected textBoard to be an array but received "${typeof textBoard}". ` +
-          `This part of the component will not be included in the output`,
-        `color:#ec0000;font-weight:bold;`,
-        { component, textBoard },
-      )
+        const content = await res?.json?.()
+        plugin && (plugin.content = component.get('content'))
+        setTimeout(() => component.emit('content', content || ''))
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        log.error(`[${err.name}]: ${err.message}`, err)
+      } finally {
+        plugin.initiated = true
+      }
     }
-  }
 
-  /* -------------------------------------------------------
-    ---- TIMERS (LABEL)
-  -------------------------------------------------------- */
+    /* -------------------------------------------------------
+      ---- TEXTBOARD (LABEL)
+    -------------------------------------------------------- */
 
-  if (contentType === 'timer' && dataKey) {
-    let dataObject: any
-    let dataValue: any
+    if (is.component.label(original) && 'textBoard' in original) {
+      if (u.isArr(textBoard)) {
+        if (u.isStr(text)) {
+          log.error(
+            `%cA component cannot have a "text" and "textBoard" property because ` +
+              `they both overlap. The "text" will take precedence.`,
+            `color:#ec0000;font-weight:bold;`,
+            component.toJSON(),
+          )
+        }
 
-    if (isListConsumer(component)) {
-      dataObject = findListDataObject(component)
-      if (!has(dataObject, dataKey)) {
-        console.log(
-          `%cA path does not exist at ${dataKey}. Skipping the query and ` +
-            `moving to higher level now...`,
+        textBoard.forEach((item) => {
+          if (is.textBoardItem(item)) {
+            const child = createComponent('br', page)
+            callback?.(child)
+            component.createChild(child)
+          } else {
+            /**
+             * NOTE: Normally in the return type we would return the child
+             * component wrapped with a resolveComponent call but it is conflicting
+             * with our custom implementation because its being assigned unwanted style
+             * attributes like "position: absolute" which disrupts the text display.
+             * TODO: Instead of a resolverComponent, we should make a resolveStyles
+             * to get around this issue. For now we'll hard code known props like "color"
+             * color ---> color
+             * fontSize----> fontSize
+             * fontWeight---> normal | bold | number
+             */
+            if (item?.dataKey) {
+              if (iteratorVar && item?.dataKey.startsWith(iteratorVar)) {
+                const dataObject = findListDataObject(component)
+                const dataKey = excludeIteratorVar(item?.dataKey, iteratorVar)
+                item.text = dataKey ? get(dataObject, dataKey) : dataObject
+              } else {
+                const dataObject = findDataValue(
+                  [() => getRoot(), () => getRoot()[page.page]],
+                  item?.dataKey,
+                )
+                item.text = u.isObj(dataObject)
+                  ? get(dataObject, item?.datKey)
+                  : dataObject
+              }
+            }
+            let componentObject = {
+              type: 'span',
+              style: {
+                // display: 'inline-block',
+                ...('color' in item
+                  ? { color: formatColor(item.color || '') }
+                  : undefined),
+                ...('fontSize' in item
+                  ? {
+                      fontSize:
+                        item.fontSize.search(/[a-z]/gi) != -1
+                          ? item.fontSize
+                          : item.fontSize + 'px',
+                    }
+                  : undefined),
+                ...('fontWeight' in item
+                  ? { fontWeight: item.fontWeight }
+                  : undefined),
+                ...('left' in item
+                  ? {
+                      marginLeft: item.left.includes('px')
+                        ? item.left
+                        : `${item.left}px`,
+                    }
+                  : undefined),
+                ...('top' in item
+                  ? {
+                      marginTop: item.top.includes('px')
+                        ? item.top
+                        : `${item.top}px`,
+                    }
+                  : undefined),
+              },
+              text: 'text' in item ? item.text : '',
+            }
+
+            userEvent.forEach((event) => {
+              item?.[event] && (componentObject[event] = item?.[event])
+            })
+
+            const text = createComponent(componentObject, page)
+
+            userEvent.forEach((event) => {
+              if (item?.[event]) {
+                const actionChain = options.createActionChain(
+                  event,
+                  item[event] as NUIActionObject[],
+                )
+                if (options.on?.actionChain) {
+                  actionChain.use(options.on.actionChain)
+                }
+                text.edit({ [event]: actionChain })
+              }
+            })
+            component.createChild(text)
+            callback?.(text)
+          }
+        })
+      } else {
+        log.error(
+          `%cExpected textBoard to be an array but received "${typeof textBoard}". ` +
+            `This part of the component will not be included in the output`,
+          `color:#ec0000;font-weight:bold;`,
+          { component, textBoard },
+        )
+      }
+    }
+
+    /* -------------------------------------------------------
+      ---- TIMERS (LABEL)
+    -------------------------------------------------------- */
+
+    if (contentType === 'timer' && dataKey) {
+      let dataObject: any
+      let dataValue: any
+
+      isListConsumer(component) && (dataObject = findListDataObject(component))
+
+      if (dataValue === undefined) {
+        dataObject = findDataValue(
+          [() => getRoot(), () => getRoot()[page.page]],
+          dataKey,
+        )
+        dataValue = u.isObj(dataObject) ? get(dataObject, dataKey) : dataObject
+      }
+
+      if (u.isUnd(dataValue)) {
+        log.error(
+          `%cNo data object or value could be found for a component with contentType: "timer".`,
           `color:#ec0000;`,
-          { component, dataKey, dataObject },
+          { component, dataKey, dataObject, dataValue },
         )
       } else {
-        console.log(
-          `%cThe path ${dataKey} exists in a data object. Retrieving its ` +
-            `value from there now...`,
-          `color:#00b406;`,
-          {
-            component,
-            dataKey,
-            dataObject,
-            dataValue: (dataValue = get(dataObject, dataKey)),
-          },
-        )
+        u.isObj(dataObject) && set(dataObject, dataKey, dataValue)
       }
     }
 
-    if (dataValue === undefined) {
-      dataObject = findDataValue(
-        [() => getRoot(), () => getRoot()[page.page]],
-        dataKey,
-      )
-      dataValue = u.isObj(dataObject) ? get(dataObject, dataKey) : dataObject
-    }
+    /* -------------------------------------------------------
+      ---- CHILDREN
+    -------------------------------------------------------- */
 
-    if (u.isUnd(dataValue)) {
-      console.log(
-        `%cNo data object or value could be found for a component with contentType: "timer".`,
-        `color:#ec0000;`,
-        { component, dataKey, dataObject, dataValue },
-      )
-    } else {
-      if (!u.isObj(dataObject)) {
-        //
-      } else {
-        set(dataObject, dataKey, dataValue)
+    // Children of list components are created by the lib.
+    // All other children are handled here
+    if (!isListLike(component) && !is.component.page(component)) {
+      if (u.isArr(component.blueprint?.children)) {
+        const numChildren = component.blueprint.children.length
+        for (let index = 0; index < numChildren; index++) {
+          const childObject = component.blueprint.children[index]
+          let _page = is.component.page(component.parent)
+            ? component.parent.get('page')
+            : page || page
+          let child = createComponent(childObject, _page)
+          child = component.createChild(child)
+          child = await resolveComponents({
+            callback,
+            components: child,
+            context: {
+              ...context,
+              path: context?.path
+                ? context.path.concat('children', index)
+                : ['children', index],
+            },
+            page: _page,
+            on: options.on,
+          })
+
+          !cache.component.has(child) && cache.component.add(child, _page)
+        }
       }
     }
+    !cache.component.has(component) && cache.component.add(component, page)
+  } catch (error) {
+    log.error(error instanceof Error ? error : new Error(String(error)))
   }
 
-  /* -------------------------------------------------------
-    ---- CHILDREN 
-  -------------------------------------------------------- */
-
-  // Children of list components are created by the lib. All other children
-  // are handled here
-  if (!isListLike(component) && !Identify.component.page(component)) {
-    component.blueprint?.children?.forEach?.(
-      (childObject: ComponentObject, i) => {
-        let child = createComponent(childObject)
-        child = component.createChild(child)
-        child.ppath = `${component.ppath || ''}.children[${i}]`
-        child = resolveComponents({ components: child, context, page })
-        !cache.component.has(child) && cache.component.add(child, page)
-      },
-    )
-  }
-  !cache.component.has(component) && cache.component.add(component, page)
-
-  next?.()
+  u.isObj(mergingProps) && component.edit(mergingProps)
+  return next?.()
 })
 
 export default componentResolver

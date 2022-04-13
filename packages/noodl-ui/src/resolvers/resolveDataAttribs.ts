@@ -1,21 +1,20 @@
 // Resolve data attributes which get attached to the outcome as data-* properties
-// If any emit objects are encountered the resolveActions resolver should be
-// picking them up
 import * as u from '@jsmanifest/utils'
 import get from 'lodash/get'
 import { Identify } from 'noodl-types'
-import { excludeIteratorVar, findDataValue } from 'noodl-utils'
+import { excludeIteratorVar, findDataValue, trimReference } from 'noodl-utils'
 import {
   addDate,
   createGlobalComponentId,
   getStartOfDay,
 } from '../utils/internal'
 import Resolver from '../Resolver'
+import log from '../utils/log'
 import * as n from '../utils/noodl'
 
 const dataAttribsResolver = new Resolver('resolveDataAttribs')
 
-dataAttribsResolver.setResolver((component, options, next) => {
+dataAttribsResolver.setResolver(async (component, options, next) => {
   const original = component.blueprint || {}
   const { context, getAssetsUrl, getQueryObjects, getRoot, page } = options
   const {
@@ -91,12 +90,14 @@ dataAttribsResolver.setResolver((component, options, next) => {
             excludeIteratorVar(dataKey, iteratorVar) as string,
           )
         }
-      } else {
+      }
+
+      // Attempt a second round of querying in case its a local/root reference
+      if (u.isUnd(result)) {
         result = findDataValue(
           getQueryObjects({
             component,
             page,
-            listDataObject: context?.dataObject,
           }),
           excludeIteratorVar(dataKey, iteratorVar),
         )
@@ -113,12 +114,8 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
       //path=func
       if (Identify.component.image(component)) {
-        let src: any
-        if (component.has('path=func')) {
-          src = component.get('path=func')?.(result)
-          component.edit({ 'data-src': src })
-          path && component.emit('path', src)
-          image && component.emit('image', src)
+        if (component.blueprint?.['path=func']) {
+          result = component.get('path=func')?.(result)
         }
       }
 
@@ -128,7 +125,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     // TODO - Deprecate this logic below for an easier implementation
     let fieldParts = dataKey?.split?.('.')
     let field = fieldParts?.shift?.() || ''
-    let fieldValue = getRoot()?.[page.page]?.[field]
+    let fieldValue = getRoot()?.[page?.page]?.[field]
 
     if (fieldParts?.length) {
       while (fieldParts.length) {
@@ -159,11 +156,11 @@ dataAttribsResolver.setResolver((component, options, next) => {
         if (key === 'style') {
           u.assign(
             component.style,
-            n.parseReference(value, { page: page.page, root: getRoot() }),
+            n.parseReference(value, { page: page?.page, root: getRoot() }),
           )
         } else {
           component.edit(
-            n.parseReference(value, { page: page.page, root: getRoot() }),
+            n.parseReference(value, { page: page?.page, root: getRoot() }),
           )
         }
       }
@@ -191,6 +188,18 @@ dataAttribsResolver.setResolver((component, options, next) => {
 
     // Path emits are handled in resolveActions
     if (u.isStr(src)) {
+      if (Identify.reference(src)) {
+        if (src.startsWith('..')) {
+          // Local
+          src = src.substring(2)
+          src = get(getRoot()[options?.page?.page], src)
+        } else if (src.startsWith('.')) {
+          // Root
+          src = src.substring(1)
+          src = get(getRoot(), src)
+        }
+      }
+
       if (iteratorVar && src.startsWith(iteratorVar)) {
         src = excludeIteratorVar(src, iteratorVar) || ''
         src = get(context?.dataObject, src) || ''
@@ -198,30 +207,19 @@ dataAttribsResolver.setResolver((component, options, next) => {
         if (u.isStr(src) && !src.startsWith(getAssetsUrl())) {
           src = getAssetsUrl() + src
         }
+
         // TODO - Deprecate "data-src" in favor of data-value
         component.edit({ 'data-src': src, src })
         path && component.emit('path', src)
         image && component.emit('image', src)
       } else {
-        if (Identify.reference(src)) {
-          if (src.startsWith('..')) {
-            // Local
-            src = src.substring(2)
-            src = get(getRoot()[page.page], src)
-          } else if (src.startsWith('.')) {
-            // Root
-            src = src.substring(1)
-            src = get(getRoot(), src)
-          }
-        }
-
         if (src) {
+          src = n.resolveAssetUrl(src, getAssetsUrl())
+          component.edit({ 'data-src': src, path: src })
           // Wrapping this in a setTimeout allows DOM elements to subscribe
           // their callbacks before this fires
           setTimeout(() => {
-            src = n.resolveAssetUrl(src, getAssetsUrl())
             // TODO - Deprecate "src" in favor of data-value
-            component.edit({ 'data-src': src })
             path && component.emit('path', src)
             image && component.emit('image', src)
           })
@@ -234,24 +232,40 @@ dataAttribsResolver.setResolver((component, options, next) => {
     ---- SELECT
   -------------------------------------------------------- */
 
-  if (
-    Identify.component.select(component) &&
-    u.isStr(selectOptions) &&
-    iteratorVar &&
-    selectOptions.startsWith(iteratorVar)
-  ) {
-    const dataObject = n.findListDataObject(component)
-    if (dataObject) {
-      const dataKey = excludeIteratorVar(selectOptions, iteratorVar)
-      const dataOptions = dataKey ? get(dataObject, dataKey) : dataObject
-      component.set('data-options', dataOptions || [])
-      setTimeout(() => component.emit('options', component.get('data-options')))
-    } else {
-      console.log(
-        `%cCould not find the list of options for a select component using the path "${selectOptions}"`,
-        `color:#ec0000;`,
-        component,
-      )
+  if (Identify.component.select(component)) {
+    // Receiving their options by reference
+    if ([dataKey, selectOptions].find((v) => v && u.isStr(v))) {
+      let dataPath = dataKey && u.isStr(dataKey) ? dataKey : selectOptions
+      let dataOptions = selectOptions
+      let isListPath = !!(iteratorVar && dataPath.startsWith(iteratorVar))
+
+      if (!u.isArr(dataOptions)) {
+        if (isListPath) {
+          dataPath = excludeIteratorVar(dataPath, iteratorVar)
+          dataOptions = dataPath
+            ? get(n.findListDataObject(component), dataPath)
+            : n.findListDataObject(component)
+        } else {
+          dataPath = trimReference(dataPath)
+          dataOptions = get(
+            Identify.localKey(dataPath) ? getRoot()[page.page] : getRoot(),
+            dataPath,
+          )
+        }
+      }
+
+      if (dataOptions) {
+        component.set('data-options', dataOptions || [])
+        setTimeout(() =>
+          component.emit('options', component.get('data-options')),
+        )
+      } else {
+        log.error(
+          `%cCould not find the list of options for a select component using the path "${selectOptions}"`,
+          `color:#ec0000;`,
+          component,
+        )
+      }
     }
   }
 
@@ -274,7 +288,7 @@ dataAttribsResolver.setResolver((component, options, next) => {
     }
   }
 
-  next?.()
+  return next?.()
 })
 
 export default dataAttribsResolver

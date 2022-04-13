@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "importHelpers": true,
+    "keyofStringsOnly": true,
+    "lib": ["es2016"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "pretty": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "target": "es2017"
+  },
+  "files": ["types.d.ts"]
+}

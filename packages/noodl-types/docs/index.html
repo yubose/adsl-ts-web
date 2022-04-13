@@ -1,0 +1,535 @@
+<!DOCTYPE html><html class="default"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>noodl-types</title><meta name="description" content="Documentation for noodl-types"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.body.classList.add(localStorage.getItem("tsd-theme") || "os")</script><header><div class="tsd-page-toolbar"><div class="container"><div class="table-wrap"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget search no-caption">Search</label><input type="text" id="tsd-search-field"/></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">noodl-types</a></div><div class="table-cell" id="tsd-widgets"><div id="tsd-filter"><a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a><div class="tsd-filter-group"><div class="tsd-select" id="tsd-filter-visibility"><span class="tsd-select-label">All</span><ul class="tsd-select-list"><li data-value="public">Public</li><li data-value="protected">Public/Protected</li><li data-value="private" class="selected">All</li></ul></div> <input type="checkbox" id="tsd-filter-inherited" checked/><label class="tsd-widget" for="tsd-filter-inherited">Inherited</label><input type="checkbox" id="tsd-filter-externals" checked/><label class="tsd-widget" for="tsd-filter-externals">Externals</label></div></div><a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a></div></div></div></div><div class="tsd-page-title"><div class="container"><h1>noodl-types</h1></div></div></header><div class="container container-main"><div class="row"><div class="col-8 col-content"><div class="tsd-panel tsd-typography">
+<a href="#aitmed-noodl-web" id="aitmed-noodl-web" style="color: inherit; text-decoration: none;">
+  <h1>AiTmed NOODL Web</h1>
+</a>
+
+<a href="#steps-to-update-the-aitmedcadl-ecos-package-to-latest-version" id="steps-to-update-the-aitmedcadl-ecos-package-to-latest-version" style="color: inherit; text-decoration: none;">
+  <h2>Steps to update the @aitmed/cadl eCOS package to latest version</h2>
+</a>
+<ul>
+<li>npm install @aitmed/cadl@latest</li>
+<li>git add .</li>
+<li>git commit -a -m &quot;update aitmed sdk&quot;</li>
+<li>git push</li>
+</ul>
+
+<a href="#correct-link-to-gitlab" id="correct-link-to-gitlab" style="color: inherit; text-decoration: none;">
+  <h2>Correct link to GitLab</h2>
+</a>
+<ul>
+<li><a href="https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/">https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/</a></li>
+</ul>
+
+<a href="#globals" id="globals" style="color: inherit; text-decoration: none;">
+  <h2>Globals</h2>
+</a>
+<p>These variables are available globally:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>echarts</code></td>
+<td><a href="https://echarts.apache.org/examples/en/index.html">Chart library</a>used for components of type <code>chart</code></td>
+</tr>
+</tbody></table>
+
+<a href="#references" id="references" style="color: inherit; text-decoration: none;">
+  <h2>References</h2>
+</a>
+<ul>
+<li><a href="https://github.com/microsoft/TypeScript/blob/master/lib/lib.dom.d.ts">TypeScript DOM types</a></li>
+<li><a href="https://gitlab.aitmed.com/help/user/project/merge_requests/index.md#checkout-merge-requests-locally">Merge requests</a></li>
+</ul>
+
+<a href="#ecosdoc-variations" id="ecosdoc-variations" style="color: inherit; text-decoration: none;">
+  <h3>ecosDoc variations</h3>
+</a>
+
+<a href="#image" id="image" style="color: inherit; text-decoration: none;">
+  <h4>Image</h4>
+</a>
+<pre><code class="language-html"><span class="hl-9">&lt;</span><span class="hl-10">iframe</span><span class="hl-0"> </span><span class="hl-11">class</span><span class="hl-0">=</span><span class="hl-12">&quot;ecosdoc&quot;</span><span class="hl-9">&gt;</span><br/><span class="hl-0">  </span><span class="hl-9">&lt;</span><span class="hl-10">img</span><span class="hl-0"> </span><span class="hl-11">class</span><span class="hl-0">=</span><span class="hl-12">&quot;ecosdoc-image&quot;</span><span class="hl-0"> </span><span class="hl-11">src</span><span class="hl-0">=</span><span class="hl-12">&quot;blob:.....&quot;</span><span class="hl-9">&gt;&lt;/</span><span class="hl-13">img</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;/</span><span class="hl-10">iframe</span><span class="hl-9">&gt;</span>
+</code></pre>
+
+<a href="#pdf" id="pdf" style="color: inherit; text-decoration: none;">
+  <h4>Pdf</h4>
+</a>
+<pre><code class="language-html"><span class="hl-9">&lt;</span><span class="hl-10">iframe</span><span class="hl-0"> </span><span class="hl-11">class</span><span class="hl-0">=</span><span class="hl-12">&quot;ecosdoc&quot;</span><span class="hl-0"> </span><span class="hl-11">src</span><span class="hl-0">=</span><span class="hl-12">&quot;blob:.....&quot;</span><span class="hl-9">&gt;&lt;/</span><span class="hl-10">iframe</span><span class="hl-9">&gt;</span>
+</code></pre>
+
+<a href="#text" id="text" style="color: inherit; text-decoration: none;">
+  <h4>Text</h4>
+</a>
+<pre><code class="language-html"><span class="hl-9">&lt;</span><span class="hl-10">iframe</span><span class="hl-0"> </span><span class="hl-11">class</span><span class="hl-0">=</span><span class="hl-12">&quot;ecosdoc&quot;</span><span class="hl-9">&gt;</span><br/><span class="hl-0">  </span><span class="hl-9">&lt;</span><span class="hl-10">div</span><span class="hl-0"> </span><span class="hl-11">class</span><span class="hl-0">=</span><span class="hl-12">&quot;ecosdoc-text&quot;</span><span class="hl-9">&gt;</span><br/><span class="hl-0">    </span><span class="hl-9">&lt;</span><span class="hl-10">div</span><span class="hl-0"> </span><span class="hl-11">class</span><span class="hl-0">=</span><span class="hl-12">&quot;ecosdoc-text-title&quot;</span><span class="hl-9">&gt;&lt;/</span><span class="hl-10">div</span><span class="hl-9">&gt;</span><br/><span class="hl-0">    </span><span class="hl-9">&lt;</span><span class="hl-10">div</span><span class="hl-0"> </span><span class="hl-11">class</span><span class="hl-0">=</span><span class="hl-12">&quot;ecosdoc-text-body&quot;</span><span class="hl-9">&gt;&lt;/</span><span class="hl-10">div</span><span class="hl-9">&gt;</span><br/><span class="hl-0">  </span><span class="hl-9">&lt;/</span><span class="hl-10">div</span><span class="hl-9">&gt;</span><br/><span class="hl-9">&lt;/</span><span class="hl-10">iframe</span><span class="hl-9">&gt;</span>
+</code></pre>
+
+<a href="#goto-examples" id="goto-examples" style="color: inherit; text-decoration: none;">
+  <h2>Goto Examples</h2>
+</a>
+<pre><code class="language-yaml"><span class="hl-0">- </span><span class="hl-10">goto</span><span class="hl-0">: </span><span class="hl-12">AbcDashboard^redTag</span><br/><span class="hl-0">- </span><span class="hl-10">goto</span><span class="hl-0">: </span><span class="hl-12">AbcDashboard^redTag;duration:15000</span><span class="hl-0"> </span><span class="hl-8"># slow scroll effect for 15 seconds</span><br/><span class="hl-0">- </span><span class="hl-10">goto</span><span class="hl-0">: </span><span class="hl-12">AbcDashboard^redTag;duration:0</span><span class="hl-0"> </span><span class="hl-8"># instantly scroll to element</span><br/><span class="hl-0">- </span><span class="hl-10">goto</span><span class="hl-0">: </span><span class="hl-12">AbcDashboard^redTag</span><span class="hl-0"> </span><span class="hl-8"># defaulted to 350 ms</span><br/><span class="hl-0">- </span><span class="hl-10">goto</span><span class="hl-0">: </span><span class="hl-12">^redTag</span><span class="hl-0"> </span><span class="hl-8"># defaulted to 350 ms</span><br/><span class="hl-0">- </span><span class="hl-10">goto</span><span class="hl-0">: </span><span class="hl-12">^redTag;duration:15000</span><span class="hl-0"> </span><span class="hl-8"># slow scroll effect for 15 seconds</span>
+</code></pre>
+
+<a href="#emitting-register-events" id="emitting-register-events" style="color: inherit; text-decoration: none;">
+  <h2>Emitting register events</h2>
+</a>
+<pre><code class="language-js"><span class="hl-6">import</span><span class="hl-0"> { </span><span class="hl-5">NUI</span><span class="hl-0"> } </span><span class="hl-6">from</span><span class="hl-0"> </span><span class="hl-2">&#39;noodl-ui&#39;</span><br/><br/><span class="hl-7">NUI</span><span class="hl-0">.</span><span class="hl-4">use</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-5">register:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">name:</span><span class="hl-0"> </span><span class="hl-2">&#39;twilioOnPeopleJoin&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-4">fn</span><span class="hl-5">:</span><span class="hl-0"> </span><span class="hl-3">async</span><span class="hl-0"> (</span><span class="hl-5">registerObj</span><span class="hl-0">, </span><span class="hl-5">params</span><span class="hl-0">) </span><span class="hl-3">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">      </span><span class="hl-8">// ...</span><br/><span class="hl-0">    },</span><br/><span class="hl-0">  },</span><br/><span class="hl-0">})</span><br/><br/><span class="hl-8">// Sometime later</span><br/><span class="hl-7">NUI</span><span class="hl-0">.</span><span class="hl-4">emit</span><span class="hl-0">({</span><br/><span class="hl-0">  </span><span class="hl-5">type:</span><span class="hl-0"> </span><span class="hl-2">&#39;register&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">  </span><span class="hl-5">args:</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">name:</span><span class="hl-0"> </span><span class="hl-2">&#39;twilioOnPeopleJoin&#39;</span><span class="hl-0">,</span><br/><span class="hl-0">    </span><span class="hl-5">params:</span><span class="hl-0"> { </span><span class="hl-5">token:</span><span class="hl-0"> </span><span class="hl-2">&#39;abcdefghijklmnop.....xyz&#39;</span><span class="hl-0"> },</span><br/><span class="hl-0">  },</span><br/><span class="hl-0">})</span><br/><span class="hl-0">  .</span><span class="hl-4">then</span><span class="hl-0">((</span><span class="hl-5">result</span><span class="hl-0">) </span><span class="hl-3">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">console</span><span class="hl-0">.</span><span class="hl-4">log</span><span class="hl-0">(</span><span class="hl-5">result</span><span class="hl-0">)</span><br/><span class="hl-0">  })</span><br/><span class="hl-0">  .</span><span class="hl-4">catch</span><span class="hl-0">((</span><span class="hl-5">err</span><span class="hl-0">) </span><span class="hl-3">=&gt;</span><span class="hl-0"> {</span><br/><span class="hl-0">    </span><span class="hl-5">console</span><span class="hl-0">.</span><span class="hl-4">error</span><span class="hl-0">(</span><span class="hl-5">err</span><span class="hl-0">)</span><br/><span class="hl-0">  })</span>
+</code></pre>
+<hr>
+
+<a href="#todos" id="todos" style="color: inherit; text-decoration: none;">
+  <h2>Todos</h2>
+</a>
+<ul>
+<li><input disabled="" type="checkbox"> Input focus for vcode input</li>
+<li><input disabled="" type="checkbox"> PasswordRecoveryHelper (Jiahao)</li>
+<li><input disabled="" type="checkbox"> redraw transition (<code>effect: slideLeft</code>)</li>
+<li><input disabled="" type="checkbox"> curry func utility to finalize parsings</li>
+</ul>
+
+<a href="#accounts" id="accounts" style="color: inherit; text-decoration: none;">
+  <h2>Accounts</h2>
+</a>
+<table>
+<thead>
+<tr>
+<th>app</th>
+<th>phone #</th>
+<th>password</th>
+<th>who</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>admin</td>
+<td>8882005050</td>
+<td>password</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>admin</td>
+<td>7144480995</td>
+<td>Baby2020!</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>admin</td>
+<td>5594215342</td>
+<td>Family3496</td>
+<td>toni</td>
+<td></td>
+</tr>
+<tr>
+<td>admin</td>
+<td>8884210047</td>
+<td>aitmed</td>
+<td>toni</td>
+<td></td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>8880000301</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>8885509773</td>
+<td>123</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>8886006001</td>
+<td>password</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>8886006002</td>
+<td>password</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>2134628002</td>
+<td>letmein123!</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>8883870054</td>
+<td>aitmed</td>
+<td>liz</td>
+<td>Josh Urgent Care</td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>8886540007</td>
+<td>123</td>
+<td></td>
+<td>yongjian</td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>8884565043</td>
+<td>123</td>
+<td></td>
+<td>chenchen</td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>8882320918</td>
+<td>888666</td>
+<td></td>
+<td>yuhan</td>
+</tr>
+<tr>
+<td>admind2</td>
+<td>8882324378</td>
+<td>888666</td>
+<td></td>
+<td>austin</td>
+</tr>
+<tr>
+<td>patd</td>
+<td>8880081221</td>
+<td>letmein123!</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>patd</td>
+<td>8884240000</td>
+<td>12345</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>patd2</td>
+<td>8881122050</td>
+<td>123</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>patd3</td>
+<td>8884565432</td>
+<td>123</td>
+<td>jiahao</td>
+<td></td>
+</tr>
+<tr>
+<td>prod</td>
+<td>8885550010</td>
+<td>password</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>prod</td>
+<td>8884210053</td>
+<td>aitmed</td>
+<td>toni</td>
+<td></td>
+</tr>
+<tr>
+<td>meet4d</td>
+<td>8882465555</td>
+<td>142251</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>meet4d</td>
+<td>8882468491</td>
+<td>142251</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>meet4d</td>
+<td>8882461234</td>
+<td>142251</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+
+<a href="#ecos-types" id="ecos-types" style="color: inherit; text-decoration: none;">
+  <h2>Ecos types</h2>
+</a>
+<ul>
+<li>1030<ul>
+<li>Id</li>
+</ul>
+</li>
+<li>1031<ul>
+<li>Does not require JWT</li>
+<li>Generates JWT</li>
+<li></li>
+<li>Secured login</li>
+</ul>
+</li>
+<li>1032<ul>
+<li>Auto secured login</li>
+<li>Does not require JWT</li>
+<li>With signature</li>
+</ul>
+</li>
+<li>1033<ul>
+<li>Owner login</li>
+<li>Requires JWT</li>
+</ul>
+</li>
+<li>bjwt --&gt; Business jwt</li>
+<li>User 1110 login --&gt; Checks relation between business and bjwt</li>
+</ul>
+
+<a href="#login" id="login" style="color: inherit; text-decoration: none;">
+  <h2>Login</h2>
+</a>
+<ul>
+<li><p>JWT expired --&gt; 2 hours passed</p>
+</li>
+<li><p>JWT not found --&gt; server restarted</p>
+</li>
+<li><p>Some apis like signing on does not provide a new jwt, but most do</p>
+</li>
+<li><p>If an error occurred with jwt, attempt to relogin with an existing token</p>
+</li>
+</ul>
+
+<a href="#transactions" id="transactions" style="color: inherit; text-decoration: none;">
+  <h2>Transactions</h2>
+</a>
+
+<a href="#navigate" id="navigate" style="color: inherit; text-decoration: none;">
+  <h3>Navigate</h3>
+</a>
+<ul>
+<li>App#navigate<ul>
+<li>ndom#request<ul>
+<li>Wrapped ndom func<ul>
+<li><code>onRequestPageObject</code> (transactions.ts)</li>
+<li><code>getPageObject</code> (App.ts)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<a href="#request_page_object" id="request_page_object" style="color: inherit; text-decoration: none;">
+  <h3><code>REQUEST_PAGE_OBJECT</code></h3>
+</a>
+<ul>
+<li>Wrapped ndom func<ul>
+<li><code>onRequestPageObject</code> (transactions.ts)<ul>
+<li><code>getPageObject</code> (Ap</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<a href="#doc-object" id="doc-object" style="color: inherit; text-decoration: none;">
+  <h2>Doc object</h2>
+</a>
+<ul>
+<li><p>Flags:</p>
+<ul>
+<li>read (bit #2)</li>
+<li>write (bit #3)</li>
+</ul>
+</li>
+<li><p>Trash</p>
+</li>
+<li><p>Sent</p>
+</li>
+<li><p>Folder</p>
+<ul>
+<li>creating (3840)<ul>
+<li>can create a tag (3589)</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Create</p>
+</li>
+<li><p>bvid --&gt; evid (creates message)</p>
+<ul>
+<li>e10002<ul>
+<li>encryption key is placed here</li>
+<li>doc msg type: d128</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Tag (3584)</p>
+<ul>
+<li>Can be used to resolve conflicts (ex: person deletes the doc but the other person didnt)</li>
+<li>uses fid to find folder tag</li>
+<li>uses reid to find</li>
+</ul>
+</li>
+<li><p>Draft</p>
+<ul>
+<li>Goes in root notebook (since it is a personal file)</li>
+</ul>
+</li>
+<li><p>There are now 2 notebooks (root and)</p>
+<ul>
+<li>e10002 bvid --&gt; evid</li>
+</ul>
+</li>
+</ul>
+<p>let index = 0
+let currentPosition = 0
+let pdfPageWidth = element width (453)
+let pdfPageHeight = element height (899)
+let overallHeight = 3033</p>
+<ul>
+<li>for each child of element<ul>
+<li>start loop with index as starting point</li>
+<li>if child&#39;s height accumulated with <code>currentPosition</code> is <em>not</em> larger than <code>pdfPageHeight</code><ul>
+<li>add child&#39;s height to <code>currentPosition</code></li>
+</ul>
+</li>
+<li>else if child&#39;s height accumulated with <code>currentPosition</code> is larger than <code>pdfPageHeight</code><ul>
+<li>group all currently iterated children <em>not including the current child</em></li>
+<li>record the <em>top</em> position of the <em>first</em> grouped child</li>
+<li>record the <em>bottom</em> position of the <em>last</em> grouped child</li>
+<li>send grouped children along with the top and bottom to html2canvas where top is the scrollY and bottom is the Y crop</li>
+<li>generate pdf<ul>
+<li>(onclone - html2canvas)</li>
+<li>let clonePosition = 0<ul>
+<li>for each cloned child of cloned element<ul>
+<li>add cloned child&#39;s height to <code>clonePosition</code></li>
+<li>if cloned child&#39;s height accumulated with <code>clonePosition</code> is larger than the <em>bottom</em> position of the last grouped (uncloned) child<ul>
+<li>hide the cloned child</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>reset <code>currentPosition</code> to 0</li>
+<li>record the current child&#39;s index</li>
+<li>restart (recursion) the call and:<ul>
+<li>make the start of the index the recorded index from the current child</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<a href="#debug-tips" id="debug-tips" style="color: inherit; text-decoration: none;">
+  <h2>Debug tips</h2>
+</a>
+
+<a href="#local-grpc-server" id="local-grpc-server" style="color: inherit; text-decoration: none;">
+  <h3>Local gRPC server</h3>
+</a>
+<ul>
+<li>To reproduce <code>JWT_EXPIRED</code> error:<ol>
+<li>Call <code>ce</code> using type <code>10</code> (clears cache then triggers jwt expired in server)</li>
+</ol>
+</li>
+</ul>
+
+<a href="#error-code-4---gt-delay-by-1-seconds---gt-retry-again" id="error-code-4---gt-delay-by-1-seconds---gt-retry-again" style="color: inherit; text-decoration: none;">
+  <h2>error code 4 --&gt; delay by 1+ seconds --&gt; retry again</h2>
+</a>
+
+<a href="#112421" id="112421" style="color: inherit; text-decoration: none;">
+  <h2>11/24/21</h2>
+</a>
+<ul>
+<li>Fixed error when populating strings and locations is null or undefined</li>
+<li>Debugging <code>replaceEvalObject</code> async in forEach<ul>
+<li>Used in initPage + runInit</li>
+<li>Switch forEach loop with a better looping method</li>
+</ul>
+</li>
+<li>Debugging <code>replaceIfObject</code> async in forEach<ul>
+<li>Used in initPage + runInit</li>
+<li>Switch forEach loop with a better looping method</li>
+</ul>
+</li>
+</ul>
+<p>pushed @aitmed/cadl 1.0.450:</p>
+<ul>
+<li>the entire sdk is now sandboxed, we can start digging deeper into all the functions and behavior and understand/fix them in a very very very low level</li>
+<li>written unit tests on <code>populateKeys</code> --&gt; this function is good and stable (also the most important in the sdk)</li>
+<li>fixed error when populating strings and locations is invalid</li>
+<li>fixed <code>replaceEvalObject</code> (unit tests exposed a hidden flaw in this func) async loop to use a better/accurate async way<ul>
+<li>this mainly used in <code>init</code> and <code>initPage</code></li>
+<li>this might have fixed some important random behavior on an <code>evalObject</code> <em>during init</em> when a <code>goto</code> is called <em>while init is still running</em></li>
+</ul>
+</li>
+<li>unit tests on <code>populateString</code><ul>
+<li>revealed 2 flaws on this function. this function is not doing what we expect so working on refactoring</li>
+</ul>
+</li>
+<li>unit tests on <code>populateVars</code><ul>
+<li>somewhat stable, but can be improved by implementing recursion on it</li>
+</ul>
+</li>
+<li>unit tests on <code>lookUp</code> (needs to expand to support local root)</li>
+<li>unit tests on <code>replaceVars</code> (stable)</li>
+</ul>
+<p>deployed:</p>
+<ul>
+<li>updated @aitmed/cadl sdk</li>
+</ul>
+
+<a href="#112421-backwards-compatible-subtype-switching" id="112421-backwards-compatible-subtype-switching" style="color: inherit; text-decoration: none;">
+  <h2>11/24/21 backwards compatible subtype switching</h2>
+</a>
+<p>if subtype is 0, we should automatically copy to type</p>
+<p>if document subtype is 0, set it to -1 (backend will see this and set it to 0)
+when we do cd and send api to backend, by this time all our bit is 0 (everything is 0). if so set these to -1</p>
+
+<a href="#113021" id="113021" style="color: inherit; text-decoration: none;">
+  <h2>11/30/21</h2>
+</a>
+<ul>
+<li>Fixed a hidden issue in sdk where a doc is erased when merging a list of docs</li>
+<li>Fixed empty configUrl after logging out</li>
+</ul>
+
+<a href="#onchange-call-flow" id="onchange-call-flow" style="color: inherit; text-decoration: none;">
+  <h2>onChange call flow</h2>
+</a>
+<ol>
+<li>should go through the handler created on <code>.addEventListener</code> from <code>noodl-ui-dom</code> first to update any data values accordingly</li>
+<li>should then go to the handler created on <code>noodl-ui</code></li>
+<li>should call the <code>onChange</code> noodl function inside this call</li>
+<li>should then end up back to the caller from <code>noodl-ui</code></li>
+</ol>
+
+<a href="#120621" id="120621" style="color: inherit; text-decoration: none;">
+  <h2>12/06/21</h2>
+</a>
+<ul>
+<li>Fixed evalObject firing twice (API change for DOM addEventListener)</li>
+<li>Fixed error for accessing reference strings for styles</li>
+</ul>
+<hr>
+</div></div><div class="col-4 col-menu menu-sticky-wrap menu-highlight"><nav class="tsd-navigation primary"><ul><li class="current"><a href="modules.html">Exports</a></li><li class=" tsd-kind-namespace"><a href="modules/MimeType.html">Mime<wbr/>Type</a></li></ul></nav><nav class="tsd-navigation secondary menu-sticky"><ul><li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/ActionObject.html" class="tsd-kind-icon">Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/AppConfig.html" class="tsd-kind-icon">App<wbr/>Config</a></li><li class="tsd-kind-interface"><a href="interfaces/BuiltInActionObject.html" class="tsd-kind-icon">Built<wbr/>In<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/ButtonComponentObject.html" class="tsd-kind-icon">Button<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/CanvasComponentObject.html" class="tsd-kind-icon">Canvas<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/ChartComponentObject.html" class="tsd-kind-icon">Chart<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/ChatListComponentObject.html" class="tsd-kind-icon">Chat<wbr/>List<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/ComponentObject.html" class="tsd-kind-icon">Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/DeatObject.html" class="tsd-kind-icon">Deat<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/DividerComponentObject.html" class="tsd-kind-icon">Divider<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/EcosDocComponentObject.html" class="tsd-kind-icon">Ecos<wbr/>Doc<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/EcosDocument.html" class="tsd-kind-icon">Ecos<wbr/>Document</a></li><li class="tsd-kind-interface"><a href="interfaces/EmitObject.html" class="tsd-kind-icon">Emit<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/EvalActionObject.html" class="tsd-kind-icon">Eval<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/FooterComponentObject.html" class="tsd-kind-icon">Footer<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/GetLocationAddressActionObject.html" class="tsd-kind-icon">Get<wbr/>Location<wbr/>Address<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/GotoObject.html" class="tsd-kind-icon">Goto<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/HeaderComponentObject.html" class="tsd-kind-icon">Header<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/IfObject.html" class="tsd-kind-icon">If<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/ImageComponentObject.html" class="tsd-kind-icon">Image<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/LabelComponentObject.html" class="tsd-kind-icon">Label<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/ListComponentObject.html" class="tsd-kind-icon">List<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/ListItemComponentObject.html" class="tsd-kind-icon">List<wbr/>Item<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/MapComponentObject.html" class="tsd-kind-icon">Map<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/NameField.html" class="tsd-kind-icon">Name<wbr/>Field</a></li><li class="tsd-kind-interface"><a href="interfaces/OpenCameraActionObject.html" class="tsd-kind-icon">Open<wbr/>Camera<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/OpenDocumentManagerActionObject.html" class="tsd-kind-icon">Open<wbr/>Document<wbr/>Manager<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/OpenPhotoLibraryActionObject.html" class="tsd-kind-icon">Open<wbr/>Photo<wbr/>Library<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PageComponentObject.html" class="tsd-kind-icon">Page<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PageJumpActionObject.html" class="tsd-kind-icon">Page<wbr/>Jump<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PageObject.html" class="tsd-kind-icon">Page<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PluginBodyTailComponentObject.html" class="tsd-kind-icon">Plugin<wbr/>Body<wbr/>Tail<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PluginBodyTopComponentObject.html" class="tsd-kind-icon">Plugin<wbr/>Body<wbr/>Top<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PluginComponentObject.html" class="tsd-kind-icon">Plugin<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PluginHeadComponentObject.html" class="tsd-kind-icon">Plugin<wbr/>Head<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PopUpComponentObject.html" class="tsd-kind-icon">Pop<wbr/>Up<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PopupActionObject.html" class="tsd-kind-icon">Popup<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/PopupDismissActionObject.html" class="tsd-kind-icon">Popup<wbr/>Dismiss<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/RefreshActionObject.html" class="tsd-kind-icon">Refresh<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/RegisterComponentObject.html" class="tsd-kind-icon">Register<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/RemoveSignatureActionObject.html" class="tsd-kind-icon">Remove<wbr/>Signature<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/RootConfigDeviceVersionObject.html" class="tsd-kind-icon">Root<wbr/>Config<wbr/>Device<wbr/>Version<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/SaveActionObject.html" class="tsd-kind-icon">Save<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/SaveSignatureActionObject.html" class="tsd-kind-icon">Save<wbr/>Signature<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/ScrollViewComponentObject.html" class="tsd-kind-icon">Scroll<wbr/>View<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/SelectComponentObject.html" class="tsd-kind-icon">Select<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/StyleBorderObject.html" class="tsd-kind-icon">Style<wbr/>Border<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/StyleObject.html" class="tsd-kind-icon">Style<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/StyleTextAlignObject.html" class="tsd-kind-icon">Style<wbr/>Text<wbr/>Align<wbr/>Object</a></li><li class="tsd-kind-interface tsd-has-type-parameter"><a href="interfaces/SubtypeObject.html" class="tsd-kind-icon">Subtype<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/TextFieldComponentObject.html" class="tsd-kind-icon">Text<wbr/>Field<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/TextViewComponentObject.html" class="tsd-kind-icon">Text<wbr/>View<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/ToastObject.html" class="tsd-kind-icon">Toast<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/UncommonActionObjectProps.html" class="tsd-kind-icon">Uncommon<wbr/>Action<wbr/>Object<wbr/>Props</a></li><li class="tsd-kind-interface"><a href="interfaces/UpdateActionObject.html" class="tsd-kind-icon">Update<wbr/>Action<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/VideoComponentObject.html" class="tsd-kind-icon">Video<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-interface"><a href="interfaces/ViewComponentObject.html" class="tsd-kind-icon">View<wbr/>Component<wbr/>Object</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ActionChain" class="tsd-kind-icon">Action<wbr/>Chain</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ActionType" class="tsd-kind-icon">Action<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#AudioMediaType" class="tsd-kind-icon">Audio<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#BuiltInEvalObject" class="tsd-kind-icon">Built<wbr/>In<wbr/>Eval<wbr/>Object</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#BuiltInEvalReference" class="tsd-kind-icon">Built<wbr/>In<wbr/>Eval<wbr/>Reference</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ComponentType" class="tsd-kind-icon">Component<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ContentType" class="tsd-kind-icon">Content<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DataIn" class="tsd-kind-icon">Data<wbr/>In</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DataOut" class="tsd-kind-icon">Data<wbr/>Out</a></li><li class="tsd-kind-type-alias"><a href="modules.html#Deat" class="tsd-kind-icon">Deat</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DeviceType" class="tsd-kind-icon">Device<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#DocMediaType" class="tsd-kind-icon">Doc<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#EmitObjectFold" class="tsd-kind-icon">Emit<wbr/>Object<wbr/>Fold</a></li><li class="tsd-kind-type-alias"><a href="modules.html#Env" class="tsd-kind-icon">Env</a></li><li class="tsd-kind-type-alias"><a href="modules.html#EventType" class="tsd-kind-icon">Event<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#FontMediaType" class="tsd-kind-icon">Font<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#GotoUrl" class="tsd-kind-icon">Goto<wbr/>Url</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ImageMediaType" class="tsd-kind-icon">Image<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#MediaType" class="tsd-kind-icon">Media<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#MessageMediaType" class="tsd-kind-icon">Message<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ModelMediaType" class="tsd-kind-icon">Model<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#MultipartMediaType" class="tsd-kind-icon">Multipart<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#OtherMediaType" class="tsd-kind-icon">Other<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#PageComponentUrl" class="tsd-kind-icon">Page<wbr/>Component<wbr/>Url</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#Path" class="tsd-kind-icon">Path</a></li><li class="tsd-kind-type-alias"><a href="modules.html#PolymorphicObject" class="tsd-kind-icon">Polymorphic<wbr/>Object</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#ReferenceObject" class="tsd-kind-icon">Reference<wbr/>Object</a></li><li class="tsd-kind-type-alias tsd-has-type-parameter"><a href="modules.html#ReferenceString" class="tsd-kind-icon">Reference<wbr/>String</a></li><li class="tsd-kind-type-alias"><a href="modules.html#ReferenceSymbol" class="tsd-kind-icon">Reference<wbr/>Symbol</a></li><li class="tsd-kind-type-alias"><a href="modules.html#RootConfig" class="tsd-kind-icon">Root<wbr/>Config</a></li><li class="tsd-kind-type-alias"><a href="modules.html#StyleAlign" class="tsd-kind-icon">Style<wbr/>Align</a></li><li class="tsd-kind-type-alias"><a href="modules.html#StyleAxis" class="tsd-kind-icon">Style<wbr/>Axis</a></li><li class="tsd-kind-type-alias"><a href="modules.html#StyleTextAlign" class="tsd-kind-icon">Style<wbr/>Text<wbr/>Align</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TextBoardObject" class="tsd-kind-icon">Text<wbr/>Board<wbr/>Object</a></li><li class="tsd-kind-type-alias"><a href="modules.html#TextMediaType" class="tsd-kind-icon">Text<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-type-alias"><a href="modules.html#UncommonComponentObjectProps" class="tsd-kind-icon">Uncommon<wbr/>Component<wbr/>Object<wbr/>Props</a></li><li class="tsd-kind-type-alias"><a href="modules.html#Value" class="tsd-kind-icon">Value</a></li><li class="tsd-kind-type-alias"><a href="modules.html#VideoMediaType" class="tsd-kind-icon">Video<wbr/>Media<wbr/>Type</a></li><li class="tsd-kind-variable"><a href="modules.html#Identify" class="tsd-kind-icon">Identify</a></li><li class="tsd-kind-variable"><a href="modules.html#action" class="tsd-kind-icon">action</a></li><li class="tsd-kind-variable"><a href="modules.html#actionTypes" class="tsd-kind-icon">action<wbr/>Types</a></li><li class="tsd-kind-variable"><a href="modules.html#component" class="tsd-kind-icon">component</a></li><li class="tsd-kind-variable"><a href="modules.html#componentKeys" class="tsd-kind-icon">component<wbr/>Keys</a></li><li class="tsd-kind-variable"><a href="modules.html#componentTypes" class="tsd-kind-icon">component<wbr/>Types</a></li><li class="tsd-kind-variable"><a href="modules.html#contentTypes" class="tsd-kind-icon">content<wbr/>Types</a></li><li class="tsd-kind-variable"><a href="modules.html#deviceTypes" class="tsd-kind-icon">device<wbr/>Types</a></li><li class="tsd-kind-variable"><a href="modules.html#styleKeys" class="tsd-kind-icon">style<wbr/>Keys</a></li><li class="tsd-kind-variable"><a href="modules.html#userEvent" class="tsd-kind-icon">user<wbr/>Event</a></li></ul></nav></div></div></div><footer class="with-border-bottom"><div class="container"><h2>Legend</h2><div class="tsd-legend-group"><ul class="tsd-legend"><li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li></ul></div><h2>Settings</h2><p>Theme <select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></p></div></footer><div class="container tsd-generator"><p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div><div class="overlay"></div><script src="assets/main.js"></script></body></html>

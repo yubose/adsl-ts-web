@@ -1,29 +1,23 @@
-import {
-  findParent,
-  isComponent,
-  NUIComponent,
-  NUIComponentType,
-  pullFromComponent,
+import type { OrArray } from '@jsmanifest/typefest'
+import type {
+  DataAttribute,
+  NuiComponent,
+  NuiComponentType,
   SelectOption,
 } from 'noodl-ui'
+import { findParent, isComponent, pullFromComponent } from 'noodl-ui'
+import type { LiteralUnion } from 'type-fest'
+import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
-import { LiteralUnion } from 'type-fest'
-import NOODLDOMPage from '../Page'
 import findElement from './findElement'
-import { DOMNodeInput, NOODLDOMDataAttribute } from '../types'
 import { dataAttributes } from '../constants'
-
-export function addClassName(className: string, node: HTMLElement) {
-  if (!node.classList.contains(className)) {
-    node.classList.add(className)
-  }
-}
+import * as t from '../types'
 
 /**
  * Normalizes the queried nodes to an HTMLElement or an array of HTMLElement
  * @param { NodeList | HTMLCollection | HTMLElement } nodes
  */
-export function asHtmlElement(nodes: DOMNodeInput) {
+export function asHtmlElement(nodes: t.DOMNodeInput) {
   if (nodes instanceof NodeList || nodes instanceof HTMLCollection) {
     if (nodes.length === 0) return null
     if (nodes.length === 1) return nodes.item(0) as HTMLElement
@@ -36,10 +30,10 @@ export function asHtmlElement(nodes: DOMNodeInput) {
 
 /**
  * Returns the DOM element tag name for the NOODL component
- * @param { NUIComponent.Instance | NUIComponentType } component
+ * @param { NuiComponent.Instance | NuiComponentType } component
  */
 export function getElementTag(
-  component: NUIComponent.Instance | NUIComponentType | undefined,
+  component: NuiComponent.Instance | NuiComponentType | undefined,
 ): keyof HTMLElementTagNameMap {
   const componentType = u.isStr(component) ? component : component?.type || ''
   const tagName = getElementTag.prototype.elementMap[componentType]
@@ -64,6 +58,7 @@ export function getElementTag(
 }
 
 getElementTag.prototype.elementMap = {
+  span: 'span',
   br: 'br',
   button: 'button',
   canvas: 'canvas',
@@ -100,17 +95,13 @@ getElementTag.prototype.elementMap = {
  * useful for page consumer components
  * @param { string } attr
  */
-export function makeFindByAttr(
-  attr: LiteralUnion<NOODLDOMDataAttribute, string>,
-) {
+export function makeFindByAttr(attr: LiteralUnion<DataAttribute, string>) {
   const findByAttr = function findByAttr(
-    component?:
-      | NUIComponent.Instance
-      | LiteralUnion<NOODLDOMDataAttribute, string>,
+    component?: NuiComponent.Instance | LiteralUnion<DataAttribute, string>,
   ) {
     if (component === undefined) return findBySelector(`[${attr}]`)
     else if (!component) return null
-    return dataAttributes.includes(attr as NOODLDOMDataAttribute)
+    return dataAttributes.includes(attr as DataAttribute)
       ? findByDataAttrib(
           attr,
           isComponent(component)
@@ -123,10 +114,40 @@ export function makeFindByAttr(
   return findByAttr
 }
 
-export function findBySelector(selector: string | undefined) {
+export function findBySelector<T extends string>(
+  selector: LiteralUnion<T, string>,
+): OrArray<t.NDOMElement<T> | HTMLElement> | null {
+  const mapper = {
+    button: 'button',
+    canvas: 'canvas',
+    chart: '.chart',
+    chatList: 'ul',
+    divider: 'hr',
+    ecosDoc: '.ecosDoc',
+    footer: '.footer',
+    header: '.header',
+    label: '.label',
+    map: '.map',
+    page: '.page',
+    plugin: '.plugin',
+    pluginHead: '.plugin-head',
+    pluginBodyTop: '.plugin-body-top',
+    pluginBodyTail: '.plugin-body-bottom',
+    popUp: '.popUp',
+    image: 'img',
+    textField: 'input',
+    list: 'ul',
+    listItem: 'li',
+    select: 'select',
+    textView: 'textarea',
+    video: 'video',
+  } as const
+
   return selector
     ? findElement((doc) => {
-        let nodes = doc?.querySelectorAll?.(selector)
+        const nodes = doc?.querySelectorAll?.(
+          mapper[selector as keyof typeof mapper] || selector,
+        )
         if (nodes?.length) return nodes
         return null
       })
@@ -134,7 +155,7 @@ export function findBySelector(selector: string | undefined) {
 }
 
 export function findByDataAttrib(
-  dataAttrib: LiteralUnion<NOODLDOMDataAttribute, string> | undefined,
+  dataAttrib: LiteralUnion<DataAttribute, string> | undefined,
   value?: string,
 ) {
   return findBySelector(
@@ -154,79 +175,83 @@ export function findByClassName(className: string | undefined) {
   )
 }
 
-export function findByElementId(c: NUIComponent.Instance | string | undefined) {
+export function findByElementId(c: NuiComponent.Instance | string | undefined) {
   return findElement((doc) => doc?.getElementById(u.isStr(c) ? c : c?.id || ''))
 }
 
-export function getFirstByClassName<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByClassName>[0],
-) {
-  return u.array(asHtmlElement(findByClassName(c)))[0] as N
+export interface FindFunc<Arg = any> {
+  (document: Document, arg: Arg): HTMLElement | null
 }
 
-export function getFirstByDataKey<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByDataKey>[0],
-) {
-  return u.array(asHtmlElement(findByDataKey(c)))[0] as N
-}
-
-export function getFirstByElementId<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByElementId>[0],
-) {
-  return u.array(asHtmlElement(findByElementId(c)))[0] as N
-}
-
-export function getFirstByGlobalId<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByGlobalId>[0],
-) {
-  return u.array(asHtmlElement(findByGlobalId(c)))[0] as N
-}
-
-export function getFirstByViewTag<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByViewTag>[0],
-) {
-  return u.array(asHtmlElement(findByViewTag(c)))[0] as N
-}
-
-export function getFirstByUX<N extends HTMLElement = HTMLElement>(
-  c: Parameters<typeof findByUX>[0],
-) {
-  return u.array(asHtmlElement(findByUX(c)))[0] as N
-}
-
-/**
- * Returns the HTML DOM node or an array of HTML DOM nodes using the data-ux,
- * otherwise returns null
- * @param { string } key - The value of a data-ux element
- */
-export function getByDataUX(key: string) {
-  if (u.isStr(key)) {
-    const nodeList = document.querySelectorAll(`[data-ux="${key}"]`) || null
-    if (nodeList.length) {
-      const nodes = [] as HTMLElement[]
-      nodeList.forEach((node: HTMLElement) => nodes.push(node))
-      return nodes.length === 1 ? nodes[0] : nodes
-    }
+export function makeFindFirstBy<Arg = any>(
+  fn: FindFunc<Arg>,
+): (arg: Arg) => HTMLElement {
+  return function (arg) {
+    return u.filter(
+      Boolean,
+      u.array(findElement((doc) => doc && fn(doc, arg))),
+    )[0] as HTMLElement
   }
-  return null
 }
+
+export const findFirstBySelector = makeFindFirstBy<string>((doc, selector) =>
+  doc.querySelector(selector),
+)
+
+export const findFirstByDataKey = makeFindFirstBy<string>((doc, dataKey) =>
+  doc.querySelector(`[data-key="${dataKey}"]`),
+)
+
+export const findFirstByGlobalId = makeFindFirstBy<string>((doc, globalId) =>
+  doc.querySelector(`[data-globalid="${globalId}"]`),
+)
+
+export const findFirstByViewTag = makeFindFirstBy<string>((doc, viewTag) =>
+  doc.querySelector(`[data-viewtag="${viewTag}"]`),
+)
+
+export const findFirstByElementId = makeFindFirstBy<
+  NuiComponent.Instance | string
+>((doc, c) => doc.getElementById(u.isStr(c) ? c : c?.id))
+
+export const findFirstByClassName = makeFindFirstBy<string>(
+  (doc, className) => doc.getElementsByClassName(className)?.[0] as HTMLElement,
+)
 
 /**
  * Returns the component instance of type: page if it exists in the parent ancestry tree
- * @param { NUIComponent.Instance } component
+ * @param { NuiComponent.Instance } component
  */
 export function getPageAncestor(
-  component: NUIComponent.Instance | null | undefined,
+  component: NuiComponent.Instance | null | undefined,
 ) {
   if (isComponent(component)) {
     if (component.type === 'page') return component
-    return findParent(component, (parent) => parent?.type === 'page')
+    return findParent(component, nt.Identify.component.page)
   }
   return null
 }
 
+/**
+ * Returns the index from the parent's children.
+ * Returns -1 if it the node is not a child of the parent
+ * @param node
+ * @returns { number }
+ */
+export function getNodeIndex<N extends t.NDOMElement>(
+  node: N | null | undefined,
+) {
+  if (node?.parentElement || node?.parentNode) {
+    if (node.childElementCount === 1) return 0
+    if (node.childElementCount > 1) {
+      return [...node.children].findIndex((n) => n === node)
+    }
+  }
+  return -1
+}
+
 export function makeElemFn(fn: (node: HTMLElement) => void) {
-  const onNodes = function _onNodes(nodes: DOMNodeInput, cb?: typeof fn) {
+  const onNodes = function _onNodes(nodes: t.DOMNodeInput, cb?: typeof fn) {
     let count = 0
     u.array(asHtmlElement(nodes)).forEach((node) => {
       if (node) {
@@ -251,7 +276,7 @@ export function isDisplayable(value: unknown): value is string | number {
 
 /**
  * Returns true if the component is a descendant of a component of type: "page"
- * @param { NUIComponent.Instance } component
+ * @param { NuiComponent.Instance } component
  */
 export function isPageConsumer(component: any): boolean {
   return isComponent(component)

@@ -1,63 +1,34 @@
-const childProcess = require('child_process')
-const chalk = require('chalk')
-const { Command } = require('commander')
+const u = require('@jsmanifest/utils')
+const execa = require('execa')
+const meow = require('meow')
 
-const coolGold = (s) => chalk.keyword('navajowhite')(s)
-const italic = (s) => chalk.white(chalk.italic(s))
-const magenta = (s) => chalk.magenta(s)
+const regex = {
+  'noodl-ui': /(nui|noodl-ui)/i,
+  'noodl-ui-dom': /(ndom|noodl-ui-dom)/i,
+  'noodl-types': /(nt|types|noodl-types)/i,
+}
 
-const program = new Command()
+const cli = meow(``, {
+  flags: {
+    publish: { alias: 'p', type: 'string' },
+    message: { alias: 'm', type: 'string' },
+  },
+})
 
-program
-  .option('-p --publish [pkg]', 'Publish a local package to the NPM registry')
-  .option('-m --message [message]', 'Commit message')
-
-program.parse(process.argv)
-
-const args = program.opts()
+const { message = 'Update(s) to lib', publish } = cli.flags
 
 ;(async () => {
-  const lib = {
-    ndom: 'noodl-ui-dom',
-    ntest: 'noodl-ui-test-utils',
-    nui: 'noodl-ui',
-  }
+  const lib = u.entries(regex).find(([_, regex]) => regex.test(publish))[0]
 
-  const regex = {
-    [lib.ndom]: /(ndom|noodl-ui-dom)/i,
-    [lib.ntest]: /(ntest|noodl-ui-test-utils)/i,
-    [lib.nui]: /(nui|noodl-ui)/i,
-  }
+  if (!lib) throw new Error(`Invalid lib name`)
 
-  function getPkgName(arg) {
-    const entries = Object.entries(regex)
-    for (let index = 0; index < entries.length; index++) {
-      const [pkg, reg] = entries[index]
-      if (reg.test(arg)) return lib[pkg]
-    }
-  }
-
-  const pkgName = getPkgName(args.publish)
-
-  if (!pkgName) {
-    throw new Error(
-      `Could not locate a local package using the string "${magenta(
-        args.publish,
-      )}" to publish with`,
-    )
-  }
-
-  const message = args.message || 'Update(s) to lib'
-
-  const commands = [
-    `lerna exec --scope ${pkgName} "npm version patch -f"`,
-    `git add packages/${pkgName}`,
-    `git commit -m "${message}"`,
-    `lerna exec --scope ${args.publish} "npm run build && npm publish -f --access public"`,
-  ].join(' && ')
-
-  const shell = childProcess.spawn(commands, {
-    shell: true,
-    stdio: 'inherit',
-  })
+  execa.commandSync(
+    [
+      `lerna exec --scope ${lib} "npm version patch -f"`,
+      `git add packages/${lib}`,
+      `git commit -m "${message}"`,
+      `lerna exec --scope ${lib} "npm run build && npm publish -f"`,
+    ].join(' && '),
+    { shell: true, stdio: 'inherit' },
+  )
 })()

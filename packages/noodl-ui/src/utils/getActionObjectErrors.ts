@@ -1,5 +1,5 @@
 import { Identify } from 'noodl-types'
-import { NUIActionObjectInput } from '../types'
+import type { NUIActionObjectInput } from '../types'
 
 function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
   const results = [] as string[]
@@ -7,8 +7,6 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
   if (Identify.folds.emit(obj)) {
     //
   } else if (Identify.goto(obj)) {
-    //
-  } else if (Identify.toast?.(obj)) {
     //
   } else if (Identify.action.any(obj)) {
     if (obj.actionType === 'anonymous') {
@@ -58,7 +56,9 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
       //
     } else if (Identify.action.updateObject(obj)) {
       //
-    } else {
+    }else if (Identify.action.getLocationAddress(obj)) {
+      //
+    }else {
       results.push(
         `Encountered an unsupported action object of type "${obj.actionType}". ` +
           `Check typos or letter casings.`,

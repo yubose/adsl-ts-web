@@ -1,7 +1,6 @@
 import * as u from '@jsmanifest/utils'
-import { LiteralUnion } from 'type-fest'
-import { ICache, NUIActionType, NUITrigger, Store } from '../types'
-import { inspect } from '../utils/internal'
+import type { LiteralUnion } from 'type-fest'
+import type { ICache, NUIActionType, NUITrigger, Store } from '../types'
 import {
   actionTypes as allActionTypes,
   groupedActionTypes,
@@ -49,10 +48,13 @@ const getDefaultState = () =>
     >,
   )
 
-class ActionsCache implements ICache {
+class ActionsCache<ETrigger extends string = string> implements ICache {
   #actions: ActionsStore<OtherActionTypes, Store.ActionObject>
   #builtIns: ActionsStore<'builtIn', Store.BuiltInObject>
-  #emits: ActionsStore<LiteralUnion<NUITrigger, string>, Store.ActionObject[]>
+  #emits: ActionsStore<
+    LiteralUnion<NUITrigger | ETrigger, string>,
+    Store.ActionObject[]
+  >
   state = getDefaultState();
 
   [Symbol.iterator]() {
@@ -66,7 +68,7 @@ class ActionsCache implements ICache {
     }
   }
 
-  [inspect]() {
+  [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       ...this,
       length: this.length,

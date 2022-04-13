@@ -1,32 +1,18 @@
 {
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
-  "dependencies": {
-    "noodl-types": "^1.0.103",
-    "noodl-utils": "^0.0.54"
-  },
   "description": "",
-  "devDependencies": {
-    "nock": "^13.1.0",
-    "noodl-ui": "file:../noodl-ui",
-    "noodl-ui-test-utils": "file:../noodl-ui-test-utils"
-  },
   "engines": {
-    "node": ">=12",
+    "node": ">=14",
     "npm": ">=6"
   },
   "files": [
     "dist"
   ],
   "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
-  "jsnext:main": "dist/index.js",
   "keywords": [],
-  "license": "ISC",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "name": "noodl-ui-dom",
-  "peerDependencies": {
-    "noodl-ui": "^0.1.35"
-  },
   "prettier": {
     "arrowParens": "always",
     "endOfLine": "lf",
@@ -37,11 +23,13 @@
     "trailingComma": "all"
   },
   "scripts": {
-    "build": "rm -rf dist && rollup -c --environment BUILD:production",
-    "start": "rm -rf dist && rollup -c -w --environment BUILD:development",
-    "test": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\" --file src/setupTests.ts",
-    "test:file": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\""
+    "build": "concurrently \"rollup -c --environment BUILD:production\" \"npm run types\"",
+    "build:development": "cross-env NODE_ENV=development concurrently \"rollup -c --environment BUILD:development\" \"npm run types\"",
+    "start": "concurrently \"rollup -c -w --environment BUILD:development\" \"npm run types\"",
+    "test": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" --watch-files \"../noodl-ui/dist/index.js\" \"src/**/*.test.ts\" --file src/setupTests.ts",
+    "test:file": "cross-env NODE_ENV=test ECOS_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --file src/setupTests.ts --extensions ts --watch --watch-files \"src/**/*.ts\" --watch-files \"../noodl-ui/dist/index.js\"",
+    "types": "tsc --emitDeclarationOnly"
   },
-  "types": "dist/index.d.ts",
-  "version": "0.0.62"
+  "types": "./dist/index.d.ts",
+  "version": "0.0.66"
 }
