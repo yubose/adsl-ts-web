@@ -82,8 +82,15 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
     let result: any
     if (!Identify.folds.emit(dataKey)) {
       if (iteratorVar) {
+        const listAttribute = n.getListAttribute(component)
+        console.log('test dataKey',{dataKey,listAttribute})
         if (iteratorVar === dataKey) {
           result = context?.dataObject
+        }else if(dataKey.startsWith('listAttr')){
+          result = get(
+            listAttribute,
+            excludeIteratorVar(dataKey, 'listAttr') as string,
+          )
         } else {
           result = get(
             context?.dataObject,

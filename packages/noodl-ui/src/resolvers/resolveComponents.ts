@@ -14,6 +14,7 @@ import is from '../utils/is'
 import {
   findIteratorVar,
   findListDataObject,
+  getListAttribute,
   isListConsumer,
   isListLike,
   resolveAssetUrl,
@@ -86,23 +87,6 @@ componentResolver.setResolver(async (component, options, next) => {
 
     if (isListLike(component)) {
       const listItemBlueprint = getRawBlueprint(component)
-      function transformListObject(listObject,depth=1,parentIndex=0){
-        const _clone = cloneDeep(listObject)
-        const length = listObject.length
-        for(let i =0;i<length;i++){
-          let listAttribute = {
-            index: i+1,
-            length: length
-          }
-          if(depth !== 1){
-            listAttribute['parent'] = _clone
-            listAttribute['parentIndex'] = parentIndex
-          }
-          listObject[i]['attr'] = listAttribute
-          
-        }
-        return listObject
-      }
       /** Filter invalid values (0 is a valid value)  */
       function getListObject(opts: ConsumerOptions) {
         let listObject =
@@ -128,9 +112,6 @@ componentResolver.setResolver(async (component, options, next) => {
             }),
           )
           listObject = component.get('listObject')
-        }
-        if(u.isArr(listObject)){
-          listObject = transformListObject(listObject)
         }
         return listObject
       }
@@ -159,10 +140,6 @@ componentResolver.setResolver(async (component, options, next) => {
         let dataKey: any = dataObjects.toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
         dataObjects = get(findListDataObject(component), dataKey)
-        const parentIndex = get(findListDataObject(component), 'attr.index')
-        if(u.isArr(dataObjects)){
-          dataObjects = transformListObject(dataObjects,2,parentIndex)
-        }
       }
       if (u.isArr(dataObjects)) {
         const numDataObjects = dataObjects.length
@@ -364,7 +341,8 @@ componentResolver.setResolver(async (component, options, next) => {
             component.toJSON(),
           )
         }
-
+        const dataObject = findListDataObject(component)
+        const listAttribute = getListAttribute(component)
         textBoard.forEach((item) => {
           if (is.textBoardItem(item)) {
             const child = createComponent('br', page)
@@ -384,9 +362,11 @@ componentResolver.setResolver(async (component, options, next) => {
              */
             if (item?.dataKey) {
               if (iteratorVar && item?.dataKey.startsWith(iteratorVar)) {
-                const dataObject = findListDataObject(component)
                 const dataKey = excludeIteratorVar(item?.dataKey, iteratorVar)
                 item.text = dataKey ? get(dataObject, dataKey) : dataObject
+              }else if(iteratorVar && item?.dataKey.startsWith('listAttr')){
+                const dataKey = excludeIteratorVar(item?.dataKey, 'listAttr')
+                item.text = dataKey ? get(listAttribute, dataKey) : listAttribute
               } else {
                 const dataObject = findDataValue(
                   [() => getRoot(), () => getRoot()[page.page]],

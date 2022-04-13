@@ -29,6 +29,7 @@ import VP from './Viewport'
 import {
   findIteratorVar,
   findListDataObject,
+  getListAttribute,
   getPluginLocation,
   isListConsumer,
   resolveAssetUrl,
@@ -973,17 +974,21 @@ const NUI = (function () {
             }
           }
 
+    
+
           return objs.map((obj) => {
             if (nt.Identify.folds.emit(obj)) {
               const action = createAction(trigger, obj)
+              let listAttribute
+              if(opts?.component){
+                listAttribute = getListAttribute(opts?.component)
+              }
               if (opts?.component) {
                 const iteratorVar =
                   opts?.context?.iteratorVar || findIteratorVar(opts.component)
-
                 const dataObject =
                   opts?.context?.dataObject ||
                   findListDataObject(opts.component)
-
                 if (obj.emit?.dataKey) {
                   action.dataKey = createEmitDataKey(
                     obj.emit.dataKey,
@@ -992,8 +997,9 @@ const NUI = (function () {
                       page: opts.page,
                       listDataObject: dataObject,
                     }),
-                    { iteratorVar },
+                    { iteratorVar,listAttribute},
                   )
+                  
                 }
               }
 
