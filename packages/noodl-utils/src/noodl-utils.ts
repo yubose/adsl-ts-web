@@ -112,16 +112,17 @@ export function createEmitDataKey(
     return findDataValue(dataObject, excludeIteratorVar(dataKey, iteratorVar))
   } else if (u.isObj(dataKey)) {
     return Object.keys(dataKey).reduce((acc, property) => {
-      acc[property] = findDataValue(
-        dataObject,
-        excludeIteratorVar(dataKey[property], iteratorVar),
-      )?findDataValue(
-        dataObject,
-        excludeIteratorVar(dataKey[property], iteratorVar),
-      ):findDataValue(
-        listAttribute,
-        excludeIteratorVar(dataKey[property], 'listAttr'),
-      )
+      if(dataKey[property].startsWith('listAttr')){
+        acc[property] = findDataValue(
+          listAttribute,
+          excludeIteratorVar(dataKey[property], 'listAttr'),
+        )
+      }else{
+        acc[property] = findDataValue(
+          dataObject,
+          excludeIteratorVar(dataKey[property], iteratorVar),
+        )
+      }
       return acc
     }, {} as { [varProp: string]: any })
   }

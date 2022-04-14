@@ -45,8 +45,8 @@ export function getListAttribute(component: NuiComponent.Instance){
         parentIndex = parentIndex ? parentIndex : 0
         let dataKey: any = dataObject.toString()
         dataKey = excludeIteratorVar(dataKey, iteratorVar)
-        dataObject = get(findListDataObject(parentItem),dataKey)
         parent = findListDataObject(parentItem)
+        dataObject = get(parent,dataKey)
       }
       
     }
@@ -54,7 +54,7 @@ export function getListAttribute(component: NuiComponent.Instance){
       listAttribute = {
         length: dataObject.length,
         index: index+1,
-        // parent: cloneDeep(dataObject)
+        dataObject: dataObject,
       }
       if(u.isNum(parentIndex)){
         listAttribute['parentIndex']= parentIndex+1
