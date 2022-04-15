@@ -45,10 +45,13 @@
     "test:ndom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
     "test:nui": "lerna exec --scope noodl-ui \"npm run test\"",
     "test:nui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
+    "build:sampleWebServer": "node dev/sampleWebServer/server.js",
+    "build:bundleWebApp": "node scripts/bundleWebApp.js",
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "dependencies": {
     "axios": "^0.21.1",
+    "browserify-zlib": "^0.2.0",
     "date-fns": "^2.21.2",
     "elasticsearch-browser": "^16.7.1",
     "firebase": "^8.7.0",
@@ -78,6 +81,7 @@
     "@jsmanifest/utils": "^1.0.63",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^21.0.1",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^13.0.6",
     "@testing-library/dom": "^8.5.0",
     "@testing-library/user-event": "^13.1.9",
