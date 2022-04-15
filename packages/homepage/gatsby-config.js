@@ -15,21 +15,24 @@ const viewport = process.env.MOBILE
 
 const {
   name: siteName,
-  title: siteTitle = '',
-  description: siteDescription = '',
-  keywords: siteKeywords,
+  title: siteTitle = 'AiTmed | Start your E-health Journey Anywhere, Anytime',
+  description:
+    siteDescription = 'Anyone, Anywhere, Anytime Start Your E-health Journey With Us',
+  keywords: siteKeywords = [],
   logo: siteLogo,
   url: siteUrl,
   video: siteVideo,
 } = getSiteMetadata('../../webpack.config.js')
 
+console.log({ siteName, siteTitle, siteDescription })
+
 for (const titleOrDescOrName of [siteName, siteTitle, siteDescription]) {
   if (!titleOrDescOrName) {
-    throw new Error(
-      `Missing site name, title, and/or site description. ` +
-        `Check ${u.cyan('webpack.config.js')} at ` +
-        `${u.yellow(path.resolve(__dirname, '../../webpack.config.js'))}`,
-    )
+    // throw new Error(
+    //   `Missing site name, title, and/or site description. ` +
+    //     `Check ${u.cyan('webpack.config.js')} at ` +
+    //     `${u.yellow(path.resolve(__dirname, '../../webpack.config.js'))}`,
+    // )
   }
 }
 
@@ -267,7 +270,7 @@ function getSiteMetadata(relativePathToWebAppWebpackConfig) {
     enter(path) {
       if (
         path.isVariableDeclarator() &&
-        /(TITLE|DESCRIPTION|KEYWORDS)/.test(path.node.id.name)
+        /(TITLE|DESCRIPTION|KEYWORDS)/.test(path.node.id.name || '')
       ) {
         let name = path.node.id.name
         let value
