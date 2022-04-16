@@ -17,7 +17,6 @@
     "build:deploy:stable": "npm run build:stable && npm run deploy:stable",
     "build:deploy:test": "npm run build:test && npm run deploy:test",
     "build:deploy:static": "npm run build:static && npm run deploy:static",
-    "build:deploy:test:webapp": "cross-env ECOS_ENV=test NODE_ENV=production DEPLOYING=true webpack --mode=production && npm run deploy:test",
     "build:serve": "cross-env ECOS_ENV=test NODE_ENV=production npm run serve",
     "build:static": "cross-env NODE_ENV=production lerna exec --scope homepage npm run clean && lerna exec --scope homepage npm run build",
     "build:stable": "cross-env NODE_ENV=production DEPLOYING=true npm run build -- --env ECOS_ENV=stable",
@@ -41,12 +40,8 @@
     "sync": "node scripts/op sync",
     "test": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test USE_DEV_PATHS=true ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src src/**/*.test.ts",
     "test:file": "cross-env TS_NODE_PROJECT=\"tsconfig.test.json\" NODE_ENV=test ts-mocha --extensions ts --file src/setupTests.ts --watch --watch-files src",
-    "test:ndom": "lerna exec --scope noodl-ui-dom \"npm run test\"",
-    "test:ndom:file": "lerna exec --scope noodl-ui-dom \"npm run test:file\"",
     "test:nui": "lerna exec --scope noodl-ui \"npm run test\"",
     "test:nui:file": "lerna exec --scope noodl-ui \"npm run test:file\"",
-    "build:sampleWebServer": "node dev/sampleWebServer/server.js",
-    "build:bundleWebApp": "node scripts/bundleWebApp.js",
     "updatesdk": "node scripts/update.js -u sdk -d"
   },
   "dependencies": {
