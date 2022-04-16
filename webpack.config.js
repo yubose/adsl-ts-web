@@ -9,6 +9,7 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
+const TerserPlugin = require('terser-webpack-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
@@ -280,13 +281,21 @@ function getWebpackConfig(env) {
             concatenateModules: true,
             mergeDuplicateChunks: true,
             minimize: true,
+            minimizer: [
+              new TerserPlugin({
+                minify: TerserPlugin.esbuildMinify,
+                parallel: true,
+                terserOptions: {
+                  minify: false,
+                  minifyWhitespace: true,
+                  minifyIdentifiers: false,
+                  minifySyntax: true,
+                },
+              }),
+            ],
             nodeEnv: 'production',
             removeEmptyChunks: true,
             splitChunks: {
-              // chunks(chunk) {
-              //   // console.log(`[${u.cyan('chunk')}]`, chunk)
-              //   return true
-              // },
               chunks: 'async',
               minSize: 35000,
               maxSize: 80000,
