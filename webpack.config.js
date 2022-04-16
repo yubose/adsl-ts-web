@@ -27,7 +27,7 @@ function getWebpackConfig(env) {
   //   throw new Error(`You did not provide a config key`)
   // }
 
-  if (!env.ENV) {
+  if (!env.ECOS_ENV) {
     console.log(
       `${u.yellow(
         `You did not provide the ecos environment. Defaulting to ${u.cyan(
@@ -35,7 +35,7 @@ function getWebpackConfig(env) {
         )}`,
       )}`,
     )
-    env.ENV = 'stable'
+    env.ECOS_ENV = 'stable'
   }
 
   const pkg = fs.readJsonSync('./package.json')
@@ -207,7 +207,7 @@ function getWebpackConfig(env) {
       new webpack.EnvironmentPlugin({
         BUILD: {
           version: buildVersion,
-          ecosEnv: env.ENV,
+          ecosEnv: env.ECOS_ENV,
           nodeEnv: MODE,
           packages: {
             '@aitmed/cadl': version.noodlSdk,
@@ -220,7 +220,7 @@ function getWebpackConfig(env) {
         },
         // if process.env.DEPLOYING === true, this forces the config url in
         // src/app/noodl.ts to point to the public.aitmed.com host
-        ECOS_ENV: env.ENV,
+        ECOS_ENV: env.ECOS_ENV,
         NODE_ENV: MODE,
         USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
         ...(!u.isUnd(process.env.DEPLOYING)
@@ -312,7 +312,7 @@ function getWebpackConfig(env) {
   }
 
   const getEcosEnv = () =>
-    env.ENV ? env.ENV.toUpperCase() : '<Variable not set>'
+    env.ECOS_ENV ? env.ECOS_ENV.toUpperCase() : '<Variable not set>'
 
   const getNodeEnv = () => (MODE ? MODE.toUpperCase() : '<Variable not set>')
 
