@@ -1,3 +1,16 @@
+April 15, 2022
+# build static page.
+# right now, we are only able to build static page if the noodl file set does not contain dynamic info retrieved from backend.
+1. lerna clean
+2. rm -rf node_module
+3. npm install
+4. cd packages/homepage
+5. export CONFIG=www
+6. npm run build;npm run build // to run the same build command twice.
+7. cd public
+8. aws s3 sync . s3://public.aitmed.com/static/www/4.06.x/
+9. go to aws cloudFront update the resource path.
+k 
 # AiTmed NOODL Web
 
 ## Steps to update the @aitmed/cadl eCOS package to latest version
