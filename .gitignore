@@ -4,6 +4,7 @@ build
 dist
 docs
 generated
+lib
 noodl.yml
 node_modules
 public/admin
