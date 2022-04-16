@@ -238,7 +238,6 @@ function createRegisters(app: App) {
     async onNotificationClicked(obj: Register.Object, arg) {
       log.func('onNotificationClicked')
       log.hotpink('', { obj, arg })
-      debugger
     },
     twilioOnPeopleJoin(obj: Register.Object, params: { room?: Room } = {}) {
       log.func('twilioOnPeopleJoin')

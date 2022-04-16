@@ -1,5 +1,3 @@
-console.log({ path: path.resolve(__dirname, 'settings.yml') })
-
 const u = require('@jsmanifest/utils')
 const y = require('yaml')
 const path = require('path')
@@ -11,15 +9,15 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
-const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const WorkboxPlugin = require('workbox-webpack-plugin')
+const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
 /**
  * @type { Record<'name' | 'title' | 'description' | 'favicon' | 'keywords' | 'injectScripts', any> }
  */
 const settings = y.parse(
-  fs.readFileSync(path.resolve(__dirname, 'settings.yml'), 'utf8'),
+  fs.readFileSync(path.join(__dirname, 'settings.yml'), 'utf8'),
 )
 
 function getWebpackConfig(env) {
@@ -130,9 +128,6 @@ function getWebpackConfig(env) {
       liveReload: true,
       headers: commonHeaders,
       port: 3000,
-      // setupMiddlewares(middlewares, server) {
-      //   return middlewares
-      // },
       static: [publicPath],
     },
     devtool: false,
@@ -387,7 +382,4 @@ function getWebpackConfig(env) {
 }
 
 module.exports = getWebpackConfig
-module.exports.NAME = settings.name
-module.exports.TITLE = settings.title
-module.exports.DESCRIPTION = settings.description
-module.exports.KEYWORDS = settings.keywords
+module.exports.settings = settings.settings

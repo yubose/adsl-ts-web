@@ -1,7 +1,5 @@
 const u = require('@jsmanifest/utils')
-const fs = require('fs-extra')
 const path = require('path')
-const { parse, traverse, types } = require('@babel/core')
 
 //const pathPrefix = `static/web/latest` // if deployed not to root directory
 const pathPrefix = `` // deployed to root directory
@@ -15,16 +13,13 @@ const viewport = process.env.MOBILE
 
 const {
   name: siteName,
-  title: siteTitle = 'AiTmed | Start your E-health Journey Anywhere, Anytime',
-  description:
-    siteDescription = 'Anyone, Anywhere, Anytime Start Your E-health Journey With Us',
+  title: siteTitle,
+  description: siteDescription,
   keywords: siteKeywords = [],
   logo: siteLogo,
   url: siteUrl,
   video: siteVideo,
 } = getSiteMetadata('../../webpack.config.js')
-
-console.log({ siteName, siteTitle, siteDescription })
 
 for (const titleOrDescOrName of [siteName, siteTitle, siteDescription]) {
   if (!titleOrDescOrName) {
@@ -251,7 +246,7 @@ module.exports = {
 function getSiteMetadata(relativePathToWebAppWebpackConfig) {
   const metadata = {
     // TODO - Extract name from webpack.config.js instead
-    name: 'AiTmed',
+    name: '',
     keywords: [],
     logo: 'https://public.aitmed.com/cadl/www3.83/assets/aitmedLogo.png',
     url: `https://aitmed.com`,
@@ -259,51 +254,15 @@ function getSiteMetadata(relativePathToWebAppWebpackConfig) {
       'https://public.aitmed.com/commonRes/video/aitmed228FromBlair11192020.mp4',
   }
 
-  const webAppWebpackConfigAST = parse(
-    fs.readFileSync(
-      path.join(__dirname, relativePathToWebAppWebpackConfig),
-      'utf8',
-    ),
-  )
+  const settings = require(relativePathToWebAppWebpackConfig)?.settings || {}
 
-  traverse(webAppWebpackConfigAST, {
-    enter(path) {
-      if (
-        path.isVariableDeclarator() &&
-        /(TITLE|DESCRIPTION|KEYWORDS)/.test(path.node.id.name || '')
-      ) {
-        let name = path.node.id.name
-        let value
-        if (path.node.init) {
-          if (types.isLiteral(path.node.init)) {
-            if (path.node.init.type === 'TemplateLiteral') {
-              const quasis = path.node.init.quasis
-              const elem = quasis.find((elem) => !!elem.value.raw)
-              value = elem?.value?.raw || ''
-            } else if (path.node.init.type === 'StringLiteral') {
-              value = path.node.init.value
-            }
-            if (value) {
-              if (name === 'TITLE') metadata.title = value
-              else if (name === 'DESCRIPTION') metadata.description = value
-            }
-          } else if (types.isArrayExpression(path.node.init)) {
-            path.node.init.elements.forEach((elem) => {
-              if (types.isLiteral(elem)) {
-                if (
-                  elem.value &&
-                  typeof elem.value === 'string' &&
-                  !metadata.keywords.includes(elem.value)
-                ) {
-                  metadata.keywords.push(elem.value)
-                }
-              }
-            })
-          }
-        }
-      }
-    },
-  })
+  metadata.name = settings.name || 'AiTmed'
+  metadata.title =
+    settings.title || 'Start your E-health Journey Anywhere, Anytime'
+  metadata.description =
+    settings.description ||
+    'Anyone, Anywhere, Anytime Start Your E-health Journey With Us'
+  metadata.keywords = u.isArr(settings.keywords) ? settings.keywords : []
 
   return metadata
 }

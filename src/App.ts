@@ -135,7 +135,7 @@ class App {
     this.#spinner = new Spinner()
     this.goto = createGoto(this)
 
-    noodl && (this.#noodl = noodl)
+    noodl && this.use(noodl)
     this.#parser = new nu.Parser()
   }
 
@@ -204,7 +204,7 @@ class App {
   }
 
   get noodl() {
-    return this.#noodl as CADL
+    return (this.#noodl || null) as CADL
   }
 
   get nui() {
@@ -408,11 +408,21 @@ class App {
       if (!this.getState().spinner.active) this.enableSpinner()
       if (!this.getStatus) this.getStatus = Account.getStatus
 
-      !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
+      if (!this.noodl) {
+        /**
+         * Instantiating the SDK this way will soon be @deprecated
+         * The new way to be to import { createInstance } from the same file and instantiate it using that function
+         */
+        if (process.env.NODE_ENV !== 'test') {
+          this.use((await import('./app/noodl')).noodl as CADL)
+        } else {
+          throw new Error(`Level 3 is not provided or instantiated`)
+        }
+      }
 
       // if (!this.notification) {
       try {
-        this.#notification = new (await import('./app/Notifications')).default()
+        this.#notification = new AppNotification()
         log.grey(`Initialized notifications`, this.#notification)
         onInitNotification && (await onInitNotification?.(this.#notification))
       } catch (error) {
@@ -430,63 +440,8 @@ class App {
           if (this.getState().spinner.active) this.disableSpinner()
         }
       })
-      await this.noodl.init()
+      if (this.noodl) await this.noodl.init()
       onSdkInit?.(this.noodl)
-
-      // const lastDOM = (await lf.getItem('__last__')) || ''
-      // if (lastDOM) {
-      //   const renderCachedState = (
-      //     rootEl: HTMLElement,
-      //     lastState: t.StoredDOMState,
-      //   ) => {
-      //     rootEl.innerHTML = lastState.root
-
-      //     if (u.isNum(lastState.x) && u.isNum(lastState.y)) {
-      //       window.scrollTo({
-      //         behavior: 'auto',
-      //         left: lastState.x,
-      //         top: lastState.y,
-      //       })
-      //     }
-
-      //     for (const btn of Array.from(rootEl.querySelectorAll('button'))) {
-      //       btn.textContent = 'Loading...'
-      //       btn.style.userSelect = 'none'
-      //       btn.style.pointerEvents = 'none'
-      //     }
-
-      //     for (const inputEl of [
-      //       ...rootEl.querySelectorAll('input'),
-      //       ...rootEl.querySelectorAll('select'),
-      //       ...rootEl.querySelectorAll('textarea'),
-      //     ]) {
-      //       inputEl.disabled = true
-      //     }
-      //   }
-
-      //   try {
-      //     // const lastState = JSON.parse(lastDOM) as t.StoredDOMState
-      //     // if (lastState?.root && lastState.origin === location.origin) {
-      //     //   const rootEl = document.getElementById('root')
-      //     //   if (rootEl) {
-      //     //     if (lastState.page !== lastState.startPage) {
-      //     //       if (await this.noodl.root.builtIn.SignInOk()) {
-      //     //         renderCachedState(rootEl, lastState)
-      //     //       }
-      //     //     } else {
-      //     //       renderCachedState(rootEl, lastState)
-      //     //     }
-      //     //   }
-      //     // }
-      //   } catch (error) {
-      //     const err = error instanceof Error ? error : new Error(String(error))
-      //     console.log(
-      //       `%c[Rehydration] ${err.name}: ${err.message}`,
-      //       'color:tomato',
-      //       err,
-      //     )
-      //   }
-      // }
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -551,7 +506,7 @@ class App {
        * Determining the start page or initial action
        */
       const parsedUrl = parseUrl(
-        this.#noodl?.cadlEndpoint as AppConfig,
+        this.noodl?.cadlEndpoint as AppConfig,
         window.location.href,
       )
 
@@ -632,7 +587,7 @@ class App {
       console.error(error)
       throw error
     } finally {
-      if (!this.noodl.getState()?.queue?.length) {
+      if (!this.noodl?.getState?.()?.queue?.length) {
         if (this.getState().spinner?.active) {
           this.disableSpinner()
         }
@@ -1245,6 +1200,14 @@ class App {
   async getCachedPages(): Promise<t.CachedPageObject[]> {
     const pageHistory = await lf.getItem(CACHED_PAGES)
     return (pageHistory as t.CachedPageObject[]) || []
+  }
+
+  use(arg: CADL) {
+    if (is.lvl3Sdk(arg)) {
+      this.#noodl = arg
+    }
+
+    return this
   }
 }
 

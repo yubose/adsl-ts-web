@@ -1,9 +1,10 @@
 import * as u from '@jsmanifest/utils'
 import Logger from 'logsnap'
-import firebase from 'firebase/app'
-import { firebase as firebaseConfig } from './config'
+import 'firebase/app'
 import 'firebase/auth'
 import 'firebase/messaging'
+import { firebase as firebaseConfig } from './config'
+import firebase from 'firebase/app'
 import {
   FirebaseMessaging,
   AppNotificationHook,
@@ -38,7 +39,7 @@ class AppNotification {
   }
 
   get supported() {
-    return firebase.messaging.isSupported()
+    return !!firebase?.messaging?.isSupported?.()
   }
 
   get unsubscribe() {
