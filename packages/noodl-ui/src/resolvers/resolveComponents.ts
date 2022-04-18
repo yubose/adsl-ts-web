@@ -58,6 +58,15 @@ componentResolver.setResolver(async (component, options, next) => {
     const { contentType, dataKey, path, text, textBoard } = original
     const iteratorVar =
       context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
+    /* -------------------------------------------------------
+      ---- POPUP
+    -------------------------------------------------------- */
+    if(is.component.popUp(component)){
+      const message = component.get('message')
+      if(message){
+        component.edit('message',message)
+      }
+    }
 
     /* -------------------------------------------------------
       ---- ECOSDOC
