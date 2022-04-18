@@ -44,7 +44,11 @@ const log = winston.createLogger({
 const cli = meow('', {
   autoHelp: true,
   flags: {
-    bundleWebApp: { type: 'boolean' },
+    clean: { type: 'boolean' },
+    serve: { type: 'string' },
+    start: { type: 'string' },
+    build: { type: 'string' },
+    bundle: { type: 'string' },
     stats: { type: 'boolean' },
     types: { alias: 't', type: 'boolean' },
   },
@@ -58,18 +62,32 @@ const scriptUtils = { del, exec, fg, fs, flags, log, path, u }
 
 ;(async () => {
   try {
-    if (['nt', 'nui'].includes(cmd)) {
-      const mapping = {
-        nt: 'noodl-types',
-        nui: 'noodl-ui',
-      }
+    if (flags.start || flags.build) {
+      const pkg = flags.start || flags.build
+      const isBuild = flags.build && !flags.start
 
-      exec(`lerna exec --scope ${mapping[cmd]} ${args.join(' ')}`)
-    } else if (flags.bundleWebApp) {
-      log.info(`Bundling aitmed-noodl-web...`)
-      const outputDir = path.join(process.cwd(), 'lib')
-      await require('../scripts/bundleWebApp')(scriptUtils, outputDir)
-      log.info(`Finished bundling!`)
+      if (/static|homepage/i.test(pkg)) {
+        const command = isBuild ? 'build' : 'start'
+        let cmd = `lerna exec --scope homepage \"`
+        if (flags.clean) cmd += `gatsby clean && `
+        cmd += `npm run ${command}`
+        cmd += `\"`
+        exec(cmd)
+      } else {
+        throw new Error(
+          `"${pkg}" is not supported yet. Supported options: "static", "homepage"`,
+        )
+      }
+    } else if (flags.bundle) {
+      log.info(`Bundling ${bundle}`)
+
+      if (flags.bundle === 'webApp') {
+        const outputDir = path.join(process.cwd(), 'lib')
+        await require('../scripts/bundleWebApp')(scriptUtils, outputDir)
+        log.info(`Finished bundling!`)
+      } else {
+        throw new Error(`Invalid value for bundling. Choose one of: "webApp"`)
+      }
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
