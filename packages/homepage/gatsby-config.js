@@ -51,8 +51,16 @@ module.exports = {
     `gatsby-plugin-react-helmet`,
     `gatsby-plugin-image`,
     `gatsby-transformer-sharp`,
-    `gatsby-plugin-emotion`,
     `gatsby-plugin-sitemap`,
+    {
+      resolve: `gatsby-plugin-emotion`,
+      options: {
+        sourceMap: true,
+        autoLabel: 'dev-only',
+        labelFormat: `[local]`,
+        cssPropOptimization: true,
+      },
+    },
     {
       resolve: require.resolve(`../gatsby-plugin-noodl`),
       options: {
@@ -64,21 +72,20 @@ module.exports = {
         cwd: __dirname,
         // Used to grab the version in the config object (defaults to "web")
         deviceType: 'web',
-        // Defaults to "INFO"
-        loglevel: 'debug',
+        // Defaults to "info"
+        loglevel: 'info',
         // If introspection is true, it will dump all of the TRANSFORMED noodl
         // pages in json to the output path specified below as
         //  "<outputPath>/<config>.introspection.json"
         introspection: true,
         paths: {
           // If we provide this assets will be downloaded to this path.
-
           // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
-
           // If we provide this path the yml files/assets will be made available
           output: `${__dirname}/output`,
           // Ensures the assets will be correctly located
           src: `${__dirname}/src`,
+          // Path to the template used to render noodl pages
           template: path.resolve(`src/templates/page.tsx`),
         },
         // Defaults to { width: 1024, height: 768 }
@@ -104,12 +111,6 @@ module.exports = {
         },
         defaultQuality: 50,
         failOnError: true,
-      },
-    },
-    {
-      resolve: `gatsby-plugin-layout`,
-      options: {
-        component: require.resolve(`./src/layout.tsx`),
       },
     },
     // {

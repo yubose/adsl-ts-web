@@ -617,20 +617,20 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                 comp.set('_path_', comp.get('path'))
               }
 
-              if (
-                u.isStr(comp?.style?.fontSize) &&
-                comp.style.fontSize.endsWith('px')
-              ) {
-                const rounded = String(
-                  parseInt(
-                    comp?.style?.fontSize.replace(/[a-zA-Z]+/gi, ''),
-                    10,
-                  ),
-                )
-                if (utils.fontSize[rounded]) {
-                  comp.style.fontSize = utils.fontSize[rounded]
-                }
-              }
+              // if (
+              //   u.isStr(comp?.style?.fontSize) &&
+              //   comp.style.fontSize.endsWith('px')
+              // ) {
+              //   const rounded = String(
+              //     parseInt(
+              //       comp?.style?.fontSize.replace(/[a-zA-Z]+/gi, ''),
+              //       10,
+              //     ),
+              //   )
+              //   if (utils.fontSize[rounded]) {
+              //     comp.style.fontSize = utils.fontSize[rounded]
+              //   }
+              // }
             },
           },
         })

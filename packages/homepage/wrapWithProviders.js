@@ -1,5 +1,6 @@
 import React from 'react'
 import { Helmet } from 'react-helmet'
+import { css, Global, ThemeProvider } from '@emotion/react'
 import AppProvider from './src/AppProvider'
 import favicon from './src/resources/favicon.ico'
 
@@ -19,6 +20,27 @@ export default function ({ element, headComponents }) {
           content="ftZTuRqMUQ4uHXtPrSeyqxtArLLI3q9BvqvVVo9pfdc"
         />
       </Helmet>
+      <ThemeProvider>
+        <Global
+          styles={css({
+            ':root': {
+              boxSizing: 'border-box',
+              top: 0,
+            },
+            html: {
+              textSizeAdjust: '100%',
+            },
+            body: {
+              padding: 0,
+              margin: 0,
+              fontSmoothing: 'antialiased',
+              color: '#333',
+              fontFamily: 'Arial, sans-serif',
+              fontKerning: 'normal',
+            },
+          })}
+        />
+      </ThemeProvider>
       <AppProvider>{element}</AppProvider>
     </>
   )
