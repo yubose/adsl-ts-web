@@ -41,9 +41,29 @@ const log = winston.createLogger({
   transports: [new winston.transports.Console({ level: 'info' })],
 })
 
-const cli = meow('', {
+function getHelp() {
+  const $ = `${u.magenta('$')}`
+  const tag = `${u.cyan('nui')}`
+  const prefix = `${$} ${tag}`
+  const cmd = (s, or) =>
+    `${u.yellow(`--${s}`)}${or ? ` (${u.yellow(`-${or}`)})` : ''}`
+  const val = (s) => `${u.white(s)}`
+  const lines = []
+  lines.push(
+    `${prefix} ${cmd('start')} ${val('homepage')} ${cmd('config', 'c')} ` +
+      `${val('www')} ${cmd('clean')}`,
+  )
+  lines.push(
+    `${prefix} ${cmd('bundle')} ${val('webApp')} ${cmd('stats')} ` +
+      `${cmd('types')}`,
+  )
+  return lines.join('\n')
+}
+
+const cli = meow(getHelp(), {
   autoHelp: true,
   flags: {
+    config: { alias: 'c', type: 'string' },
     clean: { type: 'boolean' },
     serve: { type: 'string' },
     start: { type: 'string' },
@@ -69,6 +89,7 @@ const scriptUtils = { del, exec, fg, fs, flags, log, path, u }
       if (/static|homepage/i.test(pkg)) {
         const command = isBuild ? 'build' : 'start'
         let cmd = `lerna exec --scope homepage \"`
+        if (flags.config) cmd += `npx cross-env CONFIG=${flags.config} `
         if (flags.clean) cmd += `gatsby clean && `
         cmd += `npm run ${command}`
         cmd += `\"`
