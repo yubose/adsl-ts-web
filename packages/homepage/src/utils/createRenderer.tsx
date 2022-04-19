@@ -170,7 +170,7 @@ function createRendererFactory({
           index++
         }
 
-        if (type === 'img' && u.isStr(rest._path_) && images[rest._path_]) {
+        if (type === 'img' && u.isStr(rest._path_) && images?.[rest._path_]) {
           // @ts-expect-error
           type = NoodlImage
           rest.alt = rest._path_

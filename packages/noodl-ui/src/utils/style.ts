@@ -62,9 +62,7 @@ export function getSize(value: string | number, viewportSize: number) {
   if (value == '0') return '0px'
   if (value == '1') return `${viewportSize}px`
   if (u.isStr(value)) {
-    if (!hasLetter(value)) {
-      return `${Number(value) * viewportSize}px`
-    }
+    if (!hasLetter(value)) return `${Number(value) * viewportSize}px`
     // Assuming it already has a 'px' appended
     return value
   }
@@ -73,6 +71,32 @@ export function getSize(value: string | number, viewportSize: number) {
     return `${value}px`
   }
   return value
+}
+
+/**
+ * @param { number | null } vpSize
+ * @param { string | number } value
+ * @returns { number }
+ */
+export function fromVpSize(vpSize: number | null, value: string | number) {
+  if (vpSize == null) return value as number
+  const num = toNum(value)
+  return Number.isNaN(num) ? value : toNum(((num / 100) * vpSize).toFixed(2))
+}
+
+/**
+ * @param { number | null } vpSize
+ * @param { string | number } value
+ * @param { 'vw' | 'vh' } unit
+ * @returns { string }
+ */
+export function toVpSize(
+  vpSize: number | null,
+  value: string | number,
+  unit: 'vw' | 'vh' | false,
+) {
+  if (vpSize == null) return value as number
+  //
 }
 
 /**
@@ -93,4 +117,13 @@ export function getViewportRatio(viewportSize: number, size: string | number) {
  */
 export function isNoodlUnit(value: unknown): value is string {
   return u.isStr(value) && !/[a-zA-Z]/i.test(value) && (value as any) % 1 !== 0
+}
+
+/**
+ * https://tc39.es/ecma262/#sec-tonumber
+ */
+export function toNum(value: unknown) {
+  if (u.isNum(value)) return value
+  else if (u.isStr(value)) return Number(value.replace(/[a-zA-Z]/gi, ''))
+  return Number(value)
 }

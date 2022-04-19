@@ -391,4 +391,4 @@ function getWebpackConfig(env) {
 }
 
 module.exports = getWebpackConfig
-module.exports.settings = settings.settings
+module.exports.settings = settings

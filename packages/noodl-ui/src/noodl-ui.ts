@@ -39,6 +39,7 @@ import { isUnitTestEnv } from './utils/common'
 import isNuiPage from './utils/isPage'
 import cache from './_cache'
 import * as t from './types'
+import { resolveComponents } from '.'
 
 const NUI = (function () {
   let _getRoot: () => Record<string, any>
@@ -611,7 +612,10 @@ const NUI = (function () {
         }
       }
 
-      return c
+      return {
+        component: c,
+        options,
+      }
     }
 
     !page && (page = o.getRootPage())
@@ -620,14 +624,22 @@ const NUI = (function () {
     const numComponents = componentsList.length
 
     for (let index = 0; index < numComponents; index++) {
-      resolvedComponents.push(
-        await xform(o.createComponent(componentsList[index], page as NuiPage), {
-          callback,
-          context,
-          on,
-          page,
-        }),
+      const { component: resolvedComponent, options } = await xform(
+        o.createComponent(componentsList[index], page as NuiPage),
+        { callback, context, on, page },
       )
+      if (on?.resolved) {
+        const fn = on.resolved({
+          components: componentsList,
+          component: resolvedComponent,
+          context,
+          index,
+          options,
+          page,
+        })
+        if (u.isPromise(fn)) await fn
+      }
+      resolvedComponents.push(resolvedComponent)
     }
 
     return (

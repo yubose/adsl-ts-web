@@ -46,6 +46,14 @@ export {
   resolveAssetUrl,
 } from './utils/noodl'
 export { formatColor } from './utils/common'
+export {
+  fromVpSize,
+  getPositionProps,
+  getSize,
+  getViewportRatio,
+  isNoodlUnit,
+  toNum,
+} from './utils/style'
 export { actionTypes, trigger, triggers } from './constants'
 export * from './types'
 

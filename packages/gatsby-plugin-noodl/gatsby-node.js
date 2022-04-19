@@ -1,4 +1,3 @@
-process.stdout.write('\x1Bc')
 /**
  * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/
  * https://www.gatsbyjs.com/docs/reference/config-files/node-api-helpers/
@@ -31,11 +30,6 @@ const DEFAULT_VIEWPORT_HEIGHT = 768
 const NOODL_PAGE_NODE_TYPE = 'NoodlPage'
 
 log.setDefaultLevel(DEFAULT_LOG_LEVEL)
-
-function unstable_shouldOnCreateNode({ node }) {
-  if (node.internal.mediaType === `text/yaml`) return true
-  return false
-}
 
 /**
  * @typedef GatsbyNoodlPluginOptions
@@ -86,8 +80,6 @@ const resolvedPaths = {
   outputNamespacedWithConfig: '',
 }
 
-exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
-
 /**
  * https://www.gatsbyjs.com/docs/node-apis/
  */
@@ -114,6 +106,8 @@ exports.onPreInit = (_, pluginOptions) => {
       pluginOptions[key] = pluginOptions[key].replace(/\\/g, '/')
     }
   }
+
+  console.log('hello1')
 }
 
 /**
@@ -121,6 +115,7 @@ exports.onPreInit = (_, pluginOptions) => {
  * @param { GatsbyNoodlPluginOptions } pluginOptions
  */
 exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
+  console.log('hello2')
   cache = new GatsbyPluginNoodlCache(args.cache)
 
   const {
@@ -428,7 +423,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     log.error(
-      `[${u.yellow(err.name)}] Error while extracting assets: ${u.red(
+      `[${u.yellow(err?.name)}] Error while extracting assets: ${u.red(
         err.message,
       )}`,
     )
@@ -507,6 +502,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   const { actions, createContentDigest, createNodeId } = args
   const { createNode } = actions
   const {
+    paths,
     viewport = {
       width: DEFAULT_VIEWPORT_WIDTH,
       height: DEFAULT_VIEWPORT_HEIGHT,
@@ -567,12 +563,18 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   page.viewport.width = viewport.width
   page.viewport.height = viewport.height
 
+  const _testIntrospectionDir_ = path.join(paths.output, '_testIntrospections_')
+
+  if (!fs.existsSync()) await fs.ensureDir(_testIntrospectionDir_)
+
   /**
    * Transform parsed json components from lvl3 to Component instances in noodl-ui so the props can be consumed in expected formats in the UI
    * @param { string } pageName
    * @param { nt.ComponentObject[] } componentObjects
    */
   async function generateComponents(pageName, componentObjects) {
+    const resolvedPageComponents = []
+
     /**
      * @param { nt.ComponentObject | nt.ComponentObject[] } value
      * @returns { Promise<import('./generator').NuiComponent[] }
@@ -583,6 +585,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
       const numComponents = componentsList.length
 
       for (let index = 0; index < numComponents; index++) {
+        let before
         const transformedComponent = await transform(componentsList[index], {
           context: {
             path: [index],
@@ -590,6 +593,8 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
           on: {
             /** Called for every component creation (depth-first) */
             createComponent(comp, opts) {
+              before = u.omit(comp.toJSON(), ['children'])
+
               const { path: componentPath } = opts || {}
               if (!data._context_[pageName]) data._context_[pageName] = {}
 
@@ -632,7 +637,18 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
               //   }
               // }
             },
+            // async resolved(opts) {
+            //   resolvedPageComponents.push({
+            //     before,
+            //     after: u.omit(opts.component.toJSON(), ['children']),
+            //   })
+            // },
           },
+        })
+
+        resolvedPageComponents.push({
+          before,
+          after: transformedComponent.toJSON(),
         })
 
         // Serialize the noodl-ui components before they get sent to
@@ -645,14 +661,21 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
     const transformedComponents = await transformAllComponents(componentObjects)
 
     pageName && log.info(`${u.yellow(pageName)} Components generated`)
+
+    await fs.writeJson(
+      path.join(_testIntrospectionDir_, `${pageName}.json`),
+      resolvedPageComponents,
+      { spaces: 2 },
+    )
+
     return transformedComponents
   }
 
   /**
    * Create GraphQL nodes for "preload" pages so they can be queried in the client side
    */
-  for (const [name, obj] of u.entries(
-    u.omit(sdk.root, sdk.cadlEndpoint.page),
+  for (const [name = '', obj] of u.entries(
+    u.omit(sdk.root, sdk.cadlEndpoint.page || []),
   )) {
     if (obj) {
       createNode({
@@ -803,7 +826,7 @@ exports.createPages = async function createPages(args) {
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error(
-      `[Error-createPages][${u.yellow(err.name)}] ${u.red(err.message)}`,
+      `[Error-createPages][${u.yellow(err?.name)}] ${u.red(err.message)}`,
       err.stack,
     )
   }

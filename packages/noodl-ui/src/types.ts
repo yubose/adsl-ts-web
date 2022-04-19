@@ -268,6 +268,14 @@ export interface On {
       dataObject?: number
     },
   ): OrPromise<void>
+  resolved?(opts: {
+    components: ComponentObject[]
+    component: NuiComponent.Instance
+    context: ConsumerOptions['context']
+    index: number
+    options: ConsumerOptions
+    page: NuiPage
+  }): void | Promise<void>
   if?(args: {
     component?: NuiComponent.Instance
     page?: NuiPage

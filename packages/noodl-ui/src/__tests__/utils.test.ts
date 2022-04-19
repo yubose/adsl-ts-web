@@ -1,3 +1,4 @@
+import * as u from '@jsmanifest/utils'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { waitFor } from '@testing-library/dom'
@@ -10,6 +11,7 @@ import Viewport from '../Viewport'
 import isPage from '../utils/isPage'
 import isViewport from '../utils/isViewport'
 import log from '../utils/log'
+import * as s from '../utils/style'
 
 /** REMINDER: Total components created should be 9 for this func */
 const getResolvedListComponentPreset = async () =>
@@ -184,6 +186,38 @@ describe(italic(`resolveAssetUrl`), () => {
     expect(n.resolveAssetUrl('abc.png', NUI.getAssetsUrl())).to.eq(
       `${NUI.getAssetsUrl()}abc.png`,
     )
+  })
+})
+
+describe(`styles`, () => {
+  const tests = {
+    vw: {
+      vpSize: 1024,
+      values: [],
+    },
+    vh: {
+      vpSize: 768,
+      get values() {
+        return [
+          ['0vh', 0],
+          ['1vh', 7.68],
+          ['0.3vh', 2.3],
+          ['1.15vh', 8.83],
+          ['3.4vh', 26.11],
+          ['4vh', 30.72],
+        ]
+      },
+    },
+  }
+
+  describe(`fromVh`, () => {
+    u.entries(tests).forEach(([unit, { vpSize, values }]) => {
+      values.forEach(([value, expectedResult]) => {
+        it(`should return ${value} if ${unit} is ${vpSize}`, () => {
+          expect(s.fromVpSize(vpSize, value)).to.eq(expectedResult)
+        })
+      })
+    })
   })
 })
 
