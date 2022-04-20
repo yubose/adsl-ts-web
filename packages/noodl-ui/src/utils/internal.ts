@@ -152,3 +152,32 @@ export function defaultResolveReference(
   }
   return get(u.isFnc(root) ? root() : root, nu.toDataPath(datapath))
 }
+
+export function safeMerge<O = any>(
+  obj: Partial<O> & Record<string, any>,
+  obj2: Partial<O> & Record<string, any>,
+  ...value: any[]
+) {
+  if (u.isObj(obj)) {
+    value.unshift(obj2)
+    const result = {} as O
+    value.forEach((val) => u.isObj(val) && u.merge(result, val))
+    return result
+  }
+  if (u.isArr(obj)) {
+    return [...obj, ...u.array(value)] as O extends any[] ? O : O
+  }
+  return obj
+}
+
+export function useFuncOrValue({
+  fn,
+  args,
+  value,
+}: {
+  fn: any
+  args?: any
+  value?: any
+}) {
+  return u.isFnc(fn) ? fn(args) : value
+}
