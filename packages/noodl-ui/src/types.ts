@@ -242,7 +242,8 @@ export type ConsumerOptions<Trig extends string = string> = Omit<
     component: NuiComponent.Instance,
   ): StyleObject & { [key: string]: any }
   ref?: NUIActionChain
-} & Partial<ConsumerOptionsHelpers>
+} & Partial<ConsumerOptionsHelpers> &
+  Pick<ResolveComponentOptions<any, any>, 'keepVpUnit'>
 
 export interface ConsumerOptionsHelpers {
   resolveReference: (key: string, value?: any) => any
@@ -345,6 +346,7 @@ export interface ResolveComponentOptions<
   callback?(component: NuiComponent.Instance): NuiComponent.Instance | undefined
   components: C
   context?: Context
+  keepVpUnit?: boolean
   on?: On
   page?: NuiPage
 }
@@ -647,6 +649,11 @@ export interface NDOMTransaction {
 export type NDOMTransactionId = keyof NDOMTransaction
 
 export type NDOMTrigger = typeof triggers[number]
+
+export interface ViewportObject {
+  width: number
+  height: number
+}
 
 export interface UseObject {
   builtIn?: any

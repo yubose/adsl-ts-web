@@ -17,7 +17,7 @@ import { Client as SearchClient } from 'elasticsearch-browser'
 
 export const lvl3Options = {
   baseConfigUrl: 'https://public.aitmed.com/config',
-  app: 'provider',
+  app: 'www',
   get url() {
     return isDeploying
       ? safeDeployUrl
@@ -32,9 +32,9 @@ export const lvl3Options = {
 //    ex ---> isDeploying ? safeDeployUrl : TESTPAGE
 //    ex ---> isDeploying ? safeDeployUrl : MEET2D
 //    ex ---> isDeploying ? safeDeployUrl : LOCAL_SERVER
-const safeDeployUrl = getConfigEndpoint(lvl3Options.app)
-const isDeploying = !!process.env.DEPLOYING
 const isDevelopment = process.env.NODE_ENV === 'development'
+const isDeploying = !!process.env.DEPLOYING
+const safeDeployUrl = getConfigEndpoint(lvl3Options.app)
 
 export function getConfigEndpoint(name: string) {
   let path = ''

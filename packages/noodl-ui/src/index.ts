@@ -47,7 +47,6 @@ export {
 } from './utils/noodl'
 export { formatColor } from './utils/common'
 export {
-  fromVpSize,
   getPositionProps,
   getSize,
   getViewportRatio,

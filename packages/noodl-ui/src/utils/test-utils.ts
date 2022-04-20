@@ -4,18 +4,21 @@ import * as u from '@jsmanifest/utils'
 import * as nu from 'noodl-utils'
 import * as nt from 'noodl-types'
 import type NuiPage from '../Page'
+import type NdomPage from '../dom/Page'
+import isComponent from './isComponent'
 import nui from '../noodl-ui'
+import NDOM from '../dom/noodl-ui-dom'
 import Viewport from '../Viewport'
+import * as c from '../constants'
 import * as t from '../types'
 
 export { nui }
 
-export const baseUrl = 'https://google.com/'
+export const baseUrl = 'http://127.0.0.1:3000/'
 export const assetsUrl = `${baseUrl}assets/`
 export const viewport = new Viewport()
 export const ui = { ...actionFactory, ...componentFactory }
-
-const isNil = (v: any) => v === null || v === undefined || v === ''
+export const ndom = new NDOM()
 
 export function createOn(
   getRoot = () => ({} as Record<string, Record<string, any>>),
@@ -61,8 +64,8 @@ export function createDataKeyReference({
   pageName?: string
   pageObject?: Record<string, any>
 }) {
-  if (isNil(page.viewport.width)) page.viewport.width = 375
-  if (isNil(page.viewport.height)) page.viewport.height = 667
+  if (u.isNil(page.viewport.width)) page.viewport.width = 375
+  if (u.isNil(page.viewport.height)) page.viewport.height = 667
   pageObject = {
     ...nui.getRoot()[pageName],
     ...pageObject,
@@ -224,5 +227,89 @@ export function getPresetPageObjects() {
         ],
       }
     },
+  }
+}
+
+export function createRender() {
+  const render = async (page: NdomPage) => {
+    const components = await ndom.render(page)
+    return components
+  }
+
+  return render
+}
+
+export function getDefaultViewportWidthHeight() {
+  return { width: 1024, height: 768 }
+}
+
+export function getRenderProps(
+  opts: {
+    clean?: boolean
+    pageName?: string
+    page?: NdomPage
+    root?: Record<string, any>
+    viewport?: Viewport | Pick<Viewport, 'width' | 'height'>
+  } & Partial<
+    Record<
+      t.NUITrigger,
+      t.Store.ActionObject['fn'] | t.Store.BuiltInObject['fn']
+    >
+  >,
+) {
+  let _page: NdomPage | undefined
+  let _root: Record<string, any> | undefined
+  let _viewport = (opts?.viewport || viewport) as Viewport
+
+  if (opts.clean) {
+    nui.reset()
+    document.head.textContent = ''
+    document.body.textContent = ''
+  }
+
+  if (opts.page) {
+    _page = opts.page
+  } else {
+    _page = ndom.createPage(nui.createPage({ viewport: _viewport }))
+  }
+
+  if (opts.root) {
+    _root = {
+      [_page.page]: { components: _page.components },
+      ...opts.root,
+    }
+  } else {
+    _root = { [_page.page]: { components: _page.components } }
+  }
+
+  if (!_page.viewport) _page.viewport = _viewport
+
+  const actionTypes = [
+    ...nt.actionTypes,
+    'anonymous',
+    'emit',
+    'goto',
+    'getLocationAddress',
+  ]
+
+  actionTypes.forEach((actionType) => {
+    if (opts[actionType]) {
+      nui.use({ [actionType]: opts[actionType] })
+    }
+  })
+
+  nui.use({
+    transaction: {
+      async [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT](page: NuiPage) {
+        if (!page.page) throw new Error(`[test-utils] page.page is empty`)
+        return _root?.[page?.page]
+      },
+    },
+  })
+
+  return {
+    pageName: _page.page,
+    page: _page,
+    root: _root,
   }
 }

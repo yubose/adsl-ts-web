@@ -590,6 +590,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
           context: {
             path: [index],
           },
+          keepVpUnit: true,
           on: {
             /** Called for every component creation (depth-first) */
             createComponent(comp, opts) {
