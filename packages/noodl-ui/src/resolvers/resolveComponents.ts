@@ -14,6 +14,7 @@ import is from '../utils/is'
 import {
   findIteratorVar,
   findListDataObject,
+  getByRef,
   isListConsumer,
   isListLike,
   resolveAssetUrl,
@@ -97,17 +98,18 @@ componentResolver.setResolver(async (component, options, next) => {
       const listItemBlueprint = getRawBlueprint(component)
       /** Filter invalid values (0 is a valid value)  */
       function getListObject(opts: ConsumerOptions) {
+        let page = opts.page
+        let pageName = ''
+        if (u.isStr(page)) {
+          pageName = page
+          page = opts.getRootPage()
+        } else if (isNuiPage(page)) {
+          pageName = page.page
+        }
+        const _ref = opts.component?.props?._ref_
         let listObject =
-        component.blueprint.listObject || component.get('listObject')
+          getByRef(opts.getRoot(),_ref,pageName) || component.blueprint.listObject || component.get('listObject')
         if (is.reference(listObject)) {
-          let page = opts.page
-          let pageName = ''
-          if (u.isStr(page)) {
-            pageName = page
-            page = opts.getRootPage()
-          } else if (isNuiPage(page)) {
-            pageName = page.page
-          }
           component.edit(
             'listObject',
             resolveReference({
