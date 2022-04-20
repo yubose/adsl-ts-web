@@ -302,11 +302,9 @@ function normalizeProps<
               )
             } else {
               if (u.isStr(borderRadius)) {
-                if (!com.hasLetter(borderRadius)) {
-                  value.borderRadius = borderRadius + 'px'
-                } else {
-                  value.borderRadius = `${borderRadius}`
-                }
+                value.borderRadius = !com.hasLetter(borderRadius)
+                  ? `${borderRadius}px`
+                  : `${borderRadius}`
               } else if (u.isNum(borderRadius)) {
                 value.borderRadius = `${borderRadius}px`
               }
@@ -429,10 +427,13 @@ function normalizeProps<
             }
 
             if (u.isStr(styleValue)) {
-              // Prevents the value from being re-processed later.
-              // This is useful when keepVpUnit === true
-              let resolved = false
+              while (is.reference(styleValue)) {
+                styleValue = is.localReference(styleValue)
+                  ? getByRef(root, styleValue, pageName)
+                  : getByRef(root, styleValue)
+              }
 
+              // console.log({ styleKey, styleValue, blueprint })
               // Resolve vw/vh units (Values directly relative to viewport)
               if (s.isVwVh(styleValue)) {
                 if (keepVpUnit) {
@@ -447,8 +448,6 @@ function normalizeProps<
                     value[styleKey] = String(s.getSize(valueNum, vpVal))
                   }
                 }
-
-                resolved = true
               }
 
               // Cache this value to the variable so it doesn't get mutated inside this func since there are moments when value is changing before this func ends
@@ -464,7 +463,6 @@ function normalizeProps<
 
               if (isSizeValue) {
                 if (viewport) {
-                  // if (!resolved) {
                   if (s.isVwVh(styleValue)) {
                     const valueNum = s.toNum(styleValue) / 100
                     value[styleKey] = keepVpUnit
@@ -493,7 +491,6 @@ function normalizeProps<
                       }
                     }
                   }
-                  // }
                 }
               } else {
                 value[styleKey] = com.formatColor(styleValue)
@@ -564,9 +561,7 @@ function normalizeProps<
           }
         } else if (u.isStr(originalValue)) {
           // Unparsed style value (reference)
-          console.log({ originalValue })
         }
-
         delKeys.forEach((key) => delete value[key])
         u.entries(restoreVals).forEach(([k, v]) => (value[k] = v))
       } else if (originalKey === 'viewTag') {
@@ -593,11 +588,9 @@ function normalizeProps<
       is.component.listLike(blueprint) &&
       props.style.display !== 'none'
     ) {
+      const axis = blueprint.style?.axis
       props.style.display =
-        blueprint.style?.axis === 'horizontal' ||
-        blueprint.style?.axis === 'vertical'
-          ? 'flex'
-          : 'block'
+        axis === 'horizontal' || axis === 'vertical' ? 'flex' : 'block'
       props.style.listStyle = 'none'
       // props.style.padding = '0px'
     } else if (is.component.listItem(blueprint)) {
@@ -634,10 +627,13 @@ function normalizeProps<
     is.isBooleanTrue(blueprint?.style?.isHidden) &&
       (props.style.visibility = 'hidden')
 
-    // ??
     if (is.isBoolean(blueprint?.required)) {
       props.required = is.isBooleanTrue(blueprint?.required)
     }
+  } else {
+    console.log({ HELLO: blueprint })
+    console.log({ HELLO: blueprint })
+    console.log({ HELLO: blueprint })
   }
 
   return props
