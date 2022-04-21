@@ -1,0 +1,57 @@
+let key = 0
+
+class NoodlBase {
+  #children: NoodlBase[] = []
+  #parent: NoodlBase | null = null
+  #key: number
+
+  static is(value: any): value is NoodlBase {
+    return !!value && value instanceof NoodlBase
+  }
+
+  constructor(parent?: NoodlBase) {
+    this.#key = key++
+    if (parent) this.setParent(parent)
+  }
+
+  setParent(parent: NoodlBase | null) {
+    this.#parent = parent
+    return this
+  }
+
+  get __key() {
+    return this.#key
+  }
+
+  get parent() {
+    return this.#parent || null
+  }
+
+  get length() {
+    return this.#children.length
+  }
+
+  append(node) {
+    this.#children.push(node)
+    return this
+  }
+
+  prepend(node) {
+    this.#children.unshift(node)
+    return this
+  }
+
+  removeChild(indexOrNode) {
+    if (typeof indexOrNode === 'number') {
+      if (this.length > indexOrNode) {
+        this.#children.splice(indexOrNode, 1)
+      }
+    } else if (NoodlBase.is(indexOrNode)) {
+      const index = this.#children.indexOf(indexOrNode)
+      if (index > -1) this.#children.splice(index, 1)
+    }
+    return this
+  }
+}
+
+export default NoodlBase

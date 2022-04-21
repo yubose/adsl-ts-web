@@ -6,7 +6,14 @@ import * as u from '@jsmanifest/utils'
 import * as nu from 'noodl-utils'
 import * as i from '../../utils/internal'
 import * as t from '../../types'
-import { assetsUrl, baseUrl, createOn, nui, ui } from '../../utils/test-utils'
+import {
+  assetsUrl,
+  baseUrl,
+  createOn,
+  getRenderProps,
+  nui,
+  ui,
+} from '../../utils/test-utils'
 import { emitHooks } from '../../resolvers/resolveSetup'
 import NuiPage from '../../Page'
 
@@ -159,6 +166,45 @@ describe(u.yellow(`resolveSetup`), () => {
             page,
           })
           expect(components[0]).to.have.property('type', 'view')
+        })
+
+        xit(`should not overwrite current children if no children is on the retrieved object`, async () => {
+          const renderProps = getRenderProps({
+            pageName: 'Topo',
+            root: {
+              HaHeaderView: u.omit(ui.view({ style: { shadow: 'true' } }), [
+                'children',
+              ]),
+              HaHeaderBigLabel1: ui.label('Soda'),
+              NFont: { h1: '1.6vh' },
+              SFont: { h4: '4.5vh' },
+              Topo: {
+                components: [
+                  {
+                    '.HaHeaderView': null,
+                    style: { width: '0.68', height: '0.25' },
+                    children: [
+                      {
+                        HaHeaderBigLabel1: null,
+                        style: {
+                          top: '0.0125',
+                          left: '0.05',
+                          fontSize: '.Sfont.h4',
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          })
+          console.log(
+            await nui.resolveComponents({
+              components: renderProps.page.components,
+              page: renderProps.page,
+            }),
+          )
+          console.log(renderProps)
         })
       })
     })

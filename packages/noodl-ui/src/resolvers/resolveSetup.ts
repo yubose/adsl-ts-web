@@ -4,6 +4,7 @@ import * as nt from 'noodl-types'
 import Resolver from '../Resolver'
 import resolvePageComponentUrl from '../utils/resolvePageComponentUrl'
 import log from '../utils/log'
+import is from '../utils/is'
 import * as i from '../utils/internal'
 import * as t from '../types'
 
@@ -19,7 +20,9 @@ setupResolver.setResolver(
   Resolver.withHelpers(async function setupResolver(component, options, next) {
     try {
       const { createActionChain, getRoot, on, page, resolveReference } = options
-      const original = component.blueprint || {}
+      let original = component.blueprint
+
+      // Merging entire ref value if an object is returned
 
       if (u.isObj(original)) {
         const origGet = component.get.bind(component)
@@ -48,6 +51,9 @@ setupResolver.setResolver(
             }
 
             if (nt.Identify.reference(value)) {
+              if (on?.reference) {
+                return on.reference({ component, page, key, value })
+              }
               return resolveReference?.(key, value)
             }
           } else if (nt.Identify.if(value)) {
@@ -57,6 +63,9 @@ setupResolver.setResolver(
                 : value.if?.[2]
 
               if (nt.Identify.reference(value)) {
+                if (on?.reference) {
+                  return on.reference({ component, page, key, value })
+                }
                 return resolveReference?.(key, value)
               }
 
@@ -66,6 +75,9 @@ setupResolver.setResolver(
             value = i.defaultResolveIf(value)
 
             if (nt.Identify.reference(value)) {
+              if (on?.reference) {
+                return on.reference({ component, page, key, value })
+              }
               return resolveReference?.(key, value)
             }
 

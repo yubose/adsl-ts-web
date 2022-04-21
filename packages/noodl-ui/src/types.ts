@@ -246,7 +246,7 @@ export type ConsumerOptions<Trig extends string = string> = Omit<
   Pick<ResolveComponentOptions<any, any>, 'keepVpUnit'>
 
 export interface ConsumerOptionsHelpers {
-  resolveReference: (key: string, value?: any) => any
+  resolveReference: (keyOrValue: any, value?: any) => any
 }
 
 export interface On {

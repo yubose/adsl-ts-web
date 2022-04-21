@@ -1,0 +1,10 @@
+export type EcosDocPreset =
+  | 'audio'
+  | 'docx'
+  | 'image'
+  | 'subtype'
+  | 'message'
+  | 'note'
+  | 'pdf'
+  | 'text'
+  | 'video'

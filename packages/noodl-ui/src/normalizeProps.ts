@@ -453,7 +453,7 @@ function normalizeProps<
               // Cache this value to the variable so it doesn't get mutated inside this func since there are moments when value is changing before this func ends
               // If the value is a path of a list item data object
               const isListPath =
-                !!iteratorVar && styleValue.startsWith(iteratorVar)
+                !!iteratorVar && String(styleValue).startsWith(iteratorVar)
 
               // '2.8vh', '20px', etc
               const isSizeValue =

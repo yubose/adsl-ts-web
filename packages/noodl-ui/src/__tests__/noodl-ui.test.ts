@@ -153,10 +153,6 @@ describe(u.italic(`createActionChain`), () => {
       })
     },
   )
-
-  xit(`should always pass the dataObject, index and iteratorVar to context in consumer options for list consumers`, () => {
-    //
-  })
 })
 
 describe(u.italic(`createComponent`), () => {

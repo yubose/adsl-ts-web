@@ -107,13 +107,13 @@ module.exports = {
         viewport,
       },
     },
-    // {
-    //   resolve: `gatsby-source-filesystem`,
-    //   options: {
-    //     name: `assets`,
-    //     path: `${__dirname}/src/resources/assets`,
-    //   },
-    // },
+    {
+      resolve: `gatsby-source-filesystem`,
+      options: {
+        name: `noodlYml`,
+        path: `${__dirname}/output/www`,
+      },
+    },
     {
       resolve: `gatsby-source-filesystem`,
       options: {

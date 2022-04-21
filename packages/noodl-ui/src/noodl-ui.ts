@@ -620,7 +620,11 @@ const NUI = (function () {
           componentObject = i.useFuncOrValue({
             fn: on?.reference,
             args: { page, value: componentObject },
-            value: i.defaultResolveReference(o.getRoot, page.page, refKey),
+            value: i.defaultResolveReference(
+              o.getRoot,
+              page.page,
+              refKey as any,
+            ),
           })
         }
       }

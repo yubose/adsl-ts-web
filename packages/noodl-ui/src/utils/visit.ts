@@ -1,6 +1,3 @@
-import * as u from '@jsmanifest/utils'
-import * as nt from 'noodl-types'
-import * as nu from 'noodl-utils'
 import isComponent from './isComponent'
 import * as t from '../types'
 
