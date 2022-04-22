@@ -19,7 +19,7 @@
     "build:deploy:static": "npm run build:static && npm run deploy:static",
     "build:serve": "cross-env ECOS_ENV=test NODE_ENV=production npm run serve",
     "build:static": "cross-env NODE_ENV=production lerna exec --scope homepage npm run clean && lerna exec --scope homepage npm run build",
-    "build:stable": "cross-env NODE_ENV=production npm run build -- --env ECOS_ENV=stable --env DEPLOYING=true",
+    "build:stable": "cross-env NODE_ENV=production DEPLOYING=true npm run build -- --env ECOS_ENV=stable --env DEPLOYING=true --env NODE_ENV=production",
     "build:test": "cross-env NODE_ENV=production npm run build -- --env ECOS_ENV=test --env DEPLOYING=true",
     "deploy:noodltest": "bash s3Deploy.sh build cadltest.aitmed.com",
     "deploy:stable": "bash s3Deploy.sh build",
@@ -67,7 +67,7 @@
     "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
-    "@aitmed/cadl": "^1.0.606",
+    "@aitmed/cadl": "^1.0.610",
     "@aitmed/ecos-lvl2-sdk": "^1.4.188",
     "@aws-sdk/client-s3": "^3.51.0",
     "@babel/core": "^7.17.9",
