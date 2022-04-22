@@ -30,9 +30,7 @@ function getByRef(root = {}, ref = '', rootKey = '') {
   ```
  */
 
-function normalizeProps<
-  Props extends Record<string, any> = Record<string, any>,
->(
+function parse<Props extends Record<string, any> = Record<string, any>>(
   props: Record<string, any> = { style: {} },
   blueprint: Partial<Props> = {},
   {
@@ -639,4 +637,4 @@ function normalizeProps<
   return props
 }
 
-export default normalizeProps
+export default parse
