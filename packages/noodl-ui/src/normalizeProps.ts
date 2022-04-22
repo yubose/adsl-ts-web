@@ -622,7 +622,10 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
     }
 
     // Visibility
-    is.isBooleanTrue(blueprint?.style?.isHidden) &&
+    let isHiddenValue = blueprint?.style?.isHidden
+    if(is.reference(isHiddenValue))
+      isHiddenValue = getByRef(root, blueprint?.style?.isHidden, pageName)
+    is.isBooleanTrue(isHiddenValue) &&
       (props.style.visibility = 'hidden')
 
     if (is.isBoolean(blueprint?.required)) {
