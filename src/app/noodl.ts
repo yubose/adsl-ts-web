@@ -17,7 +17,7 @@ import { Client as SearchClient } from 'elasticsearch-browser'
 
 export const lvl3Options = {
   baseConfigUrl: 'https://public.aitmed.com/config',
-  app: 'www',
+  app: 'prod2',
   get url() {
     return isDeploying
       ? safeDeployUrl
