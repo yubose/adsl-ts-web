@@ -1,5 +1,7 @@
-import { is, toString } from './utils'
 import NoodlValue from './Value'
+import toString from './utils/toString'
+import is from './utils/is'
+import { nkey } from './constants'
 
 class NoodlString<S extends string> extends NoodlValue<S> {
   #value: NoodlValue<S> | undefined
@@ -11,6 +13,13 @@ class NoodlString<S extends string> extends NoodlValue<S> {
   constructor(value?: string | NoodlValue<S>) {
     super(value as S)
     this.setValue(value)
+
+    Object.defineProperty(this, '__ntype', {
+      configurable: true,
+      enumerable: false,
+      writable: false,
+      value: nkey.string,
+    })
   }
 
   getValue() {
@@ -31,8 +40,7 @@ class NoodlString<S extends string> extends NoodlValue<S> {
   }
 
   isReference() {
-    const value = this.getValue()
-    return typeof value === 'string' && is.reference(value)
+    return is.reference(this)
   }
 
   toJSON() {

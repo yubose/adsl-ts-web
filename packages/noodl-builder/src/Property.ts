@@ -1,6 +1,7 @@
 import NoodlBase from './Base'
 import NoodlString from './String'
 import NoodlValue from './Value'
+import { nkey } from './constants'
 
 class NoodlProperty<K extends string> extends NoodlBase {
   #key: NoodlString<K> | undefined
@@ -13,6 +14,13 @@ class NoodlProperty<K extends string> extends NoodlBase {
   constructor(key?: K) {
     super()
     this.setKey(key)
+
+    Object.defineProperty(this, '__ntype', {
+      configurable: true,
+      enumerable: false,
+      writable: false,
+      value: nkey.property,
+    })
   }
 
   setKey(key: string | NoodlString<string> | undefined) {

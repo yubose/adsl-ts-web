@@ -1,5 +1,6 @@
 import NoodlBase from './Base'
-import { is } from './utils'
+import is from './utils/is'
+import { nkey } from './constants'
 
 class NoodlValue<T> extends NoodlBase {
   #value: T | undefined
@@ -15,6 +16,13 @@ class NoodlValue<T> extends NoodlBase {
   constructor(value?: T) {
     super()
     this.#value = value
+
+    Object.defineProperty(this, '__ntype', {
+      configurable: true,
+      enumerable: false,
+      writable: false,
+      value: nkey.value,
+    })
   }
 
   setValue(value: any) {

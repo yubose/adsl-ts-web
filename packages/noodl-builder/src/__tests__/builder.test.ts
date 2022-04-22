@@ -5,7 +5,7 @@ import NoodlValue from '../Value'
 import NoodlString from '../String'
 import NoodlObject from '../Object'
 import NoodlProperty from '../Property'
-import { createObject } from '../utils'
+import is from '../utils/is'
 
 describe(`builder.test.ts`, () => {
   describe(`NoodlValue`, () => {
@@ -114,29 +114,81 @@ describe(`builder.test.ts`, () => {
   })
 
   describe(`NoodlObject`, () => {
-    it(`should return true if value is NoodlObject`, () => {
+    it(`[is] should return true if value is NoodlObject`, () => {
       expect(NoodlObject.is(new NoodlObject())).to.be.true
     })
 
-    it(`should return false if value is not NoodlObject`, () => {
+    it(`[is] should return false if value is not NoodlObject`, () => {
       expect(NoodlObject.is('hello')).to.be.false
     })
 
-    it(`should set the key and value to undefined if it is undefined`, () => {
+    it(`[createProperty] should set properties as primitives`, () => {
+      const value = new NoodlObject()
+      expect(value.getValue('hello')).to.be.undefined
+      value.createProperty('hello', 'hi')
+      value.removeProperty('hello')
+      expect(value.getValue('hello')).not.to.exist
+      value.createProperty(new NoodlString('hello'), 'hi')
+      expect(value.getValue('hello')).to.exist
+    })
+
+    it(`[createProperty] should set the value as undefined`, () => {
+      const value = new NoodlObject()
+      value.createProperty('a')
+      expect(value.hasProperty('a')).to.be.true
+      expect(value.getValue('a')).to.be.undefined
+    })
+
+    it(`[createProperty] should set the value as a NoodlValue`, () => {
+      const value = new NoodlObject()
+      value.createProperty('a', 'hello')
+      expect(value.getValue('a')).to.be.instanceOf(NoodlValue)
+      value.createProperty('a', new NoodlValue('abc'))
+      expect(value.getValue('a')).to.be.instanceOf(NoodlValue)
+      value.createProperty('a')
+      expect(value.hasProperty('a')).to.be.true
+      expect(value.getValue('a')).to.be.undefined
+    })
+
+    it(`[getValue] should return the value of the property`, () => {
+      const value = new NoodlObject()
+      value.createProperty('a', 'hello')
+      expect(is.valueNode(value.getValue('a'))).to.be.true
+      expect(value.getValue('a')?.getValue()).to.eq('hello')
+    })
+
+    it(`[setValue] should set the key and value to undefined if it is undefined`, () => {
       const value = new NoodlObject()
       expect(value.hasProperty('cereal')).to.be.false
       value.setValue('cereal')
       expect(value.hasProperty('cereal')).to.be.true
-      expect(value.getProperty('cereal')).to.be.undefined
+      expect(value.getValue('cereal')).to.be.undefined
     })
 
-    it(`should set the value`, () => {
+    it(`[setValue] should set the value`, () => {
       const cereal = [{ fruits: ['apple'], if: [] }]
       const value = new NoodlObject()
       expect(value.hasProperty('cereal')).to.be.false
       value.setValue('cereal', cereal)
       expect(value.hasProperty('cereal')).to.be.true
       expect(value.build()).to.have.property('cereal').to.deep.eq(cereal)
+    })
+
+    it(`[unwrapProperty] should unwrap the property`, () => {
+      const value = new NoodlObject()
+      value.createProperty('hello', 100)
+      expect(value.getValue('hello')).to.be.instanceOf(NoodlValue)
+      console.log(value.getValue('hello'))
+      expect(value.unwrapProperty(value.getValue('hello'))).to.eq(100)
+    })
+
+    it(`[build] should build into an evalObject`, () => {
+      const value = new NoodlObject()
+      const evalObject = value
+        .createProperty('actionType', 'evalObject')
+        .setValue('object', [])
+        .build()
+      expect(evalObject).to.deep.eq({ actionType: 'evalObject', object: [] })
     })
   })
 

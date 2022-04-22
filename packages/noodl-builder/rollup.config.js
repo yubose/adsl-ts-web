@@ -1,3 +1,4 @@
+import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
 import filesize from 'rollup-plugin-filesize'
 import progress from 'rollup-plugin-progress'
@@ -17,11 +18,11 @@ const configs = [
         exports: 'named',
         format: 'umd',
         name: 'noodl-builder',
-        sourcemap: true,
       },
     ],
     plugins: [
       resolve({ extensions }),
+      commonjs(),
       filesize(),
       progress(),
       esbuild({

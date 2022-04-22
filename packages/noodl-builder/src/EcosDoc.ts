@@ -1,11 +1,14 @@
 import type { LiteralUnion } from 'type-fest'
 import type { EcosDocument } from 'noodl-types'
-import NoodlObject from './Object'
+import type NoodlString from './String'
 import type { EcosDocPreset } from './types'
+import NoodlObject from './Object'
 
 class EcosDocBuilder extends NoodlObject<EcosDocument> {
   createProperty(
-    property: LiteralUnion<keyof EcosDocument<any, any>, string>,
+    property:
+      | LiteralUnion<keyof EcosDocument<any, any>, string>
+      | NoodlString<string>,
     value?: any,
   ): this {
     super.createProperty(property, value)
