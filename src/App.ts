@@ -111,7 +111,7 @@ class App {
   }
 
   static id = `aitmed-noodl-web`
-
+  register:any
   constructor({
     getStatus,
     meeting,
@@ -134,6 +134,7 @@ class App {
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
     this.goto = createGoto(this)
+    this.register = new createRegisters(this)
 
     noodl && this.use(noodl)
     this.#parser = new nu.Parser()
@@ -271,6 +272,9 @@ class App {
     return this.#state
   }
 
+  getRegister(){
+    return this.register
+  }
   /**
    * Navigates to a page specified in page.requesting
    * The value set in page.requesting should be set prior to this call unless pageRequesting is provided where it will be set to it automatically
@@ -458,7 +462,7 @@ class App {
       } else if (storedCode === 3) {
         this.#state.authStatus = 'temporary'
       }
-
+      console.log('test',this.noodl)
       this.nui.use({
         getAssetsUrl: () => {
           return this.noodl.assetsUrl
@@ -484,7 +488,7 @@ class App {
       this.ndom.use({ transaction: transactions })
       // TODO - Create composer for createElementBinding
       this.ndom.use({ createElementBinding: meetingfns.createElementBinding })
-
+      this.root.actions = actions
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
       // u.forEach(
       //   (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),

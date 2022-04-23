@@ -519,6 +519,7 @@ const createActions = function createActions(app: App) {
   const popUp: Store.ActionObject['fn'] = function onPopUp(action, options) {
     log.func('popUp')
     log.grey('', action?.snapshot?.())
+    console.log('testpopUp',{action,options})
     return new Promise(async (resolve, reject) => {
       try {
         const { ref } = options

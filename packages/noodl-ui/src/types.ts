@@ -26,6 +26,7 @@ import type {
   ReferenceString,
   IfObject,
   PageComponentUrl,
+  GetLocationAddressActionObject,
 } from 'noodl-types'
 import type {
   Action,
@@ -109,6 +110,8 @@ export type NUIActionObject =
   | SaveActionObject
   | ToastActionObject
   | UpdateActionObject
+  | GetLocationAddressActionObject
+
 
 export type NUIAction = Action | EmitAction
 

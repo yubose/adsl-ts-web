@@ -901,6 +901,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
   }
   const dismissOnTouchOutside: Store.BuiltInObject['fn'] =
     async function onDismissOnTouchOutside(action, options) {
+      log.func('dismissOnTouchOutside')
       const component = options?.component as NuiComponent.Instance
       const metadata = getActionMetadata(action, {
         component,
@@ -1162,6 +1163,43 @@ export const extendedSdkBuiltIns = {
       error instanceof Error && toast(error.message, { type: 'error' })
     }
   },
+  async initExtend(
+    this: App,
+    action: BuiltInActionObject & {
+      timePerExtendSeconds: number
+      numberofExtensions: number
+      popUpWaitSeconds: number
+      meetingEndTime: number
+    },
+  ) {
+    log.func('initExtend')
+    let countDownNum = 0
+    let isPopUpOnScreen = false
+    let numberofExtensions = action?.numberofExtensions
+    let popUpWaitSeconds = action?.popUpWaitSeconds
+    let currentTime = Math.ceil(new Date().getTime() / 1000)
+    let meetingEndTime = action?.meetingEndTime
+    let remainTime = meetingEndTime-currentTime-popUpWaitSeconds
+    let viewTag = 'extendView'
+    if (remainTime > 0){
+      setTimeout(
+        ()=>{
+          this.root.builtIn['']
+        }
+      ,remainTime)
+      
+    }else{
+      console.log('The meeting might had already ended. Please reschedule or cancel it.')
+      // this.meeting.leave()
+      // this.register.extendVideoFunction('onDisconnect')
+      setTimeout(()=>{
+        this.register.extendVideoFunction('showExtendView')
+      },10000)
+      
+    }
+
+  }
+
 }
 
 export default createBuiltInActions
