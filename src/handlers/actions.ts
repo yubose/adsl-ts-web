@@ -524,22 +524,18 @@ const createActions = function createActions(app: App) {
       component.get('data-key') || component.blueprint?.dataKey || ''
     const textFunc = component.get('text=func') || ((x: any) => x)
     const initialTime = startOfDay(new Date())
-    // Initial SDK value is set in seconds
-    const initialSeconds = get(app.root, dataKey, 30) as number
-    // Sdk evaluates from start of day. So we must add onto the start of day
-    // the # of seconds of the initial value in the Global object
+    let popUpWaitSeconds =  app.register.getPopUpWaitSeconds()
+    let initialSeconds = get(app.root, dataKey, popUpWaitSeconds) as number
+    initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
     let initialValue = add(initialTime, { seconds: initialSeconds })
     initialValue == null && (initialValue = new Date())
     node.textContent = textFunc(initialValue,'mm:ss')
     set(app.root, dataKey,initialSeconds - 1)
-    // Look at the hard code implementation in noodl-ui-dom
-    // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
-    // the api declaration
+    console.log('test',initialSeconds)
     component.on('timer:ref', (timer) => {
       component.on('timer:interval', (value) => {
         app.updateRoot((draft) => {
-          const seconds = get(draft, dataKey, 30)
-          node.textContent = textFunc(seconds*1000,'mm:ss')
+          const seconds = get(draft, dataKey, popUpWaitSeconds)
           set(draft, dataKey, seconds - 1)
           const updatedSecs = get(draft, dataKey)
           if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
@@ -565,7 +561,6 @@ const createActions = function createActions(app: App) {
   const popUp: Store.ActionObject['fn'] = function onPopUp(action, options) {
     log.func('popUp')
     log.grey('', action?.snapshot?.())
-    console.log('testpopUp',{action,options})
     return new Promise(async (resolve, reject) => {
       try {
         const { ref } = options
@@ -581,10 +576,17 @@ const createActions = function createActions(app: App) {
             const dataKey =
               component.get('data-key') || component.blueprint?.dataKey || ''
             const initialSeconds = get(app.root, dataKey, 30) as number
-            loadTimeLabelPopUp(node,component)
-            setTimeout(()=>{
-              app.register.extendVideoFunction('onDisconnect')
-            },initialSeconds*1000)
+            if(action?.actionType === 'popUp'){
+              loadTimeLabelPopUp(node,component)
+              const id = setTimeout(()=>{
+                app.register.extendVideoFunction('onDisconnect')
+              },initialSeconds*1000)
+              app.register.setTimeId('PopUPToDisconnectTime',id)
+            }else if(action?.actionType === 'popUpDismiss'){
+              component.on('timer:ref', (timer) => {timer.clear()})
+              app.register.removeTime('PopUPToDisconnectTime')
+            }
+            
           }
           
         })

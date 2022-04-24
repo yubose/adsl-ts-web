@@ -23,8 +23,12 @@ const log = Logger.create('register.ts')
 
 class createRegisters{
   app: App
-  o:any
-  registrees: any
+  o: Record<string, any>
+  registrees: Record<string, any>
+  numberofExtensions: number = 0
+  timePerExtendSeconds: number = 0
+  popUpWaitSeconds: number = 30
+  public timeId: Record<string, any>[] = []
   constructor(app: App){
     this.app = app
 
@@ -259,6 +263,12 @@ class createRegisters{
       async onDisconnect(componentObject: GlobalRegisterComponent){
         log.func('onDisconnect')
         componentObject.eventId = 'onDisconnect'
+        if(u.isArr(this.timeId)){
+          for (let i = 0; i < this.timeId.length; i++) {
+            clearTimeout(this.timeId[i]?.id)
+          }
+        }
+        this.timeId = []
         await handleRegister(componentObject)
       },
       async showExtendView(componentObject: GlobalRegisterComponent){
@@ -347,8 +357,8 @@ class createRegisters{
   extendVideoFunction(onEvent:string){
     log.func('extendVideoFunction')
 
-    const pageName = this.app.currentPage
-    const components = this.app.root?.[pageName].components
+    const pageName = this.app.mainPage?.getNuiPage()
+    const components = this.app.root?.['VideoChat'].components
     for (const componentObject of components) {
       if (is.component.register(componentObject)) {
         // Already attached a function
@@ -369,6 +379,54 @@ class createRegisters{
           const onEvent = componentObject.onEvent as any
           ;(this.registrees as any)[onEvent](componentObject)
         } 
+      }
+    }
+  }
+
+  setNumberofExtensions(numberofExtensions){
+    this.numberofExtensions = numberofExtensions as number
+  }
+  getNumberofExtensions(){
+    return this.numberofExtensions
+  }
+
+  setTimePerExtendSeconds(timePerExtendSeconds){
+    this.timePerExtendSeconds = timePerExtendSeconds
+  }
+  getTimePerExtendSeconds(){
+    return this.timePerExtendSeconds
+  }
+
+  setPopUpWaitSeconds(popUpWaitSeconds){
+    this.popUpWaitSeconds = popUpWaitSeconds
+  }
+  getPopUpWaitSeconds(){
+    return this.popUpWaitSeconds
+  }
+
+  setTimeId(key:string,id:unknown){
+    this.timeId.push({
+      key: key,
+      id: id,
+    })
+  }
+  removeTime(key:string){
+    if(u.isArr(this.timeId)){
+      for (let i = 0; i < this.timeId.length; i++) {
+        if (this.timeId[i]?.key === key) {
+          clearTimeout(this.timeId[i]?.id)
+          this.timeId.splice(i, 1)
+          return
+        }
+      }
+    }
+  }
+
+  removeAllTime(){
+    if(u.isArr(this.timeId)){
+      for (let i = 0; i < this.timeId.length; i++) {
+        clearTimeout(this.timeId[i]?.id)
+        this.timeId.splice(i, 1)
       }
     }
   }

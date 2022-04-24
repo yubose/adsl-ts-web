@@ -178,7 +178,7 @@ const trackProperty = function trackProperty({
         let datain = combinedArgs?.['command']?.[key]?.['dataIn']
         if(datain?.hasOwnProperty('userId')){
           // const registers = new createRegisters(app)
-          app.getRegister.createNotification()
+          app.register.createNotification()
           // u.forEach(
           //   (keyVal) => app.nui._experimental?.['register' as any]?.(...keyVal),
           //   registers,

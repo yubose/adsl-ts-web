@@ -922,6 +922,37 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
       }
     }
 
+  const extendMeeting : Store.BuiltInObject['fn'] = async function onExtendMeeting(
+        action,
+        options,
+      ) {
+        log.func('initExtend')
+        let numberofExtensions = app.register.getNumberofExtensions()
+        let timePerExtendSeconds = _pick(action, 'timePerExtendSeconds')
+        let oldTimePerExtendSeconds = app.register.getTimePerExtendSeconds()
+        app.register.setTimePerExtendSeconds(timePerExtendSeconds)
+        app.register.setNumberofExtensions(numberofExtensions-1)
+        const popUpWaitSeconds = 30
+        let remainTime = oldTimePerExtendSeconds - popUpWaitSeconds
+        console.log(remainTime,numberofExtensions)
+        if (remainTime > 0 && numberofExtensions>0){
+          app.register.removeTime('extendVideoChatTime')
+          const id = setTimeout(
+            ()=>{
+              app.register.extendVideoFunction('showExtendView')
+            }
+          ,remainTime*1000)
+          app.register.setTimeId('extendVideoChatTime',id)
+          
+        }else{
+          console.log('The meeting might had already ended. Please reschedule or cancel it.')
+          app.meeting.leave()
+          app.register.extendVideoFunction('onDisconnect')
+        }
+
+      }
+    
+
   const builtIns = {
     checkField,
     disconnectMeeting,
@@ -940,6 +971,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     redraw,
     copy,
     dismissOnTouchOutside,
+    extendMeeting,
   }
 
   /** Shared common logic for both lock/logout logic */
@@ -1180,8 +1212,11 @@ export const extendedSdkBuiltIns = {
     let currentTime = Math.ceil(new Date().getTime() / 1000)
     let meetingEndTime = action?.meetingEndTime
     let remainTime = meetingEndTime-currentTime-popUpWaitSeconds
-    let viewTag = 'extendView'
-    if (remainTime > 0){
+    let timePerExtendSeconds = action.timePerExtendSeconds
+    this.register.setNumberofExtensions(numberofExtensions-1)
+    this.register.setTimePerExtendSeconds(timePerExtendSeconds)
+    this.register.setPopUpWaitSeconds(popUpWaitSeconds)
+    if (remainTime > 0 && numberofExtensions > 0){
       setTimeout(
         ()=>{
           this.register.extendVideoFunction('showExtendView')
@@ -1190,13 +1225,21 @@ export const extendedSdkBuiltIns = {
       
     }else{
       console.log('The meeting might had already ended. Please reschedule or cancel it.')
-      this.meeting.leave()
-      this.register.extendVideoFunction('onDisconnect')
+      // this.meeting.leave()
+      // this.register.extendVideoFunction('onDisconnect')
+      const id = setTimeout(
+        ()=>{
+          this.register.extendVideoFunction('showExtendView')
+        }
+      ,10*1000)
+      this.register.setTimeId('extendVideoChatTime',id)
       
     }
 
-  }
+  },
 
 }
+
+
 
 export default createBuiltInActions

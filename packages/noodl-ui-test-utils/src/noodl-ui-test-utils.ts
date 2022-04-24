@@ -59,7 +59,7 @@ export function getBuiltInAction(obj?: string | Partial<BuiltInActionObject>) {
   u.isStr(obj) && (obj = { funcName: obj } as BuiltInActionObject)
   return createActionObject_next('builtIn')({
     ...obj,
-    funcName: obj?.funcName || 'redraw',
+    funcName: obj?.funcName || 'redraw' || 'extendMeeting' ,
   })
 }
 
