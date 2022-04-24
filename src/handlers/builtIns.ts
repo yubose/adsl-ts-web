@@ -1184,17 +1184,14 @@ export const extendedSdkBuiltIns = {
     if (remainTime > 0){
       setTimeout(
         ()=>{
-          this.root.builtIn['']
+          this.register.extendVideoFunction('showExtendView')
         }
-      ,remainTime)
+      ,remainTime*1000)
       
     }else{
       console.log('The meeting might had already ended. Please reschedule or cancel it.')
-      // this.meeting.leave()
-      // this.register.extendVideoFunction('onDisconnect')
-      setTimeout(()=>{
-        this.register.extendVideoFunction('showExtendView')
-      },10000)
+      this.meeting.leave()
+      this.register.extendVideoFunction('onDisconnect')
       
     }
 

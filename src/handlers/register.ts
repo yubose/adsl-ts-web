@@ -130,15 +130,15 @@ class createRegisters{
               ))
           }else if(action?.actionType && action?.actionType == 'builtIn'){
             const functName = action.funcName
-            const builtInFn = app.root.builtIn[functName]
+            const builtInFn = app.root.builtIn[functName] || app.root.extendedBuiltIn[functName]
             u.isFnc(builtInFn) && 
-              (await builtInFn?.(
-                action,
-                this.app.nui?.getConsumerOptions({
-                  component,
-                  page: this.app.mainPage?.getNuiPage(),
-                })
-              ))
+            (await builtInFn?.(
+              action,
+              this.app.nui?.getConsumerOptions({
+                component,
+                page: this.app.mainPage?.getNuiPage(),
+              })
+            ))
           }else{
             const emitAction = createAction({
               action: { 
@@ -346,6 +346,7 @@ class createRegisters{
 
   extendVideoFunction(onEvent:string){
     log.func('extendVideoFunction')
+
     const pageName = this.app.currentPage
     const components = this.app.root?.[pageName].components
     for (const componentObject of components) {

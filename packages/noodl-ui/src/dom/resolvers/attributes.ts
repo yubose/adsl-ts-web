@@ -267,7 +267,7 @@ const attributesResolver: t.Resolve.Config = {
             ---- TEXT=FUNC
           -------------------------------------------------------- */
           if (args.component.blueprint?.['text=func']) {
-            if (args.component.contentType === 'timer') {
+            if (args.component.contentType === 'timer' || args.component.contentType === 'timerLabelPopUp') {
               const dataKey = args.component.blueprint?.dataKey as string
               // TODO - Refactor a better way to get the initial value since the
               // call order isn't guaranteed

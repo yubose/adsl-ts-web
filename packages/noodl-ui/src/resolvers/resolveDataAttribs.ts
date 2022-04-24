@@ -49,6 +49,8 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
     component.edit({ 'data-ux': contentType })
   } else if (/(vidoeSubStream|videoSubStream)/i.test(contentType)) {
     component.edit({ 'data-ux': contentType })
+  }else if(contentType === 'timerLabelPopUp'){
+    component.edit({ 'data-ux': contentType })
   }
 
   /* -------------------------------------------------------

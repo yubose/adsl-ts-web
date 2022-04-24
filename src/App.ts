@@ -489,6 +489,7 @@ class App {
       // TODO - Create composer for createElementBinding
       this.ndom.use({ createElementBinding: meetingfns.createElementBinding })
       this.root.actions = actions
+      this.root.extendedBuiltIn = builtIns
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
       // u.forEach(
       //   (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),

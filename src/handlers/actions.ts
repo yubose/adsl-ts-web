@@ -4,6 +4,8 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
+import add from 'date-fns/add'
+import startOfDay from 'date-fns/startOfDay'
 import * as imageConversion from 'image-conversion'
 import {
   asHtmlElement,
@@ -27,6 +29,7 @@ import {
   resolvePageComponentUrl,
   Store,
   triggers,
+  NuiComponent,
 } from 'noodl-ui'
 import SignaturePad from 'signature_pad'
 import {
@@ -515,7 +518,50 @@ const createActions = function createActions(app: App) {
 
   const pageJump: Store.ActionObject['fn'] = (action) =>
     app.navigate(_pick(action, 'destination'))
+  
+  const loadTimeLabelPopUp = (node:HTMLElement,component:NuiComponent.Instance)=>{
+    const dataKey =
+      component.get('data-key') || component.blueprint?.dataKey || ''
+    const textFunc = component.get('text=func') || ((x: any) => x)
+    const initialTime = startOfDay(new Date())
+    // Initial SDK value is set in seconds
+    const initialSeconds = get(app.root, dataKey, 30) as number
+    // Sdk evaluates from start of day. So we must add onto the start of day
+    // the # of seconds of the initial value in the Global object
+    let initialValue = add(initialTime, { seconds: initialSeconds })
+    initialValue == null && (initialValue = new Date())
+    node.textContent = textFunc(initialValue,'mm:ss')
+    set(app.root, dataKey,initialSeconds - 1)
+    // Look at the hard code implementation in noodl-ui-dom
+    // inside packages/noodl-ui-dom/src/resolvers/textFunc.ts for
+    // the api declaration
+    component.on('timer:ref', (timer) => {
+      component.on('timer:interval', (value) => {
+        app.updateRoot((draft) => {
+          const seconds = get(draft, dataKey, 30)
+          node.textContent = textFunc(seconds*1000,'mm:ss')
+          set(draft, dataKey, seconds - 1)
+          const updatedSecs = get(draft, dataKey)
+          if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
+            if (seconds === 0) {
+              // Not updated
+              timer.clear()
+              log.func('text=func timer:ref')
+              log.red(
+                `the value of ${dataKey} becomes 0`,
+              )
+            }
+          }
+          node && (node.textContent = textFunc(seconds*1000,'mm:ss'))
+        })
+      })
+      timer.start()
+    })
 
+    // Set the initial value
+    component.emit('timer:init', initialValue)
+  }
+  
   const popUp: Store.ActionObject['fn'] = function onPopUp(action, options) {
     log.func('popUp')
     log.grey('', action?.snapshot?.())
@@ -529,7 +575,19 @@ const createActions = function createActions(app: App) {
         const wait = _pick(action, 'wait')
 
         let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
-
+        u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
+          if(node){
+            const component = app.cache.component.get(node?.id)?.component
+            const dataKey =
+              component.get('data-key') || component.blueprint?.dataKey || ''
+            const initialSeconds = get(app.root, dataKey, 30) as number
+            loadTimeLabelPopUp(node,component)
+            setTimeout(()=>{
+              app.register.extendVideoFunction('onDisconnect')
+            },initialSeconds*1000)
+          }
+          
+        })
         u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
           if (dismissOnTouchOutside) {
             const onTouchOutside = function onTouchOutside(
