@@ -524,14 +524,13 @@ const createActions = function createActions(app: App) {
       component.get('data-key') || component.blueprint?.dataKey || ''
     const textFunc = component.get('text=func') || ((x: any) => x)
     const initialTime = startOfDay(new Date())
-    let popUpWaitSeconds =  app.register.getPopUpWaitSeconds()
+    const popUpWaitSeconds =  app.register.getPopUpWaitSeconds()
     let initialSeconds = get(app.root, dataKey, popUpWaitSeconds) as number
     initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
     let initialValue = add(initialTime, { seconds: initialSeconds })
     initialValue == null && (initialValue = new Date())
     node.textContent = textFunc(initialValue,'mm:ss')
     set(app.root, dataKey,initialSeconds - 1)
-    console.log('test',initialSeconds)
     component.on('timer:ref', (timer) => {
       component.on('timer:interval', (value) => {
         app.updateRoot((draft) => {
@@ -575,7 +574,9 @@ const createActions = function createActions(app: App) {
             const component = app.cache.component.get(node?.id)?.component
             const dataKey =
               component.get('data-key') || component.blueprint?.dataKey || ''
-            const initialSeconds = get(app.root, dataKey, 30) as number
+            const popUpWaitSeconds =  app.register.getPopUpWaitSeconds()
+            let initialSeconds = get(app.root, dataKey, 30) as number
+            initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
             if(action?.actionType === 'popUp'){
               loadTimeLabelPopUp(node,component)
               const id = setTimeout(()=>{
