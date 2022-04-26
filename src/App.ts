@@ -111,7 +111,7 @@ class App {
   }
 
   static id = `aitmed-noodl-web`
-  register:any
+  register: any
   constructor({
     getStatus,
     meeting,
@@ -272,7 +272,7 @@ class App {
     return this.#state
   }
 
-  getRegister(){
+  getRegister() {
     return this.register
   }
   /**
@@ -424,16 +424,17 @@ class App {
         }
       }
 
-      // if (!this.notification) {
-      try {
-        this.#notification = new AppNotification()
-        log.grey(`Initialized notifications`, this.#notification)
-        onInitNotification && (await onInitNotification?.(this.#notification))
-      } catch (error) {
-        console.error(error instanceof Error ? error : new Error(String(error)))
+      if (!this.#notification) {
+        try {
+          this.#notification = new AppNotification()
+          log.grey(`Initialized notifications`, this.#notification)
+          onInitNotification && (await onInitNotification?.(this.#notification))
+        } catch (error) {
+          console.error(
+            error instanceof Error ? error : new Error(String(error)),
+          )
+        }
       }
-
-      // }
 
       this.noodl.on('QUEUE_START', () => {
         if (!this.getState().spinner.active) this.enableSpinner()
@@ -462,7 +463,7 @@ class App {
       } else if (storedCode === 3) {
         this.#state.authStatus = 'temporary'
       }
-      console.log('test',this.noodl)
+      console.log('test', this.noodl)
       this.nui.use({
         getAssetsUrl: () => {
           return this.noodl.assetsUrl

@@ -10,28 +10,36 @@
 importScripts('https://cdn.jsdelivr.net/npm/jsstore/dist/jsstore.worker.min.js')
 importScripts('https://cdn.jsdelivr.net/npm/jsstore/dist/jsstore.min.js')
 importScripts('https://cdn.jsdelivr.net/npm/jsbi@3.1.0/dist/jsbi-umd.js')
-import type IDB from 'idb'
-import type _JSBI from 'jsbi/jsbi'
-import type * as jss from 'jsstore'
-import SqlWeb from 'sqlweb'
-import { Worker as PiWorker } from 'noodl-pi'
+const { Worker: PiWorker } = require('noodl-pi')
+/**
+ * @typedef IDB
+ * @type { import('idb') }
+ *
+ * @typedef jss
+ * @type { import('jsstore') }
+ *
+ * @typedef Jsbi
+ * @type { import('jsbi/jsbi') }
+ *
+ * @typedef SqlWeb
+ * @type { import('sqlweb')['default'] }
+ *
+ */
 
-declare global {
-  export const ipb: typeof IDB
-  export const JsStore: typeof import('jsstore')
-}
+// export const ipb: typeof IDB
+// export const JsStore: typeof import('jsstore')
 
-let _self = self as DedicatedWorkerGlobalScope
+/** @type { DedicatedWorkerGlobalScope } */
+let _self = self
 let _color = 'hotpink'
 let _tag = '[piBackgroundWorker]'
 
 const dataType = JsStore.DATA_TYPE
 
-const connection = new JsStore.Connection(
-  new Worker('jsstoreWorker.min.js'),
-) as jss.Connection & {
-  $sql: { run: (query: string) => Promise<void> }
-}
+/**
+ * @type { jss & { $sql: { run: (query: string) => Promise<void> } } }
+ */
+const connection = new JsStore.Connection(new Worker('jsstoreWorker.min.js'))
 
 // Injects the SQL plugin to support the native SQL query syntax
 connection.addPlugin(SqlWeb)
@@ -123,41 +131,6 @@ connection
   })
   .then(async () => {
     const pi = new PiWorker('noodl', connection.$sql.run)
-    // await connection.insert({
-    //   into: 'version',
-    //   values: ['CPT', '1.0.3'],
-    // })
-    // await connection.update({
-    //   in: 'version',
-    //   set: {
-    //     value: '1.0.3',
-    //   },
-    //   where: {
-    //     table: 'CPT',
-    //   },
-    // })
-
-    // await pi.runSql(`INSERT into version values (table = CPT, value = 1.0.3);`)
-    // await connection.set('version', { table: 'CPT', value: '1.0.5' })
-    // await connection.insert({
-    //   into: 'version',
-    //   values: [{ table: 'CPT', value: '1.0.5' }],
-    // })
-    // await connection.insert({
-    //   into: 'version',
-    //   upsert: true,
-    //   values: [{ table: 'CPT', value: '1.0.5' }],
-    // })
-    // await connection.update({
-    //   in: 'version',
-    //   set: {
-    //     CPT: { table: 'CPT', value: '1.0.5' },
-    //   },
-    // })
-
-    // const res = await pi.runSql(`SELECT from `)
-    // console.log(`%c${_tag} SELECT * from version`, `color:${_color}`, res)
-
     pi.use({
       all(evtName, ...args) {
         console.log(`%c${_tag} ${evtName}`, `color:${_color};`, args)

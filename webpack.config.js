@@ -185,7 +185,7 @@ function getWebpackConfig(env) {
            * @returns
            */
           (entries) => {
-            const mainBundleRegExp = /\.\w{20}\.js$|piBackgroundWorker/i
+            const mainBundleRegExp = /\.\w{20}\.js$/i
             for (const entry of entries) {
               if (entry.url.match(mainBundleRegExp)) {
                 // Force the worker to use the url as the revision
@@ -254,10 +254,10 @@ function getWebpackConfig(env) {
       }),
       new CopyPlugin({
         patterns: [
-          // {
-          //   from: 'piBackgroundWorker.js',
-          //   to: 'piBackgroundWorker.js',
-          // },
+          {
+            from: 'public/piBackgroundWorker.js',
+            to: 'piBackgroundWorker.js',
+          },
           {
             from: 'public/jsstoreWorker.min.js',
             to: 'jsstoreWorker.min.js',
@@ -279,18 +279,18 @@ function getWebpackConfig(env) {
             concatenateModules: true,
             mergeDuplicateChunks: true,
             minimize: true,
-            minimizer: [
-              new TerserPlugin({
-                minify: TerserPlugin.esbuildMinify,
-                parallel: true,
-                terserOptions: {
-                  minify: false,
-                  minifyWhitespace: true,
-                  minifyIdentifiers: false,
-                  minifySyntax: true,
-                },
-              }),
-            ],
+            // minimizer: [
+            //   new TerserPlugin({
+            //     minify: TerserPlugin.esbuildMinify,
+            //     parallel: true,
+            //     terserOptions: {
+            //       minify: false,
+            //       minifyWhitespace: true,
+            //       minifyIdentifiers: false,
+            //       minifySyntax: true,
+            //     },
+            //   }),
+            // ],
             nodeEnv: 'production',
             removeEmptyChunks: true,
             splitChunks: {
@@ -385,7 +385,8 @@ function getWebpackConfig(env) {
     },
   }
 
-  return [webpackOptions, workerConfig]
+  // return [webpackOptions, workerConfig]
+  return [webpackOptions]
 }
 
 module.exports = getWebpackConfig
