@@ -485,7 +485,11 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
                       value[styleKey] = computedValue
                     } else if (s.isKeyRelatedToHeight(styleKey)) {
                       if (styleKey == 'borderRadius' && u.isStr(styleValue)) {
-                        value[styleKey] = `${styleValue}px`
+                        if (styleValue.includes('px')){
+                          value[styleKey] = `${styleValue}`
+                        }else{
+                          value[styleKey] = `${styleValue}px`
+                        }
                       }
                     }
                   }
