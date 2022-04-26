@@ -1,14 +1,17 @@
 import React from 'react'
+import { Box, Heading, Text } from 'theme-ui'
 import Seo from '../components/Seo'
 
-const NotFoundPage = () => (
-  <>
-    <Seo title="404: Not found" />
-    <main>
-      <h1>404: Not Found</h1>
-      <p>You just hit a route that doesn&#39;t exist</p>
-    </main>
-  </>
-)
+function NotFoundPage() {
+  return (
+    <>
+      <Seo title="404: Not found" />
+      <Box as="main">
+        <Heading>404: Not Found</Heading>
+        <Text>You just hit a route that doesn&#39;t exist</Text>
+      </Box>
+    </>
+  )
+}
 
 export default NotFoundPage

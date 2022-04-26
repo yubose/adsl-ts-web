@@ -5,6 +5,7 @@ import type {
   Env,
   DeviceType,
   PageObject,
+  ReferenceString,
 } from 'noodl-types'
 import type { Action } from 'noodl-action-chain'
 import type { PluginOptions as GatsbyPluginOptions } from 'gatsby'
@@ -124,18 +125,13 @@ export type StaticComponentObject = ComponentObject &
  * Context for pages. Populated from gatsby-node.js
  */
 export interface PageContext {
-  isPreload: boolean
+  lists?: ListComponentsContext
   pageName: string
   pageObject: {
     components: StaticComponentObject[]
   }
   slug: string
-  _context_: {
-    [page: string]: {
-      lists?: ListComponentsContext
-      componentRefs?: ComponentReferencesContext[]
-    }
-  }
+  refs?: ComponentReferencesContext[]
 }
 
 /**
@@ -146,10 +142,14 @@ export interface PageContext {
 export interface ListComponentsContext {
   [key: string]: {
     children: string[][]
+    componentPath: (string | number)[]
+    dataObjectMapping?: Record<string, any>
     id: string
-    listObject: any[]
     iteratorVar: string
-    path: (string | number)[]
+    listObject: ReferenceString | any[]
+    listObjectPath: (string | number)[]
+    iteratorVar: string
+    isReference: boolean
   }
 }
 
@@ -157,7 +157,9 @@ export interface ListComponentsContext {
  * NOTE: Currently not being used
  */
 export interface ComponentReferencesContext {
-  page: string
-  path: string[]
-  reference: string
+  [reference: string]: {
+    key: string
+    path: string
+    reference: string
+  }
 }

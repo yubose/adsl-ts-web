@@ -16,109 +16,103 @@ import type {
   RemoveSignatureActionObject,
   SaveActionObject,
   SaveSignatureActionObject,
-  ToastObject,
   UpdateActionObject,
 } from 'noodl-types'
-import { createActionObject_next } from '../utils'
-import ecosJpgDoc from '../fixtures/jpg.json'
-import ecosNoteDoc from '../fixtures/note.json'
-import ecosPdfDoc from '../fixtures/pdf.json'
-import ecosPngDoc from '../fixtures/png.json'
-import ecosTextDoc from '../fixtures/text.json'
-import * as t from '../types'
+import {
+  Action as ActionBuilder,
+  NoodlObject,
+  Builder,
+  EcosDoc,
+  EcosDoc as EcosDocBuilder,
+  EcosDocPreset,
+} from 'noodl-builder'
+import builder from '../builder'
+import { mergeKeyValOrObj, objWithKeyOrUndef, strOrUndef } from '../utils'
 
 const actionFactory = (function () {
   function builtIn(obj?: string | Partial<BuiltInActionObject>) {
-    u.isStr(obj) && (obj = { funcName: obj } as BuiltInActionObject)
-    return createActionObject_next('builtIn')({
-      ...obj,
-      funcName: obj?.funcName || 'redraw',
-    })
+    return mergeKeyValOrObj(
+      builder.action('builtIn'),
+      'funcName',
+      strOrUndef(obj),
+      obj,
+    ).build()
   }
 
   function evalObject(
     obj?: EvalActionObject['object'] | Partial<EvalActionObject>,
-  ): EvalActionObject {
-    !obj && (obj = { actionType: 'evalObject', object: ifObject() })
-    !('actionType' in obj) &&
-      (obj = { actionType: 'evalObject', object: obj['object'] })
-    // @ts-expect-error
-    return createActionObject_next('evalObject')({
-      ...obj,
-      object: obj['object'],
-    })
+  ) {
+    return mergeKeyValOrObj(
+      builder.action('evalObject'),
+      'object',
+      objWithKeyOrUndef(obj, 'object'),
+      obj,
+    ).build() as EvalActionObject
   }
 
-  function pageJump(
-    props?: Partial<PageJumpActionObject>,
-  ): PageJumpActionObject {
-    return { actionType: 'pageJump', destination: 'SignIn', ...props }
+  function pageJump(props?: string | Partial<PageJumpActionObject>) {
+    return mergeKeyValOrObj(
+      builder.action('pageJump'),
+      'destination',
+      strOrUndef(props),
+      props,
+    ).build() as PageJumpActionObject
   }
 
-  function popUp(
-    props?: string | Partial<PopupActionObject>,
-  ): PopupActionObject {
-    const obj = {
-      actionType: 'popUp',
-      popUpView: 'genderView',
-    } as PopupActionObject
-    if (typeof props === 'string') obj.popUpView = props
-    else if (props) u.assign(obj, props)
-    return obj
+  function popUp(props?: string | Partial<PopupActionObject>) {
+    return mergeKeyValOrObj(
+      builder.action('popUp'),
+      'popUpView',
+      strOrUndef(props),
+      props,
+    ).build() as PopupActionObject
   }
 
-  function popUpDismiss(
-    props?: string | Partial<PopupDismissActionObject>,
-  ): PopupDismissActionObject {
-    const obj = {
-      actionType: 'popUpDismiss',
-      popUpView: 'helloView',
-    } as PopupDismissActionObject
-    if (typeof props === 'string') obj.popUpView = props
-    else u.assign(obj, props)
-    return obj
+  function popUpDismiss(props?: string | Partial<PopupDismissActionObject>) {
+    return mergeKeyValOrObj(
+      builder.action('popUpDismiss'),
+      'popUpView',
+      strOrUndef(props),
+      props,
+    ).build() as PopupDismissActionObject
   }
 
   function refresh<A extends RefreshActionObject>(props?: Partial<A>) {
-    return { actionType: 'refresh', ...props } as A
+    return builder.action('refresh').build()
   }
 
   function removeSignature<A extends Partial<RemoveSignatureActionObject>>(
     props?: A,
   ) {
-    return {
-      actionType: 'removeSignature',
-      dataKey: 'SignIn.signature',
-      dataObject: 'BLOB',
-      ...props,
-    } as RemoveSignatureActionObject & A
+    return builder
+      .action('removeSignature')
+      .createProperty('dataKey', props?.dataKey)
+      .createProperty('dataObject', props?.dataObject)
+      .build() as RemoveSignatureActionObject
   }
 
   function saveSignature<A extends Partial<SaveSignatureActionObject>>(
     props?: A,
   ) {
-    return {
-      actionType: 'saveSignature',
-      dataKey: 'SignIn.signature',
-      dataObject: 'BLOB',
-      ...props,
-    } as SaveSignatureActionObject & A
+    return builder
+      .action('saveSignature')
+      .createProperty('dataKey', props?.dataKey)
+      .createProperty('dataObject', props?.dataObject)
+      .build() as SaveSignatureActionObject
   }
 
   function saveObject<A extends SaveActionObject>(props?: Partial<A>) {
-    return { actionType: 'saveObject', object: {}, ...props } as A
-  }
-
-  function toastObject<A extends ToastObject>(props?: Partial<A>) {
-    return { toast: { message: 'hello!', style: {}, ...props } }
+    return builder
+      .action('saveObject')
+      .createProperty('object', u.isStr(props) ? props : props?.object)
+      .build() as A
   }
 
   function updateObject<A extends UpdateActionObject>(props?: A) {
-    return {
-      actionType: 'updateObject',
-      object: { '.Global.refid@': '___.itemObject.id' },
-      ...props,
-    }
+    return builder
+      .action('updateObject')
+      .createProperty('object', u.isStr(props) ? props : props?.object)
+      .build() as A
   }
 
   /**
@@ -130,80 +124,59 @@ const actionFactory = (function () {
   /**
    * Generate an eCOS document object by preset
    */
-  function ecosDoc<N extends NameField>(
-    preset?: t.GetEcosDocObjectPreset,
-  ): EcosDocument<N>
+  function ecosDoc<N extends NameField>(preset?: EcosDocPreset): EcosDocument<N>
   /**
    * Generate an eCOS document object
    * @param propsProp - eCOS document preset or component props
    * @returns { EcosDocument }
    */
   function ecosDoc<N extends NameField>(
-    propsProp?: t.GetEcosDocObjectPreset | PartialDeep<EcosDocument<N>>,
+    propsProp?: EcosDocPreset | PartialDeep<EcosDocument<N>>,
   ): EcosDocument<N> {
-    let ecosObj = {
-      name: { data: `blob:http://a0242fasa141inmfakmf24242`, type: '' as any },
-    } as Partial<EcosDocument<NameField>>
+    const component = builder.component('ecosDoc"')
+    const ecosDoc = builder.ecosDoc()
 
     if (u.isStr(propsProp)) {
-      if (propsProp === 'audio') {
-        ecosObj.name = { ...ecosObj.name, type: 'audio/wav' }
-        ecosObj.subtype = { ...ecosObj.subtype, mediaType: 2 }
-      } else if (propsProp === 'docx') {
-        ecosObj.name = { ...ecosObj.name, type: 'application/vnl.' as any }
-        ecosObj.subtype = { ...ecosObj.subtype, mediaType: 1 }
-      } else if (propsProp === 'image') {
-        ecosObj = (ecosPngDoc || ecosJpgDoc) as EcosDocument
-      } else if (propsProp === 'message') {
-        ecosObj.subtype = { ...ecosObj.subtype, mediaType: 5 }
-      } else if (propsProp === 'note') {
-        ecosObj = ecosNoteDoc as EcosDocument
-      } else if (propsProp === 'pdf') {
-        ecosObj = ecosPdfDoc as EcosDocument
-      } else if (propsProp === 'text') {
-        ecosObj = ecosTextDoc as EcosDocument
-      } else if (propsProp === 'video') {
-        ecosObj.name = { ...ecosObj.name, type: 'video/mp4' }
-        ecosObj.subtype = { ...ecosObj.subtype, mediaType: 9 }
-      }
+      ecosDoc.usePreset(propsProp as EcosDocPreset)
     } else if (u.isObj(propsProp)) {
-      u.assign(ecosObj, propsProp)
+      mergeKeyValOrObj(ecosDoc, propsProp)
     } else {
-      ecosObj = ecosTextDoc as EcosDocument
+      ecosDoc.usePreset('text')
     }
 
-    return ecosObj as EcosDocument<N>
+    return component
+      .createProperty('ecosObj', ecosDoc.build() as EcosDocument<N>)
+      .build()
   }
 
   function getFoldedEmitObject<A extends EmitObjectFold>(
     ...args: Parameters<typeof emitObject>
   ) {
-    return { emit: emitObject(...args) } as A
+    const obj = builder.object().createProperty('emit', emitObject(...args))
+    return obj.build() as A
   }
 
   function emitObject<A extends EmitObject>({
     iteratorVar = 'itemObject',
-    dataKey = { var1: iteratorVar },
-    actions = [{}, {}, {}],
+    dataKey,
+    actions,
   }: {
     iteratorVar?: string
   } & Partial<EmitObject> = {}) {
-    return { dataKey, actions } as A
+    const emit = builder.object().createProperty('emit')
+    const emitObject = emit.getProperty('emit')
+    return emit.build()
   }
 
-  function gotoObject<A extends GotoObject>(props?: A['goto'] | Partial<A>) {
-    const obj = { goto: 'PatientDashboard' }
-    if (typeof props === 'string') obj.goto = props
-    else if (props) u.assign(obj, props)
-    return obj as A
+  function goto<A extends GotoObject>(props?: A['goto'] | Partial<A>) {
+    return mergeKeyValOrObj(builder.object(), 'goto', props).build()
   }
 
-  function ifObject(value?: IfObject | IfObject['if']): IfObject {
-    if (u.isArr(value)) return { if: value }
-    if (u.isObj(value)) return value
-    return {
-      if: [{}, 'selectOn.png', 'selectOff.png'],
-    }
+  function ifObject(value?: IfObject | IfObject['if']) {
+    const obj = builder.object()
+    if (u.isArr(value)) obj.createProperty('if', value)
+    else if (u.isObj(value)) obj.createProperty('if', value.if)
+    return obj.build() as IfObject
   }
 
   return {
@@ -211,7 +184,7 @@ const actionFactory = (function () {
     ecosDoc,
     evalObject,
     emitObject: getFoldedEmitObject,
-    gotoObject,
+    goto,
     ifObject,
     pageJump,
     popUp,
@@ -220,7 +193,6 @@ const actionFactory = (function () {
     removeSignature,
     saveObject,
     saveSignature,
-    toastObject,
     updateObject,
   }
 })()

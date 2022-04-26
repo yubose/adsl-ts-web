@@ -1,4 +1,20 @@
 {
+  "Box": {
+    "body": "import Box from '@/components/Box'",
+    "prefix": "box"
+  },
+  "Image": {
+    "body": "import Image from '@/components/Image'",
+    "prefix": "image"
+  },
+  "Seo": {
+    "body": "import Seo from '@/components/Seo'",
+    "prefix": "seo"
+  },
+  "Text": {
+    "body": "import Text from '@/components/Text'",
+    "prefix": "text"
+  },
   "component": {
     "body": [
       "import React from 'react'",
@@ -42,6 +58,10 @@
   "loglevel": {
     "body": "import log from '@/utils/log'",
     "prefix": "loglevel"
+  },
+  "toast": {
+    "body": "import toast from '@/utils/toast'",
+    "prefix": "toast"
   },
   "types": {
     "body": "import * as t from '@/types'",

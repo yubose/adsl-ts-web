@@ -38,6 +38,7 @@ import { groupedActionTypes, nuiEmitType } from './constants'
 import { isUnitTestEnv } from './utils/common'
 import isNuiPage from './utils/isPage'
 import cache from './_cache'
+import * as i from './utils/internal'
 import * as t from './types'
 
 const NUI = (function () {
@@ -561,15 +562,26 @@ const NUI = (function () {
           if (nt.Identify.reference(value)) {
             // Do one final check for the "get" method, since some custom getters are defined on component.get() even though it returns the same component object when using component.props
             if (nt.Identify.reference(c.get(key))) {
-              log.debug(
-                `%cEncountered an unparsed reference value "${value}" for key "${key}"`,
-                `color:#ec0000;`,
-                c,
-              )
-              key === 'data-value' &&
-                (nt.Identify.rootReference(value) ||
-                  nt.Identify.localReference(value)) &&
-                c.edit({ [key]: '' })
+              if (on?.reference) {
+                c.edit({
+                  [key]: on.reference({
+                    component: c,
+                    page,
+                    key,
+                    value: c.get(key),
+                  }),
+                })
+              } else {
+                log.debug(
+                  `%cEncountered an unparsed reference value "${value}" for key "${key}"`,
+                  `color:#ec0000;`,
+                  c,
+                )
+                key === 'data-value' &&
+                  (nt.Identify.rootReference(value) ||
+                    nt.Identify.localReference(value)) &&
+                  c.edit({ [key]: '' })
+              }
             }
           }
         }
@@ -587,8 +599,37 @@ const NUI = (function () {
     const numComponents = componentsList.length
 
     for (let index = 0; index < numComponents; index++) {
+      let componentObject = componentsList[index]
+      // { components: ['.BaseHeader'] }
+      if (u.isStr(componentObject) && nt.Identify.reference(componentObject)) {
+        componentObject = i.useFuncOrValue({
+          fn: on?.reference,
+          args: { page, value: componentObject },
+          value: i.defaultResolveReference(
+            o.getRoot,
+            page.page,
+            componentObject,
+          ),
+        })
+      }
+      // { components: [{ '.BaseHeader': '', style:{ shadow:'true' } }] }
+      if (u.isObj(componentObject) && !componentObject.type) {
+        const keys = u.keys(componentObject)
+        const refKey = keys.find((key) => nt.Identify.reference(key))
+        if (refKey) {
+          componentObject = i.useFuncOrValue({
+            fn: on?.reference,
+            args: { page, value: componentObject },
+            value: i.defaultResolveReference(
+              o.getRoot,
+              page.page,
+              refKey as any,
+            ),
+          })
+        }
+      }
       const { component: resolvedComponent, options } = await xform(
-        o.createComponent(componentsList[index], page as NuiPage),
+        o.createComponent(componentObject, page as NuiPage),
         { callback, context, on, page, ...otherOpts },
       )
       if (on?.resolved) {
@@ -1074,7 +1115,7 @@ const NUI = (function () {
     } & { [key: string]: any }) {
       const getPage = (page: NuiPage, component?: t.NuiComponent.Instance) => {
         if (component?.parent && nt.Identify.component.page(component.parent)) {
-          if (component.parent?.get?.('page')) {
+          if (isNuiPage(component.parent?.get?.('page'))) {
             return component.parent?.get?.('page')
           }
           if (cache.page.has(component.id)) {

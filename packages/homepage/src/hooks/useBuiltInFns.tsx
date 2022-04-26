@@ -5,7 +5,7 @@ import produce, { isDraft, current as draftToCurrent } from 'immer'
 import React from 'react'
 import get from 'lodash/get'
 import useCtx from '@/useCtx'
-import usePageCtx from '@/usePageCtx'
+import { usePageCtx } from '@/components/PageContext'
 import log from '@/utils/log'
 import is from '@/utils/is'
 import * as t from '@/types'
@@ -28,12 +28,11 @@ const createFn =
 
 function purgeDataIn({
   actionChain,
-  getInRoot,
+  getR,
   pageName,
   dataObject,
   dataIn,
-}: Pick<t.CommonRenderComponentHelpers, 'getInRoot' | 'pageName'> &
-  BuiltInFnProps) {
+}: Pick<t.CommonRenderComponentHelpers, 'getR' | 'pageName'> & BuiltInFnProps) {
   for (const [key, value] of u.entries(dataIn)) {
     if (u.isStr(value)) {
       if (value.startsWith('$')) {
@@ -44,7 +43,7 @@ function purgeDataIn({
         if (is.localReference(value)) pageName && paths.push(pageName)
         paths = paths.concat(trimReference(value).split('.'))
 
-        dataIn[key] = getInRoot(
+        dataIn[key] = getR(
           actionChain?.data?.get('rootDraft'),
           paths.join('.'),
           pageName,
@@ -99,30 +98,27 @@ function useBuiltInFns() {
   const ctx = useCtx()
   const pageCtx = usePageCtx()
 
-  const builtIns = React.useMemo(
-    () =>
-      getBuiltInFns({
-        ...ctx,
-        _context_: pageCtx._context_,
-        pageName: pageCtx.pageName,
-      }),
-    [ctx, pageCtx],
+  const builtIns = React.useMemo(() =>
+    getBuiltInFns({
+      ...ctx,
+      ...pageCtx,
+    }),
   )
 
-  const handleBuiltInFn = React.useCallback(
-    function _handleBuiltInFn(key = '', args: BuiltInFnProps) {
-      const fn = builtIns[key]
-      if (u.isFnc(fn)) {
-        return fn(args)
-      } else {
-        log.error(
-          `%cYou are missing the builtIn implementation for "${key}"`,
-          `color:#ec0000;`,
-        )
-      }
-    },
-    [builtIns],
-  )
+  const handleBuiltInFn = React.useCallback(function _handleBuiltInFn(
+    key = '',
+    args: BuiltInFnProps,
+  ) {
+    const fn = builtIns[key]
+    if (u.isFnc(fn)) {
+      return fn(args)
+    } else {
+      log.error(
+        `%cYou are missing the builtIn implementation for "${key}"`,
+        `color:#ec0000;`,
+      )
+    }
+  })
 
   return {
     ...builtIns,

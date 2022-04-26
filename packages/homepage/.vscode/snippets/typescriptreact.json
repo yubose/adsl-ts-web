@@ -1,4 +1,20 @@
 {
+  "Box": {
+    "body": "import { Box, BoxProps } from 'theme-ui'",
+    "prefix": "box"
+  },
+  "Image": {
+    "body": "import { Image } from 'theme-ui'",
+    "prefix": "image"
+  },
+  "Seo": {
+    "body": "import Seo from '@/components/Seo'",
+    "prefix": "seo"
+  },
+  "Text": {
+    "body": "import { Paragraph, ParagraphProps } from 'theme-ui'",
+    "prefix": "text"
+  },
   "component": {
     "body": [
       "import React from 'react'",
@@ -42,6 +58,10 @@
   "loglevel": {
     "body": "import log from '@/utils/log'",
     "prefix": "loglevel"
+  },
+  "toast": {
+    "body": "import toast from '@/utils/toast'",
+    "prefix": "toast"
   },
   "types": {
     "body": "import * as t from '@/types'",

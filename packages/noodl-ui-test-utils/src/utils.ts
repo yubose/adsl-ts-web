@@ -7,6 +7,13 @@ import type {
   UncommonComponentObjectProps,
 } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
+import type {
+  Action as ActionBuilder,
+  Component as ComponentBuilder,
+  EcosDoc as EcosDocBuilder,
+  NoodlObject as ObjectBuilder,
+  Page as PageBuilder,
+} from 'noodl-builder'
 
 export type ActionProps<C extends Partial<ActionObject> = ActionObject> =
   Partial<UncommonActionObjectProps> & C
@@ -64,4 +71,33 @@ export function createComponentObject<
     u.isObj(props) && u.assign(obj, props)
     return obj as O
   }
+}
+
+export function mergeKeyValOrObj(
+  _builder: ActionBuilder | ComponentBuilder | EcosDocBuilder | ObjectBuilder,
+  keyOrObj: any,
+  value?: any,
+  otherProps?: any,
+) {
+  if (u.isObj(keyOrObj)) {
+    for (const [key, val] of u.entries(keyOrObj)) {
+      _builder.createProperty(key, val)
+    }
+  } else if (u.isStr(keyOrObj)) {
+    _builder.createProperty(keyOrObj, value)
+  }
+  if (u.isObj(otherProps)) {
+    for (const [k, v] of u.entries(otherProps)) {
+      _builder.createProperty(k, v)
+    }
+  }
+  return _builder
+}
+
+export function objWithKeyOrUndef(obj: any, key: string) {
+  return u.isObj(obj) && u.isStr(key) && key in obj ? obj[key] : undefined
+}
+
+export function strOrUndef(value: any) {
+  return u.isStr(value) ? value : undefined
 }

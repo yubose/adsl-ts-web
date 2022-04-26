@@ -4,11 +4,11 @@ import getElementProps from '@/utils/getElementProps'
 import useActionChain from '@/hooks/useActionChain'
 import useBuiltInFns from '@/hooks/useBuiltInFns'
 import useCtx from '@/useCtx'
-import usePageCtx from '@/usePageCtx'
+import { usePageCtx } from '@/components/PageContext'
 import type { ComponentPath, StaticComponentObject } from '@/types'
 
 function useRenderer() {
-  const { root, getInRoot, setInRoot, images } = useCtx()
+  const { root, getR, setR } = useCtx()
   const ac = useActionChain()
   const builtIns = useBuiltInFns()
   const pageCtx = usePageCtx()
@@ -22,11 +22,9 @@ function useRenderer() {
         builtIns,
         createActionChain: ac.createActionChain,
         root,
-        getInRoot,
-        setInRoot,
-        static: { images },
-        pageName: pageCtx.pageName,
-        _context_: pageCtx._context_,
+        getR,
+        setR,
+        ...pageCtx,
       })(getElementProps),
     [pageCtx, root],
   )

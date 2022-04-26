@@ -182,10 +182,10 @@ connection
             switch (table) {
               case 'CPT': {
                 if (!query) {
-                  const resp = await _self.fetch(`http://127.0.0.1:3000/cpt`)
-                  const respData = await resp.json()
-                  const version = respData?.CPT?.version
-                  const content = respData?.CPT?.content
+                  // const resp = await _self.fetch(`http://127.0.0.1:3000/cpt`)
+                  // const respData = await resp.json()
+                  // const version = respData?.CPT?.version
+                  // const content = respData?.CPT?.content
                   // await connection.set('CPT', respData?.CPT)
                   // await connection.insert({
                   //   into: 'CPT',
@@ -198,14 +198,14 @@ connection
                   //     content,
                   //   },
                   // })
-
+                  break
                   // await connection.set('content', cptCodes)
-                  return pi.sendMessage({
-                    type: 'searchResult',
-                    query,
-                    result: content,
-                    table,
-                  })
+                  // return pi.sendMessage({
+                  //   type: 'searchResult',
+                  //   query,
+                  //   result: content,
+                  //   table,
+                  // })
                 }
               }
             }

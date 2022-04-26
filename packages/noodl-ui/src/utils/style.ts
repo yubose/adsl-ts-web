@@ -198,12 +198,22 @@ export function toVwVh(
 }
 
 /**
- * Returns the value back using the vw/vh format
- * @param vpSize
- * @param px
+ * Convers the value into the vw/vh format
+ * @param { number } vpSize
+ * @param { string | number } px
  * @returns { number }
  */
-export function pxToVp(vpSize: number, px: string | number) {
+export function toVp(
+  unit: VpUnit,
+  vpSize: number,
+  px: string | number,
+): VpValue {
   if (u.isStr(px)) px = toNum(px)
-  return px * (100 / vpSize)
+  return `${px * (100 / vpSize)}${unit}`
 }
+
+export const pxToVw = (vpSize: number, px: string | number) =>
+  toVp('vw', vpSize, px) as `${string}vw`
+
+export const pxToVh = (vpSize: number, px: string | number) =>
+  toVp('vh', vpSize, px) as `${string}vh`

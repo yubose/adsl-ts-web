@@ -9,7 +9,6 @@ import * as s from '../utils/style'
 import {
   assetsUrl,
   baseUrl,
-  createRender,
   getRenderProps,
   getDefaultViewportWidthHeight,
   nui,
@@ -18,8 +17,6 @@ import {
 import NuiPage from '../Page'
 import log from '../utils/log'
 import normalizeProps from '../normalizeProps'
-
-const render = createRender()
 
 describe('normalizeProps', () => {
   describe(`select`, () => {

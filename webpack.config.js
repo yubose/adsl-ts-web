@@ -48,6 +48,7 @@ function getWebpackConfig(env) {
   const publicPath = path.join(process.cwd(), 'public')
   const buildPath = path.join(process.cwd(), 'build')
 
+  const isDeploying = !!env.DEPLOYING
   const NODE_ENV = process.env.NODE_ENV
   const MODE = NODE_ENV !== 'production' ? 'development' : 'production'
 
@@ -224,13 +225,10 @@ function getWebpackConfig(env) {
         ECOS_ENV: env.ECOS_ENV,
         NODE_ENV: MODE,
         USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
-        ...(!u.isUnd(process.env.DEPLOYING)
+        ...(!u.isUnd(isDeploying)
           ? {
               DEPLOYING:
-                process.env.DEPLOYING === true ||
-                process.env.DEPLOYING === 'true'
-                  ? true
-                  : false,
+                isDeploying === true || isDeploying === 'true' ? true : false,
             }
           : undefined),
       }),

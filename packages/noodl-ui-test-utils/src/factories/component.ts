@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
 import type {
   ButtonComponentObject,
@@ -24,45 +25,38 @@ import type {
   VideoComponentObject,
   ViewComponentObject,
 } from 'noodl-types'
-import { createComponentObject } from '../utils'
+import {
+  Action as ActionBuilder,
+  NoodlObject,
+  Builder,
+  EcosDoc,
+  EcosDoc as EcosDocBuilder,
+  EcosDocPreset,
+} from 'noodl-builder'
+import builder from '../builder'
+import { createComponentObject, mergeKeyValOrObj } from '../utils'
 import actionFactory from './action'
-import ecosJpgDoc from '../fixtures/jpg.json'
-import ecosNoteDoc from '../fixtures/note.json'
-import ecosPdfDoc from '../fixtures/pdf.json'
-import ecosPngDoc from '../fixtures/png.json'
-import ecosTextDoc from '../fixtures/text.json'
 import * as t from '../types'
 
 const componentFactory = (function () {
   function button<C extends ButtonComponentObject>(
     props?: C['text'] | Partial<C>,
   ) {
-    const obj = {
-      type: 'button',
-      onClick: [
-        {
-          actionType: 'updateObject',
-          dataKey: 'MeetingLobbyStart.inviteesInfo.edge',
-          dataObject: 'itemObject',
-        },
-        {
-          actionType: 'evalObject',
-          object: { '..inviteesInfo.edge.tage@': -1 },
-        },
-      ],
-      text: 'Delete',
-    } as ButtonComponentObject
-    if (u.isStr(props)) obj.text = props
-    else if (props) u.assign(obj, props)
-    return obj as C
+    return mergeKeyValOrObj(
+      builder.component('button'),
+      'text',
+      u.isStr(props) ? props : undefined,
+      props,
+    ).build() as C
   }
 
   function canvas<C extends CanvasComponentObject>(props?: C) {
-    return {
-      dataKey: 'SignIn.signature',
-      ...props,
-      type: 'canvas',
-    } as CanvasComponentObject & C
+    return mergeKeyValOrObj(
+      builder
+        .component('canvas')
+        .createProperty('dataKey', props?.dataKey)
+        .build(),
+    ) as C
   }
 
   function ecosDocComponent(

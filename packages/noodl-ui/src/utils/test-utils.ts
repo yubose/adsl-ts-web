@@ -16,7 +16,7 @@ export { nui }
 
 export const baseUrl = 'http://127.0.0.1:3000/'
 export const assetsUrl = `${baseUrl}assets/`
-export const viewport = new Viewport()
+export const viewport = new Viewport({ width: 1024, height: 768 })
 export const ui = { ...actionFactory, ...componentFactory }
 export const ndom = new NDOM()
 
@@ -128,7 +128,8 @@ export function getPresetPageObjects() {
               }),
               ui.button({
                 text: `Go to Donut page`,
-                onClick: [ui.gotoObject('Donut')],
+                // @ts-expect-error
+                onClick: [ui.goto('Donut')],
               }),
               ui.divider({ id: 'divider' }),
               ui.label({
@@ -202,7 +203,7 @@ export function getPresetPageObjects() {
                             onClick: [
                               ui.emitObject(),
                               ui.evalObject({
-                                object: async () => ui.gotoObject('Cloud'),
+                                object: async () => ui.goto('Cloud'),
                               }),
                               ui.popUp('abc'),
                               ui.builtIn({
@@ -221,22 +222,14 @@ export function getPresetPageObjects() {
           }),
           ui.button({
             text: 'Submit',
-            onClick: [ui.emitObject(), ui.evalObject(), ui.gotoObject('Abc')],
+            // @ts-expect-error
+            onClick: [ui.emitObject(), ui.evalObject(), ui.goto('Abc')],
           }),
           ui.textField({ dataKey: `..icon`, placeholder: `Icon URL` }),
         ],
       }
     },
   }
-}
-
-export function createRender() {
-  const render = async (page: NdomPage) => {
-    const components = await ndom.render(page)
-    return components
-  }
-
-  return render
 }
 
 export function getDefaultViewportWidthHeight() {
@@ -247,7 +240,7 @@ export function getRenderProps(
   opts: {
     clean?: boolean
     pageName?: string
-    page?: NdomPage
+    page?: NuiPage
     root?: Record<string, any>
     viewport?: Viewport | Pick<Viewport, 'width' | 'height'>
   } & Partial<
@@ -257,7 +250,8 @@ export function getRenderProps(
     >
   >,
 ) {
-  let _page: NdomPage | undefined
+  let _pageName = opts.pageName
+  let _page: NuiPage | undefined
   let _root: Record<string, any> | undefined
   let _viewport = (opts?.viewport || viewport) as Viewport
 
@@ -270,8 +264,11 @@ export function getRenderProps(
   if (opts.page) {
     _page = opts.page
   } else {
-    _page = ndom.createPage(nui.createPage({ viewport: _viewport }))
+    _page = nui.createPage({ viewport: _viewport })
   }
+
+  if (!_pageName && _page.page) _pageName = _page.page
+  else if (!_page.page && _pageName) _page.page = _pageName
 
   if (opts.root) {
     _root = {
@@ -282,7 +279,13 @@ export function getRenderProps(
     _root = { [_page.page]: { components: _page.components } }
   }
 
+  console.log({ _viewport })
+
   if (!_page.viewport) _page.viewport = _viewport
+  if (u.isNil(_page.viewport.width) || u.isNil(_page.viewport.height)) {
+    _page.viewport.width = _viewport.width
+    _page.viewport.height = _viewport.height
+  }
 
   const actionTypes = [
     ...nt.actionTypes,
@@ -299,6 +302,11 @@ export function getRenderProps(
   })
 
   nui.use({
+    getAssetsUrl: () => assetsUrl,
+    getBaseUrl: () => baseUrl,
+    getRoot: () => _root as Record<string, any>,
+    getPreloadPages: () => [],
+    getPages: () => u.keys(_root || {}),
     transaction: {
       async [c.nuiEmitTransaction.REQUEST_PAGE_OBJECT](page: NuiPage) {
         if (!page.page) throw new Error(`[test-utils] page.page is empty`)

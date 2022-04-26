@@ -4,17 +4,15 @@ import type { LiteralUnion } from 'type-fest'
 import type { ActionChainStatus } from 'noodl-action-chain'
 import type { NUIAction, NUIActionObject, NUITrigger } from 'noodl-ui'
 import type useRootObject from './hooks/useRootObject'
-import type { IGatsbyImageData } from 'gatsby-plugin-image'
 
-export type AppContext = ReturnType<typeof useRootObject> & {
-  images: {
-    [filename: string]: {
-      data: IGatsbyImageData
-      filename: string
-      url: string
-    }
-  }
-}
+export type RootObjectContext<
+  O extends Record<string, any> = Record<string, any>,
+> = {
+  Global: Record<string, any>
+  Style?: nt.StyleObject
+} & O
+
+export type AppContext = ReturnType<typeof useRootObject>
 
 export type StaticComponentObject = nt.ComponentObject &
   Partial<
@@ -36,25 +34,50 @@ export type StaticComponentObject = nt.ComponentObject &
   Record<string, any>
 
 export interface PageContext {
-  isPreload: boolean
+  getListObject: (
+    idOrComponent: string | StaticComponentObject,
+  ) => string | any[]
+  getListsCtxObject: (
+    idOrComponent: string | StaticComponentObject,
+  ) => PageContextListContextObject
+  getIteratorVar: (idOrComponent: string | StaticComponentObject) => string
+  getListDataObject: (idOrComponent: string | StaticComponentObject) => any
+  isListConsumer: (idOrComponent: string | StaticComponentObject) => boolean
   startPage?: string
   pageName: string
   pageObject: {
     components: StaticComponentObject[]
   } & Record<string, any>
   slug: string
-  _context_: {
-    lists?: Record<string, PageContextListContextObject>
+  lists: {
+    [componentId: string]: PageContextListContextObject
+  }
+  refs: {
+    [reference: nt.ReferenceString]: {
+      /**
+       * If true, the reference is pointing to local root object
+       */
+      isLocal: boolean
+      /**
+       * If true, the reference is pointing to a list's listObject data object
+       */
+      isListChildren: boolean
+      key: string
+      path: string
+      ref: nt.ReferenceString
+    }
   }
 }
 
 export interface PageContextListContextObject {
   children: string[][]
+  componentPath: (string | number)[]
+  dataObjectMapping?: Record<string, any>
   id: string
-  listObject: any[]
-  listObjectPath?: string
   iteratorVar: string
-  path: (string | number)[]
+  listObject: nt.ReferenceString | any[]
+  listObjectPath?: string
+  isReference: boolean
 }
 
 export interface CreateElementProps<Props = any> {
@@ -66,7 +89,7 @@ export interface CreateElementProps<Props = any> {
 }
 
 export interface CommonRenderComponentHelpers
-  extends Pick<AppContext, 'root' | 'getInRoot' | 'setInRoot'> {
+  extends Pick<AppContext, 'root' | 'getR' | 'setR'> {
   _context_: PageContext['_context_']
   pageName: string
 }

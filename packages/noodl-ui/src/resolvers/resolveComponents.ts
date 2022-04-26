@@ -62,10 +62,10 @@ componentResolver.setResolver(async (component, options, next) => {
     /* -------------------------------------------------------
       ---- POPUP
     -------------------------------------------------------- */
-    if(is.component.popUp(component)){
+    if (is.component.popUp(component)) {
       const message = component.get('message')
-      if(message){
-        component.edit('message',message)
+      if (message) {
+        component.edit('message', message)
       }
     }
 
@@ -108,7 +108,10 @@ componentResolver.setResolver(async (component, options, next) => {
         }
         const _ref = opts.component?.props?._ref_
         let listObject =
-          getByRef(opts.getRoot(),_ref,pageName) || component.blueprint.listObject || component.get('listObject')
+          // component.blueprint.listObject || component.get('listObject')
+          getByRef(opts.getRoot(), _ref, pageName) ||
+          component.blueprint.listObject ||
+          component.get('listObject')
         if (is.reference(listObject)) {
           component.edit(
             'listObject',

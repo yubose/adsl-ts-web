@@ -6,7 +6,7 @@ const pathPrefix = `` // deployed to root directory
 // If buildSource is "local" it will build using files locally (using "path" configured above). If buildSource is "remote" it will build files remotely using the "config" key as the endpoint. Defaults to "remote"
 const buildSource = process.env.BUILD_SOURCE || 'remote'
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
-const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'mob'
+const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'www'
 const viewport = process.env.MOBILE
   ? { width: 414, height: 736 } // iPhone 8 Plus
   : { width: 1024, height: 768 }
@@ -96,6 +96,7 @@ module.exports = {
         paths: {
           // If we provide this assets will be downloaded to this path.
           // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
+          assets: `${__dirname}/src/resources/assets`,
           // If we provide this path the yml files/assets will be made available
           output: `${__dirname}/output`,
           // Ensures the assets will be correctly located
@@ -107,13 +108,6 @@ module.exports = {
         viewport,
       },
     },
-    // {
-    //   resolve: `gatsby-source-filesystem`,
-    //   options: {
-    //     name: `assets`,
-    //     path: `${__dirname}/src/resources/assets`,
-    //   },
-    // },
     {
       resolve: `gatsby-source-filesystem`,
       options: {

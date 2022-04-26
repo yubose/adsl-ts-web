@@ -9,7 +9,12 @@
     },
     "publish": {
       "bump": "patch",
-      "ignore": ["docs", "noodl-ui-test-utils", "noodl-ui-dom"],
+      "ignore": [
+        "docs",
+        "noodl-ui-test-utils",
+        "noodl-ui-dom",
+        "noodl-builder"
+      ],
       "message": "Update"
     }
   },

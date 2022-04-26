@@ -1,18 +1,21 @@
 import * as mock from 'noodl-ui-test-utils'
+import * as u from '@jsmanifest/utils'
+import { prettyDOM } from '@testing-library/dom'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
 import { ComponentObject } from 'noodl-types'
 import { presets } from '../../constants'
-import { createRender, getRenderProps, ui } from '../../utils/test-utils'
-import NUI from '../../noodl-ui'
+import { getRenderProps, ui } from '../../utils/test-utils'
+import nui from '../../noodl-ui'
+import type NuiPage from '../../Page'
 import log from '../../utils/log'
 
 async function resolveComponent(component: ComponentObject) {
-  const page = NUI.createPage({
+  const page = nui.createPage({
     name: 'Hello',
     viewport: { width: 375, height: 667 },
   })
-  return NUI.resolveComponents({ components: component, page })
+  return nui.resolveComponents({ components: component, page })
 }
 
 describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
@@ -448,7 +451,7 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
 
     describe(magenta('page'), () => {
       it(`should have its styles parsed like others`, async () => {
-        const components = await NUI.resolveComponents([
+        const components = await nui.resolveComponents([
           ui.view({
             style: { shadow: 'true' },
             children: [
@@ -540,7 +543,7 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
         ],
       })
       let list = (
-        await NUI.resolveComponents({ components: [listComponentObject] })
+        await nui.resolveComponents({ components: [listComponentObject] })
       )[0]
       let listItem = list.child()
       let label = listItem.child()
@@ -551,13 +554,86 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
       listObject[0].bgColor = '0x00000'
       listObject[0].fontColor = '0x334455'
       list = (
-        await NUI.resolveComponents({ components: [listComponentObject] })
+        await nui.resolveComponents({ components: [listComponentObject] })
       )[0]
       listItem = list.child()
       label = listItem.child()
       expect(listItem.style).to.have.property('height', '600.30px')
       expect(listItem.style).to.have.property('backgroundColor', '#00000')
       expect(label.style).to.have.property('color', '#334455')
+    })
+  })
+
+  describe(`fontSize references`, () => {
+    let iteratorVar = 'itemObject'
+    let page: NuiPage
+    let root: Record<string, any>
+
+    beforeEach(() => {
+      page = nui.getRootPage()
+      page.page = 'Topo'
+      root = {
+        Nfont: { h1: '1.6vh' },
+        Sfont: { h4: '4.5vh' },
+        Topo: {
+          font1: '.Nfont.h1',
+          components: [
+            ui.label({
+              viewTag: 'helloTag',
+              style: { top: '0.0125', left: '0.05', fontSize: '.Sfont.h4' },
+            }),
+            ui.list({
+              iteratorVar,
+              listObject: [{}],
+              children: [
+                ui.listItem({
+                  iteratorVar,
+                  children: [
+                    ui.label({
+                      viewTag: 'byeTag',
+                      style: { fontSize: '..font1' },
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        },
+      }
+    })
+
+    it(`should correctly resolve fontSize references`, async () => {
+      nui.use({ getPages: () => ['Topo'], getRoot: () => root })
+      const [label1, list] = await nui.resolveComponents({
+        components: root.Topo.components,
+        page,
+      })
+      const listItem = list.child()
+      const label2 = listItem.child()
+      expect(label1.style).to.have.property('fontSize', `${30.015}px`)
+      expect(label2.style).to.have.property('fontSize', `${10.672}px`)
+    })
+
+    it(`should keep the values in vp unit if keepVpUnit === true`, async () => {
+      nui.use({
+        getPages: () => ['Topo'],
+        getRoot: () => ({
+          Topo: { components: [ui.label({ style: { fontSize: '2.8vh' } })] },
+        }),
+      })
+      let [list] = await nui.resolveComponents({
+        components: nui.getRoot().Topo.components,
+        page,
+      })
+      expect(list.style).to.have.property('fontSize', '18.676px')
+      list = (
+        await nui.resolveComponents({
+          components: nui.getRoot().Topo.components,
+          page,
+          keepVpUnit: true,
+        })
+      )[0]
+      expect(list.style).to.have.property('fontSize', `calc(2.8vh)`)
     })
   })
 })

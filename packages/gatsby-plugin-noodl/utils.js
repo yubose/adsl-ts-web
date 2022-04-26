@@ -3,7 +3,18 @@ const u = require('@jsmanifest/utils')
 const fs = require('fs-extra')
 const path = require('path')
 
+/**
+ * @typedef NuiComponentInstance
+ * @type { import('noodl-ui').NuiComponent.Instance }
+ */
+
 const getRelPath = (baseDir, ...s) => path.join(baseDir, ...s)
+/**
+ * Replaces backlashes for windows support
+ * @param { string } s
+ * @returns { string }
+ */
+const normalizePath = (s) => s.replace(/\\/g, '/')
 
 const regex = {
   cadlBaseUrlPlaceholder: /\${cadlBaseUrl}/,
@@ -58,6 +69,51 @@ function getConfigUrl(configKey = '') {
   return `https://public.aitmed.com/config/${ensureExt(configKey, 'yml')}`
 }
 
+/**
+ *
+ * @param { string } iteratorVar
+ * @param { import('noodl-types').ComponentObject } component
+ */
+function getListObjectMapping(iteratorVar, component, path = []) {
+  const mapping = {}
+
+  /**
+   * @param { Record<string, any> } obj
+   */
+  const mapProps = (obj, prefix = '', path = []) => {
+    if (!u.isObj(obj)) return {}
+    const mapped = {}
+
+    for (const [key, value] of u.entries(obj)) {
+      if (u.isStr(value) && value.startsWith(iteratorVar)) {
+        if (prefix) path = path.concat(prefix)
+        const currPath = path.concat(key).join('.')
+        mapped[currPath] = {
+          key,
+          path: currPath,
+          ref: value,
+        }
+      }
+    }
+
+    return mapped
+  }
+
+  if (iteratorVar && component) {
+    u.assign(mapping, mapProps(u.omit(component, 'style'), '', path))
+    u.assign(mapping, mapProps(component?.style, 'style', path))
+  }
+
+  component?.children?.forEach?.((child, index) =>
+    u.assign(
+      mapping,
+      getListObjectMapping(iteratorVar, child, path.concat('children', index)),
+    ),
+  )
+
+  return mapping
+}
+
 function configDirExists(baseDir, configKey) {
   return fs.existsSync(getConfigDir(baseDir, configKey))
 }
@@ -90,6 +146,24 @@ function getConfigDir(baseDir, configKey) {
   return getRelPath(baseDir, removeExt(configKey, 'yml'))
 }
 
+/**
+ * @param { NuiComponentInstance } parent
+ * @param { NuiComponentInstance } child
+ */
+function getPathToParent(parent, child) {
+  const _path = []
+  let currParent = child
+  while (currParent != null && currParent !== parent) {
+    currParent = currParent.parent
+    const index = currParent?.children?.indexOf?.(child)
+    if (u.isNum(index) && index > -1) {
+      _path.push('children', index)
+    }
+    currParent = currParent.parent
+  }
+  return _path
+}
+
 const utils = {
   configDirExists,
   downloadFile,
@@ -98,68 +172,12 @@ const utils = {
   getAssetFilePath,
   getConfigDir,
   getConfigUrl,
-  removeExt,
-  fontSize: {
-    '10px': '0.625rem',
-    '11px': '0.6875rem',
-    '12px': '0.75rem',
-    '13px': '0.8125rem',
-    '14px': '0.875rem',
-    '15px': '0.9375rem',
-    '16px': '1rem',
-    '17px': '1.0625rem',
-    '18px': '1.125rem',
-    '19px': '1.1875rem',
-    '20px': '1.25rem',
-    '21px': '1.3125rem',
-    '22px': '1.375rem',
-    '23px': '1.4375rem',
-    '24px': '1.5rem',
-    '25px': '1.5625rem',
-    '26px': '1.625rem',
-    '27px': '1.6875rem',
-    '28px': '1.75rem',
-    '29px': '1.8125rem',
-    '30px': '1.875rem',
-    '31px': '1.9375rem',
-    '32px': '2rem',
-    '33px': '2.0625rem',
-    '34px': '2.125rem',
-    '35px': '2.1875rem',
-    '36px': '2.25rem',
-    '37px': '2.3125rem',
-    '38px': '2.375rem',
-    '39px': '2.4375rem',
-    '40px': '2.5rem',
-    '41px': '2.5625rem',
-    '42px': '2.625rem',
-    '43px': '2.6875rem',
-    '44px': '2.75rem',
-    '45px': '2.8125rem',
-    '46px': '2.875rem',
-    '47px': '2.9375rem',
-    '48px': '3rem',
-    '49px': '3.0625rem',
-    '50px': '3.125rem',
-    '51px': '3.1875rem',
-    '52px': '3.25rem',
-    '53px': '3.3125rem',
-    '54px': '3.375rem',
-    '55px': '3.4375rem',
-    '56px': '3.5rem',
-    '57px': '3.5625rem',
-    '58px': '3.625rem',
-    '59px': '3.6875rem',
-    '60px': '3.75rem',
-    '61px': '3.8125rem',
-    '62px': '3.875rem',
-    '63px': '3.9375rem',
-    '64px': '4rem',
-  },
-  getConfigVersion(config, env = 'stable') {
-    return config?.web?.cadlVersion?.[env]
-  },
+  getConfigVersion: (config, env = 'stable') => config?.web?.cadlVersion?.[env],
+  getListObjectMapping,
+  getPathToParent,
+  normalizePath,
   makeTraverser,
+  removeExt,
   regex,
   /**
    * @argument { Record<'cadlBaseUrl' | 'cadlVersion' | 'designSuffix', string> } options

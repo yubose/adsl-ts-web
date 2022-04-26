@@ -22,13 +22,26 @@
     "immer": "^8.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-helmet": "^6.1.0"
+    "react-helmet": "^6.1.0",
+    "react-toastify": "^8.2.0",
+    "theme-ui": "^0.14.2"
   },
   "description": "AiTmed's landing (home) page",
   "devDependencies": {
+    "@babel/core": "^7.17.9",
     "@babel/preset-typescript": "^7.16.7",
+    "@storybook/addon-actions": "^6.5.0-alpha.64",
+    "@storybook/addon-essentials": "^6.5.0-alpha.64",
+    "@storybook/addon-interactions": "^6.5.0-alpha.64",
+    "@storybook/addon-links": "^6.5.0-alpha.64",
+    "@storybook/builder-webpack5": "^6.5.0-alpha.64",
+    "@storybook/channel-websocket": "^6.4.22",
+    "@storybook/manager-webpack5": "^6.5.0-alpha.64",
+    "@storybook/react": "^6.5.0-alpha.64",
+    "@storybook/testing-library": "^0.0.11",
     "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.1.1",
+    "@testing-library/react": "^12.1.5",
+    "babel-loader": "^8.2.5",
     "babel-preset-gatsby": "^2.12.1",
     "eslint-plugin-jest": "^26.1.4",
     "gatsby-plugin-webpack-bundle-analyser-v2": "^1.1.26",
@@ -156,7 +169,8 @@
     "moduleNameMapper": {
       ".+\\.(css|styl|less|sass|scss)$": "identity-obj-proxy",
       ".+\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/jest/__mocks__/file-mock.js",
-      "@/(.*)": "<rootDir>/src/$1"
+      "@/(.*)": "<rootDir>/src/$1",
+      "^gatsby-page-utils/(.*)$": "<rootDir>/node_modules/gatsby-page-utils/dist/$1"
     },
     "rootDir": ".",
     "setupFiles": [
@@ -169,6 +183,7 @@
     "testPathIgnorePatterns": [
       "<rootDir>/jest/__mocks__/*",
       "node_modules",
+      "src/__stories__/*",
       "src/__tests__/test-utils.tsx",
       "\\.cache",
       "<rootDir>.*/public"
@@ -203,10 +218,12 @@
   },
   "scripts": {
     "build": "gatsby build --prefix-paths",
+    "build-storybook": "build-storybook",
     "clean": "gatsby clean",
     "deploy": "aws s3 rm s3://public.aitmed.com/static/web/latest/ --recursive && aws s3 cp public/ s3://public.aitmed.com/static/web/latest/ --recursive",
     "serve": "gatsby serve -p 3000",
     "start": "gatsby develop -p 3000",
+    "storybook": "start-storybook -p 3005",
     "test": "jest",
     "test:watch": "jest --watch"
   },
