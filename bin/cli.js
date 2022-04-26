@@ -70,6 +70,7 @@ const cli = meow(getHelp(), {
     build: { type: 'string' },
     bundle: { type: 'string' },
     stats: { type: 'boolean' },
+    test: { type: 'string' },
     types: { alias: 't', type: 'boolean' },
   },
 })
@@ -82,15 +83,24 @@ const scriptUtils = { del, exec, fg, fs, flags, log, path, u }
 
 ;(async () => {
   try {
-    if (flags.start || flags.build) {
-      const pkg = flags.start || flags.build
+    if (flags.start || flags.build || flags.test) {
+      const pkg = flags.start || flags.build || flags.test
       const isBuild = flags.build && !flags.start
+      const isTest = flags.test && !(flags.start && flags.build)
 
       if (/static|homepage/i.test(pkg)) {
-        const command = isBuild ? 'build' : 'start'
+        const command = isBuild ? 'build' : isTest ? 'test:watch' : 'start'
         let cmd = `lerna exec --scope homepage \"`
-        if (flags.config) cmd += `npx cross-env CONFIG=${flags.config} `
-        if (flags.clean) cmd += `gatsby clean && `
+        if (!isTest) {
+          if (flags.config) cmd += `npx cross-env CONFIG=${flags.config} `
+          if (flags.clean) cmd += `gatsby clean && `
+        }
+        cmd += `npm run ${command}`
+        cmd += `\"`
+        exec(cmd)
+      } else if (/builder/i.test(pkg)) {
+        const command = isBuild ? 'build' : isTest ? 'test' : 'start'
+        let cmd = `lerna exec --scope noodl-builder \"`
         cmd += `npm run ${command}`
         cmd += `\"`
         exec(cmd)

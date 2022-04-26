@@ -5,11 +5,10 @@ import NoodlProperty from './Property'
 import is from './utils/is'
 import typeOf from './utils/typeOf'
 import { nkey } from './constants'
+import * as fp from './utils'
 
-class NoodlObject<
-  O extends Record<string, any> = Record<string, any>,
-> extends NoodlBase {
-  #value = new Map<string, NoodlValue<any> | undefined>()
+class NoodlObject extends NoodlBase {
+  #value = new Map<string, NoodlProperty<any> | undefined>()
 
   static is(value: any): value is NoodlObject {
     return value && typeof value === 'object' && value instanceof NoodlObject
@@ -41,23 +40,15 @@ class NoodlObject<
     if (NoodlString.is(property) && !property.getValue()) {
       throw new Error(`Cannot create property using an empty NoodlString`)
     }
-    this.#value.set(
-      typeof property == 'string' ? property : (property.getValue() as string),
-      value !== undefined
-        ? !NoodlValue.is(value)
-          ? new NoodlValue(value)
-          : value
-        : undefined,
-    )
+    const key = this.unwrapProperty(property)
+    const prop = key ? new NoodlProperty(key, this) : undefined
+    if (value !== undefined) prop?.setValue(value)
+    this.#value.set(key, prop)
     return this
   }
 
-  getProperty(
-    property: string | NoodlString<string>,
-  ): NoodlValue<any> | undefined {
-    const key = this.unwrapProperty(property)
-    if (!key) return undefined
-    return this.#value.get(key)
+  getProperty(property: string | NoodlString<string>) {
+    return this.#value.get(this.unwrapProperty(property))
   }
 
   hasProperty(property: string | NoodlString<string>) {
@@ -119,9 +110,13 @@ class NoodlObject<
     return this
   }
 
+  isEmpty() {
+    return !!Object.keys(this.#value)?.length
+  }
+
   toKey(value: string | NoodlString<string>) {
     if (typeof value === 'string') return value
-    return value.getValue()
+    return is.node(value) ? value.getValue() : String(value)
   }
 
   build() {

@@ -1,12 +1,12 @@
 import type { ComponentObject, PageObject } from 'noodl-types'
 import NoodlObject from './Object'
 
-class Page extends NoodlObject<PageObject> {
+class Page extends NoodlObject {
   components: undefined | ComponentObject[]
   init: undefined | any[]
 
   create(name: string) {
-    const pageObject = super.create(name, {})
+    const pageObject = super.createProperty(name, {})
     return pageObject
   }
 

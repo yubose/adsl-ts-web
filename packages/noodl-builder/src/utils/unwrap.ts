@@ -1,12 +1,28 @@
 import NoodlBase from '../Base'
-import NoodlProperty from '../Property'
-import NoodlString from '../String'
+import is from './is'
 
-function unwrap<O extends NoodlBase>(value: O) {
-  if (NoodlProperty.is(value) || NoodlString.is(value)) {
-    return value.getValue()
+function unwrap(value: unknown) {
+  if (is.node(value)) {
+    if (is.stringNode(value)) {
+      return value.getValue()
+    }
+
+    if (is.valueNode(value)) {
+      return value.getValue()
+    }
+
+    if (is.propertyNode(value)) {
+      return value.build()
+    }
+
+    if (is.arrayNode(value) || is.objectNode(value)) {
+      return value.build()
+    }
   }
-  return String(value)
+
+  console.log({ value })
+
+  return value === undefined ? value : String(value)
 }
 
 export default unwrap

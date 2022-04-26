@@ -4,4 +4,5 @@ export const nkey = {
   string: '__string__',
   property: '__property__',
   object: '__object__',
+  array: '__array__',
 } as const

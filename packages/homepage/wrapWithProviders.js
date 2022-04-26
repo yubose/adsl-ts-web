@@ -1,11 +1,12 @@
 import React from 'react'
 import { Helmet } from 'react-helmet'
 import { injectGlobal } from '@emotion/css'
-import { css, ThemeProvider } from '@emotion/react'
+import { ThemeProvider } from 'theme-ui'
+import { css } from '@emotion/react'
 import AppProvider from './src/AppProvider'
 import favicon from './src/resources/favicon.ico'
+import theme from './src/theme'
 
-const theme = {}
 const timestamp = new Date().toISOString()
 
 injectGlobal(

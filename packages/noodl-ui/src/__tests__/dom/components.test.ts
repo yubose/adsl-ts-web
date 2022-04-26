@@ -56,7 +56,7 @@ describe(nc.coolGold('components'), () => {
               ui.button({
                 id: 'b',
                 text: `Go to Donut page`,
-                onClick: [ui.gotoObject('Donut')],
+                onClick: [ui.goto('Donut')],
               }),
               ui.divider({ id: 'divider' }),
               ui.label({

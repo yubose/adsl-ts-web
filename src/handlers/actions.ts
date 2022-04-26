@@ -415,7 +415,7 @@ const createActions = function createActions(app: App) {
       }
 
       log.grey(`Goto info`, {
-        gotoObject: { goto },
+        goto: { goto },
         destinationParam,
         isSamePage,
         pageModifiers,

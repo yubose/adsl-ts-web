@@ -1,44 +1,50 @@
 import * as u from '@jsmanifest/utils'
 import React from 'react'
 import produce, { Draft } from 'immer'
-import merge from 'lodash/merge'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import { trimReference } from 'noodl-utils'
 import is from '@/utils/is'
 import log from '@/utils/log'
+import { FALLBACK_PAGE_NAME } from '../constants'
+import * as t from '@/types'
 
-function useRootObject<Root extends Record<string, any>>(
-  initialState = {} as Root,
+export interface UseRootObjectOptions<
+  O extends Record<string, any> = Record<string, any>,
+> {
+  initialRoot?: Partial<t.RootObjectContext<O>>
+}
+
+function useRootObject<O extends Record<string, any>>(
+  initialRoot = {} as O & UseRootObjectOptions['initialRoot'],
 ) {
-  const [root, setRoot] = React.useState(initialState)
+  const [root, setRoot] = React.useState<t.RootObjectContext>({
+    ...initialRoot,
+    Global: { ...initialRoot?.Global },
+  })
 
-  const setInRoot = React.useCallback(
+  const setR = React.useCallback(
     (
       stateOrSetter:
-        | ((draft: Draft<typeof initialState>) => void)
-        | Partial<typeof initialState>,
+        | ((draft: Draft<typeof initialRoot>) => void)
+        | Partial<typeof initialRoot>,
     ) => {
       setRoot(
         produce((draft) => {
           if (u.isFnc(stateOrSetter)) {
             stateOrSetter(draft)
           } else {
-            merge(draft, stateOrSetter)
+            u.merge(draft, stateOrSetter)
           }
         }),
       )
     },
-    [root],
+    [root, setRoot],
   )
 
-  const getInRoot = React.useCallback(
-    (
-      keyOrRoot: string | Draft<Root> | Root,
-      keyOrPageName = '',
-      pageName = '',
-    ) => {
-      let _root: Root
+  const getR = React.useCallback(
+    (keyOrRoot: string | Draft<O> | O, keyOrPageName = '', pageName = '') => {
+      let _root: O
       let _key = ''
       let _pageName = ''
 
@@ -54,16 +60,16 @@ function useRootObject<Root extends Record<string, any>>(
 
       if (u.isStr(_key)) {
         let result: any
+
         _pageName =
           _pageName ||
-          (typeof window !== 'undefined'
+          (u.isBrowser()
             ? location.pathname.replace(/\//g, '')
-            : 'HomePage')
+            : FALLBACK_PAGE_NAME)
 
         if (is.reference(_key)) {
           const path = trimReference(_key)
           const paths = path.split('.')
-
           const dataObject = is.localReference(_key) ? _root[_pageName] : _root
 
           if (!has(dataObject, paths)) {
@@ -90,10 +96,12 @@ function useRootObject<Root extends Record<string, any>>(
     [root],
   )
 
+  console.log('update')
+
   return {
     root,
-    getInRoot,
-    setInRoot,
+    getR,
+    setR,
   }
 }
 

@@ -8,3 +8,5 @@ export type EcosDocPreset =
   | 'pdf'
   | 'text'
   | 'video'
+
+export type Path = (string | number)[]

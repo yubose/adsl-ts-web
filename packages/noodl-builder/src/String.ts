@@ -23,16 +23,16 @@ class NoodlString<S extends string> extends NoodlValue<S> {
   }
 
   getValue() {
-    return this.#value?.getValue()
+    return this.#value === undefined ? this.#value : this.#value.getValue()
   }
 
   setValue(value: any) {
     if (value === undefined) {
       this.#value = undefined
     } else {
-      this.#value = NoodlString.is(value)
+      this.#value = is.stringNode(value)
         ? new NoodlValue(value.getValue())
-        : NoodlValue.is(value)
+        : is.valueNode(value)
         ? value
         : new NoodlValue(toString(value))
     }

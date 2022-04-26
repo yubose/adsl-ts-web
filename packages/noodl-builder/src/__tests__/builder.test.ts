@@ -1,11 +1,13 @@
-import * as u from '@jsmanifest/utils'
 import { expect } from 'chai'
 import Builder from '../Builder'
 import NoodlValue from '../Value'
 import NoodlString from '../String'
+import NoodlArray from '../Array'
 import NoodlObject from '../Object'
 import NoodlProperty from '../Property'
 import is from '../utils/is'
+import setIn from '../utils/setIn'
+import * as fp from '../utils/fp'
 
 describe(`builder.test.ts`, () => {
   describe(`NoodlValue`, () => {
@@ -108,8 +110,81 @@ describe(`builder.test.ts`, () => {
       value.setKey('greeting')
       value.setValue('hello')
       const result = value.build()
-      expect(u.keys(result)).to.have.lengthOf(1)
+      expect(Object.keys(result)).to.have.lengthOf(1)
       expect(result).to.have.property('greeting', 'hello')
+    })
+  })
+
+  describe(`NoodlArray`, () => {
+    it(`[is] should return true if value is NoodlArray`, () => {
+      expect(NoodlArray.is(new NoodlArray())).to.be.true
+    })
+
+    it(`[is] should return false if value is not NoodlArray`, () => {
+      expect(NoodlArray.is('hello')).to.be.false
+    })
+
+    it(`[add] should add the value as a node`, () => {
+      const arr = new NoodlArray()
+      arr.add('hello')
+      expect(arr.getValue(0)).to.be.instanceOf(NoodlString)
+      expect(arr.getValue(0).getValue()).to.eq('hello')
+    })
+
+    it(`[setValue] should set the value at the index position`, () => {
+      const arr = new NoodlArray()
+      expect(arr.build()).to.deep.eq([])
+      arr.setValue(5, 'hello')
+      expect(arr.build()).to.deep.eq([
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'hello',
+      ])
+      arr.setValue(3, {})
+      arr.setValue(1, 'hello')
+      arr.setValue(5, 'pop')
+      arr.setValue(6, [{ hi: 'hi' }])
+      expect(arr.build()).to.deep.eq([
+        undefined,
+        'hello',
+        undefined,
+        {},
+        undefined,
+        'pop',
+        [{ hi: 'hi' }],
+      ])
+    })
+
+    it(`[setValue] should set array values as NoodlArray`, () => {
+      const arr = new NoodlArray()
+      arr.setValue(2, [{}])
+      expect(arr.getValue(2)).to.be.instanceOf(NoodlArray)
+    })
+
+    it(`[setValue] should set object values as NoodlObject`, () => {
+      const arr = new NoodlArray()
+      arr.setValue(10, {})
+      expect(arr.getValue(10)).to.be.instanceOf(NoodlObject)
+    })
+
+    for (const type of ['number', 'null', 'boolean']) {
+      it(`should set ${type} values as NoodlValue`, () => {
+        const arr = new NoodlArray()
+        arr.setValue(
+          2,
+          type === 'number' ? 22 : type === 'boolean' ? false : null,
+        )
+        expect(arr.getValue(2)).to.be.instanceOf(NoodlValue)
+      })
+    }
+
+    it(`[setValue] should set string values as NoodlString`, () => {
+      const arr = new NoodlArray()
+      arr.setValue(2, 'hello')
+      expect(arr.getValue(2)).to.be.instanceOf(NoodlString)
     })
   })
 
@@ -153,7 +228,7 @@ describe(`builder.test.ts`, () => {
     it(`[getValue] should return the value of the property`, () => {
       const value = new NoodlObject()
       value.createProperty('a', 'hello')
-      expect(is.valueNode(value.getValue('a'))).to.be.true
+      expect(is.propertyNode(value.getValue('a'))).to.be.true
       expect(value.getValue('a')?.getValue()).to.eq('hello')
     })
 
@@ -180,6 +255,25 @@ describe(`builder.test.ts`, () => {
       expect(value.getValue('hello')).to.be.instanceOf(NoodlValue)
       console.log(value.getValue('hello'))
       expect(value.unwrapProperty(value.getValue('hello'))).to.eq(100)
+    })
+
+    describe.skip(`when using getProperty`, () => {
+      it(`[getProperty] should return a NoodlProperty`, () => {
+        const value = new NoodlObject()
+        value.createProperty('hello', 100)
+        expect(value.getProperty('hello')).to.be.instanceOf(NoodlProperty)
+        console.log(value.getProperty('hello')?.toJSON())
+      })
+
+      it(`[getProperty] should set the parent`, () => {
+        const value = new NoodlObject()
+        value.createProperty('hello', 100)
+        expect(value.getProperty('hello')?.parent).to.eq(value)
+      })
+    })
+
+    it(`[getProperty] should return `, () => {
+      //
     })
 
     it(`[build] should build into an evalObject`, () => {

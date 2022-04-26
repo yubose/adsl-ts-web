@@ -60,7 +60,7 @@ describe(u.italic(`createActionChain`), () => {
       [
         ui.pageJump(),
         ui.emitObject(),
-        ui.gotoObject(),
+        ui.goto(),
         ui.builtIn({ funcName: 'too' } as any),
         ui.refresh(),
         ui.saveObject(),
@@ -131,7 +131,7 @@ describe(u.italic(`createActionChain`), () => {
         [
           ui.pageJump(),
           ui.emitObject(),
-          ui.gotoObject(),
+          ui.goto(),
           ui.builtIn('too'),
           ui.refresh(),
           ui.saveObject(),

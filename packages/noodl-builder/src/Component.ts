@@ -1,9 +1,9 @@
 import type { ComponentObject } from 'noodl-types'
 import NoodlObject from './Object'
 
-class ComponentBuilder extends NoodlObject<ComponentObject> {
+class ComponentBuilder extends NoodlObject {
   create(type: string) {
-    super.create('type', type)
+    super.createProperty('type', type)
     return this
   }
 }

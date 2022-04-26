@@ -1,6 +1,8 @@
 import NoodlBase from './Base'
 import NoodlString from './String'
 import NoodlValue from './Value'
+import createNode from './utils/createNode'
+import is from './utils/is'
 import { nkey } from './constants'
 
 class NoodlProperty<K extends string> extends NoodlBase {
@@ -11,8 +13,8 @@ class NoodlProperty<K extends string> extends NoodlBase {
     return !!(value && value instanceof NoodlProperty)
   }
 
-  constructor(key?: K) {
-    super()
+  constructor(key?: K, parent?: NoodlBase) {
+    super(parent)
     this.setKey(key)
 
     Object.defineProperty(this, '__ntype', {
@@ -24,9 +26,13 @@ class NoodlProperty<K extends string> extends NoodlBase {
   }
 
   setKey(key: string | NoodlString<string> | undefined) {
-    if (typeof key !== 'string' && key !== undefined) {
+    if (
+      typeof key !== 'string' &&
+      typeof key !== 'number' &&
+      key !== undefined
+    ) {
       throw new Error(
-        `Cannot set key of type "${typeof key}". Expect string, undefined, or NoodlString`,
+        `Cannot set key of type "${typeof key}". Expect string, number, undefined, or NoodlString`,
       )
     }
     if (NoodlString.is(key)) {
@@ -44,12 +50,12 @@ class NoodlProperty<K extends string> extends NoodlBase {
   }
 
   setValue(value: any) {
-    this.#value = NoodlValue.is(value) ? value : new NoodlValue(value)
+    this.#value = createNode(value)
     return this
   }
 
   getValue() {
-    return this.#value
+    return is.node(this.#value) ? this.#value.getValue() : this.#value
   }
 
   toJSON() {

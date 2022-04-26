@@ -128,7 +128,8 @@ export function getPresetPageObjects() {
               }),
               ui.button({
                 text: `Go to Donut page`,
-                onClick: [ui.gotoObject('Donut')],
+                // @ts-expect-error
+                onClick: [ui.goto('Donut')],
               }),
               ui.divider({ id: 'divider' }),
               ui.label({
@@ -202,7 +203,7 @@ export function getPresetPageObjects() {
                             onClick: [
                               ui.emitObject(),
                               ui.evalObject({
-                                object: async () => ui.gotoObject('Cloud'),
+                                object: async () => ui.goto('Cloud'),
                               }),
                               ui.popUp('abc'),
                               ui.builtIn({
@@ -221,7 +222,8 @@ export function getPresetPageObjects() {
           }),
           ui.button({
             text: 'Submit',
-            onClick: [ui.emitObject(), ui.evalObject(), ui.gotoObject('Abc')],
+            // @ts-expect-error
+            onClick: [ui.emitObject(), ui.evalObject(), ui.goto('Abc')],
           }),
           ui.textField({ dataKey: `..icon`, placeholder: `Icon URL` }),
         ],

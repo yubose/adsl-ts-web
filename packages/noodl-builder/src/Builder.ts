@@ -1,8 +1,8 @@
 import ActionBuilder from './Action'
 import ComponentBuilder from './Component'
-import ObjectBuilder from './Object'
+import NoodlObject from './Object'
 import PageBuilder from './Page'
-import EcosDocBuilder from './EcosDoc'
+import EcosDoc from './EcosDoc'
 import type NoodlBase from './Base'
 import type { EcosDocPreset } from './types'
 
@@ -10,15 +10,15 @@ class Builder {
   #nodes = new Map<number, NoodlBase>()
   #action: ActionBuilder
   #component: ComponentBuilder
-  #ecosDoc: EcosDocBuilder
-  #object: ObjectBuilder
+  #ecosDoc: typeof EcosDoc
+  #object: typeof NoodlObject
   #page: PageBuilder
 
   constructor() {
     this.#action = new ActionBuilder()
     this.#component = new ComponentBuilder()
-    this.#ecosDoc = new EcosDocBuilder()
-    this.#object = new ObjectBuilder()
+    this.#ecosDoc = EcosDoc
+    this.#object = NoodlObject
     this.#page = new PageBuilder()
   }
 
@@ -33,13 +33,13 @@ class Builder {
   }
 
   ecosDoc(preset?: EcosDocPreset) {
-    const ecosDoc = this.#ecosDoc.create()
+    const ecosDoc = new this.#ecosDoc()
     if (preset) ecosDoc.usePreset(preset)
     return ecosDoc
   }
 
   object() {
-    const object = this.#object.create()
+    const object = new this.#object()
     return object
   }
 

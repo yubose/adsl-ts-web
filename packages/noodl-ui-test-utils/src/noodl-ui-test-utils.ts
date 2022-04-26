@@ -1,6 +1,8 @@
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
 import type { PartialDeep } from 'type-fest'
 import type {
+  ActionObject,
   BuiltInActionObject,
   ButtonComponentObject,
   CanvasComponentObject, // 9
@@ -46,11 +48,6 @@ import type {
 } from 'noodl-types'
 import type { ComponentProps } from './utils'
 import { createActionObject_next, createComponentObject } from './utils'
-import ecosJpgDoc from './fixtures/jpg.json'
-import ecosNoteDoc from './fixtures/note.json'
-import ecosPdfDoc from './fixtures/pdf.json'
-import ecosPngDoc from './fixtures/png.json'
-import ecosTextDoc from './fixtures/text.json'
 
 export { default as actionFactory } from './factories/action'
 export { default as componentFactory } from './factories/component'
@@ -66,7 +63,7 @@ export function getBuiltInAction(obj?: string | Partial<BuiltInActionObject>) {
 export function getEvalObjectAction(
   obj?: EvalActionObject['object'] | Partial<EvalActionObject>,
 ): EvalActionObject {
-  !obj && (obj = { actionType: 'evalObject', object: getIfObject() })
+  !obj && (obj = { actionType: 'evalObject' })
   !('actionType' in obj) &&
     (obj = { actionType: 'evalObject', object: obj['object'] })
   // @ts-expect-error

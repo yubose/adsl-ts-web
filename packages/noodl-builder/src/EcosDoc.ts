@@ -4,7 +4,7 @@ import type NoodlString from './String'
 import type { EcosDocPreset } from './types'
 import NoodlObject from './Object'
 
-class EcosDocBuilder extends NoodlObject<EcosDocument> {
+class EcosDocBuilder extends NoodlObject {
   createProperty(
     property:
       | LiteralUnion<keyof EcosDocument<any, any>, string>

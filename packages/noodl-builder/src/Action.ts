@@ -1,9 +1,8 @@
-import type { ActionObject } from 'noodl-types'
 import NoodlObject from './Object'
 
-class Action extends NoodlObject<ActionObject> {
+class Action extends NoodlObject {
   create(actionType: string) {
-    super.create('actionType', actionType)
+    super.createProperty('actionType', actionType)
     return this
   }
 }
