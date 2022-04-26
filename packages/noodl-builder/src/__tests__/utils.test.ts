@@ -5,6 +5,7 @@ import NoodlString from '../String'
 import NoodlObject from '../Object'
 import NoodlProperty from '../Property'
 import is from '../utils/is'
+import setIn from '../utils/setIn'
 import * as fp from '../utils/fp'
 
 describe(`utils`, () => {
@@ -87,7 +88,7 @@ describe(`utils`, () => {
     it(`should set the value`, () => {
       const path = 'hello.hi.3.no.yes[1].hehe'
       const value = { hello: 'hi' }
-      const obj = {}
+      const obj = {} as Record<string, any>
       fp.set(obj, path, value)
       expect(obj).to.have.property('hello').not.to.be.an('array')
       expect(obj.hello)
