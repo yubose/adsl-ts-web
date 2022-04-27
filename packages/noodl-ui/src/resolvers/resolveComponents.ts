@@ -14,11 +14,8 @@ import is from '../utils/is'
 import {
   findIteratorVar,
   findListDataObject,
-<<<<<<< HEAD
   getListAttribute,
-=======
   getByRef,
->>>>>>> dev2
   isListConsumer,
   isListLike,
   resolveAssetUrl,
