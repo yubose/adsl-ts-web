@@ -5,10 +5,8 @@ import type { ActionChainStatus } from 'noodl-action-chain'
 import type { NUIAction, NUIActionObject, NUITrigger } from 'noodl-ui'
 import type useRootObject from './hooks/useRootObject'
 
-export type RootObjectContext<
-  O extends Record<string, any> = Record<string, any>,
-> = {
-  Global: Record<string, any>
+export type RootObject<O extends Record<string, any> = Record<string, any>> = {
+  Global: Record<LiteralUnion<'currentUser', string>, any>
   Style?: nt.StyleObject
 } & O
 

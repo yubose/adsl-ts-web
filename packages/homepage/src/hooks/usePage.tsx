@@ -3,7 +3,6 @@ import React from 'react'
 import type { PageProps as GatsbyPageProps } from 'gatsby'
 import type { PageContext, StaticComponentObject } from '@/types'
 import useRenderer from './useRenderer'
-import useCtx from '@/useCtx'
 
 function usePage({
   pageContext,
@@ -11,7 +10,6 @@ function usePage({
 }: GatsbyPageProps & {
   pageContext: PageContext
 }) {
-  const { root } = useCtx()
   const renderer = useRenderer()
 
   const render = (c: StaticComponentObject | string, index: number) => {

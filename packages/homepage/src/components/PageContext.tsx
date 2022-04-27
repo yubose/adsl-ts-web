@@ -27,7 +27,10 @@ function PageContext({
   slug,
 }: React.PropsWithChildren<PageContextProps>) {
   const { root } = useCtx()
-  const ctxLists = React.useMemo(() => u.values(lists), [lists, pageObject])
+  const ctxLists = React.useMemo(
+    () => u.values(lists || {}),
+    [lists, pageObject],
+  )
 
   const getListsCtxObject = React.useCallback(
     (idOrComponent: string | t.StaticComponentObject) => {

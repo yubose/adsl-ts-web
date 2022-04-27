@@ -8,7 +8,9 @@ import PageContext from '@/components/PageContext'
 import type useActionChain from '@/hooks/useActionChain'
 import type useBuiltInFns from '@/hooks/useBuiltInFns'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
+import { usePageCtx } from '@/components/PageContext'
 import useRootObject from '@/hooks/useRootObject'
+import useRenderer from '@/hooks/useRenderer'
 import createRendererFactory from '@/utils/createRenderer'
 import getElementProps from '@/utils/getElementProps'
 import is from '@/utils/is'
@@ -40,16 +42,13 @@ export type AppTestRenderOptions = Partial<
   static?: { images?: any[] }
 }
 
-export function renderComponent(
-  component:
-    | Partial<React.ReactElement>
-    | Partial<t.StaticComponentObject>
-    | string,
+export function render(
+  component: Partial<t.StaticComponentObject> | string,
   {
     builtIns,
     createActionChain,
     pageName = 'HomePage',
-    root: rootProp = {},
+    root: rootProp = { Global: {} },
     ...renderOptions
   }: Omit<RenderOptions, 'wrapper'> & AppTestRenderOptions = {},
 ) {
@@ -68,37 +67,28 @@ export function renderComponent(
   }
 
   const pageContext = {
-    isPreload: false,
     pageName,
     pageObject: rootProp[pageName],
+    lists: {},
+    refs: {},
     slug: `/${pageName}/`,
-    _context_: { lists: {} },
-    static: { images: [] },
   } as t.PageContext
 
   const Component = () => {
-    const { root, getR, setR } = useRootObject(rootProp)
+    const pageCtx = usePageCtx()
+    const render = useRenderer()
 
     let node: React.ReactElement | undefined
 
     if (React.isValidElement(component)) {
       node = component
     } else {
-      const renderComponent = createRendererFactory({
-        root,
-        getR,
-        setR,
-        _context_: pageContext._context_,
-        builtIns,
-        createActionChain,
-        pageName: pageContext.pageName,
-        static: { images: [] },
-      })(getElementProps)
-
       node = (
         <>
           {u.array(component).map((c, i) => (
-            <React.Fragment key={i}>{renderComponent(c)}</React.Fragment>
+            <React.Fragment key={i}>
+              {render(c, [pageName, 'components', i])}
+            </React.Fragment>
           ))}
         </>
       )
@@ -109,7 +99,6 @@ export function renderComponent(
 
   return originalRender(<Component />, {
     wrapper: getAllProviders({ pageContext }),
-    static: { ...renderOptions?.static, images: [] },
     ...renderOptions,
   })
 }
