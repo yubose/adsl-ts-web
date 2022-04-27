@@ -401,7 +401,6 @@ class NDOM extends NDOMInternal {
         (currentHooks.createComponent = hooks.createComponent)
       hooks.emit && (currentHooks.emit = hooks.emit)
       hooks.if && (currentHooks.if = hooks.if)
-      hooks.reference && (currentHooks.reference = hooks.reference)
       hooks.setup && (currentHooks.setup = hooks.setup)
     }
     // REMINDER: The value of this page's "requesting" is empty at this moment
@@ -481,7 +480,6 @@ class NDOM extends NDOMInternal {
         (currentHooks.createComponent = hooks.createComponent)
       hooks.emit && (currentHooks.emit = hooks.emit)
       hooks.if && (currentHooks.if = hooks.if)
-      hooks.reference && (currentHooks.reference = hooks.reference)
       hooks.setup && (currentHooks.setup = hooks.setup)
     }
 

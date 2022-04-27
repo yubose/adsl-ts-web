@@ -561,26 +561,15 @@ const NUI = (function () {
           if (nt.Identify.reference(value)) {
             // Do one final check for the "get" method, since some custom getters are defined on component.get() even though it returns the same component object when using component.props
             if (nt.Identify.reference(c.get(key))) {
-              if (on?.reference) {
-                c.edit({
-                  [key]: on.reference({
-                    component: c,
-                    page,
-                    key,
-                    value: c.get(key),
-                  }),
-                })
-              } else {
-                log.debug(
-                  `%cEncountered an unparsed reference value "${value}" for key "${key}"`,
-                  `color:#ec0000;`,
-                  c,
-                )
-                key === 'data-value' &&
-                  (nt.Identify.rootReference(value) ||
-                    nt.Identify.localReference(value)) &&
-                  c.edit({ [key]: '' })
-              }
+              log.debug(
+                `%cEncountered an unparsed reference value "${value}" for key "${key}"`,
+                `color:#ec0000;`,
+                c,
+              )
+              key === 'data-value' &&
+                (nt.Identify.rootReference(value) ||
+                  nt.Identify.localReference(value)) &&
+                c.edit({ [key]: '' })
             }
           }
         }
@@ -600,47 +589,39 @@ const NUI = (function () {
       let componentObject = componentsList[index]
       // { components: ['.BaseHeader'] }
       if (u.isStr(componentObject) && nt.Identify.reference(componentObject)) {
-        componentObject = i.useFuncOrValue({
-          fn: on?.reference,
-          args: { page, value: componentObject },
-          value: i.defaultResolveReference(
-            o.getRoot,
-            page.page,
-            componentObject,
-          ),
-        })
+        componentObject = i.defaultResolveReference(
+          o.getRoot,
+          page.page,
+          componentObject,
+        )
       }
       // { components: [{ '.BaseHeader': '', style:{ shadow:'true' } }] }
       if (u.isObj(componentObject) && !componentObject.type) {
         const keys = u.keys(componentObject)
         const refKey = keys.find((key) => nt.Identify.reference(key))
         if (refKey) {
-          componentObject = i.useFuncOrValue({
-            fn: on?.reference,
-            args: { page, value: componentObject },
-            value: i.defaultResolveReference(
-              o.getRoot,
-              page.page,
-              refKey as any,
-            ),
-          })
+          componentObject = i.defaultResolveReference(
+            o.getRoot,
+            page.page,
+            refKey as any,
+          )
         }
       }
       const { component: resolvedComponent, options } = await xform(
         o.createComponent(componentObject, page as NuiPage),
         { callback, context, on, page, ...otherOpts },
       )
-      if (on?.resolved) {
-        const fn = on.resolved({
-          components: componentsList,
-          component: resolvedComponent,
-          context,
-          index,
-          options,
-          page,
-        })
-        if (u.isPromise(fn)) await fn
-      }
+      // if (on?.resolved) {
+      //   const fn = on.resolved({
+      //     components: componentsList,
+      //     component: resolvedComponent,
+      //     context,
+      //     index,
+      //     options,
+      //     page,
+      //   })
+      //   if (u.isPromise(fn)) await fn
+      // }
       resolvedComponents.push(resolvedComponent)
     }
     return (
@@ -1294,8 +1275,6 @@ const NUI = (function () {
           } else if (key === 'emit') {
             //
           } else if (key === 'page') {
-            //
-          } else if (key === 'reference') {
             //
           } else if (key === 'setup') {
             //
