@@ -1013,6 +1013,7 @@ const NUI = (function () {
                       page: opts.page,
                       listDataObject: dataObject,
                     }),
+                    //@ts-expect-error
                     { iteratorVar,listAttribute},
                   )
                   
