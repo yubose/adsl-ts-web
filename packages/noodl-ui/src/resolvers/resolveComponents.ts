@@ -14,11 +14,8 @@ import is from '../utils/is'
 import {
   findIteratorVar,
   findListDataObject,
-<<<<<<< HEAD
-  getListAttribute,
-=======
   getByRef,
->>>>>>> dev2
+  getListAttribute,
   isListConsumer,
   isListLike,
   resolveAssetUrl,
@@ -120,10 +117,8 @@ componentResolver.setResolver(async (component, options, next) => {
           component.edit(
             'listObject',
             resolveReference({
-              component: opts.component,
               localKey: pageName,
               root: opts.getRoot(),
-              key: 'listObject',
               page,
               value: listObject,
             }),
@@ -381,9 +376,11 @@ componentResolver.setResolver(async (component, options, next) => {
               if (iteratorVar && item?.dataKey.startsWith(iteratorVar)) {
                 const dataKey = excludeIteratorVar(item?.dataKey, iteratorVar)
                 item.text = dataKey ? get(dataObject, dataKey) : dataObject
-              }else if(iteratorVar && item?.dataKey.startsWith('listAttr')){
+              } else if (iteratorVar && item?.dataKey.startsWith('listAttr')) {
                 const dataKey = excludeIteratorVar(item?.dataKey, 'listAttr')
-                item.text = dataKey ? get(listAttribute, dataKey) : listAttribute
+                item.text = dataKey
+                  ? get(listAttribute, dataKey)
+                  : listAttribute
               } else {
                 const dataObject = findDataValue(
                   [() => getRoot(), () => getRoot()[page.page]],
@@ -530,6 +527,7 @@ componentResolver.setResolver(async (component, options, next) => {
   }
 
   u.isObj(mergingProps) && component.edit(mergingProps)
+
   return next?.()
 })
 

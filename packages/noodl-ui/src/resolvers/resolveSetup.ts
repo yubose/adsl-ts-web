@@ -38,7 +38,7 @@ setupResolver.setResolver(
           }
 
           if (u.isStr(value)) {
-            if (nt.Identify.pageComponentUrl(value)) {
+            if (is.pageComponentUrl(value)) {
               return resolvePageComponentUrl({
                 component,
                 page,
@@ -49,37 +49,18 @@ setupResolver.setResolver(
                 root: getRoot,
               })
             }
-
-            if (nt.Identify.reference(value)) {
-              if (on?.reference) {
-                return on.reference({ component, page, key, value })
-              }
-              return resolveReference?.(key, value)
-            }
-          } else if (nt.Identify.if(value)) {
+            if (is.reference(value)) return resolveReference?.(key, value)
+          } else if (is.if(value)) {
             if (on?.if) {
               value = on.if({ component, page, key, value })
                 ? value.if?.[1]
                 : value.if?.[2]
-
-              if (nt.Identify.reference(value)) {
-                if (on?.reference) {
-                  return on.reference({ component, page, key, value })
-                }
-                return resolveReference?.(key, value)
-              }
-
+              if (is.reference(value)) return resolveReference?.(key, value)
               return value
             }
 
             value = i.defaultResolveIf(value)
-
-            if (nt.Identify.reference(value)) {
-              if (on?.reference) {
-                return on.reference({ component, page, key, value })
-              }
-              return resolveReference?.(key, value)
-            }
+            if (is.reference(value)) return resolveReference?.(key, value)
 
             return value
           } else if (!this) return origGet?.(key)
@@ -137,7 +118,7 @@ setupResolver.setResolver(
             datasetKey = trigger = prop
           }
 
-          if (nt.Identify.folds.emit(original[trigger])) {
+          if (is.folds.emit(original[trigger])) {
             const actionChain = createActionChain(trigger, [
               { emit: original[trigger].emit, actionType: 'emit' },
             ])

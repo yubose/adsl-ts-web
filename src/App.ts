@@ -1,6 +1,6 @@
 import Logger from 'logsnap'
 import type { ActionChainIteratorResult } from 'noodl-action-chain'
-import { Account } from '@aitmed/cadl'
+import { Account, subscribeToRefs } from '@aitmed/cadl'
 import type { CADL } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
 import cloneDeep from 'lodash/cloneDeep'
@@ -587,6 +587,10 @@ class App {
           await this.navigate(this.mainPage, startPage)
         }
       }
+
+      // subscribeToRefs(({ key, isLocal, parent, path, ref, result }) => {
+      //   console.log(`[App] Ref`, { key, isLocal, path, ref, result })
+      // })
 
       this.#state.initialized = true
     } catch (error) {

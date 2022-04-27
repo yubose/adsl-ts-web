@@ -24,6 +24,91 @@ beforeEach(() => {
 })
 
 describe(u.yellow(`resolveSetup`), () => {
+  describe(`when resolving traversal references`, () => {
+    let ref1: nt.ReferenceString
+    let ref2: nt.ReferenceString
+    let baseCheckViewButton: nt.ComponentObject
+    let pageComponents: nt.ComponentObject[]
+
+    beforeEach(() => {
+      ref1 = '_____.colorChange' as nt.ReferenceString
+      ref2 = '____.viewTag' as nt.ReferenceString
+      baseCheckViewButton = {
+        type: 'button',
+        text: 'OK',
+        style: {
+          get color() {
+            return ref1
+          },
+          border: {
+            style: '3',
+            get color() {
+              return ref1
+            },
+          },
+          borderWidth: '3',
+        },
+      }
+      pageComponents = [
+        {
+          type: 'view',
+          colorChange: '0x2000e6',
+          viewTag: 'redTag',
+          children: [
+            {
+              type: 'popUp',
+              message: 'Please add a facility',
+              colorChange: '0x2988e6',
+              style: { colorChange: '0x1111e6', backgroundColor: '0xffffff00' },
+              children: [
+                {
+                  type: 'view',
+                  id: 'a',
+                  style: {
+                    border: { style: '3' },
+                    borderColor: '#f4f8fa',
+                    borderWidth: '3',
+                  },
+                  children: [
+                    {
+                      ...baseCheckViewButton,
+                      id: 'tp',
+                      viewTag: '_______.viewTag',
+                      onClick: [
+                        {
+                          actionType: 'popUpDismiss',
+                          popUpView: 'disTag',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]
+    })
+
+    it(`should not cause an infinite loop when the value can't be found`, async () => {
+      await nui.resolveComponents({
+        components: [ui.image({ style: { fontSize: '_____.topo' } })],
+      })
+      expect(true).to.be.true
+    })
+
+    // TODO - fix
+    it.only(`should resolve the traversal reference`, async () => {
+      process.stdout.write('\x1Bc')
+      await nui.resolveComponents({ components: pageComponents })
+      const { component } = nui.cache.component.find(
+        (obj) => obj.component.id === 'tp',
+      )
+      console.log(component.props)
+      expect(component.props['data-viewtag']).to.eq('redTag')
+    })
+  })
+
   describe(u.italic('on'), () => {
     describe(`if`, () => {
       it(`should return value at index 1 if true`, async () => {
@@ -82,130 +167,6 @@ describe(u.yellow(`resolveSetup`), () => {
         expect(result).to.eq(
           `Rawr@Sun#${nui.getRoot().Hello.formData.password}`,
         )
-      })
-    })
-
-    describe(`reference`, () => {
-      it(`should use the fallback reference resolver if no hook resolver is provided`, async () => {
-        expect(
-          (
-            await nui.resolveComponents({
-              components: ui.label({ text: '..formData.password' }),
-            })
-          ).get('text'),
-        ).to.eq(nui.getRoot().Hello.formData.password)
-      })
-
-      it(`should pass in a page instance to args`, async () => {
-        const spy = sinon.spy()
-        ;(
-          await nui.resolveComponents({
-            components: ui.label({ text: '..formData.password' }),
-            on: { reference: spy },
-          })
-        ).get('text')
-        expect(spy.args[0][0])
-          .to.have.property('page')
-          .to.be.instanceOf(NuiPage)
-      })
-
-      it(`should pass in the correct page instance to a descendant of a page component`, async () => {
-        const spy = sinon.spy()
-        nui.getRootPage().page = 'Cereal'
-        let [viewComponent] = await nui.resolveComponents({
-          components: u.array(nui.getRoot().Cereal.components),
-        })
-        const pageComponent = viewComponent.child(1)
-        const page = pageComponent.get('page') as NuiPage
-        const components = await nui.resolveComponents({
-          components: page.components,
-          page,
-          on: { reference: spy },
-        })
-        // @ts-expect-error
-        const [_, __, textField] = components as t.NuiComponent.Instance[]
-        textField.get('dataKey')
-        const args = spy.args[0][0]
-        expect(args).to.have.property('page').to.deep.eq(page)
-      })
-
-      describe(`when using the fallback reference resolvers`, () => {
-        const getRoot = (components: any) => ({
-          BaseHeader: { type: 'view', style: { shadow: 'true' } },
-          Topo: {
-            components: u.array(components),
-          },
-        })
-        it(`should resolve whole component references`, async () => {
-          const page = nui.getRootPage()
-          page.page = 'Topo'
-          nui.use({ getRoot: () => getRoot('.BaseHeader') })
-          const [component] = await nui.resolveComponents({
-            components: page.components,
-            page,
-          })
-          expect(component).to.be.an('object')
-          expect(component).to.have.property('type', 'view')
-          expect(component.style).to.have.property('boxShadow').to.exist
-          expect(component.style).not.to.have.property('shadow')
-        })
-
-        it(`should resolve components referenced by key and retain its component type`, async () => {
-          const page = nui.getRootPage()
-          page.page = 'Topo'
-          nui.use({
-            getRoot: () => ({
-              BaseHeader: { type: 'view', style: { shadow: 'true' } },
-              Topo: {
-                components: [{ '.BaseHeader': '', viewTag: 'helloTag' }],
-              },
-            }),
-          })
-          const components = await nui.resolveComponents({
-            components: page.components,
-            page,
-          })
-          expect(components[0]).to.have.property('type', 'view')
-        })
-
-        xit(`should not overwrite current children if no children is on the retrieved object`, async () => {
-          const renderProps = getRenderProps({
-            pageName: 'Topo',
-            root: {
-              HaHeaderView: u.omit(ui.view({ style: { shadow: 'true' } }), [
-                'children',
-              ]),
-              HaHeaderBigLabel1: ui.label('Soda'),
-              NFont: { h1: '1.6vh' },
-              SFont: { h4: '4.5vh' },
-              Topo: {
-                components: [
-                  {
-                    '.HaHeaderView': null,
-                    style: { width: '0.68', height: '0.25' },
-                    children: [
-                      {
-                        HaHeaderBigLabel1: null,
-                        style: {
-                          top: '0.0125',
-                          left: '0.05',
-                          fontSize: '.Sfont.h4',
-                        },
-                      },
-                    ],
-                  },
-                ],
-              },
-            },
-          })
-          console.log(
-            await nui.resolveComponents({
-              components: renderProps.page.components,
-              page: renderProps.page,
-            }),
-          )
-          console.log(renderProps)
-        })
       })
     })
   })

@@ -112,7 +112,6 @@ export type NUIActionObject =
   | UpdateActionObject
   | GetLocationAddressActionObject
 
-
 export type NUIAction = Action | EmitAction
 
 export interface AnonymousActionObject extends ActionObject {
@@ -149,6 +148,13 @@ export interface IPage {
   page: string
   viewport: Viewport
 }
+
+export type NormalizePropsContext = {
+  dataObject?: Record<string, any>
+  iteratorVar?: string
+  index?: number
+  listObject?: string | any[]
+} & Record<string, any>
 
 export namespace NuiComponent {
   export type CreateType = ComponentObject | NuiComponent.Instance
@@ -272,14 +278,6 @@ export interface On {
       dataObject?: number
     },
   ): OrPromise<void>
-  resolved?(opts: {
-    components: ComponentObject[]
-    component: NuiComponent.Instance
-    context: ConsumerOptions['context']
-    index: number
-    options: ConsumerOptions
-    page: NuiPage
-  }): void | Promise<void>
   if?(args: {
     component?: NuiComponent.Instance
     page?: NuiPage
@@ -303,12 +301,6 @@ export interface On {
     key: string
     value: PageComponentUrl
   }): string
-  reference?<S extends string = string>(args: {
-    component?: NuiComponent.Instance
-    page?: NuiPage
-    key: string
-    value: ReferenceString<S>
-  }): any
 }
 
 export namespace Register {

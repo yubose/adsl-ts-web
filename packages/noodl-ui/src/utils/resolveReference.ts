@@ -1,35 +1,26 @@
 import * as u from '@jsmanifest/utils'
-import * as nt from 'noodl-types'
-import * as t from '../types'
 import type NuiPage from '../Page'
+import is from './is'
 import { defaultResolveReference } from './internal'
 
-export default function resolveReference({
-  component,
-  key,
+function resolveReference({
   value,
   page,
   root,
   localKey,
-  on,
 }: {
-  component?: t.NuiComponent.Instance
-  key?: string
-  value?: any
+  value?: string
   root: Record<string, any> | (() => Record<string, any>)
   localKey: string | undefined
-  on?: t.On | undefined | null
   page?: NuiPage
 }) {
-  const getReference = (_value: any, on: t.On | null | undefined) => {
-    if (on?.reference) {
-      return on.reference({ component, page, key: key || '', value: _value })
-    }
-    return defaultResolveReference(root, localKey || page?.page, _value)
+  const pageName = localKey || page?.page || ''
+  value = defaultResolveReference(root, pageName, value as any)
+  while (u.isStr(value) && is.reference(value)) {
+    value = defaultResolveReference(root, pageName, value)
   }
-  value = getReference(value, on)
-  while (u.isStr(value) && nt.Identify.reference(value)) {
-    value = getReference(value, on)
-  }
+
   return value
 }
+
+export default resolveReference

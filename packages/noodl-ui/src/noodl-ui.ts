@@ -517,9 +517,7 @@ const NUI = (function () {
         page,
         ...otherOptions,
       })
-
       await _transformer.transform(c, options)
-
       const iteratorVar = context?.iteratorVar || ''
       const isListConsumer = iteratorVar && u.isObj(context?.dataObject)
 
@@ -587,7 +585,6 @@ const NUI = (function () {
           }
         }
       }
-
       return {
         component: c,
         options,
@@ -646,7 +643,6 @@ const NUI = (function () {
       }
       resolvedComponents.push(resolvedComponent)
     }
-
     return (
       isArr ? resolvedComponents : resolvedComponents[0]
     ) as C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
@@ -990,13 +986,11 @@ const NUI = (function () {
             }
           }
 
-    
-
           return objs.map((obj) => {
             if (nt.Identify.folds.emit(obj)) {
               const action = createAction(trigger, obj)
               let listAttribute
-              if(opts?.component){
+              if (opts?.component) {
                 listAttribute = getListAttribute(opts?.component)
               }
               if (opts?.component) {
@@ -1013,9 +1007,8 @@ const NUI = (function () {
                       page: opts.page,
                       listDataObject: dataObject,
                     }),
-                    { iteratorVar,listAttribute},
+                    { iteratorVar, listAttribute },
                   )
-                  
                 }
               }
 

@@ -1,6 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import resolveReference from './utils/resolveReference'
-import type { NUIActionChain, NuiComponent, ConsumerOptions } from './types'
+import type { NuiComponent, ConsumerOptions } from './types'
 
 export interface IResolver<
   Func extends (...args: any[]) => Promise<void>,
@@ -59,12 +59,9 @@ class ComponentResolver<
             const key = isKey ? keyOrValue : ''
             value = isKey ? value : keyOrValue
             return resolveReference({
-              component: args[0],
               localKey: args[1]?.page?.page || '',
-              on: args[1]?.on,
               page: args[1]?.page,
               root: args[1]?.getRoot,
-              key,
               value,
             })
           },
