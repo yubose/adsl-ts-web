@@ -8,6 +8,7 @@ import { excludeIteratorVar } from 'noodl-utils'
 import camelCase from 'lodash/camelCase'
 import get from 'lodash/get'
 import has from 'lodash/has'
+import set from 'lodash/set'
 import {
   createDraft,
   current as draftToCurrent,
@@ -16,7 +17,6 @@ import {
   produceWithPatches,
   applyPatches,
 } from 'immer'
-import set from 'lodash/set'
 import getTagName from '@/utils/getTagName'
 import deref from '@/utils/deref'
 import log from '@/utils/log'
@@ -61,16 +61,13 @@ function getElementProps<Props = any>(
   let {
     createActionChain,
     getR,
-    getListsCtxObject,
     getIteratorVar,
     getListDataObject,
     isListConsumer,
-    lists,
     pageName,
     path: componentPath = [],
     setR,
     root,
-    refs,
   } = utils
 
   if (u.isStr(component)) {
@@ -80,7 +77,6 @@ function getElementProps<Props = any>(
         rootKey: pageName,
         root,
       })
-      // const referencedComponent = getR(component, pageName)
       if (u.isObj(referencedComponent)) {
         return getElementProps(referencedComponent, utils)
       } else {
@@ -96,67 +92,37 @@ function getElementProps<Props = any>(
   } else {
     let _component = component as t.StaticComponentObject
 
-    if (is.componentByReference(component)) {
-      return getElementProps(u.keys(component)[0], utils)
+    if (is.componentByReference(_component)) {
+      return getElementProps(u.keys(_component)[0], utils)
     }
 
     let { dataKey, id, type } = _component
+    let children = [] as t.CreateElementProps<Props>[]
     let iteratorVar = getIteratorVar?.(_component)
     let _isListConsumer = isListConsumer(_component)
-    let _listObject
 
     let props = {
       type: getTagName(type) || 'div',
       key: id || dataKey,
     } as t.CreateElementProps<Props>
 
-    let children = [] as t.CreateElementProps<Props>[]
-
-    // le
-
-    // if (component.type === 'list') {
-    //   if (componentPath) {
-    //     const listCtxObject = getListsCtxObject?.(component.id || component)
-    //     const listObjectPath = listCtxObject?.listObjectPath
-    //     if (listObjectPath) {
-    //       const dataObject = is.localKey(listObjectPath)
-    //         ? u.get(root, pageName)
-    //         : root
-
-    //       if (!has(dataObject, listObjectPath)) {
-    //         log.error(
-    //           `Did not receive a list component using the original referenced path ${listCtxObject.listObjectPath}. ` +
-    //             `A copy will be used instead (the reference will be lost)`,
-    //           { path: componentPath, listCtxObject },
-    //         )
-    //       }
-
-    //       console.log({ listCtxObject })
-
-    //       const value = get(dataObject, listObjectPath)
-    //       debugger
-    //     }
-    //   }
-    // }
-
-    for (let [key, value] of u.entries(component)) {
+    for (let [key, value] of u.entries(_component)) {
       if (key === 'children') {
-        if (!u.isArr(value)) value = u.array(value)
-        const numChildren = value.length
-        for (let index = 0; index < numChildren; index++) {
-          const c = value[index]
+        u.array(value).forEach((child: t.StaticComponentObject, index) => {
           children.push(
-            getElementProps(c, {
+            getElementProps(child, {
               ...utils,
               path: componentPath.concat('children', index),
             }),
           )
-        }
+        })
       } else if (['popUpView', 'viewTag'].includes(key as string)) {
         set(props, `data-viewtag`, value)
       } else if (key === 'data-value') {
-        if (component['data-value']) {
-          children.push(getElementProps(String(component['data-value']), utils))
+        if (_component['data-value']) {
+          children.push(
+            getElementProps(String(_component['data-value']), utils),
+          )
         } else {
           value && children.push(getElementProps(value, utils))
         }
@@ -167,20 +133,13 @@ function getElementProps<Props = any>(
         if (_isListConsumer) {
           const dataObject = getListDataObject(_component)
           props.src =
-            u.isStr(component.path) && component.path.startsWith(iteratorVar)
-              ? get(dataObject, excludeIteratorVar(component.path, iteratorVar))
+            u.isStr(_component.path) && _component.path.startsWith(iteratorVar)
+              ? get(
+                  dataObject,
+                  excludeIteratorVar(_component.path, iteratorVar),
+                )
               : value
           props['data-src'] = props.src
-          console.log({
-            props,
-            id: component.id,
-            type: component.type,
-            iteratorVar,
-            isListConsumer: _isListConsumer,
-            dataObject,
-            component,
-            _component,
-          })
         } else {
           props.src = value
         }
@@ -253,9 +212,7 @@ function getElementProps<Props = any>(
           }
         }
       } else {
-        if (!keysToStripRegex.test(key as string)) {
-          props[key] = value
-        }
+        if (!keysToStripRegex.test(key as string)) props[key] = value
       }
 
       if (u.isStr(props[key])) {
@@ -278,6 +235,12 @@ function getElementProps<Props = any>(
     }
 
     if (children.length) props.children = children
+
+    if (props._path_ && u.isStr(props._path_)) {
+      if (props.type === 'img') {
+        // if
+      }
+    }
 
     return props
   }

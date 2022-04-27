@@ -3,14 +3,15 @@ import * as u from '@jsmanifest/utils'
 import React from 'react'
 import get from 'lodash/get'
 import set from 'lodash/set'
+import partial from 'lodash/partial'
+import partialRight from 'lodash/partialRight'
 import { navigate } from 'gatsby'
 import { excludeIteratorVar, trimReference, toDataPath } from 'noodl-utils'
 import {
   createAction,
   createActionChain as nuiCreateActionChain,
-  NUIActionChain,
 } from 'noodl-ui'
-import type { NUIActionObject, NUITrigger } from 'noodl-ui'
+import type { NUIActionObject, NUIActionChain, NUITrigger } from 'noodl-ui'
 import useBuiltInFns from '@/hooks/useBuiltInFns'
 import isBuiltInEvalFn from '@/utils/isBuiltInEvalFn'
 import useCtx from '@/useCtx'
@@ -324,7 +325,7 @@ function useActionChain() {
   )
 
   const createEmit = (
-    actionChain,
+    actionChain: NUIActionChain,
     component: t.StaticComponentObject,
     trigger: NUITrigger,
     emitObject: nt.EmitObjectFold,
@@ -332,14 +333,13 @@ function useActionChain() {
     React.useMemo(() => {
       {
         const action = createAction({ action: emitObject, trigger })
-
-        const { dataObject, iteratorVar = '' } =
-          pageCtx.getListDataObject(component) || {}
+        const dataObject = pageCtx.getListDataObject(component) || {}
 
         if (dataObject) {
           if (u.isStr(action.dataKey)) {
             action.dataKey = dataObject
           } else if (u.isObj(action.dataKey)) {
+            const iteratorVar = pageCtx.getIteratorVar(component)
             action.dataKey = u.reduce(
               u.entries(action.dataKey),
               (acc, [key, value]) => {
@@ -411,7 +411,7 @@ function useActionChain() {
           // TODO
         }
       }
-    }, [])
+    }, [pageCtx])
 
   /**
    * Wraps and provides helpers to the execute function as the 2nd argument
@@ -474,13 +474,15 @@ function useActionChain() {
                 if (viewTag) {
                   const el = document.querySelector(`[data-viewtag=${viewTag}]`)
                   if (el) {
+                    //
                   }
                 }
+                debugger
               }
             }
             // { emit: { dataKey: {...}, actions: [...] } }
             else if (is.folds.emit(obj)) {
-              // debugger
+              debugger
             }
             // // { actionType: 'evalObject', object: [...] }
             else if (is.action.evalObject(obj)) {
@@ -702,51 +704,45 @@ function useActionChain() {
       {
         !u.isArr(actions) && (actions = [actions])
 
+        const loadActions = (
+          component: Partial<t.StaticComponentObject>,
+          actionObjects: nt.ActionObject[],
+        ) => {
+          return actionObjects.map((obj) => {
+            if (is.folds.emit(obj)) {
+              return createEmit(actionChain, component, trigger, obj)
+            }
+
+            const nuiAction = createAction({ action: obj, trigger })
+
+            nuiAction.executor = async function onExecuteAction(
+              event: React.SyntheticEvent,
+            ) {
+              const result = await execute({
+                action: obj,
+                actionChain,
+                component,
+                event,
+                trigger,
+              })
+              if (result) {
+                log.debug(
+                  `%c[${nuiAction.actionType}]${
+                    is.action.builtIn(obj) ? ` ${obj.funcName}` : ''
+                  } Execute result`,
+                  `color:#ee36df;`,
+                  result,
+                )
+              }
+            }
+            return nuiAction
+          })
+        }
+
         const actionChain = nuiCreateActionChain(
           trigger,
           actions,
-          (actions) => {
-            return actions.map((obj) => {
-              if (is.folds.emit(obj)) {
-                return createEmit(actionChain, component, trigger, obj)
-              }
-
-              const nuiAction = createAction({ action: obj, trigger })
-
-              nuiAction.executor = async function onExecuteAction(
-                event: React.SyntheticEvent,
-              ) {
-                if (!xRef.current[actionChain.id][nuiAction.id]) {
-                  xRef.current[actionChain.id][nuiAction.id] = {
-                    id: nuiAction.id,
-                    actionType: nuiAction.actionType,
-                    timestamp: new Date().toISOString(),
-                  }
-                } else {
-                  log.error(
-                    `This action ${nuiAction.id} --> ${nuiAction.actionType} is already running`,
-                  )
-                }
-                const result = await execute({
-                  action: obj,
-                  actionChain,
-                  component,
-                  event,
-                  trigger,
-                })
-                if (result) {
-                  log.debug(
-                    `%c[${nuiAction.actionType}]${
-                      is.action.builtIn(obj) ? ` ${obj.funcName}` : ''
-                    } Execute result`,
-                    `color:#ee36df;`,
-                    result,
-                  )
-                }
-              }
-              return nuiAction
-            })
-          },
+          partial(loadActions, component),
         )
 
         const getArgs = function (args: IArguments | any[]) {
@@ -759,17 +755,6 @@ function useActionChain() {
 
         actionChain.use({
           onExecuteStart(this: NUIActionChain) {
-            if (this.id) {
-              if (!xRef.current[this.id]) {
-                xRef.current[this.id] = {
-                  id: this.id,
-                  actionCount: this.actions.length,
-                  timestamp: new Date().toISOString(),
-                }
-              } else {
-                log.error(`This action chain is already running`)
-              }
-            }
             log.debug(
               `%c[${trigger}-onExecuteStart] ${actionChain.id}`,
               `color:skyblue`,
@@ -780,22 +765,7 @@ function useActionChain() {
             log.debug(
               `%c[${trigger}-onExecuteEnd] ${actionChain.id}`,
               `color:skyblue`,
-              // this && this.snapshot(),
-            )
-            delete xRef.current[this.id]
-          },
-          onExecuteError() {
-            log.error(
-              `%c[${trigger}-onExecuteError]`,
-              `color:tomato`,
-              getArgs(arguments),
-            )
-          },
-          onAbortError() {
-            log.error(
-              `%c[${trigger}-onAbortError]`,
-              `color:tomato`,
-              getArgs(arguments),
+              this && this.snapshot(),
             )
           },
         })
@@ -804,12 +774,8 @@ function useActionChain() {
         return actionChain
       }
     },
-    [],
+    [pageCtx, root],
   )
-
-  React.useEffect(() => {
-    window['xRef'] = xRef.current
-  }, [])
 
   return {
     createActionChain,
