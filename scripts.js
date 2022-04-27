@@ -8,6 +8,7 @@ const cli = meow('', {
   flags: {
     generate: { type: 'boolean', alias: 'g' },
     server: { type: 'string', alias: 's' },
+    sampleWebServer: { type: 'boolean' },
   },
 })
 
@@ -21,10 +22,10 @@ async function invokeScript({ flags, input }) {
     if (flags.server) {
       let cmd = `node ../noodl-cli/cli --server -c ${flags.server}`
       if (flags.generate) cmd += ` -g app`
-      await execa.command(cmd, {
-        shell: true,
-        stdio: 'inherit',
-      })
+      await execa.command(cmd, { shell: true, stdio: 'inherit' })
+    } else if (flags.sampleWebServer) {
+      let cmd = `node ./dev/sampleWebServer/server.js`
+      await execa.command(cmd, { shell: true, stdio: 'inherit' })
     }
   } catch (error) {
     logErr(error)

@@ -1,7 +1,7 @@
+import * as u from '@jsmanifest/utils'
 import sinon from 'sinon'
 import { expect } from 'chai'
 import { waitFor } from '@testing-library/dom'
-import { coolGold, italic } from 'noodl-common'
 import * as n from '../utils/noodl'
 import { createDataKeyReference, ui } from '../utils/test-utils'
 import NUI from '../noodl-ui'
@@ -10,6 +10,9 @@ import Viewport from '../Viewport'
 import isPage from '../utils/isPage'
 import isViewport from '../utils/isViewport'
 import log from '../utils/log'
+import * as c from '../constants'
+import * as s from '../utils/style'
+import * as t from '../types'
 
 /** REMINDER: Total components created should be 9 for this func */
 const getResolvedListComponentPreset = async () =>
@@ -37,14 +40,20 @@ const getResolvedListComponentPreset = async () =>
     }),
   )
 
-describe(coolGold(`Utils`), () => {
+describe(`utils`, () => {
+  describe(`test-utils`, () => {
+    xit(``, () => {
+      //
+    })
+  })
+
   beforeEach(() => {
     createDataKeyReference({
       pageName: 'Cat',
     })
   })
 
-  describe(italic(`findIteratorVar`), () => {
+  describe(`findIteratorVar`, () => {
     it(`should get the iteratorVar if its a list`, async () => {
       expect(
         n.findIteratorVar(
@@ -79,7 +88,7 @@ describe(coolGold(`Utils`), () => {
     })
   })
 
-  describe(italic(`flatten`), () => {
+  describe(`flatten`, () => {
     it(`should flatten into an array of all the components`, async () => {
       const resolved = await getResolvedListComponentPreset()
       await waitFor(async () => {
@@ -88,7 +97,7 @@ describe(coolGold(`Utils`), () => {
     })
   })
 
-  xdescribe(italic(`findParent`), async () => {
+  xdescribe(`findParent`, async () => {
     it(
       `should call the callback on all parents including the last one ` +
         `if none of the conditions are passing`,
@@ -100,7 +109,7 @@ describe(coolGold(`Utils`), () => {
     )
   })
 
-  describe(italic(`isListConsumer`), () => {
+  describe(`isListConsumer`, () => {
     it(`should return true for list components`, async () => {
       expect(n.isListConsumer(await NUI.resolveComponents(ui.list()))).to.be
         .true
@@ -127,7 +136,7 @@ describe(coolGold(`Utils`), () => {
     })
   })
 
-  describe(italic(`isListLike`), () => {
+  describe(`isListLike`, () => {
     it(`should return true for list components`, async () => {
       expect(
         n.isListLike(
@@ -148,7 +157,7 @@ describe(coolGold(`Utils`), () => {
     })
   })
 
-  describe(italic(`publish`), () => {
+  describe(`publish`, () => {
     it(`should call the callback on every child including the last one`, async () => {
       const spy = sinon.spy()
       const components = await getResolvedListComponentPreset()
@@ -158,7 +167,7 @@ describe(coolGold(`Utils`), () => {
   })
 })
 
-describe(italic(`resolveAssetUrl`), () => {
+describe(`resolveAssetUrl`, () => {
   describe(`when resolving through list item data objects`, () => {
     const assetsUrl = 'https://aitmed.com/abc/assets/'
     const iteratorVar = 'imagePath'
@@ -185,6 +194,28 @@ describe(italic(`resolveAssetUrl`), () => {
       `${NUI.getAssetsUrl()}abc.png`,
     )
   })
+})
+
+describe(`styles`, () => {
+  const tests = {
+    vw: {
+      vpSize: 1024,
+      values: [],
+    },
+    vh: {
+      vpSize: 768,
+      get values() {
+        return [
+          ['0vh', 0],
+          ['1vh', 7.68],
+          ['0.3vh', 2.3],
+          ['1.15vh', 8.83],
+          ['3.4vh', 26.11],
+          ['4vh', 30.72],
+        ]
+      },
+    },
+  }
 })
 
 for (const [name, fn, Construct] of [

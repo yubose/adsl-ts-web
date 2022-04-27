@@ -9,6 +9,7 @@ export * from './meetingTypes'
 export * from './twilio'
 
 export interface AppConstructorOptions {
+  configKey?: string
   getStatus?: typeof Account.getStatus
   meeting?: Meeting | typeof createMeetingFns
   notification?: AppNotification

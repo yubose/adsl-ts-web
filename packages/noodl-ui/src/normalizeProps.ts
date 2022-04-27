@@ -8,7 +8,7 @@ import { presets } from './constants'
 import { findIteratorVar, findListDataObject } from './utils/noodl'
 import is from './utils/is'
 import * as com from './utils/common'
-import * as util from './utils/style'
+import * as s from './utils/style'
 
 function getByRef(root = {}, ref = '', rootKey = '') {
   if (is.localReference(ref)) {
@@ -30,14 +30,13 @@ function getByRef(root = {}, ref = '', rootKey = '') {
   ```
  */
 
-function normalizeProps<
-  Props extends Record<string, any> = Record<string, any>,
->(
-  props: Record<string, any> = {},
+function parse<Props extends Record<string, any> = Record<string, any>>(
+  props: Record<string, any> = { style: {} },
   blueprint: Partial<Props> = {},
   {
     context,
     getBaseStyles,
+    keepVpUnit,
     pageName = '',
     root = {},
     viewport,
@@ -56,6 +55,10 @@ function normalizeProps<
      */
     getBaseStyles?: typeof nui.getBaseStyles
     /**
+     * If true, styles like fontSize will be converted to <number>vw or <number>vh if given the format
+     */
+    keepVpUnit?: boolean
+    /**
      * Current page. If retrieving local root references, it will use this variable
      * as the local root key
      */
@@ -69,9 +72,11 @@ function normalizeProps<
      * A viewport containing the width/height.
      * This will be used to resolve the positioning/sizes of component styles
      */
-    viewport?: NuiViewport
+    viewport?: NuiViewport | { width: number; height: number }
   } = {},
 ) {
+  if (props && !props.style) props.style = {}
+
   if (u.isFnc(getBaseStyles) && u.isObj(blueprint?.style)) {
     for (const [key, value] of u.entries(getBaseStyles(props, blueprint))) {
       props.style[key] = value
@@ -127,6 +132,12 @@ function normalizeProps<
           props['data-options'] = value || []
         }
       } else if (originalKey === 'style') {
+        // Style keys to be removed (for the DOM) after processing
+        const delKeys = [] as string[]
+        const markDelete = (v: any) => !delKeys.includes(v) && delKeys.push(v)
+        // Values to restore after processing to ensure that they are re-written back if overwritten
+        const restoreVals = {} as Record<string, any>
+
         if (u.isObj(originalValue)) {
           const {
             align,
@@ -143,26 +154,24 @@ function normalizeProps<
           } = originalValue
 
           // AXIS
-          if (axis === 'horizontal') {
+          if (u.isStr(axis) && /horizontal|vertical/.test(axis)) {
+            markDelete('axis')
             value.display = 'flex'
-            value.flexWrap = 'nowrap'
-            delete value.axis
-          } else if (axis === 'vertical') {
-            value.display = 'flex'
-            value.flexDirection = 'column'
-            delete value.axis
+            if (axis === 'horizontal') {
+              value.flexWrap = 'nowrap'
+            } else if (axis === 'vertical') {
+              value.flexDirection = 'column'
+            }
           }
 
           // ALIGN
-          if (align) {
+          if (u.isStr(align) && /center[xy]/.test(align)) {
+            markDelete('align')
+            value.display = 'flex'
             if (align === 'centerX') {
-              value.display = 'flex'
               value.justifyContent = 'center'
-              delete value.align
             } else if (align === 'centerY') {
-              value.display = 'flex'
               value.alignItems = 'center'
-              delete value.align
             }
           }
 
@@ -173,11 +182,13 @@ function normalizeProps<
               if (textAlign === 'left') value.textAlign = 'left'
               else if (textAlign === 'center') value.textAlign = 'center'
               else if (textAlign === 'right') value.textAlign = 'right'
-              else if (textAlign === 'centerX') value.textAlign = 'center'
-              else if (textAlign === 'centerY') {
+              else if (textAlign === 'centerX') {
+                value.textAlign = 'center'
+                restoreVals.textAlign = 'center'
+              } else if (textAlign === 'centerY') {
                 value.display = 'flex'
                 value.alignItems = 'center'
-                delete value.textAlign
+                markDelete('textAlign')
               }
             }
             // { x, y }
@@ -187,7 +198,7 @@ function normalizeProps<
                   textAlign.x === 'centerX' ? 'center' : textAlign.x
               }
               if (textAlign.y != undefined) {
-                // The y value needs to be handled manually here since util.getTextAlign will
+                // The y value needs to be handled manually here since s.getTextAlign will
                 //    return { textAlign } which is meant for x
                 if (textAlign.y === 'center' || textAlign.y === 'centerY') {
                   let convert = new Map([
@@ -201,7 +212,7 @@ function normalizeProps<
                   value.justifyContent = convert.get(
                     textAlign.x ? textAlign.x : 'left',
                   )
-                  if (!textAlign.x) delete value.textAlign
+                  if (!textAlign.x) markDelete('textAlign')
                 }
               }
             }
@@ -283,17 +294,15 @@ function normalizeProps<
           }
 
           if (borderRadius) {
-            if (util.isNoodlUnit(borderRadius)) {
+            if (s.isNoodlUnit(borderRadius)) {
               value.borderRadius = String(
-                util.getSize(borderRadius, viewport?.height as number),
+                s.getSize(borderRadius, viewport?.height as number),
               )
             } else {
               if (u.isStr(borderRadius)) {
-                if (!com.hasLetter(borderRadius)) {
-                  value.borderRadius = borderRadius + 'px'
-                } else {
-                  value.borderRadius = `${borderRadius}`
-                }
+                value.borderRadius = !com.hasLetter(borderRadius)
+                  ? `${borderRadius}px`
+                  : `${borderRadius}`
               } else if (u.isNum(borderRadius)) {
                 value.borderRadius = `${borderRadius}px`
               }
@@ -318,7 +327,7 @@ function normalizeProps<
             }
           }
 
-          border?.style && delete value.border
+          if (border?.style) markDelete('border')
 
           /* -------------------------------------------------------
             ---- FONTS
@@ -328,13 +337,11 @@ function normalizeProps<
             // '10' --> '10px'
             if (u.isStr(fontSize)) {
               if (!com.hasLetter(fontSize)) {
-                if (util.isNoodlUnit(fontSize)) {
+                if (s.isNoodlUnit(fontSize)) {
                   value.fontSize = String(
                     NuiViewport.getSize(fontSize, viewport?.height as number),
                   )
-                } else {
-                  value.fontSize = `${fontSize}px`
-                }
+                } else value.fontSize = `${fontSize}px`
               }
             }
             // 10 --> '10px'
@@ -345,7 +352,7 @@ function normalizeProps<
           // { fontStyle } --> { fontWeight }
           if (fontStyle === 'bold') {
             value.fontWeight = 'bold'
-            delete value.fontStyle
+            markDelete('fontStyle')
           }
 
           /* -------------------------------------------------------
@@ -353,24 +360,20 @@ function normalizeProps<
           -------------------------------------------------------- */
 
           {
-            util.posKeys.forEach((posKey) => {
+            s.posKeys.forEach((posKey) => {
               if (!u.isNil(originalValue?.[posKey])) {
-                const result = util.getPositionProps(
+                const result = s.getPositionProps(
                   originalValue,
                   posKey,
-                  viewport?.[
-                    util.xKeys.includes(posKey as any) ? 'width' : 'height'
-                  ] as number,
+                  s.getViewportBound(viewport, posKey) as number,
                 )
                 if (u.isObj(result)) {
-                  for (const [k, v] of u.entries(result)) {
-                    value[k] = v
-                  }
+                  for (const [k, v] of u.entries(result)) value[k] = v
                 }
               }
             })
             // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
-            u.isObj(value?.textAlign) && delete value.textAlign
+            if (u.isObj(value?.textAlign)) markDelete('textAlign')
           }
 
           /* -------------------------------------------------------
@@ -380,171 +383,129 @@ function normalizeProps<
           const { width, height, maxHeight, maxWidth, minHeight, minWidth } =
             originalValue || {}
 
-          if (viewport) {
-            if (!u.isNil(width)) {
-              value.width = String(util.getSize(width as any, viewport.width))
-            }
-
-            if (!u.isNil(height)) {
-              // When the value needs to change whenever the viewport height changes
-              if (util.isNoodlUnit(height)) {
-                value.height = String(util.getSize(height, viewport.height))
-              } else {
-                if (height == 1 || height == '1') {
-                  value.height = String(util.getSize(height, viewport.height))
-                } else {
-                  value.height = String(
-                    util.getSize(height as any, viewport.height),
-                  )
-                }
-              }
-            }
-
-            //maxHeight,maxWidth,miniHeight,miniWidth
-            if (!u.isNil(maxHeight)) {
-              value.maxHeight = String(
-                util.getSize(maxHeight as any, viewport.height),
+          // if (viewport) {
+          for (const [key, val] of [
+            ['width', width],
+            ['height', height],
+          ]) {
+            if (!u.isNil(val)) {
+              value[key] = String(
+                s.getSize(val, s.getViewportBound(viewport, key) as number),
               )
             }
-            if (!u.isNil(maxWidth)) {
-              value.maxWidth = String(
-                util.getSize(maxWidth as any, viewport.width),
-              )
-            }
-            if (!u.isNil(minHeight)) {
-              value.minHeight = String(
-                util.getSize(minHeight as any, viewport.height),
-              )
-            }
-            if (!u.isNil(minWidth)) {
-              value.minWidth = String(
-                util.getSize(minWidth as any, viewport.width),
-              )
-            }
-            // if (!u.isNil(lineHeight)) {
-            //   value.lineHeight = String(util.getSize(lineHeight, viewport.height))
-            // }
           }
+          for (const [key, vpKey, val] of [
+            ['maxHeight', 'height', maxHeight],
+            ['minHeight', 'height', minHeight],
+            ['maxWidth', 'width', maxWidth],
+            ['minWidth', 'width', minWidth],
+          ]) {
+            if (!u.isNil(val)) {
+              value[key] = String(s.getSize(val, viewport?.[vpKey]))
+            }
+          }
+          // }
           // HANDLING ARTBITRARY STYLES
           for (let [styleKey, styleValue] of u.entries(originalValue)) {
-            if (util.vpHeightKeys.includes(styleKey as any)) {
-              if (util.isNoodlUnit(styleValue)) {
-                value[styleKey] = String(
-                  NuiViewport.getSize(styleValue, viewport?.height as number, {
-                    unit: 'px',
-                  }),
-                )
-              }
-            } else if (util.vpWidthKeys.includes(styleKey as any)) {
-              if (util.isNoodlUnit(styleValue)) {
-                value[styleKey] = String(
-                  NuiViewport.getSize(styleValue, viewport?.width as number, {
-                    unit: 'px',
-                  }),
-                )
-              }
+            // Unwrap the reference for processing
+            if (u.isStr(styleValue) && is.reference(styleValue)) {
+              styleValue = is.localReference(styleValue)
+                ? getByRef(root, styleValue, pageName)
+                : getByRef(root, styleValue)
+            }
+
+            if (s.isKeyRelatedToWidthOrHeight(styleValue)) {
+              value[styleKey] = String(
+                NuiViewport.getSize(
+                  styleValue,
+                  s.getViewportBound(viewport, styleKey) as number,
+                  { unit: 'px' },
+                ),
+              )
             }
 
             if (u.isStr(styleValue)) {
-              // Resolve vm and vh units
-              if (styleValue.endsWith('vw') || styleValue.endsWith('vh')) {
-                const valueNum =
-                  parseFloat(styleValue.substring(0, styleValue.length - 2)) /
-                  100
-
-                value[styleKey] = String(
-                  util.getSize(
-                    valueNum,
-                    viewport?.[
-                      styleValue.endsWith('vw') ? 'width' : 'height'
-                    ] as number,
-                  ),
-                )
+              while (is.reference(styleValue)) {
+                styleValue = is.localReference(styleValue)
+                  ? getByRef(root, styleValue, pageName)
+                  : getByRef(root, styleValue)
               }
+
+              // console.log({ styleKey, styleValue, blueprint })
+              // Resolve vw/vh units (Values directly relative to viewport)
+              if (s.isVwVh(styleValue)) {
+                if (keepVpUnit) {
+                  value[styleKey] = `calc(${styleValue})`
+                } else {
+                  const vpKey = s.getVpKey(styleValue)
+                  const vpVal = viewport?.[vpKey as nt.VpUnit] as number
+                  const valueNum = s.toNum(styleValue) / 100
+                  if (u.isNil(vpVal)) {
+                    value[styleKey] = styleValue
+                  } else {
+                    value[styleKey] = String(s.getSize(valueNum, vpVal))
+                  }
+                }
+              }
+
               // Cache this value to the variable so it doesn't get mutated inside this func since there are moments when value is changing before this func ends
               // If the value is a path of a list item data object
               const isListPath =
-                iteratorVar && styleValue.startsWith(iteratorVar)
-              if (is.reference(styleValue)) {
-                // Local
-                if (u.isStr(styleValue) && is.localReference(styleValue)) {
-                  styleValue = getByRef(root, styleValue, pageName)
-                }
-                // Root
-                else if (u.isStr(styleValue)) {
-                  if (is.rootReference(styleValue)) {
-                    styleValue = getByRef(root, styleValue)
-                  }
-                  if (
-                    u.isStr(styleValue) &&
-                    (styleValue.endsWith('vw') || styleValue.endsWith('vh'))
-                  ) {
-                    const valueNum =
-                      parseFloat(
-                        styleValue.substring(0, styleValue.length - 2),
-                      ) / 100
+                !!iteratorVar && String(styleValue).startsWith(iteratorVar)
 
-                    value[styleKey] = String(
-                      util.getSize(
-                        valueNum,
-                        viewport?.[
-                          styleValue.endsWith('vw') ? 'width' : 'height'
-                        ] as number,
-                      ),
-                    )
-                  }
-                }
-                if (
-                  u.isStr(styleValue) &&
-                  (styleValue.endsWith('vw') || styleValue.endsWith('vh'))
-                ) {
-                  const valueNum =
-                    parseFloat(styleValue.substring(0, styleValue.length - 2)) /
-                    100
-                  value[styleKey] = String(
-                    util.getSize(
-                      valueNum,
-                      viewport?.[
-                        styleValue.endsWith('vw') ? 'width' : 'height'
-                      ] as number,
-                    ),
-                  )
-                } else if (util.vpHeightKeys.includes(styleKey as any)) {
-                  if (util.isNoodlUnit(styleValue)) {
-                    value[styleKey] = String(
-                      NuiViewport.getSize(
-                        styleValue,
-                        viewport?.height as number,
-                        { unit: 'px' },
-                      ),
-                    )
-                  } else if (
-                    styleKey == 'borderRadius' &&
-                    u.isStr(styleValue)
-                  ) {
-                    value[styleKey] = styleValue
-                  }
-                } else if (util.vpWidthKeys.includes(styleKey as any)) {
-                  if (util.isNoodlUnit(styleValue)) {
-                    value[styleKey] = String(
-                      NuiViewport.getSize(
-                        styleValue,
-                        viewport?.width as number,
-                        { unit: 'px' },
-                      ),
-                    )
-                  }
-                } else {
-                  value[styleKey] = com.formatColor(styleValue)
+              // '2.8vh', '20px', etc
+              const isSizeValue =
+                s.isVwVh(styleValue) ||
+                s.isKeyRelatedToWidthOrHeight(styleKey) ||
+                ['fontSize', 'borderRadius', 'borderWidth'].includes(styleKey)
 
-                  styleKey == 'pointerEvents' &&
-                    styleValue != 'none' &&
-                    delete value['pointerEvents']
-                  styleKey == 'isHidden' &&
-                    is.isBooleanTrue(styleValue) &&
-                    (props.style.visibility = 'hidden')
+              if (isSizeValue) {
+                if (viewport) {
+                  if (s.isVwVh(styleValue)) {
+                    const valueNum = s.toNum(styleValue) / 100
+                    value[styleKey] = keepVpUnit
+                      ? `calc(${styleValue})`
+                      : String(
+                          s.getSize(
+                            valueNum,
+                            s.getViewportBound(viewport, styleValue) as number,
+                          ),
+                        )
+                  } else if (s.isKeyRelatedToWidthOrHeight(styleKey)) {
+                    const computedValue = s.isNoodlUnit(styleValue)
+                      ? String(
+                          NuiViewport.getSize(
+                            styleValue,
+                            s.getViewportBound(viewport, styleKey) as number,
+                            { unit: 'px' },
+                          ),
+                        )
+                      : undefined
+                    if (s.isNoodlUnit(styleValue)) {
+                      value[styleKey] = computedValue
+                    } else if (s.isKeyRelatedToHeight(styleKey)) {
+                      if (styleKey == 'borderRadius' && u.isStr(styleValue)) {
+                        if (styleValue.includes('px')){
+                          value[styleKey] = `${styleValue}`
+                        }else{
+                          value[styleKey] = `${styleValue}px`
+                        }
+                      }
+                    }
+                  }
                 }
+              } else {
+                value[styleKey] = com.formatColor(styleValue)
               }
+
+              if (styleKey == 'pointerEvents' && styleValue != 'none') {
+                markDelete('pointerEvents')
+              }
+
+              if (styleKey == 'isHidden' && is.isBooleanTrue(styleValue)) {
+                props.style.visibility = 'hidden'
+              }
+
               // TODO - Find out how to resolve the issue of "value" being undefined without this string check when we already checked above this
               if (
                 u.isStr(styleValue) &&
@@ -557,7 +518,7 @@ function normalizeProps<
                   -------------------------------------------------------- */
                 if (styleKey === 'textColor') {
                   value.color = com.formatColor(styleValue)
-                  delete value.textColor
+                  markDelete('textColor')
                 } else {
                   // Some list item consumers have data keys referencing color data values
                   // They are in the 0x0000000 form so we must convert them to be DOM compatible
@@ -570,25 +531,17 @@ function normalizeProps<
                         styleValue,
                         iteratorVar,
                       ) as string
-                      let _styleValue = com.formatColor(
+
+                      const _styleValue = com.formatColor(
                         get(dataObject, dataKey),
                       )
-                      if (util.vpHeightKeys.includes(styleKey as any)) {
-                        if (util.isNoodlUnit(_styleValue)) {
+
+                      if (s.isKeyRelatedToWidthOrHeight(styleKey)) {
+                        if (s.isNoodlUnit(_styleValue)) {
                           value[styleKey] = String(
                             NuiViewport.getSize(
                               _styleValue,
-                              viewport?.height as number,
-                              { unit: 'px' },
-                            ),
-                          )
-                        }
-                      } else if (util.vpWidthKeys.includes(styleKey as any)) {
-                        if (util.isNoodlUnit(_styleValue)) {
-                          value[styleKey] = String(
-                            NuiViewport.getSize(
-                              _styleValue,
-                              viewport?.width as number,
+                              s.getViewportBound(viewport, styleKey) as number,
                               { unit: 'px' },
                             ),
                           )
@@ -611,6 +564,8 @@ function normalizeProps<
         } else if (u.isStr(originalValue)) {
           // Unparsed style value (reference)
         }
+        delKeys.forEach((key) => delete value[key])
+        u.entries(restoreVals).forEach(([k, v]) => (value[k] = v))
       } else if (originalKey === 'viewTag') {
         props['data-viewtag'] = value
       }
@@ -622,26 +577,22 @@ function normalizeProps<
     if (is.component.header(blueprint)) {
       props.style.zIndex = 100
     } else if (is.component.image(blueprint)) {
-      if (u.isObj(blueprint.style)) {
-        // Remove the height to maintain the aspect ratio since images are
-        // assumed to have an object-fit of 'contain'
-        if (!('height' in (blueprint.style || {}))) delete props.style.height
-        // Remove the width to maintain the aspect ratio since images are
-        // assumed to have an object-fit of 'contain'
-        if (!('width' in (blueprint.style || {}))) delete props.style.width
-        if (!('objectFit' in (blueprint.style || {}))) {
-          props.style.objectFit = 'contain'
-        }
+      // Remove the height to maintain the aspect ratio since images are
+      // assumed to have an object-fit of 'contain'
+      if (!('height' in (blueprint.style || {}))) delete props.style.height
+      // Remove the width to maintain the aspect ratio since images are
+      // assumed to have an object-fit of 'contain'
+      if (!('width' in (blueprint.style || {}))) delete props.style.width
+      if (!('objectFit' in (blueprint.style || {}))) {
+        props.style.objectFit = 'contain'
       }
     } else if (
       is.component.listLike(blueprint) &&
       props.style.display !== 'none'
     ) {
+      const axis = blueprint.style?.axis
       props.style.display =
-        blueprint.style?.axis === 'horizontal' ||
-        blueprint.style?.axis === 'vertical'
-          ? 'flex'
-          : 'block'
+        axis === 'horizontal' || axis === 'vertical' ? 'flex' : 'block'
       props.style.listStyle = 'none'
       // props.style.padding = '0px'
     } else if (is.component.listItem(blueprint)) {
@@ -675,16 +626,22 @@ function normalizeProps<
     }
 
     // Visibility
-    is.isBooleanTrue(blueprint?.style?.isHidden) &&
+    let isHiddenValue = blueprint?.style?.isHidden
+    if(is.reference(isHiddenValue))
+      isHiddenValue = getByRef(root, blueprint?.style?.isHidden, pageName)
+    is.isBooleanTrue(isHiddenValue) &&
       (props.style.visibility = 'hidden')
 
-    // ??
     if (is.isBoolean(blueprint?.required)) {
       props.required = is.isBooleanTrue(blueprint?.required)
     }
+  } else {
+    console.log({ HELLO: blueprint })
+    console.log({ HELLO: blueprint })
+    console.log({ HELLO: blueprint })
   }
 
   return props
 }
 
-export default normalizeProps
+export default parse

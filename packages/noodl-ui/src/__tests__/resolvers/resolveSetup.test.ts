@@ -5,7 +5,15 @@ import sinon from 'sinon'
 import * as u from '@jsmanifest/utils'
 import * as nu from 'noodl-utils'
 import * as i from '../../utils/internal'
-import { assetsUrl, baseUrl, createOn, nui, ui } from '../../utils/test-utils'
+import * as t from '../../types'
+import {
+  assetsUrl,
+  baseUrl,
+  createOn,
+  getRenderProps,
+  nui,
+  ui,
+} from '../../utils/test-utils'
 import { emitHooks } from '../../resolvers/resolveSetup'
 import NuiPage from '../../Page'
 
@@ -23,6 +31,7 @@ describe(u.yellow(`resolveSetup`), () => {
           components: [ui.label({ text: { if: [1, 'abc', 'wow'] } })],
           on: { if: () => true },
         })
+        // @ts-expect-error
         expect(component.get('text')).to.eq('abc')
       })
 
@@ -37,7 +46,6 @@ describe(u.yellow(`resolveSetup`), () => {
       it(`should run the reference hook if the truthy/falsy value returns a reference`, async () => {
         const spy = sinon.spy()
         const component = await nui.resolveComponents({
-          // @ts-expect-error
           components: ui.label({
             text: { if: [1, '..formData.password', 'wow'] },
           }),
@@ -50,7 +58,6 @@ describe(u.yellow(`resolveSetup`), () => {
       it(`should be able to deeply resolve references`, async () => {
         nui.getRoot().Power = { patientInfoPage: '.Sun.viewTag' }
         const component = await nui.resolveComponents({
-          // @ts-expect-error
           components: ui.label({
             text: { if: [1, '.Power.patientInfoPage', 'wow'] },
           }),
@@ -104,21 +111,101 @@ describe(u.yellow(`resolveSetup`), () => {
 
       it(`should pass in the correct page instance to a descendant of a page component`, async () => {
         const spy = sinon.spy()
+        nui.getRootPage().page = 'Cereal'
         let [viewComponent] = await nui.resolveComponents({
           components: u.array(nui.getRoot().Cereal.components),
         })
         const pageComponent = viewComponent.child(1)
         const page = pageComponent.get('page') as NuiPage
-        let textField = (
-          await nui.resolveComponents({
-            components: page.components,
-            page,
-            on: { reference: spy },
-          })
-        )[2]
+        const components = await nui.resolveComponents({
+          components: page.components,
+          page,
+          on: { reference: spy },
+        })
+        // @ts-expect-error
+        const [_, __, textField] = components as t.NuiComponent.Instance[]
         textField.get('dataKey')
         const args = spy.args[0][0]
         expect(args).to.have.property('page').to.deep.eq(page)
+      })
+
+      describe(`when using the fallback reference resolvers`, () => {
+        const getRoot = (components: any) => ({
+          BaseHeader: { type: 'view', style: { shadow: 'true' } },
+          Topo: {
+            components: u.array(components),
+          },
+        })
+        it(`should resolve whole component references`, async () => {
+          const page = nui.getRootPage()
+          page.page = 'Topo'
+          nui.use({ getRoot: () => getRoot('.BaseHeader') })
+          const [component] = await nui.resolveComponents({
+            components: page.components,
+            page,
+          })
+          expect(component).to.be.an('object')
+          expect(component).to.have.property('type', 'view')
+          expect(component.style).to.have.property('boxShadow').to.exist
+          expect(component.style).not.to.have.property('shadow')
+        })
+
+        it(`should resolve components referenced by key and retain its component type`, async () => {
+          const page = nui.getRootPage()
+          page.page = 'Topo'
+          nui.use({
+            getRoot: () => ({
+              BaseHeader: { type: 'view', style: { shadow: 'true' } },
+              Topo: {
+                components: [{ '.BaseHeader': '', viewTag: 'helloTag' }],
+              },
+            }),
+          })
+          const components = await nui.resolveComponents({
+            components: page.components,
+            page,
+          })
+          expect(components[0]).to.have.property('type', 'view')
+        })
+
+        xit(`should not overwrite current children if no children is on the retrieved object`, async () => {
+          const renderProps = getRenderProps({
+            pageName: 'Topo',
+            root: {
+              HaHeaderView: u.omit(ui.view({ style: { shadow: 'true' } }), [
+                'children',
+              ]),
+              HaHeaderBigLabel1: ui.label('Soda'),
+              NFont: { h1: '1.6vh' },
+              SFont: { h4: '4.5vh' },
+              Topo: {
+                components: [
+                  {
+                    '.HaHeaderView': null,
+                    style: { width: '0.68', height: '0.25' },
+                    children: [
+                      {
+                        HaHeaderBigLabel1: null,
+                        style: {
+                          top: '0.0125',
+                          left: '0.05',
+                          fontSize: '.Sfont.h4',
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          })
+          console.log(
+            await nui.resolveComponents({
+              components: renderProps.page.components,
+              page: renderProps.page,
+            }),
+          )
+          console.log(renderProps)
+        })
       })
     })
   })

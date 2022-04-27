@@ -112,7 +112,6 @@ function Seo({
         siteDescription,
         siteLogo,
         siteUrl,
-        siteKeywords,
         siteVideo,
       },
     },
@@ -124,7 +123,6 @@ function Seo({
         siteDescription: string
         siteLogo: string
         siteUrl: string
-        siteKeywords: string[]
         siteVideo: string
       }
     }
@@ -138,7 +136,6 @@ function Seo({
             siteDescription
             siteLogo
             siteUrl
-            siteKeywords
             siteVideo
           }
         }
@@ -150,7 +147,7 @@ function Seo({
     <Helmet htmlAttributes={{ lang }}>
       <title>{title || siteTitle}</title>
       <meta name="description" content={description || siteDescription} />
-      <meta name="keywords" content={siteKeywords.join(',')} />
+      <meta name="keywords" content={[].join(',')} />
       <meta name="image" content={siteLogo} />
       <meta
         name="robots"

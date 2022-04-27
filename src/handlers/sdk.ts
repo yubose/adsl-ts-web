@@ -50,6 +50,12 @@ export function getSdkHelpers(app: App) {
     get videoChat() {
       return extendedSdkBuiltIns.videoChat.bind(app)
     },
+    get initExtend() {
+      return extendedSdkBuiltIns.initExtend.bind(app)
+    },
+    get extendMeeting() {
+      return app.builtIns.get('extendMeeting')?.find(Boolean)?.fn
+    },
   }
 
   return {

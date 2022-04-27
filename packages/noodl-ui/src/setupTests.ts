@@ -17,8 +17,7 @@ JSDOM('', {
 chai.use(sinonChai)
 
 before(() => {
-  console.clear()
-  log.setLevel('error')
+  log.setLevel('debug')
 })
 
 beforeEach(() => {
@@ -37,6 +36,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  document.head.textContent = ''
   document.body.textContent = ''
   nui.reset()
 })

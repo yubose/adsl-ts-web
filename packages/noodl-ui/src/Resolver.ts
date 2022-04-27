@@ -54,10 +54,13 @@ class ComponentResolver<
       function onResolveWithHelpers(...args: Parameters<typeof resolverFn>) {
         const optionsWithHelpers: ConsumerOptions = {
           ...args[1],
-          resolveReference: (key, value) => {
+          resolveReference(keyOrValue, value) {
+            const isKey = arguments.length > 1
+            const key = isKey ? keyOrValue : ''
+            value = isKey ? value : keyOrValue
             return resolveReference({
               component: args[0],
-              localKey: args[1]?.page?.page,
+              localKey: args[1]?.page?.page || '',
               on: args[1]?.on,
               page: args[1]?.page,
               root: args[1]?.getRoot,

@@ -4,7 +4,7 @@ import * as u from '@jsmanifest/utils'
 import { render as originalRender, RenderOptions } from '@testing-library/react'
 import { trimReference } from 'noodl-utils'
 import AppProvider from '@/AppProvider'
-import { Provider as PageContextProvider } from '@/usePageCtx'
+import PageContext from '@/components/PageContext'
 import type useActionChain from '@/hooks/useActionChain'
 import type useBuiltInFns from '@/hooks/useBuiltInFns'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
@@ -25,16 +25,14 @@ function getAllProviders({
   return function AllProviders({ children }: React.PropsWithChildren<any>) {
     return (
       <AppProvider>
-        <PageContextProvider value={pageContext as t.PageContext}>
-          {children}
-        </PageContextProvider>
+        <PageContext>{children}</PageContext>
       </AppProvider>
     )
   }
 }
 
 export type AppTestRenderOptions = Partial<
-  Pick<t.AppContext, 'getInRoot' | 'root' | 'setInRoot'>
+  Pick<t.AppContext, 'getR' | 'root' | 'setR'>
 > & {
   builtIns?: ReturnType<typeof useBuiltInFns>
   createActionChain?: ReturnType<typeof useActionChain>['createActionChain']
@@ -75,10 +73,11 @@ export function renderComponent(
     pageObject: rootProp[pageName],
     slug: `/${pageName}/`,
     _context_: { lists: {} },
+    static: { images: [] },
   } as t.PageContext
 
   const Component = () => {
-    const { root, getInRoot, setInRoot } = useRootObject(rootProp)
+    const { root, getR, setR } = useRootObject(rootProp)
 
     let node: React.ReactElement | undefined
 
@@ -87,8 +86,8 @@ export function renderComponent(
     } else {
       const renderComponent = createRendererFactory({
         root,
-        getInRoot,
-        setInRoot,
+        getR,
+        setR,
         _context_: pageContext._context_,
         builtIns,
         createActionChain,
@@ -98,8 +97,8 @@ export function renderComponent(
 
       node = (
         <>
-          {u.array(component).map((c) => (
-            <React.Fragment key={c.id}>{renderComponent(c)}</React.Fragment>
+          {u.array(component).map((c, i) => (
+            <React.Fragment key={i}>{renderComponent(c)}</React.Fragment>
           ))}
         </>
       )

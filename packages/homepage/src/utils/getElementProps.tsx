@@ -4,28 +4,32 @@ import * as u from '@jsmanifest/utils'
 import type { NUITrigger } from 'noodl-ui'
 import type useActionChain from '@/hooks/useActionChain'
 import { triggers } from 'noodl-ui'
+import { excludeIteratorVar } from 'noodl-utils'
 import camelCase from 'lodash/camelCase'
-import cloneDeep from 'lodash/cloneDeep'
-import { createDraft, current as draftToCurrent, finishDraft } from 'immer'
-import set from 'lodash/set'
+import get from 'lodash/get'
+import has from 'lodash/has'
 import {
-  getListDataObject,
-  getIteratorVar,
-  isListConsumer,
-} from '@/utils/pageCtx'
+  createDraft,
+  current as draftToCurrent,
+  finishDraft,
+  produce,
+  produceWithPatches,
+  applyPatches,
+} from 'immer'
+import set from 'lodash/set'
 import getTagName from '@/utils/getTagName'
+import deref from '@/utils/deref'
 import log from '@/utils/log'
 import * as t from '@/types'
 import is from '@/utils/is'
 
 export interface GetElementPropsUtils
-  extends Pick<t.AppContext, 'root' | 'getInRoot' | 'setInRoot'> {
-  _context_?: t.PageContext['_context_']
+  extends Pick<t.AppContext, 'root' | 'getR' | 'setR'>,
+    t.PageContext {
   /**
    * By default this is coming from useActionChain but can be overrided
    */
   createActionChain?: ReturnType<typeof useActionChain>['createActionChain']
-  pageName?: string
   /**
    * Path to the component starting from pageContext.pageObject.components
    */
@@ -55,18 +59,28 @@ function getElementProps<Props = any>(
   utils = {} as GetElementPropsUtils,
 ): t.CreateElementProps {
   let {
-    _context_,
     createActionChain,
-    getInRoot,
+    getR,
+    getListsCtxObject,
+    getIteratorVar,
+    getListDataObject,
+    isListConsumer,
+    lists,
     pageName,
     path: componentPath = [],
-    setInRoot,
+    setR,
     root,
+    refs,
   } = utils
 
   if (u.isStr(component)) {
     if (is.reference(component)) {
-      const referencedComponent = getInRoot(component, pageName)
+      const referencedComponent = deref({
+        ref: component,
+        rootKey: pageName,
+        root,
+      })
+      // const referencedComponent = getR(component, pageName)
       if (u.isObj(referencedComponent)) {
         return getElementProps(referencedComponent, utils)
       } else {
@@ -83,17 +97,14 @@ function getElementProps<Props = any>(
     let _component = component as t.StaticComponentObject
 
     if (is.componentByReference(component)) {
-      console.log({ componentByReference: component, root })
-
-      const refResult = getElementProps(u.keys(component)[0], utils)
-      console.log({ refResult })
-      return refResult
+      return getElementProps(u.keys(component)[0], utils)
     }
 
     let { dataKey, id, type } = _component
-    let iteratorVar = isListConsumer(_context_, _component)
-      ? getIteratorVar(_context_, _component)
-      : ''
+    let iteratorVar = getIteratorVar?.(_component)
+    let _isListConsumer = isListConsumer(_component)
+    let _listObject
+
     let props = {
       type: getTagName(type) || 'div',
       key: id || dataKey,
@@ -101,17 +112,32 @@ function getElementProps<Props = any>(
 
     let children = [] as t.CreateElementProps<Props>[]
 
-    if (component.type === 'list') {
-      // const _pathStr = componentPath.join('.')
-      // const refObject = u.values(_context_?.lists || {}).find((obj) => {
-      //   const listObjectPath = obj?.listObjectPath
-      //   return !!(listObjectPath && obj.path.join('.') === _pathStr)
-      // })
-      // if (refObject) {
-      // const listObject = getInRoot(refObject.listObjectPath)
-      // console.log(listObject)
-      // }
-    }
+    // le
+
+    // if (component.type === 'list') {
+    //   if (componentPath) {
+    //     const listCtxObject = getListsCtxObject?.(component.id || component)
+    //     const listObjectPath = listCtxObject?.listObjectPath
+    //     if (listObjectPath) {
+    //       const dataObject = is.localKey(listObjectPath)
+    //         ? u.get(root, pageName)
+    //         : root
+
+    //       if (!has(dataObject, listObjectPath)) {
+    //         log.error(
+    //           `Did not receive a list component using the original referenced path ${listCtxObject.listObjectPath}. ` +
+    //             `A copy will be used instead (the reference will be lost)`,
+    //           { path: componentPath, listCtxObject },
+    //         )
+    //       }
+
+    //       console.log({ listCtxObject })
+
+    //       const value = get(dataObject, listObjectPath)
+    //       debugger
+    //     }
+    //   }
+    // }
 
     for (let [key, value] of u.entries(component)) {
       if (key === 'children') {
@@ -134,8 +160,30 @@ function getElementProps<Props = any>(
         } else {
           value && children.push(getElementProps(value, utils))
         }
-      } else if (key === 'data-src' && /(image|video)/i.test(type)) {
-        props.src = value
+      } else if (
+        key === 'data-src' ||
+        (key === 'path' && /(image|video)/i.test(type))
+      ) {
+        if (_isListConsumer) {
+          const dataObject = getListDataObject(_component)
+          props.src =
+            u.isStr(component.path) && component.path.startsWith(iteratorVar)
+              ? get(dataObject, excludeIteratorVar(component.path, iteratorVar))
+              : value
+          props['data-src'] = props.src
+          console.log({
+            props,
+            id: component.id,
+            type: component.type,
+            iteratorVar,
+            isListConsumer: _isListConsumer,
+            dataObject,
+            component,
+            _component,
+          })
+        } else {
+          props.src = value
+        }
       } else if (key === 'style') {
         if (u.isObj(value)) {
           props.style = {}
@@ -156,9 +204,7 @@ function getElementProps<Props = any>(
         }
       } else if (key === 'text' && !component['data-value']) {
         value &&
-          children.push(
-            is.reference(value) ? getInRoot(value, pageName) : value,
-          )
+          children.push(is.reference(value) ? getR(value, pageName) : value)
         // value && children.push(getElementProps(value, utils))
       } else if (triggers.includes(key as string)) {
         if (nt.userEvent.includes(key as typeof nt.userEvent[number])) {
@@ -172,23 +218,37 @@ function getElementProps<Props = any>(
           ) {
             // This root draft will be used throughout the handlers instead of directly accessing root from context. This is to ensure that all the most recent changes are batched onto one single update
             let results: any[]
-            let clonedRoot = createDraft(cloneDeep(root))
-            actionChain?.data.set('rootDraft', clonedRoot)
+            // let clonedRoot = createDraft(cloneDeep(root))
+            // actionChain?.data.set('rootDraft', clonedRoot)
+            let changes = []
+            let inverseChanges = []
+            let nextRoot = await produce(
+              root,
+              async (draft) => {
+                actionChain?.data.set('rootDraft', draft)
+                try {
+                  results = await actionChain?.execute(evt)
+                } catch (error) {
+                  log.error(
+                    error instanceof Error ? error : new Error(String(error)),
+                  )
+                }
+              },
+              // The third argument to produce is a callback to which the patches will be fed
+              (patches, inversePatches) => {
+                changes.push(...patches)
+                inverseChanges.push(...inversePatches)
+              },
+            )
 
-            try {
-              results = await actionChain?.execute(evt)
-            } catch (error) {
-              log.error(
-                error instanceof Error ? error : new Error(String(error)),
-              )
-            } finally {
-              clonedRoot = finishDraft(clonedRoot)
-              actionChain?.data.delete('rootDraft')
-            }
-
-            setInRoot((draft) => {
-              u.entries(clonedRoot).forEach(([k, v]) => void (draft[k] = v))
+            console.log({
+              nextRoot,
+              changes,
+              inverseChanges,
             })
+
+            actionChain?.data.delete('rootDraft')
+            setR(nextRoot)
             return results
           }
         }
@@ -200,7 +260,7 @@ function getElementProps<Props = any>(
 
       if (u.isStr(props[key])) {
         if (is.reference(value)) {
-          props[key] = getInRoot(value, pageName)
+          props[key] = getR(value, pageName)
           if (props[key] === value) {
             log.error(
               `Tried to retrieve reference "${value}" for key "${key}" but the value stayed as the reference`,
@@ -209,9 +269,10 @@ function getElementProps<Props = any>(
         } else if (
           key !== 'data-key' &&
           iteratorVar &&
-          value.startsWith(iteratorVar)
+          value.startsWith(iteratorVar) &&
+          key !== '_path_'
         ) {
-          props[key] = getListDataObject(_context_?.lists, _component, utils)
+          props[key] = getListDataObject(_component)
         }
       }
     }

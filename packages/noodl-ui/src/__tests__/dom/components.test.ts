@@ -2,31 +2,26 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import { prettyDOM, waitFor } from '@testing-library/dom'
 import { ComponentObject, PageObject } from 'noodl-types'
-import { flatten as flattenComponents, Page as NuiPage } from 'noodl-ui'
+import { Page as NuiPage } from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 import * as nc from 'noodl-common'
-import { event as nuiEvent, NUI, NuiComponent } from 'noodl-ui'
-import {
-  _defaults,
-  createRender as _createRender,
-  getDescendantIds,
-  ui,
-  ndom,
-  waitForPageChildren,
-  assetsUrl,
-} from '../test-utils'
-import type NDOMPage from '../Page'
+import { event as nuiEvent, NuiComponent } from 'noodl-ui'
+import { getRenderProps, createRender, ui } from '../../utils/test-utils'
 import {
   findBySelector,
   findByViewTag,
   findFirstByElementId,
   findFirstBySelector,
   findFirstByViewTag,
-} from '../utils'
-import { cache } from '../nui'
-import ComponentPage from '../factory/componentFactory/ComponentPage'
-import * as i from '../utils/internal'
-import * as n from '../utils'
+} from '../../dom/utils'
+import cache from '../../_cache'
+import ComponentPage from '../../dom/factory/componentFactory/ComponentPage'
+import * as i from '../../utils/internal'
+import * as n from '../../dom/utils'
+import type NDOMPage from '../../Page'
+
+const _createRender: any = () => {}
+const render = createRender()
 
 describe(nc.coolGold('components'), () => {
   describe(nc.italic(`Page`), () => {
@@ -61,7 +56,7 @@ describe(nc.coolGold('components'), () => {
               ui.button({
                 id: 'b',
                 text: `Go to Donut page`,
-                onClick: [ui.gotoObject('Donut')],
+                onClick: [ui.goto('Donut')],
               }),
               ui.divider({ id: 'divider' }),
               ui.label({
@@ -143,7 +138,7 @@ describe(nc.coolGold('components'), () => {
       return renderer
     }
 
-    it(`should use the NuiPage instance from the page component to initialize the constructor`, async () => {
+    it.only(`should use the NuiPage instance from the page component to initialize the constructor`, async () => {
       const { ndom, render } = createRender(
         ui.view({ children: [ui.page('Donut')] }),
       )

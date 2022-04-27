@@ -13,14 +13,14 @@ import {
 import useActionChain from '@/hooks/useActionChain'
 import useCtx from '@/useCtx'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
-import usePageCtx from '@/usePageCtx'
+import { usePageCtx } from '@/components/PageContext'
 import useRenderer from '@/hooks/useRenderer'
 import useRootObject from '@/hooks/useRootObject'
 import * as t from '@/types'
 import { renderComponent, ui } from './test-utils'
 
 describe('render', () => {
-  it('should render to the DOM', () => {
+  it.only('should render to the DOM', () => {
     const { getByText } = renderComponent({ type: 'label', text: 'hello' })
     expect(getByText('hello')).toBeInTheDocument()
   })
@@ -36,7 +36,7 @@ describe('render', () => {
     expect(getByText('Submit')).toBeInTheDocument()
   })
 
-  it.skip(`should render values that are referenced`, () => {
+  xit(`should render values that are referenced`, () => {
     const component = {
       type: 'textField',
       placeholder: '.Topo.buttonText.message',
@@ -52,8 +52,8 @@ describe('render', () => {
   })
 })
 
-describe(`state management`, () => {
-  xit(
+xdescribe(`state management`, () => {
+  it(
     `should update the children to show the new value if an action inside ` +
       `an onClick mutated the root object`,
     async () => {
@@ -251,7 +251,7 @@ describe(`state management`, () => {
       }
     }
 
-    it.only(`should update the value of Topo.tar`, async () => {
+    it(`should update the value of Topo.tar`, async () => {
       const btnComponent = ui.button({
         onClick: getOnClick(),
         text: 'Send',

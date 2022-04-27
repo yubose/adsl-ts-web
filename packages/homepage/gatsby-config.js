@@ -1,23 +1,21 @@
 const u = require('@jsmanifest/utils')
-const fs = require('fs-extra')
 const path = require('path')
-const { parse, traverse, types } = require('@babel/core')
 
 //const pathPrefix = `static/web/latest` // if deployed not to root directory
 const pathPrefix = `` // deployed to root directory
 // If buildSource is "local" it will build using files locally (using "path" configured above). If buildSource is "remote" it will build files remotely using the "config" key as the endpoint. Defaults to "remote"
 const buildSource = process.env.BUILD_SOURCE || 'remote'
 // CONFIG is shorter than NOODL_CONFIG. NOODL_CONFIG will be deprecated
-const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'mob'
+const configKey = process.env.CONFIG || process.env.NOODL_CONFIG || 'www'
 const viewport = process.env.MOBILE
   ? { width: 414, height: 736 } // iPhone 8 Plus
   : { width: 1024, height: 768 }
 
 const {
   name: siteName,
-  title: siteTitle = '',
-  description: siteDescription = '',
-  keywords: siteKeywords,
+  title: siteTitle,
+  description: siteDescription,
+  keywords: siteKeywords = [],
   logo: siteLogo,
   url: siteUrl,
   video: siteVideo,
@@ -25,11 +23,11 @@ const {
 
 for (const titleOrDescOrName of [siteName, siteTitle, siteDescription]) {
   if (!titleOrDescOrName) {
-    throw new Error(
-      `Missing site name, title, and/or site description. ` +
-        `Check ${u.cyan('webpack.config.js')} at ` +
-        `${u.yellow(path.resolve(__dirname, '../../webpack.config.js'))}`,
-    )
+    // throw new Error(
+    //   `Missing site name, title, and/or site description. ` +
+    //     `Check ${u.cyan('webpack.config.js')} at ` +
+    //     `${u.yellow(path.resolve(__dirname, '../../webpack.config.js'))}`,
+    // )
   }
 }
 
@@ -47,46 +45,13 @@ module.exports = {
     siteKeywords,
     siteVideo,
   },
-  pathPrefix,
+  // pathPrefix,
   plugins: [
     `gatsby-transformer-json`,
     `gatsby-plugin-react-helmet`,
     `gatsby-plugin-image`,
-    `gatsby-transformer-sharp`,
-    `gatsby-plugin-emotion`,
     `gatsby-plugin-sitemap`,
-    {
-      resolve: require.resolve(`../gatsby-plugin-noodl`),
-      options: {
-        // Defaults to "remote"
-        buildSource,
-        // Defaults to "aitmed"
-        config: configKey,
-        // Defaults to current directory
-        cwd: __dirname,
-        // Used to grab the version in the config object (defaults to "web")
-        deviceType: 'web',
-        // Defaults to "INFO"
-        loglevel: 'debug',
-        // If introspection is true, it will dump all of the TRANSFORMED noodl
-        // pages in json to the output path specified below as
-        //  "<outputPath>/<config>.introspection.json"
-        introspection: true,
-        paths: {
-          // If we provide this assets will be downloaded to this path.
-
-          // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
-
-          // If we provide this path the yml files/assets will be made available
-          output: `${__dirname}/output`,
-          // Ensures the assets will be correctly located
-          src: `${__dirname}/src`,
-          template: path.resolve(`src/templates/page.tsx`),
-        },
-        // Defaults to { width: 1024, height: 768 }
-        viewport,
-      },
-    },
+    `gatsby-plugin-emotion`,
     {
       resolve: `gatsby-plugin-sharp`,
       options: {
@@ -109,18 +74,40 @@ module.exports = {
       },
     },
     {
-      resolve: `gatsby-plugin-layout`,
+      resolve: 'gatsby-transformer-sharp',
+    },
+    {
+      resolve: require.resolve(`../gatsby-plugin-noodl`),
       options: {
-        component: require.resolve(`./src/layout.tsx`),
+        // Defaults to "remote"
+        buildSource,
+        // Defaults to "aitmed"
+        config: configKey,
+        // Defaults to current directory
+        cwd: __dirname,
+        // Used to grab the version in the config object (defaults to "web")
+        deviceType: 'web',
+        // Defaults to "info"
+        loglevel: 'INFO',
+        // If introspection is true, it will dump all of the TRANSFORMED noodl
+        // pages in json to the output path specified below as
+        //  "<outputPath>/<config>.introspection.json"
+        introspection: true,
+        paths: {
+          // If we provide this assets will be downloaded to this path.
+          // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times
+          assets: `${__dirname}/src/resources/assets`,
+          // If we provide this path the yml files/assets will be made available
+          output: `${__dirname}/output`,
+          // Ensures the assets will be correctly located
+          src: `${__dirname}/src`,
+          // Path to the template used to render noodl pages
+          template: path.resolve(`src/templates/page.tsx`),
+        },
+        // Defaults to { width: 1024, height: 768 }
+        viewport,
       },
     },
-    // {
-    //   resolve: `gatsby-source-filesystem`,
-    //   options: {
-    //     name: `assets`,
-    //     path: `${__dirname}/src/resources/assets`,
-    //   },
-    // },
     {
       resolve: `gatsby-source-filesystem`,
       options: {
@@ -248,7 +235,7 @@ module.exports = {
 function getSiteMetadata(relativePathToWebAppWebpackConfig) {
   const metadata = {
     // TODO - Extract name from webpack.config.js instead
-    name: 'AiTmed',
+    name: '',
     keywords: [],
     logo: 'https://public.aitmed.com/cadl/www3.83/assets/aitmedLogo.png',
     url: `https://aitmed.com`,
@@ -256,51 +243,15 @@ function getSiteMetadata(relativePathToWebAppWebpackConfig) {
       'https://public.aitmed.com/commonRes/video/aitmed228FromBlair11192020.mp4',
   }
 
-  const webAppWebpackConfigAST = parse(
-    fs.readFileSync(
-      path.join(__dirname, relativePathToWebAppWebpackConfig),
-      'utf8',
-    ),
-  )
+  const settings = require(relativePathToWebAppWebpackConfig)?.settings || {}
 
-  traverse(webAppWebpackConfigAST, {
-    enter(path) {
-      if (
-        path.isVariableDeclarator() &&
-        /(TITLE|DESCRIPTION|KEYWORDS)/.test(path.node.id.name)
-      ) {
-        let name = path.node.id.name
-        let value
-        if (path.node.init) {
-          if (types.isLiteral(path.node.init)) {
-            if (path.node.init.type === 'TemplateLiteral') {
-              const quasis = path.node.init.quasis
-              const elem = quasis.find((elem) => !!elem.value.raw)
-              value = elem?.value?.raw || ''
-            } else if (path.node.init.type === 'StringLiteral') {
-              value = path.node.init.value
-            }
-            if (value) {
-              if (name === 'TITLE') metadata.title = value
-              else if (name === 'DESCRIPTION') metadata.description = value
-            }
-          } else if (types.isArrayExpression(path.node.init)) {
-            path.node.init.elements.forEach((elem) => {
-              if (types.isLiteral(elem)) {
-                if (
-                  elem.value &&
-                  typeof elem.value === 'string' &&
-                  !metadata.keywords.includes(elem.value)
-                ) {
-                  metadata.keywords.push(elem.value)
-                }
-              }
-            })
-          }
-        }
-      }
-    },
-  })
+  metadata.name = settings?.name || 'AiTmed'
+  metadata.title =
+    settings.title || 'Start your E-health Journey Anywhere, Anytime'
+  metadata.description =
+    settings.description ||
+    'Anyone, Anywhere, Anytime Start Your E-health Journey With Us'
+  metadata.keywords = u.isArr(settings?.keywords) ? settings.keywords : []
 
   return metadata
 }

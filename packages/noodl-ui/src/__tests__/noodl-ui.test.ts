@@ -60,7 +60,7 @@ describe(u.italic(`createActionChain`), () => {
       [
         ui.pageJump(),
         ui.emitObject(),
-        ui.gotoObject(),
+        ui.goto(),
         ui.builtIn({ funcName: 'too' } as any),
         ui.refresh(),
         ui.saveObject(),
@@ -131,7 +131,7 @@ describe(u.italic(`createActionChain`), () => {
         [
           ui.pageJump(),
           ui.emitObject(),
-          ui.gotoObject(),
+          ui.goto(),
           ui.builtIn('too'),
           ui.refresh(),
           ui.saveObject(),
@@ -153,10 +153,6 @@ describe(u.italic(`createActionChain`), () => {
       })
     },
   )
-
-  xit(`should always pass the dataObject, index and iteratorVar to context in consumer options for list consumers`, () => {
-    //
-  })
 })
 
 describe(u.italic(`createComponent`), () => {

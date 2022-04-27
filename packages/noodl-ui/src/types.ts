@@ -26,6 +26,7 @@ import type {
   ReferenceString,
   IfObject,
   PageComponentUrl,
+  GetLocationAddressActionObject,
 } from 'noodl-types'
 import type {
   Action,
@@ -109,6 +110,8 @@ export type NUIActionObject =
   | SaveActionObject
   | ToastActionObject
   | UpdateActionObject
+  | GetLocationAddressActionObject
+
 
 export type NUIAction = Action | EmitAction
 
@@ -242,10 +245,11 @@ export type ConsumerOptions<Trig extends string = string> = Omit<
     component: NuiComponent.Instance,
   ): StyleObject & { [key: string]: any }
   ref?: NUIActionChain
-} & Partial<ConsumerOptionsHelpers>
+} & Partial<ConsumerOptionsHelpers> &
+  Pick<ResolveComponentOptions<any, any>, 'keepVpUnit'>
 
 export interface ConsumerOptionsHelpers {
-  resolveReference: (key: string, value?: any) => any
+  resolveReference: (keyOrValue: any, value?: any) => any
 }
 
 export interface On {
@@ -268,6 +272,14 @@ export interface On {
       dataObject?: number
     },
   ): OrPromise<void>
+  resolved?(opts: {
+    components: ComponentObject[]
+    component: NuiComponent.Instance
+    context: ConsumerOptions['context']
+    index: number
+    options: ConsumerOptions
+    page: NuiPage
+  }): void | Promise<void>
   if?(args: {
     component?: NuiComponent.Instance
     page?: NuiPage
@@ -337,6 +349,7 @@ export interface ResolveComponentOptions<
   callback?(component: NuiComponent.Instance): NuiComponent.Instance | undefined
   components: C
   context?: Context
+  keepVpUnit?: boolean
   on?: On
   page?: NuiPage
 }
@@ -639,6 +652,11 @@ export interface NDOMTransaction {
 export type NDOMTransactionId = keyof NDOMTransaction
 
 export type NDOMTrigger = typeof triggers[number]
+
+export interface ViewportObject {
+  width: number
+  height: number
+}
 
 export interface UseObject {
   builtIn?: any

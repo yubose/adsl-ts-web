@@ -1,9 +1,8 @@
-import type { PageObject } from 'noodl-types'
 import React from 'react'
-import type { PageProps } from 'gatsby'
+import { PageProps } from 'gatsby'
 import Seo from '@/components/Seo'
-import useRenderer from '@/hooks/useRenderer'
-import { Provider as PageContextProvider } from '@/usePageCtx'
+import PageContext from '@/components/PageContext'
+import usePage from '@/hooks/usePage'
 import * as t from '@/types'
 
 interface HomepageProps extends PageProps {
@@ -11,35 +10,15 @@ interface HomepageProps extends PageProps {
 }
 
 function Homepage(props: HomepageProps) {
-  const { pageContext } = props
-  const { pageObject = {} as PageObject } = pageContext
-
-  const render = useRenderer()
-
-  React.useEffect(() => {
-    console.log(props)
-  }, [])
-
-  return (
-    <>
-      <Seo />
-      {pageObject.components?.map?.(
-        (c: t.StaticComponentObject, index: number) => (
-          <React.Fragment key={c.id}>
-            {render(c, [
-              pageContext?.startPage || 'HomePage',
-              'components',
-              index,
-            ])}
-          </React.Fragment>
-        ),
-      ) || null}
-    </>
-  )
+  const page = usePage(props)
+  return <>{page.components.map(page.render)}</>
 }
 
 export default (props: HomepageProps) => (
-  <PageContextProvider value={props.pageContext}>
-    <Homepage {...props} />
-  </PageContextProvider>
+  <>
+    <Seo />
+    <PageContext {...props.pageContext}>
+      <Homepage {...props} />
+    </PageContext>
+  </>
 )

@@ -1,10 +1,11 @@
 import * as u from '@jsmanifest/utils'
-import { evalIf as _evalIf, excludeIteratorVar } from 'noodl-utils'
+import { evalIf as _evalIf, excludeIteratorVar,toDataPath,trimReference } from 'noodl-utils'
 import type { ComponentObject, IfObject } from 'noodl-types'
 import { Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isComponent from './isComponent'
 import log from '../utils/log'
+import is from '../utils/is'
 import type { NuiComponent } from '../types'
 
 
@@ -75,6 +76,15 @@ export function evalIf<O extends IfObject>(val: O) {
   if (u.isFnc(value)) return value() ? valTrue : valFalse
   if (value) return valTrue
   return valFalse
+}
+
+export function getByRef(root = {}, ref = '', rootKey = '') {
+  if (is.localReference(ref)) {
+    if (rootKey) return get(root[rootKey], toDataPath(trimReference(ref)))
+  } else if (is.rootReference(ref)) {
+    return get(root, toDataPath(trimReference(ref)))
+  }
+  return ref
 }
 
 /**
