@@ -22,9 +22,7 @@ function createCtxListsFn(
     opts?: { pageName: string; root: Record<string, any> },
   ) => any,
 ): typeof fn {
-  return (ctxLists, idOrComp, opts) => {
-    return fn(ctxLists, idOrComp, opts)
-  }
+  return fn
 }
 
 function getId(idOrComp: string | t.StaticComponentObject) {
@@ -99,14 +97,26 @@ function PageContext({
   const ctxLists = React.useMemo(() => u.values(lists), [lists])
 
   const getListDataObject = React.useCallback(
-    (idOrComp: string | t.StaticComponentObject) => {
+    (
+      ctxLists: t.PageContext['lists'][string][],
+      idOrComp: string | t.StaticComponentObject,
+    ) => {
       const id = getId(idOrComp)
       const ctxListObj = getListsCtxObject(ctxLists, idOrComp, {
         pageName,
         root,
       })
+      if (!ctxListObj) {
+        // log.error(`A list consumer did not find its context list object`, {
+        //   id,
+        //   idOrComp,
+        // })
+        return null
+      }
       const listObject = getListObject(ctxLists, id, { pageName, root })
-      const index = ctxListObj.children.findIndex((ids) => ids.includes(id))
+      const index = ctxListObj.children.findIndex((ids: string[]) =>
+        ids.includes(id),
+      )
 
       if (listObject) {
         log.debug(`[PageContext] Retrieved listObject`, listObject)
@@ -118,25 +128,56 @@ function PageContext({
 
       return null
     },
-    [ctxLists, lists, pageName, root],
+    [lists, pageName, root],
   )
 
-  const ctx: t.PageContext = React.useMemo(
-    () => ({
-      getIteratorVar: (...args) => getIteratorVar(ctxLists, ...args),
-      getListsCtxObject: (...args) => getListsCtxObject(ctxLists, ...args),
-      getListObject: (id, opts) =>
-        getListObject(ctxLists, id, { root, pageName, ...opts }),
-      getListDataObject: (...args) => getListDataObject(...args),
-      isListConsumer: (...args) => isListConsumer(ctxLists, ...args),
-      lists,
-      pageName,
-      pageObject,
-      refs,
-      slug,
-    }),
-    [ctxLists, lists, pageName, pageObject],
+  const getListDataObjectWithCustomRoot = React.useCallback(
+    (root, idOrComp: string | t.StaticComponentObject) => {
+      const id = getId(idOrComp)
+      const ctxListObj = getListsCtxObject(ctxLists, idOrComp, {
+        pageName,
+        root,
+      })
+      if (!ctxListObj) {
+        // log.error(`A list consumer did not find its context list object`, {
+        //   id,
+        //   idOrComp,
+        // })
+        return null
+      }
+      const listObject = getListObject(ctxLists, id, { pageName, root })
+      const index = ctxListObj.children.findIndex((ids: string[]) =>
+        ids.includes(id),
+      )
+
+      if (listObject) {
+        log.debug(`[PageContext] Retrieved listObject`, listObject)
+        log.debug(`[PageContext] Index: ${index}`)
+        const dataObject = listObject[index]
+        log.debug(`[PageContext] Returning dataObject`, dataObject)
+        return dataObject
+      }
+
+      return null
+    },
+    [ctxLists, lists, pageName],
   )
+
+  const ctx: t.PageContext = {
+    getIteratorVar: (...args) => getIteratorVar(ctxLists, ...args),
+    getListsCtxObject: (...args) => getListsCtxObject(ctxLists, ...args),
+    getListObject: (id, opts) =>
+      getListObject(ctxLists, id, { ...opts, root, pageName }),
+    getListDataObject: (id, ...args) =>
+      getListDataObject(ctxLists, id, ...args),
+    getListDataObjectWithCustomRoot: getListDataObjectWithCustomRoot,
+    isListConsumer: (...args) => isListConsumer(ctxLists, ...args),
+    lists,
+    pageName,
+    pageObject,
+    refs,
+    slug,
+  }
 
   return <Provider value={ctx}>{children}</Provider>
 }

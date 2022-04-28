@@ -25,10 +25,7 @@ function usePage({
     )
   }
 
-  const components = React.useMemo(
-    () => pageContext?.pageObject?.components || [],
-    [pageContext],
-  )
+  const components = pageContext?.pageObject?.components || []
 
   return {
     components,

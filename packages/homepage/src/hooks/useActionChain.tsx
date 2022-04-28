@@ -1,10 +1,10 @@
 import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
+import { isDraft, current as draftToCurrent, produce } from 'immer'
 import React from 'react'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import partial from 'lodash/partial'
-import partialRight from 'lodash/partialRight'
 import { navigate } from 'gatsby'
 import { excludeIteratorVar, trimReference, toDataPath } from 'noodl-utils'
 import {
@@ -38,8 +38,7 @@ export interface ExecuteHelpers {
 }
 
 function useActionChain() {
-  const xRef = React.useRef<any>({})
-  const { root, getR } = useCtx()
+  const { root, getR, setR } = useCtx()
   const pageCtx = usePageCtx()
 
   const { handleBuiltInFn, ...builtIns } = useBuiltInFns()
@@ -63,7 +62,7 @@ function useActionChain() {
             ? // Temp hard code for now
               'https://search.aitmed.com'
             : deref({
-                root,
+                root: args.actionChain.data.get('rootDraft'),
                 ref: value,
                 rootKey: pageCtx.pageName,
               })
@@ -80,7 +79,6 @@ function useActionChain() {
       }
 
       if (u.isObj(value)) {
-        debugger
       } else if (u.isStr(value)) {
         if (value.startsWith('^')) {
           // TODO - Handle goto scrolls when navigating to a different page
@@ -119,7 +117,6 @@ function useActionChain() {
             inline: 'center',
           })
         } else {
-          debugger
           navigate(`/${value}`)
         }
       } else {
@@ -187,6 +184,7 @@ function useActionChain() {
       const numObjs = objs.length
       for (let index = 0; index < numObjs; index++) {
         const object = objs[index]
+
         log.debug(
           `%c[evalObject] Calling object ${index + 1}/${numObjs}`,
           'color:teal',
@@ -198,11 +196,73 @@ function useActionChain() {
             value: object,
           },
         )
+
+        if (u.isObj(object)) {
+          const objKeys = u.keys(object)
+          const isSingleProp = objKeys.length === 1
+
+          if (isSingleProp) {
+            const property = objKeys[0]
+            const propValue = object[property]
+
+            if (is.awaitReference(property)) {
+              let datapath = toDataPath(trimReference(property))
+              let datavalue: any
+
+              if (is.localReference(property)) {
+                datapath.unshift(pageCtx.pageName)
+              }
+
+              if (u.isStr(propValue)) {
+                datavalue = is.reference(propValue)
+                  ? deref({
+                      root: args.actionChain.data.get('rootDraft'),
+                      rootKey: pageCtx.pageName,
+                      ref: propValue,
+                    })
+                  : propValue
+              } else {
+                datavalue = propValue
+              }
+
+              if (is.action.evalObject(datavalue)) {
+                const result = await execute({
+                  ...args,
+                  action: datavalue,
+                })
+                debugger
+                if (result !== undefined) {
+                  set(args.actionChain.data.get('rootDraft'), datapath, result)
+                }
+                continue
+              } else {
+                if (args.actionChain?.data?.has?.('rootDraft')) {
+                  debugger
+                  set(
+                    args.actionChain.data.get('rootDraft'),
+                    datapath,
+                    datavalue,
+                  )
+                } else {
+                  log.error(
+                    `Could not set a value to the path ${property} because it did not have a rootDraft`,
+                  )
+                }
+                continue
+              }
+            } else {
+              debugger
+            }
+          }
+        }
+
+        debugger
         const result = await wrapWithHelpers(args.onExecuteAction)({
           ...args,
           action: object,
           from: 'evalObject',
         })
+        debugger
         results.push(result)
       }
       return results
@@ -244,10 +304,7 @@ function useActionChain() {
           log.debug(
             `%c[executeIf] Calling --> executeEvalBuiltIn`,
             `color:#c4a901;`,
-            {
-              builtInKey: key,
-              from: args.from,
-            },
+            { builtInKey: key, from: args.from },
           )
           const result = await executeEvalBuiltIn(key, {
             ...args,
@@ -574,7 +631,11 @@ function useActionChain() {
 
                   if (u.isStr(value)) {
                     if (is.reference(value)) {
-                      value = getR(value, pageCtx.pageName)
+                      const dataPath = toDataPath(trimReference(value))
+                      if (is.localReference(value)) {
+                        dataPath.unshift(pageCtx.pageName)
+                      }
+                      value = get(rootDraft, dataPath)
                     }
                   }
 
@@ -591,23 +652,17 @@ function useActionChain() {
                       }
                       let valueAwaiting = obj[key]
                       let initialValue = get(rootDraft, dataPath)
-                      // let initialValue = getR(dataPath)
+                      // let initialValue = getR(dataPath.join('.'))
 
                       if (is.reference(valueAwaiting)) {
-                        valueAwaiting = getR(
-                          valueAwaiting,
-                          (is.localReference(valueAwaiting) &&
-                            pageCtx.pageName) ||
-                            undefined,
+                        valueAwaiting = get(rootDraft, dataPath.join('.'))
+                        console.log(
+                          `valueAwaiting`,
+                          isDraft(valueAwaiting)
+                            ? draftToCurrent(valueAwaiting)
+                            : valueAwaiting,
                         )
                       }
-
-                      console.log({
-                        awaitKey,
-                        pageName: pageCtx.pageName,
-                        value: valueAwaiting,
-                        initialValue,
-                      })
 
                       log.debug(
                         `%cApplying an awaited value to the path in the reference ${key}`,
@@ -620,7 +675,6 @@ function useActionChain() {
                         },
                       )
 
-                      // setR((draft) => set(draft, dataPath, valueAwaiting))
                       set(rootDraft, dataPath, valueAwaiting)
 
                       const valueAfter = get(rootDraft, dataPath)
@@ -635,7 +689,6 @@ function useActionChain() {
                             valueAwaiting,
                             valueBefore: initialValue,
                             valueAfter,
-                            valueUsingGetFn: get(rootDraft, dataPath),
                           },
                         )
                       } else {
@@ -652,9 +705,6 @@ function useActionChain() {
                           },
                         )
                       }
-
-                      // setR(rootDraft)
-                      // if (actionChain.data.get('rootDraft'))
                     } else {
                       log.error('DEBUG THIS PART')
                       log.error('DEBUG THIS PART')
@@ -692,7 +742,7 @@ function useActionChain() {
           log.error(err)
         }
       }),
-    [handleBuiltInFn, isBuiltInEvalFn, pageCtx, root],
+    [handleBuiltInFn, isBuiltInEvalFn, getR, setR, pageCtx, root],
   )
 
   const createActionChain = React.useCallback(
