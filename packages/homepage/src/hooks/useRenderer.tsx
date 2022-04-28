@@ -225,7 +225,7 @@ function useRenderer() {
             getListDataObject(props) ||
             getListDataObjectWithCustomRoot(root, props)
           if (!dataObject) {
-            debugger
+            // debugger
           } else {
             const src = get(
               dataObject,
@@ -234,9 +234,9 @@ function useRenderer() {
             console.log({ src })
             console.log({ src })
             console.log({ src })
-            if (src)
+            if (src) {
               props.src = 'https://public.aitmed.com/cadl/www4.06/assets/' + src
-            else debugger
+            }
           }
         }
       }

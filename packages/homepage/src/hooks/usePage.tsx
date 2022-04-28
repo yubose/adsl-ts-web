@@ -13,7 +13,6 @@ function usePage({
 
   const render = (c: StaticComponentObject | string, index: number) => {
     console.log(`%c[usePage] Rendering`, `color:#08AD64;font-weight:bold;`, c)
-
     return (
       <React.Fragment key={u.isStr(c) ? c : c?.id || c?.dataKey || index}>
         {renderer(c, [
