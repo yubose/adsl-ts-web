@@ -8,7 +8,6 @@ import get from 'lodash/get'
 import toast from '@/utils/toast'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
 import useRootObject from '@/hooks/useRootObject'
-import useStaticImages from '@/hooks/useStaticImages'
 import log from '@/utils/log'
 
 log.setLevel('DEBUG')
@@ -18,7 +17,6 @@ function AppProvider({
   initialRoot,
 }: React.PropsWithChildren<{ initialRoot?: Record<string, any> }>) {
   const noodlPages = useGetNoodlPages()
-  const staticImages = useStaticImages()
 
   const { root, getR, setR } = useRootObject(
     initialRoot ||
@@ -51,15 +49,6 @@ function AppProvider({
     root,
     getR,
     setR,
-    // images: (staticImages?.edges || []).reduce((acc, { node } = {}) => {
-    //   if (!node?.childImageSharp?.gatsbyImageData) return acc
-    //   acc[node.base] = {
-    //     data: node.childImageSharp.gatsbyImageData,
-    //     filename: node.base,
-    //     url: node.publicURL,
-    //   }
-    //   return acc
-    // }, {} as t.AppContext['images']),
   }
 
   React.useEffect(() => {
@@ -67,11 +56,8 @@ function AppProvider({
     window['getR'] = getR
     window['root'] = ctx.root
     window['get'] = get
-    console.log({ staticImages })
     console.log(ctx)
   }, [ctx])
-
-  console.log(`[AppProvider] Update`, root.AiTmedContact?.flag)
 
   return (
     <>
