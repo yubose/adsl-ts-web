@@ -19,6 +19,7 @@ import deref from '@/utils/deref'
 import { usePageCtx } from '@/components/PageContext'
 import is from '@/utils/is'
 import log from '@/utils/log'
+import * as c from '../constants'
 import * as t from '@/types'
 
 export interface UseActionChainOptions {}
@@ -43,6 +44,13 @@ function useActionChain() {
 
   const { handleBuiltInFn, ...builtIns } = useBuiltInFns()
 
+  const getRootDraftOrRoot = React.useCallback(
+    (actionChain: NUIActionChain) => {
+      return actionChain?.data?.get?.(c.ROOT_DRAFT) || root
+    },
+    [root],
+  )
+
   const executeStr = async (
     value: string,
     args: ExecuteArgs &
@@ -62,23 +70,17 @@ function useActionChain() {
             ? // Temp hard code for now
               'https://search.aitmed.com'
             : deref({
-                root: args.actionChain.data.get('rootDraft'),
+                root: getRootDraftOrRoot(args.actionChain),
                 ref: value,
                 rootKey: pageCtx.pageName,
               })
       }
 
       // These are values coming from an if object evaluation since we are also using this function for if object strings
-      if (is.isBoolean(value)) {
-        log.debug(
-          `%c[executeStr] Returning from func because of boolean`,
-          'color:hotpink',
-          { from: args.from, value },
-        )
-        return is.isBooleanTrue(value)
-      }
+      if (is.isBoolean(value)) return is.isBooleanTrue(value)
 
       if (u.isObj(value)) {
+        debugger
       } else if (u.isStr(value)) {
         if (value.startsWith('^')) {
           // TODO - Handle goto scrolls when navigating to a different page
@@ -147,9 +149,7 @@ function useActionChain() {
       log.debug(
         `%c[executeEvalBuiltIn] Calling --> ${builtInKey}`,
         'color:salmon',
-        {
-          from: args.from,
-        },
+        { from: args.from },
       )
       const result = await handleBuiltInFn(builtInKey, {
         actionChain: args.actionChain,
@@ -199,9 +199,9 @@ function useActionChain() {
 
         if (u.isObj(object)) {
           const objKeys = u.keys(object)
-          const isSingleProp = objKeys.length === 1
+          const isSingleProperty = objKeys.length === 1
 
-          if (isSingleProp) {
+          if (isSingleProperty) {
             const property = objKeys[0]
             const propValue = object[property]
 
@@ -216,7 +216,7 @@ function useActionChain() {
               if (u.isStr(propValue)) {
                 datavalue = is.reference(propValue)
                   ? deref({
-                      root: args.actionChain.data.get('rootDraft'),
+                      root: getRootDraftOrRoot(args.actionChain),
                       rootKey: pageCtx.pageName,
                       ref: propValue,
                     })
@@ -230,26 +230,13 @@ function useActionChain() {
                   ...args,
                   action: datavalue,
                 })
-                debugger
                 if (result !== undefined) {
-                  set(args.actionChain.data.get('rootDraft'), datapath, result)
+                  set(getRootDraftOrRoot(args.actionChain), datapath, result)
                 }
-                continue
               } else {
-                if (args.actionChain?.data?.has?.('rootDraft')) {
-                  debugger
-                  set(
-                    args.actionChain.data.get('rootDraft'),
-                    datapath,
-                    datavalue,
-                  )
-                } else {
-                  log.error(
-                    `Could not set a value to the path ${property} because it did not have a rootDraft`,
-                  )
-                }
-                continue
+                set(getRootDraftOrRoot(args.actionChain), datapath, datavalue)
               }
+              continue
             } else {
               debugger
             }
@@ -351,7 +338,7 @@ function useActionChain() {
                   debugger
                   log.debug(`%c[executeIf] Encountered @: ${k}`, 'color:gold')
                   const keyDataPath = trimReference(k)
-                  const rootDraft = args.actionChain.data.get('rootDraft')
+                  const rootDraft = getRootDraftOrRoot(args.actionChain)
                   if (is.localReference(k)) {
                     set(rootDraft[pageCtx.pageName], keyDataPath, v)
                   } else {
@@ -621,7 +608,7 @@ function useActionChain() {
                   let awaitKey
                   let isLocal = true
                   let value = obj[key]
-                  let rootDraft = actionChain.data.get('rootDraft')
+                  let rootDraft = getRootDraftOrRoot(actionChain)
 
                   if (is.reference(key)) {
                     isLocal = is.localReference(key)
@@ -829,6 +816,7 @@ function useActionChain() {
 
   return {
     createActionChain,
+    getRootDraftOrRoot,
   }
 }
 

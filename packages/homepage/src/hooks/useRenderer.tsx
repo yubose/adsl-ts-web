@@ -233,7 +233,6 @@ function useRenderer() {
             )
             console.log({ src })
             console.log({ src })
-            console.log({ src })
             if (src) {
               props.src = 'https://public.aitmed.com/cadl/www4.06/assets/' + src
             }
