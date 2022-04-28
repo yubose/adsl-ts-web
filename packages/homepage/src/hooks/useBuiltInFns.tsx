@@ -98,27 +98,29 @@ function useBuiltInFns() {
   const ctx = useCtx()
   const pageCtx = usePageCtx()
 
-  const builtIns = React.useMemo(() =>
-    getBuiltInFns({
-      ...ctx,
-      ...pageCtx,
-    }),
+  const builtIns = React.useMemo(
+    () =>
+      getBuiltInFns({
+        ...ctx,
+        ...pageCtx,
+      }),
+    [ctx, pageCtx],
   )
 
-  const handleBuiltInFn = React.useCallback(function _handleBuiltInFn(
-    key = '',
-    args: BuiltInFnProps,
-  ) {
-    const fn = builtIns[key]
-    if (u.isFnc(fn)) {
-      return fn(args)
-    } else {
-      log.error(
-        `%cYou are missing the builtIn implementation for "${key}"`,
-        `color:#ec0000;`,
-      )
-    }
-  })
+  const handleBuiltInFn = React.useCallback(
+    function _handleBuiltInFn(key = '', args: BuiltInFnProps) {
+      const fn = builtIns[key]
+      if (u.isFnc(fn)) {
+        return fn(args)
+      } else {
+        log.error(
+          `%cYou are missing the builtIn implementation for "${key}"`,
+          `color:#ec0000;`,
+        )
+      }
+    },
+    [builtIns],
+  )
 
   return {
     ...builtIns,

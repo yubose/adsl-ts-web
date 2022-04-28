@@ -33,27 +33,36 @@ export type StaticComponentObject = nt.ComponentObject &
 
 export interface PageContext {
   getListObject: (
-    idOrComponent: string | StaticComponentObject,
-    opts: {
-      pageName: string
-      root: Record<string, any>
-    },
+    id: string | StaticComponentObject,
+    root?: Record<string, any>,
+    pageName?: string,
   ) => nt.ReferenceString | any[]
   getListsCtxObject: (
-    idOrComponent: string | StaticComponentObject,
+    id: string | StaticComponentObject,
   ) => PageContextListContextObject
-  getIteratorVar: (idOrComponent: string | StaticComponentObject) => string
-  getListDataObject: (idOrComponent: string | StaticComponentObject) => any
-  isListConsumer: (idOrComponent: string | StaticComponentObject) => boolean
+  getIteratorVar: (id: string | StaticComponentObject) => string
+  getCtxObject: (
+    id: string | StaticComponentObject,
+  ) => PageContextListContextObject | null
+  getDataObject: (
+    id: string | StaticComponentObject,
+    root?: Record<string, any>,
+    pageName?: string,
+  ) => any
+  isListConsumer: (id: string | StaticComponentObject) => boolean
+  isCtxObj: (
+    obj: PageContextListContextObject,
+    id: string | StaticComponentObject,
+  ) => boolean
   startPage?: string
+  assetsUrl: string
+  baseUrl: string
   pageName: string
   pageObject: {
     components: StaticComponentObject[]
   } & Record<string, any>
   slug: string
-  lists: {
-    [componentId: string]: PageContextListContextObject
-  }
+  lists: PageContextListContextObject[]
   refs: {
     [reference: nt.ReferenceString]: {
       /**

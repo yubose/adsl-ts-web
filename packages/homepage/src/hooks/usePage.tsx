@@ -26,7 +26,13 @@ function usePage({
 
   const components = pageContext?.pageObject?.components || []
 
+  React.useEffect(() => {
+    console.log(`Page context`, pageContext)
+  }, [])
+
   return {
+    assetsUrl: pageContext.assetsUrl,
+    baseUrl: pageContext.baseUrl,
     components,
     render,
   }

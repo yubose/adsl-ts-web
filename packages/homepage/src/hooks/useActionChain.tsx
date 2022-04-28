@@ -1,6 +1,6 @@
 import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
-import { isDraft, current as draftToCurrent, produce } from 'immer'
+import { getCurrent } from '@/utils/immer'
 import React from 'react'
 import get from 'lodash/get'
 import set from 'lodash/set'
@@ -88,7 +88,7 @@ function useActionChain() {
           value = value.replace('^', '')
         } else if (pageCtx.isListConsumer(args.component)) {
           const iteratorVar = pageCtx.getIteratorVar(args.component)
-          const dataObject = pageCtx.getListDataObject(args.component)
+          const dataObject = pageCtx.getDataObject(args.component)
           if (iteratorVar && value.startsWith(iteratorVar)) {
             value = get(dataObject, excludeIteratorVar(value, iteratorVar))
           }
@@ -119,6 +119,7 @@ function useActionChain() {
             inline: 'center',
           })
         } else {
+          if (!u.isStr(value)) debugger
           navigate(`/${value}`)
         }
       } else {
@@ -238,18 +239,16 @@ function useActionChain() {
               }
               continue
             } else {
-              debugger
+              // debugger
             }
           }
         }
 
-        debugger
         const result = await wrapWithHelpers(args.onExecuteAction)({
           ...args,
           action: object,
           from: 'evalObject',
         })
-        debugger
         results.push(result)
       }
       return results
@@ -377,7 +376,7 @@ function useActionChain() {
     React.useMemo(() => {
       {
         const action = createAction({ action: emitObject, trigger })
-        const dataObject = pageCtx.getListDataObject(component) || {}
+        const dataObject = pageCtx.getDataObject(component) || {}
 
         if (dataObject) {
           if (u.isStr(action.dataKey)) {
@@ -414,7 +413,6 @@ function useActionChain() {
 
                 try {
                   for (const actionObject of actions) {
-                    debugger
                     const result = await execute({
                       action: actionObject,
                       actionChain,
@@ -423,9 +421,9 @@ function useActionChain() {
                       event,
                       trigger,
                     })
-                    debugger
                     if (result === 'abort') {
                       log.debug(`Received "abort"`)
+                      results.push('abort')
                       break
                     } else results.push(result)
                   }
@@ -434,12 +432,6 @@ function useActionChain() {
                     error instanceof Error ? error : new Error(String(error))
                   log.error(`%c[${err.name}] ${err.message}`, err)
                 }
-
-                log.debug(
-                  `%c[onExecuteEmitAction] Emit actions (results)`,
-                  'color:gold',
-                  results,
-                )
 
                 return results
               } catch (error) {
@@ -455,7 +447,7 @@ function useActionChain() {
           // TODO
         }
       }
-    }, [pageCtx])
+    }, [pageCtx, root])
 
   /**
    * Wraps and provides helpers to the execute function as the 2nd argument
@@ -587,7 +579,7 @@ function useActionChain() {
               )
               // TODO - See if we need to move this logic elsewhere
               // 'abort' is returned so evalObject can abort if it returns popups
-              return 'abort'
+              return 'wait' in obj ? 'abort' : undefined
             } else {
               let keys = u.keys(obj)
               let isAwaiting = false
@@ -643,24 +635,7 @@ function useActionChain() {
 
                       if (is.reference(valueAwaiting)) {
                         valueAwaiting = get(rootDraft, dataPath.join('.'))
-                        console.log(
-                          `valueAwaiting`,
-                          isDraft(valueAwaiting)
-                            ? draftToCurrent(valueAwaiting)
-                            : valueAwaiting,
-                        )
                       }
-
-                      log.debug(
-                        `%cApplying an awaited value to the path in the reference ${key}`,
-                        'color:green',
-                        {
-                          awaitKey,
-                          path: dataPath,
-                          value: valueAwaiting,
-                          pageName: pageCtx.pageName,
-                        },
-                      )
 
                       set(rootDraft, dataPath, valueAwaiting)
 
@@ -693,9 +668,9 @@ function useActionChain() {
                         )
                       }
                     } else {
-                      log.error('DEBUG THIS PART')
-                      log.error('DEBUG THIS PART')
-                      log.error('DEBUG THIS PART')
+                      log.error('DEBUG THIS PART IF U SEE THIS')
+                      log.error('DEBUG THIS PART IF U SEE THIS')
+                      log.error('DEBUG THIS PART IF U SEE THIS')
                       const incKey = toDataPath(trimReference(key))
                       const incValue = getR(rootDraft, incKey)
                       console.log({
@@ -755,6 +730,7 @@ function useActionChain() {
             nuiAction.executor = async function onExecuteAction(
               event: React.SyntheticEvent,
             ) {
+              debugger
               const result = await execute({
                 action: obj,
                 actionChain,
@@ -762,6 +738,7 @@ function useActionChain() {
                 event,
                 trigger,
               })
+              debugger
               if (result) {
                 log.debug(
                   `%c[${nuiAction.actionType}]${
@@ -776,6 +753,7 @@ function useActionChain() {
           })
         }
 
+        debugger
         const actionChain = nuiCreateActionChain(
           trigger,
           actions,

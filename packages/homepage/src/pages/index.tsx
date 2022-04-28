@@ -11,7 +11,6 @@ interface HomepageProps extends PageProps {
 
 function Homepage(props: HomepageProps) {
   const page = usePage(props)
-  console.log(page)
 
   return <>{page.components.map(page.render)}</>
 }

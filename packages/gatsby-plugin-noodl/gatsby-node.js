@@ -65,6 +65,8 @@ const data = {
     template: '',
   },
   appKey: '',
+  assetsUrl: '',
+  baseUrl: '',
   buildSource: '',
   configKey: '',
   configUrl: '',
@@ -559,6 +561,8 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
 
   // TODO - Link src/pages/index.tsx to load using this as a source
   data.startPage = (sdk.cadlEndpoint || {}).startPage
+  data.assetsUrl = sdk.assetsUrl
+  data.baseUrl = sdk.baseUrl
 
   // TODO - Figure out a way to pre-generate component dimensions using the runtime/client's viewport
   page.viewport.width = viewport.width
@@ -794,6 +798,8 @@ exports.createPages = async function createPages(args) {
           // NoodlPageTemplate
           component: data._paths_.template,
           context: {
+            assetsUrl: data.assetsUrl,
+            baseUrl: data.baseUrl,
             lists: data._context_?.[pageName]?.lists,
             refs: getPageRefs(pageName) || {},
             pageName,

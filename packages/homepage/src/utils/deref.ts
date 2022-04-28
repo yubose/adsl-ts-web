@@ -8,17 +8,10 @@ export interface DerefOptions {
   ref: LiteralUnion<ReferenceString, string>
   root: Record<string, any>
   rootKey?: string
-  paths?: string | number | (string | number)[]
 }
 
-function deref({ paths, ref, root, rootKey }: DerefOptions) {
+function deref({ ref, root, rootKey }: DerefOptions) {
   let value = ref as any
-
-  if (typeof paths === 'string' || typeof paths === 'number') {
-    paths = [paths]
-  }
-
-  if (!Array.isArray(paths)) paths = [paths]
 
   if (value) {
     let datapath = toDataPath(trimReference(value))
