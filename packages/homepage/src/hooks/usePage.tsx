@@ -13,7 +13,6 @@ function usePage({
 
   const render = (c: StaticComponentObject | string, index: number) => {
     console.log(`%c[usePage] Rendering`, `color:#08AD64;font-weight:bold;`, c)
-
     return (
       <React.Fragment key={u.isStr(c) ? c : c?.id || c?.dataKey || index}>
         {renderer(c, [
@@ -25,10 +24,7 @@ function usePage({
     )
   }
 
-  const components = React.useMemo(
-    () => pageContext?.pageObject?.components || [],
-    [pageContext],
-  )
+  const components = pageContext?.pageObject?.components || []
 
   return {
     components,

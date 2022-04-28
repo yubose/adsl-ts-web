@@ -1,10 +1,10 @@
 import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
+import { isDraft, current as draftToCurrent, produce } from 'immer'
 import React from 'react'
 import get from 'lodash/get'
 import set from 'lodash/set'
 import partial from 'lodash/partial'
-import partialRight from 'lodash/partialRight'
 import { navigate } from 'gatsby'
 import { excludeIteratorVar, trimReference, toDataPath } from 'noodl-utils'
 import {
@@ -19,6 +19,7 @@ import deref from '@/utils/deref'
 import { usePageCtx } from '@/components/PageContext'
 import is from '@/utils/is'
 import log from '@/utils/log'
+import * as c from '../constants'
 import * as t from '@/types'
 
 export interface UseActionChainOptions {}
@@ -38,11 +39,17 @@ export interface ExecuteHelpers {
 }
 
 function useActionChain() {
-  const xRef = React.useRef<any>({})
-  const { root, getR } = useCtx()
+  const { root, getR, setR } = useCtx()
   const pageCtx = usePageCtx()
 
   const { handleBuiltInFn, ...builtIns } = useBuiltInFns()
+
+  const getRootDraftOrRoot = React.useCallback(
+    (actionChain: NUIActionChain) => {
+      return actionChain?.data?.get?.(c.ROOT_DRAFT) || root
+    },
+    [root],
+  )
 
   const executeStr = async (
     value: string,
@@ -63,21 +70,14 @@ function useActionChain() {
             ? // Temp hard code for now
               'https://search.aitmed.com'
             : deref({
-                root,
+                root: getRootDraftOrRoot(args.actionChain),
                 ref: value,
                 rootKey: pageCtx.pageName,
               })
       }
 
       // These are values coming from an if object evaluation since we are also using this function for if object strings
-      if (is.isBoolean(value)) {
-        log.debug(
-          `%c[executeStr] Returning from func because of boolean`,
-          'color:hotpink',
-          { from: args.from, value },
-        )
-        return is.isBooleanTrue(value)
-      }
+      if (is.isBoolean(value)) return is.isBooleanTrue(value)
 
       if (u.isObj(value)) {
         debugger
@@ -119,7 +119,6 @@ function useActionChain() {
             inline: 'center',
           })
         } else {
-          debugger
           navigate(`/${value}`)
         }
       } else {
@@ -150,9 +149,7 @@ function useActionChain() {
       log.debug(
         `%c[executeEvalBuiltIn] Calling --> ${builtInKey}`,
         'color:salmon',
-        {
-          from: args.from,
-        },
+        { from: args.from },
       )
       const result = await handleBuiltInFn(builtInKey, {
         actionChain: args.actionChain,
@@ -187,6 +184,7 @@ function useActionChain() {
       const numObjs = objs.length
       for (let index = 0; index < numObjs; index++) {
         const object = objs[index]
+
         log.debug(
           `%c[evalObject] Calling object ${index + 1}/${numObjs}`,
           'color:teal',
@@ -198,11 +196,60 @@ function useActionChain() {
             value: object,
           },
         )
+
+        if (u.isObj(object)) {
+          const objKeys = u.keys(object)
+          const isSingleProperty = objKeys.length === 1
+
+          if (isSingleProperty) {
+            const property = objKeys[0]
+            const propValue = object[property]
+
+            if (is.awaitReference(property)) {
+              let datapath = toDataPath(trimReference(property))
+              let datavalue: any
+
+              if (is.localReference(property)) {
+                datapath.unshift(pageCtx.pageName)
+              }
+
+              if (u.isStr(propValue)) {
+                datavalue = is.reference(propValue)
+                  ? deref({
+                      root: getRootDraftOrRoot(args.actionChain),
+                      rootKey: pageCtx.pageName,
+                      ref: propValue,
+                    })
+                  : propValue
+              } else {
+                datavalue = propValue
+              }
+
+              if (is.action.evalObject(datavalue)) {
+                const result = await execute({
+                  ...args,
+                  action: datavalue,
+                })
+                if (result !== undefined) {
+                  set(getRootDraftOrRoot(args.actionChain), datapath, result)
+                }
+              } else {
+                set(getRootDraftOrRoot(args.actionChain), datapath, datavalue)
+              }
+              continue
+            } else {
+              debugger
+            }
+          }
+        }
+
+        debugger
         const result = await wrapWithHelpers(args.onExecuteAction)({
           ...args,
           action: object,
           from: 'evalObject',
         })
+        debugger
         results.push(result)
       }
       return results
@@ -244,10 +291,7 @@ function useActionChain() {
           log.debug(
             `%c[executeIf] Calling --> executeEvalBuiltIn`,
             `color:#c4a901;`,
-            {
-              builtInKey: key,
-              from: args.from,
-            },
+            { builtInKey: key, from: args.from },
           )
           const result = await executeEvalBuiltIn(key, {
             ...args,
@@ -294,7 +338,7 @@ function useActionChain() {
                   debugger
                   log.debug(`%c[executeIf] Encountered @: ${k}`, 'color:gold')
                   const keyDataPath = trimReference(k)
-                  const rootDraft = args.actionChain.data.get('rootDraft')
+                  const rootDraft = getRootDraftOrRoot(args.actionChain)
                   if (is.localReference(k)) {
                     set(rootDraft[pageCtx.pageName], keyDataPath, v)
                   } else {
@@ -564,7 +608,7 @@ function useActionChain() {
                   let awaitKey
                   let isLocal = true
                   let value = obj[key]
-                  let rootDraft = actionChain.data.get('rootDraft')
+                  let rootDraft = getRootDraftOrRoot(actionChain)
 
                   if (is.reference(key)) {
                     isLocal = is.localReference(key)
@@ -574,7 +618,11 @@ function useActionChain() {
 
                   if (u.isStr(value)) {
                     if (is.reference(value)) {
-                      value = getR(value, pageCtx.pageName)
+                      const dataPath = toDataPath(trimReference(value))
+                      if (is.localReference(value)) {
+                        dataPath.unshift(pageCtx.pageName)
+                      }
+                      value = get(rootDraft, dataPath)
                     }
                   }
 
@@ -591,23 +639,17 @@ function useActionChain() {
                       }
                       let valueAwaiting = obj[key]
                       let initialValue = get(rootDraft, dataPath)
-                      // let initialValue = getR(dataPath)
+                      // let initialValue = getR(dataPath.join('.'))
 
                       if (is.reference(valueAwaiting)) {
-                        valueAwaiting = getR(
-                          valueAwaiting,
-                          (is.localReference(valueAwaiting) &&
-                            pageCtx.pageName) ||
-                            undefined,
+                        valueAwaiting = get(rootDraft, dataPath.join('.'))
+                        console.log(
+                          `valueAwaiting`,
+                          isDraft(valueAwaiting)
+                            ? draftToCurrent(valueAwaiting)
+                            : valueAwaiting,
                         )
                       }
-
-                      console.log({
-                        awaitKey,
-                        pageName: pageCtx.pageName,
-                        value: valueAwaiting,
-                        initialValue,
-                      })
 
                       log.debug(
                         `%cApplying an awaited value to the path in the reference ${key}`,
@@ -620,7 +662,6 @@ function useActionChain() {
                         },
                       )
 
-                      // setR((draft) => set(draft, dataPath, valueAwaiting))
                       set(rootDraft, dataPath, valueAwaiting)
 
                       const valueAfter = get(rootDraft, dataPath)
@@ -635,7 +676,6 @@ function useActionChain() {
                             valueAwaiting,
                             valueBefore: initialValue,
                             valueAfter,
-                            valueUsingGetFn: get(rootDraft, dataPath),
                           },
                         )
                       } else {
@@ -652,9 +692,6 @@ function useActionChain() {
                           },
                         )
                       }
-
-                      // setR(rootDraft)
-                      // if (actionChain.data.get('rootDraft'))
                     } else {
                       log.error('DEBUG THIS PART')
                       log.error('DEBUG THIS PART')
@@ -692,7 +729,7 @@ function useActionChain() {
           log.error(err)
         }
       }),
-    [handleBuiltInFn, isBuiltInEvalFn, pageCtx, root],
+    [handleBuiltInFn, isBuiltInEvalFn, getR, setR, pageCtx, root],
   )
 
   const createActionChain = React.useCallback(
@@ -779,6 +816,7 @@ function useActionChain() {
 
   return {
     createActionChain,
+    getRootDraftOrRoot,
   }
 }
 

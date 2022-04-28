@@ -1,18 +1,18 @@
-import * as u from '@jsmanifest/utils'
 import React from 'react'
 import produce from 'immer'
-import get from 'lodash/get'
-import set from 'lodash/set'
 import * as nt from 'noodl-types'
 import { triggers } from 'noodl-ui'
 import type { NUITrigger } from 'noodl-ui'
 import { excludeIteratorVar } from 'noodl-utils'
-import deref from '@/utils/deref'
+import get from 'lodash/get'
+import set from 'lodash/set'
+import * as u from '@jsmanifest/utils'
+import useActionChain from '@/hooks/useActionChain'
 import getTagName from '@/utils/getTagName'
 import log from '@/utils/log'
 import is from '@/utils/is'
 import useCtx from '@/useCtx'
-import useActionChain from '@/hooks/useActionChain'
+import deref from '@/utils/deref'
 import { usePageCtx } from '@/components/PageContext'
 import type * as t from '@/types'
 
@@ -34,50 +34,57 @@ export const noodlKeysToStrip = [
 const keysToStrip = noodlKeysToStrip.concat('index')
 const keysToStripRegex = new RegExp(`(${keysToStrip.join('|')})`, 'i')
 
-function useRenderer() {
-  const { root, getR, setR } = useCtx()
-  const { createActionChain } = useActionChain()
-  const pageCtx = usePageCtx()
+// TODO - Find out a better way to do this
+export const noodlKeysToStrip = [
+  'contentType',
+  'image',
+  'iteratorVar',
+  'itemObject',
+  'listObject',
+  'parentId',
+  'popUpView',
+  'textBoard',
+  'type',
+  'viewTag',
+  'videoFormat',
+]
 
+const keysToStrip = noodlKeysToStrip.concat('index')
+const keysToStripRegex = new RegExp(`(${keysToStrip.join('|')})`, 'i')
+
+function useRenderer() {
+  const { getR, root, setR } = useCtx()
+  const { createActionChain } = useActionChain()
   const {
-    getListsCtxObject,
     getIteratorVar,
-    getListObject,
     getListDataObject,
+    getListDataObjectWithCustomRoot,
     isListConsumer,
     lists,
     pageName,
-    pageObject,
     refs,
-    slug,
-    startPage,
-  } = pageCtx
+  } = usePageCtx()
 
   const render = React.useCallback(
     (
       component: string | t.StaticComponentObject,
-      pathsProp: t.ComponentPath = [],
+      componentPath: t.ComponentPath,
     ) => {
-      let reference: string | undefined
-
       if (u.isStr(component)) {
         if (is.reference(component)) {
-          reference = component
-
-          const referencedComponent = deref({
-            paths: pathsProp,
+          const refValue = deref({
             ref: component,
             rootKey: pageName,
             root,
           })
 
-          if (u.isObj(referencedComponent)) {
-            return render(referencedComponent as any, pathsProp)
+          if (u.isObj(refValue)) {
+            return render(refValue as t.StaticComponentObject, componentPath)
           } else {
             log.error(
-              `Did not receive a component object using path referenced in ` +
-                `"${reference}". Received a(n) "${typeof component}" instead`,
-              { paths: pathsProp, reference },
+              `Tried to retrieve a component by reference but ` +
+                `${typeof refValue} was returned`,
+              { reference: component, refValue },
             )
           }
         }
@@ -88,31 +95,37 @@ function useRenderer() {
       if (!u.isObj(component)) return null
 
       if (is.componentByReference(component)) {
-        return render(u.keys(component)[0], pathsProp)
+        return render(u.keys(component)[0], componentPath)
       }
 
       let { dataKey, id, type } = component
       let children = [] as t.CreateElementProps<any>[]
       let iteratorVar = getIteratorVar?.(component)
       let _isListConsumer = isListConsumer(component)
+      let elementType = getTagName(type) || 'div'
+      id = id || dataKey
 
-      const props = {
-        type: getTagName(type) || 'div',
-        key: id || dataKey,
+      let props = {
+        type: elementType,
+        key: id,
       } as t.CreateElementProps<any>
 
       for (let [key, value] of u.entries(component)) {
         if (key === 'children') {
-          u.array(value).forEach((child: t.StaticComponentObject, i) => {
-            children.push(render(child, pathsProp.concat('children', i)))
+          u.array(value).forEach((child: t.StaticComponentObject, index) => {
+            children.push(
+              render(child, componentPath.concat('children', index)),
+            )
           })
-        } else if (/popUpView|viewTag/.test(key)) {
+        } else if (['popUpView', 'viewTag'].includes(key as string)) {
           set(props, `data-viewtag`, value)
         } else if (key === 'data-value') {
           if (component['data-value']) {
-            children.push(render(String(component['data-value']), pathsProp))
+            children.push(
+              render(String(component['data-value']), componentPath),
+            )
           } else {
-            value && children.push(render(value, pathsProp))
+            value && children.push(render(value, componentPath))
           }
         } else if (
           key === 'data-src' ||
@@ -152,6 +165,7 @@ function useRenderer() {
         } else if (key === 'text' && !component['data-value']) {
           value &&
             children.push(is.reference(value) ? getR(value, pageName) : value)
+          // value && children.push(getElementProps(value, utils))
         } else if (triggers.includes(key as string)) {
           if (nt.userEvent.includes(key as typeof nt.userEvent[number])) {
             const obj = value as t.StaticComponentObject[NUITrigger]
@@ -225,36 +239,50 @@ function useRenderer() {
 
       if (props._path_ && u.isStr(props._path_)) {
         if (props.type === 'img') {
-          // if
+          const dataObject =
+            getListDataObject(props) ||
+            getListDataObjectWithCustomRoot(root, props)
+          if (!dataObject) {
+            // debugger
+          } else {
+            const src = get(
+              dataObject,
+              excludeIteratorVar(props._path_, iteratorVar),
+            )
+            console.log({ src })
+            console.log({ src })
+            if (src) {
+              props.src = 'https://public.aitmed.com/cadl/www4.06/assets/' + src
+            }
+          }
         }
       }
 
-      return renderElement({ children, ...props })
+      return renderElement({ children, componentPath, ...props })
     },
-    [createActionChain, getR, pageCtx, setR, root],
+    [getListDataObject, root],
   )
 
   const renderElement = React.useCallback(
     ({
-      path = [],
+      componentPath,
       type,
       key,
       children = [],
-      style,
       ...rest
     }: t.CreateElementProps) => {
       let _children = [] as React.ReactElement[]
       let index = 0
 
-      for (const childProps of u.array(children)) {
-        const _path = (path || []).concat('children', index)
+      for (const cprops of u.array(children)) {
+        const _path = (componentPath || []).concat('children', _index)
         const renderKey = _path.join('.')
 
-        if (u.isObj(childProps)) {
-          const props = { ...childProps, path: _path }
+        if (u.isObj(cprops)) {
+          const props = { ...cprops, componentPath: _path }
           _children.push(
             <React.Fragment key={renderKey}>
-              {renderElement(props)}
+              {React.isValidElement(props) ? props : renderElement(props)}
             </React.Fragment>,
           )
         } else {
@@ -262,16 +290,16 @@ function useRenderer() {
             <React.Fragment key={renderKey}>{childProps}</React.Fragment>,
           )
         }
-        index++
+        _index++
       }
 
       return React.createElement(
         type,
-        { ...rest, style, key },
+        rest,
         _children.length ? _children : undefined,
       )
     },
-    [render],
+    [render, root],
   )
 
   return render
