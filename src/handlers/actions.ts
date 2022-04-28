@@ -518,19 +518,22 @@ const createActions = function createActions(app: App) {
 
   const pageJump: Store.ActionObject['fn'] = (action) =>
     app.navigate(_pick(action, 'destination'))
-  
-  const loadTimeLabelPopUp = (node:HTMLElement,component:NuiComponent.Instance)=>{
+
+  const loadTimeLabelPopUp = (
+    node: HTMLElement,
+    component: NuiComponent.Instance,
+  ) => {
     const dataKey =
       component.get('data-key') || component.blueprint?.dataKey || ''
     const textFunc = component.get('text=func') || ((x: any) => x)
     const initialTime = startOfDay(new Date())
-    const popUpWaitSeconds =  app.register.getPopUpWaitSeconds()
+    const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
     let initialSeconds = get(app.root, dataKey, popUpWaitSeconds) as number
     initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
     let initialValue = add(initialTime, { seconds: initialSeconds })
     initialValue == null && (initialValue = new Date())
-    node.textContent = textFunc(initialValue,'mm:ss')
-    set(app.root, dataKey,initialSeconds - 1)
+    node.textContent = textFunc(initialValue, 'mm:ss')
+    set(app.root, dataKey, initialSeconds - 1)
     component.on('timer:ref', (timer) => {
       component.on('timer:interval', (value) => {
         app.updateRoot((draft) => {
@@ -542,12 +545,10 @@ const createActions = function createActions(app: App) {
               // Not updated
               timer.clear()
               log.func('text=func timer:ref')
-              log.red(
-                `the value of ${dataKey} becomes 0`,
-              )
+              log.red(`the value of ${dataKey} becomes 0`)
             }
           }
-          node && (node.textContent = textFunc(seconds*1000,'mm:ss'))
+          node && (node.textContent = textFunc(seconds * 1000, 'mm:ss'))
         })
       })
       timer.start()
@@ -556,7 +557,7 @@ const createActions = function createActions(app: App) {
     // Set the initial value
     component.emit('timer:init', initialValue)
   }
-  
+
   const popUp: Store.ActionObject['fn'] = function onPopUp(action, options) {
     log.func('popUp')
     log.grey('', action?.snapshot?.())
@@ -570,26 +571,27 @@ const createActions = function createActions(app: App) {
 
         let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
         u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
-          if(node){
+          if (node) {
             const component = app.cache.component.get(node?.id)?.component
             const dataKey =
               component.get('data-key') || component.blueprint?.dataKey || ''
-            const popUpWaitSeconds =  app.register.getPopUpWaitSeconds()
+            const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
             let initialSeconds = get(app.root, dataKey, 30) as number
-            initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
-            if(action?.actionType === 'popUp'){
-              loadTimeLabelPopUp(node,component)
-              const id = setTimeout(()=>{
+            initialSeconds =
+              initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
+            if (action?.actionType === 'popUp') {
+              loadTimeLabelPopUp(node, component)
+              const id = setTimeout(() => {
                 app.register.extendVideoFunction('onDisconnect')
-              },initialSeconds*1000)
-              app.register.setTimeId('PopUPToDisconnectTime',id)
-            }else if(action?.actionType === 'popUpDismiss'){
-              component.on('timer:ref', (timer) => {timer.clear()})
+              }, initialSeconds * 1000)
+              app.register.setTimeId('PopUPToDisconnectTime', id)
+            } else if (action?.actionType === 'popUpDismiss') {
+              component.on('timer:ref', (timer) => {
+                timer.clear()
+              })
               app.register.removeTime('PopUPToDisconnectTime')
             }
-            
           }
-          
         })
         u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
           if (dismissOnTouchOutside) {
@@ -683,7 +685,6 @@ const createActions = function createActions(app: App) {
                   `waiting on a response. Aborting now...`,
                 action?.snapshot?.(),
               )
-              // debugger
               ref?.abort?.()
               resolve()
             }

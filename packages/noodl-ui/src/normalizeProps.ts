@@ -7,17 +7,84 @@ import NuiViewport from './Viewport'
 import { presets } from './constants'
 import { findIteratorVar, findListDataObject } from './utils/noodl'
 import is from './utils/is'
+import type { NormalizePropsContext } from './types'
 import * as com from './utils/common'
 import * as s from './utils/style'
 
-function getByRef(root = {}, ref = '', rootKey = '') {
+function getByRef(
+  ref = '',
+  {
+    blueprint,
+    context,
+    props,
+    root,
+    rootKey,
+    getParent,
+  }: {
+    blueprint: Partial<nt.ComponentObject>
+    context: NormalizePropsContext | undefined
+    props: Record<string, any>
+    root: Record<string, any>
+    rootKey?: string
+    getParent?: NonNullable<Parameters<typeof parse>[2]>['getParent']
+  },
+) {
+  if (getByRef.lastRef === ref) {
+    getByRef.count++
+    if (getByRef.count > 99) {
+      throw new Error(
+        `There is an infinite loop in the reference resolver "getByRef" from this reference: "${ref}" with root key: ${
+          rootKey ? `"${rootKey}"` : '<empty string>'
+        }`,
+      )
+    }
+  } else {
+    getByRef.count = 0
+    getByRef.lastRef = ref
+  }
+
+  if (is.traverseReference(ref)) {
+    if (u.isFnc(getParent)) {
+      // ['', '', '', '.colorChange']
+      let parts = ref.split('_')
+      let depth = parts.filter((s) => s === '').reduce((acc) => ++acc, 0)
+      let nextKey = parts.shift() as string
+
+      while (nextKey && !nextKey.startsWith('.')) {
+        if (nextKey === '') {
+          // continue
+        } else if (nextKey.startsWith('.')) {
+          const parent = getParent({
+            blueprint,
+            context: context || {},
+            props,
+            op: 'traverse',
+            opArgs: {
+              depth,
+              ref,
+            },
+          })
+          const result = get(parent, nextKey[1].slice())
+          console.log({ nextKey, parent, ref, result })
+          return result
+        }
+
+        nextKey = parts.shift() as string
+      }
+    }
+  }
+
   if (is.localReference(ref)) {
     if (rootKey) return get(root[rootKey], nu.toDataPath(nu.trimReference(ref)))
   } else if (is.rootReference(ref)) {
     return get(root, nu.toDataPath(nu.trimReference(ref)))
   }
+
   return ref
 }
+
+getByRef.count = 0
+getByRef.lastRef = undefined
 
 /**
  *
@@ -36,6 +103,7 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
   {
     context,
     getBaseStyles,
+    getParent,
     keepVpUnit,
     pageName = '',
     root = {},
@@ -44,12 +112,7 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
     /**
      * Any data needed to render/parse components
      */
-    context?: {
-      dataObject?: Record<string, any>
-      iteratorVar?: string
-      index?: number
-      listObject?: string | any[]
-    } & Record<string, any>
+    context?: NormalizePropsContext
     /**
      * A function that will be used to merge base styles prior to parsing
      */
@@ -58,6 +121,18 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
      * If true, styles like fontSize will be converted to <number>vw or <number>vh if given the format
      */
     keepVpUnit?: boolean
+    /**
+     * A custom function called when resolving traversal references (ex: ___.viewTag).
+     *
+     * When resolving traversal referencies, if no function is provided then undefined will be returned
+     */
+    getParent?: (opts: {
+      props: Record<string, any>
+      blueprint: Partial<Props>
+      context: NormalizePropsContext
+      op?: 'traverse' | undefined
+      opArgs?: Record<string, any>
+    }) => any
     /**
      * Current page. If retrieving local root references, it will use this variable
      * as the local root key
@@ -92,7 +167,15 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
       if (originalKey === 'dataKey') {
         if (u.isStr(originalValue)) {
           if (is.reference(originalValue)) {
-            props['data-value'] = getByRef(root, originalValue, pageName)
+            const isLocal = is.localReference(originalValue)
+            props['data-value'] = getByRef(originalValue, {
+              root,
+              rootKey: isLocal ? pageName : undefined,
+              props,
+              blueprint,
+              context,
+              getParent,
+            })
           } else {
             const isLocalKey = is.localKey(originalKey)
             const paths = originalValue.split('.') as string[]
@@ -101,7 +184,15 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
             continue
           }
           if (is.component.select(blueprint)) {
-            props['data-value'] = getByRef(root, originalValue, pageName)
+            const isLocal = is.localKey(originalValue)
+            props['data-value'] = getByRef(originalValue, {
+              root,
+              rootKey: isLocal ? pageName : undefined,
+              blueprint,
+              context,
+              props,
+              getParent,
+            })
           }
         }
       } else if (originalKey === 'options') {
@@ -124,7 +215,17 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
                 dataObject = context?.dataObject || findListDataObject(props)
               } else {
                 dataPath = nu.trimReference(dataPath)
-                value = getByRef(root, dataPath, pageName)
+                const isLocal = is.reference(originalValue)
+                  ? is.localReference(originalValue)
+                  : is.localKey(originalValue)
+                value = getByRef(dataPath, {
+                  root,
+                  rootKey: isLocal ? pageName : undefined,
+                  props,
+                  blueprint,
+                  context,
+                  getParent,
+                })
               }
             }
           }
@@ -409,9 +510,15 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
           for (let [styleKey, styleValue] of u.entries(originalValue)) {
             // Unwrap the reference for processing
             if (u.isStr(styleValue) && is.reference(styleValue)) {
-              styleValue = is.localReference(styleValue)
-                ? getByRef(root, styleValue, pageName)
-                : getByRef(root, styleValue)
+              const isLocal = is.localReference(styleValue)
+              styleValue = getByRef(styleValue, {
+                root,
+                rootKey: isLocal ? pageName : undefined,
+                props,
+                blueprint,
+                context,
+                getParent,
+              })
             }
 
             if (s.isKeyRelatedToWidthOrHeight(styleValue)) {
@@ -426,12 +533,19 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
 
             if (u.isStr(styleValue)) {
               while (is.reference(styleValue)) {
-                styleValue = is.localReference(styleValue)
-                  ? getByRef(root, styleValue, pageName)
-                  : getByRef(root, styleValue)
+                const isLocal = is.localReference(styleValue)
+                styleValue = getByRef(styleValue, {
+                  root,
+                  rootKey: isLocal ? pageName : undefined,
+                  props,
+                  blueprint,
+                  context,
+                  getParent,
+                })
+                // It will do an infinite loop without this
+                if (is.traverseReference(styleValue)) break
               }
 
-              // console.log({ styleKey, styleValue, blueprint })
               // Resolve vw/vh units (Values directly relative to viewport)
               if (s.isVwVh(styleValue)) {
                 if (keepVpUnit) {
@@ -485,9 +599,9 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
                       value[styleKey] = computedValue
                     } else if (s.isKeyRelatedToHeight(styleKey)) {
                       if (styleKey == 'borderRadius' && u.isStr(styleValue)) {
-                        if (styleValue.includes('px')){
+                        if (styleValue.includes('px')) {
                           value[styleKey] = `${styleValue}`
-                        }else{
+                        } else {
                           value[styleKey] = `${styleValue}px`
                         }
                       }
@@ -567,9 +681,19 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
         delKeys.forEach((key) => delete value[key])
         u.entries(restoreVals).forEach(([k, v]) => (value[k] = v))
       } else if (originalKey === 'viewTag') {
-        props['data-viewtag'] = value
+        props['data-viewtag'] = is.reference(value)
+          ? getByRef(value, {
+              blueprint,
+              context,
+              props,
+              root,
+              getParent,
+              rootKey: is.localReference(value) ? pageName : undefined,
+            })
+          : value
       }
     }
+
     /* -------------------------------------------------------
       ---- COMPONENTS
     -------------------------------------------------------- */
@@ -627,10 +751,18 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
 
     // Visibility
     let isHiddenValue = blueprint?.style?.isHidden
-    if(is.reference(isHiddenValue))
-      isHiddenValue = getByRef(root, blueprint?.style?.isHidden, pageName)
-    is.isBooleanTrue(isHiddenValue) &&
-      (props.style.visibility = 'hidden')
+    if (is.reference(isHiddenValue)) {
+      const isLocal = is.localReference(isHiddenValue)
+      isHiddenValue = getByRef(isHiddenValue, {
+        root,
+        rootKey: isLocal ? pageName : undefined,
+        props,
+        blueprint,
+        context,
+        getParent,
+      })
+    }
+    is.isBooleanTrue(isHiddenValue) && (props.style.visibility = 'hidden')
 
     if (is.isBoolean(blueprint?.required)) {
       props.required = is.isBooleanTrue(blueprint?.required)

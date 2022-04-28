@@ -131,10 +131,11 @@ async function initializeApp(
       }
     },
     onSdkInit(sdk) {
-      initPiBackgroundWorker(
-        new Worker('piBackgroundWorker.js'),
-        // ../../../aitmed-noodl-web/build/piBackgroundWorker.js
-      )
+      // Uncomment to enable pi worker
+      // initPiBackgroundWorker(
+      // new Worker('piBackgroundWorker.js'),
+      // ../../../aitmed-noodl-web/build/piBackgroundWorker.js
+      // )
     },
   })
   // app.navigate('Cov19TestNewPatReviewPage1')

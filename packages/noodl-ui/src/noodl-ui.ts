@@ -29,6 +29,7 @@ import VP from './Viewport'
 import {
   findIteratorVar,
   findListDataObject,
+  getListAttribute,
   getPluginLocation,
   isListConsumer,
   resolveAssetUrl,
@@ -516,9 +517,7 @@ const NUI = (function () {
         page,
         ...otherOptions,
       })
-
       await _transformer.transform(c, options)
-
       const iteratorVar = context?.iteratorVar || ''
       const isListConsumer = iteratorVar && u.isObj(context?.dataObject)
 
@@ -562,31 +561,19 @@ const NUI = (function () {
           if (nt.Identify.reference(value)) {
             // Do one final check for the "get" method, since some custom getters are defined on component.get() even though it returns the same component object when using component.props
             if (nt.Identify.reference(c.get(key))) {
-              if (on?.reference) {
-                c.edit({
-                  [key]: on.reference({
-                    component: c,
-                    page,
-                    key,
-                    value: c.get(key),
-                  }),
-                })
-              } else {
-                log.debug(
-                  `%cEncountered an unparsed reference value "${value}" for key "${key}"`,
-                  `color:#ec0000;`,
-                  c,
-                )
-                key === 'data-value' &&
-                  (nt.Identify.rootReference(value) ||
-                    nt.Identify.localReference(value)) &&
-                  c.edit({ [key]: '' })
-              }
+              log.debug(
+                `%cEncountered an unparsed reference value "${value}" for key "${key}"`,
+                `color:#ec0000;`,
+                c,
+              )
+              key === 'data-value' &&
+                (nt.Identify.rootReference(value) ||
+                  nt.Identify.localReference(value)) &&
+                c.edit({ [key]: '' })
             }
           }
         }
       }
-
       return {
         component: c,
         options,
@@ -602,50 +589,41 @@ const NUI = (function () {
       let componentObject = componentsList[index]
       // { components: ['.BaseHeader'] }
       if (u.isStr(componentObject) && nt.Identify.reference(componentObject)) {
-        componentObject = i.useFuncOrValue({
-          fn: on?.reference,
-          args: { page, value: componentObject },
-          value: i.defaultResolveReference(
-            o.getRoot,
-            page.page,
-            componentObject,
-          ),
-        })
+        componentObject = i.defaultResolveReference(
+          o.getRoot,
+          page.page,
+          componentObject,
+        )
       }
       // { components: [{ '.BaseHeader': '', style:{ shadow:'true' } }] }
       if (u.isObj(componentObject) && !componentObject.type) {
         const keys = u.keys(componentObject)
         const refKey = keys.find((key) => nt.Identify.reference(key))
         if (refKey) {
-          componentObject = i.useFuncOrValue({
-            fn: on?.reference,
-            args: { page, value: componentObject },
-            value: i.defaultResolveReference(
-              o.getRoot,
-              page.page,
-              refKey as any,
-            ),
-          })
+          componentObject = i.defaultResolveReference(
+            o.getRoot,
+            page.page,
+            refKey as any,
+          )
         }
       }
       const { component: resolvedComponent, options } = await xform(
         o.createComponent(componentObject, page as NuiPage),
         { callback, context, on, page, ...otherOpts },
       )
-      if (on?.resolved) {
-        const fn = on.resolved({
-          components: componentsList,
-          component: resolvedComponent,
-          context,
-          index,
-          options,
-          page,
-        })
-        if (u.isPromise(fn)) await fn
-      }
+      // if (on?.resolved) {
+      //   const fn = on.resolved({
+      //     components: componentsList,
+      //     component: resolvedComponent,
+      //     context,
+      //     index,
+      //     options,
+      //     page,
+      //   })
+      //   if (u.isPromise(fn)) await fn
+      // }
       resolvedComponents.push(resolvedComponent)
     }
-
     return (
       isArr ? resolvedComponents : resolvedComponents[0]
     ) as C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
@@ -992,14 +970,16 @@ const NUI = (function () {
           return objs.map((obj) => {
             if (nt.Identify.folds.emit(obj)) {
               const action = createAction(trigger, obj)
+              let listAttribute
+              if (opts?.component) {
+                listAttribute = getListAttribute(opts?.component)
+              }
               if (opts?.component) {
                 const iteratorVar =
                   opts?.context?.iteratorVar || findIteratorVar(opts.component)
-
                 const dataObject =
                   opts?.context?.dataObject ||
                   findListDataObject(opts.component)
-
                 if (obj.emit?.dataKey) {
                   action.dataKey = createEmitDataKey(
                     obj.emit.dataKey,
@@ -1008,7 +988,7 @@ const NUI = (function () {
                       page: opts.page,
                       listDataObject: dataObject,
                     }),
-                    { iteratorVar },
+                    { iteratorVar, listAttribute },
                   )
                 }
               }
@@ -1295,8 +1275,6 @@ const NUI = (function () {
           } else if (key === 'emit') {
             //
           } else if (key === 'page') {
-            //
-          } else if (key === 'reference') {
             //
           } else if (key === 'setup') {
             //

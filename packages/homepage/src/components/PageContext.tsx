@@ -125,7 +125,7 @@ function PageContext({
     () => ({
       getIteratorVar: (...args) => getIteratorVar(ctxLists, ...args),
       getListsCtxObject: (...args) => getListsCtxObject(ctxLists, ...args),
-      getListObject: (id, opts) =>
+      getListObject: (id: string | t.StaticComponentObject, opts) =>
         getListObject(ctxLists, id, { root, pageName, ...opts }),
       getListDataObject: (...args) => getListDataObject(...args),
       isListConsumer: (...args) => isListConsumer(ctxLists, ...args),

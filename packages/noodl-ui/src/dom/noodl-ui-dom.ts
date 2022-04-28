@@ -401,7 +401,6 @@ class NDOM extends NDOMInternal {
         (currentHooks.createComponent = hooks.createComponent)
       hooks.emit && (currentHooks.emit = hooks.emit)
       hooks.if && (currentHooks.if = hooks.if)
-      hooks.reference && (currentHooks.reference = hooks.reference)
       hooks.setup && (currentHooks.setup = hooks.setup)
     }
     // REMINDER: The value of this page's "requesting" is empty at this moment
@@ -435,14 +434,12 @@ class NDOM extends NDOMInternal {
     )
 
     const numComponents = components.length
-
     for (let index = 0; index < numComponents; index++) {
       await this.draw(components[index], page.node, page, resolveOptions)
     }
 
     page.emitSync(c.eventId.page.on.ON_COMPONENTS_RENDERED, page)
     page.setStatus(c.eventId.page.status.COMPONENTS_RENDERED)
-
     return components as t.NuiComponent.Instance[]
   }
 
@@ -483,7 +480,6 @@ class NDOM extends NDOMInternal {
         (currentHooks.createComponent = hooks.createComponent)
       hooks.emit && (currentHooks.emit = hooks.emit)
       hooks.if && (currentHooks.if = hooks.if)
-      hooks.reference && (currentHooks.reference = hooks.reference)
       hooks.setup && (currentHooks.setup = hooks.setup)
     }
 

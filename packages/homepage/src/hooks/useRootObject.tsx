@@ -12,13 +12,13 @@ import * as t from '@/types'
 export interface UseRootObjectOptions<
   O extends Record<string, any> = Record<string, any>,
 > {
-  initialRoot?: Partial<t.RootObjectContext<O>>
+  initialRoot?: Partial<t.RootObject<O>>
 }
 
 function useRootObject<O extends Record<string, any>>(
   initialRoot = {} as O & UseRootObjectOptions['initialRoot'],
 ) {
-  const [root, setRoot] = React.useState<t.RootObjectContext>({
+  const [root, setRoot] = React.useState<t.RootObject>({
     ...initialRoot,
     Global: { ...initialRoot?.Global },
   })
@@ -34,7 +34,7 @@ function useRootObject<O extends Record<string, any>>(
           if (u.isFnc(stateOrSetter)) {
             stateOrSetter(draft)
           } else {
-            u.merge(draft, stateOrSetter)
+            u.entries(stateOrSetter).forEach(([k, v]) => (draft[k] = v))
           }
         }),
       )
@@ -73,13 +73,10 @@ function useRootObject<O extends Record<string, any>>(
           const dataObject = is.localReference(_key) ? _root[_pageName] : _root
 
           if (!has(dataObject, paths)) {
-            log.error(
-              `%cThe path "${paths.join(
-                '.',
-              )}" does not exist in the root object`,
-              `color:#ec0000;`,
-              _root,
-            )
+            let logMsg = '%c'
+            logMsg += `The path "${paths.join('.')}" `
+            logMsg += `does not exist in the root object`
+            log.error(logMsg, `color:#ec0000;`, _root)
           }
 
           result = get(dataObject, paths)

@@ -1,35 +1,42 @@
-import React from 'react'
 import * as u from '@jsmanifest/utils'
+import React from 'react'
+import deref from '@/utils/deref'
 import getElementProps from '@/utils/getElementProps'
 import log from '@/utils/log'
 import is from '@/utils/is'
 import useCtx from '@/useCtx'
 import { usePageCtx } from '@/components/PageContext'
-import * as t from '@/types'
+import type * as t from '@/types'
 
 function useRenderer() {
-  const { getR, root, setR } = useCtx()
-  const { lists, pageName, refs } = usePageCtx()
+  const { root, getR, setR } = useCtx()
+  const pageCtx = usePageCtx()
 
-  const renderComponent = React.useCallback(
-    (component: string | t.StaticComponentObject, path: t.ComponentPath) => {
+  const render = React.useCallback(
+    (
+      component: string | Partial<t.StaticComponentObject>,
+      pathsProp: t.ComponentPath = [],
+    ) => {
       let reference: string | undefined
-      let refValue: any
 
       if (u.isStr(component)) {
         if (is.reference(component)) {
           reference = component
-          refValue = getR(component)
-        }
 
-        if (!refValue) {
-          log.error(
-            `Did not receive a component object using path referenced in "${reference}". ` +
-              `Received a(n) "${typeof refValue}" instead`,
-            { path, reference, refValue },
-          )
-        } else {
-          component = refValue
+          component = deref({
+            paths: pathsProp,
+            ref: reference,
+            root,
+            rootKey: pageCtx.pageName,
+          })
+
+          if (!component) {
+            log.error(
+              `Did not receive a component object using path referenced in ` +
+                `"${reference}". Received a(n) "${typeof component}" instead`,
+              { paths: pathsProp, reference },
+            )
+          }
         }
       }
 
@@ -41,32 +48,33 @@ function useRenderer() {
         children = [],
         ...props
       } = getElementProps(component as t.StaticComponentObject, {
-        createActionChain,
-        lists,
-        pageName,
         getR,
         setR,
         root,
-        refs,
-        path,
+        path: pathsProp,
+        ...pageCtx,
       })
-
-      return renderElement({ type, key, children, path, ...props })
     },
-    [],
+    [pageCtx, root],
   )
 
   const renderElement = React.useCallback(
-    ({ path, type, key, children = [], ...rest }: t.CreateElementProps) => {
+    ({
+      path = [],
+      type,
+      key,
+      children = [],
+      ...rest
+    }: t.CreateElementProps) => {
       let _children = [] as React.ReactElement[]
-      let _index = 0
+      let index = 0
 
-      for (const cprops of u.array(children)) {
-        const _path = (path || []).concat('children', _index)
+      for (const childProps of u.array(children)) {
+        const _path = (path || []).concat('children', index)
         const renderKey = _path.join('.')
 
-        if (u.isObj(cprops)) {
-          const props = { ...cprops, path: _path }
+        if (u.isObj(childProps)) {
+          const props = { ...childProps, path: _path }
           _children.push(
             <React.Fragment key={renderKey}>
               {renderElement(props)}
@@ -74,11 +82,10 @@ function useRenderer() {
           )
         } else {
           _children.push(
-            <React.Fragment key={renderKey}>{cprops}</React.Fragment>,
+            <React.Fragment key={renderKey}>{childProps}</React.Fragment>,
           )
         }
-
-        _index++
+        index++
       }
 
       return React.createElement(
@@ -90,7 +97,7 @@ function useRenderer() {
     [],
   )
 
-  return renderComponent
+  return render
 }
 
 export default useRenderer

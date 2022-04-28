@@ -34,38 +34,29 @@ export default function resolvePageComponentUrl({
 
   if (nt.Identify.reference(currentPage)) {
     currentPage = resolveReference({
-      component,
       page,
-      key,
       value: currentPage,
       localKey,
-      on,
       root,
-    })
+    }) as any
   }
 
   if (nt.Identify.reference(targetPage)) {
     targetPage = resolveReference({
-      component,
       page,
-      key,
       value: targetPage,
       localKey,
-      on,
       root,
-    })
+    }) as any
   }
 
   if (nt.Identify.reference(viewTag)) {
     viewTag = resolveReference({
-      component,
       page,
-      key,
       value: viewTag,
       localKey,
-      on,
       root,
-    })
+    }) as any
   }
 
   return `${targetPage}@${currentPage}#${viewTag}`

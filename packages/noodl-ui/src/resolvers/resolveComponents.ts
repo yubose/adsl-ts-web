@@ -15,6 +15,7 @@ import {
   findIteratorVar,
   findListDataObject,
   getByRef,
+  getListAttribute,
   isListConsumer,
   isListLike,
   resolveAssetUrl,
@@ -116,10 +117,8 @@ componentResolver.setResolver(async (component, options, next) => {
           component.edit(
             'listObject',
             resolveReference({
-              component: opts.component,
               localKey: pageName,
               root: opts.getRoot(),
-              key: 'listObject',
               page,
               value: listObject,
             }),
@@ -354,7 +353,8 @@ componentResolver.setResolver(async (component, options, next) => {
             component.toJSON(),
           )
         }
-
+        const dataObject = findListDataObject(component)
+        const listAttribute = getListAttribute(component)
         textBoard.forEach((item) => {
           if (is.textBoardItem(item)) {
             const child = createComponent('br', page)
@@ -374,9 +374,13 @@ componentResolver.setResolver(async (component, options, next) => {
              */
             if (item?.dataKey) {
               if (iteratorVar && item?.dataKey.startsWith(iteratorVar)) {
-                const dataObject = findListDataObject(component)
                 const dataKey = excludeIteratorVar(item?.dataKey, iteratorVar)
                 item.text = dataKey ? get(dataObject, dataKey) : dataObject
+              } else if (iteratorVar && item?.dataKey.startsWith('listAttr')) {
+                const dataKey = excludeIteratorVar(item?.dataKey, 'listAttr')
+                item.text = dataKey
+                  ? get(listAttribute, dataKey)
+                  : listAttribute
               } else {
                 const dataObject = findDataValue(
                   [() => getRoot(), () => getRoot()[page.page]],
@@ -523,6 +527,7 @@ componentResolver.setResolver(async (component, options, next) => {
   }
 
   u.isObj(mergingProps) && component.edit(mergingProps)
+
   return next?.()
 })
 

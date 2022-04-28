@@ -90,7 +90,7 @@ export const createNoodlPlaceholderReplacer = (function () {
 })()
 
 /**
- * Transforms the dataKey of an emit object. If the dataKey is an object,
+ * 2Transforms the dataKey of an emit object. If the dataKey is an object,
  * the values of each property will be replaced by the data value based on
  * the path described in its value. The 2nd arg should be a data object or
  * an array of data objects that will be queried against. Data keys must
@@ -101,17 +101,28 @@ export const createNoodlPlaceholderReplacer = (function () {
 export function createEmitDataKey(
   dataKey: string | Record<string, any>,
   dataObject: t.QueryObj | t.QueryObj[],
-  opts?: { iteratorVar?: string },
-): any {
+  opts?: { 
+    iteratorVar?: string,
+    listAttribute?: Record<string, any> | null,
+  },
+):any{
   const iteratorVar = opts?.iteratorVar || ''
+  const listAttribute = opts?.listAttribute?opts?.listAttribute:{}
   if (u.isStr(dataKey)) {
     return findDataValue(dataObject, excludeIteratorVar(dataKey, iteratorVar))
   } else if (u.isObj(dataKey)) {
     return Object.keys(dataKey).reduce((acc, property) => {
-      acc[property] = findDataValue(
-        dataObject,
-        excludeIteratorVar(dataKey[property], iteratorVar),
-      )
+      if(dataKey[property].startsWith('listAttr')){
+        acc[property] = findDataValue(
+          listAttribute,
+          excludeIteratorVar(dataKey[property], 'listAttr'),
+        )
+      }else{
+        acc[property] = findDataValue(
+          dataObject,
+          excludeIteratorVar(dataKey[property], iteratorVar),
+        )
+      }
       return acc
     }, {} as { [varProp: string]: any })
   }
