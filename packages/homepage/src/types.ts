@@ -92,7 +92,6 @@ export interface CreateElementProps<Props = any> {
 
 export interface CommonRenderComponentHelpers
   extends Pick<AppContext, 'root' | 'getR' | 'setR'> {
-  _context_: PageContext['_context_']
   pageName: string
 }
 
