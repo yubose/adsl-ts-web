@@ -6,6 +6,7 @@ import React from 'react'
 import get from 'lodash/get'
 import useCtx from '@/useCtx'
 import { usePageCtx } from '@/components/PageContext'
+import { getCurrent } from '@/utils/immer'
 import log from '@/utils/log'
 import is from '@/utils/is'
 import * as t from '@/types'
@@ -42,12 +43,13 @@ function purgeDataIn({
         let paths = []
         if (is.localReference(value)) pageName && paths.push(pageName)
         paths = paths.concat(trimReference(value).split('.'))
-
         dataIn[key] = getR(
           actionChain?.data?.get('rootDraft'),
           paths.join('.'),
           pageName,
         )
+      } else {
+        // dataIn[key] = value
       }
     }
   }
@@ -58,22 +60,35 @@ function purgeDataIn({
 function getBuiltInFns(options: t.CommonRenderComponentHelpers) {
   const builtInFns = {
     [`=.builtIn.string.equal`]: ({ dataIn }: BuiltInFnProps) => {
+      if (!dataIn) {
+        console.trace()
+        throw new Error(
+          `dataIn was null or undefined while calling "=.builtIn.string.equal".`,
+        )
+      }
       const str1 = String(dataIn?.string1 || '')
       const str2 = String(dataIn?.string2 || '')
-      return str1 === str2
+      const isEqual = str1 === str2
+      log.debug(
+        `[=.builtIn.string.equal] ${str1 || '<empty string>'} === ${
+          str2 || '<empty string>'
+        }: ${isEqual}`,
+        dataIn,
+      )
+      return isEqual
     },
     [`=.builtIn.object.setProperty`]: ({ dataIn }: BuiltInFnProps) => {
       const arr = u.array(dataIn.obj).filter(Boolean)
       const numItems = arr.length
       for (let index = 0; index < numItems; index++) {
         if (u.isArr(dataIn.arr)) {
-          for (let i in dataIn.arr) {
+          dataIn.arr.forEach((item, i) => {
             if (arr?.[index]?.[dataIn.label] === dataIn.text) {
-              arr[index][arr[i]] = dataIn.valueArr[i]
+              arr[index][item] = dataIn.valueArr[i]
             } else {
-              arr[index][arr[i]] = dataIn.errorArr[i]
+              arr[index][item] = dataIn.errorArr[i]
             }
-          }
+          })
         } else {
           log.error(
             `Expected 'arr' in dataIn to be an array but it was ${typeof dataIn.arr}`,

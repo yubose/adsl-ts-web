@@ -435,16 +435,20 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
   debug(`Found ${yellow(assets?.length || 0)} assets`)
 
   // TEMPORARY - This is here to bypass the build failing when using geolocation in lvl3
-  global.window = {
-    location: { href: 'http://127.0.0.1:3000' },
-    navigator: {
+
+  if (!global.window) global.window = {}
+  const win = global.window
+  if (!win.document) win.document = { createElement: () => ({}) }
+  if (!win.location) win.location = { href: 'http://127.0.0.1:3000' }
+  if (!win.navigator) {
+    win.navigator = {
       geolocation: {
         getCurrentPosition: () => ({
           coords: { latitude: 0, longitude: 0, altitude: null, accuracy: 11 },
           timestamp: Date.now(),
         }),
       },
-    },
+    }
   }
 
   const isAssetSaved = (filepath) => data._assets_.includes(filepath)

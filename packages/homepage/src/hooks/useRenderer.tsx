@@ -90,15 +90,16 @@ function useRenderer() {
         key: id,
       } as t.CreateElementProps<any>
 
-      component = {
-        ...component,
-        ...normalizeProps({}, component, { root, pageName }),
-      }
+      // component = {
+      //   ...component,
+      //   ...normalizeProps({}, component, { root, pageName }),
+      // }
 
       for (let [key, value] of u.entries(component)) {
         if (u.isStr(value) && is.reference(value)) {
-          if (key === 'dataKey') value = trimReference(value)
-          else {
+          if (key === 'dataKey') {
+            value = trimReference(value)
+          } else {
             const ref = value
             props[key] = deref({ ref: value, root, rootKey: pageName })
             value = props[key]
@@ -215,16 +216,18 @@ function useRenderer() {
           if (!keysToStripRegex.test(key as string)) props[key] = value
         }
 
-        if (u.isStr(props[key])) {
+        if (u.isStr(value)) {
           if (is.reference(value)) {
             props[key] = deref({ ref: value, root, rootKey: pageName })
           } else if (
             key !== 'data-key' &&
             iteratorVar &&
             value.startsWith(iteratorVar) &&
-            key !== '_path_'
+            key !== '_path_' &&
+            key !== 'iteratorVar'
           ) {
-            props[key] = getDataObject(component)
+            // props[key] = getDataObject(component)
+            props[key] = value
             debugger
           }
         }
@@ -232,11 +235,11 @@ function useRenderer() {
 
       if (children.length) props.children = children
 
-      if (props._path_ && u.isStr(props._path_)) {
+      if (props._path_ && u.isStr(props._path_) && iteratorVar) {
         if (props.type === 'img') {
           const dataObject = getDataObject(props, root, pageName)
           if (!dataObject) {
-            // debugger
+            debugger
           } else {
             const src = get(
               dataObject,

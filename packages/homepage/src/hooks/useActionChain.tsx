@@ -1,6 +1,6 @@
 import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
-import { getCurrent } from '@/utils/immer'
+import { getCurrent, isDraft } from '@/utils/immer'
 import React from 'react'
 import get from 'lodash/get'
 import set from 'lodash/set'
@@ -88,7 +88,11 @@ function useActionChain() {
           value = value.replace('^', '')
         } else if (pageCtx.isListConsumer(args.component)) {
           const iteratorVar = pageCtx.getIteratorVar(args.component)
-          const dataObject = pageCtx.getDataObject(args.component)
+          const dataObject = pageCtx.getDataObject(
+            args.component,
+            getRootDraftOrRoot(args.actionChain),
+            pageCtx.pageName,
+          )
           if (iteratorVar && value.startsWith(iteratorVar)) {
             value = get(dataObject, excludeIteratorVar(value, iteratorVar))
           }
@@ -155,6 +159,7 @@ function useActionChain() {
       const result = await handleBuiltInFn(builtInKey, {
         actionChain: args.actionChain,
         dataObject: args.dataObject,
+        ...args,
         ...builtInArgs,
       })
       log.debug(
@@ -376,8 +381,12 @@ function useActionChain() {
     React.useMemo(() => {
       {
         const action = createAction({ action: emitObject, trigger })
-        const dataObject = pageCtx.getDataObject(component) || {}
-
+        const dataObject =
+          pageCtx.getDataObject(
+            component,
+            getRootDraftOrRoot(actionChain),
+            pageCtx.pageName,
+          ) || {}
         if (dataObject) {
           if (u.isStr(action.dataKey)) {
             action.dataKey = dataObject
@@ -424,7 +433,9 @@ function useActionChain() {
                     if (result === 'abort') {
                       log.debug(`Received "abort"`)
                       results.push('abort')
-                      break
+                      action.abort('Received abort')
+                      await actionChain.abort()
+                      return 'abort'
                     } else results.push(result)
                   }
                 } catch (error) {
@@ -595,7 +606,10 @@ function useActionChain() {
                     dataObject,
                     ...obj[key],
                   })
-                  log.debug(`%c[${key}]`, `color:#01a7c4;`, { from, result })
+                  log.debug(`%c[${key}]`, `color:#01a7c4;`, {
+                    from,
+                    result: getCurrent(result),
+                  })
                 } else {
                   let awaitKey
                   let isLocal = true
@@ -753,7 +767,6 @@ function useActionChain() {
           })
         }
 
-        debugger
         const actionChain = nuiCreateActionChain(
           trigger,
           actions,
