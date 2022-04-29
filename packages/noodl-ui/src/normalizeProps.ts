@@ -31,13 +31,13 @@ function getByRef(
 ) {
   if (getByRef.lastRef === ref) {
     getByRef.count++
-    if (getByRef.count > 99) {
-      throw new Error(
-        `There is an infinite loop in the reference resolver "getByRef" from this reference: "${ref}" with root key: ${
-          rootKey ? `"${rootKey}"` : '<empty string>'
-        }`,
-      )
-    }
+    // if (getByRef.count > 99) {
+    //   throw new Error(
+    //     `There is an infinite loop in the reference resolver "getByRef" from this reference: "${ref}" with root key: ${
+    //       rootKey ? `"${rootKey}"` : '<empty string>'
+    //     }`,
+    //   )
+    // }
   } else {
     getByRef.count = 0
     getByRef.lastRef = ref
@@ -203,7 +203,7 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
             u.isStr(value)
           )
           // Receiving their options by reference
-          if (isUsingDataKey) {
+          if (isUsingDataKey && !(u.isArr(value) && value.length === 0)) {
             let dataPath = dataKey && u.isStr(dataKey) ? dataKey : value
             let dataObject: any
             let isListPath = !!(iteratorVar && dataPath.startsWith(iteratorVar))
