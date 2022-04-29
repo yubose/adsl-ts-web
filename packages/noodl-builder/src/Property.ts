@@ -3,14 +3,18 @@ import NoodlString from './String'
 import NoodlValue from './Value'
 import createNode from './utils/createNode'
 import is from './utils/is'
+import unwrap from './utils/unwrap'
 import { nkey } from './constants'
 
 class NoodlProperty<K extends string> extends NoodlBase {
-  #key: NoodlString<K> | undefined
-  #value: undefined | NoodlValue<any>
+  #key: NoodlString | undefined
+  #value: undefined | NoodlValue<any>;
 
-  static is(value: any): value is NoodlProperty<any> {
-    return !!(value && value instanceof NoodlProperty)
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return {
+      nkey: nkey.property,
+      value: this.build(),
+    }
   }
 
   constructor(key?: K, parent?: NoodlBase) {
@@ -25,7 +29,7 @@ class NoodlProperty<K extends string> extends NoodlBase {
     })
   }
 
-  setKey(key: string | NoodlString<string> | undefined) {
+  setKey(key: string | NoodlString | undefined) {
     if (
       typeof key !== 'string' &&
       typeof key !== 'number' &&
@@ -35,9 +39,9 @@ class NoodlProperty<K extends string> extends NoodlBase {
         `Cannot set key of type "${typeof key}". Expect string, number, undefined, or NoodlString`,
       )
     }
-    if (NoodlString.is(key)) {
-      this.#key = key as NoodlString<K>
-    } else if (typeof key === 'string' || NoodlValue.is(key)) {
+    if (is.stringNode(key)) {
+      this.#key = key
+    } else if (typeof key === 'string' || is.node(key)) {
       this.#key = new NoodlString(key)
     } else {
       this.#key = undefined
@@ -54,20 +58,25 @@ class NoodlProperty<K extends string> extends NoodlBase {
     return this
   }
 
-  getValue() {
-    return is.node(this.#value) ? this.#value.getValue() : this.#value
+  getValue(asNode = true) {
+    return is.node(this.#value)
+      ? asNode
+        ? this.#value
+        : // @ts-expect-error
+          this.#value.getValue(asNode)
+      : this.#value
   }
 
   toJSON() {
     return {
-      key: this.getKey()?.getValue(),
-      value: this.getValue()?.getValue?.(),
+      key: unwrap(this.getKey()),
+      value: this.getValue(false),
     }
   }
 
   build() {
     return {
-      [this.getKey()?.getValue() as string]: this.getValue()?.getValue(),
+      [unwrap(this.getKey())]: unwrap(this.#value),
     }
   }
 }

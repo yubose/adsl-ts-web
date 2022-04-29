@@ -1,19 +1,19 @@
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
-  title: 'noodl-ui-dom',
-  tagline: 'NOODL',
+  title: 'noodl-builder',
+  tagline: 'Noodl',
   url: 'https://aitmed.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'noodl',
-  projectName: 'NOODL',
+  projectName: 'noodl-builder',
   themeConfig: {
     navbar: {
-      title: 'noodl-ui-dom',
+      title: 'noodl-builder',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'AiTmed Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -84,7 +84,7 @@ module.exports = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} noodl-ui-dom, Inc.`,
+      copyright: `Copyright © ${new Date().getFullYear()} noodl-builder, Inc.`,
     },
   },
   presets: [

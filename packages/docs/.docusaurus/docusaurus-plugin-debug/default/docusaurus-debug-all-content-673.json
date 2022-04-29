@@ -8,9 +8,9 @@
           "versionPath": "/docs",
           "isLast": true,
           "routePriority": -1,
-          "sidebarFilePath": "C:\\Users\\AITMED\\aitmed-noodl-web\\packages\\docs\\sidebars.json",
-          "contentPath": "C:\\Users\\AITMED\\aitmed-noodl-web\\packages\\docs\\docs",
-          "contentPathLocalized": "C:\\Users\\AITMED\\aitmed-noodl-web\\packages\\docs\\i18n\\en\\docusaurus-plugin-content-docs\\current",
+          "sidebarFilePath": "/Users/christ/aitmed-noodl-web/packages/docs/sidebars.json",
+          "contentPath": "/Users/christ/aitmed-noodl-web/packages/docs/docs",
+          "contentPathLocalized": "/Users/christ/aitmed-noodl-web/packages/docs/i18n/en/docusaurus-plugin-content-docs/current",
           "mainDocId": "installation",
           "sidebars": {
             "defaultSidebar": [
@@ -23,32 +23,12 @@
                 "id": "usage"
               },
               {
-                "type": "doc",
-                "id": "actions",
-                "label": "Actions"
-              },
-              {
-                "type": "doc",
-                "id": "builtIns",
-                "label": "Built Ins"
-              },
-              {
-                "type": "doc",
-                "id": "notifications"
-              },
-              {
                 "type": "category",
-                "label": "API Reference",
+                "label": "Interface",
                 "items": [
                   {
                     "type": "doc",
-                    "id": "api/actions",
-                    "label": "Actions"
-                  },
-                  {
-                    "type": "doc",
-                    "id": "api/unit_tests",
-                    "label": "Unit tests"
+                    "id": "interface/Base"
                   }
                 ],
                 "collapsed": false
@@ -56,125 +36,17 @@
             ]
           },
           "permalinkToSidebar": {
-            "/docs/actions": "defaultSidebar",
-            "/docs/api/actions": "defaultSidebar",
-            "/docs/api/unit_tests": "defaultSidebar",
-            "/docs/builtIns": "defaultSidebar",
             "/docs/installation": "defaultSidebar",
-            "/docs/notifications": "defaultSidebar",
+            "/docs/interface/Base": "defaultSidebar",
             "/docs/usage": "defaultSidebar"
           },
           "docs": [
-            {
-              "unversionedId": "actions",
-              "id": "actions",
-              "isDocsHomePage": false,
-              "title": "Actions",
-              "description": "anonymous",
-              "source": "@site/docs/actions.md",
-              "sourceDirName": ".",
-              "slug": "/actions",
-              "permalink": "/docs/actions",
-              "version": "current",
-              "sidebar_label": "Actions",
-              "sidebarPosition": 3,
-              "frontMatter": {
-                "title": "Actions",
-                "sidebar_label": "Actions",
-                "sidebar_position": 3
-              },
-              "sidebar": "defaultSidebar",
-              "previous": {
-                "title": "Usage",
-                "permalink": "/docs/usage"
-              },
-              "next": {
-                "title": "Built Ins",
-                "permalink": "/docs/builtIns"
-              }
-            },
-            {
-              "unversionedId": "api/actions",
-              "id": "api/actions",
-              "isDocsHomePage": false,
-              "title": "Actions",
-              "description": "Handling actions",
-              "source": "@site/docs/api/actions.md",
-              "sourceDirName": "api",
-              "slug": "/api/actions",
-              "permalink": "/docs/api/actions",
-              "version": "current",
-              "sidebar_label": "Actions",
-              "frontMatter": {
-                "sidebar_label": "Actions",
-                "title": "Actions"
-              },
-              "sidebar": "defaultSidebar",
-              "previous": {
-                "title": "Notifications",
-                "permalink": "/docs/notifications"
-              },
-              "next": {
-                "title": "Unit tests",
-                "permalink": "/docs/api/unit_tests"
-              }
-            },
-            {
-              "unversionedId": "api/unit_tests",
-              "id": "api/unit_tests",
-              "isDocsHomePage": false,
-              "title": "Unit tests",
-              "description": "Testing dynamically injected objects from an evalObject",
-              "source": "@site/docs/api/unit_tests.md",
-              "sourceDirName": "api",
-              "slug": "/api/unit_tests",
-              "permalink": "/docs/api/unit_tests",
-              "version": "current",
-              "sidebar_label": "Unit tests",
-              "frontMatter": {
-                "sidebar_label": "Unit tests",
-                "title": "Unit tests"
-              },
-              "sidebar": "defaultSidebar",
-              "previous": {
-                "title": "Actions",
-                "permalink": "/docs/api/actions"
-              }
-            },
-            {
-              "unversionedId": "builtIns",
-              "id": "builtIns",
-              "isDocsHomePage": false,
-              "title": "Built Ins",
-              "description": "checkField",
-              "source": "@site/docs/builtIns.md",
-              "sourceDirName": ".",
-              "slug": "/builtIns",
-              "permalink": "/docs/builtIns",
-              "version": "current",
-              "sidebar_label": "Built Ins",
-              "sidebarPosition": 3,
-              "frontMatter": {
-                "title": "Built Ins",
-                "sidebar_label": "Built Ins",
-                "sidebar_position": 3
-              },
-              "sidebar": "defaultSidebar",
-              "previous": {
-                "title": "Actions",
-                "permalink": "/docs/actions"
-              },
-              "next": {
-                "title": "Notifications",
-                "permalink": "/docs/notifications"
-              }
-            },
             {
               "unversionedId": "installation",
               "id": "installation",
               "isDocsHomePage": false,
               "title": "Installation",
-              "description": "",
+              "description": "`bash",
               "source": "@site/docs/installation.md",
               "sourceDirName": ".",
               "slug": "/installation",
@@ -192,30 +64,21 @@
               }
             },
             {
-              "unversionedId": "notifications",
-              "id": "notifications",
+              "unversionedId": "interface/Base",
+              "id": "interface/Base",
               "isDocsHomePage": false,
-              "title": "Notifications",
-              "description": "Register",
-              "source": "@site/docs/notifications.md",
-              "sourceDirName": ".",
-              "slug": "/notifications",
-              "permalink": "/docs/notifications",
+              "title": "Interface",
+              "description": "NoodlBase",
+              "source": "@site/docs/interface/Base.md",
+              "sourceDirName": "interface",
+              "slug": "/interface/Base",
+              "permalink": "/docs/interface/Base",
               "version": "current",
-              "sidebarPosition": 3,
-              "frontMatter": {
-                "id": "notifications",
-                "title": "Notifications",
-                "sidebar_position": 3
-              },
+              "frontMatter": {},
               "sidebar": "defaultSidebar",
               "previous": {
-                "title": "Built Ins",
-                "permalink": "/docs/builtIns"
-              },
-              "next": {
-                "title": "Actions",
-                "permalink": "/docs/api/actions"
+                "title": "Usage",
+                "permalink": "/docs/usage"
               }
             },
             {
@@ -240,8 +103,8 @@
                 "permalink": "/docs/installation"
               },
               "next": {
-                "title": "Actions",
-                "permalink": "/docs/actions"
+                "title": "Interface",
+                "permalink": "/docs/interface/Base"
               }
             }
           ]

@@ -49,37 +49,17 @@ export default [
 },
 {
   path: '/docs',
-  component: ComponentCreator('/docs','7de'),
+  component: ComponentCreator('/docs','5f2'),
   
   routes: [
-{
-  path: '/docs/actions',
-  component: ComponentCreator('/docs/actions','a9f'),
-  exact: true,
-},
-{
-  path: '/docs/api/actions',
-  component: ComponentCreator('/docs/api/actions','235'),
-  exact: true,
-},
-{
-  path: '/docs/api/unit_tests',
-  component: ComponentCreator('/docs/api/unit_tests','558'),
-  exact: true,
-},
-{
-  path: '/docs/builtIns',
-  component: ComponentCreator('/docs/builtIns','6ce'),
-  exact: true,
-},
 {
   path: '/docs/installation',
   component: ComponentCreator('/docs/installation','b2a'),
   exact: true,
 },
 {
-  path: '/docs/notifications',
-  component: ComponentCreator('/docs/notifications','e6a'),
+  path: '/docs/interface/Base',
+  component: ComponentCreator('/docs/interface/Base','260'),
   exact: true,
 },
 {

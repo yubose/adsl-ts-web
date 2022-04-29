@@ -1,10 +1,9 @@
-import NoodlBase from '../Base'
 import is from './is'
 
 function unwrap(value: unknown) {
   if (is.node(value)) {
     if (is.stringNode(value)) {
-      return value.getValue()
+      return value.getValue(false)
     }
 
     if (is.valueNode(value)) {
@@ -19,8 +18,6 @@ function unwrap(value: unknown) {
       return value.build()
     }
   }
-
-  console.log({ value })
 
   return value === undefined ? value : String(value)
 }

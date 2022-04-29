@@ -5,17 +5,20 @@ import NoodlProperty from './Property'
 import is from './utils/is'
 import typeOf from './utils/typeOf'
 import { nkey } from './constants'
+import type { INoodlValue } from './types'
 import * as fp from './utils'
 
-class NoodlObject extends NoodlBase {
-  #value = new Map<string, NoodlProperty<any> | undefined>()
-
-  static is(value: any): value is NoodlObject {
-    return value && typeof value === 'object' && value instanceof NoodlObject
-  }
+class NoodlObject
+  extends NoodlBase
+  implements INoodlValue<Record<string, any>>
+{
+  #value = new Map<string, NoodlProperty<any> | undefined>();
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
-    return this.toJSON()
+    return {
+      nkey: nkey.object,
+      value: this.build(),
+    }
   }
 
   constructor(parent?: NoodlObject['parent']) {
@@ -30,14 +33,11 @@ class NoodlObject extends NoodlBase {
     })
   }
 
-  createProperty<S extends string = string>(
-    property: S | NoodlString<S>,
-    value?: any,
-  ) {
-    if (typeof property === 'string' && !property) {
-      throw new Error(`Cannot create property using an empty string`)
+  createProperty(property: string | NoodlString, value?: any) {
+    if (typeof property === 'string' && !property && property !== '') {
+      throw new Error(`Cannot create property using a null or undefined value`)
     }
-    if (NoodlString.is(property) && !property.getValue()) {
+    if (is.propertyNode(property) && !property.getValue()) {
       throw new Error(`Cannot create property using an empty NoodlString`)
     }
     const key = this.unwrapProperty(property)
@@ -47,17 +47,17 @@ class NoodlObject extends NoodlBase {
     return this
   }
 
-  getProperty(property: string | NoodlString<string>) {
+  getProperty(property: string | NoodlString) {
     return this.#value.get(this.unwrapProperty(property))
   }
 
-  hasProperty(property: string | NoodlString<string>) {
+  hasProperty(property: string | NoodlString) {
     const key = this.toKey(property)
     if (!key) return false
     return this.#value.has(key)
   }
 
-  removeProperty(property: string | NoodlString<string>) {
+  removeProperty(property: string | NoodlString) {
     const key = this.unwrapProperty(property)
     if (key) this.#value.delete(key)
     return this
@@ -66,39 +66,33 @@ class NoodlObject extends NoodlBase {
   unwrapProperty(
     property:
       | string
-      | NoodlString<string>
+      | NoodlString
       | NoodlValue<any>
       | NoodlProperty<any>
       | undefined,
   ) {
     const type = typeOf(property)
-    if (
-      type === 'string' ||
-      type === 'boolean' ||
-      type === 'number' ||
-      type === 'null' ||
-      type === 'undefined'
-    ) {
+    if (/boolean|null|number|string|undefined/.test(type)) {
       return property
     } else if (
       is.valueNode(property) ||
       is.stringNode(property) ||
       is.propertyNode(property)
     ) {
-      return (property as NoodlValue<any>).getValue()
+      return property.getValue(false)
     }
   }
 
-  getValue(property: string | NoodlString<string>, asNode = true) {
+  getValue(property: string | NoodlString, asNode = true) {
     const unwrappedProperty = this.unwrapProperty(property)
     if (unwrappedProperty === undefined) {
       throw new Error(`Cannot unwrap an undefined property`)
     }
     const result = this.#value.get(unwrappedProperty)
-    return asNode ? result : result?.getValue?.()
+    return asNode ? result : result?.getValue?.(false)
   }
 
-  setValue(property: string | NoodlString<string>, value?: any) {
+  setValue(property: string | NoodlString, value?: any) {
     const key = this.toKey(property)
     if (key === undefined) {
       throw new Error(`Cannot set value on undefined property`)
@@ -114,25 +108,25 @@ class NoodlObject extends NoodlBase {
     return !!Object.keys(this.#value)?.length
   }
 
-  toKey(value: string | NoodlString<string>) {
+  toKey(value: string | NoodlString): string {
     if (typeof value === 'string') return value
-    return is.node(value) ? value.getValue() : String(value)
+    return (is.node(value) ? String(value.getValue()) : String(value)) as string
   }
 
   build() {
     const result = {} as Record<string, any>
 
     for (const [property, value] of this.#value) {
-      result[property] = value?.getValue?.()
+      const converted = value?.getValue?.()
+      result[property] = converted
+      console.log({ converted, property, value })
     }
 
     return result
   }
 
   toJSON() {
-    return {
-      value: this.build(),
-    }
+    return this.build()
   }
 }
 

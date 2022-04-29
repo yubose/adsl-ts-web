@@ -11,46 +11,26 @@ import * as fp from '../utils/fp'
 
 describe(`builder.test.ts`, () => {
   describe(`NoodlValue`, () => {
-    it(`should return true if value is NoodlValue`, () => {
-      expect(NoodlValue.is(new NoodlValue())).to.be.true
-    })
-
-    it(`should return false if value is not NoodlValue`, () => {
-      expect(NoodlValue.is('hello')).to.be.false
-    })
-
-    it(`should set the value`, () => {
+    it(`should set the value as a non-node`, () => {
       const value = new NoodlValue()
       expect(value.getValue()).to.be.undefined
       value.setValue('hello')
       expect(value.getValue()).to.eq('hello')
-    })
-
-    it(`should return the snapshot expectedly`, () => {
-      const value = new NoodlValue()
-      value.setValue('hello')
-      const snapshot = value.toJSON()
-      expect(snapshot).to.have.property('value').to.be.a('string')
-      expect(snapshot).to.have.property('isReference').to.be.a('boolean')
     })
   })
 
   describe(`NoodlString`, () => {
-    it(`should return true if value is NoodlString`, () => {
-      expect(NoodlString.is(new NoodlString())).to.be.true
-    })
-
-    it(`should return false if value is not NoodlString`, () => {
-      expect(NoodlString.is(55)).to.be.false
+    it(`should set empty value to empty string`, () => {
+      expect(new NoodlString(null as any).getValue()).to.eq('')
     })
 
     it(`should set the value as a NoodlValue string`, () => {
-      const value = new NoodlString()
-      expect(value.getValue()).to.be.undefined
+      const value = new NoodlString('')
+      expect(value.getValue()).to.eq('')
       value.setValue('hello')
       expect(value.getValue()).to.eq('hello')
       value.setValue(null)
-      expect(value.getValue()).to.eq('null')
+      expect(value.getValue()).to.eq('')
       value.setValue([])
       expect(value.getValue()).to.eq('[object Array]')
       value.setValue({})
@@ -58,30 +38,9 @@ describe(`builder.test.ts`, () => {
       value.setValue(() => {})
       expect(value.getValue()).to.eq('[object Function]')
     })
-
-    it(`should return the snapshot expectedly`, () => {
-      const value = new NoodlString()
-      value.setValue('hello')
-      const snapshot = value.toJSON()
-      expect(snapshot).to.have.property('value').to.be.a('string')
-      expect(snapshot).to.have.property('isReference').to.be.a('boolean')
-    })
   })
 
   describe(`NoodlProperty`, () => {
-    it(`should return true if value is NoodlProperty`, () => {
-      expect(NoodlProperty.is(new NoodlProperty())).to.be.true
-    })
-
-    it(`should return false if value is not NoodlProperty`, () => {
-      expect(NoodlProperty.is(55)).to.be.false
-      expect(NoodlProperty.is('f')).to.be.false
-      expect(NoodlProperty.is(null)).to.be.false
-      expect(NoodlProperty.is(undefined)).to.be.false
-      expect(NoodlProperty.is({})).to.be.false
-      expect(NoodlProperty.is([])).to.be.false
-    })
-
     it(`should set the key as a NoodlString`, () => {
       const value = new NoodlProperty()
       expect(value.getKey()).to.be.undefined
@@ -89,11 +48,44 @@ describe(`builder.test.ts`, () => {
       expect(value.getKey()).to.be.instanceOf(NoodlString)
     })
 
-    it(`should set the value as a NoodlValue`, () => {
+    it(`should set the value as a NoodlString if string`, () => {
       const value = new NoodlProperty()
       expect(value.getValue()).to.be.undefined
       value.setValue('hello')
-      expect(value.getValue()).to.be.instanceOf(NoodlValue)
+      expect(value.getValue(true)).to.be.instanceOf(NoodlString)
+    })
+
+    it(`should set the value as a NoodlValue if boolean, number, or null`, () => {
+      const value = new NoodlProperty()
+      expect(value.getValue()).to.be.undefined
+      value.setValue(null)
+      expect(value.getValue(true)).to.be.instanceOf(NoodlValue)
+      value.setValue(false)
+      expect(value.getValue(true)).to.be.instanceOf(NoodlValue)
+      value.setValue(222)
+      expect(value.getValue(true)).to.be.instanceOf(NoodlValue)
+    })
+
+    it(`should set the value as a NoodlObject if object`, () => {
+      const value = new NoodlProperty()
+      expect(value.getValue()).to.be.undefined
+      value.setValue({})
+      expect(value.getValue(true)).to.be.instanceOf(NoodlObject)
+    })
+
+    it(`should set the value as a NoodlArray if array`, () => {
+      const value = new NoodlProperty()
+      expect(value.getValue()).to.be.undefined
+      value.setValue([])
+      expect(value.getValue(true)).to.be.instanceOf(NoodlArray)
+    })
+
+    it(`should return the value as a node if asNode === true`, () => {
+      const value = new NoodlProperty()
+      expect(value.getValue()).to.be.undefined
+      value.setValue([])
+      expect(value.getValue(true)).to.be.instanceOf(NoodlArray)
+      expect(value.getValue()).to.be.instanceOf(NoodlArray)
     })
 
     it(`should return the snapshot expectedly`, () => {
@@ -116,14 +108,6 @@ describe(`builder.test.ts`, () => {
   })
 
   describe(`NoodlArray`, () => {
-    it(`[is] should return true if value is NoodlArray`, () => {
-      expect(NoodlArray.is(new NoodlArray())).to.be.true
-    })
-
-    it(`[is] should return false if value is not NoodlArray`, () => {
-      expect(NoodlArray.is('hello')).to.be.false
-    })
-
     it(`[add] should add the value as a node`, () => {
       const arr = new NoodlArray()
       arr.add('hello')
@@ -189,14 +173,6 @@ describe(`builder.test.ts`, () => {
   })
 
   describe(`NoodlObject`, () => {
-    it(`[is] should return true if value is NoodlObject`, () => {
-      expect(NoodlObject.is(new NoodlObject())).to.be.true
-    })
-
-    it(`[is] should return false if value is not NoodlObject`, () => {
-      expect(NoodlObject.is('hello')).to.be.false
-    })
-
     it(`[createProperty] should set properties as primitives`, () => {
       const value = new NoodlObject()
       expect(value.getValue('hello')).to.be.undefined
@@ -207,29 +183,26 @@ describe(`builder.test.ts`, () => {
       expect(value.getValue('hello')).to.exist
     })
 
-    it(`[createProperty] should set the value as undefined`, () => {
+    it(`[createProperty] should set the value as undefined if the value is undefined`, () => {
       const value = new NoodlObject()
       value.createProperty('a')
       expect(value.hasProperty('a')).to.be.true
-      expect(value.getValue('a')).to.be.undefined
+      expect(value.getValue('a', false)).to.be.undefined
     })
 
-    it(`[createProperty] should set the value as a NoodlValue`, () => {
+    it(`[createProperty] should set as NoodlProperty`, () => {
       const value = new NoodlObject()
       value.createProperty('a', 'hello')
-      expect(value.getValue('a')).to.be.instanceOf(NoodlValue)
+      expect(value.getValue('a')).to.be.instanceOf(NoodlProperty)
       value.createProperty('a', new NoodlValue('abc'))
-      expect(value.getValue('a')).to.be.instanceOf(NoodlValue)
-      value.createProperty('a')
-      expect(value.hasProperty('a')).to.be.true
-      expect(value.getValue('a')).to.be.undefined
+      expect(value.getValue('a')).to.be.instanceOf(NoodlProperty)
     })
 
     it(`[getValue] should return the value of the property`, () => {
       const value = new NoodlObject()
       value.createProperty('a', 'hello')
       expect(is.propertyNode(value.getValue('a'))).to.be.true
-      expect(value.getValue('a')?.getValue()).to.eq('hello')
+      expect(value.getValue('a', false)).to.eq('hello')
     })
 
     it(`[setValue] should set the key and value to undefined if it is undefined`, () => {
@@ -252,8 +225,7 @@ describe(`builder.test.ts`, () => {
     it(`[unwrapProperty] should unwrap the property`, () => {
       const value = new NoodlObject()
       value.createProperty('hello', 100)
-      expect(value.getValue('hello')).to.be.instanceOf(NoodlValue)
-      console.log(value.getValue('hello'))
+      expect(value.getValue('hello')).to.be.instanceOf(NoodlProperty)
       expect(value.unwrapProperty(value.getValue('hello'))).to.eq(100)
     })
 
@@ -287,17 +259,33 @@ describe(`builder.test.ts`, () => {
   })
 
   describe(`Builder`, () => {
-    xit(`should create an action object`, () => {
+    it(`should create an action object`, () => {
       const builder = new Builder()
       expect(builder.action('builtIn').build()).to.have.property('actionType')
     })
 
-    xit(`should initialize the actionType`, () => {
+    it(`should initialize the actionType`, () => {
       const builder = new Builder()
       expect(builder.action('builtIn').build()).to.have.property(
         'actionType',
         'builtIn',
       )
+    })
+
+    it.only(`should create an emit object`, () => {
+      const builder = new Builder()
+      const emit = builder.object()
+      const property = emit.createProperty('emit').getProperty('emit')
+      property?.setValue({})
+      console.log('key', property?.getKey())
+      console.log(`value`, property?.getValue())
+      const emitObject = property?.getValue() as NoodlObject
+      emitObject
+        .createProperty('dataKey')
+        .getProperty('dataKey')
+        ?.setValue({ var1: '' })
+      emitObject.createProperty('actions').getProperty('actions')?.setValue([])
+      console.log(emitObject)
     })
   })
 })

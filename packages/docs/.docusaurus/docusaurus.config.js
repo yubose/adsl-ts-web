@@ -1,18 +1,18 @@
 export default {
-  "title": "noodl-ui-dom",
-  "tagline": "NOODL",
+  "title": "noodl-builder",
+  "tagline": "Noodl",
   "url": "https://aitmed.com",
   "baseUrl": "/",
   "onBrokenLinks": "throw",
   "onBrokenMarkdownLinks": "warn",
   "favicon": "img/favicon.ico",
   "organizationName": "noodl",
-  "projectName": "NOODL",
+  "projectName": "noodl-builder",
   "themeConfig": {
     "navbar": {
-      "title": "noodl-ui-dom",
+      "title": "noodl-builder",
       "logo": {
-        "alt": "My Site Logo",
+        "alt": "AiTmed Logo",
         "src": "img/logo.svg"
       },
       "items": [
@@ -85,7 +85,7 @@ export default {
           ]
         }
       ],
-      "copyright": "Copyright © 2021 noodl-ui-dom, Inc."
+      "copyright": "Copyright © 2022 noodl-builder, Inc."
     },
     "colorMode": {
       "defaultMode": "light",
@@ -116,7 +116,7 @@ export default {
           "showReadingTime": true
         },
         "theme": {
-          "customCss": "C:\\Users\\AITMED\\aitmed-noodl-web\\packages\\docs\\src\\css\\custom.css"
+          "customCss": "/Users/christ/aitmed-noodl-web/packages/docs/src/css/custom.css"
         }
       }
     ]
