@@ -1,99 +1,103 @@
 import React from 'react'
-import get from 'lodash/get'
+import noop from 'lodash/noop'
 import * as u from '@jsmanifest/utils'
+import * as nt from 'noodl-types'
 import { render as originalRender, RenderOptions } from '@testing-library/react'
-import { trimReference } from 'noodl-utils'
 import AppProvider from '@/AppProvider'
 import PageContext from '@/components/PageContext'
 import type useActionChain from '@/hooks/useActionChain'
 import type useBuiltInFns from '@/hooks/useBuiltInFns'
+import usePage from '@/hooks/usePage'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
+import useRenderer from '@/hooks/useRenderer'
 import { usePageCtx } from '@/components/PageContext'
-import is from '@/utils/is'
 import * as t from '@/types'
 import { actionFactory, componentFactory } from 'noodl-ui-test-utils'
 
 export const ui = { ...actionFactory, ...componentFactory }
+export const baseUrl = 'https://127.0.0.1:3001/'
+export const assetsUrl = `${baseUrl}assets/`
 
 jest.mock('@/hooks/useGetNoodlPages')
 
+export const defaultPageContext: t.PageContext = {
+  assetsUrl,
+  baseUrl,
+  lists: [],
+  pageName: 'Topo',
+  pageObject: { components: [] },
+  refs: {},
+  getCtxObject: noop as any,
+  getDataObject: noop as any,
+  getIteratorVar: noop as any,
+  getListObject: noop as any,
+  getListsCtxObject: noop as any,
+  isCtxObj: noop as any,
+  isListConsumer: noop as any,
+  slug: '',
+}
+
 function getAllProviders({
-  pageContext = {},
-}: { pageContext?: Partial<t.PageContext> } = {}) {
+  pageContext,
+}: {
+  pageContext?: t.PageContext
+} = {}) {
   return function AllProviders({ children }: React.PropsWithChildren<any>) {
     return (
       <AppProvider>
-        <PageContext>{children}</PageContext>
+        <PageContext {...pageContext}>{children}</PageContext>
       </AppProvider>
     )
   }
 }
 
-export type AppTestRenderOptions = Partial<
-  Pick<t.AppContext, 'getR' | 'root' | 'setR'>
-> & {
-  builtIns?: ReturnType<typeof useBuiltInFns>
-  createActionChain?: ReturnType<typeof useActionChain>['createActionChain']
-  pageName?: string
-  static?: { images?: any[] }
-}
-
 export function render(
-  component: Partial<t.StaticComponentObject> | string,
+  component:
+    | nt.ReferenceString
+    | nt.ComponentObject
+    | Partial<t.StaticComponentObject>
+    | (
+        | nt.ReferenceString
+        | Partial<t.StaticComponentObject | nt.ComponentObject>
+      )[],
   {
-    builtIns,
-    createActionChain,
     pageName = 'HomePage',
-    root: rootProp = { Global: {} },
+    root = {},
     ...renderOptions
-  }: Omit<RenderOptions, 'wrapper'> & AppTestRenderOptions = {},
+  }: Omit<RenderOptions, 'wrapper'> & {
+    root?: {
+      [name: string]: Record<string, any>
+    }
+    pageName?: string
+  } = {},
 ) {
   // @ts-expect-error
-  useGetNoodlPages.mockResolvedValue({
-    allNoodlPage: { nodes: [] },
+  useGetNoodlPages.mockReturnValue({
+    nodes: u.entries(root).reduce(
+      (acc, [name, content]) =>
+        acc.concat({
+          name,
+          content: u.isStr(content) ? content : JSON.stringify(content),
+          slug: name,
+          isPreload: false,
+        }),
+      [],
+    ),
   })
 
-  rootProp[pageName] = {
-    ...rootProp[pageName],
-    components: [
-      ...((component ? u.array(component) : rootProp[pageName]?.components) ||
-        []),
-      ...(rootProp[pageName]?.components || []),
-    ],
-  }
-
   const pageContext = {
+    ...defaultPageContext,
     pageName,
-    pageObject: rootProp[pageName],
-    lists: {},
-    refs: {},
+    pageObject: { components: u.array(component as any) },
     slug: `/${pageName}/`,
   } as t.PageContext
 
-  const Component = () => {
-    const pageCtx = usePageCtx()
-    const render = useRenderer()
-
-    let node: React.ReactElement | undefined
-
-    if (React.isValidElement(component)) {
-      node = component
-    } else {
-      node = (
-        <>
-          {u.array(component).map((c, i) => (
-            <React.Fragment key={i}>
-              {render(c, [pageName, 'components', i])}
-            </React.Fragment>
-          ))}
-        </>
-      )
-    }
-
-    return node
+  const Component = ({ pageContext }: { pageContext: t.PageContext }) => {
+    const page = usePage({ pageContext })
+    return <>{page.components.map(page.render)}</>
   }
 
-  return originalRender(<Component />, {
+  return originalRender(<Component pageContext={pageContext} />, {
     wrapper: getAllProviders({ pageContext }),
     ...renderOptions,
   })

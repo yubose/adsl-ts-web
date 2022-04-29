@@ -6,7 +6,7 @@ function useGetNoodlPages() {
     allNoodlPage: {
       nodes: {
         name: string
-        content: string
+        content: any // string
         slug: string
         isPreload: boolean
       }[]

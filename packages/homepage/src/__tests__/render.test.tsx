@@ -5,7 +5,6 @@ import {
   act,
   fireEvent,
   prettyDOM,
-  render,
   RenderResult,
   waitFor,
   screen,
@@ -17,38 +16,51 @@ import { usePageCtx } from '@/components/PageContext'
 import useRenderer from '@/hooks/useRenderer'
 import useRootObject from '@/hooks/useRootObject'
 import * as t from '@/types'
-import { renderComponent, ui } from './test-utils'
+import { render, ui } from './test-utils'
 
 describe('render', () => {
-  it.only('should render to the DOM', () => {
-    const { getByText } = renderComponent({ type: 'label', text: 'hello' })
+  it('should render to the DOM', () => {
+    const { getByText } = render({ type: 'label', text: 'hello' })
     expect(getByText('hello')).toBeInTheDocument()
   })
 
-  it(`should be able to render referenced components`, () => {
-    const component = { '.BaseHeader': null }
-    const { getByText } = renderComponent(component, {
-      root: {
-        HomePage: { components: [component] },
-        BaseHeader: { type: 'button', text: 'Submit' },
-      },
+  describe.only(`references`, () => {
+    it(`should be able to render string type referenced components`, () => {
+      const root = { BaseHeader: { type: 'button', text: 'Submit' } }
+      expect(
+        render('.BaseHeader', { root }).getByText(/Submit/i),
+      ).toBeInTheDocument()
     })
-    expect(getByText('Submit')).toBeInTheDocument()
-  })
 
-  xit(`should render values that are referenced`, () => {
-    const component = {
-      type: 'textField',
-      placeholder: '.Topo.buttonText.message',
-    }
-    const { getByPlaceholderText } = renderComponent(component, {
-      root: {
-        Topo: { buttonText: { message: 'Cancel' } },
-        HomePage: { components: [component] },
-        BaseHeader: { type: 'button', text: 'Abc' },
-      },
+    it(`should be able to render object type referenced components`, () => {
+      const { getByText } = render(
+        { '.BaseHeader': null },
+        { root: { BaseHeader: { type: 'button', text: 'Submit' } } },
+      )
+      expect(getByText(/Submit/i)).toBeInTheDocument()
     })
-    expect(getByPlaceholderText('Cancel')).toBeInTheDocument()
+
+    for (const { fkey, type, key, attr = key } of [
+      { type: 'textField', key: 'placeholder', fkey: 'getByPlaceholderText' },
+      // { type: 'textField', key: 'dataKey', fkey: 'getByDisplayValue', attr: 'value', },
+      { type: 'label', key: 'text', fkey: 'getByText' },
+      { type: 'label', key: 'dataKey', fkey: 'getByText' },
+      { type: 'view', key: 'text', fkey: 'getByText' },
+    ] as {
+      key: string
+      attr?: string
+      type: string
+      fkey: keyof ReturnType<typeof render>
+    }[]) {
+      it(`should parse referenced ${key}(s)`, () => {
+        const result = render(
+          { type, [key]: '.Topo.buttonText.message' },
+          { root: { Topo: { buttonText: { message: 'Cancel' } } } },
+        )
+        // @ts-expect-error
+        expect(result[fkey]('Cancel')).toBeInTheDocument()
+      })
+    }
   })
 })
 
@@ -85,7 +97,7 @@ xdescribe(`state management`, () => {
         },
         { '.BaseHeader': null },
       ]
-      const { getByText } = renderComponent(components, {
+      const { getByText } = render(components, {
         pageName: 'Topo',
         root: {
           Topo: { buttonText: { message: 'Change cancel message' } },
@@ -267,7 +279,7 @@ xdescribe(`state management`, () => {
           },
         },
       })
-      const { getByText } = renderComponent(root.Topo.components, {
+      const { getByText } = render(root.Topo.components, {
         pageName: 'Topo',
         root,
       })

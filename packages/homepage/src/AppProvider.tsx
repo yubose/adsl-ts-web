@@ -14,6 +14,8 @@ log.setLevel('DEBUG')
 function AppProvider({ children }: React.PropsWithChildren<any>) {
   const noodlPages = useGetNoodlPages()
 
+  log.debug({ noodlPages: noodlPages })
+
   const { root, getR, setR } = useRootObject(
     u.reduce(
       noodlPages?.nodes || [],

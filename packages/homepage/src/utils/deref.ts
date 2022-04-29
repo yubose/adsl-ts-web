@@ -15,25 +15,19 @@ function deref({ ref, root, rootKey }: DerefOptions) {
 
   if (value) {
     let datapath = toDataPath(trimReference(value))
-    let isLocal = false
+    let isLocal = is.reference(value)
 
     while (is.reference(value)) {
       isLocal = is.localReference(value)
 
       if (isLocal) {
-        if (rootKey && datapath[0] === rootKey) {
-          datapath.shift()
-        }
+        if (rootKey && datapath[0] === rootKey) datapath.shift()
       } else {
-        if (rootKey !== datapath[0]) {
-          rootKey = datapath.shift()
-        }
+        if (rootKey !== datapath[0]) rootKey = datapath.shift()
       }
 
-      value = get(root, [rootKey, ...datapath])
+      value = get(root, [rootKey, ...datapath]) /*  */
       if (typeof value === 'string') datapath = toDataPath(trimReference(value))
-
-      //
     }
   }
 

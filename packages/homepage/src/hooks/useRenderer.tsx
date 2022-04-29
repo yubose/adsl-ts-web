@@ -3,7 +3,8 @@ import produce from 'immer'
 import * as nt from 'noodl-types'
 import { triggers, resolveAssetUrl } from 'noodl-ui'
 import type { NUITrigger } from 'noodl-ui'
-import { excludeIteratorVar } from 'noodl-utils'
+import { normalizeProps } from 'noodl-ui'
+import { excludeIteratorVar, trimReference } from 'noodl-utils'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
 import useActionChain from '@/hooks/useActionChain'
@@ -89,7 +90,27 @@ function useRenderer() {
         key: id,
       } as t.CreateElementProps<any>
 
+      component = {
+        ...component,
+        ...normalizeProps({}, component, { root, pageName }),
+      }
+
       for (let [key, value] of u.entries(component)) {
+        if (u.isStr(value) && is.reference(value)) {
+          if (key === 'dataKey') value = trimReference(value)
+          else {
+            const ref = value
+            props[key] = deref({ ref: value, root, rootKey: pageName })
+            value = props[key]
+            if (is.reference(value) && ref === value) {
+              log.error(
+                `The reference "${ref}" for key "${key}" was unresolved`,
+                component,
+              )
+            }
+          }
+        }
+
         if (key === 'children') {
           u.array(value).forEach((child: t.StaticComponentObject, index) => {
             const nextPath = componentPath.concat('children', index)
@@ -266,7 +287,11 @@ function useRenderer() {
       return React.createElement(
         type,
         rest,
-        _children.length ? _children : undefined,
+        /img|input/.test(type)
+          ? undefined
+          : _children.length
+          ? _children
+          : undefined,
       )
     },
     [render, root],
