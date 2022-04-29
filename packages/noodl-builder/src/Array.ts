@@ -16,7 +16,10 @@ class NoodlArray extends NoodlBase {
   }
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
-    return this.toJSON()
+    return {
+      nkey: nkey.array,
+      value: this.build(),
+    }
   }
 
   constructor(parent?: NoodlArray['parent']) {

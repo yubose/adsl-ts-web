@@ -1,11 +1,29 @@
 # `noodl-builder`
 
-> TODO: description
+A JavaScript library for building noodl applications.
+
+Noodl stands for _Neural Object Oriented Dynamic Language_.
 
 ## Usage
 
-```
-const noodlBuilder = require('noodl-builder');
+```js
+const Builder = require('noodl-builder')
 
-// TODO: DEMONSTRATE API
+const builder = new Builder()
 ```
+
+## Interface
+
+### NoodlBase
+
+### NoodlValue
+
+### NoodlString
+
+### NoodlProperty
+
+### NoodlObject
+
+### NoodlArray
+
+### NoodlBuilder

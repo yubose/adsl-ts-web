@@ -1,16 +1,19 @@
 import NoodlBase from './Base'
-import is from './utils/is'
 import { nkey } from './constants'
+import type { INoodlValue } from './types'
 
-class NoodlValue<T> extends NoodlBase {
-  #value: T | undefined
+class NoodlValue<T = any> extends NoodlBase implements INoodlValue<T> {
+  #value: any
 
   static is(value: any): value is NoodlValue<any> {
     return value !== null && value instanceof NoodlValue
   }
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
-    return this.toJSON()
+    return {
+      nkey: nkey.value,
+      value: this.getValue(),
+    }
   }
 
   constructor(value?: T) {
@@ -34,13 +37,8 @@ class NoodlValue<T> extends NoodlBase {
     return this.#value
   }
 
-  toJSON() {
-    const value = this.getValue()
-    const isStr = typeof value === 'string'
-    return {
-      isReference: isStr && is.reference(value),
-      value,
-    }
+  toString() {
+    return typeof this.#value === 'string' ? this.#value : String(this.#value)
   }
 }
 

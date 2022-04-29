@@ -1,18 +1,23 @@
 import NoodlValue from './Value'
-import toString from './utils/toString'
 import is from './utils/is'
+import NoodlBase from './Base'
+import toString from './utils/toString'
+import type { INoodlValue } from './types'
 import { nkey } from './constants'
 
-class NoodlString<S extends string> extends NoodlValue<S> {
-  #value: NoodlValue<S> | undefined
+class NoodlString extends NoodlBase implements INoodlValue<string> {
+  #value: NoodlValue<string>;
 
-  static is(value: any): value is NoodlString<string> {
-    return !!value && value instanceof NoodlString
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return {
+      nkey: nkey.string,
+      value: this.toJSON(),
+    }
   }
 
-  constructor(value?: string | NoodlValue<S>) {
-    super(value as S)
-    this.setValue(value)
+  constructor(value: string | NoodlValue<string>) {
+    super()
+    this.#value = is.valueNode(value) ? value : new NoodlValue(value)
 
     Object.defineProperty(this, '__ntype', {
       configurable: true,
@@ -22,33 +27,46 @@ class NoodlString<S extends string> extends NoodlValue<S> {
     })
   }
 
-  getValue() {
-    return this.#value === undefined ? this.#value : this.#value.getValue()
+  getValue(asNode: false): any
+  getValue(): NoodlValue
+  getValue(asNode = false) {
+    let value = this.#value
+    if (asNode === false) {
+      value = is.valueNode(value) ? value.getValue() : is.node(value) ? '' : ''
+    }
+    return value ?? ''
   }
 
   setValue(value: any) {
-    if (value === undefined) {
-      this.#value = undefined
+    if (value == null) {
+      this.#value.setValue('')
     } else {
-      this.#value = is.stringNode(value)
-        ? new NoodlValue(value.getValue())
-        : is.valueNode(value)
-        ? value
+      if (!is.node(value)) this.#value = new NoodlValue(toString(value ?? ''))
+      this.#value = is.node(value)
+        ? (value as NoodlValue)
         : new NoodlValue(toString(value))
     }
     return this
+  }
+
+  isEmpty() {
+    return this.toJSON() === ''
   }
 
   isReference() {
     return is.reference(this)
   }
 
-  toJSON() {
+  snapshot() {
     return {
-      ...super.toJSON(),
+      isEmpty: this.isEmpty(),
       isReference: this.isReference(),
-      value: this.getValue(),
+      value: this.toJSON(),
     }
+  }
+
+  toJSON() {
+    return this.getValue(false)
   }
 }
 
