@@ -96,8 +96,6 @@ function useRootObject<O extends Record<string, any>>(
     [root],
   )
 
-  console.log('update')
-
   return {
     root,
     getR,

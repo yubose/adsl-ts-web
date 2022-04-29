@@ -36,7 +36,11 @@ export type StaticComponentObject = nt.ComponentObject &
 export interface PageContext {
   getListObject: (
     idOrComponent: string | StaticComponentObject,
-  ) => string | any[]
+    opts: {
+      pageName: string
+      root: Record<string, any>
+    },
+  ) => nt.ReferenceString | any[]
   getListsCtxObject: (
     idOrComponent: string | StaticComponentObject,
   ) => PageContextListContextObject
