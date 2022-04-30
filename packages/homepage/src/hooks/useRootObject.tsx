@@ -1,11 +1,12 @@
 import * as u from '@jsmanifest/utils'
 import React from 'react'
-import produce, { Draft } from 'immer'
 import get from 'lodash/get'
 import has from 'lodash/has'
 import { trimReference } from 'noodl-utils'
 import is from '@/utils/is'
 import log from '@/utils/log'
+import { getCurrent, produce } from '@/utils/immer'
+import type { Draft } from '@/utils/immer'
 import { FALLBACK_PAGE_NAME } from '../constants'
 import * as t from '@/types'
 
@@ -86,7 +87,7 @@ function useRootObject<O extends Record<string, any>>(
             ? get(_root, paths)
             : get(_root[_pageName], paths)
         }
-        log.debug(`[AppProvider] Get "${_key}" result`, result)
+        log.debug(`[AppProvider] Get "${_key}" result`, getCurrent(result))
         return result
       }
     },

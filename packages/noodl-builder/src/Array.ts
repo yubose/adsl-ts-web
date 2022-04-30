@@ -9,16 +9,24 @@ import type { Path } from './types'
 import * as fp from './utils'
 
 class NoodlArray extends NoodlBase {
-  #value = [] as any[]
-
-  static is(value: any): value is NoodlArray {
-    return value && typeof value === 'object' && value instanceof NoodlArray
-  }
+  #value = [] as any[];
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
       nkey: nkey.array,
       value: this.build(),
+    }
+  }
+
+  [Symbol.iterator](): Iterator<any> {
+    const items = [...this.#value].reverse() as any[]
+    return {
+      next() {
+        return {
+          value: items.pop(),
+          done: !items.length,
+        }
+      },
     }
   }
 
@@ -34,27 +42,26 @@ class NoodlArray extends NoodlBase {
     })
   }
 
+  get length() {
+    return this.#value.length
+  }
+
   add(value: any) {
-    this.#value.push(createNode(value))
+    this.#value.push(createNode(value).setParent(this))
     return this
   }
 
   getValue(
-    index: Path[number] | NoodlString<string> | NoodlValue<Path[number]>,
+    index: Path[number] | NoodlString | NoodlValue<Path[number]>,
     asNode = true,
   ) {
     const key = this.toKey(index)
-
-    if (key === undefined) {
-      throw new Error(`Cannot set property with an undefined index`)
-    }
-
     const result = this.#value[key]
-    return asNode ? result : result?.getValue?.()
+    return asNode ? result : unwrap(result)
   }
 
   setValue(
-    index: Path[number] | NoodlString<string> | NoodlValue<Path[number]>,
+    index: Path[number] | NoodlString | NoodlValue<Path[number]>,
     value?: any,
   ) {
     const key = this.toKey(index)
@@ -67,7 +74,7 @@ class NoodlArray extends NoodlBase {
       this.#value.push(undefined)
     }
 
-    this.#value[key] = createNode(value)
+    this.#value[key] = createNode(value).setParent(this)
     return this
   }
 
@@ -84,10 +91,10 @@ class NoodlArray extends NoodlBase {
     return this
   }
 
-  toKey(value: Path[number] | NoodlString<string> | NoodlValue<Path[number]>) {
+  toKey(value: Path[number] | NoodlString | NoodlValue<Path[number]>) {
     if (typeof value === 'string') return Number(value)
     if (typeof value === 'number') return value
-    if (is.node(value)) return Number(value.getValue())
+    if (is.node(value)) return Number(unwrap(value))
     return Number(value)
   }
 

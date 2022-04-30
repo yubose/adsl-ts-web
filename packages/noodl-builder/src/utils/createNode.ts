@@ -5,18 +5,6 @@ import NoodlObject from '../Object'
 import typeOf from './typeOf'
 import is from './is'
 
-// V extends NoodlObject | Record<string, any>
-//   ? NoodlObject
-//   : V extends NoodlProperty<any>
-//   ? NoodlProperty<any>
-//   : V extends string | NoodlString<any>
-//   ? NoodlString<any>
-//   : V extends any[] | boolean | null | number
-//   ? NoodlValue<any>
-//   : V extends infer P
-//   ? P
-//   : NoodlBase | undefined
-
 function createNode<V>(value: V) {
   if (is.node(value)) return value
 
@@ -40,7 +28,7 @@ function createNode<V>(value: V) {
       return node
     }
     case 'string':
-      return new NoodlString(value as any)
+      return new NoodlString(value)
     default:
       break
   }

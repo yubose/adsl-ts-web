@@ -31,13 +31,13 @@ const is = {
   arrayNode: isSameNodeType<NoodlArray>(nkey.array),
   objectNode: isSameNodeType<NoodlObject>(nkey.object),
   reference: (v: unknown): v is ReferenceString => {
-    v = (is.stringNode(v) ? v.getValue() : v) as string
+    v = (is.stringNode(v) ? v.getValue(false) : v) as string
     if (typeof v === 'string') {
       if (v.startsWith('.')) return true
       if (v.endsWith('@')) return true
       if (v.startsWith('=.')) return true
       if (v.startsWith('~/')) return true
-      if (/[_]+./.test(v)) return true
+      if (/[_]+\./.test(v)) return true
     }
     return false
   },

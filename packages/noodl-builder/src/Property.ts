@@ -6,7 +6,7 @@ import is from './utils/is'
 import unwrap from './utils/unwrap'
 import { nkey } from './constants'
 
-class NoodlProperty<K extends string> extends NoodlBase {
+class NoodlProperty<K extends string = string> extends NoodlBase {
   #key: NoodlString | undefined
   #value: undefined | NoodlValue<any>;
 
@@ -55,16 +55,16 @@ class NoodlProperty<K extends string> extends NoodlBase {
 
   setValue(value: any) {
     this.#value = createNode(value)
+    if (this.parent) this.#value?.setParent(this.parent)
     return this
   }
 
   getValue(asNode = true) {
-    return is.node(this.#value)
-      ? asNode
-        ? this.#value
-        : // @ts-expect-error
-          this.#value.getValue(asNode)
-      : this.#value
+    if (is.node(this.#value)) {
+      if (asNode) return this.#value
+      return unwrap(this.#value)
+    }
+    return asNode ? new NoodlValue(this.#value) : this.#value
   }
 
   toJSON() {

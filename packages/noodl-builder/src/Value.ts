@@ -1,13 +1,10 @@
 import NoodlBase from './Base'
 import { nkey } from './constants'
+import unwrap from './utils/unwrap'
 import type { INoodlValue } from './types'
 
 class NoodlValue<T = any> extends NoodlBase implements INoodlValue<T> {
-  #value: any
-
-  static is(value: any): value is NoodlValue<any> {
-    return value !== null && value instanceof NoodlValue
-  }
+  #value: any;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -29,7 +26,7 @@ class NoodlValue<T = any> extends NoodlBase implements INoodlValue<T> {
   }
 
   setValue(value: any) {
-    this.#value = value
+    this.#value = unwrap(value)
     return this
   }
 
@@ -38,7 +35,12 @@ class NoodlValue<T = any> extends NoodlBase implements INoodlValue<T> {
   }
 
   toString() {
-    return typeof this.#value === 'string' ? this.#value : String(this.#value)
+    return typeof this.#value === 'string'
+      ? this.#value
+      : (this.#value &&
+          typeof this.#value === 'object' &&
+          JSON.stringify(this.#value)) ||
+          String(this.#value)
   }
 }
 

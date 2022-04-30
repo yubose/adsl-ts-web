@@ -6,20 +6,21 @@ import NoodlObject from '../Object'
 import NoodlProperty from '../Property'
 import is from '../utils/is'
 import setIn from '../utils/setIn'
+import unwrap from '../utils/unwrap'
 import * as fp from '../utils/fp'
 
 describe(`utils`, () => {
-  it.skip(`[createNode] should set the value deeply`, () => {
+  xit(`[createNode] should set the value deeply`, () => {
     const cereal = [{ fruits: ['apple'], if: [] }]
     const value = new NoodlObject()
     expect(value.hasProperty('cereal')).to.be.false
     value.setValue('cereal.abc.123', cereal)
     expect(value.getProperty('cereal'))
     console.dir(value.toJSON(), { depth: Infinity })
+    expect(value.build()).to.deep.eq({ cereal: { abc: { '123': cereal } } })
   })
 
   it.skip(`[createNode] should set intermediary values as nodes if asNodes === true`, () => {
-    process.stdout.write('\x1Bc')
     const cereal = [{ fruits: ['apple'], if: [] }]
     const value = new NoodlObject()
     const result = setIn(
@@ -34,7 +35,7 @@ describe(`utils`, () => {
     it(`[is.node] should return true`, () => {
       expect(is.node(new NoodlBase())).to.be.true
       expect(is.node(new NoodlValue())).to.be.true
-      expect(is.node(new NoodlString())).to.be.true
+      expect(is.node(new NoodlString(''))).to.be.true
       expect(is.node(new NoodlProperty())).to.be.true
       expect(is.node(new NoodlObject())).to.be.true
     })
@@ -103,6 +104,21 @@ describe(`utils`, () => {
         .to.be.an('array')
         .to.have.lengthOf(2)
       expect(obj.hello.hi[3].no.yes[1]).to.have.deep.property('hehe', value)
+    })
+  })
+
+  describe(`unwrap`, () => {
+    it.skip(`should unwrap the NoodlProperty`, () => {
+      const prop = new NoodlProperty()
+      prop.setKey('emit')
+      prop.setValue({ hello: 'yes' })
+      const result = unwrap(prop)
+      console.dir(result, { depth: Infinity })
+      expect(result)
+        .to.be.an('object')
+        .to.have.property('emit')
+        .to.be.an('object')
+        .to.have.property('hello', 'yes')
     })
   })
 })

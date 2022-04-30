@@ -3,7 +3,7 @@ import produce from 'immer'
 import * as nt from 'noodl-types'
 import { triggers, resolveAssetUrl } from 'noodl-ui'
 import type { NUITrigger } from 'noodl-ui'
-import { excludeIteratorVar } from 'noodl-utils'
+import { excludeIteratorVar, trimReference } from 'noodl-utils'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
 import useActionChain from '@/hooks/useActionChain'
@@ -15,6 +15,14 @@ import useCtx from '@/useCtx'
 import deref from '@/utils/deref'
 import { usePageCtx } from '@/components/PageContext'
 import type * as t from '@/types'
+
+interface CreateElementProps<Props = any> {
+  key?: string
+  type: string
+  children?: string | number | (string | number | CreateElementProps<Props>)[]
+  style?: React.CSSProperties
+  [key: string]: any
+}
 
 // TODO - Find out a better way to do this
 export const noodlKeysToStrip = [
@@ -46,10 +54,10 @@ function useRenderer() {
     getCtxObject,
     getDataObject,
     getIteratorVar,
-    isCtxObj,
+    isCtxObj,†
     isListConsumer,
     lists,
-    pageName,
+    name,
     refs,
     slug,
   } = usePageCtx()
@@ -64,7 +72,7 @@ function useRenderer() {
           if (refsRef.current !== component) {
             refsRef.current = component
             return render(
-              deref({ ref: component, rootKey: pageName, root }),
+              deref({ ref: component, rootKey: name, root }),
               componentPath,
             )
           }
@@ -78,7 +86,7 @@ function useRenderer() {
       if (!u.isObj(component)) return null
 
       let { dataKey, id, type } = component
-      let children = [] as t.CreateElementProps<any>[]
+      let children = [] as CreateElementProps<any>[]
       let iteratorVar = getIteratorVar?.(component)
       let elementType = getTagName(type) || 'div'
 
@@ -87,9 +95,26 @@ function useRenderer() {
       let props = {
         type: elementType,
         key: id,
-      } as t.CreateElementProps<any>
+      } as CreateElementProps<any>
+
 
       for (let [key, value] of u.entries(component)) {
+        if (u.isStr(value) && is.reference(value)) {
+          if (key === 'dataKey') {
+            value = trimReference(value)
+          } else {
+            const ref = value
+            props[key] = deref({ ref: value, root, rootKey: name })
+            value = props[key]
+            if (is.reference(value) && ref === value) {
+              log.error(
+                `The reference "${ref}" for key "${key}" was unresolved`,
+                component,
+              )
+            }
+          }
+        }
+
         if (key === 'children') {
           u.array(value).forEach((child: t.StaticComponentObject, index) => {
             const nextPath = componentPath.concat('children', index)
@@ -142,7 +167,7 @@ function useRenderer() {
           }
         } else if (key === 'text' && !component['data-value']) {
           value &&
-            children.push(is.reference(value) ? getR(value, pageName) : value)
+            children.push(is.reference(value) ? getR(value, name) : value)
           // value && children.push(getElementProps(value, utils))
         } else if (triggers.includes(key as string)) {
           if (nt.userEvent.includes(key as typeof nt.userEvent[number])) {
@@ -194,16 +219,18 @@ function useRenderer() {
           if (!keysToStripRegex.test(key as string)) props[key] = value
         }
 
-        if (u.isStr(props[key])) {
+        if (u.isStr(value)) {
           if (is.reference(value)) {
-            props[key] = deref({ ref: value, root, rootKey: pageName })
+            props[key] = deref({ ref: value, root, rootKey: name })
           } else if (
             key !== 'data-key' &&
             iteratorVar &&
             value.startsWith(iteratorVar) &&
-            key !== '_path_'
+            key !== '_path_' &&
+            key !== 'iteratorVar'
           ) {
-            props[key] = getDataObject(component)
+            // props[key] = getDataObject(component)
+            props[key] = value
             debugger
           }
         }
@@ -211,11 +238,11 @@ function useRenderer() {
 
       if (children.length) props.children = children
 
-      if (props._path_ && u.isStr(props._path_)) {
+      if (props._path_ && u.isStr(props._path_) && iteratorVar) {
         if (props.type === 'img') {
-          const dataObject = getDataObject(props, root, pageName)
+          const dataObject = getDataObject(props, root, name)
           if (!dataObject) {
-            // debugger
+            debugger
           } else {
             const src = get(
               dataObject,
@@ -240,7 +267,7 @@ function useRenderer() {
       key,
       children = [],
       ...rest
-    }: t.CreateElementProps) => {
+    }: CreateElementProps) => {
       let _children = [] as React.ReactElement[]
       let index = 0
 
@@ -266,7 +293,11 @@ function useRenderer() {
       return React.createElement(
         type,
         rest,
-        _children.length ? _children : undefined,
+        /img|input/.test(type)
+          ? undefined
+          : _children.length
+          ? _children
+          : undefined,
       )
     },
     [render, root],

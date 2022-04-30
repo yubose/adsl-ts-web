@@ -12,12 +12,12 @@ function toString(value: unknown): string {
   } else {
     switch (typeOf(value)) {
       case 'array':
-        return '[object Array]'
+      case 'object':
+        return JSON.stringify(value)
       case 'function':
-        return `[object Function]`
+        return (value as (...args: any[]) => any)?.toString()
     }
   }
-
   return String(value)
 }
 

@@ -121,14 +121,13 @@ export function getPresetPageObjects() {
             children: [
               ui.textField({
                 onChange: [
-                  ui.emitObject({
+                  ui.emit({
                     dataKey: 'Donut.formData.password',
                   }),
                 ],
               }),
               ui.button({
                 text: `Go to Donut page`,
-                // @ts-expect-error
                 onClick: [ui.goto('Donut')],
               }),
               ui.divider({ id: 'divider' }),
@@ -201,7 +200,7 @@ export function getPresetPageObjects() {
                             viewTag: 'updateTag',
                             text: 'Click to update this row',
                             onClick: [
-                              ui.emitObject(),
+                              ui.emit(),
                               ui.evalObject({
                                 object: async () => ui.goto('Cloud'),
                               }),
@@ -222,8 +221,7 @@ export function getPresetPageObjects() {
           }),
           ui.button({
             text: 'Submit',
-            // @ts-expect-error
-            onClick: [ui.emitObject(), ui.evalObject(), ui.goto('Abc')],
+            onClick: [ui.emit(), ui.evalObject(), ui.goto('Abc')],
           }),
           ui.textField({ dataKey: `..icon`, placeholder: `Icon URL` }),
         ],

@@ -89,6 +89,7 @@
   ],
   "license": "0BSD",
   "main": "index.js",
+  "module": "index.js",
   "name": "gatsby-plugin-noodl",
   "prettier": {
     "arrowParens": "always",
@@ -102,6 +103,7 @@
   "scripts": {
     "test": "cross-env NODE_ENV=test mocha --watch --watch-files . \"__tests__/**/*.test.js\""
   },
+  "types": "./types.d.ts",
   "version": "1.0.3",
   "workspaces": [
     "./"

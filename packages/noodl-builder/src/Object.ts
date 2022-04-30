@@ -2,8 +2,10 @@ import NoodlBase from './Base'
 import NoodlString from './String'
 import NoodlValue from './Value'
 import NoodlProperty from './Property'
+import createNode from './utils/createNode'
 import is from './utils/is'
 import typeOf from './utils/typeOf'
+import unwrap from './utils/unwrap'
 import { nkey } from './constants'
 import type { INoodlValue } from './types'
 import * as fp from './utils'
@@ -21,6 +23,18 @@ class NoodlObject
     }
   }
 
+  [Symbol.iterator](): Iterator<NoodlProperty<any>> {
+    const entries = [...this.#value.values()].reverse()
+    return {
+      next() {
+        return {
+          value: entries.pop(),
+          done: !entries.length as true,
+        }
+      },
+    }
+  }
+
   constructor(parent?: NoodlObject['parent']) {
     super()
     if (parent !== undefined) this.setParent(parent)
@@ -33,6 +47,10 @@ class NoodlObject
     })
   }
 
+  get length() {
+    return this.#value.size
+  }
+
   createProperty(property: string | NoodlString, value?: any) {
     if (typeof property === 'string' && !property && property !== '') {
       throw new Error(`Cannot create property using a null or undefined value`)
@@ -40,11 +58,14 @@ class NoodlObject
     if (is.propertyNode(property) && !property.getValue()) {
       throw new Error(`Cannot create property using an empty NoodlString`)
     }
-    const key = this.unwrapProperty(property)
-    const prop = key ? new NoodlProperty(key, this) : undefined
-    if (value !== undefined) prop?.setValue(value)
+    const key = unwrap(property)
+    const prop = this.#value.get(key) || new NoodlProperty(key, this)
+    console.log({ key, property, prop, value })
+    prop.setParent(this)
+    if (is.node(value)) value.setParent(this)
+    if (arguments.length > 1) prop.setValue(value)
     this.#value.set(key, prop)
-    return this
+    return prop
   }
 
   getProperty(property: string | NoodlString) {
@@ -97,10 +118,9 @@ class NoodlObject
     if (key === undefined) {
       throw new Error(`Cannot set value on undefined property`)
     }
-    if (value !== undefined && !NoodlValue.is(value)) {
-      value = new NoodlValue(value)
-    }
-    this.#value.set(key, value)
+    const node = createNode(value)
+    node?.setParent?.(this)
+    this.#value.set(key, node)
     return this
   }
 
@@ -117,9 +137,16 @@ class NoodlObject
     const result = {} as Record<string, any>
 
     for (const [property, value] of this.#value) {
-      const converted = value?.getValue?.()
-      result[property] = converted
-      console.log({ converted, property, value })
+      const converted = unwrap(value)
+      if (converted && typeof converted === 'object' && !is.node(converted)) {
+        if (Array.isArray(converted)) {
+          result[unwrap(property)] = converted.map(unwrap)
+        } else {
+          result[unwrap(property)] = converted
+        }
+      } else {
+        result[property] = converted
+      }
     }
 
     return result

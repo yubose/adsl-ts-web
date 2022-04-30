@@ -1,11 +1,10 @@
 import React from 'react'
 import * as u from '@jsmanifest/utils'
 import deref from '@/utils/deref'
-import log from '@/utils/log'
 import is from '@/utils/is'
 import * as t from '@/types'
 
-type IdOrComponentArg = string | t.StaticComponentObject
+export type IdOrComponentArg = string | t.StaticComponentObject
 
 function useContextLists(listsMap: t.PageContext['lists']) {
   const lists = React.useMemo(() => Object.values(listsMap), [listsMap])

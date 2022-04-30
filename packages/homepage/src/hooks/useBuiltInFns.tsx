@@ -1,7 +1,6 @@
 import * as u from '@jsmanifest/utils'
 import { trimReference } from 'noodl-utils'
 import type { NUIActionChain } from 'noodl-ui'
-import produce, { isDraft, current as draftToCurrent } from 'immer'
 import React from 'react'
 import get from 'lodash/get'
 import useCtx from '@/useCtx'
@@ -9,6 +8,11 @@ import { usePageCtx } from '@/components/PageContext'
 import log from '@/utils/log'
 import is from '@/utils/is'
 import * as t from '@/types'
+
+interface CommonRenderComponentHelpers
+  extends Pick<t.AppContext, 'root' | 'getR' | 'setR'> {
+  name: string
+}
 
 export interface BuiltInFnProps {
   actionChain: NUIActionChain
@@ -19,20 +23,17 @@ export interface BuiltInFnProps {
 
 // Using for TypeScript to pick up the args
 const createFn =
-  (
-    options: t.CommonRenderComponentHelpers,
-    fn: (opts: BuiltInFnProps) => any,
-  ) =>
+  (options: CommonRenderComponentHelpers, fn: (opts: BuiltInFnProps) => any) =>
   (opts: BuiltInFnProps) =>
     fn({ ...opts, dataIn: purgeDataIn({ ...options, ...opts }) })
 
 function purgeDataIn({
   actionChain,
   getR,
-  pageName,
+  name: pageName,
   dataObject,
   dataIn,
-}: Pick<t.CommonRenderComponentHelpers, 'getR' | 'pageName'> & BuiltInFnProps) {
+}: Pick<CommonRenderComponentHelpers, 'getR' | 'name'> & BuiltInFnProps) {
   for (const [key, value] of u.entries(dataIn)) {
     if (u.isStr(value)) {
       if (value.startsWith('$')) {
@@ -42,12 +43,13 @@ function purgeDataIn({
         let paths = []
         if (is.localReference(value)) pageName && paths.push(pageName)
         paths = paths.concat(trimReference(value).split('.'))
-
         dataIn[key] = getR(
           actionChain?.data?.get('rootDraft'),
           paths.join('.'),
           pageName,
         )
+      } else {
+        // dataIn[key] = value
       }
     }
   }
@@ -55,25 +57,38 @@ function purgeDataIn({
   return dataIn
 }
 
-function getBuiltInFns(options: t.CommonRenderComponentHelpers) {
+function getBuiltInFns(options: CommonRenderComponentHelpers) {
   const builtInFns = {
     [`=.builtIn.string.equal`]: ({ dataIn }: BuiltInFnProps) => {
+      if (!dataIn) {
+        console.trace()
+        throw new Error(
+          `dataIn was null or undefined while calling "=.builtIn.string.equal".`,
+        )
+      }
       const str1 = String(dataIn?.string1 || '')
       const str2 = String(dataIn?.string2 || '')
-      return str1 === str2
+      const isEqual = str1 === str2
+      log.debug(
+        `[=.builtIn.string.equal] ${str1 || '<empty string>'} === ${
+          str2 || '<empty string>'
+        }: ${isEqual}`,
+        dataIn,
+      )
+      return isEqual
     },
     [`=.builtIn.object.setProperty`]: ({ dataIn }: BuiltInFnProps) => {
       const arr = u.array(dataIn.obj).filter(Boolean)
       const numItems = arr.length
       for (let index = 0; index < numItems; index++) {
         if (u.isArr(dataIn.arr)) {
-          for (let i in dataIn.arr) {
+          dataIn.arr.forEach((item, i) => {
             if (arr?.[index]?.[dataIn.label] === dataIn.text) {
-              arr[index][arr[i]] = dataIn.valueArr[i]
+              arr[index][item] = dataIn.valueArr[i]
             } else {
-              arr[index][arr[i]] = dataIn.errorArr[i]
+              arr[index][item] = dataIn.errorArr[i]
             }
-          }
+          })
         } else {
           log.error(
             `Expected 'arr' in dataIn to be an array but it was ${typeof dataIn.arr}`,
@@ -99,11 +114,7 @@ function useBuiltInFns() {
   const pageCtx = usePageCtx()
 
   const builtIns = React.useMemo(
-    () =>
-      getBuiltInFns({
-        ...ctx,
-        ...pageCtx,
-      }),
+    () => getBuiltInFns({ ...ctx, ...pageCtx }),
     [ctx, pageCtx],
   )
 

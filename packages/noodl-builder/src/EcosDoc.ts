@@ -6,13 +6,10 @@ import NoodlObject from './Object'
 
 class EcosDocBuilder extends NoodlObject {
   createProperty(
-    property:
-      | LiteralUnion<keyof EcosDocument<any, any>, string>
-      | NoodlString<string>,
+    property: LiteralUnion<keyof EcosDocument<any, any>, string> | NoodlString,
     value?: any,
-  ): this {
-    super.createProperty(property, value)
-    return this
+  ) {
+    return super.createProperty(property, value)
   }
 
   usePreset(preset: EcosDocPreset) {
@@ -21,45 +18,56 @@ class EcosDocBuilder extends NoodlObject {
 
     switch (preset) {
       case 'audio':
-        return this.createProperty('name', {
+        this.createProperty('name', {
           ...nameProps,
           data: dataUri,
           type: 'audio/wav',
-        }).createProperty('subtype', { mediaType: 2 })
+        })
+        this.createProperty('subtype', { mediaType: 2 })
+        return this
       case 'docx':
-        return this.createProperty('name', {
+        this.createProperty('name', {
           ...nameProps,
           data: dataUri,
           type: 'application/vnl.',
-        }).createProperty('subtype', { mediaType: 1 })
+        })
+        this.createProperty('subtype', { mediaType: 1 })
+        return this
       case 'image':
-        return this.createProperty('name', {
+        this.createProperty('name', {
           ...nameProps,
           type: 'image/png',
         })
-          .createProperty('subtype', { mediaType: 4 })
-          .createProperty('type', 1025)
+        this.createProperty('subtype', { mediaType: 4 })
+        this.createProperty('type', 1025)
+        return this
       case 'message':
-        return this.createProperty('subtype', { mediaType: 5 })
+        this.createProperty('subtype', { mediaType: 5 })
+        return this
       case 'note':
-        return this.createProperty('name', {
+        this.createProperty('name', {
           ...nameProps,
-        }).createProperty('subtype', { mediaType: 8 })
+        })
+        this.createProperty('subtype', { mediaType: 8 })
+        return this
       case 'pdf':
-        return this.createProperty('name', { ...nameProps }).createProperty(
-          'subtype',
-          { mediaType: 1 },
-        )
+        this.createProperty('name', { ...nameProps })
+        this.createProperty('subtype', { mediaType: 1 })
+        return this
       case 'text':
-        return this.createProperty('name', {
+        this.createProperty('name', {
           ...nameProps,
           content: undefined,
-        }).createProperty('subtype', { mediaType: 0 })
+        })
+        this.createProperty('subtype', { mediaType: 0 })
+        return this
       case 'video':
-        return this.createProperty('name', {
+        this.createProperty('name', {
           ...nameProps,
           type: 'video/mp4',
-        }).createProperty('subtype', { mediaType: 9 })
+        })
+        this.createProperty('subtype', { mediaType: 9 })
+        return this
     }
     return this
   }

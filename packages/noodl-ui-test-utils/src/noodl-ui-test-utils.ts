@@ -1,5 +1,6 @@
 // @ts-nocheck
 import * as u from '@jsmanifest/utils'
+import { Builder } from 'noodl-builder'
 import type { PartialDeep } from 'type-fest'
 import type {
   ActionObject,
@@ -56,7 +57,7 @@ export function getBuiltInAction(obj?: string | Partial<BuiltInActionObject>) {
   u.isStr(obj) && (obj = { funcName: obj } as BuiltInActionObject)
   return createActionObject_next('builtIn')({
     ...obj,
-    funcName: obj?.funcName || 'redraw' || 'extendMeeting' ,
+    funcName: obj?.funcName || 'redraw' || 'extendMeeting',
   })
 }
 

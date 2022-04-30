@@ -258,7 +258,7 @@ describe(coolGold(`resolveStyles (ComponentResolver)`), () => {
     })
   })
 
-  describe.only(italic(`Display`), () => {
+  describe(italic(`Display`), () => {
     it(`should always keep { display: 'inline' } if it was provided`, () => {
       expect(
         ui.button({ style: { display: 'inline' } }).style,

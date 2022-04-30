@@ -1,5 +1,6 @@
 import ActionBuilder from './Action'
 import ComponentBuilder from './Component'
+import NoodlArray from './Array'
 import NoodlObject from './Object'
 import PageBuilder from './Page'
 import EcosDoc from './EcosDoc'
@@ -11,6 +12,7 @@ class Builder {
   #action: ActionBuilder
   #component: ComponentBuilder
   #ecosDoc: typeof EcosDoc
+  #array: typeof NoodlArray
   #object: typeof NoodlObject
   #page: PageBuilder
 
@@ -18,6 +20,7 @@ class Builder {
     this.#action = new ActionBuilder()
     this.#component = new ComponentBuilder()
     this.#ecosDoc = EcosDoc
+    this.#array = NoodlArray
     this.#object = NoodlObject
     this.#page = new PageBuilder()
   }
@@ -36,6 +39,11 @@ class Builder {
     const ecosDoc = new this.#ecosDoc()
     if (preset) ecosDoc.usePreset(preset)
     return ecosDoc
+  }
+
+  array() {
+    const array = new this.#array()
+    return array
   }
 
   object() {

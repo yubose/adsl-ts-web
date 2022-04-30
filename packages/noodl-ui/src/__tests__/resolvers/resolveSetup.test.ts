@@ -3,19 +3,8 @@ import { waitFor } from '@testing-library/dom'
 import * as nt from 'noodl-types'
 import sinon from 'sinon'
 import * as u from '@jsmanifest/utils'
-import * as nu from 'noodl-utils'
-import * as i from '../../utils/internal'
-import * as t from '../../types'
-import {
-  assetsUrl,
-  baseUrl,
-  createOn,
-  getRenderProps,
-  nui,
-  ui,
-} from '../../utils/test-utils'
+import { createOn, nui, ui } from '../../utils/test-utils'
 import { emitHooks } from '../../resolvers/resolveSetup'
-import NuiPage from '../../Page'
 
 let on: ReturnType<typeof createOn>
 
@@ -128,18 +117,6 @@ describe(u.yellow(`resolveSetup`), () => {
         expect(component.get('text')).to.eq('wow')
       })
 
-      it(`should run the reference hook if the truthy/falsy value returns a reference`, async () => {
-        const spy = sinon.spy()
-        const component = await nui.resolveComponents({
-          components: ui.label({
-            text: { if: [1, '..formData.password', 'wow'] },
-          }),
-          on: { if: () => true, reference: spy },
-        })
-        component.get('text')
-        expect(spy).to.be.calledOnce
-      })
-
       it(`should be able to deeply resolve references`, async () => {
         nui.getRoot().Power = { patientInfoPage: '.Sun.viewTag' }
         const component = await nui.resolveComponents({
@@ -201,7 +178,7 @@ describe(u.yellow(`resolveSetup`), () => {
       nui.use({ emit: { [trigger]: spy } })
       const { component } = await resolveComponent(
         ui.label({
-          [trigger]: [ui.evalObject, ui.emitObject(), ui.evalObject],
+          [trigger]: [ui.evalObject, ui.emit(), ui.evalObject],
         }),
       )
       // @ts-expect-error
@@ -215,7 +192,7 @@ describe(u.yellow(`resolveSetup`), () => {
         const spy = sinon.spy()
         await nui.resolveComponents({
           components: ui.label({
-            [hookName]: ui.emitObject({
+            [hookName]: ui.emit({
               dataKey: { var1: 'itemObject' },
               actions: [],
             }),

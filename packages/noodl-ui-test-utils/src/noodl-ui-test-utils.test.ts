@@ -1,10 +1,12 @@
 import { expect } from 'chai'
+import { Builder } from 'noodl-builder'
 import * as u from '@jsmanifest/utils'
 import * as lib from './noodl-ui-test-utils'
 import actionFactory from './factories/action'
 import componentFactory from './factories/component'
 
 const ui = { ...actionFactory, ...componentFactory }
+const builder = new Builder()
 
 const createTest = <Exp extends Record<string, any>>({
   value,
@@ -15,7 +17,16 @@ const createTest = <Exp extends Record<string, any>>({
 }) => [value, expected] as [any, Exp]
 
 describe(u.yellow(`noodl-ui-test-utils`), () => {
-  it.only(`should auto assign the key and value if given the funcName`, () => {
+  it(`should create a goto object`, () => {
+    const goto = actionFactory.goto('SignIn')
+    expect(goto).to.be.an('object').to.have.property('goto', 'SignIn')
+  })
+  it(`should create an evalObject`, () => {
+    const obj = actionFactory.evalObject()
+    expect(obj).to.be.an('object').to.have.property('object', undefined)
+  })
+
+  it(`should auto assign the key and value if given the funcName`, () => {
     const res = ui.builtIn({ funcName: 'bob', wait: true })
     expect(res).to.have.property('funcName', 'bob')
     expect(res).to.have.property('wait', true)
@@ -27,7 +38,7 @@ describe(u.yellow(`noodl-ui-test-utils`), () => {
     expect(res).to.have.property('dataObject')
   })
 
-  it(`[goto] should create the goto object`, () => {
+  xit(`[goto] should create the goto object`, () => {
     expect(ui.goto()).to.have.property('goto')
     expect(ui.goto('hello')).to.have.property('goto', 'hello')
     expect(ui.goto({ destination: 'af' }))
@@ -45,88 +56,10 @@ describe(u.yellow(`noodl-ui-test-utils`), () => {
       .to.deep.eq([{}, {}, {}])
   })
 
-  it.only(`[emit] should create the emit object`, () => {
-    expect(ui.emitObject({ dataKey: {}, actions: [{ f: 'f' }] }))
-      .to.have.property('emit')
-      .to.deep.eq({ emit: { dataKey: {}, actions: [{ f: 'f' }] } })
-  })
-
-  describe(u.italic(`createComponent`), () => {
-    it(`should spread the props`, () => {
-      const component = lib.getPopUpComponent({ global: true })
-      expect(component).to.have.property('global', true)
-      expect(component).to.have.property('popUpView', component.popUpView)
-      console.log(component)
-    })
-  })
-
-  describe(u.italic('getBuiltInAction'), () => {
-    ;[
-      createTest({
-        value: { funcName: 'show' },
-        expected: { funcName: 'show' },
-      }),
-      createTest({ value: 'abc', expected: { funcName: 'abc' } }),
-      createTest({ value: undefined, expected: { funcName: 'redraw' } }),
-    ].forEach(([props, expected]) => {
-      it(`should have actionType: 'builtIn' and the funcName`, () => {
-        expect(lib.getBuiltInAction(props)).to.deep.eq({
-          actionType: 'builtIn',
-          ...expected,
-        })
-      })
-    })
-  })
-
-  describe(`should have type: 'label' and text`, () => {
-    ;[
-      createTest({ value: { text: 'hello' }, expected: { text: 'hello' } }),
-      createTest({ value: 'Cereal', expected: { text: 'Cereal' } }),
-      createTest({ value: undefined, expected: { text: 'Hello' } }),
-    ].forEach(([props, expected]) => {
-      it(`should set type: label and a text value`, () => {
-        expect(lib.getLabelComponent(props)).to.deep.eq({
-          type: 'label',
-          ...expected,
-        })
-      })
-    })
-  })
-
-  describe(u.italic('getListComponent'), () => {
-    it(`should return a list component object`, () => {
-      const list = lib.getListComponent({
-        listObject: lib.getGenderListObject(),
-      })
-      expect(list).to.have.property('type', 'list')
-      expect(list).to.have.property('contentType', 'listObject')
-      expect(list).to.have.property('iteratorVar', 'itemObject')
-      expect(list)
-        .to.have.property('listObject')
-        .to.deep.eq([
-          { key: 'Gender', value: 'Male' },
-          { key: 'Gender', value: 'Female' },
-          { key: 'Gender', value: 'Other' },
-        ])
-      expect(list).to.have.property('children')
-      expect(list.children).to.have.lengthOf(1)
-      expect(list.children?.[0]).to.have.property('type', 'listItem')
-      expect(list.children?.[0]).to.have.property('itemObject', '')
-    })
-  })
-
-  describe(`getListItemComponent`, () => {
-    ;[
-      createTest({ value: { text: 'hello' }, expected: { text: 'hello' } }),
-      createTest({ value: 'Cereal', expected: { text: 'Cereal' } }),
-      createTest({ value: undefined, expected: { text: 'Hello' } }),
-    ].forEach(([props, expected]) => {
-      it(`should set type: label and a text value`, () => {
-        expect(lib.getLabelComponent(props)).to.deep.eq({
-          type: 'label',
-          ...expected,
-        })
-      })
+  it(`[emit] should create the emit object`, () => {
+    console.log(ui.emit({ dataKey: {}, actions: [{ f: 'f' }] }))
+    expect(ui.emit({ dataKey: {}, actions: [{ f: 'f' }] })).to.deep.eq({
+      emit: { dataKey: {}, actions: [{ f: 'f' }] },
     })
   })
 })

@@ -15,7 +15,7 @@ class NoodlString extends NoodlBase implements INoodlValue<string> {
     }
   }
 
-  constructor(value: string | NoodlValue<string>) {
+  constructor(value?: any) {
     super()
     this.#value = is.valueNode(value) ? value : new NoodlValue(value)
 
@@ -27,30 +27,22 @@ class NoodlString extends NoodlBase implements INoodlValue<string> {
     })
   }
 
-  getValue(asNode: false): any
+  getValue(asNode: boolean): any
   getValue(): NoodlValue
-  getValue(asNode = false) {
-    let value = this.#value
-    if (asNode === false) {
-      value = is.valueNode(value) ? value.getValue() : is.node(value) ? '' : ''
-    }
-    return value ?? ''
+  getValue(asNode = true) {
+    return asNode ? this.#value : toString(this.#value)
   }
 
   setValue(value: any) {
-    if (value == null) {
-      this.#value.setValue('')
-    } else {
-      if (!is.node(value)) this.#value = new NoodlValue(toString(value ?? ''))
-      this.#value = is.node(value)
-        ? (value as NoodlValue)
-        : new NoodlValue(toString(value))
-    }
+    this.#value = is.node(value)
+      ? (value as NoodlValue)
+      : new NoodlValue(toString(value))
     return this
   }
 
   isEmpty() {
-    return this.toJSON() === ''
+    const value = this.toJSON()
+    return value === '' || value === 'null' || value === 'undefined'
   }
 
   isReference() {
