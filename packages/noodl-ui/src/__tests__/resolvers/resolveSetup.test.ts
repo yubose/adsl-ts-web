@@ -98,7 +98,7 @@ describe(u.yellow(`resolveSetup`), () => {
     })
 
     // TODO - fix
-    it.only(`should resolve the traversal reference`, async () => {
+    it.skip(`should resolve the traversal reference`, async () => {
       process.stdout.write('\x1Bc')
       await nui.resolveComponents({ components: pageComponents })
       const { component } = nui.cache.component.find(
