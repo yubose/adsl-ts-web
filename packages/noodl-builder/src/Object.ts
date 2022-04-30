@@ -117,9 +117,8 @@ class NoodlObject
     const result = {} as Record<string, any>
 
     for (const [property, value] of this.#value) {
-      const converted = value?.getValue?.()
+      const converted = value?.getValue(false)
       result[property] = converted
-      console.log({ converted, property, value })
     }
 
     return result

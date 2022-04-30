@@ -3,7 +3,6 @@ import produce from 'immer'
 import * as nt from 'noodl-types'
 import { triggers, resolveAssetUrl } from 'noodl-ui'
 import type { NUITrigger } from 'noodl-ui'
-import { normalizeProps } from 'noodl-ui'
 import { excludeIteratorVar, trimReference } from 'noodl-utils'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
@@ -47,10 +46,10 @@ function useRenderer() {
     getCtxObject,
     getDataObject,
     getIteratorVar,
-    isCtxObj,
+    isCtxObj,†
     isListConsumer,
     lists,
-    pageName,
+    name,
     refs,
     slug,
   } = usePageCtx()
@@ -65,7 +64,7 @@ function useRenderer() {
           if (refsRef.current !== component) {
             refsRef.current = component
             return render(
-              deref({ ref: component, rootKey: pageName, root }),
+              deref({ ref: component, rootKey: name, root }),
               componentPath,
             )
           }
@@ -90,10 +89,6 @@ function useRenderer() {
         key: id,
       } as t.CreateElementProps<any>
 
-      // component = {
-      //   ...component,
-      //   ...normalizeProps({}, component, { root, pageName }),
-      // }
 
       for (let [key, value] of u.entries(component)) {
         if (u.isStr(value) && is.reference(value)) {
@@ -101,7 +96,7 @@ function useRenderer() {
             value = trimReference(value)
           } else {
             const ref = value
-            props[key] = deref({ ref: value, root, rootKey: pageName })
+            props[key] = deref({ ref: value, root, rootKey: name })
             value = props[key]
             if (is.reference(value) && ref === value) {
               log.error(
@@ -164,7 +159,7 @@ function useRenderer() {
           }
         } else if (key === 'text' && !component['data-value']) {
           value &&
-            children.push(is.reference(value) ? getR(value, pageName) : value)
+            children.push(is.reference(value) ? getR(value, name) : value)
           // value && children.push(getElementProps(value, utils))
         } else if (triggers.includes(key as string)) {
           if (nt.userEvent.includes(key as typeof nt.userEvent[number])) {
@@ -218,7 +213,7 @@ function useRenderer() {
 
         if (u.isStr(value)) {
           if (is.reference(value)) {
-            props[key] = deref({ ref: value, root, rootKey: pageName })
+            props[key] = deref({ ref: value, root, rootKey: name })
           } else if (
             key !== 'data-key' &&
             iteratorVar &&
@@ -237,7 +232,7 @@ function useRenderer() {
 
       if (props._path_ && u.isStr(props._path_) && iteratorVar) {
         if (props.type === 'img') {
-          const dataObject = getDataObject(props, root, pageName)
+          const dataObject = getDataObject(props, root, name)
           if (!dataObject) {
             debugger
           } else {

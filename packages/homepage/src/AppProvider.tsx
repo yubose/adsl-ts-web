@@ -14,8 +14,6 @@ log.setLevel('DEBUG')
 function AppProvider({ children }: React.PropsWithChildren<any>) {
   const noodlPages = useGetNoodlPages()
 
-  log.debug({ noodlPages: noodlPages })
-
   const { root, getR, setR } = useRootObject(
     u.reduce(
       noodlPages?.nodes || [],
@@ -29,7 +27,7 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
            * in props.pageContext so they manage their own components in a
            * lower level
            */
-          acc[node.name] = u.omit(JSON.parse(node.content), ['components'])
+          acc[node.name] = u.omit(JSON.parse(node.content), 'components')
           return acc
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
@@ -51,7 +49,6 @@ function AppProvider({ children }: React.PropsWithChildren<any>) {
     window['getR'] = getR
     window['root'] = ctx.root
     window['get'] = get
-    console.log(ctx)
   }, [ctx])
 
   return (

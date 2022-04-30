@@ -8,13 +8,7 @@ const [usePageCtx, Provider] = createCtx<t.PageContext>()
 export interface PageContextProps
   extends Pick<
     t.PageContext,
-    | 'assetsUrl'
-    | 'baseUrl'
-    | 'lists'
-    | 'pageName'
-    | 'pageObject'
-    | 'refs'
-    | 'slug'
+    'assetsUrl' | 'baseUrl' | 'lists' | 'name' | 'components' | 'refs' | 'slug'
   > {}
 
 function PageContext({
@@ -22,8 +16,8 @@ function PageContext({
   baseUrl,
   children,
   lists: listsMap,
-  pageName,
-  pageObject,
+  name,
+  components,
   refs,
   slug,
 }: React.PropsWithChildren<PageContextProps>) {
@@ -49,8 +43,8 @@ function PageContext({
     isCtxObj,
     isListConsumer,
     lists,
-    pageName,
-    pageObject,
+    name,
+    components,
     refs,
     slug,
   }

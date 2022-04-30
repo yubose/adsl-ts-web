@@ -1,6 +1,5 @@
 import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
-import { getCurrent, isDraft } from '@/utils/immer'
 import React from 'react'
 import get from 'lodash/get'
 import set from 'lodash/set'
@@ -41,8 +40,7 @@ export interface ExecuteHelpers {
 function useActionChain() {
   const { root, getR, setR } = useCtx()
   const pageCtx = usePageCtx()
-
-  const { handleBuiltInFn, ...builtIns } = useBuiltInFns()
+  const { handleBuiltInFn } = useBuiltInFns()
 
   const getRootDraftOrRoot = React.useCallback(
     (actionChain: NUIActionChain) => {
@@ -72,7 +70,7 @@ function useActionChain() {
             : deref({
                 root: getRootDraftOrRoot(args.actionChain),
                 ref: value,
-                rootKey: pageCtx.pageName,
+                rootKey: pageCtx.name,
               })
       }
 
@@ -91,7 +89,7 @@ function useActionChain() {
           const dataObject = pageCtx.getDataObject(
             args.component,
             getRootDraftOrRoot(args.actionChain),
-            pageCtx.pageName,
+            pageCtx.name,
           )
           if (iteratorVar && value.startsWith(iteratorVar)) {
             value = get(dataObject, excludeIteratorVar(value, iteratorVar))
@@ -102,7 +100,6 @@ function useActionChain() {
       if (!value?.startsWith?.('http') && (value || scrollingTo)) {
         let scrollingToElem: HTMLElement | undefined
         let prevId = ''
-
         if (scrollingTo) {
           scrollingToElem = document.querySelector(
             `[data-viewtag=${scrollingTo}]`,
@@ -123,7 +120,6 @@ function useActionChain() {
             inline: 'center',
           })
         } else {
-          if (!u.isStr(value)) debugger
           navigate(`/${value}`)
         }
       } else {
@@ -151,22 +147,12 @@ function useActionChain() {
       } & { builtInArgs?: any },
   ) => {
     try {
-      log.debug(
-        `%c[executeEvalBuiltIn] Calling --> ${builtInKey}`,
-        'color:salmon',
-        { from: args.from },
-      )
       const result = await handleBuiltInFn(builtInKey, {
         actionChain: args.actionChain,
         dataObject: args.dataObject,
         ...args,
         ...builtInArgs,
       })
-      log.debug(
-        `%c[executeEvalBuiltIn] Result <-- ${builtInKey}`,
-        'color:salmon',
-        result,
-      )
       return result
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
@@ -191,18 +177,6 @@ function useActionChain() {
       for (let index = 0; index < numObjs; index++) {
         const object = objs[index]
 
-        log.debug(
-          `%c[evalObject] Calling object ${index + 1}/${numObjs}`,
-          'color:teal',
-          {
-            ...args,
-            action: object,
-            from: args.from,
-            index: objs.indexOf(object),
-            value: object,
-          },
-        )
-
         if (u.isObj(object)) {
           const objKeys = u.keys(object)
           const isSingleProperty = objKeys.length === 1
@@ -216,14 +190,14 @@ function useActionChain() {
               let datavalue: any
 
               if (is.localReference(property)) {
-                datapath.unshift(pageCtx.pageName)
+                datapath.unshift(pageCtx.name)
               }
 
               if (u.isStr(propValue)) {
                 datavalue = is.reference(propValue)
                   ? deref({
                       root: getRootDraftOrRoot(args.actionChain),
-                      rootKey: pageCtx.pageName,
+                      rootKey: pageCtx.name,
                       ref: propValue,
                     })
                   : propValue
@@ -279,55 +253,27 @@ function useActionChain() {
         let value: any
 
         if (u.isStr(cond)) {
-          log.debug(`%c[executeIf] Calling --> executeStr`, `color:#c4a901;`, {
-            from: args.from,
-            value: cond,
-          })
           value = await executeStr?.(cond, { ...args, action: cond })
-          log.debug(`%c[executeIf] Result <-- executeStr`, `color:#c4a901;`, {
-            valueCalledExecuteStrWith: cond,
-            result: value,
-          })
         }
 
         if (isBuiltInEvalFn(cond)) {
           const key = u.keys(cond)[0] as string
-          log.debug(
-            `%c[executeIf] Calling --> executeEvalBuiltIn`,
-            `color:#c4a901;`,
-            { builtInKey: key, from: args.from },
-          )
           const result = await executeEvalBuiltIn(key, {
             ...args,
             ...cond[key],
             from: 'if',
           })
           value = result ? truthy : falsy
-          log.debug(
-            `%c[executeIf] Result <-- executeEvalBuiltIn`,
-            `color:#c4a901;`,
-            {
-              resultFromCallingBuiltIn: result,
-              result: value,
-            },
-          )
         }
 
         if (value === 'continue') {
-          log.debug(`%c[executeIf] continue`, { from: args.from })
           return value
         } else if (u.isStr(value)) {
           if (is.reference(value)) {
-            const valueBefore = value
             value = await executeStr?.(value, {
               ...args,
               action: value,
               from: 'if',
-            })
-            log.debug(`%c[executeIf] --> executeStr`, `color:#c4a901;`, {
-              from: args.from,
-              valueCalledExecuteStrWith: valueBefore,
-              resultFromCallingExecuteStr: value,
             })
           }
         } else if (u.isBool(value)) {
@@ -339,12 +285,10 @@ function useActionChain() {
             for (const [k, v] of u.entries(value)) {
               if (is.reference(k)) {
                 if (k.endsWith('@')) {
-                  debugger
-                  log.debug(`%c[executeIf] Encountered @: ${k}`, 'color:gold')
                   const keyDataPath = trimReference(k)
                   const rootDraft = getRootDraftOrRoot(args.actionChain)
                   if (is.localReference(k)) {
-                    set(rootDraft[pageCtx.pageName], keyDataPath, v)
+                    set(rootDraft[pageCtx.name], keyDataPath, v)
                   } else {
                     set(rootDraft, keyDataPath, v)
                   }
@@ -381,12 +325,14 @@ function useActionChain() {
     React.useMemo(() => {
       {
         const action = createAction({ action: emitObject, trigger })
+
         const dataObject =
           pageCtx.getDataObject(
             component,
             getRootDraftOrRoot(actionChain),
-            pageCtx.pageName,
+            pageCtx.name,
           ) || {}
+
         if (dataObject) {
           if (u.isStr(action.dataKey)) {
             action.dataKey = dataObject
@@ -430,8 +376,8 @@ function useActionChain() {
                       event,
                       trigger,
                     })
+
                     if (result === 'abort') {
-                      log.debug(`Received "abort"`)
                       results.push('abort')
                       action.abort('Received abort')
                       await actionChain.abort()
@@ -516,16 +462,7 @@ function useActionChain() {
             // { actionType: 'builtIn', funcName: 'redraw' }
             else if (is.action.builtIn(obj)) {
               const funcName = obj.funcName
-              if (funcName === 'redraw') {
-                const { viewTag } = obj
-                if (viewTag) {
-                  const el = document.querySelector(`[data-viewtag=${viewTag}]`)
-                  if (el) {
-                    //
-                  }
-                }
-                debugger
-              }
+              log.debug(`[builtIn-${funcName}]`, obj)
             }
             // { emit: { dataKey: {...}, actions: [...] } }
             else if (is.folds.emit(obj)) {
@@ -571,8 +508,6 @@ function useActionChain() {
                 `[data-viewtag=${obj.popUpView}]`,
               ) as HTMLElement
 
-              const visibilityBefore = el?.style?.visibility
-
               if (el) {
                 el.style.visibility =
                   obj.actionType === 'popUpDismiss' ? 'hidden' : 'visible'
@@ -582,12 +517,6 @@ function useActionChain() {
                   obj,
                 )
               }
-
-              log.debug(
-                `[${obj.actionType}] visibility: ${visibilityBefore} --> ${el?.style?.visibility}`,
-                '',
-                obj,
-              )
               // TODO - See if we need to move this logic elsewhere
               // 'abort' is returned so evalObject can abort if it returns popups
               return 'wait' in obj ? 'abort' : undefined
@@ -606,10 +535,6 @@ function useActionChain() {
                     dataObject,
                     ...obj[key],
                   })
-                  log.debug(`%c[${key}]`, `color:#01a7c4;`, {
-                    from,
-                    result: getCurrent(result),
-                  })
                 } else {
                   let awaitKey
                   let isLocal = true
@@ -626,7 +551,7 @@ function useActionChain() {
                     if (is.reference(value)) {
                       const dataPath = toDataPath(trimReference(value))
                       if (is.localReference(value)) {
-                        dataPath.unshift(pageCtx.pageName)
+                        dataPath.unshift(pageCtx.name)
                       }
                       value = get(rootDraft, dataPath)
                     }
@@ -637,66 +562,19 @@ function useActionChain() {
                       Boolean,
                     )
                     if (isLocal) {
-                      if (
-                        pageCtx.pageName &&
-                        dataPath[0] !== pageCtx.pageName
-                      ) {
-                        dataPath.unshift(pageCtx.pageName)
+                      if (pageCtx.name && dataPath[0] !== pageCtx.name) {
+                        dataPath.unshift(pageCtx.name)
                       }
                       let valueAwaiting = obj[key]
-                      let initialValue = get(rootDraft, dataPath)
-                      // let initialValue = getR(dataPath.join('.'))
 
                       if (is.reference(valueAwaiting)) {
                         valueAwaiting = get(rootDraft, dataPath.join('.'))
                       }
 
                       set(rootDraft, dataPath, valueAwaiting)
-
-                      const valueAfter = get(rootDraft, dataPath)
-
-                      if (initialValue == valueAfter) {
-                        log.error(
-                          `Applied a value to the awaiting path "${obj[key]}" but the value remained the same`,
-                          {
-                            awaitKey,
-                            path: dataPath,
-                            pageName: pageCtx.pageName,
-                            valueAwaiting,
-                            valueBefore: initialValue,
-                            valueAfter,
-                          },
-                        )
-                      } else {
-                        log.debug(
-                          `%cApplied the awaited value`,
-                          'color:green',
-                          {
-                            awaitKey,
-                            path: dataPath,
-                            pageName: pageCtx.pageName,
-                            valueAwaiting,
-                            valueBefore: initialValue,
-                            valueAfter,
-                          },
-                        )
-                      }
                     } else {
                       log.error('DEBUG THIS PART IF U SEE THIS')
-                      log.error('DEBUG THIS PART IF U SEE THIS')
-                      log.error('DEBUG THIS PART IF U SEE THIS')
-                      const incKey = toDataPath(trimReference(key))
-                      const incValue = getR(rootDraft, incKey)
-                      console.log({
-                        awaitKey,
-                        incKey,
-                        incValue,
-                        root: rootDraft,
-                        pageName: pageCtx.pageName,
-                        value,
-                      })
-
-                      set(rootDraft, incKey, value)
+                      set(rootDraft, toDataPath(trimReference(key)), value)
                     }
                   } else {
                     result = value
@@ -744,7 +622,6 @@ function useActionChain() {
             nuiAction.executor = async function onExecuteAction(
               event: React.SyntheticEvent,
             ) {
-              debugger
               const result = await execute({
                 action: obj,
                 actionChain,
@@ -752,7 +629,7 @@ function useActionChain() {
                 event,
                 trigger,
               })
-              debugger
+
               if (result) {
                 log.debug(
                   `%c[${nuiAction.actionType}]${
@@ -763,6 +640,7 @@ function useActionChain() {
                 )
               }
             }
+
             return nuiAction
           })
         }

@@ -1,12 +1,10 @@
 import * as u from '@jsmanifest/utils'
 import { trimReference } from 'noodl-utils'
 import type { NUIActionChain } from 'noodl-ui'
-import produce, { isDraft, current as draftToCurrent } from 'immer'
 import React from 'react'
 import get from 'lodash/get'
 import useCtx from '@/useCtx'
 import { usePageCtx } from '@/components/PageContext'
-import { getCurrent } from '@/utils/immer'
 import log from '@/utils/log'
 import is from '@/utils/is'
 import * as t from '@/types'
@@ -30,10 +28,10 @@ const createFn =
 function purgeDataIn({
   actionChain,
   getR,
-  pageName,
+  name: pageName,
   dataObject,
   dataIn,
-}: Pick<t.CommonRenderComponentHelpers, 'getR' | 'pageName'> & BuiltInFnProps) {
+}: Pick<t.CommonRenderComponentHelpers, 'getR' | 'name'> & BuiltInFnProps) {
   for (const [key, value] of u.entries(dataIn)) {
     if (u.isStr(value)) {
       if (value.startsWith('$')) {
@@ -114,11 +112,7 @@ function useBuiltInFns() {
   const pageCtx = usePageCtx()
 
   const builtIns = React.useMemo(
-    () =>
-      getBuiltInFns({
-        ...ctx,
-        ...pageCtx,
-      }),
+    () => getBuiltInFns({ ...ctx, ...pageCtx }),
     [ctx, pageCtx],
   )
 

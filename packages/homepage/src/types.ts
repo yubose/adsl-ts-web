@@ -54,13 +54,10 @@ export interface PageContext {
     obj: PageContextListContextObject,
     id: string | StaticComponentObject,
   ) => boolean
-  startPage?: string
   assetsUrl: string
   baseUrl: string
-  pageName: string
-  pageObject: {
-    components: StaticComponentObject[]
-  } & Record<string, any>
+  name: string
+  components: StaticComponentObject[]
   slug: string
   lists: PageContextListContextObject[]
   refs: {
@@ -83,12 +80,9 @@ export interface PageContext {
 export interface PageContextListContextObject {
   children: string[][]
   componentPath: (string | number)[]
-  dataObjectMapping?: Record<string, any>
   id: string
   iteratorVar: string
   listObject: nt.ReferenceString | any[]
-  listObjectPath?: string
-  isReference: boolean
 }
 
 export interface CreateElementProps<Props = any> {
@@ -101,7 +95,7 @@ export interface CreateElementProps<Props = any> {
 
 export interface CommonRenderComponentHelpers
   extends Pick<AppContext, 'root' | 'getR' | 'setR'> {
-  pageName: string
+  name: string
 }
 
 export type ComponentPath = (string | number)[]

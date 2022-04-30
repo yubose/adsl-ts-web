@@ -606,12 +606,6 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
               if (nt.Identify.component.list(comp)) {
                 const iteratorVar = comp.blueprint?.iteratorVar || ''
                 const refs = getPageRefs(pageName)
-                // This path is used to map list objects to their reference getters in the client
-                const currComponentPath = [
-                  pageName,
-                  'components',
-                  ...componentPath,
-                ]
                 const currListObjectPath = [pageName, 'components']
                   .concat(componentPath)
                   .concat('listObject')
@@ -627,24 +621,9 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                     return acc
                   }, '')
                 const listObject = comp.get('listObject') || []
-                const listObjectPath = []
                 const refObject = u
                   .values(refs)
                   .find((refObj) => refObj.path === currListObjectPath)
-                const isRef = !!refObject?.ref
-                let dataObjectMapping
-                // If it is a ref we will point the component(s) to render dependently on the referenced path so it can react to render updates natively in the client side without redraw
-                if (isRef) {
-                  listObjectPath.push(
-                    ...toDataPath(trimReference(refObject.ref)),
-                  )
-                  dataObjectMapping = utils.getListObjectMapping(
-                    iteratorVar,
-                    comp.blueprint,
-                    currComponentPath,
-                  )
-                }
-
                 /**
                  * This gets passed to props.pageContext inside NoodlPageTemplate
                  */
@@ -652,15 +631,9 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
                   // Descendant component ids will be inserted here later
                   children: [],
                   componentPath,
-                  dataObjectMapping,
-                  fullComponentPath: currComponentPath,
                   id: comp.id,
                   iteratorVar,
                   listObject: refObject?.ref || listObject,
-                  ...(isRef
-                    ? { listObjectPath: listObjectPath.join('.') }
-                    : undefined),
-                  isReference: isRef,
                 })
               } else if (nt.Identify.component.image(comp)) {
                 // This is mapped to the client side to pick up the static image
@@ -733,7 +706,6 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
       slug: `/${name}/`,
       id: createNodeId(name),
       content: data._pages_.serialized[name],
-      isPreload: false,
       children: [],
       internal: {
         contentDigest: createContentDigest(data._pages_.serialized[name]),
@@ -776,7 +748,6 @@ exports.createPages = async function createPages(args) {
             name
             content
             slug
-            isPreload
           }
         }
       }
@@ -806,14 +777,12 @@ exports.createPages = async function createPages(args) {
             baseUrl: data.baseUrl,
             lists: data._context_?.[pageName]?.lists,
             refs: getPageRefs(pageName) || {},
-            pageName,
+            name: pageName,
             // Intentionally leaving out other props from the page object since they are provided in the root object (available in the React context that wraps our app)
-            pageObject: {
-              components:
-                data._pages_.json?.[pageName]?.components ||
-                data._pages_.json?.[pageName]?.components?.components ||
-                [],
-            },
+            components:
+              data._pages_.json?.[pageName]?.components ||
+              data._pages_.json?.[pageName]?.components?.components ||
+              [],
             slug,
           },
         })
@@ -842,15 +811,16 @@ exports.onCreatePage = async function onCreatePage(opts) {
     const pageName = data.startPage
     const slug = `/${pageName}/`
     page.context = {
+      assetsUrl: data.assetsUrl,
+      baseUrl: data.baseUrl,
       lists: _ctx_.lists || {},
       refs: _ctx_.refs || {},
-      pageName,
-      pageObject: {
-        components:
-          data._pages_.json?.[pageName]?.components ||
-          data._pages_.json?.[pageName]?.components?.components ||
-          [],
-      },
+      name: pageName,
+      components:
+        data._pages_.json?.[pageName]?.components ||
+        data._pages_.json?.[pageName]?.components?.components ||
+        [],
+
       slug,
     }
     info(`Home route '${cyan('/')}' is bound to ${yellow(pageName)}`)
