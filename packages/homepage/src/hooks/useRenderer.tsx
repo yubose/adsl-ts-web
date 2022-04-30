@@ -16,6 +16,14 @@ import deref from '@/utils/deref'
 import { usePageCtx } from '@/components/PageContext'
 import type * as t from '@/types'
 
+interface CreateElementProps<Props = any> {
+  key?: string
+  type: string
+  children?: string | number | (string | number | CreateElementProps<Props>)[]
+  style?: React.CSSProperties
+  [key: string]: any
+}
+
 // TODO - Find out a better way to do this
 export const noodlKeysToStrip = [
   'contentType',
@@ -78,7 +86,7 @@ function useRenderer() {
       if (!u.isObj(component)) return null
 
       let { dataKey, id, type } = component
-      let children = [] as t.CreateElementProps<any>[]
+      let children = [] as CreateElementProps<any>[]
       let iteratorVar = getIteratorVar?.(component)
       let elementType = getTagName(type) || 'div'
 
@@ -87,7 +95,7 @@ function useRenderer() {
       let props = {
         type: elementType,
         key: id,
-      } as t.CreateElementProps<any>
+      } as CreateElementProps<any>
 
 
       for (let [key, value] of u.entries(component)) {
@@ -259,7 +267,7 @@ function useRenderer() {
       key,
       children = [],
       ...rest
-    }: t.CreateElementProps) => {
+    }: CreateElementProps) => {
       let _children = [] as React.ReactElement[]
       let index = 0
 

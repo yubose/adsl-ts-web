@@ -18,10 +18,6 @@
       "@/*": ["./src/*"],
       "@/assets/*": ["./src/resources/assets/*"],
       "@/components/*": ["./src/components/*"],
-      "@/gatsby-plugin-noodl": [
-        "../gatsby-plugin-noodl/gatsby-node.js",
-        "../gatsby-plugin-noodl/types.d.ts"
-      ],
       "@/consts": ["./src/constants.ts"],
       "@/hooks/*": ["./src/hooks/*"],
       "@/static/*": ["./src/static/*"],

@@ -1,4 +1,5 @@
 import type { LiteralUnion } from 'type-fest'
+import type { ActionChainStatus } from 'noodl-action-chain'
 import type {
   ActionObject,
   ComponentObject,
@@ -7,19 +8,20 @@ import type {
   PageObject,
   ReferenceString,
 } from 'noodl-types'
+import type { NUIAction, NUIActionObject, NUITrigger } from 'noodl-ui'
 import type { Action } from 'noodl-action-chain'
 import type { PluginOptions as GatsbyPluginOptions } from 'gatsby'
 import type { data } from './gatsby-node'
 
-export interface InternalData {
+export namespace InternalData {
   /**
    * Used in the client side
    */
-  _assets_: string[]
+  export type Assets = string[]
   /**
    * Used in the client side
    */
-  _context_: {
+  export type Context = {
     [page: string]: {
       lists?: ListComponentsContext
       componentRefs?: ComponentReferencesContext[]
@@ -28,8 +30,8 @@ export interface InternalData {
   /**
    * Asset urls that were reported
    */
-  _loggedAssets_: string[]
-  _pages_: {
+  export type LoggedAssets = string[]
+  export type Pages = {
     /**
      * Used in lvl3 and noodl-ui
      */
@@ -39,29 +41,24 @@ export interface InternalData {
      */
     serialized: Record<string, any>
   }
-  _paths_: {
+  export type Paths = {
     output: string
     template: string
   }
-  appKey: string
+  export type AppKey = string
   /**
    * Passed to Loader, lvl3, and output dir
    */
-  configKey: string
+  export type ConfigKey = string
   /**
    * Not being used atm
    */
-  configUrl: string
-  /**
-   * Used in retrieving version in root config
-   */
-  deviceType: DeviceType
-  ecosEnv: Env
-  loglevel: string
+  export type ConfigUrl = string
+  export type LogLevel = string
   /**
    * Used as the page component renderer
    */
-  template: string
+  export type TemplatePath = string
 }
 
 export interface GatsbyNoodlPluginOptions {
@@ -90,6 +87,7 @@ export interface GatsbyNoodlPluginOptions {
     width: number
     height: number
   }
+  version?: LiteralUnion<'latest', string>
 }
 
 /**
@@ -99,39 +97,55 @@ export interface GatsbyNoodlPluginCacheObject {
   configKey?: string
   configUrl?: string
   configVersion?: string
-  // rootConfig?: any
 }
 
 /**
  * Component static objects used in the client side to render react elements
  */
 export type StaticComponentObject = ComponentObject &
-  Record<
-    string,
-    {
-      actions: (ActionObject & Record<string, any>)[]
-      trigger: string
-      injected: (ActionObject & Record<string, any>)[]
-      queue: Action[]
-      results: {
-        action: ActionObject & Record<string, any>
-        result: any
-      }[]
-      status: string
-    }
-  >
+  Partial<
+    Record<
+      NUITrigger,
+      {
+        actions: (NUIActionObject & Record<string, any>)[]
+        trigger: LiteralUnion<NUITrigger, string>
+        injected: (NUIActionObject & Record<string, any>)[]
+        queue: NUIAction[]
+        results: {
+          action: NUIActionObject & Record<string, any>
+          result: any
+        }[]
+        status: ActionChainStatus
+      }
+    >
+  > &
+  Record<string, any>
 
 /**
  * Context for pages. Populated from gatsby-node.js
  */
 export interface PageContext {
+  assetsUrl: string
+  baseUrl: string
+  name: string
+  components: StaticComponentObject[]
   lists?: ListComponentsContext
-  pageName: string
-  pageObject: {
-    components: StaticComponentObject[]
-  }
   slug: string
-  refs?: ComponentReferencesContext[]
+  refs: {
+    [reference: nt.ReferenceString]: {
+      /**
+       * If true, the reference is pointing to local root object
+       */
+      isLocal: boolean
+      /**
+       * If true, the reference is pointing to a list's listObject data object
+       */
+      isListChildren: boolean
+      key: string
+      path: string
+      ref: nt.ReferenceString
+    }
+  }
 }
 
 /**
@@ -143,15 +157,13 @@ export interface ListComponentsContext {
   [key: string]: {
     children: string[][]
     componentPath: (string | number)[]
-    dataObjectMapping?: Record<string, any>
     id: string
     iteratorVar: string
     listObject: ReferenceString | any[]
-    listObjectPath: (string | number)[]
-    iteratorVar: string
-    isReference: boolean
   }
 }
+
+export type ComponentPath = (string | number)[]
 
 /**
  * NOTE: Currently not being used

@@ -5,12 +5,6 @@ import * as t from '@/types'
 
 const [usePageCtx, Provider] = createCtx<t.PageContext>()
 
-export interface PageContextProps
-  extends Pick<
-    t.PageContext,
-    'assetsUrl' | 'baseUrl' | 'lists' | 'name' | 'components' | 'refs' | 'slug'
-  > {}
-
 function PageContext({
   assetsUrl,
   baseUrl,
@@ -20,7 +14,12 @@ function PageContext({
   components,
   refs,
   slug,
-}: React.PropsWithChildren<PageContextProps>) {
+}: React.PropsWithChildren<
+  Pick<
+    t.PageContext,
+    'assetsUrl' | 'baseUrl' | 'lists' | 'name' | 'components' | 'refs' | 'slug'
+  >
+>) {
   const {
     getCtxObject,
     getDataObject,
@@ -35,11 +34,11 @@ function PageContext({
   const ctx: t.PageContext = {
     assetsUrl,
     baseUrl,
-    getCtxObject,
-    getDataObject,
     getId,
+    getCtxObject,
     getIteratorVar,
     getListObject,
+    getDataObject,
     isCtxObj,
     isListConsumer,
     lists,

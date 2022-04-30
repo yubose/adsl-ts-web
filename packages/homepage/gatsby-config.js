@@ -92,6 +92,7 @@ module.exports = {
         // If introspection is true, it will dump all of the TRANSFORMED noodl
         // pages in json to the output path specified below as
         //  "<outputPath>/<config>.introspection.json"
+        // It will also dump a "metadata" file which is a snapshot of the internal key mappings it has collected from the plugin life cycle
         introspection: true,
         paths: {
           // If we provide this assets will be downloaded to this path.

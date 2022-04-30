@@ -9,6 +9,11 @@ import log from '@/utils/log'
 import is from '@/utils/is'
 import * as t from '@/types'
 
+interface CommonRenderComponentHelpers
+  extends Pick<t.AppContext, 'root' | 'getR' | 'setR'> {
+  name: string
+}
+
 export interface BuiltInFnProps {
   actionChain: NUIActionChain
   dataObject: any
@@ -18,10 +23,7 @@ export interface BuiltInFnProps {
 
 // Using for TypeScript to pick up the args
 const createFn =
-  (
-    options: t.CommonRenderComponentHelpers,
-    fn: (opts: BuiltInFnProps) => any,
-  ) =>
+  (options: CommonRenderComponentHelpers, fn: (opts: BuiltInFnProps) => any) =>
   (opts: BuiltInFnProps) =>
     fn({ ...opts, dataIn: purgeDataIn({ ...options, ...opts }) })
 
@@ -31,7 +33,7 @@ function purgeDataIn({
   name: pageName,
   dataObject,
   dataIn,
-}: Pick<t.CommonRenderComponentHelpers, 'getR' | 'name'> & BuiltInFnProps) {
+}: Pick<CommonRenderComponentHelpers, 'getR' | 'name'> & BuiltInFnProps) {
   for (const [key, value] of u.entries(dataIn)) {
     if (u.isStr(value)) {
       if (value.startsWith('$')) {
@@ -55,7 +57,7 @@ function purgeDataIn({
   return dataIn
 }
 
-function getBuiltInFns(options: t.CommonRenderComponentHelpers) {
+function getBuiltInFns(options: CommonRenderComponentHelpers) {
   const builtInFns = {
     [`=.builtIn.string.equal`]: ({ dataIn }: BuiltInFnProps) => {
       if (!dataIn) {

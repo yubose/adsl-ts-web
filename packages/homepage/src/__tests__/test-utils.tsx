@@ -206,7 +206,6 @@ export function render(
           name,
           content: u.isStr(content) ? content : JSON.stringify(content),
           slug: name,
-          isPreload: false,
         }),
       [],
     ),
