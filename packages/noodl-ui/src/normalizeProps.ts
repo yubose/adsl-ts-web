@@ -2,89 +2,15 @@ import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import * as nu from 'noodl-utils'
 import get from 'lodash/get'
-import nui from './noodl-ui'
 import NuiViewport from './Viewport'
 import { presets } from './constants'
 import { findIteratorVar, findListDataObject } from './utils/noodl'
 import is from './utils/is'
+import getBaseStyles from './utils/getBaseStyles'
+import getByRef from './utils/getByRef'
 import type { NormalizePropsContext } from './types'
 import * as com from './utils/common'
 import * as s from './utils/style'
-
-function getByRef(
-  ref = '',
-  {
-    blueprint,
-    context,
-    props,
-    root,
-    rootKey,
-    getParent,
-  }: {
-    blueprint: Partial<nt.ComponentObject>
-    context: NormalizePropsContext | undefined
-    props: Record<string, any>
-    root: Record<string, any>
-    rootKey?: string
-    getParent?: NonNullable<Parameters<typeof parse>[2]>['getParent']
-  },
-) {
-  if (getByRef.lastRef === ref) {
-    getByRef.count++
-    // if (getByRef.count > 99) {
-    //   throw new Error(
-    //     `There is an infinite loop in the reference resolver "getByRef" from this reference: "${ref}" with root key: ${
-    //       rootKey ? `"${rootKey}"` : '<empty string>'
-    //     }`,
-    //   )
-    // }
-  } else {
-    getByRef.count = 0
-    getByRef.lastRef = ref
-  }
-
-  if (is.traverseReference(ref)) {
-    if (u.isFnc(getParent)) {
-      // ['', '', '', '.colorChange']
-      let parts = ref.split('_')
-      let depth = parts.filter((s) => s === '').reduce((acc) => ++acc, 0)
-      let nextKey = parts.shift() as string
-
-      while (nextKey && !nextKey.startsWith('.')) {
-        if (nextKey === '') {
-          // continue
-        } else if (nextKey.startsWith('.')) {
-          const parent = getParent({
-            blueprint,
-            context: context || {},
-            props,
-            op: 'traverse',
-            opArgs: {
-              depth,
-              ref,
-            },
-          })
-          const result = get(parent, nextKey[1].slice())
-          console.log({ nextKey, parent, ref, result })
-          return result
-        }
-
-        nextKey = parts.shift() as string
-      }
-    }
-  }
-
-  if (is.localReference(ref)) {
-    if (rootKey) return get(root[rootKey], nu.toDataPath(nu.trimReference(ref)))
-  } else if (is.rootReference(ref)) {
-    return get(root, nu.toDataPath(nu.trimReference(ref)))
-  }
-
-  return ref
-}
-
-getByRef.count = 0
-getByRef.lastRef = undefined
 
 /**
  *
@@ -102,8 +28,8 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
   blueprint: Partial<Props> = {},
   {
     context,
-    getBaseStyles,
     getParent,
+    getHelpers,
     keepVpUnit,
     pageName = '',
     root = {},
@@ -113,10 +39,6 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
      * Any data needed to render/parse components
      */
     context?: NormalizePropsContext
-    /**
-     * A function that will be used to merge base styles prior to parsing
-     */
-    getBaseStyles?: typeof nui.getBaseStyles
     /**
      * If true, styles like fontSize will be converted to <number>vw or <number>vh if given the format
      */
@@ -133,6 +55,14 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
       op?: 'traverse' | undefined
       opArgs?: Record<string, any>
     }) => any
+    getHelpers?: (opts?: Record<string, any>) => {
+      props: Record<string, any>
+      getParent?: any
+      blueprint: Partial<Props>
+      context: NormalizePropsContext
+      root: Record<string, any> | (() => Record<string, any>)
+      rootKey: string
+    }
     /**
      * Current page. If retrieving local root references, it will use this variable
      * as the local root key
@@ -150,15 +80,31 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
     viewport?: NuiViewport | { width: number; height: number }
   } = {},
 ) {
+  if (!u.isFnc(getHelpers)) {
+    return parse(props, blueprint, {
+      ...arguments[2],
+      getHelpers: (opts) => ({
+        getParent,
+        props,
+        blueprint,
+        context,
+        root,
+        rootKey: pageName,
+        ...opts,
+      }),
+    })
+  }
   if (props && !props.style) props.style = {}
 
-  if (u.isFnc(getBaseStyles) && u.isObj(blueprint?.style)) {
-    for (const [key, value] of u.entries(getBaseStyles(props, blueprint))) {
+  if (u.isObj(blueprint?.style)) {
+    for (const [key, value] of u.entries(getBaseStyles(blueprint, root))) {
       props.style[key] = value
     }
   }
 
   if (u.isObj(blueprint)) {
+    props.type = blueprint.type
+
     let iteratorVar = context?.iteratorVar || findIteratorVar(props) || ''
 
     for (const [originalKey, originalValue] of u.entries(blueprint)) {
@@ -166,71 +112,51 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
 
       if (originalKey === 'dataKey') {
         if (u.isStr(originalValue)) {
+          let datapath = nu.toDataPath(nu.trimReference(originalValue))
+          let isLocalKey = is.localKey(datapath.join('.'))
+          // Note: This is here for fallback reasons.
+          // dataKey should never be a reference in the noodl
           if (is.reference(originalValue)) {
-            const isLocal = is.localReference(originalValue)
-            props['data-value'] = getByRef(originalValue, {
-              root,
-              rootKey: isLocal ? pageName : undefined,
-              props,
-              blueprint,
-              context,
-              getParent,
-            })
-          } else {
-            const isLocalKey = is.localKey(originalKey)
-            const paths = originalValue.split('.') as string[]
-            isLocalKey && paths[0] === pageName && paths.shift()
-            props['data-value'] = get(isLocalKey ? root[pageName] : root, paths)
-            continue
+            isLocalKey = is.localReference(originalValue)
           }
+          props['data-value'] = get(
+            isLocalKey ? root[pageName] : root,
+            datapath,
+          )
           if (is.component.select(blueprint)) {
-            const isLocal = is.localKey(originalValue)
-            props['data-value'] = getByRef(originalValue, {
-              root,
-              rootKey: isLocal ? pageName : undefined,
-              blueprint,
-              context,
-              props,
-              getParent,
-            })
+            props['data-options'] = u.isStr(blueprint.options)
+              ? get(isLocalKey ? root[pageName] : root, datapath)
+              : u.array(blueprint.options)
           }
+          continue
         }
       } else if (originalKey === 'options') {
         if (is.component.select(blueprint)) {
-          const { dataKey } = blueprint
-          const isUsingDataKey = !!(
-            (dataKey && u.isStr(dataKey)) ||
-            u.isStr(value)
-          )
+          const dataKey = blueprint.dataKey
+          const isUsingDataKey = u.isStr(dataKey) || u.isStr(originalValue)
           // Receiving their options by reference
-          if (isUsingDataKey && !(u.isArr(value) && value.length === 0)) {
-            let dataPath = dataKey && u.isStr(dataKey) ? dataKey : value
+          if (isUsingDataKey && !u.isArr(originalValue)) {
+            let dataPath = u.isStr(dataKey) ? dataKey : String(originalValue)
             let dataObject: any
-            let isListPath = !!(iteratorVar && dataPath.startsWith(iteratorVar))
+            let isListPath = !!iteratorVar && dataPath.startsWith(iteratorVar)
 
             value = dataPath ? get(dataObject, dataPath) : dataObject
+
             if (!u.isArr(value)) {
               if (isListPath) {
-                dataPath = nu.excludeIteratorVar(dataPath, iteratorVar)
+                dataPath = nu.excludeIteratorVar(dataPath, iteratorVar) || ''
                 dataObject = context?.dataObject || findListDataObject(props)
               } else {
                 dataPath = nu.trimReference(dataPath)
-                const isLocal = is.reference(originalValue)
-                  ? is.localReference(originalValue)
-                  : is.localKey(originalValue)
-                value = getByRef(dataPath, {
-                  root,
-                  rootKey: isLocal ? pageName : undefined,
-                  props,
-                  blueprint,
-                  context,
-                  getParent,
-                })
+                value = get(
+                  is.localKey(dataPath) ? root[pageName] : root,
+                  dataPath,
+                )
               }
             }
           }
-
           props['data-options'] = value || []
+          if (!props.options) props.options = props['data-options']
         }
       } else if (originalKey === 'style') {
         // Style keys to be removed (for the DOM) after processing
@@ -512,12 +438,7 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
             if (u.isStr(styleValue) && is.reference(styleValue)) {
               const isLocal = is.localReference(styleValue)
               styleValue = getByRef(styleValue, {
-                root,
-                rootKey: isLocal ? pageName : undefined,
-                props,
-                blueprint,
-                context,
-                getParent,
+                ...getHelpers({ rootKey: isLocal ? pageName : undefined }),
               })
             }
 
@@ -534,14 +455,10 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
             if (u.isStr(styleValue)) {
               while (is.reference(styleValue)) {
                 const isLocal = is.localReference(styleValue)
-                styleValue = getByRef(styleValue, {
-                  root,
-                  rootKey: isLocal ? pageName : undefined,
-                  props,
-                  blueprint,
-                  context,
-                  getParent,
-                })
+                styleValue = getByRef(
+                  styleValue,
+                  getHelpers({ rootKey: isLocal ? pageName : undefined }),
+                )
                 // It will do an infinite loop without this
                 if (is.traverseReference(styleValue)) break
               }
@@ -682,15 +599,19 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
         u.entries(restoreVals).forEach(([k, v]) => (value[k] = v))
       } else if (originalKey === 'viewTag') {
         props['data-viewtag'] = is.reference(value)
-          ? getByRef(value, {
-              blueprint,
-              context,
-              props,
-              root,
-              getParent,
-              rootKey: is.localReference(value) ? pageName : undefined,
-            })
+          ? getByRef(
+              value,
+              getHelpers({
+                rootKey: is.localReference(value) ? pageName : undefined,
+              }),
+            )
           : value
+      } else {
+        // Arbitrary references
+        if (u.isStr(originalValue) && is.reference(originalValue)) {
+          value = getByRef(originalValue, getHelpers({ rootKey: pageName }))
+          props[originalKey] = value
+        }
       }
     }
 
@@ -753,14 +674,10 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
     let isHiddenValue = blueprint?.style?.isHidden
     if (is.reference(isHiddenValue)) {
       const isLocal = is.localReference(isHiddenValue)
-      isHiddenValue = getByRef(isHiddenValue, {
-        root,
-        rootKey: isLocal ? pageName : undefined,
-        props,
-        blueprint,
-        context,
-        getParent,
-      })
+      isHiddenValue = getByRef(
+        isHiddenValue,
+        getHelpers({ rootKey: isLocal ? pageName : undefined }),
+      )
     }
     is.isBooleanTrue(isHiddenValue) && (props.style.visibility = 'hidden')
 
@@ -768,9 +685,23 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
       props.required = is.isBooleanTrue(blueprint?.required)
     }
   } else {
-    console.log({ HELLO: blueprint })
-    console.log({ HELLO: blueprint })
-    console.log({ HELLO: blueprint })
+    /**
+     * - Referenced components (ex: '.BaseHeader)
+     * - Text
+     */
+    if (u.isStr(blueprint) && is.reference(blueprint)) {
+      return parse(
+        props,
+        getByRef(
+          blueprint,
+          getHelpers({
+            rootKey: is.localReference(blueprint) ? pageName : undefined,
+          }),
+        ),
+      )
+    } else {
+      console.log({ SEE_WHAT_THIS_IS: blueprint })
+    }
   }
 
   return props

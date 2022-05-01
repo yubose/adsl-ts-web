@@ -60,7 +60,6 @@ class NoodlObject
     }
     const key = unwrap(property)
     const prop = this.#value.get(key) || new NoodlProperty(key, this)
-    console.log({ key, property, prop, value })
     prop.setParent(this)
     if (is.node(value)) value.setParent(this)
     if (arguments.length > 1) prop.setValue(value)

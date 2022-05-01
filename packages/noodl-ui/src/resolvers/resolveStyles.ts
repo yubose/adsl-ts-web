@@ -8,8 +8,6 @@ const resolveStyles = new ComponentResolver('resolveStyles')
 const getParent = function getParent(
   this: NuiComponent.Instance,
   {
-    blueprint,
-    context,
     props = {},
     op,
     opArgs,
@@ -17,7 +15,6 @@ const getParent = function getParent(
     NonNullable<NonNullable<Parameters<typeof normalizeProps>[2]>['getParent']>
   >[0],
 ) {
-  console.log({ op, id: props.id })
   if (props.id) {
     switch (op) {
       case 'traverse': {
@@ -42,13 +39,11 @@ const getParent = function getParent(
 }
 
 resolveStyles.setResolver(async (component, options, next) => {
-  const { context, getBaseStyles, viewport, getRoot, page, keepVpUnit } =
-    options
+  const { context, viewport, getRoot, page, keepVpUnit } = options
 
   component.edit(
     normalizeProps(component.props, component.blueprint, {
       context,
-      getBaseStyles,
       getParent: getParent.bind(component),
       keepVpUnit,
       pageName: page?.page,

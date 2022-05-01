@@ -703,11 +703,6 @@ const NUI = (function () {
           })
         }
         if (u.isFnc(register.handler?.fn) && u.isFnc(register.fn)) {
-          log.debug(
-            `%cSetting register.fn to undefined because a custom handler fn was provided`,
-            `color:#95a5a6;`,
-            register,
-          )
           register.fn = undefined
         }
         !register.page && (register.page = '_global')

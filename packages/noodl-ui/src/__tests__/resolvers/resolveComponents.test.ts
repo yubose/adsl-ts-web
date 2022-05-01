@@ -37,13 +37,7 @@ async function resolveComponent(component: ComponentObject) {
 
 describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
   it(`should call the callback on every resolved child in order of creation time`, async () => {
-    const spy = sinon.spy((f) =>
-      console.info(
-        `[${f.type}] ${
-          f.blueprint.viewTag || f.blueprint.dataKey || f.blueprint.contentType
-        }`,
-      ),
-    )
+    const spy = sinon.spy((f) => undefined)
     const listObject = [{ fruit: 'apple' }, { fruit: 'berry' }]
     const iteratorVar = 'itemObject'
     const pageObject = {
