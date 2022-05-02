@@ -8,7 +8,6 @@ const { publish } = require('noodl-ui')
 const log = require('loglevel')
 const fs = require('fs-extra')
 const nt = require('noodl-types')
-const { trimReference, toDataPath } = require('noodl-utils')
 const get = require('lodash/get')
 const set = require('lodash/set')
 const path = require('path')
@@ -46,13 +45,10 @@ const { cyan, yellow, red, newline } = u
 const { debug, info, warn } = log
 
 /** @type { import('@aitmed/cadl').cache } */
-let sdkCache
-
-/** @type { import('gatsby').GatsbyCache } */
-let cache
+let _sdkCache
 
 /** @type { n.Loader } */
-let loader
+let _loader
 
 let _appKey = ''
 let _assetsUrl = ''
@@ -99,7 +95,7 @@ let resolvedConfigsDir = ''
 let resolvedAppConfigFile = ''
 let resolvedOutputNamespacedWithConfig = ''
 
-const getPageRefs = (pageName) => sdkCache?.refs?.[pageName] || {}
+const getPageRefs = (pageName) => _sdkCache?.refs?.[pageName] || {}
 
 const dumpMetadata = async ({ paths: pathsProp, ...other } = {}) => {
   const withoutCwd = (s = '') => String(s).replace(_cwd, '')
@@ -265,7 +261,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
 
   resolvedAppConfigFile = path.join(resolvedOutputNamespacedWithConfig, _appKey)
 
-  loader = new n.Loader({
+  _loader = new n.Loader({
     config: _configKey,
     dataType: 'object',
     deviceType: _deviceType,
@@ -275,9 +271,9 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
     version: pluginOpts.version || 'latest',
   })
 
-  loader.env = _ecosEnv
+  _loader.env = _ecosEnv
 
-  await loader.loadRootConfig({
+  await _loader.loadRootConfig({
     dir: resolvedOutputNamespacedWithConfig,
     config: _configKey,
   })
@@ -285,10 +281,10 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   debug(
     `Loaded root config. Loading app config using key: ${yellow(
       _appKey,
-    )} at ${yellow(loader.appConfigUrl)}`,
+    )} at ${yellow(_loader.appConfigUrl)}`,
   )
 
-  const appConfigYml = await utils.fetchYml(loader.appConfigUrl)
+  const appConfigYml = await utils.fetchYml(_loader.appConfigUrl)
   _pages.json[_appKey] = y.parse(appConfigYml)
 
   if (!fs.existsSync(resolvedAppConfigFile)) {
@@ -305,7 +301,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
     keysList.push(...get(_pages.json, _path_, []))
   }
 
-  const appConfigUrl = loader.appConfigUrl
+  const appConfigUrl = _loader.appConfigUrl
   const filesDir = resolvedOutputNamespacedWithConfig
 
   // TODO - Check if we still need this part
@@ -319,8 +315,8 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
       process.exit(0)
     }
 
-    if (!loader.hasInRoot(_appKey)) {
-      await loader.loadAppConfig({
+    if (!_loader.hasInRoot(_appKey)) {
+      await _loader.loadAppConfig({
         dir: filesDir,
         // eslint-disable-next-line
         fallback: () =>
@@ -337,7 +333,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   debug(`Checking directory for page files`)
 
   const getPageUrl = (s) =>
-    loader.appConfigUrl.replace(
+    _loader.appConfigUrl.replace(
       'cadlEndpoint.yml',
       utils.ensureExt(s.includes('_en') ? s.concat('_en') : s, 'yml'),
     )
@@ -386,7 +382,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
 
   const loadTo_pages_ = (name, obj) => {
     _pages.json[name] = obj
-    loader.setInRoot(name, obj)
+    _loader.setInRoot(name, obj)
   }
 
   /** @type { { pageName: string; filename: string; filepath: string }[] } */
@@ -394,7 +390,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   const appKey = utils.removeExt(rootConfig.cadlMain, 'yml')
   const missingFiles = []
   const allYmlPageNames =
-    loader.root[appKey]?.preload?.concat?.(loader.root[appKey]?.page) || []
+    _loader.root[appKey]?.preload?.concat?.(_loader.root[appKey]?.page) || []
 
   allYmlPageNames.forEach((name) => {
     const filename = `${name}_en.yml`
@@ -406,7 +402,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
     }
   })
 
-  const baseUrl = loader.appConfigUrl.replace('cadlEndpoint.yml', '')
+  const baseUrl = _loader.appConfigUrl.replace('cadlEndpoint.yml', '')
 
   debug(`Downloading ${yellow(missingFiles.length)} missing pages...`)
   debug(`Using this endpoint for missing files: ${yellow(baseUrl)}`)
@@ -444,7 +440,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   let assets
 
   try {
-    assets = await loader.extractAssets()
+    assets = await _loader.extractAssets()
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     log.error(
@@ -492,7 +488,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
 
         if (!fs.existsSync(fullDir)) await fs.ensureDir(fullDir)
 
-        let url = `${loader.appConfigUrl}`.replace('cadlEndpoint.yml', '')
+        let url = `${_loader.appConfigUrl}`.replace('cadlEndpoint.yml', '')
         url += `assets/${filename}`
 
         if (!fs.existsSync(assetFilePath)) {
@@ -533,7 +529,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
   } = pluginOpts
 
   const {
-    cache: _sdkCache,
+    cache: sdkCache,
     page,
     pages,
     sdk,
@@ -568,14 +564,14 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
       ),
     },
     use: {
-      config: loader?.getInRoot?.(_configKey),
-      cadlEndpoint: loader?.getInRoot?.(loader.appKey),
+      config: _loader?.getInRoot?.(_configKey),
+      cadlEndpoint: _loader?.getInRoot?.(_loader.appKey),
       log,
       preload: {
-        BaseCSS: loader?.getInRoot?.('BaseCSS'),
-        BaseDataModel: loader?.getInRoot?.('BaseDataModel'),
-        BasePage: loader?.getInRoot?.('BasePage'),
-        Resource: loader?.getInRoot?.('Resource'),
+        BaseCSS: _loader?.getInRoot?.('BaseCSS'),
+        BaseDataModel: _loader?.getInRoot?.('BaseDataModel'),
+        BasePage: _loader?.getInRoot?.('BasePage'),
+        Resource: _loader?.getInRoot?.('Resource'),
       },
       /**
        * The generator will be mutating this so ensure that this reference will be stay persistent
@@ -594,7 +590,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
   page.viewport.width = viewport.width
   page.viewport.height = viewport.height
 
-  sdkCache = _sdkCache
+  _sdkCache = sdkCache
 
   /**
    * Transform parsed json components from lvl3 to Component instances in noodl-ui so the props can be consumed in expected formats in the UI

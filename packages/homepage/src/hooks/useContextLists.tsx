@@ -42,7 +42,7 @@ function useContextLists(listsMap: t.PageContext['lists']) {
           listObject = deref({
             root,
             ref: listObject,
-            rootKey: pageName,
+            rootKey: is.localReference(listObject) ? pageName : '',
           })
         }
       }
@@ -57,10 +57,9 @@ function useContextLists(listsMap: t.PageContext['lists']) {
       id = getId(id)
       const listObj = getCtxObject(id)
       const listObject = getListObject(id, root, pageName)
-      const index =
-        listObj?.children?.findIndex((ids: string[]) =>
-          ids.includes(id as string),
-        ) || -1
+      const index = listObj?.children?.findIndex((ids: string[]) =>
+        ids.includes(id as string),
+      )
       if (listObject) return listObject[index]
       return null
     },

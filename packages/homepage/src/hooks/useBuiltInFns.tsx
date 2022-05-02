@@ -60,23 +60,18 @@ function purgeDataIn({
 function getBuiltInFns(options: CommonRenderComponentHelpers) {
   const builtInFns = {
     [`=.builtIn.string.equal`]: ({ dataIn }: BuiltInFnProps) => {
-      if (!dataIn) {
-        console.trace()
-        throw new Error(
-          `dataIn was null or undefined while calling "=.builtIn.string.equal".`,
-        )
-      }
-      const str1 = String(dataIn?.string1 || '')
-      const str2 = String(dataIn?.string2 || '')
+      const str1 = String(dataIn?.string1)
+      const str2 = String(dataIn?.string2)
       const isEqual = str1 === str2
       log.debug(
-        `[=.builtIn.string.equal] ${str1 || '<empty string>'} === ${
-          str2 || '<empty string>'
+        `%c[=.builtIn] Comparing: ${str1 === '' ? "''" : `'${str1}'`} === ${
+          str2 === '' ? "''" : `'${str2}'`
         }: ${isEqual}`,
-        dataIn,
+        'color:rgb(98, 143, 42)',
       )
       return isEqual
     },
+    // Branched from lvl3
     [`=.builtIn.object.setProperty`]: ({ dataIn }: BuiltInFnProps) => {
       const arr = u.array(dataIn.obj).filter(Boolean)
       const numItems = arr.length
@@ -99,27 +94,19 @@ function getBuiltInFns(options: CommonRenderComponentHelpers) {
     },
   }
 
-  return u.reduce(
-    u.entries(builtInFns),
-    (acc, [builtInFnName, builtInFn]) => {
-      acc[builtInFnName] = createFn(options, builtInFn)
-      return acc
-    },
-    {} as typeof builtInFns,
-  )
+  return u.entries(builtInFns).reduce((acc, [builtInFnName, builtInFn]) => {
+    acc[builtInFnName] = createFn(options, builtInFn)
+    return acc
+  }, {} as typeof builtInFns)
 }
 
 function useBuiltInFns() {
   const ctx = useCtx()
   const pageCtx = usePageCtx()
-
-  const builtIns = React.useMemo(
-    () => getBuiltInFns({ ...ctx, ...pageCtx }),
-    [ctx, pageCtx],
-  )
+  const builtIns = getBuiltInFns({ ...ctx, ...pageCtx })
 
   const handleBuiltInFn = React.useCallback(
-    function _handleBuiltInFn(key = '', args: BuiltInFnProps) {
+    (key = '', args: BuiltInFnProps) => {
       const fn = builtIns[key]
       if (u.isFnc(fn)) {
         return fn(args)
@@ -130,11 +117,11 @@ function useBuiltInFns() {
         )
       }
     },
-    [builtIns],
+    [ctx, pageCtx],
   )
 
   return {
-    ...builtIns,
+    builtIns,
     handleBuiltInFn,
   }
 }

@@ -5,20 +5,15 @@ import useRenderer from './useRenderer'
 
 function usePage({ pageContext }: { pageContext: PageContext }) {
   const renderer = useRenderer()
-
   const render = (c: StaticComponentObject | string, index: number) => {
-    // console.log(`%c[usePage] Rendering`, `color:#08AD64;font-weight:bold;`, c)
     return (
       <React.Fragment key={u.isStr(c) ? c : c?.id || c?.dataKey || index}>
         {renderer(c, [pageContext?.name || 'HomePage', 'components', index])}
       </React.Fragment>
     )
   }
-
-  const components = pageContext?.components || []
-
   return {
-    components,
+    components: pageContext?.components || [],
     render,
   }
 }

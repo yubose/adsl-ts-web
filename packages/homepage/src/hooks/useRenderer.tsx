@@ -10,9 +10,9 @@ import useActionChain from '@/hooks/useActionChain'
 import getTagName from '@/utils/getTagName'
 import log from '@/utils/log'
 import is from '@/utils/is'
-import { getCurrent } from '@/utils/immer'
 import useCtx from '@/useCtx'
 import deref from '@/utils/deref'
+import { getCurrent } from '@/utils/immer'
 import { usePageCtx } from '@/components/PageContext'
 import type * as t from '@/types'
 
@@ -47,20 +47,8 @@ function useRenderer() {
   const refsRef = React.useRef<Record<string, any>>({})
   const { getR, root, setR } = useCtx()
   const { createActionChain } = useActionChain()
-  const {
-    assetsUrl,
-    baseUrl,
-    getListObject,
-    getCtxObject,
-    getDataObject,
-    getIteratorVar,
-    isCtxObj,†
-    isListConsumer,
-    lists,
-    name,
-    refs,
-    slug,
-  } = usePageCtx()
+  const { assetsUrl, getDataObject, getIteratorVar, isListConsumer, name } =
+    usePageCtx()
 
   const render = React.useCallback(
     (
@@ -97,29 +85,22 @@ function useRenderer() {
         key: id,
       } as CreateElementProps<any>
 
-
       for (let [key, value] of u.entries(component)) {
         if (u.isStr(value) && is.reference(value)) {
           if (key === 'dataKey') {
             value = trimReference(value)
           } else {
-            const ref = value
             props[key] = deref({ ref: value, root, rootKey: name })
             value = props[key]
-            if (is.reference(value) && ref === value) {
-              log.error(
-                `The reference "${ref}" for key "${key}" was unresolved`,
-                component,
-              )
-            }
           }
         }
 
         if (key === 'children') {
-          u.array(value).forEach((child: t.StaticComponentObject, index) => {
-            const nextPath = componentPath.concat('children', index)
-            children.push(render(child, nextPath))
-          })
+          u.array(value).forEach((child: t.StaticComponentObject, index) =>
+            children.push(
+              render(child, componentPath.concat('children', index)),
+            ),
+          )
         } else if (['popUpView', 'viewTag'].includes(key as string)) {
           props['data-viewtag'] = value
         } else if (key === 'data-value') {
@@ -168,7 +149,6 @@ function useRenderer() {
         } else if (key === 'text' && !component['data-value']) {
           value &&
             children.push(is.reference(value) ? getR(value, name) : value)
-          // value && children.push(getElementProps(value, utils))
         } else if (triggers.includes(key as string)) {
           if (nt.userEvent.includes(key as typeof nt.userEvent[number])) {
             const obj = value as t.StaticComponentObject[NUITrigger]
@@ -179,37 +159,17 @@ function useRenderer() {
             props[trigger] = async function onExecuteActionChain(
               evt: React.SyntheticEvent<HTMLElement>,
             ) {
-              // This root draft will be used throughout the handlers instead of directly accessing root from context. This is to ensure that all the most recent changes are batched onto one single update
               let results: any[]
-              // let clonedRoot = createDraft(cloneDeep(root))
-              // actionChain?.data.set('rootDraft', clonedRoot)
-              let changes = []
-              let inverseChanges = []
-              let nextRoot = await produce(
-                root,
-                async (draft) => {
+              let nextRoot = await produce(root, async (draft) => {
+                try {
                   actionChain?.data.set('rootDraft', draft)
-                  try {
-                    results = await actionChain?.execute(evt)
-                  } catch (error) {
-                    log.error(
-                      error instanceof Error ? error : new Error(String(error)),
-                    )
-                  }
-                },
-                // The third argument to produce is a callback to which the patches will be fed
-                (patches, inversePatches) => {
-                  changes.push(...patches)
-                  inverseChanges.push(...inversePatches)
-                },
-              )
-
-              console.log({
-                nextRoot,
-                changes,
-                inverseChanges,
+                  results = await actionChain?.execute(evt)
+                } catch (error) {
+                  log.error(
+                    error instanceof Error ? error : new Error(String(error)),
+                  )
+                }
               })
-
               actionChain?.data.delete('rootDraft')
               setR(getCurrent(nextRoot))
               return results
@@ -229,9 +189,7 @@ function useRenderer() {
             key !== '_path_' &&
             key !== 'iteratorVar'
           ) {
-            // props[key] = getDataObject(component)
             props[key] = value
-            debugger
           }
         }
       }
@@ -240,17 +198,13 @@ function useRenderer() {
 
       if (props._path_ && u.isStr(props._path_) && iteratorVar) {
         if (props.type === 'img') {
-          const dataObject = getDataObject(props, root, name)
+          const dataObject = getDataObject(props.id, root, name)
           if (!dataObject) {
             debugger
           } else {
-            const src = get(
-              dataObject,
-              excludeIteratorVar(props._path_, iteratorVar),
-            )
-            if (src) {
-              props.src = resolveAssetUrl(src, assetsUrl)
-            }
+            const datapath = excludeIteratorVar(props._path_, iteratorVar)
+            const src = get(dataObject, datapath)
+            if (src) props.src = resolveAssetUrl(src, assetsUrl)
           }
         }
       }
@@ -269,10 +223,10 @@ function useRenderer() {
       ...rest
     }: CreateElementProps) => {
       let _children = [] as React.ReactElement[]
-      let index = 0
+      let _index = 0
 
-      for (const cprops of u.array(children)) {
-        const _path = (componentPath || []).concat('children', index)
+      u.array(children).forEach((cprops) => {
+        const _path = (componentPath || []).concat('children', _index)
         const renderKey = _path.join('.')
 
         if (u.isObj(cprops)) {
@@ -287,13 +241,13 @@ function useRenderer() {
             <React.Fragment key={renderKey}>{cprops}</React.Fragment>,
           )
         }
-        index++
-      }
+        _index++
+      })
 
       return React.createElement(
         type,
         rest,
-        /img|input/.test(type)
+        /img|input|textarea/.test(type)
           ? undefined
           : _children.length
           ? _children

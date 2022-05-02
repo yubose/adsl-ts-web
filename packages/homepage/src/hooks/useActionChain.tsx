@@ -11,13 +11,14 @@ import {
   createActionChain as nuiCreateActionChain,
 } from 'noodl-ui'
 import type { NUIActionObject, NUIActionChain, NUITrigger } from 'noodl-ui'
-import useBuiltInFns from '@/hooks/useBuiltInFns'
-import isBuiltInEvalFn from '@/utils/isBuiltInEvalFn'
-import useCtx from '@/useCtx'
 import deref from '@/utils/deref'
-import { usePageCtx } from '@/components/PageContext'
 import is from '@/utils/is'
+import isBuiltInEvalFn from '@/utils/isBuiltInEvalFn'
 import log from '@/utils/log'
+import useBuiltInFns from '@/hooks/useBuiltInFns'
+import useCtx from '@/useCtx'
+import { createDraft, finishDraft } from '@/utils/immer'
+import { usePageCtx } from '@/components/PageContext'
 import * as c from '../constants'
 import * as t from '@/types'
 
@@ -29,7 +30,6 @@ export interface ExecuteArgs {
   component?: t.StaticComponentObject
   dataObject?: any
   event?: React.SyntheticEvent
-  from?: 'evalObject' | 'goto' | 'if'
   trigger?: NUITrigger | ''
 }
 
@@ -147,13 +147,7 @@ function useActionChain() {
       } & { builtInArgs?: any },
   ) => {
     try {
-      const result = await handleBuiltInFn(builtInKey, {
-        actionChain: args.actionChain,
-        dataObject: args.dataObject,
-        ...args,
-        ...builtInArgs,
-      })
-      return result
+      return handleBuiltInFn(builtInKey, { ...args, ...builtInArgs })
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       throw err
@@ -226,7 +220,6 @@ function useActionChain() {
         const result = await wrapWithHelpers(args.onExecuteAction)({
           ...args,
           action: object,
-          from: 'evalObject',
         })
         results.push(result)
       }
@@ -261,7 +254,6 @@ function useActionChain() {
           const result = await executeEvalBuiltIn(key, {
             ...args,
             ...cond[key],
-            from: 'if',
           })
           value = result ? truthy : falsy
         }
@@ -270,11 +262,7 @@ function useActionChain() {
           return value
         } else if (u.isStr(value)) {
           if (is.reference(value)) {
-            value = await executeStr?.(value, {
-              ...args,
-              action: value,
-              from: 'if',
-            })
+            value = await executeStr?.(value, { ...args, action: value })
           }
         } else if (u.isBool(value)) {
           value = value ? truthy : falsy
@@ -297,12 +285,8 @@ function useActionChain() {
             }
           } else {
             value = await wrapWithHelpers(args.onExecuteAction)({
+              ...args,
               action: value,
-              actionChain: args.actionChain,
-              component: args.component,
-              event: args.event,
-              from: 'if',
-              trigger: args.trigger,
             })
           }
         }
@@ -325,7 +309,6 @@ function useActionChain() {
     React.useMemo(() => {
       {
         const action = createAction({ action: emitObject, trigger })
-
         const dataObject =
           pageCtx.getDataObject(
             component,
@@ -338,56 +321,56 @@ function useActionChain() {
             action.dataKey = dataObject
           } else if (u.isObj(action.dataKey)) {
             const iteratorVar = pageCtx.getIteratorVar(component)
-            action.dataKey = u.reduce(
-              u.entries(action.dataKey),
-              (acc, [key, value]) => {
-                if (iteratorVar) {
-                  if (value === iteratorVar) {
-                    acc[key] = dataObject
-                  } else {
-                    acc[key] = get(
-                      iteratorVar,
-                      `${excludeIteratorVar(value, iteratorVar)}`,
-                    )
-                  }
-                } else {
-                  acc[key] = get(dataObject, value)
-                }
-                return acc
-              },
+            action.dataKey = u.entries(action.dataKey).reduce(
+              (acc, [key, value]) =>
+                u.assign(acc, {
+                  [key]: iteratorVar
+                    ? value === iteratorVar
+                      ? dataObject
+                      : get(
+                          iteratorVar,
+                          `${excludeIteratorVar(value, iteratorVar)}`,
+                        )
+                    : get(dataObject, value),
+                }),
               {},
             )
           }
 
+          /**
+           * Beginning of actionChain.execute()
+           */
           action.executor = (function (actions: any[] = [], dataObject) {
             return async function onExecuteEmitAction(
               event: React.SyntheticEvent,
             ) {
+              let draftedActionObject: any
+              let results = [] as any[]
+
               try {
-                const results = [] as any[]
-
-                try {
-                  for (const actionObject of actions) {
-                    const result = await execute({
-                      action: actionObject,
-                      actionChain,
-                      component,
+                for (const actionObject of actions) {
+                  draftedActionObject = createDraft(actionObject)
+                  const result = await execute({
+                    action: deref({
                       dataObject,
-                      event,
-                      trigger,
-                    })
-
-                    if (result === 'abort') {
-                      results.push('abort')
-                      action.abort('Received abort')
-                      await actionChain.abort()
-                      return 'abort'
-                    } else results.push(result)
-                  }
-                } catch (error) {
-                  const err =
-                    error instanceof Error ? error : new Error(String(error))
-                  log.error(`%c[${err.name}] ${err.message}`, err)
+                      iteratorVar: component?.iteratorVar,
+                      ref: draftedActionObject,
+                      root: getRootDraftOrRoot(actionChain),
+                      rootKey: pageCtx.name,
+                    }),
+                    actionChain,
+                    component,
+                    dataObject,
+                    trigger,
+                  })
+                  finishDraft(draftedActionObject)
+                  draftedActionObject = undefined
+                  if (result === 'abort') {
+                    results.push('abort')
+                    action.abort('Received abort')
+                    await actionChain.abort()
+                    return 'abort'
+                  } else results.push(result)
                 }
 
                 return results
@@ -395,6 +378,8 @@ function useActionChain() {
                 log.error(
                   error instanceof Error ? error : new Error(String(error)),
                 )
+              } finally {
+                if (draftedActionObject) finishDraft(draftedActionObject)
               }
             }
           })(emitObject.emit.actions, dataObject)
@@ -430,31 +415,20 @@ function useActionChain() {
   const execute = React.useMemo(
     () =>
       wrapWithHelpers(async function onExecuteAction(options, utils) {
-        const {
-          action: obj,
-          actionChain,
-          component,
-          dataObject,
-          event,
-          from,
-          trigger = '',
-        } = options
+        const { action: obj, actionChain, dataObject } = options
+        const args = { ...options, ...utils, onExecuteAction }
+
         try {
           // TEMP sharing goto destinations and some strings as args
           if (u.isStr(obj)) {
-            const result = await executeStr(obj, { ...options, ...utils })
-            return result
+            return executeStr(obj, args)
           } else if (u.isObj(obj)) {
             // { goto: "SignIn" }
             if (is.goto(obj)) {
               let destination = obj.goto
               if (u.isObj(destination)) destination = destination.goto
               if (u.isStr(destination)) {
-                return executeStr(destination, {
-                  ...options,
-                  ...utils,
-                  action: destination,
-                })
+                return executeStr(destination, { ...args, action: destination })
               } else {
                 throw new Error(`Goto destination was not a string`)
               }
@@ -468,46 +442,22 @@ function useActionChain() {
             else if (is.folds.emit(obj)) {
               debugger
             }
-            // // { actionType: 'evalObject', object: [...] }
+            // { actionType: 'evalObject', object: [...] }
             else if (is.action.evalObject(obj)) {
-              const result = await executeEvalObject(obj, {
-                ...options,
-                ...utils,
-                action: obj,
-                actionChain,
-                component,
-                dataObject,
-                event,
-                trigger,
-                onExecuteAction,
-              })
-              return result
+              return executeEvalObject(obj, args)
             }
             // { if: [...] }
             else if (is.folds.if(obj)) {
-              const result = await executeIf(obj, {
-                action: obj,
-                actionChain,
-                component,
-                dataObject,
-                event,
-                from: 'if',
-                onExecuteAction,
-                trigger,
-                ...utils,
-              })
-              return result
+              // @ts-expect-error
+              return executeIf(obj, args)
             }
             // { actionType: 'popUp', popUpView: 'myPopUp', wait: true }
             else if (
               [is.action.popUp, is.action.popUpDismiss].some((fn) => fn(obj))
             ) {
-              // TODO - Dismiss on touch outside
-              // TODO - Wait
               const el = document.querySelector(
                 `[data-viewtag=${obj.popUpView}]`,
               ) as HTMLElement
-
               if (el) {
                 el.style.visibility =
                   obj.actionType === 'popUpDismiss' ? 'hidden' : 'visible'
@@ -524,19 +474,15 @@ function useActionChain() {
               let keys = u.keys(obj)
               let isAwaiting = false
               let result: any
+              let args = { actionChain, dataObject }
 
               if (keys.length === 1) {
                 const key = keys[0] as string
-
                 // { "=.builtIn.string.equal": { ...} }
                 if (isBuiltInEvalFn(obj)) {
-                  result = await handleBuiltInFn(key, {
-                    actionChain,
-                    dataObject,
-                    ...obj[key],
-                  })
+                  result = await handleBuiltInFn(key, { ...args, ...obj[key] })
                 } else {
-                  let awaitKey
+                  let awaitKey: string
                   let isLocal = true
                   let value = obj[key]
                   let rootDraft = getRootDraftOrRoot(actionChain)
@@ -547,34 +493,22 @@ function useActionChain() {
                     if (isAwaiting) awaitKey = key
                   }
 
-                  if (u.isStr(value)) {
-                    if (is.reference(value)) {
-                      const dataPath = toDataPath(trimReference(value))
-                      if (is.localReference(value)) {
-                        dataPath.unshift(pageCtx.name)
-                      }
-                      value = get(rootDraft, dataPath)
-                    }
+                  if (u.isStr(value) && is.reference(value)) {
+                    const dataPath = toDataPath(trimReference(value))
+                    if (is.localReference(value)) dataPath.unshift(pageCtx.name)
+                    value = get(rootDraft, dataPath)
                   }
 
                   if (isAwaiting) {
-                    let dataPath = toDataPath(trimReference(key)).filter(
-                      Boolean,
-                    )
+                    const path = toDataPath(trimReference(key)).filter(Boolean)
                     if (isLocal) {
-                      if (pageCtx.name && dataPath[0] !== pageCtx.name) {
-                        dataPath.unshift(pageCtx.name)
+                      if (pageCtx.name && path[0] !== pageCtx.name) {
+                        path.unshift(pageCtx.name)
                       }
-                      let valueAwaiting = obj[key]
-
-                      if (is.reference(valueAwaiting)) {
-                        valueAwaiting = get(rootDraft, dataPath.join('.'))
-                      }
-
-                      set(rootDraft, dataPath, valueAwaiting)
-                    } else {
-                      log.error('DEBUG THIS PART IF U SEE THIS')
-                      set(rootDraft, toDataPath(trimReference(key)), value)
+                      const valueAwaiting = is.reference(obj[key])
+                        ? get(rootDraft, path.join('.'))
+                        : obj[key]
+                      set(rootDraft, path, valueAwaiting)
                     }
                   } else {
                     result = value
@@ -587,13 +521,11 @@ function useActionChain() {
                   obj,
                 )
               }
-
               return result
             }
           }
         } catch (error) {
-          const err = error instanceof Error ? error : new Error(String(error))
-          log.error(err)
+          log.error(error instanceof Error ? error : new Error(String(error)))
         }
       }),
     [handleBuiltInFn, isBuiltInEvalFn, getR, setR, pageCtx, root],
@@ -606,75 +538,31 @@ function useActionChain() {
       actions?: NUIActionObject | NUIActionObject[],
     ) => {
       {
-        !u.isArr(actions) && (actions = [actions])
+        if (!u.isArr(actions)) actions = [actions]
 
         const loadActions = (
-          component: Partial<t.StaticComponentObject>,
+          component: t.StaticComponentObject,
           actionObjects: nt.ActionObject[],
-        ) => {
-          return actionObjects.map((obj) => {
+        ) =>
+          actionObjects.map((obj) => {
             if (is.folds.emit(obj)) {
               return createEmit(actionChain, component, trigger, obj)
             }
-
             const nuiAction = createAction({ action: obj, trigger })
-
-            nuiAction.executor = async function onExecuteAction(
-              event: React.SyntheticEvent,
-            ) {
-              const result = await execute({
-                action: obj,
-                actionChain,
-                component,
-                event,
-                trigger,
-              })
-
-              if (result) {
-                log.debug(
-                  `%c[${nuiAction.actionType}]${
-                    is.action.builtIn(obj) ? ` ${obj.funcName}` : ''
-                  } Execute result`,
-                  `color:#ee36df;`,
-                  result,
-                )
-              }
-            }
-
+            nuiAction.executor = execute.bind(null, {
+              action: obj,
+              actionChain,
+              component,
+              trigger,
+            })
             return nuiAction
           })
-        }
 
         const actionChain = nuiCreateActionChain(
           trigger,
           actions,
           partial(loadActions, component),
         )
-
-        const getArgs = function (args: IArguments | any[]) {
-          if (args.length) {
-            args = Array.from(args).filter(Boolean)
-            return args.length ? args : ''
-          }
-          return ''
-        }
-
-        actionChain.use({
-          onExecuteStart(this: NUIActionChain) {
-            log.debug(
-              `%c[${trigger}-onExecuteStart] ${actionChain.id}`,
-              `color:skyblue`,
-              getArgs(arguments),
-            )
-          },
-          onExecuteEnd(this: NUIActionChain) {
-            log.debug(
-              `%c[${trigger}-onExecuteEnd] ${actionChain.id}`,
-              `color:skyblue`,
-              this && this.snapshot(),
-            )
-          },
-        })
 
         actionChain.loadQueue()
         return actionChain
