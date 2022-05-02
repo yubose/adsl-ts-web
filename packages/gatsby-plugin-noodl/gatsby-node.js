@@ -766,7 +766,7 @@ exports.createPages = async function createPages(args) {
       errors,
     } = await graphql(`
       {
-        allNoodlPage(filter: { isPreload: { eq: false } }) {
+        allNoodlPage {
           nodes {
             name
             content
