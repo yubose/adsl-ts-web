@@ -1,10 +1,11 @@
 import NoodlObject from './Object'
 
-class Action extends NoodlObject {
-  create(actionType: string) {
-    super.createProperty('actionType', actionType)
-    return this
+class ActionBuilder {
+  create(actionType?: string) {
+    const action = new NoodlObject()
+    if (actionType) action.createProperty('actionType', actionType)
+    return action
   }
 }
 
-export default Action
+export default ActionBuilder

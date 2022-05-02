@@ -12,6 +12,54 @@ import type { NormalizePropsContext } from './types'
 import * as com from './utils/common'
 import * as s from './utils/style'
 
+export interface ParseOptions<
+  Props extends Record<string, any> = Record<string, any>,
+> {
+  /**
+   * Any data needed to render/parse components
+   */
+  context?: NormalizePropsContext
+  /**
+   * If true, styles like fontSize will be converted to <number>vw or <number>vh if given the format
+   */
+  keepVpUnit?: boolean
+  /**
+   * A custom function called when resolving traversal references (ex: ___.viewTag).
+   *
+   * When resolving traversal referencies, if no function is provided then undefined will be returned
+   */
+  getParent?: (opts: {
+    props: Record<string, any>
+    blueprint: Partial<Props>
+    context: NormalizePropsContext
+    op?: 'traverse' | undefined
+    opArgs?: Record<string, any>
+  }) => any
+  getHelpers?: (opts?: Record<string, any>) => {
+    props: Record<string, any>
+    getParent?: any
+    blueprint: Partial<Props>
+    context: NormalizePropsContext
+    root: Record<string, any> | (() => Record<string, any>)
+    rootKey: string
+  }
+  /**
+   * Current page. If retrieving local root references, it will use this variable
+   * as the local root key
+   */
+  pageName?: string
+  /**
+   * The root object or a function that returns the root object. This will
+   * be used to cross-reference other page objects if needed
+   */
+  root?: Record<string, any> | (() => Record<string, any>)
+  /**
+   * A viewport containing the width/height.
+   * This will be used to resolve the positioning/sizes of component styles
+   */
+  viewport?: NuiViewport | { width: number; height: number }
+}
+
 /**
  *
  * Normalizes + parses a component object for browsers to consume
@@ -24,9 +72,40 @@ import * as s from './utils/style'
  */
 
 function parse<Props extends Record<string, any> = Record<string, any>>(
+  blueprint: Partial<Props>,
+  parseOptions: ParseOptions<Props>,
+): any
+
+function parse<Props extends Record<string, any> = Record<string, any>>(
+  props: Record<string, any>,
+  blueprint: Partial<Props>,
+  parseOptions: ParseOptions<Props>,
+): any
+
+function parse<Props extends Record<string, any> = Record<string, any>>(
   props: Record<string, any> = { style: {} },
   blueprint: Partial<Props> = {},
-  {
+  parseOptions: ParseOptions<Props> = {},
+) {
+  if (u.isUnd(parseOptions)) {
+    parseOptions = blueprint as ParseOptions<Props>
+    blueprint = props
+    props = {}
+    return parse(props, blueprint, {
+      ...parseOptions,
+      getHelpers: (opts) => ({
+        blueprint,
+        context: context || {},
+        getParent: parseOptions?.getParent,
+        props,
+        root: parseOptions?.root || {},
+        rootKey: parseOptions?.pageName || '',
+        ...opts,
+      }),
+    })
+  }
+
+  const {
     context,
     getParent,
     getHelpers,
@@ -34,52 +113,8 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
     pageName = '',
     root = {},
     viewport,
-  }: {
-    /**
-     * Any data needed to render/parse components
-     */
-    context?: NormalizePropsContext
-    /**
-     * If true, styles like fontSize will be converted to <number>vw or <number>vh if given the format
-     */
-    keepVpUnit?: boolean
-    /**
-     * A custom function called when resolving traversal references (ex: ___.viewTag).
-     *
-     * When resolving traversal referencies, if no function is provided then undefined will be returned
-     */
-    getParent?: (opts: {
-      props: Record<string, any>
-      blueprint: Partial<Props>
-      context: NormalizePropsContext
-      op?: 'traverse' | undefined
-      opArgs?: Record<string, any>
-    }) => any
-    getHelpers?: (opts?: Record<string, any>) => {
-      props: Record<string, any>
-      getParent?: any
-      blueprint: Partial<Props>
-      context: NormalizePropsContext
-      root: Record<string, any> | (() => Record<string, any>)
-      rootKey: string
-    }
-    /**
-     * Current page. If retrieving local root references, it will use this variable
-     * as the local root key
-     */
-    pageName?: string
-    /**
-     * The root object or a function that returns the root object. This will
-     * be used to cross-reference other page objects if needed
-     */
-    root?: Record<string, any> | (() => Record<string, any>)
-    /**
-     * A viewport containing the width/height.
-     * This will be used to resolve the positioning/sizes of component styles
-     */
-    viewport?: NuiViewport | { width: number; height: number }
-  } = {},
-) {
+  } = parseOptions
+
   if (!u.isFnc(getHelpers)) {
     return parse(props, blueprint, {
       ...arguments[2],
@@ -94,6 +129,7 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
       }),
     })
   }
+
   if (props && !props.style) props.style = {}
 
   if (u.isObj(blueprint?.style)) {

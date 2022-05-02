@@ -30,9 +30,9 @@ class Builder {
     return action
   }
 
-  component(type: string) {
+  component<O extends Record<string, any> = Record<string, any>>(type: string) {
     const component = this.#component.create(type)
-    return component
+    return component as NoodlObject<O>
   }
 
   ecosDoc(preset?: EcosDocPreset) {
@@ -41,14 +41,14 @@ class Builder {
     return ecosDoc
   }
 
-  array() {
+  array<A extends any[] = any[]>() {
     const array = new this.#array()
-    return array
+    return array as NoodlArray<A>
   }
 
-  object() {
+  object<O extends Record<string, any> = Record<string, any>>() {
     const object = new this.#object()
-    return object
+    return object as NoodlObject<O>
   }
 
   page(name: string) {

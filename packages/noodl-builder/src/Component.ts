@@ -1,4 +1,3 @@
-import type { ComponentObject } from 'noodl-types'
 import NoodlObject from './Object'
 
 class ComponentBuilder {

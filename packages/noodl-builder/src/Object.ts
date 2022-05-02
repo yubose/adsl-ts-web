@@ -10,7 +10,7 @@ import { nkey } from './constants'
 import type { INoodlValue } from './types'
 import * as fp from './utils'
 
-class NoodlObject
+class NoodlObject<O extends Record<string, any> = Record<string, any>>
   extends NoodlBase
   implements INoodlValue<Record<string, any>>
 {
@@ -132,7 +132,7 @@ class NoodlObject
     return (is.node(value) ? String(value.getValue()) : String(value)) as string
   }
 
-  build() {
+  build(): O {
     const result = {} as Record<string, any>
 
     for (const [property, value] of this.#value) {
@@ -151,7 +151,7 @@ class NoodlObject
     return result
   }
 
-  toJSON() {
+  toJSON(): O {
     return this.build()
   }
 }

@@ -8,7 +8,7 @@ import { nkey } from './constants'
 import type { Path } from './types'
 import * as fp from './utils'
 
-class NoodlArray extends NoodlBase {
+class NoodlArray<A extends any[] = any[]> extends NoodlBase {
   #value = [] as any[];
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
@@ -99,12 +99,12 @@ class NoodlArray extends NoodlBase {
   }
 
   build() {
-    return this.#value.map(unwrap)
+    return this.#value.map(unwrap) as A
   }
 
   toJSON() {
     return {
-      value: this.build(),
+      value: this.build() as A,
     }
   }
 }

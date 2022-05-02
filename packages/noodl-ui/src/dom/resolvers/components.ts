@@ -44,11 +44,13 @@ const componentsResolver: t.Resolve.Config = {
         ) as ComponentPage
         if (componentPage) {
           if (componentPage.node !== args.node) {
+            // TODO - Do we need this?
             const currentStyles = copyStyles(args.node)
             componentPage.replaceNode(args.node as HTMLIFrameElement)
             args.node = componentPage.node
             args.node.style.width = 'inherit'
             args.node.style.height = 'inherit'
+            // TODO - Do we need this?
             applyStyles(args.node, currentStyles)
           }
         }

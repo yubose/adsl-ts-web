@@ -30,5 +30,5 @@
     "types": "tsc --declaration --emitDeclarationOnly --declarationDir dist --skipLibCheck --esModuleInterop"
   },
   "types": "dist/index.d.ts",
-  "version": "0.0.1"
+  "version": "0.0.2"
 }
