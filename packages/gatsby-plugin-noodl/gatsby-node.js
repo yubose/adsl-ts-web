@@ -581,16 +581,13 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
     },
   })
 
-  // TODO - Link src/pages/index.tsx to load using this as a source
-  _startPage = (sdk.cadlEndpoint || {}).startPage
   _assetsUrl = sdk.assetsUrl
   _baseUrl = sdk.baseUrl
+  _sdkCache = sdkCache
+  _startPage = (sdk.cadlEndpoint || {}).startPage
 
-  // TODO - Figure out a way to pre-generate component dimensions using the runtime/client's viewport
   page.viewport.width = viewport.width
   page.viewport.height = viewport.height
-
-  _sdkCache = sdkCache
 
   /**
    * Transform parsed json components from lvl3 to Component instances in noodl-ui so the props can be consumed in expected formats in the UI
@@ -599,7 +596,6 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
    */
   async function generateComponents(pageName, componentObjects) {
     const resolvedPageComponents = []
-
     /**
      * @param { nt.ComponentObject | nt.ComponentObject[] } value
      * @returns { Promise<import('./generator').NuiComponent[] }

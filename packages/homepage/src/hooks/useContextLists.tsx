@@ -7,7 +7,7 @@ import * as t from '@/types'
 export type IdOrComponentArg = string | t.StaticComponentObject
 
 function useContextLists(listsMap: t.PageContext['lists']) {
-  const lists = React.useMemo(() => Object.values(listsMap), [listsMap])
+  const lists = React.useMemo(() => Object.values(listsMap || {}), [listsMap])
 
   const getId = React.useCallback((id: IdOrComponentArg): string => {
     return u.isStr(id) ? id : id?.id || ''

@@ -1,10 +1,44 @@
-April 15, 2022
+## Building the Static Web App (Homepage) - _Last Updated 05/02/22_
 
-# build static page.
+If `npm install` was never run (or if packages was not installed) you can _skip to_ _Step 2_
+
+1. `lerna exec --scope homepage \"gatsby clean\" && lerna clean && rm -rf node_modules package-lock.json"
+2. `npm install -f`
+3. `lerna exec --scope homepage npm run build` (or go to the folder by doing `cd packages/homepage && npm run build`)
+   - It will fail the first time showing this error: `TypeError: 'addEventListener' called on an object that is not a valid instance of EventTarget` just re-run `lerna exec --scope homepage npm run build` one more time
+4. The static app will be built to: `./packages/homepage/public`. The files in this folder are the files we upload to an s3 bucket
+5. To upload to s3 go to the `public` folder (`cd packages/homepage/public` or `cd ./public` if you are in the homepage folder)
+6. Run `aws s3 sync . s3://public.aitmed.com/static/www/4.06.x/`
+7. Go to AWS CloudFront and update the resource path
+
+The app will be built using config `www` by default. To build with a different config like `mob.yml` pass `CONFIG=mob` to env variables when running `npm run build`
+
+Example:
+
+On Mac:
+
+```bash
+lerna exec --scope homepage \"CONFIG=mob npm run build\""
+```
+
+or
+
+```bash
+export CONFIG=mob
+lerna exec --scope homepage \"npm run build\""
+```
+
+On Windows:
+
+```bash
+lerna exec --scope homepage \"set CONFIG=mob && npm run build\""
+```
+
+April 15, 2022
 
 # right now, we are only able to build static page if the noodl file set does not contain dynamic info retrieved from backend.
 
-1. lerna clean
+<!-- 1. lerna clean
 2. rm -rf node_module
 3. npm install
 4. cd packages/homepage
@@ -13,23 +47,21 @@ April 15, 2022
 7. cd public
 8. aws s3 sync . s3://public.aitmed.com/static/www/4.06.x/
 9. go to aws cloudFront update the resource path.
-   k
-
-# AiTmed NOODL Web
+   k -->
 
 ## Steps to update the @aitmed/cadl eCOS package to latest version
 
-- npm install @aitmed/cadl@latest
-- git add .
-- git commit -a -m "update aitmed sdk"
-- git push
+- `npm install @aitmed/cadl@latest -f`
+- `git add .`
+- `git commit -a -m "updated aitmed sdk"`
+- `git push`
 
 ## Install order in precedence to ensure build succeeds
 
-1. noodl-types
-2. noodl-utils + noodl-action-chain
-3. noodl-ui-test-utils
-4. noodl-ui + noodl-ui-dom
+1. `noodl-types`
+2. `noodl-utils` + `noodl-action-chain`
+3. `noodl-ui-test-utils`
+4. `noodl-ui` + `noodl-ui-dom`
 
 ## Correct link to GitLab
 
