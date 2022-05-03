@@ -266,7 +266,9 @@ export function isOldConfig<C extends nt.RootConfig & Record<string, any>>({
 }
 
 export function isOutboundLink(s: string | undefined = '') {
-  return s.startsWith('www.') || /https?:\/\//.test(s)
+  return (
+    typeof s === 'string' && (s.startsWith('www.') || /https?:\/\//.test(s))
+  )
 }
 
 export function isRootDataKey(dataKey: string | undefined) {
