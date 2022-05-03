@@ -1,7 +1,37 @@
 const u = require('@jsmanifest/utils')
 const { NUI, Transformer } = require('noodl-ui')
+const monkeyPatchEventListener = require('./monkeyPatchEventListener')
 
 u.newline()
+
+// Patches the EventTarget so we can sandbox the sdk
+monkeyPatchEventListener({
+  /**
+   * Proxy the addEventListener and removeEventListener to the JSDOM events so lvl3 doesn't give the IllegalInvocation error from mismatching instance shapes
+   */
+  onPatch: u.reduce(
+    ['addEventListener', 'removeEventListener'],
+    (acc, evtName) => {
+      /**
+       * @argument { object } args
+       * @param { boolean } args.wasPatched
+       */
+      acc[evtName] = function onPatch({ wasPatched } = {}) {
+        let label = ''
+        label += u.yellow('EventTarget')
+        label += u.magenta('#')
+        label += u.white(evtName)
+        if (wasPatched) {
+          console.info(`${u.cyan(`${label} is already patched.`)}`)
+        } else {
+          console.info(`${u.cyan(`${label}`)} ${u.green('patched!')}`)
+        }
+      }
+      return acc
+    },
+    {},
+  ),
+})
 
 // eslint-disable-next-line
 require('jsdom-global')('', {
