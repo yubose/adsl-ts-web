@@ -1,11 +1,10 @@
-## Building the Static Web App (Homepage) - _Last Updated 05/02/22_
+## Building the Static Web App (Homepage) - _Last Updated 05/03/22_
 
 If `npm install` was never run (or if packages was not installed) you can _skip to_ _Step 2_
 
-1. `lerna exec --scope homepage \"gatsby clean\" && lerna clean && rm -rf node_modules package-lock.json"
+1. `lerna exec --scope homepage \"gatsby clean\" && lerna clean && rm -rf node_modules package-lock.json`
 2. `npm install -f`
 3. `lerna exec --scope homepage npm run build` (or go to the folder by doing `cd packages/homepage && npm run build`)
-   - It will fail the first time showing this error: `TypeError: 'addEventListener' called on an object that is not a valid instance of EventTarget` just re-run `lerna exec --scope homepage npm run build` one more time
 4. The static app will be built to: `./packages/homepage/public`. The files in this folder are the files we upload to an s3 bucket
 5. To upload to s3 go to the `public` folder (`cd packages/homepage/public` or `cd ./public` if you are in the homepage folder)
 6. Run `aws s3 sync . s3://public.aitmed.com/static/www/4.06.x/`
@@ -18,25 +17,25 @@ The app will be built using config `www` by default. To build with a different c
 On Mac:
 
 ```bash
-lerna exec --scope homepage \"CONFIG=mob npm run build\""
+lerna exec --scope homepage \"CONFIG=mob npm run build\"
 ```
 
 or
 
 ```bash
 export CONFIG=mob
-lerna exec --scope homepage \"npm run build\""
+lerna exec --scope homepage \"npm run build\"
 ```
 
 On Windows:
 
 ```bash
-lerna exec --scope homepage \"set CONFIG=mob && npm run build\""
+lerna exec --scope homepage \"set CONFIG=mob && npm run build\"
 ```
 
-April 15, 2022
+<!-- April 15, 2022 -- -->
 
-# right now, we are only able to build static page if the noodl file set does not contain dynamic info retrieved from backend.
+<!-- # right now, we are only able to build static page if the noodl file set does not contain dynamic info retrieved from backend. -->
 
 <!-- 1. lerna clean
 2. rm -rf node_module

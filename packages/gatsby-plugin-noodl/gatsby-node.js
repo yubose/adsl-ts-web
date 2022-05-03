@@ -14,7 +14,6 @@ const path = require('path')
 const n = require('noodl')
 const y = require('yaml')
 const getGenerator = require('./generator')
-// const GatsbyPluginNoodlCache = require('./Cache')
 const utils = require('./utils')
 
 const DEFAULT_BUILD_SOURCE = 'remote'
@@ -35,8 +34,8 @@ log.setDefaultLevel(DEFAULT_LOG_LEVEL)
  * @typedef GatsbyNoodlPluginOptions
  * @type { import('./types').GatsbyNoodlPluginOptions }
  *
- * @typedef InternalData
- * @type { import('./types')['InternalData'] }
+ * @typedef GatsbyNoodlPluginPageContextMap
+ * @type { import('./types').InternalData.Context }
  */
 
 const BASE_CONFIG_URL = `https://public.aitmed.com/config/`
@@ -54,6 +53,7 @@ let _appKey = ''
 let _assetsUrl = ''
 let _baseUrl = ''
 let _buildSource = ''
+let _cacheDir = ''
 let _cwd = ''
 let _configKey = ''
 let _configUrl = ''
@@ -61,6 +61,10 @@ let _deviceType = ''
 let _loglevel = DEFAULT_LOG_LEVEL
 let _ecosEnv = ''
 let _startPage = ''
+let _viewport = {
+  width: DEFAULT_VIEWPORT_WIDTH,
+  height: DEFAULT_VIEWPORT_HEIGHT,
+}
 
 const _pages = {
   json: {},
@@ -85,9 +89,17 @@ const _preloadKeys = []
 /** @type { string[] } */
 const _pageKeys = []
 
-const _context_ = {
-  //
-}
+/** @type { GatsbyNoodlPluginPageContextMap } */
+const _context_ = {}
+
+/** @type { import('./types').DumpedMetadata } */
+const _dump = { paths: {} }
+
+/** @type { import('./types').DumpedMetadata['missingFiles'] } */
+const _missingFiles = { assets: {}, pages: {} }
+
+/** @type { import('./types').DumpedMetadata['paths']['cacheFiles'] } */
+const _cacheFiles = {}
 
 let isFileSystemOutput = false
 let resolvedAssetsDir = ''
@@ -95,44 +107,62 @@ let resolvedConfigsDir = ''
 let resolvedAppConfigFile = ''
 let resolvedOutputNamespacedWithConfig = ''
 
+const withoutCwd = (s) => {
+  if (u.isObj(s)) {
+    return u
+      .entries(s)
+      .reduce((acc, [k, v]) => u.assign(acc, { [k]: withoutCwd(v) }), {})
+  }
+  const str = String(s)
+  const indexPkgs = str.indexOf('/packages/')
+  if (indexPkgs > -1) return str.substring(indexPkgs)
+  return s
+}
+
 const getPageRefs = (pageName) => _sdkCache?.refs?.[pageName] || {}
 
+/**
+ * @param { opts:{ paths?: any } } args
+ * @returns { Promise<import('./types').DumpedMetadata> }
+ */
 const dumpMetadata = async ({ paths: pathsProp, ...other } = {}) => {
-  const withoutCwd = (s = '') => String(s).replace(_cwd, '')
-  await fs.writeJson(
-    path.join(_paths.output, './metadata.json'),
-    {
-      appKey: _appKey,
-      assetsUrl: _assetsUrl,
-      baseUrl: _baseUrl,
-      buildSource: _buildSource,
-      configKey: _configKey,
-      configUrl: _configUrl,
-      deviceType: _deviceType,
-      ecosEnv: _ecosEnv,
-      loglevel: _loglevel,
-      isFileSystemOutput,
-      startPage: _startPage,
-      ...other,
-      paths: {
-        cwd: _cwd,
-        output: withoutCwd(_paths.output),
-        resolvedAssetsDir: withoutCwd(resolvedAssetsDir),
-        resolvedConfigsDir: withoutCwd(resolvedConfigsDir),
-        resolvedAppConfigFile: withoutCwd(resolvedAppConfigFile),
-        resolvedOutputNamespacedWithConfig: withoutCwd(
-          resolvedOutputNamespacedWithConfig,
-        ),
-        src: withoutCwd(_paths.src),
-        template: withoutCwd(_paths.template),
-        ...u
-          .entries(pathsProp)
-          .reduce((acc, [k, v]) => u.assign(acc, { [k]: withoutCwd(v) }), {}),
-      },
-      timestamp: new Date().toLocaleString(),
+  const metadata = withoutCwd({
+    appKey: _appKey,
+    assetsUrl: _assetsUrl,
+    baseUrl: _baseUrl,
+    buildSource: _buildSource,
+    configKey: _configKey,
+    configUrl: _configUrl,
+    deviceType: _deviceType,
+    ecosEnv: _ecosEnv,
+    loglevel: _loglevel,
+    isFileSystemOutput,
+    startPage: _startPage,
+    missingFiles: _missingFiles,
+    ...other,
+    paths: {
+      cacheDir: _cacheDir,
+      cacheFiles: _cacheFiles,
+      cwd: _cwd,
+      output: _paths.output,
+      resolvedAssetsDir: resolvedAssetsDir,
+      resolvedConfigsDir: resolvedConfigsDir,
+      resolvedAppConfigFile: resolvedAppConfigFile,
+      resolvedOutputNamespacedWithConfig: resolvedOutputNamespacedWithConfig,
+      src: _paths.src,
+      template: _paths.template,
+      ...pathsProp,
     },
-    { spaces: 2 },
-  )
+    timestamp: new Date().toLocaleString(),
+    viewport: {
+      width: _viewport?.width,
+      height: _viewport?.height,
+    },
+  })
+  await fs.writeJson(path.join(_paths.output, './metadata.json'), metadata, {
+    spaces: 2,
+  })
+  return metadata
 }
 
 /**
@@ -153,11 +183,13 @@ exports.onPreInit = (_, pluginOpts) => {
     LOGLEVELS.includes(loglevel)
   ) {
     log.setLevel(loglevel)
+    _dump.loglevel = loglevel
   }
 
   for (const key of ['path', 'template']) {
     if (pluginOpts[key]) {
       pluginOpts[key] = utils.normalizePath(pluginOpts[key])
+      _dump.paths[key] = pluginOpts[key]
     }
   }
 }
@@ -171,6 +203,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   isFileSystemOutput = !!pluginOpts.paths?.output
 
   _buildSource = pluginOpts.buildSource || DEFAULT_BUILD_SOURCE
+  _cacheDir = args.cache.directory
   _cwd = pluginOpts.cwd || process.cwd()
   _configKey = pluginOpts.config || DEFAULT_CONFIG
   _configUrl = utils.ensureExt(`${BASE_CONFIG_URL}${_configKey}`, 'yml')
@@ -191,10 +224,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   debug(`Log level set to: ${yellow(_loglevel)}`)
   debug(`Template path: ${yellow(_paths.template)}`)
 
-  resolvedOutputNamespacedWithConfig = utils.getConfigDir(
-    _paths.output,
-    _configKey,
-  )
+  resolvedOutputNamespacedWithConfig = utils.getConfigDir(_configKey)
   resolvedAssetsDir = path.join(resolvedOutputNamespacedWithConfig, 'assets')
   resolvedConfigsDir = path.join(
     resolvedOutputNamespacedWithConfig,
@@ -208,11 +238,6 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   )
   debug(`Resolved assetsDir: ${yellow(resolvedAssetsDir)}`)
   debug(`Resolved configFile: ${yellow(resolvedConfigsDir)}`)
-
-  // TODO - Implementing build caching
-  // await cache.set('configKey', _configKey)
-  // await cache.set('configUrl', _configUrl)
-  // if (version && version !== 'latest') await cache.set('configVersion', version)
 
   if (isFileSystemOutput) {
     if (!fs.existsSync(_paths.output)) {
@@ -388,7 +413,6 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
   /** @type { { pageName: string; filename: string; filepath: string }[] } */
 
   const appKey = utils.removeExt(rootConfig.cadlMain, 'yml')
-  const missingFiles = []
   const allYmlPageNames =
     _loader.root[appKey]?.preload?.concat?.(_loader.root[appKey]?.page) || []
 
@@ -396,21 +420,25 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
     const filename = `${name}_en.yml`
     const filepath = path.join(resolvedOutputNamespacedWithConfig, filename)
     if (!fs.existsSync(filepath)) {
-      missingFiles.push({ pageName: name, filename, filepath })
+      _missingFiles.pages[name] = { filename, filepath, name }
     } else {
       loadTo_pages_(name, n.loadFile(filepath, 'json'))
     }
   })
 
   const baseUrl = _loader.appConfigUrl.replace('cadlEndpoint.yml', '')
+  const missingPageNames = u.keys(_missingFiles.pages)
 
-  debug(`Downloading ${yellow(missingFiles.length)} missing pages...`)
+  debug(`Downloading ${yellow(missingPageNames.length)} missing pages...`)
   debug(`Using this endpoint for missing files: ${yellow(baseUrl)}`)
 
   await Promise.all(
-    missingFiles.map(({ pageName, filename }) => {
+    missingPageNames.map((name) => {
       return new Promise((resolve) => {
+        const { filename = '', filepath = '' } = _missingFiles.pages[name] || {}
         const url = `${baseUrl}${filename}`
+        if (nt.Identify.reference(filename)) return
+        if (filename.startsWith('itemObject')) return
         try {
           const destination = path.join(
             resolvedOutputNamespacedWithConfig,
@@ -425,7 +453,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
               resolvedOutputNamespacedWithConfig,
             )
             .then((yml) => {
-              loadTo_pages_(pageName, y.parse(yml))
+              loadTo_pages_(name, y.parse(yml))
               resolve()
             })
         } catch (error) {
@@ -490,6 +518,13 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
 
         let url = `${_loader.appConfigUrl}`.replace('cadlEndpoint.yml', '')
         url += `assets/${filename}`
+        _missingFiles.assets[filename] = {
+          url,
+          filepath: path.join(
+            resolvedOutputNamespacedWithConfig,
+            `assets/${filename}`,
+          ),
+        }
 
         if (!fs.existsSync(assetFilePath)) {
           if (!isAssetLogged(url)) {
@@ -527,6 +562,8 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
       height: DEFAULT_VIEWPORT_HEIGHT,
     },
   } = pluginOpts
+
+  _viewport = viewport
 
   const {
     cache: sdkCache,
@@ -650,32 +687,24 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
    * Create GraphQL nodes for app pages so they can be queried in the client side
    */
   for (const [name, pageObject] of u.entries(pages)) {
-    let cachedComponents
-    let components
-    // let cachedObject = await cache.get(_configKey)
-    let pathToPageCacheDir = path.join(cacheDir, 'generated', name)
-    let pathToCachedComponentsFile = path.join(
-      pathToPageCacheDir,
-      'components.json',
-    )
-    let pathToCachedPageContextFile = path.join(
-      pathToPageCacheDir,
-      'context.json',
-    )
-    let retrieveType = ''
-
-    await fs.ensureDir(pathToPageCacheDir)
-
-    cachedComponents = fs.existsSync(pathToCachedComponentsFile)
-      ? require(pathToCachedComponentsFile)
-      : null
-
     page.page = name
 
+    const pageCacheDir = path.join(cacheDir, 'generated', name)
+    const cachedComponentsFilePath = path.join(pageCacheDir, 'components.json')
+    const pathToCachedPageContextFile = path.join(pageCacheDir, 'context.json')
+
+    _cacheFiles[name] = pageCacheDir
+
+    let components
+    let retrieveType = ''
+
+    await fs.ensureDir(pageCacheDir)
+
+    const cachedComponents = fs.existsSync(cachedComponentsFilePath)
+      ? require(cachedComponentsFilePath)
+      : null
+
     if (cachedComponents) {
-      console.log(
-        `${u.cyan(`Reusing cached components`)} for page ${u.yellow(name)}`,
-      )
       components = cachedComponents
       _context_[name] = {
         ..._context_[name],
@@ -687,7 +716,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
       components = u
         .array(await generateComponents(name, pageObject.components))
         .filter(Boolean)
-      await fs.writeJson(pathToCachedComponentsFile, components)
+      await fs.writeJson(cachedComponentsFilePath, components)
       // await fs.writeJson(pathToCachedPageContextFile, _context_[name])
       // await cache.set(_configKey, cachedObject)
       retrieveType = 'fresh'
@@ -862,7 +891,6 @@ exports.onCreatePage = async function onCreatePage(opts) {
         _pages.json?.[pageName]?.components ||
         _pages.json?.[pageName]?.components?.components ||
         [],
-
       slug,
     }
     info(`Home route '${cyan('/')}' is bound to ${yellow(pageName)}`)
@@ -870,3 +898,10 @@ exports.onCreatePage = async function onCreatePage(opts) {
     createPage(page)
   }
 }
+
+process.on('exit', (code) => {
+  // dumpMetadata()
+  log.error(
+    `[${u.cyan(`gatsby-plugin-noodl`)}] exited with code: ${u.yellow(code)}`,
+  )
+})

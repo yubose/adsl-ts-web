@@ -4,12 +4,6 @@ const fs = require('fs-extra')
 const path = require('path')
 
 /**
- * @typedef NuiComponentInstance
- * @type { import('noodl-ui').NuiComponent.Instance }
- */
-
-const getRelPath = (baseDir, ...s) => path.join(baseDir, ...s)
-/**
  * Replaces backlashes for windows support
  * @param { string } s
  * @returns { string }
@@ -41,81 +35,12 @@ async function downloadFile(log, url, filename, dir) {
   }
 }
 
-/**
- * @param { (key: string, value: any, parent: Record<string, any>, path: string[]) => void } cb
- */
-function makeTraverser(cb) {
-  /**
-   * @param { import('noodl-types').ComponentObject } bp
-   * @param { string[] } [componentPath]
-   */
-  return function traverse(bp, componentPath = []) {
-    if (u.isObj(bp)) {
-      const entries = u.entries(bp)
-      const numEntries = entries.length
-      for (let index = 0; index < numEntries; index++) {
-        const [key, value] = entries[index]
-        const nextPath = componentPath.concat(key)
-        cb(key, value, bp, nextPath)
-        traverse(value, nextPath)
-      }
-    } else if (u.isArr(bp)) {
-      bp.forEach((b, i) => traverse(b, componentPath.concat(i)))
-    }
-  }
-}
-
 function getConfigUrl(configKey = '') {
   return `https://public.aitmed.com/config/${ensureExt(configKey, 'yml')}`
 }
 
-/**
- *
- * @param { string } iteratorVar
- * @param { import('noodl-types').ComponentObject } component
- */
-function getListObjectMapping(iteratorVar, component, path = []) {
-  const mapping = {}
-
-  /**
-   * @param { Record<string, any> } obj
-   */
-  const mapProps = (obj, prefix = '', path = []) => {
-    if (!u.isObj(obj)) return {}
-    const mapped = {}
-
-    for (const [key, value] of u.entries(obj)) {
-      if (u.isStr(value) && value.startsWith(iteratorVar)) {
-        if (prefix) path = path.concat(prefix)
-        const currPath = path.concat(key).join('.')
-        mapped[currPath] = {
-          key,
-          path: currPath,
-          ref: value,
-        }
-      }
-    }
-
-    return mapped
-  }
-
-  if (iteratorVar && component) {
-    u.assign(mapping, mapProps(u.omit(component, 'style'), '', path))
-    u.assign(mapping, mapProps(component?.style, 'style', path))
-  }
-
-  component?.children?.forEach?.((child, index) =>
-    u.assign(
-      mapping,
-      getListObjectMapping(iteratorVar, child, path.concat('children', index)),
-    ),
-  )
-
-  return mapping
-}
-
 function configDirExists(baseDir, configKey) {
-  return fs.existsSync(getConfigDir(baseDir, configKey))
+  return fs.existsSync(getConfigDir(configKey))
 }
 
 function ensureExt(value = '', ext = 'yml') {
@@ -142,26 +67,8 @@ function getAssetFilePath(srcPath, filename) {
   return path.join(srcPath, `./${filename}`)
 }
 
-function getConfigDir(baseDir, configKey) {
-  return getRelPath(baseDir, removeExt(configKey, 'yml'))
-}
-
-/**
- * @param { NuiComponentInstance } parent
- * @param { NuiComponentInstance } child
- */
-function getPathToParent(parent, child) {
-  const _path = []
-  let currParent = child
-  while (currParent != null && currParent !== parent) {
-    currParent = currParent.parent
-    const index = currParent?.children?.indexOf?.(child)
-    if (u.isNum(index) && index > -1) {
-      _path.push('children', index)
-    }
-    currParent = currParent.parent
-  }
-  return _path
+function getConfigDir(configKey, cwd = process.cwd()) {
+  return path.join(cwd, 'output', removeExt(configKey, 'yml'))
 }
 
 const utils = {
@@ -173,47 +80,9 @@ const utils = {
   getConfigDir,
   getConfigUrl,
   getConfigVersion: (config, env = 'stable') => config?.web?.cadlVersion?.[env],
-  getListObjectMapping,
-  getPathToParent,
   normalizePath,
-  makeTraverser,
   removeExt,
   regex,
-  /**
-   * @argument { Record<'cadlBaseUrl' | 'cadlVersion' | 'designSuffix', string> } options
-   * @argument { any } value
-   */
-  replaceNoodlPlaceholders(options, value = '') {
-    const { cadlBaseUrl = '', cadlVersion = '', designSuffix = '' } = options
-
-    if (u.isStr(value)) {
-      if (cadlBaseUrl && regex.cadlBaseUrlPlaceholder.test(value)) {
-        value = value.replace(regex.cadlBaseUrlPlaceholder, cadlBaseUrl)
-      }
-      if (cadlVersion && regex.cadlVersionPlaceholder.test(value)) {
-        value = value.replace(regex.cadlVersionPlaceholder, cadlVersion)
-      }
-      if (designSuffix) {
-        if (
-          u.isStr(designSuffix) &&
-          regex.designSuffixPlaceholder.test(value)
-        ) {
-          value = value.replace(regex.designSuffixPlaceholder, designSuffix)
-        } else if (u.isObj(designSuffix)) {
-          value = ''
-        }
-      }
-    } else if (u.isArr(value)) {
-      return value.map((v) => this.replaceNoodlPlaceholders(options, v))
-    } else if (u.isObj(value)) {
-      return u.entries(value).reduce((acc, [k, v]) => {
-        acc[k] = this.replaceNoodlPlaceholders(options, v)
-        return acc
-      }, {})
-    }
-
-    return value
-  },
 }
 
 module.exports = utils

@@ -21,6 +21,7 @@
     "build:static": "cross-env NODE_ENV=production lerna exec --scope homepage npm run clean && lerna exec --scope homepage npm run build",
     "build:stable": "cross-env NODE_ENV=production DEPLOYING=true npm run build -- --env ECOS_ENV=stable --env DEPLOYING=true --env NODE_ENV=production",
     "build:test": "cross-env NODE_ENV=production npm run build -- --env ECOS_ENV=test --env DEPLOYING=true",
+    "clean": "cd packages/homepage && gatsby clean && cd ../.. && lerna clean --yes && rm -rf package-lock.json node_modules && npm i -f",
     "deploy:noodltest": "bash s3Deploy.sh build cadltest.aitmed.com",
     "deploy:stable": "bash s3Deploy.sh build",
     "deploy:test": "bash s3Deploy.sh build devtest.aitmed.com",
