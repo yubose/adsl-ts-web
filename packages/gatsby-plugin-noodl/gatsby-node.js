@@ -877,15 +877,14 @@ exports.onCreatePage = async function onCreatePage(opts) {
 
   // Binds homepage to startPage
   if (page.path === '/') {
-    const _ctx_ = get(_context_, 'name') || {}
     const oldPage = u.assign({}, page)
     const pageName = _startPage
     const slug = `/${pageName}/`
     page.context = {
       assetsUrl: _assetsUrl,
       baseUrl: _baseUrl,
-      lists: _ctx_.lists || {},
-      refs: _ctx_.refs || {},
+      lists: (get(_context_, pageName) || {})?.lists,
+      refs: getPageRefs(pageName) || {},
       name: pageName,
       components:
         _pages.json?.[pageName]?.components ||
