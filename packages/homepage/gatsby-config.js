@@ -94,6 +94,11 @@ module.exports = {
         //  "<outputPath>/<config>.introspection.json"
         // It will also dump a "metadata" file which is a snapshot of the internal key mappings it has collected from the plugin life cycle
         introspection: true,
+        /**
+         * If true it will dump a file with useful metadata about the most recent build
+         * The output file will be saved at <cwd>/output/metadata.json
+         */
+        metadata: true,
         paths: {
           // If we provide this assets will be downloaded to this path.
           // Doing this will enable us to cache images and references/use them statically which can allow fancy UX features like traced SVG placeholders without affecting performance or load times

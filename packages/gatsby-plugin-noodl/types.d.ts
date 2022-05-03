@@ -54,6 +54,11 @@ export interface GatsbyNoodlPluginOptions {
   cwd?: string
   deviceType?: 'web' | 'android' | 'ios'
   ecosEnv?: Env
+  /**
+   * Dumps a file with useful metadata about the most recent build
+   * The output file will be saved at <cwd>/output/metadata.json
+   */
+  metadata?: boolean
   loglevel?: 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn'
   paths?: {
     // assets?: string

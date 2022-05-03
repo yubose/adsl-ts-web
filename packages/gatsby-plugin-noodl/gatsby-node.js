@@ -793,6 +793,8 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
       pages,
       { spaces: 2 },
     )
+  }
+  if (pluginOpts.metadata) {
     await dumpMetadata()
   }
 }
