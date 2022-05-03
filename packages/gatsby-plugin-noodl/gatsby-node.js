@@ -167,6 +167,7 @@ exports.onPreInit = (_, pluginOpts) => {
  * @param { GatsbyNoodlPluginOptions } pluginOpts
  */
 exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
+  const cache = args.cache
   const outputPath = pluginOpts.paths?.output || DEFAULT_OUTPUT_PATH
   isFileSystemOutput = !!pluginOpts.paths?.output
 
@@ -519,7 +520,7 @@ exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
  * @param { GatsbyNoodlPluginOptions } pluginOpts
  */
 exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
-  const { actions, createContentDigest, createNodeId } = args
+  const { cache, actions, createContentDigest, createNodeId } = args
   const { createNode } = actions
   const {
     viewport = {
@@ -648,9 +649,35 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
    * Create GraphQL nodes for app pages so they can be queried in the client side
    */
   for (const [name, pageObject] of u.entries(pages)) {
+    let components
+    let cachedObject = (await cache.get(_configKey)) || {}
+    let retrieveType = ''
+
     page.page = name
-    const { components } = pageObject
-    pageObject.components = await generateComponents(name, components)
+
+    // if ([u.isArr,u.isObj].some((fn) => fn(cachedObject?.generated?.[name]?.components))) {
+    //   components = cachedObject.generated[name].components
+    //   retrieveType= 'cache'
+    // } else {
+    components = await generateComponents(name, pageObject.components)
+
+    set(
+      cachedObject,
+      `generated.${name}.components`,
+      components.map((comp) => comp.toJSON()),
+    )
+    await cache.set(_configKey, cachedObject)
+    retrieveType = 'fresh'
+    // }
+
+    if (components) {
+      //
+    } else {
+      log.error(
+        `Components could not be generated for page "${name}" using ${retrieveType}`,
+      )
+    }
+
     if (!_context_[name]) _context_[name] = {}
     _context_[name].refs = getPageRefs(name)
 

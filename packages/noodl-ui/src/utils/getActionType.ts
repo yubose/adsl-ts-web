@@ -8,11 +8,11 @@ function getActionType(obj: NUIActionObjectInput): NUIActionType {
     if (Identify.folds.emit(obj)) return 'emit'
     if (Identify.goto(obj) || Identify.folds.goto(obj)) return 'goto'
   }
-  log.error(
-    `%cUnknown actionType "${obj['actionType']}". It will be set to "anonymous"`,
-    `color:#ec0000;`,
-    obj,
-  )
+  // log.error(
+  //   `%cUnknown actionType "${obj['actionType']}"`,
+  //   `color:#ec0000;`,
+  //   obj,
+  // )
   return 'anonymous'
 }
 

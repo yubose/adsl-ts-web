@@ -43,6 +43,8 @@ require('jsdom-global')('', {
     global.localStorage = win.localStorage
     // eslint-disable-next-line
     localStorage = win.localStorage
+    // Silences the "getContext" is not implemented message during build
+    win.HTMLCanvasElement.prototype.getContext = () => ({})
   },
 })
 

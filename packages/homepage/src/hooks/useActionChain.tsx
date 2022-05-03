@@ -300,13 +300,13 @@ function useActionChain() {
     [],
   )
 
-  const createEmit = (
-    actionChain: NUIActionChain,
-    component: t.StaticComponentObject,
-    trigger: NUITrigger,
-    emitObject: nt.EmitObjectFold,
-  ) =>
-    React.useMemo(() => {
+  const createEmit = React.useCallback(
+    (
+      actionChain: NUIActionChain,
+      component: t.StaticComponentObject,
+      trigger: NUITrigger,
+      emitObject: nt.EmitObjectFold,
+    ) => {
       {
         const action = createAction({ action: emitObject, trigger })
         const dataObject =
@@ -389,7 +389,9 @@ function useActionChain() {
           // TODO
         }
       }
-    }, [pageCtx, root])
+    },
+    [pageCtx, root],
+  )
 
   /**
    * Wraps and provides helpers to the execute function as the 2nd argument
@@ -436,7 +438,7 @@ function useActionChain() {
             // { actionType: 'builtIn', funcName: 'redraw' }
             else if (is.action.builtIn(obj)) {
               const funcName = obj.funcName
-              log.debug(`[builtIn-${funcName}]`, obj)
+              log.debug(`%c[builtIn] ${funcName}`, 'color:hotpink', obj)
             }
             // { emit: { dataKey: {...}, actions: [...] } }
             else if (is.folds.emit(obj)) {

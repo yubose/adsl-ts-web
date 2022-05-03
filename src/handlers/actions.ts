@@ -158,9 +158,11 @@ const createActions = function createActions(app: App) {
             }
 
             if (u.isObj(result)) {
-              getActionObjectErrors(result).forEach((errMsg: string) =>
-                log.red(errMsg, result),
-              )
+              if (u.isBrowser()) {
+                getActionObjectErrors(result).forEach((errMsg: string) =>
+                  log.red(errMsg, result),
+                )
+              }
 
               if (result.abort) {
                 strategies.push({ type: 'abort-true', object: result })

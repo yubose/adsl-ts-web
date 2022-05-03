@@ -101,23 +101,23 @@ export const createNoodlPlaceholderReplacer = (function () {
 export function createEmitDataKey(
   dataKey: string | Record<string, any>,
   dataObject: t.QueryObj | t.QueryObj[],
-  opts?: { 
-    iteratorVar?: string,
-    listAttribute?: Record<string, any> | null,
+  opts?: {
+    iteratorVar?: string
+    listAttribute?: Record<string, any> | null
   },
-):any{
+): any {
   const iteratorVar = opts?.iteratorVar || ''
-  const listAttribute = opts?.listAttribute?opts?.listAttribute:{}
+  const listAttribute = opts?.listAttribute ? opts?.listAttribute : {}
   if (u.isStr(dataKey)) {
     return findDataValue(dataObject, excludeIteratorVar(dataKey, iteratorVar))
   } else if (u.isObj(dataKey)) {
     return Object.keys(dataKey).reduce((acc, property) => {
-      if(dataKey[property].startsWith('listAttr')){
+      if (dataKey[property].startsWith('listAttr')) {
         acc[property] = findDataValue(
           listAttribute,
           excludeIteratorVar(dataKey[property], 'listAttr'),
         )
-      }else{
+      } else {
         acc[property] = findDataValue(
           dataObject,
           excludeIteratorVar(dataKey[property], iteratorVar),
@@ -266,7 +266,7 @@ export function isOldConfig<C extends nt.RootConfig & Record<string, any>>({
 }
 
 export function isOutboundLink(s: string | undefined = '') {
-  return /https?:\/\//.test(s)
+  return s.startsWith('www.') || /https?:\/\//.test(s)
 }
 
 export function isRootDataKey(dataKey: string | undefined) {
