@@ -1,8 +1,9 @@
+const u = require('@jsmanifest/utils')
 const fs = require('fs-extra')
 const path = require('path')
 const babel = require('@babel/core')
 
-const { parse, traverse, types: t, transformFromAstAsync } = babel
+const { parse, traverse, types: t, transformFromAstSync } = babel
 
 /**
  * @typedef OnPatch}
@@ -30,9 +31,9 @@ function getPathToEventTargetFile() {
  * @param { OnPatch } opts.onPatch
  * @returns { Promise<{ components: NuiComponent.Instance[]; nui: typeof NUI }> }
  */
-async function monkeyPatchAddEventListener(opts) {
+function monkeyPatchAddEventListener(opts) {
   try {
-    const code = await fs.readFile(getPathToEventTargetFile(), 'utf8')
+    const code = fs.readFileSync(getPathToEventTargetFile(), 'utf8')
     const ast = parse(code)
 
     /**
@@ -129,8 +130,8 @@ async function monkeyPatchAddEventListener(opts) {
     })
 
     if (!eventListenersWerePatched) {
-      const result = await transformFromAstAsync(ast)
-      await fs.writeFile(getPathToEventTargetFile(), result.code, 'utf8')
+      const result = transformFromAstSync(ast)
+      fs.writeFileSync(getPathToEventTargetFile(), result.code, 'utf8')
       return result
     }
   } catch (error) {

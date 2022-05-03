@@ -536,33 +536,6 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
     transform,
   } = await getGenerator({
     configKey: _configKey,
-    on: {
-      /**
-       * Proxy the addEventListener and removeEventListener to the JSDOM events so lvl3 doesn't give the IllegalInvocation error from mismatching instance shapes
-       */
-      patch: u.reduce(
-        ['addEventListener', 'removeEventListener'],
-        (acc, evtName) => {
-          /**
-           * @argument { object } args
-           * @param { boolean } args.wasPatched
-           */
-          acc[evtName] = function onPatch({ wasPatched } = {}) {
-            let label = ''
-            label += yellow('EventTarget')
-            label += u.magenta('#')
-            label += u.white(evtName)
-            if (wasPatched) {
-              debug(`${label} is already patched.`)
-            } else {
-              debug(`${label} ${u.green('patched!')}`)
-            }
-          }
-          return acc
-        },
-        {},
-      ),
-    },
     use: {
       config: _loader?.getInRoot?.(_configKey),
       cadlEndpoint: _loader?.getInRoot?.(_loader.appKey),

@@ -1,11 +1,44 @@
 # `noodl-ui-test-utils`
 
-> TODO: description
+## Installation
+
+```bash
+npm install noodl-ui-test-utils
+```
 
 ## Usage
 
-```
-const noodlUiTestUtils = require('noodl-ui-test-utils');
+```js
+const ui = require('noodl-ui-test-utils')
 
-// TODO: DEMONSTRATE API
+const button = ui.button({
+  text: 'Submit',
+  onClick: [
+    ui.builtIn('redraw'),
+    ui.goto('SignIn'),
+    ui.evalObject({
+      object: [],
+    }),
+  ],
+})
+```
+
+```json
+{
+  "type": "button",
+  "text": "Submit",
+  "onClick": [
+    {
+      "actionType": "builtIn",
+      "funcName": "redraw"
+    },
+    {
+      "goto": "SignIn"
+    },
+    {
+      "actionType": "evalObject",
+      "object": []
+    }
+  ]
+}
 ```

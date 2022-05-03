@@ -1,7 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import type { NoodlObject } from 'noodl-builder'
-import { PartialDeep } from 'type-fest'
-import {
+import type { PartialDeep } from 'type-fest'
+import type {
   BuiltInActionObject,
   EcosDocument,
   EmitObjectFold,

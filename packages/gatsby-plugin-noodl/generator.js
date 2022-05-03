@@ -1,17 +1,50 @@
+const monkeyPatchAddEventListener = require('./monkeyPatchAddEventListener')
+const u = require('@jsmanifest/utils')
+const { NUI, Transformer } = require('noodl-ui')
+
+// Patches the EventTarget so we can sandbox the sdk
+monkeyPatchAddEventListener({
+  /**
+   * Proxy the addEventListener and removeEventListener to the JSDOM events so lvl3 doesn't give the IllegalInvocation error from mismatching instance shapes
+   */
+  onPatch: u.reduce(
+    ['addEventListener', 'removeEventListener'],
+    (acc, evtName) => {
+      /**
+       * @argument { object } args
+       * @param { boolean } args.wasPatched
+       */
+      acc[evtName] = function onPatch({ wasPatched } = {}) {
+        let label = ''
+        label += u.yellow('EventTarget')
+        label += u.magenta('#')
+        label += u.white(evtName)
+        if (wasPatched) {
+          console.info(`${u.cyan(`${label} is already patched.`)}`)
+        } else {
+          console.info(`${u.cyan(`${label}`)} ${u.green('patched!')}`)
+        }
+      }
+      return acc
+    },
+    {},
+  ),
+})
+
+u.newline()
+
 // eslint-disable-next-line
 require('jsdom-global')('', {
   resources: 'usable',
   runScripts: 'dangerously',
   url: `https://127.0.0.1:3001`,
   beforeParse: (win) => {
+    global.EventTarget = win.EventTarget
+    global.localStorage = win.localStorage
     // eslint-disable-next-line
-    localStorage = win.localStorage || global.localStorage
+    localStorage = win.localStorage
   },
 })
-
-const u = require('@jsmanifest/utils')
-const { NUI, Transformer } = require('noodl-ui')
-const monkeyPatchAddEventListener = require('./monkeyPatchAddEventListener')
 
 const nui = NUI
 
@@ -20,15 +53,9 @@ const nui = NUI
  * @typedef { import('noodl-ui').Page } NuiPage
  * @typedef { import('@babel/traverse').NodePath } NodePath
  *
- * @typedef { object } On
- * @property { import('./monkeyPatchAddEventListener').OnPatch } On.patch
- * @property { (args: { cache: import('@aitmed/cadl')['cache']; nui: import('noodl-ui').NUI, pageName: string, pageObject: nt.PageObject; sdk: import('@aitmed/cadl').CADL  }) => void } On.initPage
-
- *
  * @typedef Use
  * @property { nt.RootConfig } [Use.config]
  * @property { nt.AppConfig } [Use.appConfig]
- * @property { (component: import('noodl-ui').NUI.getBaseStyles) } [Use.getBaseStyles]
  * @property { import('loglevel') } [Use.log]
  * @property { Record<string, Record<string, Record<string, any>>> } [Use.preload]
  * @property { Record<string, Record<string, nt.PageObject>> } [Use.pages]
@@ -41,27 +68,15 @@ const nui = NUI
  * @param { string } [opts.configKey]
  * @param { string } [opts.ecosEnv]
  * @param { Use } [opts.use]
- * @param { On } [opts.on]
  * @returns { Promise<{ cache: import('@aitmed/cadl')['cache']; components: nt.ComponentObject[]; nui: typeof NUI; page: NuiPage; sdk: CADL; pages: Record<string, nt.PageObject>; transform: (componentProp: nt.ComponentObject, options: import('noodl-ui').ConsumerOptions) => Promise<NuiComponent.Instance> }> }
  */
 async function getGenerator({
   configKey = 'www',
   configUrl = `https://public.aitmed.com/config/${configKey}.yml`,
   ecosEnv = 'test',
-  on,
   use = {},
 } = {}) {
-  const log = use.log || console
-
   try {
-    // Patches the EventTarget so we can sandbox the sdk
-    await monkeyPatchAddEventListener({
-      onPatch: {
-        addEventListener: on?.patch?.addEventListener,
-        removeEventListener: on?.patch?.removeEventListener,
-      },
-    })
-
     // Intentionally using require
     const { cache, CADL } = require('@aitmed/cadl')
 
@@ -108,13 +123,6 @@ async function getGenerator({
             wrapEvalObjects: false,
           })
 
-          on?.initPage?.({
-            cache,
-            nui,
-            pageName,
-            pageObject: sdk.root[pageName],
-            sdk,
-          })
           if (use.pages) use.pages.json[pageName] = sdk.root[pageName]
           pages[pageName] = sdk.root[pageName]
         } catch (error) {
@@ -150,9 +158,7 @@ async function getGenerator({
       const component = nui.createComponent(componentProp, page)
       const consumerOptions = nui.getConsumerOptions({
         component,
-        getBaseStyles: use?.getBaseStyles,
         page,
-        on,
         viewport: use.viewport || page.viewport,
         ...options,
       })

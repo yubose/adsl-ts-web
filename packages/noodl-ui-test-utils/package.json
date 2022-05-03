@@ -9,7 +9,6 @@
   ],
   "gitHead": "b8bdca3b7f3d00aee7b947f190dadc07c1885acc",
   "homepage": "",
-  "jsnext:main": "dist/noodl-ui-test-utils.js",
   "keywords": [
     "noodl-ui",
     "noodl",
@@ -19,8 +18,8 @@
     "aitmed"
   ],
   "license": "ISC",
-  "main": "dist/noodl-ui-test-utils.js",
-  "module": "dist/noodl-ui-test-utils.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "name": "noodl-ui-test-utils",
   "repository": {
     "type": "git",
@@ -31,6 +30,7 @@
     "start": "tsc -w",
     "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\""
   },
+  "types": "./dist/index.d.ts",
   "typings": "dist/noodl-ui-test-utils.d.ts",
   "version": "0.0.13"
 }

@@ -4,8 +4,6 @@ import * as u from '@jsmanifest/utils'
 import * as nu from 'noodl-utils'
 import * as nt from 'noodl-types'
 import type NuiPage from '../Page'
-import type NdomPage from '../dom/Page'
-import isComponent from './isComponent'
 import nui from '../noodl-ui'
 import NDOM from '../dom/noodl-ui-dom'
 import Viewport from '../Viewport'
@@ -96,6 +94,7 @@ export function getPresetPageObjects() {
           ui.view({
             style: { shadow: 'true' },
             children: [
+              // @ts-expect-error
               ui.image({ path: ifObject }),
               ui.page({
                 path: 'Tiger',

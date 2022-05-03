@@ -1,5 +1,5 @@
-import { expect } from 'chai'
 import * as u from '@jsmanifest/utils'
+import { expect } from 'chai'
 import actionFactory from './factories/action'
 import componentFactory from './factories/component'
 
