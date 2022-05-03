@@ -167,7 +167,6 @@ exports.onPreInit = (_, pluginOpts) => {
  * @param { GatsbyNoodlPluginOptions } pluginOpts
  */
 exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
-  const cache = args.cache
   const outputPath = pluginOpts.paths?.output || DEFAULT_OUTPUT_PATH
   isFileSystemOutput = !!pluginOpts.paths?.output
 
@@ -645,33 +644,57 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
     return transformedComponents
   }
 
+  const cacheDir = cache.directory
+
   /**
    * Create GraphQL nodes for app pages so they can be queried in the client side
    */
   for (const [name, pageObject] of u.entries(pages)) {
+    let cachedComponents
     let components
-    let cachedObject = (await cache.get(_configKey)) || {}
+    // let cachedObject = await cache.get(_configKey)
+    let pathToPageCacheDir = path.join(cacheDir, 'generated', name)
+    let pathToCachedComponentsFile = path.join(
+      pathToPageCacheDir,
+      'components.json',
+    )
+    let pathToCachedPageContextFile = path.join(
+      pathToPageCacheDir,
+      'context.json',
+    )
     let retrieveType = ''
+
+    await fs.ensureDir(pathToPageCacheDir)
+
+    cachedComponents = fs.existsSync(pathToCachedComponentsFile)
+      ? require(pathToCachedComponentsFile)
+      : null
 
     page.page = name
 
-    // if ([u.isArr,u.isObj].some((fn) => fn(cachedObject?.generated?.[name]?.components))) {
-    //   components = cachedObject.generated[name].components
-    //   retrieveType= 'cache'
-    // } else {
-    components = await generateComponents(name, pageObject.components)
-
-    set(
-      cachedObject,
-      `generated.${name}.components`,
-      components.map((comp) => comp.toJSON()),
-    )
-    await cache.set(_configKey, cachedObject)
-    retrieveType = 'fresh'
-    // }
+    if (cachedComponents) {
+      console.log(
+        `${u.cyan(`Reusing cached components`)} for page ${u.yellow(name)}`,
+      )
+      components = cachedComponents
+      _context_[name] = {
+        ..._context_[name],
+        ...(await fs.readJson(pathToCachedPageContextFile)),
+      }
+      retrieveType = 'cache'
+    } else {
+      // cachedObject = {}
+      components = u
+        .array(await generateComponents(name, pageObject.components))
+        .filter(Boolean)
+      await fs.writeJson(pathToCachedComponentsFile, components)
+      // await fs.writeJson(pathToCachedPageContextFile, _context_[name])
+      // await cache.set(_configKey, cachedObject)
+      retrieveType = 'fresh'
+    }
 
     if (components) {
-      //
+      pageObject.components = components
     } else {
       log.error(
         `Components could not be generated for page "${name}" using ${retrieveType}`,
@@ -681,7 +704,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
     if (!_context_[name]) _context_[name] = {}
     _context_[name].refs = getPageRefs(name)
 
-    const lists = _context_[name]?.lists
+    const lists = _context_[name].lists
 
     // Insert all descendants id's to the list component's children list.
     // This enables the mapping in the client side
@@ -705,6 +728,10 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
         }
       })
     })
+
+    if (retrieveType === 'fresh') {
+      await fs.writeJson(pathToCachedPageContextFile, _context_[name])
+    }
 
     _pages.serialized[name] = u.isStr(pageObject)
       ? pageObject
