@@ -582,15 +582,13 @@ const createActions = function createActions(app: App) {
             initialSeconds =
               initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
             if (action?.actionType === 'popUp') {
-              loadTimeLabelPopUp(node, component)
+              // loadTimeLabelPopUp(node, component)
               const id = setTimeout(() => {
                 app.register.extendVideoFunction('onDisconnect')
               }, initialSeconds * 1000)
               app.register.setTimeId('PopUPToDisconnectTime', id)
             } else if (action?.actionType === 'popUpDismiss') {
-              component.on('timer:ref', (timer) => {
-                timer.clear()
-              })
+              
               app.register.removeTime('PopUPToDisconnectTime')
             }
           }
