@@ -52,7 +52,7 @@
     "date-fns": "^2.21.2",
     "elasticsearch-browser": "^16.7.1",
     "firebase": "^8.7.0",
-    "homepage": "^0.1.0",
+    "homepage": "1.0.0",
     "html2canvas": "^1.4.1",
     "idb-keyval": "^6.0.3",
     "image-conversion": "^2.1.1",
