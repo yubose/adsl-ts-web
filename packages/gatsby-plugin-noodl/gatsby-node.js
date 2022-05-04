@@ -902,7 +902,9 @@ exports.onCreatePage = async function onCreatePage(opts) {
 
 process.on('exit', (code) => {
   // dumpMetadata()
-  log.error(
-    `[${u.cyan(`gatsby-plugin-noodl`)}] exited with code: ${u.yellow(code)}`,
-  )
+  if (code != 0) {
+    log.error(
+      `[${u.cyan(`gatsby-plugin-noodl`)}] exited with code: ${u.yellow(code)}`,
+    )
+  }
 })

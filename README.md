@@ -1,6 +1,6 @@
 ## Building the Static Web App (Homepage) - _Last Updated 05/03/22_
 
-If `npm install` was never run (or if packages was not installed) you can _skip to_ _Step 2_
+If `npm install -f` was never run (or if packages was not installed) you can _skip to_ _Step 2_
 
 0. `git checkout dev2`
 1. `lerna exec --scope homepage \"gatsby clean\" && lerna clean && rm -rf node_modules package-lock.json`
