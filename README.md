@@ -2,6 +2,7 @@
 
 If `npm install` was never run (or if packages was not installed) you can _skip to_ _Step 2_
 
+0. `git checkout dev2`
 1. `lerna exec --scope homepage \"gatsby clean\" && lerna clean && rm -rf node_modules package-lock.json`
 2. `npm install -f`
 3. `lerna exec --scope homepage npm run build` (or go to the folder by doing `cd packages/homepage && npm run build`)
