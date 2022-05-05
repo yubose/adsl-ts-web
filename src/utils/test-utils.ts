@@ -129,11 +129,12 @@ export function createRender(opts: MockRenderOptions) {
 
   ndom.use({
     transaction: {
-      // @ts-expect-error
+      // @ts-ignore
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
     },
   })
 
+  // @ts-ignore
   ndom.use(use)
 
   const o = {
