@@ -937,6 +937,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         console.log(remainTime,numberofExtensions)
         if (remainTime > 0 && numberofExtensions>0){
           app.register.removeTime('extendVideoChatTime')
+          app.register.removeTime('PopUPTimeInterval')
+          app.register.removeTime('PopUPToDisconnectTime')
           const id = setTimeout(
             ()=>{
               app.register.extendVideoFunction('showExtendView')
