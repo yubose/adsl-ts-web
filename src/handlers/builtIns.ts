@@ -935,7 +935,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
         const popUpWaitSeconds = 30
         let remainTime = oldTimePerExtendSeconds - popUpWaitSeconds
         console.log(remainTime,numberofExtensions)
-        if (remainTime > 0 && numberofExtensions>0){
+        if (remainTime > 0 && numberofExtensions<0){
           app.register.removeTime('extendVideoChatTime')
           const id = setTimeout(
             ()=>{
@@ -1216,7 +1216,7 @@ export const extendedSdkBuiltIns = {
     this.register.setNumberofExtensions(numberofExtensions-1)
     this.register.setTimePerExtendSeconds(timePerExtendSeconds)
     this.register.setPopUpWaitSeconds(popUpWaitSeconds)
-    if (remainTime > 0 && numberofExtensions > 0){
+    if (remainTime > 0 && numberofExtensions < 0){
       const id = setTimeout(
         ()=>{
           this.register.extendVideoFunction('showExtendView')
