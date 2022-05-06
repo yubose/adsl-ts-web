@@ -1,5 +1,5 @@
-import * as actionFactory from './factories/action'
-import * as componentFactory from './factories/component'
+import actionFactory from './factories/action'
+import componentFactory from './factories/component'
 
 export * from './types'
 export { default as builder } from './builder'

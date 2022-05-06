@@ -9,9 +9,9 @@ import { excludeIteratorVar, trimReference, toDataPath } from 'noodl-utils'
 import {
   createAction,
   createActionChain as nuiCreateActionChain,
+  deref,
 } from 'noodl-ui'
 import type { NUIActionObject, NUIActionChain, NUITrigger } from 'noodl-ui'
-import deref from '@/utils/deref'
 import is from '@/utils/is'
 import isBuiltInEvalFn from '@/utils/isBuiltInEvalFn'
 import log from '@/utils/log'
@@ -78,7 +78,7 @@ function useActionChain() {
       if (is.isBoolean(value)) return is.isBooleanTrue(value)
 
       if (u.isObj(value)) {
-        debugger
+        // debugger
       } else if (u.isStr(value)) {
         if (value.startsWith('^')) {
           // TODO - Handle goto scrolls when navigating to a different page
@@ -442,7 +442,7 @@ function useActionChain() {
             }
             // { emit: { dataKey: {...}, actions: [...] } }
             else if (is.folds.emit(obj)) {
-              debugger
+              // debugger
             }
             // { actionType: 'evalObject', object: [...] }
             else if (is.action.evalObject(obj)) {
@@ -575,6 +575,12 @@ function useActionChain() {
 
   return {
     createActionChain,
+    createEmit,
+    execute,
+    executeEvalBuiltIn,
+    executeEvalObject,
+    executeIf,
+    executeStr,
     getRootDraftOrRoot,
   }
 }

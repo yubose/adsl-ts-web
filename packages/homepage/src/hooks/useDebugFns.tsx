@@ -1,4 +1,14 @@
 import React from 'react'
+import {
+  findByClassName,
+  findByDataAttrib,
+  findByDataKey,
+  findByElementId,
+  findBySelector,
+  findBySrc,
+  findByViewTag,
+  findByGlobalId,
+} from 'noodl-ui'
 import * as u from '@jsmanifest/utils'
 import * as t from '@/types'
 
@@ -31,6 +41,17 @@ function useDebugFns() {
     },
     [],
   )
+
+  React.useEffect(() => {
+    window['findByClassName'] = findByClassName
+    window['findByDataAttrib'] = findByDataAttrib
+    window['findByDataKey'] = findByDataKey
+    window['findByElementId'] = findByElementId
+    window['findBySelector'] = findBySelector
+    window['findBySrc'] = findBySrc
+    window['findByViewTag'] = findByViewTag
+    window['findByGlobalId'] = findByGlobalId
+  }, [])
 
   return {
     peekValuesWithKeys,

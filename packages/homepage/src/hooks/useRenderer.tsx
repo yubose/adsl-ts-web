@@ -1,17 +1,18 @@
 import React from 'react'
 import produce from 'immer'
 import * as nt from 'noodl-types'
-import { triggers, resolveAssetUrl } from 'noodl-ui'
+import { deref, triggers, resolveAssetUrl } from 'noodl-ui'
 import type { NUITrigger } from 'noodl-ui'
-import { excludeIteratorVar, trimReference } from 'noodl-utils'
+import { excludeIteratorVar, evalIf, trimReference } from 'noodl-utils'
 import get from 'lodash/get'
 import * as u from '@jsmanifest/utils'
 import useActionChain from '@/hooks/useActionChain'
+import useBuiltInFns from '@/hooks/useBuiltInFns'
 import getTagName from '@/utils/getTagName'
 import log from '@/utils/log'
 import is from '@/utils/is'
 import useCtx from '@/useCtx'
-import deref from '@/utils/deref'
+// import deref from '@/utils/deref'
 import { getCurrent } from '@/utils/immer'
 import { usePageCtx } from '@/components/PageContext'
 import type * as t from '@/types'
@@ -47,6 +48,7 @@ function useRenderer() {
   const refsRef = React.useRef<Record<string, any>>({})
   const { getR, root, setR } = useCtx()
   const { createActionChain } = useActionChain()
+  const builtInFns = useBuiltInFns()
   const { assetsUrl, getDataObject, getIteratorVar, isListConsumer, name } =
     usePageCtx()
 
@@ -86,12 +88,16 @@ function useRenderer() {
       } as CreateElementProps<any>
 
       for (let [key, value] of u.entries(component)) {
-        if (u.isStr(value) && is.reference(value)) {
-          if (key === 'dataKey') {
-            value = trimReference(value)
-          } else {
-            props[key] = deref({ ref: value, root, rootKey: name })
-            value = props[key]
+        if (key.startsWith('data-')) props[key] = value
+
+        if (u.isStr(value)) {
+          if (is.reference(value)) {
+            if (key === 'dataKey') {
+              value = trimReference(value)
+            } else {
+              props[key] = deref({ ref: value, root, rootKey: name })
+              value = props[key]
+            }
           }
         }
 
@@ -101,7 +107,7 @@ function useRenderer() {
               render(child, componentPath.concat('children', index)),
             ),
           )
-        } else if (['popUpView', 'viewTag'].includes(key as string)) {
+        } else if (/popUpView\/viewTag/.test(key)) {
           props['data-viewtag'] = value
         } else if (key === 'data-value') {
           if (component['data-value']) {
@@ -116,15 +122,37 @@ function useRenderer() {
           (key === 'path' && /(image|video)/i.test(type))
         ) {
           if (isListConsumer(component)) {
-            const dataObject = getDataObject(component)
+            const dataObject = deref({
+              ref: getDataObject(component.id, root, name),
+              root,
+              rootKey: name,
+              iteratorVar,
+            })
             props.src =
               u.isStr(component.path) && component.path.startsWith(iteratorVar)
                 ? get(
                     dataObject,
                     excludeIteratorVar(component.path, iteratorVar),
                   )
+                : is.folds.emit(component.path)
+                ? builtInFns.builtIns['=.builtIn.object.resolveEmit']({
+                    dataIn: { emit: component.path.emit, trigger: 'path' },
+                    dataObject,
+                    iteratorVar,
+                    root,
+                    rootKey: name,
+                  })
                 : value
             props['data-src'] = props.src
+            if (u.isObj(component.path)) {
+              console.log({
+                dataObject,
+                component,
+                props,
+                src: props.src,
+              })
+              // debugger
+            }
           } else {
             props.src = value
           }
@@ -196,15 +224,44 @@ function useRenderer() {
 
       if (children.length) props.children = children
 
-      if (props._path_ && u.isStr(props._path_) && iteratorVar) {
-        if (props.type === 'img') {
-          const dataObject = getDataObject(props.id, root, name)
-          if (!dataObject) {
-            debugger
-          } else {
-            const datapath = excludeIteratorVar(props._path_, iteratorVar)
-            const src = get(dataObject, datapath)
-            if (src) props.src = resolveAssetUrl(src, assetsUrl)
+      if (props._path_) {
+        if (u.isStr(props._path_) && iteratorVar) {
+          if (props.type === 'img') {
+            const dataObject = getDataObject(props.id, root, name)
+            if (!dataObject) {
+              // debugger
+            } else {
+              const datapath = excludeIteratorVar(props._path_, iteratorVar)
+              const src = get(dataObject, datapath)
+              if (src) props.src = resolveAssetUrl(src, assetsUrl)
+            }
+          }
+        } else if (u.isObj(props._path_)) {
+          if (is.folds.emit(props._path_)) {
+            const dataObject = getDataObject(component.id, root, name)
+            const emitObject = deref({
+              dataObject,
+              iteratorVar,
+              ref: props._path_,
+              root,
+              rootKey: name,
+            })
+
+            let result = builtInFns.builtIns['=.builtIn.object.resolveEmit']({
+              dataIn: { ...emitObject, trigger: 'path' },
+              dataObject,
+              root,
+              rootKey: name,
+            })
+
+            if (u.isStr(result) && result.startsWith('$')) {
+              result = result.replace('$var.', '')
+              result = get(dataObject, result, '')
+            }
+
+            if (result != undefined) {
+              props.src = resolveAssetUrl(result, assetsUrl)
+            }
           }
         }
       }
