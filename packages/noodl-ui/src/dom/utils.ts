@@ -23,6 +23,7 @@ import isNDOMPage from '../utils/isNDOMPage'
 import isNuiPage from '../utils/isPage'
 import * as t from '../types'
 import * as c from '../constants'
+import { keyBy } from 'lodash'
 
 export const _DEV_ = process.env.NODE_ENV === 'development'
 export const _TEST_ = process.env.NODE_ENV === 'test'
@@ -204,7 +205,7 @@ export function handleDrawGlobalComponent(
       page,
     }) as GlobalComponentRecord
     this.global.components.set(globalId, globalRecord)
-    attachOnClick(node, globalId)
+    globalRecord?.globalId && globalRecord?.globalId !== 'extendView' && attachOnClick(node, globalId)
   }
 
   if (globalRecord) {
