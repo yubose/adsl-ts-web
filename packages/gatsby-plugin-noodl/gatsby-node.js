@@ -622,7 +622,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
           keepVpUnit: true,
           on: {
             /** Called for every component creation (depth-first) */
-            createComponent(comp, opts) {
+            async createComponent(comp, opts) {
               before = u.omit(comp.toJSON(), ['children'])
               const { path: componentPath } = opts || {}
               if (!_context_[pageName]) _context_[pageName] = {}
@@ -659,10 +659,17 @@ exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
                   iteratorVar,
                   listObject: refObject?.ref || listObject,
                 })
-              } else if (nt.Identify.component.image(comp)) {
+              }
+              // TODO - Is this still being used?
+              else if (nt.Identify.component.image(comp)) {
+                // const src = comp.get('path')
                 // This is mapped to the client side to pick up the static image
-                // TODO - Is this still being used?
-                comp.set('_path_', comp.get('path'))
+                // comp.set(
+                //   '_path_',
+                //   nt.Identify.folds.emit(src)
+                //     ? await sdk.emitCall(src.emit)
+                //     : src,
+                // )
               }
             },
           },

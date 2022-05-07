@@ -677,7 +677,7 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
       props.style.display =
         axis === 'horizontal' || axis === 'vertical' ? 'flex' : 'block'
       props.style.listStyle = 'none'
-      props.style.padding = '0px'
+      // props.style.padding = '0px';
     } else if (is.component.listItem(blueprint)) {
       // Flipping the position to relative to make the list items stack on top of eachother.
       //    Since the container is a type: list and already has their entire height defined in absolute values,

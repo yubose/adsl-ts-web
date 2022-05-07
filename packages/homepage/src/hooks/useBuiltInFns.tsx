@@ -1,10 +1,12 @@
 import * as u from '@jsmanifest/utils'
-import { trimReference } from 'noodl-utils'
-import type { NUIActionChain } from 'noodl-ui'
+import { createEmitDataKey, trimReference } from 'noodl-utils'
+import type { NUIActionChain, NUITrigger } from 'noodl-ui'
+import type { EmitObjectFold } from 'noodl-types'
+import { deref } from 'noodl-ui'
 import React from 'react'
 import get from 'lodash/get'
 import useCtx from '@/useCtx'
-import { usePageCtx } from '@/components/PageContext'
+import PageContext, { usePageCtx } from '@/components/PageContext'
 import log from '@/utils/log'
 import is from '@/utils/is'
 import * as t from '@/types'
@@ -91,6 +93,37 @@ function getBuiltInFns(options: CommonRenderComponentHelpers) {
         }
       }
       return dataIn
+    },
+    ['=.builtIn.object.resolveEmit']: ({
+      dataIn: {
+        emit: { dataKey, actions },
+        trigger,
+      },
+      dataObject,
+      iteratorVar = '',
+      root = {},
+      rootKey = '',
+    }: {
+      dataIn: EmitObjectFold & { trigger: NUITrigger }
+      dataObject: any
+      iteratorVar?: string
+      root?: Record<string, any>
+      rootKey?: string
+    }) => {
+      dataKey = createEmitDataKey(dataKey, dataObject, { iteratorVar })
+      const cond = is.reference(actions[0]?.if?.[0])
+        ? deref({
+            dataObject,
+            iteratorVar,
+            ref: actions[0]?.if?.[0],
+            root,
+            rootKey,
+          })
+        : actions[0]?.if?.[0]
+      const result = cond ? actions[0]?.if?.[1] : actions[0]?.if?.[2]
+      return is.reference(result)
+        ? deref({ dataObject, iteratorVar, ref: result, root, rootKey })
+        : result
     },
   }
 

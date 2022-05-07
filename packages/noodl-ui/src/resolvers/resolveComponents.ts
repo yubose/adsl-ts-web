@@ -54,6 +54,8 @@ componentResolver.setResolver(async (component, options, next) => {
     ...context,
   })
 
+  if (u.isPromise(mergingProps)) await mergingProps
+
   try {
     const original = component.blueprint || {}
     const originalStyle = original.style || {}
