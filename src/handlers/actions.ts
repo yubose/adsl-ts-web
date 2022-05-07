@@ -556,27 +556,29 @@ const createActions = function createActions(app: App) {
         const wait = _pick(action, 'wait')
 
         let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
-        u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
-          if (node) {
-            const component = app.cache.component.get(node?.id)?.component
-            const dataKey =
-              component.get('data-key') || component.blueprint?.dataKey || ''
-            const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
-            let initialSeconds = get(app.root, dataKey, 30) as number
-            initialSeconds =
-              initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
-            if (action?.actionType === 'popUp') {
-              loadTimeLabelPopUp(node, component)
-              const id = setTimeout(() => {
-                app.register.extendVideoFunction('onDisconnect')
-              }, initialSeconds * 1000)
-              app.register.setTimeId('PopUPToDisconnectTime', id)
-            } else if (action?.actionType === 'popUpDismiss') {
-              app.register.removeTime('PopUPTimeInterval')
-              app.register.removeTime('PopUPToDisconnectTime')
+        if(popUpView === 'extendView'){
+          u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
+            if (node) {
+              const component = app.cache.component.get(node?.id)?.component
+              const dataKey =
+                component.get('data-key') || component.blueprint?.dataKey || ''
+              const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
+              let initialSeconds = get(app.root, dataKey, 30) as number
+              initialSeconds =
+                initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
+              if (action?.actionType === 'popUp') {
+                loadTimeLabelPopUp(node, component)
+                const id = setTimeout(() => {
+                  app.register.extendVideoFunction('onDisconnect')
+                }, initialSeconds * 1000)
+                app.register.setTimeId('PopUPToDisconnectTime', id)
+              } else if (action?.actionType === 'popUpDismiss') {
+                app.register.removeTime('PopUPTimeInterval')
+                app.register.removeTime('PopUPToDisconnectTime')
+              }
             }
-          }
-        })
+          })
+        }
         u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
           if (dismissOnTouchOutside) {
             const onTouchOutside = function onTouchOutside(
