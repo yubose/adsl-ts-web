@@ -122,11 +122,15 @@ class createRegisters{
         const actionTypeKeys = ['goto','popUp','popUpDismiss','toast','getLocationAddress','pageJump','refresh']
         for(const action of actions){
           if(action?.actionType && actionTypeKeys.includes(action?.actionType) ){
+            const newAction = createAction({
+              action: action,
+              trigger: 'register',
+            })
             const type = action?.actionType 
             const actionFn = this.app.root.actions[type]
             u.isFnc(actionFn) && 
               (await actionFn?.(
-                action,
+                newAction,
                 this.app.nui?.getConsumerOptions({
                   component,
                   page: this.app.mainPage?.getNuiPage(),
@@ -357,7 +361,7 @@ class createRegisters{
   extendVideoFunction(onEvent:string){
     log.func('extendVideoFunction')
 
-    const pageName = this.app.mainPage?.getNuiPage()
+    const pageName = this.app.mainPage?.getNuiPage().page
     const components = this.app.root?.['VideoChat'].components
     for (const componentObject of components) {
       if (is.component.register(componentObject)) {
