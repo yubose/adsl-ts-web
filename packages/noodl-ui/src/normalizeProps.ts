@@ -491,12 +491,14 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
             if (u.isStr(styleValue)) {
               while (is.reference(styleValue)) {
                 const isLocal = is.localReference(styleValue)
-                styleValue = getByRef(
+                const newstyleValue = getByRef(
                   styleValue,
                   getHelpers({ rootKey: isLocal ? pageName : undefined }),
                 )
+                if (newstyleValue===styleValue) break
                 // It will do an infinite loop without this
                 if (is.traverseReference(styleValue)) break
+                styleValue = newstyleValue
               }
 
               // Resolve vw/vh units (Values directly relative to viewport)

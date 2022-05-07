@@ -119,7 +119,7 @@ class createRegisters{
         const component = (await this.app.nui?.resolveComponents(
           componentObject,
         )) as NuiComponent.Instance
-        const actionTypeKeys = ['goto','popUp','toast','getLocationAddress','pageJump','refresh']
+        const actionTypeKeys = ['goto','popUp','popUpDismiss','toast','getLocationAddress','pageJump','refresh']
         for(const action of actions){
           if(action?.actionType && actionTypeKeys.includes(action?.actionType) ){
             const type = action?.actionType 

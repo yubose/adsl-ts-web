@@ -5,6 +5,7 @@ import { ToastContainer } from 'react-toastify'
 import { Provider } from '@/useCtx'
 import get from 'lodash/get'
 import toast from '@/utils/toast'
+import useDebugFns from '@/hooks/useDebugFns'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
 import useRootObject from '@/hooks/useRootObject'
 import log from '@/utils/log'
@@ -12,6 +13,7 @@ import log from '@/utils/log'
 log.setLevel('DEBUG')
 
 function AppProvider({ children }: React.PropsWithChildren<any>) {
+  useDebugFns()
   const noodlPages = useGetNoodlPages()
 
   const { root, getR, setR } = useRootObject(

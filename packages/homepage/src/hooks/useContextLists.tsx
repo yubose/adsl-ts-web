@@ -1,7 +1,7 @@
 import React from 'react'
 import * as u from '@jsmanifest/utils'
-import deref from '@/utils/deref'
 import is from '@/utils/is'
+import { deref } from 'noodl-ui'
 import * as t from '@/types'
 
 export type IdOrComponentArg = string | t.StaticComponentObject

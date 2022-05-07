@@ -528,36 +528,20 @@ const createActions = function createActions(app: App) {
     const dataKey =
       component.get('data-key') || component.blueprint?.dataKey || ''
     const textFunc = component.get('text=func') || ((x: any) => x)
-    const initialTime = startOfDay(new Date())
     const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
     let initialSeconds = get(app.root, dataKey, popUpWaitSeconds) as number
     initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
-    let initialValue = add(initialTime, { seconds: initialSeconds })
-    initialValue == null && (initialValue = new Date())
-    node.textContent = textFunc(initialValue, 'mm:ss')
-    set(app.root, dataKey, initialSeconds - 1)
-    component.on('timer:ref', (timer) => {
-      component.on('timer:interval', (value) => {
-        app.updateRoot((draft) => {
-          const seconds = get(draft, dataKey, popUpWaitSeconds)
-          set(draft, dataKey, seconds - 1)
-          const updatedSecs = get(draft, dataKey)
-          if (!Number.isNaN(updatedSecs) && u.isNum(updatedSecs)) {
-            if (seconds === 0) {
-              // Not updated
-              timer.clear()
-              log.func('text=func timer:ref')
-              log.red(`the value of ${dataKey} becomes 0`)
-            }
-          }
-          node && (node.textContent = textFunc(seconds * 1000, 'mm:ss'))
-        })
-      })
-      timer.start()
-    })
+    node.textContent = textFunc(initialSeconds * 1000, 'mm:ss')
+    
+    const interval =  setInterval(()=>{
+      initialSeconds = initialSeconds - 1
+      const seconds  = initialSeconds
+      node && (node.textContent = textFunc(seconds * 1000, 'mm:ss'))
+      if(initialSeconds<=0) clearInterval(interval)
+    },1000)
 
-    // Set the initial value
-    component.emit('timer:init', initialValue)
+    app.register.setTimeId('PopUPTimeInterval', interval)
+
   }
 
   const popUp: Store.ActionObject['fn'] = function onPopUp(action, options) {
@@ -582,13 +566,13 @@ const createActions = function createActions(app: App) {
             initialSeconds =
               initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
             if (action?.actionType === 'popUp') {
-              // loadTimeLabelPopUp(node, component)
+              loadTimeLabelPopUp(node, component)
               const id = setTimeout(() => {
                 app.register.extendVideoFunction('onDisconnect')
               }, initialSeconds * 1000)
               app.register.setTimeId('PopUPToDisconnectTime', id)
             } else if (action?.actionType === 'popUpDismiss') {
-              
+              app.register.removeTime('PopUPTimeInterval')
               app.register.removeTime('PopUPToDisconnectTime')
             }
           }
