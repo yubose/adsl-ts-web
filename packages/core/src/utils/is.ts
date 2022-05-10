@@ -1,5 +1,5 @@
 import type { ReferenceString } from 'noodl-types'
-import { IViewport } from '../types'
+import { DiagnosticObject, IViewport } from '../types'
 import * as regex from './regex'
 import * as c from '../constants'
 
@@ -22,6 +22,10 @@ export function boolTrue(value: unknown): value is true | 'true' {
 
 export function boolFalse(value: unknown): value is false | 'false' {
   return value === false || value === 'false'
+}
+
+export function diagnostic(value: unknown): value is DiagnosticObject {
+  return obj(value) && value._id_ === c._symbol.diagnostic
 }
 
 export function obj<V extends Record<string, any> = Record<string, any>>(

@@ -1,12 +1,28 @@
 import * as fp from './utils/fp'
 import * as is from './utils/is'
 import * as t from './types'
+import type Builder from './Builder'
+import { _symbol } from './constants'
+
+class Diagnostic {
+  #value: t.DiagnosticObject
+
+  constructor(value: t.DiagnosticObject) {
+    this.#value = value
+  }
+
+  get messages() {
+    return this.#value.messages
+  }
+}
 
 class Diagnostics extends t.ADiagnostics {
   [Symbol.iterator](): Iterator<any, any, any> {
     // @ts-expect-error
     return this.iterator?.getIterator(this.iterator.getItems(this.data))
   }
+
+  rules = [] as Diagnostic[]
 
   constructor() {
     super()
@@ -103,6 +119,28 @@ class Diagnostics extends t.ADiagnostics {
     }
 
     return diagnostics
+  }
+
+  register(value: Parameters<Builder['use']>[0] | Diagnostic) {
+    if (value instanceof Diagnostic) {
+      const diagnostic = new Diagnostic()
+    } else {
+      super.use(value)
+    }
+    return this
+  }
+
+  createDiagnostic(opts?: Partial<t.DiagnosticObject>) {
+    const diagnostic = { ...opts } as t.DiagnosticObject
+
+    Object.defineProperty(diagnostic, '_id_', {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: _symbol.diagnostic,
+    })
+
+    return new Diagnostic(diagnostic)
   }
 }
 

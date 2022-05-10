@@ -408,12 +408,12 @@ describe('transform', () => {
             Nfont: { h1: '1.6vh' },
             Sfont: { h4: '4.5vh' },
             Topo: {
-              font1: '.Nfoh1',
+              font1: '.Nfont.h1',
               components: [
                 {
                   type: 'label',
                   viewTag: 'helloTag',
-                  style: { top: '0.0125', left: '0.05', fontSize: '.Sfoh4' },
+                  style: { top: '0.0125', left: '0.05', fontSize: '.Sfont.h4' },
                 },
                 {
                   type: 'view',
