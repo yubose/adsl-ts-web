@@ -1,0 +1,206 @@
+import type { ReferenceString } from 'noodl-types'
+import { IViewport } from '../types'
+import * as regex from './regex'
+import * as c from '../constants'
+
+export function arr<V extends any[] = any[]>(v: unknown): v is V {
+  return Array.isArray(v)
+}
+
+/**
+ * Returns true if the value is a NOODL boolean. A value is a NOODL boolean
+ * if the value is truthy, true, "true", false, or "false"
+ * @param { any } value
+ */
+export function bool(value: unknown) {
+  return boolTrue(value) || boolFalse(value)
+}
+
+export function boolTrue(value: unknown): value is true | 'true' {
+  return value === true || value === 'true'
+}
+
+export function boolFalse(value: unknown): value is false | 'false' {
+  return value === false || value === 'false'
+}
+
+export function obj<V extends Record<string, any> = Record<string, any>>(
+  v: unknown,
+): v is V {
+  return v !== null && !arr(v) && typeof v === 'object'
+}
+
+export function str<S extends string = string>(v: unknown): v is S {
+  return typeof v === 'string'
+}
+
+/**
+ * true: ".Global.currentUser.vertex.name.firstName@"
+ * true: "..message.doc.1.name@"
+ * false: "..message.doc.1.name"
+ */
+export function awaitReference(v: string): v is ReferenceString<string, '@'> {
+  if (v.endsWith('@')) return true
+  return false
+}
+
+/**
+ * True if the value starts with an equal sign "="
+ * true: "=.builtIn.string.concat"
+ * false: ".builtIn.string.concat"
+ * false: "builtIn.string.concat"
+ */
+export function evalReference(v: string): v is ReferenceString<string, '='> {
+  if (v.startsWith('=')) return true
+  return false
+}
+
+/**
+ * true: "=.."
+ * false: "=."
+ */
+export function evalLocalReference(
+  v: string,
+): v is ReferenceString<string, '=..'> {
+  if (v.startsWith('=..')) return true
+  return false
+}
+
+export function localKey(v: string) {
+  return !!(v && v[0].toLowerCase() === v[0] && !regex.numbers.test(v))
+}
+
+/**
+ * true: "=."
+ * false: "=.."
+ */
+export function evalRootReference(
+  v: string,
+): v is ReferenceString<string, '=.'> {
+  if (v.startsWith('=.')) return true
+  return false
+}
+
+/**
+ * true: ".."
+ * true: "=.."
+ * false: "=."
+ */
+export function localReference(v: string): v is ReferenceString<string, '..'> {
+  if (v.startsWith('..')) return true
+  if (v.startsWith('=..')) return true
+  return false
+}
+
+export function reference(v: string): v is ReferenceString {
+  if (typeof v === 'string') {
+    if (v === '.yml') return false
+    if (v.startsWith('.')) return true
+    if (v.startsWith('=')) return true
+    if (v.startsWith('@')) return true
+    if (v.startsWith('~')) return true
+    if (/^[_]+\./.test(v)) return true
+    return false
+  }
+  return false
+}
+
+/**
+ * true: "."
+ * true: "=."
+ * false: "=.."
+ * false: ".."
+ */
+export function rootReference(v: string): v is ReferenceString<string, '.'> {
+  if (v.startsWith('..')) return false
+  if (v.startsWith('=..')) return false
+  if (v.startsWith('.') && v[1].toUpperCase() === v[1]) return true
+  if (v.startsWith('=.') && v[2].toUpperCase() === v[2]) return true
+  return false
+}
+
+/**
+ * Returns true if the value is prefixed with ~/ (placeholder for base url)
+ * true: "~/myBaseUrl"
+ * false: "/myBaseUrl"
+ * false: "myBaseUrl"
+ * false: "~myBaseUrl"
+ * @param v Reference string
+ * @returns { boolean }
+ */
+export function tildeReference(v: string): v is ReferenceString<string, '~/'> {
+  return v.startsWith('~/')
+}
+
+/**
+ * True if the value is prefixed with N underscores followed by a single dot
+ * ex: _____.abc
+ * ex: _.SignIn.formData.password
+ * @param v Reference string
+ * @returns { boolean }
+ */
+export function traverseReference(v: string) {
+  return /^[_]+\./.test(v)
+}
+
+export function rootKey(v: string) {
+  return !!(v && v[0].toUpperCase() === v[0] && !regex.numbers.test(v))
+}
+
+export function fnc<
+  F extends (...args: any[]) => any = (...args: any[]) => any,
+>(v: any): v is F {
+  return typeof v === 'function'
+}
+
+export function nil(v: any) {
+  return v === null || und(v)
+}
+
+export function num(v: any): v is number {
+  return typeof v === 'number'
+}
+
+/**
+ * If this returns true, the value is something like "0.2", "0.4", etc.
+ * Whole numbers like "1" or "5" will return false, which is not what we want for positioning values like "marginTop" or "top" since we assume "1" means full screen, etc.
+ */
+export function noodlUnit(value: unknown): value is string {
+  return str(value) && !/[a-zA-Z]/i.test(value) && (value as any) % 1 !== 0
+}
+
+export function und(v: unknown): v is undefined {
+  return typeof v === 'undefined'
+}
+
+export function vwVh(value: unknown): value is `${string}${'vw' | 'vh'}` {
+  return str(value) && (value.endsWith('vw') || value.endsWith('vh'))
+}
+
+export function vw(v: unknown): v is `${string}vw` {
+  return str(v) && v.endsWith('vw')
+}
+
+export function vh(v: unknown): v is `${string}vh` {
+  return str(v) && v.endsWith('vh')
+}
+
+export function keyRelatedToWidthOrHeight(key: string) {
+  return [keyRelatedToHeight, keyRelatedToWidth].some((fn) => fn(key))
+}
+
+export function keyRelatedToHeight(key: string) {
+  return [...c.vpHeightKeys, 'center', 'centerY'].includes(key)
+}
+
+export function keyRelatedToWidth(key: string) {
+  return [...c.vpWidthKeys, 'centerX', 'right'].includes(key)
+}
+
+export function validViewport(value: unknown): value is IViewport {
+  return (
+    obj(value) &&
+    ('width' in value || 'height' in value) &&
+    num(value.width || num(value.height))
+  )
+}
