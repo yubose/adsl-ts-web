@@ -123,7 +123,8 @@ class Diagnostics extends t.ADiagnostics {
 
   register(value: Parameters<Builder['use']>[0] | Diagnostic) {
     if (value instanceof Diagnostic) {
-      const diagnostic = new Diagnostic()
+      // @ts-expect-error
+      const diagnostic = new Diagnostic(value)
     } else {
       super.use(value)
     }
