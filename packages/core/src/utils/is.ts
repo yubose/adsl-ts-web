@@ -1,7 +1,8 @@
 import type { ReferenceString } from 'noodl-types'
-import { DiagnosticObject, IViewport } from '../types'
+import type { IViewport } from '../types'
 import * as regex from './regex'
 import * as c from '../constants'
+import type { DiagnosticObject } from '../diagnostics/diagnosticsTypes'
 
 export function arr<V extends any[] = any[]>(v: unknown): v is V {
   return Array.isArray(v)

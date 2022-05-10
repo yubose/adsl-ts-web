@@ -1,4 +1,4 @@
-import Builder from './Builder'
+import fs from 'fs'
 
 export abstract class AIterator<INode, INext = any> {
   abstract getIterator(
@@ -7,30 +7,15 @@ export abstract class AIterator<INode, INext = any> {
   abstract getItems(data: any): any[]
 }
 
-export abstract class ADiagnostics extends Builder {
-  abstract run(
-    data: any,
-    options?: {
-      async?: boolean
-      init?: (args: { data: Record<string, any> }) => any
-      beforeEnter?: (enterValue: any) => any
-      enter?: AVisitor<DiagnosticObject[], DiagnosticsHelpers>['callback']
-    },
-  ): DiagnosticObject[]
-}
-
-export interface DiagnosticsHelpers {
-  add(opts: { key: string; value: any; messages: any[] }): void
-}
-
-export interface DiagnosticObject {
-  page: string
-  key: string | number
-  value: any
-  messages: {
-    type: 'error' | 'info' | 'warn'
-    message: string
-  }[]
+export abstract class AFileSystem {
+  abstract readFile(
+    ...args: Parameters<typeof fs['readFile']>
+  ): ReturnType<typeof fs['readFile']>
+  abstract readFileSync(
+    ...args: Parameters<typeof fs['readFileSync']>
+  ): ReturnType<typeof fs['readFileSync']>
+  abstract writeFile(...args: Parameters<typeof fs['writeFile']>): Promise<any>
+  abstract writeFileSync(...args: Parameters<typeof fs['writeFileSync']>): any
 }
 
 export abstract class ARoot<R = any> {

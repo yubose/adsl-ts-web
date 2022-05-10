@@ -1,0 +1,4 @@
+export { default as Diagnostic } from './Diagnostic'
+export { default as Diagnostics } from './Diagnostics'
+export * from './Diagnostic'
+export * from './Diagnostics'

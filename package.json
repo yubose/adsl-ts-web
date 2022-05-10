@@ -119,7 +119,9 @@
     "esbuild-loader": "^2.13.1",
     "eslint": "^8.12.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "espree": "^9.3.2",
     "execa": "^5.1.1",
     "express": "^4.17.1",
     "file-loader": "^6.2.0",
@@ -204,6 +206,7 @@
     },
     "extends": [
       "plugin:@typescript-eslint/eslint-recommended",
+      "eslint:recommended",
       "prettier"
     ],
     "globals": {
@@ -211,7 +214,6 @@
       "echarts": "readonly"
     },
     "ignorePatterns": [
-      "**/*.js",
       "**/*.js.map",
       "build",
       "dist",
@@ -222,11 +224,12 @@
     "parserOptions": {
       "ecmaVersion": 2021,
       "project": "./tsconfig.json",
-      "sourceType": "module"
+      "sourceType": "module",
+      "ecmaFeatures": {}
     },
     "plugins": [
       "@typescript-eslint",
-      "eslint:recommended",
+      "import:recommended",
       "prettier"
     ],
     "settings": {
@@ -258,12 +261,18 @@
       "@typescript-eslint/no-misused-promises": "off",
       "@typescript-eslint/no-namespace": "off",
       "@typescript-eslint/no-this-alias": "off",
-      "@typescript-eslint/no-unused-vars": 1,
+      "@typescript-eslint/no-unused-vars": [
+        1,
+        {
+          "argsIgnorePattern": "^_"
+        }
+      ],
       "@typescript-eslint/prefer-nullish-coalescing": "warn",
       "@typescript-eslint/prefer-enum-initializers": "error",
       "@typescript-eslint/prefer-optional-chain": "error",
       "@typescript-eslint/prefer-ts-expect-error": "error",
       "@typescript-eslint/promise-function-async": "warn",
+      "@typescript-eslint/quotes": "off",
       "@typescript-eslint/sort-type-union-intersection-members": "warn",
       "@typescript-eslint/unified-signatures": "error",
       "eqeqeq": 0,
@@ -273,7 +282,9 @@
       "import/no-extraneous-dependencies": "off",
       "import/no-unresolved": "off",
       "import/prefer-default-export": "off",
-      "prettier/prettier": 2
+      "prettier/prettier": 2,
+      "no-unused-vars": "off",
+      "quotes": "off"
     }
   },
   "name": "aitmed-noodl-web",

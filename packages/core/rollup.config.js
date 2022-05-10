@@ -18,6 +18,9 @@ const configs = [
         exports: 'named',
         format: 'umd',
         name: 'noodlCore',
+        globals: {
+          fs: 'fs',
+        },
       },
     ],
     plugins: [
