@@ -1,0 +1,17 @@
+vars:
+  - userEvent:
+    - onClick
+    - onHover
+    - onMouseEnter
+    - onMouseOver
+    - onInput
+  - emitTrigger:
+    - path
+diagnostics:
+  - key:
+      - ${emitTrigger}
+      - ${userEvent}
+    nullable: false
+    types:
+      - Array
+      - Object

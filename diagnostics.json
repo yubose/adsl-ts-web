@@ -1,0 +1,24 @@
+[
+  {
+    "page": "AiTmedAdmin",
+    "key": "onClick",
+    "value": null,
+    "messages": [
+      {
+        "type": "error",
+        "message": "The user event \"onClick\" is empty. Expected an object or an array of objects"
+      }
+    ]
+  },
+  {
+    "page": "AiTmedContact",
+    "key": "onClick",
+    "value": null,
+    "messages": [
+      {
+        "type": "error",
+        "message": "The user event \"onClick\" is empty. Expected an object or an array of objects"
+      }
+    ]
+  }
+]
