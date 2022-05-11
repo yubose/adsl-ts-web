@@ -1,5 +1,5 @@
 vars:
-  - componentType:
+  componentType:
     - button
     - canvas
     - chart
@@ -25,14 +25,14 @@ vars:
     - textView
     - video
     - view
-  - emitTrigger:
+  emitTrigger:
     - path
     - dataKey
     - dataValue
     - placeholder
     - postMessage
     - register
-  - userEvent:
+  userEvent:
     - onBlur
     - onClick
     - onChange
@@ -44,10 +44,33 @@ vars:
     - onMouseOut
     - onMouseOver
     - onLazyLoading
+identifiers:
+  - =.builtIn.validate.isImage:
+      condition:
+        - if:
+          - =.builtIn.object.objectHasValue:
+            dataIn:
+              objArr: []
+          - continue
+          - false
+        - if:
+          - =.builtIn.object.hasMultipleKeys:
+            dataIn:
+              object: ${node}
+              keyArr: ['type', 'path']
+          - true
+          - false
+      assert:
+        - =.builtIn.validate.object:
+          dataIn: ${node}
+        - =.builtIn.object.hasMultipleKeys:
+          dataIn:
+            object: ${node}
+            keyArr: ['path']
 diagnostics:
   - key:
-      - ${emitTrigger}
-      - ${userEvent}
+      - ..vars.emitTrigger
+      - ..vars.userEvent
     nullable: false
     type:
       - Array

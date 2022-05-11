@@ -1,6 +1,6 @@
 const y = require('yaml')
 const u = require('@jsmanifest/utils')
-const { AIterator } = require('@noodl/core')
+const { AIterator, is, ARoot } = require('@noodl/core')
 
 function isNode(value) {
   return y.isNode(value) || y.isDocument(value) || y.isPair(value)
@@ -8,12 +8,19 @@ function isNode(value) {
 
 class DocIterator extends AIterator {
   /**
-   *
-   * @param { [name: string, doc: y.Document.Parsed][] } data
-   * @returns
+   * @param { ARoot | Record<string, string | y.Document.Parsed | y.Node> } data
+   * @returns { Iterator<[name: string, document: y.Document.Parsed]>}
    */
   getIterator(data) {
-    const items = data.reverse()
+    if (is.root(data)) return data[Symbol.iterator]
+
+    const items = Object.entries(data)
+      .map(([name, value]) => [
+        name,
+        u.isStr(value) ? y.parseDocument(value) : value,
+      ])
+      .reverse()
+
     return {
       next() {
         return {
@@ -24,13 +31,6 @@ class DocIterator extends AIterator {
         }
       },
     }
-  }
-
-  getItems(data) {
-    return Object.entries(data).map(([name, value]) => [
-      name,
-      u.isStr(value) ? y.parseDocument(value) : value,
-    ])
   }
 }
 

@@ -1,5 +1,6 @@
 export const _symbol = {
   diagnostic: Symbol('DIAGNOSTIC'),
+  root: Symbol('ROOT'),
 } as const
 
 /* -------------------------------------------------------
@@ -44,4 +45,10 @@ export enum ReferenceType {
   EVAL_BUILT_IN = 5,
   TILDE = 6,
   TRAVERSE = 7,
+}
+
+export enum ValidatorType {
+  ERROR = 9000,
+  WARN = 9001,
+  INFO = 9002,
 }

@@ -2,7 +2,7 @@
  * Functional programming utilities
  */
 import type { Path } from '../types'
-import { arr, num, obj, str, und } from './is'
+import { arr, nil, num, obj, str, und } from './is'
 
 export function entries<O extends Record<string, any>>(v: O) {
   return Object.entries(v !== null && typeof v === 'object' ? v : {}) as [
@@ -75,14 +75,15 @@ export function merge<O = any>(value: O, ...rest: any[]): any {
   return value
 }
 
-export function omit<O extends Record<string, any>>(
-  value: O,
-  keys: string | string[],
+export function omit<O extends Record<string, any>, K extends keyof O>(
+  value: O | null | undefined,
+  keys: K | K[],
 ) {
-  value = { ...value }
+  if (nil(value)) return value
+  value = { ...value } as O
   keys = toArr(keys)
   if (obj(value)) for (const key of keys) delete value[key]
-  return value
+  return value as Omit<O, K>
 }
 
 /**
@@ -110,8 +111,8 @@ export function pick<O extends Record<string, any>, K extends keyof O>(
  * @param v Value
  * @returns The value wrapped in an array (if it was not already wrapped)
  */
-export function toArr(v: unknown) {
-  return Array.isArray(v) ? v : [v]
+export function toArr<V>(v: V) {
+  return (Array.isArray(v) ? v : [v]) as V extends any[] ? V : V[]
 }
 
 function toFixed(value: number, fixNum?: number) {

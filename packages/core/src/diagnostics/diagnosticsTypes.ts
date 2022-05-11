@@ -1,4 +1,6 @@
-import type { AVisitor } from '../types'
+import type { AVisitor, ARoot } from '../types'
+import type { translateDiagnosticType } from './functions'
+import { ValidatorType } from '../constants'
 
 export interface IDiagnostics {
   run(
@@ -22,23 +24,34 @@ export interface DiagnosticDetails {
 }
 
 export interface DiagnosticsHelpers {
-  add(opts: { key: string; value: any; messages: any[] }): void
+  add(opts: Partial<DiagnosticObject>): void
 }
 
 export interface DiagnosticRule {}
 
-export interface DiagnosticObject {
+export type DiagnosticObject<
+  O extends Record<string, any> = Record<string, any>,
+> = {
   page: string
-  key: string | number
+  key: null | string | number
   value: any
+  path?: any[]
+  root: ARoot
   messages: {
-    type: 'error' | 'info' | 'warn'
-    message: string
+    type: ValidatorType
+    message: string[]
   }[]
+} & O
+
+export type TranslatedDiagnosticObject = Omit<DiagnosticObject, 'messages'> & {
+  messages: {
+    type: ReturnType<typeof translateDiagnosticType>
+    message: string[]
+  }
 }
 
 export interface DiagnosticsTableObject {
-  type: 'error' | 'warn' | 'info'
+  type: ValidatorType
   code: number
 }
 

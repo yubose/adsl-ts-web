@@ -1,10 +1,10 @@
 import fs from 'fs'
+import { _symbol } from './constants'
 
-export abstract class AIterator<INode, INext = any> {
+export abstract class AIterator<INode = any, INext = any> {
   abstract getIterator(
-    data: ReturnType<AIterator<INode>['getItems']>,
+    data: ARoot | Record<string, INode>,
   ): Iterator<INode, any, INext>
-  abstract getItems(data: any): any[]
 }
 
 export abstract class AFileSystem {
@@ -22,18 +22,19 @@ export abstract class ARoot<R = any> {
   abstract value: R
   abstract get(key: string): any
   abstract set(key: string, value: any): this
+  abstract remove(key: string): this
+  constructor() {
+    Object.defineProperty(this, '_id_', {
+      configurable: false,
+      enumerable: false,
+      writable: false,
+      value: _symbol.root,
+    })
+  }
 }
 
 export abstract class AVisitor<R = any, H = Record<string, any>> {
-  callback?: (
-    args: {
-      name?: string
-      key: null | string | number
-      value: any
-      path?: any[]
-      diagnostics: Record<string, any>
-    } & H,
-  ) => any
+  callback?: (args: VisitFnArgs<H>) => any
   abstract visit(node: any, options?: Partial<VisitorOptions<H>>): R
   abstract visitAsync(
     node: any,
@@ -47,6 +48,16 @@ export interface VisitorOptions<Options = Record<string, any>> {
   init?: (args: { data: Record<string, any> } & Record<string, any>) => any
   helpers?: Options
 }
+
+export type VisitFnArgs<H extends Record<string, any> = Record<string, any>> = {
+  pageName: string
+  name?: string
+  key: null | string | number
+  value: any
+  path?: any[]
+  diagnostics: Record<string, any>
+  root: ARoot
+} & H
 
 export type NormalizePropsContext = {
   dataObject?: Record<string, any>

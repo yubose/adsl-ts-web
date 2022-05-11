@@ -20,6 +20,33 @@ const objectBuiltIns = {
   has: ({ object, key }) => {
     return key in object && !!object[key]
   },
+  hasMultipleKeys({ object, keyArr }: { object: {}; keyArr: string[] }) {
+    if (is.obj(object)) {
+      for (let i = 0; i < keyArr.length; i++) {
+        if (object.hasOwnProperty(keyArr[i]) === false) {
+          return false
+        }
+      }
+    }
+    return true
+  },
+  /**
+   * @function
+   * @description Loop to determine whether the value of an object under a path is equal to false.
+   * If yes, it returns true, and if no, it returns false
+   * @param {array} objArr
+   * @param {string} valPath
+   * @returns {boolean}
+   */
+  objectHasValue({
+    objArr,
+    valPath,
+  }: {
+    objArr: { [key: string]: {} }[]
+    valPath: string
+  }): boolean {
+    return Array.from(objArr).some((obj) => obj[valPath] !== false)
+  },
   remove: ({ object, key }) => {
     unset(object, key)
   },

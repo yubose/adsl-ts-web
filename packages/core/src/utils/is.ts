@@ -2,7 +2,8 @@ import type { ReferenceString } from 'noodl-types'
 import type { IViewport } from '../types'
 import * as regex from './regex'
 import * as c from '../constants'
-import type { DiagnosticObject } from '../diagnostics/diagnosticsTypes'
+import type { TranslatedDiagnosticObject } from '../diagnostics/diagnosticsTypes'
+import { ARoot } from '..'
 
 export function arr<V extends any[] = any[]>(v: unknown): v is V {
   return Array.isArray(v)
@@ -25,7 +26,9 @@ export function boolFalse(value: unknown): value is false | 'false' {
   return value === false || value === 'false'
 }
 
-export function diagnostic(value: unknown): value is DiagnosticObject {
+export function diagnostic(
+  value: unknown,
+): value is TranslatedDiagnosticObject {
   return obj(value) && value._id_ === c._symbol.diagnostic
 }
 
@@ -172,6 +175,14 @@ export function num(v: any): v is number {
  */
 export function noodlUnit(value: unknown): value is string {
   return str(value) && !/[a-zA-Z]/i.test(value) && (value as any) % 1 !== 0
+}
+
+export function root(value: unknown): value is ARoot {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    value['_id_'] === c._symbol.root
+  )
 }
 
 export function und(v: unknown): v is undefined {

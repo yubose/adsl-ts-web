@@ -4,11 +4,13 @@ import * as t from '../types'
 import Builder from '../Builder'
 import { _symbol } from '../constants'
 import Diagnostic from './Diagnostic'
+import { translateDiagnosticType } from './functions'
 import type {
   IDiagnostics,
   DiagnosticsHelpers,
   DiagnosticObject,
   DiagnosticRule,
+  TranslatedDiagnosticObject,
 } from './diagnosticsTypes'
 
 export interface RunOptions {
@@ -21,7 +23,9 @@ export interface RunOptions {
 class Diagnostics extends Builder implements IDiagnostics {
   [Symbol.iterator](): Iterator<any, any, any> {
     // @ts-expect-error
-    return this.iterator?.getIterator(this.iterator.getItems(this.data))
+    // return this.iterator?.getIterator(this.iterator.getItems(this.data))
+    // return this.iterator?.getIterator(this.root?.value)
+    return this.root[Symbol.iterator]()
   }
 
   rules = [] as Diagnostic[]
@@ -30,14 +34,9 @@ class Diagnostics extends Builder implements IDiagnostics {
     super()
   }
 
-  run(data?: any, opts?: RunOptions & { async: true }): Promise<any>
-  run(data?: any, opts?: RunOptions): any
-  run(
-    data?: any,
-    { beforeEnter, init, enter, async = false }: RunOptions = {},
-  ) {
-    this.data = data
-
+  run(opts?: RunOptions & { async: true }): Promise<any>
+  run(opts?: RunOptions): any
+  run({ beforeEnter, init, enter, async = false }: RunOptions = {}) {
     let prevVisitCallback: t.AVisitor['callback'] | undefined
 
     if (enter) {
@@ -46,7 +45,11 @@ class Diagnostics extends Builder implements IDiagnostics {
     }
 
     const diagnostics = [] as Diagnostic[]
-    const options = { init, data: this.createData({ diagnostics }) }
+    const options = {
+      init,
+      data: this.createData({ diagnostics }),
+      root: this.root,
+    }
 
     const getVisitorProps = (value: any) => {
       const getHelpers = (
@@ -54,17 +57,9 @@ class Diagnostics extends Builder implements IDiagnostics {
         diag: typeof diagnostics,
       ): DiagnosticsHelpers => {
         return this.createHelpers({
-          add: ({ key, value, messages }) =>
+          add: (diagnostic: DiagnosticObject) =>
             void diag.push(
-              this.createDiagnostic({
-                page: name,
-                key,
-                value,
-                messages: messages.map((obj) => ({
-                  type: obj?.type || 'info',
-                  message: obj?.message || '',
-                })),
-              }),
+              this.createDiagnostic({ ...diagnostic, page: name }),
             ),
         })
       }
@@ -84,10 +79,10 @@ class Diagnostics extends Builder implements IDiagnostics {
           try {
             await Promise.all(
               [...this].map((value) => {
-                const visitorProps = getVisitorProps(value)
-                return this.visitor?.visitAsync(visitorProps.value, {
+                const props = getVisitorProps(value)
+                return this.visitor?.visitAsync(props.value, {
                   ...options,
-                  ...visitorProps.helpers,
+                  ...props.helpers,
                 })
               }),
             )
@@ -98,10 +93,10 @@ class Diagnostics extends Builder implements IDiagnostics {
         })
       } else {
         for (const value of this) {
-          const visitorProps = getVisitorProps(value)
-          this.visitor?.visit(visitorProps.value, {
+          const props = getVisitorProps(value)
+          this.visitor?.visit(props.value, {
             ...options,
-            ...visitorProps.helpers,
+            ...props.helpers,
           })
         }
       }
@@ -115,7 +110,7 @@ class Diagnostics extends Builder implements IDiagnostics {
     return diagnostics
   }
 
-  register(value: DiagnosticRule) {
+  register(value: Parameters<Builder['use']>[0] | TranslatedDiagnosticObject) {
     if (is.diagnostic(value)) {
       const diagnostic = new Diagnostic(value)
       this.rules.push(diagnostic)
@@ -125,8 +120,12 @@ class Diagnostics extends Builder implements IDiagnostics {
     return this
   }
 
-  createDiagnostic(opts?: { title: string; type: 'error' | 'warn' | 'info' }) {
-    const diagnostic = { ...opts } as DiagnosticObject
+  createDiagnostic(
+    opts?: Partial<DiagnosticObject | TranslatedDiagnosticObject>,
+  ) {
+    const diagnostic = {
+      ...fp.omit(opts, ['messages']),
+    }
 
     Object.defineProperty(diagnostic, '_id_', {
       configurable: false,
@@ -135,7 +134,18 @@ class Diagnostics extends Builder implements IDiagnostics {
       value: _symbol.diagnostic,
     })
 
-    return new Diagnostic(diagnostic)
+    if (diagnostic.messages) {
+      diagnostic.messages = fp
+        .toArr(diagnostic.messages)
+        .map(({ message, type }) => {
+          return {
+            message,
+            type: translateDiagnosticType(type),
+          }
+        })
+    }
+
+    return new Diagnostic(diagnostic as TranslatedDiagnosticObject)
   }
 }
 

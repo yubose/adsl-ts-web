@@ -1,3 +1,4 @@
+import { ValidatorType } from '../constants'
 import * as t from './diagnosticsTypes'
 
 export function createDiagnosticCheckers(
@@ -59,4 +60,17 @@ export const diagnosticFunctions = {
       //
     }
   },
+}
+
+export function translateDiagnosticType(type: ValidatorType) {
+  switch (type) {
+    case 9000:
+      return 'ERROR'
+    case 9001:
+      return 'WARN'
+    case 9002:
+      return 'INFO'
+    default:
+      return type
+  }
 }
