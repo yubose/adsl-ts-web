@@ -1,11 +1,10 @@
-const u = require('@jsmanifest/utils')
-const { AVisitor } = require('@noodl/core')
-const y = require('yaml')
+import * as u from '@jsmanifest/utils'
+import y from 'yaml'
+import { AVisitor } from '@noodl/core'
 
 function wrap(callback, { data, name, options }) {
   return async function onVisit(...[key, node, path]) {
-    /** @type { Parameters<import('@noodl/core').AVisitor['callback']>[0] } */
-    const callbackArgs = {
+    const callbackArgs: Parameters<AVisitor['callback']>[0] = {
       data,
       name,
       key,
@@ -94,4 +93,4 @@ class DocVisitor extends AVisitor {
   }
 }
 
-module.exports = DocVisitor
+export default DocVisitor

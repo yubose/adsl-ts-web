@@ -1,8 +1,8 @@
-const y = require('yaml')
-const u = require('@jsmanifest/utils')
-const { AIterator, is, ARoot } = require('@noodl/core')
+import y from 'yaml'
+import * as u from '@jsmanifest/utils'
+import { AIterator, is, ARoot } from '@noodl/core'
 
-function isNode(value) {
+export function isNode(value) {
   return y.isNode(value) || y.isDocument(value) || y.isPair(value)
 }
 
@@ -34,5 +34,4 @@ class DocIterator extends AIterator {
   }
 }
 
-module.exports = DocIterator
-exports.isNode = isNode
+export default DocIterator

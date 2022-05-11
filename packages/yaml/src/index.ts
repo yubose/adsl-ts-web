@@ -1,0 +1,6 @@
+export { default as DocIterator } from './DocIterator'
+export { default as DocRoot } from './DocRoot'
+export { default as DocVisitor } from './DocVisitor'
+export * from './types'
+export { default as is } from './utils/is'
+export { default as unwrap } from './utils/unwrap'

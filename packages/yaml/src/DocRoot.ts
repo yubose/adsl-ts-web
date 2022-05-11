@@ -1,5 +1,5 @@
-const y = require('yaml')
-const { ARoot } = require('@noodl/core')
+import y from 'yaml'
+import { ARoot } from '@noodl/core'
 
 class DocRoot extends ARoot {
   value = new Map();
@@ -53,4 +53,4 @@ class DocRoot extends ARoot {
   }
 }
 
-module.exports = DocRoot
+export default DocRoot
