@@ -4,46 +4,10 @@
 
 ## Usage
 
-```
-const noodl = require('@noodl/core');
+### Diagnostics
 
-const componentObject = {
-  type: 'label',
-  style: {
-    textAlign: {
-      x: 'centerX',
-      y: 'center',
-    },
-    shadow: 'true'
-  }
-}
+```js
+const n = require('@noodl/core')
 
-const root = {
-  SignIn: {
-    formData: { email: 'pf@gmail.com' },
-    theme: {
-      fontSize: '1.4vh',
-    }
-  }
-}
-
-const component = noodl.transform(componentObject, {
-  root,
-  rootKey: 'SignIn',
-  viewport: {
-    width: 375,
-    height: 667,
-  },
-})
-
-console.log(component)
-```
-
-Result:
-
-```json
-{
-  "type": "label",
-  "style": {}
-}
+const diagnostics = new n.Diagnostics()
 ```

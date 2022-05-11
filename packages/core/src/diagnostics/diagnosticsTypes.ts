@@ -1,5 +1,5 @@
 import type { AVisitor, ARoot } from '../types'
-import type { translateDiagnosticType } from './functions'
+import type { translateDiagnosticType } from './utils'
 import { ValidatorType } from '../constants'
 
 export interface IDiagnostics {

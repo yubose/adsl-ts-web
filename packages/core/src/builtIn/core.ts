@@ -1,6 +1,13 @@
 import type { StyleObject } from 'noodl-types'
 import * as fp from '../utils/fp'
 import * as is from '../utils/is'
+import _obj from './object'
+
+const unwrap = (node) => (y.isScalar(node) ? node.value : node)
+const has = (node, key) => node.has(key)
+const hasAny = (node, key) => node.has(key)
+const hasEqualTo = (node, key, v) =>
+  node.has(key) && node.get(key) === unwrap(v)
 
 const core = {
   /**

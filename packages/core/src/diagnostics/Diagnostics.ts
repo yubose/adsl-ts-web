@@ -4,7 +4,7 @@ import * as t from '../types'
 import Builder from '../Builder'
 import { _symbol } from '../constants'
 import Diagnostic from './Diagnostic'
-import { translateDiagnosticType } from './functions'
+import { translateDiagnosticType } from './utils'
 import type {
   IDiagnostics,
   DiagnosticsHelpers,
