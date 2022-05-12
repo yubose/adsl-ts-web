@@ -140,12 +140,8 @@ describe(`deref`, () => {
       },
       {
         key: '0',
-        value: root
-          .get('SignIn')
-          .get('components')
-          .get(1)
-          .get('children')
-          .get(0),
+        // prettier-ignore
+        value: root.get('SignIn').get('components').get(1).get('children').get(0),
       },
     ])
     expect(sixthCallNextState).to.have.deep.property('results', [
@@ -157,29 +153,20 @@ describe(`deref`, () => {
       },
       {
         key: '0',
-        value: root
-          .get('SignIn')
-          .get('components')
-          .get(1)
-          .get('children')
-          .get(0),
+        // prettier-ignore
+        value: root.get('SignIn').get('components').get(1).get('children').get(0),
       },
       {
         key: 'text',
-        value: root
-          .get('SignIn')
-          .get('components')
-          .get(1)
-          .get('children')
-          .get(0)
-          .get('text'),
+        // prettier-ignore
+        value: root.get('SignIn').get('components').get(1).get('children') .get(0).get('text'),
       },
     ])
     // console.dir(results.refNode, { depth: Infinity })
   })
 })
 
-describe.skip(`Diagnostics`, () => {
+describe.only(`Diagnostics`, () => {
   let diagnostics: Diagnostics
   let docVisitor: DocVisitor
 
@@ -200,7 +187,6 @@ describe.skip(`Diagnostics`, () => {
   it(``, async () => {
     const results = await diagnostics.run({
       async: true,
-      beforeEnter: (val) => val,
       enter: ({ name: pageName, key, value: node, path, data, add, root }) => {
         if (!data[pageName]) data.pageName = []
         add({
@@ -211,6 +197,9 @@ describe.skip(`Diagnostics`, () => {
         })
       },
     })
+
+    diagnostics.register(diagnostics.createDiagnostic({}))
+
     console.log(results.map((s) => s.toJSON()))
   })
 })
