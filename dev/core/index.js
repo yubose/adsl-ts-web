@@ -6,7 +6,7 @@ const n = require('@noodl/core')
 const nt = require('noodl-types')
 const nu = require('noodl-utils')
 const y = require('yaml')
-const { DocRoot, DocVisitor, DocIterator } = require('@noodl/yaml')
+const { DocRoot, DocVisitor, is } = require('@noodl/yaml')
 const ObjIterator = require('./ObjIterator')
 const ObjVisitor = require('./ObjVisitor')
 const validators = require('./validators')
@@ -16,7 +16,6 @@ const getRelPath = (...s) => path.resolve(path.join(__dirname, ...s))
 const diagnostics = new n.Diagnostics()
 const docRoot = new DocRoot()
 const docVisitor = new DocVisitor()
-const objVisitor = new ObjVisitor()
 
 diagnostics.use(docVisitor)
 diagnostics.use(docRoot)
@@ -84,7 +83,7 @@ const loadDir = (p) =>
 //
 ;(async () => {
   try {
-    const glob = path.resolve('generated/admind3/**/*.yml')
+    const glob = path.resolve('generated/admind3/**/*SignIn.yml')
     const docsTable = loadDir(glob)
 
     u.entries(docsTable).forEach(([name, doc]) => docRoot.set(name, doc))
