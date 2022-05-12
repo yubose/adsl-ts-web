@@ -23,8 +23,6 @@ export interface RunOptions<Async = false> {
 class Diagnostics extends Builder implements IDiagnostics {
   [Symbol.iterator](): Iterator<any, any, any> {
     // @ts-expect-error
-    // return this.iterator?.getIterator(this.iterator.getItems(this.data))
-    // return this.iterator?.getIterator(this.root?.value)
     return this.root[Symbol.iterator]()
   }
 
@@ -86,11 +84,11 @@ class Diagnostics extends Builder implements IDiagnostics {
         return new Promise(async (resolve, reject) => {
           try {
             await Promise.all(
-              [...this].map((value) => {
-                const props = getVisitorProps(value)
-                return this.visitor?.visitAsync(props.value, {
+              [...this].map((val) => {
+                const { helpers, value } = getVisitorProps(val)
+                return this.visitor?.visitAsync(value, {
                   ...options,
-                  ...props.helpers,
+                  ...helpers,
                 })
               }),
             )
@@ -100,11 +98,11 @@ class Diagnostics extends Builder implements IDiagnostics {
           }
         }) as Async extends true ? Promise<Diagnostics[]> : Diagnostics[]
       } else {
-        for (const value of this) {
-          const props = getVisitorProps(value)
-          this.visitor?.visit(props.value, {
+        for (const val of this) {
+          const { helpers, value } = getVisitorProps(val)
+          this.visitor?.visit(value, {
             ...options,
-            ...props.helpers,
+            ...helpers,
           })
         }
       }

@@ -164,7 +164,7 @@ function deref({ node, root, rootKey, subscribe }: DerefOptions) {
   refNode.value = derefMachine.getState().result
 
   for (let currKey of [...derefMachine.getState().paths]) {
-    derefMachine.next()[0]
+    derefMachine.next()
 
     const newRefNode = new RefNode(currKey)
 
