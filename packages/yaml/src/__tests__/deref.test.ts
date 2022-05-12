@@ -179,7 +179,7 @@ describe(`deref`, () => {
   })
 })
 
-describe.only(`Diagnostics`, () => {
+describe.skip(`Diagnostics`, () => {
   let diagnostics: Diagnostics
   let docVisitor: DocVisitor
 
