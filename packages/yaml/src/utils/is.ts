@@ -1,4 +1,6 @@
 import * as u from '@jsmanifest/utils'
+import { Identify } from 'noodl-types'
+import type { ReferenceString } from 'noodl-types'
 import y, { YAMLMap } from 'yaml'
 import { findPair } from 'yaml/util'
 import unwrap from './unwrap'
@@ -54,16 +56,6 @@ function equalTo<N = any>(v1: unknown, v2: N): v1 is typeof v2 {
   return false
 }
 
-function hasEqualTo<K extends string | number | y.Scalar, V = any>(
-  node: unknown,
-  key: K,
-  value: V,
-): node is YAMLMap<K, V> {
-  if (y.isPair(node)) return unwrap(node.key) === value
-  if (y.isMap(node)) return node.get(key, false) === unwrap(value)
-  return false
-}
-
 const is = {
   array: (node: unknown): node is y.YAMLSeq => y.isSeq(node),
   object: (node: unknown): node is y.YAMLMap =>
@@ -76,6 +68,8 @@ const is = {
   undefined: (node: unknown): node is y.Scalar<undefined> =>
     u.isUnd(unwrap(node)),
   equalTo,
+  reference: (node: unknown): node is y.Scalar<ReferenceString> =>
+    Identify.reference(unwrap(node)),
   sameNodeType,
   builtInFn: (node: unknown): node is y.YAMLMap<`=.builtIn.${string}`> => {
     if (

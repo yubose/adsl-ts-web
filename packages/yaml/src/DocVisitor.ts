@@ -1,16 +1,17 @@
 import * as u from '@jsmanifest/utils'
 import y from 'yaml'
 import { AVisitor } from '@noodl/core'
+import type { VisitorOptions } from '@noodl/core'
 
 function wrap(callback, { data, name, options }) {
   return async function onVisit(...[key, node, path]) {
-    const callbackArgs: Parameters<AVisitor['callback']>[0] = {
+    const callbackArgs = {
+      ...u.omit(options, ['init']),
       data,
       name,
       key,
       value: node,
       path,
-      ...u.omit(options, ['init']),
     }
 
     const control = await callback?.(callbackArgs)
@@ -42,7 +43,7 @@ function wrap(callback, { data, name, options }) {
 }
 
 class DocVisitor extends AVisitor {
-  #callback
+  #callback: any
 
   get callback() {
     return this.#callback
@@ -53,14 +54,15 @@ class DocVisitor extends AVisitor {
    * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
    * @returns Visitor data
    */
-  visit(args, options) {
+  visit(args, options: Partial<VisitorOptions>) {
     const [name, value] = args
     const data = options?.data || {}
 
-    options?.init?.(data)
+    options?.init?.({ data })
 
     if (y.isNode(value) || y.isDocument(value)) {
-      y.visit(value, wrap(this.#callback, { name, value, data, options }))
+      // @ts-expect-error
+      y.visit(value, wrap(this.callback, { name, data, options }))
     }
 
     return data
@@ -71,17 +73,14 @@ class DocVisitor extends AVisitor {
    * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
    * @returns Visitor data
    */
-  async visitAsync(args, options) {
+  async visitAsync(args, options: Partial<VisitorOptions>) {
     const [name, value] = args
     const data = options?.data || {}
 
-    await options?.init?.(data)
+    await options?.init?.({ data })
 
     if (y.isNode(value) || y.isDocument(value)) {
-      await y.visitAsync(
-        value,
-        wrap(this.#callback, { name, value, data, options }),
-      )
+      await y.visitAsync(value, wrap(this.callback, { name, data, options }))
     }
 
     return data
