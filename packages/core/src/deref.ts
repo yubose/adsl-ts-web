@@ -15,7 +15,35 @@ export interface DerefOptions {
   ref: LiteralUnion<ReferenceString, string> | Record<string, any> | any[]
   root: Record<string, any>
   rootKey?: string
+  identifiers?: {
+    arr: <A = any[]>(value: any) => value is A
+    obj: <O = Record<string, any>>(value: any) => value is O
+    str: <S = string>(value: any) => value is S
+    num: <N = number>(value: any) => value is N
+    ref: <R = ReferenceString>(value: any) => value is R
+    localRef: (value: any) => boolean
+    rootRef: (value: any) => boolean
+    localKey: (value: any) => boolean
+    traverseRef: (value: any) => boolean
+  }
 }
+
+const defaultIdentifiers = {
+  arr: is.arr,
+  obj: is.obj,
+  num: is.num,
+  ref: is.reference,
+  str: is.str,
+  localKey: is.localKey,
+  localRef: is.localReference,
+  rootRef: is.rootReference,
+  traverseRef: is.traverseReference,
+}
+
+const identifierKeys = Object.keys(defaultIdentifiers)
+
+const cache = new Map()
+cache.set('identifiers', [{ identifiers: defaultIdentifiers }])
 
 /**
  * Deeply dereferences a reference string, an array of values, or an object that contains a reference within
@@ -30,17 +58,44 @@ function deref({
   ref,
   root,
   rootKey = '',
+  identifiers: idy,
 }: DerefOptions) {
   let value = ref as string
 
-  if (value) {
-    if (is.str(value)) {
-      let datapath = toPath(trimReference(value))
-      let isLocal = is.reference(value)
+  if (!idy) {
+    idy = defaultIdentifiers as NonNullable<DerefOptions['identifiers']>
+  }
 
-      if (is.str(value)) {
-        while (is.reference(value)) {
-          if (is.traverseReference(value)) {
+  // const idyValidation = cache
+  //   .get('identifiers')
+  //   ?.find?.((o) => o.identifiers === idy)
+
+  // console.log({ idyValidation })
+
+  // if (idyValidation) {
+  //   const implementedIdentifiers = identifierKeys.filter(
+  //     (key) => key in (idy || {}),
+  //   )
+
+  //   if (implementedIdentifiers.length < identifierKeys.length) {
+  //     throw new Error(
+  //       `Missing ${
+  //         identifierKeys.length - implementedIdentifiers.length
+  //       } identifier implementations: ${identifierKeys
+  //         .filter((key) => !implementedIdentifiers.includes(key))
+  //         .join(', ')}`,
+  //     )
+  //   }
+  // }
+
+  if (value) {
+    if (idy.str?.(value)) {
+      let datapath = toPath(trimReference(value))
+      let isLocal = idy.ref?.(value)
+
+      if (idy.str?.(value)) {
+        while (idy.ref?.(value)) {
+          if (idy.traverseRef?.(value)) {
             let parts = value.trim().split('_')
             let index = parts.length - 1
 
@@ -61,15 +116,15 @@ function deref({
               let result = get(dataObject || root, parts)
 
               if (result == null) {
-                if (datapath.length && is.localKey(datapath[0])) {
+                if (datapath.length && idy.localKey?.(datapath[0])) {
                   // One more attempt
                   result = get(root, [rootKey, ...datapath])
                 }
               }
 
-              if (is.str(result)) {
-                if (is.reference(result)) {
-                  if (is.rootReference(result)) {
+              if (idy.str?.(result)) {
+                if (idy.ref?.(result)) {
+                  if (idy.rootRef?.(result)) {
                     datapath = toPath(trimReference(result))
                     if (datapath[0] === rootKey) {
                       datapath.shift()
@@ -86,7 +141,7 @@ function deref({
               return result
             }
           } else {
-            isLocal = is.localReference(value)
+            isLocal = idy.localRef?.(value)
 
             if (isLocal) {
               if (rootKey && datapath[0] === rootKey) datapath.shift()
@@ -106,7 +161,7 @@ function deref({
           }
         }
 
-        if (is.str(value)) {
+        if (idy.str?.(value)) {
           if (iteratorVar && value.startsWith(iteratorVar) && dataObject) {
             // ref === 'itemObject'
             if (value === iteratorVar) return dataObject
@@ -117,13 +172,13 @@ function deref({
           }
         }
       }
-    } else if (is.arr(value)) {
+    } else if (idy.arr?.(value)) {
       return (value as any[]).map((val, index) =>
         deref({ ...arguments[0], path: path.concat(index), ref: val }),
       )
-    } else if (is.obj(value)) {
+    } else if (idy.obj?.(value)) {
       Object.entries(value).forEach(([key, val]) => {
-        if ((is.str(val) && is.reference(val)) || is.obj(val)) {
+        if ((idy?.str?.(val) && idy?.ref?.(val)) || idy?.obj?.(val)) {
           return (value[key] = deref({
             ...arguments[0],
             path: path.concat(key),

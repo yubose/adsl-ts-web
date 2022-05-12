@@ -34,7 +34,7 @@ export abstract class ARoot<R = any> {
 }
 
 export abstract class AVisitor<R = any, H = Record<string, any>> {
-  callback?: (args: VisitFnArgs<H>) => any
+  abstract callback?: (args: VisitFnArgs<H>) => any
   abstract visit(node: any, options?: Partial<VisitorOptions<H>>): R
   abstract visitAsync(
     node: any,
@@ -50,6 +50,7 @@ export interface VisitorOptions<Options = Record<string, any>> {
 }
 
 export type VisitFnArgs<H extends Record<string, any> = Record<string, any>> = {
+  data: Record<string, any>
   pageName: string
   name?: string
   key: null | string | number

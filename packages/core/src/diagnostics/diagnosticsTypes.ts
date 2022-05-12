@@ -1,17 +1,22 @@
 import type { AVisitor, ARoot } from '../types'
 import type { translateDiagnosticType } from './utils'
 import { ValidatorType } from '../constants'
+import type Diagnostic from './Diagnostic'
 
 export interface IDiagnostics {
-  run(
-    data: any,
-    options?: {
-      async?: boolean
-      init?: (args: { data: Record<string, any> }) => any
-      beforeEnter?: (enterValue: any) => any
-      enter?: AVisitor<DiagnosticObject[], DiagnosticsHelpers>['callback']
-    },
-  ): DiagnosticObject[]
+  run<Async extends boolean = false>(
+    options?: RunDiagnosticsOptions<Async>,
+  ): Async extends true ? Promise<Diagnostic[]> : Diagnostic[]
+}
+
+export interface RunDiagnosticsOptions<Async extends boolean = false> {
+  async?: Async
+  init?: (args: { data: Record<string, any> }) => any
+  beforeEnter?: (enterValue: any) => any
+  enter?: AVisitor<
+    Async extends true ? Promise<Diagnostic[]> : Diagnostic[],
+    DiagnosticsHelpers
+  >['callback']
 }
 
 export interface DiagnosticDetails {

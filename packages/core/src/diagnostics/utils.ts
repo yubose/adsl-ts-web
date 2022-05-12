@@ -1,4 +1,4 @@
-import { ValidatorType } from '../constants'
+import { DiagnosticCode, ValidatorType } from '../constants'
 import * as t from './diagnosticsTypes'
 
 export function createDiagnosticCheckers(
@@ -54,12 +54,45 @@ export function convertPropertyName(origName: string): string {
   return result
 }
 
-export const diagnosticFunctions = {
-  '1000': (name: string) => {
-    return {
-      //
+export function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
+  switch (code) {
+    case DiagnosticCode.LOCAL_REF_MISSING_ROOT_KEY:
+      return `Encountered a local reference "${arg.ref}" but a page name (rootKey) was not found`
+    case DiagnosticCode.ROOT_REF_MISSING_ROOT_KEY:
+      return `Attemped to resolved a reference "${arg.ref}" but both rootKey and pageName was empty. No root level object could be retrieved`
+    case DiagnosticCode.ROOT_MISSING_ROOT_KEY:
+      return `Attemped to resolved a reference "${arg.ref}" but the root object did not have "${arg.rootKey}" as a key`
+    case DiagnosticCode.ROOT_VALUE_EMPTY:
+      return `The value retrieved using the root key "${arg.rootKey}" was empty`
+    case DiagnosticCode.TRAVERSAL_REF_INCOMPLETE_MISSING_KEY:
+      return (
+        `The reference "${arg.ref}" couldn't be resolved fully. ` +
+        `Traversal stopped at "${arg.path.join('.')}" ` +
+        `because the object at this iteration did not contain this key`
+      )
+
+    default:
+      throw new Error(`Invalid diagnostic code "${code}"`)
+  }
+}
+
+export function getDiagnosticCodeCoverage() {
+  const covered = [] as DiagnosticCode[]
+  const uncovered = [] as any[]
+
+  for (const code of Object.keys(DiagnosticCode)) {
+    if (generateDiagnosticMessage(DiagnosticCode[code], undefined)) {
+      covered.push(DiagnosticCode[code])
+    } else {
+      uncovered.push(code)
     }
-  },
+  }
+
+  return {
+    covered,
+    uncovered,
+    coverage: `${covered.length / uncovered.length}%`,
+  }
 }
 
 export function translateDiagnosticType(type: ValidatorType) {

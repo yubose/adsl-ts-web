@@ -13,8 +13,8 @@ import type {
   TranslatedDiagnosticObject,
 } from './diagnosticsTypes'
 
-export interface RunOptions {
-  async?: boolean
+export interface RunOptions<Async = false> {
+  async?: Async
   init?: (args: { data: Record<string, any> }) => any
   beforeEnter?: (enterValue: any) => any
   enter?: t.AVisitor<DiagnosticObject[], DiagnosticsHelpers>['callback']
@@ -34,10 +34,18 @@ class Diagnostics extends Builder implements IDiagnostics {
     super()
   }
 
-  run(opts?: RunOptions & { async: true }): Promise<any>
-  run(opts?: RunOptions): any
-  run({ beforeEnter, init, enter, async = false }: RunOptions = {}) {
-    let prevVisitCallback: t.AVisitor['callback'] | undefined
+  // @ts-expect-error
+  run(opts?: RunOptions<true>): Promise<Diagnostic[]>
+
+  run(opts?: RunOptions<false | undefined | never | void>): Diagnostic[]
+
+  run<Async extends boolean = boolean>({
+    beforeEnter,
+    init,
+    enter,
+    async = false as Async,
+  }: RunOptions<Async> = {}) {
+    let prevVisitCallback: t.AVisitor<Async>['callback'] | undefined
 
     if (enter) {
       prevVisitCallback = this.visitor?.callback
@@ -86,11 +94,11 @@ class Diagnostics extends Builder implements IDiagnostics {
                 })
               }),
             )
-            resolve(diagnostics)
+            resolve(diagnostics as any)
           } catch (error) {
             reject(error instanceof Error ? error : new Error(String(error)))
           }
-        })
+        }) as Async extends true ? Promise<Diagnostics[]> : Diagnostics[]
       } else {
         for (const value of this) {
           const props = getVisitorProps(value)

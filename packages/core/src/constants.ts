@@ -52,3 +52,11 @@ export enum ValidatorType {
   WARN = 9001,
   INFO = 9002,
 }
+
+export enum DiagnosticCode {
+  LOCAL_REF_MISSING_ROOT_KEY = 20000,
+  ROOT_REF_MISSING_ROOT_KEY = 20001,
+  ROOT_MISSING_ROOT_KEY = 20002,
+  ROOT_VALUE_EMPTY = 20003,
+  REF_ = 30000,
+}
