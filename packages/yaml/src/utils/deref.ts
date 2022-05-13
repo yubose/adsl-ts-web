@@ -35,7 +35,7 @@ export interface DerefOptions {
   }
 }
 
-class RefNode {
+export class RefNode {
   left: any
   right: any
   value: any

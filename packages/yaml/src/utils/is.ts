@@ -4,6 +4,7 @@ import type { ReferenceString } from 'noodl-types'
 import y, { YAMLMap } from 'yaml'
 import { findPair } from 'yaml/util'
 import unwrap from './unwrap'
+import * as c from '../constants'
 import * as t from '../types'
 
 function isMapNodeContaining<K extends string, V = any>(key: K, value: V) {

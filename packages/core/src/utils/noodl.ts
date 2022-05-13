@@ -6,6 +6,7 @@ import type {
   VpUnit,
   VpValue,
 } from 'noodl-types'
+import { Identify } from 'noodl-types'
 import {
   nil,
   num,
@@ -18,7 +19,7 @@ import {
   keyRelatedToWidth,
   keyRelatedToWidthOrHeight,
 } from './is'
-import { hasDecimal } from './fp'
+import { hasDecimal, toArr, toPath } from './fp'
 import type { IViewport } from '../types'
 import * as c from '../constants'
 
@@ -58,6 +59,38 @@ export function getPositionProps(
     return { [key]: getViewportRatio(viewportSize, value) + 'px' }
 
   return undefined
+}
+
+export function getRefProps(ref: ReferenceString) {
+  const path = trimReference(ref)
+  const paths = path.split('.')
+  return {
+    isLocalRef: Identify.localReference(ref),
+    isLocalKey: Identify.localKey(path),
+    paths,
+    path,
+    ref,
+  }
+}
+
+export function getNextRootKeyProps(
+  currentPaths: string | string[],
+  currentRootKey?: string,
+) {
+  let paths = toPath(trimReference(toArr(currentPaths).join('.')))
+  let rootKey = currentRootKey || ''
+
+  if (paths.length) {
+    if (rootKey) {
+      if (paths[0] === rootKey) {
+        paths.shift()
+      }
+    } else {
+      //
+    }
+  }
+
+  return { paths, path: paths.join('.'), rootKey }
 }
 
 /**

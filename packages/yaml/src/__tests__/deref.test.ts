@@ -166,7 +166,7 @@ describe(`deref`, () => {
   })
 })
 
-describe.only(`Diagnostics`, () => {
+describe(`Diagnostics`, () => {
   let diagnostics: Diagnostics
   let docVisitor: DocVisitor
 
