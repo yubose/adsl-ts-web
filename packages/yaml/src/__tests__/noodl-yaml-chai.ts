@@ -3,6 +3,7 @@ import Chai from 'chai'
 import y from 'yaml'
 import { findPair } from 'yaml/util'
 import getNodeType from '../utils/getNodeType'
+import DocRoot from '../DocRoot'
 import is from '../utils/is'
 import unwrap from '../utils/unwrap'
 
@@ -23,6 +24,7 @@ function NoodlYamlChai(chai: typeof Chai, utils: Chai.ChaiUtils) {
     YAMLSeq: createAssertNode(y.YAMLSeq),
     Map: createAssertNode(Map),
     Set: createAssertNode(Set),
+    Root: createAssertNode(DocRoot),
   }
 
   function isYAMLNode(
@@ -70,16 +72,32 @@ function NoodlYamlChai(chai: typeof Chai, utils: Chai.ChaiUtils) {
     return function assertYAMLMapProperty(
       this: Chai.AssertionStatic,
       key: string,
+      value?: any,
     ) {
       const node = utils.flag(this, 'object') as y.YAMLMap
-      if (isYAMLNode(node)) {
-        assertIs.YAMLMap(node)
-        this.assert(
-          node.has(key),
-          `expected #{this} to have key #{exp}`,
-          `expected #{this} to not have key #{exp}`,
-          key,
-        )
+      if (isYAMLNode(node) || is.root(node)) {
+        if (isYAMLNode(node)) assertIs.YAMLMap(node)
+        else assertIs.Root(node)
+
+        const hasKey = node.has(key)
+
+        if (arguments.length > 1) {
+          const result = node.get(key, false)
+          this.assert(
+            hasKey && unwrap(result) === unwrap(value),
+            `expected #{this} to have key #{exp} of '${value}' but received #{act}`,
+            `expected #{this} to not have key #{exp} of ${value}`,
+            key,
+            result,
+          )
+        } else {
+          this.assert(
+            hasKey,
+            `expected #{this} to have key #{exp}`,
+            `expected #{this} to not have key #{exp}`,
+            key,
+          )
+        }
       } else {
         _super.apply(this, arguments)
       }
@@ -122,6 +140,15 @@ function NoodlYamlChai(chai: typeof Chai, utils: Chai.ChaiUtils) {
         unwrap(node.get(value)) === value,
         `expected YAMLSeq #{this} to have value #{exp}`,
         `expected YAMLSeq #{this} to not have value #{exp}`,
+        value,
+      )
+    }
+
+    if (is.root(node)) {
+      this.assert(
+        node.has(value),
+        `expected DocRoot #{this} to have value #{exp}`,
+        `expected DocRoot #{this} to not have value #{exp}`,
         value,
       )
     }

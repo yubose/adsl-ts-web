@@ -1,9 +1,11 @@
 import * as u from '@jsmanifest/utils'
+import { ARoot } from '@noodl/core'
 import { Identify } from 'noodl-types'
 import type { ReferenceString } from 'noodl-types'
 import y from 'yaml'
 import { findPair } from 'yaml/util'
 import unwrap from './unwrap'
+import type DocRoot from '../DocRoot'
 import type { FileSystem } from './fileSystem'
 import * as c from '../constants'
 import * as t from '../types'
@@ -76,6 +78,10 @@ const is = {
     value['_id_'] === c._symbol.fs,
   reference: (node: unknown): node is y.Scalar<ReferenceString> =>
     Identify.reference(unwrap(node)),
+  root: (node: unknown): node is DocRoot =>
+    node !== null &&
+    typeof node === 'object' &&
+    node['_id_'] === c._symbol.root,
   sameNodeType,
   builtInFn: (node: unknown): node is y.YAMLMap<`=.builtIn.${string}`> => {
     if (
@@ -113,6 +119,12 @@ const is = {
   textView: isMapNodeContaining('type', 'textView'),
   video: isMapNodeContaining('type', 'video'),
   view: isMapNodeContaining('type', 'view'),
+  ymlNode: (node: unknown) => {
+    if (node !== null && typeof node === 'object') {
+      return y.isNode(node) || y.isPair(node) || y.isDocument(node)
+    }
+    return false
+  },
 }
 
 export default is

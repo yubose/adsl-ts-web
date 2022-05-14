@@ -6,6 +6,7 @@ import y from 'yaml'
 import * as yu from 'yaml/util'
 import { Diagnostics } from '@noodl/core'
 import Root from '../DocRoot'
+import get from '../utils/get'
 import is from '../utils/is'
 import deref from '../utils/deref'
 import { DocVisitor } from '../../dist'
@@ -49,17 +50,7 @@ describe(`deref`, () => {
     deref({ node: ref, root, rootKey: 'SignIn', subscribe: { onUpdate: spy } })
     const firstCallArgs = spy.firstCall.args
     const initialState = firstCallArgs[1]
-    expect(initialState).to.have.property('currentKey', 'SignIn')
-    expect(initialState).to.have.property(
-      'currentDataObject',
-      root.value.get('SignIn'),
-    )
-    expect(initialState).to.have.property('currentIsLocal', false)
-    expect(initialState).to.have.property('nextKey', 'components')
-    expect(initialState).to.have.property(
-      'path',
-      'components.1.children.0.text',
-    )
+    expect(initialState).to.have.property('result', root.value.get('SignIn'))
     expect(initialState).to.have.deep.property('paths', [
       'components',
       '1',
@@ -67,10 +58,6 @@ describe(`deref`, () => {
       '0',
       'text',
     ])
-    expect(initialState).to.have.property(
-      'reference',
-      '.SignIn.components.1.children.0.text',
-    )
     expect(initialState).to.have.property('results').to.have.lengthOf(0)
   })
 
@@ -85,11 +72,6 @@ describe(`deref`, () => {
     })
     const secondCallArgs = spy.secondCall.args
     const secondCallNextState = secondCallArgs[1]
-    expect(secondCallNextState).to.have.property('currentKey', 'components')
-    expect(secondCallNextState).to.have.property(
-      'path',
-      'components.1.children.0.text',
-    )
     expect(secondCallNextState).to.have.deep.property('paths', [
       '1',
       'children',
@@ -113,56 +95,34 @@ describe(`deref`, () => {
     const fifthCallNextState = spy.getCall(4).args[1]
     const sixthCallNextState = spy.getCall(5).args[1]
     expect(secondCallNextState).to.have.deep.property('results', [
-      { key: 'components', value: root.get('SignIn').get('components') },
+      { key: 'components', value: root.get('SignIn.components') },
     ])
     expect(thirdCallNextState).to.have.deep.property('results', [
-      { key: 'components', value: root.get('SignIn').get('components') },
-      { key: '1', value: root.get('SignIn').get('components').get(1) },
+      { key: 'components', value: root.get('SignIn.components') },
+      { key: '1', value: root.get('SignIn.components.1') },
     ])
     expect(thirdCallNextState).to.have.deep.property('results', [
-      { key: 'components', value: root.get('SignIn').get('components') },
-      { key: '1', value: root.get('SignIn').get('components').get(1) },
+      { key: 'components', value: root.get('SignIn.components') },
+      { key: '1', value: root.get('SignIn.components.1') },
     ])
     expect(fourthCallNextState).to.have.deep.property('results', [
-      { key: 'components', value: root.get('SignIn').get('components') },
-      { key: '1', value: root.get('SignIn').get('components').get(1) },
-      {
-        key: 'children',
-        value: root.get('SignIn').get('components').get(1).get('children'),
-      },
+      { key: 'components', value: root.get('SignIn.components') },
+      { key: '1', value: root.get('SignIn.components.1') },
+      { key: 'children', value: root.get('SignIn.components.1.children') },
     ])
     expect(fifthCallNextState).to.have.deep.property('results', [
-      { key: 'components', value: root.get('SignIn').get('components') },
-      { key: '1', value: root.get('SignIn').get('components').get(1) },
-      {
-        key: 'children',
-        value: root.get('SignIn').get('components').get(1).get('children'),
-      },
-      {
-        key: '0',
-        // prettier-ignore
-        value: root.get('SignIn').get('components').get(1).get('children').get(0),
-      },
+      { key: 'components', value: root.get('SignIn.components') },
+      { key: '1', value: root.get('SignIn.components.1') },
+      { key: 'children', value: root.get('SignIn.components.1.children') },
+      { key: '0', value: root.get('SignIn.components.1.children.0') },
     ])
     expect(sixthCallNextState).to.have.deep.property('results', [
-      { key: 'components', value: root.get('SignIn').get('components') },
-      { key: '1', value: root.get('SignIn').get('components').get(1) },
-      {
-        key: 'children',
-        value: root.get('SignIn').get('components').get(1).get('children'),
-      },
-      {
-        key: '0',
-        // prettier-ignore
-        value: root.get('SignIn').get('components').get(1).get('children').get(0),
-      },
-      {
-        key: 'text',
-        // prettier-ignore
-        value: root.get('SignIn').get('components').get(1).get('children') .get(0).get('text'),
-      },
+      { key: 'components', value: root.get('SignIn.components') },
+      { key: '1', value: root.get('SignIn.components.1') },
+      { key: 'children', value: root.get('SignIn.components.1.children') },
+      { key: '0', value: root.get('SignIn.components.1.children.0') },
+      { key: 'text', value: root.get('SignIn.components.1.children.0.text') },
     ])
-    // console.dir(results.refNode, { depth: Infinity })
   })
 })
 
@@ -184,7 +144,7 @@ describe(`Diagnostics`, () => {
     )
   })
 
-  it(``, async () => {
+  it.skip(``, async () => {
     const results = await diagnostics.run({
       async: true,
       enter: ({ name: pageName, key, value: node, path, data, add, root }) => {

@@ -3,6 +3,7 @@ import * as nt from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import y from 'yaml'
 import * as yu from 'yaml/util'
+import DocRoot from '../DocRoot'
 import is from '../utils/is'
 
 const createScalar = (v?: any) => new y.Scalar(v)
@@ -194,5 +195,9 @@ describe(`is`, () => {
     expect(is.sameNodeType(new y.Pair('1'), new y.Pair('1'))).to.be.true
     expect(is.sameNodeType(new y.Pair('1'), createScalar())).to.be.false
     expect(is.sameNodeType(new y.YAMLMap(), createScalar())).to.be.false
+  })
+
+  it(`[root] should return true`, () => {
+    expect(is.root(new DocRoot())).to.be.true
   })
 })

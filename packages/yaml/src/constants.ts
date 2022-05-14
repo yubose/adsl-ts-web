@@ -1,5 +1,6 @@
 export const _symbol = {
   fs: Symbol('fileSystem'),
+  root: Symbol('DocRoot'),
 } as const
 
 export enum Kind {
@@ -8,6 +9,7 @@ export enum Kind {
   Pair = 2,
   Map = 3,
   Seq = 4,
+  Document = 5,
 }
 
 export enum ScalarKind {

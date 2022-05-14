@@ -41,7 +41,7 @@ beforeEach(() => {
   )
 })
 
-describe.only(`merge`, () => {
+describe.skip(`merge`, () => {
   it(`should merge map node props`, () => {
     process.stdout.write('\x1Bc')
     const doc = new y.Document({

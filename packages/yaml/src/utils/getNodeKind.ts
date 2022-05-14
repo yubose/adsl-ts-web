@@ -11,6 +11,8 @@ function getNodeKind(node: unknown) {
       return c.Kind.Map
     case 'Seq':
       return c.Kind.Seq
+    case 'Document':
+      return c.Kind.Document
     default:
       return c.Kind.Unknown
   }

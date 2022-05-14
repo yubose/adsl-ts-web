@@ -27,7 +27,7 @@ export abstract class ARoot<R = any> {
     Object.defineProperty(this, '_id_', {
       configurable: false,
       enumerable: false,
-      writable: false,
+      writable: true,
       value: _symbol.root,
     })
   }

@@ -1,8 +1,8 @@
 import y from 'yaml'
 import { ARoot } from '@noodl/core'
-import { trimReference } from '@noodl/core'
 import is from './utils/is'
 import type { FileSystem } from './utils/fileSystem'
+import get from './utils/get'
 import unwrap from './utils/unwrap'
 import * as c from './constants'
 
@@ -28,21 +28,21 @@ class DocRoot extends ARoot {
 
   constructor() {
     super()
+
+    Object.defineProperty(this, '_id_', {
+      configurable: false,
+      enumerable: false,
+      writable: true,
+      value: c._symbol.root,
+    })
   }
 
   /**
    * @param key Root key
    * @returns The retrieved value
    */
-  get(key: y.Scalar | string) {
-    key = unwrap(key) as string
-    if (!this.value.has(key)) {
-      // Second attempt is to transition to retrieving deeply
-      const datapathStr = trimReference(key)
-      const datapath = datapathStr.split('.')
-    }
-
-    return this.value.get(key)
+  get(key: y.Scalar | string | string[]) {
+    return get(this.value, key)
   }
 
   has(key: y.Scalar | string) {
