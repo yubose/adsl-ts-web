@@ -19,9 +19,15 @@ export const lvl3Options = {
   baseConfigUrl: 'https://public.aitmed.com/config',
   app: 'prod2',
   get url() {
-    return isDeploying
-      ? safeDeployUrl
-      : `http://127.0.0.1:3001/${lvl3Options.app}.yml`
+    // ONLY used if passed in as cli args via --env APP=<config name>
+    // See webpack.config.js for details in the "_getLocalAppHelpers" function
+    // (ex: npm run start:test -- --env APP=admind3)
+    // if (process.env.LOCAL_CONFIG_URL) return process.env.LOCAL_CONFIG_URL
+    // This will be returned (normal use) if NOT using -- env APP=<config name>
+    // return isDeploying
+    //   ? safeDeployUrl
+    //   : `http://127.0.0.1:3001/${lvl3Options.app}.yml`
+    return `analysis.yml`
   },
 }
 

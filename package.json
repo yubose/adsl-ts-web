@@ -125,6 +125,7 @@
     "espree": "^9.3.2",
     "execa": "^5.1.1",
     "express": "^4.17.1",
+    "fast-glob": "^3.2.11",
     "file-loader": "^6.2.0",
     "fs-extra": "^10.0.0",
     "globby": "^11.0.2",

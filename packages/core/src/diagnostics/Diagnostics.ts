@@ -140,13 +140,14 @@ class Diagnostics extends Builder implements IDiagnostics {
       value: _symbol.diagnostic,
     })
 
-    if (diagnostic.messages) {
+    if (opts?.messages) {
       diagnostic.messages = fp
-        .toArr(diagnostic.messages)
-        .map(({ message, type }) => {
+        .toArr(opts.messages)
+        .map(({ message, type, ...rest }) => {
           return {
             message,
             type: translateDiagnosticType(type),
+            ...rest,
           }
         })
     }

@@ -1,3 +1,7 @@
+export const _symbol = {
+  fs: Symbol('fileSystem'),
+} as const
+
 export enum Kind {
   Unknown = 0,
   Scalar = 1,

@@ -1,3 +1,4 @@
+export { default as createFileSystem } from './utils/fileSystem'
 export { default as DocRoot } from './DocRoot'
 export { default as DocVisitor } from './DocVisitor'
 export { default as deref } from './utils/deref'

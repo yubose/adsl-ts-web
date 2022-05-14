@@ -12,16 +12,19 @@ export function arr<V extends any[] = any[]>(v: unknown): v is V {
 /**
  * Returns true if the value is a NOODL boolean. A value is a NOODL boolean
  * if the value is truthy, true, "true", false, or "false"
+ * @internal
  * @param { any } value
  */
 export function bool(value: unknown) {
   return boolTrue(value) || boolFalse(value)
 }
 
+/** @internal */
 export function boolTrue(value: unknown): value is true | 'true' {
   return value === true || value === 'true'
 }
 
+/** @internal */
 export function boolFalse(value: unknown): value is false | 'false' {
   return value === false || value === 'false'
 }
@@ -32,12 +35,14 @@ export function diagnostic(
   return obj(value) && value._id_ === c._symbol.diagnostic
 }
 
+/** @internal */
 export function obj<V extends Record<string, any> = Record<string, any>>(
   v: unknown,
 ): v is V {
   return v !== null && !arr(v) && typeof v === 'object'
 }
 
+/** @internal */
 export function str<S extends string = string>(v: unknown): v is S {
   return typeof v === 'string'
 }
@@ -155,16 +160,19 @@ export function rootKey(v: string) {
   return !!(v && v[0].toUpperCase() === v[0] && !regex.numbers.test(v))
 }
 
+/** @internal */
 export function fnc<
   F extends (...args: any[]) => any = (...args: any[]) => any,
 >(v: any): v is F {
   return typeof v === 'function'
 }
 
+/** @internal */
 export function nil(v: any) {
   return v === null || und(v)
 }
 
+/** @internal */
 export function num(v: any): v is number {
   return typeof v === 'number'
 }
@@ -185,6 +193,7 @@ export function root(value: unknown): value is ARoot {
   )
 }
 
+/** @internal */
 export function und(v: unknown): v is undefined {
   return typeof v === 'undefined'
 }

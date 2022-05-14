@@ -1,9 +1,13 @@
 import y from 'yaml'
 import { ARoot } from '@noodl/core'
 import { trimReference } from '@noodl/core'
+import is from './utils/is'
+import type { FileSystem } from './utils/fileSystem'
 import unwrap from './utils/unwrap'
+import * as c from './constants'
 
 class DocRoot extends ARoot {
+  #fs: Partial<FileSystem> | undefined
   value = new Map();
 
   [Symbol.iterator](): Iterator<[name: string, doc: y.Node | y.Document]> {
@@ -69,6 +73,61 @@ class DocRoot extends ARoot {
 
   toString() {
     return JSON.stringify(this.toJSON())
+  }
+
+  loadFileSync(
+    filepath: string,
+    opts?: {
+      renameFile?: (filename?: string) => string | void
+      renameKey?: (filename: string) => string | void
+    },
+  ) {
+    if (!this.#fs) {
+      throw new Error(`Cannot load a file without a fileSystem registered`)
+    }
+
+    if (!this.#fs.readFile) {
+      throw new Error(
+        `Cannot load a file to DocRoot. Missing readFile implementation`,
+      )
+    }
+
+    if (this.#fs.existsSync) {
+      if (!this.#fs.existsSync(filepath)) {
+        throw new Error(`The file at path ${filepath} does not exist`)
+      }
+    }
+
+    const yml = this.#fs.readFile(filepath, 'utf8')
+
+    if (!yml) {
+      throw new Error(`The file at ${filepath} yielded empty data`)
+    }
+
+    let doc = y.parseDocument(yml)
+    let filename = this.#fs.getFileName?.(filepath) || ''
+    let key = ''
+
+    if (typeof opts?.renameFile === 'function') {
+      const newFileName = opts.renameFile(filename)
+      if (typeof newFileName === 'string') filename = newFileName
+    }
+
+    if (typeof opts?.renameKey === 'function') {
+      const newKey = opts.renameKey(filename)
+      if (typeof newKey === 'string') key = newKey
+    }
+
+    this.set(key, doc)
+
+    return doc
+  }
+
+  use(value: FileSystem) {
+    if (is.fileSystem(value)) {
+      this.#fs = value
+    }
+    return this
   }
 }
 

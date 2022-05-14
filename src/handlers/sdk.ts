@@ -1,3 +1,4 @@
+import axios from 'axios'
 import App from '../App'
 import { extendedSdkBuiltIns } from './builtIns'
 
@@ -55,6 +56,23 @@ export function getSdkHelpers(app: App) {
     },
     get extendMeeting() {
       return app.builtIns.get('extendMeeting')?.find(Boolean)?.fn
+    },
+    async request(dataIn: {
+      method?: 'get' | 'post' | 'put' | 'delete'
+      url?: string
+    }) {
+      try {
+        console.log(`[request] dataIn`, dataIn)
+        const response = await axios[dataIn.method as string](
+          dataIn.url as string,
+        )
+        const { data } = response
+        console.log(data)
+        return data
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        throw err
+      }
     },
   }
 

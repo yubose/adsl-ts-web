@@ -163,6 +163,7 @@ window.addEventListener('load', async (e) => {
 
   try {
     window.build = process.env.BUILD
+    window.local = process.env.LOCAL_INFO
     window.ac = []
     log.func('onload')
 

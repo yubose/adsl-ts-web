@@ -1,15 +1,16 @@
 import * as u from '@jsmanifest/utils'
 import { Identify } from 'noodl-types'
 import type { ReferenceString } from 'noodl-types'
-import y, { YAMLMap } from 'yaml'
+import y from 'yaml'
 import { findPair } from 'yaml/util'
 import unwrap from './unwrap'
+import type { FileSystem } from './fileSystem'
 import * as c from '../constants'
 import * as t from '../types'
 
 function isMapNodeContaining<K extends string, V = any>(key: K, value: V) {
   return (node: y.YAMLMap): node is y.YAMLMap<K, V> => {
-    return node.has(key) && node.get(key, false) === value
+    return node.has?.(key) && node.get?.(key, false) === value
   }
 }
 
@@ -69,6 +70,10 @@ const is = {
   undefined: (node: unknown): node is y.Scalar<undefined> =>
     u.isUnd(unwrap(node)),
   equalTo,
+  fileSystem: (value: unknown): value is FileSystem =>
+    value !== null &&
+    typeof value === 'object' &&
+    value['_id_'] === c._symbol.fs,
   reference: (node: unknown): node is y.Scalar<ReferenceString> =>
     Identify.reference(unwrap(node)),
   sameNodeType,

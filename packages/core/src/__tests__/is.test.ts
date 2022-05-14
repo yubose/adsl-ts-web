@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import * as is from '../utils/is'
-import Diagnostics from '../Diagnostics'
+import { Diagnostics } from '../diagnostics'
 
 let diagnostics: Diagnostics
 

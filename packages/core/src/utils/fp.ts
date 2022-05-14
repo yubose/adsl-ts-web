@@ -4,11 +4,37 @@
 import type { Path } from '../types'
 import { arr, nil, num, obj, str, und } from './is'
 
+/** @internal */
 export function entries<O extends Record<string, any>>(v: O) {
   return Object.entries(v !== null && typeof v === 'object' ? v : {}) as [
     key: keyof O,
     value: O[keyof O],
   ][]
+}
+
+/** @internal */
+export function eq<T>(a: T, b: T) {
+  return a === b
+}
+
+/**
+ * Compare the equality of two strings using a case-sensitive ordinal comparison.
+ * Case-sensitive comparisons compare both strings one code-point at a time using the integer value of each code-point.
+ */
+export function equateStringsCaseSensitive(a: string, b: string) {
+  return eq(a, b)
+}
+
+/**
+ * Compare the equality of two strings using a case-sensitive ordinal comparison.
+ *
+ * Case-sensitive comparisons compare both strings one code-point at a time using the integer
+ * value of each code-point after applying `toUpperCase` to each string. We always map both
+ * strings to their upper-case form as some unicode characters do not properly round-trip to
+ * lowercase (such as `ẞ` (German sharp capital s)).
+ */
+export function equateStringsCaseInsensitive(a: string, b: string) {
+  return a === b || (!und(a) && !und(b) && a.toUpperCase() === b.toUpperCase())
 }
 
 /**
@@ -19,6 +45,7 @@ export function entries<O extends Record<string, any>>(v: O) {
  * const dataKey = 'itemObject.color'
  * const result = excludeStr(dataKey, iteratorVar) // "color"
  * ```
+ * @internal
  * @param value String to manipulate
  * @param strToExclude String to remove
  * @returns The string result
@@ -35,6 +62,7 @@ export function excludeStr(value: string, strToExclude: string) {
 
 /**
  * Retrieves a value in obj using path
+ * @internal
  * @param { Record<string, any> | any[] } value
  * @param { Path[number] | Path } path
  * @returns { any }
@@ -55,6 +83,7 @@ export function get(value: any, path: Path[number] | Path): any {
 }
 
 /**
+ * @internal
  * Returns true if there is a decimal in the number.
  * @param { number } value - Value to evaluate
  */
@@ -62,6 +91,15 @@ export function hasDecimal(value: any): boolean {
   return Number(value) % 1 !== 0
 }
 
+/**
+ * @internal
+ * Returns its argument
+ *  */
+export function identity<T>(x: T) {
+  return x
+}
+
+/** @internal */
 export function merge<O = any>(value: O, ...rest: any[]): any {
   if (obj(value)) {
     rest.forEach((o) => {
@@ -75,6 +113,7 @@ export function merge<O = any>(value: O, ...rest: any[]): any {
   return value
 }
 
+/** @internal */
 export function omit<O extends Record<string, any>, K extends keyof O>(
   value: O | null | undefined,
   keys: K | K[],
@@ -87,6 +126,7 @@ export function omit<O extends Record<string, any>, K extends keyof O>(
 }
 
 /**
+ * @internal
  * @param value Object
  * @param key Key or keys to pick from value
  */
@@ -108,6 +148,34 @@ export function pick<O extends Record<string, any>, K extends keyof O>(
 }
 
 /**
+ * Returns true if at least one value exists in an array
+ * If a predicate function is provided it will return true if at least one call returns true
+ * @internal
+ * @param array
+ * @param predicate Optional function to use as a predicate
+ */
+export function some<T>(array: T[] | undefined): array is T[]
+export function some<T>(
+  array: T[] | undefined,
+  predicate: (value: T) => boolean,
+): boolean
+export function some<T>(
+  array: T[] | undefined,
+  predicate?: (value: T) => boolean,
+): boolean {
+  if (array) {
+    if (predicate) {
+      for (const v of array) if (predicate(v)) return true
+    } else {
+      return array.length > 0
+    }
+  }
+  return false
+}
+
+/**
+ * Wraps a value into an array if it isn't already enclosed in one
+ * @internal
  * @param v Value
  * @returns The value wrapped in an array (if it was not already wrapped)
  */
@@ -119,6 +187,11 @@ function toFixed(value: number, fixNum?: number) {
   return num(fixNum) ? value.toFixed(fixNum) : value
 }
 
+/**
+ * Converts a value to a path if it isn't already a path
+ * @param key
+ * @returns The path
+ */
 export function toPath(key = '' as string | number | (string | number)[]) {
   return (
     arr(key)
@@ -130,7 +203,9 @@ export function toPath(key = '' as string | number | (string | number)[]) {
 }
 
 /**
+ * Converts a value to a number
  * https://tc39.es/ecma262/#sec-tonumber
+ * @internal
  */
 export function toNum(value: unknown, fixedNum?: number) {
   if (num(value)) return Number(toFixed(Number(value), fixedNum))
@@ -138,4 +213,18 @@ export function toNum(value: unknown, fixedNum?: number) {
     return Number(toFixed(Number(value.replace(/[a-zA-Z]/gi, '')), fixedNum))
   }
   return Number(value)
+}
+
+export function startsWith(value: string, str: string) {
+  return value.startsWith(str)
+}
+
+/** @internal */
+export function lowercase(str: string) {
+  return str.toLowerCase()
+}
+
+/** @internal */
+export function uppercase(str: string) {
+  return str.toUpperCase()
 }
