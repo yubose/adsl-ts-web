@@ -35,6 +35,10 @@ export function diagnostic(
   return obj(value) && value._id_ === c._symbol.diagnostic
 }
 
+export function iteratorVarKey(iteratorVar: string, key: string) {
+  return iteratorVar !== '' && key.startsWith(iteratorVar)
+}
+
 /** @internal */
 export function obj<V extends Record<string, any> = Record<string, any>>(
   v: unknown,

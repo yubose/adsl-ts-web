@@ -1,5 +1,4 @@
 /// <reference types="chai" />
-// import type { Scalar } from 'yaml'
 import type { YAMLNode } from './src/types'
 
 declare global {

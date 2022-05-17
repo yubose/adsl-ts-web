@@ -6,6 +6,6 @@
     "outDir": "./dist",
     "target": "es2015"
   },
-  "exclude": ["./src/**/*.test.ts","dist"],
+  "exclude": ["./src/**/*.test.ts"],
   "include": ["./src/**/*"]
 }

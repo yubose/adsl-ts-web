@@ -50,7 +50,6 @@ describe(`deref`, () => {
     deref({ node: ref, root, rootKey: 'SignIn', subscribe: { onUpdate: spy } })
     const firstCallArgs = spy.firstCall.args
     const initialState = firstCallArgs[1]
-    expect(initialState).to.have.property('result', root.value.get('SignIn'))
     expect(initialState).to.have.deep.property('paths', [
       'components',
       '1',
@@ -144,22 +143,23 @@ describe(`Diagnostics`, () => {
     )
   })
 
-  it.skip(``, async () => {
-    const results = await diagnostics.run({
-      async: true,
-      enter: ({ name: pageName, key, value: node, path, data, add, root }) => {
-        if (!data[pageName]) data.pageName = []
-        add({
-          pageName,
-          key,
-          value: node,
-          messages: [],
-        })
-      },
+  it(`should pass in the pageName`, () => {
+    const spy = sinon.spy()
+    const results = diagnostics.run({
+      enter: spy,
+    })
+    expect(spy.callCount).to.be.greaterThan(0)
+    const calledPageNames = [] as string[]
+
+    spy.getCalls().forEach((call) => {
+      expect(call.args[0]).to.have.property('name').not.to.be.empty
+      const pageName = call.args[0].name
+      expect(pageName).to.be.oneOf(['Cereal', 'Topo', 'SignIn'])
+      if (!calledPageNames.includes(pageName)) {
+        calledPageNames.push(pageName)
+      }
     })
 
-    diagnostics.register(diagnostics.createDiagnostic({}))
-
-    console.log(results.map((s) => s.toJSON()))
+    expect(calledPageNames).to.have.all.members(['Cereal', 'SignIn', 'Topo'])
   })
 })

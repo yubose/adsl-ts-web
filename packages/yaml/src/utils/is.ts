@@ -4,6 +4,7 @@ import { Identify } from 'noodl-types'
 import type { ReferenceString } from 'noodl-types'
 import y from 'yaml'
 import { findPair } from 'yaml/util'
+import getNodeKind from './getNodeKind'
 import unwrap from './unwrap'
 import type DocRoot from '../DocRoot'
 import type { FileSystem } from './fileSystem'
@@ -12,7 +13,7 @@ import * as t from '../types'
 
 function isMapNodeContaining<K extends string, V = any>(key: K, value: V) {
   return (node: y.YAMLMap): node is y.YAMLMap<K, V> => {
-    return node.has?.(key) && node.get?.(key, false) === value
+    return node ? node.has?.(key) && node.get?.(key, false) === value : false
   }
 }
 
@@ -82,6 +83,16 @@ const is = {
     node !== null &&
     typeof node === 'object' &&
     node['_id_'] === c._symbol.root,
+  scalarNode: (node: unknown): node is y.Scalar =>
+    getNodeKind(node) === c.Kind.Scalar,
+  pairNode: (node: unknown): node is y.Pair =>
+    getNodeKind(node) === c.Kind.Pair,
+  mapNode: (node: unknown): node is y.YAMLMap =>
+    getNodeKind(node) === c.Kind.Map,
+  seqNode: (node: unknown): node is y.YAMLSeq =>
+    getNodeKind(node) === c.Kind.Seq,
+  documentNode: (node: unknown): node is y.YAMLSeq =>
+    getNodeKind(node) === c.Kind.Document,
   sameNodeType,
   builtInFn: (node: unknown): node is y.YAMLMap<`=.builtIn.${string}`> => {
     if (

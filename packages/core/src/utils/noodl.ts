@@ -28,6 +28,17 @@ export function ensureCssUnit(value: string | number, unit = 'px') {
   return `${value}${unit}`
 }
 
+export function excludeIteratorVar(iteratorVar: string, key: string) {
+  if (str(key)) {
+    if (key === iteratorVar) return ''
+    if (key.startsWith(iteratorVar)) {
+      if (getRefLength(key) > 1) return toPath(key).slice(1).join('.')
+      return ''
+    }
+  }
+  return key
+}
+
 /**
  * Converts 0x000000 to #000000 format
  * @param { string } value - Raw color value from NOODL
@@ -59,6 +70,10 @@ export function getPositionProps(
     return { [key]: getViewportRatio(viewportSize, value) + 'px' }
 
   return undefined
+}
+
+export function getRefLength(ref: any) {
+  return str(ref) ? trimReference(ref).split('.').length : 0
 }
 
 export function getRefProps(ref: ReferenceString) {

@@ -1,0 +1,10 @@
+SignIn:
+  init: null
+  buttonText: Send!
+  formData:
+    profile:
+      user:
+        name: Bob
+        age: 30
+        gender: .Topo.selectedGender
+

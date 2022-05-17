@@ -3,6 +3,7 @@ import coreBuiltInFns from './builtIn/core'
 import objectBuiltInFns from './builtIn/object'
 
 export { default as Builder } from './Builder'
+export { default as createCompiler } from './compiler/createCompiler'
 export { default as Diagnostics } from './diagnostics/Diagnostics'
 export { default as deref } from './deref'
 export { default as FileSystem } from './FileSystem'

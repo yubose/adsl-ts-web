@@ -3,11 +3,10 @@
  */
 import y from 'yaml'
 import * as u from '@jsmanifest/utils'
-import { getRefProps, toPath, trimReference } from '@noodl/core'
+import { getRefProps } from '@noodl/core'
 import type { ReferenceString } from 'noodl-types'
 import type { ARoot } from '@noodl/core'
 import get from './get'
-import is from './is'
 import unwrap from './unwrap'
 
 export interface DerefOptions {
@@ -19,72 +18,74 @@ export interface DerefOptions {
   }
 }
 
-function createDerefStateMachine(
-  root: ARoot,
-  subscribers?: DerefOptions['subscribe'],
+function createDerefReducer(
+  root: ARoot | undefined,
+  { rootKey, ...subscribers } = {} as {
+    rootKey?: string
+  } & DerefOptions['subscribe'],
 ) {
+  let _result: any
   let _state = {
     paths: [] as string[],
     results: [] as any[],
-    value: null,
   }
 
-  function reducer(state, action) {
+  function reducer(
+    state: typeof _state,
+    action: Parameters<typeof dispatch>[0],
+  ) {
     switch (action.type) {
       case 'start': {
-        const paths = getRefProps(action.reference).paths
-        return {
-          ...state,
-          result: get(root.value, paths[0] as string),
-          paths: paths.slice(1),
-        }
+        const { isLocalRef, paths } = getRefProps(action.reference)
+        if (isLocalRef && rootKey) paths.unshift(rootKey)
+        _result = get(root?.value, paths[0] as string, { rootKey })
+        return { ...state, paths: paths.slice(1) }
       }
       case 'next': {
-        const result = get(state.result, state.paths[0])
+        _result = get(_result, state.paths[0], { rootKey })
         return {
           ...state,
           paths: state.paths.slice(1),
-          result,
-          results: state.results.concat({ key: state.paths[0], value: result }),
+          results: state.results.concat({
+            key: state.paths[0],
+            value: _result,
+          }),
         }
       }
-      case 'end':
-        return { ...state, result: action.result }
     }
   }
 
   function dispatch(
-    action:
-      | { type: 'start'; reference: ReferenceString }
-      | { type: 'next' }
-      | { type: 'end'; result: any },
+    action: { type: 'start'; reference: ReferenceString } | { type: 'next' },
   ) {
     const prevState = _state
-    _state = reducer(_state, action)
+    _state = reducer(_state, action) as typeof _state
     subscribers?.onUpdate?.(prevState, _state)
   }
 
-  return { getState: () => _state, dispatch }
+  return {
+    getState: () => ({ ..._state, value: _result }),
+    dispatch,
+  }
 }
 
-function deref({ node, root, rootKey, subscribe }: DerefOptions) {
-  let currValue: any
-  let derefMachine = createDerefStateMachine(root as ARoot, { ...subscribe })
-  let reference = unwrap(node)
+function getRootKey(ref: ReferenceString, rootKey = '' as string | y.Scalar) {
+  const { isLocalRef, paths } = getRefProps(ref)
+  return (isLocalRef ? rootKey : paths[0]) as string
+}
 
-  derefMachine.dispatch({ type: 'start', reference })
+function deref({ node, root, rootKey: rootKeyProp, subscribe }: DerefOptions) {
+  const reference = unwrap(node) as ReferenceString
+  const rootKey = getRootKey(reference, rootKeyProp)
+  const derefer = createDerefReducer(root, { rootKey, ...subscribe })
 
-  derefMachine.getState().paths.forEach(() => {
-    derefMachine.dispatch({ type: 'next' })
-    currValue = derefMachine.getState().value
-  })
+  derefer.dispatch({ type: 'start', reference })
+  derefer.getState().paths.forEach(() => derefer.dispatch({ type: 'next' }))
 
-  derefMachine.dispatch({ type: 'end', result: currValue })
-
-  return u.merge(
-    { reference, rootKey },
-    u.pick(derefMachine.getState(), ['results', 'value']),
-  )
+  return {
+    reference,
+    ...u.omit(derefer.getState(), ['paths']),
+  }
 }
 
 export default deref

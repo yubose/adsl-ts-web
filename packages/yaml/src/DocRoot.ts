@@ -66,7 +66,10 @@ class DocRoot extends ARoot {
 
   toJSON() {
     return [...this].reduce((acc, [name, doc]) => {
-      acc[name] = doc.toJSON()
+      acc[name] =
+        doc !== null && typeof doc === 'object' && 'toJSON' in doc
+          ? doc.toJSON()
+          : doc
       return acc
     }, {})
   }

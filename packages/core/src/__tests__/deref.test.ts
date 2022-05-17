@@ -2,7 +2,7 @@ import { expect } from 'chai'
 import { entries } from '../utils/fp'
 import deref from '../deref'
 
-describe(`deref`, () => {
+describe.skip(`deref`, () => {
   const listObject = [{ lastUpdated: '..profile.other.lastUpdated' }]
   const getRoot = () => ({
     SignIn: {

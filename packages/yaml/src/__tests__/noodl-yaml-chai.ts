@@ -120,18 +120,20 @@ function NoodlYamlChai(chai: typeof Chai, utils: Chai.ChaiUtils) {
     if (y.isPair(node)) {
       this.assert(
         unwrap(node.value) === value,
-        `expected Pair #{this} to have value #{exp}`,
-        `expected Pair #{this} to not have value #{exp}`,
+        `expected Pair #{this} to have value #{exp} but got #{act}`,
+        `expected Pair #{this} to not have value #{exp} but got #{act}`,
         value,
+        node.value,
       )
     }
 
     if (y.isScalar(node)) {
       this.assert(
         unwrap(node) === value,
-        `expected Scalar #{this} to have value #{exp}`,
-        `expected Scalar #{this} to not have value #{exp}`,
+        `expected #{this} to have value #{exp} but got #{act}`,
+        `expected #{this} to not have value #{exp} but got #{act}`,
         value,
+        node.value,
       )
     }
 

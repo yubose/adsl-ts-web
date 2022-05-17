@@ -1,13 +1,18 @@
 import y from 'yaml'
 import * as u from '@jsmanifest/utils'
-import { is as coreIs, toPath, trimReference } from '@noodl/core'
+import { is as coreIs, getRefProps, toPath, trimReference } from '@noodl/core'
 import is from './is'
 import getNodeKind from './getNodeKind'
 import { Kind } from '../constants'
 
+export interface GetOptions {
+  rootKey?: string
+}
+
 function get(
   node: unknown,
   key: y.Scalar | string | number | (string | number)[],
+  { rootKey = '' }: GetOptions = {},
 ) {
   let originalKey = key
 
@@ -15,8 +20,19 @@ function get(
     key = key.value
   }
 
-  if (typeof key === 'string' && coreIs.reference(key)) {
-    key = trimReference(key)
+  if (typeof key === 'string') {
+    if (coreIs.reference(key)) {
+      const { paths, isLocalRef } = getRefProps(key)
+
+      if (!isLocalRef && paths[0] !== rootKey) {
+        rootKey = paths[0]
+        key = `${rootKey}.${key}`
+      }
+
+      key = trimReference(key)
+    } else {
+      //
+    }
   }
 
   key = toPath(key as string)

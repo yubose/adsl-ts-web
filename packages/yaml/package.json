@@ -31,8 +31,8 @@
     "build": "tsc",
     "build:rollup": "rollup -c",
     "start": "tsc -w",
-    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\"",
-    "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --file src/setupTests.ts -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\""
+    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --file src/__tests__/setup.ts -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\"",
+    "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --file src/__tests__/setup.ts -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\""
   },
   "types": "dist/index.d.ts",
   "version": "0.0.1"

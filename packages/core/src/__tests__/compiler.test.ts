@@ -3,7 +3,7 @@ import * as fp from '../utils/fp'
 import * as is from '../utils/is'
 import * as p from '../Compiler/path'
 
-describe.only(`compiler`, () => {
+describe.skip(`compiler`, () => {
   it(`[combine]`, () => {
     expect(p.combine('path', 'to', 'file.ext')).to.eq('path/to/file.ext')
     expect(p.combine('/path', 'to', 'file.ext')).to.eq('/path/to/file.ext')
