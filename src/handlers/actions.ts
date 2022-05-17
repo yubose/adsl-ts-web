@@ -454,18 +454,25 @@ const createActions = function createActions(app: App) {
       options.ref?.clear('timeout')
       log.func(name)
       log.gold('', action?.snapshot?.())
-      const result = await openFileSelector()
+      const result = await openFileSelector();
       log.func(name)
       switch (result.status) {
         case 'selected':
           const { files } = result
           const ac = options?.ref
           const comp = options?.component
-          const dataKey = _pick(action, 'dataKey')
+          const dataKey = _pick(action, 'dataKey');
+          const documentType = _pick(action, 'documentType')
+          const status = (documentType as string[]).some((item)=>item===result.files?.[0]?.["type"].split("/")[1]);
+          const downloadStatus = _pick(action, 'downloadStatus')
           const size = _pick(action, 'size') && +_pick(action, 'size') / 1000
           const fileFormat = _pick(action, 'fileFormat')
           if (ac && comp) {
-            ac.data.set(dataKey, files?.[0])
+            ac.data.set(dataKey, files?.[0]);
+            app.updateRoot(downloadStatus, status)
+            if(!status){
+              break;
+            }
             if (fileFormat) {
               ac.data.set(fileFormat, files?.[0]?.type)
               app.updateRoot(fileFormat, ac.data.get(fileFormat))
@@ -532,7 +539,7 @@ const createActions = function createActions(app: App) {
     let initialSeconds = get(app.root, dataKey, popUpWaitSeconds) as number
     initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
     node.textContent = textFunc(initialSeconds * 1000, 'mm:ss')
-    
+
     const interval =  setInterval(()=>{
       initialSeconds = initialSeconds - 1
       const seconds  = initialSeconds
