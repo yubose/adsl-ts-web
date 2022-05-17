@@ -1,4 +1,4 @@
-import fs from 'fs'
+import type fs from 'fs'
 import { _symbol } from './constants'
 
 export abstract class AIterator<INode = any, INext = any> {

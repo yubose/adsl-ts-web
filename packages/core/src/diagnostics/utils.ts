@@ -64,12 +64,12 @@ export function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
       return `Attemped to resolved a reference "${arg.ref}" but the root object did not have "${arg.rootKey}" as a key`
     case DiagnosticCode.ROOT_VALUE_EMPTY:
       return `The value retrieved using the root key "${arg.rootKey}" was empty`
-    case DiagnosticCode.TRAVERSAL_REF_INCOMPLETE_MISSING_KEY:
-      return (
-        `The reference "${arg.ref}" couldn't be resolved fully. ` +
-        `Traversal stopped at "${arg.path.join('.')}" ` +
-        `because the object at this iteration did not contain this key`
-      )
+    // case DiagnosticCode.TRAVERSAL_REF_INCOMPLETE_MISSING_KEY:
+    //   return (
+    //     `The reference "${arg.ref}" couldn't be resolved fully. ` +
+    //     `Traversal stopped at "${arg.path.join('.')}" ` +
+    //     `because the object at this iteration did not contain this key`
+    //   )
 
     default:
       throw new Error(`Invalid diagnostic code "${code}"`)

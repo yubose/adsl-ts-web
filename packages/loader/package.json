@@ -1,0 +1,34 @@
+{
+  "name": "@noodl/loader",
+  "version": "0.0.1",
+  "description": "Loader for noodl applications",
+  "keywords": [
+    "noodl",
+    "ecos",
+    "aitmed",
+    "telemdicine",
+    "loader",
+    "file"
+  ],
+  "author": "Christopher Tran <pfftdammitchris@gmail.com>",
+  "homepage": "",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  }
+}

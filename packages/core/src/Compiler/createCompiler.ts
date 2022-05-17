@@ -1,4 +1,3 @@
-import { NFile } from '@noodl/file'
 import * as path from './path'
 
 function createCompiler() {

@@ -176,13 +176,13 @@ export const enum CharCode {
 }
 
 /* @internal */
-export const enum Comparison {
+export enum Comparison {
   LessThan = -1,
   EqualTo = 0,
   GreaterThan = 1,
 }
 
-export const enum DiagnosticCode {
+export enum DiagnosticCode {
   LOCAL_REF_MISSING_ROOT_KEY = 20000,
   ROOT_REF_MISSING_ROOT_KEY = 20001,
   ROOT_MISSING_ROOT_KEY = 20002,

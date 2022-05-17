@@ -229,7 +229,7 @@ function deref({
     }
   } else if (idy.arr?.(value)) {
     return (value as any[]).map((val, index) =>
-      deref({ ...arguments[0], path: path.concat(index), ref: val }),
+      deref({ ...arguments[0], path: path.concat(index as any), ref: val }),
     )
   } else if (idy.obj?.(value)) {
     Object.entries(value).forEach(([key, val]) => {

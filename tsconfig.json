@@ -43,7 +43,6 @@
     "dev/cpt/**/*.ts",
     "packages/core/src/**/*",
     "packages/homepage/src/**/*",
-    "packages/core/src/**/*",
     "packages/yaml/src/**/*",
     "packages/noodl-pi/src/**/*",
     "packages/noodl-ui/src/**/*",
@@ -60,5 +59,6 @@
     "dist",
     "generated",
     "output",
+    "**/*.d.ts"
   ]
 }

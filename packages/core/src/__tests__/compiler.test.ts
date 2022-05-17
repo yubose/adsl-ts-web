@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import * as fp from '../utils/fp'
 import * as is from '../utils/is'
-import * as p from '../Compiler/path'
+import * as p from '../compiler/path'
 
 describe.skip(`compiler`, () => {
   it(`[combine]`, () => {

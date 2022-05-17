@@ -1,6 +1,3 @@
-import * as fp from '../utils/fp'
-import * as is from '../utils/is'
-import * as t from '../types'
 import { _symbol } from '../constants'
 import type { TranslatedDiagnosticObject } from './diagnosticsTypes'
 

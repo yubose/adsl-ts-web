@@ -1,4 +1,3 @@
-import * as fp from './utils/fp'
 import * as is from './utils/is'
 import * as t from './types'
 

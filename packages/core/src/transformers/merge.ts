@@ -1,16 +1,7 @@
-import type { ReferenceString } from 'noodl-types'
-import y from 'yaml'
 import deref from '../deref'
-import {
-  excludeIteratorVar,
-  getRefLength,
-  getRefProps,
-  trimReference,
-} from '../utils/noodl'
+import { excludeIteratorVar } from '../utils/noodl'
 import * as fp from '../utils/fp'
 import * as is from '../utils/is'
-import * as c from '../constants'
-import * as t from '../types'
 
 export interface MergeOptions {
   dataObject?: any

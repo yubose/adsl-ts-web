@@ -1,6 +1,4 @@
 import * as fp from '../utils/fp'
-// import set from 'lodash/set'
-// import unset from 'lodash/unset'
 import * as is from '../utils/is'
 
 const set = (...args: any[]) => {}

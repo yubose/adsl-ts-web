@@ -17,8 +17,8 @@
     "telemedicine"
   ],
   "license": "MIT",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "name": "@noodl/core",
   "publishConfig": {
     "access": "public"

@@ -4,8 +4,6 @@ import filesize from 'rollup-plugin-filesize'
 import progress from 'rollup-plugin-progress'
 import esbuild from 'rollup-plugin-esbuild'
 
-const extensions = ['.ts']
-
 /**
  * @type { import('rollup').RollupOptions[] }
  */
@@ -16,15 +14,12 @@ const configs = [
       {
         dir: './dist',
         exports: 'named',
-        format: 'umd',
+        format: 'cjs',
         name: 'noodlCore',
-        globals: {
-          fs: 'fs',
-        },
       },
     ],
     plugins: [
-      resolve({ extensions }),
+      resolve(),
       commonjs(),
       filesize(),
       progress(),
