@@ -332,7 +332,7 @@ componentResolver.setResolver(async (component, options, next) => {
         }
         const content = await res?.json?.()
         plugin && (plugin.content = component.get('content'))
-        setTimeout(() => component.emit('content', content || ''))
+        setTimeout(async () => component.emit('content', content || ''))
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
         log.error(`[${err.name}]: ${err.message}`, err)
@@ -374,7 +374,10 @@ componentResolver.setResolver(async (component, options, next) => {
              * fontSize----> fontSize
              * fontWeight---> normal | bold | number
              */
-            if (item?.dataKey) {
+            let itemText = item?.text
+
+            if (item?.dataKey || itemText) {
+              if (!item.dataKey) item.dataKey = itemText
               if (iteratorVar && item?.dataKey.startsWith(iteratorVar)) {
                 const dataKey = excludeIteratorVar(item?.dataKey, iteratorVar)
                 item.text = dataKey ? get(dataObject, dataKey) : dataObject
