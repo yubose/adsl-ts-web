@@ -390,7 +390,7 @@ componentResolver.setResolver(async (component, options, next) => {
                 const dataObject = findDataValue(
                   [() => getRoot(), () => getRoot()[page.page]],
                   item?.dataKey,
-                )
+                ) || item.dataKey
                 item.text = u.isObj(dataObject)
                   ? get(dataObject, item?.datKey)
                   : dataObject

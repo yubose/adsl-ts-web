@@ -462,17 +462,17 @@ const createActions = function createActions(app: App) {
           const ac = options?.ref
           const comp = options?.component
           const dataKey = _pick(action, 'dataKey');
-          const documentType = _pick(action, 'documentType')
-          const status = (documentType as string[]).some((item)=>item===result.files?.[0]?.["type"].split("/")[1]);
-          const downloadStatus = _pick(action, 'downloadStatus')
+          // const documentType = _pick(action, 'documentType')
+          // const status = (documentType as string[]).some((item)=>item===result.files?.[0]?.["type"].split("/")[1]);
+          // const downloadStatus = _pick(action, 'downloadStatus')
           const size = _pick(action, 'size') && +_pick(action, 'size') / 1000
           const fileFormat = _pick(action, 'fileFormat')
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0]);
-            app.updateRoot(downloadStatus, status)
-            if(!status){
-              break;
-            }
+            // app.updateRoot(downloadStatus, status)
+            // if(!status){
+            //   break;
+            // }
             if (fileFormat) {
               ac.data.set(fileFormat, files?.[0]?.type)
               app.updateRoot(fileFormat, ac.data.get(fileFormat))

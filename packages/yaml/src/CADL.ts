@@ -1280,7 +1280,7 @@ class CADL {
       isObj &&
       (firstKeyIfObj.includes('@') || firstKeyIfObj.startsWith('='))
     ) {
-      console.trace()
+      // console.trace()
       // evalObject is an assignment expression
       return void (await this.dispatch({
         type: c.dispatchActionType.EVAL_OBJECT,
