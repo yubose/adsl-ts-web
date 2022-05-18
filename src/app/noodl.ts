@@ -24,10 +24,10 @@ export const lvl3Options = {
     // (ex: npm run start:test -- --env APP=admind3)
     // if (process.env.LOCAL_CONFIG_URL) return process.env.LOCAL_CONFIG_URL
     // This will be returned (normal use) if NOT using -- env APP=<config name>
-    // return isDeploying
-    //   ? safeDeployUrl
-    //   : `http://127.0.0.1:3001/${lvl3Options.app}.yml`
-    return `analysis.yml`
+    return isDeploying
+      ? safeDeployUrl
+      : `http://127.0.0.1:3001/${lvl3Options.app}.yml`
+    // return `analysis.yml`
   },
 }
 
