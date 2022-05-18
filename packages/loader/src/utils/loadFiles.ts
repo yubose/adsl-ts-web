@@ -4,7 +4,7 @@ import { Document as YAMLDocument, isDocument, isMap, Scalar } from 'yaml'
 import { fp, is } from '@noodl/core'
 import { getAbsFilePath, getFileName, normalizePath } from './fileSystem'
 import getFileStructure from './getFileStructure'
-import type { IFileStructure } from '../FileStructure'
+import type { IFileStructure } from '../../../file/src/FileStructure'
 import loadFile from './loadFile'
 import * as t from '../types'
 
