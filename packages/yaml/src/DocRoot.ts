@@ -37,6 +37,11 @@ class DocRoot extends ARoot {
     })
   }
 
+  init() {
+    this.value.clear()
+    return this
+  }
+
   /**
    * @param key Root key
    * @returns The retrieved value

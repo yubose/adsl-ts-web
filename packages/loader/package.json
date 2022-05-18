@@ -29,6 +29,12 @@
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
   },
   "scripts": {
+    "build": "tsc",
+    "start": "tsc -w",
     "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "dependencies": {
+    "i": "^0.3.7",
+    "npm": "^8.10.0"
   }
 }

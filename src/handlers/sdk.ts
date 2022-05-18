@@ -4,6 +4,11 @@ import { extendedSdkBuiltIns } from './builtIns'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {
+    toString(str: string) {
+      console.log({ args: arguments })
+
+      return String(str).toLowerCase()
+    },
     EcosObj: {
       get download() {
         return extendedSdkBuiltIns.download
@@ -58,13 +63,15 @@ export function getSdkHelpers(app: App) {
       return app.builtIns.get('extendMeeting')?.find(Boolean)?.fn
     },
     async request(dataIn: {
-      method?: 'get' | 'post' | 'put' | 'delete'
+      method?: 'delete' | 'get' | 'post' | 'put'
       url?: string
+      query
     }) {
       try {
         console.log(`[request] dataIn`, dataIn)
         const response = await axios[dataIn.method as string](
           dataIn.url as string,
+          { params: dataIn.query },
         )
         const { data } = response
         console.log(data)

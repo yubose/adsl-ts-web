@@ -1,5 +1,4 @@
-import { ARoot, AVisitor } from '@noodl/core'
-import * as t from './types'
+import * as t from '../types'
 
 const spreadReducer =
   (fn1: (...args: any[]) => any, fn2: (...args: any[]) => any) =>
@@ -9,40 +8,39 @@ const spreadReducer =
 const flip = (fn: (...args: any[]) => any, ...args1: any[]) =>
   fn(...args1.slice().reverse())
 
-class Extractor<INode = any, INext = any> extends t.AExtractor<INode> {
-  #data = {} as Record<string, INode>
-  #accumulator: t.Accumulator
+class Extractor<INode = any> extends t.AExtractor<INode> {
+  #root: t.ARoot
   #structures: t.AStructure[] = []
-  #visitor: AVisitor;
-
-  [Symbol.iterator]() {
-    return this.#iterator.getIterator(this.#iterator.getItems(this.#data))
-  }
+  #visitor: t.AVisitor;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
-      hasAccumulator: !!this.#accumulator,
-      hasIterator: !!this.#iterator,
+      hasRoot: !!this.#root,
       hasVisitor: !!this.#visitor,
       structures: this.#structures,
     }
   }
 
   extract(...[data]: Parameters<t.AExtractor<INode>['extract']>) {
-    this.#data = data
-    return [...this].reduce(
+    const entries =
+      this.#root.value instanceof Map
+        ? [...this.#root.value.entries()]
+        : Object.entries(this.#root.value)
+    return entries.reduce(
       flip(
         spreadReducer,
         this.#visitor.visit.bind(this.#visitor),
-        this.#accumulator.reduce.bind(this.#accumulator),
+        this.#root.value.bind(this.#root),
       ),
-      this.#accumulator.init(),
+      this.#root.init(),
     )
   }
 
   use(value: Parameters<t.AExtractor<any>['use']>[0]) {
-    if (value instanceof AVisitor) {
-      this.#accumulator = value
+    if (value instanceof t.AVisitor) {
+      this.#root = value
+    } else if (value instanceof t.ARoot) {
+      this.#root = value
     } else if (value instanceof t.AStructure) {
       const currIndex = this.#structures.findIndex(
         (struct) => struct.name === value.name,
@@ -53,17 +51,18 @@ class Extractor<INode = any, INext = any> extends t.AExtractor<INode> {
       } else {
         this.#structures.push(value)
       }
-    } else if (value instanceof t.AVisitor) {
-      this.#visitor = value
-      value.use(({ name, value }) => {
-        const structs = this.#structures.reduce(
-          (acc, struct) =>
-            struct.is(value) ? acc.concat(struct.createStructure(value)) : acc,
-          [] as any[],
-        )
-        return structs
-      })
     }
+    // else if (value instanceof t.AVisitor) {
+    //   this.#visitor = value
+    //   value.use(({ name, value }) => {
+    //     const structs = this.#structures.reduce(
+    //       (acc, struct) =>
+    //         struct.is(value) ? acc.concat(struct.createStructure(value)) : acc,
+    //       [] as any[],
+    //     )
+    //     return structs
+    //   })
+    // }
     return this
   }
 }

@@ -8,31 +8,31 @@ export const _symbol = {
   ---- STYLES
 -------------------------------------------------------- */
 /** @internal */
-export const xKeys = <const>['width', 'left']
+export const xKeys = ['width', 'left'] as const
 /** @internal */
-export const yKeys = <const>['height', 'top', 'marginTop']
+export const yKeys = ['height', 'top', 'marginTop'] as const
 /** @internal */
-export const posKeys = <const>[...xKeys, ...yKeys]
+export const posKeys = [...xKeys, ...yKeys] as const
 
 // Style keys that map their values relative to the viewport's height
 /** @internal */
-export const vpHeightKeys = <const>[
+export const vpHeightKeys = [
   ...yKeys,
   'borderRadius',
   'fontSize',
   'paddingTop',
   'paddingBottom',
   'marginBottom',
-]
+] as const
 
 /** @internal */
-export const vpWidthKeys = <const>[
+export const vpWidthKeys = [
   ...xKeys,
   'marginLeft',
   'marginRight',
   'paddingLeft',
   'paddingRight',
-]
+] as const
 
 /** @internal */
 export const textAlignStrings = [
@@ -43,7 +43,7 @@ export const textAlignStrings = [
   'centerY',
 ] as const
 
-export enum ReferenceType {
+export const enum ReferenceType {
   AWAIT = 0,
   ROOT_MERGE = 1,
   LOCAL_MERGE = 2,
@@ -176,13 +176,13 @@ export const enum CharCode {
 }
 
 /* @internal */
-export enum Comparison {
+export const enum Comparison {
   LessThan = -1,
   EqualTo = 0,
   GreaterThan = 1,
 }
 
-export enum DiagnosticCode {
+export const enum DiagnosticCode {
   LOCAL_REF_MISSING_ROOT_KEY = 20000,
   ROOT_REF_MISSING_ROOT_KEY = 20001,
   ROOT_MISSING_ROOT_KEY = 20002,

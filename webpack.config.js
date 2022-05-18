@@ -34,50 +34,6 @@ const paths = {
 }
 
 /**
- * ONLY used if passed in via --env
- * (ex: npm run start:test -- --env APP=admind3 --env)
- *
- * Web app will load from './generated/admind3/admind3.yml'
- * and will be passed in as configUrl in src/app/noodl.ts
- *
- * To change the directory "generated" pass in --env DIR=<directory>
- * (ex: npm run start:test -- --env APP=admind3 --env DIR=../cadl)
- * Web app will load from '../cadl/admind3.yml'
- */
-function _getLocalAppHelpers(env = {}) {
-  let rootDir = paths.public
-  let app = env.APP // admind3
-  let staticPaths = ['public']
-  let appDir = ''
-
-  const resolveDir = (...s) => path.join(rootDir, '..', ...s)
-  const getAppName = () => app?.replace?.(/\.?yml$/, '')
-  const getAppConfigFileName = () => getAppName()?.concat?.('.yml') || ''
-
-  if (env.DIR) {
-    try {
-      if (!fs.existsSync(getFilePath(env.DIR))) throw ''
-    } catch (error) {
-      throw new Error(
-        `The directory you provided as ` +
-          `${yellow(getFilePath(env.DIR))} does not exist`,
-      )
-    }
-    appDir = resolveDir(env.DIR)
-    staticPaths.push(path.join('..', env.DIR, getAppName()))
-  }
-
-  return {
-    getStaticPaths: () => staticPaths,
-    getAppConfigFileName,
-    getLocalConfigUrl: () =>
-      appDir
-        ? path.join('.', env.DIR, getAppName(), getAppConfigFileName())
-        : '',
-  }
-}
-
-/**
  * @type { Record<'name' | 'title' | 'description' | 'favicon' | 'keywords' | 'injectScripts', any> }
  */
 const settings = y.parse(readFile(getFilePath('settings.yml')))
@@ -86,9 +42,8 @@ function getWebpackConfig(env) {
   let ecosEnv = env.ECOS_ENV || process.env.ECOS_ENV
   let nodeEnv = env.NODE_ENV || process.env.NODE_ENV
   let mode = nodeEnv !== 'production' ? 'development' : 'production'
-  // if (!env.CONFIG) {
-  //   throw new Error(`You did not provide a config key`)
-  // }
+
+  // Analysis is not run in production
   let staticPaths = [paths.public]
   staticPaths.push(`generated`, 'analysis', 'generated/analysis')
 
@@ -168,95 +123,71 @@ function getWebpackConfig(env) {
           const n = require('@noodl/core')
           const ny = require('@noodl/yaml')
 
-          const diagnostics = new n.Diagnostics()
-          const docRoot = new ny.DocRoot()
-          const docVisitor = new ny.DocVisitor()
-          const nfs = ny.createFileSystem({
-            existsSync: fs.existsSync,
-            parseFilePath: path.parse,
-            readFile: fs.readFileSync,
-            writeFile: fs.writeFileSync,
-            readJson: fs.readJsonSync,
-            writeJson: fs.writeJsonSync,
-            readdir: fs.readdirSync,
-          })
+          /** @type { import('./dev/analysis').runDiagnostics } */
+          let runDiagnostics
 
-          diagnostics.use(docRoot)
-          diagnostics.use(docVisitor)
-          docRoot.use(nfs)
+          // const diagnostics = new n.Diagnostics()
+          // const docRoot = new ny.DocRoot()
+          // const docVisitor = new ny.DocVisitor()
+          // const nfs = ny.createFileSystem({
+          //   existsSync: fs.existsSync,
+          //   parseFilePath: path.parse,
+          //   readFile: fs.readFileSync,
+          //   writeFile: fs.writeFileSync,
+          //   readJson: fs.readJsonSync,
+          //   writeJson: fs.writeJsonSync,
+          //   readdir: fs.readdirSync,
+          // })
 
-          devServer.app.get(`/diagnostics/:config`, function (req, res) {
-            console.log(`[get] ${u.yellow(`/diagnosis/${req.params.config}`)}`)
-            const configKey = req.params.config
-            const pathToAppDir = path.join(paths.generated, configKey)
-            const pathToRootConfigFile = path.join(
-              pathToAppDir,
-              `${configKey}.yml`,
-            )
-            const pathToAppConfigFile = path.join(
-              pathToAppDir,
-              `cadlEndpoint.yml`,
-            )
-            const pathToAssetsDir = path.join(pathToAppDir, 'assets')
-            const ymlFilepaths = fg.sync(path.join(pathToAppDir, '**/*.yml'))
-            const filteredPages = ymlFilepaths.filter((filepath) => {
-              return /base|sign|menu|cov19/i.test(filepath)
-            })
+          // diagnostics.use(docRoot)
+          // diagnostics.use(docVisitor)
+          // docRoot.use(nfs)
 
-            filteredPages.forEach((filepath) => {
-              docRoot.loadFileSync(filepath, {
-                renameKey: (filename) => {
-                  if (filename.endsWith('.yml')) {
-                    return filename.replace('.yml', '')
+          for (const method of ['get', 'post']) {
+            devServer.app[method](
+              `/diagnostics/:config`,
+              async function (req, res) {
+                for (const key of u.keys(require.cache)) {
+                  if (u.isStr(key) && key.includes('analysis.js')) {
+                    console.log(`[${u.yellow(key)}]`)
+                    delete require.cache[key]
+                    break
                   }
-                },
-              })
-            })
-
-            const results = diagnostics.run({
-              enter: ({
-                add,
-                data,
-                key,
-                pageName,
-                value,
-                name,
-                root,
-                path: nodePath,
-              }) => {
-                if (ny.is.button(value)) {
-                  const [start, end] = value.range || []
-                  add({
-                    isKey: key === 'key',
-                    isValue: key === 'value',
-                    isIndex: typeof key === 'number',
-                    messages: [
-                      {
-                        type: n.consts.ValidatorType.INFO,
-                        message: `Encountered button with keys: ${value.items
-                          .map((pair) => pair.key)
-                          .join(', ')}`,
-                        start,
-                        end,
-                        srcToken: value.srcToken,
-                      },
-                    ],
-                    page: (pageName || name).replace(/_en/g, ''),
-                  })
                 }
+
+                runDiagnostics = require('./dev/analysis').runDiagnostics
+
+                console.log(
+                  `[${method}] ${u.yellow(`/diagnosis/${req.params.config}`)}`,
+                )
+
+                const configKey = req.params.config
+                const pathToAppDir = path.join(paths.generated, configKey)
+                const pathToRootConfigFile = path.join(
+                  pathToAppDir,
+                  `${configKey}.yml`,
+                )
+                const pathToAppConfigFile = path.join(
+                  pathToAppDir,
+                  `cadlEndpoint.yml`,
+                )
+                const pathToAssetsDir = path.join(pathToAppDir, 'assets')
+                const diagnostics = await runDiagnostics({
+                  baseUrl: req.query.baseUrl || 'http://127.0.0.1:3000',
+                  config: configKey,
+                })
+
+                console.log(`[get]`, {
+                  pathToAppDir,
+                  pathToRootConfigFile,
+                  pathToAppConfigFile,
+                  pathToAssetsDir,
+                })
+
+                res.status(200).json(diagnostics)
               },
-            })
-
-            console.log(`[get]`, {
-              pathToAppDir,
-              pathToRootConfigFile,
-              pathToAppConfigFile,
-              pathToAssetsDir,
-              filteredPages,
-            })
-
-            res.status(200).json(results)
-          })
+            )
+          }
         }
       },
       compress: false,
