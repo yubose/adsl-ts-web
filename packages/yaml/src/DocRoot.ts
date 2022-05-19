@@ -1,9 +1,9 @@
 import y from 'yaml'
-import { ARoot } from '@noodl/core'
+import { ARoot, is as coreIs } from '@noodl/core'
 import is from './utils/is'
-import type { FileSystem } from './utils/fileSystem'
 import get from './utils/get'
 import unwrap from './utils/unwrap'
+import type { FileSystem } from './utils/fileSystem'
 import * as c from './constants'
 
 class DocRoot extends ARoot {
@@ -60,7 +60,10 @@ class DocRoot extends ARoot {
    * @param key Root key
    * @param value Root value
    */
-  set(key: string, value: any[] | Record<string, any> | y.Document | string) {
+  set(
+    key: y.Scalar | string,
+    value: any[] | Record<string, any> | y.Document | string,
+  ) {
     if (
       value != null &&
       !y.isNode(value) &&
@@ -75,12 +78,12 @@ class DocRoot extends ARoot {
       }
       value = doc
     }
-    this.value.set(key, value)
+    this.value.set(unwrap(key), value)
     return this
   }
 
-  remove(key: string): this {
-    this.value.delete(key)
+  remove(key: y.Scalar | string): this {
+    this.value.delete(unwrap(key))
     return this
   }
 
@@ -94,17 +97,14 @@ class DocRoot extends ARoot {
       prettyErrors: true,
       ...opts,
     }
-    return typeof yml === 'string'
+    return coreIs.str(yml)
       ? y.parseDocument(yml, opts)
       : new y.Document(yml, opts)
   }
 
   toJSON() {
     return [...this].reduce((acc, [name, doc]) => {
-      acc[name] =
-        doc !== null && typeof doc === 'object' && 'toJSON' in doc
-          ? doc.toJSON()
-          : doc
+      acc[name] = coreIs.obj(doc) && 'toJSON' in doc ? doc.toJSON() : doc
       return acc
     }, {})
   }
@@ -131,41 +131,33 @@ class DocRoot extends ARoot {
       )
     }
 
-    if (this.#fs.existsSync) {
-      if (!this.#fs.existsSync(filepath)) {
-        throw new Error(`The file at path ${filepath} does not exist`)
-      }
+    if (this.#fs.existsSync && !this.#fs.existsSync(filepath)) {
+      throw new Error(`The file at path ${filepath} does not exist`)
     }
 
     const yml = this.#fs.readFile(filepath, 'utf8')
-
-    if (!yml) {
-      throw new Error(`The file at ${filepath} yielded empty data`)
-    }
+    if (!yml) throw new Error(`The file at ${filepath} yielded empty data`)
 
     let doc = this.toDocument(yml, opts?.parseOptions)
-    let filename = this.#fs.getBaseName?.(filepath) || ''
+    let filename = this.#fs.getBaseName?.(filepath) ?? ''
     let key = ''
 
-    if (typeof opts?.renameFile === 'function') {
-      const newFileName = opts.renameFile(filename)
-      if (typeof newFileName === 'string') filename = newFileName
+    if (coreIs.fnc(opts?.renameFile)) {
+      const newFileName = opts?.renameFile(filename)
+      if (coreIs.str(coreIs.str(newFileName))) filename = newFileName as string
     }
 
-    if (typeof opts?.renameKey === 'function') {
-      const newKey = opts.renameKey(filename)
-      if (typeof newKey === 'string') key = newKey
+    if (coreIs.fnc(opts?.renameKey)) {
+      const newKey = opts?.renameKey(filename)
+      if (coreIs.str(newKey)) key = newKey
     }
 
     this.set(key, doc)
-
     return doc
   }
 
   use(value: FileSystem) {
-    if (is.fileSystem(value)) {
-      this.#fs = value
-    }
+    if (is.fileSystem(value)) this.#fs = value
     return this
   }
 }

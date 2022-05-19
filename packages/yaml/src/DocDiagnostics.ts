@@ -1,13 +1,10 @@
-import y from 'yaml'
 import { Diagnostics } from '@noodl/core'
 import type {
   DiagnosticObject,
   TranslatedDiagnosticObject,
 } from '@noodl/core/dist/diagnostics/diagnosticsTypes'
 import getNodeKind from './utils/getNodeKind'
-import * as u from '@jsmanifest/utils'
 import * as c from './constants'
-import * as t from './types'
 
 class DocDiagnostics extends Diagnostics {
   constructor() {

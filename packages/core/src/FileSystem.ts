@@ -26,7 +26,7 @@ class FileSystem extends t.AFileSystem {
     return this.fs.readFileSync(...args)
   }
 
-  async writeFile(path: string, data: string | NodeJS.ArrayBufferView) {
+  async writeFile(path: string, data: NodeJS.ArrayBufferView | string) {
     const args = [...arguments].slice(2)
     // @ts-expect-error
     return this.fs.writeFile(path, data, ...args)

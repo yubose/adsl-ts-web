@@ -1,4 +1,3 @@
-import * as u from '@jsmanifest/utils'
 import * as n from '@noodl/core'
 import * as is from './utils/is'
 import * as unwrap from './utils/unwrap'

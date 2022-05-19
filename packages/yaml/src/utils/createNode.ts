@@ -7,11 +7,13 @@ function createNode<N extends Record<string, any>>(
   value: N,
 ): y.YAMLMap<keyof N, any>
 
+function createNode<V extends boolean | number | string | null | undefined>(
+  value: V,
+): y.Scalar<V>
+
 function createNode<K extends string, V = any>(key: K, value?: V): y.Pair<K, V>
 
 function createNode<N extends any[]>(value: N): y.YAMLSeq<N[number]>
-
-function createNode<N = unknown>(value: N): y.Scalar<N>
 
 function createNode<N = unknown>(keyOrValue: N, value?: any) {
   switch (getNodeKind(keyOrValue)) {

@@ -4,8 +4,8 @@
 
 import type { LiteralUnion } from 'type-fest'
 import type { ReferenceString } from 'noodl-types'
-import { excludeStr, get, toPath } from './utils/fp'
-import { getRefProps, trimReference } from './utils/noodl'
+import { excludeStr, get } from './utils/fp'
+import { getRefProps } from './utils/noodl'
 import * as is from './utils/is'
 import * as t from './types'
 

@@ -1,4 +1,3 @@
-import { _symbol } from '../constants'
 import type { TranslatedDiagnosticObject } from './diagnosticsTypes'
 
 class Diagnostic {

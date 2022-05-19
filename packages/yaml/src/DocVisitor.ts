@@ -1,12 +1,11 @@
-import * as u from '@jsmanifest/utils'
 import y from 'yaml'
-import { AVisitor } from '@noodl/core'
+import { AVisitor, fp } from '@noodl/core'
 import type { VisitorOptions } from '@noodl/core'
 
 function wrap(callback, { data, name, options }) {
   return async function onVisit(...[key, node, path]) {
     const callbackArgs = {
-      ...u.omit(options, ['init']),
+      ...fp.omit(options, ['init']),
       data,
       name,
       key,

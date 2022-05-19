@@ -1,3 +1,5 @@
+// TODO
+// @ts-nocheck
 import * as u from '@jsmanifest/utils'
 import * as nt from 'noodl-types'
 import clone from 'lodash/clone'
@@ -52,9 +54,11 @@ class CADL {
       error: null,
     },
   } as t.State
+
   #subscribers = {
     queue: [],
   } as t.ActiveQueueSubscribers
+
   #dbConfig: any
   #indexRepository: IndexRepository
   #queue: ActiveQueue
@@ -344,7 +348,7 @@ class CADL {
     skip: string[] = [],
     options: Pick<
       Parameters<CADL['runInit']>[0],
-      'onBeforeInit' | 'onInit' | 'onAfterInit'
+      'onAfterInit' | 'onBeforeInit' | 'onInit'
     > & {
       reload?: boolean //if true then the pageObject is replaced
       builtIn?: Record<string, any>
@@ -360,7 +364,7 @@ class CADL {
       shouldAttachRef?: t.ShouldAttachRefFn
       wrapEvalObjects?: boolean
     } = {},
-  ): Promise<void | { aborted: true }> {
+  ): Promise<{ aborted: true } | void> {
     if (!this.cadlEndpoint) await this.init()
 
     const { builtIn, reload, wrapEvalObjects = true } = options
@@ -573,7 +577,7 @@ class CADL {
     }
 
     if (init) {
-      const page: { abort: boolean } | Record<string, nt.PageObject> =
+      const page: Record<string, nt.PageObject> | { abort: boolean } =
         await this.runInit({
           pageObject: obj,
           onBeforeInit: options?.onBeforeInit,
@@ -1348,6 +1352,7 @@ class CADL {
       return value
     }
   }
+
   /**
    * Used for the actionType 'updateObject'. It updates the value of an object at the given path.
    *
@@ -1394,7 +1399,7 @@ class CADL {
     pageObject: Record<string, any>
     onBeforeInit?(init: Init): Promise<void> | void
     onInit?(current: any, index: number, init: Init): Promise<void> | void
-    onAfterInit?(error: null | Error, init: Init): Promise<void> | void
+    onAfterInit?(error: Error | null, init: Init): Promise<void> | void
   }): Promise<Record<string, any>> {
     return new Promise(async (resolve) => {
       let page = pageObject
@@ -1537,7 +1542,7 @@ class CADL {
    *
    */
   //TODO: ask Chris if he uses this
-  setFromLocalStorage(key: 'user' | 'meetroom') {
+  setFromLocalStorage(key: 'meetroom' | 'user') {
     let localStorageGlobal: any
     try {
       const Global = localStorage.getItem('Global')
@@ -1719,6 +1724,7 @@ class CADL {
     const { greaterEqual, less, widthHeightRatioThreshold } = this.#designSuffix
     return this.aspectRatio >= widthHeightRatioThreshold ? greaterEqual : less
   }
+
   set designSuffix(designSuffix) {
     this.#designSuffix = designSuffix
   }

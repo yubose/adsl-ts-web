@@ -45,6 +45,27 @@ beforeEach(() => {
 })
 
 describe(`deref`, () => {
+  it(`[set] should set keys as strings when given a node`, () => {
+    const CerealPage = createNode({})
+    const key = createNode('Cereal')
+    root.set(key, CerealPage)
+    expect(root.value.has('Cereal')).to.be.true
+  })
+
+  it(`[has] should work with Scalar nodes`, () => {
+    root.set('Cereal', createNode({}))
+    expect(root.has('Cereal')).to.be.true
+    expect(root.has(new y.Scalar('Cereal'))).to.be.true
+  })
+
+  it(`[remove] should work with Scalar nodes`, () => {
+    root.set('Cereal', createNode({}))
+    expect(root.has('Cereal')).to.be.true
+    root.remove(new y.Scalar('Cereal'))
+    expect(root.has(new y.Scalar('Cereal'))).to.be.false
+    expect(root.has('Cereal')).to.be.false
+  })
+
   it(`should initiate the state expectedly`, () => {
     const spy = sinon.spy()
     const ref = '.SignIn.components.1.children.0.text'
@@ -64,12 +85,7 @@ describe(`deref`, () => {
   it(`should update the next state's path and paths expectedly`, () => {
     const spy = sinon.spy()
     const ref = '.SignIn.components.1.children.0.text'
-    const results = deref({
-      node: ref,
-      root,
-      rootKey: 'SignIn',
-      subscribe: { onUpdate: spy },
-    })
+    deref({ node: ref, root, rootKey: 'SignIn', subscribe: { onUpdate: spy } })
     const secondCallArgs = spy.secondCall.args
     const secondCallNextState = secondCallArgs[1]
     expect(secondCallNextState).to.have.deep.property('paths', [
@@ -243,7 +259,7 @@ describe(`Diagnostics`, () => {
     expect(calledPageNames).to.have.all.members(['Cereal', 'SignIn', 'Topo'])
   })
 
-  it.only(`should replace references with their values`, async () => {
+  it(`should replace references with their values`, async () => {
     const results = await diagnostics.run({
       enter: ({
         add,
