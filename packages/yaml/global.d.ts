@@ -4,8 +4,8 @@ import type { YAMLNode } from './src/types'
 declare global {
   namespace Chai {
     interface Assertion {
-      key(key: string | YAMLNode, value?: any): Assertion
-      path(key: string | YAMLNode): Assertion
+      key(key: YAMLNode | string, value?: any): Assertion
+      path(key: YAMLNode | string): Assertion
       value(value: any): Assertion
     }
   }

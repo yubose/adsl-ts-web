@@ -24,6 +24,9 @@ type DiagnosticObject<O extends Record<string, any> = Record<string, any>> =
     node: YAMLNode
     path?: YAMLNode[]
     root: ARoot
+    indent?: number
+    range?: [start: number, end: number, nodeEnd: number]
+    offset?: number
     messages: {
       type: ValidatorType
       message: string

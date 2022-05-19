@@ -208,7 +208,7 @@ const styleFactory = {
     const node = createScalar()
     return node
   },
-  th() {
+  width() {
     const node = createScalar()
     return node
   },
