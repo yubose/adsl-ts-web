@@ -458,21 +458,20 @@ const createActions = function createActions(app: App) {
       log.func(name)
       switch (result.status) {
         case 'selected':
-          const { files } = result
-          const ac = options?.ref
-          const comp = options?.component
+          const { files } = result;
+          const ac = options?.ref;
+          const comp = options?.component;
           const dataKey = _pick(action, 'dataKey');
-          // const documentType = _pick(action, 'documentType')
-          // const status = (documentType as string[]).some((item)=>item===result.files?.[0]?.["type"].split("/")[1]);
-          // const downloadStatus = _pick(action, 'downloadStatus')
-          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000
-          const fileFormat = _pick(action, 'fileFormat')
+          const documentType = _pick(action, 'documentType');
+          const downloadStatus = _pick(action, 'downloadStatus');
+          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000;
+          const fileFormat = _pick(action, 'fileFormat');
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0]);
-            // app.updateRoot(downloadStatus, status)
-            // if(!status){
-            //   break;
-            // }
+            if(documentType&&downloadStatus){
+              const status = (documentType as string[])?.some((item)=>item===files?.[0]?.["type"].split("/")[1]);
+              app.updateRoot(downloadStatus, status);
+            }
             if (fileFormat) {
               ac.data.set(fileFormat, files?.[0]?.type)
               app.updateRoot(fileFormat, ac.data.get(fileFormat))
