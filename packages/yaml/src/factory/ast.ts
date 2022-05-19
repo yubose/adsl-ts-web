@@ -14,7 +14,7 @@ function createScalar(value?: any) {
   return new y.Scalar(value)
 }
 
-function createPair(key: any, value?: any) {
+function createPair(key: y.Scalar | string, value?: any) {
   return new y.Pair(unwrap(key), createNode(value))
 }
 

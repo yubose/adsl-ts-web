@@ -6,7 +6,7 @@ function getJsType(node: unknown) {
     case 'Map':
     case 'Document':
       return 'object'
-    case 'Scalar':
+    case 'Scalar': {
       const type = typeof (node as y.Scalar).value
       switch (type) {
         case 'boolean':
@@ -16,6 +16,8 @@ function getJsType(node: unknown) {
         case 'string':
           return type
       }
+      break
+    }
     case 'Seq':
       return 'array'
     default:

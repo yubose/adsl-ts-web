@@ -4,7 +4,7 @@ import y from 'yaml'
 export type DataObject = ARoot | Map<any, any> | Set<any> | YAMLNode
 
 export interface RunDiagnosticsOptions<N = unknown>
-  extends Omit<VisitFnArgs<DiagnosticsHelpers>, 'pageName' | 'value'> {
+  extends Omit<VisitFnArgs<DiagnosticsHelpers>, 'name' | 'value'> {
   node: N
 }
 

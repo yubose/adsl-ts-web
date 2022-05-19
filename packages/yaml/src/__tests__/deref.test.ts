@@ -1,18 +1,13 @@
 import { expect } from 'chai'
 import fs from 'fs-extra'
 import path from 'path'
-import * as nt from 'noodl-types'
-import * as u from '@jsmanifest/utils'
 import sinon from 'sinon'
 import y from 'yaml'
-import * as yu from 'yaml/util'
 import { consts, Diagnostics } from '@noodl/core'
 import Root from '../DocRoot'
 import createNode from '../utils/createNode'
-import get from '../utils/get'
 import is from '../utils/is'
 import deref from '../utils/deref'
-import unwrap from '../utils/unwrap'
 import DocDiagnostics from '../DocDiagnostics'
 import DocVisitor from '../DocVisitor'
 
@@ -45,27 +40,6 @@ beforeEach(() => {
 })
 
 describe(`deref`, () => {
-  it(`[set] should set keys as strings when given a node`, () => {
-    const CerealPage = createNode({})
-    const key = createNode('Cereal')
-    root.set(key, CerealPage)
-    expect(root.value.has('Cereal')).to.be.true
-  })
-
-  it(`[has] should work with Scalar nodes`, () => {
-    root.set('Cereal', createNode({}))
-    expect(root.has('Cereal')).to.be.true
-    expect(root.has(new y.Scalar('Cereal'))).to.be.true
-  })
-
-  it(`[remove] should work with Scalar nodes`, () => {
-    root.set('Cereal', createNode({}))
-    expect(root.has('Cereal')).to.be.true
-    root.remove(new y.Scalar('Cereal'))
-    expect(root.has(new y.Scalar('Cereal'))).to.be.false
-    expect(root.has('Cereal')).to.be.false
-  })
-
   it(`should initiate the state expectedly`, () => {
     const spy = sinon.spy()
     const ref = '.SignIn.components.1.children.0.text'
@@ -99,12 +73,7 @@ describe(`deref`, () => {
   it(`should update the next state's results expectedly`, () => {
     const spy = sinon.spy()
     const ref = '.SignIn.components.1.children.0.text'
-    const results = deref({
-      node: ref,
-      root,
-      rootKey: 'SignIn',
-      subscribe: { onUpdate: spy },
-    })
+    deref({ node: ref, root, rootKey: 'SignIn', subscribe: { onUpdate: spy } })
     const secondCallNextState = spy.secondCall.args[1]
     const thirdCallNextState = spy.thirdCall.args[1]
     const fourthCallNextState = spy.getCall(3).args[1]

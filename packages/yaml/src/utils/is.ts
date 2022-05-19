@@ -1,5 +1,4 @@
 import * as u from '@jsmanifest/utils'
-import { ARoot } from '@noodl/core'
 import { Identify } from 'noodl-types'
 import type { ReferenceString } from 'noodl-types'
 import y from 'yaml'
@@ -62,16 +61,8 @@ function equalTo<N = any>(v1: unknown, v2: N): v1 is typeof v2 {
 }
 
 const is = {
-  array: (node: unknown): node is y.YAMLSeq => y.isSeq(node),
-  object: (node: unknown): node is y.YAMLMap =>
-    y.isMap(node) || y.isDocument(node),
-  string: (node: unknown): node is y.Scalar<string> => u.isStr(unwrap(node)),
-  number: (node: unknown): node is y.Scalar<number> => u.isNum(unwrap(node)),
   nil: (node: unknown): node is y.Scalar<null | undefined> =>
     u.isNil(unwrap(node)),
-  null: (node: unknown): node is y.Scalar<null> => u.isNull(unwrap(node)),
-  undefined: (node: unknown): node is y.Scalar<undefined> =>
-    u.isUnd(unwrap(node)),
   equalTo,
   fileSystem: (value: unknown): value is FileSystem =>
     value !== null &&

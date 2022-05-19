@@ -51,7 +51,7 @@ export type DiagnosticObject<
 export type TranslatedDiagnosticObject = Omit<DiagnosticObject, 'messages'> & {
   messages: {
     type: ReturnType<typeof translateDiagnosticType>
-    message: string[]
+    message: string
   }
 }
 

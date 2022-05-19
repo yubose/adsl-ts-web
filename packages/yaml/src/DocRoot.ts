@@ -50,9 +50,12 @@ class DocRoot extends ARoot {
     return get(this.value, key)
   }
 
+  /**
+   * @param key Root key
+   * @returns True if key exists in root
+   */
   has(key: y.Scalar | string) {
-    key = unwrap(key) as string
-    return this.value.has(key)
+    return this.value.has(unwrap(key) as string)
   }
 
   /**
@@ -60,10 +63,7 @@ class DocRoot extends ARoot {
    * @param key Root key
    * @param value Root value
    */
-  set(
-    key: y.Scalar | string,
-    value: any[] | Record<string, any> | y.Document | string,
-  ) {
+  set(key: y.Scalar | string, value: any) {
     if (
       value != null &&
       !y.isNode(value) &&

@@ -60,7 +60,7 @@ function _merge<N extends t.YAMLNode>(
       if (ref) {
         mergingValue = createNode(deref({ node: ref, root, rootKey }).value)
       } else {
-        mergingValue = createNode(refOrNode)
+        mergingValue = createNode(refOrNode as any)
       }
 
       switch (getNodeKind(mergingValue)) {
@@ -70,9 +70,11 @@ function _merge<N extends t.YAMLNode>(
         case c.Kind.Scalar: {
           if (is.seqNode(node)) {
             if (is.seqNode(mergingValue)) {
-              mergingValue.items.forEach((item) => node.add(createNode(item)))
+              mergingValue.items.forEach((item) =>
+                node.add(createNode(item as any)),
+              )
             } else if (is.pairNode(mergingValue)) {
-              node.add(createNode(mergingValue.value))
+              node.add(createNode(mergingValue.value as any))
             } else {
               node.add(createNode(mergingValue))
             }
@@ -106,7 +108,7 @@ function _merge<N extends t.YAMLNode>(
                 //
               } else if (typeof mergingValue === 'object') {
                 Object.entries(mergingValue).forEach(([k, v]) =>
-                  (node as y.YAMLMap).set(unwrap(k), createNode(v)),
+                  (node as y.YAMLMap).set(unwrap(k), createNode(v as any)),
                 )
               }
             }

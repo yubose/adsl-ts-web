@@ -7,7 +7,7 @@ function getNodeType(node: y.YAMLSeq): 'Seq'
 function getNodeType(node: y.Document | y.Document.Parsed): 'Document'
 function getNodeType(
   node: unknown,
-): 'Scalar' | 'Pair' | 'Map' | 'Seq' | 'Document' | 'unknown'
+): 'Document' | 'Map' | 'Pair' | 'Scalar' | 'Seq' | 'unknown'
 function getNodeType(node: unknown) {
   if (y.isScalar(node)) return 'Scalar'
   if (y.isPair(node)) return 'Pair'

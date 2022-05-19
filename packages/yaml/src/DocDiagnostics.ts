@@ -1,8 +1,5 @@
 import { Diagnostics } from '@noodl/core'
-import type {
-  DiagnosticObject,
-  TranslatedDiagnosticObject,
-} from '@noodl/core/dist/diagnostics/diagnosticsTypes'
+import type { DiagnosticObject, TranslatedDiagnosticObject } from '@noodl/core'
 import getNodeKind from './utils/getNodeKind'
 import * as c from './constants'
 

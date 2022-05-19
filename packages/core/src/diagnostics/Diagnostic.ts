@@ -1,7 +1,11 @@
 import type { TranslatedDiagnosticObject } from './diagnosticsTypes'
 
 class Diagnostic {
-  #value: TranslatedDiagnosticObject
+  #value: TranslatedDiagnosticObject;
+
+  [Symbol.for('nodejs.util.inspect.custom')]() {
+    return this.toJSON()
+  }
 
   constructor(value: TranslatedDiagnosticObject) {
     this.#value = value
