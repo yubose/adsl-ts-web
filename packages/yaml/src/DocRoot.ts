@@ -10,7 +10,7 @@ class DocRoot extends ARoot {
   #fs: Partial<FileSystem> | undefined
   value = new Map();
 
-  [Symbol.iterator](): Iterator<[name: string, doc: y.Node | y.Document]> {
+  [Symbol.iterator](): Iterator<[name: string, doc: y.Document | y.Node]> {
     const entries = [...this.value.entries()].reverse()
     return {
       next() {
@@ -46,7 +46,7 @@ class DocRoot extends ARoot {
    * @param key Root key
    * @returns The retrieved value
    */
-  get(key: y.Scalar | string | string[]) {
+  get(key: string[] | y.Scalar | string) {
     return get(this.value, key)
   }
 
@@ -56,10 +56,25 @@ class DocRoot extends ARoot {
   }
 
   /**
+   * NOTE: Value will be converted to a YAML Document if it is not a YAML Node unless it is a nullish value
    * @param key Root key
    * @param value Root value
    */
-  set(key: string, value: any) {
+  set(key: string, value: any[] | Record<string, any> | y.Document | string) {
+    if (
+      value != null &&
+      !y.isNode(value) &&
+      !y.isDocument(value) &&
+      !y.isPair(value) &&
+      !y.isMap(value)
+    ) {
+      const doc = this.toDocument(value)
+      // { SignIn: { SignIn: y.Document } } --> { SignIn: y.Document }
+      if (y.isMap(doc.contents) && doc.contents.items.length === 1) {
+        if (doc.contents.has(key)) doc.contents = doc.contents.get(key)
+      }
+      value = doc
+    }
     this.value.set(key, value)
     return this
   }
@@ -67,6 +82,21 @@ class DocRoot extends ARoot {
   remove(key: string): this {
     this.value.delete(key)
     return this
+  }
+
+  toDocument(
+    yml: Record<string, any> | string,
+    opts?: y.DocumentOptions | y.ParseOptions | y.SchemaOptions,
+  ) {
+    opts = {
+      logLevel: 'debug',
+      keepSourceTokens: true,
+      prettyErrors: true,
+      ...opts,
+    }
+    return typeof yml === 'string'
+      ? y.parseDocument(yml, opts)
+      : new y.Document(yml, opts)
   }
 
   toJSON() {
@@ -86,6 +116,7 @@ class DocRoot extends ARoot {
   loadFileSync(
     filepath: string,
     opts?: {
+      parseOptions?: y.DocumentOptions | y.ParseOptions | y.SchemaOptions
       renameFile?: (filename?: string) => string | void
       renameKey?: (filename: string) => string | void
     },
@@ -112,8 +143,8 @@ class DocRoot extends ARoot {
       throw new Error(`The file at ${filepath} yielded empty data`)
     }
 
-    let doc = y.parseDocument(yml)
-    let filename = this.#fs.getFileName?.(filepath) || ''
+    let doc = this.toDocument(yml, opts?.parseOptions)
+    let filename = this.#fs.getBaseName?.(filepath) || ''
     let key = ''
 
     if (typeof opts?.renameFile === 'function') {

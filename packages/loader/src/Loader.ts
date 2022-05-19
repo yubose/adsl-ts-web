@@ -3,6 +3,9 @@ import * as fs from 'fs-extra'
 import * as nu from 'noodl-utils'
 import axios, { AxiosRequestConfig } from 'axios'
 import { fp, is } from '@noodl/core'
+import { ARoot } from '@noodl/core'
+import { getFileName, getFileStructure, getLinkStructure } from '@noodl/file'
+import type { FileSystem } from '@noodl/file'
 import * as chalk from 'chalk'
 import chunk from 'lodash/chunk'
 import flatten from 'lodash/flatten'
@@ -18,13 +21,10 @@ import type {
 import y from 'yaml'
 import * as winston from 'winston'
 import regex from './internal/regex'
-import { ensureExt } from './utils/fileSystem'
-import getLinkStructure from '../../file/src/utils/getLinkStructure'
 import shallowMerge from './utils/shallowMerge'
 import { extractAssetsUrl } from './utils/extract'
 import { fetchYml, parse as parseYml, stringify, withYmlExt } from './utils/yml'
 import Visitor from './Visitor'
-import type { ILinkStructure } from './LinkStructure'
 import * as c from './constants'
 import * as t from './types'
 
@@ -41,6 +41,7 @@ class NoodlLoader<
   #configKey = ''
   #configVersion = 'latest'
   #remoteBaseUrl = ''
+  #fs: FileSystem | undefined
   cbs = {} as Record<string, ((...arguments_: any[]) => any)[]>
   deviceType: DeviceType = 'web'
   dataType: DataType
@@ -51,7 +52,7 @@ class NoodlLoader<
     loglevel: 'error' as t.Loader.Options<ConfigKey, DataType>['loglevel'],
   }
 
-  root: t.Loader.Root<DataType>;
+  root: ARoot;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return {
@@ -149,6 +150,10 @@ class NoodlLoader<
 
   #fetch = (url: string, opts?: AxiosRequestConfig) => axios.get(url, opts)
 
+  get fs() {
+    return this.#fs as FileSystem
+  }
+
   async init({
     dir = '',
     docOptions,
@@ -217,7 +222,7 @@ class NoodlLoader<
   #getRootConfig = () =>
     (this.getInRoot(this.configKey) ||
       this.getInRoot(
-        ensureExt(this.configKey, 'yml'),
+        this.fs.ensureExt(this.configKey, 'yml'),
       )) as DataType extends 'map' ? y.Document.Parsed : RootConfig
 
   #replaceNoodlPlaceholders = (str = '') => {
@@ -232,7 +237,7 @@ class NoodlLoader<
 
   get appConfigUrl() {
     return this.#replaceNoodlPlaceholders(
-      `${this.baseUrl}${ensureExt(this.appKey, 'yml')}`,
+      `${this.baseUrl}${this.fs.ensureExt(this.appKey, 'yml')}`,
     )
   }
 
@@ -469,7 +474,7 @@ class NoodlLoader<
         options?.requestOptions && (requestOptions = options.requestOptions)
         docOptions = options.docOptions
         const dir = options.dir || ''
-        const configFilePath = path.join(dir, ensureExt(this.configKey, 'yml'))
+        const configFilePath = path.join(dir, this.fs.ensureExt(this.configKey, 'yml'))
         if (existsSync(configFilePath)) {
           this.log.debug(
             `Loading root config from: ${(configFilePath)}`,
@@ -642,7 +647,7 @@ class NoodlLoader<
 
     if (dir) {
       const appConfigFilePath = path.resolve(
-        path.join(dir, ensureExt(this.appKey, 'yml')),
+        path.join(dir, this.fs.ensureExt(this.appKey, 'yml')),
       )
       if (existsSync(appConfigFilePath)) {
         this.log.debug(

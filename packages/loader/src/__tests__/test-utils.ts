@@ -69,5 +69,5 @@ export function getRoot() {
     },
   }
 
-  return root as typeof root & Record<string, any>
+  return root as Record<string, any> & typeof root
 }

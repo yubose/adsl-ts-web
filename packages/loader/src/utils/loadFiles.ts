@@ -1,9 +1,8 @@
 import { join as joinPath } from 'path'
+import { getFileStructure, getFileName, path } from '@noodl/file'
 import fg from 'fast-glob'
 import { Document as YAMLDocument, isDocument, isMap, Scalar } from 'yaml'
 import { fp, is } from '@noodl/core'
-import { getAbsFilePath, getFileName, normalizePath } from './fileSystem'
-import getFileStructure from './getFileStructure'
 import type { IFileStructure } from '../../../file/src/FileStructure'
 import loadFile from './loadFile'
 import * as t from '../types'
@@ -100,7 +99,7 @@ function loadFiles(
 /**
  * Load files from dir and optionally a second argument as 'yml' (default) for an array of yml data
  */
-function loadFiles(dir: string, type?: undefined | 'yml'): string[]
+function loadFiles(dir: string, type?: 'yml' | undefined): string[]
 
 /**
  * Load files from dir and optionally a second argument as 'json' to receive
@@ -121,7 +120,7 @@ function loadFiles(dir: string, type: 'doc'): YAMLDocument[]
 function loadFiles<
   LType extends t.LoadType = t.LoadType,
   LFType extends t.LoadFilesAs = t.LoadFilesAs,
->(dir: string, opts: t.LoadType | t.LoadFilesOptions<LType, LFType> = 'yml') {
+>(dir: string, opts: t.LoadFilesOptions<LType, LFType> | t.LoadType = 'yml') {
   let ext = 'yml'
   let type = 'yml'
 
@@ -129,7 +128,7 @@ function loadFiles<
     opts === 'json' && (ext = 'json')
 
     const glob = `**/*.${ext}`
-    const _path = normalizePath(getAbsFilePath(joinPath(dir, glob)))
+    const _path = path.normalize(path.resolve(joinPath(dir, glob)))
 
     if (is.str(opts)) {
       type = opts === 'json' ? 'json' : opts === 'doc' ? 'doc' : type
@@ -137,7 +136,7 @@ function loadFiles<
         .sync(_path, { onlyFiles: true })
         .map((filepath) => loadFile(filepath as string, type as any))
     } else if (is.obj(opts)) {
-      type = opts.type || type
+      type = opts.type ?? type
       const includeExt = opts?.includeExt
       const keysToSpread = opts.spread ? fp.toArr(opts.spread) : []
 

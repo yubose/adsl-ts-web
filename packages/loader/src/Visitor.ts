@@ -2,9 +2,9 @@ import * as u from '@jsmanifest/utils'
 
 export interface VisitorFn {
   (
-    key: string | number | null,
+    key: number | string | null,
     value: unknown,
-    parent: null | Record<string, any> | any[],
+    parent: any[] | Record<string, any> | null,
   ): any
 }
 
@@ -16,9 +16,9 @@ const Visitor = (function () {
     function visit(
       fn: VisitorFn,
       value: unknown,
-      parent: null | Record<string, any> | any[],
+      parent: any[] | Record<string, any> | null,
     ) {
-      let results = []
+      let results = [] as any[]
 
       if (u.isArr(value)) {
         results = results.concat(

@@ -1,11 +1,11 @@
 export type Type =
   | 'array'
   | 'boolean'
-  | 'object'
   | 'function'
-  | 'string'
-  | 'number'
   | 'null'
+  | 'number'
+  | 'object'
+  | 'string'
 
 export default function typeOf(value: any): Type | undefined {
   const type = typeof value

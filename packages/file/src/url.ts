@@ -46,7 +46,7 @@ function getPathFromURLPosix(url: URL) {
 
 // See: <https://github.com/nodejs/node/blob/fcf8ba4/lib/internal/url.js>
 
-export function urlToPath(path: string | URL) {
+export function urlToPath(path: URL | string) {
   if (typeof path === 'string') {
     path = new URL(path)
   } else if (!isUrl(path)) {

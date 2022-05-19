@@ -1,13 +1,10 @@
-import * as u from '@jsmanifest/utils'
 import path from 'path'
 import { expect } from 'chai'
+import { getFileStructure, getLinkStructure } from '@noodl/file'
 import nock from 'nock'
 import sinon from 'sinon'
-import { mapFilesToNoodlCollections } from '../utils/fileSystem'
-import getFileStructure from '../utils/getFileStructure'
-import getLinkStructure from '../utils/getLinkStructure'
 
-describe(`utils`, () => {
+describe.skip(`utils`, () => {
   describe(`fileSystem`, () => {
     describe(`mapFilesToNoodlCollections`, () => {
       it.skip(`should map filepaths to noodl collections`, () => {

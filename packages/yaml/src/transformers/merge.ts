@@ -2,9 +2,11 @@ import type { ARoot } from '@noodl/core'
 import type { ReferenceString } from 'noodl-types'
 import * as u from '@jsmanifest/utils'
 import y from 'yaml'
+import createNode from '../utils/createNode'
 import deref from '../utils/deref'
 import getNodeKind from '../utils/getNodeKind'
 import is from '../utils/is'
+import unwrap from '../utils/unwrap'
 import type DocRoot from '../DocRoot'
 import * as c from '../constants'
 import * as t from '../types'
@@ -14,7 +16,7 @@ export interface MergeOptions {
   rootKey?: t.StringNode
 }
 
-function isMergingRef<S extends string>(refOrNode: y.Scalar<S> | S) {
+function isMergingRef<S extends string>(refOrNode: S | y.Scalar<S>) {
   return (
     (is.scalarNode(refOrNode) &&
       u.isStr(refOrNode.value) &&
@@ -25,7 +27,14 @@ function isMergingRef<S extends string>(refOrNode: y.Scalar<S> | S) {
 
 function _merge<N extends t.YAMLNode>(
   node: N,
-  refOrNode: y.Scalar<ReferenceString> | ReferenceString | y.YAMLMap | DocRoot,
+  refOrNode:
+    | DocRoot
+    | Record<string, any>
+    | ReferenceString
+    | y.Scalar<ReferenceString>
+    | y.YAMLMap
+    | null
+    | undefined,
   { root, rootKey }: MergeOptions = {},
 ): N | null {
   let mergingValue: any
@@ -49,28 +58,41 @@ function _merge<N extends t.YAMLNode>(
     case c.Kind.Scalar:
     case c.Kind.Document: {
       if (ref) {
-        mergingValue = deref({ node: ref, root, rootKey }).value
+        mergingValue = createNode(deref({ node: ref, root, rootKey }).value)
+      } else {
+        mergingValue = createNode(refOrNode)
+      }
 
-        switch (getNodeKind(mergingValue)) {
-          case c.Kind.Unknown:
-            return node
-          case c.Kind.Seq:
-          case c.Kind.Pair:
-          case c.Kind.Scalar:
-            break
-          case c.Kind.Map:
-          case c.Kind.Document: {
-            let nodeMerging: any
-
-            if (is.mapNode(mergingValue)) {
-              nodeMerging = mergingValue
+      switch (getNodeKind(mergingValue)) {
+        case c.Kind.Unknown:
+        case c.Kind.Seq:
+        case c.Kind.Pair:
+        case c.Kind.Scalar: {
+          if (is.seqNode(node)) {
+            if (is.seqNode(mergingValue)) {
+              mergingValue.items.forEach((item) => node.add(createNode(item)))
+            } else if (is.pairNode(mergingValue)) {
+              node.add(createNode(mergingValue.value))
             } else {
-              const doc = mergingValue as y.Document
-              if (is.mapNode(doc.contents)) {
-                nodeMerging = doc.contents
-              }
+              node.add(createNode(mergingValue))
             }
+          }
+          break
+        }
+        case c.Kind.Map:
+        case c.Kind.Document: {
+          let nodeMerging: any
 
+          if (is.mapNode(mergingValue)) {
+            nodeMerging = mergingValue
+          } else {
+            const doc = mergingValue as y.Document
+            if (is.mapNode(doc.contents)) {
+              nodeMerging = doc.contents
+            }
+          }
+
+          if (nodeMerging) {
             if (is.mapNode(nodeMerging)) {
               nodeMerging.items.forEach((pair) => {
                 if (is.mapNode(node)) {
@@ -78,8 +100,19 @@ function _merge<N extends t.YAMLNode>(
                 }
               })
             }
-            break
+          } else {
+            if (mergingValue != null) {
+              if (Array.isArray(mergingValue)) {
+                //
+              } else if (typeof mergingValue === 'object') {
+                Object.entries(mergingValue).forEach(([k, v]) =>
+                  (node as y.YAMLMap).set(unwrap(k), createNode(v)),
+                )
+              }
+            }
           }
+
+          break
         }
       }
 

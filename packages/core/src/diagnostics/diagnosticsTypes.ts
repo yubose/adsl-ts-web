@@ -36,9 +36,9 @@ export interface DiagnosticRule {}
 
 export type DiagnosticObject<
   O extends Record<string, any> = Record<string, any>,
-> = {
+> = O & {
   page: string
-  key: null | string | number
+  key: number | string | null
   value: any
   path?: any[]
   root: ARoot
@@ -46,7 +46,7 @@ export type DiagnosticObject<
     type: ValidatorType
     message: string[]
   }[]
-} & O
+}
 
 export type TranslatedDiagnosticObject = Omit<DiagnosticObject, 'messages'> & {
   messages: {

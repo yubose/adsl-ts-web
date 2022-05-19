@@ -1,12 +1,15 @@
 import * as fs from 'fs-extra'
-import { isAbsolute as isAbsolutePath } from 'path'
+import {
+  isAbsolute as isAbsolutePath,
+  join as joinPath,
+  resolve as resolvePath,
+} from 'path'
 import { is } from '@noodl/core'
 import type { YAMLDocument } from '../internal/yaml'
 import {
   parse as parseYmlToJson,
   parseDocument as parseYmlToDoc,
 } from '../internal/yaml'
-import { getAbsFilePath } from './fileSystem'
 import * as t from '../types'
 
 /**
@@ -37,7 +40,7 @@ function loadFile<T extends t.LoadType = t.LoadType>(
 ) {
   if (is.str(filepath)) {
     if (!isAbsolutePath(filepath)) {
-      filepath = getAbsFilePath(filepath)
+      filepath = resolvePath(joinPath(process.cwd(), filepath))
     }
 
     if (fs.existsSync(filepath)) {

@@ -43,7 +43,7 @@ export const textAlignStrings = [
   'centerY',
 ] as const
 
-export const enum ReferenceType {
+export enum ReferenceType {
   AWAIT = 0,
   ROOT_MERGE = 1,
   LOCAL_MERGE = 2,
@@ -55,7 +55,7 @@ export const enum ReferenceType {
 }
 
 /** @internal */
-export const enum ValidatorType {
+export enum ValidatorType {
   ERROR = 9000,
   WARN = 9001,
   INFO = 9002,
@@ -63,7 +63,7 @@ export const enum ValidatorType {
 
 // prettier-ignore
 /** @internal */
-export const enum CharCode {
+export  enum CharCode {
   Ampersand = 0x26,             // &
   Asterisk = 0x2A,              // *
   At = 0x40,                    // @
@@ -176,13 +176,13 @@ export const enum CharCode {
 }
 
 /* @internal */
-export const enum Comparison {
+export enum Comparison {
   LessThan = -1,
   EqualTo = 0,
   GreaterThan = 1,
 }
 
-export const enum DiagnosticCode {
+export enum DiagnosticCode {
   LOCAL_REF_MISSING_ROOT_KEY = 20000,
   ROOT_REF_MISSING_ROOT_KEY = 20001,
   ROOT_MISSING_ROOT_KEY = 20002,

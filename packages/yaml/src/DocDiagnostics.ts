@@ -22,18 +22,17 @@ class DocDiagnostics extends Diagnostics {
         })
     >,
   ) {
-    const { node, ...opts } = options || {}
+    const { node, ...opts } = options ?? {}
     const diagnostic = super.createDiagnostic(opts)
 
-    if (opts?.node) {
-      const kind = getNodeKind(opts.node)
+    if (node) {
+      const kind = getNodeKind(node)
+
       switch (kind) {
         case c.Kind.Scalar:
         case c.Kind.Pair:
         case c.Kind.Map:
         case c.Kind.Seq: {
-          const node = opts.node as y.Pair | y.Scalar | y.YAMLMap | y.YAMLSeq
-
           if (node.srcToken) {
             const { indent, items, offset, props, start, end, type } =
               node.srcToken || {}

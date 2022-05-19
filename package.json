@@ -288,7 +288,9 @@
       "prettier/prettier": "error",
       "no-async-promise-executor": "off",
       "no-dupe-class-members": "off",
+      "no-inner-declarations": "off",
       "no-redeclare": "off",
+      "no-undef": "off",
       "no-unused-vars": "off",
       "quotes": "off"
     }

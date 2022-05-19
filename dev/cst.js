@@ -4,8 +4,8 @@ const y = require('yaml')
 const fse = require('fs-extra')
 const path = require('path')
 const fg = require('fast-glob')
-const { Loader } = require('noodl')
 const n = require('@noodl/core')
+const { Loader } = require('noodl')
 const u = require('@jsmanifest/utils')
 const ny = require('@noodl/yaml')
 const { factory } = require('./assert')
@@ -96,7 +96,14 @@ async function runDiagnosticsbyConfig({ baseUrl, configKey }) {
     docRoot.set('cadlEndpoint', appDoc)
 
     for (const [name, doc] of loader.root) {
-      docRoot.set(name, doc)
+      docRoot.set(
+        name,
+        y.parseDocument(doc.toString(), {
+          logLevel: 'debug',
+          prettyErrors: true,
+          keepSourceTokens: true,
+        }),
+      )
     }
 
     const enter = factory({ data })
@@ -112,7 +119,7 @@ async function runDiagnosticsbyConfig({ baseUrl, configKey }) {
           if (is.pairNode(node) && ny.unwrap(node.key) === 'init') {
             return assertInit({ add, node: node.value, page, root }, utils)
           } else if (is.scalarNode(node)) {
-            if (ny.is.reference(node)) {
+            if (is.reference(node)) {
               return assertRef({ add, node, page, root }, utils)
             }
           } else if (is.mapNode(node)) {

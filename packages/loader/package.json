@@ -15,11 +15,11 @@
   "license": "MIT",
   "main": "dist/index.js",
   "directories": {
-    "lib": "lib",
+    "dist": "dist",
     "test": "__tests__"
   },
   "files": [
-    "lib"
+    "dist"
   ],
   "publishConfig": {
     "access": "public"
@@ -31,10 +31,8 @@
   "scripts": {
     "build": "tsc",
     "start": "tsc -w",
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\"",
+    "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --file src/setupTests.ts -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\""
   },
-  "dependencies": {
-    "i": "^0.3.7",
-    "npm": "^8.10.0"
-  }
+  "dependencies": {}
 }
