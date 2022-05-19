@@ -1,8 +1,7 @@
-import * as u from '@jsmanifest/utils'
-import { Identify } from 'noodl-types'
 import type { ReferenceString } from 'noodl-types'
 import y from 'yaml'
 import { findPair } from 'yaml/util'
+import { is as coreIs } from '@noodl/core'
 import getNodeKind from './getNodeKind'
 import unwrap from './unwrap'
 import type DocRoot from '../DocRoot'
@@ -62,14 +61,14 @@ function equalTo<N = any>(v1: unknown, v2: N): v1 is typeof v2 {
 
 const is = {
   nil: (node: unknown): node is y.Scalar<null | undefined> =>
-    u.isNil(unwrap(node)),
+    coreIs.nil(unwrap(node)),
   equalTo,
   fileSystem: (value: unknown): value is FileSystem =>
     value !== null &&
     typeof value === 'object' &&
     value['_id_'] === c._symbol.fs,
   reference: (node: unknown): node is y.Scalar<ReferenceString> =>
-    Identify.reference(unwrap(node)),
+    coreIs.reference(unwrap(node) as string),
   root: (node: unknown): node is DocRoot =>
     node !== null &&
     typeof node === 'object' &&
@@ -92,7 +91,7 @@ const is = {
       y.isScalar(node.items[0].key)
     ) {
       const key = node.items[0].key.value
-      return u.isStr(key) && key.startsWith(`=.builtIn`)
+      return coreIs.str(key) && key.startsWith(`=.builtIn`)
     }
     return false
   },

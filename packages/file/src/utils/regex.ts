@@ -16,7 +16,7 @@ const file = new RegExp(
     .join('|')})$`,
 )
 const url = new RegExp(
-  `(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})`,
+  '(https?://(?:www.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9].[^s]{2,}|www.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9].[^s]{2,}|https?://(?:www.|(?!www))[a-zA-Z0-9]+.[^s]{2,}|www.[a-zA-Z0-9]+.[^s]{2,})',
 )
 
 export default {
@@ -39,7 +39,7 @@ export default {
       eval: /^[\s]*=([a-zA-Z]+|\.{1,2}[a-zA-Z]+)/,
     },
     underline: {
-      traverse: /([\.][_]+[a-zA-Z])/,
+      traverse: /([.][_]+[a-zA-Z])/,
     },
   },
   file,
