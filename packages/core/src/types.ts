@@ -1,6 +1,15 @@
 import type fs from 'fs'
 import { _symbol } from './constants'
 
+export abstract class AAccumulator {
+  abstract init(): this
+}
+
+export abstract class AExtractor<INode = any> {
+  abstract extract(data: Record<string, INode>): any[]
+  abstract use(value: ARoot | AStructure | AVisitor): this
+}
+
 export abstract class AIterator<INode = any, INext = any> {
   abstract getIterator(
     data: ARoot | Record<string, INode>,
@@ -19,6 +28,7 @@ export abstract class AFileSystem {
 }
 
 export abstract class ARoot<R = any> {
+  abstract init(): this
   abstract value: R
   abstract get(key: string): any
   abstract set(key: string, value: any): this
@@ -33,6 +43,17 @@ export abstract class ARoot<R = any> {
   }
 }
 
+export abstract class AStructure<Struct extends IStructure = IStructure> {
+  abstract name: string
+  abstract is(node: any): boolean
+  abstract createStructure(node: any): Struct
+}
+
+export interface IStructure<S extends string = string> {
+  raw: any
+  group: S
+}
+
 export abstract class AVisitor<R = any, H = Record<string, any>> {
   abstract callback?: (args: VisitFnArgs<H>) => any
   abstract visit(node: any, options?: Partial<VisitorOptions<H>>): R
@@ -45,29 +66,30 @@ export abstract class AVisitor<R = any, H = Record<string, any>> {
 
 export interface VisitorOptions<Options = Record<string, any>> {
   data: Record<string, any>
-  init?: (args: { data: Record<string, any> } & Record<string, any>) => any
+  init?: (args: Record<string, any> & { data: Record<string, any> }) => any
   helpers?: Options
 }
 
-export type VisitFnArgs<H extends Record<string, any> = Record<string, any>> = {
-  data: Record<string, any>
-  pageName: string
-  name?: string
-  key: null | string | number
-  value: any
-  path?: any[]
-  diagnostics: Record<string, any>
-  root: ARoot
-} & H
+export type VisitFnArgs<H extends Record<string, any> = Record<string, any>> =
+  H & {
+    data: Record<string, any>
+    pageName: string
+    name?: string
+    key: number | string | null
+    value: any
+    path?: any[]
+    diagnostics: Record<string, any>
+    root: ARoot
+  }
 
-export type NormalizePropsContext = {
+export type NormalizePropsContext = Record<string, any> & {
   dataObject?: Record<string, any>
   iteratorVar?: string
   index?: number
-  listObject?: string | any[]
-} & Record<string, any>
+  listObject?: any[] | string
+}
 
-export type Path = (string | number)[]
+export type Path = (number | string)[]
 
 export interface IViewport {
   width: number

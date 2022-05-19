@@ -7,5 +7,6 @@
     "target": "es2015"
   },
   "exclude": ["./src/**/*.test.ts","dist"],
-  "include": ["./src/**/*"]
+  "include": [],
+  "files": ["./src/index.ts"]
 }

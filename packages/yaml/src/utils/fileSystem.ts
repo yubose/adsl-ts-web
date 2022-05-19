@@ -1,9 +1,10 @@
-import y from 'yaml'
 import type fs from 'fs'
 import type { ParsedPath } from 'path'
+import y from 'yaml'
 import { _symbol } from '../constants'
 
-export type FileSystem = ReturnType<typeof createFileSystem>
+export type FileSystem = Exclude<IFileSystem, typeof fs> &
+  ReturnType<typeof createFileSystem>
 
 export interface IFileSystem {
   existsSync: (filepath: string) => boolean
@@ -20,8 +21,8 @@ export interface IFileSystem {
 
 function createFileSystem<R = any>(
   this: any,
-  getFsModule: () => typeof fs & IFileSystem,
-): (R extends infer P ? P : any) & IFileSystem
+  getFsModule: () => IFileSystem & typeof fs,
+): IFileSystem & R extends infer P ? P : any
 
 function createFileSystem<R = any>(
   this: any,
@@ -30,7 +31,7 @@ function createFileSystem<R = any>(
 
 function createFileSystem(
   this: any,
-  bindings: IFileSystem | (() => typeof fs & IFileSystem),
+  bindings: IFileSystem | (() => IFileSystem & typeof fs),
 ) {
   if (typeof bindings === 'function') {
     const fs = bindings()

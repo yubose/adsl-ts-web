@@ -4,7 +4,6 @@ import type {
   DiagnosticObject,
   TranslatedDiagnosticObject,
 } from '@noodl/core/dist/diagnostics/diagnosticsTypes'
-import getJsType from './utils/getJsType'
 import getNodeKind from './utils/getNodeKind'
 import * as u from '@jsmanifest/utils'
 import * as c from './constants'
@@ -17,23 +16,23 @@ class DocDiagnostics extends Diagnostics {
 
   createDiagnostic(
     options?: Partial<
-      (DiagnosticObject | TranslatedDiagnosticObject) & {
-        node?: unknown
-      }
+      | TranslatedDiagnosticObject
+      | (DiagnosticObject & {
+          node?: unknown
+        })
     >,
   ) {
-    const { node, ...opts } = options || {}
+    const { node, ...opts } = options ?? {}
     const diagnostic = super.createDiagnostic(opts)
 
-    if (opts?.node) {
-      const kind = getNodeKind(opts.node)
+    if (node) {
+      const kind = getNodeKind(node)
+
       switch (kind) {
         case c.Kind.Scalar:
         case c.Kind.Pair:
         case c.Kind.Map:
         case c.Kind.Seq: {
-          const node = opts.node as y.Scalar | y.Pair | y.YAMLMap | y.YAMLSeq
-
           if (node.srcToken) {
             const { indent, items, offset, props, start, end, type } =
               node.srcToken || {}

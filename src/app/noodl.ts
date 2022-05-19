@@ -27,7 +27,7 @@ export const lvl3Options = {
     return isDeploying
       ? safeDeployUrl
       : `http://127.0.0.1:3001/${lvl3Options.app}.yml`
-    // return `analysis.yml`
+    // return `./analysis.yml`
   },
 }
 

@@ -1,6 +1,4 @@
-import y from 'yaml'
-import path from 'path'
-import type { ParsedPath } from 'path'
+import path from './path'
 import * as t from './types'
 import * as is from './utils/is'
 
@@ -12,8 +10,8 @@ export interface ILinkStructure
     | 'page'
     | 'script'
     | 'text'
-    | 'video'
     | 'unknown'
+    | 'video'
   > {
   ext: string | null
   isRemote: boolean | null
@@ -21,38 +19,27 @@ export interface ILinkStructure
 }
 
 class LinkStructure extends t.AStructure<ILinkStructure> {
-  #transform?: (node: any) => any
+  #transform?: (p: string) => string
   configKey = ''
   name = 'link'
 
-  constructor(transform?: (node: any) => any) {
+  constructor(transform?: (p: string) => string) {
     super()
     if (transform) this.#transform = transform
   }
 
-  is(node: any) {
-    if (this.#transform) node = this.#transform(node)
-    if (typeof node === 'string') {
-      return is.url(node)
-    } else if (y.isScalar(node)) {
-      return this.is(node.value)
-    }
+  is(p: string) {
+    if (this.#transform) p = this.#transform(p)
+    if (typeof p === 'string') return is.url(p)
     return false
   }
 
-  createStructure(node: any, group?: string) {
-    let raw = node
-
-    if (this.#transform) node = this.#transform(node)
-
-    let url = y.isScalar(node)
-      ? String(node.value)
-      : typeof node === 'string'
-      ? node
-      : String(node)
-
-    const parsed = path.parse(url || '')
-    const basename = parsed.base
+  createStructure(p: any, group?: string) {
+    let raw = p
+    if (this.#transform) p = this.#transform(p)
+    let url = typeof p === 'string' ? p : String(p)
+    let parsed = path.parse(url || '')
+    let basename = parsed.base
 
     try {
       url = new URL(url).href
@@ -77,13 +64,12 @@ class LinkStructure extends t.AStructure<ILinkStructure> {
       ext,
       group: group as ILinkStructure['group'],
       raw,
-      isRemote:
-        String(node).startsWith('http') || String(node).startsWith('www'),
+      isRemote: String(p).startsWith('http') || String(p).startsWith('www'),
       url,
     }
   }
 
-  getGroup(str: ParsedPath | string) {
+  getGroup(str: ReturnType<t.APath['parse']> | string) {
     const parsed = typeof str === 'object' ? str : path.parse(str)
     if (is.image(parsed.base)) return 'image'
     if (is.script(parsed.base)) return 'script'

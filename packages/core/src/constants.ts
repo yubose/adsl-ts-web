@@ -8,31 +8,31 @@ export const _symbol = {
   ---- STYLES
 -------------------------------------------------------- */
 /** @internal */
-export const xKeys = <const>['width', 'left']
+export const xKeys = ['width', 'left'] as const
 /** @internal */
-export const yKeys = <const>['height', 'top', 'marginTop']
+export const yKeys = ['height', 'top', 'marginTop'] as const
 /** @internal */
-export const posKeys = <const>[...xKeys, ...yKeys]
+export const posKeys = [...xKeys, ...yKeys] as const
 
 // Style keys that map their values relative to the viewport's height
 /** @internal */
-export const vpHeightKeys = <const>[
+export const vpHeightKeys = [
   ...yKeys,
   'borderRadius',
   'fontSize',
   'paddingTop',
   'paddingBottom',
   'marginBottom',
-]
+] as const
 
 /** @internal */
-export const vpWidthKeys = <const>[
+export const vpWidthKeys = [
   ...xKeys,
   'marginLeft',
   'marginRight',
   'paddingLeft',
   'paddingRight',
-]
+] as const
 
 /** @internal */
 export const textAlignStrings = [
@@ -55,7 +55,7 @@ export enum ReferenceType {
 }
 
 /** @internal */
-export const enum ValidatorType {
+export enum ValidatorType {
   ERROR = 9000,
   WARN = 9001,
   INFO = 9002,
@@ -63,7 +63,7 @@ export const enum ValidatorType {
 
 // prettier-ignore
 /** @internal */
-export const enum CharCode {
+export  enum CharCode {
   Ampersand = 0x26,             // &
   Asterisk = 0x2A,              // *
   At = 0x40,                    // @

@@ -12,8 +12,8 @@ import * as t from './types'
 export interface DerefOptions {
   dataObject?: Record<string, any>
   iteratorVar?: string
-  path?: (string | number)[]
-  ref: LiteralUnion<ReferenceString, string> | Record<string, any> | any[]
+  path?: (number | string)[]
+  ref: any[] | LiteralUnion<ReferenceString, string> | Record<string, any>
   root?: Record<string, any> | t.ARoot
   rootKey?: string
   subscribe?: {
@@ -86,7 +86,7 @@ function createDerefReducer(
   }
 
   function dispatch(
-    action: { type: 'start'; reference: ReferenceString } | { type: 'next' },
+    action: { type: 'next' } | { type: 'start'; reference: ReferenceString },
   ) {
     const prevState = _state
     _state = reducer(_state, action) as typeof _state

@@ -147,7 +147,7 @@
     "mutation-observer": "^1.0.3",
     "nock": "^13.1.4",
     "nodemon": "^2.0.9",
-    "noodl": "^0.0.49",
+    "noodl": "^0.0.28",
     "noodl-action-chain": "file:packages/noodl-action-chain",
     "noodl-builder": "^0.0.1",
     "noodl-common": "^0.0.45",
@@ -216,6 +216,7 @@
       "echarts": "readonly"
     },
     "ignorePatterns": [
+      "**/*.js",
       "**/*.js.map",
       "build",
       "dist",
@@ -231,7 +232,6 @@
     },
     "plugins": [
       "@typescript-eslint",
-      "import:recommended",
       "prettier"
     ],
     "settings": {
@@ -278,13 +278,19 @@
       "@typescript-eslint/sort-type-union-intersection-members": "warn",
       "@typescript-eslint/unified-signatures": "error",
       "eqeqeq": 0,
-      "implicit-arrow-linebreak": "error",
+      "implicit-arrow-linebreak": "off",
       "import/export": "off",
       "import/extensions": "off",
       "import/no-extraneous-dependencies": "off",
       "import/no-unresolved": "off",
       "import/prefer-default-export": "off",
-      "prettier/prettier": 2,
+      "prefer-const": "off",
+      "prettier/prettier": "error",
+      "no-async-promise-executor": "off",
+      "no-dupe-class-members": "off",
+      "no-inner-declarations": "off",
+      "no-redeclare": "off",
+      "no-undef": "off",
       "no-unused-vars": "off",
       "quotes": "off"
     }

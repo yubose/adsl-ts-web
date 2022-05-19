@@ -1,5 +1,6 @@
 import coreBuiltInFns from './builtIn/core'
 import objectBuiltInFns from './builtIn/object'
+import * as consts from './constants'
 
 export { default as Builder } from './Builder'
 export { default as createCompiler } from './compiler/createCompiler'
@@ -13,8 +14,11 @@ export * as fp from './utils/fp'
 export * as is from './utils/is'
 export * from './utils/noodl'
 export * as regex from './utils/regex'
-export * as consts from './constants'
+export * from './diagnostics/diagnosticsTypes'
 export * from './types'
+
+export { consts }
+// export const ValidatorType = consts
 
 export function getBuiltIns() {
   const fns = {

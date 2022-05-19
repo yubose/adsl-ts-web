@@ -32,12 +32,12 @@ class Diagnostics extends Builder implements IDiagnostics {
     super()
   }
 
-  // @ts-expect-error
   run(opts?: RunOptions<true>): Promise<Diagnostic[]>
 
-  run(opts?: RunOptions<false | undefined | never | void>): Diagnostic[]
+  // @ts-expect-error
+  run(opts?: RunOptions<never | false | undefined | void>): Diagnostic[]
 
-  run<Async extends boolean = boolean>({
+  async run<Async extends boolean = boolean>({
     beforeEnter,
     init,
     enter,

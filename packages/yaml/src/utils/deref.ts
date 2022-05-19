@@ -3,10 +3,11 @@
  */
 import y from 'yaml'
 import * as u from '@jsmanifest/utils'
-import { getRefProps } from '@noodl/core'
+import { is as coreIs, getRefProps } from '@noodl/core'
 import type { ReferenceString } from 'noodl-types'
 import type { ARoot } from '@noodl/core'
 import get from './get'
+import is from './is'
 import unwrap from './unwrap'
 
 export interface DerefOptions {
@@ -20,9 +21,9 @@ export interface DerefOptions {
 
 function createDerefReducer(
   root: ARoot | undefined,
-  { rootKey, ...subscribers } = {} as {
+  { rootKey, ...subscribers } = {} as DerefOptions['subscribe'] & {
     rootKey?: string
-  } & DerefOptions['subscribe'],
+  },
 ) {
   let _result: any
   let _state = {
@@ -42,13 +43,55 @@ function createDerefReducer(
         return { ...state, paths: paths.slice(1) }
       }
       case 'next': {
+        const nextPaths = state.paths.slice(1)
+        const resultProps = {} as Record<string, any>
+
         _result = get(_result, state.paths[0], { rootKey })
+
+        if (
+          (coreIs.str(_result) && coreIs.reference(_result)) ||
+          (is.scalarNode(_result) && is.reference(_result))
+        ) {
+          // The result is the current reference or another (chained) reference.
+          // Correctly prepare the next props for pathing
+          const refProps = getRefProps(unwrap(_result) as ReferenceString)
+          if (!refProps.isLocalRef) {
+            if (refProps.paths[0] !== rootKey) {
+              const newResult = deref({
+                node: refProps.ref,
+                root,
+                rootKey: refProps.paths[0],
+              })
+              resultProps.children = [newResult]
+              _result = unwrap(newResult.value)
+            } else {
+              refProps.path = refProps.paths.slice(1).join('.')
+              nextPaths.unshift(...refProps.paths.slice(1))
+              _result = unwrap(
+                deref({
+                  node: refProps.ref,
+                  root,
+                  rootKey,
+                }).value,
+              )
+            }
+          } else {
+            _result = unwrap(
+              deref({
+                node: refProps.ref,
+                root,
+                rootKey,
+              }).value,
+            )
+          }
+        }
         return {
           ...state,
-          paths: state.paths.slice(1),
+          paths: nextPaths,
           results: state.results.concat({
             key: state.paths[0],
             value: _result,
+            ...resultProps,
           }),
         }
       }
@@ -56,7 +99,7 @@ function createDerefReducer(
   }
 
   function dispatch(
-    action: { type: 'start'; reference: ReferenceString } | { type: 'next' },
+    action: { type: 'next' } | { type: 'start'; reference: ReferenceString },
   ) {
     const prevState = _state
     _state = reducer(_state, action) as typeof _state
@@ -69,7 +112,7 @@ function createDerefReducer(
   }
 }
 
-function getRootKey(ref: ReferenceString, rootKey = '' as string | y.Scalar) {
+function getRootKey(ref: ReferenceString, rootKey = '' as y.Scalar | string) {
   const { isLocalRef, paths } = getRefProps(ref)
   return (isLocalRef ? rootKey : paths[0]) as string
 }
@@ -80,7 +123,22 @@ function deref({ node, root, rootKey: rootKeyProp, subscribe }: DerefOptions) {
   const derefer = createDerefReducer(root, { rootKey, ...subscribe })
 
   derefer.dispatch({ type: 'start', reference })
-  derefer.getState().paths.forEach(() => derefer.dispatch({ type: 'next' }))
+
+  const paths = [...derefer.getState().paths]
+  let currentPath = ''
+
+  while (paths.length) {
+    // if (currentPath) currentPath += '.'
+    currentPath += paths.shift()
+    derefer.dispatch({ type: 'next' })
+    // console.dir(
+    //   {
+    //     currentPath,
+    //     currentResult: derefer.getState().value?.toJSON?.(),
+    //   },
+    //   { depth: Infinity },
+    // )
+  }
 
   return {
     reference,

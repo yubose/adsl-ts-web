@@ -23,7 +23,7 @@ import { hasDecimal, toArr, toPath } from './fp'
 import type { IViewport } from '../types'
 import * as c from '../constants'
 
-export function ensureCssUnit(value: string | number, unit = 'px') {
+export function ensureCssUnit(value: number | string, unit = 'px') {
   if (str(value) && hasLetter(value)) return value
   return `${value}${unit}`
 }
@@ -89,7 +89,7 @@ export function getRefProps(ref: ReferenceString) {
 }
 
 export function getNextRootKeyProps(
-  currentPaths: string | string[],
+  currentPaths: string[] | string,
   currentRootKey?: string,
 ) {
   let paths = toPath(trimReference(toArr(currentPaths).join('.')))
@@ -113,8 +113,8 @@ export function getNextRootKeyProps(
  * @param { string | number } value - Size in decimals as written in NOODL
  * @param { number } vpSize - The maximum width (or height)
  */
-export function getSize<U extends 'px' | 'noodl' = 'px' | 'noodl'>(
-  value: string | number,
+export function getSize<U extends 'noodl' | 'px' = 'noodl' | 'px'>(
+  value: number | string,
   vpSize: number,
   { toFixed = 2, unit }: { toFixed?: number; unit?: U } = {},
 ) {
@@ -168,7 +168,7 @@ export function getViewportBound(
  * @param { number } viewportSize - Size (in pixels) in the viewport (represents width or height)
  * @param { string | number } size - Size (raw decimal value from NOODL response) most likely in decimals. Strings are converted to numbers to evaluate the value. Numbers that aren't decimals are used as a fraction of the viewport size.
  */
-export function getViewportRatio(viewportSize: number, size: string | number) {
+export function getViewportRatio(viewportSize: number, size: number | string) {
   if (str(size) || num(size)) {
     return viewportSize * Number(size)
   }
@@ -179,9 +179,9 @@ export function getVpKey(
   value:
     | VpValue
     | (
+        | typeof c.textAlignStrings[number]
         | typeof c.vpHeightKeys[number]
         | typeof c.vpWidthKeys[number]
-        | typeof c.textAlignStrings[number]
       ),
 ) {
   if (vw(value) || keyRelatedToWidth(value)) return 'width'
