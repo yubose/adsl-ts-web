@@ -1,6 +1,4 @@
-import y from 'yaml'
-import path from 'path'
-import type { ParsedPath } from 'path'
+import path from './path'
 import * as is from './utils/is'
 import * as t from './types'
 
@@ -12,8 +10,8 @@ export interface IFileStructure
     | 'page'
     | 'script'
     | 'text'
-    | 'video'
     | 'unknown'
+    | 'video'
   > {
   ext: string
   dir: string | null
@@ -22,7 +20,7 @@ export interface IFileStructure
 }
 
 class FileStructure extends t.AStructure<IFileStructure> {
-  #transform?: (node: any) => any
+  #transform?: (p: string) => string
   configKey = ''
   name = 'file'
 
@@ -31,28 +29,17 @@ class FileStructure extends t.AStructure<IFileStructure> {
     if (transform) this.#transform = transform
   }
 
-  is(node: t.YAMLNode | unknown) {
-    if (this.#transform) node = this.#transform(node)
-    if (typeof node === 'string') {
-      if (node.startsWith('file:')) return true
-      if (is.file(node)) return true
-    } else if (y.isScalar(node)) {
-      return this.is(node.value)
-    }
+  is(p: string) {
+    if (this.#transform) p = this.#transform(p)
+    if (p.startsWith('file:')) return true
+    if (is.file(p)) return true
     return false
   }
 
-  createStructure(node: t.YAMLNode | string, group?: string) {
-    const raw = y.isScalar(node) ? node.value : node
-
-    if (this.#transform) node = this.#transform(node)
-
-    const str = y.isScalar(node)
-      ? String(node.value)
-      : typeof node === 'string'
-      ? node
-      : String(node)
-
+  createStructure(p: string, group?: string) {
+    const raw = p
+    if (this.#transform) p = this.#transform(p)
+    const str = typeof p === 'string' ? p : String(p)
     const parsed = path.parse(str)
     const basename = parsed.base
     const ext = parsed.ext
@@ -63,9 +50,10 @@ class FileStructure extends t.AStructure<IFileStructure> {
 
     return {
       name: parsed.name,
-      ext,
+      ext: ext as string,
       group:
-        (group as IFileStructure['group']) || this.getGroup({ ...parsed, ext }),
+        (group as IFileStructure['group']) ||
+        this.getGroup({ ...parsed, ext: ext as string }),
       raw,
       dir: parsed.dir || null,
       filepath: parsed.dir ? path.join(parsed.dir, basename) : null,
@@ -73,8 +61,13 @@ class FileStructure extends t.AStructure<IFileStructure> {
     }
   }
 
-  getGroup(str: ParsedPath | string): IFileStructure['group'] {
-    const parsed = typeof str === 'object' ? str : path.parse(str)
+  getGroup(
+    filepathOrObj: ReturnType<t.APath['parse']> | string,
+  ): IFileStructure['group'] {
+    const parsed =
+      typeof filepathOrObj === 'object'
+        ? filepathOrObj
+        : path.parse(filepathOrObj)
     if (parsed.ext === '') {
       return parsed.base === parsed.name ? 'unknown' : 'script'
     }

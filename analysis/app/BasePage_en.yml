@@ -1,0 +1,22 @@
+BaseHeader:  #<HEADER>
+  type: header
+  style:
+    left: "0"
+    top: "0"
+    width: "1"
+    height: "0.1"
+    backgroundColor: "0x25500333"
+  children:
+    - type: button
+      text: =..title
+      style:
+        left: "0.25"
+        width: "0.5"
+        fontWeight: 300
+        height: "0.1"
+        fontSize: "18"
+        color: "0xffffffff"
+        textAlign:
+          x: center
+        border:
+          style: "1"

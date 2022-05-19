@@ -1,7 +1,18 @@
+import type { LiteralUnion } from 'type-fest'
+import type { createFileSystem } from '@noodl/file'
+import y from 'yaml'
+import * as nt from 'noodl-types'
+import * as c from './constants'
+
+type OrArray<V> = V | V[]
+
 export abstract class AExtractor<INode = any> {
-  abstract extract(data: Record<string, INode>): any[]
+  abstract extract<R = any>(
+    cb: (name: string, node: INode, utils: AExtractor['fs']) => any,
+  ): R[]
+  abstract fs: ReturnType<typeof createFileSystem> | undefined
   abstract use(
-    value: AIterator<any> | Accumulator | AVisitor | AStructure,
+    value: AStructure | AVisitor | Parameters<typeof createFileSystem>[0],
   ): this
 }
 
@@ -18,10 +29,10 @@ export abstract class AVisitor {
 }
 
 export namespace Ext {
-  export type Image = 'bmp' | 'gif' | 'jpg' | 'jpeg' | 'png' | 'webp'
+  export type Image = 'bmp' | 'gif' | 'jpeg' | 'jpg' | 'png' | 'webp'
   export type Script = 'js'
-  export type Text = 'html' | 'css' | 'txt'
-  export type Video = 'avi' | 'mkv' | 'mp4' | 'mpg' | 'mpeg' | 'flac'
+  export type Text = 'css' | 'html' | 'txt'
+  export type Video = 'avi' | 'flac' | 'mkv' | 'mp4' | 'mpeg' | 'mpg'
 }
 
 export interface IAccumulator<V = any> {
@@ -37,13 +48,13 @@ export interface ILoader<
 
 export namespace Loader {
   export type CommonEmitEvents =
-    | typeof c.appConfigParsed
-    | typeof c.rootBaseUrlPurged
-    | typeof c.rootConfigRetrieved
-    | typeof c.appEndpointPurged
     | typeof c.appBaseUrlPurged
+    | typeof c.appConfigParsed
+    | typeof c.appEndpointPurged
     | typeof c.appPageRetrieved
     | typeof c.configVersionSet
+    | typeof c.rootBaseUrlPurged
+    | typeof c.rootConfigRetrieved
 
   export type Hooks = {
     [c.rootConfigRetrieved](options: {
@@ -62,7 +73,7 @@ export namespace Loader {
     }): void
     [c.configKeySet](configKey: string): void
     [c.configVersionSet](
-      configVersion: LiteralUnion<'latest', string | number>,
+      configVersion: LiteralUnion<'latest', number | string>,
     ): void
     [c.placeholderPurged](args: { before: string; after: string }): void
     [c.rootConfigIsBeingRetrieved]<T extends Loader.RootDataType>(args: {
@@ -109,20 +120,20 @@ export namespace Loader {
     dataType?: DataType
     deviceType?: nt.DeviceType
     env?: nt.Env
-    loglevel?: 'error' | 'debug' | 'http' | 'info' | 'verbose' | 'warn'
+    loglevel?: 'debug' | 'error' | 'http' | 'info' | 'verbose' | 'warn'
     version?: LiteralUnion<'latest', string>
   }
 
   export type BaseRootKey =
-    | 'Config'
-    | 'Global'
     | 'BaseCSS'
     | 'BaseDataModel'
     | 'BasePage'
+    | 'Config'
+    | 'Global'
 
   export type RootMap = Map<
     LiteralUnion<BaseRootKey, string>,
-    y.Node | y.Document
+    y.Document | y.Node
   > & {
     toJSON(): Record<string, any>
   }
@@ -132,7 +143,7 @@ export namespace Loader {
   export type Root<DataType extends RootDataType = 'map'> =
     DataType extends 'object' ? RootObject : RootMap
 
-  export type RootDataType = 'object' | 'map'
+  export type RootDataType = 'map' | 'object'
 }
 
 export abstract class AStructure<Struct extends IStructure = IStructure> {
@@ -174,7 +185,7 @@ export interface Options<
   dataType?: DataType
   deviceType?: nt.DeviceType
   env?: nt.Env
-  loglevel?: 'error' | 'debug' | 'http' | 'info' | 'verbose' | 'warn'
+  loglevel?: 'debug' | 'error' | 'http' | 'info' | 'verbose' | 'warn'
   version?: LiteralUnion<'latest', string>
 }
 
@@ -205,7 +216,7 @@ export type Hooks = {
   }): void
   [c.configKeySet](configKey: string): void
   [c.configVersionSet](
-    configVersion: LiteralUnion<'latest', string | number>,
+    configVersion: LiteralUnion<'latest', number | string>,
   ): void
   [c.placeholderPurged](args: { before: string; after: string }): void
   [c.rootConfigIsBeingRetrieved]<T extends Loader.RootDataType>(args: {

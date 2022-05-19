@@ -68,12 +68,14 @@ class App {
     } as t.SpinnerState,
     tracking: {},
   }
+
   #instances = {
     FullCalendar: {
-      inst: null as null | InstanceType<typeof FullCalendar.Calendar>,
+      inst: null as InstanceType<typeof FullCalendar.Calendar> | null,
       page: '',
     },
   }
+
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
@@ -275,6 +277,7 @@ class App {
   getRegister() {
     return this.register
   }
+
   /**
    * Navigates to a page specified in page.requesting
    * The value set in page.requesting should be set prior to this call unless pageRequesting is provided where it will be set to it automatically
@@ -546,8 +549,8 @@ class App {
       const cfgStore = createNoodlConfigValidator({
         configKey: 'config',
         timestampKey: 'timestamp',
-        get: (key: string) => lf.getItem(key),
-        set: (key: string, value: any) => lf.setItem(key, value),
+        get: async (key: string) => lf.getItem(key),
+        set: async (key: string, value: any) => lf.setItem(key, value),
       })
 
       const isTimestampCached = !!(await cfgStore.getTimestampKey())
@@ -605,7 +608,7 @@ class App {
     }
   }
 
-  async getPageObject(page: NDOMPage): Promise<void | { aborted: true }> {
+  async getPageObject(page: NDOMPage): Promise<{ aborted: true } | void> {
     if (!this.getState().spinner.active) {
       this.enableSpinner({ target: page?.node || this.mainPage?.node })
     }
@@ -893,7 +896,7 @@ class App {
     const onBeforeClearnode = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
         log.func('onBeforeClearnode')
-        const _log = (label: 'selfStream' | 'mainStream' | 'subStreams') => {
+        const _log = (label: 'mainStream' | 'selfStream' | 'subStreams') => {
           const getSnapshot = () => this[label]?.snapshot()
           const before = getSnapshot()
           this[label]?.reset()
@@ -1036,7 +1039,7 @@ class App {
 
   reset(soft?: boolean): Promise<void>
   reset(): this
-  reset(soft?: boolean) {
+  async reset(soft?: boolean) {
     if (soft) {
       //
       // Soft reset (retains the App instance reference as well as the actions/transactions, etc)
@@ -1100,7 +1103,7 @@ class App {
     ) => void,
   ): void
   updateRoot<P extends string>(
-    fn: ((draft: App['noodl']['root']) => void) | P,
+    fn: P | ((draft: App['noodl']['root']) => void),
     value?: any | (() => void),
     cb?: (root: Record<string, any>) => void,
   ) {

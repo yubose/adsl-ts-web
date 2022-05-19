@@ -40,7 +40,9 @@
     "target": "es2017"
   },
   "include": [
+    "dev/cpt/**/*.js",
     "dev/cpt/**/*.ts",
+    "packages/file/src/**/*",
     "packages/core/src/**/*",
     "packages/homepage/src/**/*",
     "packages/yaml/src/**/*",

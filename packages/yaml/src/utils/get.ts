@@ -11,7 +11,7 @@ export interface GetOptions {
 
 function get(
   node: unknown,
-  key: y.Scalar | string | number | (string | number)[],
+  key: (number | string)[] | y.Scalar | number | string,
   { rootKey = '' }: GetOptions = {},
 ) {
   let originalKey = key
@@ -48,8 +48,26 @@ function get(
     switch (getNodeKind(node)) {
       case Kind.Map: {
         const nextKey = key.shift()
-        const nextValue = (node as y.YAMLMap).get(nextKey)
-        if (key.length) return get(nextValue, key)
+        const nextValue = (node as y.YAMLMap).get(nextKey, true)
+        if (key.length) {
+          return get(nextValue, key)
+        } else {
+          // if (
+          //   (is.scalarNode(nextValue) && is.reference(nextValue)) ||
+          //   (coreIs.str(nextValue) && coreIs.reference(nextValue))
+          // ) {
+          //   // Reference within a reference
+          //   const ref = is.scalarNode(nextValue) ? nextValue.value : nextValue
+          //   const refPath = trimReference(ref)
+          //   if (coreIs.rootReference(ref)) {
+          //     const refPaths = refPath.split('.')
+          //     if (refPaths[0] !== rootKey) {
+          //       rootKey = refPaths.shift() as string
+          //       return get(ref, refPaths, { rootKey })
+          //     }
+          //   }
+          // }
+        }
         return nextValue
       }
       case Kind.Seq: {

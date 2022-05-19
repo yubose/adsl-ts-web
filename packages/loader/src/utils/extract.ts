@@ -3,15 +3,15 @@ import type { AppConfig, Env, PageObject, RootConfig } from 'noodl-types'
 import { createNoodlPlaceholderReplacer, isValidAsset } from 'noodl-utils'
 import { is } from '@noodl/core'
 import regex from '../internal/regex'
-import getLinkStructure from '../utils/getLinkStructure'
+import getLinkStructure from '../../../file/src/utils/getLinkStructure'
 import { fetchYml, withYmlExt } from './yml'
 import { typeOf } from './is'
 import { defaultConfigHostname } from '../constants'
 import Visitor from '../Visitor'
-import type { ILinkStructure } from '../LinkStructure'
+import y from 'yaml'
 
 export function extractAssetsUrl(
-  configObjectOrYml: AppConfig | string | RootConfig,
+  configObjectOrYml: AppConfig | RootConfig | string,
   env?: Env,
 ): string
 
@@ -24,8 +24,8 @@ export function extractAssetsUrl(options: {
 export function extractAssetsUrl(
   configObjectOrYml:
     | AppConfig
-    | string
     | RootConfig
+    | string
     | {
         baseUrl?: string
         cadlVersion?: LiteralUnion<'latest', string>
@@ -71,7 +71,7 @@ export function extractAssetsUrl(
  */
 export async function extractAssets({
   additionalObjects,
-  assetsUrl,
+  assetsUrl = '',
   dataType,
   configKey,
   rootConfig,
@@ -88,7 +88,7 @@ export async function extractAssets({
   pages?: Record<string, PageObject & Record<string, any>>
   additionalObjects?: Record<string, any>
 }) {
-  const assets = [] as ILinkStructure[]
+  const assets = [] as ReturnType<typeof getLinkStructure>[]
   const visitedAssets = [] as string[]
   const urlCache = [] as string[]
 

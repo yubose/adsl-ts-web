@@ -1,0 +1,70 @@
+Dashboard:
+  title: "Analysis"
+  init:
+    - =.builtIn.diagnostics:
+        dataIn: ..config
+        dataOut: Dashboard.diagnostics
+  config: testpage
+  diagnostics: null
+  components:
+    - .BaseHeader:
+    - type: view
+      style:
+        marginTop: "0.1"
+        width: "0.9"
+        left: "0.05"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..diagnostics
+          iteratorVar: itemObject
+          style:
+            width: "0.9"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                width: "0.9"
+                height: "0.25"
+              children:
+                - type: view
+                  style:
+                    border:
+                      style: '4'
+                  children:
+                    - type: label
+                      textBoard:
+                        - text: 'Page: '
+                        - text: itemObject.page
+                      style:
+                        height: '0.015'
+                        textIndent: "10px"
+                    - type: list
+                      listObject: itemObject.messages
+                      contentType: listObject
+                      iteratorVar: itemObject
+                      children:
+                        - type: listItem
+                          itemObject: ''
+                          style:
+                            listStyle: none
+                            border:
+                              style: '3'
+                              color: '0x932421'
+                          children:
+                            - type: image
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - $var.type
+                                          - .png
+                              style:
+                                top: "0.02"
+                                height: "0.035"
+                                left: "0.8"
+                            - type: label
+                              dataKey: itemObject.message

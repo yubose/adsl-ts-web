@@ -30,7 +30,7 @@ export async function fetchYml(url = '', as: 'json' | 'yml' = 'yml') {
 
 export function isNode(
   value: unknown,
-): value is y.Node | y.Pair | y.Document | y.Document.Parsed {
+): value is y.Document | y.Document.Parsed | y.Node | y.Pair {
   return (
     value !== null &&
     typeof value === 'object' &&
@@ -41,7 +41,7 @@ export function isNode(
 export function parse<DataType extends t.Loader.RootDataType>(
   dataType: DataType,
   yml = '',
-  opts?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions,
+  opts?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions,
 ): DataType extends 'map' ? y.Document.Parsed : Record<string, any> {
   return dataType === 'map' ? y.parseDocument(yml, opts) : y.parse(yml, opts)
 }
@@ -51,8 +51,8 @@ export function parse<DataType extends t.Loader.RootDataType>(
  * If there are errors when parsing yaml documents, it returns a stringified yaml output of the errors instead
  * @param { y.Document } doc
  */
-export function stringify<O extends y.Document | Record<string, any>>(
-  value: O | undefined | null,
+export function stringify<O extends Record<string, any> | y.Document>(
+  value: O | null | undefined,
   opts?: ToStringOptions,
 ) {
   let result = ''
@@ -78,8 +78,8 @@ export function stringify<O extends y.Document | Record<string, any>>(
  * @returns A yaml document
  */
 export function toDocument(
-  value: string | Record<string, any>,
-  opts?: y.ParseOptions & y.DocumentOptions & y.SchemaOptions,
+  value: Record<string, any> | string,
+  opts?: y.DocumentOptions & y.ParseOptions & y.SchemaOptions,
 ) {
   if (value) {
     return y.parseDocument(

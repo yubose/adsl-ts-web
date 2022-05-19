@@ -1,0 +1,60 @@
+[
+  {
+    "formData": {
+      "password": "123",
+      "email": "pfft@gmail.com",
+      "currentIcon": "..icon",
+      "gender": "Male"
+    },
+    "icon": "arrow.svg"
+  },
+  {
+    "email": "lopez@yahoo.com",
+    "components": [
+      {
+        "type": "button",
+        "text": "..greeting"
+      },
+      {
+        "type": "view",
+        "children": [
+          {
+            "type": "label",
+            "text": ".SignIn.email"
+          },
+          {
+            "type": "textField",
+            "dataKey": "SignIn.email"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "header",
+    "style": {
+      "width": "1",
+      "height": "auto",
+      "top": "0.1",
+      "left": "0.125"
+    }
+  },
+  {
+    "icon": "..realIcon",
+    "realIcon": "you-found-me.png",
+    "components": [
+      ".BaseHeader",
+      {
+        "type": "button",
+        "text": "..icon"
+      },
+      {
+        "type": "label",
+        "text": "..iconName"
+      }
+    ]
+  },
+  {
+    "shadow": "true"
+  }
+]
