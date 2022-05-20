@@ -81,21 +81,25 @@ class DocVisitor extends AVisitor {
    * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
    * @returns Visitor data
    */
-  visit(
-    visitee: [name: string, node: unknown],
-    { helpers, init, data = {}, root }: VisitorOptions & { root: DocRoot },
+  visit<N = unknown>(
+    node: N,
+    {
+      helpers,
+      init,
+      data = {},
+      page,
+      root,
+    }: VisitorOptions & { root: DocRoot },
   ) {
-    const [name, value] = visitee
-
     init?.({ data, ...helpers, root })
 
-    if (y.isNode(value) || y.isDocument(value)) {
+    if (y.isNode(node) || y.isDocument(node)) {
       y.visit(
-        value,
+        node,
         wrap(this.callback, {
           data,
           helpers,
-          page: name,
+          page,
           root,
         }),
       )
@@ -109,18 +113,22 @@ class DocVisitor extends AVisitor {
    * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
    * @returns Visitor data
    */
-  async visitAsync(
-    visitee: [name: string, node: unknown],
-    { data = {}, init, root, helpers }: VisitorOptions & { root: DocRoot },
+  async visitAsync<N = unknown>(
+    node: N,
+    {
+      data = {},
+      init,
+      page,
+      root,
+      helpers,
+    }: VisitorOptions & { root: DocRoot },
   ) {
-    const [name, node] = visitee
-
     if (init) await init({ data, ...helpers, root })
 
     if (y.isNode(node) || y.isDocument(node)) {
       await y.visitAsync(
         node,
-        wrap(this.callback, { data, helpers, page: name, root }),
+        wrap(this.callback, { data, helpers, page, root }),
       )
     }
 

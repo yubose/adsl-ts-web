@@ -1,31 +1,21 @@
+import type { LiteralUnion } from 'type-fest'
 import type { AVisitor, VisitFnArgs, VisitorInitArgs } from '../types'
 import type { translateDiagnosticType } from './utils'
-import { ValidatorType } from '../constants'
 import type Diagnostic from './Diagnostic'
 
 export interface IDiagnostics {
-  run(options?: RunDiagnosticsOptions): Diagnostic[]
-  runAsync(options?: RunDiagnosticsOptions): Promise<Diagnostic[]>
+  run(options?: RunOptions): Diagnostic[]
+  runAsync(options?: RunOptions): Promise<Diagnostic[]>
 }
 
-export interface RunDiagnosticsOptions<
-  D extends DiagnosticObject = DiagnosticObject,
-  R = D[],
-  H extends Record<string, any> = Record<string, any>,
-> {
-  init?: (args: VisitorInitArgs<DiagnosticsHelpers>) => any
-  beforeEnter?: (enterValue: any) => any
-  enter?: AVisitor<R, DiagnosticsHelpers & H>['callback']
-}
-
-export interface DiagnosticDetails {
-  category: string
-  code: number
-  reportsUnnecessary?: {}
-  reportsDeprecated?: {}
-  isEarly?: boolean
-  elidedInCompatabilityPyramid?: boolean
-}
+// export interface DiagnosticAssertFn<
+//   D extends DiagnosticObject = DiagnosticObject,
+//   R = D[],
+//   H extends Record<string, any> = Record<string, any>,
+//   // Control = any,
+// > {
+//   (args: Parameters<NonNullable<RunOptions<D, R, H>['enter']>>[0]): Control
+// }
 
 export interface DiagnosticsHelpers<
   M extends Record<string, any> = Record<string, any>,
@@ -33,8 +23,6 @@ export interface DiagnosticsHelpers<
   add(opts: Partial<DiagnosticObject>): void
   markers: Markers<M>
 }
-
-export interface DiagnosticRule {}
 
 export type DiagnosticObject<
   H extends Record<string, any> = Record<string, any>,
@@ -47,23 +35,31 @@ export interface DiagnosticObjectMessage {
   message?: string
 }
 
-export type TranslatedDiagnosticObject<
-  D extends DiagnosticObject = DiagnosticObject,
-> = Omit<D, 'messages'> & {
-  messages: Record<string, any> & {
-    type: ReturnType<typeof translateDiagnosticType>
-    message: string
-  }
-}
-
-export interface DiagnosticsTableObject {
-  type: ValidatorType
-  code: number
-}
-
-export type DiagnosticsMessageTable = Map<string, DiagnosticsTableObject>
+export type DefaultMarkerKey = LiteralUnion<
+  'appConfig' | 'assetsUrl' | 'baseUrl' | 'pages' | 'preload' | 'rootConfig',
+  string
+>
 
 export type Markers<O extends Record<string, any> = Record<string, any>> = O & {
+  assetsUrl: string
+  baseUrl: string
   preload: string[]
   pages: string[]
 } & { rootConfig: string; appConfig: string }
+
+export interface RunOptions<
+  D extends DiagnosticObject = DiagnosticObject,
+  R = D[],
+  H extends Record<string, any> = Record<string, any>,
+  // Control = any,
+> {
+  // rules?: DiagnosticAssertFn<D, R, H, Control>[]
+  init?: (args: VisitorInitArgs<DiagnosticsHelpers>) => any
+  enter?: AVisitor<R, DiagnosticsHelpers & H>['callback']
+}
+
+export type TranslatedDiagnosticObject<
+  D extends DiagnosticObject = DiagnosticObject,
+> = Omit<D, 'messages'> & {
+  messages: DiagnosticObjectMessage[]
+}

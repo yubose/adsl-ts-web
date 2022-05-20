@@ -12,7 +12,7 @@ import * as c from '../constants'
 import * as t from '../types'
 
 export interface MergeOptions {
-  root?: ARoot
+  root?: DocRoot
   rootKey?: t.StringNode
 }
 

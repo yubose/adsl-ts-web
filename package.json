@@ -196,7 +196,7 @@
     "workbox-strategies": "^6.4.2",
     "workbox-webpack-plugin": "^6.4.2",
     "ws": "^8.2.2",
-    "yaml": "^2.0.0-8"
+    "yaml": "^2.1.0"
   },
   "eslintConfig": {
     "root": true,

@@ -115,7 +115,7 @@ export function reference(v: string): v is ReferenceString {
     if (v.startsWith('.')) return true
     if (v.startsWith('=')) return true
     if (v.startsWith('@')) return true
-    if (v.startsWith('~')) return true
+    if (v.startsWith('~/')) return true
     if (/^[_]+\./.test(v)) return true
     return false
   }

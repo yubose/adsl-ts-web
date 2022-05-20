@@ -1,18 +1,18 @@
-import type { LiteralUnion } from 'type-fest'
 import * as fp from '../utils/fp'
-import * as is from '../utils/is'
 import * as t from '../types'
 import Builder from '../Builder'
 import Diagnostic from './Diagnostic'
 import { translateDiagnosticType } from './utils'
 import type {
   IDiagnostics,
+  DefaultMarkerKey,
   DiagnosticsHelpers,
   DiagnosticObject,
   Markers,
-  RunDiagnosticsOptions,
+  RunOptions,
   TranslatedDiagnosticObject,
 } from './diagnosticsTypes'
+import { ValidatorType } from '../constants'
 
 class Diagnostics<
     D extends DiagnosticObject = DiagnosticObject,
@@ -23,13 +23,17 @@ class Diagnostics<
   implements IDiagnostics
 {
   #markers = {
+    assetsUrl: '',
+    baseUrl: '',
     rootConfig: '',
     appConfig: '',
     preload: [],
     pages: [],
   } as Markers;
 
-  [Symbol.iterator](): Iterator<any, any, any> {
+  // rules = [] as DiagnosticAssert[];
+
+  [Symbol.iterator](): Iterator<[name: string, node: unknown], any, any> {
     // @ts-expect-error
     return this.root[Symbol.iterator]()
   }
@@ -42,21 +46,24 @@ class Diagnostics<
     return this.#markers
   }
 
+  // assert(fn: DiagnosticAssertFn) {
+  //   const assert = new DiagnosticAssert(fn)
+  //   this.rules.push(assert)
+  //   return this
+  // }
+
   createDiagnostic(
     opts?: Partial<DiagnosticObject | TranslatedDiagnosticObject>,
   ) {
-    const diagnostic = {
-      ...fp.omit(opts, ['messages']),
-    }
+    const diagnostic = fp.omit(opts, ['messages']) as DiagnosticObject
 
     if (opts?.messages) {
       diagnostic.messages = fp
         .toArr(opts.messages)
-        // @ts-expect-error
         .map(({ message, type, ...rest }) => {
           return {
             message,
-            type: translateDiagnosticType(type),
+            type: translateDiagnosticType(type as ValidatorType),
             ...rest,
           }
         })
@@ -65,28 +72,29 @@ class Diagnostics<
     return new Diagnostic(diagnostic as TranslatedDiagnosticObject)
   }
 
-  mark(
-    flag: LiteralUnion<'appConfig' | 'page' | 'preload' | 'rootConfig', string>,
-    value: any,
-  ) {
+  mark(flag: DefaultMarkerKey, value: any) {
     if (/preload|page/.test(flag)) {
-      this.markers[flag].push(value)
+      this.markers[flag === 'preload' ? flag : 'pages'].push(value)
     } else {
       this.markers[flag] = value
     }
     return this
   }
 
-  run(args: RunDiagnosticsOptions<D, R, H> = {}) {
+  run(args: RunOptions<D, R, H> = {}) {
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
     try {
-      for (const nodeProp of this) {
+      for (const [name, nodeProp] of this) {
         const { helpers, node } = this.#getVisitorProps({
-          beforeEnter: args.beforeEnter,
           diagnostics,
+          name,
           node: nodeProp,
         })
-        this.visitor?.visit(node, { ...options, helpers } as t.VisitorOptions)
+        this.visitor?.visit(node, {
+          ...options,
+          helpers,
+          page: name,
+        } as t.VisitorOptions)
       }
     } catch (error) {
       throw error instanceof Error ? error : new Error(String(error))
@@ -97,18 +105,32 @@ class Diagnostics<
     return diagnostics
   }
 
-  async runAsync(args: RunDiagnosticsOptions<D, R, H> = {}) {
+  print(diagnostics: Diagnostic[]) {
+    console.dir(
+      diagnostics.map((diagnostic) => diagnostic.toJSON()),
+      { depth: Infinity },
+    )
+  }
+
+  async runAsync(args: RunOptions<D, R, H> = {}) {
+    // let composedAssert
+
+    // if (args.rules) {
+    //   composedAssert = composeAsyncRules<D, R, H, Control>(...args.rules)
+    // }
+
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
     try {
       await Promise.all(
-        [...this].map((nodeProp) => {
+        [...this].map(([name, nodeProp]) => {
           const { helpers, node } = this.#getVisitorProps({
-            beforeEnter: args.beforeEnter,
             diagnostics,
+            name,
             node: nodeProp,
           })
           return this.visitor?.visitAsync(node, {
             ...options,
+            page: name,
             helpers,
           } as t.VisitorOptions)
         }),
@@ -121,7 +143,7 @@ class Diagnostics<
     }
   }
 
-  #getRunnerProps = (args: RunDiagnosticsOptions<D, R, H>) => {
+  #getRunnerProps = (args: RunOptions<D, R, H>) => {
     let originalVisitor: t.AVisitor<true>['callback'] | undefined
 
     if (args.enter) {
@@ -143,24 +165,33 @@ class Diagnostics<
     }
   }
 
-  #getVisitorProps = ({ beforeEnter, diagnostics, node }) => {
+  #getVisitorProps = ({
+    diagnostics,
+    name,
+    node,
+  }: {
+    diagnostics: Diagnostic[]
+    name: string
+    node: unknown
+  }) => {
     const getHelpers = (
       page: string,
       diag: typeof diagnostics,
     ): DiagnosticsHelpers => {
       return this.createHelpers({
-        add: (diagnostic: DiagnosticObject) =>
-          void diag.push(this.createDiagnostic({ ...diagnostic, page })),
+        add: (diagnostic: DiagnosticObject) => {
+          diag.push(this.createDiagnostic({ ...diagnostic, node, page }))
+        },
         markers: this.#markers,
       })
     }
 
-    const helpers = getHelpers(node[0], diagnostics)
-    const formattedValue = beforeEnter?.(node)
+    const helpers = getHelpers(name, diagnostics)
 
     return this.createProps({
       helpers,
-      node: is.und(formattedValue) ? node : formattedValue,
+      name,
+      node,
     })
   }
 }

@@ -36,6 +36,13 @@ beforeEach(() => {
 })
 
 describe(`Diagnostics`, () => {
+  it(`[add] should add the page automatically to the results`, () => {
+    const spy = sinon.spy()
+    const results = diagnostics.run({ enter: ({ add }) => add({}), init: spy })
+    expect(results).to.have.length.greaterThan(0)
+    results.forEach((diag) => expect(diag.get('page')).not.to.be.empty)
+  })
+
   it(`[init] should call init before visiting`, () => {
     const spy = sinon.spy()
     const spy2 = sinon.spy()
@@ -45,12 +52,13 @@ describe(`Diagnostics`, () => {
     )
   })
 
-  it(`[init] should provide data, root, and helpers as args`, () => {
+  it(`[init] should provide add, data, markers and root as args`, () => {
     const spy = sinon.spy()
     diagnostics.run({ enter: () => {}, init: spy })
     expect(spy.args)
+    expect(spy.args[0][0]).to.have.property('add').to.exist
     expect(spy.args[0][0]).to.have.property('data').to.exist
-    expect(spy.args[0][0]).to.have.property('helpers')
+    expect(spy.args[0][0]).to.have.property('markers').to.exist
     expect(spy.args[0][0]).to.have.property('root', root)
   })
 })

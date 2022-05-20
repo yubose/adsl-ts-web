@@ -71,6 +71,7 @@ export interface VisitorOptions<
   data: Record<string, any>
   init?: (args: VisitorInitArgs<InitOptions>) => any
   helpers?: Options
+  page?: string
   path?: (number | string)[]
   root: ARoot
 }

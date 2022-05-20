@@ -37,7 +37,7 @@ function wrap(
     // return undefined
   }
 
-  const onVisit = function onVisit(
+  const onVisit = function onVisit<Fn extends VisitorFn>(
     key: number | string | null,
     node: unknown,
     path = [] as (number | string)[],
@@ -75,18 +75,17 @@ class Visitor extends t.AVisitor {
     return this.#callback
   }
 
-  visit(
-    visitee: [name: string, node: unknown],
+  visit<N = unknown>(
+    node: N,
     {
       helpers,
       init,
       data = {},
+      page,
       path = [],
       root,
     }: t.VisitorOptions & { root: Root },
   ) {
-    const [page, node] = visitee
-
     init?.({ data, ...helpers, root })
 
     const fn = wrap(this.#callback, { data, page, root, helpers })
@@ -124,19 +123,18 @@ class Visitor extends t.AVisitor {
     return data
   }
 
-  async visitAsync(
-    visitee: [name: string, node: unknown],
+  async visitAsync<N = unknown>(
+    node: N,
     {
       data = {},
       init,
       helpers,
+      page,
       path = [],
       root,
     }: Partial<t.VisitorOptions<Record<string, any>>>,
   ): Promise<any> {
     try {
-      const [page, node] = visitee
-
       await init?.({ data, ...helpers, root })
 
       const fn = wrap(this.#callback, { data, page, root, helpers })

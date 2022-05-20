@@ -1,5 +1,5 @@
 import * as fp from './utils/fp'
-import * as is from './utils/is'
+// import * as is from './utils/is'
 import { ARoot } from './types'
 import * as c from './constants'
 

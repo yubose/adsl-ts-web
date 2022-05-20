@@ -5,7 +5,6 @@ import y from 'yaml'
 import App from '../App'
 import { extendedSdkBuiltIns } from './builtIns'
 import assertAppConfig from '../modules/diagnostics/assertAppConfig'
-import assertRef from '../modules/diagnostics/assertRef'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {
@@ -86,7 +85,7 @@ export function getSdkHelpers(app: App) {
           configKey = dataIn.config
           if (dataIn.filter) {
             filter = new RegExp(
-              u.isArr(dataIn) ? dataIn.filter.join('|') : dataIn.filter,
+              u.isArr(dataIn.filter) ? dataIn.filter.join('|') : dataIn.filter,
               'i',
             )
           }
@@ -111,14 +110,19 @@ export function getSdkHelpers(app: App) {
           console.error(err)
         }
 
-        const { DocDiagnostics, DocRoot, DocVisitor, is, unwrap } =
+        const { assertRef, DocDiagnostics, DocRoot, DocVisitor, is, unwrap } =
           await import('@noodl/yaml')
 
         const docDiagnostics = new DocDiagnostics()
         const docRoot = new DocRoot()
         const docVisitor = new DocVisitor()
 
+        window['docDiagnostics'] = docDiagnostics
+        window['docRoot'] = docRoot
+
         docRoot.set('Config', docRoot.toDocument(rootConfigYml))
+        docDiagnostics.mark('rootConfig', configKey)
+        docDiagnostics.mark('appConfig', 'cadlEndpoint')
 
         const rootDoc = docRoot.get('Config') as y.Document
         const buildInfo = window['build'] || {}
@@ -154,11 +158,13 @@ export function getSdkHelpers(app: App) {
           await Promise.all(
             arr.map(async (page: string) => {
               try {
+                docDiagnostics.mark(type, page)
                 page = unwrap(page)
                 const pathname = `${page}_en.yml`
                 const yml = await fetchYml(pathname)
                 const doc = docRoot.toDocument(yml)
                 if (doc.has(page)) {
+                  // @ts-expect-error
                   doc.contents = (doc.contents as y.YAMLMap).get(page)
                 }
                 if (type === 'preload') {
@@ -184,20 +190,18 @@ export function getSdkHelpers(app: App) {
         docDiagnostics.use(docRoot)
         docDiagnostics.use(docVisitor)
 
-        const visitedPages = [] as string[]
+        // const visitedPages = [] as string[]
         const diagnostics = docDiagnostics
           .run({
             enter: function (args) {
               const { add, data, key, page, node, root, path } = args
-              if (page && !visitedPages.includes(page)) visitedPages.push(page)
-              if (is.scalarNode(node)) {
-                if (is.reference(node)) {
-                  return assertRef(args)
-                }
+              // if (page && !visitedPages.includes(page)) visitedPages.push(page)
+              if (is.reference(node)) {
+                return assertRef(args as any)
               }
             },
             init: (args) => {
-              assertAppConfig(args)
+              // assertAppConfig(args)
             },
           })
           .map((diagnostic) => diagnostic.toJSON())

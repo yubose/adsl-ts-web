@@ -1,5 +1,6 @@
 import y from 'yaml'
 import { ARoot, is as coreIs } from '@noodl/core'
+import DocDiagnosticsIterator from './DocDiagnosticsIterator'
 import is from './utils/is'
 import get from './utils/get'
 import unwrap from './utils/unwrap'
@@ -8,10 +9,15 @@ import * as c from './constants'
 
 class DocRoot extends ARoot {
   #fs: Partial<FileSystem> | undefined
-  value = new Map();
+  #iterator: DocDiagnosticsIterator | undefined
+  value = new Map<string, y.Document | y.Node>();
 
-  [Symbol.iterator](): Iterator<[name: string, doc: y.Document | y.Node]> {
-    const entries = [...this.value.entries()].reverse()
+  [Symbol.iterator](): Iterator<
+    [name: y.Scalar<string> | string, doc: y.Document | y.Node]
+  > {
+    if (this.#iterator) return this.#iterator.getIterator()
+    const entries = Object.entries(this.value)
+
     return {
       next() {
         return {
@@ -62,8 +68,30 @@ class DocRoot extends ARoot {
    * @param key Root key
    * @returns True if key exists in root
    */
-  has(key: y.Scalar | string) {
-    return this.value.has(unwrap(key) as string)
+  has(key: string[] | y.Scalar | string) {
+    const paths = (
+      (is.scalarNode(key) && coreIs.str(key.value) && key.value) ||
+      (coreIs.arr(key) && key.join('.')) ||
+      (coreIs.str(key) && key) ||
+      ''
+    ).split('.')
+
+    let node = this.value
+
+    while (paths.length) {
+      key = paths.shift() as string
+      if (key) {
+        if (node?.has?.(key)) {
+          node = node.get(key) as any
+        } else {
+          return false
+        }
+      } else {
+        return key === '' ? true : false
+      }
+    }
+
+    return true
   }
 
   /**
@@ -82,16 +110,16 @@ class DocRoot extends ARoot {
       const doc = this.toDocument(value)
       // { SignIn: { SignIn: y.Document } } --> { SignIn: y.Document }
       if (y.isMap(doc.contents) && doc.contents.items.length === 1) {
-        if (doc.contents.has(key)) doc.contents = doc.contents.get(key)
+        if (doc.has(key)) doc.contents = doc.get(key) as y.YAMLMap
       }
       value = doc
     }
-    this.value.set(unwrap(key), value)
+    this.value.set(unwrap(key) as string, value)
     return this
   }
 
   remove(key: y.Scalar | string): this {
-    this.value.delete(unwrap(key))
+    this.value.delete(unwrap(key) as string)
     return this
   }
 
@@ -101,6 +129,7 @@ class DocRoot extends ARoot {
   ) {
     opts = {
       logLevel: 'debug',
+      lineCounter: new y.LineCounter(),
       keepSourceTokens: true,
       prettyErrors: true,
       ...opts,
@@ -112,7 +141,8 @@ class DocRoot extends ARoot {
 
   toJSON() {
     return [...this].reduce((acc, [name, doc]) => {
-      acc[name] = coreIs.obj(doc) && 'toJSON' in doc ? doc.toJSON() : doc
+      acc[name as string] =
+        coreIs.obj(doc) && 'toJSON' in doc ? doc.toJSON() : doc
       return acc
     }, {})
   }
@@ -164,8 +194,9 @@ class DocRoot extends ARoot {
     return doc
   }
 
-  use(value: FileSystem) {
+  use(value: DocDiagnosticsIterator | FileSystem) {
     if (is.fileSystem(value)) this.#fs = value
+    else if (value instanceof DocDiagnosticsIterator) this.#iterator = value
     return this
   }
 }

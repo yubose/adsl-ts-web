@@ -64,7 +64,7 @@ describe(`DocVisitor`, () => {
     })
     docDiagnostics.run({ enter: fn })
     expect(docRoot.get('Topo.getMyGreeting')).not.to.eq(replacedNode)
-    expect(docRoot.get('Topo.getMyGreeting')).to.be.null
+    expect(docRoot.get('Topo.getMyGreeting')).to.be.undefined
   })
 
   it(`[visit] should keep the node if returned with undefined`, () => {
@@ -99,7 +99,7 @@ describe(`DocVisitor`, () => {
     })
     await docDiagnostics.runAsync({ enter: fn })
     expect(docRoot.get('Topo.getMyGreeting')).not.to.eq(replacedNode)
-    expect(docRoot.get('Topo.getMyGreeting')).to.be.null
+    expect(docRoot.get('Topo.getMyGreeting')).to.be.undefined
   })
 
   it(`[visitAsync] should keep the node if returned with undefined`, async () => {

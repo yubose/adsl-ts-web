@@ -1,4 +1,4 @@
-import * as is from './utils/is'
+// import * as is from './utils/is'
 import * as t from './types'
 
 class Builder {
@@ -50,14 +50,11 @@ class Builder {
    * @param props
    * @returns
    */
-  createProps<P = any>(props: P & { node: any }) {
-    if (!is.arr(props.node)) {
-      throw new Error(
-        `Each item of iterator must return a tuple [name, node] but received "${typeof props.node}"`,
-      )
-    }
-
-    return props
+  createProps<
+    N = unknown,
+    H extends Record<string, any> = Record<string, any>,
+  >(opts: { name: string; node: N; helpers?: H }) {
+    return { ...opts }
   }
 
   use(value: t.AIterator<any> | t.ARoot | t.AVisitor) {
