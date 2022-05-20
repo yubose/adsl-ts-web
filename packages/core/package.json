@@ -36,5 +36,8 @@
     "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --file src/setupTests.ts -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\""
   },
   "typings": "./dist/index.d.ts",
-  "version": "0.1.0"
+  "version": "0.1.0",
+  "devDependencies": {
+    "sinon-chai": "^3.7.0"
+  }
 }

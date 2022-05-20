@@ -50,10 +50,10 @@ class Builder {
    * @param props
    * @returns
    */
-  createProps<P = any>(props: P & { value: any }) {
-    if (!is.arr(props.value)) {
+  createProps<P = any>(props: P & { node: any }) {
+    if (!is.arr(props.node)) {
       throw new Error(
-        `Each item of iterator must return a tuple [name, value] but received "${typeof props.value}"`,
+        `Each item of iterator must return a tuple [name, node] but received "${typeof props.node}"`,
       )
     }
 

@@ -8,7 +8,7 @@ beforeEach(() => {
   //
 })
 
-describe.only(`merge`, () => {
+describe(`merge`, () => {
   it(`should not return null if given a null value to merge`, () => {
     const obj = {}
     expect(merge(obj, null)).not.to.be.null

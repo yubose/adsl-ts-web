@@ -1,20 +1,20 @@
-import { Diagnostics } from '@noodl/core'
-import type { DiagnosticObject, TranslatedDiagnosticObject } from '@noodl/core'
+import { Diagnostics, RunDiagnosticsOptions } from '@noodl/core'
+import type { Diagnostic, TranslatedDiagnosticObject } from '@noodl/core'
 import getNodeKind from './utils/getNodeKind'
 import * as c from './constants'
+import * as t from './types'
 
-class DocDiagnostics extends Diagnostics {
+class DocDiagnostics extends Diagnostics<
+  t.YAMLDiagnosticObject,
+  t.YAMLDiagnosticObject[],
+  { path: number | string | null }
+> {
   constructor() {
     super()
   }
 
   createDiagnostic(
-    options?: Partial<
-      | TranslatedDiagnosticObject
-      | (DiagnosticObject & {
-          node?: unknown
-        })
-    >,
+    options?: Partial<t.YAMLDiagnosticObject | TranslatedDiagnosticObject>,
   ) {
     const { node, ...opts } = options ?? {}
     const diagnostic = super.createDiagnostic(opts)

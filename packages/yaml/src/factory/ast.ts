@@ -47,11 +47,11 @@ function createMap(
       if (Array.isArray(keyOrValue)) {
         keyOrValue.forEach((item) => {
           if (pairNode(item)) {
-            node.set(item.key, createNode(item.value))
+            node.set(item.key, createNode(item.value as any))
           }
         })
       } else if (pairNode(keyOrValue)) {
-        node.set(keyOrValue.key, createNode(keyOrValue.value))
+        node.set(keyOrValue.key, createNode(keyOrValue.value as any))
       } else if (is.obj(keyOrValue)) {
         fp.entries(keyOrValue).forEach(([key, val]) => {
           node.set(key, createNode(val))

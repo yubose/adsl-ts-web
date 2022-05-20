@@ -37,7 +37,15 @@ class DocRoot extends ARoot {
     })
   }
 
+  /**
+   * @deprecated
+   */
   init() {
+    this.value.clear()
+    return this
+  }
+
+  clear() {
     this.value.clear()
     return this
   }

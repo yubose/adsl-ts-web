@@ -3,10 +3,27 @@ import y from 'yaml'
 
 export type DataObject = ARoot | Map<any, any> | Set<any> | YAMLNode
 
+export interface AssertFn<N = unknown> {
+  (args: AssertFnArgs<N>): ReturnType<y.visitorFn<N>>
+}
+
+export interface AssertAsyncFn<N = unknown> {
+  (args: AssertFnArgs): ReturnType<y.asyncVisitorFn<N>>
+}
+
+export type AssertFnArgs<N = unknown> = VisitFnArgs<DiagnosticsHelpers, N>
+
 export interface RunDiagnosticsOptions<N = unknown>
   extends Omit<VisitFnArgs<DiagnosticsHelpers>, 'name' | 'value'> {
   node: N
 }
+
+export type YAMLDiagnosticObject = VisitFnArgs<{
+  indent?: number
+  offset?: number
+  range?: [number, number, number]
+  node: unknown
+}>
 
 export type StringNode = y.Scalar<string> | string
 

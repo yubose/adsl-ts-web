@@ -20,12 +20,12 @@ export function bool(value: unknown) {
 }
 
 /** @internal */
-export function boolTrue(value: unknown): value is true | 'true' {
+export function boolTrue(value: unknown): value is 'true' | true {
   return value === true || value === 'true'
 }
 
 /** @internal */
-export function boolFalse(value: unknown): value is false | 'false' {
+export function boolFalse(value: unknown): value is 'false' | false {
   return value === false || value === 'false'
 }
 
@@ -189,6 +189,10 @@ export function noodlUnit(value: unknown): value is string {
   return str(value) && !/[a-zA-Z]/i.test(value) && (value as any) % 1 !== 0
 }
 
+export function promise<V = any>(value: unknown): value is Promise<V> {
+  return obj(value) && 'then' in value
+}
+
 export function root(value: unknown): value is ARoot {
   return (
     value !== null &&
@@ -202,7 +206,7 @@ export function und(v: unknown): v is undefined {
   return typeof v === 'undefined'
 }
 
-export function vwVh(value: unknown): value is `${string}${'vw' | 'vh'}` {
+export function vwVh(value: unknown): value is `${string}${'vh' | 'vw'}` {
   return str(value) && (value.endsWith('vw') || value.endsWith('vh'))
 }
 

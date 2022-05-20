@@ -3,7 +3,7 @@ import fs from 'fs-extra'
 import path from 'path'
 import sinon from 'sinon'
 import y from 'yaml'
-import { consts, Diagnostics } from '@noodl/core'
+import { consts } from '@noodl/core'
 import Root from '../DocRoot'
 import createNode from '../utils/createNode'
 import is from '../utils/is'
@@ -182,7 +182,7 @@ describe(`deref`, () => {
 })
 
 describe(`Diagnostics`, () => {
-  let diagnostics: Diagnostics
+  let diagnostics: DocDiagnostics
   let docVisitor: DocVisitor
 
   beforeEach(() => {
@@ -228,17 +228,9 @@ describe(`Diagnostics`, () => {
     expect(calledPageNames).to.have.all.members(['Cereal', 'SignIn', 'Topo'])
   })
 
-  it(`should replace references with their values`, async () => {
-    const results = await diagnostics.run({
-      enter: ({
-        add,
-        data,
-        key,
-        name: page,
-        value: node,
-        root,
-        path: nodePath,
-      }) => {
+  xit(`should replace references with their values`, () => {
+    const results = diagnostics.run({
+      enter: ({ add, data, key, page, node, root, path: nodePath }) => {
         if (is.scalarNode(node) && is.reference(node)) {
           // console.log({ node, page })
           const derefed = deref({
@@ -265,11 +257,6 @@ describe(`Diagnostics`, () => {
         }
       },
     })
-
-    console.dir(
-      results.map((result) => result.toJSON()),
-      { depth: Infinity },
-    )
 
     const messages = [...diagnostics.root.value.entries()].map(([name, obj]) =>
       obj.toJSON(),

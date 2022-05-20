@@ -1,129 +1,45 @@
+import type { LiteralUnion } from 'type-fest'
 import * as fp from '../utils/fp'
 import * as is from '../utils/is'
 import * as t from '../types'
 import Builder from '../Builder'
-import { _symbol } from '../constants'
 import Diagnostic from './Diagnostic'
 import { translateDiagnosticType } from './utils'
 import type {
   IDiagnostics,
   DiagnosticsHelpers,
   DiagnosticObject,
-  DiagnosticRule,
+  Markers,
+  RunDiagnosticsOptions,
   TranslatedDiagnosticObject,
 } from './diagnosticsTypes'
 
-export interface RunOptions<Async = false> {
-  async?: Async
-  init?: (args: { data: Record<string, any> }) => any
-  beforeEnter?: (enterValue: any) => any
-  enter?: t.AVisitor<DiagnosticObject[], DiagnosticsHelpers>['callback']
-}
+class Diagnostics<
+    D extends DiagnosticObject = DiagnosticObject,
+    R = D[],
+    H extends Record<string, any> = Record<string, any>,
+  >
+  extends Builder
+  implements IDiagnostics
+{
+  #markers = {
+    rootConfig: '',
+    appConfig: '',
+    preload: [],
+    pages: [],
+  } as Markers;
 
-class Diagnostics extends Builder implements IDiagnostics {
   [Symbol.iterator](): Iterator<any, any, any> {
     // @ts-expect-error
     return this.root[Symbol.iterator]()
   }
 
-  rules = [] as Diagnostic[]
-
   constructor() {
     super()
   }
 
-  run(opts?: RunOptions<true>): Promise<Diagnostic[]>
-
-  // @ts-expect-error
-  run(opts?: RunOptions<never | false | undefined | void>): Diagnostic[]
-
-  async run<Async extends boolean = boolean>({
-    beforeEnter,
-    init,
-    enter,
-    async = false as Async,
-  }: RunOptions<Async> = {}) {
-    let prevVisitCallback: t.AVisitor<Async>['callback'] | undefined
-
-    if (enter) {
-      prevVisitCallback = this.visitor?.callback
-      this.visitor?.use(enter)
-    }
-
-    const diagnostics = [] as Diagnostic[]
-    const options = {
-      init,
-      data: this.createData({ diagnostics }),
-      root: this.root,
-    }
-
-    const getVisitorProps = (value: any) => {
-      const getHelpers = (
-        name: string,
-        diag: typeof diagnostics,
-      ): DiagnosticsHelpers => {
-        return this.createHelpers({
-          add: (diagnostic: DiagnosticObject) =>
-            void diag.push(
-              this.createDiagnostic({ ...diagnostic, page: name }),
-            ),
-        })
-      }
-
-      const helpers = getHelpers(value[0], diagnostics)
-      const formattedValue = beforeEnter?.(value)
-
-      return this.createProps({
-        helpers,
-        value: is.und(formattedValue) ? value : formattedValue,
-      })
-    }
-
-    try {
-      if (async) {
-        return new Promise(async (resolve, reject) => {
-          try {
-            await Promise.all(
-              [...this].map((val) => {
-                const { helpers, value } = getVisitorProps(val)
-                return this.visitor?.visitAsync(value, {
-                  ...options,
-                  ...helpers,
-                })
-              }),
-            )
-            resolve(diagnostics as any)
-          } catch (error) {
-            reject(error instanceof Error ? error : new Error(String(error)))
-          }
-        }) as Async extends true ? Promise<Diagnostics[]> : Diagnostics[]
-      } else {
-        for (const val of this) {
-          const { helpers, value } = getVisitorProps(val)
-          this.visitor?.visit(value, {
-            ...options,
-            ...helpers,
-          })
-        }
-      }
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error))
-      throw err
-    } finally {
-      if (prevVisitCallback) this.visitor?.use(prevVisitCallback)
-    }
-
-    return diagnostics
-  }
-
-  register(value: Parameters<Builder['use']>[0] | TranslatedDiagnosticObject) {
-    if (is.diagnostic(value)) {
-      const diagnostic = new Diagnostic(value)
-      this.rules.push(diagnostic)
-    } else {
-      super.use(value)
-    }
-    return this
+  get markers() {
+    return this.#markers
   }
 
   createDiagnostic(
@@ -133,16 +49,10 @@ class Diagnostics extends Builder implements IDiagnostics {
       ...fp.omit(opts, ['messages']),
     }
 
-    Object.defineProperty(diagnostic, '_id_', {
-      configurable: false,
-      enumerable: false,
-      writable: false,
-      value: _symbol.diagnostic,
-    })
-
     if (opts?.messages) {
       diagnostic.messages = fp
         .toArr(opts.messages)
+        // @ts-expect-error
         .map(({ message, type, ...rest }) => {
           return {
             message,
@@ -153,6 +63,105 @@ class Diagnostics extends Builder implements IDiagnostics {
     }
 
     return new Diagnostic(diagnostic as TranslatedDiagnosticObject)
+  }
+
+  mark(
+    flag: LiteralUnion<'appConfig' | 'page' | 'preload' | 'rootConfig', string>,
+    value: any,
+  ) {
+    if (/preload|page/.test(flag)) {
+      this.markers[flag].push(value)
+    } else {
+      this.markers[flag] = value
+    }
+    return this
+  }
+
+  run(args: RunDiagnosticsOptions<D, R, H> = {}) {
+    const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
+    try {
+      for (const nodeProp of this) {
+        const { helpers, node } = this.#getVisitorProps({
+          beforeEnter: args.beforeEnter,
+          diagnostics,
+          node: nodeProp,
+        })
+        this.visitor?.visit(node, { ...options, helpers } as t.VisitorOptions)
+      }
+    } catch (error) {
+      throw error instanceof Error ? error : new Error(String(error))
+    } finally {
+      if (originalVisitor) this.visitor?.use(originalVisitor)
+    }
+
+    return diagnostics
+  }
+
+  async runAsync(args: RunDiagnosticsOptions<D, R, H> = {}) {
+    const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
+    try {
+      await Promise.all(
+        [...this].map((nodeProp) => {
+          const { helpers, node } = this.#getVisitorProps({
+            beforeEnter: args.beforeEnter,
+            diagnostics,
+            node: nodeProp,
+          })
+          return this.visitor?.visitAsync(node, {
+            ...options,
+            helpers,
+          } as t.VisitorOptions)
+        }),
+      )
+      return diagnostics
+    } catch (error) {
+      throw error instanceof Error ? error : new Error(String(error))
+    } finally {
+      if (originalVisitor) this.visitor?.use(originalVisitor)
+    }
+  }
+
+  #getRunnerProps = (args: RunDiagnosticsOptions<D, R, H>) => {
+    let originalVisitor: t.AVisitor<true>['callback'] | undefined
+
+    if (args.enter) {
+      originalVisitor = this.visitor?.callback
+      this.visitor?.use(args.enter)
+    }
+
+    const diagnostics = [] as Diagnostic[]
+    const options = {
+      init: args.init,
+      data: this.createData({ diagnostics }),
+      root: this.root as t.ARoot,
+    }
+
+    return {
+      diagnostics,
+      options,
+      originalVisitor,
+    }
+  }
+
+  #getVisitorProps = ({ beforeEnter, diagnostics, node }) => {
+    const getHelpers = (
+      page: string,
+      diag: typeof diagnostics,
+    ): DiagnosticsHelpers => {
+      return this.createHelpers({
+        add: (diagnostic: DiagnosticObject) =>
+          void diag.push(this.createDiagnostic({ ...diagnostic, page })),
+        markers: this.#markers,
+      })
+    }
+
+    const helpers = getHelpers(node[0], diagnostics)
+    const formattedValue = beforeEnter?.(node)
+
+    return this.createProps({
+      helpers,
+      node: is.und(formattedValue) ? node : formattedValue,
+    })
   }
 }
 

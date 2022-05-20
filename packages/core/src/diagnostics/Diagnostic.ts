@@ -1,4 +1,5 @@
 import type { TranslatedDiagnosticObject } from './diagnosticsTypes'
+import { _symbol } from '../constants'
 
 class Diagnostic {
   #value: TranslatedDiagnosticObject;
@@ -9,6 +10,12 @@ class Diagnostic {
 
   constructor(value: TranslatedDiagnosticObject) {
     this.#value = value
+    Object.defineProperty(this, '_id_', {
+      configurable: false,
+      enumerable: false,
+      writable: true,
+      value: _symbol.diagnostic,
+    })
   }
 
   get(key: string) {

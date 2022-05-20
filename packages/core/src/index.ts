@@ -4,6 +4,7 @@ import * as consts from './constants'
 
 export { default as Builder } from './Builder'
 export { default as createCompiler } from './compiler/createCompiler'
+export { default as Diagnostic } from './diagnostics/Diagnostic'
 export { default as Diagnostics } from './diagnostics/Diagnostics'
 export { default as deref } from './deref'
 export { default as FileSystem } from './FileSystem'

@@ -1,22 +1,21 @@
-import type { AVisitor, ARoot } from '../types'
+import type { AVisitor, VisitFnArgs, VisitorInitArgs } from '../types'
 import type { translateDiagnosticType } from './utils'
 import { ValidatorType } from '../constants'
 import type Diagnostic from './Diagnostic'
 
 export interface IDiagnostics {
-  run<Async extends boolean = false>(
-    options?: RunDiagnosticsOptions<Async>,
-  ): Async extends true ? Promise<Diagnostic[]> : Diagnostic[]
+  run(options?: RunDiagnosticsOptions): Diagnostic[]
+  runAsync(options?: RunDiagnosticsOptions): Promise<Diagnostic[]>
 }
 
-export interface RunDiagnosticsOptions<Async extends boolean = false> {
-  async?: Async
-  init?: (args: { data: Record<string, any> }) => any
+export interface RunDiagnosticsOptions<
+  D extends DiagnosticObject = DiagnosticObject,
+  R = D[],
+  H extends Record<string, any> = Record<string, any>,
+> {
+  init?: (args: VisitorInitArgs<DiagnosticsHelpers>) => any
   beforeEnter?: (enterValue: any) => any
-  enter?: AVisitor<
-    Async extends true ? Promise<Diagnostic[]> : Diagnostic[],
-    DiagnosticsHelpers
-  >['callback']
+  enter?: AVisitor<R, DiagnosticsHelpers & H>['callback']
 }
 
 export interface DiagnosticDetails {
@@ -28,28 +27,30 @@ export interface DiagnosticDetails {
   elidedInCompatabilityPyramid?: boolean
 }
 
-export interface DiagnosticsHelpers {
+export interface DiagnosticsHelpers<
+  M extends Record<string, any> = Record<string, any>,
+> {
   add(opts: Partial<DiagnosticObject>): void
+  markers: Markers<M>
 }
 
 export interface DiagnosticRule {}
 
 export type DiagnosticObject<
-  O extends Record<string, any> = Record<string, any>,
-> = O & {
-  page: string
-  key: number | string | null
-  value: any
-  path?: any[]
-  root: ARoot
-  messages: {
-    type: ValidatorType
-    message: string[]
-  }[]
+  H extends Record<string, any> = Record<string, any>,
+> = VisitFnArgs<H> & {
+  messages?: DiagnosticObjectMessage[]
 }
 
-export type TranslatedDiagnosticObject = Omit<DiagnosticObject, 'messages'> & {
-  messages: {
+export interface DiagnosticObjectMessage {
+  type: ReturnType<typeof translateDiagnosticType>
+  message?: string
+}
+
+export type TranslatedDiagnosticObject<
+  D extends DiagnosticObject = DiagnosticObject,
+> = Omit<D, 'messages'> & {
+  messages: Record<string, any> & {
     type: ReturnType<typeof translateDiagnosticType>
     message: string
   }
@@ -61,3 +62,8 @@ export interface DiagnosticsTableObject {
 }
 
 export type DiagnosticsMessageTable = Map<string, DiagnosticsTableObject>
+
+export type Markers<O extends Record<string, any> = Record<string, any>> = O & {
+  preload: string[]
+  pages: string[]
+} & { rootConfig: string; appConfig: string }

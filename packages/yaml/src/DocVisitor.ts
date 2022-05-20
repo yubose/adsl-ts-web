@@ -1,20 +1,21 @@
 import y from 'yaml'
-import { AVisitor, fp } from '@noodl/core'
-import type { VisitorOptions } from '@noodl/core'
+import { AVisitor, is as coreIs } from '@noodl/core'
+import type { VisitorOptions, VisitFnArgs } from '@noodl/core'
+import type DocRoot from './DocRoot'
+import * as t from './types'
 
-function wrap(callback, { data, name, options }) {
-  return async function onVisit(...[key, node, path]) {
-    const callbackArgs = {
-      ...fp.omit(options, ['init']),
-      data,
-      name,
-      key,
-      value: node,
-      path,
-    }
+export type DocVisitorCallback<Fn extends t.AssertAsyncFn | t.AssertFn> = Fn
 
-    const control = await callback?.(callbackArgs)
-
+function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
+  callback: DocVisitorCallback<Fn>,
+  {
+    data,
+    page,
+    root,
+    helpers,
+  }: Pick<VisitFnArgs, 'data' | 'page' | 'root'> & VisitorOptions,
+) {
+  const getControl = (control: ReturnType<Fn>) => {
     if (control != undefined) {
       if (control === y.visitAsync.BREAK) {
         return y.visitAsync.BREAK
@@ -39,6 +40,33 @@ function wrap(callback, { data, name, options }) {
 
     return undefined
   }
+
+  const onVisit = function onVisit(...[key, node, path]) {
+    const callbackArgs = {
+      ...helpers,
+      data,
+      key,
+      node,
+      path,
+      page,
+      root,
+    }
+
+    // @ts-expect-error
+    const result = callback?.(callbackArgs)
+
+    if (coreIs.promise(result)) {
+      return result
+        .then((control) => getControl(control as ReturnType<Fn>))
+        .catch((error) => {
+          throw error instanceof Error ? error : new Error(String(error))
+        })
+    }
+
+    return getControl(result as ReturnType<Fn>)
+  }
+
+  return onVisit
 }
 
 class DocVisitor extends AVisitor {
@@ -49,43 +77,59 @@ class DocVisitor extends AVisitor {
   }
 
   /**
-   * @param { [name: string, doc: y.Document.Parsed]} args
+   * @param visitee - The node we are visiting
    * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
    * @returns Visitor data
    */
-  visit(args, options: Partial<VisitorOptions>) {
-    const [name, value] = args
-    const data = options?.data || {}
+  visit(
+    visitee: [name: string, node: unknown],
+    { helpers, init, data = {}, root }: VisitorOptions & { root: DocRoot },
+  ) {
+    const [name, value] = visitee
 
-    options?.init?.({ data })
+    init?.({ data, ...helpers, root })
 
     if (y.isNode(value) || y.isDocument(value)) {
-      // @ts-expect-error
-      y.visit(value, wrap(this.callback, { name, data, options }))
+      y.visit(
+        value,
+        wrap(this.callback, {
+          data,
+          helpers,
+          page: name,
+          root,
+        }),
+      )
     }
 
     return data
   }
 
   /**
-   * @param { [name: string, doc: y.Document.Parsed]} args
+   * @param { [name: string, node: unknown]} visitee
    * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
    * @returns Visitor data
    */
-  async visitAsync(args, options: Partial<VisitorOptions>) {
-    const [name, value] = args
-    const data = options?.data || {}
+  async visitAsync(
+    visitee: [name: string, node: unknown],
+    { data = {}, init, root, helpers }: VisitorOptions & { root: DocRoot },
+  ) {
+    const [name, node] = visitee
 
-    await options?.init?.({ data })
+    if (init) await init({ data, ...helpers, root })
 
-    if (y.isNode(value) || y.isDocument(value)) {
-      await y.visitAsync(value, wrap(this.callback, { name, data, options }))
+    if (y.isNode(node) || y.isDocument(node)) {
+      await y.visitAsync(
+        node,
+        wrap(this.callback, { data, helpers, page: name, root }),
+      )
     }
 
     return data
   }
 
-  use(callback) {
+  use<Fn extends t.AssertAsyncFn | t.AssertFn>(
+    callback: DocVisitorCallback<Fn>,
+  ) {
     this.#callback = callback
     return this
   }

@@ -67,7 +67,7 @@ export function excludeStr(value: string, strToExclude: string) {
  * @param { Path[number] | Path } path
  * @returns { any }
  */
-export function get(value: any, path: Path[number] | Path): any {
+export function get(value: any, path: Path | Path[number]): any {
   let _index = 0
   let _path = toPath(path)
   let _len = _path.length
@@ -192,7 +192,7 @@ function toFixed(value: number, fixNum?: number) {
  * @param key
  * @returns The path
  */
-export function toPath(key = '' as string | number | (string | number)[]) {
+export function toPath(key = '' as (number | string)[] | number | string) {
   return (
     arr(key)
       ? key

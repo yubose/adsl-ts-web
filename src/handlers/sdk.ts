@@ -4,6 +4,8 @@ import * as nu from 'noodl-utils'
 import y from 'yaml'
 import App from '../App'
 import { extendedSdkBuiltIns } from './builtIns'
+import assertAppConfig from '../modules/diagnostics/assertAppConfig'
+import assertRef from '../modules/diagnostics/assertRef'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {
@@ -65,12 +67,30 @@ export function getSdkHelpers(app: App) {
     get extendMeeting() {
       return app.builtIns.get('extendMeeting')?.find(Boolean)?.fn
     },
-    async diagnostics(dataIn: string) {
+    async diagnostics(
+      dataIn:
+        | string
+        | {
+            config: string
+            filter?: string[] | string
+          },
+    ) {
       try {
-        console.log(`[request] dataIn`, dataIn)
+        let configKey = dataIn
+        let data = {}
+        let filter: RegExp | undefined
 
-        const configKey = dataIn
-        const data = {}
+        if (u.isStr(dataIn)) {
+          configKey = dataIn
+        } else if (u.isObj(dataIn)) {
+          configKey = dataIn.config
+          if (dataIn.filter) {
+            filter = new RegExp(
+              u.isArr(dataIn) ? dataIn.filter.join('|') : dataIn.filter,
+              'i',
+            )
+          }
+        }
 
         const createFetcherWithBaseUrl =
           (baseUrl: string) => async (pathname: string) =>
@@ -91,8 +111,7 @@ export function getSdkHelpers(app: App) {
           console.error(err)
         }
 
-        const { consts, is: coreIs } = await import('@noodl/core')
-        const { DocDiagnostics, DocRoot, DocVisitor, deref, is, unwrap } =
+        const { DocDiagnostics, DocRoot, DocVisitor, is, unwrap } =
           await import('@noodl/yaml')
 
         const docDiagnostics = new DocDiagnostics()
@@ -102,7 +121,6 @@ export function getSdkHelpers(app: App) {
         docRoot.set('Config', docRoot.toDocument(rootConfigYml))
 
         const rootDoc = docRoot.get('Config') as y.Document
-
         const buildInfo = window['build'] || {}
 
         const replaceNoodlPlaceholders = nu.createNoodlPlaceholderReplacer({
@@ -124,99 +142,65 @@ export function getSdkHelpers(app: App) {
           await fetchYml(rootDoc?.get?.('cadlMain', false) as string),
         )
 
-        // const assetsUrl = replaceNoodlPlaceholders(appConfig?.assetsUrl)
-
         const { preload = [], page: pages = [] } = appDoc.toJSON?.() || {}
 
-        await Promise.all(
-          preload.map(async (page) => {
-            try {
-              page = unwrap(page)
-              const pathname = `${page}_en.yml`
-              const yml = await fetchYml(pathname)
-              const doc = docRoot.toDocument(yml)
-              if (doc.contents?.has(page)) {
-                doc.contents = doc.contents.get(page)
-              }
-              if (y.isMap(doc.contents)) {
-                doc.contents?.items.forEach((pair) => {
-                  docRoot.set(unwrap(pair.key), pair.value)
-                })
-              }
-            } catch (error) {
-              const err =
-                error instanceof Error ? error : new Error(String(error))
-              console.error(err)
-            }
-          }),
-        )
+        const loadYmls = async (type: 'page' | 'preload') => {
+          let arr = type === 'page' ? pages : preload
 
-        await Promise.all(
-          pages.map(async (page) => {
-            try {
-              page = unwrap(page)
-              const pathname = `${page}_en.yml`
-              const yml = await fetchYml(pathname)
-              const doc = docRoot.toDocument(yml)
-              if (doc.has(page)) doc.contents = doc.contents?.get(page)
-              docRoot.set(page, doc)
-            } catch (error) {
-              const err =
-                error instanceof Error ? error : new Error(String(error))
-              console.error(err)
-            }
-          }),
-        )
+          if (filter) {
+            arr = arr.filter((page: string) => filter?.test(page))
+          }
+
+          await Promise.all(
+            arr.map(async (page: string) => {
+              try {
+                page = unwrap(page)
+                const pathname = `${page}_en.yml`
+                const yml = await fetchYml(pathname)
+                const doc = docRoot.toDocument(yml)
+                if (doc.has(page)) {
+                  doc.contents = (doc.contents as y.YAMLMap).get(page)
+                }
+                if (type === 'preload') {
+                  if (y.isMap(doc.contents)) {
+                    doc.contents?.items.forEach((pair) => {
+                      docRoot.set(pair.key as y.Scalar, pair.value)
+                    })
+                  }
+                } else {
+                  docRoot.set(page, doc)
+                }
+              } catch (error) {
+                console.error(
+                  error instanceof Error ? error : new Error(String(error)),
+                )
+              }
+            }),
+          )
+        }
+
+        await Promise.all([loadYmls('preload'), loadYmls('page')])
 
         docDiagnostics.use(docRoot)
         docDiagnostics.use(docVisitor)
 
-        const assertRef = ({ add, node, page, root }) => {
-          const derefed = deref({ node: node, root, rootKey: page })
-          const isLocal = coreIs.localReference(derefed.reference)
-
-          if (typeof derefed.value === 'undefined') {
-            const locLabel = isLocal ? 'Local' : 'Root'
-            const using = isLocal ? ` using root key '${page}'` : ''
-
-            add({
-              node,
-              messages: [
-                {
-                  type: consts.ValidatorType.ERROR,
-                  message: `${locLabel} reference '${derefed.reference}' was not resolvable${using}`,
-                },
-              ],
-              page,
-              ...derefed,
-            })
-          } else {
-            node.value = derefed.value
-            return node
-          }
-        }
-
         const visitedPages = [] as string[]
-        const diagnostics = (
-          await docDiagnostics.run({
-            enter: ({
-              add,
-              data,
-              key,
-              name: page,
-              value: node,
-              root,
-              path,
-            }) => {
+        const diagnostics = docDiagnostics
+          .run({
+            enter: function (args) {
+              const { add, data, key, page, node, root, path } = args
               if (page && !visitedPages.includes(page)) visitedPages.push(page)
               if (is.scalarNode(node)) {
                 if (is.reference(node)) {
-                  return assertRef({ add, node, page, root })
+                  return assertRef(args)
                 }
               }
             },
+            init: (args) => {
+              assertAppConfig(args)
+            },
           })
-        ).map((diagnostic) => diagnostic.toJSON())
+          .map((diagnostic) => diagnostic.toJSON())
 
         console.log(diagnostics)
 

@@ -56,31 +56,39 @@ export interface IStructure<S extends string = string> {
 
 export abstract class AVisitor<R = any, H = Record<string, any>> {
   abstract callback?: (args: VisitFnArgs<H>) => any
-  abstract visit(node: any, options?: Partial<VisitorOptions<H>>): R
+  abstract visit(node: unknown, options?: Partial<VisitorOptions<H>>): R
   abstract visitAsync(
-    node: any,
+    node: unknown,
     options?: Partial<VisitorOptions<H>>,
   ): Promise<R>
   abstract use(callback: AVisitor<any, any>['callback']): this
 }
 
-export interface VisitorOptions<Options = Record<string, any>> {
+export interface VisitorOptions<
+  Options = Record<string, any>,
+  InitOptions extends Record<string, any> = Record<string, any>,
+> {
   data: Record<string, any>
-  init?: (args: Record<string, any> & { data: Record<string, any> }) => any
+  init?: (args: VisitorInitArgs<InitOptions>) => any
   helpers?: Options
+  path?: (number | string)[]
+  root: ARoot
 }
 
-export type VisitFnArgs<H extends Record<string, any> = Record<string, any>> =
-  H & {
-    data: Record<string, any>
-    pageName: string
-    name?: string
-    key: number | string | null
-    value: any
-    path?: any[]
-    diagnostics: Record<string, any>
-    root: ARoot
-  }
+export type VisitorInitArgs<
+  InitOptions extends Record<string, any> = Record<string, any>,
+> = InitOptions & Record<string, any> & { data: Record<string, any> }
+
+export type VisitFnArgs<
+  H extends Record<string, any> = Record<string, any>,
+  N = unknown,
+> = H & {
+  data: Record<string, any>
+  page?: string
+  key?: number | string | null
+  node: N
+  root: ARoot
+}
 
 export type NormalizePropsContext = Record<string, any> & {
   dataObject?: Record<string, any>

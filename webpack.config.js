@@ -45,7 +45,7 @@ function getWebpackConfig(env) {
 
   // Analysis is not run in production
   let staticPaths = [paths.public]
-  staticPaths.push(`generated`, 'analysis', 'generated/analysis')
+  staticPaths.push('analysis', 'analysis/app')
 
   if (!ecosEnv) {
     log(

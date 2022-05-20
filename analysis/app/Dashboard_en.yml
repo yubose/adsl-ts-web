@@ -2,15 +2,34 @@ Dashboard:
   title: "Analysis"
   init:
     - =.builtIn.diagnostics:
-        dataIn: ..config
+        dataIn:
+          config: ..config
+          filter:
+            - medical
         dataOut: Dashboard.diagnostics
   config: testpage
   diagnostics: null
   components:
     - .BaseHeader:
+    - type: divider
+      style:
+        height: '0.03'
     - type: view
       style:
-        marginTop: "0.1"
+        marginTop: '0.1'
+        textColor: '0x133333'
+        textAlign:
+          x: centerX
+      children:
+        - type: label
+          text: 'Filter examples (will be turned into a RegExp): '
+        - type: label
+          text: '"patientchart" (single string) turns into "/patientchart/i"'
+        - type: label
+          text: '"medical, obstetrical" (array of strings) turns into "/medical|obstetrical/i"'
+    - type: view
+      style:
+        marginTop: "0.05"
         width: "0.9"
         left: "0.05"
       children:
@@ -25,20 +44,16 @@ Dashboard:
               itemObject: ""
               style:
                 width: "0.9"
-                height: "0.25"
               children:
                 - type: view
-                  style:
-                    border:
-                      style: '4'
                   children:
-                    - type: label
-                      textBoard:
-                        - text: 'Page: '
-                        - text: itemObject.page
-                      style:
-                        height: '0.015'
-                        textIndent: "10px"
+                    # - type: label
+                    #   textBoard:
+                    #     - text: 'Page: '
+                    #     - text: itemObject.page
+                    #   style:
+                    #     height: '0.015'
+                    #     textIndent: "10px"
                     - type: list
                       listObject: itemObject.messages
                       contentType: listObject
@@ -48,9 +63,6 @@ Dashboard:
                           itemObject: ''
                           style:
                             listStyle: none
-                            border:
-                              style: '3'
-                              color: '0x932421'
                           children:
                             - type: image
                               path:
@@ -64,7 +76,9 @@ Dashboard:
                                           - .png
                               style:
                                 top: "0.02"
-                                height: "0.035"
+                                height: "0.025"
                                 left: "0.8"
                             - type: label
                               dataKey: itemObject.message
+                              style:
+                                fontSize: '14'
