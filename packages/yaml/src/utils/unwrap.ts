@@ -10,7 +10,7 @@ import { _symbol } from '../constants'
 
 function unwrap<N extends y.Document>(node: N): N['contents']
 function unwrap<N extends y.Scalar>(node: N): N['value']
-function unwrap<R extends DocRoot>(root: DocRoot): DocRoot['value']
+function unwrap<R extends DocRoot>(root: R): R['value']
 function unwrap<V = unknown>(root: V): V
 function unwrap(node: unknown) {
   if (node !== null && typeof node === 'object') {

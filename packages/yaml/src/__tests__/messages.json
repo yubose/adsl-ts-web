@@ -3,7 +3,7 @@
     "formData": {
       "password": "123",
       "email": "pfft@gmail.com",
-      "currentIcon": "..icon",
+      "currentIcon": "arrow.svg",
       "gender": "Male"
     },
     "icon": "arrow.svg"
@@ -20,7 +20,7 @@
         "children": [
           {
             "type": "label",
-            "text": ".SignIn.email"
+            "text": "lopez@yahoo.com"
           },
           {
             "type": "textField",
@@ -40,13 +40,13 @@
     }
   },
   {
-    "icon": "..realIcon",
+    "icon": "you-found-me.png",
     "realIcon": "you-found-me.png",
     "components": [
       ".BaseHeader",
       {
         "type": "button",
-        "text": "..icon"
+        "text": "you-found-me.png"
       },
       {
         "type": "label",
