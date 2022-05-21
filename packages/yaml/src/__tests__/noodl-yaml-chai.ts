@@ -1,13 +1,12 @@
 /// <reference path="../../global.d.ts" />
 import Chai from 'chai'
 import y from 'yaml'
-import { findPair } from 'yaml/util'
 import getNodeType from '../utils/getNodeType'
 import DocRoot from '../DocRoot'
 import is from '../utils/is'
 import unwrap from '../utils/unwrap'
 
-type YAMLNode = y.Node | y.Document | y.Pair
+type YAMLNode = y.Document | y.Node | y.Pair
 
 function NoodlYamlChai(chai: typeof Chai, utils: Chai.ChaiUtils) {
   const Assertion = chai.Assertion
@@ -29,7 +28,7 @@ function NoodlYamlChai(chai: typeof Chai, utils: Chai.ChaiUtils) {
 
   function isYAMLNode(
     node: unknown,
-  ): node is y.Node | y.Document | y.Document.Parsed | y.Pair {
+  ): node is y.Document | y.Document.Parsed | y.Node | y.Pair {
     return getNodeType(node) !== 'unknown'
   }
 

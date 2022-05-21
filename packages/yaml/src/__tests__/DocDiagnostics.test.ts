@@ -4,7 +4,6 @@ import sinon from 'sinon'
 import fs from 'fs-extra'
 import path from 'path'
 import { consts, is as coreIs } from '@noodl/core'
-import assertAppConfig from '../asserters/init/assertAppConfig'
 import assertRef from '../asserters/assertRef'
 import { createAssert, createAsyncAssert } from '../assert'
 import createNode from '../utils/createNode'
@@ -43,7 +42,7 @@ beforeEach(() => {
   })
 })
 
-describe.only(`DocDiagnostics`, () => {
+describe(`DocDiagnostics`, () => {
   describe(`asserts`, () => {
     xdescribe(`createAssert`, () => {
       it(`should add indent, offset, and range automatically`, () => {
@@ -106,7 +105,6 @@ describe.only(`DocDiagnostics`, () => {
       })
 
       it(`should update reference nodes that are resolvable`, () => {
-        process.stdout.write('\x1Bc')
         docRoot.set('Cereal', {
           profile: { user: { avatar: '.Cereal.realIcon' } },
           icon: '..realIcon',
@@ -142,7 +140,6 @@ describe.only(`DocDiagnostics`, () => {
       })
 
       it(`should add unresolvable references to diagnostics`, () => {
-        process.stdout.write('\x1Bc')
         docRoot.clear()
 
         const Resource = {

@@ -1,6 +1,9 @@
 {
   "author": "Christopher Tran <pfftdammitchris@gmail.com>",
   "description": "Noodl core JavaScript library",
+  "devDependencies": {
+    "sinon-chai": "^3.7.0"
+  },
   "directories": {
     "dist": "dist",
     "test": "__tests__"
@@ -29,15 +32,13 @@
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
   },
   "scripts": {
-    "build": "tsc",
-    "build:rollup": "rollup -c",
+    "build": "rollup -c",
+    "postbuild": "npm run types",
     "start": "tsc -w",
     "test": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\" \"src/**/*.test.ts\"",
-    "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --file src/setupTests.ts -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\""
+    "test:file": "cross-env NODE_ENV=test ts-mocha -p tsconfig.test.json --file src/setupTests.ts -r source-map-support/register --extensions ts --watch --watch-files \"src/**/*.ts\"",
+    "types": "tsc --emitDeclarationOnly --esModuleInterop --declaration --declarationDir dist --project tsconfig.json"
   },
   "typings": "./dist/index.d.ts",
-  "version": "0.1.0",
-  "devDependencies": {
-    "sinon-chai": "^3.7.0"
-  }
+  "version": "0.1.0"
 }

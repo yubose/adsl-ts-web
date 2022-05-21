@@ -1,4 +1,3 @@
-// import * as is from './utils/is'
 import * as t from './types'
 
 class Builder {

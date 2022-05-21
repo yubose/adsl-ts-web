@@ -1,8 +1,5 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
-import * as fp from '../utils/fp'
-import * as is from '../utils/is'
-import deref from '../deref'
 import Diagnostics from '../diagnostics/Diagnostics'
 import Root from '../Root'
 import Visitor from '../Visitor'

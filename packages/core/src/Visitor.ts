@@ -88,7 +88,7 @@ class Visitor extends t.AVisitor {
   ) {
     init?.({ data, ...helpers, root })
 
-    const fn = wrap(this.#callback, { data, page, root, helpers })
+    const fn = wrap(this.#callback as any, { data, page, root, helpers })
 
     const visit = (node: unknown, path: (number | string)[] = []) => {
       if (is.arr(node)) {
@@ -137,7 +137,8 @@ class Visitor extends t.AVisitor {
     try {
       await init?.({ data, ...helpers, root })
 
-      const fn = wrap(this.#callback, { data, page, root, helpers })
+      // @ts-expect-error
+      const fn = wrap(this.#callback as any, { data, page, root, helpers })
 
       const visit = async (node: unknown, path: (number | string)[] = []) => {
         if (is.arr(node)) {

@@ -1,15 +1,9 @@
-import coreBuiltInFns from './builtIn/core'
-import objectBuiltInFns from './builtIn/object'
 import * as consts from './constants'
 
 export { default as Builder } from './Builder'
-export { default as createCompiler } from './compiler/createCompiler'
-export { default as Diagnostic } from './diagnostics/Diagnostic'
 export { default as Diagnostics } from './diagnostics/Diagnostics'
 export { default as deref } from './deref'
 export { default as FileSystem } from './FileSystem'
-export { default as transform } from './transform'
-export { generateDiagnosticMessage } from './diagnostics/utils'
 export { toPath } from './utils/fp'
 export * as fp from './utils/fp'
 export * as is from './utils/is'
@@ -19,17 +13,3 @@ export * from './diagnostics/diagnosticsTypes'
 export * from './types'
 
 export { consts }
-// export const ValidatorType = consts
-
-export function getBuiltIns() {
-  const fns = {
-    core: coreBuiltInFns,
-    object: objectBuiltInFns,
-  } as const
-
-  // return Object.entries(fns).reduce((acc, [name, fn]) => {
-  //   acc[`=.builtIn.${name}`] = fn
-  //   return acc
-  // }, {} as Record<`=.builtIn.${keyof typeof fns}.${string}`, typeof fns[keyof typeof fns]>)
-  return fns
-}

@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import type { SelectComponentObject } from 'noodl-types'
 import transform from '../transform'
 import * as fp from '../utils/fp'
-import * as is from '../utils/is'
 import * as n from '../utils/noodl'
 import * as t from '../types'
 

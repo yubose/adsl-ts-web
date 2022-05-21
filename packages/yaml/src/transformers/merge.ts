@@ -1,6 +1,5 @@
-import type { ARoot } from '@noodl/core'
 import type { ReferenceString } from 'noodl-types'
-import * as u from '@jsmanifest/utils'
+import { is as coreIs } from '@noodl/core'
 import y from 'yaml'
 import createNode from '../utils/createNode'
 import deref from '../utils/deref'
@@ -19,9 +18,9 @@ export interface MergeOptions {
 function isMergingRef<S extends string>(refOrNode: S | y.Scalar<S>) {
   return (
     (is.scalarNode(refOrNode) &&
-      u.isStr(refOrNode.value) &&
+      coreIs.str(refOrNode.value) &&
       is.reference(refOrNode)) ||
-    (u.isStr(refOrNode) && refOrNode.startsWith('.'))
+    (coreIs.str(refOrNode) && refOrNode.startsWith('.'))
   )
 }
 
@@ -41,10 +40,10 @@ function _merge<N extends t.YAMLNode>(
   let ref: string | undefined
 
   if (
-    (u.isStr(refOrNode) || y.isScalar(refOrNode)) &&
+    (coreIs.str(refOrNode) || y.isScalar(refOrNode)) &&
     isMergingRef(refOrNode)
   ) {
-    ref = u.isStr(refOrNode) ? refOrNode : refOrNode.value
+    ref = coreIs.str(refOrNode) ? refOrNode : refOrNode.value
   }
 
   if (is.nil(node)) {

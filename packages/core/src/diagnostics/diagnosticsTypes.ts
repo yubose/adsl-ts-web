@@ -8,15 +8,6 @@ export interface IDiagnostics {
   runAsync(options?: RunOptions): Promise<Diagnostic[]>
 }
 
-// export interface DiagnosticAssertFn<
-//   D extends DiagnosticObject = DiagnosticObject,
-//   R = D[],
-//   H extends Record<string, any> = Record<string, any>,
-//   // Control = any,
-// > {
-//   (args: Parameters<NonNullable<RunOptions<D, R, H>['enter']>>[0]): Control
-// }
-
 export interface DiagnosticsHelpers<
   M extends Record<string, any> = Record<string, any>,
 > {
@@ -51,9 +42,7 @@ export interface RunOptions<
   D extends DiagnosticObject = DiagnosticObject,
   R = D[],
   H extends Record<string, any> = Record<string, any>,
-  // Control = any,
 > {
-  // rules?: DiagnosticAssertFn<D, R, H, Control>[]
   init?: (args: VisitorInitArgs<DiagnosticsHelpers>) => any
   enter?: AVisitor<R, DiagnosticsHelpers & H>['callback']
 }

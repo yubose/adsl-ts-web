@@ -83,24 +83,24 @@ import { DiagnosticCode, ValidatorType } from '../constants'
 //   }
 // }
 
-export function convertPropertyName(origName: string): string {
-  let result = origName
-    .split('')
-    .map((char) => {
-      if (char === '*') return '_Asterisk'
-      if (char === '/') return '_Slash'
-      if (char === ':') return '_Colon'
-      return /\w/.test(char) ? char : '_'
-    })
-    .join('')
-  // Get rid of all multi-underscores
-  result = result.replace(/_+/g, '_')
-  // Remove any leading underscore, unless it is followed by a number.
-  result = result.replace(/^_([^\d])/, '$1')
-  // Get rid of all trailing underscores.
-  result = result.replace(/_$/, '')
-  return result
-}
+// export function convertPropertyName(origName: string): string {
+//   let result = origName
+//     .split('')
+//     .map((char) => {
+//       if (char === '*') return '_Asterisk'
+//       if (char === '/') return '_Slash'
+//       if (char === ':') return '_Colon'
+//       return /\w/.test(char) ? char : '_'
+//     })
+//     .join('')
+//   // Get rid of all multi-underscores
+//   result = result.replace(/_+/g, '_')
+//   // Remove any leading underscore, unless it is followed by a number.
+//   result = result.replace(/^_([^\d])/, '$1')
+//   // Get rid of all trailing underscores.
+//   result = result.replace(/_$/, '')
+//   return result
+// }
 
 export function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
   switch (code) {
@@ -124,24 +124,24 @@ export function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
   }
 }
 
-export function getDiagnosticCodeCoverage() {
-  const covered = [] as DiagnosticCode[]
-  const uncovered = [] as any[]
+// export function getDiagnosticCodeCoverage() {
+//   const covered = [] as DiagnosticCode[]
+//   const uncovered = [] as any[]
 
-  for (const code of Object.keys(DiagnosticCode)) {
-    if (generateDiagnosticMessage(DiagnosticCode[code], undefined)) {
-      covered.push(DiagnosticCode[code])
-    } else {
-      uncovered.push(code)
-    }
-  }
+//   for (const code of Object.keys(DiagnosticCode)) {
+//     if (generateDiagnosticMessage(DiagnosticCode[code], undefined)) {
+//       covered.push(DiagnosticCode[code])
+//     } else {
+//       uncovered.push(code)
+//     }
+//   }
 
-  return {
-    covered,
-    uncovered,
-    coverage: `${covered.length / uncovered.length}%`,
-  }
-}
+//   return {
+//     covered,
+//     uncovered,
+//     coverage: `${covered.length / uncovered.length}%`,
+//   }
+// }
 
 export function translateDiagnosticType(type: ValidatorType) {
   switch (type) {

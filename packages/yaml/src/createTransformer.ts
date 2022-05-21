@@ -1,4 +1,3 @@
-import * as u from '@jsmanifest/utils'
 import y from 'yaml'
 // import _emit from './transformers/emit'
 // import _eval from './transformers/eval'

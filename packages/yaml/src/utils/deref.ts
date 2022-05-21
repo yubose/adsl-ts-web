@@ -2,13 +2,21 @@
  * State pattern dereferencer
  */
 import y from 'yaml'
-import * as u from '@jsmanifest/utils'
-import { is as coreIs, getRefProps, trimReference } from '@noodl/core'
+import { is as coreIs, fp, getRefProps } from '@noodl/core'
 import type { ReferenceString } from 'noodl-types'
-import type DocRoot from '../DocRoot'
 import get from './get'
 import is from './is'
 import unwrap from './unwrap'
+import type DocRoot from '../DocRoot'
+
+type Action =
+  | { type: ActionType.Next }
+  | { type: ActionType.Start; depth: number; reference: ReferenceString }
+
+const enum ActionType {
+  Start = 1,
+  Next = 2,
+}
 
 export interface DerefOptions {
   depth?: number
@@ -37,8 +45,8 @@ function createDerefReducer(
 ) {
   let _result: any
   let _state = {
-    initialValue: undefined as string | undefined,
     depth: 0,
+    initialValue: undefined as string | undefined,
     paths: [] as string[],
     results: [] as DerefResult[],
   }
@@ -48,29 +56,30 @@ function createDerefReducer(
     action: Parameters<typeof dispatch>[0],
   ) {
     switch (action.type) {
-      case 'start': {
-        const {
-          isLocalRef,
-          paths,
-          ref: initiator,
-        } = getRefProps(action.reference)
+      case ActionType.Start: {
+        const refProps = getRefProps(action.reference)
+        const { isLocalRef, paths, ref: initiator } = refProps
+
         if (isLocalRef && rootKey) paths.unshift(rootKey)
         _result = get(root?.value, paths[0] as string, { rootKey })
+
+        const nextResults = state.results.concat({
+          depth: action.depth,
+          initiator,
+          key: paths[0],
+          value: is.ymlNode(_result) ? _result?.toJSON?.() : _result,
+        })
+
         return {
           ...state,
           depth: action.depth,
           initialValue: action.reference,
           paths: paths.slice(1),
-          results: state.results.concat({
-            depth: action.depth,
-            initiator,
-            key: paths[0],
-            value: is.ymlNode(_result) ? _result?.toJSON?.() : _result,
-          }),
+          results: nextResults,
         }
       }
-      case 'next': {
-        let currResults = [...state.results]
+      case ActionType.Next: {
+        const currResults = [...state.results]
 
         _result = get(_result, state.paths[0], { rootKey })
 
@@ -82,7 +91,7 @@ function createDerefReducer(
         })
 
         let nextPaths = state.paths.slice(1)
-        let newDerefedResults: ReturnType<typeof deref>
+        let nextDerefed: ReturnType<typeof deref>
 
         if (
           (coreIs.str(_result) && coreIs.reference(_result)) ||
@@ -92,61 +101,42 @@ function createDerefReducer(
           // Correctly prepare the next props for pathing
           let refProps = getRefProps(unwrap(_result) as ReferenceString)
           let isRootRef = !refProps.isLocalRef
-          let isSameRootKey =
-            (isRootRef && refProps.paths[0] === rootKey) || true
+          let isSameRootKey = true
           let nextRootKey = rootKey
+
+          if (!(isRootRef && refProps.paths[0] === rootKey)) {
+            isSameRootKey = false
+          }
 
           if (isRootRef) {
             if (isSameRootKey) {
               refProps.paths = refProps.paths.slice(1)
               refProps.path = refProps.paths.join('.')
               nextPaths.unshift(...refProps.paths)
-            } else {
-              nextRootKey = refProps.paths[0]
-            }
+            } else nextRootKey = refProps.paths[0]
           }
 
-          newDerefedResults = deref({
+          nextDerefed = deref({
             depth: state.depth,
             node: refProps.ref,
             root,
             rootKey: nextRootKey,
           })
 
-          const childResults = newDerefedResults.results
-            .slice(isRootRef ? 0 : 1)
+          const children = nextDerefed.results
+            ?.slice(isRootRef ? 0 : 1)
             .map((obj, i, coll) => {
+              const depth = coreIs.num(obj.depth) ? obj.depth : state.depth
               const prevKey = coll[i - 1]?.key
-              const meta = {
-                ...obj,
-                depth: coreIs.num(obj.depth) ? obj.depth : state.depth,
-                initiator: newDerefedResults.initialValue,
-              } as DerefResult
-
+              const initiator = nextDerefed.initialValue
+              const meta = { ...obj, depth, initiator }
               if (prevKey) meta.prevKey = prevKey
               meta.path = coll.map((obj) => obj.key)
               return meta
             })
 
-          currResults.push(...childResults)
-
-          _result = unwrap(newDerefedResults.value)
-
-          if (!_result) {
-            // const fullPath = isSameRootKey
-            //   ? trimReference(newDerefedResults.reference)
-            //   : `${rootKey}.${trimReference(newDerefedResults.reference)}`
-            // if (root?.has(fullPath)) {
-            //   const lastResult = currResults[currResults.length - 1]
-            //   lastResult.value = state.initialValue
-            //   console.log(`UNRESOLVED INFO: ${fullPath}`, {
-            //     initialValue: state.initialValue,
-            //     lastResult,
-            //     nextRootKey,
-            //     refProps,
-            //   })
-            // }
-          }
+          currResults.push(...(children as DerefResult[]))
+          _result = unwrap(nextDerefed.value)
         }
 
         return {
@@ -158,20 +148,13 @@ function createDerefReducer(
     }
   }
 
-  function dispatch(
-    action:
-      | { type: 'next' }
-      | { type: 'start'; depth: number; reference: ReferenceString },
-  ) {
+  function dispatch(action: Action) {
     const prevState = _state
     _state = reducer(_state, action) as typeof _state
     subscribers?.onUpdate?.(prevState, _state)
   }
 
-  return {
-    getState: () => ({ ..._state, value: _result }),
-    dispatch,
-  }
+  return { getState: () => ({ ..._state, value: _result }), dispatch }
 }
 
 function getRootKey(ref: ReferenceString, rootKey = '' as y.Scalar | string) {
@@ -189,14 +172,10 @@ function deref({
   const reference = unwrap(node) as ReferenceString
   const rootKey = getRootKey(reference, rootKeyProp)
   const derefer = createDerefReducer(root, { rootKey, ...subscribe })
-
-  derefer.dispatch({ type: 'start', reference, depth: ++depth })
-  derefer.getState().paths.forEach(() => derefer.dispatch({ type: 'next' }))
-
-  return {
-    reference,
-    ...u.omit(derefer.getState(), ['paths']),
-  }
+  const { dispatch, getState } = derefer
+  dispatch({ type: ActionType.Start, reference, depth: ++depth })
+  getState().paths.forEach(() => dispatch({ type: ActionType.Next }))
+  return { reference, ...fp.omit(getState(), ['paths']) }
 }
 
 export default deref

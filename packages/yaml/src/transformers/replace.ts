@@ -3,17 +3,17 @@ import is from '../utils/is'
 import type DocRoot from '../DocRoot'
 import * as t from '../types'
 
-function _replace<N extends y.Scalar | y.Pair>(node: N, value: any): N
+function _replace<N extends y.Pair | y.Scalar>(node: N, value: any): N
 
 function _replace<N extends y.YAMLSeq>(node: N, index: number, value: any): N
 
-function _replace<N extends y.YAMLMap | DocRoot>(
+function _replace<N extends DocRoot | y.YAMLMap>(
   node: N,
   key: string,
   value: any,
 ): N
 
-function _replace<N extends t.YAMLNode | DocRoot | y.Pair | y.YAMLMap>(
+function _replace<N extends DocRoot | t.YAMLNode | y.Pair | y.YAMLMap>(
   node: N,
   keyOrIndexOrValue: any,
   value?: any,

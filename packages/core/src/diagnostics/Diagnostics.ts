@@ -113,12 +113,6 @@ class Diagnostics<
   }
 
   async runAsync(args: RunOptions<D, R, H> = {}) {
-    // let composedAssert
-
-    // if (args.rules) {
-    //   composedAssert = composeAsyncRules<D, R, H, Control>(...args.rules)
-    // }
-
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
     try {
       await Promise.all(
