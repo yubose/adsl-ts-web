@@ -1251,6 +1251,7 @@ export const extendedSdkBuiltIns = {
     const currentTime = Math.ceil(new Date().getTime() / 1000)
     const meetingEndTime = action?.meetingEndTime
     const remainTime = meetingEndTime-currentTime-popUpWaitSeconds
+    this.register.setPopUpWaitSeconds(popUpWaitSeconds)
     console.log('test',remainTime)
     if (remainTime > 0){
       setTimeout(
