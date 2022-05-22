@@ -1239,6 +1239,34 @@ export const extendedSdkBuiltIns = {
     }
 
   },
+  async initAutoDC(
+    this: App,
+    action: BuiltInActionObject & {
+      popUpWaitSeconds: number
+      meetingEndTime: number
+    },
+  ) {
+    log.func('initAutoDC')
+    const popUpWaitSeconds = action?.popUpWaitSeconds
+    const currentTime = Math.ceil(new Date().getTime() / 1000)
+    const meetingEndTime = action?.meetingEndTime
+    const remainTime = meetingEndTime-currentTime-popUpWaitSeconds
+    console.log('test',remainTime)
+    if (remainTime > 0){
+      setTimeout(
+        ()=>{
+          const participantsNumber = this.meeting.room.participants?.size
+          console.log('test3',participantsNumber)
+          if(participantsNumber === 0){
+            this.register.extendVideoFunction('showExitWarningView')
+          }
+          
+        },
+        remainTime*1000
+      )
+      
+    }
+  }
 
 }
 

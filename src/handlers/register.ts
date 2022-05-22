@@ -280,7 +280,19 @@ class createRegisters{
         componentObject.eventId = 'showExtendView'
         await handleRegister(componentObject)
         
-      }
+      },
+      async onProviderDisconnect(componentObject: GlobalRegisterComponent){
+        log.func('showExtendView')
+        componentObject.eventId = 'showExtendView'
+        await handleRegister(componentObject)
+        
+      },
+      async showExitWarningView(componentObject: GlobalRegisterComponent){
+        log.func('showExtendView')
+        componentObject.eventId = 'showExtendView'
+        await handleRegister(componentObject)
+        
+      },
     }
 
   }

@@ -63,6 +63,9 @@ export function getSdkHelpers(app: App) {
     get initExtend() {
       return extendedSdkBuiltIns.initExtend.bind(app)
     },
+    get initAutoDC() {
+      return extendedSdkBuiltIns.initAutoDC.bind(app)
+    },
     get extendMeeting() {
       return app.builtIns.get('extendMeeting')?.find(Boolean)?.fn
     },
