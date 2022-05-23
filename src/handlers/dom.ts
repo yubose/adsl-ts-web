@@ -27,6 +27,9 @@ import {
 import App from '../App'
 import is from '../utils/is'
 import { hide } from '../utils/dom'
+import Swiper from 'swiper';
+import '../../node_modules/swiper/swiper-bundle.css';
+
 
 type ToolbarInput = any
 // import { isArray } from 'lodash'
@@ -1481,6 +1484,74 @@ const createExtendedDOMResolvers = function (app: App) {
 
         // Set the initial value
         component.emit('timer:init', initialValue)
+      },
+    },
+    '[App] Rotation': {
+      cond: 'rotation',
+      resolve({ node, component }) {
+        if (node && component) {
+          const dataValue = component.get('data-value');
+          // window.setTimeout(() => {
+
+            node.setAttribute('class', 'swiper');
+
+            let listDom: HTMLUListElement = document.createElement('ul');
+            listDom.setAttribute('class', 'swiper-wrapper');
+
+            for (let index = 0; index < dataValue.length; index++) {
+              let liDom: HTMLLIElement = document.createElement('li')
+              let img: HTMLImageElement = document.createElement('img')
+              img.src = dataValue[index]
+              liDom.appendChild(img);
+              listDom.appendChild(liDom);
+            }
+            for (let index = 0; index < listDom.childElementCount; index++) {
+              (listDom.children[index] as HTMLLIElement).setAttribute(
+                'class',
+                'swiper-slide',
+              )
+              // (dataDom[index] as HTMLDivElement).style.display = "flex"
+            }
+            node.appendChild(listDom);
+
+            // let ulData =  document.createElement("ul") as HTMLUListElement;
+            // pagination.setAttribute("class","swiper-pagination");
+            // node.appendChild(pagination);
+            let pagination: HTMLDivElement = document.createElement('div');
+            pagination.setAttribute('class', 'swiper-pagination')
+            let prevBtn: HTMLDivElement = document.createElement('div');
+            prevBtn.setAttribute('class', 'swiper-button-prev')
+
+            let nextBtn: HTMLDivElement = document.createElement('div');
+            nextBtn.setAttribute('class', 'swiper-button-next')
+            node.appendChild(pagination);
+            node.appendChild(prevBtn);
+            node.appendChild(nextBtn);
+            prevBtn.addEventListener("click",()=>{
+              console.log("111")
+            })
+            // divDom[0].setAttribute("class","swiper-wrapper");
+            // let dataDom = (divDom[0] as HTMLUListElement).getElementsByTagName("li");
+              let mySwiper: Swiper = new Swiper('.swiper', {
+                direction: 'horizontal', // 垂直切换选项
+                loop: true, // 循环模式选项
+
+                // 如果需要分页器
+                pagination: {
+                  el: '.swiper-pagination',
+                },
+
+                // 如果需要前进后退按钮
+                navigation: {
+                  nextEl: '.swiper-button-next',
+                  prevEl: '.swiper-button-prev',
+                },
+            //     observer:true,//修改swiper自己或子元素时，自动初始化swiper
+            // observeParents:true//修改swiper的父元素时，自动初始化swiper
+              })
+
+          // })
+        }
       },
     },
   }
