@@ -27,8 +27,8 @@ import {
 import App from '../App'
 import is from '../utils/is'
 import { hide } from '../utils/dom'
-import Swiper from 'swiper';
-import '../../node_modules/swiper/swiper-bundle.css';
+// import Swiper from 'swiper';
+// import '../../node_modules/swiper/swiper-bundle.css';
 
 
 type ToolbarInput = any
@@ -81,7 +81,6 @@ const createExtendedDOMResolvers = function (app: App) {
             { component, dataKey, pageName },
           )
         }
-
         // TODO - Come back to this to provide more robust functionality
         if (is.folds.emit(component.blueprint.dataValue)) {
           await actionChain?.execute?.(event)
@@ -92,19 +91,16 @@ const createExtendedDOMResolvers = function (app: App) {
             if (!has(draft?.[pageName], dataKey)) {
               const paths = dataKey.split('.')
               const property = paths.length ? paths[paths.length - 1] : ''
-
               let warningMsg = 'Warning: The'
               warningMsg += property ? ` property "${property}" in the ` : ' '
               warningMsg += `dataKey path "${dataKey}" did not exist `
               warningMsg += `in the local root object. `
               warningMsg += `If this is intended then ignore this message.`
-
               log.orange(warningMsg, { component, dataKey, pageName, value })
             }
             set(draft?.[pageName], dataKey, value)
             component.edit('data-value', value)
             node.dataset.value = value
-
             /** TEMP - Hardcoded for SettingsUpdate page to speed up development */
             if (/settings/i.test(pageName)) {
               if (node.dataset?.name === 'code') {
@@ -1490,64 +1486,103 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'rotation',
       resolve({ node, component }) {
         if (node && component) {
+
           const dataValue = component.get('data-value');
-          // window.setTimeout(() => {
-
-            node.setAttribute('class', 'swiper');
-
+          // const dataKey = component;
+          // console.log(dataKey,"sss")
+            node.setAttribute('class', 'swiper-container');
             let listDom: HTMLUListElement = document.createElement('ul');
             listDom.setAttribute('class', 'swiper-wrapper');
-
+            listDom.style.listStyleType = "none"
             for (let index = 0; index < dataValue.length; index++) {
-              let liDom: HTMLLIElement = document.createElement('li')
-              let img: HTMLImageElement = document.createElement('img')
-              img.src = dataValue[index]
-              liDom.appendChild(img);
-              listDom.appendChild(liDom);
+                let liDom: HTMLLIElement = document.createElement('li')
+                if((dataValue[index] as string).endsWith("mp4")){
+                  let videoDom: HTMLVideoElement = document.createElement('video');
+                  // let videoSrcDom: HTMLSourceElement = document.createElement('source');
+                  // videoSrcDom.type = "video/mp4";
+                  // videoSrcDom.src = dataValue[index];
+                  videoDom.src = dataValue[index];
+                  videoDom.setAttribute("controls","controls");
+                  videoDom.setAttribute("preload","auto");
+                  videoDom.setAttribute("width","500");
+                  videoDom.setAttribute("height","400");
+                  // videoDom.appendChild(videoSrcDom);
+                  liDom.appendChild(videoDom);
+                  listDom.appendChild(liDom);
+                console.log(index)
+
+
+              }
+              else
+              {
+                  let img: HTMLImageElement = document.createElement('img')
+                  img.src = dataValue[index]
+                  liDom.appendChild(img);
+                  listDom.appendChild(liDom);
+                console.log(index)
+
+                }
+
             }
             for (let index = 0; index < listDom.childElementCount; index++) {
               (listDom.children[index] as HTMLLIElement).setAttribute(
                 'class',
                 'swiper-slide',
               )
-              // (dataDom[index] as HTMLDivElement).style.display = "flex"
             }
             node.appendChild(listDom);
-
-            // let ulData =  document.createElement("ul") as HTMLUListElement;
-            // pagination.setAttribute("class","swiper-pagination");
-            // node.appendChild(pagination);
-            let pagination: HTMLDivElement = document.createElement('div');
-            pagination.setAttribute('class', 'swiper-pagination')
             let prevBtn: HTMLDivElement = document.createElement('div');
             prevBtn.setAttribute('class', 'swiper-button-prev')
-
             let nextBtn: HTMLDivElement = document.createElement('div');
             nextBtn.setAttribute('class', 'swiper-button-next')
-            node.appendChild(pagination);
+            let pagination: HTMLDivElement = document.createElement('div');
+            pagination.setAttribute('class', 'swiper-pagination')
             node.appendChild(prevBtn);
             node.appendChild(nextBtn);
-            prevBtn.addEventListener("click",()=>{
-              console.log("111")
-            })
+            node.appendChild(pagination);
+            prevBtn.style.display = "none";
+            nextBtn.style.display = "none";
+            // prevBtn.addEventListener("click",()=>{
+            //   console.log("111")
+            // })
             // divDom[0].setAttribute("class","swiper-wrapper");
             // let dataDom = (divDom[0] as HTMLUListElement).getElementsByTagName("li");
-              let mySwiper: Swiper = new Swiper('.swiper', {
-                direction: 'horizontal', // 垂直切换选项
+              let mySwiper: Swiper = new Swiper('.swiper-container', {
+                spaceBetween: 0,
+                // direction: 'horizontal', // 垂直切换选项
                 loop: true, // 循环模式选项
-
-                // 如果需要分页器
-                pagination: {
-                  el: '.swiper-pagination',
-                },
-
-                // 如果需要前进后退按钮
-                navigation: {
-                  nextEl: '.swiper-button-next',
-                  prevEl: '.swiper-button-prev',
-                },
+                // slide的切换效果，默认为"slide"（位移切换），可设置为'slide'（普通切换、默认）,"fade"（淡入）"cube"（方块）"coverflow"（3d流）"flip"（3d翻转）。
+                effect: 'slide',
+                slidesPerView: 1,// 设置slider容器能够同时显示的slides数量(carousel模式)
+                centeredSlides: true, // 设定为true时，active slide会居中，而不是默认状态下的居左。
+                // coverflowEffect: {
+                  //     rotate: 0,
+                  //     stretch: 70, // 指的时后面一张图片被前一张图片遮挡的部分
+                  //     depth: 160, // 图片缩小的部分
+                  //     modifier: 2
+                  // }
+              pagination: {
+                el: '.swiper-pagination',
+                type : 'fraction',
+                          },
+              navigation: {
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+              },
             //     observer:true,//修改swiper自己或子元素时，自动初始化swiper
             // observeParents:true//修改swiper的父元素时，自动初始化swiper
+              })
+              node.addEventListener("mouseover",()=>{
+                prevBtn.style.display = "block";
+              })
+              node.addEventListener("mouseout",()=>{
+                prevBtn.style.display = "none";
+              })
+              node.addEventListener("mouseover",()=>{
+                nextBtn.style.display = "block";
+              })
+              node.addEventListener("mouseout",()=>{
+                nextBtn.style.display = "none";
               })
 
           // })
