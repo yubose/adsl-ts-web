@@ -581,6 +581,9 @@ const createActions = function createActions(app: App) {
             } else if (action?.actionType === 'popUpDismiss') {
               app.register.removeTime('PopUPTimeInterval')
               app.register.removeTime('PopUPToDisconnectTime')
+              if(popUpView === 'providerLeftWarningView' || popUpView === 'exitWarningView'){
+                app.register.extendVideoFunction('onDisconnect')
+              }
             }
           }
         })

@@ -35,6 +35,10 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
       if (event === 'participantConnected') {
         toast(`A participant connected`, { type: 'default' })
       } else if (event === 'participantDisconnected') {
+        const participantsNumber = app.meeting.room.participants?.size
+        if(app.config?.platform && app.config.platform ==='patient' && participantsNumber == 0){
+          app.register.extendVideoFunction('onProviderDisconnect')
+        }
         toast(`A participant disconnected`, { type: 'error' })
       } else if (event === 'participantReconnecting') {
         toast(`A participant is reconnecting`, { type: 'default' })

@@ -1258,7 +1258,7 @@ export const extendedSdkBuiltIns = {
         ()=>{
           const participantsNumber = this.meeting.room.participants?.size
           console.log('test3',participantsNumber)
-          if(participantsNumber === 0){
+          if(participantsNumber == 0){
             this.register.extendVideoFunction('showExitWarningView')
           }
           

@@ -282,14 +282,14 @@ class createRegisters{
         
       },
       async onProviderDisconnect(componentObject: GlobalRegisterComponent){
-        log.func('showExtendView')
-        componentObject.eventId = 'showExtendView'
+        log.func('onProviderDisconnect')
+        componentObject.eventId = 'onProviderDisconnect'
         await handleRegister(componentObject)
         
       },
       async showExitWarningView(componentObject: GlobalRegisterComponent){
-        log.func('showExtendView')
-        componentObject.eventId = 'showExtendView'
+        log.func('showExitWarningView')
+        componentObject.eventId = 'showExitWarningView'
         await handleRegister(componentObject)
         
       },
@@ -376,6 +376,7 @@ class createRegisters{
     const pageName = this.app.mainPage?.getNuiPage().page
     const components = this.app.root?.['VideoChat'].components
     for (const componentObject of components) {
+      console.log(componentObject)
       if (is.component.register(componentObject)) {
         // Already attached a function
         if (u.isFnc(componentObject.onEvent)) continue
