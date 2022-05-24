@@ -33,19 +33,6 @@ class DocDiagnosticsIterator {
     if (preloads.length) preloads.forEach((name) => toFront(name))
     if (pages.length) pages.forEach((page) => toFront(page))
 
-    // console.dir(
-    //   {
-    //     DocDiagnosticsIterator: {
-    //       configKey,
-    //       appConfigKey,
-    //       preloads,
-    //       pages,
-    //       entriesNames: entries.map((entry) => entry[0]),
-    //     },
-    //   },
-    //   { depth: Infinity },
-    // )
-
     return {
       next() {
         return {

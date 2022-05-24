@@ -10,7 +10,7 @@ import type DocRoot from '../DocRoot'
 import { createAssert } from '../assert'
 import * as t from '../types'
 
-export default createAssert<y.Scalar<string> | string>(function assertRef({
+export default createAssert(function assertRef({
   add,
   node,
   markers,

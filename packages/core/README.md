@@ -1,6 +1,6 @@
 # `@noodl/core`
 
-> Zero dependency JavaScript NOODL library to assist with building the next generation of Telemedicine applications in eCOS
+> Zero dependency core JavaScript library for the Neuron Organic Object Description Language (NOODL)
 
 ## Usage
 

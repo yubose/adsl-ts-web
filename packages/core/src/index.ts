@@ -1,9 +1,11 @@
 import * as consts from './constants'
 
+export { default as AppConfig } from './AppConfig'
 export { default as Builder } from './Builder'
 export { default as Diagnostics } from './diagnostics/Diagnostics'
 export { default as deref } from './deref'
 export { default as FileSystem } from './FileSystem'
+export { default as RootConfig } from './RootConfig'
 export { toPath } from './utils/fp'
 export * as fp from './utils/fp'
 export * as is from './utils/is'

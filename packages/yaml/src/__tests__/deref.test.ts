@@ -2,12 +2,13 @@ import { expect } from 'chai'
 import fs from 'fs-extra'
 import path from 'path'
 import sinon from 'sinon'
+import isEqual from 'lodash/isEqual'
 import y from 'yaml'
 import { consts } from '@noodl/core'
 import Root from '../DocRoot'
 import createNode from '../utils/createNode'
 import is from '../utils/is'
-import deref from '../utils/deref'
+import deref, { DerefResult } from '../utils/deref'
 import unwrap from '../utils/unwrap'
 import DocDiagnostics from '../DocDiagnostics'
 import DocVisitor from '../DocVisitor'
@@ -16,28 +17,6 @@ let root: Root
 
 beforeEach(() => {
   root = new Root()
-  root.set('Topo', {
-    formData: {
-      password: '123',
-      email: 'pfft@gmail.com',
-      currentIcon: '..icon',
-      gender: 'Male',
-    },
-    icon: 'arrow.svg',
-  })
-  root.set('SignIn', {
-    email: 'lopez@yahoo.com',
-    components: [
-      { type: 'button', text: '..greeting' },
-      {
-        type: 'view',
-        children: [
-          { type: 'label', text: '.SignIn.email' },
-          { type: 'textField', dataKey: 'SignIn.email' },
-        ],
-      },
-    ],
-  })
 })
 
 describe(`deref`, () => {
@@ -101,8 +80,10 @@ describe(`deref`, () => {
         '0',
         'text',
       ])
+      const value = first.results[0].value
+      const expectedResult = root.get('SignIn').toJSON()
       expect(first.results).to.have.lengthOf(1)
-      expect(first.results[0].value).to.deep.eq(root.get('SignIn').toJS())
+      expect(isEqual(value, expectedResult)).to.be.true
     })
 
     describe(`when the result is another (chained) reference`, () => {
@@ -126,7 +107,7 @@ describe(`deref`, () => {
           })
           const node = createNode('.A.whatIsMyEmail')
           const derefed = deref({ node, root, rootKey: 'A' })
-          const results = derefed.results
+          const results = derefed.results as DerefResult[]
           const [first, second, third, fourth, fifth, sixth, seventh] = results
           const A = first.value
           expect(first).to.have.property('key', 'A')
@@ -172,22 +153,8 @@ describe(`deref`, () => {
           const node = createNode('.A.components.0.text')
           const derefed = deref({ node, root, rootKey: 'A' })
           const results = derefed.results
-          const [
-            first,
-            second,
-            third,
-            fourth,
-            fifth,
-            sixth,
-            seventh,
-            eighth,
-            ninth,
-            tenth,
-            eleventh,
-            twelve,
-            thirteenth,
-            fourteenth,
-          ] = results
+          // prettier-ignore
+          const [ first, second, third, fourth, fifth, sixth, seventh, eighth, ninth, tenth, eleventh, twelve, thirteenth, fourteenth, ] = results as DerefResult[]
 
           const A = root.get('A').toJS()
           const B = root.get('B').toJS()
@@ -240,138 +207,99 @@ describe(`deref`, () => {
     })
   })
 
-  it.skip(`should update the next state's results expectedly`, () => {
-    const spy = sinon.spy()
-    const ref = '.SignIn.components.1.children.0.text'
-    deref({ node: ref, root, rootKey: 'SignIn', subscribe: { onUpdate: spy } })
-    const firstCallResults = spy.getCall(0).args[1].results
-    const secondCallResults = spy.getCall(1).args[1].results
-    const thirdCallResults = spy.getCall(2).args[1].results
-    const fourthCallResults = spy.getCall(3).args[1].results
-    const fifthCallResults = spy.getCall(4).args[1].results
-    const sixthCallResults = spy.getCall(5).args[1].results
-    const SignIn = secondCallResults[0].value
-    const components = SignIn.components
-    const componentsChild1 = components[1] as any
-    const componentsChild1Children = componentsChild1.children
-
-    console.dir(spy.getCall(0).args, { depth: Infinity })
-    // expect(secondCallResults[0]).to.have.property('key', 'SignIn')
-    // expect(secondCallResults[0]).to.have.deep.property('value', SignIn)
-    // expect(secondCallResults[1]).to.have.property('key', 'components')
-    // expect(secondCallResults[1]).to.have.deep.property('value', components)
-    // expect(thirdCallResults[0]).to.have.property('key', 'SignIn')
-    // expect(thirdCallResults[1]).to.have.property('key', 'components')
-    // expect(thirdCallResults[2]).to.have.property('key', '1')
-    // expect(thirdCallResults[0]).to.have.property('value', SignIn)
-    // expect(thirdCallResults[1]).to.have.deep.property('value', components)
-    // expect(thirdCallResults[2]).to.have.deep.property('value', componentsChild1)
-    // const prevResults = [
-    //   ['SignIn', SignIn],
-    //   ['components', components],
-    //   ['1', componentsChild1],
-    //   ['children', componentsChild1Children],
-    // ]
-    // expect(fourthCallResults[0].key).to.eq('SignIn')
-    // prevResults.forEach(([key, result], index) => {
-    //   expect(fourthCallResults[index]).to.have.deep.property('key', key)
-    //   expect(fourthCallResults[index]).to.have.deep.property('value', result)
-    // })
-    // prevResults.push(['0', componentsChild1Children[0] as any])
-    // prevResults.forEach(([key, result], index) => {
-    //   expect(fifthCallResults[index]).to.have.deep.property('key', key)
-    //   expect(fifthCallResults[index]).to.have.deep.property('value', result)
-    // })
-    // prevResults.push(['text', 'lopez@yahoo.com'])
-    // prevResults.forEach(([key, result], index) => {
-    //   expect(sixthCallResults[index]).to.have.deep.property('key', key)
-    //   expect(sixthCallResults[index]).to.have.deep.property('value', result)
-    // })
-    // console.dir(
-    //   spy.getCalls().map((call) => call.args),
-    //   { depth: Infinity },
-    // )
-  })
-
-  it(`should set resolved references on the "value" key `, () => {
-    const ref = '.SignIn.components.1.children.0.text'
-    const result = deref({
-      node: ref,
-      root,
-      rootKey: 'SignIn',
-    })
-    expect(result).to.have.property('value', 'lopez@yahoo.com')
-  })
-
-  it(`should be able to resolve multiple chains of root references`, () => {
-    const signinDoc = root.get('SignIn')
-    const topoDoc = root.get('Topo')
-    root.set('Pencil', {
-      listObject: [
-        'hi',
-        3,
-        {
-          options: [
-            {
-              gender: [
-                { value: 'Female' },
-                { value: '.SignIn.formData.gender' },
-                { value: 'Other' },
-              ],
-              findGender: '.Topo.redirect.realGenderLocation',
-            },
-          ],
+  {
+    beforeEach(() => {
+      root.set('Topo', {
+        formData: {
+          password: '123',
+          email: 'pfft@gmail.com',
+          currentIcon: '..icon',
+          gender: 'Male',
         },
-        { what: {} },
-      ],
+        icon: 'arrow.svg',
+      })
+      root.set('SignIn', {
+        email: 'lopez@yahoo.com',
+        components: [
+          { type: 'button', text: '..greeting' },
+          {
+            type: 'view',
+            children: [
+              { type: 'label', text: '.SignIn.email' },
+              { type: 'textField', dataKey: 'SignIn.email' },
+            ],
+          },
+        ],
+      })
     })
-    signinDoc.set('dog', '.Topo.findMyGender')
-    topoDoc.set('findMyGender', '.Pencil.listObject.2.options.0.findGender')
-    topoDoc.set('redirect', {
-      realGenderLocation: '.Pencil.listObject.2.options.0.gender.1.value',
-    })
-    signinDoc.set('formData', { gender: '.Topo.formData.gender' })
-    expect(
-      deref({
-        node: new y.Scalar('.SignIn.dog'),
-        root,
-        rootKey: 'SignIn',
-      }),
-    ).to.have.property('value', 'Male')
-  })
 
-  it(`should be able to resolve multiple chains of local references`, () => {
-    const getResult = (ref: string) =>
-      deref({
+    it(`should set resolved references on the "value" key `, () => {
+      const ref = '.SignIn.components.1.children.0.text'
+      const result = deref({
         node: ref,
         root,
-        rootKey: 'Topo',
-      }).value
-    const topoDoc = root.get('Topo')
-    topoDoc.set('cat', '..formData.currentIcon')
-    expect(getResult('..formData.currentIcon')).to.eq('arrow.svg')
-    topoDoc.set('cat', {
-      cloudy: {
-        sunset: {
-          oneOf: ['abc', '..formData.currentIcon'],
-        },
-      },
+        rootKey: 'SignIn',
+      })
+      expect(result).to.have.property('value', 'lopez@yahoo.com')
     })
-    expect(getResult('..formData.currentIcon')).to.eq('arrow.svg')
-  })
 
-  it.skip(`should correctly set the "resolved" key/value in each result`, () => {
-    const topoDoc = root.get('Topo')
-    topoDoc.set('a', '..b')
-    topoDoc.set('a', '.Topo.c')
-    topoDoc.set('c', '..formData.currentIcon')
-    const derefed = deref({
-      node: root.get('Topo.a'),
-      root,
-      rootKey: 'Topo',
+    it(`should be able to resolve multiple chains of root references`, () => {
+      const signinDoc = root.get('SignIn')
+      const topoDoc = root.get('Topo')
+      root.set('Pencil', {
+        listObject: [
+          'hi',
+          3,
+          {
+            options: [
+              {
+                gender: [
+                  { value: 'Female' },
+                  { value: '.SignIn.formData.gender' },
+                  { value: 'Other' },
+                ],
+                findGender: '.Topo.redirect.realGenderLocation',
+              },
+            ],
+          },
+          { what: {} },
+        ],
+      })
+      signinDoc.set('dog', '.Topo.findMyGender')
+      topoDoc.set('findMyGender', '.Pencil.listObject.2.options.0.findGender')
+      topoDoc.set('redirect', {
+        realGenderLocation: '.Pencil.listObject.2.options.0.gender.1.value',
+      })
+      signinDoc.set('formData', { gender: '.Topo.formData.gender' })
+      expect(
+        deref({
+          node: new y.Scalar('.SignIn.dog'),
+          root,
+          rootKey: 'SignIn',
+        }),
+      ).to.have.property('value', 'Male')
     })
-    console.dir(derefed, { depth: Infinity })
-  })
+
+    it(`should be able to resolve multiple chains of local references`, () => {
+      const getResult = (ref: string) =>
+        deref({
+          node: ref,
+          root,
+          rootKey: 'Topo',
+        }).value
+      const topoDoc = root.get('Topo')
+      topoDoc.set('cat', '..formData.currentIcon')
+      expect(getResult('..formData.currentIcon')).to.eq('arrow.svg')
+      topoDoc.set('cat', {
+        cloudy: {
+          sunset: {
+            oneOf: ['abc', '..formData.currentIcon'],
+          },
+        },
+      })
+      expect(getResult('..formData.currentIcon')).to.eq('arrow.svg')
+    })
+  }
 
   describe(`when unable to resolve multiple chains of references`, () => {
     describe(`when a path is missing during traversing`, () => {
@@ -422,7 +350,7 @@ describe(`deref`, () => {
 
       it.skip(`should set the overall result value as the last valid reference attempted`, () => {
         const derefed = deref({ node: refNode, root, rootKey: 'Tiger' })
-        const results = derefed.results
+        const results = derefed.results as DerefResult[]
         const lastResult = results[results.length - 1]
         console.dir(derefed, { depth: Infinity })
         expect(derefed).to.have.property('value', lastValidRef)
@@ -434,8 +362,7 @@ describe(`deref`, () => {
       it.skip(`should set the last resolvable ref as its final value`, () => {
         const ref = createNode('.Tiger.formData.userProfile')
         const derefed = deref({ node: ref, root, rootKey: 'Tiger' })
-        const results = derefed.results
-        console.log(results)
+        const results = derefed.results as DerefResult[]
         expect(results).to.have.lengthOf(14)
         expect(results[13]).to.have.property('key', 'userProfile')
         expect(results[13]).to.have.property('value', '.Resource.user')

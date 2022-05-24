@@ -3,7 +3,7 @@ import { is as coreIs } from '@noodl/core'
 import y from 'yaml'
 import createNode from '../utils/createNode'
 import deref from '../utils/deref'
-import getNodeKind from '../utils/getNodeKind'
+import getYamlNodeKind from '../utils/getYamlNodeKind'
 import is from '../utils/is'
 import unwrap from '../utils/unwrap'
 import type DocRoot from '../DocRoot'
@@ -12,7 +12,7 @@ import * as t from '../types'
 
 export interface MergeOptions {
   root?: DocRoot
-  rootKey?: t.StringNode
+  rootKey?: y.Scalar<string> | string
 }
 
 function isMergingRef<S extends string>(refOrNode: S | y.Scalar<S>) {
@@ -50,7 +50,7 @@ function _merge<N extends t.YAMLNode>(
     return ref ? deref({ node: ref, root, rootKey }).value : refOrNode
   }
 
-  switch (getNodeKind(node)) {
+  switch (getYamlNodeKind(node)) {
     case c.Kind.Map:
     case c.Kind.Seq:
     case c.Kind.Pair:
@@ -62,7 +62,7 @@ function _merge<N extends t.YAMLNode>(
         mergingValue = createNode(refOrNode as any)
       }
 
-      switch (getNodeKind(mergingValue)) {
+      switch (getYamlNodeKind(mergingValue)) {
         case c.Kind.Unknown:
         case c.Kind.Seq:
         case c.Kind.Pair:

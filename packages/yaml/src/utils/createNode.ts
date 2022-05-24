@@ -1,6 +1,6 @@
 import y from 'yaml'
 import { fp, is } from '@noodl/core'
-import getNodeKind from './getNodeKind'
+import getYamlNodeKind from './getYamlNodeKind'
 import * as c from '../constants'
 
 function createNode<N extends Record<string, any>>(
@@ -16,7 +16,7 @@ function createNode<K extends string, V = any>(key: K, value?: V): y.Pair<K, V>
 function createNode<N extends any[]>(value: N): y.YAMLSeq<N[number]>
 
 function createNode<N = unknown>(keyOrValue: N, value?: any) {
-  switch (getNodeKind(keyOrValue)) {
+  switch (getYamlNodeKind(keyOrValue)) {
     case c.Kind.Scalar:
     case c.Kind.Pair:
     case c.Kind.Map:

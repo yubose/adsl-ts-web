@@ -7,7 +7,7 @@ import {
   trimReference,
 } from '@noodl/core'
 import is from './is'
-import getNodeKind from './getNodeKind'
+import getYamlNodeKind from './getYamlNodeKind'
 import { Kind } from '../constants'
 
 export interface GetOptions {
@@ -50,7 +50,7 @@ function get(
   }
 
   if (is.ymlNode(node)) {
-    switch (getNodeKind(node)) {
+    switch (getYamlNodeKind(node)) {
       case Kind.Map: {
         const nextKey = key.shift()
         const nextValue = (node as y.YAMLMap).get(nextKey, true)

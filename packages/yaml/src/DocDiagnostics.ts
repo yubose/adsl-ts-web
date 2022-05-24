@@ -1,6 +1,6 @@
 import { Diagnostics, is as coreIs } from '@noodl/core'
 import type { Builder, TranslatedDiagnosticObject } from '@noodl/core'
-import getNodeKind from './utils/getNodeKind'
+import getYamlNodeKind from './utils/getYamlNodeKind'
 import DocDiagnosticsIterator from './DocDiagnosticsIterator'
 import DocRoot from './DocRoot'
 import * as c from './constants'
@@ -22,7 +22,7 @@ class DocDiagnostics extends Diagnostics<
     const diagnostic = super.createDiagnostic(opts)
 
     if (node) {
-      const kind = getNodeKind(node)
+      const kind = getYamlNodeKind(node)
 
       switch (kind) {
         case c.Kind.Scalar:

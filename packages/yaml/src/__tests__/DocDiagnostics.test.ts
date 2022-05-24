@@ -1,11 +1,8 @@
 import { expect } from 'chai'
 import y from 'yaml'
 import sinon from 'sinon'
-import fs from 'fs-extra'
-import path from 'path'
-import { consts, is as coreIs } from '@noodl/core'
+import { consts, fp, is as coreIs } from '@noodl/core'
 import assertRef from '../asserters/assertRef'
-import { createAssert, createAsyncAssert } from '../assert'
 import createNode from '../utils/createNode'
 import deref from '../utils/deref'
 import is from '../utils/is'
@@ -22,73 +19,44 @@ beforeEach(() => {
   docDiagnostics = new DocDiagnostics()
   docRoot = new DocRoot()
   docVisitor = new DocVisitor()
-
   docDiagnostics.use(docVisitor)
   docDiagnostics.use(docRoot)
-
-  docRoot.set('BaseHeader', {
-    type: 'header',
-    style: { width: '1', height: 'auto', top: '0.1', left: '0.125' },
-  })
-
-  docRoot.set('Cereal', {
-    icon: '..realIcon',
-    realIcon: 'you-found-me.png',
-    components: [
-      '.BaseHeader',
-      { type: 'button', text: '..icon' },
-      { type: 'label', text: '..iconName' },
-    ],
-  })
 })
 
 describe(`DocDiagnostics`, () => {
+  it(`[mark] should mark the rootConfig`, () => {
+    expect(docDiagnostics.markers.rootConfig).to.eq('')
+    docDiagnostics.mark('rootConfig', 'admind3')
+    expect(docDiagnostics.markers.rootConfig).to.eq('admind3')
+  })
+
+  it(`[mark] should mark the appConfig`, () => {
+    expect(docDiagnostics.markers.appConfig).to.eq('')
+    docDiagnostics.mark('appConfig', 'cadlEndpoint')
+    expect(docDiagnostics.markers.appConfig).to.eq('cadlEndpoint')
+  })
+
+  it(`[mark] should mark preload pages`, () => {
+    expect(docDiagnostics.markers.preload).to.be.empty
+    docDiagnostics.mark('preload', 'BaseCSS')
+    expect(docDiagnostics.markers.preload).to.have.lengthOf(1)
+    expect(docDiagnostics.markers.preload[0]).to.eq('BaseCSS')
+    docDiagnostics.mark('preload', 'BasePage')
+    expect(docDiagnostics.markers.preload).to.have.lengthOf(2)
+    expect(docDiagnostics.markers.preload[1]).to.eq('BasePage')
+  })
+
+  it(`[mark] should mark pages`, () => {
+    expect(docDiagnostics.markers.pages).to.be.empty
+    docDiagnostics.mark('page', 'Dashboard')
+    expect(docDiagnostics.markers.pages).to.have.lengthOf(1)
+    expect(docDiagnostics.markers.pages[0]).to.eq('Dashboard')
+    docDiagnostics.mark('page', 'SignOut')
+    expect(docDiagnostics.markers.pages).to.have.lengthOf(2)
+    expect(docDiagnostics.markers.pages[1]).to.eq('SignOut')
+  })
+
   describe(`asserts`, () => {
-    xdescribe(`createAssert`, () => {
-      it(`should add indent, offset, and range automatically`, () => {
-        const spy = sinon.spy()
-        // const node = createNode('.Cereal.icon')
-        const results = docDiagnostics.run({
-          enter: ({ add, node }) => {
-            add({})
-          },
-        })
-        docDiagnostics.print(results)
-      })
-    })
-
-    it(`[mark] should mark the rootConfig`, () => {
-      expect(docDiagnostics.markers.rootConfig).to.eq('')
-      docDiagnostics.mark('rootConfig', 'admind3')
-      expect(docDiagnostics.markers.rootConfig).to.eq('admind3')
-    })
-
-    it(`[mark] should mark the appConfig`, () => {
-      expect(docDiagnostics.markers.appConfig).to.eq('')
-      docDiagnostics.mark('appConfig', 'cadlEndpoint')
-      expect(docDiagnostics.markers.appConfig).to.eq('cadlEndpoint')
-    })
-
-    it(`[mark] should mark preload pages`, () => {
-      expect(docDiagnostics.markers.preload).to.be.empty
-      docDiagnostics.mark('preload', 'BaseCSS')
-      expect(docDiagnostics.markers.preload).to.have.lengthOf(1)
-      expect(docDiagnostics.markers.preload[0]).to.eq('BaseCSS')
-      docDiagnostics.mark('preload', 'BasePage')
-      expect(docDiagnostics.markers.preload).to.have.lengthOf(2)
-      expect(docDiagnostics.markers.preload[1]).to.eq('BasePage')
-    })
-
-    it(`[mark] should mark pages`, () => {
-      expect(docDiagnostics.markers.pages).to.be.empty
-      docDiagnostics.mark('page', 'Dashboard')
-      expect(docDiagnostics.markers.pages).to.have.lengthOf(1)
-      expect(docDiagnostics.markers.pages[0]).to.eq('Dashboard')
-      docDiagnostics.mark('page', 'SignOut')
-      expect(docDiagnostics.markers.pages).to.have.lengthOf(2)
-      expect(docDiagnostics.markers.pages[1]).to.eq('SignOut')
-    })
-
     describe(`assertRef`, () => {
       it(`should replace tilde references`, () => {
         docRoot.clear()
@@ -129,14 +97,22 @@ describe(`DocDiagnostics`, () => {
               (coreIs.reference(args.node) && assertRef(args))
             ),
         })
-        const Cereal = docRoot.get('Cereal').toJSON()
-        const Tower = docRoot.get('Tower').toJSON()
-        expect(unwrap(Cereal.profile.user.avatar)).to.eq('you-found-me.png')
-        expect(unwrap(Cereal.icon)).to.eq('you-found-me.png')
-        expect(unwrap(Cereal.components[0].text)).to.eq('you-found-me.png')
-        expect(Tower.profile).to.deep.eq(Cereal.profile)
-        expect(Tower.props.profile).to.deep.eq(Cereal.profile)
-        expect(Tower.components[0].children[0].props).to.deep.eq(Tower.props)
+        const Cereal = docRoot.get('Cereal') as y.YAMLMap
+        const Tower = docRoot.get('Tower') as y.YAMLMap
+        expect(Cereal.getIn(fp.path('profile.user.avatar'))).to.eq(
+          'you-found-me.png',
+        )
+        expect(Cereal.get('icon')).to.eq('you-found-me.png')
+        expect(Cereal.getIn(fp.path('components.0.text'))).to.eq(
+          'you-found-me.png',
+        )
+        expect(Tower.get('profile')).to.eq(Cereal.get('profile'))
+        expect(Tower.getIn(fp.path('props.profile'))).to.eq(
+          Cereal.get('profile'),
+        )
+        expect(Tower.getIn(fp.path('components.0.children.0.props'))).to.eq(
+          Tower.get('props'),
+        )
       })
 
       it(`should add unresolvable references to diagnostics`, () => {
@@ -185,8 +161,6 @@ describe(`DocDiagnostics`, () => {
         })
 
         docDiagnostics.print(diagnostics)
-
-        console.dir(docRoot.toJSON(), { depth: Infinity })
       })
     })
   })

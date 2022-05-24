@@ -18,7 +18,7 @@ describe(`unwrap`, () => {
       },
       icon: 'arrow.svg',
     })
-    expect(unwrap(doc)).to.eq(doc.contents)
+    expect(unwrap(doc)).to.deep.eq(doc.contents)
   })
 
   it(`should unwrap value from DocRoot`, () => {

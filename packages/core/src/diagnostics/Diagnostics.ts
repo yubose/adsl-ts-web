@@ -1,8 +1,11 @@
 import * as fp from '../utils/fp'
 import * as t from '../types'
+import AppConfig from '../AppConfig'
+import RootConfig from '../RootConfig'
 import Builder from '../Builder'
 import Diagnostic from './Diagnostic'
 import { translateDiagnosticType } from './utils'
+import { ValidatorType } from '../constants'
 import type {
   IDiagnostics,
   DefaultMarkerKey,
@@ -12,7 +15,6 @@ import type {
   RunOptions,
   TranslatedDiagnosticObject,
 } from './diagnosticsTypes'
-import { ValidatorType } from '../constants'
 
 class Diagnostics<
     D extends DiagnosticObject = DiagnosticObject,
@@ -22,16 +24,9 @@ class Diagnostics<
   extends Builder
   implements IDiagnostics
 {
-  #markers = {
-    assetsUrl: '',
-    baseUrl: '',
-    rootConfig: '',
-    appConfig: '',
-    preload: [],
-    pages: [],
-  } as Markers;
-
-  // rules = [] as DiagnosticAssert[];
+  #appConfig: AppConfig
+  #rootConfig: RootConfig
+  #markers = { rootConfig: '', appConfig: '' } as Markers;
 
   [Symbol.iterator](): Iterator<[name: string, node: unknown], any, any> {
     // @ts-expect-error
@@ -40,17 +35,17 @@ class Diagnostics<
 
   constructor() {
     super()
+    this.#rootConfig = new RootConfig()
+    this.#appConfig = new AppConfig()
   }
 
   get markers() {
+    this.#markers.assetsUrl = this.#appConfig.assetsUrl
+    this.#markers.baseUrl = this.#rootConfig.cadlBaseUrl
+    this.#markers.preload = this.#appConfig.preload
+    this.#markers.pages = this.#appConfig.page
     return this.#markers
   }
-
-  // assert(fn: DiagnosticAssertFn) {
-  //   const assert = new DiagnosticAssert(fn)
-  //   this.rules.push(assert)
-  //   return this
-  // }
 
   createDiagnostic(
     opts?: Partial<DiagnosticObject | TranslatedDiagnosticObject>,
@@ -74,7 +69,11 @@ class Diagnostics<
 
   mark(flag: DefaultMarkerKey, value: any) {
     if (/preload|page/.test(flag)) {
-      this.markers[flag === 'preload' ? flag : 'pages'].push(value)
+      this.#appConfig[flag].push(value)
+    } else if (flag === 'baseUrl') {
+      this.#rootConfig.cadlBaseUrl = value
+    } else if (flag === 'assetsUrl') {
+      this.#appConfig.assetsUrl = value
     } else {
       this.markers[flag] = value
     }

@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+import sinon from 'sinon'
 import y from 'yaml'
 import { consts } from '@noodl/core'
 import Root from '../DocRoot'
@@ -8,6 +9,8 @@ import is from '../utils/is'
 import deref from '../utils/deref'
 import DocDiagnostics from '../DocDiagnostics'
 import DocVisitor from '../DocVisitor'
+import * as com from '../compiler'
+import * as c from '../constants'
 
 let docDiagnostics: DocDiagnostics
 let docRoot: Root

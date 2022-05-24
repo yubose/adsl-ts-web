@@ -1,7 +1,7 @@
 import y from 'yaml'
 import createNode from './createNode'
 import is from './is'
-import getNodeKind from './getNodeKind'
+import getYamlNodeKind from './getYamlNodeKind'
 import { Kind } from '../constants'
 
 function set(
@@ -16,7 +16,7 @@ function set(
     node.set(key, createNode(value))
   } else {
     if (is.ymlNode(node)) {
-      switch (getNodeKind(node)) {
+      switch (getYamlNodeKind(node)) {
         case Kind.Seq:
         case Kind.Map:
         case Kind.Document: {

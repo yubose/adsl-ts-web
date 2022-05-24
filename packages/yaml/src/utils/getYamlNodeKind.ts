@@ -1,7 +1,7 @@
 import * as c from '../constants'
 import getNodeType from './getNodeType'
 
-function getNodeKind(node: unknown) {
+function getYamlNodeKind(node: unknown) {
   switch (getNodeType(node)) {
     case 'Scalar':
       return c.Kind.Scalar
@@ -18,4 +18,4 @@ function getNodeKind(node: unknown) {
   }
 }
 
-export default getNodeKind
+export default getYamlNodeKind

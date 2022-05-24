@@ -99,7 +99,7 @@ export interface StyleObject {
    * { "fontStyle": "bold" }
    * ```
    */
-  fontStyle?: 'bold' | string
+  fontStyle?: string | 'bold'
   fontWeight?: string
   /**
    * @example
@@ -115,7 +115,7 @@ export interface StyleObject {
    * { "isHidden": "true" }
    * ```
    */
-  isHidden?: string | boolean
+  isHidden?: boolean | string
   justifyContent?: string
   /**
    * @example
@@ -281,7 +281,7 @@ export interface StyleObject {
    * { "zIndex": "1000" }
    * ```
    */
-  zIndex?: string | number
+  zIndex?: number | string
   [key: string]: any
 }
 
@@ -291,23 +291,76 @@ export type StyleAxis = 'horizontal' | 'vertical'
 
 export interface StyleBorderObject {
   style?: '1' | '2' | '3' | '4' | '5' | '6' | '7' | 1 | 2 | 3 | 4 | 5 | 6 | 7
-  width?: string | number
-  color?: string | number
+  width?: number | string
+  color?: number | string
   line?: string // ex: "solid"
   [key: string]: any
 }
 
 export type StyleTextAlign =
-  | 'left'
-  | 'center'
-  | 'right'
   | StyleAlign
   | StyleTextAlignObject
+  | 'center'
+  | 'left'
+  | 'right'
 
 export interface StyleTextAlignObject {
-  x?: 'left' | 'center' | 'right' | 'centerX'
-  y?: 'left' | 'center' | 'right' | 'centerY'
+  x?: 'center' | 'centerX' | 'left' | 'right'
+  y?: 'center' | 'centerY' | 'left' | 'right'
 }
 
-export type VpUnit = 'vw' | 'vh'
+export type VpUnit = 'vh' | 'vw'
 export type VpValue = `${string}${VpUnit}`
+
+export type KnownStyleKeys =
+  | 'align'
+  | 'axis'
+  | 'background'
+  | 'backgroundColor'
+  | 'border'
+  | 'borderColor'
+  | 'borderRadius'
+  | 'borderWidth'
+  | 'boxShadow'
+  | 'boxSizing'
+  | 'color'
+  | 'contentSize'
+  | 'display'
+  | 'flex'
+  | 'flexFlow'
+  | 'float'
+  | 'fontColor'
+  | 'fontFamily'
+  | 'fontSize'
+  | 'fontStyle'
+  | 'fontWeight'
+  | 'height'
+  | 'isHidden'
+  | 'justifyContent'
+  | 'left'
+  | 'letterSpacing'
+  | 'lineHeight'
+  | 'marginBottom'
+  | 'marginLeft'
+  | 'marginRight'
+  | 'marginTop'
+  | 'maxHeight'
+  | 'maxWidth'
+  | 'minHeight'
+  | 'minWidth'
+  | 'outline'
+  | 'padding'
+  | 'paddingBottom'
+  | 'paddingLeft'
+  | 'paddingRight'
+  | 'paddingTop'
+  | 'position'
+  | 'required'
+  | 'shadow'
+  | 'textAlign'
+  | 'textColor'
+  | 'textDecoration'
+  | 'textIndent'
+  | 'top'
+  | 'width'
+  | 'zIndex'
