@@ -17,7 +17,7 @@ import { Client as SearchClient } from 'elasticsearch-browser'
 
 export const lvl3Options = {
   baseConfigUrl: 'https://public.aitmed.com/config',
-  app: 'prod2',
+  app: 'analysis',
   get url() {
     // ONLY used if passed in as cli args via --env APP=<config name>
     // See webpack.config.js for details in the "_getLocalAppHelpers" function

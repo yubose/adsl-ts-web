@@ -4,7 +4,7 @@ Dashboard:
     - =.builtIn.diagnostics:
         dataIn: ..config
         dataOut: Dashboard.diagnostics
-  config: testpage
+  config: warrior
   diagnostics: null
   components:
     - .BaseHeader:
