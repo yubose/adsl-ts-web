@@ -7,7 +7,7 @@ Dashboard:
           filter:
             - medical
         dataOut: Dashboard.diagnostics
-  config: testpage
+  config: warrior
   diagnostics: null
   components:
     - .BaseHeader:

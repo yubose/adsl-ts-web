@@ -9,6 +9,17 @@ import assertRef from '../modules/diagnostics/assertRef'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {
+    async fetch(dataIn: string) {
+      try {
+        const response = await axios.get(dataIn)
+        console.log(`=.builtIn.fetch response data`, response.data)
+        return response.data
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        console.error(err)
+        return err
+      }
+    },
     toString(str: string) {
       console.log({ args: arguments })
 
@@ -101,18 +112,36 @@ export function getSdkHelpers(app: App) {
             ).data
 
         let rootConfigYml = ''
+        let configUrl = `https://public.aitmed.com/config/${configKey}.yml`
 
         try {
-          rootConfigYml = (
-            await axios.get(`https://public.aitmed.com/config/${configKey}.yml`)
-          ).data
+          rootConfigYml = (await axios.get(configUrl)).data
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
-          console.error(err)
+          const is404 = axios.isAxiosError(err) && err.response?.status === 404
+          if (is404) {
+            // Fallback to loading locally
+            console.error(
+              `The endpoint using config "${configKey}" at ${configUrl} returned a 404. ` +
+                `Falling back to look locally now`,
+              err,
+            )
+            rootConfigYml = (await axios.get(`/${configKey}.yml`)).data
+            // rootConfigYml = (await axios.get(`/${configKey}.yml`)).data
+          } else {
+            console.error(err)
+          }
         }
 
-        const { DocDiagnostics, DocRoot, DocVisitor, is, unwrap } =
-          await import('@noodl/yaml')
+        const {
+          assertRef,
+          DocDiagnostics,
+          DocRoot,
+          DocVisitor,
+          is,
+          toDoc,
+          unwrap,
+        } = await import('@noodl/yaml')
 
         const docDiagnostics = new DocDiagnostics()
         const docRoot = new DocRoot()
@@ -132,35 +161,25 @@ export function getSdkHelpers(app: App) {
           designSuffix: '',
         })
 
-        const baseUrl = replaceNoodlPlaceholders(
-          rootDoc?.get?.('cadlBaseUrl', false),
-        )
-
+        const baseUrl = replaceNoodlPlaceholders(rootDoc?.get?.('cadlBaseUrl'))
         const fetchYml = createFetcherWithBaseUrl(baseUrl)
-
-        const appDoc = docRoot.toDocument(
-          await fetchYml(rootDoc?.get?.('cadlMain', false) as string),
-        )
-
+        const appDoc = toDoc(await fetchYml(rootDoc?.get?.('cadlMain') as any))
         const { preload = [], page: pages = [] } = appDoc.toJSON?.() || {}
 
         const loadYmls = async (type: 'page' | 'preload') => {
           let arr = type === 'page' ? pages : preload
 
-          if (filter) {
-            arr = arr.filter((page: string) => filter?.test(page))
-          }
+          const { preload = [], page: pages = [] } = appDoc.toJSON?.() || {}
 
           await Promise.all(
             arr.map(async (page: string) => {
               try {
+                docDiagnostics.mark(type, page)
                 page = unwrap(page)
                 const pathname = `${page}_en.yml`
                 const yml = await fetchYml(pathname)
-                const doc = docRoot.toDocument(yml)
-                if (doc.has(page)) {
-                  doc.contents = (doc.contents as y.YAMLMap).get(page)
-                }
+                const doc = toDoc(yml) as y.Document<y.YAMLMap>
+                if (doc.has(page)) doc.contents = doc.contents?.get(page) as any
                 if (type === 'preload') {
                   if (y.isMap(doc.contents)) {
                     doc.contents?.items.forEach((pair) => {
@@ -174,6 +193,11 @@ export function getSdkHelpers(app: App) {
                 console.error(
                   error instanceof Error ? error : new Error(String(error)),
                 )
+              }
+              if (y.isMap(doc.contents)) {
+                doc.contents?.items.forEach((pair) => {
+                  docRoot.set(unwrap(pair.key), pair.value)
+                })
               }
             }),
           )

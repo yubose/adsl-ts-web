@@ -22,6 +22,11 @@ const readFile = (s) => fs.readFileSync(s, 'utf8')
 const { bold, cyan, magenta, newline, yellow, white } = u
 
 const paths = {
+  analytics: {
+    base: getFilePath('analytics'),
+    app: getFilePath('analytics/app'),
+    testpage: getFilePath('analytics/testpage'),
+  },
   build: getFilePath('build'),
   public: getFilePath('public'),
   pkg: {
@@ -45,7 +50,7 @@ function getWebpackConfig(env) {
 
   // Analysis is not run in production
   let staticPaths = [paths.public]
-  staticPaths.push('analysis', 'analysis/app')
+  staticPaths.push('analysis')
 
   if (!ecosEnv) {
     log(
@@ -120,74 +125,18 @@ function getWebpackConfig(env) {
       ],
       onAfterSetupMiddleware: function (devServer) {
         if (devServer) {
-          const n = require('@noodl/core')
-          const ny = require('@noodl/yaml')
-
-          /** @type { import('./dev/analysis').runDiagnostics } */
-          let runDiagnostics
-
-          // const diagnostics = new n.Diagnostics()
-          // const docRoot = new ny.DocRoot()
-          // const docVisitor = new ny.DocVisitor()
-          // const nfs = ny.createFileSystem({
-          //   existsSync: fs.existsSync,
-          //   parseFilePath: path.parse,
-          //   readFile: fs.readFileSync,
-          //   writeFile: fs.writeFileSync,
-          //   readJson: fs.readJsonSync,
-          //   writeJson: fs.writeJsonSync,
-          //   readdir: fs.readdirSync,
-          // })
-
-          // diagnostics.use(docRoot)
-          // diagnostics.use(docVisitor)
-          // docRoot.use(nfs)
-
-          for (const method of ['get', 'post']) {
-            devServer.app[method](
-              `/diagnostics/:config`,
-              async function (req, res) {
-                for (const key of u.keys(require.cache)) {
-                  if (u.isStr(key) && key.includes('analysis.js')) {
-                    console.log(`[${u.yellow(key)}]`)
-                    delete require.cache[key]
-                    break
-                  }
-                }
-
-                runDiagnostics = require('./dev/analysis').runDiagnostics
-
-                console.log(
-                  `[${method}] ${u.yellow(`/diagnosis/${req.params.config}`)}`,
-                )
-
-                const configKey = req.params.config
-                const pathToAppDir = path.join(paths.generated, configKey)
-                const pathToRootConfigFile = path.join(
-                  pathToAppDir,
-                  `${configKey}.yml`,
-                )
-                const pathToAppConfigFile = path.join(
-                  pathToAppDir,
-                  `cadlEndpoint.yml`,
-                )
-                const pathToAssetsDir = path.join(pathToAppDir, 'assets')
-                const diagnostics = await runDiagnostics({
-                  baseUrl: req.query.baseUrl || 'http://127.0.0.1:3000',
-                  config: configKey,
-                })
-
-                console.log(`[get]`, {
-                  pathToAppDir,
-                  pathToRootConfigFile,
-                  pathToAppConfigFile,
-                  pathToAssetsDir,
-                })
-
-                res.status(200).json(diagnostics)
-              },
+          devServer.app.get('/analysis', (req, res) => {
+            const filepaths = fg.sync(
+              path.join(paths.analytics.app, '**/*.yml'),
             )
-          }
+            const ymls = {}
+            filepaths.forEach((filepath) => {
+              const filename = path.basename(filepath, '.yml')
+              const name = filename.replace(/_en|\.yml$/gi, '')
+              ymls[name] = fs.readFileSync(filepath, 'utf8')
+            })
+            res.json(ymls)
+          })
         }
       },
       compress: false,
@@ -204,7 +153,21 @@ function getWebpackConfig(env) {
           'Origin, X-Requested-With, Content-Type, Accept, Authorization',
       },
       port: 3000,
-      static: staticPaths,
+      static: [
+        {
+          directory: paths.public,
+          publicPath: '/',
+        },
+        {
+          directory: paths.analytics.base,
+          publicPath: '/',
+          staticOptions: {},
+        },
+        // {
+        //   directory: paths.analytics.testpage,
+        //   publicPath: '/analysis/testpage',
+        // },
+      ],
     },
     devtool: false,
     externals: [],

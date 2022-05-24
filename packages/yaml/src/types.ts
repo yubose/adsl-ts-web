@@ -18,14 +18,40 @@ export interface RunDiagnosticsOptions<N = unknown>
   node: N
 }
 
+export interface VisitorState {
+  history: VisitorHistoryObject[]
+  queue: VisitorQueueObject[]
+}
+
+export type VisitorHistoryStatus = 'error' | 'resolved'
+export type VisitorQueueStatus = 'error' | 'pending' | 'visited'
+
+export interface VisitorHistoryObject {
+  status: c.VisitorHistoryStatus
+  node: YAMLNode
+}
+
+export interface VisitorQueueObject {
+  children?: VisitorState['queue']
+  id: string
+  kind: c.Kind | c.MapKind | c.ScalarKind | c.SeqKind
+  node: YAMLNode
+  status: c.VisitorQueueStatus
+}
+
+export interface VisitorStateHelpers {
+  getState(slice: 'async' | 'sync'): VisitorState
+  getState(): { async: VisitorState; sync: VisitorState }
+  clearState(): void
+  isAsync: boolean
+}
+
 export type YAMLDiagnosticObject = VisitFnArgs<{
   indent?: number
   offset?: number
   range?: [number, number, number]
   node: unknown
 }>
-
-export type StringNode = y.Scalar<string> | string
 
 export type YAMLNode = y.Document | y.Document.Parsed | y.Node | y.Pair
 
