@@ -28,6 +28,7 @@ class createRegisters{
   numberofExtensions: number = 0
   timePerExtendSeconds: number = 0
   popUpWaitSeconds: number = 30
+  meetingEndTime:number = 0
   public timeId: Record<string, any>[] = []
   constructor(app: App){
     this.app = app
@@ -280,7 +281,19 @@ class createRegisters{
         componentObject.eventId = 'showExtendView'
         await handleRegister(componentObject)
         
-      }
+      },
+      async onProviderDisconnect(componentObject: GlobalRegisterComponent){
+        log.func('onProviderDisconnect')
+        componentObject.eventId = 'onProviderDisconnect'
+        await handleRegister(componentObject)
+        
+      },
+      async showExitWarningView(componentObject: GlobalRegisterComponent){
+        log.func('showExitWarningView')
+        componentObject.eventId = 'showExitWarningView'
+        await handleRegister(componentObject)
+        
+      },
     }
 
   }
@@ -364,6 +377,7 @@ class createRegisters{
     const pageName = this.app.mainPage?.getNuiPage().page
     const components = this.app.root?.['VideoChat'].components
     for (const componentObject of components) {
+      console.log(componentObject)
       if (is.component.register(componentObject)) {
         // Already attached a function
         if (u.isFnc(componentObject.onEvent)) continue
@@ -406,6 +420,12 @@ class createRegisters{
   }
   getPopUpWaitSeconds(){
     return this.popUpWaitSeconds
+  }
+  setMeetingEndTime(meetingEndTime){
+    this.meetingEndTime = meetingEndTime
+  }
+  getMeetingEndTime(){
+    return this.meetingEndTime
   }
 
   setTimeId(key:string,id:unknown){

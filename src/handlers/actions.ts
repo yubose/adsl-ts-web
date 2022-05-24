@@ -536,8 +536,9 @@ const createActions = function createActions(app: App) {
     const textFunc = component.get('text=func') || ((x: any) => x)
     const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
     let initialSeconds = get(app.root, dataKey, popUpWaitSeconds) as number
+    initialSeconds = initialSeconds?initialSeconds:30
     initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
-    node.textContent = textFunc(initialSeconds * 1000, 'mm:ss')
+    node.textContent = textFunc(initialSeconds*1000, 'mm:ss')
 
     const interval =  setInterval(()=>{
       initialSeconds = initialSeconds - 1
@@ -562,29 +563,34 @@ const createActions = function createActions(app: App) {
         const wait = _pick(action, 'wait')
 
         let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
-        if(popUpView === 'extendView'){
-          u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
-            if (node) {
-              const component = app.cache.component.get(node?.id)?.component
-              const dataKey =
-                component.get('data-key') || component.blueprint?.dataKey || ''
-              const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
-              let initialSeconds = get(app.root, dataKey, 30) as number
-              initialSeconds =
-                initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
-              if (action?.actionType === 'popUp') {
-                loadTimeLabelPopUp(node, component)
+        u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
+          if (node) {
+            const component = app.cache.component.get(node?.id)?.component
+            const dataKey =
+              component.get('data-key') || component.blueprint?.dataKey || ''
+            const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
+            let initialSeconds = get(app.root, dataKey, 30) as number
+            initialSeconds =
+              initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
+            if (action?.actionType === 'popUp') {
+              loadTimeLabelPopUp(node, component)
+              if(popUpView === 'extendView'){
                 const id = setTimeout(() => {
                   app.register.extendVideoFunction('onDisconnect')
+                  clearTimeout(id)
                 }, initialSeconds * 1000)
                 app.register.setTimeId('PopUPToDisconnectTime', id)
-              } else if (action?.actionType === 'popUpDismiss') {
-                app.register.removeTime('PopUPTimeInterval')
-                app.register.removeTime('PopUPToDisconnectTime')
               }
+            } else if (action?.actionType === 'popUpDismiss') {
+              app.register.removeTime('PopUPTimeInterval')
+              app.register.removeTime('PopUPToDisconnectTime')
+              // if(popUpView === 'providerLeftWarningView' || popUpView === 'exitWarningView'){
+              //   app.register.extendVideoFunction('onDisconnect')
+              // }
             }
-          })
-        }
+          }
+        })
+        
         u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
           if (dismissOnTouchOutside) {
             const onTouchOutside = function onTouchOutside(
