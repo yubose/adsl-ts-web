@@ -28,6 +28,7 @@ class createRegisters{
   numberofExtensions: number = 0
   timePerExtendSeconds: number = 0
   popUpWaitSeconds: number = 30
+  meetingEndTime:number = 0
   public timeId: Record<string, any>[] = []
   constructor(app: App){
     this.app = app
@@ -419,6 +420,12 @@ class createRegisters{
   }
   getPopUpWaitSeconds(){
     return this.popUpWaitSeconds
+  }
+  setMeetingEndTime(meetingEndTime){
+    this.meetingEndTime = meetingEndTime
+  }
+  getMeetingEndTime(){
+    return this.meetingEndTime
   }
 
   setTimeId(key:string,id:unknown){

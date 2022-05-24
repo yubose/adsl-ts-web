@@ -1251,19 +1251,30 @@ export const extendedSdkBuiltIns = {
     const currentTime = Math.ceil(new Date().getTime() / 1000)
     const meetingEndTime = action?.meetingEndTime
     const remainTime = meetingEndTime-currentTime-popUpWaitSeconds
+    const remainTime2 = meetingEndTime-currentTime 
     this.register.setPopUpWaitSeconds(popUpWaitSeconds)
-    console.log('test',remainTime)
+    this.register.setMeetingEndTime(meetingEndTime)
     if (remainTime > 0){
-      setTimeout(
+      const initAutoDcTime = setTimeout(
         ()=>{
-          const participantsNumber = this.meeting.room.participants?.size
-          console.log('test3',participantsNumber)
-          if(participantsNumber == 0){
             this.register.extendVideoFunction('showExitWarningView')
-          }
-          
+            clearTimeout(initAutoDcTime)
         },
         remainTime*1000
+      )
+      this.register.setTimeId('extendVideoChatTime',initAutoDcTime)
+      
+      const endMeetingId = setTimeout(
+        ()=>{
+          const participantsNumber = this.meeting.room.participants.size
+          console.log('test123',participantsNumber,typeof(participantsNumber),participantsNumber === 0)
+          if(this.meeting.room?.participants && this.meeting.room.participants.size === 0){
+            console.log('test569',participantsNumber,typeof(participantsNumber),participantsNumber === 0)
+            this.register.extendVideoFunction('onDisconnect')
+          }
+          clearTimeout(endMeetingId)
+        },
+        remainTime2*1000
       )
       
     }
