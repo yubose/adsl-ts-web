@@ -1,10 +1,9 @@
-import type { ARoot } from '@noodl/core'
 import type { ReferenceString } from 'noodl-types'
-import * as u from '@jsmanifest/utils'
+import { is as coreIs } from '@noodl/core'
 import y from 'yaml'
 import createNode from '../utils/createNode'
 import deref from '../utils/deref'
-import getNodeKind from '../utils/getNodeKind'
+import getYamlNodeKind from '../utils/getYamlNodeKind'
 import is from '../utils/is'
 import unwrap from '../utils/unwrap'
 import type DocRoot from '../DocRoot'
@@ -12,16 +11,16 @@ import * as c from '../constants'
 import * as t from '../types'
 
 export interface MergeOptions {
-  root?: ARoot
-  rootKey?: t.StringNode
+  root?: DocRoot
+  rootKey?: y.Scalar<string> | string
 }
 
 function isMergingRef<S extends string>(refOrNode: S | y.Scalar<S>) {
   return (
     (is.scalarNode(refOrNode) &&
-      u.isStr(refOrNode.value) &&
+      coreIs.str(refOrNode.value) &&
       is.reference(refOrNode)) ||
-    (u.isStr(refOrNode) && refOrNode.startsWith('.'))
+    (coreIs.str(refOrNode) && refOrNode.startsWith('.'))
   )
 }
 
@@ -41,17 +40,17 @@ function _merge<N extends t.YAMLNode>(
   let ref: string | undefined
 
   if (
-    (u.isStr(refOrNode) || y.isScalar(refOrNode)) &&
+    (coreIs.str(refOrNode) || y.isScalar(refOrNode)) &&
     isMergingRef(refOrNode)
   ) {
-    ref = u.isStr(refOrNode) ? refOrNode : refOrNode.value
+    ref = coreIs.str(refOrNode) ? refOrNode : refOrNode.value
   }
 
   if (is.nil(node)) {
     return ref ? deref({ node: ref, root, rootKey }).value : refOrNode
   }
 
-  switch (getNodeKind(node)) {
+  switch (getYamlNodeKind(node)) {
     case c.Kind.Map:
     case c.Kind.Seq:
     case c.Kind.Pair:
@@ -63,7 +62,7 @@ function _merge<N extends t.YAMLNode>(
         mergingValue = createNode(refOrNode as any)
       }
 
-      switch (getNodeKind(mergingValue)) {
+      switch (getYamlNodeKind(mergingValue)) {
         case c.Kind.Unknown:
         case c.Kind.Seq:
         case c.Kind.Pair:

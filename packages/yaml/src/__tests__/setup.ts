@@ -1,5 +1,5 @@
-/// <reference path="../../global.d.ts" />
-import chai from 'chai'
-import NoodlYamlChai from './noodl-yaml-chai'
+import { clearState as clearVisitorState } from '../DocVisitor'
 
-chai.use(NoodlYamlChai)
+afterEach(() => {
+  clearVisitorState()
+})

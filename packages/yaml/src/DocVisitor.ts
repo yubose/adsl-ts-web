@@ -133,21 +133,35 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
         default:
           break
       }
-
-      if (y.isNode(control)) {
-        return control
-      }
-
-      if (typeof control === 'number') {
-        return control
-      }
+    } else if (isSeq(node)) {
+      //
     }
 
-    return undefined
+    return enter(arguments[0])
   }
 
-  const onVisit = function onVisit(...[key, node, path]) {
+  function getControl<N = unknown>(control: ReturnType<y.visitorFn<N>>) {
+    if (control != undefined) {
+      // Terminate
+      if (control === y.visitAsync.BREAK) return y.visitAsync.BREAK
+      // Remove node, then continue with next node
+      if (control === y.visitAsync.REMOVE) return y.visitAsync.REMOVE
+      // Do not visit the children of this node, continue with next sibling
+      if (control === y.visitAsync.SKIP) return y.visitAsync.SKIP
+      // Replace the current node, then continue by visiting it
+      if (y.isNode(control)) return control
+      // While iterating a seq/map, set index of next step.
+      // Useful if index of the current node changed
+      if (coreIs.num(control)) return control
+    }
+  }
+
+  function onVisit<N = unknown>(
+    stateHelpers: t.VisitorStateHelpers,
+    ...[key, node, path]: Parameters<y.visitorFn<N>>
+  ) {
     const callbackArgs = {
+      ...stateHelpers,
       ...helpers,
       data,
       key,
@@ -156,22 +170,16 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
       page,
       root,
     }
-
-    // @ts-expect-error
-    const result = callback?.(callbackArgs)
-
+    const result = onEnter(callbackArgs)
     if (coreIs.promise(result)) {
-      return result
-        .then((control) => getControl(control as ReturnType<Fn>))
-        .catch((error) => {
-          throw error instanceof Error ? error : new Error(String(error))
-        })
+      return result.then(getControl).catch((error) => {
+        throw error instanceof Error ? error : new Error(String(error))
+      })
     }
-
-    return getControl(result as ReturnType<Fn>)
+    return getControl(result)
   }
 
-  return onVisit
+  return onVisit.bind(null, { clearState, getState, isAsync })
 }
 
 class DocVisitor extends AVisitor {
@@ -181,55 +189,14 @@ class DocVisitor extends AVisitor {
     return this.#callback
   }
 
-  /**
-   * @param visitee - The node we are visiting
-   * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
-   * @returns Visitor data
-   */
-  visit(
-    visitee: [name: string, node: unknown],
-    { helpers, init, data = {}, root }: VisitorOptions & { root: DocRoot },
-  ) {
-    const [name, value] = visitee
-
-    init?.({ data, ...helpers, root })
-
-    if (y.isNode(value) || y.isDocument(value)) {
-      y.visit(
-        value,
-        wrap(this.callback, {
-          data,
-          helpers,
-          page: name,
-          root,
-        }),
-      )
-    }
-
-    return data
+  @decorate()
+  visit() {
+    return y.visit
   }
 
-  /**
-   * @param { [name: string, node: unknown]} visitee
-   * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
-   * @returns Visitor data
-   */
-  async visitAsync(
-    visitee: [name: string, node: unknown],
-    { data = {}, init, root, helpers }: VisitorOptions & { root: DocRoot },
-  ) {
-    const [name, node] = visitee
-
-    if (init) await init({ data, ...helpers, root })
-
-    if (y.isNode(node) || y.isDocument(node)) {
-      await y.visitAsync(
-        node,
-        wrap(this.callback, { data, helpers, page: name, root }),
-      )
-    }
-
-    return data
+  @decorate()
+  async visitAsync() {
+    return y.visitAsync
   }
 
   use<Fn extends t.AssertAsyncFn | t.AssertFn>(

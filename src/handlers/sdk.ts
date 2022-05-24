@@ -5,7 +5,6 @@ import y from 'yaml'
 import App from '../App'
 import { extendedSdkBuiltIns } from './builtIns'
 import assertAppConfig from '../modules/diagnostics/assertAppConfig'
-import assertRef from '../modules/diagnostics/assertRef'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {
@@ -75,6 +74,9 @@ export function getSdkHelpers(app: App) {
     get initExtend() {
       return extendedSdkBuiltIns.initExtend.bind(app)
     },
+    get initAutoDC() {
+      return extendedSdkBuiltIns.initAutoDC.bind(app)
+    },
     get extendMeeting() {
       return app.builtIns.get('extendMeeting')?.find(Boolean)?.fn
     },
@@ -97,7 +99,7 @@ export function getSdkHelpers(app: App) {
           configKey = dataIn.config
           if (dataIn.filter) {
             filter = new RegExp(
-              u.isArr(dataIn) ? dataIn.filter.join('|') : dataIn.filter,
+              u.isArr(dataIn.filter) ? dataIn.filter.join('|') : dataIn.filter,
               'i',
             )
           }
@@ -147,7 +149,12 @@ export function getSdkHelpers(app: App) {
         const docRoot = new DocRoot()
         const docVisitor = new DocVisitor()
 
+        window['docDiagnostics'] = docDiagnostics
+        window['docRoot'] = docRoot
+
         docRoot.set('Config', docRoot.toDocument(rootConfigYml))
+        docDiagnostics.mark('rootConfig', configKey)
+        docDiagnostics.mark('appConfig', 'cadlEndpoint')
 
         const rootDoc = docRoot.get('Config') as y.Document
         const buildInfo = window['build'] || {}
@@ -208,20 +215,18 @@ export function getSdkHelpers(app: App) {
         docDiagnostics.use(docRoot)
         docDiagnostics.use(docVisitor)
 
-        const visitedPages = [] as string[]
+        // const visitedPages = [] as string[]
         const diagnostics = docDiagnostics
           .run({
             enter: function (args) {
               const { add, data, key, page, node, root, path } = args
-              if (page && !visitedPages.includes(page)) visitedPages.push(page)
-              if (is.scalarNode(node)) {
-                if (is.reference(node)) {
-                  return assertRef(args)
-                }
+              // if (page && !visitedPages.includes(page)) visitedPages.push(page)
+              if (is.reference(node)) {
+                return assertRef(args as any)
               }
             },
             init: (args) => {
-              assertAppConfig(args)
+              // assertAppConfig(args)
             },
           })
           .map((diagnostic) => diagnostic.toJSON())

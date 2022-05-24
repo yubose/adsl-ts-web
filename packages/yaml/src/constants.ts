@@ -12,32 +12,60 @@ export enum Kind {
   Document = 5,
 }
 
-export enum ScalarKind {
-  String = 10,
-  Number = 11,
-  Object = 12,
-  Array = 13,
-  Null = 14,
-  Undefined = 15,
+export enum ScalarType {
+  Unknown = 10,
+  String = 11,
+  Number = 12,
+  Object = 13,
+  Array = 14,
+  Boolean = 15,
+  Null = 16,
+  Undefined = 17,
 }
 
-export enum StringKind {
-  Reference = 20,
+export enum ScalarKind {
+  Unknown = 20,
+  Reference = 21,
   ContentType = 22,
 }
 
 export enum MapKind {
-  Action = 100,
-  Component = 101,
-  Emit = 102,
-  Goto = 103,
-  If = 104,
-  Style = 105,
-  BuiltInFn = 106,
+  Unknown = 100,
+  Action = 101,
+  Component = 102,
+  Emit = 103,
+  Goto = 104,
+  If = 105,
+  Style = 106,
+  BuiltInFn = 107,
 }
 
 export enum SeqKind {
   UserEvent = 200,
   Actions = 201,
   EvalObject = 202,
+}
+
+export enum IfItemKind {
+  Condition = 1,
+  Truthy = 2,
+  Falsey = 3,
+}
+
+export enum ProcessWriteType {
+  Unknown = 10100,
+  LocalMerge = 10101,
+  RootMerge = 10102,
+  AtMerge = 10103,
+}
+
+export enum VisitorHistoryStatus {
+  Resolved = 1,
+  Error = 2,
+}
+
+export enum VisitorQueueStatus {
+  Visited = 0,
+  Pending = 1,
+  Error = 2,
 }

@@ -109,13 +109,13 @@ export function localReference(v: string): v is ReferenceString<string, '..'> {
   return false
 }
 
-export function reference(v: string): v is ReferenceString {
-  if (typeof v === 'string') {
+export function reference(v: unknown): v is ReferenceString {
+  if (str(v)) {
     if (v === '.yml') return false
     if (v.startsWith('.')) return true
     if (v.startsWith('=')) return true
     if (v.startsWith('@')) return true
-    if (v.startsWith('~')) return true
+    if (v.startsWith('~/')) return true
     if (/^[_]+\./.test(v)) return true
     return false
   }

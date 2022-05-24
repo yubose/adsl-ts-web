@@ -4,8 +4,8 @@ Dashboard:
     - =.builtIn.diagnostics:
         dataIn:
           config: ..config
-          filter:
-            - medical
+          # filter:
+          #   - medical
         dataOut: Dashboard.diagnostics
   config: warrior
   diagnostics: null

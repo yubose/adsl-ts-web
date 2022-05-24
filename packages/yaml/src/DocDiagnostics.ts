@@ -1,6 +1,8 @@
-import { Diagnostics, RunDiagnosticsOptions } from '@noodl/core'
-import type { Diagnostic, TranslatedDiagnosticObject } from '@noodl/core'
-import getNodeKind from './utils/getNodeKind'
+import { Diagnostics, is as coreIs } from '@noodl/core'
+import type { Builder, TranslatedDiagnosticObject } from '@noodl/core'
+import getYamlNodeKind from './utils/getYamlNodeKind'
+import DocDiagnosticsIterator from './DocDiagnosticsIterator'
+import DocRoot from './DocRoot'
 import * as c from './constants'
 import * as t from './types'
 
@@ -20,13 +22,14 @@ class DocDiagnostics extends Diagnostics<
     const diagnostic = super.createDiagnostic(opts)
 
     if (node) {
-      const kind = getNodeKind(node)
+      const kind = getYamlNodeKind(node)
 
       switch (kind) {
         case c.Kind.Scalar:
         case c.Kind.Pair:
         case c.Kind.Map:
-        case c.Kind.Seq: {
+        case c.Kind.Seq:
+        case c.Kind.Document: {
           if (node.srcToken) {
             const { indent, items, offset, props, start, end, type } =
               node.srcToken || {}
@@ -47,6 +50,14 @@ class DocDiagnostics extends Diagnostics<
     }
 
     return diagnostic
+  }
+
+  use(value: DocDiagnosticsIterator | Parameters<Builder['use']>[0]) {
+    super.use(value)
+    if (coreIs.root(value) || value instanceof DocRoot) {
+      ;(value as DocRoot).use(new DocDiagnosticsIterator(this))
+    }
+    return this
   }
 }
 

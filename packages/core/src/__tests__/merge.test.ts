@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import merge from '../transformers/merge'
-import * as t from '../types'
 
 const iteratorVar = 'itemObject'
 

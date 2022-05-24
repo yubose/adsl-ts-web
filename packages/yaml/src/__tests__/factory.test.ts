@@ -2,20 +2,19 @@ import { expect } from 'chai'
 import { fp, is } from '@noodl/core'
 import y from 'yaml'
 import factory from '../factory/ast'
+import unwrap from '../utils/unwrap'
 
 describe(`factory`, () => {
   describe(`ast`, () => {
     describe(`action`, () => {
       it(`should set the string arg as actionType`, () => {
-        expect(factory.action('evalObject').toJSON()).to.deep.eq({
-          actionType: 'evalObject',
-        })
+        expect(factory.action('evalObject').get('actionType')).to.eq(
+          'evalObject',
+        )
       })
 
       it(`should merge props`, () => {
-        expect(factory.action({ goto: 'SignIn' }).toJSON()).to.deep.eq({
-          goto: 'SignIn',
-        })
+        expect(factory.action({ goto: 'SignIn' }).get('goto')).to.eq('SignIn')
       })
     })
 
@@ -31,12 +30,11 @@ describe(`factory`, () => {
         )
         expect(node).to.be.instanceOf(y.YAMLMap)
         expect(node.get('=.builtIn.string.equal')).to.be.instanceOf(y.YAMLMap)
-        console.log(node.get('=.builtIn.string.equal').get('dataIn'))
         expect(
-          node.get('=.builtIn.string.equal').get('dataIn', true),
+          node.get('=.builtIn.string.equal')?.get('dataIn', true),
         ).to.be.instanceOf(y.YAMLMap)
         expect(
-          node.get('=.builtIn.string.equal').get('dataOut', true),
+          node.get('=.builtIn.string.equal')?.get('dataOut', true),
         ).to.be.instanceOf(y.Scalar)
       })
 
@@ -61,10 +59,10 @@ describe(`factory`, () => {
     describe(`if`, () => {
       it(`should create an if node`, () => {
         const node = factory.if()
-        const value = node.toJSON()
-        expect(value).to.be.an('object')
-        expect(value.if).to.be.an('array')
-        expect(value.if).to.have.lengthOf(3)
+        const json = node.toJSON()
+        expect(node).to.be.instanceOf(y.YAMLMap)
+        expect(json.if).to.be.an('array')
+        expect(json.if).to.have.lengthOf(3)
       })
     })
   })

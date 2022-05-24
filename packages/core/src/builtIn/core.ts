@@ -1,6 +1,6 @@
+// Not used yet
 import type { StyleObject } from 'noodl-types'
 import * as is from '../utils/is'
-import _obj from './object'
 
 const core = {
   /**

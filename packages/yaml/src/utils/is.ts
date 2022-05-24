@@ -1,17 +1,28 @@
-import type { ReferenceString } from 'noodl-types'
+import type { LiteralUnion } from 'type-fest'
+import type { KnownStyleKeys, ReferenceString, StyleObject } from 'noodl-types'
 import y from 'yaml'
 import { findPair } from 'yaml/util'
 import { is as coreIs } from '@noodl/core'
-import getNodeKind from './getNodeKind'
+import getYamlNodeKind from './getYamlNodeKind'
 import unwrap from './unwrap'
 import type DocRoot from '../DocRoot'
 import type { FileSystem } from './fileSystem'
 import * as c from '../constants'
 import * as t from '../types'
 
-function isMapNodeContaining<K extends string, V = any>(key: K, value: V) {
-  return (node: y.YAMLMap): node is y.YAMLMap<K, V> => {
-    return node ? node.has?.(key) && node.get?.(key, false) === value : false
+function isMapNodeContaining<K extends string, V = any>(
+  ...args: [key: K | K[], value?: V]
+) {
+  return function contains(node: y.YAMLMap): node is y.YAMLMap<K, V> {
+    const [key, value] = args
+    return !!(
+      node.has?.(key) &&
+      (args.length === 2
+        ? coreIs.arr(key)
+          ? key.some((k) => node.get(k) === value)
+          : node.get(key) === value
+        : true)
+    )
   }
 }
 
@@ -74,16 +85,17 @@ const is = {
     typeof node === 'object' &&
     node['_id_'] === c._symbol.root,
   scalarNode: (node: unknown): node is y.Scalar =>
-    getNodeKind(node) === c.Kind.Scalar,
+    getYamlNodeKind(node) === c.Kind.Scalar,
   pairNode: (node: unknown): node is y.Pair =>
-    getNodeKind(node) === c.Kind.Pair,
+    getYamlNodeKind(node) === c.Kind.Pair,
   mapNode: (node: unknown): node is y.YAMLMap =>
-    getNodeKind(node) === c.Kind.Map,
+    getYamlNodeKind(node) === c.Kind.Map,
   seqNode: (node: unknown): node is y.YAMLSeq =>
-    getNodeKind(node) === c.Kind.Seq,
+    getYamlNodeKind(node) === c.Kind.Seq,
   documentNode: (node: unknown): node is y.YAMLSeq =>
-    getNodeKind(node) === c.Kind.Document,
+    getYamlNodeKind(node) === c.Kind.Document,
   sameNodeType,
+  action: isMapNodeContaining('actionType'),
   builtInFn: (node: unknown): node is y.YAMLMap<`=.builtIn.${string}`> => {
     if (
       y.isMap(node) &&
@@ -95,6 +107,16 @@ const is = {
     }
     return false
   },
+  // Components
+  component: (
+    node: y.YAMLMap,
+  ): node is y.YAMLMap<'children' | 'style' | 'type'> => {
+    return (
+      is.componentLike(node) &&
+      ['children', 'style'].some((key) => node.has(key))
+    )
+  },
+  componentLike: isMapNodeContaining('type'),
   button: isMapNodeContaining('type', 'button'),
   canvas: isMapNodeContaining('type', 'canvas'),
   chart: isMapNodeContaining('type', 'chart'),
@@ -120,6 +142,65 @@ const is = {
   textView: isMapNodeContaining('type', 'textView'),
   video: isMapNodeContaining('type', 'video'),
   view: isMapNodeContaining('type', 'view'),
+  emit: isMapNodeContaining<'emit', y.YAMLMap<'emit'>>('emit'),
+  goto: isMapNodeContaining<'goto', t.NoodlNode<y.YAMLMap<'goto'>>>('goto'),
+  if: isMapNodeContaining<'if', y.YAMLSeq<[unknown, unknown, unknown]>>('if'),
+  style: isMapNodeContaining<
+    LiteralUnion<KnownStyleKeys, string>,
+    t.NoodlNode<y.YAMLMap<keyof StyleObject>>
+  >([
+    'align',
+    'axis',
+    'background',
+    'backgroundColor',
+    'border',
+    'borderColor',
+    'borderRadius',
+    'borderWidth',
+    'boxShadow',
+    'boxSizing',
+    'color',
+    'contentSize',
+    'display',
+    'float',
+    'flex',
+    'flexFlow',
+    'fontColor',
+    'fontSize',
+    'fontFamily',
+    'fontStyle',
+    'fontWeight',
+    'height',
+    'width',
+    'isHidden',
+    'justifyContent',
+    'left',
+    'letterSpacing',
+    'lineHeight',
+    'marginLeft',
+    'marginTop',
+    'marginRight',
+    'marginBottom',
+    'minWidth',
+    'maxWidth',
+    'minHeight',
+    'maxHeight',
+    'outline',
+    'padding',
+    'paddingTop',
+    'paddingLeft',
+    'paddingRight',
+    'paddingBottom',
+    'position',
+    'required',
+    'shadow',
+    'textAlign',
+    'textColor',
+    'textDecoration',
+    'textIndent',
+    'top',
+    'zIndex',
+  ]),
   ymlNode: (node: unknown) => {
     if (node !== null && typeof node === 'object') {
       return y.isNode(node) || y.isPair(node) || y.isDocument(node)

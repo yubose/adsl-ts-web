@@ -378,9 +378,10 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
               if (!Number.isNaN(radius)) {
                 value.borderRadius = `${radius}px`
                 if (
-                  !value.borderWidth ||
+                  !(u.isStr(value.border) && value.border) &&
+                  (!value.borderWidth ||
                   value.borderWidth === 'none' ||
-                  value.borderWidth === '0px'
+                  value.borderWidth === '0px')
                 ) {
                   // Make the border invisible
                   value.borderWidth = '1px'

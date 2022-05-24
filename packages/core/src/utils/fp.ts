@@ -126,6 +126,15 @@ export function omit<O extends Record<string, any>, K extends keyof O>(
 }
 
 /**
+ * Syntactic sugar for toPath
+ * @param args String or array of strings
+ * @returns The converted path
+ */
+export function path(...args: Parameters<typeof toPath>) {
+  return toPath(...args)
+}
+
+/**
  * @internal
  * @param value Object
  * @param key Key or keys to pick from value
@@ -213,6 +222,10 @@ export function toNum(value: unknown, fixedNum?: number) {
     return Number(toFixed(Number(value.replace(/[a-zA-Z]/gi, '')), fixedNum))
   }
   return Number(value)
+}
+
+export function toStr(value: unknown): string {
+  return str(value) ? value : String(value)
 }
 
 export function startsWith(value: string, str: string) {

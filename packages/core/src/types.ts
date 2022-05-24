@@ -65,12 +65,13 @@ export abstract class AVisitor<R = any, H = Record<string, any>> {
 }
 
 export interface VisitorOptions<
-  Options = Record<string, any>,
+  H = Record<string, any>,
   InitOptions extends Record<string, any> = Record<string, any>,
 > {
   data: Record<string, any>
   init?: (args: VisitorInitArgs<InitOptions>) => any
-  helpers?: Options
+  helpers?: H
+  page?: string
   path?: (number | string)[]
   root: ARoot
 }

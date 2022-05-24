@@ -1,4 +1,4 @@
-export const numbers = /^[\+\-]?\d*\.?\d+(?:[Ee][\+\-]?\d+)?$/
+export const numbers = /^[+-]?\d*\.?\d+(?:[Ee][+-]?\d+)?$/
 export const backslash = /\\/g
 // Checks path for these segments: '', '.'. '..'
 export const relativePathSegment = /(^|\/)\.{0,2}($|\/)/
@@ -23,4 +23,4 @@ export const relativePathSegment = /(^|\/)\.{0,2}($|\/)/
 //
 // But to avoid having to do string building for most common cases, also ignore
 // a-z, 0-9, \u0131, \u00DF, \, /, ., : and space
-export const filenameLowerCase = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_\. ]+/g
+export const filenameLowerCase = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g
