@@ -27,7 +27,6 @@
     "access": "public"
   },
   "repository": {
-    "directory": "packages/noodl-core",
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
   },
