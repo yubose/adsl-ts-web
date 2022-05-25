@@ -26,6 +26,7 @@ import type {
   ReferenceString,
   IfObject,
   PageComponentUrl,
+  GetLocationAddressActionObject,
 } from 'noodl-types'
 import type {
   Action,
@@ -109,6 +110,7 @@ export type NUIActionObject =
   | SaveActionObject
   | ToastActionObject
   | UpdateActionObject
+  | GetLocationAddressActionObject
 
 export type NUIAction = Action | EmitAction
 
@@ -146,6 +148,13 @@ export interface IPage {
   page: string
   viewport: Viewport
 }
+
+export type NormalizePropsContext = {
+  dataObject?: Record<string, any>
+  iteratorVar?: string
+  index?: number
+  listObject?: string | any[]
+} & Record<string, any>
 
 export namespace NuiComponent {
   export type CreateType = ComponentObject | NuiComponent.Instance
@@ -242,10 +251,11 @@ export type ConsumerOptions<Trig extends string = string> = Omit<
     component: NuiComponent.Instance,
   ): StyleObject & { [key: string]: any }
   ref?: NUIActionChain
-} & Partial<ConsumerOptionsHelpers>
+} & Partial<ConsumerOptionsHelpers> &
+  Pick<ResolveComponentOptions<any, any>, 'keepVpUnit'>
 
 export interface ConsumerOptionsHelpers {
-  resolveReference: (key: string, value?: any) => any
+  resolveReference: (keyOrValue: any, value?: any) => any
 }
 
 export interface On {
@@ -291,12 +301,6 @@ export interface On {
     key: string
     value: PageComponentUrl
   }): string
-  reference?<S extends string = string>(args: {
-    component?: NuiComponent.Instance
-    page?: NuiPage
-    key: string
-    value: ReferenceString<S>
-  }): any
 }
 
 export namespace Register {
@@ -337,6 +341,7 @@ export interface ResolveComponentOptions<
   callback?(component: NuiComponent.Instance): NuiComponent.Instance | undefined
   components: C
   context?: Context
+  keepVpUnit?: boolean
   on?: On
   page?: NuiPage
 }
@@ -639,6 +644,11 @@ export interface NDOMTransaction {
 export type NDOMTransactionId = keyof NDOMTransaction
 
 export type NDOMTrigger = typeof triggers[number]
+
+export interface ViewportObject {
+  width: number
+  height: number
+}
 
 export interface UseObject {
   builtIn?: any

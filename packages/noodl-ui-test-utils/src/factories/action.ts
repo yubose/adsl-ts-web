@@ -1,9 +1,9 @@
 import * as u from '@jsmanifest/utils'
+import type { NoodlObject } from 'noodl-builder'
 import type { PartialDeep } from 'type-fest'
 import type {
   BuiltInActionObject,
   EcosDocument,
-  EmitObject,
   EmitObjectFold,
   EvalActionObject,
   GotoObject,
@@ -16,10 +16,15 @@ import type {
   RemoveSignatureActionObject,
   SaveActionObject,
   SaveSignatureActionObject,
-  ToastObject,
   UpdateActionObject,
 } from 'noodl-types'
-import { createActionObject_next } from '../utils'
+import {
+  mergeObject,
+  mergeKeyValOrObj,
+  strOrUndef,
+  strOrEmptyStr,
+} from '../utils'
+import builder from '../builder'
 import ecosJpgDoc from '../fixtures/jpg.json'
 import ecosNoteDoc from '../fixtures/note.json'
 import ecosPdfDoc from '../fixtures/pdf.json'
@@ -28,97 +33,98 @@ import ecosTextDoc from '../fixtures/text.json'
 import * as t from '../types'
 
 const actionFactory = (function () {
+  function builtIn<FuncName extends string>(
+    funcName: FuncName,
+  ): BuiltInActionObject & { funcName: FuncName }
+
+  function builtIn(props?: Partial<BuiltInActionObject>): BuiltInActionObject
+
+  function builtIn(): BuiltInActionObject
+
   function builtIn(obj?: string | Partial<BuiltInActionObject>) {
-    u.isStr(obj) && (obj = { funcName: obj } as BuiltInActionObject)
-    return createActionObject_next('builtIn')({
-      ...obj,
-      funcName: obj?.funcName || 'redraw',
-    })
+    const a = builder.action('builtIn')
+    const funcName = a.createProperty('funcName', '')
+    if (u.isStr(obj)) funcName.setValue(obj)
+    return mergeObject(a, u.isObj(obj) ? obj : undefined).build()
   }
 
   function evalObject(
-    obj?: EvalActionObject['object'] | Partial<EvalActionObject>,
-  ): EvalActionObject {
-    !obj && (obj = { actionType: 'evalObject', object: ifObject() })
-    !('actionType' in obj) &&
-      (obj = { actionType: 'evalObject', object: obj['object'] })
-    // @ts-expect-error
-    return createActionObject_next('evalObject')({
-      ...obj,
-      object: obj['object'],
-    })
+    obj?: any[] | EvalActionObject['object'] | Partial<EvalActionObject>,
+  ) {
+    const a = builder.action('evalObject')
+    a.createProperty('object', undefined)
+    if (u.isArr(obj)) a.setValue('object', obj)
+    else if (u.isObj(obj)) mergeObject(a, obj)
+    return a.build() as EvalActionObject
   }
 
-  function pageJump(
-    props?: Partial<PageJumpActionObject>,
-  ): PageJumpActionObject {
-    return { actionType: 'pageJump', destination: 'SignIn', ...props }
+  function pageJump(props?: Partial<PageJumpActionObject>) {
+    return mergeObject<PageJumpActionObject>(builder.action('pageJump'), {
+      destination: 'SignIn',
+      ...props,
+    }).build()
   }
 
-  function popUp(
-    props?: string | Partial<PopupActionObject>,
-  ): PopupActionObject {
-    const obj = {
-      actionType: 'popUp',
-      popUpView: 'genderView',
-    } as PopupActionObject
-    if (typeof props === 'string') obj.popUpView = props
-    else if (props) u.assign(obj, props)
-    return obj
+  function popUp<PopUpView extends string>(
+    popUpView: PopUpView,
+  ): PopupActionObject & { popUpView: PopUpView }
+
+  function popUp(props?: Partial<PopupActionObject>): PopupActionObject
+
+  function popUp(): PopupActionObject
+
+  function popUp(props?: string | Partial<PopupActionObject>) {
+    const a = builder.action('popUp')
+    a.createProperty('popUpView', strOrEmptyStr(props))
+    return mergeObject(a, u.isObj(props) ? props : undefined).build()
   }
+
+  function popUpDismiss<PopUpView extends string>(
+    popUpView: PopUpView,
+  ): PopupDismissActionObject & { popUpView: PopUpView }
 
   function popUpDismiss(
-    props?: string | Partial<PopupDismissActionObject>,
-  ): PopupDismissActionObject {
-    const obj = {
-      actionType: 'popUpDismiss',
-      popUpView: 'helloView',
-    } as PopupDismissActionObject
-    if (typeof props === 'string') obj.popUpView = props
-    else u.assign(obj, props)
-    return obj
+    props?: Partial<PopupDismissActionObject>,
+  ): PopupDismissActionObject
+
+  function popUpDismiss(): PopupDismissActionObject
+
+  function popUpDismiss(props?: string | Partial<PopupDismissActionObject>) {
+    const a = builder.action('popUpDismiss')
+    a.createProperty('popUpView', strOrEmptyStr(props))
+    return mergeObject(a, u.isObj(props) ? props : undefined).build()
   }
 
   function refresh<A extends RefreshActionObject>(props?: Partial<A>) {
-    return { actionType: 'refresh', ...props } as A
+    return mergeObject(builder.action('refresh'), props).build()
   }
 
-  function removeSignature<A extends Partial<RemoveSignatureActionObject>>(
-    props?: A,
+  function removeSignature<A extends RemoveSignatureActionObject>(
+    props?: Partial<A>,
   ) {
-    return {
-      actionType: 'removeSignature',
-      dataKey: 'SignIn.signature',
-      dataObject: 'BLOB',
+    return mergeObject(builder.action('removeSignature'), {
+      dataKey: '',
+      dataObject: '',
       ...props,
-    } as RemoveSignatureActionObject & A
+    }).build()
   }
 
-  function saveSignature<A extends Partial<SaveSignatureActionObject>>(
-    props?: A,
+  function saveSignature<A extends SaveSignatureActionObject>(
+    props?: Partial<A>,
   ) {
-    return {
-      actionType: 'saveSignature',
-      dataKey: 'SignIn.signature',
-      dataObject: 'BLOB',
+    return mergeObject(builder.action('saveSignature'), {
+      dataKey: '',
+      dataObject: '',
       ...props,
-    } as SaveSignatureActionObject & A
+    }).build()
   }
 
   function saveObject<A extends SaveActionObject>(props?: Partial<A>) {
-    return { actionType: 'saveObject', object: {}, ...props } as A
-  }
-
-  function toastObject<A extends ToastObject>(props?: Partial<A>) {
-    return { toast: { message: 'hello!', style: {}, ...props } }
+    return mergeObject(builder.action('saveObject'), props).build()
   }
 
   function updateObject<A extends UpdateActionObject>(props?: A) {
-    return {
-      actionType: 'updateObject',
-      object: { '.Global.refid@': '___.itemObject.id' },
-      ...props,
-    }
+    return mergeObject(builder.action('updateObject'), props).build()
   }
 
   /**
@@ -175,43 +181,74 @@ const actionFactory = (function () {
     return ecosObj as EcosDocument<N>
   }
 
-  function getFoldedEmitObject<A extends EmitObjectFold>(
-    ...args: Parameters<typeof emitObject>
+  function emitObject<DataKey = any, Actions = any>(
+    dataKey: DataKey,
+    actions?: Actions,
+  ): EmitObjectFold
+
+  function emitObject(props?: Partial<EmitObjectFold>): EmitObjectFold
+
+  function emitObject(): EmitObjectFold
+
+  function emitObject<DataKey = any, Actions = any>(
+    arg1?: DataKey | Partial<EmitObjectFold>,
+    arg2?: Actions,
   ) {
-    return { emit: emitObject(...args) } as A
-  }
-
-  function emitObject<A extends EmitObject>({
-    iteratorVar = 'itemObject',
-    dataKey = { var1: iteratorVar },
-    actions = [{}, {}, {}],
-  }: {
-    iteratorVar?: string
-  } & Partial<EmitObject> = {}) {
-    return { dataKey, actions } as A
-  }
-
-  function gotoObject<A extends GotoObject>(props?: A['goto'] | Partial<A>) {
-    const obj = { goto: 'PatientDashboard' }
-    if (typeof props === 'string') obj.goto = props
-    else if (props) u.assign(obj, props)
-    return obj as A
-  }
-
-  function ifObject(value?: IfObject | IfObject['if']): IfObject {
-    if (u.isArr(value)) return { if: value }
-    if (u.isObj(value)) return value
-    return {
-      if: [{}, 'selectOn.png', 'selectOff.png'],
+    const emit = builder.object()
+    const prop = emit.createProperty('emit')
+    prop.setValue({ dataKey: '', actions: [] })
+    const emitObject = prop.getValue() as NoodlObject
+    if (arg1) {
+      if ((u.isObj(arg1) && 'dataKey' in arg1) || 'actions' in arg1) {
+        mergeObject(emitObject, arg1)
+      } else {
+        emitObject.setValue('dataKey', arg1)
+      }
     }
+    if (u.isArr(arg2)) emitObject.setValue('actions', arg2)
+    return emit.build()
+  }
+
+  function goto<Destination extends string>(
+    goto: Destination,
+  ): GotoObject & { goto: Destination }
+
+  function goto(props?: Partial<GotoObject>): GotoObject
+
+  function goto(): GotoObject
+
+  function goto<A extends GotoObject>(props?: string | Partial<A>) {
+    return mergeKeyValOrObj(
+      builder.action('goto'),
+      'goto',
+      strOrEmptyStr(props),
+      props,
+    ).build()
+  }
+
+  function ifObject<IfConditions extends any[]>(
+    ifConditions: IfConditions,
+  ): IfObject & { if: IfConditions }
+
+  function ifObject(props?: Partial<IfObject>): IfObject
+
+  function ifObject(): IfObject
+
+  function ifObject<IfConditions extends any[]>(
+    value?: IfObject | IfConditions,
+  ) {
+    const a = builder.object()
+    if (u.isArr(value)) a.createProperty('if', value)
+    else a.createProperty('if', value?.if || [])
+    return a.build()
   }
 
   return {
     builtIn,
     ecosDoc,
     evalObject,
-    emitObject: getFoldedEmitObject,
-    gotoObject,
+    emit: emitObject,
+    goto,
     ifObject,
     pageJump,
     popUp,
@@ -220,7 +257,6 @@ const actionFactory = (function () {
     removeSignature,
     saveObject,
     saveSignature,
-    toastObject,
     updateObject,
   }
 })()

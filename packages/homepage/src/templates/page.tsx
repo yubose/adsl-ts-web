@@ -1,9 +1,8 @@
 import React from 'react'
-import * as u from '@jsmanifest/utils'
 import { PageProps } from 'gatsby'
 import Seo from '@/components/Seo'
-import useRenderer from '@/hooks/useRenderer'
-import { Provider as PageContextProvider } from '@/usePageCtx'
+import PageContext from '@/components/PageContext'
+import usePage from '@/hooks/usePage'
 import * as t from '@/types'
 
 interface NoodlPageTemplateProps extends PageProps {
@@ -11,31 +10,16 @@ interface NoodlPageTemplateProps extends PageProps {
 }
 
 function NoodlPageTemplate(props: NoodlPageTemplateProps) {
-  const { pageContext } = props
-  const { pageName, pageObject } = pageContext
-  const render = useRenderer()
-
-  React.useEffect(() => {
-    console.log(`pageContext`, pageContext)
-    console.log(`pageObject`, pageObject)
-  }, [])
-
-  return (
-    <>
-      <Seo />
-      {pageObject?.components?.map?.(
-        (c: t.StaticComponentObject | string, index) => (
-          <React.Fragment key={u.isStr(c) ? c : c?.id || c?.dataKey || index}>
-            {render(c, [pageName, 'components', index])}
-          </React.Fragment>
-        ),
-      ) || null}
-    </>
-  )
+  const page = usePage(props)
+  console.log(props)
+  return <>{page.components.map(page.render)}</>
 }
 
 export default (props: NoodlPageTemplateProps) => (
-  <PageContextProvider value={props.pageContext}>
-    <NoodlPageTemplate {...props} />
-  </PageContextProvider>
+  <>
+    <Seo />
+    <PageContext {...props.pageContext}>
+      <NoodlPageTemplate {...props} />
+    </PageContext>
+  </>
 )

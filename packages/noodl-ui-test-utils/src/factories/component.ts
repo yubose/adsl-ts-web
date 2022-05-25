@@ -1,3 +1,4 @@
+import type { LiteralUnion } from 'type-fest'
 import * as u from '@jsmanifest/utils'
 import type {
   ButtonComponentObject,
@@ -24,53 +25,67 @@ import type {
   VideoComponentObject,
   ViewComponentObject,
 } from 'noodl-types'
-import { createComponentObject } from '../utils'
-import actionFactory from './action'
+import builder from '../builder'
+import {
+  mergeObject,
+  mergeKeyValOrObj,
+  strOrUndef,
+  strOrEmptyStr,
+} from '../utils'
 import ecosJpgDoc from '../fixtures/jpg.json'
 import ecosNoteDoc from '../fixtures/note.json'
 import ecosPdfDoc from '../fixtures/pdf.json'
 import ecosPngDoc from '../fixtures/png.json'
 import ecosTextDoc from '../fixtures/text.json'
+import actionFactory from './action'
 import * as t from '../types'
 
 const componentFactory = (function () {
-  function button<C extends ButtonComponentObject>(
-    props?: C['text'] | Partial<C>,
+  function button<Text extends string>(
+    text: Text,
+  ): ButtonComponentObject & { text: Text }
+
+  function button(props?: Partial<ButtonComponentObject>): ButtonComponentObject
+
+  function button(onClick?: any[]): ButtonComponentObject
+
+  function button(): ButtonComponentObject
+
+  function button<Text extends string>(
+    props?: Text | Partial<ButtonComponentObject> | any[],
   ) {
-    const obj = {
-      type: 'button',
-      onClick: [
-        {
-          actionType: 'updateObject',
-          dataKey: 'MeetingLobbyStart.inviteesInfo.edge',
-          dataObject: 'itemObject',
-        },
-        {
-          actionType: 'evalObject',
-          object: { '..inviteesInfo.edge.tage@': -1 },
-        },
-      ],
-      text: 'Delete',
-    } as ButtonComponentObject
-    if (u.isStr(props)) obj.text = props
-    else if (props) u.assign(obj, props)
-    return obj as C
+    const comp = builder.component('button')
+    if (u.isStr(props)) comp.createProperty('text', props)
+    else if (u.isArr(props)) comp.createProperty('onClick', props)
+    else mergeObject(comp, props)
+    return comp.build()
   }
 
-  function canvas<C extends CanvasComponentObject>(props?: C) {
-    return {
-      dataKey: 'SignIn.signature',
-      ...props,
-      type: 'canvas',
-    } as CanvasComponentObject & C
+  function canvas<DataKey extends string>(
+    dataKey: DataKey,
+  ): CanvasComponentObject & { dataKey: DataKey }
+
+  function canvas(props?: Partial<CanvasComponentObject>): CanvasComponentObject
+
+  function canvas(): CanvasComponentObject
+
+  function canvas<DataKey extends string, O extends CanvasComponentObject>(
+    props?: DataKey | Partial<O>,
+  ) {
+    const comp = builder.component('canvas')
+    comp.createProperty('dataKey', '')
+    if (u.isStr(props)) comp.setValue('dataKey', props)
+    return mergeObject(comp, props).build()
   }
 
   function ecosDocComponent(
     preset?: t.GetEcosDocObjectPreset,
   ): EcosDocComponentObject
+
   function ecosDocComponent<C extends EcosDocComponentObject>(
     props?: Partial<C>,
   ): EcosDocComponentObject
+
   function ecosDocComponent<C extends EcosDocComponentObject>(
     props?: Partial<C> | t.GetEcosDocObjectPreset,
   ): EcosDocComponentObject {
@@ -97,215 +112,374 @@ const componentFactory = (function () {
     return obj
   }
 
-  function divider<C extends DividerComponentObject>(
-    props?: Partial<C>,
-  ): DividerComponentObject {
-    return { type: 'divider', ...props }
+  function divider(props?: Partial<DividerComponentObject>) {
+    return mergeObject<DividerComponentObject>(
+      builder.component('divider'),
+      props,
+    ).build()
   }
 
-  function footer<O extends Partial<FooterComponentObject>>(props?: O) {
-    return { type: 'footer', ...props } as FooterComponentObject & O
+  function footer<O extends FooterComponentObject>(props?: Partial<O>) {
+    return mergeObject<O>(builder.component('footer'), props).build()
   }
 
-  function header<O extends Partial<HeaderComponentObject>>(props?: O) {
-    return { type: 'header', ...props } as HeaderComponentObject & O
+  function header(
+    props?: Partial<HeaderComponentObject>,
+  ): HeaderComponentObject {
+    if (u.isUnd(props)) return { type: 'header' }
+    return mergeObject<HeaderComponentObject>(
+      builder.component('header'),
+      props,
+    ).build()
   }
 
-  function image<
-    O extends Partial<ImageComponentObject> = ImageComponentObject,
-  >(obj?: O): ImageComponentObject & O
+  function image<Path extends string>(
+    path: Path,
+  ): ImageComponentObject & { path: Path }
 
-  function image<
-    O extends Partial<ImageComponentObject> = ImageComponentObject,
-  >(path?: O['path']): ImageComponentObject & O
+  function image(props?: Partial<ImageComponentObject>): ImageComponentObject
 
-  function image<O extends Partial<ImageComponentObject>>(obj?: O | O['path']) {
-    u.isStr(obj) && (obj = { path: obj } as O)
-    !obj && (obj = { path: 'abc.png' } as O)
-    !('path' in (obj as O)) && (obj.path = 'abc.png')
-    return { ...(obj as O), type: 'image' } as ImageComponentObject & O
-  }
+  function image(): ImageComponentObject
 
-  function label<
-    O extends Partial<LabelComponentObject> = LabelComponentObject,
-  >(obj?: O): O & LabelComponentObject
-
-  function label<
-    O extends Partial<LabelComponentObject> = LabelComponentObject,
-  >(text: O['text']): LabelComponentObject & O
-
-  function label<
-    O extends Partial<LabelComponentObject> = LabelComponentObject,
-  >(obj?: string | O) {
-    u.isStr(obj) && (obj = { text: obj } as O)
-    !obj && (obj = { text: 'Hello' } as O)
-    !('text' in obj) && (obj.text = 'Hello')
-    return {
-      ...obj,
-      type: 'label',
-    } as LabelComponentObject & O
-  }
-
-  function list<O extends Partial<ListComponentObject> = ListComponentObject>(
-    { iteratorVar = 'itemObject', ...rest } = {} as O,
+  function image<Path extends string>(
+    props?: Path | Partial<ImageComponentObject>,
   ) {
-    return {
-      listObject: [
-        { key: 'Gender', value: 'Male' },
-        { key: 'Gender', value: 'Female' },
-        { key: 'Gender', value: 'Other' },
-      ],
-      contentType: 'listObject',
-      iteratorVar,
-      children: [
-        listItem({
-          type: 'listItem',
-          [iteratorVar]: '',
-          children: [
-            {
-              type: 'label',
-              dataKey: 'itemObject.value',
-              style: { border: { style: '1' } },
-            },
-          ],
-        }),
-      ],
-      ...rest,
-      type: 'list',
-    } as ListComponentObject & O
+    return mergeKeyValOrObj<ImageComponentObject>(
+      builder.component('image'),
+      'path',
+      strOrEmptyStr(props),
+      props,
+    ).build()
   }
 
-  function listItem<IteratorVar extends string = string, DataObject = any>(
-    iteratorVar: IteratorVar,
-    dataObject?: DataObject,
-  ): ListItemComponentObject & Partial<Record<IteratorVar, DataObject>>
+  function label<DataKey extends string>(
+    dataKey: DataKey,
+  ): LabelComponentObject & { dataKey: DataKey }
 
-  function listItem<O extends Partial<ListItemComponentObject>>(
-    props: O,
-  ): ListItemComponentObject & O
+  function label(props?: Partial<LabelComponentObject>): LabelComponentObject
 
-  function listItem<IteratorVar extends string = string, DataObject = any>(
-    obj:
-      | IteratorVar
-      | (Partial<ListItemComponentObject> & {
-          dataObject?: DataObject
-          iteratorVar?: IteratorVar
-        }) = {},
-    dataObject?: DataObject,
+  function label(): LabelComponentObject
+
+  function label<DataKey extends string>(
+    obj?: DataKey | Partial<LabelComponentObject>,
   ) {
-    u.isStr(obj) &&
-      (obj = { [obj]: dataObject || '' } as ListItemComponentObject)
-    return {
-      style: { left: '0', border: { style: '1' } },
-      children: [label(), view(), button()],
-      ...obj,
-      type: 'listItem',
-    } as ListItemComponentObject & Record<IteratorVar, DataObject>
+    const comp = builder.component('label')
+    if (u.isStr(obj)) comp.createProperty('dataKey', obj)
+    return mergeObject(comp, obj).build()
   }
 
-  function page<P extends string>(path: P): PageComponentObject & { path: P }
+  function list<ListObjectRef extends string>(
+    listObject: ListObjectRef,
+  ): ListComponentObject & { listObject: ListObjectRef }
 
-  function page<O extends PageComponentObject>(
-    obj: Partial<O>,
-  ): O & PageComponentObject
+  function list<ListObjectArr extends any[]>(
+    listObject: ListObjectArr,
+  ): ListComponentObject & { listObject: any[] }
 
-  function page<O extends PageComponentObject = PageComponentObject>(
-    obj: Partial<O> | PageComponentObject['path'],
-  ) {
-    if (u.isStr(obj)) return { type: 'page', path: obj } as O
-    if (!obj) return { type: 'page', path: 'SignIn ' } as O
-    return { ...obj, type: 'page' } as O
-  }
+  function list<ListObjectArr extends ListComponentObject>(
+    props?: Partial<ListComponentObject>,
+  ): ListComponentObject
 
-  function plugin<C extends PluginComponentObject>(
-    props?: Partial<C>,
-  ): PluginComponentObject {
-    return { type: 'plugin', path: 'googleTM.js', ...props }
-  }
-
-  function pluginHead<C extends PluginHeadComponentObject>(
-    props?: Partial<C>,
-  ): PluginHeadComponentObject {
-    return { type: 'pluginHead', path: 'googleTM.js', ...props }
-  }
-
-  const pluginBodyTop = createComponentObject<PluginBodyTopComponentObject>(
-    { type: 'pluginBodyTop', path: 'googleTM.js' } as any,
-    'path',
-  )
-
-  const pluginBodyTail = createComponentObject<PluginBodyTailComponentObject>(
-    { type: 'pluginBodyTail', path: 'googleTM.js' },
-    'path',
-  )
-
-  const popUpComponent = createComponentObject<PopUpComponentObject>(
-    { type: 'popUp', popUpView: 'genderView' },
-    'popUpView',
-  )
-
-  const register = createComponentObject<RegisterComponentObject>(
-    { type: 'register', onEvent: 'toggleCameraOn' },
-    'onEvent',
-  )
-
-  function select<O extends any[]>(
-    options: O,
-  ): SelectComponentObject & { options: O }
-
-  function select<O extends Partial<SelectComponentObject>>(
-    props: Partial<O>,
-  ): SelectComponentObject & O
-
-  function select<O extends Partial<SelectComponentObject>>(props?: any[] | O) {
-    const obj = {
-      type: 'select',
-      options: ['apple', 'orange', 'banana'],
+  function list<
+    ListObjectRef extends string = string,
+    ListObjectArr extends any[] = any[],
+  >(args?: ListObjectRef | ListObjectArr | Partial<ListComponentObject>) {
+    const component = builder.component('list')
+    component.createProperty('iteratorVar', 'itemObject')
+    component.createProperty('contentType', 'listObject')
+    component.createProperty('listObject', '')
+    if (u.isUnd(args)) {
+      return component.build()
     }
-    if (u.isArr(props)) obj.options = props
-    else if (props) u.assign(obj, props)
-    return obj as O & SelectComponentObject
+    if (u.isArr(args)) {
+      return component.setValue('listObject', args).build()
+    }
+    if (u.isObj(args)) {
+      return mergeObject(component, args).build()
+    }
+    if (u.isStr(args)) {
+      component.createProperty('listObject', args)
+      return component.build()
+    }
+    return mergeObject(component, args).build()
   }
 
-  function scrollView<
-    O extends Partial<ScrollViewComponentObject> = ScrollViewComponentObject,
-  >(props?: O) {
-    return { type: 'scrollView', ...props } as ScrollViewComponentObject & O
+  function listItem<IteratorVar extends string>(
+    iteratorVar: LiteralUnion<IteratorVar | 'itemObject', string>,
+  ): ListItemComponentObject & { [K in IteratorVar]: string }
+
+  function listItem<
+    IteratorVar extends string,
+    DataObject extends Record<string, any>,
+  >(
+    iteratorVar: LiteralUnion<IteratorVar | 'itemObject', string>,
+    dataObject?: DataObject,
+  ): ListItemComponentObject & { [K in IteratorVar]: DataObject }
+
+  function listItem(
+    props: Partial<ListItemComponentObject>,
+  ): ListItemComponentObject
+
+  function listItem(
+    props: Partial<ListItemComponentObject>,
+    dataObject?: any,
+  ): ListItemComponentObject
+
+  function listItem(): ListItemComponentObject & { itemObject: '' }
+
+  function listItem<IteratorVar extends string = string, DataObject = any>(
+    arg1?:
+      | string
+      | Partial<
+          ListItemComponentObject & {
+            iteratorVar?: LiteralUnion<IteratorVar | 'itemObject', string>
+          }
+        >
+      | DataObject,
+    arg2?: DataObject,
+  ) {
+    const comp = builder.component('listItem')
+    if (u.isUnd(arg1)) {
+      comp.createProperty('itemObject', '')
+      return comp.build()
+    }
+    if (u.isStr(arg1)) {
+      if (arg2) comp.createProperty(arg1, arg2)
+      else comp.createProperty(arg1, '')
+    }
+    if (u.isObj(arg1)) {
+      mergeObject(comp, arg1)
+      if (arg2) comp.setValue('itemObject', arg2)
+      else if (!('itemObject' in arg1)) comp.createProperty('itemObject', '')
+    }
+    return comp.build()
   }
 
-  function textField<D extends string>(dataKey: D): TextFieldComponentObject
+  function page<Path extends string>(
+    path: Path,
+  ): PageComponentObject & { path: Path }
 
-  function textField<O extends Partial<TextFieldComponentObject>>(
-    obj?: O,
-  ): TextFieldComponentObject & O
+  function page(): PageComponentObject & { path: string }
+
+  function page(
+    props: Partial<PageComponentObject>,
+  ): PageComponentObject & { path: string }
+
+  function page<Path extends string, O extends PageComponentObject>(
+    obj?: Path | Partial<O>,
+  ) {
+    const comp = builder.component('page')
+    comp.createProperty('path', '')
+    if (u.isUnd(obj)) return comp.build()
+    if (u.isStr(obj)) comp.setValue('path', obj)
+    else if (u.isObj(obj)) mergeObject(comp, obj)
+    return comp.build()
+  }
+
+  function plugin<Path extends string>(
+    path: Path,
+  ): PluginComponentObject & { path: Path }
+
+  function plugin(props?: Partial<PluginComponentObject>): PluginComponentObject
+
+  function plugin(): PluginComponentObject
+
+  function plugin<O extends PluginComponentObject>(
+    props?: string | Partial<O>,
+  ) {
+    return mergeKeyValOrObj(
+      builder.component('plugin'),
+      'path',
+      u.isStr(props) ? props : '',
+      props,
+    ).build()
+  }
+
+  function pluginHead<Path extends string>(
+    path: Path,
+  ): PluginHeadComponentObject & { path: Path }
+
+  function pluginHead(
+    props?: Partial<PluginHeadComponentObject>,
+  ): PluginHeadComponentObject
+
+  function pluginHead(): PluginHeadComponentObject
+
+  function pluginHead(props?: string | Partial<PluginHeadComponentObject>) {
+    return mergeKeyValOrObj(
+      builder.component('pluginHead'),
+      'path',
+      u.isStr(props) ? props : '',
+      props,
+    ).build()
+  }
+
+  function pluginBodyTop<Path extends string>(
+    path: Path,
+  ): PluginBodyTopComponentObject & { path: Path }
+
+  function pluginBodyTop(
+    props?: Partial<PluginBodyTopComponentObject>,
+  ): PluginBodyTopComponentObject
+
+  function pluginBodyTop(): PluginBodyTopComponentObject
+
+  function pluginBodyTop<C extends PluginBodyTopComponentObject>(
+    props?: string | Partial<C>,
+  ) {
+    return mergeKeyValOrObj(
+      builder.component('pluginBodyTop'),
+      'path',
+      u.isStr(props) ? props : '',
+      props,
+    ).build()
+  }
+
+  function pluginBodyTail<Path extends string>(
+    path: Path,
+  ): PluginBodyTailComponentObject & { path: Path }
+
+  function pluginBodyTail(
+    props?: Partial<PluginBodyTailComponentObject>,
+  ): PluginBodyTailComponentObject
+
+  function pluginBodyTail(): PluginBodyTailComponentObject
+
+  function pluginBodyTail<O extends Partial<PluginBodyTailComponentObject>>(
+    props?: string | O,
+  ) {
+    return mergeKeyValOrObj(
+      builder.component('pluginBodyTail'),
+      'path',
+      u.isStr(props) ? props : '',
+      props,
+    ).build()
+  }
+
+  function popUpComponent<PopUpView extends string>(
+    popUpView: PopUpView,
+  ): PopUpComponentObject & { popUpView: PopUpView }
+
+  function popUpComponent(
+    props?: Partial<PopUpComponentObject>,
+  ): PopUpComponentObject
+
+  function popUpComponent(): PopUpComponentObject
+
+  function popUpComponent<
+    PopUpView extends string,
+    O extends PopUpComponentObject,
+  >(arg?: PopUpView | Partial<O>) {
+    const comp = builder.component('popUp')
+    comp.createProperty('popUpView', '')
+    if (u.isUnd(arg)) return comp.build()
+    if (u.isStr(arg)) comp.createProperty('popUpView', arg)
+    else if (u.isObj(arg)) mergeObject(comp, arg)
+    return comp.build()
+  }
+
+  function register<OnEvent extends string>(
+    onEvent: OnEvent,
+  ): RegisterComponentObject & { onEvent: OnEvent }
+
+  function register(
+    props?: Partial<RegisterComponentObject>,
+  ): RegisterComponentObject
+
+  function register(): RegisterComponentObject
+
+  function register<OnEvent extends string, O extends RegisterComponentObject>(
+    arg?: OnEvent | Partial<O>,
+  ) {
+    const comp = builder.component('register')
+    if (u.isUnd(arg)) return comp.build()
+    if (u.isStr(arg)) comp.createProperty('onEvent', arg)
+    else if (u.isObj(arg)) mergeObject(comp, arg)
+    return comp.build()
+  }
+
+  function select<OptionsRef extends string>(
+    options: OptionsRef,
+  ): SelectComponentObject & { options: OptionsRef }
+
+  function select<Options extends any[]>(
+    options: Options,
+  ): SelectComponentObject & { options: Options }
+
+  function select<Options extends any = any>(
+    props: Partial<SelectComponentObject>,
+    options?: Options,
+  ): SelectComponentObject & { options: Options }
+
+  function select(): SelectComponentObject
+
+  function select<O extends SelectComponentObject>(
+    arg1?: string | any[] | Partial<O>,
+    arg2?: any,
+  ) {
+    const comp = builder.component('select')
+    if (u.isUnd(arg1)) return mergeObject(comp, { options: '' }).build()
+    if (u.isUnd(arg2)) {
+      if (u.isArr(arg1)) comp.createProperty('options', arg1)
+      else mergeObject(comp, u.isObj(arg1) ? arg1 : undefined)
+    }
+    return comp.build()
+  }
+
+  function scrollView<O extends ScrollViewComponentObject>(props?: Partial<O>) {
+    return mergeObject<O & ScrollViewComponentObject>(
+      builder.component('scrollView'),
+      props,
+    ).build()
+  }
+
+  function textField<DataKey extends string>(
+    dataKey: DataKey,
+  ): TextFieldComponentObject & { dataKey: DataKey }
+
+  function textField(
+    props: Partial<TextFieldComponentObject>,
+  ): TextFieldComponentObject
+
+  function textField(): TextFieldComponentObject
 
   function textField<
-    O extends Partial<TextFieldComponentObject> = TextFieldComponentObject,
-  >(props?: string | O) {
-    u.isStr(props) && (props = { dataKey: props } as O)
-    return {
-      dataKey: 'formData.password',
-      ...props,
-      type: 'textField',
-    } as TextFieldComponentObject & O
+    DataKey extends string,
+    O extends TextFieldComponentObject,
+  >(arg?: DataKey | Partial<O>) {
+    const comp = builder.component('textField')
+    if (u.isStr(arg)) return mergeObject(comp, { dataKey: arg }).build()
+    return mergeObject(comp, arg).build()
   }
 
-  function textView<C extends TextViewComponentObject>(
-    props?: Partial<C>,
-  ): TextViewComponentObject {
-    return { type: 'textView', ...props }
+  function textView<O extends TextViewComponentObject>(props?: Partial<O>) {
+    return mergeObject<O & TextViewComponentObject>(
+      builder.component('textView'),
+      props,
+    ).build()
   }
 
-  const video = createComponentObject<VideoComponentObject>(
-    { type: 'video', videoFormat: 'video/mp4' },
-    'path',
-  )
+  function video<Path extends string>(
+    path: Path,
+  ): VideoComponentObject & { path: Path }
+
+  function video(props: Partial<VideoComponentObject>): VideoComponentObject
+
+  function video(): VideoComponentObject
+
+  function video<O extends VideoComponentObject>(props?: string | Partial<O>) {
+    const comp = builder.component('video')
+    if (u.isUnd(props)) return comp.build()
+    if (u.isStr(props)) comp.createProperty('path', props)
+    else if (u.isObj(props)) mergeObject(comp, props)
+    return comp.build()
+  }
 
   function view<O extends ViewComponentObject>(obj?: Partial<O>) {
-    return {
-      ...obj,
-      type: 'view',
-    }
+    return mergeObject<O & ViewComponentObject>(
+      builder.component('view'),
+      obj,
+    ).build()
   }
 
   return {

@@ -1,7 +1,33 @@
 import React from 'react'
 import { Helmet } from 'react-helmet'
+import { injectGlobal } from '@emotion/css'
+import { ThemeProvider } from 'theme-ui'
+import { css } from '@emotion/react'
 import AppProvider from './src/AppProvider'
 import favicon from './src/resources/favicon.ico'
+import theme from './src/theme'
+
+const timestamp = new Date().toISOString()
+
+injectGlobal(
+  css({
+    '*': {
+      boxSizing: 'border-box',
+      top: 0,
+    },
+    html: {
+      textSizeAdjust: '100%',
+    },
+    body: {
+      padding: 0,
+      margin: 0,
+      fontSmoothing: 'antialiased',
+      color: '#333',
+      fontFamily: 'Arial, sans-serif',
+      fontKerning: 'normal',
+    },
+  }),
+)
 
 export default function ({ element, headComponents }) {
   return (
@@ -13,13 +39,15 @@ export default function ({ element, headComponents }) {
         {headComponents}
         <link rel="icon" type="image/png" href={favicon} sizes="32x32" />
         <link rel="icon" type="image/png" href={favicon} sizes="42x42" />
-        <meta name="build-timestamp" content={new Date().toISOString()} />
+        <meta name="build-timestamp" content={timestamp} />
         <meta
           name="google-site-verification"
           content="ftZTuRqMUQ4uHXtPrSeyqxtArLLI3q9BvqvVVo9pfdc"
         />
       </Helmet>
-      <AppProvider>{element}</AppProvider>
+      <ThemeProvider theme={theme}>
+        <AppProvider>{element}</AppProvider>
+      </ThemeProvider>
     </>
   )
 }

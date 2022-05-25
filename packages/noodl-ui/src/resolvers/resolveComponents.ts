@@ -14,6 +14,8 @@ import is from '../utils/is'
 import {
   findIteratorVar,
   findListDataObject,
+  getByRef,
+  getListAttribute,
   isListConsumer,
   isListLike,
   resolveAssetUrl,
@@ -52,12 +54,23 @@ componentResolver.setResolver(async (component, options, next) => {
     ...context,
   })
 
+  if (u.isPromise(mergingProps)) await mergingProps
+
   try {
     const original = component.blueprint || {}
     const originalStyle = original.style || {}
     const { contentType, dataKey, path, text, textBoard } = original
     const iteratorVar =
       context?.iteratorVar || original.iteratorVar || findIteratorVar(component)
+    /* -------------------------------------------------------
+      ---- POPUP
+    -------------------------------------------------------- */
+    if (is.component.popUp(component)) {
+      const message = component.get('message')
+      if (message) {
+        component.edit('message', message)
+      }
+    }
 
     /* -------------------------------------------------------
       ---- ECOSDOC
@@ -88,24 +101,26 @@ componentResolver.setResolver(async (component, options, next) => {
       const listItemBlueprint = getRawBlueprint(component)
       /** Filter invalid values (0 is a valid value)  */
       function getListObject(opts: ConsumerOptions) {
+        let page = opts.page
+        let pageName = ''
+        if (u.isStr(page)) {
+          pageName = page
+          page = opts.getRootPage()
+        } else if (isNuiPage(page)) {
+          pageName = page.page
+        }
+        const _ref = opts.component?.props?._ref_
         let listObject =
-        component.blueprint.listObject || component.get('listObject')
+          // component.blueprint.listObject || component.get('listObject')
+          getByRef(opts.getRoot(), _ref, pageName) ||
+          component.blueprint.listObject ||
+          component.get('listObject')
         if (is.reference(listObject)) {
-          let page = opts.page
-          let pageName = ''
-          if (u.isStr(page)) {
-            pageName = page
-            page = opts.getRootPage()
-          } else if (isNuiPage(page)) {
-            pageName = page.page
-          }
           component.edit(
             'listObject',
             resolveReference({
-              component: opts.component,
               localKey: pageName,
               root: opts.getRoot(),
-              key: 'listObject',
               page,
               value: listObject,
             }),
@@ -317,7 +332,7 @@ componentResolver.setResolver(async (component, options, next) => {
         }
         const content = await res?.json?.()
         plugin && (plugin.content = component.get('content'))
-        setTimeout(() => component.emit('content', content || ''))
+        setTimeout(async () => component.emit('content', content || ''))
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
         log.error(`[${err.name}]: ${err.message}`, err)
@@ -340,7 +355,8 @@ componentResolver.setResolver(async (component, options, next) => {
             component.toJSON(),
           )
         }
-
+        const dataObject = findListDataObject(component)
+        const listAttribute = getListAttribute(component)
         textBoard.forEach((item) => {
           if (is.textBoardItem(item)) {
             const child = createComponent('br', page)
@@ -358,16 +374,23 @@ componentResolver.setResolver(async (component, options, next) => {
              * fontSize----> fontSize
              * fontWeight---> normal | bold | number
              */
-            if (item?.dataKey) {
+            let itemText = item?.text
+
+            if (item?.dataKey || itemText) {
+              if (!item.dataKey) item.dataKey = itemText
               if (iteratorVar && item?.dataKey.startsWith(iteratorVar)) {
-                const dataObject = findListDataObject(component)
                 const dataKey = excludeIteratorVar(item?.dataKey, iteratorVar)
                 item.text = dataKey ? get(dataObject, dataKey) : dataObject
+              } else if (iteratorVar && item?.dataKey.startsWith('listAttr')) {
+                const dataKey = excludeIteratorVar(item?.dataKey, 'listAttr')
+                item.text = dataKey
+                  ? get(listAttribute, dataKey)
+                  : listAttribute
               } else {
                 const dataObject = findDataValue(
                   [() => getRoot(), () => getRoot()[page.page]],
                   item?.dataKey,
-                )
+                ) || item.dataKey
                 item.text = u.isObj(dataObject)
                   ? get(dataObject, item?.datKey)
                   : dataObject
@@ -509,6 +532,7 @@ componentResolver.setResolver(async (component, options, next) => {
   }
 
   u.isObj(mergingProps) && component.edit(mergingProps)
+
   return next?.()
 })
 

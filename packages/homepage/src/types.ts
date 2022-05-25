@@ -1,74 +1,49 @@
-import type React from 'react'
 import * as nt from 'noodl-types'
 import type { LiteralUnion } from 'type-fest'
-import type { ActionChainStatus } from 'noodl-action-chain'
-import type { NUIAction, NUIActionObject, NUITrigger } from 'noodl-ui'
+import type {
+  ComponentPath,
+  PageContext as GatsbyPluginPageContext,
+  ListComponentsContext,
+  StaticComponentObject,
+} from 'gatsby-plugin-noodl'
 import type useRootObject from './hooks/useRootObject'
-import type { IGatsbyImageData } from 'gatsby-plugin-image'
 
-export type AppContext = ReturnType<typeof useRootObject> & {
-  images: {
-    [filename: string]: {
-      data: IGatsbyImageData
-      filename: string
-      url: string
-    }
-  }
-}
+export type { ComponentPath, StaticComponentObject }
 
-export type StaticComponentObject = nt.ComponentObject &
-  Partial<
-    Record<
-      NUITrigger,
-      {
-        actions: (NUIActionObject & Record<string, any>)[]
-        trigger: LiteralUnion<NUITrigger, string>
-        injected: (NUIActionObject & Record<string, any>)[]
-        queue: NUIAction[]
-        results: {
-          action: NUIActionObject
-          result: any
-        }[]
-        status: ActionChainStatus
-      }
-    >
-  > &
-  Record<string, any>
+export type AppContext = ReturnType<typeof useRootObject>
 
-export interface PageContext {
-  isPreload: boolean
-  startPage?: string
-  pageName: string
-  pageObject: {
-    components: StaticComponentObject[]
-  } & Record<string, any>
+export interface PageContext extends Omit<GatsbyPluginPageContext, 'lists'> {
+  getId: (id: string | StaticComponentObject) => string
+  getListObject: (
+    id: string | StaticComponentObject,
+    root?: Record<string, any>,
+    pageName?: string,
+  ) => nt.ReferenceString | any[]
+  getIteratorVar: (id: string | StaticComponentObject) => string
+  getCtxObject: (
+    id: string | StaticComponentObject,
+  ) => PageContextListContextObject | null
+  getDataObject: (
+    id: string | StaticComponentObject,
+    root?: Record<string, any>,
+    pageName?: string,
+  ) => any
+  isListConsumer: (id: string | StaticComponentObject) => boolean
+  isCtxObj: (
+    obj: PageContextListContextObject,
+    id: string | StaticComponentObject,
+  ) => boolean
+  assetsUrl: string
+  baseUrl: string
+  name: string
+  components: StaticComponentObject[]
   slug: string
-  _context_: {
-    lists?: Record<string, PageContextListContextObject>
-  }
+  lists: PageContextListContextObject[]
 }
 
-export interface PageContextListContextObject {
-  children: string[][]
-  id: string
-  listObject: any[]
-  listObjectPath?: string
-  iteratorVar: string
-  path: (string | number)[]
-}
+export type PageContextListContextObject = ListComponentsContext[string]
 
-export interface CreateElementProps<Props = any> {
-  key?: string
-  type: string
-  children?: string | number | (string | number | CreateElementProps<Props>)[]
-  style?: React.CSSProperties
-  [key: string]: any
-}
-
-export interface CommonRenderComponentHelpers
-  extends Pick<AppContext, 'root' | 'getInRoot' | 'setInRoot'> {
-  _context_: PageContext['_context_']
-  pageName: string
-}
-
-export type ComponentPath = (string | number)[]
+export type RootObject<O extends Record<string, any> = Record<string, any>> = {
+  Global: Record<LiteralUnion<'currentUser', string>, any>
+  Style?: nt.StyleObject
+} & O

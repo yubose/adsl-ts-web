@@ -29,6 +29,7 @@ import VP from './Viewport'
 import {
   findIteratorVar,
   findListDataObject,
+  getListAttribute,
   getPluginLocation,
   isListConsumer,
   resolveAssetUrl,
@@ -38,6 +39,7 @@ import { groupedActionTypes, nuiEmitType } from './constants'
 import { isUnitTestEnv } from './utils/common'
 import isNuiPage from './utils/isPage'
 import cache from './_cache'
+import * as i from './utils/internal'
 import * as t from './types'
 
 const NUI = (function () {
@@ -428,19 +430,6 @@ const NUI = (function () {
   >(
     component: C,
     page?: NuiPage,
-    callback?:
-      | t.ResolveComponentOptions<C, Context>['callback']
-      | t.ResolveComponentOptions<C, Context>,
-  ): Promise<
-    C extends C[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
-  >
-
-  async function _resolveComponents<
-    C extends OrArray<t.NuiComponent.CreateType>,
-    Context extends Record<string, any> = Record<string, any>,
-  >(
-    component: C,
-    callback?: t.ResolveComponentOptions<C, Context>['callback'],
   ): Promise<
     C extends C[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
   >
@@ -460,13 +449,7 @@ const NUI = (function () {
     Context extends Record<string, any> = Record<string, any>,
   >(
     arg1: C | t.ResolveComponentOptions<C, Context>,
-    arg2?:
-      | NuiPage
-      | t.ResolveComponentOptions<C, Context>['callback']
-      | Omit<t.ResolveComponentOptions<C, Context>, 'component'>,
-    arg3?:
-      | Omit<t.ResolveComponentOptions<C, Context>, 'component'>
-      | t.ResolveComponentOptions<C, Context>['callback'],
+    arg2?: NuiPage | Omit<t.ResolveComponentOptions<C, Context>, 'component'>,
   ) {
     let isArr = true
     let resolvedComponents: t.NuiComponent.Instance[] = []
@@ -475,49 +458,29 @@ const NUI = (function () {
     let context: Record<string, any> = {}
     let callback: t.ResolveComponentOptions<C, Context>['callback'] | undefined
     let on: t.ResolveComponentOptions<C, Context>['on'] | undefined
+    let otherOpts = {} as { keepVpUnit?: boolean }
 
     if (u.isArr(arg1)) {
       components = arg1
-      if (u.isFnc(arg2)) {
-        callback = arg2
-        if (isNuiPage(arg3)) page = arg3
-        else page = o.getRootPage()
-      } else if (isNuiPage(arg2)) {
+      if (isNuiPage(arg2)) {
         page = arg2
       } else if (u.isObj(arg2)) {
         arg2.callback && (callback = arg2.callback)
         arg2.context && (context = arg2.context)
         arg2.page && (page = arg2.page)
         arg2.on && (on = arg2.on)
-      }
-      if (u.isFnc(arg3)) {
-        callback = arg3
-      } else if (u.isObj(arg3)) {
-        arg3.on && (on = arg3.on)
-        arg3.callback && (callback = arg3.callback)
-        arg3.context && (context = arg3.context)
-        isNuiPage(arg3.page) && (page = arg3.page)
+        if (arg2.keepVpUnit) otherOpts.keepVpUnit = arg2.keepVpUnit
       }
     } else if (u.isObj(arg1)) {
       if ('type' in arg1 || 'children' in arg1 || 'style' in arg1) {
         components = [arg1]
-        if (u.isFnc(arg2)) {
-          callback = arg2
-        } else if (isNuiPage(arg2)) {
+        if (isNuiPage(arg2)) {
           page = arg2
         } else if (u.isObj(arg2)) {
           isNuiPage(arg2.page) && (page = arg2.page)
           arg2.context && (context = arg2.context)
           arg2.callback && (callback = arg2.callback)
           arg2.on && (on = arg2.on)
-        }
-        if (u.isFnc(arg3)) {
-          callback = arg3
-        } else if (u.isObj(arg3)) {
-          isNuiPage(arg3.page) && (page = arg3.page)
-          arg3.context && (context = arg3.context)
-          arg3.callback && (callback = arg3.callback)
-          arg3.on && (on = arg3.on)
         }
         isArr = false
       } else {
@@ -527,6 +490,7 @@ const NUI = (function () {
         arg1.on && (on = arg1.on)
         components = u.array(arg1.components)
         isArr = u.isArr(arg1.components)
+        if (arg1.keepVpUnit) otherOpts.keepVpUnit = arg1.keepVpUnit
       }
     }
 
@@ -537,12 +501,13 @@ const NUI = (function () {
         context,
         on,
         page,
+        ...otherOptions
       }: {
         callback?: t.ResolveComponentOptions<C, Context>['callback']
         context?: Record<string, any>
         on?: t.ResolveComponentOptions<C, Context>['on']
         page: NuiPage
-      },
+      } & typeof otherOpts,
     ) {
       const options = o.getConsumerOptions({
         callback,
@@ -550,10 +515,9 @@ const NUI = (function () {
         context,
         on,
         page,
+        ...otherOptions,
       })
-
       await _transformer.transform(c, options)
-
       const iteratorVar = context?.iteratorVar || ''
       const isListConsumer = iteratorVar && u.isObj(context?.dataObject)
 
@@ -610,8 +574,10 @@ const NUI = (function () {
           }
         }
       }
-
-      return c
+      return {
+        component: c,
+        options,
+      }
     }
 
     !page && (page = o.getRootPage())
@@ -620,16 +586,44 @@ const NUI = (function () {
     const numComponents = componentsList.length
 
     for (let index = 0; index < numComponents; index++) {
-      resolvedComponents.push(
-        await xform(o.createComponent(componentsList[index], page as NuiPage), {
-          callback,
-          context,
-          on,
-          page,
-        }),
+      let componentObject = componentsList[index]
+      // { components: ['.BaseHeader'] }
+      if (u.isStr(componentObject) && nt.Identify.reference(componentObject)) {
+        componentObject = i.defaultResolveReference(
+          o.getRoot,
+          page.page,
+          componentObject,
+        )
+      }
+      // { components: [{ '.BaseHeader': '', style:{ shadow:'true' } }] }
+      if (u.isObj(componentObject) && !componentObject.type) {
+        const keys = u.keys(componentObject)
+        const refKey = keys.find((key) => nt.Identify.reference(key))
+        if (refKey) {
+          componentObject = i.defaultResolveReference(
+            o.getRoot,
+            page.page,
+            refKey as any,
+          )
+        }
+      }
+      const { component: resolvedComponent, options } = await xform(
+        o.createComponent(componentObject, page as NuiPage),
+        { callback, context, on, page, ...otherOpts },
       )
+      // if (on?.resolved) {
+      //   const fn = on.resolved({
+      //     components: componentsList,
+      //     component: resolvedComponent,
+      //     context,
+      //     index,
+      //     options,
+      //     page,
+      //   })
+      //   if (u.isPromise(fn)) await fn
+      // }
+      resolvedComponents.push(resolvedComponent)
     }
-
     return (
       isArr ? resolvedComponents : resolvedComponents[0]
     ) as C extends any[] ? t.NuiComponent.Instance[] : t.NuiComponent.Instance
@@ -709,11 +703,6 @@ const NUI = (function () {
           })
         }
         if (u.isFnc(register.handler?.fn) && u.isFnc(register.fn)) {
-          log.debug(
-            `%cSetting register.fn to undefined because a custom handler fn was provided`,
-            `color:#95a5a6;`,
-            register,
-          )
           register.fn = undefined
         }
         !register.page && (register.page = '_global')
@@ -976,14 +965,16 @@ const NUI = (function () {
           return objs.map((obj) => {
             if (nt.Identify.folds.emit(obj)) {
               const action = createAction(trigger, obj)
+              let listAttribute
+              if (opts?.component) {
+                listAttribute = getListAttribute(opts?.component)
+              }
               if (opts?.component) {
                 const iteratorVar =
                   opts?.context?.iteratorVar || findIteratorVar(opts.component)
-
                 const dataObject =
                   opts?.context?.dataObject ||
                   findListDataObject(opts.component)
-
                 if (obj.emit?.dataKey) {
                   action.dataKey = createEmitDataKey(
                     obj.emit.dataKey,
@@ -992,7 +983,7 @@ const NUI = (function () {
                       page: opts.page,
                       listDataObject: dataObject,
                     }),
-                    { iteratorVar },
+                    { iteratorVar, listAttribute },
                   )
                 }
               }
@@ -1099,7 +1090,7 @@ const NUI = (function () {
     } & { [key: string]: any }) {
       const getPage = (page: NuiPage, component?: t.NuiComponent.Instance) => {
         if (component?.parent && nt.Identify.component.page(component.parent)) {
-          if (component.parent?.get?.('page')) {
+          if (isNuiPage(component.parent?.get?.('page'))) {
             return component.parent?.get?.('page')
           }
           if (cache.page.has(component.id)) {
@@ -1279,8 +1270,6 @@ const NUI = (function () {
           } else if (key === 'emit') {
             //
           } else if (key === 'page') {
-            //
-          } else if (key === 'reference') {
             //
           } else if (key === 'setup') {
             //

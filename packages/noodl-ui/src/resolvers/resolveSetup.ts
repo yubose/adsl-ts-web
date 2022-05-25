@@ -4,6 +4,7 @@ import * as nt from 'noodl-types'
 import Resolver from '../Resolver'
 import resolvePageComponentUrl from '../utils/resolvePageComponentUrl'
 import log from '../utils/log'
+import is from '../utils/is'
 import * as i from '../utils/internal'
 import * as t from '../types'
 
@@ -19,7 +20,9 @@ setupResolver.setResolver(
   Resolver.withHelpers(async function setupResolver(component, options, next) {
     try {
       const { createActionChain, getRoot, on, page, resolveReference } = options
-      const original = component.blueprint || {}
+      let original = component.blueprint
+
+      // Merging entire ref value if an object is returned
 
       if (u.isObj(original)) {
         const origGet = component.get.bind(component)
@@ -35,7 +38,7 @@ setupResolver.setResolver(
           }
 
           if (u.isStr(value)) {
-            if (nt.Identify.pageComponentUrl(value)) {
+            if (is.pageComponentUrl(value)) {
               return resolvePageComponentUrl({
                 component,
                 page,
@@ -46,28 +49,18 @@ setupResolver.setResolver(
                 root: getRoot,
               })
             }
-
-            if (nt.Identify.reference(value)) {
-              return resolveReference?.(key, value)
-            }
-          } else if (nt.Identify.if(value)) {
+            if (is.reference(value)) return resolveReference?.(key, value)
+          } else if (is.if(value)) {
             if (on?.if) {
               value = on.if({ component, page, key, value })
                 ? value.if?.[1]
                 : value.if?.[2]
-
-              if (nt.Identify.reference(value)) {
-                return resolveReference?.(key, value)
-              }
-
+              if (is.reference(value)) return resolveReference?.(key, value)
               return value
             }
 
             value = i.defaultResolveIf(value)
-
-            if (nt.Identify.reference(value)) {
-              return resolveReference?.(key, value)
-            }
+            if (is.reference(value)) return resolveReference?.(key, value)
 
             return value
           } else if (!this) return origGet?.(key)
@@ -125,7 +118,7 @@ setupResolver.setResolver(
             datasetKey = trigger = prop
           }
 
-          if (nt.Identify.folds.emit(original[trigger])) {
+          if (is.folds.emit(original[trigger])) {
             const actionChain = createActionChain(trigger, [
               { emit: original[trigger].emit, actionType: 'emit' },
             ])

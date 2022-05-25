@@ -15,14 +15,19 @@ const createPlugins = function _createPluginHandlers(app: App) {
 
   const config = app.noodl.config as nt.RootConfig
 
-  config.headPlugin &&
-    plugins.push({ type: 'pluginHead', path: config.headPlugin })
+  if (config) {
+    config.headPlugin &&
+      plugins.push({ type: 'pluginHead', path: config.headPlugin })
 
-  config.bodyTopPplugin &&
-    plugins.push({ type: 'pluginBodyTop' as any, path: config.bodyTopPplugin })
+    config.bodyTopPplugin &&
+      plugins.push({
+        type: 'pluginBodyTop' as any,
+        path: config.bodyTopPplugin,
+      })
 
-  config.bodyTailPplugin &&
-    plugins.push({ type: 'pluginBodyTail', path: config.bodyTailPplugin })
+    config.bodyTailPplugin &&
+      plugins.push({ type: 'pluginBodyTail', path: config.bodyTailPplugin })
+  }
 
   return plugins
 }

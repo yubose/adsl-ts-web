@@ -1,39 +1,71 @@
-# AiTmed NOODL Web
+## Building the Static Web App (Homepage) - _Last Updated 05/03/22_
+
+If `npm install -f` was never run (or if packages was not installed) you can _skip to_ _Step 2_
+
+0. `git checkout dev2`
+1. `lerna exec --scope homepage \"gatsby clean\" && lerna clean && rm -rf node_modules package-lock.json`
+2. `npm install -f`
+3. `lerna exec --scope homepage npm run build` (or go to the folder by doing `cd packages/homepage && npm run build`)
+4. The static app will be built to: `./packages/homepage/public`. The files in this folder are the files we upload to an s3 bucket
+5. To upload to s3 go to the `public` folder (`cd packages/homepage/public` or `cd ./public` if you are in the homepage folder)
+6. Run `aws s3 sync . s3://public.aitmed.com/static/www/4.06.x/`
+7. Go to AWS CloudFront and update the resource path
+
+The app will be built using config `www` by default. To build with a different config like `mob.yml` pass `CONFIG=mob` to env variables when running `npm run build`
+
+> Example:
+
+On Mac:
+
+```bash
+lerna exec --scope homepage \"CONFIG=mob npm run build\"
+```
+
+or
+
+```bash
+export CONFIG=mob
+lerna exec --scope homepage \"npm run build\"
+```
+
+On Windows:
+
+```bash
+lerna exec --scope homepage \"set CONFIG=mob && npm run build\"
+```
+
+<!-- April 15, 2022 -- -->
+
+<!-- # right now, we are only able to build static page if the noodl file set does not contain dynamic info retrieved from backend. -->
+
+<!-- 1. lerna clean
+2. rm -rf node_module
+3. npm install
+4. cd packages/homepage
+5. export CONFIG=www
+6. npm run build;npm run build // to run the same build command twice.
+7. cd public
+8. aws s3 sync . s3://public.aitmed.com/static/www/4.06.x/
+9. go to aws cloudFront update the resource path.
+   k -->
 
 ## Steps to update the @aitmed/cadl eCOS package to latest version
 
-- npm install @aitmed/cadl@latest
-- git add .
-- git commit -a -m "update aitmed sdk"
-- git push
+- `npm install @aitmed/cadl@latest -f`
+- `git add .`
+- `git commit -a -m "updated aitmed sdk"`
+- `git push`
 
 ## Install order in precedence to ensure build succeeds
 
-1. noodl-types
-2. noodl-utils + noodl-action-chain
-3. noodl-ui-test-utils
-4. noodl-ui + noodl-ui-dom
+1. `noodl-types`
+2. `noodl-utils` + `noodl-action-chain`
+3. `noodl-ui-test-utils`
+4. `noodl-ui` + `noodl-ui-dom`
 
 ## Correct link to GitLab
 
-- <https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git/>
-
-## Storage API
-
-For local storage / caching use the functions at `src/utils/lf.ts`
-
-## Globals
-
-These variables are available globally:
-
-| Variable  | Description                                                                                           |
-| --------- | ----------------------------------------------------------------------------------------------------- |
-| `echarts` | [Chart library](https://echarts.apache.org/examples/en/index.html)used for components of type `chart` |
-
-## References
-
-- [TypeScript DOM types](https://github.com/microsoft/TypeScript/blob/master/lib/lib.dom.d.ts)
-- [Merge requests](https://gitlab.aitmed.com/help/user/project/merge_requests/index.md#checkout-merge-requests-locally)
+- https://gitlab.aitmed.com:443/frontend/aitmed-noodl-web.git
 
 ### ecosDoc variations
 
@@ -71,6 +103,8 @@ These variables are available globally:
 - goto: AbcDashboard^redTag # defaulted to 350 ms
 - goto: ^redTag # defaulted to 350 ms
 - goto: ^redTag;duration:15000 # slow scroll effect for 15 seconds
+- goto:
+    destination: SignIn
 ```
 
 ## Emitting register events
@@ -105,7 +139,7 @@ NUI.emit({
 
 ---
 
-## Accounts
+## Test Accounts
 
 | app       | phone #    | password    | who    | Notes            |
 | --------- | ---------- | ----------- | ------ | ---------------- |
@@ -160,27 +194,13 @@ NUI.emit({
 - bjwt --> Business jwt
 - User 1110 login --> Checks relation between business and bjwt
 
-## Login
+## Login (Outdated)
 
 - JWT expired --> 2 hours passed
 - JWT not found --> server restarted
 
 - Some apis like signing on does not provide a new jwt, but most do
 - If an error occurred with jwt, attempt to relogin with an existing token
-
-### Navigate
-
-- App#navigate
-  - ndom#request
-    - Wrapped ndom func
-      - `onRequestPageObject` (transactions.ts)
-      - `getPageObject` (App.ts)
-
-### `REQUEST_PAGE_OBJECT`
-
-- Wrapped ndom func
-  - `onRequestPageObject` (transactions.ts)
-    - `getPageObject` (Ap
 
 ## Doc object
 
@@ -207,33 +227,6 @@ NUI.emit({
 
   - e10002 bvid --> evid
 
-let index = 0
-let currentPosition = 0
-let pdfPageWidth = element width (453)
-let pdfPageHeight = element height (899)
-let overallHeight = 3033
-
-- for each child of element
-  - start loop with index as starting point
-  - if child's height accumulated with `currentPosition` is _not_ larger than `pdfPageHeight`
-    - add child's height to `currentPosition`
-  - else if child's height accumulated with `currentPosition` is larger than `pdfPageHeight`
-    - group all currently iterated children _not including the current child_
-    - record the _top_ position of the _first_ grouped child
-    - record the _bottom_ position of the _last_ grouped child
-    - send grouped children along with the top and bottom to html2canvas where top is the scrollY and bottom is the Y crop
-    - generate pdf
-      - (onclone - html2canvas)
-      - let clonePosition = 0
-        - for each cloned child of cloned element
-          - add cloned child's height to `clonePosition`
-          - if cloned child's height accumulated with `clonePosition` is larger than the _bottom_ position of the last grouped (uncloned) child
-            - hide the cloned child
-    - reset `currentPosition` to 0
-    - record the current child's index
-    - restart (recursion) the call and:
-      - make the start of the index the recorded index from the current child
-
 ## Debug tips
 
 ### Local gRPC server
@@ -241,48 +234,7 @@ let overallHeight = 3033
 - To reproduce `JWT_EXPIRED` error:
   1. Call `ce` using type `10` (clears cache then triggers jwt expired in server)
 
-## error code 4 --> delay by 1+ seconds --> retry again
-
-## 11/24/21
-
-- Fixed error when populating strings and locations is null or undefined
-- Debugging `replaceEvalObject` async in forEach
-  - Used in initPage + runInit
-  - Switch forEach loop with a better looping method
-- Debugging `replaceIfObject` async in forEach
-  - Used in initPage + runInit
-  - Switch forEach loop with a better looping method
-
-pushed @aitmed/cadl 1.0.450:
-
-- the entire sdk is now sandboxed, we can start digging deeper into all the functions and behavior and understand/fix them in a very very very low level
-- written unit tests on `populateKeys` --> this function is good and stable (also the most important in the sdk)
-- fixed error when populating strings and locations is invalid
-- fixed `replaceEvalObject` (unit tests exposed a hidden flaw in this func) async loop to use a better/accurate async way
-  - this mainly used in `init` and `initPage`
-  - this might have fixed some important random behavior on an `evalObject` _during init_ when a `goto` is called _while init is still running_
-- unit tests on `populateString`
-  - revealed 2 flaws on this function. this function is not doing what we expect so working on refactoring
-- unit tests on `populateVars`
-  - somewhat stable, but can be improved by implementing recursion on it
-- unit tests on `lookUp` (needs to expand to support local root)
-- unit tests on `replaceVars` (stable)
-
-deployed:
-
-- updated @aitmed/cadl sdk
-
-## 11/24/21 backwards compatible subtype switching
-
-if subtype is 0, we should automatically copy to type
-
-if document subtype is 0, set it to -1 (backend will see this and set it to 0)
-when we do cd and send api to backend, by this time all our bit is 0 (everything is 0). if so set these to -1
-
-## 11/30/21
-
-- Fixed a hidden issue in sdk where a doc is erased when merging a list of docs
-- Fixed empty configUrl after logging out
+## Error code 4 --> delay by 1+ seconds --> retry again
 
 ## onChange call flow
 
@@ -291,133 +243,6 @@ when we do cd and send api to backend, by this time all our bit is 0 (everything
 3. should call the `onChange` noodl function inside this call
 4. should then end up back to the caller from `noodl-ui`
 
-## 12/06/21
+## Todos
 
-- Fixed evalObject firing twice (API change for DOM addEventListener)
-- Fixed error for accessing reference strings for styles
-
----
-
-## 02/10/22 Flow
-
-- Input:
-  - `baseEl`
-  - `el`
-  - `pageHeight`
-- Init
-  - Let `offsetStart` be `0`
-  - Let `offsetEnd` be `0`
-- While `currEl`
-  - Let `elHeight` be element's height
-  - Let `accHeight` be the accumulating height
-  - If `accHeight` > `offsetEnd`
-    - If `currEl` has children
-      - If `elHeight` < `pageHeight`
-        - Flatten
-      - Else if `elHeight` > `pageHeight`
-        - Flatten _Recursion_ on children beginning with `currEl.firstChild`
-    - Else if `currEl` does _not_ have children
-      - Flatten
-      - Set `offsetStart` to `accHeight`
-      - Set `offsetEnd` to `pageHeight` + `elHeight`
-  - Else if `accHeight` < `offsetEnd`
-
-## Twilio handling todos
-
-- [ParticipantNotFoundError](https://sdk.twilio.com/js/video/releases/2.21.0/docs/ParticipantNotFoundError.html)
-
-```js
-switch (error.code) {
-  // 'Invalid Access Token header'
-  case 20102:
-    return toast(error.message, { type: 'error' })
-  // 'Invalid Access Token'
-  case 20101:
-  // 'Access Token expired or expiration date invalid
-  case 20104:
-  // 'Access Token not yet valid'
-  case 20105:
-  // 'Invalid Access Token grants'
-  case 20106:
-  // 'Invalid Access Token signature'
-  case 20107:
-  // 'Invalid Access Token issuer/subject'
-  case 20103:
-    // TODO - Try reconnecting
-    break
-  // 'Signaling connection error'
-  case 53000:
-  // 'Signaling connection disconnected'
-  case 53001:
-  // 'Signaling connection timed out'
-  case 53002:
-  // 'Video server is busy'
-  case 53006:
-  // 'Room name is invalid'
-  case 53100:
-  // 'Room name is too long'
-  case 53101:
-  // 'Room name contains invalid characters'
-  case 53102:
-    // Raised whenever a Client is unable to connect to a Room
-    // 'Unable to create Room'
-    return toast(`The server was unable to create a room`, {
-      type: 'error',
-    })
-  case 53103:
-  // 'Unable to connect to Room'
-  case 53104:
-  // 'Room contains too many Participants'
-  case 53105:
-  // 'Room not found'
-  case 53106:
-    return toast(error.message, { type: 'error' })
-  // 'The subscription operation requested is not supported for the Room type
-  case 53117:
-  // 'Participant identity is invalid'
-  case 53200:
-  // 'Participant identity is too long'
-  case 53201:
-  // 'Participant identity contains invalid characters'
-  case 53202:
-  // 'The maximum number of published tracks allowed in the Room at the same time has been reached'
-  case 53203:
-  // 'Participant not found'
-  case 53204:
-  // 'Participant disconnected because of duplicate identity'
-  case 53205:
-    return toast(error.message, { type: 'error' })
-  // 'Track is invalid'
-  case 53300:
-  // 'Track name is invalid'
-  case 53301:
-  // 'Track name is too long'
-  case 53302:
-  // 'Track name contains invalid characters'
-  case 53303:
-  // 'Track name is duplicated'
-  case 53304:
-  // 'The server has reached capacity and cannot fulfill this request'
-  case 53305:
-  // 'No supported codec'
-  case 53404:
-    // TODO - Try re-creating the failed track
-    return toast(
-      `Could not find a supported codec when publishing a track. Check microphone/camera to see if they are working`,
-      { type: 'error' },
-    )
-  // 'Media connection failed or Media activity ceased'
-  case 53405:
-  // 'Media connection failed due to DTLS handshake failure'
-  case 53407:
-    return toast(
-      `Could not establish a secure connection with the server. Please refresh the page and try again, or try again later.`,
-      { type: 'error' },
-    )
-  // Occurs during preflight test
-  // 'Unable to acquire TURN credentials'
-  case 53501:
-  default:
-    throw error instanceof Error ? error : new Error(String(error))
-}
-```
+- Generic data-view-model input type checking (04/26/22)

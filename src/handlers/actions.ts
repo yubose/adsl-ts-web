@@ -4,6 +4,8 @@ import omit from 'lodash/omit'
 import has from 'lodash/has'
 import get from 'lodash/get'
 import set from 'lodash/set'
+import add from 'date-fns/add'
+import startOfDay from 'date-fns/startOfDay'
 import * as imageConversion from 'image-conversion'
 import {
   asHtmlElement,
@@ -27,6 +29,7 @@ import {
   resolvePageComponentUrl,
   Store,
   triggers,
+  NuiComponent,
 } from 'noodl-ui'
 import SignaturePad from 'signature_pad'
 import {
@@ -155,9 +158,11 @@ const createActions = function createActions(app: App) {
             }
 
             if (u.isObj(result)) {
-              getActionObjectErrors(result).forEach((errMsg: string) =>
-                log.red(errMsg, result),
-              )
+              if (u.isBrowser()) {
+                getActionObjectErrors(result).forEach((errMsg: string) =>
+                  log.red(errMsg, result),
+                )
+              }
 
               if (result.abort) {
                 strategies.push({ type: 'abort-true', object: result })
@@ -415,7 +420,7 @@ const createActions = function createActions(app: App) {
       }
 
       log.grey(`Goto info`, {
-        gotoObject: { goto },
+        goto: { goto },
         destinationParam,
         isSamePage,
         pageModifiers,
@@ -449,18 +454,24 @@ const createActions = function createActions(app: App) {
       options.ref?.clear('timeout')
       log.func(name)
       log.gold('', action?.snapshot?.())
-      const result = await openFileSelector()
+      const result = await openFileSelector();
       log.func(name)
       switch (result.status) {
         case 'selected':
-          const { files } = result
-          const ac = options?.ref
-          const comp = options?.component
-          const dataKey = _pick(action, 'dataKey')
-          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000
-          const fileFormat = _pick(action, 'fileFormat')
+          const { files } = result;
+          const ac = options?.ref;
+          const comp = options?.component;
+          const dataKey = _pick(action, 'dataKey');
+          const documentType = _pick(action, 'documentType');
+          const downloadStatus = _pick(action, 'downloadStatus');
+          const size = _pick(action, 'size') && +_pick(action, 'size') / 1000;
+          const fileFormat = _pick(action, 'fileFormat');
           if (ac && comp) {
-            ac.data.set(dataKey, files?.[0])
+            ac.data.set(dataKey, files?.[0]);
+            if(documentType&&downloadStatus){
+              const status = (documentType as string[])?.some((item)=>item===files?.[0]?.["type"].split("/")[1]);
+              app.updateRoot(downloadStatus, status);
+            }
             if (fileFormat) {
               ac.data.set(fileFormat, files?.[0]?.type)
               app.updateRoot(fileFormat, ac.data.get(fileFormat))
@@ -516,6 +527,29 @@ const createActions = function createActions(app: App) {
   const pageJump: Store.ActionObject['fn'] = (action) =>
     app.navigate(_pick(action, 'destination'))
 
+  const loadTimeLabelPopUp = (
+    node: HTMLElement,
+    component: NuiComponent.Instance,
+  ) => {
+    const dataKey =
+      component.get('data-key') || component.blueprint?.dataKey || ''
+    const textFunc = component.get('text=func') || ((x: any) => x)
+    const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
+    let initialSeconds = get(app.root, dataKey, popUpWaitSeconds) as number
+    initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
+    node.textContent = textFunc(initialSeconds * 1000, 'mm:ss')
+
+    const interval =  setInterval(()=>{
+      initialSeconds = initialSeconds - 1
+      const seconds  = initialSeconds
+      node && (node.textContent = textFunc(seconds * 1000, 'mm:ss'))
+      if(initialSeconds<=0) clearInterval(interval)
+    },1000)
+
+    app.register.setTimeId('PopUPTimeInterval', interval)
+
+  }
+
   const popUp: Store.ActionObject['fn'] = function onPopUp(action, options) {
     log.func('popUp')
     log.grey('', action?.snapshot?.())
@@ -528,7 +562,29 @@ const createActions = function createActions(app: App) {
         const wait = _pick(action, 'wait')
 
         let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
-
+        if(popUpView === 'extendView'){
+          u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
+            if (node) {
+              const component = app.cache.component.get(node?.id)?.component
+              const dataKey =
+                component.get('data-key') || component.blueprint?.dataKey || ''
+              const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
+              let initialSeconds = get(app.root, dataKey, 30) as number
+              initialSeconds =
+                initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
+              if (action?.actionType === 'popUp') {
+                loadTimeLabelPopUp(node, component)
+                const id = setTimeout(() => {
+                  app.register.extendVideoFunction('onDisconnect')
+                }, initialSeconds * 1000)
+                app.register.setTimeId('PopUPToDisconnectTime', id)
+              } else if (action?.actionType === 'popUpDismiss') {
+                app.register.removeTime('PopUPTimeInterval')
+                app.register.removeTime('PopUPToDisconnectTime')
+              }
+            }
+          })
+        }
         u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
           if (dismissOnTouchOutside) {
             const onTouchOutside = function onTouchOutside(
@@ -621,7 +677,6 @@ const createActions = function createActions(app: App) {
                   `waiting on a response. Aborting now...`,
                 action?.snapshot?.(),
               )
-              // debugger
               ref?.abort?.()
               resolve()
             }

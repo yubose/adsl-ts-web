@@ -11,6 +11,7 @@ import {
 import Resolver from '../Resolver'
 import log from '../utils/log'
 import * as n from '../utils/noodl'
+import { NuiComponent } from '../types'
 
 const dataAttribsResolver = new Resolver('resolveDataAttribs')
 
@@ -48,6 +49,8 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
     component.edit({ 'data-ux': contentType })
   } else if (/(vidoeSubStream|videoSubStream)/i.test(contentType)) {
     component.edit({ 'data-ux': contentType })
+  }else if(contentType === 'timerLabelPopUp'){
+    component.edit({ 'data-ux': contentType })
   }
 
   /* -------------------------------------------------------
@@ -82,8 +85,14 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
     let result: any
     if (!Identify.folds.emit(dataKey)) {
       if (iteratorVar) {
+        const listAttribute = n.getListAttribute(component)
         if (iteratorVar === dataKey) {
           result = context?.dataObject
+        }else if(dataKey.startsWith('listAttr')){
+          result = get(
+            listAttribute,
+            excludeIteratorVar(dataKey, 'listAttr') as string,
+          )
         } else {
           result = get(
             context?.dataObject,
@@ -117,6 +126,20 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
         if (component.blueprint?.['path=func']) {
           result = component.get('path=func')?.(result)
         }
+      }
+
+      //___.message
+      if(dataKey.startsWith('_')){
+        let fieldParts = dataKey?.split?.('.')
+        const _field = fieldParts[0]
+        const key = fieldParts[1]
+        let parent: NuiComponent.Instance = component
+        for(let i=0;i<_field.length-1;i++){
+          if(parent?.parent){
+            parent = parent.parent
+          }
+        }
+        result = parent.props[key]
       }
 
       component.edit({ 'data-value': result })

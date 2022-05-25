@@ -1,0 +1,484 @@
+[
+  {
+    "type": "newline",
+    "offset": 0,
+    "indent": 0,
+    "source": "\n"
+  },
+  {
+    "type": "document",
+    "offset": 1,
+    "start": [],
+    "value": {
+      "type": "block-map",
+      "offset": 1,
+      "indent": 0,
+      "items": [
+        {
+          "start": [],
+          "key": {
+            "type": "scalar",
+            "offset": 1,
+            "indent": 0,
+            "source": "SignIn"
+          },
+          "sep": [
+            {
+              "type": "map-value-ind",
+              "offset": 7,
+              "indent": 0,
+              "source": ":"
+            },
+            {
+              "type": "newline",
+              "offset": 8,
+              "indent": 0,
+              "source": "\n"
+            },
+            {
+              "type": "space",
+              "offset": 9,
+              "indent": 0,
+              "source": "  "
+            }
+          ],
+          "value": {
+            "type": "block-map",
+            "offset": 11,
+            "indent": 2,
+            "items": [
+              {
+                "start": [],
+                "key": {
+                  "type": "scalar",
+                  "offset": 11,
+                  "indent": 2,
+                  "source": "arr"
+                },
+                "sep": [
+                  {
+                    "type": "map-value-ind",
+                    "offset": 14,
+                    "indent": 2,
+                    "source": ":"
+                  },
+                  {
+                    "type": "newline",
+                    "offset": 15,
+                    "indent": 2,
+                    "source": "\n"
+                  },
+                  {
+                    "type": "space",
+                    "offset": 16,
+                    "indent": 0,
+                    "source": "    "
+                  }
+                ],
+                "value": {
+                  "type": "block-seq",
+                  "offset": 20,
+                  "indent": 4,
+                  "items": [
+                    {
+                      "start": [
+                        {
+                          "type": "seq-item-ind",
+                          "offset": 20,
+                          "indent": 4,
+                          "source": "-"
+                        },
+                        {
+                          "type": "space",
+                          "offset": 21,
+                          "indent": 5,
+                          "source": " "
+                        }
+                      ],
+                      "value": {
+                        "type": "scalar",
+                        "offset": 22,
+                        "indent": 6,
+                        "source": "1",
+                        "end": [
+                          {
+                            "type": "newline",
+                            "offset": 23,
+                            "indent": 6,
+                            "source": "\n"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "start": [
+                        {
+                          "type": "space",
+                          "offset": 24,
+                          "indent": 0,
+                          "source": "    "
+                        },
+                        {
+                          "type": "seq-item-ind",
+                          "offset": 28,
+                          "indent": 4,
+                          "source": "-"
+                        },
+                        {
+                          "type": "space",
+                          "offset": 29,
+                          "indent": 5,
+                          "source": " "
+                        }
+                      ],
+                      "value": {
+                        "type": "single-quoted-scalar",
+                        "offset": 30,
+                        "indent": 6,
+                        "source": "'1'",
+                        "end": [
+                          {
+                            "type": "newline",
+                            "offset": 33,
+                            "indent": 6,
+                            "source": "\n"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "start": [
+                        {
+                          "type": "space",
+                          "offset": 34,
+                          "indent": 0,
+                          "source": "    "
+                        },
+                        {
+                          "type": "seq-item-ind",
+                          "offset": 38,
+                          "indent": 4,
+                          "source": "-"
+                        },
+                        {
+                          "type": "space",
+                          "offset": 39,
+                          "indent": 5,
+                          "source": " "
+                        }
+                      ],
+                      "value": {
+                        "type": "scalar",
+                        "offset": 40,
+                        "indent": 6,
+                        "source": "1.0",
+                        "end": [
+                          {
+                            "type": "newline",
+                            "offset": 43,
+                            "indent": 6,
+                            "source": "\n"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "start": [
+                        {
+                          "type": "space",
+                          "offset": 44,
+                          "indent": 0,
+                          "source": "    "
+                        },
+                        {
+                          "type": "seq-item-ind",
+                          "offset": 48,
+                          "indent": 4,
+                          "source": "-"
+                        },
+                        {
+                          "type": "space",
+                          "offset": 49,
+                          "indent": 5,
+                          "source": " "
+                        }
+                      ],
+                      "value": {
+                        "type": "scalar",
+                        "offset": 50,
+                        "indent": 6,
+                        "source": "true",
+                        "end": [
+                          {
+                            "type": "newline",
+                            "offset": 54,
+                            "indent": 6,
+                            "source": "\n"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "start": [
+                        {
+                          "type": "space",
+                          "offset": 55,
+                          "indent": 0,
+                          "source": "    "
+                        },
+                        {
+                          "type": "seq-item-ind",
+                          "offset": 59,
+                          "indent": 4,
+                          "source": "-"
+                        },
+                        {
+                          "type": "space",
+                          "offset": 60,
+                          "indent": 5,
+                          "source": " "
+                        }
+                      ],
+                      "value": {
+                        "type": "single-quoted-scalar",
+                        "offset": 61,
+                        "indent": 6,
+                        "source": "'true'",
+                        "end": [
+                          {
+                            "type": "newline",
+                            "offset": 67,
+                            "indent": 6,
+                            "source": "\n"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "start": [
+                        {
+                          "type": "space",
+                          "offset": 68,
+                          "indent": 0,
+                          "source": "    "
+                        },
+                        {
+                          "type": "seq-item-ind",
+                          "offset": 72,
+                          "indent": 4,
+                          "source": "-"
+                        },
+                        {
+                          "type": "space",
+                          "offset": 73,
+                          "indent": 5,
+                          "source": " "
+                        }
+                      ],
+                      "value": {
+                        "type": "double-quoted-scalar",
+                        "offset": 74,
+                        "indent": 6,
+                        "source": "\"true\"",
+                        "end": [
+                          {
+                            "type": "newline",
+                            "offset": 80,
+                            "indent": 6,
+                            "source": "\n"
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "start": [
+                        {
+                          "type": "space",
+                          "offset": 81,
+                          "indent": 0,
+                          "source": "    "
+                        },
+                        {
+                          "type": "seq-item-ind",
+                          "offset": 85,
+                          "indent": 4,
+                          "source": "-"
+                        },
+                        {
+                          "type": "space",
+                          "offset": 86,
+                          "indent": 5,
+                          "source": " "
+                        }
+                      ],
+                      "value": {
+                        "type": "block-map",
+                        "offset": 87,
+                        "indent": 6,
+                        "items": [
+                          {
+                            "start": [],
+                            "key": {
+                              "type": "scalar",
+                              "offset": 87,
+                              "indent": 6,
+                              "source": "=.builtIn.string.equal"
+                            },
+                            "sep": [
+                              {
+                                "type": "map-value-ind",
+                                "offset": 109,
+                                "indent": 6,
+                                "source": ":"
+                              },
+                              {
+                                "type": "newline",
+                                "offset": 110,
+                                "indent": 6,
+                                "source": "\n"
+                              },
+                              {
+                                "type": "space",
+                                "offset": 111,
+                                "indent": 0,
+                                "source": "        "
+                              }
+                            ],
+                            "value": {
+                              "type": "block-map",
+                              "offset": 119,
+                              "indent": 8,
+                              "items": [
+                                {
+                                  "start": [],
+                                  "key": {
+                                    "type": "scalar",
+                                    "offset": 119,
+                                    "indent": 8,
+                                    "source": "dataIn"
+                                  },
+                                  "sep": [
+                                    {
+                                      "type": "map-value-ind",
+                                      "offset": 125,
+                                      "indent": 8,
+                                      "source": ":"
+                                    },
+                                    {
+                                      "type": "newline",
+                                      "offset": 126,
+                                      "indent": 8,
+                                      "source": "\n"
+                                    },
+                                    {
+                                      "type": "space",
+                                      "offset": 127,
+                                      "indent": 0,
+                                      "source": "          "
+                                    }
+                                  ],
+                                  "value": {
+                                    "type": "block-map",
+                                    "offset": 137,
+                                    "indent": 10,
+                                    "items": [
+                                      {
+                                        "start": [],
+                                        "key": {
+                                          "type": "scalar",
+                                          "offset": 137,
+                                          "indent": 10,
+                                          "source": "string1"
+                                        },
+                                        "sep": [
+                                          {
+                                            "type": "map-value-ind",
+                                            "offset": 144,
+                                            "indent": 10,
+                                            "source": ":"
+                                          },
+                                          {
+                                            "type": "space",
+                                            "offset": 145,
+                                            "indent": 10,
+                                            "source": " "
+                                          }
+                                        ],
+                                        "value": {
+                                          "type": "scalar",
+                                          "offset": 146,
+                                          "indent": 10,
+                                          "source": "hello",
+                                          "end": [
+                                            {
+                                              "type": "newline",
+                                              "offset": 151,
+                                              "indent": 10,
+                                              "source": "\n"
+                                            }
+                                          ]
+                                        }
+                                      },
+                                      {
+                                        "start": [
+                                          {
+                                            "type": "space",
+                                            "offset": 152,
+                                            "indent": 0,
+                                            "source": "          "
+                                          }
+                                        ],
+                                        "key": {
+                                          "type": "scalar",
+                                          "offset": 162,
+                                          "indent": 10,
+                                          "source": "string2"
+                                        },
+                                        "sep": [
+                                          {
+                                            "type": "map-value-ind",
+                                            "offset": 169,
+                                            "indent": 10,
+                                            "source": ":"
+                                          },
+                                          {
+                                            "type": "space",
+                                            "offset": 170,
+                                            "indent": 10,
+                                            "source": " "
+                                          }
+                                        ],
+                                        "value": {
+                                          "type": "scalar",
+                                          "offset": 171,
+                                          "indent": 10,
+                                          "source": "hello1",
+                                          "end": [
+                                            {
+                                              "type": "newline",
+                                              "offset": 177,
+                                              "indent": 10,
+                                              "source": "\n"
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+]

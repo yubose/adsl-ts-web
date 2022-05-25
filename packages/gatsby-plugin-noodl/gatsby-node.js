@@ -1,4 +1,3 @@
-process.stdout.write('\x1Bc')
 /**
  * https://www.gatsbyjs.com/docs/reference/config-files/gatsby-node/
  * https://www.gatsbyjs.com/docs/reference/config-files/node-api-helpers/
@@ -15,7 +14,6 @@ const path = require('path')
 const n = require('noodl')
 const y = require('yaml')
 const getGenerator = require('./generator')
-const GatsbyPluginNoodlCache = require('./Cache')
 const utils = require('./utils')
 
 const DEFAULT_BUILD_SOURCE = 'remote'
@@ -25,68 +23,147 @@ const DEFAULT_ECOS_ENV = 'stable'
 const DEFAULT_LOG_LEVEL = 'INFO'
 const DEFAULT_OUTPUT_PATH = 'output'
 const DEFAULT_SRC_PATH = './src'
-const DEFAULT_TEMPLATE_PATH = path.join(DEFAULT_SRC_PATH, 'resources/assets')
+const DEFAULT_TEMPLATE_PATH = path.join(DEFAULT_SRC_PATH, 'templates/page.tsx')
 const DEFAULT_VIEWPORT_WIDTH = 1024
 const DEFAULT_VIEWPORT_HEIGHT = 768
 const NOODL_PAGE_NODE_TYPE = 'NoodlPage'
 
 log.setDefaultLevel(DEFAULT_LOG_LEVEL)
 
-function unstable_shouldOnCreateNode({ node }) {
-  if (node.internal.mediaType === `text/yaml`) return true
-  return false
-}
-
 /**
  * @typedef GatsbyNoodlPluginOptions
  * @type { import('./types').GatsbyNoodlPluginOptions }
+ *
+ * @typedef GatsbyNoodlPluginPageContextMap
+ * @type { import('./types').InternalData.Context }
  */
 
 const BASE_CONFIG_URL = `https://public.aitmed.com/config/`
 const LOGLEVELS = ['trace', 'debug', 'info', 'warn', 'error', 'silent']
+const { cyan, yellow, red, newline } = u
+const { debug, info, warn } = log
 
-/** @type { GatsbyPluginNoodlCache } */
-let cache
+/** @type { import('@aitmed/cadl').cache } */
+let _sdkCache
+
 /** @type { n.Loader } */
-let loader
+let _loader
 
-const data = {
-  _assets_: [],
-  cwd: '',
-  _context_: {},
-  _loggedAssets_: [],
-  _preloadKeys_: [],
-  _pageKeys_: [],
-  _pages_: {
-    json: {},
-    serialized: {},
-  },
-  _paths_: {
-    output: '',
-    src: '',
-    template: '',
-  },
-  appKey: '',
-  buildSource: '',
-  configKey: '',
-  configUrl: '',
-  deviceType: '',
-  loglevel: DEFAULT_LOG_LEVEL,
-  ecosEnv: '',
-  startPage: '',
+let _appKey = ''
+let _assetsUrl = ''
+let _baseUrl = ''
+let _buildSource = ''
+let _cacheDir = ''
+let _cwd = ''
+let _configKey = ''
+let _configUrl = ''
+let _deviceType = ''
+let _loglevel = DEFAULT_LOG_LEVEL
+let _ecosEnv = ''
+let _startPage = ''
+let _viewport = {
+  width: DEFAULT_VIEWPORT_WIDTH,
+  height: DEFAULT_VIEWPORT_HEIGHT,
+}
+
+const _pages = {
+  json: {},
+  serialized: {},
+}
+
+const _paths = {
+  output: '',
+  src: '',
   template: '',
 }
 
-let isFileSystemOutput = false
+/** @type { string[] } */
+const _savedAssets = []
 
-const resolvedPaths = {
-  assetsDir: '',
-  configFile: '',
-  appConfigFile: '',
-  outputNamespacedWithConfig: '',
+/** @type { string[] } */
+const _loggedAssets = []
+
+/** @type { string[] } */
+const _preloadKeys = []
+
+/** @type { string[] } */
+const _pageKeys = []
+
+/** @type { GatsbyNoodlPluginPageContextMap } */
+const _context_ = {}
+
+/** @type { import('./types').DumpedMetadata } */
+const _dump = { paths: {} }
+
+/** @type { import('./types').DumpedMetadata['missingFiles'] } */
+const _missingFiles = { assets: {}, pages: {} }
+
+/** @type { import('./types').DumpedMetadata['paths']['cacheFiles'] } */
+const _cacheFiles = {}
+
+let isFileSystemOutput = false
+let resolvedAssetsDir = ''
+let resolvedConfigsDir = ''
+let resolvedAppConfigFile = ''
+let resolvedOutputNamespacedWithConfig = ''
+
+const withoutCwd = (s) => {
+  if (u.isObj(s)) {
+    return u
+      .entries(s)
+      .reduce((acc, [k, v]) => u.assign(acc, { [k]: withoutCwd(v) }), {})
+  }
+  const str = String(s)
+  const indexPkgs = str.indexOf('/packages/')
+  if (indexPkgs > -1) return str.substring(indexPkgs)
+  return s
 }
 
-exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
+const getPageRefs = (pageName) => _sdkCache?.refs?.[pageName] || {}
+
+/**
+ * @param { opts:{ paths?: any } } args
+ * @returns { Promise<import('./types').DumpedMetadata> }
+ */
+const dumpMetadata = async ({ paths: pathsProp, ...other } = {}) => {
+  const metadata = withoutCwd({
+    appKey: _appKey,
+    assetsUrl: _assetsUrl,
+    baseUrl: _baseUrl,
+    buildSource: _buildSource,
+    configKey: _configKey,
+    configUrl: _configUrl,
+    deviceType: _deviceType,
+    ecosEnv: _ecosEnv,
+    loglevel: _loglevel,
+    isFileSystemOutput,
+    startPage: _startPage,
+    missingFiles: _missingFiles,
+    ...other,
+    paths: {
+      cacheDir: _cacheDir,
+      cacheFiles: _cacheFiles,
+      cwd: _cwd,
+      output: _paths.output,
+      resolvedAssetsDir: resolvedAssetsDir,
+      resolvedConfigsDir: resolvedConfigsDir,
+      resolvedAppConfigFile: resolvedAppConfigFile,
+      resolvedOutputNamespacedWithConfig: resolvedOutputNamespacedWithConfig,
+      src: _paths.src,
+      template: _paths.template,
+      ...pathsProp,
+    },
+    timestamp: new Date().toLocaleString(),
+    viewport: {
+      width: _viewport?.width,
+      height: _viewport?.height,
+    },
+  })
+  await fs.writeJson(path.join(_paths.output, './metadata.json'), metadata, {
+    spaces: 2,
+  })
+  return metadata
+}
 
 /**
  * https://www.gatsbyjs.com/docs/node-apis/
@@ -94,227 +171,203 @@ exports.unstable_shouldOnCreateNode = unstable_shouldOnCreateNode
 
 /**
  * @argument { import('gatsby').NodePluginArgs } _
- * @argument { GatsbyNoodlPluginOptions } pluginOptions
+ * @argument { GatsbyNoodlPluginOptions } pluginOpts
  */
-exports.onPreInit = (_, pluginOptions) => {
-  u.newline()
-  const loglevel = pluginOptions?.loglevel
+exports.onPreInit = (_, pluginOpts) => {
+  newline()
+  const loglevel = pluginOpts?.loglevel
 
   if (
-    u.isStr(loglevel) &&
+    loglevel &&
     loglevel !== DEFAULT_LOG_LEVEL &&
     LOGLEVELS.includes(loglevel)
   ) {
     log.setLevel(loglevel)
+    _dump.loglevel = loglevel
   }
 
-  // Replaces backlashes for windows support
   for (const key of ['path', 'template']) {
-    if (pluginOptions[key]) {
-      pluginOptions[key] = pluginOptions[key].replace(/\\/g, '/')
+    if (pluginOpts[key]) {
+      pluginOpts[key] = utils.normalizePath(pluginOpts[key])
+      _dump.paths[key] = pluginOpts[key]
     }
   }
 }
 
 /**
  * @param { import('gatsby').NodePluginArgs } args
- * @param { GatsbyNoodlPluginOptions } pluginOptions
+ * @param { GatsbyNoodlPluginOptions } pluginOpts
  */
-exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
-  cache = new GatsbyPluginNoodlCache(args.cache)
+exports.onPluginInit = async function onPluginInit(args, pluginOpts = {}) {
+  const outputPath = pluginOpts.paths?.output || DEFAULT_OUTPUT_PATH
+  isFileSystemOutput = !!pluginOpts.paths?.output
 
-  const {
-    buildSource = DEFAULT_BUILD_SOURCE,
-    cwd = process.cwd(),
-    config = DEFAULT_CONFIG,
-    deviceType = DEFAULT_DEVICE_TYPE,
-    ecosEnv = DEFAULT_ECOS_ENV,
-    loglevel = DEFAULT_LOG_LEVEL,
-    paths,
-    version = 'latest',
-  } = pluginOptions || {}
+  _buildSource = pluginOpts.buildSource || DEFAULT_BUILD_SOURCE
+  _cacheDir = args.cache.directory
+  _cwd = pluginOpts.cwd || process.cwd()
+  _configKey = pluginOpts.config || DEFAULT_CONFIG
+  _configUrl = utils.ensureExt(`${BASE_CONFIG_URL}${_configKey}`, 'yml')
+  _deviceType = pluginOpts.deviceType || DEFAULT_DEVICE_TYPE
+  _ecosEnv = pluginOpts.ecosEnv || DEFAULT_ECOS_ENV
+  _loglevel = pluginOpts.loglevel || DEFAULT_LOG_LEVEL
 
-  let outputPath = paths?.output
+  _paths.output = outputPath
+  _paths.src = pluginOpts.paths.src || DEFAULT_SRC_PATH
+  _paths.template = pluginOpts.paths.template || DEFAULT_TEMPLATE_PATH
 
-  const {
-    src: srcPath = DEFAULT_SRC_PATH,
-    template: templatePath = DEFAULT_TEMPLATE_PATH,
-  } = paths || {}
+  debug(`Build source: ${yellow(_buildSource)}`)
+  debug(`Current working directory: ${yellow(_cwd)}`)
+  debug(`Config key: ${yellow(_configKey)}`)
+  debug(`Config url: ${yellow(_configUrl)}`)
+  debug(`Device type: ${yellow(_deviceType)}`)
+  debug(`Ecos environment: ${yellow(_ecosEnv)}`)
+  debug(`Log level set to: ${yellow(_loglevel)}`)
+  debug(`Template path: ${yellow(_paths.template)}`)
 
-  if (outputPath) isFileSystemOutput = true
-  else outputPath = DEFAULT_OUTPUT_PATH
-
-  data.cwd = cwd
-  data.configKey = config
-  data.configUrl = utils.ensureExt(`${BASE_CONFIG_URL}${config}`, 'yml')
-  data.deviceType = deviceType
-  data.ecosEnv = ecosEnv
-
-  data._paths_.output = outputPath
-  data._paths_.src = srcPath
-  data._paths_.template = templatePath
-
-  if (data.loglevel !== loglevel) data.loglevel = loglevel
-
-  log.debug(`Build source: ${u.yellow(buildSource)}`)
-  log.debug(`Current working directory: ${u.yellow(data.cwd)}`)
-  log.debug(`Config key: ${u.yellow(data.configKey)}`)
-  log.debug(`Config url: ${u.yellow(data.configUrl)}`)
-  log.debug(`Device type: ${u.yellow(data.deviceType)}`)
-  log.debug(`Ecos environment: ${u.yellow(data.ecosEnv)}`)
-  log.debug(`Log level set to: ${u.yellow(data.loglevel)}`)
-  log.debug(`Template path: ${u.yellow(data._paths_.template)}`)
-
-  resolvedPaths.outputNamespacedWithConfig = utils.getConfigDir(
-    data._paths_.output,
-    data.configKey,
-  )
-  resolvedPaths.assetsDir = path.join(
-    resolvedPaths.outputNamespacedWithConfig,
-    'assets',
-  )
-  resolvedPaths.configFile = path.join(
-    resolvedPaths.outputNamespacedWithConfig,
-    utils.ensureExt(data.configKey, 'yml'),
+  resolvedOutputNamespacedWithConfig = utils.getConfigDir(_configKey)
+  resolvedAssetsDir = path.join(resolvedOutputNamespacedWithConfig, 'assets')
+  resolvedConfigsDir = path.join(
+    resolvedOutputNamespacedWithConfig,
+    utils.ensureExt(_configKey, 'yml'),
   )
 
-  // TODO - Implementing build caching
-  // await cache.set('configKey', data.configKey)
-  // await cache.set('configUrl', data.configUrl)
-  // if (version && version !== 'latest') await cache.set('configVersion', version)
+  debug(
+    `Resolved outputNamespacedWithConfig: ${yellow(
+      resolvedOutputNamespacedWithConfig,
+    )}`,
+  )
+  debug(`Resolved assetsDir: ${yellow(resolvedAssetsDir)}`)
+  debug(`Resolved configFile: ${yellow(resolvedConfigsDir)}`)
 
   if (isFileSystemOutput) {
-    if (!fs.existsSync(data._paths_.output)) {
-      await fs.ensureDir(data._paths_.output)
-      log.debug(`Created output directory at ${u.yellow(data._paths_.output)}`)
+    if (!fs.existsSync(_paths.output)) {
+      await fs.ensureDir(_paths.output)
+      debug(`Created output directory at ${yellow(_paths.output)}`)
     } else {
-      log.debug(`Output path: ${u.yellow(data._paths_.output)}`)
+      debug(`Output path: ${yellow(_paths.output)}`)
     }
 
-    log.debug(
-      `Yaml files will be located at ${u.yellow(
-        resolvedPaths.outputNamespacedWithConfig,
+    debug(
+      `Yaml files will be located at ${yellow(
+        resolvedOutputNamespacedWithConfig,
       )}`,
     )
   }
 
-  if (!fs.existsSync(resolvedPaths.assetsDir)) {
-    await fs.ensureDir(resolvedPaths.assetsDir)
-    log.debug(`Created assets directory`)
+  if (!fs.existsSync(resolvedAssetsDir)) {
+    await fs.ensureDir(resolvedAssetsDir)
+    debug(`Created assets directory`)
   }
 
-  log.debug(`Assets will be located at ${u.yellow(resolvedPaths.assetsDir)}`)
+  debug(`Assets will be located at ${yellow(resolvedAssetsDir)}`)
 
-  if (!fs.existsSync(resolvedPaths.configFile)) {
-    const url = utils.getConfigUrl(data.configKey)
+  if (!fs.existsSync(resolvedConfigsDir)) {
+    const url = utils.getConfigUrl(_configKey)
 
-    log.info(
-      `You are missing the config file ${u.yellow(
-        utils.ensureExt(data.configKey),
-      )}. It will be downloaded to ${resolvedPaths.configFile}`,
+    info(
+      `You are missing the config file ${yellow(
+        utils.ensureExt(_configKey),
+      )}. It will be downloaded to ${resolvedConfigsDir}`,
     )
 
-    log.debug(`Fetching config from ${u.yellow(url)}`)
+    debug(`Fetching config from ${yellow(url)}`)
 
     const yml = await utils.fetchYml(url)
-    n.writeFileSync(resolvedPaths.configFile, yml)
+    n.writeFileSync(resolvedConfigsDir, yml)
   }
 
-  const rootConfig = y.parse(n.readFileSync(resolvedPaths.configFile))
+  const rootConfig = y.parse(n.readFileSync(resolvedConfigsDir))
 
-  data.appKey = rootConfig?.cadlMain || ''
+  _appKey = rootConfig?.cadlMain || ''
 
   if (!rootConfig) {
     throw new Error(`Could not load a config file both locally and remotely`)
   }
 
-  resolvedPaths.appConfigFile = path.join(
-    resolvedPaths.outputNamespacedWithConfig,
-    data.appKey,
-  )
+  resolvedAppConfigFile = path.join(resolvedOutputNamespacedWithConfig, _appKey)
 
-  loader = new n.Loader({
-    config: data.configKey,
+  _loader = new n.Loader({
+    config: _configKey,
     dataType: 'object',
-    deviceType: data.deviceType,
+    deviceType: _deviceType,
     // TODO - This option is not working
-    env: data.ecosEnv,
-    loglevel: data.loglevel || 'verbose',
-    version,
+    env: _ecosEnv,
+    loglevel: _loglevel || 'verbose',
+    version: pluginOpts.version || 'latest',
   })
 
-  loader.env = data.ecosEnv
+  _loader.env = _ecosEnv
 
-  await loader.loadRootConfig({
-    dir: resolvedPaths.outputNamespacedWithConfig,
-    config: data.configKey,
+  await _loader.loadRootConfig({
+    dir: resolvedOutputNamespacedWithConfig,
+    config: _configKey,
   })
 
-  log.debug(
-    `Loaded root config. Loading app config using key: ${u.yellow(
-      data.appKey,
-    )} at ${u.yellow(loader.appConfigUrl)}`,
+  debug(
+    `Loaded root config. Loading app config using key: ${yellow(
+      _appKey,
+    )} at ${yellow(_loader.appConfigUrl)}`,
   )
 
-  const appConfigYml = await utils.fetchYml(loader.appConfigUrl)
-  data._pages_.json[data.appKey] = y.parse(appConfigYml)
+  const appConfigYml = await utils.fetchYml(_loader.appConfigUrl)
+  _pages.json[_appKey] = y.parse(appConfigYml)
 
-  if (!fs.existsSync(resolvedPaths.appConfigFile)) {
-    n.writeFileSync(resolvedPaths.appConfigFile, appConfigYml)
-    log.debug(`Saved app config to ${u.yellow(resolvedPaths.appConfigFile)}`)
+  if (!fs.existsSync(resolvedAppConfigFile)) {
+    n.writeFileSync(resolvedAppConfigFile, appConfigYml)
+    debug(`Saved app config to ${yellow(resolvedAppConfigFile)}`)
   }
 
   for (const key of ['preload', 'page']) {
-    if (u.isArr(data._pages_.json[data.appKey]?.[key])) {
-      const property = key === 'preload' ? '_preloadKeys_' : '_pageKeys_'
-      data[property]?.push?.(...data._pages_.json[data.appKey][key])
+    const _path_ = `${_appKey}.${key}`
+    if (!u.isArr(_pages.json[_appKey]?.[key])) {
+      set(_pages.json, _path_, [])
     }
+    const keysList = key === 'preload' ? _preloadKeys : _pageKeys
+    keysList.push(...get(_pages.json, _path_, []))
   }
 
-  const filesDir = resolvedPaths.outputNamespacedWithConfig
-  const { appConfigUrl } = loader
+  const appConfigUrl = _loader.appConfigUrl
+  const filesDir = resolvedOutputNamespacedWithConfig
 
   // TODO - Check if we still need this part
-  for (const filepath of [
-    resolvedPaths.configFile,
-    resolvedPaths.appConfigFile,
-  ]) {
-    const type = filepath === resolvedPaths.configFile ? 'root' : 'app'
+  for (const filepath of [resolvedConfigsDir, resolvedAppConfigFile]) {
+    const type = filepath === resolvedConfigsDir ? 'root' : 'app'
     if (!fs.existsSync(filepath)) {
-      const msg = `The ${u.magenta(type)} config file at ${u.yellow(
+      const msg = `The ${u.magenta(type)} config file at ${yellow(
         filepath,
       )} does not exist`
       log.error(msg)
       process.exit(0)
     }
 
-    if (!loader.hasInRoot(data.appKey)) {
-      await loader.loadAppConfig({
+    if (!_loader.hasInRoot(_appKey)) {
+      await _loader.loadAppConfig({
         dir: filesDir,
+        // eslint-disable-next-line
         fallback: () =>
           utils.downloadFile(
             log,
             appConfigUrl,
-            utils.ensureExt(data.appKey, 'yml'),
-            resolvedPaths.outputNamespacedWithConfig,
+            utils.ensureExt(_appKey, 'yml'),
+            resolvedOutputNamespacedWithConfig,
           ),
       })
     }
   }
 
-  log.debug(`Checking directory for page files`)
+  debug(`Checking directory for page files`)
 
   const getPageUrl = (s) =>
-    loader.appConfigUrl.replace(
+    _loader.appConfigUrl.replace(
       'cadlEndpoint.yml',
       utils.ensureExt(s.includes('_en') ? s.concat('_en') : s, 'yml'),
     )
 
-  const regexStr = `(${data._preloadKeys_.concat(data._pageKeys_).join('|')})`
+  const regexStr = `(${_preloadKeys.concat(_pageKeys).join('|')})`
   const filesList = await fs.readdir(filesDir)
   const expectedFilesRegex = new RegExp(regexStr)
 
-  log.debug(`Constructed regular expression: ${u.yellow(regexStr)}`)
+  debug(`Constructed regular expression: ${yellow(regexStr)}`)
 
   for (const filename of filesList) {
     const name = utils.removeExt(filename, 'yml')
@@ -329,91 +382,82 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
             // Exists
           } else {
             const pageUrl = getPageUrl(name)
-            log.debug(`Downloading missing page ${u.yellow(pageUrl)}`)
+            debug(`Downloading missing page ${yellow(pageUrl)}`)
             await utils.downloadFile(log, pageUrl, filename, filesDir)
           }
 
           const pageYml = n.loadFile(filepath)
           const pageObject = y.parse(pageYml)
-          data._pages_.json[name] = pageObject
-          log.debug(`Loaded ${u.yellow(name)}`)
+          _pages.json[name] = pageObject
+          debug(`Loaded ${yellow(name)}`)
         }
       } else if (stat.isDirectory()) {
         if (/assets/i.test(filename)) {
-          // log.debug(`Checking assets...`)
+          // debug(`Checking assets...`)
         }
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       log.error(
-        `Error occurring loading ${u.yellow(filepath)}: ${u.red(err.message)}`,
+        `Error occurring loading ${yellow(filepath)}: ${red(err.message)}`,
         err.stack,
       )
     }
   }
 
   const loadTo_pages_ = (name, obj) => {
-    data._pages_.json[name] = obj
-    loader.setInRoot(name, obj)
+    _pages.json[name] = obj
+    _loader.setInRoot(name, obj)
   }
 
   /** @type { { pageName: string; filename: string; filepath: string }[] } */
 
   const appKey = utils.removeExt(rootConfig.cadlMain, 'yml')
-  const missingFiles = []
   const allYmlPageNames =
-    loader.root[appKey]?.preload?.concat?.(loader.root[appKey]?.page) || []
-
-  // await loader.init({
-  //   dir: resolvedPaths.outputNamespacedWithConfig,
-  //   spread: ['BaseCSS', 'BasePage', 'BaseDataModel', 'BaseMessage'],
-  //   loadPages: true,
-  //   loadPreloadPages: true,
-  // })
+    _loader.root[appKey]?.preload?.concat?.(_loader.root[appKey]?.page) || []
 
   allYmlPageNames.forEach((name) => {
     const filename = `${name}_en.yml`
-    const filepath = path.join(
-      resolvedPaths.outputNamespacedWithConfig,
-      filename,
-    )
+    const filepath = path.join(resolvedOutputNamespacedWithConfig, filename)
     if (!fs.existsSync(filepath)) {
-      missingFiles.push({ pageName: name, filename, filepath })
+      _missingFiles.pages[name] = { filename, filepath, name }
     } else {
       loadTo_pages_(name, n.loadFile(filepath, 'json'))
     }
   })
 
-  const baseUrl = loader.appConfigUrl.replace('cadlEndpoint.yml', '')
+  const baseUrl = _loader.appConfigUrl.replace('cadlEndpoint.yml', '')
+  const missingPageNames = u.keys(_missingFiles.pages)
 
-  log.debug(`Downloading ${u.yellow(missingFiles.length)} missing pages...`)
-  log.debug(`Using this endpoint for missing files: ${u.yellow(baseUrl)}`)
+  debug(`Downloading ${yellow(missingPageNames.length)} missing pages...`)
+  debug(`Using this endpoint for missing files: ${yellow(baseUrl)}`)
 
   await Promise.all(
-    missingFiles.map(({ pageName, filename }) => {
+    missingPageNames.map((name) => {
       return new Promise((resolve) => {
+        const { filename = '', filepath = '' } = _missingFiles.pages[name] || {}
         const url = `${baseUrl}${filename}`
+        if (nt.Identify.reference(filename)) return
+        if (filename.startsWith('itemObject')) return
         try {
           const destination = path.join(
-            resolvedPaths.outputNamespacedWithConfig,
+            resolvedOutputNamespacedWithConfig,
             filename,
           )
-          log.debug(
-            `Downloading ${u.yellow(filename)} to: ${u.yellow(destination)}`,
-          )
+          debug(`Downloading ${yellow(filename)} to: ${yellow(destination)}`)
           utils
             .downloadFile(
               log,
               url,
               filename,
-              resolvedPaths.outputNamespacedWithConfig,
+              resolvedOutputNamespacedWithConfig,
             )
             .then((yml) => {
-              loadTo_pages_(pageName, y.parse(yml))
+              loadTo_pages_(name, y.parse(yml))
               resolve()
             })
         } catch (error) {
-          log.debug(error instanceof Error ? error : new Error(String(error)))
+          debug(error instanceof Error ? error : new Error(String(error)))
           resolve()
         }
       })
@@ -424,36 +468,43 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
   let assets
 
   try {
-    assets = await loader.extractAssets()
+    assets = await _loader.extractAssets()
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     log.error(
-      `[${u.yellow(err.name)}] Error while extracting assets: ${u.red(
+      `[${yellow(err?.name)}] Error while extracting assets: ${red(
         err.message,
       )}`,
     )
   }
 
-  log.debug(`Found ${u.yellow(assets?.length || 0)} assets`)
+  debug(`Found ${yellow(assets?.length || 0)} assets`)
 
   // TEMPORARY - This is here to bypass the build failing when using geolocation in lvl3
-  global.window = {
-    location: { href: 'http://127.0.0.1:3000' },
-    navigator: {
+
+  if (!global.window) global.window = {}
+  const win = global.window
+  if (!win.document) win.document = { createElement: () => ({}) }
+  if (!win.location) win.location = { href: 'http://127.0.0.1:3000' }
+  if (!win.navigator) {
+    win.navigator = {
       geolocation: {
         getCurrentPosition: () => ({
           coords: { latitude: 0, longitude: 0, altitude: null, accuracy: 11 },
           timestamp: Date.now(),
         }),
       },
-    },
+    }
   }
+
+  const isAssetSaved = (filepath) => _savedAssets.includes(filepath)
+  const isAssetLogged = (url) => _loggedAssets.includes(url)
 
   // if (buildSource === 'local' || isFileSystemOutput) {
   await Promise.all(
     assets.map(async (asset) => {
       const filename = `${asset.raw}`
-      const assetFilePath = path.join(resolvedPaths.assetsDir, filename)
+      const assetFilePath = path.join(resolvedAssetsDir, filename)
       if (fs.existsSync(assetFilePath)) return
 
       try {
@@ -462,108 +513,89 @@ exports.onPluginInit = async function onPluginInit(args, pluginOptions) {
         if (fullDir.startsWith('https:/') && !fullDir.startsWith('https://')) {
           fullDir = fullDir.replace('https:/', 'https://')
         }
+
         if (!fs.existsSync(fullDir)) await fs.ensureDir(fullDir)
-        const url = `${loader.appConfigUrl.replace(
-          'cadlEndpoint.yml',
-          '',
-        )}assets/${filename}`
+
+        let url = `${_loader.appConfigUrl}`.replace('cadlEndpoint.yml', '')
+        url += `assets/${filename}`
+        _missingFiles.assets[filename] = {
+          url,
+          filepath: path.join(
+            resolvedOutputNamespacedWithConfig,
+            `assets/${filename}`,
+          ),
+        }
+
         if (!fs.existsSync(assetFilePath)) {
-          if (!data._loggedAssets_.includes(url)) {
-            data._loggedAssets_.push(url)
-            log.info(
-              `Downloading ${u.yellow(filename)} to ${u.yellow(assetFilePath)}`,
-            )
+          if (!isAssetLogged(url)) {
+            _loggedAssets.push(url)
+            info(`Downloading ${yellow(filename)} to ${yellow(assetFilePath)}`)
           }
-          await utils.downloadFile(log, url, filename, resolvedPaths.assetsDir)
-          if (!data._assets_.includes(assetFilePath)) {
-            data._assets_.push(assetFilePath)
-          }
+          await utils.downloadFile(log, url, filename, resolvedAssetsDir)
+          if (!isAssetSaved(assetFilePath)) _savedAssets.push(assetFilePath)
         }
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error))
         if (axios.isAxiosError(err)) {
           if (err.response?.status === 404) {
-            log.warn(
-              `The asset "${asset.url}" returned a ${u.red(
-                `404 Not Found`,
-              )} error`,
-            )
+            const logMsg = `The asset "${asset.url}" `
+            warn(logMsg + `returned a ${red(`404 Not Found`)} error`)
           }
         } else {
-          log.debug(error instanceof Error ? error : new Error(String(error)))
+          debug(error instanceof Error ? error : new Error(String(error)))
         }
       }
     }),
   )
-  // }
-  // }
 }
 
 /**
  * @param { import('gatsby').SourceNodesArgs } args
- * @param { GatsbyNoodlPluginOptions } pluginOptions
+ * @param { GatsbyNoodlPluginOptions } pluginOpts
  */
-exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
-  const { actions, createContentDigest, createNodeId } = args
+exports.sourceNodes = async function sourceNodes(args, pluginOpts) {
+  const { cache, actions, createContentDigest, createNodeId } = args
   const { createNode } = actions
   const {
     viewport = {
       width: DEFAULT_VIEWPORT_WIDTH,
       height: DEFAULT_VIEWPORT_HEIGHT,
     },
-  } = pluginOptions
+  } = pluginOpts
 
-  const { page, pages, sdk, transform } = await getGenerator({
-    configKey: data.configKey,
-    on: {
-      /**
-       * Proxy the addEventListener and removeEventListener to the JSDOM events so lvl3 doesn't give the IllegalInvocation error from mismatching instance shapes
-       */
-      patch: u.reduce(
-        ['addEventListener', 'removeEventListener'],
-        (acc, evtName) => {
-          /**
-           * @argument { object } args
-           * @param { boolean } args.wasPatched
-           */
-          acc[evtName] = function onPatch({ wasPatched } = {}) {
-            let label = ''
-            label += u.yellow('EventTarget')
-            label += u.magenta('#')
-            label += u.white(evtName)
-            if (wasPatched) {
-              log.debug(`${label} is already patched.`)
-            } else {
-              log.debug(`${label} ${u.green('patched!')}`)
-            }
-          }
-          return acc
-        },
-        {},
-      ),
-    },
+  _viewport = viewport
+
+  const {
+    cache: sdkCache,
+    page,
+    pages,
+    sdk,
+    transform,
+  } = await getGenerator({
+    configKey: _configKey,
     use: {
-      config: loader?.getInRoot?.(data.configKey),
-      cadlEndpoint: loader?.getInRoot?.(loader.appKey),
+      config: _loader?.getInRoot?.(_configKey),
+      cadlEndpoint: _loader?.getInRoot?.(_loader.appKey),
       log,
       preload: {
-        BaseCSS: loader?.getInRoot?.('BaseCSS'),
-        BaseDataModel: loader?.getInRoot?.('BaseDataModel'),
-        BasePage: loader?.getInRoot?.('BasePage'),
-        Resource: loader?.getInRoot?.('Resource'),
+        BaseCSS: _loader?.getInRoot?.('BaseCSS'),
+        BaseDataModel: _loader?.getInRoot?.('BaseDataModel'),
+        BasePage: _loader?.getInRoot?.('BasePage'),
+        Resource: _loader?.getInRoot?.('Resource'),
       },
       /**
        * The generator will be mutating this so ensure that this reference will be stay persistent
        */
-      pages: data._pages_,
+      pages: _pages,
       viewport,
     },
   })
 
-  // TODO - Link src/pages/index.tsx to load using this as a source
-  data.startPage = (sdk.cadlEndpoint || {}).startPage
+  _assetsUrl = sdk.assetsUrl
+  _baseUrl = sdk.baseUrl
+  _sdkCache = sdkCache
+  _startPage = (sdk.cadlEndpoint || {}).startPage
 
-  // TODO - Figure out a way to pre-generate component dimensions using the runtime/client's viewport
   page.viewport.width = viewport.width
   page.viewport.height = viewport.height
 
@@ -573,6 +605,7 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
    * @param { nt.ComponentObject[] } componentObjects
    */
   async function generateComponents(pageName, componentObjects) {
+    const resolvedPageComponents = []
     /**
      * @param { nt.ComponentObject | nt.ComponentObject[] } value
      * @returns { Promise<import('./generator').NuiComponent[] }
@@ -583,58 +616,66 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
       const numComponents = componentsList.length
 
       for (let index = 0; index < numComponents; index++) {
+        let before
         const transformedComponent = await transform(componentsList[index], {
-          context: {
-            path: [index],
-          },
+          context: { path: [index] },
+          keepVpUnit: true,
           on: {
             /** Called for every component creation (depth-first) */
-            createComponent(comp, opts) {
+            async createComponent(comp, opts) {
+              before = u.omit(comp.toJSON(), ['children'])
               const { path: componentPath } = opts || {}
-              if (!data._context_[pageName]) data._context_[pageName] = {}
+              if (!_context_[pageName]) _context_[pageName] = {}
 
               if (nt.Identify.component.list(comp)) {
-                let listObjectPath
+                const iteratorVar = comp.blueprint?.iteratorVar || ''
+                const refs = getPageRefs(pageName)
+                const currListObjectPath = [pageName, 'components']
+                  .concat(componentPath)
+                  .concat('listObject')
+                  .reduce((acc, strOrIndex, i) => {
+                    if (
+                      u.isNum(Number(strOrIndex)) &&
+                      !Number.isNaN(Number(strOrIndex))
+                    ) {
+                      acc += `[${strOrIndex}]`
+                    } else {
+                      acc += i === 0 ? strOrIndex : `.${strOrIndex}`
+                    }
+                    return acc
+                  }, '')
                 const listObject = comp.get('listObject') || []
-                // Path to component from the page object as opposed to from the "components" list
-                const absolutePath = [pageName, 'components', ...componentPath]
-
+                const refObject = u
+                  .values(refs)
+                  .find((refObj) => refObj.path === currListObjectPath)
                 /**
                  * This gets passed to props.pageContext inside NoodlPageTemplate
                  */
-                set(data._context_, `${pageName}.lists.${comp.id}`, {
-                  id: comp.id,
+                set(_context_, `${pageName}.lists.${comp.id}`, {
                   // Descendant component ids will be inserted here later
                   children: [],
-                  iteratorVar: comp.blueprint.iteratorVar,
-                  listObject,
-                  listObjectPath,
-                  // This path is used to map list objects to their reference getters in the client
-                  path: absolutePath,
+                  componentPath,
+                  id: comp.id,
+                  iteratorVar,
+                  listObject: refObject?.ref || listObject,
                 })
-              } else if (nt.Identify.component.image(comp)) {
-                // This is mapped to the client side to pick up the static image
-                comp.set('_path_', comp.get('path'))
               }
-
-              if (
-                u.isStr(comp?.style?.fontSize) &&
-                comp.style.fontSize.endsWith('px')
-              ) {
-                const rounded = String(
-                  parseInt(
-                    comp?.style?.fontSize.replace(/[a-zA-Z]+/gi, ''),
-                    10,
-                  ),
-                )
-                if (utils.fontSize[rounded]) {
-                  comp.style.fontSize = utils.fontSize[rounded]
-                }
+              // TODO - Is this still being used?
+              else if (nt.Identify.component.image(comp)) {
+                // const src = comp.get('path')
+                // This is mapped to the client side to pick up the static image
+                // comp.set(
+                //   '_path_',
+                //   nt.Identify.folds.emit(src)
+                //     ? await sdk.emitCall(src.emit)
+                //     : src,
+                // )
               }
             },
           },
         })
-
+        const after = transformedComponent.toJSON()
+        resolvedPageComponents.push({ before, after })
         // Serialize the noodl-ui components before they get sent to
         // bootstrap the server-side rendering
         components.push(transformedComponent.toJSON())
@@ -643,41 +684,63 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
     }
 
     const transformedComponents = await transformAllComponents(componentObjects)
-
-    pageName && log.info(`${u.yellow(pageName)} Components generated`)
+    if (pageName) info(`${yellow(pageName)} Components generated`)
     return transformedComponents
   }
 
-  /**
-   * Create GraphQL nodes for "preload" pages so they can be queried in the client side
-   */
-  for (const [name, obj] of u.entries(
-    u.omit(sdk.root, sdk.cadlEndpoint.page),
-  )) {
-    if (obj) {
-      createNode({
-        name,
-        id: createNodeId(name),
-        isPreload: true,
-        content: JSON.stringify(obj),
-        children: [],
-        internal: {
-          contentDigest: createContentDigest(name),
-          type: NOODL_PAGE_NODE_TYPE,
-        },
-      })
-    }
-  }
+  const cacheDir = cache.directory
 
   /**
    * Create GraphQL nodes for app pages so they can be queried in the client side
    */
   for (const [name, pageObject] of u.entries(pages)) {
     page.page = name
-    const { components } = pageObject
-    pageObject.components = await generateComponents(name, components)
 
-    const lists = data._context_[name]?.lists
+    const pageCacheDir = path.join(cacheDir, 'generated', name)
+    const cachedComponentsFilePath = path.join(pageCacheDir, 'components.json')
+    const pathToCachedPageContextFile = path.join(pageCacheDir, 'context.json')
+
+    _cacheFiles[name] = pageCacheDir
+
+    let components
+    let retrieveType = ''
+
+    await fs.ensureDir(pageCacheDir)
+
+    const cachedComponents = fs.existsSync(cachedComponentsFilePath)
+      ? require(cachedComponentsFilePath)
+      : null
+
+    if (cachedComponents) {
+      components = cachedComponents
+      _context_[name] = {
+        ..._context_[name],
+        ...(await fs.readJson(pathToCachedPageContextFile)),
+      }
+      retrieveType = 'cache'
+    } else {
+      // cachedObject = {}
+      components = u
+        .array(await generateComponents(name, pageObject.components))
+        .filter(Boolean)
+      await fs.writeJson(cachedComponentsFilePath, components)
+      // await fs.writeJson(pathToCachedPageContextFile, _context_[name])
+      // await cache.set(_configKey, cachedObject)
+      retrieveType = 'fresh'
+    }
+
+    if (components) {
+      pageObject.components = components
+    } else {
+      log.error(
+        `Components could not be generated for page "${name}" using ${retrieveType}`,
+      )
+    }
+
+    if (!_context_[name]) _context_[name] = {}
+    _context_[name].refs = getPageRefs(name)
+
+    const lists = _context_[name].lists
 
     // Insert all descendants id's to the list component's children list.
     // This enables the mapping in the client side
@@ -702,10 +765,14 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
       })
     })
 
-    data._pages_.serialized[name] = u.isStr(pageObject)
+    if (retrieveType === 'fresh') {
+      await fs.writeJson(pathToCachedPageContextFile, _context_[name])
+    }
+
+    _pages.serialized[name] = u.isStr(pageObject)
       ? pageObject
       : JSON.stringify(u.omit(pageObject, 'components'))
-    data._pages_.json[name] = pageObject
+    _pages.json[name] = pageObject
 
     /**
      * Create the GraphQL nodes for page objects
@@ -715,11 +782,10 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
       name,
       slug: `/${name}/`,
       id: createNodeId(name),
-      content: data._pages_.serialized[name],
-      isPreload: false,
+      content: _pages.serialized[name],
       children: [],
       internal: {
-        contentDigest: createContentDigest(data._pages_.serialized[name]),
+        contentDigest: createContentDigest(_pages.serialized[name]),
         type: NOODL_PAGE_NODE_TYPE,
       },
     })
@@ -728,18 +794,21 @@ exports.sourceNodes = async function sourceNodes(args, pluginOptions) {
   /**
    * @param {{ [page: string]: { componentPath: string[]; path: string[] } }} acc
    */
-  if (pluginOptions.introspection) {
+  if (pluginOpts.introspection) {
     await fs.writeJson(
-      path.join(data._paths_.output, `./${data.configKey}_introspection.json`),
+      path.join(_paths.output, `./${_configKey}_introspection.json`),
       pages,
       { spaces: 2 },
     )
+  }
+  if (pluginOpts.metadata) {
+    await dumpMetadata()
   }
 }
 
 /**
  * @param { import('gatsby').CreatePagesArgs } args
- * @param { GatsbyNoodlPluginOptions } pluginOptions
+ * @param { GatsbyNoodlPluginOptions } pluginOpts
  */
 exports.createPages = async function createPages(args) {
   try {
@@ -754,12 +823,11 @@ exports.createPages = async function createPages(args) {
       errors,
     } = await graphql(`
       {
-        allNoodlPage(filter: { isPreload: { eq: false } }) {
+        allNoodlPage {
           nodes {
             name
             content
             slug
-            isPreload
           }
         }
       }
@@ -769,32 +837,32 @@ exports.createPages = async function createPages(args) {
       throw new Error(errors)
     } else {
       const numNoodlPages = allNoodlPage.nodes.length || 0
-
-      log.info(`Creating ${numNoodlPages} pages`)
-
+      info(`Creating ${numNoodlPages} pages`)
       /**
        * Creates the page route
+       *
        * "context" will be available in the NoodlPageTemplate component as props.pageContext (to ensure we only have the data we care about, we only pick "components" from the page object only.
+       *
        * The rest of the page object props (init, etc) are located into the root noodl object instead)
        */
-      for (const pageName of u.keys(data._pages_.json)) {
+      for (const pageName of u.keys(_pages.json)) {
         // Becomes the page route
         const slug = `/${pageName}/`
         createPage({
           path: slug,
           // NoodlPageTemplate
-          component: data._paths_.template,
+          component: _paths.template,
           context: {
-            _context_: get(data._context_, pageName) || {},
-            isPreload: false,
-            pageName,
+            assetsUrl: _assetsUrl,
+            baseUrl: _baseUrl,
+            lists: _context_?.[pageName]?.lists,
+            refs: getPageRefs(pageName) || {},
+            name: pageName,
             // Intentionally leaving out other props from the page object since they are provided in the root object (available in the React context that wraps our app)
-            pageObject: {
-              components:
-                data._pages_.json?.[pageName]?.components ||
-                data._pages_.json?.[pageName]?.components?.components ||
-                [],
-            },
+            components:
+              _pages.json?.[pageName]?.components ||
+              _pages.json?.[pageName]?.components?.components ||
+              [],
             slug,
           },
         })
@@ -803,7 +871,7 @@ exports.createPages = async function createPages(args) {
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error(
-      `[Error-createPages][${u.yellow(err.name)}] ${u.red(err.message)}`,
+      `[Error-createPages][${yellow(err?.name)}] ${red(err.message)}`,
       err.stack,
     )
   }
@@ -819,22 +887,31 @@ exports.onCreatePage = async function onCreatePage(opts) {
   // Binds homepage to startPage
   if (page.path === '/') {
     const oldPage = u.assign({}, page)
-    const pageName = data.startPage
+    const pageName = _startPage
     const slug = `/${pageName}/`
     page.context = {
-      _context_: get(data._context_, pageName) || {},
-      isPreload: false,
-      pageName,
-      pageObject: {
-        components:
-          data._pages_.json?.[pageName]?.components ||
-          data._pages_.json?.[pageName]?.components?.components ||
-          [],
-      },
+      assetsUrl: _assetsUrl,
+      baseUrl: _baseUrl,
+      lists: (get(_context_, pageName) || {})?.lists,
+      refs: getPageRefs(pageName) || {},
+      name: pageName,
+      components:
+        _pages.json?.[pageName]?.components ||
+        _pages.json?.[pageName]?.components?.components ||
+        [],
       slug,
     }
-    log.info(`Home route '${u.cyan('/')}' is bound to ${u.yellow(pageName)}`)
+    info(`Home route '${cyan('/')}' is bound to ${yellow(pageName)}`)
     deletePage(oldPage)
     createPage(page)
   }
 }
+
+process.on('exit', (code) => {
+  // dumpMetadata()
+  if (code != 0) {
+    log.error(
+      `[${u.cyan(`gatsby-plugin-noodl`)}] exited with code: ${u.yellow(code)}`,
+    )
+  }
+})

@@ -1,14 +1,12 @@
 {
   "author": "Christopher <christopher@aitmed.com>",
   "dependencies": {
-    "gatsby-source-filesystem": "^4.6.0",
+    "gatsby-source-filesystem": "^4.2.0",
     "loglevel": "^1.8.0"
   },
   "description": "Gatsby AiTmed plugin to generate static pages from a noodl config",
   "devDependencies": {
     "eslint": "^8.2.0",
-    "eslint-config-airbnb": "^19.0.4",
-    "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-jsx-a11y": "^6.5.1"
   },
@@ -19,7 +17,6 @@
       "node": true
     },
     "extends": [
-      "airbnb/base",
       "plugin:prettier/recommended",
       "plugin:import/recommended"
     ],
@@ -92,6 +89,7 @@
   ],
   "license": "0BSD",
   "main": "index.js",
+  "module": "index.js",
   "name": "gatsby-plugin-noodl",
   "prettier": {
     "arrowParens": "always",
@@ -105,6 +103,7 @@
   "scripts": {
     "test": "cross-env NODE_ENV=test mocha --watch --watch-files . \"__tests__/**/*.test.js\""
   },
+  "types": "./types.d.ts",
   "version": "1.0.3",
   "workspaces": [
     "./"

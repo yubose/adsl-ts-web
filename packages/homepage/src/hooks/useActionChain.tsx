@@ -3,26 +3,23 @@ import * as u from '@jsmanifest/utils'
 import React from 'react'
 import get from 'lodash/get'
 import set from 'lodash/set'
-import produce, { createDraft, isDraft, current, finishDraft } from 'immer'
+import partial from 'lodash/partial'
 import { navigate } from 'gatsby'
 import { excludeIteratorVar, trimReference, toDataPath } from 'noodl-utils'
 import {
   createAction,
   createActionChain as nuiCreateActionChain,
-  NUIActionChain,
+  deref,
 } from 'noodl-ui'
-import type { NUIActionObject, NUITrigger } from 'noodl-ui'
-import useBuiltInFns from '@/hooks/useBuiltInFns'
-import isBuiltInEvalFn from '@/utils/isBuiltInEvalFn'
-import useCtx from '@/useCtx'
-import usePageCtx from '@/usePageCtx'
+import type { NUIActionObject, NUIActionChain, NUITrigger } from 'noodl-ui'
 import is from '@/utils/is'
+import isBuiltInEvalFn from '@/utils/isBuiltInEvalFn'
 import log from '@/utils/log'
-import {
-  getIteratorVar,
-  getListDataObject,
-  isListConsumer,
-} from '@/utils/pageCtx'
+import useBuiltInFns from '@/hooks/useBuiltInFns'
+import useCtx from '@/useCtx'
+import { createDraft, finishDraft } from '@/utils/immer'
+import { usePageCtx } from '@/components/PageContext'
+import * as c from '../constants'
 import * as t from '@/types'
 
 export interface UseActionChainOptions {}
@@ -41,107 +38,366 @@ export interface ExecuteHelpers {
 }
 
 function useActionChain() {
-  const { root, getInRoot, setInRoot } = useCtx()
+  const { root, getR, setR } = useCtx()
   const pageCtx = usePageCtx()
-  const { handleBuiltInFn, ...builtIns } = useBuiltInFns()
+  const { handleBuiltInFn } = useBuiltInFns()
+
+  const getRootDraftOrRoot = React.useCallback(
+    (actionChain: NUIActionChain) => {
+      return actionChain?.data?.get?.(c.ROOT_DRAFT) || root
+    },
+    [root],
+  )
+
+  const executeStr = async (
+    value: string,
+    args: ExecuteArgs &
+      ExecuteHelpers & {
+        onExecuteAction?: (
+          args: ExecuteArgs,
+          helpers: ExecuteHelpers,
+        ) => Promise<any>
+      },
+  ) => {
+    try {
+      let scrollingTo = ''
+
+      if (is.reference(value)) {
+        value =
+          value === '.WebsitePathSearch'
+            ? // Temp hard code for now
+              'https://search.aitmed.com'
+            : deref({
+                root: getRootDraftOrRoot(args.actionChain),
+                ref: value,
+                rootKey: pageCtx.name,
+              })
+      }
+
+      // These are values coming from an if object evaluation since we are also using this function for if object strings
+      if (is.isBoolean(value)) return is.isBooleanTrue(value)
+
+      if (u.isObj(value)) {
+        // debugger
+      } else if (u.isStr(value)) {
+        if (value.startsWith('^')) {
+          // TODO - Handle goto scrolls when navigating to a different page
+          scrollingTo = value.substring(1)
+          value = value.replace('^', '')
+        } else if (pageCtx.isListConsumer(args.component)) {
+          const iteratorVar = pageCtx.getIteratorVar(args.component)
+          const dataObject = pageCtx.getDataObject(
+            args.component,
+            getRootDraftOrRoot(args.actionChain),
+            pageCtx.name,
+          )
+          if (iteratorVar && value.startsWith(iteratorVar)) {
+            value = get(dataObject, excludeIteratorVar(value, iteratorVar))
+          }
+        }
+      }
+
+      if (!value?.startsWith?.('http') && (value || scrollingTo)) {
+        let scrollingToElem: HTMLElement | undefined
+        let prevId = ''
+        if (scrollingTo) {
+          scrollingToElem = document.querySelector(
+            `[data-viewtag=${scrollingTo}]`,
+          )
+          if (scrollingToElem) {
+            prevId = scrollingToElem.id
+            scrollingToElem.id = scrollingTo
+          } else {
+            log.error(
+              `Tried to find an element of viewTag "${scrollingTo}" but it did not exist`,
+            )
+          }
+        }
+
+        if (scrollingToElem && prevId) {
+          scrollingToElem.scrollIntoView({
+            behavior: 'smooth',
+            inline: 'center',
+          })
+        } else {
+          navigate(`/${value}`)
+        }
+      } else {
+        window.location.href = value
+      }
+      // This can get picked up if evalObject is returning a goto
+      return 'abort'
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      throw err
+    }
+  }
+
+  const executeEvalBuiltIn = async (
+    builtInKey: string,
+    {
+      builtInArgs,
+      ...args
+    }: ExecuteArgs &
+      ExecuteHelpers & {
+        onExecuteAction?: (
+          args: ExecuteArgs,
+          helpers: ExecuteHelpers,
+        ) => Promise<any>
+      } & { builtInArgs?: any },
+  ) => {
+    try {
+      return handleBuiltInFn(builtInKey, { ...args, ...builtInArgs })
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      throw err
+    }
+  }
+
+  const executeEvalObject = async (
+    value: nt.EvalActionObject,
+    args: ExecuteArgs &
+      ExecuteHelpers & {
+        onExecuteAction?: (
+          args: ExecuteArgs,
+          helpers: ExecuteHelpers,
+        ) => Promise<any>
+      },
+  ) => {
+    try {
+      const results = []
+      const objs = u.array(value.object)
+      const numObjs = objs.length
+      for (let index = 0; index < numObjs; index++) {
+        const object = objs[index]
+
+        if (u.isObj(object)) {
+          const objKeys = u.keys(object)
+          const isSingleProperty = objKeys.length === 1
+
+          if (isSingleProperty) {
+            const property = objKeys[0]
+            const propValue = object[property]
+
+            if (is.awaitReference(property)) {
+              let datapath = toDataPath(trimReference(property))
+              let datavalue: any
+
+              if (is.localReference(property)) {
+                datapath.unshift(pageCtx.name)
+              }
+
+              if (u.isStr(propValue)) {
+                datavalue = is.reference(propValue)
+                  ? deref({
+                      root: getRootDraftOrRoot(args.actionChain),
+                      rootKey: pageCtx.name,
+                      ref: propValue,
+                    })
+                  : propValue
+              } else {
+                datavalue = propValue
+              }
+
+              if (is.action.evalObject(datavalue)) {
+                const result = await execute({
+                  ...args,
+                  action: datavalue,
+                })
+                if (result !== undefined) {
+                  set(getRootDraftOrRoot(args.actionChain), datapath, result)
+                }
+              } else {
+                set(getRootDraftOrRoot(args.actionChain), datapath, datavalue)
+              }
+              continue
+            } else {
+              // debugger
+            }
+          }
+        }
+
+        const result = await wrapWithHelpers(args.onExecuteAction)({
+          ...args,
+          action: object,
+        })
+        results.push(result)
+      }
+      return results
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      throw err
+    }
+  }
+
+  const executeIf = React.useCallback(
+    async (
+      ifObject: nt.IfObject,
+      args: ExecuteArgs &
+        ExecuteHelpers & {
+          onExecuteAction?: (
+            args: ExecuteArgs,
+            helpers: ExecuteHelpers,
+          ) => Promise<any>
+        },
+    ) => {
+      try {
+        let [cond, truthy, falsy] = (ifObject.if || []) as any[]
+        let value: any
+
+        if (u.isStr(cond)) {
+          value = await executeStr?.(cond, { ...args, action: cond })
+        }
+
+        if (isBuiltInEvalFn(cond)) {
+          const key = u.keys(cond)[0] as string
+          const result = await executeEvalBuiltIn(key, {
+            ...args,
+            ...cond[key],
+          })
+          value = result ? truthy : falsy
+        }
+
+        if (value === 'continue') {
+          return value
+        } else if (u.isStr(value)) {
+          if (is.reference(value)) {
+            value = await executeStr?.(value, { ...args, action: value })
+          }
+        } else if (u.isBool(value)) {
+          value = value ? truthy : falsy
+        }
+
+        if (u.isObj(value)) {
+          if (args.requiresDynamicHandling(value)) {
+            for (const [k, v] of u.entries(value)) {
+              if (is.reference(k)) {
+                if (k.endsWith('@')) {
+                  const keyDataPath = trimReference(k)
+                  const rootDraft = getRootDraftOrRoot(args.actionChain)
+                  if (is.localReference(k)) {
+                    set(rootDraft[pageCtx.name], keyDataPath, v)
+                  } else {
+                    set(rootDraft, keyDataPath, v)
+                  }
+                }
+              }
+            }
+          } else {
+            value = await wrapWithHelpers(args.onExecuteAction)({
+              ...args,
+              action: value,
+            })
+          }
+        }
+
+        return value
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
+        throw err
+      }
+    },
+    [],
+  )
 
   const createEmit = React.useCallback(
     (
-      actionChain,
+      actionChain: NUIActionChain,
       component: t.StaticComponentObject,
       trigger: NUITrigger,
       emitObject: nt.EmitObjectFold,
     ) => {
-      const action = createAction({ action: emitObject, trigger })
+      {
+        const action = createAction({ action: emitObject, trigger })
+        const dataObject =
+          pageCtx.getDataObject(
+            component,
+            getRootDraftOrRoot(actionChain),
+            pageCtx.name,
+          ) || {}
 
-      const { dataObject, iteratorVar = '' } =
-        getListDataObject(pageCtx._context_.lists, component, {
-          getInRoot,
-          include: ['iteratorVar'],
-          pageName: pageCtx.pageName,
-          root,
-        }) || {}
+        if (dataObject) {
+          if (u.isStr(action.dataKey)) {
+            action.dataKey = dataObject
+          } else if (u.isObj(action.dataKey)) {
+            const iteratorVar = pageCtx.getIteratorVar(component)
+            action.dataKey = u.entries(action.dataKey).reduce(
+              (acc, [key, value]) =>
+                u.assign(acc, {
+                  [key]: iteratorVar
+                    ? value === iteratorVar
+                      ? dataObject
+                      : get(
+                          iteratorVar,
+                          `${excludeIteratorVar(value, iteratorVar)}`,
+                        )
+                    : get(dataObject, value),
+                }),
+              {},
+            )
+          }
 
-      if (dataObject) {
-        if (u.isStr(action.dataKey)) {
-          action.dataKey = dataObject
-        } else if (u.isObj(action.dataKey)) {
-          action.dataKey = u.reduce(
-            u.entries(action.dataKey),
-            (acc, [key, value]) => {
-              if (iteratorVar) {
-                if (value === iteratorVar) {
-                  acc[key] = dataObject
-                } else {
-                  acc[key] = get(
-                    iteratorVar,
-                    `${excludeIteratorVar(value, iteratorVar)}`,
-                  )
-                }
-              } else {
-                acc[key] = get(dataObject, value)
-              }
-              return acc
-            },
-            {},
-          )
-        }
-
-        action.executor = (function (actions: any[] = [], dataObject) {
-          return async function onExecuteEmitAction(
-            event: React.SyntheticEvent,
-          ) {
-            try {
-              const results = [] as any[]
+          /**
+           * Beginning of actionChain.execute()
+           */
+          action.executor = (function (actions: any[] = [], dataObject) {
+            return async function onExecuteEmitAction(
+              event: React.SyntheticEvent,
+            ) {
+              let draftedActionObject: any
+              let results = [] as any[]
 
               try {
                 for (const actionObject of actions) {
+                  draftedActionObject = createDraft(actionObject)
                   const result = await execute({
-                    action: actionObject,
+                    action: deref({
+                      dataObject,
+                      iteratorVar: component?.iteratorVar,
+                      ref: draftedActionObject,
+                      root: getRootDraftOrRoot(actionChain),
+                      rootKey: pageCtx.name,
+                    }),
                     actionChain,
                     component,
                     dataObject,
-                    event,
                     trigger,
                   })
-
-                  if (result === 'abort') log.debug(`Received "abort"`)
-                  else results.push(result)
+                  finishDraft(draftedActionObject)
+                  draftedActionObject = undefined
+                  if (result === 'abort') {
+                    results.push('abort')
+                    action.abort('Received abort')
+                    await actionChain.abort()
+                    return 'abort'
+                  } else results.push(result)
                 }
+
+                return results
               } catch (error) {
-                const err =
-                  error instanceof Error ? error : new Error(String(error))
-                log.error(`%c[${err.name}] ${err.message}`, err)
+                log.error(
+                  error instanceof Error ? error : new Error(String(error)),
+                )
+              } finally {
+                if (draftedActionObject) finishDraft(draftedActionObject)
               }
-
-              log.debug(
-                `%c[onExecuteEmitAction] Emit actions (results)`,
-                'color:gold',
-                results,
-              )
-
-              return results
-            } catch (error) {
-              log.error(
-                error instanceof Error ? error : new Error(String(error)),
-              )
             }
-          }
-        })(emitObject.emit.actions, dataObject)
+          })(emitObject.emit.actions, dataObject)
 
-        return action
-      } else {
-        // TODO
+          return action
+        } else {
+          // TODO
+        }
       }
     },
-    [root, pageCtx],
+    [pageCtx, root],
   )
 
   /**
    * Wraps and provides helpers to the execute function as the 2nd argument
    */
-  const wrapWithHelpers = React.useCallback(
-    (fn: (args: ExecuteArgs, helpers: ExecuteHelpers) => Promise<any>) => {
+  const wrapWithHelpers = React.useMemo(
+    () => (fn: (args: ExecuteArgs, helpers: ExecuteHelpers) => Promise<any>) => {
       return function (args: ExecuteArgs) {
         return fn(args, {
           requiresDynamicHandling: (obj: any) => {
@@ -155,313 +411,126 @@ function useActionChain() {
         })
       }
     },
-    [root, pageCtx],
+    [],
   )
 
-  const execute = React.useCallback(
-    wrapWithHelpers(async function onExecuteAction(
-      { action: obj, actionChain, component, dataObject, event, trigger = '' },
-      utils,
-    ) {
-      try {
-        // TEMP sharing goto destinations and some strings as args
-        if (u.isStr(obj)) {
-          let destination = obj
-          let scrollingTo = ''
+  const execute = React.useMemo(
+    () =>
+      wrapWithHelpers(async function onExecuteAction(options, utils) {
+        const { action: obj, actionChain, dataObject } = options
+        const args = { ...options, ...utils, onExecuteAction }
 
-          if (is.reference(destination)) {
-            // Temp hard code for now
-            if (destination === '.WebsitePathSearch') {
-              destination = 'https://search.aitmed.com'
-            } else {
-              destination = getInRoot(
-                actionChain.data.get('rootDraft') || root,
-                destination,
-                pageCtx.pageName,
-              )
-            }
-          }
-          // These are values coming from an if object evaluation since we are also using this function for if object strings
-          if (is.isBoolean(destination)) return is.isBooleanTrue(destination)
-
-          if (u.isObj(destination)) {
-            // debugger
-          } else if (u.isStr(destination)) {
-            if (destination.startsWith('^')) {
-              // TODO - Handle goto scrolls when navigating to a different page
-              scrollingTo = destination.substring(1)
-              destination = destination.replace('^', '')
-            } else if (isListConsumer(pageCtx._context_, component)) {
-              const { dataObject, iteratorVar } = getListDataObject(
-                pageCtx._context_?.lists,
-                component,
-                {
-                  root,
-                  getInRoot,
-                  include: ['iteratorVar'],
-                  pageName: pageCtx.pageName,
-                },
-              )
-              if (iteratorVar && destination.startsWith(iteratorVar)) {
-                const originalDest = destination
-                destination = get(
-                  dataObject,
-                  excludeIteratorVar(destination, iteratorVar),
-                )
-                if (!destination) {
-                  log.error(
-                    `A list child using path "${originalDest}" received typeof ${destination}`,
-                    { action: obj, actionChain, component, dataObject },
-                  )
-                }
+        try {
+          // TEMP sharing goto destinations and some strings as args
+          if (u.isStr(obj)) {
+            return executeStr(obj, args)
+          } else if (u.isObj(obj)) {
+            // { goto: "SignIn" }
+            if (is.goto(obj)) {
+              let destination = obj.goto
+              if (u.isObj(destination)) destination = destination.goto
+              if (u.isStr(destination)) {
+                return executeStr(destination, { ...args, action: destination })
+              } else {
+                throw new Error(`Goto destination was not a string`)
               }
             }
-          }
-
-          if (
-            !destination?.startsWith?.('http') &&
-            (destination || scrollingTo)
-          ) {
-            let scrollingToElem: HTMLElement | undefined
-            let prevId = ''
-
-            if (scrollingTo) {
-              scrollingToElem = document.querySelector(
-                `[data-viewtag=${scrollingTo}]`,
-              )
-              if (scrollingToElem) {
-                prevId = scrollingToElem.id
-                scrollingToElem.id = scrollingTo
+            // { actionType: 'builtIn', funcName: 'redraw' }
+            else if (is.action.builtIn(obj)) {
+              const funcName = obj.funcName
+              log.debug(`%c[builtIn] ${funcName}`, 'color:hotpink', obj)
+            }
+            // { emit: { dataKey: {...}, actions: [...] } }
+            else if (is.folds.emit(obj)) {
+              // debugger
+            }
+            // { actionType: 'evalObject', object: [...] }
+            else if (is.action.evalObject(obj)) {
+              return executeEvalObject(obj, args)
+            }
+            // { if: [...] }
+            else if (is.folds.if(obj)) {
+              // @ts-expect-error
+              return executeIf(obj, args)
+            }
+            // { actionType: 'popUp', popUpView: 'myPopUp', wait: true }
+            else if (
+              [is.action.popUp, is.action.popUpDismiss].some((fn) => fn(obj))
+            ) {
+              const el = document.querySelector(
+                `[data-viewtag=${obj.popUpView}]`,
+              ) as HTMLElement
+              if (el) {
+                el.style.visibility =
+                  obj.actionType === 'popUpDismiss' ? 'hidden' : 'visible'
               } else {
                 log.error(
-                  `Tried to find an element of viewTag "${scrollingTo}" but it did not exist`,
+                  `The popUp component with popUpView "${obj.popUpView}" is not in the DOM`,
+                  obj,
                 )
               }
-            }
-
-            if (scrollingToElem && prevId) {
-              scrollingToElem.scrollIntoView({
-                behavior: 'smooth',
-                inline: 'center',
-              })
+              // TODO - See if we need to move this logic elsewhere
+              // 'abort' is returned so evalObject can abort if it returns popups
+              return 'wait' in obj ? 'abort' : undefined
             } else {
-              navigate(`/${destination}`)
-            }
-          } else {
-            window.location.href = destination
-          }
-          // This can get picked up if evalObject is returning a goto
-          return 'abort'
-        } else if (u.isObj(obj)) {
-          if (is.goto(obj)) {
-            let destination = obj.goto
-            if (u.isObj(destination)) destination = destination.goto
-            if (u.isStr(destination)) {
-              return execute({ action: destination, actionChain, component })
-            } else {
-              throw new Error(`Goto destination was not a string`)
-            }
-          } else if (is.action.builtIn(obj)) {
-            const funcName = obj.funcName
-            if (funcName === 'redraw') {
-              const { viewTag } = obj
-              if (viewTag) {
-                const el = document.querySelector(`[data-viewtag=${viewTag}]`)
-                if (el) {
-                }
-              }
-            }
-          } else if (is.folds.emit(obj)) {
-            // debugger
-          } else if (is.action.evalObject(obj)) {
-            for (const object of u.array(obj.object)) {
-              await wrapWithHelpers(onExecuteAction)({
-                action: object,
-                actionChain,
-                component,
-                dataObject,
-                event,
-                trigger,
-              })
-            }
-          } else if (is.folds.if(obj)) {
-            let [cond, truthy, falsy] = (obj.if || []) as any[]
-            let value: any
+              let keys = u.keys(obj)
+              let isAwaiting = false
+              let result: any
+              let args = { actionChain, dataObject }
 
-            if (u.isStr(cond)) {
-              value = await onExecuteAction(
-                { action: cond, actionChain },
-                utils,
-              )
-            } else if (isBuiltInEvalFn(cond)) {
-              const key = u.keys(cond)[0] as string
-              const result = await handleBuiltInFn(key, {
-                actionChain,
-                dataObject,
-                ...cond[key],
-              })
-              value = result ? truthy : falsy
-              log.debug(`%c[if][${key}] Returned:`, `color:#c4a901;`, result)
-            }
-
-            log.debug(`%c[if] Result`, `color:#c4a901;`, {
-              dataObject,
-              ifObject: obj,
-              result: value,
-            })
-
-            if (value === 'continue') {
-              //
-            } else if (u.isStr(value)) {
-              if (is.reference(value)) {
-                value = await onExecuteAction(
-                  { action: value, actionChain },
-                  utils,
-                )
-              }
-            } else if (u.isBool(value)) {
-              value = value ? truthy : falsy
-            }
-
-            if (u.isObj(value)) {
-              if (utils.requiresDynamicHandling(value)) {
-                log.debug(
-                  `%c[if] Dynamically handling a value from an if object result`,
-                  `color:#c4a901;`,
-                  value,
-                )
-                for (const [k, v] of u.entries(value)) {
-                  if (is.reference(k)) {
-                    if (k.endsWith('@')) {
-                      const keyDataPath = trimReference(k)
-                      const rootDraft = actionChain.data.get('rootDraft')
-                      if (is.localReference(k)) {
-                        set(rootDraft[pageCtx.pageName], keyDataPath, v)
-                      } else {
-                        set(rootDraft, keyDataPath, v)
-                      }
-                    }
-                  }
-                }
-              } else {
-                value = await wrapWithHelpers(onExecuteAction)({
-                  action: value,
-                  actionChain,
-                  component,
-                  event,
-                  trigger,
-                })
-              }
-            }
-
-            return value
-          } else if (
-            [is.action.popUp, is.action.popUpDismiss].some((fn) => fn(obj))
-          ) {
-            // TODO - Dismiss on touch outside
-            // TODO - Wait
-            const el = document.querySelector(
-              `[data-viewtag=${obj.popUpView}]`,
-            ) as HTMLElement
-
-            const visibilityBefore = el?.style?.visibility
-
-            if (el) {
-              el.style.visibility =
-                obj.actionType === 'popUpDismiss' ? 'hidden' : 'visible'
-            } else {
-              log.error(
-                `The popUp component with popUpView "${obj.popUpView}" is not in the DOM`,
-                obj,
-              )
-            }
-
-            log.debug(
-              `[${obj.actionType}] visibility: ${visibilityBefore} --> ${el?.style?.visibility}`,
-              '',
-              obj,
-            )
-            // TODO - See if we need to move this logic elsewhere
-            // 'abort' is returned so evalObject can abort if it returns popups
-            return 'abort'
-          } else {
-            const keys = u.keys(obj)
-            let result: any
-
-            if (keys.length === 1) {
-              const key = keys[0] as string
-              if (isBuiltInEvalFn(obj)) {
-                result = await handleBuiltInFn(key, {
-                  actionChain,
-                  dataObject,
-                  ...obj[key],
-                })
-                log.debug(`%c[${key}] Result`, `color:#01a7c4;`, result)
-              } else {
-                let isAwaiting = false
-                let isLocal = true
-                let value = obj[key]
-
-                if (is.reference(key)) {
-                  isLocal = is.localReference(key)
-                  isAwaiting = is.awaitReference(key)
-                }
-
-                if (u.isStr(value)) {
-                  if (is.reference(value)) {
-                    value = getInRoot(value, pageCtx.pageName)
-                  }
-                }
-
-                if (isAwaiting) {
-                  if (isLocal) {
-                    const incKey = [
-                      pageCtx.pageName,
-                      ...toDataPath(trimReference(key)).filter(Boolean),
-                    ]
-                    const incValue = u.values(obj)[0]
-                    console.log({
-                      incKey: incKey.join('.'),
-                      incValue,
-                      pageName: pageCtx.pageName,
-                      value,
-                    })
-                    set(actionChain.data.get('rootDraft'), incKey, incValue)
-                  } else {
-                    const root = actionChain.data.get('rootDraft')
-                    const incKey = toDataPath(trimReference(key))
-                    const incValue = getInRoot(root, incKey)
-                    console.log({
-                      incKey,
-                      incValue,
-                      root,
-                      pageName: pageCtx.pageName,
-                      value,
-                    })
-
-                    set(root, incKey, incValue)
-                  }
+              if (keys.length === 1) {
+                const key = keys[0] as string
+                // { "=.builtIn.string.equal": { ...} }
+                if (isBuiltInEvalFn(obj)) {
+                  result = await handleBuiltInFn(key, { ...args, ...obj[key] })
                 } else {
-                  result = value
-                }
-              }
-            } else {
-              log.error(
-                `%cAn action in an action chain is not being handled`,
-                `color:#ec0000;`,
-                obj,
-              )
-            }
+                  let awaitKey: string
+                  let isLocal = true
+                  let value = obj[key]
+                  let rootDraft = getRootDraftOrRoot(actionChain)
 
-            return result
+                  if (is.reference(key)) {
+                    isLocal = is.localReference(key)
+                    isAwaiting = is.awaitReference(key)
+                    if (isAwaiting) awaitKey = key
+                  }
+
+                  if (u.isStr(value) && is.reference(value)) {
+                    const dataPath = toDataPath(trimReference(value))
+                    if (is.localReference(value)) dataPath.unshift(pageCtx.name)
+                    value = get(rootDraft, dataPath)
+                  }
+
+                  if (isAwaiting) {
+                    const path = toDataPath(trimReference(key)).filter(Boolean)
+                    if (isLocal) {
+                      if (pageCtx.name && path[0] !== pageCtx.name) {
+                        path.unshift(pageCtx.name)
+                      }
+                      const valueAwaiting = is.reference(obj[key])
+                        ? get(rootDraft, path.join('.'))
+                        : obj[key]
+                      set(rootDraft, path, valueAwaiting)
+                    }
+                  } else {
+                    result = value
+                  }
+                }
+              } else {
+                log.error(
+                  `%cAn action in an action chain is not being handled`,
+                  `color:#ec0000;`,
+                  obj,
+                )
+              }
+              return result
+            }
           }
+        } catch (error) {
+          log.error(error instanceof Error ? error : new Error(String(error)))
         }
-      } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error))
-        log.error(err)
-      }
-    }),
-    [root, getInRoot, setInRoot, pageCtx],
+      }),
+    [handleBuiltInFn, isBuiltInEvalFn, getR, setR, pageCtx, root],
   )
 
   const createActionChain = React.useCallback(
@@ -470,87 +539,49 @@ function useActionChain() {
       trigger: NUITrigger,
       actions?: NUIActionObject | NUIActionObject[],
     ) => {
-      !u.isArr(actions) && (actions = [actions])
+      {
+        if (!u.isArr(actions)) actions = [actions]
 
-      const actionChain = nuiCreateActionChain(trigger, actions, (actions) => {
-        return actions.map((obj) => {
-          if (is.folds.emit(obj)) {
-            return createEmit(actionChain, component, trigger, obj)
-          }
-
-          const nuiAction = createAction({ action: obj, trigger })
-
-          nuiAction.executor = async function onExecuteAction(
-            event: React.SyntheticEvent,
-          ) {
-            const result = await execute({
+        const loadActions = (
+          component: t.StaticComponentObject,
+          actionObjects: nt.ActionObject[],
+        ) =>
+          actionObjects.map((obj) => {
+            if (is.folds.emit(obj)) {
+              return createEmit(actionChain, component, trigger, obj)
+            }
+            const nuiAction = createAction({ action: obj, trigger })
+            nuiAction.executor = execute.bind(null, {
               action: obj,
               actionChain,
               component,
-              event,
               trigger,
             })
-            if (result) {
-              log.debug(
-                `%c[${nuiAction.actionType}]${
-                  is.action.builtIn(obj) ? ` ${obj.funcName}` : ''
-                } Execute result`,
-                `color:#ee36df;`,
-                result,
-              )
-            }
-          }
-          return nuiAction
-        })
-      })
+            return nuiAction
+          })
 
-      const getArgs = function (args: IArguments | any[]) {
-        if (args.length) {
-          args = Array.from(args).filter(Boolean)
-          return args.length ? args : ''
-        }
-        return ''
+        const actionChain = nuiCreateActionChain(
+          trigger,
+          actions,
+          partial(loadActions, component),
+        )
+
+        actionChain.loadQueue()
+        return actionChain
       }
-
-      actionChain.use({
-        onExecuteStart(this: NUIActionChain) {
-          log.debug(
-            `%c[${trigger}-onExecuteStart] ${actionChain.id}`,
-            `color:skyblue`,
-            getArgs(arguments),
-          )
-        },
-        onExecuteEnd(this: NUIActionChain) {
-          log.debug(
-            `%c[${trigger}-onExecuteEnd] ${actionChain.id}`,
-            `color:skyblue`,
-            this.snapshot(),
-          )
-        },
-        onExecuteError() {
-          log.error(
-            `%c[${trigger}-onExecuteError]`,
-            `color:tomato`,
-            getArgs(arguments),
-          )
-        },
-        onAbortError() {
-          log.error(
-            `%c[${trigger}-onAbortError]`,
-            `color:tomato`,
-            getArgs(arguments),
-          )
-        },
-      })
-
-      actionChain.loadQueue()
-      return actionChain
     },
-    [root, getInRoot, setInRoot, pageCtx],
+    [pageCtx, root],
   )
 
   return {
     createActionChain,
+    createEmit,
+    execute,
+    executeEvalBuiltIn,
+    executeEvalObject,
+    executeIf,
+    executeStr,
+    getRootDraftOrRoot,
   }
 }
 

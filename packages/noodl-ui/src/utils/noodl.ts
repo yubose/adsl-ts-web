@@ -1,11 +1,72 @@
 import * as u from '@jsmanifest/utils'
-import { evalIf as _evalIf, excludeIteratorVar } from 'noodl-utils'
+import { evalIf as _evalIf, excludeIteratorVar,toDataPath,trimReference } from 'noodl-utils'
 import type { ComponentObject, IfObject } from 'noodl-types'
 import { Identify } from 'noodl-types'
 import get from 'lodash/get'
 import isComponent from './isComponent'
 import log from '../utils/log'
+import is from '../utils/is'
 import type { NuiComponent } from '../types'
+
+
+export function getListAttribute(component: NuiComponent.Instance){
+  let dataObject:any
+  let listAttribute:any
+  let index:number
+  let parentIndex
+  let parent: any
+  let listItem: any
+  if (Identify.component.listItem(component)) {
+    listItem = component
+  } else {
+    listItem = findParent(component, Identify.component.listItem)
+  }
+
+  if(Identify.component.listItem(listItem)){
+    let iteratorVar = findIteratorVar(listItem)
+    let listIndex = u.isNum(listItem.get('index'))
+                    ? listItem.get('index')
+                    : listItem.get('listIndex')
+    index = listIndex?listIndex:0
+    const list = listItem.parent
+    if(isComponent(list)){
+      dataObject = list.get('listObject')
+    }
+    
+    if(
+      u.isStr(dataObject) &&
+      dataObject.startsWith('itemObject')&&
+      isComponent(list)
+    ){
+      const parentItem = list.parent
+      if(isComponent(parentItem)){
+        parentIndex = u.isNum(parentItem.get('index'))
+                      ? parentItem.get('index')
+                      : parentItem.get('listIndex')
+        parentIndex = parentIndex ? parentIndex : 0
+        let dataKey: any = dataObject.toString()
+        dataKey = excludeIteratorVar(dataKey, iteratorVar)
+        parent = findListDataObject(parentItem)
+        dataObject = get(parent,dataKey)
+      }
+      
+    }
+    if(u.isArr(dataObject)){
+      listAttribute = {
+        length: dataObject.length,
+        index: index+1,
+        dataObject: dataObject,
+      }
+      if(u.isNum(parentIndex)){
+        listAttribute['parentIndex']= parentIndex+1
+        listAttribute['parent'] = parent
+      }
+    }
+  }
+  
+  return listAttribute || null
+  
+}
 
 export function evalIf<O extends IfObject>(val: O) {
   const [value, valTrue, valFalse] = val?.if || []
@@ -15,6 +76,15 @@ export function evalIf<O extends IfObject>(val: O) {
   if (u.isFnc(value)) return value() ? valTrue : valFalse
   if (value) return valTrue
   return valFalse
+}
+
+export function getByRef(root = {}, ref = '', rootKey = '') {
+  if (is.localReference(ref)) {
+    if (rootKey) return get(root[rootKey], toDataPath(trimReference(ref)))
+  } else if (is.rootReference(ref)) {
+    return get(root, toDataPath(trimReference(ref)))
+  }
+  return ref
 }
 
 /**

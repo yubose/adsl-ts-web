@@ -2,21 +2,35 @@
   "command": {
     "bootstrap": {
       "hoist": true,
-      "ignore": ["docs"]
+      "ignore": [
+        "docs",
+        "@noodl/loader"
+      ]
     },
     "create": {
       "license": "MIT"
     },
     "publish": {
       "bump": "patch",
-      "ignore": ["docs", "noodl-ui-test-utils", "noodl-ui-dom"],
+      "ignore": [
+        "docs",
+        "noodl-ui-test-utils",
+        "noodl-builder",
+        "@noodl/loader"
+      ],
       "message": "Update"
     }
   },
-  "ignore": ["docs", "noodl-ui-dom"],
-  "ignoreChanges": ["**/__tests__/**"],
+  "ignore": [
+    "docs"
+  ],
+  "ignoreChanges": [
+    "**/__tests__/**"
+  ],
   "loglevel": "success",
-  "packages": ["packages/*"],
+  "packages": [
+    "packages/*"
+  ],
   "registry": "https://registry.npmjs.org/",
   "useWorkspaces": true,
   "version": "independent"

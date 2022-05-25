@@ -308,3 +308,6 @@ export interface StyleTextAlignObject {
   x?: 'left' | 'center' | 'right' | 'centerX'
   y?: 'left' | 'center' | 'right' | 'centerY'
 }
+
+export type VpUnit = 'vw' | 'vh'
+export type VpValue = `${string}${VpUnit}`

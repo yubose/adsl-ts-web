@@ -1,73 +1,74 @@
 import React from 'react'
 import * as u from '@jsmanifest/utils'
 import * as t from '@/types'
+import { ToastContainer } from 'react-toastify'
+import { Provider } from '@/useCtx'
+import get from 'lodash/get'
+import toast from '@/utils/toast'
+import useDebugFns from '@/hooks/useDebugFns'
 import useGetNoodlPages from '@/hooks/useGetNoodlPages'
 import useRootObject from '@/hooks/useRootObject'
-import useStaticImages from '@/hooks/useStaticImages'
-import { Provider } from '@/useCtx'
 import log from '@/utils/log'
 
 log.setLevel('DEBUG')
 
-function AppProvider({
-  children,
-  initialRoot,
-}: React.PropsWithChildren<{ initialRoot?: Record<string, any> }>) {
+function AppProvider({ children }: React.PropsWithChildren<any>) {
+  useDebugFns()
   const noodlPages = useGetNoodlPages()
-  const staticImages = useStaticImages()
 
-  const { root, getInRoot, setInRoot } = useRootObject(
-    initialRoot ||
-      u.reduce(
-        noodlPages?.nodes || [],
-        (acc, node) => {
-          try {
-            /**
-             * To ensure our app stays performant and minimal as possible we
-             * can remove the components from each page in the state here.
-             * Components are instead directly passed to each NoodlPageTemplate
-             * in props.pageContext so they manage their own components in a
-             * lower level
-             */
-            acc[node.name] = u.omit(JSON.parse(node.content), ['components'])
-          } catch (error) {
-            log.error(error instanceof Error ? error : new Error(String(error)))
-          }
-
+  const { root, getR, setR } = useRootObject(
+    u.reduce(
+      noodlPages?.nodes || [],
+      (acc, node) => {
+        if (!node) return acc
+        try {
+          /**
+           * To ensure our app stays performant and minimal as possible we
+           * can remove the components from each page in the state here.
+           * Components are instead directly passed to each NoodlPageTemplate
+           * in props.pageContext so they manage their own components in a
+           * lower level
+           */
+          acc[node.name] = u.omit(JSON.parse(node.content), 'components')
           return acc
-        },
-        {},
-      ),
+        } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
+          console.error(err)
+          toast(err)
+        }
+      },
+      {},
+    ),
   )
 
-  const ctx: t.AppContext = React.useMemo(
-    () => ({
-      root,
-      setInRoot,
-      getInRoot,
-      // NOTE: This is purposely (temporarily) not being received results due to static images having errors in production. Images fall back to loading images normally if static images aren't available (see createRenderer.tsx)
-      // @ts-expect-error
-      images: (staticImages?.edges || []).reduce((acc, { node } = {}) => {
-        if (!node?.childImageSharp?.gatsbyImageData) return acc
-        acc[node.base] = {
-          data: node.childImageSharp.gatsbyImageData,
-          filename: node.base,
-          url: node.publicURL,
-        }
-        return acc
-      }, {} as t.AppContext['images']),
-    }),
-    [root],
-  )
+  const ctx: t.AppContext = {
+    root,
+    getR,
+    setR,
+  }
 
   React.useEffect(() => {
-    log.debug(`[AppProvider] Location: ${location.pathname}`, location.search)
-    window['getInRoot'] = getInRoot
-    window['log'] = log
+    window['getR'] = getR
     window['root'] = ctx.root
-  }, [])
+    window['get'] = get
+  }, [ctx])
 
-  return <Provider value={ctx}>{children}</Provider>
+  return (
+    <>
+      <Provider value={ctx}>{children}</Provider>
+      <ToastContainer
+        autoClose={5000}
+        hideProgressBar={false}
+        position="bottom-right"
+        rtl={false}
+        closeOnClick
+        draggable
+        pauseOnFocusLoss
+        pauseOnHover
+        newestOnTop
+      />
+    </>
+  )
 }
 
 export default AppProvider

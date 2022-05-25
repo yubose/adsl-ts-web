@@ -213,10 +213,10 @@ export type DeviceType = 'web' | 'ios' | 'android'
 
 export type Env = 'stable' | 'test'
 
-export interface EcosDocument<
+export type EcosDocument<
   NF extends NameField = NameField,
   MT extends MediaType = MediaType,
-> {
+> = {
   id?: string | null
   ctime?: number | null
   mtime?: number | null
@@ -234,7 +234,6 @@ export interface EcosDocument<
   created_at?: number | null
   modified_at?: number | null
   subtype?: SubtypeObject<MT> | null
-  [key: string]: any
 }
 
 export interface NameField<Type extends MimeType.Options = MimeType.Options> {

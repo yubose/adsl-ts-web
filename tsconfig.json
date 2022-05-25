@@ -39,7 +39,20 @@
     "suppressImplicitAnyIndexErrors": true,
     "target": "es2017"
   },
-  "include": ["src/**/*","packages/noodl-pi/src/**/*","packages/noodl-ui/src/**/*","packages/noodl-utils/src/**/*","packages/noodl-types/src/**/*","dev/cpt/**/*.ts"],
+  "include": [
+    "dev/cpt/**/*.js",
+    "dev/cpt/**/*.ts",
+    "packages/file/src/**/*",
+    "packages/core/src/**/*",
+    "packages/homepage/src/**/*",
+    "packages/yaml/src/**/*",
+    "packages/noodl-pi/src/**/*",
+    "packages/noodl-ui/src/**/*",
+    "packages/noodl-utils/src/**/*",
+    "packages/noodl-types/src/**/*",
+    "public/piBackgroundWorker.js",
+    "src/**/*"
+  ],
   "exclude": [
     "docs",
     "libs",
@@ -48,5 +61,6 @@
     "dist",
     "generated",
     "output",
+    "**/*.d.ts"
   ]
 }

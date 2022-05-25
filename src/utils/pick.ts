@@ -16,6 +16,7 @@ export function pickDestination(
     if (u.isObj(value.dataIn)) {
       return value.dataIn.destination || value.dataIn.goto || ''
     }
+  }
 }
 
 export function pickNuiPage(value: string | NuiPage | NDOMPage | undefined) {

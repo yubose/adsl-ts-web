@@ -3,368 +3,468 @@ const y = require('yaml')
 const path = require('path')
 const del = require('del')
 const fs = require('fs-extra')
+const fg = require('fast-glob')
 const webpack = require('webpack')
 const singleLog = require('single-line-log').stdout
 const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
-const InjectBodyPlugin = require('inject-body-webpack-plugin').default
+// const TerserPlugin = require('terser-webpack-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
+const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
+
+const getFilePath = (...s) => path.join(__dirname, ...s)
+const log = console.log
+const filename = 'index.html'
+const readFile = (s) => fs.readFileSync(s, 'utf8')
+const { bold, cyan, magenta, newline, yellow, white } = u
+
+const paths = {
+  build: getFilePath('build'),
+  public: getFilePath('public'),
+  pkg: {
+    current: getFilePath('./package.json'),
+    'noodl-types': getFilePath('./packages/noodl-types/package.json'),
+    'noodl-ui': getFilePath('./packages/noodl-ui/package.json'),
+    'noodl-utils': getFilePath('./packages/noodl-utils/package.json'),
+  },
+  generated: getFilePath('./generated'),
+}
 
 /**
  * @type { Record<'name' | 'title' | 'description' | 'favicon' | 'keywords' | 'injectScripts', any> }
  */
-const settings = y.parse(
-  fs.readFileSync(path.resolve(__dirname, 'settings.yml'), 'utf8'),
-)
+const settings = y.parse(readFile(getFilePath('settings.yml')))
 
-const pkg = fs.readJsonSync('./package.json')
-const nuiPkg = fs.readJsonSync('./packages/noodl-ui/package.json')
-const ntypesPkg = fs.readJsonSync('./packages/noodl-types/package.json')
-const nutilsPkg = fs.readJsonSync('./packages/noodl-utils/package.json')
+function getWebpackConfig(env) {
+  let ecosEnv = env.ECOS_ENV || process.env.ECOS_ENV
+  let nodeEnv = env.NODE_ENV || process.env.NODE_ENV
+  let mode = nodeEnv !== 'production' ? 'development' : 'production'
 
-const filename = 'index.html'
-const publicPath = path.join(process.cwd(), 'public')
-const buildPath = path.join(process.cwd(), 'build')
+  // Analysis is not run in production
+  let staticPaths = [paths.public]
+  staticPaths.push('analysis', 'analysis/app')
 
-const ECOS_ENV = process.env.ECOS_ENV
-const NODE_ENV = process.env.NODE_ENV
-const MODE = NODE_ENV !== 'production' ? 'development' : 'production'
+  if (!ecosEnv) {
+    log(
+      yellow(
+        `You did not provide the ecos environment. Defaulting to ` +
+          `${cyan(`stable`)}`,
+      ),
+    )
+    ecosEnv = 'stable'
+  }
 
-let pkgVersionPaths = String(pkg.version).split('.')
-let pkgVersionRev = Number(pkgVersionPaths.pop())
-let outputFileName = ''
-let buildVersion = ''
+  const pkgJson = {
+    current: require(paths.pkg.current),
+    'noodl-types': require(paths.pkg['noodl-types']),
+    'noodl-ui': require(paths.pkg['noodl-ui']),
+    'noodl-utils': require(paths.pkg['noodl-utils']),
+  }
 
-if (fs.existsSync(buildPath)) del.sync(path.join(buildPath, '**/*'))
+  let pkgVersionPaths = String(pkgJson.current.version).split('.')
+  let pkgVersionRev = Number(pkgVersionPaths.pop())
+  let outputFileName = ''
+  let buildVersion = ''
 
-if (!Number.isNaN(pkgVersionRev)) {
-  buildVersion = [...pkgVersionPaths, ++pkgVersionRev].join('.')
-  outputFileName =
-    MODE === 'production' ? `[name].[contenthash].js` : '[name].js'
-  // MODE === 'production' ? `[name]${buildVersion}.js` : '[name].js'
-} else {
-  outputFileName =
-    MODE === 'production' ? `[name].[contenthash].js` : '[name].js'
-}
+  if (fs.existsSync(paths.build)) del.sync(path.join(paths.build, '**/*'))
 
-const pkgJson = {
-  root: pkg,
-  nui: nuiPkg,
-  nTypes: ntypesPkg,
-  nutils: nutilsPkg,
-}
+  if (!Number.isNaN(pkgVersionRev)) {
+    buildVersion = [...pkgVersionPaths, ++pkgVersionRev].join('.')
+    outputFileName =
+      mode === 'production' ? `[name].[contenthash].js` : '[name].js'
+  } else {
+    outputFileName =
+      mode === 'production' ? `[name].[contenthash].js` : '[name].js'
+  }
 
-const version = {
-  noodlSdk:
-    pkgJson.root.dependencies['@aitmed/cadl'] ||
-    pkgJson.root.devDependencies['@aitmed/cadl'],
-  ecosSdk:
-    pkgJson.root.dependencies['@aitmed/ecos-lvl2-sdk'] ||
-    pkgJson.root.devDependencies['@aitmed/ecos-lvl2-sdk'],
-  nui: pkgJson.nui.version,
-  nutil: pkgJson.nutils.version,
-  nTypes: pkgJson.nTypes.version,
-}
+  const version = {
+    lvl2:
+      pkgJson.current.dependencies['@aitmed/ecos-lvl2-sdk'] ||
+      pkgJson.current.devDependencies['@aitmed/ecos-lvl2-sdk'],
+    lvl3:
+      pkgJson.current.dependencies['@aitmed/cadl'] ||
+      pkgJson.current.devDependencies['@aitmed/cadl'],
+    'noodl-types': pkgJson['noodl-types'].version,
+    'noodl-ui': pkgJson['noodl-ui'].version,
+    'noodl-utils': pkgJson['noodl-utils'].version,
+  }
 
-const commonHeaders = {
-  'Access-Control-Allow-Credentials': true,
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization',
-}
-
-/**
- * @type { import('webpack').Configuration } webpackOptions
- */
-const webpackOptions = {
-  entry: {
-    main: [process.env.SAMPLE ? './src/sample.ts' : './src/index.ts'],
-  },
-  output: {
-    // Using content hash when "watching" makes webpack save assets which might increase memory usage
-    filename: outputFileName,
-    path: buildPath,
-  },
-  ignoreWarnings: [/InjectManifest/],
-  mode: MODE,
-  devServer: {
-    allowedHosts: [
-      'localhost',
-      '127.0.0.1',
-      '127.0.0.1:3000',
-      '127.0.0.1:4000',
-      'https://127.0.0.1',
-      'https://127.0.0.1:3000',
-      'https://127.0.0.1:4000',
-      'aitmed.com',
-      'aitmed.io',
-    ],
-    compress: false,
-    devMiddleware: {
-      writeToDisk: true,
+  /**
+   * @type { import('webpack').Configuration } webpackOptions
+   */
+  const webpackOptions = {
+    entry: {
+      main: [process.env.SAMPLE ? './src/sample.ts' : './src/index.ts'],
     },
-    host: '127.0.0.1',
-    hot: true,
-    liveReload: true,
-    headers: commonHeaders,
-    port: 3000,
-    // setupMiddlewares(middlewares, server) {
-    //   return middlewares
-    // },
-    static: [publicPath],
-  },
-  devtool: false,
-  externals: [],
-  module: {
-    rules: [
-      {
-        test: /\.css$/,
-        use: ['style-loader', 'css-loader'],
-        exclude: /\.module\.css$/,
+    output: {
+      // Using content hash when "watching" makes webpack save assets which might increase memory usage
+      filename: outputFileName,
+      path: paths.build,
+    },
+    ignoreWarnings: [/InjectManifest/],
+    mode,
+    devServer: {
+      allowedHosts: [
+        'localhost',
+        '127.0.0.1',
+        '127.0.0.1:3000',
+        '127.0.0.1:4000',
+        'https://127.0.0.1',
+        'https://127.0.0.1:3000',
+        'https://127.0.0.1:4000',
+        'aitmed.com',
+        'aitmed.io',
+      ],
+      onAfterSetupMiddleware: function (devServer) {
+        if (devServer) {
+          const n = require('@noodl/core')
+          const ny = require('@noodl/yaml')
+
+          /** @type { import('./dev/analysis').runDiagnostics } */
+          let runDiagnostics
+
+          // const diagnostics = new n.Diagnostics()
+          // const docRoot = new ny.DocRoot()
+          // const docVisitor = new ny.DocVisitor()
+          // const nfs = ny.createFileSystem({
+          //   existsSync: fs.existsSync,
+          //   parseFilePath: path.parse,
+          //   readFile: fs.readFileSync,
+          //   writeFile: fs.writeFileSync,
+          //   readJson: fs.readJsonSync,
+          //   writeJson: fs.writeJsonSync,
+          //   readdir: fs.readdirSync,
+          // })
+
+          // diagnostics.use(docRoot)
+          // diagnostics.use(docVisitor)
+          // docRoot.use(nfs)
+
+          for (const method of ['get', 'post']) {
+            devServer.app[method](
+              `/diagnostics/:config`,
+              async function (req, res) {
+                for (const key of u.keys(require.cache)) {
+                  if (u.isStr(key) && key.includes('analysis.js')) {
+                    console.log(`[${u.yellow(key)}]`)
+                    delete require.cache[key]
+                    break
+                  }
+                }
+
+                runDiagnostics = require('./dev/analysis').runDiagnostics
+
+                console.log(
+                  `[${method}] ${u.yellow(`/diagnosis/${req.params.config}`)}`,
+                )
+
+                const configKey = req.params.config
+                const pathToAppDir = path.join(paths.generated, configKey)
+                const pathToRootConfigFile = path.join(
+                  pathToAppDir,
+                  `${configKey}.yml`,
+                )
+                const pathToAppConfigFile = path.join(
+                  pathToAppDir,
+                  `cadlEndpoint.yml`,
+                )
+                const pathToAssetsDir = path.join(pathToAppDir, 'assets')
+                const diagnostics = await runDiagnostics({
+                  baseUrl: req.query.baseUrl || 'http://127.0.0.1:3000',
+                  config: configKey,
+                })
+
+                console.log(`[get]`, {
+                  pathToAppDir,
+                  pathToRootConfigFile,
+                  pathToAppConfigFile,
+                  pathToAssetsDir,
+                })
+
+                res.status(200).json(diagnostics)
+              },
+            )
+          }
+        }
       },
-      {
-        test: /\.ts$/,
-        exclude: /node_modules/,
-        include: path.resolve(path.join(process.cwd(), 'src')),
-        use: [
-          {
-            loader: 'esbuild-loader',
-            options: { loader: 'ts', target: 'es2017' },
+      compress: false,
+      devMiddleware: {
+        writeToDisk: true,
+      },
+      host: '127.0.0.1',
+      hot: 'only',
+      // liveReload: true,
+      headers: {
+        'Access-Control-Allow-Credentials': true,
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers':
+          'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+      },
+      port: 3000,
+      static: staticPaths,
+    },
+    devtool: false,
+    externals: [],
+    module: {
+      rules: [
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader'],
+          exclude: /\.module\.css$/,
+        },
+        {
+          test: /\.ts$/,
+          exclude: /node_modules/,
+          include: getFilePath('src'),
+          use: [
+            {
+              loader: 'esbuild-loader',
+              options: { loader: 'ts', target: 'es2017' },
+            },
+          ],
+        },
+      ],
+    },
+    resolve: {
+      alias: {
+        fs: getFilePath('./node_modules/fs-extra'),
+      },
+      cache: true,
+      extensions: ['.ts', '.js'],
+      modules: ['node_modules'],
+      fallback: {
+        assert: false,
+        constants: require.resolve('constants-browserify'),
+        crypto: require.resolve('crypto-browserify'),
+        http: require.resolve('stream-http'),
+        https: require.resolve('https-browserify'),
+        path: require.resolve('path-browserify'),
+        process: require.resolve('process/browser'),
+        stream: require.resolve('stream-browserify'),
+      },
+    },
+    plugins: [
+      new WorkboxPlugin.InjectManifest({
+        swSrc: getFilePath('./src/firebase-messaging-sw.ts'),
+        swDest: 'firebase-messaging-sw.js',
+        maximumFileSizeToCacheInBytes: 500000000,
+        mode: 'production',
+        manifestTransforms: [
+          /**
+           * @param { WorkboxPlugin.ManifestEntry[] } entries
+           * @param { webpack.Compilation } compilation
+           * @returns
+           */
+          (entries) => {
+            const mainBundleRegExp = /\.\w{20}\.js$/i
+            for (const entry of entries) {
+              if (entry.url.match(mainBundleRegExp)) {
+                // Force the worker to use the url as the revision
+                entry.revision = null
+              }
+            }
+            return { manifest: entries, warnings: [] }
           },
         ],
-      },
-    ],
-  },
-  resolve: {
-    alias: {
-      fs: path.resolve(path.join(process.cwd(), './node_modules/fs-extra')),
-    },
-    cache: true,
-    extensions: ['.ts', '.js'],
-    modules: ['node_modules'],
-    fallback: {
-      assert: false,
-      constants: require.resolve('constants-browserify'),
-      crypto: require.resolve('crypto-browserify'),
-      http: require.resolve('stream-http'),
-      https: require.resolve('https-browserify'),
-      path: require.resolve('path-browserify'),
-      process: require.resolve('process/browser'),
-      stream: require.resolve('stream-browserify'),
-    },
-  },
-  plugins: [
-    new WorkboxPlugin.InjectManifest({
-      swSrc: path.join(process.cwd(), './src/firebase-messaging-sw.ts'),
-      swDest: 'firebase-messaging-sw.js',
-      maximumFileSizeToCacheInBytes: 500000000,
-      mode: 'production',
-      manifestTransforms: [
-        /**
-         * @param { WorkboxPlugin.ManifestEntry[] } entries
-         * @param { webpack.Compilation } compilation
-         * @returns
-         */
-        (entries) => {
-          const mainBundleRegExp = /\.\w{20}\.js$|piBackgroundWorker/i
-          for (const entry of entries) {
-            if (entry.url.match(mainBundleRegExp)) {
-              // Force the worker to use the url as the revision
-              entry.revision = null
+        mode: 'production',
+      }),
+      new webpack.ProvidePlugin({ process: 'process' }),
+      new CircularDependencyPlugin({
+        exclude: /node_modules/,
+        include: /(src)/,
+      }),
+      new webpack.ContextReplacementPlugin(
+        /date\-fns[\/\\]/,
+        new RegExp(`[/\\\\\](${['en-US'].join('|')})[/\\\\\]index\.js$`),
+      ),
+      new webpack.EnvironmentPlugin({
+        BUILD: {
+          version: buildVersion,
+          ecosEnv: ecosEnv,
+          nodeEnv: mode,
+          packages: {
+            '@aitmed/cadl': version.lvl3,
+            '@aitmed/ecos-lvl2-sdk': version.lvl2,
+            'noodl-types': version['noodl-types'],
+            'noodl-ui': version['noodl-ui'],
+            'noodl-utils': version['noodl-utils'],
+          },
+          timestamp: new Date().toLocaleString(),
+        },
+        // if process.env.DEPLOYING === true, this forces the config url in
+        // src/app/noodl.ts to point to the public.aitmed.com host
+        ECOS_ENV: ecosEnv,
+        NODE_ENV: mode,
+        USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
+        ...(!u.isUnd(env.DEPLOYING)
+          ? {
+              DEPLOYING:
+                env.DEPLOYING === true || env.DEPLOYING === 'true'
+                  ? true
+                  : false,
             }
-          }
-          return { manifest: entries, warnings: [] }
+          : undefined),
+        LOCAL_CONFIG_URL: env.APP ? `${env.APP}/${env.APP}.yml` : '',
+      }),
+      new HtmlWebpackPlugin({
+        alwaysWriteToDisk: true,
+        filename,
+        title: settings.title,
+        favicon: settings.favicon,
+        cache: true,
+        scriptLoading: 'defer',
+        minify: true,
+        meta: {
+          description: settings.description,
+          keywords: settings.keywords.join(', '),
+          viewport:
+            'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no',
         },
-      ],
-      mode: 'production',
-    }),
-    new webpack.ProvidePlugin({ process: 'process' }),
-    new CircularDependencyPlugin({
-      exclude: /node_modules/,
-      include: /(src)/,
-    }),
-    new webpack.ContextReplacementPlugin(
-      /date\-fns[\/\\]/,
-      new RegExp(`[/\\\\\](${['en-US'].join('|')})[/\\\\\]index\.js$`),
-    ),
-    new webpack.EnvironmentPlugin({
-      BUILD: {
-        version: buildVersion,
-        ecosEnv: ECOS_ENV,
-        nodeEnv: MODE,
-        packages: {
-          '@aitmed/cadl': version.noodlSdk,
-          '@aitmed/ecos-lvl2-sdk': version.ecosSdk,
-          'noodl-types': version.nTypes,
-          'noodl-ui': version.nui,
-          'noodl-utils': version.nutil,
-        },
-        timestamp: new Date().toLocaleString(),
-      },
-      // if process.env.DEPLOYING === true, this forces the config url in
-      // src/app/noodl.ts to point to the public.aitmed.com host
-      ECOS_ENV,
-      NODE_ENV: MODE,
-      USE_DEV_PATHS: !!process.env.USE_DEV_PATHS,
-      ...(!u.isUnd(process.env.DEPLOYING)
+      }),
+      new HtmlWebpackHarddiskPlugin(),
+      new InjectBodyPlugin({
+        content: `<div id="root"></div>`,
+        position: 'start',
+      }),
+      new CopyPlugin({
+        patterns: [
+          {
+            from: 'public/piBackgroundWorker.js',
+            to: 'piBackgroundWorker.js',
+          },
+          {
+            from: 'public/jsstoreWorker.min.js',
+            to: 'jsstoreWorker.min.js',
+          },
+          { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
+        ],
+      }),
+      new webpack.ProgressPlugin({
+        handler: webpackProgress,
+      }),
+      ...((settings.injectScripts && [
+        new InjectScriptsPlugin({ path: settings.injectScripts }),
+      ]) ||
+        []),
+    ],
+    optimization:
+      mode === 'production'
         ? {
-            DEPLOYING:
-              process.env.DEPLOYING === true || process.env.DEPLOYING === 'true'
-                ? true
-                : false,
-          }
-        : undefined),
-    }),
-    new HtmlWebpackPlugin({
-      alwaysWriteToDisk: true,
-      filename,
-      title: settings.title,
-      favicon: settings.favicon,
-      cache: true,
-      scriptLoading: 'defer',
-      minify: true,
-      meta: {
-        description: settings.description,
-        keywords: settings.keywords.join(', '),
-        viewport:
-          'width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no',
-      },
-    }),
-    new HtmlWebpackHarddiskPlugin(),
-    new InjectBodyPlugin({
-      content: `<div id="root"></div>`,
-      position: 'start',
-    }),
-    new CopyPlugin({
-      patterns: [
-        // {
-        //   from: 'piBackgroundWorker.js',
-        //   to: 'piBackgroundWorker.js',
-        // },
-        {
-          from: 'public/jsstoreWorker.min.js',
-          to: 'jsstoreWorker.min.js',
-        },
-        { from: 'public/sql-wasm.wasm', to: 'sql-wasm.wasm' },
-      ],
-    }),
-    new webpack.ProgressPlugin({
-      handler: webpackProgress,
-    }),
-    ...((settings.injectScripts && [
-      new InjectScriptsPlugin({ path: settings.injectScripts }),
-    ]) ||
-      []),
-  ],
-  optimization:
-    MODE === 'production'
-      ? {
-          concatenateModules: true,
-          mergeDuplicateChunks: true,
-          minimize: true,
-          nodeEnv: 'production',
-          removeEmptyChunks: true,
-          splitChunks: {
-            // chunks(chunk) {
-            //   // console.log(`[${u.cyan('chunk')}]`, chunk)
-            //   return true
-            // },
-            chunks: 'async',
-            minSize: 35000,
-            maxSize: 80000,
-            minChunks: 8,
-            maxAsyncRequests: 30,
-            maxInitialRequests: 30,
-            automaticNameDelimiter: '~',
-            enforceSizeThreshold: 50000,
-            cacheGroups: {
-              defaultVendors: {
-                test: /[\\/]node_modules[\\/]/,
-                priority: -10,
-              },
-              default: {
-                minChunks: 5,
-                priority: -20,
-                reuseExistingChunk: true,
+            concatenateModules: true,
+            mergeDuplicateChunks: true,
+            minimize: true,
+            // minimizer: [
+            //   new TerserPlugin({
+            //     minify: TerserPlugin.esbuildMinify,
+            //     parallel: true,
+            //     terserOptions: {
+            //       minify: false,
+            //       minifyWhitespace: true,
+            //       minifyIdentifiers: false,
+            //       minifySyntax: true,
+            //     },
+            //   }),
+            // ],
+            nodeEnv: 'production',
+            removeEmptyChunks: true,
+            splitChunks: {
+              chunks: 'async',
+              minSize: 35000,
+              maxSize: 80000,
+              minChunks: 8,
+              maxAsyncRequests: 30,
+              maxInitialRequests: 30,
+              automaticNameDelimiter: '~',
+              enforceSizeThreshold: 50000,
+              cacheGroups: {
+                defaultVendors: {
+                  test: /[\\/]node_modules[\\/]/,
+                  priority: -10,
+                },
+                default: {
+                  minChunks: 5,
+                  priority: -20,
+                  reuseExistingChunk: true,
+                },
               },
             },
-          },
-        }
-      : undefined,
-}
+          }
+        : undefined,
+  }
 
-const getEcosEnv = () =>
-  ECOS_ENV ? ECOS_ENV.toUpperCase() : '<Variable not set>'
+  const getEcosEnv = () =>
+    ecosEnv ? ecosEnv.toUpperCase() : '<Variable not set>'
 
-const getNodeEnv = () => (MODE ? MODE.toUpperCase() : '<Variable not set>')
+  const getNodeEnv = () => (mode ? mode.toUpperCase() : '<Variable not set>')
 
-/**
- * @param { number } percentage
- * @param { string } msg
- * @param { ...string } args
- */
-function webpackProgress(percentage, msg, ...args) {
-  process.stdout.write('\x1Bc')
-  // prettier-ignore
-  singleLog(
-  `Your app is being built for ${u.cyan(`eCOS`)} ${u.magenta(getEcosEnv())} environment in ${u.cyan(getNodeEnv())} MODE\n
-  Version:   ${u.cyan(buildVersion)}
-  Status:    ${u.cyan(msg.toUpperCase())}
-  File:      ${u.magenta(args[0])}
-  Progress:  ${u.magenta(percentage.toFixed(4) * 100)}%
+  /**
+   * @param { number } percentage
+   * @param { string } msg
+   * @param { ...string } args
+   */
+  function webpackProgress(percentage, msg, ...args) {
+    process.stdout.write('\x1Bc')
+    // prettier-ignore
+    singleLog(
+  `Your app is being built for ${cyan(`eCOS`)} ${magenta(getEcosEnv())} environment in ${cyan(getNodeEnv())} mode\n
+  Version:   ${cyan(buildVersion)}
+  Status:    ${cyan(msg.toUpperCase())}
+  File:      ${magenta(args[0])}
+  Progress:  ${magenta(percentage.toFixed(4) * 100)}%
 
-  ${u.cyan('eCOS packages')}:
-  ${u.white(`@aitmed/cadl`)}:            ${u.magenta(version.noodlSdk)}
-  ${u.white(`@aitmed/ecos-lvl2-sdk`)}:   ${u.magenta(version.ecosSdk)}
-  ${u.white(`noodl-types`)}:             ${u.magenta(version.nTypes)}
-  ${u.white(`noodl-ui`)}:                ${u.magenta(version.nui)}
-  ${u.white(`noodl-utils`)}:             ${u.magenta(version.nutil)}
-  ${MODE === 'production'
-      ? `\nAn ${u.magenta(filename)} file will be generated inside your ${u.magenta('build')} directory. \nThe title of the page was set to ${u.yellow(settings.title)}`
+  ${cyan('eCOS packages')}:
+  ${white(`@aitmed/cadl`)}:            ${magenta(version.lvl3)}
+  ${white(`@aitmed/ecos-lvl2-sdk`)}:   ${magenta(version.lvl2)}
+  ${white(`noodl-types`)}:             ${magenta(version['noodl-types'])}
+  ${white(`noodl-ui`)}:                ${magenta(version['noodl-ui'])}
+  ${white(`noodl-utils`)}:             ${magenta(version['noodl-utils'])}
+  ${mode === 'production'
+      ? `\nAn ${magenta(filename)} file will be generated inside your ${magenta('build')} directory. \nThe title of the page was set to ${yellow(settings.title)}`
       : ''
   }\n\n`)
-}
+  }
 
-/** @type { webpack.Configuration } */
-const workerConfig = {
-  entry: {
-    piBackgroundWorker: path.join(__dirname, 'src/piBackgroundWorker.ts'),
-  },
-  output: {
-    filename: '[name].js',
-    path: buildPath,
-  },
-  devtool: MODE === 'production' ? false : 'source-map',
-  mode: MODE,
-  module: {
-    rules: [
-      {
-        test: /\.(js|ts)?$/,
-        exclude: /node_modules/,
-        include: path.join(__dirname),
-        use: [
-          {
-            loader: 'esbuild-loader',
-            options: {
-              loader: 'ts',
-              target: 'es2017',
-              sourcemap: MODE === 'production' ? undefined : 'inline',
+  /** @type { webpack.Configuration } */
+  const workerConfig = {
+    entry: {
+      piBackgroundWorker: getFilePath('src/piBackgroundWorker.ts'),
+    },
+    output: {
+      filename: '[name].js',
+      path: paths.build,
+    },
+    devtool: mode === 'production' ? false : 'source-map',
+    mode: mode,
+    module: {
+      rules: [
+        {
+          test: /\.(js|ts)?$/,
+          exclude: /node_modules/,
+          include: path.join(__dirname),
+          use: [
+            {
+              loader: 'esbuild-loader',
+              options: {
+                loader: 'ts',
+                target: 'es2017',
+                sourcemap: mode === 'production' ? undefined : 'inline',
+              },
             },
-          },
-        ],
-      },
-    ],
-  },
-  resolve: {
-    extensions: ['.js', '.ts'],
-  },
+          ],
+        },
+      ],
+    },
+    resolve: {
+      extensions: ['.js', '.ts'],
+    },
+  }
+
+  // return [webpackOptions, workerConfig]
+  return [webpackOptions]
 }
 
-module.exports.NAME = settings.name
-module.exports.TITLE = settings.title
-module.exports.DESCRIPTION = settings.description
-module.exports.KEYWORDS = settings.keywords
-module.exports = [webpackOptions, workerConfig]
+module.exports = getWebpackConfig
+module.exports.settings = settings

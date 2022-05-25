@@ -60,6 +60,7 @@ class ComponentPage<
 
     if (this.node) {
       if (this.node.tagName !== 'IFRAME') {
+        // TODO - Do we need this?
         const attributes = copyAttributes(this.node)
         if (this.node.parentElement) {
           this.node.parentElement.removeChild(this.node)

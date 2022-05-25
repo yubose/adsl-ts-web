@@ -41,6 +41,7 @@ function createEcosDocElement<
     const iframe = document.createElement('iframe')
     let iframeContent: any // HTML element, direct child of iframe's contentDocument.body node
 
+    // @ts-expect-error
     let ecosObj: EcosDocument<N> = opts?.ecosObj || opts
     let mimeType = ''
 

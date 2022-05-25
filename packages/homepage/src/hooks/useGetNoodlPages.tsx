@@ -1,4 +1,3 @@
-import React from 'react'
 import { graphql, useStaticQuery } from 'gatsby'
 
 function useGetNoodlPages() {
@@ -6,9 +5,8 @@ function useGetNoodlPages() {
     allNoodlPage: {
       nodes: {
         name: string
-        content: string
+        content: any // string
         slug: string
-        isPreload: boolean
       }[]
     }
   }>(
@@ -19,7 +17,6 @@ function useGetNoodlPages() {
             name
             content
             slug
-            isPreload
           }
         }
       }

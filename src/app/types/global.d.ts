@@ -38,6 +38,7 @@ declare global {
     addRemoteParticipant: any
     app: any
     build: any
+    local: any
     cache: any
     chrome: any
     get: () => any

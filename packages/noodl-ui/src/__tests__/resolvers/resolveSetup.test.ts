@@ -3,11 +3,8 @@ import { waitFor } from '@testing-library/dom'
 import * as nt from 'noodl-types'
 import sinon from 'sinon'
 import * as u from '@jsmanifest/utils'
-import * as nu from 'noodl-utils'
-import * as i from '../../utils/internal'
-import { assetsUrl, baseUrl, createOn, nui, ui } from '../../utils/test-utils'
+import { createOn, nui, ui } from '../../utils/test-utils'
 import { emitHooks } from '../../resolvers/resolveSetup'
-import NuiPage from '../../Page'
 
 let on: ReturnType<typeof createOn>
 
@@ -16,6 +13,91 @@ beforeEach(() => {
 })
 
 describe(u.yellow(`resolveSetup`), () => {
+  describe(`when resolving traversal references`, () => {
+    let ref1: nt.ReferenceString
+    let ref2: nt.ReferenceString
+    let baseCheckViewButton: nt.ComponentObject
+    let pageComponents: nt.ComponentObject[]
+
+    beforeEach(() => {
+      ref1 = '_____.colorChange' as nt.ReferenceString
+      ref2 = '____.viewTag' as nt.ReferenceString
+      baseCheckViewButton = {
+        type: 'button',
+        text: 'OK',
+        style: {
+          get color() {
+            return ref1
+          },
+          border: {
+            style: '3',
+            get color() {
+              return ref1
+            },
+          },
+          borderWidth: '3',
+        },
+      }
+      pageComponents = [
+        {
+          type: 'view',
+          colorChange: '0x2000e6',
+          viewTag: 'redTag',
+          children: [
+            {
+              type: 'popUp',
+              message: 'Please add a facility',
+              colorChange: '0x2988e6',
+              style: { colorChange: '0x1111e6', backgroundColor: '0xffffff00' },
+              children: [
+                {
+                  type: 'view',
+                  id: 'a',
+                  style: {
+                    border: { style: '3' },
+                    borderColor: '#f4f8fa',
+                    borderWidth: '3',
+                  },
+                  children: [
+                    {
+                      ...baseCheckViewButton,
+                      id: 'tp',
+                      viewTag: '_______.viewTag',
+                      onClick: [
+                        {
+                          actionType: 'popUpDismiss',
+                          popUpView: 'disTag',
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ]
+    })
+
+    it(`should not cause an infinite loop when the value can't be found`, async () => {
+      await nui.resolveComponents({
+        components: [ui.image({ style: { fontSize: '_____.topo' } })],
+      })
+      expect(true).to.be.true
+    })
+
+    // TODO - fix
+    it.skip(`should resolve the traversal reference`, async () => {
+      process.stdout.write('\x1Bc')
+      await nui.resolveComponents({ components: pageComponents })
+      const { component } = nui.cache.component.find(
+        (obj) => obj.component.id === 'tp',
+      )
+      console.log(component.props)
+      expect(component.props['data-viewtag']).to.eq('redTag')
+    })
+  })
+
   describe(u.italic('on'), () => {
     describe(`if`, () => {
       it(`should return value at index 1 if true`, async () => {
@@ -23,6 +105,7 @@ describe(u.yellow(`resolveSetup`), () => {
           components: [ui.label({ text: { if: [1, 'abc', 'wow'] } })],
           on: { if: () => true },
         })
+        // @ts-expect-error
         expect(component.get('text')).to.eq('abc')
       })
 
@@ -34,23 +117,9 @@ describe(u.yellow(`resolveSetup`), () => {
         expect(component.get('text')).to.eq('wow')
       })
 
-      it(`should run the reference hook if the truthy/falsy value returns a reference`, async () => {
-        const spy = sinon.spy()
-        const component = await nui.resolveComponents({
-          // @ts-expect-error
-          components: ui.label({
-            text: { if: [1, '..formData.password', 'wow'] },
-          }),
-          on: { if: () => true, reference: spy },
-        })
-        component.get('text')
-        expect(spy).to.be.calledOnce
-      })
-
       it(`should be able to deeply resolve references`, async () => {
         nui.getRoot().Power = { patientInfoPage: '.Sun.viewTag' }
         const component = await nui.resolveComponents({
-          // @ts-expect-error
           components: ui.label({
             text: { if: [1, '.Power.patientInfoPage', 'wow'] },
           }),
@@ -75,50 +144,6 @@ describe(u.yellow(`resolveSetup`), () => {
         expect(result).to.eq(
           `Rawr@Sun#${nui.getRoot().Hello.formData.password}`,
         )
-      })
-    })
-
-    describe(`reference`, () => {
-      it(`should use the fallback reference resolver if no hook resolver is provided`, async () => {
-        expect(
-          (
-            await nui.resolveComponents({
-              components: ui.label({ text: '..formData.password' }),
-            })
-          ).get('text'),
-        ).to.eq(nui.getRoot().Hello.formData.password)
-      })
-
-      it(`should pass in a page instance to args`, async () => {
-        const spy = sinon.spy()
-        ;(
-          await nui.resolveComponents({
-            components: ui.label({ text: '..formData.password' }),
-            on: { reference: spy },
-          })
-        ).get('text')
-        expect(spy.args[0][0])
-          .to.have.property('page')
-          .to.be.instanceOf(NuiPage)
-      })
-
-      it(`should pass in the correct page instance to a descendant of a page component`, async () => {
-        const spy = sinon.spy()
-        let [viewComponent] = await nui.resolveComponents({
-          components: u.array(nui.getRoot().Cereal.components),
-        })
-        const pageComponent = viewComponent.child(1)
-        const page = pageComponent.get('page') as NuiPage
-        let textField = (
-          await nui.resolveComponents({
-            components: page.components,
-            page,
-            on: { reference: spy },
-          })
-        )[2]
-        textField.get('dataKey')
-        const args = spy.args[0][0]
-        expect(args).to.have.property('page').to.deep.eq(page)
       })
     })
   })
@@ -153,7 +178,7 @@ describe(u.yellow(`resolveSetup`), () => {
       nui.use({ emit: { [trigger]: spy } })
       const { component } = await resolveComponent(
         ui.label({
-          [trigger]: [ui.evalObject, ui.emitObject(), ui.evalObject],
+          [trigger]: [ui.evalObject, ui.emit(), ui.evalObject],
         }),
       )
       // @ts-expect-error
@@ -167,7 +192,7 @@ describe(u.yellow(`resolveSetup`), () => {
         const spy = sinon.spy()
         await nui.resolveComponents({
           components: ui.label({
-            [hookName]: ui.emitObject({
+            [hookName]: ui.emit({
               dataKey: { var1: 'itemObject' },
               actions: [],
             }),

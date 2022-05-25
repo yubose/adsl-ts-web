@@ -1,5 +1,14 @@
-import { Identify } from 'noodl-types'
+import { Identify, ReferenceString } from 'noodl-types'
 import type { NUIActionObjectInput } from '../types'
+
+function isRealRef(value: unknown): value is ReferenceString {
+  return (
+    typeof value === 'string' &&
+    Identify.reference(value) &&
+    // These are not really "real" references because they never change in the runtime
+    ['=.builtIn', '.Global._nonce@'].every((str) => !value.startsWith(str))
+  )
+}
 
 function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
   const results = [] as string[]
@@ -15,18 +24,18 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
       //
     } else if (Identify.action.evalObject(obj)) {
       if ('object' in obj) {
-        if (Identify.reference(obj.object)) {
+        if (isRealRef(obj.object)) {
           results.push(
             `Received a string reference "${obj.object}" as the "object" for action "evalObject"`,
           )
         } else if (obj.object !== null && typeof obj.object === 'object') {
           for (const [key, val] of Object.entries(obj.object)) {
-            if (Identify.reference(key)) {
+            if (isRealRef(key)) {
               results.push(
                 `Received a string reference key "${key}" inside evalObject`,
               )
             }
-            if (Identify.reference(val)) {
+            if (isRealRef(val)) {
               results.push(
                 `Received a string reference value "${key}" inside evalObject`,
               )
@@ -56,9 +65,9 @@ function getActionObjectErrors(obj: NUIActionObjectInput | undefined) {
       //
     } else if (Identify.action.updateObject(obj)) {
       //
-    }else if (Identify.action.getLocationAddress(obj)) {
+    } else if (Identify.action.getLocationAddress(obj)) {
       //
-    }else {
+    } else {
       results.push(
         `Encountered an unsupported action object of type "${obj.actionType}". ` +
           `Check typos or letter casings.`,

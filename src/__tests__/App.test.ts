@@ -3,22 +3,36 @@ import sinon from 'sinon'
 import * as u from '@jsmanifest/utils'
 import { expect } from 'chai'
 import { coolGold, italic, magenta } from 'noodl-common'
-import { nuiEmitTransaction, NUI, Viewport, Store } from 'noodl-ui'
-import { Page as NOODLDOMPage } from 'noodl-ui-dom'
+import { nuiEmitTransaction, NUI, NDOMPage, Viewport, Store } from 'noodl-ui'
 import { initializeApp, ndom } from '../utils/test-utils'
 import getMockMeetingChat from './helpers/mockMeetingChat/getMockMeetingChat'
 import App from '../App'
+import { createInstance } from '../app/noodl'
 import createActions from '../handlers/actions'
 import createBuiltIns from '../handlers/builtIns'
 import createRegisters from '../handlers/register'
 import createExtendedDOMResolvers from '../handlers/dom'
 
 describe(coolGold(`App`), () => {
-  it.only(`should be able to create the instance without args`, () => {
+  describe(`use`, () => {
+    it(`should set lvl 3 sdk`, () => {
+      const app = new App()
+      const lvl3 = createInstance({
+        env: 'stable',
+        configUrl: `https://public.aitmed.com/config/patient.yml`,
+        overwrite: true,
+      })
+      expect(app.noodl).to.be.null
+      app.use(lvl3)
+      expect(app.noodl).to.eq(lvl3)
+    })
+  })
+
+  it(`should be able to create the instance without args`, () => {
     expect(() => new App()).to.not.throw()
   })
 
-  it.only(`should be able to initialize without failing`, () => {
+  it(`should be able to initialize without failing`, () => {
     expect(new App().initialize())
   })
 
@@ -32,7 +46,7 @@ describe(coolGold(`App`), () => {
 
     it(`should initiate the main NOODLDOM page`, async () => {
       const app = await initializeApp()
-      expect(app.mainPage).to.be.instanceOf(NOODLDOMPage)
+      expect(app.mainPage).to.be.instanceOf(NDOMPage)
       expect(app.mainPage.viewport).to.eq(app.viewport)
     })
   })
@@ -97,8 +111,7 @@ describe(coolGold(`App`), () => {
           obj.name,
         )} to the list of DOM resolvers`, async () => {
           const app = await initializeApp()
-          // @ts-expect-error
-          expect(app.ndom.resolvers()).to.satisfy((objs: any) =>
+          expect(app.ndom.consumerResolvers).to.satisfy((objs: any) =>
             objs.some((r: any) => r.name === obj.name),
           )
         })
@@ -134,7 +147,7 @@ describe(coolGold(`App`), () => {
           obj.name,
         )}" object to the register store`, async () => {
           const app = await initializeApp()
-          expect(app.ndom.cache.register.has(obj.name))
+          expect(app.ndom.cache.register.has(obj['name']))
         })
       })
     })

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { LiteralUnion } from 'type-fest'
 import type { Status } from '@aitmed/ecos-lvl2-sdk'
 import type { LocalParticipant } from 'twilio-video'
@@ -128,11 +129,12 @@ export function createRender(opts: MockRenderOptions) {
 
   ndom.use({
     transaction: {
-      // @ts-expect-error
+      // @ts-ignore
       [nuiEmitTransaction.REQUEST_PAGE_OBJECT]: async () => pageObject,
     },
   })
 
+  // @ts-ignore
   ndom.use(use)
 
   const o = {

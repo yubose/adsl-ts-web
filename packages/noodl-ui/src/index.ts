@@ -13,16 +13,17 @@ export { default as Resolver } from './Resolver'
 export { default as createAction } from './utils/createAction'
 export { default as createActionChain } from './utils/createActionChain'
 export { default as createComponent } from './utils/createComponent'
+export { default as deref } from './deref'
 export { default as getActionObjectErrors } from './utils/getActionObjectErrors'
+export { default as getBaseStyles } from './utils/getBaseStyles'
+export { default as getByRef } from './utils/getByRef'
 export { default as isComponent } from './utils/isComponent'
 export { default as isPage } from './utils/isPage'
 export { default as isViewport } from './utils/isViewport'
-export { default as normalizeProps } from './normalizeProps'
+export { default as normalizeProps, default as parse } from './normalizeProps'
 export { default as resolvePageComponentUrl } from './utils/resolvePageComponentUrl'
 export { default as resolveReference } from './utils/resolveReference'
-export { default as traverse, visitHooks } from './utils/traverse'
 export { default as Transformer } from './Transformer'
-export { default as visit } from './utils/visit'
 export { default as NUI } from './noodl-ui'
 export { default as Page } from './Page'
 export { default as Viewport } from './Viewport'
@@ -46,6 +47,13 @@ export {
   resolveAssetUrl,
 } from './utils/noodl'
 export { formatColor } from './utils/common'
+export {
+  getPositionProps,
+  getSize,
+  getViewportRatio,
+  isNoodlUnit,
+  toNum,
+} from './utils/style'
 export { actionTypes, trigger, triggers } from './constants'
 export * from './types'
 

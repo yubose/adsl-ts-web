@@ -3,7 +3,7 @@
   "id": "installation",
   "isDocsHomePage": false,
   "title": "Installation",
-  "description": "",
+  "description": "`bash",
   "source": "@site/docs/installation.md",
   "sourceDirName": ".",
   "slug": "/installation",

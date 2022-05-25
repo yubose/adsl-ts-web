@@ -1,0 +1,84 @@
+Dashboard:
+  title: "Analysis"
+  init:
+    - =.builtIn.diagnostics:
+        dataIn:
+          config: ..config
+          # filter:
+          #   - medical
+        dataOut: Dashboard.diagnostics
+  config: testpage
+  diagnostics: null
+  components:
+    - .BaseHeader:
+    - type: divider
+      style:
+        height: '0.03'
+    - type: view
+      style:
+        marginTop: '0.1'
+        textColor: '0x133333'
+        textAlign:
+          x: centerX
+      children:
+        - type: label
+          text: 'Filter examples (will be turned into a RegExp): '
+        - type: label
+          text: '"patientchart" (single string) turns into "/patientchart/i"'
+        - type: label
+          text: '"medical, obstetrical" (array of strings) turns into "/medical|obstetrical/i"'
+    - type: view
+      style:
+        marginTop: "0.05"
+        width: "0.9"
+        left: "0.05"
+      children:
+        - type: list
+          contentType: listObject
+          listObject: ..diagnostics
+          iteratorVar: itemObject
+          style:
+            width: "0.9"
+          children:
+            - type: listItem
+              itemObject: ""
+              style:
+                width: "0.9"
+              children:
+                - type: view
+                  children:
+                    # - type: label
+                    #   textBoard:
+                    #     - text: 'Page: '
+                    #     - text: itemObject.page
+                    #   style:
+                    #     height: '0.015'
+                    #     textIndent: "10px"
+                    - type: list
+                      listObject: itemObject.messages
+                      contentType: listObject
+                      iteratorVar: itemObject
+                      children:
+                        - type: listItem
+                          itemObject: ''
+                          style:
+                            listStyle: none
+                          children:
+                            - type: image
+                              path:
+                                emit:
+                                  dataKey:
+                                    var: itemObject
+                                  actions:
+                                    - =.builtIn.string.concat:
+                                        dataIn:
+                                          - $var.type
+                                          - .png
+                              style:
+                                top: "0.02"
+                                height: "0.025"
+                                left: "0.8"
+                            - type: label
+                              dataKey: itemObject.message
+                              style:
+                                fontSize: '14'

@@ -131,7 +131,11 @@ async function initializeApp(
       }
     },
     onSdkInit(sdk) {
-      initPiBackgroundWorker(new Worker('piBackgroundWorker.js'))
+      // Uncomment to enable pi worker
+      // initPiBackgroundWorker(
+      // new Worker('piBackgroundWorker.js'),
+      // ../../../aitmed-noodl-web/build/piBackgroundWorker.js
+      // )
     },
   })
   // app.navigate('Cov19TestNewPatReviewPage1')
@@ -159,6 +163,7 @@ window.addEventListener('load', async (e) => {
 
   try {
     window.build = process.env.BUILD
+    window.local = process.env.LOCAL_INFO
     window.ac = []
     log.func('onload')
 
@@ -322,23 +327,24 @@ function initPiBackgroundWorker(worker: Worker) {
 
     switch (String(type)) {
       case 'workerInitiated': {
-        const resp = await fetch(`/cpt`)
-        const respData = await resp.json()
-        piWorker.sendMessage({
-          type: 'storeData',
-          table: 'CPT',
-          data: [respData.CPT.version, respData.CPT.content],
-        })
-        return piWorker.sendMessage({
-          type: 'search',
-          storeName: 'CPT',
-        })
+        // const resp = await fetch(`/cpt`)
+        // const respData = await resp.json()
+        // piWorker.sendMessage({
+        //   type: 'storeData',
+        //   table: 'CPT',
+        //   data: [respData.CPT.version, respData.CPT.content],
+        // })
+        // return piWorker.sendMessage({
+        //   type: 'search',
+        //   storeName: 'CPT',
+        // })
+        break
       }
       case 'searchResult': {
-        const { table, result, query } = data
-        const resp = await fetch('/cpt')
-        const respData = await resp.json()
-        console.log(`searchResult`, result)
+        // const { table, result, query } = data
+        // const resp = await fetch('/cpt')
+        // const respData = await resp.json()
+        // console.log(`searchResult`, result)
         break
       }
       // case 'FETCHED_STORE_DATA': {

@@ -1,34 +1,30 @@
 import type { LiteralUnion } from 'type-fest'
+import type { ActionChainStatus } from 'noodl-action-chain'
 import type {
   ActionObject,
   ComponentObject,
   Env,
   DeviceType,
   PageObject,
+  ReferenceString,
 } from 'noodl-types'
+import type { LinkStructure, FileStructure } from 'noodl'
+import type { NUIAction, NUIActionObject, NUITrigger } from 'noodl-ui'
 import type { Action } from 'noodl-action-chain'
 import type { PluginOptions as GatsbyPluginOptions } from 'gatsby'
 import type { data } from './gatsby-node'
 
-export interface InternalData {
+export namespace InternalData {
   /**
    * Used in the client side
    */
-  _assets_: string[]
-  /**
-   * Used in the client side
-   */
-  _context_: {
+  export type Context = {
     [page: string]: {
       lists?: ListComponentsContext
-      componentRefs?: ComponentReferencesContext[]
+      refs?: ComponentReferencesContext
     }
   }
-  /**
-   * Asset urls that were reported
-   */
-  _loggedAssets_: string[]
-  _pages_: {
+  export type Pages = {
     /**
      * Used in lvl3 and noodl-ui
      */
@@ -38,29 +34,10 @@ export interface InternalData {
      */
     serialized: Record<string, any>
   }
-  _paths_: {
+  export type Paths = {
     output: string
     template: string
   }
-  appKey: string
-  /**
-   * Passed to Loader, lvl3, and output dir
-   */
-  configKey: string
-  /**
-   * Not being used atm
-   */
-  configUrl: string
-  /**
-   * Used in retrieving version in root config
-   */
-  deviceType: DeviceType
-  ecosEnv: Env
-  loglevel: string
-  /**
-   * Used as the page component renderer
-   */
-  template: string
 }
 
 export interface GatsbyNoodlPluginOptions {
@@ -77,6 +54,11 @@ export interface GatsbyNoodlPluginOptions {
   cwd?: string
   deviceType?: 'web' | 'android' | 'ios'
   ecosEnv?: Env
+  /**
+   * Dumps a file with useful metadata about the most recent build
+   * The output file will be saved at <cwd>/output/metadata.json
+   */
+  metadata?: boolean
   loglevel?: 'error' | 'debug' | 'info' | 'silent' | 'trace' | 'warn'
   paths?: {
     // assets?: string
@@ -89,51 +71,54 @@ export interface GatsbyNoodlPluginOptions {
     width: number
     height: number
   }
-}
-
-/**
- * NOTE: Currently not being used
- */
-export interface GatsbyNoodlPluginCacheObject {
-  configKey?: string
-  configUrl?: string
-  configVersion?: string
-  // rootConfig?: any
+  version?: LiteralUnion<'latest', string>
 }
 
 /**
  * Component static objects used in the client side to render react elements
  */
 export type StaticComponentObject = ComponentObject &
-  Record<
-    string,
-    {
-      actions: (ActionObject & Record<string, any>)[]
-      trigger: string
-      injected: (ActionObject & Record<string, any>)[]
-      queue: Action[]
-      results: {
-        action: ActionObject & Record<string, any>
-        result: any
-      }[]
-      status: string
-    }
-  >
+  Partial<
+    Record<
+      NUITrigger,
+      {
+        actions: (NUIActionObject & Record<string, any>)[]
+        trigger: LiteralUnion<NUITrigger, string>
+        injected: (NUIActionObject & Record<string, any>)[]
+        queue: NUIAction[]
+        results: {
+          action: NUIActionObject & Record<string, any>
+          result: any
+        }[]
+        status: ActionChainStatus
+      }
+    >
+  > &
+  Record<string, any>
 
 /**
  * Context for pages. Populated from gatsby-node.js
  */
 export interface PageContext {
-  isPreload: boolean
-  pageName: string
-  pageObject: {
-    components: StaticComponentObject[]
-  }
+  assetsUrl: string
+  baseUrl: string
+  name: string
+  components: StaticComponentObject[]
+  lists?: ListComponentsContext
   slug: string
-  _context_: {
-    [page: string]: {
-      lists?: ListComponentsContext
-      componentRefs?: ComponentReferencesContext[]
+  refs: {
+    [reference: nt.ReferenceString]: {
+      /**
+       * If true, the reference is pointing to local root object
+       */
+      isLocal: boolean
+      /**
+       * If true, the reference is pointing to a list's listObject data object
+       */
+      isListChildren: boolean
+      key: string
+      path: string
+      ref: nt.ReferenceString
     }
   }
 }
@@ -146,18 +131,85 @@ export interface PageContext {
 export interface ListComponentsContext {
   [key: string]: {
     children: string[][]
+    componentPath: (string | number)[]
     id: string
-    listObject: any[]
     iteratorVar: string
-    path: (string | number)[]
+    listObject: ReferenceString | any[]
   }
 }
+
+export type ComponentPath = (string | number)[]
 
 /**
  * NOTE: Currently not being used
  */
 export interface ComponentReferencesContext {
-  page: string
-  path: string[]
-  reference: string
+  [reference: string]: {
+    key: string
+    path: string
+    reference: string
+  }
+}
+
+export interface DumpedMetadata<ConfigKey extends string = string> {
+  appKey: LiteralUnion<'cadlEndpoint.yml', string>
+  assetsUrl: string
+  baseUrl: string
+  buildSource: 'local' | 'remote'
+  configKey: ConfigKey
+  configUrl: LiteralUnion<
+    `https://public.aitmed.com/config/${ConfigKey}.yml`,
+    string
+  >
+  deviceType: DeviceType
+  ecosEnv: Env
+  loglevel: string
+  isFileSystemOutput: boolean
+  startPage: LiteralUnion<'HomePage', string>
+  paths: {
+    cacheDir: string
+    cacheFiles: {
+      /**
+       * Key is name/title, value is path to directory
+       */
+      [name: string]: string
+    }
+    cwd: string
+    output: string
+    resolvedAssetsDir: string
+    resolvedConfigsDir: string
+    resolvedAppConfigFile: string
+    resolvedOutputNamespacedWithConfig: string
+    src: string
+    template: string
+    timestamp: string
+  }
+  assets: {
+    logged: string[]
+    saved: string[]
+  }
+  missingFiles: {
+    assets: {
+      /**
+       * key is filename
+       * url is the endpoint it was downloaded from
+       * filepath is the the path to the downloaded assset
+       */
+      [name: string]: {
+        url: string
+        filepath: string
+      }
+    }
+    pages: {
+      [name: string]: {
+        filename: string
+        filepath: string
+        name: string
+      }
+    }
+  }
+  viewport: {
+    width: number
+    height: number
+  }
 }

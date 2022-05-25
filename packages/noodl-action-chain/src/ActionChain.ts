@@ -408,7 +408,7 @@ class ActionChain<
       error: this.#error,
       current: this.current,
       injected: this.#injected,
-      queue: this.queue.map((o) => o.snapshot()),
+      queue: this.queue.map((o) => o?.snapshot()),
       results: this.#results,
       status: this.#status,
       trigger: this.trigger,

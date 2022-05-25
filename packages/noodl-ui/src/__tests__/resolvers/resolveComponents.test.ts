@@ -37,13 +37,7 @@ async function resolveComponent(component: ComponentObject) {
 
 describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
   it(`should call the callback on every resolved child in order of creation time`, async () => {
-    const spy = sinon.spy((f) =>
-      console.info(
-        `[${f.type}] ${
-          f.blueprint.viewTag || f.blueprint.dataKey || f.blueprint.contentType
-        }`,
-      ),
-    )
+    const spy = sinon.spy((f) => undefined)
     const listObject = [{ fruit: 'apple' }, { fruit: 'berry' }]
     const iteratorVar = 'itemObject'
     const pageObject = {
@@ -106,14 +100,14 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
 
   describe('hooks', () => {
     describe(`if`, () => {
-      it(`should pass in the key and value`, async () => {
+      it.skip(`should pass in the key and value`, async () => {
         const spy = sinon.spy(() => true)
         const ifObj = { if: [{}, 'hello', 'bye'] }
         ;(
           await nui.resolveComponents({
             components: ui.button({
               text: ifObj,
-              onClick: [ui.emitObject()],
+              onClick: [ui.emit()],
               style: { border: { style: '2' }, shadow: 'true' },
             }),
             on: { if: spy },
@@ -131,7 +125,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
             await nui.resolveComponents({
               components: ui.button({
                 text: { if: [{}, 'hello', 'bye'] },
-                onClick: [ui.emitObject()],
+                onClick: [ui.emit()],
                 style: { border: { style: '2' }, shadow: 'true' },
               }),
               on: { if: () => true },
@@ -143,7 +137,7 @@ describe(coolGold(`resolveComponents (ComponentResolver)`), () => {
             await nui.resolveComponents({
               components: ui.button({
                 text: { if: [{}, 'hello', 'bye'] },
-                onClick: [ui.emitObject()],
+                onClick: [ui.emit()],
                 style: { border: { style: '2' }, shadow: 'true' },
               }),
               on: { if: () => false },

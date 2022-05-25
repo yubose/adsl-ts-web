@@ -1,6 +1,6 @@
 import Logger from 'logsnap'
 import type { ActionChainIteratorResult } from 'noodl-action-chain'
-import { Account } from '@aitmed/cadl'
+import { Account, subscribeToRefs } from '@aitmed/cadl'
 import type { CADL } from '@aitmed/cadl'
 import * as u from '@jsmanifest/utils'
 import cloneDeep from 'lodash/cloneDeep'
@@ -68,12 +68,14 @@ class App {
     } as t.SpinnerState,
     tracking: {},
   }
+
   #instances = {
     FullCalendar: {
-      inst: null as null | InstanceType<typeof FullCalendar.Calendar>,
+      inst: null as InstanceType<typeof FullCalendar.Calendar> | null,
       page: '',
     },
   }
+
   #meeting: ReturnType<typeof createMeetingFns>
   #notification: t.AppConstructorOptions['notification']
   #noodl: t.AppConstructorOptions['noodl']
@@ -111,7 +113,7 @@ class App {
   }
 
   static id = `aitmed-noodl-web`
-
+  register: any
   constructor({
     getStatus,
     meeting,
@@ -134,8 +136,9 @@ class App {
     this.#sdkHelpers = getSdkHelpers(this)
     this.#spinner = new Spinner()
     this.goto = createGoto(this)
+    this.register = new createRegisters(this)
 
-    noodl && (this.#noodl = noodl)
+    noodl && this.use(noodl)
     this.#parser = new nu.Parser()
   }
 
@@ -204,7 +207,7 @@ class App {
   }
 
   get noodl() {
-    return this.#noodl as CADL
+    return (this.#noodl || null) as CADL
   }
 
   get nui() {
@@ -269,6 +272,10 @@ class App {
 
   getState() {
     return this.#state
+  }
+
+  getRegister() {
+    return this.register
   }
 
   /**
@@ -408,18 +415,29 @@ class App {
       if (!this.getState().spinner.active) this.enableSpinner()
       if (!this.getStatus) this.getStatus = Account.getStatus
 
-      !this.noodl && (this.#noodl = (await import('./app/noodl')).default)
-
-      // if (!this.notification) {
-      try {
-        this.#notification = new (await import('./app/Notifications')).default()
-        log.grey(`Initialized notifications`, this.#notification)
-        onInitNotification && (await onInitNotification?.(this.#notification))
-      } catch (error) {
-        console.error(error instanceof Error ? error : new Error(String(error)))
+      if (!this.noodl) {
+        /**
+         * Instantiating the SDK this way will soon be @deprecated
+         * The new way to be to import { createInstance } from the same file and instantiate it using that function
+         */
+        if (process.env.NODE_ENV !== 'test') {
+          this.use((await import('./app/noodl')).noodl as CADL)
+        } else {
+          throw new Error(`Level 3 is not provided or instantiated`)
+        }
       }
 
-      // }
+      if (!this.#notification) {
+        try {
+          this.#notification = new AppNotification()
+          log.grey(`Initialized notifications`, this.#notification)
+          onInitNotification && (await onInitNotification?.(this.#notification))
+        } catch (error) {
+          console.error(
+            error instanceof Error ? error : new Error(String(error)),
+          )
+        }
+      }
 
       this.noodl.on('QUEUE_START', () => {
         if (!this.getState().spinner.active) this.enableSpinner()
@@ -430,63 +448,8 @@ class App {
           if (this.getState().spinner.active) this.disableSpinner()
         }
       })
-      await this.noodl.init()
+      if (this.noodl) await this.noodl.init()
       onSdkInit?.(this.noodl)
-
-      // const lastDOM = (await lf.getItem('__last__')) || ''
-      // if (lastDOM) {
-      //   const renderCachedState = (
-      //     rootEl: HTMLElement,
-      //     lastState: t.StoredDOMState,
-      //   ) => {
-      //     rootEl.innerHTML = lastState.root
-
-      //     if (u.isNum(lastState.x) && u.isNum(lastState.y)) {
-      //       window.scrollTo({
-      //         behavior: 'auto',
-      //         left: lastState.x,
-      //         top: lastState.y,
-      //       })
-      //     }
-
-      //     for (const btn of Array.from(rootEl.querySelectorAll('button'))) {
-      //       btn.textContent = 'Loading...'
-      //       btn.style.userSelect = 'none'
-      //       btn.style.pointerEvents = 'none'
-      //     }
-
-      //     for (const inputEl of [
-      //       ...rootEl.querySelectorAll('input'),
-      //       ...rootEl.querySelectorAll('select'),
-      //       ...rootEl.querySelectorAll('textarea'),
-      //     ]) {
-      //       inputEl.disabled = true
-      //     }
-      //   }
-
-      //   try {
-      //     // const lastState = JSON.parse(lastDOM) as t.StoredDOMState
-      //     // if (lastState?.root && lastState.origin === location.origin) {
-      //     //   const rootEl = document.getElementById('root')
-      //     //   if (rootEl) {
-      //     //     if (lastState.page !== lastState.startPage) {
-      //     //       if (await this.noodl.root.builtIn.SignInOk()) {
-      //     //         renderCachedState(rootEl, lastState)
-      //     //       }
-      //     //     } else {
-      //     //       renderCachedState(rootEl, lastState)
-      //     //     }
-      //     //   }
-      //     // }
-      //   } catch (error) {
-      //     const err = error instanceof Error ? error : new Error(String(error))
-      //     console.log(
-      //       `%c[Rehydration] ${err.name}: ${err.message}`,
-      //       'color:tomato',
-      //       err,
-      //     )
-      //   }
-      // }
 
       log.func('initialize')
       log.grey(`Initialized @aitmed/cadl sdk instance`)
@@ -503,7 +466,7 @@ class App {
       } else if (storedCode === 3) {
         this.#state.authStatus = 'temporary'
       }
-
+      console.log('test', this.noodl)
       this.nui.use({
         getAssetsUrl: () => {
           return this.noodl.assetsUrl
@@ -529,7 +492,8 @@ class App {
       this.ndom.use({ transaction: transactions })
       // TODO - Create composer for createElementBinding
       this.ndom.use({ createElementBinding: meetingfns.createElementBinding })
-
+      this.root.actions = actions
+      this.root.extendedBuiltIn = builtIns
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
       // u.forEach(
       //   (keyVal) => this.nui._experimental?.['register' as any]?.(...keyVal),
@@ -551,7 +515,7 @@ class App {
        * Determining the start page or initial action
        */
       const parsedUrl = parseUrl(
-        this.#noodl?.cadlEndpoint as AppConfig,
+        this.noodl?.cadlEndpoint as AppConfig,
         window.location.href,
       )
 
@@ -585,8 +549,8 @@ class App {
       const cfgStore = createNoodlConfigValidator({
         configKey: 'config',
         timestampKey: 'timestamp',
-        get: (key: string) => lf.getItem(key),
-        set: (key: string, value: any) => lf.setItem(key, value),
+        get: async (key: string) => lf.getItem(key),
+        set: async (key: string, value: any) => lf.setItem(key, value),
       })
 
       const isTimestampCached = !!(await cfgStore.getTimestampKey())
@@ -627,12 +591,16 @@ class App {
         }
       }
 
+      // subscribeToRefs(({ key, isLocal, parent, path, ref, result }) => {
+      //   console.log(`[App] Ref`, { key, isLocal, path, ref, result })
+      // })
+
       this.#state.initialized = true
     } catch (error) {
       console.error(error)
       throw error
     } finally {
-      if (!this.noodl.getState()?.queue?.length) {
+      if (!this.noodl?.getState?.()?.queue?.length) {
         if (this.getState().spinner?.active) {
           this.disableSpinner()
         }
@@ -640,7 +608,7 @@ class App {
     }
   }
 
-  async getPageObject(page: NDOMPage): Promise<void | { aborted: true }> {
+  async getPageObject(page: NDOMPage): Promise<{ aborted: true } | void> {
     if (!this.getState().spinner.active) {
       this.enableSpinner({ target: page?.node || this.mainPage?.node })
     }
@@ -928,7 +896,7 @@ class App {
     const onBeforeClearnode = () => {
       if (page.page === 'VideoChat' && page.requesting !== 'VideoChat') {
         log.func('onBeforeClearnode')
-        const _log = (label: 'selfStream' | 'mainStream' | 'subStreams') => {
+        const _log = (label: 'mainStream' | 'selfStream' | 'subStreams') => {
           const getSnapshot = () => this[label]?.snapshot()
           const before = getSnapshot()
           this[label]?.reset()
@@ -1071,7 +1039,7 @@ class App {
 
   reset(soft?: boolean): Promise<void>
   reset(): this
-  reset(soft?: boolean) {
+  async reset(soft?: boolean) {
     if (soft) {
       //
       // Soft reset (retains the App instance reference as well as the actions/transactions, etc)
@@ -1135,7 +1103,7 @@ class App {
     ) => void,
   ): void
   updateRoot<P extends string>(
-    fn: ((draft: App['noodl']['root']) => void) | P,
+    fn: P | ((draft: App['noodl']['root']) => void),
     value?: any | (() => void),
     cb?: (root: Record<string, any>) => void,
   ) {
@@ -1245,6 +1213,14 @@ class App {
   async getCachedPages(): Promise<t.CachedPageObject[]> {
     const pageHistory = await lf.getItem(CACHED_PAGES)
     return (pageHistory as t.CachedPageObject[]) || []
+  }
+
+  use(arg: CADL) {
+    if (is.lvl3Sdk(arg)) {
+      this.#noodl = arg
+    }
+
+    return this
   }
 }
 
