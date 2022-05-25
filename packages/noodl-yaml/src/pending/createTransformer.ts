@@ -5,7 +5,7 @@ import flowRight from 'lodash/flowRight'
 import _if from '../transformers/if'
 import _merge from '../transformers/merge'
 import _replace from '../transformers/replace'
-import { Kind, MapKind, ScalarKind, SeqKind, StringKind } from '../constants'
+import { Kind, MapKind, ScalarKind, SeqKind } from '../constants'
 import * as t from '../types'
 
 function createTransformer(

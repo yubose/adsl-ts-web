@@ -23,6 +23,7 @@ export default createAssert(function assertRef({
 
   if (coreIs.str(destination)) {
     if (coreIs.reference(destination)) {
+      // @ts-expect-error
       const derefed = deref({ node: destinationNode, root, rootKey: page })
       if (!derefed.value) {
         add({

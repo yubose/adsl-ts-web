@@ -86,19 +86,19 @@ export function createInstructions(value: string) {
     const charCode = char.charCodeAt(0)
     const instruction = { value: char } as t.Processor.Instruction
 
-    if (charCode === consts.CharCode.At) {
-      instruction.type = 'write'
-    } else if (charCode === consts.CharCode.Dot) {
-      instruction.type = 'write'
-    } else if (charCode === consts.CharCode.Equals) {
-      instruction.type = 'write'
-    } else if (charCode === consts.CharCode.Tilde) {
-      instruction.type = 'write'
-    } else if (charCode === consts.CharCode.Underline) {
-      instruction.type = 'move'
-    } else {
-      instruction.type = 'next'
-    }
+    // if (charCode === consts.CharCode.At) {
+    //   instruction.type = 'write'
+    // } else if (charCode === consts.CharCode.Dot) {
+    //   instruction.type = 'write'
+    // } else if (charCode === consts.CharCode.Equals) {
+    //   instruction.type = 'write'
+    // } else if (charCode === consts.CharCode.Tilde) {
+    //   instruction.type = 'write'
+    // } else if (charCode === consts.CharCode.Underline) {
+    //   instruction.type = 'move'
+    // } else {
+    //   instruction.type = 'next'
+    // }
 
     instructions.push(instruction)
   }

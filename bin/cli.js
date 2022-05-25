@@ -144,17 +144,16 @@ newline()
     }
     // Publish
     else if (isPublish) {
-      if (/core|yaml/i.test(pkg)) {
-        const folder = /core/i.test(pkg) ? 'noodl-core' : 'noodl-yaml'
+      if (/action-chain|core|loader|yaml|types|utils|ui/i.test(pkg)) {
+        const folder = `noodl-${pkg}`
         cmd = `cd packages/${folder} `
-        cmd += `&& git add . && git commit -m 'update' `
         cmd += `&& npm run build`
         cmd += `&& npm version patch -f && npm publish -f --access public`
         cmd += `&& cd ../..`
         exec(cmd)
       } else {
         throw new Error(
-          `Invalid value for publishing. Choose one of: "core", "yaml"`,
+          `Invalid value for publishing. Choose one of: "action-chain", "core", "loader", "yaml", "types", "utils", "ui"`,
         )
       }
     }

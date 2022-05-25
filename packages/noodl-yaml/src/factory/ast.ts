@@ -154,6 +154,7 @@ function createGoto() {
 function createIf(cond?: any, valTrue?: any, valFalse?: any) {
   const node = new y.YAMLMap() as t.If
   const ifNode = new y.YAMLSeq()
+  // @ts-expect-error
   node.set('if', ifNode)
   ifNode.add(createNode(cond))
   ifNode.add(createNode(valTrue))
