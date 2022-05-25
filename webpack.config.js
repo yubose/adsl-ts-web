@@ -1,4 +1,5 @@
 const u = require('@jsmanifest/utils')
+const { toJson } = require('@noodl/yaml')
 const y = require('yaml')
 const path = require('path')
 const del = require('del')
@@ -10,22 +11,26 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
-// const TerserPlugin = require('terser-webpack-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
+const serializeErr = (err) => ({
+  name: err.name,
+  message: err.message,
+  stack: err.stack,
+})
 const getFilePath = (...s) => path.join(__dirname, ...s)
 const log = console.log
 const filename = 'index.html'
 const readFile = (s) => fs.readFileSync(s, 'utf8')
-const { bold, cyan, magenta, newline, yellow, white } = u
+const { cyan, magenta, yellow, white } = u
 
 const paths = {
-  analytics: {
-    base: getFilePath('analytics'),
-    app: getFilePath('analytics/app'),
-    testpage: getFilePath('analytics/testpage'),
+  analysis: {
+    base: getFilePath('./analysis'),
+    app: getFilePath('./analysis/app'),
+    testpage: getFilePath('./analysis/testpage'),
   },
   build: getFilePath('build'),
   public: getFilePath('public'),
@@ -48,18 +53,11 @@ function getWebpackConfig(env) {
   let nodeEnv = env.NODE_ENV || process.env.NODE_ENV
   let mode = nodeEnv !== 'production' ? 'development' : 'production'
 
-  // Analysis is not run in production
-  let staticPaths = [paths.public]
-  staticPaths.push('analysis')
-
   if (!ecosEnv) {
-    log(
-      yellow(
-        `You did not provide the ecos environment. Defaulting to ` +
-          `${cyan(`stable`)}`,
-      ),
-    )
-    ecosEnv = 'stable'
+    let msg =
+      `You did not provide the ecos environment.  ` +
+      `Defaulting to ${cyan((ecosEnv = 'stable'))}`
+    log(yellow(msg))
   }
 
   const pkgJson = {
@@ -76,13 +74,11 @@ function getWebpackConfig(env) {
 
   if (fs.existsSync(paths.build)) del.sync(path.join(paths.build, '**/*'))
 
+  outputFileName =
+    mode === 'production' ? `[name].[contenthash].js` : '[name].js'
+
   if (!Number.isNaN(pkgVersionRev)) {
     buildVersion = [...pkgVersionPaths, ++pkgVersionRev].join('.')
-    outputFileName =
-      mode === 'production' ? `[name].[contenthash].js` : '[name].js'
-  } else {
-    outputFileName =
-      mode === 'production' ? `[name].[contenthash].js` : '[name].js'
   }
 
   const version = {
@@ -116,36 +112,37 @@ function getWebpackConfig(env) {
         'localhost',
         '127.0.0.1',
         '127.0.0.1:3000',
-        '127.0.0.1:4000',
-        'https://127.0.0.1',
-        'https://127.0.0.1:3000',
-        'https://127.0.0.1:4000',
         'aitmed.com',
         'aitmed.io',
       ],
+      /**
+       * @param { import('webpack-dev-server/types/lib/Server') } devServer
+       */
       onAfterSetupMiddleware: function (devServer) {
         if (devServer) {
-          devServer.app.get('/analysis', (req, res) => {
-            const filepaths = fg.sync(
-              path.join(paths.analytics.app, '**/*.yml'),
-            )
-            const ymls = {}
-            filepaths.forEach((filepath) => {
-              const filename = path.basename(filepath, '.yml')
-              const name = filename.replace(/_en|\.yml$/gi, '')
-              ymls[name] = fs.readFileSync(filepath, 'utf8')
-            })
-            res.json(ymls)
+          devServer.app.get('/routes', (req, res) => {
+            res.status(200).json({ ...devServer.app._router })
           })
+
+          const analysis = createAnalysisModule(paths.analysis.base, {
+            devServer,
+            watchOptions: {
+              //
+            },
+            wssOptions: {
+              //
+            },
+          })
+
+          analysis.registerRoutes()
+          analysis.watch()
+          analysis.listen()
         }
       },
       compress: false,
-      devMiddleware: {
-        writeToDisk: true,
-      },
+      devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
       hot: 'only',
-      // liveReload: true,
       headers: {
         'Access-Control-Allow-Credentials': true,
         'Access-Control-Allow-Origin': '*',
@@ -153,21 +150,12 @@ function getWebpackConfig(env) {
           'Origin, X-Requested-With, Content-Type, Accept, Authorization',
       },
       port: 3000,
-      static: [
-        {
-          directory: paths.public,
-          publicPath: '/',
-        },
-        {
-          directory: paths.analytics.base,
-          publicPath: '/',
-          staticOptions: {},
-        },
-        // {
-        //   directory: paths.analytics.testpage,
-        //   publicPath: '/analysis/testpage',
-        // },
-      ],
+      // proxy: {
+      //   '/analysis': 'http://127.0.0.1:3000/analysis/app',
+      //   '/analysis/app': 'http://127.0.0.1:3000/analysis/app',
+      //   '/analysis/testpage': 'http://127.0.0.1:3000/analysis/testpage',
+      // },
+      static: [paths.public, paths.analysis.base, paths.analysis.app],
     },
     devtool: false,
     externals: [],
@@ -192,9 +180,7 @@ function getWebpackConfig(env) {
       ],
     },
     resolve: {
-      alias: {
-        fs: getFilePath('./node_modules/fs-extra'),
-      },
+      alias: { fs: getFilePath('./node_modules/fs-extra') },
       cache: true,
       extensions: ['.ts', '.js'],
       modules: ['node_modules'],
@@ -319,18 +305,6 @@ function getWebpackConfig(env) {
             concatenateModules: true,
             mergeDuplicateChunks: true,
             minimize: true,
-            // minimizer: [
-            //   new TerserPlugin({
-            //     minify: TerserPlugin.esbuildMinify,
-            //     parallel: true,
-            //     terserOptions: {
-            //       minify: false,
-            //       minifyWhitespace: true,
-            //       minifyIdentifiers: false,
-            //       minifySyntax: true,
-            //     },
-            //   }),
-            // ],
             nodeEnv: 'production',
             removeEmptyChunks: true,
             splitChunks: {
@@ -390,44 +364,208 @@ function getWebpackConfig(env) {
   }\n\n`)
   }
 
-  /** @type { webpack.Configuration } */
-  const workerConfig = {
-    entry: {
-      piBackgroundWorker: getFilePath('src/piBackgroundWorker.ts'),
-    },
-    output: {
-      filename: '[name].js',
-      path: paths.build,
-    },
-    devtool: mode === 'production' ? false : 'source-map',
-    mode: mode,
-    module: {
-      rules: [
-        {
-          test: /\.(js|ts)?$/,
-          exclude: /node_modules/,
-          include: path.join(__dirname),
-          use: [
-            {
-              loader: 'esbuild-loader',
-              options: {
-                loader: 'ts',
-                target: 'es2017',
-                sourcemap: mode === 'production' ? undefined : 'inline',
-              },
-            },
-          ],
-        },
-      ],
-    },
-    resolve: {
-      extensions: ['.js', '.ts'],
-    },
-  }
-
-  // return [webpackOptions, workerConfig]
   return [webpackOptions]
 }
 
 module.exports = getWebpackConfig
 module.exports.settings = settings
+
+/** @type { webpack.Configuration } */
+// const workerConfig = {
+//   entry: {
+//     piBackgroundWorker: getFilePath('src/piBackgroundWorker.ts'),
+//   },
+//   output: {
+//     filename: '[name].js',
+//     path: paths.build,
+//   },
+//   devtool: mode === 'production' ? false : 'source-map',
+//   mode: mode,
+//   module: {
+//     rules: [
+//       {
+//         test: /\.(js|ts)?$/,
+//         exclude: /node_modules/,
+//         include: path.join(__dirname),
+//         use: [
+//           {
+//             loader: 'esbuild-loader',
+//             options: {
+//               loader: 'ts',
+//               target: 'es2017',
+//               sourcemap: mode === 'production' ? undefined : 'inline',
+//             },
+//           },
+//         ],
+//       },
+//     ],
+//   },
+//   resolve: {
+//     extensions: ['.js', '.ts'],
+//   },
+// }
+
+// return [webpackOptions, workerConfig]
+
+/**
+ * @param { string } basedir
+ * @param { object } opts
+ * @param { import('webpack-dev-server/types/lib/Server') } opts.devServer
+ * @param { ws.ServerOptions } opts.wssOptions
+ * @param { import('chokidar').WatchOptions & { glob?: string } } opts.watchOptions
+ */
+function createAnalysisModule(basedir = paths.analysis.base, opts = {}) {
+  const { devServer, watchOptions = {}, wssOptions = {} } = opts
+
+  const chokidar = require('chokidar')
+  const ws = require('ws')
+
+  const { glob: watchGlob = '*', ...watchOpts } = watchOptions
+
+  /** @type chokidar.FSWatcher */
+  let watcher
+
+  /** @type ws.Server */
+  let wss
+
+  const appDir = path.join(basedir, 'app')
+  const testDir = path.join(basedir, 'testpage')
+
+  function watch(opts) {
+    const tag = `[${u.blue('watch')}]`
+
+    function emit(message) {
+      wss.clients.forEach((client) => {
+        client.send(JSON.stringify(message, null, 2), function onSend(err) {
+          if (err) {
+            console.log(`${tag} Error`, serializeErr(err))
+          }
+        })
+      })
+    }
+
+    /**
+     * @param { (args:{ isFile: boolean; isFolder: boolean; name: string; path: string }) => void } fn
+     * @returns
+     */
+    function onWatchEvent(fn) {
+      async function onEvent(filepath) {
+        filepath = path.resolve(filepath)
+        const stats = await fs.stat(filepath)
+        const pathObject = path.parse(filepath)
+        return fn({
+          isFile: stats.isFile(),
+          isFolder: stats.isDirectory(),
+          name: pathObject.name,
+          path: filepath,
+        })
+      }
+      return onEvent
+    }
+
+    watcher = chokidar.watch(
+      [path.join(appDir, '**/*'), path.join(testDir, '**/*')],
+      { ignoreInitial: true, ...watchOpts },
+    )
+
+    watcher
+      .on('ready', () => {
+        const watchedFiles = watcher?.getWatched()
+        const watchCount = watchedFiles
+          ? u
+              .values(watchedFiles)
+              .reduce((count, files) => (count += files.length || 0), 0)
+          : 0
+        console.log(`${tag} Watching ${yellow(watchCount)} files`)
+      })
+      .on(
+        'add',
+        onWatchEvent((args) => {
+          emit({ type: 'ADD', ...args })
+        }),
+      )
+      .on(
+        'addDir',
+        onWatchEvent((args) => {
+          emit({ type: 'ADD_DIRECTORY', ...args })
+        }),
+      )
+      .on(
+        'change',
+        onWatchEvent((args) => {
+          emit({ type: 'CHANGE', ...args })
+        }),
+      )
+      .on('error', (err) => {
+        emit({ type: 'ERROR', ...serializeErr(err) })
+      })
+      .on('unlink', (filepath) => {
+        emit({ type: 'FILE_REMOVED', filepath })
+      })
+      .on('unlinkDir', (dir) => {
+        emit({ type: 'DIRECTORY_REMOVED', dir })
+      })
+  }
+
+  /**
+   * @param { ws.ServerOptions } opts
+   */
+  function listen(opts) {
+    const tag = `[${u.cyan('wss')}]`
+
+    wss = new ws.WebSocketServer({
+      port: 3020,
+      ...opts,
+    })
+
+    wss
+      .on('connection', (socket, req) => {
+        console.log(`${tag} Connected`)
+      })
+      .on('listening', () => {
+        console.log(`${tag} Listening`)
+      })
+      .on('close', () => {
+        console.log(`${tag} Closed`)
+      })
+      .on('error', (err) => {
+        console.error(`${tag} Error`, {
+          name: err.name,
+          message: err.message,
+          stack: err.stack,
+        })
+      })
+  }
+
+  /**
+   *
+   * @param { import('webpack-dev-server/types/lib/Server') } devServer
+   */
+  function registerRoutes(devServer) {
+    const findMatchingFileName = (fps, fn) => fps.find((fp) => fp.includes(fn))
+    devServer.app.get(`/analysis/:appname/:filename`, (req, res) => {
+      const loadAsYml = (p) => fs.readFileSync(p, 'utf8')
+      const { appname, filename } = req.params
+      const glob = path.join(paths.analysis[appname], '**/*.yml')
+      const filepaths = fg.sync(glob)
+      const filepath = findMatchingFileName(filepaths, filename)
+      const fileyml = loadAsYml(filepath)
+      res.status(200).json(fileyml)
+      // const filename = path.basename(filepath, '.yml')
+      // const name = filename.replace(/_en|\.yml$/gi, '')
+    })
+  }
+
+  return {
+    basedir,
+    watch,
+    /**
+     * @param { ws.ServerOptions } opts
+     */
+    listen: (opts) => listen({ ...wssOptions, ...opts }),
+    registerRoutes: () => registerRoutes(devServer),
+    get watcher() {
+      return watcher
+    },
+  }
+}

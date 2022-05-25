@@ -1,7 +1,7 @@
 import { DiagnosticCode, ValidatorType } from '../constants'
 // import type DiagnosticAssert from './DiagnosticAssert'
 // import type { DiagnosticObject, DiagnosticAssertFn } from './diagnosticsTypes'
-// import * as is from '../utils/is'
+import * as is from '../utils/is'
 // import type { AVisitor } from '../types'
 // import * as t from './diagnosticsTypes'
 
@@ -102,6 +102,29 @@ import { DiagnosticCode, ValidatorType } from '../constants'
 //   return result
 // }
 
+export function generateDiagnostic(code: DiagnosticCode, arg: any) {
+  switch (code) {
+    case DiagnosticCode.REFERENCE_UNRESOLVABLE:
+      return {
+        code,
+        message: `The reference ${arg.ref} is unresolvable`,
+      }
+    case DiagnosticCode.ROOT_REFERENCE_SECOND_LEVEL_KEY_UPPERCASE:
+      return {
+        code,
+        message: `Root reference ${arg.ref} should not have its second level key "${arg.key}" begin with an uppercase`,
+      }
+    case DiagnosticCode.GOTO_PAGE_MISSING_FROM_APP_CONFIG:
+      return {
+        code,
+        message: `The destination "${arg.destination}" was not included in the app config (cadlEndpoint)`,
+      }
+  }
+}
+
+/**
+ * @deprecated
+ */
 export function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
   switch (code) {
     case DiagnosticCode.LOCAL_REF_MISSING_ROOT_KEY:
@@ -118,7 +141,6 @@ export function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
     //     `Traversal stopped at "${arg.path.join('.')}" ` +
     //     `because the object at this iteration did not contain this key`
     //   )
-
     default:
       throw new Error(`Invalid diagnostic code "${code}"`)
   }

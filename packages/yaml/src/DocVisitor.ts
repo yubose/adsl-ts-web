@@ -18,25 +18,32 @@ import * as t from './types'
 export type State = typeof _state
 
 const _state = {
-  sync: { history: [], queue: [] } as t.VisitorState,
-  async: { history: [], queue: [] } as t.VisitorState,
+  sync: {
+    history: [],
+    queue: [],
+  } as t.VisitorState,
+  async: {
+    history: [],
+    queue: [],
+  } as t.VisitorState,
 }
 
-function wrap(callback, { data, name, options }) {
-  return async function onVisit(...[key, node, path]) {
-    const callbackArgs = {
-      ...u.omit(options, ['init']),
-      data,
-      name,
-      key,
-      value: node,
-      path,
-    }
+export function getState(): State
+export function getState(type: 'sync'): State['sync']
+export function getState(type: 'async'): State['async']
+export function getState(type?: 'async' | 'sync') {
+  switch (type) {
+    case 'async':
+    case 'sync':
+      return _state[type]
+    default:
+      return _state
+  }
+}
 
-    const control = await callback?.(callbackArgs)
-
-function createId() {
-  return Math.random().toString(36).substring(2)
+export function clearState() {
+  getState().sync = {} as t.VisitorState
+  getState().async = {} as t.VisitorState
 }
 
 function decorate() {
@@ -76,10 +83,20 @@ function decorate() {
         }
         return visitFn(node, wrap(this.callback as any, isAsync, args))
       }
+    }
+  }
 
-      if (control === y.visitAsync.REMOVE) {
-        return y.visitAsync.REMOVE
-      }
+  return function decoratedVisitFn(
+    target: AVisitor,
+    property: string,
+    descriptor: PropertyDescriptor,
+  ) {
+    const isAsync = property === 'visitAsync'
+    descriptor.configurable = false
+    descriptor.enumerable = false
+    descriptor.value = wrapDecoratedVisitFn(target[property], isAsync)
+  }
+}
 
 export type DocVisitorCallback<Fn extends t.AssertAsyncFn | t.AssertFn> = Fn
 
@@ -110,7 +127,7 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
     const getCurrentState = () => getState(isAsync ? 'async' : 'sync')
 
     if (isScalar(node)) {
-      const scalarKind = getScalarKind(node)
+      const scalarType = getScalarType(node)
     } else if (isPair(node)) {
       //
     } else if (isMap(node)) {
@@ -122,7 +139,7 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
         case c.MapKind.Emit:
         case c.MapKind.Goto:
         case c.MapKind.If: {
-          const q = { id: createId() } as t.VisitorQueueObject
+          const q = {} as t.VisitorQueueObject
           q.kind = mapKind
           q.node = node
           q.status = c.VisitorQueueStatus.Pending

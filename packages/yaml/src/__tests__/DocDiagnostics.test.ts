@@ -11,6 +11,8 @@ import DocDiagnostics from '../DocDiagnostics'
 import DocRoot from '../DocRoot'
 import DocVisitor from '../DocVisitor'
 
+const { DiagnosticCode } = consts
+
 let docDiagnostics: DocDiagnostics
 let docRoot: DocRoot
 let docVisitor: DocVisitor
@@ -161,6 +163,24 @@ describe(`DocDiagnostics`, () => {
         })
 
         docDiagnostics.print(diagnostics)
+      })
+
+      it.only(`should generate a report if a root reference contains uppercase in the second level`, () => {
+        docRoot.set('A', { C: { apple: true }, apple: '.A.C.apple' })
+        const results = docDiagnostics.run({
+          enter: (args) => {
+            if (is.reference(args.node)) return assertRef(args)
+          },
+        })
+        expect(
+          results.some((o) =>
+            o.messages.some(
+              (oo) =>
+                oo.code ===
+                DiagnosticCode.ROOT_REFERENCE_SECOND_LEVEL_KEY_UPPERCASE,
+            ),
+          ),
+        )
       })
     })
   })

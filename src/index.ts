@@ -23,6 +23,7 @@ async function initializeApp(
     Account?: typeof CADLAccount
   } = {},
 ) {
+  require('./handlers/wssDiagnostics').default()
   let { noodl, Account: accountProp } = args
   let notification = new (await import('./app/Notifications')).default()
   !noodl && (noodl = (await import('./app/noodl')).default)

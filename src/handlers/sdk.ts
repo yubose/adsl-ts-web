@@ -4,7 +4,7 @@ import * as nu from 'noodl-utils'
 import y from 'yaml'
 import App from '../App'
 import { extendedSdkBuiltIns } from './builtIns'
-import assertAppConfig from '../modules/diagnostics/assertAppConfig'
+// import assertAppConfig from '../modules/diagnostics/assertAppConfig'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {
@@ -114,7 +114,8 @@ export function getSdkHelpers(app: App) {
             ).data
 
         let rootConfigYml = ''
-        let configUrl = `https://public.aitmed.com/config/${configKey}.yml`
+        // let configUrl = `https://public.aitmed.com/config/${configKey}.yml`
+        let configUrl = `http://127.0.0.1:3000/analysis/testpage/${configKey}.yml`
 
         try {
           rootConfigYml = (await axios.get(configUrl)).data
@@ -128,7 +129,9 @@ export function getSdkHelpers(app: App) {
                 `Falling back to look locally now`,
               err,
             )
-            rootConfigYml = (await axios.get(`/${configKey}.yml`)).data
+            rootConfigYml = (
+              await axios.get(`/analysis/testpage/${configKey}.yml`)
+            ).data
             // rootConfigYml = (await axios.get(`/${configKey}.yml`)).data
           } else {
             console.error(err)
@@ -137,6 +140,7 @@ export function getSdkHelpers(app: App) {
 
         const {
           assertRef,
+          assertGoto,
           DocDiagnostics,
           DocRoot,
           DocVisitor,
@@ -171,19 +175,18 @@ export function getSdkHelpers(app: App) {
         const baseUrl = replaceNoodlPlaceholders(rootDoc?.get?.('cadlBaseUrl'))
         const fetchYml = createFetcherWithBaseUrl(baseUrl)
         const appDoc = toDoc(await fetchYml(rootDoc?.get?.('cadlMain') as any))
-        const { preload = [], page: pages = [] } = appDoc.toJSON?.() || {}
+        // const { preload = [], page: pages = [] } = appDoc.toJSON?.() || {}
 
         const loadYmls = async (type: 'page' | 'preload') => {
-          let arr = type === 'page' ? pages : preload
-
           const { preload = [], page: pages = [] } = appDoc.toJSON?.() || {}
+          let arr = type === 'page' ? pages : preload
 
           await Promise.all(
             arr.map(async (page: string) => {
               try {
                 docDiagnostics.mark(type, page)
                 page = unwrap(page)
-                const pathname = `${page}_en.yml`
+                const pathname = `/${page}_en.yml`
                 const yml = await fetchYml(pathname)
                 const doc = toDoc(yml) as y.Document<y.YAMLMap>
                 if (doc.has(page)) doc.contents = doc.contents?.get(page) as any
@@ -201,11 +204,6 @@ export function getSdkHelpers(app: App) {
                   error instanceof Error ? error : new Error(String(error)),
                 )
               }
-              if (y.isMap(doc.contents)) {
-                doc.contents?.items.forEach((pair) => {
-                  docRoot.set(unwrap(pair.key), pair.value)
-                })
-              }
             }),
           )
         }
@@ -222,7 +220,10 @@ export function getSdkHelpers(app: App) {
               const { add, data, key, page, node, root, path } = args
               // if (page && !visitedPages.includes(page)) visitedPages.push(page)
               if (is.reference(node)) {
-                return assertRef(args as any)
+                return assertRef(args)
+              }
+              if (is.goto(node)) {
+                return assertGoto(args)
               }
             },
             init: (args) => {

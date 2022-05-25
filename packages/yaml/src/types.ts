@@ -77,6 +77,11 @@ export type BuiltInEvalFn<S extends string = string> = y.YAMLMap<
 
 export type Component<Type extends string = string> = y.YAMLMap<'type', Type>
 
+export type Goto = y.YAMLMap<
+  'goto',
+  y.YAMLMap<'dataIn' | 'destination'> | string
+>
+
 export type If = y.YAMLMap<'if', IfNode>
 
 export type IfNode = y.YAMLSeq<[unknown, unknown, unknown]>
