@@ -28,5 +28,5 @@
     "types": "tsc --emitDeclarationOnly"
   },
   "typings": "./dist/index.d.ts",
-  "version": "0.1.122"
+  "version": "0.1.123"
 }
