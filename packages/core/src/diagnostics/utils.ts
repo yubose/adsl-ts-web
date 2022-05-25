@@ -103,44 +103,42 @@ import * as is from '../utils/is'
 // }
 
 export function generateDiagnostic(code: DiagnosticCode, arg: any) {
-  switch (code) {
-    case DiagnosticCode.REFERENCE_UNRESOLVABLE:
-      return {
-        code,
-        message: `The reference ${arg.ref} is unresolvable`,
-      }
-    case DiagnosticCode.ROOT_REFERENCE_SECOND_LEVEL_KEY_UPPERCASE:
-      return {
-        code,
-        message: `Root reference ${arg.ref} should not have its second level key "${arg.key}" begin with an uppercase`,
-      }
-    case DiagnosticCode.GOTO_PAGE_MISSING_FROM_APP_CONFIG:
-      return {
-        code,
-        message: `The destination "${arg.destination}" was not included in the app config (cadlEndpoint)`,
-      }
-  }
+  const message = generateDiagnosticMessage(code, arg)
+  if (message) return { code, message }
+  return { code }
 }
 
-/**
- * @deprecated
- */
-export function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
+function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
   switch (code) {
     case DiagnosticCode.LOCAL_REF_MISSING_ROOT_KEY:
       return `Encountered a local reference "${arg.ref}" but a page name (rootKey) was not found`
     case DiagnosticCode.ROOT_REF_MISSING_ROOT_KEY:
-      return `Attemped to resolved a reference "${arg.ref}" but both rootKey and pageName was empty. No root level object could be retrieved`
+      return (
+        `Attemped to resolved a reference "${arg.ref}" but both rootKey and pageName was empty. ` +
+        `No root level object could be retrieved`
+      )
     case DiagnosticCode.ROOT_MISSING_ROOT_KEY:
       return `Attemped to resolved a reference "${arg.ref}" but the root object did not have "${arg.rootKey}" as a key`
     case DiagnosticCode.ROOT_VALUE_EMPTY:
       return `The value retrieved using the root key "${arg.rootKey}" was empty`
-    // case DiagnosticCode.TRAVERSAL_REF_INCOMPLETE_MISSING_KEY:
-    //   return (
-    //     `The reference "${arg.ref}" couldn't be resolved fully. ` +
-    //     `Traversal stopped at "${arg.path.join('.')}" ` +
-    //     `because the object at this iteration did not contain this key`
-    //   )
+    case DiagnosticCode.TRAVERSAL_REF_INCOMPLETE_MISSING_KEY:
+      return (
+        `The reference "${arg.ref}" couldn't be resolved fully. ` +
+        `Traversal stopped at "${arg.path.join('.')}" ` +
+        `because the object at this iteration did not contain this key`
+      )
+    case DiagnosticCode.REFERENCE_UNRESOLVABLE:
+      return `The reference ${arg.ref} is unresolvable`
+    case DiagnosticCode.ROOT_REFERENCE_SECOND_LEVEL_KEY_UPPERCASE:
+      return (
+        `Root reference ${arg.ref} should not have its second level key ` +
+        `"${arg.key}" begin with an uppercase`
+      )
+    case DiagnosticCode.GOTO_PAGE_MISSING_FROM_APP_CONFIG:
+      return (
+        `The destination "${arg.destination}" ` +
+        `was not included in the app config (cadlEndpoint)`
+      )
     default:
       throw new Error(`Invalid diagnostic code "${code}"`)
   }

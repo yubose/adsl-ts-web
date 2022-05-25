@@ -30,7 +30,7 @@ beforeEach(() => {
 })
 
 describe.only(`processors`, () => {
-  describe.skip(`createInstructions`, () => {
+  describe(`createInstructions`, () => {
     it(`should create instructions for reference strings`, () => {
       const ref = '.A.formData.currentIcon'
       const instructions = com.createInstructions(ref)
@@ -43,7 +43,7 @@ describe.only(`processors`, () => {
     })
   })
 
-  describe(`if`, () => {
+  describe.skip(`if`, () => {
     it(`should wrap if conditions`, () => {
       // process.stdout.write('\x1Bc')
       docRoot.clear()

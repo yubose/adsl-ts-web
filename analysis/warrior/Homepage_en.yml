@@ -1,0 +1,12 @@
+Homepage:
+  title: Homepage
+  B: hello
+  components:
+    - type: label
+      text: ..g
+    - type: label
+      text: .Homepage.B
+    - type: image
+      path: abc.png
+      onClick:
+        - goto: Dashboard

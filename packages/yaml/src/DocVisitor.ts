@@ -17,16 +17,20 @@ import * as t from './types'
 
 export type State = typeof _state
 
-const _state = {
-  sync: {
-    history: [],
-    queue: [],
-  } as t.VisitorState,
-  async: {
-    history: [],
-    queue: [],
-  } as t.VisitorState,
+function getInitialState() {
+  return {
+    sync: {
+      history: [],
+      queue: [],
+    } as t.VisitorState,
+    async: {
+      history: [],
+      queue: [],
+    } as t.VisitorState,
+  }
 }
+
+let _state = getInitialState()
 
 export function getState(): State
 export function getState(type: 'sync'): State['sync']
@@ -42,8 +46,7 @@ export function getState(type?: 'async' | 'sync') {
 }
 
 export function clearState() {
-  getState().sync = {} as t.VisitorState
-  getState().async = {} as t.VisitorState
+  _state = getInitialState()
 }
 
 function decorate() {

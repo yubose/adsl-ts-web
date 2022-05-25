@@ -1,5 +1,6 @@
+const set = require('lodash/set')
 const u = require('@jsmanifest/utils')
-const { toJson } = require('@noodl/yaml')
+const { toJson, toYml } = require('@noodl/yaml')
 const y = require('yaml')
 const path = require('path')
 const del = require('del')
@@ -30,7 +31,6 @@ const paths = {
   analysis: {
     base: getFilePath('./analysis'),
     app: getFilePath('./analysis/app'),
-    testpage: getFilePath('./analysis/testpage'),
   },
   build: getFilePath('build'),
   public: getFilePath('public'),
@@ -126,6 +126,7 @@ function getWebpackConfig(env) {
 
           const analysis = createAnalysisModule(paths.analysis.base, {
             devServer,
+            env,
             watchOptions: {
               //
             },
@@ -415,7 +416,8 @@ module.exports.settings = settings
  * @param { import('chokidar').WatchOptions & { glob?: string } } opts.watchOptions
  */
 function createAnalysisModule(basedir = paths.analysis.base, opts = {}) {
-  const { devServer, watchOptions = {}, wssOptions = {} } = opts
+  const { devServer, env, watchOptions = {}, wssOptions = {} } = opts
+  const configKey = env.CONFIG || 'testpage'
 
   const chokidar = require('chokidar')
   const ws = require('ws')
@@ -429,7 +431,28 @@ function createAnalysisModule(basedir = paths.analysis.base, opts = {}) {
   let wss
 
   const appDir = path.join(basedir, 'app')
-  const testDir = path.join(basedir, 'testpage')
+  const testDir = path.join(basedir, configKey)
+
+  {
+    const pathToAnalysisDashboardFile = path.join(
+      paths.analysis.app,
+      'Dashboard_en.yml',
+    )
+    if (fs.existsSync(pathToAnalysisDashboardFile)) {
+      const yml = fs.readFileSync(pathToAnalysisDashboardFile, 'utf8')
+      const json = toJson(yml)
+      const configBefore = json.config
+      set(json, 'Dashboard.config', configKey)
+      fs.writeFileSync(pathToAnalysisDashboardFile, toYml(json), 'utf8')
+      console.log(
+        `${u.green(
+          `Changed analysis Dashboard config from ${u.cyan(
+            configBefore,
+          )} to ${u.yellow(configKey)}`,
+        )}`,
+      )
+    }
+  }
 
   function watch(opts) {
     const tag = `[${u.blue('watch')}]`
@@ -546,7 +569,7 @@ function createAnalysisModule(basedir = paths.analysis.base, opts = {}) {
     devServer.app.get(`/analysis/:appname/:filename`, (req, res) => {
       const loadAsYml = (p) => fs.readFileSync(p, 'utf8')
       const { appname, filename } = req.params
-      const glob = path.join(paths.analysis[appname], '**/*.yml')
+      const glob = path.join(paths.analysis.base, appname, '**/*.yml')
       const filepaths = fg.sync(glob)
       const filepath = findMatchingFileName(filepaths, filename)
       const fileyml = loadAsYml(filepath)

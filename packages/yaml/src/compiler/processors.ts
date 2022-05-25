@@ -8,6 +8,10 @@ import {
   getProcessWriteType,
 } from './utils'
 import get from '../utils/get'
+import {
+  BasicInstructionType,
+  OrganicInstructionType,
+} from './compilerConstants'
 import type { If, IfNode } from '../types'
 import * as t from './compilerTypes'
 import * as c from '../constants'
@@ -142,24 +146,39 @@ export function process<N = unknown>({
   while (instructions.length) {
     const { type, value } = instructions.pop() ?? {}
 
-    if (type === 'move') {
+    if (type === BasicInstructionType.Collect) {
+      results.push(value)
+    } else if (type === BasicInstructionType.If) {
       //
-    } else if (type === 'next') {
-      currentValue += fp.toStr(value)
-    } else if (type === 'read') {
-      // const retrievedValue = get(node)
-    } else if (type === 'write') {
-      const writeType = getProcessWriteType(value)
-
-      if (writeType === c.ProcessWriteType.AtMerge) {
-        //
-      } else if (writeType === c.ProcessWriteType.LocalMerge) {
-        //
-      } else if (writeType === c.ProcessWriteType.RootMerge) {
-        //
-      } else {
-        //
-      }
+    } else if (type === BasicInstructionType.Else) {
+      //
+    } else if (type === BasicInstructionType.Evaluate) {
+      // const writeType = getProcessWriteType(value)
+      // if (writeType === c.ProcessWriteType.AtMerge) {
+      //   //
+      // } else if (writeType === c.ProcessWriteType.LocalMerge) {
+      //   //
+      // } else if (writeType === c.ProcessWriteType.RootMerge) {
+      //   //
+      // } else {
+      //   //
+      // }
+    } else if (type === BasicInstructionType.Extend) {
+      //
+    } else if (type === BasicInstructionType.Goto) {
+      //
+    } else if (type === BasicInstructionType.Inherit) {
+      //
+    } else if (type === BasicInstructionType.Override) {
+      //
+    } else if (type === OrganicInstructionType.Convolve) {
+      //
+    } else if (type === OrganicInstructionType.Elite) {
+      //
+    } else if (type === OrganicInstructionType.Emit) {
+      //
+    } else if (type === OrganicInstructionType.Evolve) {
+      //
     }
   }
 

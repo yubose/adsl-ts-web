@@ -1,4 +1,5 @@
 import y from 'yaml'
+import type { ReferenceString } from 'noodl-types'
 import {
   consts,
   is as coreIs,
@@ -7,13 +8,10 @@ import {
 } from '@noodl/core'
 import createNode from '../utils/createNode'
 import deref from '../utils/deref'
-import get from '../utils/get'
-import set from '../utils/set'
 import is from '../utils/is'
 import unwrap from '../utils/unwrap'
 import type DocRoot from '../DocRoot'
 import { createAssert } from '../assert'
-import * as t from '../types'
 
 export default createAssert(function assertRef({
   add,
@@ -22,7 +20,7 @@ export default createAssert(function assertRef({
   page,
   root,
 }) {
-  const ref = unwrap(node) as string
+  const ref = unwrap(node) as ReferenceString
   if (ref.startsWith('=.builtIn.')) return
   const refProps = getRefProps(ref)
 
@@ -78,15 +76,6 @@ export default createAssert(function assertRef({
 
     return y.visit.SKIP
   } else {
-    // add({
-    //   page,
-    //   messages: [
-    //     {
-    //       type: consts.ValidatorType.INFO,
-    //       message: `Reference "${derefed.reference}" resolved`,
-    //     },
-    //   ],
-    // })
     if (is.scalarNode(node)) {
       node.value = unwrap(derefed.value)
     } else {

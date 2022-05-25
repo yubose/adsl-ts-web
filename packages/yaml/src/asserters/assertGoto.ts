@@ -1,10 +1,5 @@
 import y from 'yaml'
-import {
-  consts,
-  is as coreIs,
-  generateDiagnostic,
-  getRefProps,
-} from '@noodl/core'
+import { consts, is as coreIs, generateDiagnostic } from '@noodl/core'
 import createNode from '../utils/createNode'
 import deref from '../utils/deref'
 import get from '../utils/get'
@@ -24,7 +19,7 @@ export default createAssert(function assertRef({
 }) {
   const gotoNode = node as t.Goto
   const destinationNode = gotoNode.get('goto', true)
-  const destination = destinationNode?.value
+  const destination = unwrap(destinationNode)
 
   if (coreIs.str(destination)) {
     if (coreIs.reference(destination)) {

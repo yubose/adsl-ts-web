@@ -1,23 +1,13 @@
 import * as c from '../constants'
 import type DocRoot from '../DocRoot'
+import {
+  BasicInstructionType,
+  OrganicInstructionType,
+} from './compilerConstants'
 
 export namespace Processor {
-  export type InstructionType = BaseInstructionType | OrganicInstructionType
-
-  export type BaseInstructionType =
-    | 'collect'
-    | 'else'
-    | 'evaluate'
-    | 'extend'
-    | 'goto'
-    | 'if'
-    | 'inherit'
-    | 'override'
-
-  export type OrganicInstructionType = 'convolve' | 'elite' | 'emit' | 'evolve'
-
   export interface Instruction {
-    type: InstructionType
+    type: BasicInstructionType | OrganicInstructionType
     value: any
   }
 

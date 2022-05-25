@@ -4,7 +4,6 @@ import * as nu from 'noodl-utils'
 import y from 'yaml'
 import App from '../App'
 import { extendedSdkBuiltIns } from './builtIns'
-// import assertAppConfig from '../modules/diagnostics/assertAppConfig'
 
 export function getSdkHelpers(app: App) {
   const initPageBuiltIns = {
@@ -90,7 +89,6 @@ export function getSdkHelpers(app: App) {
     ) {
       try {
         let configKey = dataIn
-        let data = {}
         let filter: RegExp | undefined
 
         if (u.isStr(dataIn)) {
@@ -113,9 +111,9 @@ export function getSdkHelpers(app: App) {
               })
             ).data
 
+        let configUrl = `http://127.0.0.1:3000/analysis/${configKey}/${configKey}.yml`
         let rootConfigYml = ''
         // let configUrl = `https://public.aitmed.com/config/${configKey}.yml`
-        let configUrl = `http://127.0.0.1:3000/analysis/testpage/${configKey}.yml`
 
         try {
           rootConfigYml = (await axios.get(configUrl)).data
@@ -123,16 +121,13 @@ export function getSdkHelpers(app: App) {
           const err = error instanceof Error ? error : new Error(String(error))
           const is404 = axios.isAxiosError(err) && err.response?.status === 404
           if (is404) {
-            // Fallback to loading locally
             console.error(
-              `The endpoint using config "${configKey}" at ${configUrl} returned a 404. ` +
-                `Falling back to look locally now`,
+              `The endpoint using config "${configKey}" at ${configUrl} returned a 404. Falling back to look locally now`,
               err,
             )
             rootConfigYml = (
-              await axios.get(`/analysis/testpage/${configKey}.yml`)
+              await axios.get(`/analysis/${configKey}/${configKey}.yml`)
             ).data
-            // rootConfigYml = (await axios.get(`/${configKey}.yml`)).data
           } else {
             console.error(err)
           }
@@ -175,10 +170,9 @@ export function getSdkHelpers(app: App) {
         const baseUrl = replaceNoodlPlaceholders(rootDoc?.get?.('cadlBaseUrl'))
         const fetchYml = createFetcherWithBaseUrl(baseUrl)
         const appDoc = toDoc(await fetchYml(rootDoc?.get?.('cadlMain') as any))
-        // const { preload = [], page: pages = [] } = appDoc.toJSON?.() || {}
 
         const loadYmls = async (type: 'page' | 'preload') => {
-          const { preload = [], page: pages = [] } = appDoc.toJSON?.() || {}
+          const { preload = [], page: pages = [] } = appDoc?.toJSON?.() || {}
           let arr = type === 'page' ? pages : preload
 
           await Promise.all(
@@ -213,21 +207,15 @@ export function getSdkHelpers(app: App) {
         docDiagnostics.use(docRoot)
         docDiagnostics.use(docVisitor)
 
-        // const visitedPages = [] as string[]
         const diagnostics = docDiagnostics
           .run({
-            enter: function (args) {
-              const { add, data, key, page, node, root, path } = args
-              // if (page && !visitedPages.includes(page)) visitedPages.push(page)
-              if (is.reference(node)) {
-                return assertRef(args)
+            enter: (args) => {
+              const node = args.node
+              if (is.scalarNode(node)) {
+                if (is.reference(node)) return assertRef(args)
+              } else if (is.mapNode(node)) {
+                if (is.goto(node)) return assertGoto(args)
               }
-              if (is.goto(node)) {
-                return assertGoto(args)
-              }
-            },
-            init: (args) => {
-              // assertAppConfig(args)
             },
           })
           .map((diagnostic) => diagnostic.toJSON())
@@ -236,8 +224,7 @@ export function getSdkHelpers(app: App) {
 
         return diagnostics
       } catch (error) {
-        const err = error instanceof Error ? error : new Error(String(error))
-        throw err
+        throw error instanceof Error ? error : new Error(String(error))
       }
     },
   }

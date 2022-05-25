@@ -2,6 +2,7 @@ import type { LiteralUnion } from 'type-fest'
 import type { AVisitor, VisitFnArgs, VisitorInitArgs } from '../types'
 import type { translateDiagnosticType } from './utils'
 import type Diagnostic from './Diagnostic'
+import type { DiagnosticCode } from '../constants'
 
 export interface IDiagnostics {
   run(options?: RunOptions): Diagnostic[]
@@ -22,6 +23,7 @@ export type DiagnosticObject<
 }
 
 export interface DiagnosticObjectMessage {
+  code: DiagnosticCode
   type: ReturnType<typeof translateDiagnosticType>
   message?: string
 }

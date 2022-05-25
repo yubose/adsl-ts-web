@@ -1,32 +1,31 @@
 Dashboard:
-  title: "Analysis"
+  title: Analysis
   init:
     - =.builtIn.diagnostics:
         dataIn:
           config: ..config
-          # filter:
-          #   - medical
         dataOut: Dashboard.diagnostics
-  config: testpage
+  config: warrior
   diagnostics: null
   components:
-    - .BaseHeader:
+    - .BaseHeader: null
     - type: divider
       style:
-        height: '0.03'
+        height: "0.03"
     - type: view
       style:
-        marginTop: '0.1'
-        textColor: '0x133333'
+        marginTop: "0.1"
+        textColor: "0x133333"
         textAlign:
           x: centerX
       children:
         - type: label
-          text: 'Filter examples (will be turned into a RegExp): '
+          text: "Filter examples (will be turned into a RegExp): "
         - type: label
           text: '"patientchart" (single string) turns into "/patientchart/i"'
         - type: label
-          text: '"medical, obstetrical" (array of strings) turns into "/medical|obstetrical/i"'
+          text: '"medical, obstetrical" (array of strings) turns into
+            "/medical|obstetrical/i"'
     - type: view
       style:
         marginTop: "0.05"
@@ -47,20 +46,13 @@ Dashboard:
               children:
                 - type: view
                   children:
-                    # - type: label
-                    #   textBoard:
-                    #     - text: 'Page: '
-                    #     - text: itemObject.page
-                    #   style:
-                    #     height: '0.015'
-                    #     textIndent: "10px"
                     - type: list
                       listObject: itemObject.messages
                       contentType: listObject
                       iteratorVar: itemObject
                       children:
                         - type: listItem
-                          itemObject: ''
+                          itemObject: ""
                           style:
                             listStyle: none
                           children:
@@ -81,4 +73,4 @@ Dashboard:
                             - type: label
                               dataKey: itemObject.message
                               style:
-                                fontSize: '14'
+                                fontSize: "14"

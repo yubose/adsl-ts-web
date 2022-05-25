@@ -165,7 +165,7 @@ describe(`DocDiagnostics`, () => {
         docDiagnostics.print(diagnostics)
       })
 
-      it.only(`should generate a report if a root reference contains uppercase in the second level`, () => {
+      it(`should generate a report if a root reference contains uppercase in the second level`, () => {
         docRoot.set('A', { C: { apple: true }, apple: '.A.C.apple' })
         const results = docDiagnostics.run({
           enter: (args) => {

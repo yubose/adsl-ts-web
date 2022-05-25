@@ -86,6 +86,8 @@ const is = {
     node['_id_'] === c._symbol.root,
   scalarNode: (node: unknown): node is y.Scalar =>
     getYamlNodeKind(node) === c.Kind.Scalar,
+  stringNode: (node: unknown): node is y.Scalar<string> =>
+    is.scalarNode(node) && coreIs.str(node.value),
   pairNode: (node: unknown): node is y.Pair =>
     getYamlNodeKind(node) === c.Kind.Pair,
   mapNode: (node: unknown): node is y.YAMLMap =>
