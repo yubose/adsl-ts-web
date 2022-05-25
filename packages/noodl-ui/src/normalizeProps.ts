@@ -605,7 +605,7 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
                       const _styleValue = com.formatColor(
                         get(dataObject, dataKey),
                       )
-
+                      
                       if (s.isKeyRelatedToWidthOrHeight(styleKey)) {
                         if (s.isNoodlUnit(_styleValue)) {
                           value[styleKey] = String(
@@ -616,7 +616,9 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
                             ),
                           )
                         }
-                      } else {
+                      }else if(styleKey === 'pointerEvents'){
+                        value['pointer-events'] = _styleValue
+                      }else {
                         value[styleKey] = _styleValue
                       }
                     } else {
