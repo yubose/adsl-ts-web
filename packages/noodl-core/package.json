@@ -27,7 +27,7 @@
     "access": "public"
   },
   "repository": {
-    "directory": "packages/core",
+    "directory": "packages/noodl-core",
     "type": "git",
     "url": "http://gitlab.aitmed.com/pfftdammitchris/aitmed-noodl-web.git"
   },
@@ -41,5 +41,5 @@
     "types": "tsc --emitDeclarationOnly --esModuleInterop --declaration --declarationDir dist --project tsconfig.json"
   },
   "typings": "./dist/index.d.ts",
-  "version": "0.1.12"
+  "version": "0.1.13"
 }

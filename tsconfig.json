@@ -42,10 +42,10 @@
   "include": [
     "dev/cpt/**/*.js",
     "dev/cpt/**/*.ts",
-    "packages/file/src/**/*",
-    "packages/core/src/**/*",
+    "packages/noodl-file/src/**/*",
+    "packages/noodl-core/src/**/*",
     "packages/homepage/src/**/*",
-    "packages/yaml/src/**/*",
+    "packages/noodl-yaml/src/**/*",
     "packages/noodl-pi/src/**/*",
     "packages/noodl-ui/src/**/*",
     "packages/noodl-utils/src/**/*",
