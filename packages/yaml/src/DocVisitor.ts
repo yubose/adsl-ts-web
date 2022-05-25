@@ -1,6 +1,6 @@
 import y from 'yaml'
-import { AVisitor, is as coreIs } from '@noodl/core'
-import type { VisitorInitArgs, VisitorOptions, VisitFnArgs } from '@noodl/core'
+import { AVisitor, is as coreIs } from 'noodl-core'
+import type { VisitorInitArgs, VisitorOptions, VisitFnArgs } from 'noodl-core'
 import is from './utils/is'
 import { isScalar, isPair, isMap, isSeq } from './utils/yaml'
 import {

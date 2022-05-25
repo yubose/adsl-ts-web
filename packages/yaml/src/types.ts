@@ -1,4 +1,4 @@
-import type { ARoot, DiagnosticsHelpers, VisitFnArgs } from '@noodl/core'
+import type { ARoot, DiagnosticsHelpers, VisitFnArgs } from 'noodl-core'
 import type { ReferenceString } from 'noodl-types'
 import y from 'yaml'
 import * as c from './constants'

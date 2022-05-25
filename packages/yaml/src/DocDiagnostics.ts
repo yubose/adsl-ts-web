@@ -1,5 +1,5 @@
-import { Diagnostics, is as coreIs } from '@noodl/core'
-import type { Builder, TranslatedDiagnosticObject } from '@noodl/core'
+import { Diagnostics, is as coreIs } from 'noodl-core'
+import type { Builder, TranslatedDiagnosticObject } from 'noodl-core'
 import getYamlNodeKind from './utils/getYamlNodeKind'
 import DocDiagnosticsIterator from './DocDiagnosticsIterator'
 import DocRoot from './DocRoot'

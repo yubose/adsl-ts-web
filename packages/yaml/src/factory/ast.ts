@@ -1,6 +1,6 @@
 import type { LiteralUnion } from 'type-fest'
 import y from 'yaml'
-import { is, fp } from '@noodl/core'
+import { is, fp } from 'noodl-core'
 import createNode from '../utils/createNode'
 import _is_ from '../utils/is'
 import merge from '../transformers/merge'

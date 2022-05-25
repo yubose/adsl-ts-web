@@ -1,5 +1,5 @@
 import type { ReferenceString } from 'noodl-types'
-import { is as coreIs } from '@noodl/core'
+import { is as coreIs } from 'noodl-core'
 import y from 'yaml'
 import createNode from '../utils/createNode'
 import deref from '../utils/deref'

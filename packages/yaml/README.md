@@ -1,21 +1,21 @@
-# `@noodl/yaml`
+# `noodl-yaml`
 
-> YAML Bindings for @noodl/core
+> YAML Bindings for noodl-core
 
 ## Dependencies
 
-| Name                | Description                                            |
-| ------------------- | ------------------------------------------------------ |
-| `@noodl/core`       | Core dependency                                        |
-| `@jsmanifest/utils` | Lightweight functional programming utilities           |
-| `noodl-types`       | `@noodl/yaml` uses `noodl-types` for its noodl typings |
-| `yaml`              | `@noodl/yaml` uses `yaml` to create YAML bindings      |
+| Name                | Description                                           |
+| ------------------- | ----------------------------------------------------- |
+| `noodl-core`        | Core dependency                                       |
+| `@jsmanifest/utils` | Lightweight functional programming utilities          |
+| `noodl-types`       | `noodl-yaml` uses `noodl-types` for its noodl typings |
+| `yaml`              | `noodl-yaml` uses `yaml` to create YAML bindings      |
 
 ## Usage
 
 ```js
-const { Diagnostics } = require('@noodl/core')
-const { DocRoot, DocVisitor, DocIterator } = require('@noodl/yaml')
+const { Diagnostics } = require('noodl-core')
+const { DocRoot, DocVisitor, DocIterator } = require('noodl-yaml')
 
 const root = new DocRoot()
 const visitor = new DocVisitor()

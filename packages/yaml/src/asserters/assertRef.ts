@@ -5,7 +5,7 @@ import {
   is as coreIs,
   generateDiagnostic,
   getRefProps,
-} from '@noodl/core'
+} from 'noodl-core'
 import createNode from '../utils/createNode'
 import deref from '../utils/deref'
 import is from '../utils/is'

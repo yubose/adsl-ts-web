@@ -1,4 +1,4 @@
-import { consts, is as coreIs, fp } from '@noodl/core'
+import { consts, is as coreIs, fp } from 'noodl-core'
 import { Scalar, Pair, YAMLMap, YAMLSeq } from 'yaml'
 import getJsType from '../utils/getJsType'
 import is from '../utils/is'

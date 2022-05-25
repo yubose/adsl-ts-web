@@ -1,5 +1,5 @@
 import y from 'yaml'
-import { consts, is as coreIs, generateDiagnostic } from '@noodl/core'
+import { consts, is as coreIs, generateDiagnostic } from 'noodl-core'
 import createNode from '../utils/createNode'
 import deref from '../utils/deref'
 import get from '../utils/get'

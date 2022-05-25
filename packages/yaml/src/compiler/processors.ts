@@ -1,5 +1,5 @@
 import type { ReferenceString } from 'noodl-types'
-import { consts, fp } from '@noodl/core'
+import { consts, fp } from 'noodl-core'
 import { isScalar } from '../utils/yaml'
 import {
   getScalarType,

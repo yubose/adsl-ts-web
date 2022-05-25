@@ -2,7 +2,7 @@
  * State pattern dereferencer
  */
 import y from 'yaml'
-import { is as coreIs, fp, getRefProps } from '@noodl/core'
+import { is as coreIs, fp, getRefProps } from 'noodl-core'
 import type { ReferenceString } from 'noodl-types'
 import get from './get'
 import is from './is'

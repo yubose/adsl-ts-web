@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { fp, is } from '@noodl/core'
+import { fp, is } from 'noodl-core'
 import y from 'yaml'
 import factory from '../factory/ast'
 import unwrap from '../utils/unwrap'

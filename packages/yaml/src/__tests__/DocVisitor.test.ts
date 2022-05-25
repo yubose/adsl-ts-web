@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import sinon from 'sinon'
 import y from 'yaml'
-import { consts } from '@noodl/core'
+import { consts } from 'noodl-core'
 import Root from '../DocRoot'
 import { createAssert } from '../assert'
 import createNode from '../utils/createNode'

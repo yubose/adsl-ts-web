@@ -1,5 +1,5 @@
 import y from 'yaml'
-import { fp, is } from '@noodl/core'
+import { fp, is } from 'noodl-core'
 import getYamlNodeKind from './getYamlNodeKind'
 import * as c from '../constants'
 

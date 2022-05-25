@@ -5,7 +5,7 @@ import {
   getRefProps,
   toPath,
   trimReference,
-} from '@noodl/core'
+} from 'noodl-core'
 import is from './is'
 import getYamlNodeKind from './getYamlNodeKind'
 import { Kind } from '../constants'

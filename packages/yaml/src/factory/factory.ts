@@ -1,5 +1,5 @@
 import y from 'yaml'
-import { is } from '@noodl/core'
+import { is } from 'noodl-core'
 
 type SourceToken<S extends string = string> = Omit<
   y.CST.SourceToken,

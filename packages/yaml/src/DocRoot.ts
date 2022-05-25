@@ -1,5 +1,5 @@
 import y from 'yaml'
-import { ARoot, is as coreIs } from '@noodl/core'
+import { ARoot, is as coreIs } from 'noodl-core'
 import DocDiagnosticsIterator from './DocDiagnosticsIterator'
 import is from './utils/is'
 import get from './utils/get'
