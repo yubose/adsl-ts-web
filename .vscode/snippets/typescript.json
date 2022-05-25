@@ -1,6 +1,6 @@
 {
   "fp": {
-    "body": "import { fp } from '@noodl/core'",
+    "body": "import { fp } from 'noodl-core'",
     "prefix": "fp"
   },
   "import { ui } from './test-utils'": {

@@ -142,7 +142,7 @@ export function getSdkHelpers(app: App) {
           is,
           toDoc,
           unwrap,
-        } = await import('@noodl/yaml')
+        } = await import('noodl-yaml')
 
         const docDiagnostics = new DocDiagnostics()
         const docRoot = new DocRoot()

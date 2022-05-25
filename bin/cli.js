@@ -62,6 +62,7 @@ const cli = meow(getHelp(), {
     start: { type: 'string' },
     build: { type: 'string' },
     bundle: { type: 'string' },
+    publish: { alias: 'p', type: 'string' },
     test: { type: 'string' },
     server: { type: 'string' },
     generate: { alias: 'g', type: 'boolean' },
@@ -85,10 +86,15 @@ newline()
     const isStart = input[0] === 'start' || flags.start
     const isBuild = flags.build && !isStart
     const isTest = flags.test && !(isStart && isBuild)
+    const isPublish = flags.publish && !(isStart && isBuild && isTest)
     const pkg =
       input[0] === 'start'
         ? input[1]
-        : flags.start || flags.build || flags.test || flags.deploy
+        : flags.start ||
+          flags.build ||
+          flags.test ||
+          flags.deploy ||
+          flags.publish
 
     let cmd = ''
 
@@ -113,7 +119,7 @@ newline()
       } else if (/yaml|core/i.test(pkg)) {
         let command = isBuild ? 'build' : isTest ? 'test' : 'start'
         cmd = `lerna exec --scope `
-        if (/core/i.test(pkg)) cmd += '@noodl/core '
+        if (/core/i.test(pkg)) cmd += 'noodl-core '
         else if (/yaml/i.test(pkg)) cmd += '@noodl/yaml '
         cmd += `\"npm run ${command}\"`
         exec(cmd)
@@ -134,6 +140,22 @@ newline()
         log.info(`Finished bundling!`)
       } else {
         throw new Error(`Invalid value for bundling. Choose one of: "webApp"`)
+      }
+    }
+    // Publish
+    else if (isPublish) {
+      if (/core|yaml/i.test(pkg)) {
+        const folder = /core/i.test(pkg) ? 'core' : 'yaml'
+        cmd = `cd packages/${folder} `
+        cmd += `&& git add . && git commit -m 'update' `
+        cmd += `&& npm run build`
+        cmd += `&& npm version patch -f && npm publish -f --access public`
+        cmd += `&& cd ../..`
+        exec(cmd)
+      } else {
+        throw new Error(
+          `Invalid value for publishing. Choose one of: "core", "yaml"`,
+        )
       }
     }
     // Start local server using noodl-cli
