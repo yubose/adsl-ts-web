@@ -13,7 +13,7 @@
       "message": "Update"
     }
   },
-  "ignore": ["noodl-core-docs"],
+  "ignore": [],
   "ignoreChanges": ["**/__tests__/**"],
   "loglevel": "success",
   "packages": [

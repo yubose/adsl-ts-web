@@ -110,17 +110,17 @@ newline()
         cmd += `npm run ${command}`
         cmd += `\"`
       }
-      // @noodl/core documentation
+      // noodl-core documentation
       else if (/docs/i.test(pkg)) {
         let command = isBuild ? 'build' : 'start'
-        cmd = `lerna exec --scope core-docs \"`
+        cmd = `lerna exec --scope noodl-core-docs \"`
         cmd += `npm run ${command}`
         cmd += `\"`
       } else if (/yaml|core/i.test(pkg)) {
         let command = isBuild ? 'build' : isTest ? 'test' : 'start'
         cmd = `lerna exec --scope `
         if (/core/i.test(pkg)) cmd += 'noodl-core '
-        else if (/yaml/i.test(pkg)) cmd += '@noodl/yaml '
+        else if (/yaml/i.test(pkg)) cmd += 'noodl-yaml '
         cmd += `\"npm run ${command}\"`
         exec(cmd)
       } else {
@@ -145,7 +145,7 @@ newline()
     // Publish
     else if (isPublish) {
       if (/core|yaml/i.test(pkg)) {
-        const folder = /core/i.test(pkg) ? 'core' : 'yaml'
+        const folder = /core/i.test(pkg) ? 'noodl-core' : 'noodl-yaml'
         cmd = `cd packages/${folder} `
         cmd += `&& git add . && git commit -m 'update' `
         cmd += `&& npm run build`
