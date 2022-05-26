@@ -1,7 +1,7 @@
 const y = require('yaml')
 const nt = require('noodl-types')
-const n = require('@noodl/core')
-const ny = require('@noodl/yaml')
+const n = require('noodl-core')
+const ny = require('noodl-yaml')
 const u = require('@jsmanifest/utils')
 const nu = require('noodl-utils')
 
@@ -18,12 +18,12 @@ const builtIns = n.getBuiltIns()
  * @property { YAMLNode } [VisitFnArgs.node]
  * @property { string } [VisitFnArgs.pageName]
  * @property { YAMLNode[] } [VisitFnArgs.path]
- * @property { InstanceType<import('@noodl/core')['ARoot']> } [VisitFnArgs.root]
+ * @property { InstanceType<import('noodl-core')['ARoot']> } [VisitFnArgs.root]
  * @property { Record<string, any> } [VisitFnArgs.data]
  */
 
 /**
- * @param {{ validate: (args: VisitFnArgs) => { type?: import('@noodl/core').consts.ValidatorType; message: string | string[] } }} config
+ * @param {{ validate: (args: VisitFnArgs) => { type?: import('noodl-core').consts.ValidatorType; message: string | string[] } }} config
  */
 function createValidator(config) {
   return config
