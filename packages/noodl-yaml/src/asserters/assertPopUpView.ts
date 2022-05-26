@@ -7,7 +7,7 @@ import unwrap from '../utils/unwrap'
 import { createAssert } from '../assert'
 import * as t from '../types'
 
-export default createAssert<y.YAMLMap<'popUpView'>>({
+export default createAssert({
   cond: [is.mapNode, has('popUpView')],
   fn({ add, isValidViewTag, node, markers, page, root }) {
     let popUpView = unwrap(node.get('popUpView')) as string

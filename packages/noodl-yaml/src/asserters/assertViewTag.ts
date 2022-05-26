@@ -5,9 +5,8 @@ import has from '../utils/has'
 import is from '../utils/is'
 import unwrap from '../utils/unwrap'
 import { createAssert } from '../assert'
-import * as t from '../types'
 
-export default createAssert<y.YAMLMap<'viewTag'>>({
+export default createAssert({
   cond: [is.mapNode, has('viewTag')],
   fn({ add, isValidViewTag, node, markers, page, root }) {
     let viewTag = unwrap(node.get('viewTag')) as string

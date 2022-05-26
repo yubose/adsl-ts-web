@@ -13,7 +13,7 @@ import unwrap from '../utils/unwrap'
 import type DocRoot from '../DocRoot'
 import { createAssert } from '../assert'
 
-export default createAssert<y.Scalar>({
+export default createAssert({
   cond: {
     scalar: is.reference,
   },

@@ -56,7 +56,7 @@ export interface InternalCondFn<N = unknown> {
   (kind: Kind, node: N)
 }
 
-export function createAssert<N = unknown>({
+export function createAssert<N = any>({
   cond,
   fn,
 }: {
