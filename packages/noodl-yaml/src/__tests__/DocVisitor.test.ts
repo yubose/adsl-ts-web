@@ -3,6 +3,7 @@ import sinon from 'sinon'
 import y from 'yaml'
 import { consts } from 'noodl-core'
 import Root from '../DocRoot'
+import { assertRef, assertGoto } from '../asserters'
 import { createAssert } from '../assert'
 import createNode from '../utils/createNode'
 import is from '../utils/is'
@@ -51,10 +52,11 @@ describe(`DocVisitor`, () => {
     docRoot.clear()
     docRoot.set('Topo', { myGreeting: 'hello!', getMyGreeting: '..myGreeting' })
     const replacedNode = createNode('hello!')
-    const fn = createAssert((args) => {
-      if (is.reference(args.node)) return replacedNode
+    docDiagnostics.run({
+      enter: (args) => {
+        if (is.reference(args.node)) return replacedNode
+      },
     })
-    docDiagnostics.run({ enter: fn })
     expect(docRoot.get('Topo.getMyGreeting')).to.eq(replacedNode)
   })
 
@@ -62,10 +64,11 @@ describe(`DocVisitor`, () => {
     docRoot.clear()
     docRoot.set('Topo', { myGreeting: 'hello!', getMyGreeting: '..myGreeting' })
     const replacedNode = createNode('hello!')
-    const fn = createAssert((args) => {
-      if (is.reference(args.node)) return y.visit.REMOVE
+    docDiagnostics.run({
+      enter: (args) => {
+        if (is.reference(args.node)) return y.visit.REMOVE
+      },
     })
-    docDiagnostics.run({ enter: fn })
     expect(docRoot.get('Topo.getMyGreeting')).not.to.eq(replacedNode)
     expect(docRoot.get('Topo.getMyGreeting')).to.be.undefined
   })
@@ -73,10 +76,11 @@ describe(`DocVisitor`, () => {
   it(`[visit] should keep the node if returned with undefined`, () => {
     docRoot.clear()
     docRoot.set('Topo', { myGreeting: 'hello!', getMyGreeting: '..myGreeting' })
-    const fn = createAssert((args) => {
-      if (is.reference(args.node)) return
+    docDiagnostics.run({
+      enter: (args) => {
+        if (is.reference(args.node)) return
+      },
     })
-    docDiagnostics.run({ enter: fn })
     expect(docRoot.get('Topo.getMyGreeting'))
       .to.be.instanceOf(y.Scalar)
       .to.have.property('value', '..myGreeting')
@@ -86,10 +90,11 @@ describe(`DocVisitor`, () => {
     docRoot.clear()
     docRoot.set('Topo', { myGreeting: 'hello!', getMyGreeting: '..myGreeting' })
     const replacedNode = createNode('hello!')
-    const fn = createAssert((args) => {
-      if (is.reference(args.node)) return replacedNode
+    docDiagnostics.run({
+      enter: (args) => {
+        if (is.reference(args.node)) return replacedNode
+      },
     })
-    docDiagnostics.run({ enter: fn })
     expect(docRoot.get('Topo.getMyGreeting')).to.eq(replacedNode)
   })
 
@@ -97,10 +102,11 @@ describe(`DocVisitor`, () => {
     docRoot.clear()
     docRoot.set('Topo', { myGreeting: 'hello!', getMyGreeting: '..myGreeting' })
     const replacedNode = createNode('hello!')
-    const fn = createAssert((args) => {
-      if (is.reference(args.node)) return y.visitAsync.REMOVE
+    await docDiagnostics.runAsync({
+      enter: (args) => {
+        if (is.reference(args.node)) return y.visitAsync.REMOVE
+      },
     })
-    await docDiagnostics.runAsync({ enter: fn })
     expect(docRoot.get('Topo.getMyGreeting')).not.to.eq(replacedNode)
     expect(docRoot.get('Topo.getMyGreeting')).to.be.undefined
   })
@@ -108,10 +114,11 @@ describe(`DocVisitor`, () => {
   it(`[visitAsync] should keep the node if returned with undefined`, async () => {
     docRoot.clear()
     docRoot.set('Topo', { myGreeting: 'hello!', getMyGreeting: '..myGreeting' })
-    const fn = createAssert((args) => {
-      if (is.reference(args.node)) return
+    await docDiagnostics.runAsync({
+      enter: (args) => {
+        if (is.reference(args.node)) return
+      },
     })
-    await docDiagnostics.runAsync({ enter: fn })
     expect(docRoot.get('Topo.getMyGreeting'))
       .to.be.instanceOf(y.Scalar)
       .to.have.property('value', '..myGreeting')

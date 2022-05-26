@@ -19,6 +19,7 @@ import {
   keyRelatedToWidth,
   keyRelatedToWidthOrHeight,
 } from './is'
+import * as regex from './regex'
 import { hasDecimal, toArr, toPath } from './fp'
 import type { IViewport } from '../types'
 import * as c from '../constants'
@@ -212,6 +213,27 @@ export const presets = {
     '7': { borderBottomStyle: 'solid', borderRadius: '0px' },
   },
 } as const
+
+export function isValidViewTag(viewTag: unknown) {
+  if (str(viewTag)) {
+    return !!(viewTag && regex.letters.test(viewTag))
+  }
+  return false
+}
+
+export function parsePageComponentUrl(url: string) {
+  const [targetPage = '', _, currentPage = '', __, viewTag = ''] =
+    url.split(/(@|#)/)
+  return { targetPage, currentPage, viewTag }
+}
+
+export function toPageComponentUrl(
+  target: string,
+  current: string,
+  viewTag: string,
+) {
+  return `${target}@${current}#${viewTag}`
+}
 
 /**
  * Trims the reference prefix in the string

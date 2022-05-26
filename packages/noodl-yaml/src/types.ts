@@ -1,6 +1,7 @@
 import type { ARoot, DiagnosticsHelpers, VisitFnArgs } from 'noodl-core'
 import type { ReferenceString } from 'noodl-types'
 import y from 'yaml'
+import type { createAssert, createAsyncAssert } from './assert'
 import * as c from './constants'
 
 export type DataObject = ARoot | Map<any, any> | Set<any> | YAMLNode
@@ -65,6 +66,8 @@ export type YAMLDiagnosticObject = VisitFnArgs<{
 }>
 
 export type YAMLNode = y.Document | y.Document.Parsed | y.Node | y.Pair
+
+export type DocVisitorAssertConfig = ReturnType<typeof createAssert>
 
 /* -------------------------------------------------------
   ---- NOODL NODES

@@ -1,6 +1,7 @@
 import { DiagnosticCode, ValidatorType } from '../constants'
 // import type DiagnosticAssert from './DiagnosticAssert'
 // import type { DiagnosticObject, DiagnosticAssertFn } from './diagnosticsTypes'
+import { parsePageComponentUrl, toPageComponentUrl } from '../utils/noodl'
 import * as is from '../utils/is'
 // import type { AVisitor } from '../types'
 // import * as t from './diagnosticsTypes'
@@ -102,7 +103,7 @@ import * as is from '../utils/is'
 //   return result
 // }
 
-export function generateDiagnostic(code: DiagnosticCode, arg: any) {
+export function generateDiagnostic(code: DiagnosticCode, arg?: any) {
   const message = generateDiagnosticMessage(code, arg)
   if (message) return { code, message }
   return { code }
@@ -136,9 +137,49 @@ function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
       )
     case DiagnosticCode.GOTO_PAGE_MISSING_FROM_APP_CONFIG:
       return (
-        `The destination "${arg.destination}" ` +
+        `The page/destination "${arg.destination}" ` +
         `was not included in the app config (cadlEndpoint)`
       )
+    case DiagnosticCode.GOTO_PAGE_COMPONENT_URL_CURRENT_PAGE_INVALID: {
+      const { targetPage, viewTag } = parsePageComponentUrl(arg.destination)
+      return `The page component url "${
+        arg.destination
+      }" does not contain the current page "${
+        arg.page
+      }". Expected "${toPageComponentUrl(arg.page, targetPage, viewTag)}"`
+    }
+    case DiagnosticCode.GOTO_PAGE_COMPONENT_URL_TARGET_PAGE_INVALID: {
+      const { currentPage, viewTag } = parsePageComponentUrl(arg.destination)
+      return `The page component url "${
+        arg.destination
+      }" does not correctly contain a target page. Expected "${toPageComponentUrl(
+        currentPage,
+        'TARGET_PAGE',
+        viewTag,
+      )}"`
+    }
+    case DiagnosticCode.GOTO_PAGE_COMPONENT_URL_VIEW_TAG_INVALID: {
+      const { currentPage, targetPage } = parsePageComponentUrl(arg.destination)
+      return `The page component url "${
+        arg.destination
+      }" does not correctly contain a viewTag. Expected "${toPageComponentUrl(
+        currentPage,
+        targetPage,
+        'VIEW_TAG',
+      )}"`
+    }
+    case DiagnosticCode.GOTO_PAGE_EMPTY:
+      return `Goto destination is empty`
+    case DiagnosticCode.GOTO_PAGE_MISSING_FROM_ROOT:
+      return `Page "${arg.page}" is missing from root`
+    case DiagnosticCode.VIEW_TAG_INVALID:
+      return `Invalid viewTag "${arg.viewTag}"`
+    case DiagnosticCode.VIEW_TAG_MISSING_COMPONENT_POINTER:
+      return `The viewTag "${arg.viewTag}" does not have a pointer to any components`
+    case DiagnosticCode.POPUP_VIEW_INVALID:
+      return `Invalid popUpView "${arg.popUpView}"`
+    case DiagnosticCode.POPUP_VIEW_MISSING_COMPONENT_POINTER:
+      return `The popUpView "${arg.popUpView}" does not have a pointer to any components`
     default:
       throw new Error(`Invalid diagnostic code "${code}"`)
   }

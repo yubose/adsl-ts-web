@@ -1,0 +1,244 @@
+import { expect } from 'chai'
+import fs from 'fs-extra'
+import partialRight from 'lodash/partialRight'
+import sinon from 'sinon'
+import y from 'yaml'
+import { consts, fp, is as coreIs } from 'noodl-core'
+import Root from '../DocRoot'
+import {
+  assertRef,
+  assertGoto,
+  assertPopUpView,
+  assertViewTag,
+} from '../asserters'
+import createNode from '../utils/createNode'
+import is from '../utils/is'
+import DocDiagnostics from '../DocDiagnostics'
+import DocVisitor from '../DocVisitor'
+import { toYml } from '../utils/yaml'
+import unwrap from '../utils/unwrap'
+import * as com from '../compiler'
+import * as c from '../constants'
+
+const { DiagnosticCode } = consts
+
+let docDiagnostics: DocDiagnostics
+let docRoot: Root
+let docVisitor: DocVisitor
+
+beforeEach(() => {
+  docRoot = new Root()
+  docVisitor = new DocVisitor()
+  docDiagnostics = new DocDiagnostics()
+  docDiagnostics.use(docVisitor)
+  docDiagnostics.use(docRoot)
+})
+
+describe.only(`asserters`, () => {
+  it.only(``, () => {
+    process.stdout.write('\x1Bc')
+    docRoot.set('Topo', {
+      goto1: { goto: 'A@.#C' },
+      goto2: { goto: '.@B#C' },
+      goto3: { goto: 'A@B#.' },
+      viewTag: 'helloTag',
+      bob: { viewTag: 'sodaTag' },
+      bob2: { popUpView: '.Topo.viewTag' },
+      soda: 'noPopUpViewPointer',
+      components: [
+        { type: 'label', viewTag: '..viewTag' },
+        { type: 'label', viewTag: '..bob.viewTag' },
+        {
+          type: 'image',
+          path: 'abc.png',
+          onClick: [{ actionType: 'popUp', viewTag: 'whatViewTag' }],
+          onMouseOver: [{ actionType: 'popUp' }],
+        },
+      ],
+    })
+    docDiagnostics.mark('page', 'Topo')
+    const results = docDiagnostics.run({
+      asserters: [assertPopUpView, assertRef, assertGoto, assertViewTag],
+    })
+  })
+
+  describe(`assertGoto`, () => {
+    it(`should generate a report if page is not included in cadlEndpoint`, () => {
+      docRoot.set('Topo', { goto: 'SignIn' })
+      expect(docDiagnostics.markers.pages).not.to.include('SignIn')
+      expect(
+        docDiagnostics.codeExists(
+          DiagnosticCode.GOTO_PAGE_MISSING_FROM_APP_CONFIG,
+          docDiagnostics.run({ asserters: assertGoto }),
+        ),
+      ).to.be.true
+    })
+
+    it(`should report if value is empty`, () => {
+      docRoot.set('Topo', { goto: '' })
+      expect(
+        docDiagnostics.codeExists(
+          DiagnosticCode.GOTO_PAGE_EMPTY,
+          docDiagnostics.run({ asserters: assertGoto }),
+        ),
+      ).to.be.true
+    })
+
+    describe(`when the destination is a page component url`, () => {
+      for (const [pageComponentUrl, code] of [
+        ['A@.#C', DiagnosticCode.GOTO_PAGE_COMPONENT_URL_CURRENT_PAGE_INVALID],
+        ['@B#C', DiagnosticCode.GOTO_PAGE_COMPONENT_URL_TARGET_PAGE_INVALID],
+        ['A@B#.', DiagnosticCode.GOTO_PAGE_COMPONENT_URL_VIEW_TAG_INVALID],
+      ] as const) {
+        it(`should report if one or more pages is not a valid value`, () => {
+          docRoot.set('Topo', { goto: pageComponentUrl })
+          expect(
+            docDiagnostics.codeExists(
+              code,
+              docDiagnostics.run({ asserters: assertGoto }),
+            ),
+          ).to.be.true
+        })
+      }
+    })
+  })
+
+  describe(`assertRef`, () => {
+    it(`should replace tilde references`, () => {
+      docRoot.set('Topo', { formValues: '~/Topo' })
+      docDiagnostics.mark('baseUrl', 'https://hello.com/')
+      docDiagnostics.run({ asserters: assertRef })
+      expect(unwrap(docDiagnostics.root?.get('Topo.formValues'))).to.eq(
+        'https://hello.com/Topo',
+      )
+    })
+
+    it(`should update reference nodes that are resolvable`, () => {
+      docRoot.set('Cereal', {
+        profile: { user: { avatar: '.Cereal.realIcon' } },
+        icon: '..realIcon',
+        realIcon: 'you-found-me.png',
+        components: [{ type: 'button', text: '..icon' }],
+      })
+      docRoot.set('Tower', {
+        profile: '.Cereal.profile',
+        props: { name: 'Bob', profile: '..profile' },
+        components: [
+          {
+            type: 'view',
+            children: [{ type: 'button', props: '.Tower.props' }],
+          },
+        ],
+      })
+      docDiagnostics.run({ asserters: assertRef })
+      const Cereal = docRoot.get('Cereal') as y.YAMLMap
+      const Tower = docRoot.get('Tower') as y.YAMLMap
+      expect(Cereal.getIn(fp.path('profile.user.avatar'))).to.eq(
+        'you-found-me.png',
+      )
+      expect(Cereal.get('icon')).to.eq('you-found-me.png')
+      expect(Cereal.getIn(fp.path('components.0.text'))).to.eq(
+        'you-found-me.png',
+      )
+      expect(Tower.get('profile')).to.eq(Cereal.get('profile'))
+      expect(Tower.getIn(fp.path('props.profile'))).to.eq(Cereal.get('profile'))
+      expect(Tower.getIn(fp.path('components.0.children.0.props'))).to.eq(
+        Tower.get('props'),
+      )
+    })
+
+    it(`should add unresolvable references to diagnostics`, () => {
+      const Resource = {
+        user: '.Resource.formValues',
+        formValues: '..currentFormValues',
+        currentFormValues: '.Tiger.incorrect.Path.toFormValues',
+      }
+
+      const Tiger = {
+        formData: {
+          profile: '..profile',
+        },
+        profile: {
+          user: '.Resource.user',
+        },
+        formValues: {
+          firstName: 'Bob',
+          lastName: 'Gonzalez',
+        },
+      }
+
+      docRoot.set('Resource', Resource)
+      docRoot.set('Tiger', Tiger)
+      docRoot.set('A', { fs: 's' })
+
+      docDiagnostics.mark('rootConfig', 'A')
+      docDiagnostics.mark('appConfig', 'cadlEndpoint')
+      docDiagnostics.mark('preload', 'BaseCSS')
+      docDiagnostics.mark('preload', 'BasePage')
+      docDiagnostics.mark('page', 'SignOut')
+
+      docDiagnostics.root?.set('cadlEndpoint', {
+        preload: ['BaseCSS'],
+        page: ['SignIn', 'Dashboard', ''],
+      })
+
+      const diagnostics = docDiagnostics.run({ asserters: assertRef })
+    })
+
+    it(`should generate a report if a root reference contains uppercase in the second level`, () => {
+      docRoot.set('A', { C: { apple: true }, apple: '.A.C.apple' })
+      expect(
+        docDiagnostics.codeExists(
+          DiagnosticCode.ROOT_REFERENCE_SECOND_LEVEL_KEY_UPPERCASE,
+          docDiagnostics.run({ asserters: assertRef }),
+        ),
+      ).to.be.true
+    })
+
+    describe.only(`assertViewTag`, () => {
+      it(`should report if viewTag is invalid`, () => {
+        docRoot.set('A', { C: { viewTag: '.' } })
+        const results = docDiagnostics.run({ asserters: assertViewTag })
+        expect(
+          docDiagnostics.codeExists(DiagnosticCode.VIEW_TAG_INVALID, results),
+        ).to.be.true
+      })
+
+      it(`should report if the viewTag does not have a pointer to a component`, () => {
+        docRoot.set('A', {
+          C: { apple: 'greenAppleTag' },
+          viewTag: '.A.C.apple',
+          components: [{ type: 'label', viewTag: 'greenAppleTag' }],
+        })
+        expect(
+          docDiagnostics.codeExists(
+            DiagnosticCode.VIEW_TAG_MISSING_COMPONENT_POINTER,
+            docDiagnostics.run({ asserters: assertViewTag }),
+          ),
+        ).to.be.false
+        docRoot.set('A', {
+          C: { apple: 'greenAppleTag' },
+          viewTag: '.A.C.apple',
+          components: [{ type: 'label', viewTag: 'green' }],
+        })
+        expect(
+          docDiagnostics.codeExists(
+            DiagnosticCode.VIEW_TAG_MISSING_COMPONENT_POINTER,
+            docDiagnostics.run({ asserters: assertViewTag }),
+          ),
+        ).to.be.true
+        docRoot.set('A', {
+          C: { apple: 'greenAppleTag' },
+          viewTag: 'greenAppleTag',
+          components: [{ type: 'label', viewTag: 'green' }],
+        })
+        expect(
+          docDiagnostics.codeExists(
+            DiagnosticCode.VIEW_TAG_MISSING_COMPONENT_POINTER,
+            docDiagnostics.run({ asserters: assertViewTag }),
+          ),
+        ).to.be.true
+      })
+    })
+  })
+})

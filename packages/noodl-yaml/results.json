@@ -1,0 +1,143 @@
+[
+  {
+    "page": "Topo",
+    "messages": [
+      {
+        "message": "The viewTag \"helloTag\" does not have a pointer to any components",
+        "type": "error",
+        "code": 30501
+      }
+    ]
+  },
+  {
+    "page": "Topo",
+    "messages": [
+      {
+        "message": "The page component url \"A@.#C\" does not contain the current page \"Topo\". Expected \"Topo@A#C\"",
+        "type": "error",
+        "code": 30002
+      },
+      {
+        "message": "Page \"A\" is missing from root",
+        "type": "error",
+        "code": 30006
+      },
+      {
+        "message": "The page/destination \"A\" was not included in the app config (cadlEndpoint)",
+        "type": "error",
+        "code": 30000
+      },
+      {
+        "message": "Page \"C\" is missing from root",
+        "type": "error",
+        "code": 30006
+      },
+      {
+        "message": "The page/destination \"C\" was not included in the app config (cadlEndpoint)",
+        "type": "error",
+        "code": 30000
+      }
+    ]
+  },
+  {
+    "page": "Topo",
+    "messages": [
+      {
+        "message": "Page \"B\" is missing from root",
+        "type": "error",
+        "code": 30006
+      },
+      {
+        "message": "The page/destination \"B\" was not included in the app config (cadlEndpoint)",
+        "type": "error",
+        "code": 30000
+      },
+      {
+        "message": "The page component url \".@B#C\" does not correctly contain a target page. Expected \"B@TARGET_PAGE#C\"",
+        "type": "error",
+        "code": 30003
+      },
+      {
+        "message": "Page \"C\" is missing from root",
+        "type": "error",
+        "code": 30006
+      },
+      {
+        "message": "The page/destination \"C\" was not included in the app config (cadlEndpoint)",
+        "type": "error",
+        "code": 30000
+      }
+    ]
+  },
+  {
+    "page": "Topo",
+    "messages": [
+      {
+        "message": "Root reference '.@B#C' was not resolvable",
+        "type": "error",
+        "results": [
+          {
+            "depth": 0,
+            "initiator": ".@B#C",
+            "key": "B#C"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "page": "Topo",
+    "messages": [
+      {
+        "message": "Page \"B\" is missing from root",
+        "type": "error",
+        "code": 30006
+      },
+      {
+        "message": "The page/destination \"B\" was not included in the app config (cadlEndpoint)",
+        "type": "error",
+        "code": 30000
+      },
+      {
+        "message": "Page \"A\" is missing from root",
+        "type": "error",
+        "code": 30006
+      },
+      {
+        "message": "The page/destination \"A\" was not included in the app config (cadlEndpoint)",
+        "type": "error",
+        "code": 30000
+      },
+      {
+        "message": "Invalid viewTag \".\"",
+        "type": "error",
+        "code": 30500
+      },
+      {
+        "message": "The page component url \"A@B#.\" does not correctly contain a viewTag. Expected \"B@A#VIEW_TAG\"",
+        "type": "error",
+        "code": 30004
+      }
+    ]
+  },
+  {
+    "page": "Topo",
+    "messages": [
+      {
+        "message": "The viewTag \"sodaTag\" does not have a pointer to any components",
+        "type": "error",
+        "code": 30501
+      }
+    ]
+  },
+  {
+    "page": "Topo",
+    "messages": [
+      {
+        "message": "The popUpView \"helloTag\" does not have a pointer to any components",
+        "type": "error",
+        "code": 30601
+      }
+    ]
+  }
+]

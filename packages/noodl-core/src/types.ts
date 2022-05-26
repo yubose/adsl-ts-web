@@ -1,4 +1,5 @@
 import type fs from 'fs'
+import type * as noodlUtils from './utils/noodl'
 import { _symbol } from './constants'
 
 export abstract class AAccumulator {
@@ -31,6 +32,7 @@ export abstract class ARoot<R = any> {
   abstract init(): this
   abstract value: R
   abstract get(key: string): any
+  abstract has<K = string>(key: K): boolean
   abstract set(key: string, value: any): this
   abstract remove(key: string): this
   constructor() {
@@ -64,10 +66,17 @@ export abstract class AVisitor<R = any, H = Record<string, any>> {
   abstract use(callback: AVisitor<any, any>['callback']): this
 }
 
+export interface VisitorAsserter<N = unknown, H = Record<string, any>> {
+  cond: (node: N) => boolean
+  fn(args: VisitFnArgs<H, N>): any
+}
+
 export interface VisitorOptions<
   H = Record<string, any>,
   InitOptions extends Record<string, any> = Record<string, any>,
+  Asserters = any,
 > {
+  asserters: Asserters
   data: Record<string, any>
   init?: (args: VisitorInitArgs<InitOptions>) => any
   helpers?: H
@@ -83,13 +92,20 @@ export type VisitorInitArgs<
 export type VisitFnArgs<
   H extends Record<string, any> = Record<string, any>,
   N = unknown,
-> = H & {
+> = VisitorHelpers<H> & {
   data: Record<string, any>
   page?: string
   key?: number | string | null
   node: N
   root: ARoot
 }
+
+export type VisitorHelpers<
+  H extends Record<string, any> = Record<string, any>,
+> = H &
+  Pick<typeof noodlUtils, 'isValidViewTag'> & {
+    isValidPageValue(page: string): boolean
+  }
 
 export type NormalizePropsContext = Record<string, any> & {
   dataObject?: Record<string, any>

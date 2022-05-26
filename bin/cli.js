@@ -11,6 +11,21 @@ const path = require('path')
 const fs = require('fs-extra')
 const fg = require('fast-glob')
 
+const libs = [
+  'action-chain',
+  'core',
+  'loader',
+  'file',
+  'yaml',
+  'types',
+  'ui',
+  'utils',
+]
+
+const regex = {
+  libs: new RegExp(`${libs.join('|')}`, 'i'),
+}
+
 /**
  * @typedef ScriptUtils
  * @type { object }
@@ -116,16 +131,16 @@ newline()
         cmd = `lerna exec --scope noodl-core-docs \"`
         cmd += `npm run ${command}`
         cmd += `\"`
-      } else if (/yaml|core/i.test(pkg)) {
+      } else if (regex.libs.test(pkg)) {
         let command = isBuild ? 'build' : isTest ? 'test' : 'start'
         cmd = `lerna exec --scope `
-        if (/core/i.test(pkg)) cmd += 'noodl-core '
-        else if (/yaml/i.test(pkg)) cmd += 'noodl-yaml '
+        cmd += `noodl-${pkg} `
         cmd += `\"npm run ${command}\"`
-        exec(cmd)
       } else {
         throw new Error(
-          `"${pkg}" is not supported yet. Supported options: "static", "homepage"`,
+          `"${pkg}" is not supported yet. Supported options: static, homepage, ${libs.join(
+            ', ',
+          )}`,
         )
       }
       exec(cmd)
@@ -144,7 +159,7 @@ newline()
     }
     // Publish
     else if (isPublish) {
-      if (/action-chain|core|loader|yaml|types|utils|ui/i.test(pkg)) {
+      if (regex.libs.test(pkg)) {
         const folder = `noodl-${pkg}`
         cmd = `cd packages/${folder} `
         cmd += `&& npm run build`
@@ -153,7 +168,7 @@ newline()
         exec(cmd)
       } else {
         throw new Error(
-          `Invalid value for publishing. Choose one of: "action-chain", "core", "loader", "yaml", "types", "utils", "ui"`,
+          `Invalid value for publishing. Choose one of: ${libs.join(', ')}`,
         )
       }
     }

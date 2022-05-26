@@ -1,4 +1,4 @@
-import { Diagnostics, is as coreIs } from 'noodl-core'
+import { consts, Diagnostic, Diagnostics, is as coreIs, fp } from 'noodl-core'
 import type { Builder, TranslatedDiagnosticObject } from 'noodl-core'
 import getYamlNodeKind from './utils/getYamlNodeKind'
 import DocDiagnosticsIterator from './DocDiagnosticsIterator'
@@ -9,7 +9,8 @@ import * as t from './types'
 class DocDiagnostics extends Diagnostics<
   t.YAMLDiagnosticObject,
   t.YAMLDiagnosticObject[],
-  { path: number | string | null }
+  { path: number | string | null },
+  t.DocVisitorAssertConfig | t.DocVisitorAssertConfig[]
 > {
   constructor() {
     super()
@@ -58,6 +59,18 @@ class DocDiagnostics extends Diagnostics<
       ;(value as DocRoot).use(new DocDiagnosticsIterator(this))
     }
     return this
+  }
+
+  codeExists(
+    code: consts.DiagnosticCode,
+    diagnostics: Diagnostic | Diagnostic[],
+  ) {
+    return fp.toArr(diagnostics).some((diagnostic) => {
+      if (diagnostic.messages?.some((msg) => msg?.code == code)) {
+        return true
+      }
+      return false
+    })
   }
 }
 

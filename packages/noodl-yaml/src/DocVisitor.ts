@@ -1,6 +1,7 @@
 import y from 'yaml'
-import { AVisitor, is as coreIs } from 'noodl-core'
+import { AVisitor, is as coreIs, fp } from 'noodl-core'
 import type { VisitorInitArgs, VisitorOptions, VisitFnArgs } from 'noodl-core'
+import getYamlNodeKind from './utils/getYamlNodeKind'
 import is from './utils/is'
 import { isScalar, isPair, isMap, isSeq } from './utils/yaml'
 import {
@@ -16,6 +17,9 @@ import * as c from './constants'
 import * as t from './types'
 
 export type State = typeof _state
+export type DocVisitorAsserterInput =
+  | t.DocVisitorAssertConfig
+  | t.DocVisitorAssertConfig[]
 
 function getInitialState() {
   return {
@@ -57,7 +61,7 @@ function decorate() {
     return function wrappedVisit<N = unknown>(
       this: AVisitor,
       node: N,
-      args: VisitFnArgs,
+      args: Pick<VisitorOptions, 'asserters'> & VisitFnArgs,
       state?: {
         calledInit?: boolean
       },
@@ -107,13 +111,18 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
   enter: DocVisitorCallback<Fn>,
   isAsync: boolean,
   {
+    asserters,
     data,
     page,
     root,
     helpers,
-  }: Pick<VisitFnArgs, 'data' | 'page' | 'root'> & VisitorOptions,
+  }: Omit<VisitorOptions, 'asserters'> &
+    Pick<VisitFnArgs, 'data' | 'page' | 'root'> & {
+      asserters?: DocVisitorAsserterInput
+    },
 ) {
   function onEnter<N = unknown>({
+    asserters,
     clearState,
     getState,
     isAsync,
@@ -125,9 +134,18 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
     page,
   }: t.VisitorStateHelpers &
     VisitFnArgs<Record<string, any>, N> & {
+      asserters?: DocVisitorAsserterInput
       path: Parameters<y.visitorFn<N>>[2]
     }) {
     const getCurrentState = () => getState(isAsync ? 'async' : 'sync')
+    const nodeKind = getYamlNodeKind(node)
+
+    for (const asserter of fp.toArr(asserters)) {
+      if (asserter?.cond(nodeKind, node)) {
+        const result = asserter.fn(arguments[0])
+        if (!coreIs.und(result)) return result
+      }
+    }
 
     if (isScalar(node)) {
       const scalarType = getScalarType(node)
@@ -157,7 +175,7 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
       //
     }
 
-    return enter(arguments[0])
+    return enter?.(arguments[0])
   }
 
   function getControl<N = unknown>(control: ReturnType<y.visitorFn<N>>) {
@@ -183,6 +201,7 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
     const callbackArgs = {
       ...stateHelpers,
       ...helpers,
+      asserters,
       data,
       key,
       node,

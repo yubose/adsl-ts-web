@@ -4,8 +4,10 @@ import AppConfig from '../AppConfig'
 import RootConfig from '../RootConfig'
 import Builder from '../Builder'
 import Diagnostic from './Diagnostic'
+import * as regex from '../utils/regex'
 import { translateDiagnosticType } from './utils'
-import { ValidatorType } from '../constants'
+import { isValidViewTag } from '../utils/noodl'
+import { DiagnosticCode, ValidatorType } from '../constants'
 import type {
   IDiagnostics,
   DefaultMarkerKey,
@@ -20,6 +22,7 @@ class Diagnostics<
     D extends DiagnosticObject = DiagnosticObject,
     R = D[],
     H extends Record<string, any> = Record<string, any>,
+    Asserters = any,
   >
   extends Builder
   implements IDiagnostics
@@ -37,6 +40,14 @@ class Diagnostics<
     super()
     this.#rootConfig = new RootConfig()
     this.#appConfig = new AppConfig()
+  }
+
+  get rootConfig() {
+    return this.#rootConfig
+  }
+
+  get appConfig() {
+    return this.#appConfig
   }
 
   get markers() {
@@ -69,7 +80,7 @@ class Diagnostics<
 
   mark(flag: DefaultMarkerKey, value: any) {
     if (/preload|page/.test(flag)) {
-      this.#appConfig[flag].push(value)
+      this.#appConfig[flag === 'pages' ? 'page' : flag].push(value)
     } else if (flag === 'baseUrl') {
       this.#rootConfig.cadlBaseUrl = value
     } else if (flag === 'assetsUrl') {
@@ -80,7 +91,8 @@ class Diagnostics<
     return this
   }
 
-  run(args: RunOptions<D, R, H> = {}) {
+  run(args: RunOptions<D, R, H, Asserters> = {}) {
+    const asserters = fp.toArr(args?.asserters ?? []).filter(Boolean)
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
     try {
       for (const [name, nodeProp] of this) {
@@ -91,6 +103,7 @@ class Diagnostics<
         })
         this.visitor?.visit(node, {
           ...options,
+          asserters,
           helpers,
           page: name,
         } as t.VisitorOptions)
@@ -111,7 +124,8 @@ class Diagnostics<
     )
   }
 
-  async runAsync(args: RunOptions<D, R, H> = {}) {
+  async runAsync(args: RunOptions<D, R, H, Asserters> = {}) {
+    const asserters = fp.toArr(args?.asserters ?? []).filter(Boolean)
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
     try {
       await Promise.all(
@@ -123,6 +137,7 @@ class Diagnostics<
           })
           return this.visitor?.visitAsync(node, {
             ...options,
+            asserters,
             page: name,
             helpers,
           } as t.VisitorOptions)
@@ -136,12 +151,15 @@ class Diagnostics<
     }
   }
 
-  #getRunnerProps = (args: RunOptions<D, R, H>) => {
-    let originalVisitor: t.AVisitor<true>['callback'] | undefined
+  #getRunnerProps = <Asserters = any>(args: RunOptions<D, R, H, Asserters>) => {
+    let originalVisitor: t.AVisitor<true>['callback'] | undefined =
+      this.visitor?.callback?.(args as any)
 
     if (args.enter) {
       originalVisitor = this.visitor?.callback
       this.visitor?.use(args.enter)
+    } else {
+      this.visitor?.use((args) => originalVisitor?.(args))
     }
 
     const diagnostics = [] as Diagnostic[]
@@ -173,8 +191,17 @@ class Diagnostics<
     ): DiagnosticsHelpers => {
       return this.createHelpers({
         add: (diagnostic: DiagnosticObject) => {
-          diag.push(this.createDiagnostic({ ...diagnostic, node, page }))
+          const d = this.createDiagnostic({ ...diagnostic, node, page })
+          diag.push(d)
         },
+        isValidPageValue: (page: string) => {
+          if (!page) return false
+          if (!regex.letters.test(page)) return false
+          if (/null|undefined/i.test(page)) return false
+          if (['.', '_', '-'].some((symb) => symb === page)) return false
+          return true
+        },
+        isValidViewTag,
         markers: this.#markers,
       })
     }

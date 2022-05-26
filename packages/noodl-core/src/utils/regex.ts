@@ -1,3 +1,4 @@
+export const letters = /[a-zA-Z]/i
 export const numbers = /^[+-]?\d*\.?\d+(?:[Ee][+-]?\d+)?$/
 export const backslash = /\\/g
 // Checks path for these segments: '', '.'. '..'

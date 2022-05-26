@@ -44,7 +44,9 @@ export interface RunOptions<
   D extends DiagnosticObject = DiagnosticObject,
   R = D[],
   H extends Record<string, any> = Record<string, any>,
+  Asserters = any,
 > {
+  asserters?: Asserters
   init?: (args: VisitorInitArgs<DiagnosticsHelpers>) => any
   enter?: AVisitor<R, DiagnosticsHelpers & H>['callback']
 }

@@ -17,9 +17,15 @@ import * as com from '../compiler'
 import * as c from '../constants'
 import * as t from '../types'
 
+const { Basic, Organic } = com
+
 let docDiagnostics: DocDiagnostics
 let docRoot: Root
 let docVisitor: DocVisitor
+
+let composer: y.Composer
+let lexer: y.Lexer
+let parser: y.Parser
 
 beforeEach(() => {
   docRoot = new Root()
@@ -27,19 +33,75 @@ beforeEach(() => {
   docDiagnostics = new DocDiagnostics()
   docDiagnostics.use(docVisitor)
   docDiagnostics.use(docRoot)
+  composer = new y.Composer({ prettyErrors: true, keepSourceTokens: true })
+  lexer = new y.Lexer()
+  parser = new y.Parser()
 })
 
-describe.only(`processors`, () => {
+describe(`processors`, () => {
   describe(`createInstructions`, () => {
+    it(`should set type to Inherit for dot`, () => {
+      const ref = '.A.'
+      const instructions = com.createInstructions(ref)
+      expect(instructions[0]).to.have.property('type', Basic.Inherit)
+      expect(instructions[2]).to.have.property('type', Basic.Inherit)
+    })
+
+    it(`should set type to Evaluate for =`, () => {
+      const ref = '=.A@'
+      const instructions = com.createInstructions(ref)
+      expect(instructions[0]).to.have.property('type', Basic.Evaluate)
+    })
+
+    it(`should set type to Left for _.`, () => {
+      const ref = '__.A@'
+      const instructions = com.createInstructions(ref)
+      expect(instructions[0]).to.have.property('type', Basic.Left)
+      expect(instructions[1]).to.have.property('type', Basic.Left)
+    })
+
+    it(`should set type to Right for non-operations`, () => {
+      const ref = '__.A@'
+      const instructions = com.createInstructions(ref)
+      expect(instructions[3]).to.have.property('type', Basic.Right)
+    })
+
+    it(`should set type to Override for @`, () => {
+      const ref = '.A@'
+      const instructions = com.createInstructions(ref)
+      expect(instructions[2]).to.have.property('type', Basic.Override)
+    })
+
     it(`should create instructions for reference strings`, () => {
       const ref = '.A.formData.currentIcon'
       const instructions = com.createInstructions(ref)
-      console.dir(instructions, { depth: Infinity })
-      console.log(instructions.length)
       expect(instructions).to.have.lengthOf(ref.length)
       instructions.forEach((instr, i) => expect(instr.value).to.eq(ref[i]))
-      expect(instructions[0].type).to.eq('write')
-      expect(instructions[1].type).to.eq('read')
+      expect(instructions[0].type).to.eq(Basic.Inherit)
+      expect(instructions[1].type).to.eq(Basic.Right)
+      expect(instructions[2].type).to.eq(Basic.Inherit)
+      expect(instructions[3].type).to.eq(Basic.Right)
+      expect(instructions[4].type).to.eq(Basic.Right)
+      expect(instructions[5].type).to.eq(Basic.Right)
+      expect(instructions[6].type).to.eq(Basic.Right)
+      expect(instructions[7].type).to.eq(Basic.Right)
+      expect(instructions[8].type).to.eq(Basic.Right)
+      expect(instructions[9].type).to.eq(Basic.Right)
+      expect(instructions[10].type).to.eq(Basic.Right)
+      expect(instructions[11].type).to.eq(Basic.Inherit)
+      expect(instructions[12].type).to.eq(Basic.Right)
+      expect(instructions[13].type).to.eq(Basic.Right)
+      expect(instructions[14].type).to.eq(Basic.Right)
+      expect(instructions[15].type).to.eq(Basic.Right)
+      expect(instructions[16].type).to.eq(Basic.Right)
+      expect(instructions[17].type).to.eq(Basic.Right)
+      expect(instructions[18].type).to.eq(Basic.Right)
+      expect(instructions[19].type).to.eq(Basic.Right)
+      expect(instructions[20].type).to.eq(Basic.Right)
+      expect(instructions[21].type).to.eq(Basic.Right)
+      expect(instructions[21].value).to.eq('o')
+      expect(instructions[22].type).to.eq(Basic.Right)
+      expect(instructions[22].value).to.eq('n')
     })
   })
 

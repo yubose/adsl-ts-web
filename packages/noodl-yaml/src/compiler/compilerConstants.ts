@@ -1,5 +1,5 @@
-export enum BasicInstructionType {
-  Collect = 'Collect',
+export enum Basic {
+  Right = 'Right',
   Evaluate = 'Evaluate',
   If = 'If',
   Else = 'Else',
@@ -7,9 +7,10 @@ export enum BasicInstructionType {
   Goto = 'Goto',
   Inherit = 'Inherit',
   Override = 'Override',
+  Left = 'Left',
 }
 
-export enum OrganicInstructionType {
+export enum Organic {
   Convolve = 'Convolve',
   Elite = 'Elite',
   Emit = 'Emit',

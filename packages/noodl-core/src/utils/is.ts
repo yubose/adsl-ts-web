@@ -189,6 +189,13 @@ export function noodlUnit(value: unknown): value is string {
   return str(value) && !/[a-zA-Z]/i.test(value) && (value as any) % 1 !== 0
 }
 
+export function pageComponentUrl(value: unknown) {
+  if (!str(value)) return false
+  const match = value.match(/@|#/g)
+  if (match) return ['@', '#'].every((op) => match.includes(op))
+  return false
+}
+
 export function promise<V = any>(value: unknown): value is Promise<V> {
   return obj(value) && 'then' in value
 }

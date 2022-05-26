@@ -8,10 +8,7 @@ import {
   getProcessWriteType,
 } from './utils'
 import get from '../utils/get'
-import {
-  BasicInstructionType,
-  OrganicInstructionType,
-} from './compilerConstants'
+import { Basic, Organic } from './compilerConstants'
 import type { If, IfNode } from '../types'
 import * as t from './compilerTypes'
 import * as c from '../constants'
@@ -86,19 +83,19 @@ export function createInstructions(value: string) {
     const charCode = char.charCodeAt(0)
     const instruction = { value: char } as t.Processor.Instruction
 
-    // if (charCode === consts.CharCode.At) {
-    //   instruction.type = 'write'
-    // } else if (charCode === consts.CharCode.Dot) {
-    //   instruction.type = 'write'
-    // } else if (charCode === consts.CharCode.Equals) {
-    //   instruction.type = 'write'
-    // } else if (charCode === consts.CharCode.Tilde) {
-    //   instruction.type = 'write'
-    // } else if (charCode === consts.CharCode.Underline) {
-    //   instruction.type = 'move'
-    // } else {
-    //   instruction.type = 'next'
-    // }
+    if (charCode === consts.CharCode.At) {
+      instruction.type = Basic.Override
+    } else if (charCode === consts.CharCode.Dot) {
+      instruction.type = Basic.Inherit
+    } else if (charCode === consts.CharCode.Equals) {
+      instruction.type = Basic.Evaluate
+    } else if (charCode === consts.CharCode.Tilde) {
+      // instruction.type = Basic
+    } else if (charCode === consts.CharCode.Underline) {
+      instruction.type = Basic.Left
+    } else {
+      instruction.type = Basic.Right
+    }
 
     instructions.push(instruction)
   }
@@ -132,6 +129,11 @@ export function createIfInterpreter(node: If) {
   return createInterpretations((node.get('if') as IfNode).items)
 }
 
+export function createSomething() {
+  const list = [] as any[]
+  return list
+}
+
 export function process<N = unknown>({
   instructions = [],
   node,
@@ -146,13 +148,15 @@ export function process<N = unknown>({
   while (instructions.length) {
     const { type, value } = instructions.pop() ?? {}
 
-    if (type === BasicInstructionType.Collect) {
+    if (type === Basic.Left) {
+      //
+    } else if (type === Basic.Right) {
       results.push(value)
-    } else if (type === BasicInstructionType.If) {
+    } else if (type === Basic.If) {
       //
-    } else if (type === BasicInstructionType.Else) {
+    } else if (type === Basic.Else) {
       //
-    } else if (type === BasicInstructionType.Evaluate) {
+    } else if (type === Basic.Evaluate) {
       // const writeType = getProcessWriteType(value)
       // if (writeType === c.ProcessWriteType.AtMerge) {
       //   //
@@ -163,21 +167,21 @@ export function process<N = unknown>({
       // } else {
       //   //
       // }
-    } else if (type === BasicInstructionType.Extend) {
+    } else if (type === Basic.Extend) {
       //
-    } else if (type === BasicInstructionType.Goto) {
+    } else if (type === Basic.Goto) {
       //
-    } else if (type === BasicInstructionType.Inherit) {
+    } else if (type === Basic.Inherit) {
+      const something = createSomething()
+    } else if (type === Basic.Override) {
       //
-    } else if (type === BasicInstructionType.Override) {
+    } else if (type === Organic.Convolve) {
       //
-    } else if (type === OrganicInstructionType.Convolve) {
+    } else if (type === Organic.Elite) {
       //
-    } else if (type === OrganicInstructionType.Elite) {
+    } else if (type === Organic.Emit) {
       //
-    } else if (type === OrganicInstructionType.Emit) {
-      //
-    } else if (type === OrganicInstructionType.Evolve) {
+    } else if (type === Organic.Evolve) {
       //
     }
   }
