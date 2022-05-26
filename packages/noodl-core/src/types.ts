@@ -32,7 +32,7 @@ export abstract class ARoot<R = any> {
   abstract init(): this
   abstract value: R
   abstract get(key: string): any
-  abstract has<K = string>(key: K): boolean
+  abstract has(key: any): boolean
   abstract set(key: string, value: any): this
   abstract remove(key: string): this
   constructor() {

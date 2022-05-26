@@ -39,7 +39,7 @@ export interface DerefResult {
 }
 
 function createDerefReducer(
-  root: DocRoot | undefined,
+  root: ARoot | DocRoot | undefined,
   { rootKey, ...subscribers } = {} as DerefOptions['subscribe'] & {
     rootKey?: string
   },

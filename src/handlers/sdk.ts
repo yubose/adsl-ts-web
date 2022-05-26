@@ -136,6 +136,8 @@ export function getSdkHelpers(app: App) {
         const {
           assertRef,
           assertGoto,
+          assertPopUpView,
+          assertViewTag,
           DocDiagnostics,
           DocRoot,
           DocVisitor,
@@ -209,14 +211,7 @@ export function getSdkHelpers(app: App) {
 
         const diagnostics = docDiagnostics
           .run({
-            enter: (args) => {
-              const node = args.node
-              if (is.scalarNode(node)) {
-                if (is.reference(node)) return assertRef(args)
-              } else if (is.mapNode(node)) {
-                if (is.goto(node)) return assertGoto(args)
-              }
-            },
+            asserters: [assertRef, assertGoto, assertPopUpView, assertViewTag],
           })
           .map((diagnostic) => diagnostic.toJSON())
 

@@ -1,18 +1,9 @@
 import y from 'yaml'
 import { AVisitor, is as coreIs, fp } from 'noodl-core'
-import type { VisitorInitArgs, VisitorOptions, VisitFnArgs } from 'noodl-core'
+import type { VisitorOptions, VisitFnArgs } from 'noodl-core'
 import getYamlNodeKind from './utils/getYamlNodeKind'
-import is from './utils/is'
 import { isScalar, isPair, isMap, isSeq } from './utils/yaml'
-import {
-  getScalarKind,
-  getScalarType,
-  getNodeKind,
-  getMapKind,
-  getIfNodeItemKind,
-  getSeqKind,
-} from './compiler/utils'
-import type DocRoot from './DocRoot'
+import { getScalarType, getMapKind } from './compiler/utils'
 import * as c from './constants'
 import * as t from './types'
 
@@ -209,6 +200,7 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
       page,
       root,
     }
+    // @ts-expect-error
     const result = onEnter(callbackArgs)
     if (coreIs.promise(result)) {
       return result.then(getControl).catch((error) => {

@@ -68,7 +68,7 @@ class DocRoot extends ARoot {
    * @param key Root key
    * @returns True if key exists in root
    */
-  has(key: string[] | y.Scalar | string) {
+  has(key: (y.Scalar | string)[] | y.Scalar | string) {
     const paths = (
       (is.scalarNode(key) && coreIs.str(key.value) && key.value) ||
       (coreIs.arr(key) && key.join('.')) ||

@@ -94,7 +94,7 @@ export function createAsyncAssert<N = unknown>({
 }) {
   function _cond(nodeKind: Kind, node: unknown, condFn?: typeof cond) {
     if (coreIs.fnc(condFn)) {
-      return condFn(node)
+      return condFn(node as any)
     } else if (coreIs.arr(condFn)) {
       return condFn.some((c) => _cond(nodeKind, node, c))
     } else if (coreIs.obj(condFn)) {
