@@ -1,6 +1,6 @@
 const set = require('lodash/set')
 const u = require('@jsmanifest/utils')
-const { toJson, toYml } = require('@noodl/yaml')
+const { toJson, toYml } = require('noodl-yaml')
 const y = require('yaml')
 const path = require('path')
 const del = require('del')
