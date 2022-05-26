@@ -1,5 +1,12 @@
-import { consts, Diagnostic, Diagnostics, is as coreIs, fp } from 'noodl-core'
-import type { Builder } from 'noodl-core'
+import {
+  consts,
+  Diagnostic,
+  Diagnostics,
+  DiagnosticsHelpers,
+  is as coreIs,
+  fp,
+} from 'noodl-core'
+import type { BuiltIns, Builder } from 'noodl-core'
 import getYamlNodeKind from './utils/getYamlNodeKind'
 import DocDiagnosticMessages from './DocDiagnosticMessages'
 import DocDiagnosticsIterator from './DocDiagnosticsIterator'
@@ -7,11 +14,12 @@ import DocRoot from './DocRoot'
 import * as c from './constants'
 import * as t from './types'
 
-class DocDiagnostics extends Diagnostics<
+class DocDiagnostics<B extends BuiltIns = BuiltIns> extends Diagnostics<
   t.YAMLDiagnosticObject,
   t.YAMLDiagnosticObject[],
   { path: number | string | null },
-  t.DocVisitorAssertConfig | t.DocVisitorAssertConfig[]
+  t.DocVisitorAssertConfig | t.DocVisitorAssertConfig[],
+  B
 > {
   constructor() {
     super()

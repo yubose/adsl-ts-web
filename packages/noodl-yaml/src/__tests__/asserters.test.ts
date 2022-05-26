@@ -14,7 +14,6 @@ import * as com from '../compiler'
 import * as c from '../constants'
 
 const { DiagnosticCode } = consts
-const { assertRef, assertGoto, assertPopUpView, assertViewTag } = asserters
 
 let docDiagnostics: DocDiagnostics
 let docRoot: Root
@@ -58,6 +57,76 @@ describe(`asserters`, () => {
   //     asserters: [assertPopUpView, assertRef, assertGoto, assertViewTag],
   //   })
   // })
+
+  describe(`assertBuiltIn`, () => {
+    it(`should call builtIn functions`, () => {
+      docRoot.set('Topo', {
+        '=.builtIn.string.equal': {
+          dataIn: { string1: 'abc.png', string2: 'abc.png' },
+          dataOut: 'Topo.isEqual',
+        },
+      })
+      const spy = sinon.spy()
+      docDiagnostics.run({
+        asserters: asserters.assertBuiltIn,
+        builtIn: { string: { equal: spy } },
+      })
+      expect(spy).to.be.calledOnce
+    })
+
+    it(`should set the result as the value to the path dataOut is pointing to`, () => {
+      docRoot.set('Topo', {
+        components: [
+          {
+            type: 'image',
+            path: 'abc.png',
+            onClick: [
+              {
+                actionType: 'evalObject',
+                object: [
+                  {
+                    '=.builtIn.string.equal': {
+                      dataIn: { string1: 'abc.png', string2: 'abc.png' },
+                      dataOut: 'Topo.isEqual.bob',
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      })
+      docDiagnostics.run({
+        asserters: asserters.assertBuiltIn,
+        builtIn: {
+          string: {
+            equal: (dataIn) => dataIn.get('string1') === dataIn.get('string2'),
+          },
+        },
+      })
+      expect(unwrap(docRoot.get('Topo.isEqual.bob'))).to.eq(true)
+      docRoot
+        .get('Topo')
+        .setIn([
+          'components',
+          0,
+          'onClick',
+          0,
+          '=.builtIn.string.equal',
+          'dataOut',
+          'isEqual.bob',
+        ])
+      docDiagnostics.run({
+        asserters: asserters.assertBuiltIn,
+        builtIn: {
+          string: {
+            equal: () => 'soda',
+          },
+        },
+      })
+      expect(unwrap(docRoot.get('Topo.isEqual.bob'))).to.eq('soda')
+    })
+  })
 
   describe(`assertGoto`, () => {
     it(`should generate a report if page is not included in cadlEndpoint`, () => {

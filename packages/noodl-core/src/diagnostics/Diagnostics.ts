@@ -20,6 +20,7 @@ class Diagnostics<
     R = D[],
     H extends Record<string, any> = Record<string, any>,
     Asserters = any,
+    B extends t.BuiltIns = t.BuiltIns,
   >
   extends Builder
   implements IDiagnostics
@@ -79,8 +80,9 @@ class Diagnostics<
     return this
   }
 
-  run(args: RunOptions<D, R, H, Asserters> = {}) {
+  run(args: RunOptions<D, R, H, Asserters, B> = {}) {
     const asserters = fp.toArr(args?.asserters ?? []).filter(Boolean)
+    const builtIn = args?.builtIn
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
     try {
       for (const [name, nodeProp] of this) {
@@ -92,6 +94,7 @@ class Diagnostics<
         this.visitor?.visit(node, {
           ...options,
           asserters,
+          builtIn,
           helpers,
           page: name,
         } as t.VisitorOptions)
@@ -112,8 +115,9 @@ class Diagnostics<
     )
   }
 
-  async runAsync(args: RunOptions<D, R, H, Asserters> = {}) {
+  async runAsync(args: RunOptions<D, R, H, Asserters, B> = {}) {
     const asserters = fp.toArr(args?.asserters ?? []).filter(Boolean)
+    const builtIn = args?.builtIn
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
     try {
       await Promise.all(
@@ -126,6 +130,7 @@ class Diagnostics<
           return this.visitor?.visitAsync(node, {
             ...options,
             asserters,
+            builtIn,
             page: name,
             helpers,
           } as t.VisitorOptions)
@@ -140,11 +145,9 @@ class Diagnostics<
   }
 
   #getRunnerProps = <Asserters = any>(args: RunOptions<D, R, H, Asserters>) => {
-    let originalVisitor: t.AVisitor<true>['callback'] | undefined =
-      this.visitor?.callback?.(args as any)
+    const originalVisitor = this.visitor?.callback
 
     if (args.enter) {
-      originalVisitor = this.visitor?.callback
       this.visitor?.use(args.enter)
     } else {
       this.visitor?.use((args) => originalVisitor?.(args))

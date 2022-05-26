@@ -2,13 +2,14 @@ import partialRight from 'lodash/partialRight'
 import { is as coreIs, fp } from 'noodl-core'
 import type { Scalar, Pair, YAMLMap, YAMLSeq, Document } from 'yaml'
 import type { DiagnosticsHelpers } from 'noodl-core'
-import * as asserters from './asserters'
+import is from './utils/is'
 import * as utils from './asserters/assertUtils'
 import { Kind } from './constants'
 import * as t from './types'
 
 export const assertUtils = {
   ...utils,
+  is,
 }
 
 function anyPass<F extends (...args: any[]) => any>(

@@ -1,4 +1,5 @@
 import { expect } from 'chai'
+import sinon from 'sinon'
 import y from 'yaml'
 import { consts } from 'noodl-core'
 import Root from '../DocRoot'

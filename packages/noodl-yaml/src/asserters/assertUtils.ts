@@ -1,11 +1,12 @@
 import type { Document, Scalar, YAMLMap, YAMLSeq } from 'yaml'
-import { consts, is as coreIs } from 'noodl-core'
+import { consts, is as coreIs, trimReference } from 'noodl-core'
 import { Parser } from 'noodl-utils'
 import type { ReferenceString } from 'noodl-types'
 import type { ARoot, Markers } from 'noodl-core'
 import type DocRoot from '../DocRoot'
 import deref from '../utils/deref'
 import has from '../utils/has'
+import originalSet from '../utils/set'
 import is from '../utils/is'
 import unwrap from '../utils/unwrap'
 import { createAssert } from '../assert'
@@ -84,4 +85,45 @@ export function refResolvesToAnyValue(
   return !coreIs.und(
     deref({ node: unwrap(node) as string, root, rootKey: page }).value,
   )
+}
+
+/**
+ * Sets a value at key of the root object.
+ * Supports deep paths as well as keys as references
+ * @param key Key path
+ * @param value Value to set to path
+ * @param root
+ * @param rootKey Key that exists on the root
+ */
+export function set(
+  key: Scalar | number | string,
+  value: any,
+  root: ARoot | DocRoot,
+  rootKey?: string,
+) {
+  let rootk = rootKey ?? ''
+  let paths = [] as string[]
+
+  if (coreIs.str(key)) {
+    if (coreIs.reference(key)) {
+      const path = trimReference(key)
+      if (coreIs.localReference(key)) {
+        paths.push(...path.split('.'))
+      } else {
+        const npaths = path.split('.')
+        rootk = npaths.shift() as string
+        paths.push(...npaths)
+      }
+    } else {
+      if (coreIs.rootKey(key)) {
+        const parts = key.split('.')
+        rootk = parts[0]
+        paths.push(...parts.slice(1))
+      } else {
+        paths.push(...key.split('.'))
+      }
+    }
+  }
+
+  originalSet(root.get(rootk), paths, value, true)
 }

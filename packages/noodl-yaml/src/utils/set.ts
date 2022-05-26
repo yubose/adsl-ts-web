@@ -1,13 +1,16 @@
 import y from 'yaml'
+import { fp } from 'noodl-core'
 import createNode from './createNode'
 import is from './is'
 import getYamlNodeKind from './getYamlNodeKind'
+import unwrap from './unwrap'
 import { Kind } from '../constants'
 
 function set(
   node: unknown,
-  key: number[] | y.Scalar | number | string | string,
+  key: number[] | string[] | y.Scalar | number | string,
   value: any,
+  deep?: boolean,
 ) {
   if (y.isScalar(key) && typeof key.value === 'string') {
     key = key.value
@@ -20,8 +23,10 @@ function set(
         case Kind.Seq:
         case Kind.Map:
         case Kind.Document: {
-          return void (node as y.Document | y.YAMLMap | y.YAMLSeq).set(
-            key,
+          const setFn = deep ? 'setIn' : 'set'
+          const setPath = deep ? fp.path(unwrap(key) as string) : key
+          return void (node as y.Document | y.YAMLMap | y.YAMLSeq)[setFn](
+            setPath as string,
             createNode(value),
           )
         }
