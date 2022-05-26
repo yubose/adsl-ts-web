@@ -12,7 +12,7 @@ export default createAssert({
   cond: {
     scalar: is.reference,
   },
-  fn({ add, error, info, warn, node, markers, page, root }) {
+  fn({ add, node, markers, page, root }) {
     const ref = unwrap(node) as ReferenceString
     if (ref.startsWith('=.builtIn.')) return
     const refProps = getRefProps(ref)
@@ -36,16 +36,9 @@ export default createAssert({
         const char = nextWord.charAt(0)
         if (char.toUpperCase() === char) {
           add(
-            warn(
-              consts.DiagnosticCode.ROOT_REFERENCE_SECOND_LEVEL_KEY_UPPERCASE,
-              { ref: refProps.ref, key: nextWord },
-            ),
-          )
-          add(
-            warn(
-              consts.DiagnosticCode.ROOT_REFERENCE_SECOND_LEVEL_KEY_UPPERCASE,
-              { ref: refProps.ref, key: nextWord },
-            ),
+            'warn',
+            consts.DiagnosticCode.ROOT_REFERENCE_SECOND_LEVEL_KEY_UPPERCASE,
+            { ref: refProps.ref, key: nextWord },
           )
         }
       }
@@ -57,10 +50,14 @@ export default createAssert({
       const using = isLocal ? ` using root key '${page}'` : ''
 
       add(
-        error({
-          message: `${locLabel} reference '${derefed.reference}' was not resolvable${using}`,
-          results: derefed.results,
-        }),
+        (diagnostic) => {
+          diagnostic.set('type', 'error')
+          diagnostic.set(
+            'message',
+            `${locLabel} reference '${derefed.reference}' was not resolvable${using}`,
+          )
+          diagnostic.set('results', derefed.results)
+        },
         page,
         node,
       )

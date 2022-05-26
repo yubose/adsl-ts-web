@@ -55,3 +55,6 @@ export function toJson(
   }
   return ymlOrDoc
 }
+
+export const visit = y.visit
+export const visitAsync = y.visitAsync

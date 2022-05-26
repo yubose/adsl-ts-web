@@ -1,7 +1,7 @@
 import type { ARoot, DiagnosticsHelpers, VisitFnArgs } from 'noodl-core'
 import type { ReferenceString } from 'noodl-types'
 import y from 'yaml'
-import type { createAssert, createAsyncAssert } from './assert'
+import type { createAssert, assertUtils } from './assert'
 import * as c from './constants'
 
 export type DataObject = ARoot | Map<any, any> | Set<any> | YAMLNode
@@ -10,14 +10,18 @@ export interface AssertFn<
   N = unknown,
   H extends Record<string, any> = Record<string, any>,
 > {
-  (args: AssertFnArgs<N, H>): ReturnType<y.visitorFn<N>>
+  (args: AssertFnArgs<N, H>, utils: typeof assertUtils): ReturnType<
+    y.visitorFn<N>
+  >
 }
 
 export interface AssertAsyncFn<
   N = unknown,
   H extends Record<string, any> = Record<string, any>,
 > {
-  (args: AssertFnArgs<N, H>): ReturnType<y.asyncVisitorFn<N>>
+  (args: AssertFnArgs<N, H>, utils: typeof assertUtils): ReturnType<
+    y.asyncVisitorFn<N>
+  >
 }
 
 export type AssertFnArgs<

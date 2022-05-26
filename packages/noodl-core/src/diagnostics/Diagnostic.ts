@@ -1,8 +1,37 @@
 import { _symbol, DiagnosticCode } from '../constants'
-import type { DiagnosticObject } from './diagnosticsTypes'
+import { generateDiagnostic } from './utils'
+import type { DiagnosticObject, DiagnosticLevel } from './diagnosticsTypes'
 
 class Diagnostic {
-  #value = { messages: [] } as DiagnosticObject;
+  #value = { messages: [] } as DiagnosticObject
+
+  static create(
+    type: DiagnosticLevel,
+    codeOrMessage: DiagnosticCode | string,
+    messageOrArgs?: Record<string, any> | string,
+  ) {
+    if (
+      typeof codeOrMessage === 'number' &&
+      typeof messageOrArgs === 'object'
+    ) {
+      return {
+        type,
+        ...generateDiagnostic(codeOrMessage, messageOrArgs),
+      }
+    }
+    if (typeof codeOrMessage === 'string') {
+      return { type, message: codeOrMessage }
+    }
+    return {
+      type,
+      ...(typeof codeOrMessage === 'number'
+        ? { code: codeOrMessage }
+        : undefined),
+      ...(typeof messageOrArgs === 'string'
+        ? { message: messageOrArgs }
+        : undefined),
+    }
+  }
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.toJSON()
@@ -34,18 +63,27 @@ class Diagnostic {
     this.#value.messages = messages
   }
 
-  error(code: DiagnosticCode, message: string) {
-    this.messages.push({ type: 'error', code, message })
+  error(
+    codeOrMessage: DiagnosticCode | string,
+    messageOrArgs?: Record<string, any> | string,
+  ) {
+    this.messages.push(Diagnostic.create('error', codeOrMessage, messageOrArgs))
     return this
   }
 
-  info(code: DiagnosticCode, message: string) {
-    this.messages.push({ type: 'info', code, message })
+  info(
+    codeOrMessage: DiagnosticCode | string,
+    messageOrArgs?: Record<string, any> | string,
+  ) {
+    this.messages.push(Diagnostic.create('info', codeOrMessage, messageOrArgs))
     return this
   }
 
-  warn(code: DiagnosticCode, message: string) {
-    this.messages.push({ type: 'warn', code, message })
+  warn(
+    codeOrMessage: DiagnosticCode | string,
+    messageOrArgs?: Record<string, any> | string,
+  ) {
+    this.messages.push(Diagnostic.create('warn', codeOrMessage, messageOrArgs))
     return this
   }
 

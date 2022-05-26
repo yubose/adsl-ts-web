@@ -96,7 +96,9 @@ function decorate() {
   }
 }
 
-export type DocVisitorCallback<Fn extends t.AssertAsyncFn | t.AssertFn> = Fn
+export interface DocVisitorCallback<Fn extends t.AssertAsyncFn | t.AssertFn> {
+  (args: Parameters<Fn>[0]): ReturnType<Fn>
+}
 
 function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
   enter: DocVisitorCallback<Fn>,
@@ -133,6 +135,9 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
 
     for (const asserter of fp.toArr(asserters)) {
       if (asserter?.cond(nodeKind, node)) {
+        // Second argument (assert utilities) is already provided by createAssert
+        // TODO - Find how to help TypeScript notice thisdeeee4ee
+        // @ts-expect-error
         const result = asserter.fn(arguments[0])
         if (!coreIs.und(result)) return result
       }

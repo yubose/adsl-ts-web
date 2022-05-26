@@ -1,6 +1,5 @@
 import type { LiteralUnion } from 'type-fest'
 import type { AVisitor, VisitFnArgs, VisitorInitArgs } from '../types'
-import type translateDiagnosticType from './translateDiagnosticType'
 import type Diagnostic from './Diagnostic'
 import type { DiagnosticCode } from '../constants'
 
@@ -12,42 +11,38 @@ export interface IDiagnostics {
 export interface DiagnosticsHelpers<
   M extends Record<string, any> = Record<string, any>,
 > {
+  /**
+   * Add a Diagnostic object.
+   *
+   * If a function is provided it will be called providing the newly constructed Diagnostic as its first argument and all of the current diagnostics as its second argument. This provides full control with how the Diagnostic will be generated in the output
+   * - The second argument will be treated as the current page
+   * - The third argument will be treated as the current visiting node
+   *
+   * If a DiagnosticLevel is provided it will treat the second argument as a DiagnosticCode or message.
+   * - If the second argument is a DiagnosticCode it will treat the third argument as an args object for generating the diagnostic, the fourth argument as the current page and the fifth as the current visiting node
+   * - If the second argument is a string it will be used as the diagnostic message
+   *
+   * If a DiagnosticCode is provided it will treat the second argument as an args object if it is an object, the third argument as the current page and the fourth argument as the current visiting node
+   *
+   * If the entire diagnostic object is provided it will treat the second argument as the current page and the third argument as the current visiting node
+   *
+   * @param arg1
+   * @param argsOrCodeOrMessageOrPage
+   * @param messageOrCodeOrPageOrNode
+   * @param arg4
+   * @param arg5
+   */
   add(
-    typeOrMessage:
+    arg1:
+      | DiagnosticCode
       | DiagnosticLevel
       | DiagnosticObjectMessage
-      | DiagnosticObjectMessage[],
-    generatorArgsOrMessage?:
-      | DiagnosticObjectMessage
-      | DiagnosticObjectMessage[]
-      | Record<string, any>,
-    page?: string,
-    node?: any,
+      | ((diagnostic: Diagnostic, diagnostics: Diagnostic[]) => void),
+    argsOrCodeOrMessageOrPage?: Record<string, any> | number | string,
+    messageOrCodeOrPageOrNode?: any,
+    arg4?: any,
+    arg5?: any,
   ): void
-  error(
-    codeOrMessage?:
-      | DiagnosticCode
-      | Partial<DiagnosticObjectMessage>
-      | Record<string, any>
-      | string,
-    argsOrMessage?: any,
-  ): DiagnosticObjectMessage & { type: 'error' }
-  info(
-    codeOrMessage?:
-      | DiagnosticCode
-      | Partial<DiagnosticObjectMessage>
-      | Record<string, any>
-      | string,
-    argsOrMessage?: any,
-  ): DiagnosticObjectMessage & { type: 'info' }
-  warn(
-    codeOrMessage?:
-      | DiagnosticCode
-      | Partial<DiagnosticObjectMessage>
-      | Record<string, any>
-      | string,
-    argsOrMessage?: any,
-  ): DiagnosticObjectMessage & { type: 'warn' }
   markers: Markers<M>
 }
 
