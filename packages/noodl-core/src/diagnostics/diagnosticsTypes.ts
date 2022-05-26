@@ -1,6 +1,6 @@
 import type { LiteralUnion } from 'type-fest'
 import type { AVisitor, VisitFnArgs, VisitorInitArgs } from '../types'
-import type { translateDiagnosticType } from './utils'
+import type translateDiagnosticType from './translateDiagnosticType'
 import type Diagnostic from './Diagnostic'
 import type { DiagnosticCode } from '../constants'
 
@@ -12,21 +12,58 @@ export interface IDiagnostics {
 export interface DiagnosticsHelpers<
   M extends Record<string, any> = Record<string, any>,
 > {
-  add(opts: Partial<DiagnosticObject>): void
+  add(
+    typeOrMessage:
+      | DiagnosticLevel
+      | DiagnosticObjectMessage
+      | DiagnosticObjectMessage[],
+    generatorArgsOrMessage?:
+      | DiagnosticObjectMessage
+      | DiagnosticObjectMessage[]
+      | Record<string, any>,
+    page?: string,
+    node?: any,
+  ): void
+  error(
+    codeOrMessage?:
+      | DiagnosticCode
+      | Partial<DiagnosticObjectMessage>
+      | Record<string, any>
+      | string,
+    argsOrMessage?: any,
+  ): DiagnosticObjectMessage & { type: 'error' }
+  info(
+    codeOrMessage?:
+      | DiagnosticCode
+      | Partial<DiagnosticObjectMessage>
+      | Record<string, any>
+      | string,
+    argsOrMessage?: any,
+  ): DiagnosticObjectMessage & { type: 'info' }
+  warn(
+    codeOrMessage?:
+      | DiagnosticCode
+      | Partial<DiagnosticObjectMessage>
+      | Record<string, any>
+      | string,
+    argsOrMessage?: any,
+  ): DiagnosticObjectMessage & { type: 'warn' }
   markers: Markers<M>
 }
 
 export type DiagnosticObject<
   H extends Record<string, any> = Record<string, any>,
-> = VisitFnArgs<H> & {
+> = Partial<Pick<VisitFnArgs<H>, 'data' | 'key' | 'page'>> & {
   messages?: DiagnosticObjectMessage[]
 }
 
 export interface DiagnosticObjectMessage {
-  code: DiagnosticCode
-  type: ReturnType<typeof translateDiagnosticType>
+  code?: DiagnosticCode
+  type: DiagnosticLevel
   message?: string
 }
+
+export type DiagnosticLevel = 'error' | 'info' | 'warn'
 
 export type DefaultMarkerKey = LiteralUnion<
   'appConfig' | 'assetsUrl' | 'baseUrl' | 'pages' | 'preload' | 'rootConfig',
@@ -49,10 +86,4 @@ export interface RunOptions<
   asserters?: Asserters
   init?: (args: VisitorInitArgs<DiagnosticsHelpers>) => any
   enter?: AVisitor<R, DiagnosticsHelpers & H>['callback']
-}
-
-export type TranslatedDiagnosticObject<
-  D extends DiagnosticObject = DiagnosticObject,
-> = Omit<D, 'messages'> & {
-  messages: DiagnosticObjectMessage[]
 }

@@ -8,24 +8,15 @@ import { createAssert } from '../assert'
 
 export default createAssert({
   cond: [is.mapNode, has('viewTag')],
-  fn({ add, isValidViewTag, node, markers, page, root }) {
+  fn({ add, error, info, warn, isValidViewTag, node, markers, page, root }) {
     let viewTag = unwrap(node.get('viewTag')) as string
     const isAction = has('actionType', 'goto', node) || !has('type', node)
     const isComponent = !isAction || has('children', 'style', node)
 
     if (!isValidViewTag(viewTag)) {
-      return void add({
-        node,
-        messages: [
-          {
-            type: consts.ValidatorType.ERROR,
-            ...generateDiagnostic(consts.DiagnosticCode.VIEW_TAG_INVALID, {
-              viewTag,
-            }),
-          },
-        ],
-        page,
-      })
+      return void add(
+        error(consts.DiagnosticCode.VIEW_TAG_INVALID, { viewTag }),
+      )
     }
 
     if (coreIs.reference(viewTag)) {
@@ -48,7 +39,6 @@ export default createAssert({
                 const value = n.get('viewTag', true)
                 if (is.reference(value)) {
                   const derefed = deref({ node: value, root, rootKey: page })
-
                   if (!coreIs.und(derefed.value)) {
                     hasPointer = derefed.value === viewTag
                   }
@@ -62,19 +52,11 @@ export default createAssert({
       }
 
       if (!hasPointer) {
-        add({
-          node,
-          messages: [
-            {
-              type: consts.ValidatorType.ERROR,
-              ...generateDiagnostic(
-                consts.DiagnosticCode.VIEW_TAG_MISSING_COMPONENT_POINTER,
-                { viewTag },
-              ),
-            },
-          ],
-          page,
-        })
+        add(
+          info(consts.DiagnosticCode.VIEW_TAG_MISSING_COMPONENT_POINTER, {
+            viewTag,
+          }),
+        )
       }
     } else if (isComponent) {
       //

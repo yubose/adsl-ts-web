@@ -1,6 +1,4 @@
 import { expect } from 'chai'
-import fs from 'fs-extra'
-import partialRight from 'lodash/partialRight'
 import sinon from 'sinon'
 import y from 'yaml'
 import { consts, fp, is as coreIs } from 'noodl-core'
@@ -34,33 +32,32 @@ beforeEach(() => {
   docDiagnostics.use(docRoot)
 })
 
-describe.only(`asserters`, () => {
-  it.only(``, () => {
-    process.stdout.write('\x1Bc')
-    docRoot.set('Topo', {
-      goto1: { goto: 'A@.#C' },
-      goto2: { goto: '.@B#C' },
-      goto3: { goto: 'A@B#.' },
-      viewTag: 'helloTag',
-      bob: { viewTag: 'sodaTag' },
-      bob2: { popUpView: '.Topo.viewTag' },
-      soda: 'noPopUpViewPointer',
-      components: [
-        { type: 'label', viewTag: '..viewTag' },
-        { type: 'label', viewTag: '..bob.viewTag' },
-        {
-          type: 'image',
-          path: 'abc.png',
-          onClick: [{ actionType: 'popUp', viewTag: 'whatViewTag' }],
-          onMouseOver: [{ actionType: 'popUp' }],
-        },
-      ],
-    })
-    docDiagnostics.mark('page', 'Topo')
-    const results = docDiagnostics.run({
-      asserters: [assertPopUpView, assertRef, assertGoto, assertViewTag],
-    })
-  })
+describe(`asserters`, () => {
+  // it.only(``, () => {
+  //   docRoot.set('Topo', {
+  //     goto1: { goto: 'A@.#C' },
+  //     goto2: { goto: '.@B#C' },
+  //     goto3: { goto: 'A@B#.' },
+  //     viewTag: 'helloTag',
+  //     bob: { viewTag: 'sodaTag' },
+  //     bob2: { popUpView: '.Topo.viewTag' },
+  //     soda: 'noPopUpViewPointer',
+  //     components: [
+  //       { type: 'label', viewTag: '..viewTag' },
+  //       { type: 'label', viewTag: '..bob.viewTag' },
+  //       {
+  //         type: 'image',
+  //         path: 'abc.png',
+  //         onClick: [{ actionType: 'popUp', viewTag: 'whatViewTag' }],
+  //         onMouseOver: [{ actionType: 'popUp' }],
+  //       },
+  //     ],
+  //   })
+  //   docDiagnostics.mark('page', 'Topo')
+  //   const results = docDiagnostics.run({
+  //     asserters: [assertPopUpView, assertRef, assertGoto, assertViewTag],
+  //   })
+  // })
 
   describe(`assertGoto`, () => {
     it(`should generate a report if page is not included in cadlEndpoint`, () => {
@@ -195,7 +192,7 @@ describe.only(`asserters`, () => {
       ).to.be.true
     })
 
-    describe.only(`assertViewTag`, () => {
+    describe(`assertViewTag`, () => {
       it(`should report if viewTag is invalid`, () => {
         docRoot.set('A', { C: { viewTag: '.' } })
         const results = docDiagnostics.run({ asserters: assertViewTag })

@@ -1,3 +1,4 @@
+import type { LiteralUnion } from 'type-fest'
 import * as fp from '../utils/fp'
 import * as t from '../types'
 import AppConfig from '../AppConfig'
@@ -5,18 +6,75 @@ import RootConfig from '../RootConfig'
 import Builder from '../Builder'
 import Diagnostic from './Diagnostic'
 import * as regex from '../utils/regex'
-import { translateDiagnosticType } from './utils'
+import * as is from '../utils/is'
 import { isValidViewTag } from '../utils/noodl'
 import { DiagnosticCode, ValidatorType } from '../constants'
+import { generateDiagnostic, isDiagnosticLevel } from './utils'
 import type {
   IDiagnostics,
   DefaultMarkerKey,
+  DiagnosticLevel,
   DiagnosticsHelpers,
   DiagnosticObject,
+  DiagnosticObjectMessage,
   Markers,
   RunOptions,
-  TranslatedDiagnosticObject,
 } from './diagnosticsTypes'
+
+function createMessageByTypeAndDiagnosticCodeAndArgs(
+  type: DiagnosticLevel,
+  code: DiagnosticCode,
+  args?: Record<string, any>,
+) {
+  return fp.merge({ type }, generateDiagnostic(code, args))
+}
+
+function createMessageByDiagnosticCodeAndArgs(
+  code: DiagnosticCode,
+  args?: Record<string, any>,
+) {
+  return fp.merge({ type: 'info' }, generateDiagnostic(code, args))
+}
+
+function createMessage(
+  type: DiagnosticLevel,
+  code?: DiagnosticCode,
+  argsOrMessage?: Record<string, any> | string,
+): DiagnosticObjectMessage
+
+function createMessage(
+  code: DiagnosticCode,
+  argsOrMessage?: Record<string, any> | string,
+): DiagnosticObjectMessage
+
+function createMessage(
+  message: DiagnosticObjectMessage | string,
+): DiagnosticObjectMessage
+
+function createMessage(
+  typeOrCode:
+    | DiagnosticCode
+    | DiagnosticLevel
+    | DiagnosticObjectMessage
+    | string,
+  argsOrCodeOrMsg?: DiagnosticCode | Record<string, any> | string,
+  argsOrMsg?: Record<string, any> | string,
+) {
+  if (is.obj(typeOrCode)) return typeOrCode
+  if (isDiagnosticLevel(typeOrCode)) {
+    return createMessageByTypeAndDiagnosticCodeAndArgs(
+      typeOrCode,
+      argsOrCodeOrMsg as DiagnosticCode,
+      argsOrMsg as Record<string, any>,
+    )
+  } else if (is.num(typeOrCode)) {
+    return createMessageByDiagnosticCodeAndArgs(
+      typeOrCode,
+      argsOrCodeOrMsg as Record<string, any>,
+    )
+  }
+  return { type: 'info', message: typeOrCode }
+}
 
 class Diagnostics<
     D extends DiagnosticObject = DiagnosticObject,
@@ -58,24 +116,10 @@ class Diagnostics<
     return this.#markers
   }
 
-  createDiagnostic(
-    opts?: Partial<DiagnosticObject | TranslatedDiagnosticObject>,
-  ) {
-    const diagnostic = fp.omit(opts, ['messages']) as DiagnosticObject
-
-    if (opts?.messages) {
-      diagnostic.messages = fp
-        .toArr(opts.messages)
-        .map(({ message, type, ...rest }) => {
-          return {
-            message,
-            type: translateDiagnosticType(type as ValidatorType),
-            ...rest,
-          }
-        })
-    }
-
-    return new Diagnostic(diagnostic as TranslatedDiagnosticObject)
+  createDiagnostic(page?: string, node?: any) {
+    const diagnostic = new Diagnostic()
+    if (page) diagnostic.set('page', page)
+    return diagnostic
   }
 
   mark(flag: DefaultMarkerKey, value: any) {
@@ -190,10 +234,17 @@ class Diagnostics<
       diag: typeof diagnostics,
     ): DiagnosticsHelpers => {
       return this.createHelpers({
-        add: (diagnostic: DiagnosticObject) => {
-          const d = this.createDiagnostic({ ...diagnostic, node, page })
-          diag.push(d)
+        add: (
+          ...[typeOrMessages, generatorArgsOrMessage, ...rest]: Parameters<
+            DiagnosticsHelpers['add']
+          >
+        ) => {
+          const diagnostic = this.createDiagnostic(page, ...args)
+          diag.push(diagnostic)
         },
+        error: (...args) => createMessage('error', ...args),
+        info: (...args) => createMessage('info', ...args),
+        warn: (...args) => createMessage('warn', ...args),
         isValidPageValue: (page: string) => {
           if (!page) return false
           if (!regex.letters.test(page)) return false

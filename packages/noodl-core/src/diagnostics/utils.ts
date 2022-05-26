@@ -1,6 +1,6 @@
-import { DiagnosticCode, ValidatorType } from '../constants'
+import { DiagnosticCode } from '../constants'
 // import type DiagnosticAssert from './DiagnosticAssert'
-// import type { DiagnosticObject, DiagnosticAssertFn } from './diagnosticsTypes'
+import type { DiagnosticLevel } from './diagnosticsTypes'
 import { parsePageComponentUrl, toPageComponentUrl } from '../utils/noodl'
 import * as is from '../utils/is'
 // import type { AVisitor } from '../types'
@@ -185,6 +185,12 @@ function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
   }
 }
 
+export function isDiagnosticLevel(value: unknown): value is DiagnosticLevel {
+  return (
+    is.str(value) && (value === 'error' || value === 'info' || value === 'warn')
+  )
+}
+
 // export function getDiagnosticCodeCoverage() {
 //   const covered = [] as DiagnosticCode[]
 //   const uncovered = [] as any[]
@@ -203,16 +209,3 @@ function generateDiagnosticMessage(code: DiagnosticCode, arg: any) {
 //     coverage: `${covered.length / uncovered.length}%`,
 //   }
 // }
-
-export function translateDiagnosticType(type: ValidatorType) {
-  switch (type) {
-    case 9000:
-      return 'error'
-    case 9001:
-      return 'warn'
-    case 9002:
-      return 'info'
-    default:
-      return type
-  }
-}

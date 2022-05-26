@@ -1,15 +1,14 @@
-import type { TranslatedDiagnosticObject } from './diagnosticsTypes'
-import { _symbol } from '../constants'
+import { _symbol, DiagnosticCode } from '../constants'
+import type { DiagnosticObject } from './diagnosticsTypes'
 
 class Diagnostic {
-  #value: TranslatedDiagnosticObject;
+  #value = { messages: [] } as DiagnosticObject;
 
   [Symbol.for('nodejs.util.inspect.custom')]() {
     return this.toJSON()
   }
 
-  constructor(value: TranslatedDiagnosticObject) {
-    this.#value = value
+  constructor() {
     Object.defineProperty(this, '_id_', {
       configurable: false,
       enumerable: false,
@@ -28,7 +27,26 @@ class Diagnostic {
   }
 
   get messages() {
-    return this.#value.messages
+    return this.#value.messages as NonNullable<DiagnosticObject['messages']>
+  }
+
+  set messages(messages) {
+    this.#value.messages = messages
+  }
+
+  error(code: DiagnosticCode, message: string) {
+    this.messages.push({ type: 'error', code, message })
+    return this
+  }
+
+  info(code: DiagnosticCode, message: string) {
+    this.messages.push({ type: 'info', code, message })
+    return this
+  }
+
+  warn(code: DiagnosticCode, message: string) {
+    this.messages.push({ type: 'warn', code, message })
+    return this
   }
 
   toJSON() {

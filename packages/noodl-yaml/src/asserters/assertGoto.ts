@@ -1,4 +1,10 @@
-import { consts, is as coreIs, generateDiagnostic, regex } from 'noodl-core'
+import {
+  consts,
+  Diagnostic,
+  is as coreIs,
+  generateDiagnostic,
+  regex,
+} from 'noodl-core'
 import { Parser } from 'noodl-utils'
 import type { DiagnosticObjectMessage } from 'noodl-core'
 import deref from '../utils/deref'
@@ -15,16 +21,10 @@ export default createAssert({
     const destination = unwrap(destinationNode)
 
     if (!destination) {
-      return void add({
-        node: destinationNode,
-        messages: [
-          {
-            type: consts.ValidatorType.ERROR,
-            ...generateDiagnostic(consts.DiagnosticCode.GOTO_PAGE_EMPTY),
-          },
-        ],
-        page,
-      })
+      return void add(
+        'error',
+        generateDiagnostic(consts.DiagnosticCode.GOTO_PAGE_EMPTY),
+      )
     }
 
     if (coreIs.str(destination)) {

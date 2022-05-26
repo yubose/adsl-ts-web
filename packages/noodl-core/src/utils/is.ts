@@ -3,7 +3,7 @@ import type { IViewport } from '../types'
 import { ARoot } from '../types'
 import * as regex from './regex'
 import * as c from '../constants'
-import type { TranslatedDiagnosticObject } from '../diagnostics/diagnosticsTypes'
+import type Diagnostic from '../diagnostics/Diagnostic'
 
 export function arr<V extends any[] = any[]>(v: unknown): v is V {
   return Array.isArray(v)
@@ -29,9 +29,7 @@ export function boolFalse(value: unknown): value is 'false' | false {
   return value === false || value === 'false'
 }
 
-export function diagnostic(
-  value: unknown,
-): value is TranslatedDiagnosticObject {
+export function diagnostic(value: unknown): value is Diagnostic {
   return obj(value) && value._id_ === c._symbol.diagnostic
 }
 

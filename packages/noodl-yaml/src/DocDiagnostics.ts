@@ -1,5 +1,5 @@
 import { consts, Diagnostic, Diagnostics, is as coreIs, fp } from 'noodl-core'
-import type { Builder, TranslatedDiagnosticObject } from 'noodl-core'
+import type { Builder } from 'noodl-core'
 import getYamlNodeKind from './utils/getYamlNodeKind'
 import DocDiagnosticsIterator from './DocDiagnosticsIterator'
 import DocRoot from './DocRoot'
@@ -16,11 +16,8 @@ class DocDiagnostics extends Diagnostics<
     super()
   }
 
-  createDiagnostic(
-    options?: Partial<t.YAMLDiagnosticObject | TranslatedDiagnosticObject>,
-  ) {
-    const { node, ...opts } = options ?? {}
-    const diagnostic = super.createDiagnostic(opts)
+  createDiagnostic(page?: string, node?: any) {
+    const diagnostic = super.createDiagnostic(page)
 
     if (node) {
       const kind = getYamlNodeKind(node)

@@ -1,6 +1,7 @@
 import partialRight from 'lodash/partialRight'
 import type { Scalar, Pair, YAMLMap, YAMLSeq, Document } from 'yaml'
 import { is as coreIs, fp } from 'noodl-core'
+import type { DiagnosticsHelpers } from 'noodl-core'
 import { Kind } from './constants'
 import * as t from './types'
 
@@ -61,10 +62,10 @@ export function createAssert<N = any>({
   fn,
 }: {
   cond: Condition | Condition[]
-  fn: t.AssertFn<N>
+  fn: t.AssertFn<N, DiagnosticsHelpers>
 }): {
   cond: InternalCondFn<N>
-  fn: t.AssertFn<N>
+  fn: t.AssertFn<N, DiagnosticsHelpers>
 } {
   function _cond(nodeKind: Kind, node: unknown, condFn?: typeof cond) {
     if (coreIs.fnc(condFn)) {
