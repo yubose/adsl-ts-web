@@ -8,7 +8,7 @@ import { createAssert } from '../assert'
 import * as t from '../types'
 
 export default createAssert({
-  cond: [is.mapNode, is.goto],
+  cond: [is.mapNode, is.goto as any],
   fn({ add, isValidPageValue, isValidViewTag, node, markers, page, root }) {
     const gotoNode = node as t.Goto
     const destinationNode = gotoNode.get('goto', true)

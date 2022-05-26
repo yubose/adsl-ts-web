@@ -29,7 +29,11 @@ export default createAssert<y.Scalar>({
       return node
     }
 
-    const derefed = deref({ node, root: root as DocRoot, rootKey: page })
+    const derefed = deref({
+      node: node as y.Scalar<ReferenceString>,
+      root: root as DocRoot,
+      rootKey: page,
+    })
 
     if (!refProps.isLocalRef) {
       const nextWord = refProps.paths[1]

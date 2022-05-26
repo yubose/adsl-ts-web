@@ -3,6 +3,7 @@
  */
 import y from 'yaml'
 import { is as coreIs, fp, getRefProps } from 'noodl-core'
+import type { ARoot } from 'noodl-core'
 import type { ReferenceString } from 'noodl-types'
 import get from './get'
 import is from './is'
@@ -21,7 +22,7 @@ const enum ActionType {
 export interface DerefOptions {
   depth?: number
   node: y.Scalar<string> | string
-  root?: DocRoot
+  root?: ARoot | DocRoot
   rootKey?: y.Scalar | string
   subscribe?: {
     onUpdate?: (prevState: any, nextState: any) => void
