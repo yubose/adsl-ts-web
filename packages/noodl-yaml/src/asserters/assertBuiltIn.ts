@@ -1,4 +1,5 @@
 import { consts, is as coreIs, fp } from 'noodl-core'
+import { visit } from 'yaml'
 import deref from '../utils/deref'
 import is from '../utils/is'
 import unwrap from '../utils/unwrap'
@@ -19,7 +20,8 @@ export default createAssert({
         const builtInFn = fp.get(builtIn, builtInPath)
 
         if (coreIs.fnc(builtInFn)) {
-          let builtInResult = builtInFn(dataIn, {
+          const fnArgs = {
+            add,
             builtIns: builtIn,
             builtInKey,
             builtInObject,
@@ -29,8 +31,11 @@ export default createAssert({
             node,
             page,
             root,
-          })
-
+          }
+          let builtInResult = builtInFn(
+            builtIn?.normalize ? builtIn.normalize(dataIn, fnArgs) : dataIn,
+            fnArgs,
+          )
           if (coreIs.str(builtInResult)) {
             if (coreIs.reference(builtInResult)) {
               builtInResult = deref({

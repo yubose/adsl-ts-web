@@ -1,11 +1,16 @@
 Homepage:
   title: Homepage
-  B: hello
+  b: hello
+  concatResults: ''
+  init:
+    - =.builtIn.string.concat:
+        dataIn:
+          - .Homepage.b
+          - ..title
+        dataOut: Homepage.concatResults
   components:
     - type: label
       text: ..g
-    - type: label
-      text: .Homepage.B
     - type: image
       path: abc.png
       onClick:

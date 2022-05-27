@@ -70,12 +70,7 @@ export abstract class AVisitor<
   abstract use(callback: AVisitor<any, any, B>['callback']): this
 }
 
-export interface BuiltInFn<
-  B extends BuiltIns = BuiltIns,
-  DataIn = any,
-  DataOut = any,
-  R = any,
-> {
+export interface BuiltInFn<B extends BuiltIns = BuiltIns, DataIn = any> {
   (
     dataIn: DataIn,
     args?: {
@@ -89,16 +84,12 @@ export interface BuiltInFn<
       page: string
       root: ARoot
     },
-  ): R
+  ): any
 }
 
-export type BuiltIns<
-  O extends {
-    [key: string]: BuiltInFn | Record<string, BuiltIns<O>>
-  } = {
-    [key: string]: BuiltInFn | Record<string, BuiltIns>
-  },
-> = O
+export interface BuiltIns {
+  [key: string]: BuiltInFn | Record<string, BuiltInFn | BuiltIns>
+}
 
 export interface VisitorAsserter<
   N = unknown,

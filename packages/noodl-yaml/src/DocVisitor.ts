@@ -81,7 +81,11 @@ function decorate() {
             fn(node, wrap(this.callback as any, isAsync, args)),
           )
         }
-
+        if ('has' in node) {
+          if (node.has('init')) {
+            visitFn(node.get('init'), wrap(this.callback as any, isAsync, args))
+          }
+        }
         return visitFn(node, wrap(this.callback as any, isAsync, args))
       }
     }
