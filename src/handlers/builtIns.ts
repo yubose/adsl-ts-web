@@ -899,6 +899,76 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
     log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
+
+  const redrawCurrent: Store.BuiltInObject['fn'] = async function onRedrawCurrent(
+    action,
+    options,
+  ) {
+    log.func('redrawCurrent')
+    const component = options?.component as NuiComponent.Instance
+    const metadata = getActionMetadata(action, {
+      component,
+      pickKeys: 'viewTag',
+    })
+    const { viewTag } = metadata
+    try{
+      let _component
+      if (component?.get?.('data-viewtag') === viewTag.fromAction){
+        _component = component as NuiComponent.Instance
+      }else{
+        let newComponent = component
+        while(newComponent && !_component){
+          newComponent = newComponent?.parent as NuiComponent.Instance
+          if(newComponent?.blueprint?.viewTag && newComponent?.get?.('data-viewtag') === viewTag.fromAction){
+            _component = newComponent as NuiComponent.Instance
+          }
+        }
+      }
+
+      if(_component){
+        log.red(`Redrawing current component`, {
+          _component
+        })
+        const _node = findFirstBySelector(`#${_component?.id}`)
+        if (!_node) {
+          log.func('redraw')
+          log.red(
+            `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+            { component: _component, node: _node },
+          )
+        } else {
+          const ctx = {} as any
+          if (isListConsumer(_component)) {
+            const dataObject = findListDataObject(_component)
+            dataObject && (ctx.dataObject = dataObject)
+            if (is.component.list(_component)) {
+              ctx.listObject =
+                _component.get?.('listObject') ||
+                _component.blueprint?.listObject ||
+                _component?.['listObject']
+              ctx.index = 0
+              ctx.dataObject = ctx.listObject?.[0]
+              ctx.iteratorVar = _component.blueprint?.iteratorVar
+            }
+          }
+          const ndomPage = pickNDOMPageFromOptions(options)
+          await app.ndom.redraw(_node, _component, ndomPage, {
+            context: ctx,
+          })
+        }
+      }else{
+        log.red(`Could not find any components to redraw`, action?.snapshot?.())
+      }
+    }catch (error) {
+        console.error(error)
+        error instanceof Error && toast(error.message, { type: 'error' })
+    }
+  }
+    
+  
+
+   
+  
   const dismissOnTouchOutside: Store.BuiltInObject['fn'] =
     async function onDismissOnTouchOutside(action, options) {
       log.func('dismissOnTouchOutside')
@@ -971,6 +1041,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     logout,
     goto,
     redraw,
+    redrawCurrent,
     copy,
     dismissOnTouchOutside,
     extendMeeting,
