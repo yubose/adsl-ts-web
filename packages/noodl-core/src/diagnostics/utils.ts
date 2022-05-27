@@ -4,7 +4,6 @@ import type {
   DiagnosticLevel,
   DiagnosticObjectMessage,
 } from './diagnosticsTypes'
-import * as fp from '../utils/fp'
 import * as is from '../utils/is'
 
 /**
@@ -147,6 +146,11 @@ export function generateDiagnostic(code: DiagnosticCode, arg?: any) {
         return `Invalid popUpView "${arg.popUpView}"`
       case DiagnosticCode.POPUP_VIEW_MISSING_COMPONENT_POINTER:
         return `The popUpView "${arg.popUpView}" does not have a pointer to any components`
+      case DiagnosticCode.BUILTIN_FUNCTION_MISSING:
+        return `The builtIn ${arg.key} was not found`
+      case DiagnosticCode.BUILTIN_FUNCTION_NOT_A_FUNCTION:
+        return `Expected builtIn ${arg.key} to be a function but received "${arg.type}"`
+
       default:
         throw new Error(`Invalid diagnostic code "${code}"`)
     }
