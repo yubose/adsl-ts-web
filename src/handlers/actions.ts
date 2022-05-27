@@ -51,7 +51,8 @@ import { useGotoSpinner } from '../handlers/shared/goto'
 import App from '../App'
 import { pickActionKey, pickHasActionKey } from '../utils/common'
 import is from '../utils/is'
-
+import Cropper from 'cropperjs'
+import "../../node_modules/cropperjs/dist/cropper.min.css"
 const log = Logger.create('actions.ts')
 const _pick = pickActionKey
 const _has = pickHasActionKey
@@ -449,7 +450,130 @@ const createActions = function createActions(app: App) {
     },
   )
 
-  const _getInjectBlob: (name: string) => Store.ActionObject['fn'] = (name) =>
+  const getBlob = (file:File | undefined):Promise<Blob>=>{
+    return new Promise((res,rej)=>{
+      let blob:Blob = new Blob();
+      let img = document.createElement("img") as HTMLImageElement;
+      let rootDom = document.getElementsByTagName("body")[0];
+      let divRootDom = document.createElement("div") as HTMLDivElement;
+      let divImgDom = document.createElement("div") as HTMLDivElement;
+      let btnResult = document.createElement("button") as HTMLButtonElement;
+      let btnCancel = document.createElement("button") as HTMLButtonElement;
+      let divDom = document.createElement("div") as HTMLDivElement;
+      let divBtn = document.createElement("div") as HTMLDivElement;
+      let cropper;
+        btnResult.textContent = "确定";
+        btnCancel.textContent = "取消";
+        divRootDom.setAttribute("id","rootDom");
+        divRootDom.style.cssText = `
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            background-color: #fff;
+            z-index: 10000000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        `
+        divDom.style.cssText = `
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;`
+        divImgDom.style.cssText = `
+            height: 80%;
+            width: 65%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;`
+        btnResult.style.cssText = `
+            cursor: pointer;
+            outline: none;
+            border: none;
+            height: 30px;
+            width: 60px;
+            border-radius: 5px;
+            color: #fff;
+            background-color: #a139ff;
+            margin-top: 10px;
+            margin-right: 30px;
+        `
+        btnCancel.style.cssText = `
+            cursor: pointer;
+            outline: none;
+            height: 30px;
+            width: 60px;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            background-color: red;
+            margin-top: 10px;
+        `
+        divBtn.style.cssText = `
+            font-size: 15px;
+            background-color: red
+            color: #fff;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+    `
+        divDom.appendChild(img);
+        divImgDom.appendChild(divDom);
+        divBtn.appendChild(btnResult);
+        divBtn.appendChild(btnCancel);
+        divImgDom.appendChild(divBtn);
+        divRootDom.appendChild(divImgDom);
+        rootDom.appendChild(divRootDom);
+        img.src = URL.createObjectURL(file as Blob) as string;
+        cropper = new Cropper(img, {
+          viewMode: 1, // 只能在裁剪的图片范围内移动
+          dragMode: 'none', // 画布和图片都可以移动
+          // aspectRatio: 1, // 裁剪区默认正方形
+          autoCropArea: 1, // 自动调整裁剪图片
+          zoomOnWheel: false,
+          // cropBoxMovable: false, // 禁止裁剪区移动
+          // cropBoxResizable: false, // 禁止裁剪区缩放
+          background: true, // 关闭默认背景
+          // toggleDragModeOnDblclick: true,
+          movable: true,
+          // aspectRatio: 16 / 9,
+          // scalable: false,
+          // zoomable: false,
+          // crop: function (e) {
+          // }
+        },
+        );
+      // };
+      btnResult.addEventListener("click",(event)=>{
+        // const cav = cropper.getCroppedCanvas();
+        cropper.getCroppedCanvas({
+            fillColor: '#fff',
+            imageSmoothingEnabled: false,
+            imageSmoothingQuality: 'high'
+          }).toBlob((bob) => {
+            blob = bob;
+            console.log(URL.createObjectURL(blob as Blob),"bbbbb");
+            res(blob as Blob)
+          });
+        let rootDom = document.getElementById("rootDom") as HTMLDivElement;
+        document.body.removeChild(rootDom);
+        cropper.destroy();
+      });
+      btnCancel.addEventListener("click",()=>{
+        cropper.destroy();
+        let rootDom = document.getElementById("rootDom") as HTMLDivElement;
+        document.body.removeChild(rootDom);
+      })
+    })
+  }
+
+  const _getInjectBlob: (name: string) => Store.ActionObject['fn']|Function = (name) =>
+  // true?function hh(){}:
     async function getInjectBlob(action, options) {
       options.ref?.clear('timeout')
       log.func(name)
@@ -466,21 +590,29 @@ const createActions = function createActions(app: App) {
           const downloadStatus = _pick(action, 'downloadStatus');
           const size = _pick(action, 'size') && +_pick(action, 'size') / 1000;
           const fileFormat = _pick(action, 'fileFormat');
+          const shearState = _pick(action,"shearState");
+          let fileRell:File|undefined;
+          if(Boolean(shearState)){
+            const hreFile = await getBlob(files?.[0]);
+            fileRell = new File([hreFile],files?.[0].name as string)
+          }
+
           if (ac && comp) {
             ac.data.set(dataKey, files?.[0]);
             if(documentType&&downloadStatus){
               const status = (documentType as string[])?.some((item)=>item===files?.[0]?.["type"].split("/")[1]);
               app.updateRoot(downloadStatus, status);
             }
+            // let blob:Blob = await upload(files?.[0]);
             if (fileFormat) {
-              ac.data.set(fileFormat, files?.[0]?.type)
+              ac.data.set(fileFormat, files?.[0].type)
               app.updateRoot(fileFormat, ac.data.get(fileFormat))
             }
             if (u.isStr(dataKey)) {
               await imageConversion
-                .compressAccurately(ac.data.get(dataKey), size)
-                .then((res) => {
-                  let newFile = new File([res], ac.data.get(dataKey).name, {
+                .compressAccurately(fileRell||ac.data.get(dataKey), size)
+                .then((dataBlob) => {
+                  let newFile = new File([dataBlob], ac.data.get(dataKey).name, {
                     type: files?.[0].type,
                   })
                   app.updateRoot(dataKey, newFile)
@@ -494,6 +626,34 @@ const createActions = function createActions(app: App) {
               file: files?.[0],
               actionChain: ac,
             })
+
+
+
+
+            // if (fileFormat) {
+            //   ac.data.set(fileFormat, files?.[0]?.type)
+            //   app.updateRoot(fileFormat, ac.data.get(fileFormat))
+            // }
+            // if (u.isStr(dataKey)) {
+            //   await imageConversion
+            //     .compressAccurately(ac.data.get(dataKey), size)
+            //     .then((res) => {
+            //       console.log("sssss",res)
+            //       let newFile = new File([res], ac.data.get(dataKey).name, {
+            //         type: files?.[0].type,
+            //       })
+            //       console.log("jjjj",newFile)
+            //       app.updateRoot(dataKey, newFile)
+            //     })
+            // } else {
+            //   log.red(
+            //     `Could not write file to dataKey because it was not a string. Received "${typeof dataKey}" instead`,
+            //   )
+            // }
+            // log.green(`Selected file for dataKey "${dataKey}"`, {
+            //   file: files?.[0],
+            //   actionChain: ac,
+            // })
           } else {
             log.red(
               `%cBoth action and component is needed to inject a blob to the action chain`,
@@ -1032,7 +1192,7 @@ const createActions = function createActions(app: App) {
     saveSignature,
     toast: toastAction,
     updateObject,
-    getLocationAddress,
+    getLocationAddress
   }
 }
 

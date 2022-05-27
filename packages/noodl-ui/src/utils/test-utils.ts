@@ -94,7 +94,7 @@ export function getPresetPageObjects() {
           ui.view({
             style: { shadow: 'true' },
             children: [
-              // @ts-expect-error
+              // @ts-ignore
               ui.image({ path: ifObject }),
               ui.page({
                 path: 'Tiger',

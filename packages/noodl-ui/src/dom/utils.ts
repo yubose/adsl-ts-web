@@ -569,6 +569,8 @@ export const findByPlaceholder = makeFindByAttr('data-placeholder')
 export const findBySrc = makeFindByAttr('data-src')
 export const findByViewTag = makeFindByAttr('data-viewtag')
 export const findByUX = makeFindByAttr('data-ux')
+export const findByDataOpton = makeFindByAttr('data-option')
+
 
 export function findByClassName(className: string | undefined) {
   return findElement((doc) =>
@@ -612,7 +614,9 @@ export const findFirstByGlobalId = makeFindFirstBy<string>((doc, globalId) =>
 export const findFirstByViewTag = makeFindFirstBy<string>((doc, viewTag) =>
   doc.querySelector(`[data-viewtag="${viewTag}"]`),
 )
-
+export const findFirstByDataOption = makeFindFirstBy<string>((doc, dataOption) =>
+  doc.querySelector(`[data-option="${dataOption}"]`),
+)
 export const findFirstByElementId = makeFindFirstBy<
   t.NuiComponent.Instance | string
 >((doc, c) => doc.getElementById(u.isStr(c) ? c : c?.id))
