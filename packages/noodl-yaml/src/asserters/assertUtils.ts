@@ -5,6 +5,7 @@ import type { ReferenceString } from 'noodl-types'
 import type { ARoot, Markers } from 'noodl-core'
 import type DocRoot from '../DocRoot'
 import deref from '../utils/deref'
+import getJsTypeFn from '../utils/getJsType'
 import has from '../utils/has'
 import originalSet from '../utils/set'
 import is from '../utils/is'
@@ -14,6 +15,8 @@ import { isScalar, isPair, isMap, isSeq, visit } from '../utils/yaml'
 import * as t from '../types'
 
 const { BREAK, REMOVE, SKIP } = visit
+
+export const getJsType = getJsTypeFn
 
 /**
  * Performs a binding check depending on the type of binding
