@@ -6,10 +6,12 @@ import type {
   VpUnit,
   VpValue,
 } from 'noodl-types'
-import { Identify } from 'noodl-types'
 import {
+  localKey,
+  localReference,
   nil,
   num,
+  noodlUnit,
   str,
   validViewport,
   vw,
@@ -81,8 +83,8 @@ export function getRefProps(ref: ReferenceString) {
   const path = trimReference(ref)
   const paths = path.split('.')
   return {
-    isLocalRef: Identify.localReference(ref),
-    isLocalKey: Identify.localKey(path),
+    isLocalRef: localReference(ref),
+    isLocalKey: localKey(path),
     paths,
     path,
     ref,
@@ -114,10 +116,13 @@ export function getNextRootKeyProps(
  * @param { string | number } value - Size in decimals as written in NOODL
  * @param { number } vpSize - The maximum width (or height)
  */
-export function getSize<U extends 'noodl' | 'px' = 'noodl' | 'px'>(
+export function getSize(
   value: number | string,
   vpSize: number,
-  { toFixed = 2, unit }: { toFixed?: number; unit?: U } = {},
+  {
+    toFixed = 2,
+    unit = 'px',
+  }: { toFixed?: number; unit?: 'noodl' | 'px' } = {},
 ) {
   let result: any
   if (value == '0') {
@@ -215,9 +220,7 @@ export const presets = {
 } as const
 
 export function isValidViewTag(viewTag: unknown) {
-  if (str(viewTag)) {
-    return !!(viewTag && regex.letters.test(viewTag))
-  }
+  if (str(viewTag)) return !!(viewTag && regex.letters.test(viewTag))
   return false
 }
 

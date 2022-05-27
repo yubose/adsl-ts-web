@@ -33,6 +33,7 @@ export default createAssert({
             root,
           }
           let builtInResult = builtInFn(
+            // @ts-expect-error
             builtIn?.normalize ? builtIn.normalize(dataIn, fnArgs) : dataIn,
             fnArgs,
           )
