@@ -1,4 +1,4 @@
-const { AIterator } = require('@noodl/core')
+const { AIterator } = require('noodl-core')
 
 class ObjIterator extends AIterator {
   /**

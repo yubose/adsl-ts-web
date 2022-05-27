@@ -1,13 +1,8 @@
-import * as fp from '../utils/fp'
-import * as t from '../types'
 import AppConfig from '../AppConfig'
 import RootConfig from '../RootConfig'
 import Builder from '../Builder'
 import Diagnostic from './Diagnostic'
-import * as regex from '../utils/regex'
-import { translateDiagnosticType } from './utils'
-import { isValidViewTag } from '../utils/noodl'
-import { DiagnosticCode, ValidatorType } from '../constants'
+import { generateDiagnostic, isDiagnosticLevel } from './utils'
 import type {
   IDiagnostics,
   DefaultMarkerKey,
@@ -15,21 +10,31 @@ import type {
   DiagnosticObject,
   Markers,
   RunOptions,
-  TranslatedDiagnosticObject,
 } from './diagnosticsTypes'
+import * as fp from '../utils/fp'
+import * as is from '../utils/is'
+import * as t from '../types'
 
 class Diagnostics<
     D extends DiagnosticObject = DiagnosticObject,
     R = D[],
     H extends Record<string, any> = Record<string, any>,
     Asserters = any,
+    B extends t.BuiltIns = t.BuiltIns,
   >
   extends Builder
   implements IDiagnostics
 {
   #appConfig: AppConfig
   #rootConfig: RootConfig
-  #markers = { rootConfig: '', appConfig: '' } as Markers;
+  #markers = { rootConfig: '', appConfig: '' } as Markers
+  #hooks = {
+    addDiagnostic: [] as ((
+      diagnostic: Diagnostic,
+      page?: string,
+      node?: any,
+    ) => void)[],
+  };
 
   [Symbol.iterator](): Iterator<[name: string, node: unknown], any, any> {
     // @ts-expect-error
@@ -40,6 +45,10 @@ class Diagnostics<
     super()
     this.#rootConfig = new RootConfig()
     this.#appConfig = new AppConfig()
+  }
+
+  get hooks() {
+    return this.#hooks
   }
 
   get rootConfig() {
@@ -58,26 +67,6 @@ class Diagnostics<
     return this.#markers
   }
 
-  createDiagnostic(
-    opts?: Partial<DiagnosticObject | TranslatedDiagnosticObject>,
-  ) {
-    const diagnostic = fp.omit(opts, ['messages']) as DiagnosticObject
-
-    if (opts?.messages) {
-      diagnostic.messages = fp
-        .toArr(opts.messages)
-        .map(({ message, type, ...rest }) => {
-          return {
-            message,
-            type: translateDiagnosticType(type as ValidatorType),
-            ...rest,
-          }
-        })
-    }
-
-    return new Diagnostic(diagnostic as TranslatedDiagnosticObject)
-  }
-
   mark(flag: DefaultMarkerKey, value: any) {
     if (/preload|page/.test(flag)) {
       this.#appConfig[flag === 'pages' ? 'page' : flag].push(value)
@@ -91,8 +80,9 @@ class Diagnostics<
     return this
   }
 
-  run(args: RunOptions<D, R, H, Asserters> = {}) {
+  run(args: RunOptions<D, R, H, Asserters, B> = {}) {
     const asserters = fp.toArr(args?.asserters ?? []).filter(Boolean)
+    const builtIn = args?.builtIn
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
     try {
       for (const [name, nodeProp] of this) {
@@ -104,6 +94,7 @@ class Diagnostics<
         this.visitor?.visit(node, {
           ...options,
           asserters,
+          builtIn,
           helpers,
           page: name,
         } as t.VisitorOptions)
@@ -124,8 +115,9 @@ class Diagnostics<
     )
   }
 
-  async runAsync(args: RunOptions<D, R, H, Asserters> = {}) {
+  async runAsync(args: RunOptions<D, R, H, Asserters, B> = {}) {
     const asserters = fp.toArr(args?.asserters ?? []).filter(Boolean)
+    const builtIn = args?.builtIn
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
     try {
       await Promise.all(
@@ -138,6 +130,7 @@ class Diagnostics<
           return this.visitor?.visitAsync(node, {
             ...options,
             asserters,
+            builtIn,
             page: name,
             helpers,
           } as t.VisitorOptions)
@@ -152,11 +145,9 @@ class Diagnostics<
   }
 
   #getRunnerProps = <Asserters = any>(args: RunOptions<D, R, H, Asserters>) => {
-    let originalVisitor: t.AVisitor<true>['callback'] | undefined =
-      this.visitor?.callback?.(args as any)
+    const originalVisitor = this.visitor?.callback
 
     if (args.enter) {
-      originalVisitor = this.visitor?.callback
       this.visitor?.use(args.enter)
     } else {
       this.visitor?.use((args) => originalVisitor?.(args))
@@ -178,41 +169,81 @@ class Diagnostics<
 
   #getVisitorProps = ({
     diagnostics,
-    name,
+    name: page,
     node,
   }: {
     diagnostics: Diagnostic[]
     name: string
     node: unknown
   }) => {
-    const getHelpers = (
-      page: string,
-      diag: typeof diagnostics,
-    ): DiagnosticsHelpers => {
-      return this.createHelpers({
-        add: (diagnostic: DiagnosticObject) => {
-          const d = this.createDiagnostic({ ...diagnostic, node, page })
-          diag.push(d)
-        },
-        isValidPageValue: (page: string) => {
-          if (!page) return false
-          if (!regex.letters.test(page)) return false
-          if (/null|undefined/i.test(page)) return false
-          if (['.', '_', '-'].some((symb) => symb === page)) return false
-          return true
-        },
-        isValidViewTag,
-        markers: this.#markers,
-      })
-    }
+    const diagnosticsHelpers = {
+      add: (arg1, arg2, arg3, arg4, arg5) => {
+        let p = ''
+        let n: any
 
-    const helpers = getHelpers(name, diagnostics)
+        const diagnostic = new Diagnostic()
+
+        if (is.fnc(arg1)) {
+          if (is.str(arg2)) p = arg2
+          if (arg3) n = arg3
+          arg1(diagnostic, diagnostics)
+        } else if (isDiagnosticLevel(arg1)) {
+          if (is.num(arg2)) {
+            if (is.obj(arg3)) {
+              if (is.str(arg4)) {
+                p = arg4
+                if (arg5) n = arg5
+              }
+            }
+            const obj = generateDiagnostic(arg2, arg3)
+            diagnostic[arg1](obj.code, obj.message)
+          } else if (is.str(arg2)) {
+            diagnostic[arg1](arg2)
+          } else {
+            diagnostic.set('type', arg1)
+          }
+        } else if (is.num(arg1)) {
+          if (is.obj(arg2) || is.str(arg2)) {
+            diagnostic.info(arg1, arg2)
+            if (is.str(arg3)) {
+              p = arg3
+              if (arg4) n = arg4
+            }
+          }
+        } else if (is.obj(arg1)) {
+          for (const [k, v] of fp.entries(arg1)) diagnostic.set(k, v)
+          if (is.str(arg2)) {
+            p = arg2
+            if (arg3) n = arg3
+          }
+        }
+
+        if (!p) p = page
+        if (!n) n = node
+
+        if (!diagnostic.get('page')) diagnostic.set('page', p)
+
+        this.hooks.addDiagnostic.forEach((fn) => fn(diagnostic, p, n))
+        diagnostics.push(diagnostic)
+      },
+      markers: this.#markers,
+    } as DiagnosticsHelpers
 
     return this.createProps({
-      helpers,
-      name,
+      helpers: this.createHelpers(diagnosticsHelpers),
+      name: page,
       node,
     })
+  }
+
+  on<Evt extends 'addDiagnostic'>(
+    evt: Evt,
+    fn: Diagnostics['hooks'][Evt][number],
+  ) {
+    if (evt === 'addDiagnostic') {
+      this.hooks.addDiagnostic.push(fn)
+    }
+    return this
   }
 }
 

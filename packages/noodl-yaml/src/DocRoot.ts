@@ -3,6 +3,7 @@ import { ARoot, is as coreIs } from 'noodl-core'
 import DocDiagnosticsIterator from './DocDiagnosticsIterator'
 import is from './utils/is'
 import get from './utils/get'
+import set from './utils/set'
 import unwrap from './utils/unwrap'
 import type { FileSystem } from './utils/fileSystem'
 import * as c from './constants'
@@ -114,7 +115,9 @@ class DocRoot extends ARoot {
       }
       value = doc
     }
-    this.value.set(unwrap(key) as string, value)
+
+    set(this.value, unwrap(key), value)
+    // this.value.set(unwrap(key) as string, value)
     return this
   }
 

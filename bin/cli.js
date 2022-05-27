@@ -74,6 +74,7 @@ const cli = meow(getHelp(), {
     config: { alias: 'c', type: 'string' },
     clean: { type: 'boolean' },
     deploy: { type: 'string' },
+    dev: { type: 'string' },
     start: { type: 'string' },
     build: { type: 'string' },
     bundle: { type: 'string' },
@@ -113,7 +114,14 @@ newline()
 
     let cmd = ''
 
-    if (isStart || isBuild || isTest) {
+    if (flags.dev) {
+      const pkg = flags.dev
+      if (/core|yaml/i.test(pkg)) {
+        cmd = `lerna exec --scope noodl-${pkg} `
+        cmd += `\"npm run dev\"`
+      }
+      exec(cmd)
+    } else if (isStart || isBuild || isTest) {
       // Static web app
       if (/static|homepage/i.test(pkg)) {
         let command = isBuild ? 'build' : isTest ? 'test:watch' : 'start'

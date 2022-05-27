@@ -1,4 +1,5 @@
 import partial from 'lodash/partial'
+import type { YAMLMap } from 'yaml'
 import { is as coreIs } from 'noodl-core'
 import is from './is'
 import unwrap from './unwrap'
@@ -20,6 +21,13 @@ function has(...args: any[]) {
   }
 
   return false
+}
+
+export function hasKeyStartsWith<N extends YAMLMap>(node: N, key: string) {
+  return node.items.some((pair) => {
+    const pairKey = unwrap(pair.key)
+    return coreIs.str(pairKey) && pairKey.startsWith(key)
+  })
 }
 
 export default has

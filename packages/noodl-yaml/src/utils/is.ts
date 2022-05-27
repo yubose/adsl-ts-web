@@ -5,6 +5,7 @@ import { findPair } from 'yaml/util'
 import { is as coreIs } from 'noodl-core'
 import getYamlNodeKind from './getYamlNodeKind'
 import unwrap from './unwrap'
+import { hasKeyStartsWith } from './has'
 import type DocRoot from '../DocRoot'
 import type { FileSystem } from './fileSystem'
 import * as c from '../constants'
@@ -98,17 +99,8 @@ const is = {
     getYamlNodeKind(node) === c.Kind.Document,
   sameNodeType,
   action: isMapNodeContaining('actionType'),
-  builtInFn: (node: unknown): node is y.YAMLMap<`=.builtIn.${string}`> => {
-    if (
-      y.isMap(node) &&
-      node.items.length === 1 &&
-      y.isScalar(node.items[0].key)
-    ) {
-      const key = node.items[0].key.value
-      return coreIs.str(key) && key.startsWith(`=.builtIn`)
-    }
-    return false
-  },
+  builtInFn: (node: unknown): node is y.YAMLMap<`=.builtIn.${string}`> =>
+    is.mapNode(node) && hasKeyStartsWith(node, `=.builtIn`),
   // Components
   component: (
     node: y.YAMLMap,

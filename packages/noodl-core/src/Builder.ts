@@ -1,3 +1,5 @@
+import { isValidViewTag } from './utils/noodl'
+import * as regex from './utils/regex'
 import * as t from './types'
 
 class Builder {
@@ -31,8 +33,21 @@ class Builder {
    * @param helpers
    * @returns
    */
-  createHelpers(helpers?: any) {
-    return { ...helpers }
+  createHelpers<H extends Record<string, any> = Record<string, any>>(
+    helpers?: H,
+  ) {
+    const h = {
+      isValidPageValue: (page: string) => {
+        if (!page) return false
+        if (!regex.letters.test(page)) return false
+        if (/null|undefined/i.test(page)) return false
+        if (['.', '_', '-'].some((symb) => symb === page)) return false
+        return true
+      },
+      isValidViewTag,
+      ...helpers,
+    }
+    return h as H & typeof h
   }
 
   /**

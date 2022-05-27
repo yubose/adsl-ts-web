@@ -4,9 +4,9 @@ const y = require('yaml')
 const fse = require('fs-extra')
 const path = require('path')
 const fg = require('fast-glob')
-const n = require('@noodl/core')
+const n = require('noodl-core')
 const u = require('@jsmanifest/utils')
-const ny = require('@noodl/yaml')
+const ny = require('noodl-yaml')
 
 /**
  * @typedef CSTTokenType

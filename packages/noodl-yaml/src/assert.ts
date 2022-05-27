@@ -1,8 +1,16 @@
 import partialRight from 'lodash/partialRight'
-import type { Scalar, Pair, YAMLMap, YAMLSeq, Document } from 'yaml'
 import { is as coreIs, fp } from 'noodl-core'
+import type { Scalar, Pair, YAMLMap, YAMLSeq, Document } from 'yaml'
+import type { DiagnosticsHelpers } from 'noodl-core'
+import is from './utils/is'
+import * as utils from './asserters/assertUtils'
 import { Kind } from './constants'
 import * as t from './types'
+
+export const assertUtils = {
+  ...utils,
+  is,
+}
 
 function anyPass<F extends (...args: any[]) => any>(
   fnOrFns: F | F[] | undefined,
@@ -61,10 +69,10 @@ export function createAssert<N = any>({
   fn,
 }: {
   cond: Condition | Condition[]
-  fn: t.AssertFn<N>
+  fn: t.AssertFn<N, DiagnosticsHelpers>
 }): {
   cond: InternalCondFn<N>
-  fn: t.AssertFn<N>
+  fn: t.AssertFn<N, DiagnosticsHelpers>
 } {
   function _cond(nodeKind: Kind, node: unknown, condFn?: typeof cond) {
     if (coreIs.fnc(condFn)) {
@@ -78,7 +86,7 @@ export function createAssert<N = any>({
   }
   return {
     cond: partialRight(_cond, cond),
-    fn,
+    fn: partialRight(fn, assertUtils),
   }
 }
 
@@ -104,6 +112,6 @@ export function createAsyncAssert<N = unknown>({
   }
   return {
     cond: partialRight(_cond, cond),
-    fn,
+    fn: partialRight(fn, assertUtils),
   }
 }

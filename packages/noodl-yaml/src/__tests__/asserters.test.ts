@@ -1,22 +1,15 @@
 import { expect } from 'chai'
-import fs from 'fs-extra'
-import partialRight from 'lodash/partialRight'
 import sinon from 'sinon'
 import y from 'yaml'
 import { consts, fp, is as coreIs } from 'noodl-core'
 import Root from '../DocRoot'
-import {
-  assertRef,
-  assertGoto,
-  assertPopUpView,
-  assertViewTag,
-} from '../asserters'
 import createNode from '../utils/createNode'
 import is from '../utils/is'
 import DocDiagnostics from '../DocDiagnostics'
 import DocVisitor from '../DocVisitor'
 import { toYml } from '../utils/yaml'
 import unwrap from '../utils/unwrap'
+import * as asserters from '../asserters'
 import * as com from '../compiler'
 import * as c from '../constants'
 
@@ -34,31 +27,104 @@ beforeEach(() => {
   docDiagnostics.use(docRoot)
 })
 
-describe.only(`asserters`, () => {
-  it.only(``, () => {
-    process.stdout.write('\x1Bc')
-    docRoot.set('Topo', {
-      goto1: { goto: 'A@.#C' },
-      goto2: { goto: '.@B#C' },
-      goto3: { goto: 'A@B#.' },
-      viewTag: 'helloTag',
-      bob: { viewTag: 'sodaTag' },
-      bob2: { popUpView: '.Topo.viewTag' },
-      soda: 'noPopUpViewPointer',
-      components: [
-        { type: 'label', viewTag: '..viewTag' },
-        { type: 'label', viewTag: '..bob.viewTag' },
-        {
-          type: 'image',
-          path: 'abc.png',
-          onClick: [{ actionType: 'popUp', viewTag: 'whatViewTag' }],
-          onMouseOver: [{ actionType: 'popUp' }],
+function runAsserter(...name: (keyof typeof asserters)[]) {
+  return docDiagnostics.run({ asserters: name.map((n) => asserters[n]) })
+}
+
+describe(`asserters`, () => {
+  // it.only(``, () => {
+  //   docRoot.set('Topo', {
+  //     goto1: { goto: 'A@.#C' },
+  //     goto2: { goto: '.@B#C' },
+  //     goto3: { goto: 'A@B#.' },
+  //     viewTag: 'helloTag',
+  //     bob: { viewTag: 'sodaTag' },
+  //     bob2: { popUpView: '.Topo.viewTag' },
+  //     soda: 'noPopUpViewPointer',
+  //     components: [
+  //       { type: 'label', viewTag: '..viewTag' },
+  //       { type: 'label', viewTag: '..bob.viewTag' },
+  //       {
+  //         type: 'image',
+  //         path: 'abc.png',
+  //         onClick: [{ actionType: 'popUp', viewTag: 'whatViewTag' }],
+  //         onMouseOver: [{ actionType: 'popUp' }],
+  //       },
+  //     ],
+  //   })
+  //   docDiagnostics.mark('page', 'Topo')
+  //   const results = docDiagnostics.run({
+  //     asserters: [assertPopUpView, assertRef, assertGoto, assertViewTag],
+  //   })
+  // })
+
+  describe(`assertBuiltIn`, () => {
+    it(`should call builtIn functions`, () => {
+      docRoot.set('Topo', {
+        '=.builtIn.string.equal': {
+          dataIn: { string1: 'abc.png', string2: 'abc.png' },
+          dataOut: 'Topo.isEqual',
         },
-      ],
+      })
+      const spy = sinon.spy()
+      docDiagnostics.run({
+        asserters: asserters.assertBuiltIn,
+        builtIn: { string: { equal: spy } },
+      })
+      expect(spy).to.be.calledOnce
     })
-    docDiagnostics.mark('page', 'Topo')
-    const results = docDiagnostics.run({
-      asserters: [assertPopUpView, assertRef, assertGoto, assertViewTag],
+
+    it(`should set the result as the value to the path dataOut is pointing to`, () => {
+      docRoot.set('Topo', {
+        components: [
+          {
+            type: 'image',
+            path: 'abc.png',
+            onClick: [
+              {
+                actionType: 'evalObject',
+                object: [
+                  {
+                    '=.builtIn.string.equal': {
+                      dataIn: { string1: 'abc.png', string2: 'abc.png' },
+                      dataOut: 'Topo.isEqual.bob',
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      })
+      docDiagnostics.run({
+        asserters: asserters.assertBuiltIn,
+        builtIn: {
+          string: {
+            equal: (dataIn) => dataIn.get('string1') === dataIn.get('string2'),
+          },
+        },
+      })
+      expect(unwrap(docRoot.get('Topo.isEqual.bob'))).to.eq(true)
+      docRoot
+        .get('Topo')
+        .setIn([
+          'components',
+          0,
+          'onClick',
+          0,
+          '=.builtIn.string.equal',
+          'dataOut',
+          'isEqual.bob',
+        ])
+      docDiagnostics.run({
+        asserters: asserters.assertBuiltIn,
+        builtIn: {
+          string: {
+            equal: () => 'soda',
+          },
+        },
+      })
+      expect(unwrap(docRoot.get('Topo.isEqual.bob'))).to.eq('soda')
     })
   })
 
@@ -69,7 +135,7 @@ describe.only(`asserters`, () => {
       expect(
         docDiagnostics.codeExists(
           DiagnosticCode.GOTO_PAGE_MISSING_FROM_APP_CONFIG,
-          docDiagnostics.run({ asserters: assertGoto }),
+          runAsserter('assertGoto'),
         ),
       ).to.be.true
     })
@@ -79,7 +145,7 @@ describe.only(`asserters`, () => {
       expect(
         docDiagnostics.codeExists(
           DiagnosticCode.GOTO_PAGE_EMPTY,
-          docDiagnostics.run({ asserters: assertGoto }),
+          runAsserter('assertGoto'),
         ),
       ).to.be.true
     })
@@ -92,12 +158,8 @@ describe.only(`asserters`, () => {
       ] as const) {
         it(`should report if one or more pages is not a valid value`, () => {
           docRoot.set('Topo', { goto: pageComponentUrl })
-          expect(
-            docDiagnostics.codeExists(
-              code,
-              docDiagnostics.run({ asserters: assertGoto }),
-            ),
-          ).to.be.true
+          expect(docDiagnostics.codeExists(code, runAsserter('assertGoto'))).to
+            .be.true
         })
       }
     })
@@ -107,7 +169,7 @@ describe.only(`asserters`, () => {
     it(`should replace tilde references`, () => {
       docRoot.set('Topo', { formValues: '~/Topo' })
       docDiagnostics.mark('baseUrl', 'https://hello.com/')
-      docDiagnostics.run({ asserters: assertRef })
+      runAsserter('assertRef')
       expect(unwrap(docDiagnostics.root?.get('Topo.formValues'))).to.eq(
         'https://hello.com/Topo',
       )
@@ -130,7 +192,7 @@ describe.only(`asserters`, () => {
           },
         ],
       })
-      docDiagnostics.run({ asserters: assertRef })
+      runAsserter('assertRef')
       const Cereal = docRoot.get('Cereal') as y.YAMLMap
       const Tower = docRoot.get('Tower') as y.YAMLMap
       expect(Cereal.getIn(fp.path('profile.user.avatar'))).to.eq(
@@ -153,18 +215,10 @@ describe.only(`asserters`, () => {
         formValues: '..currentFormValues',
         currentFormValues: '.Tiger.incorrect.Path.toFormValues',
       }
-
       const Tiger = {
-        formData: {
-          profile: '..profile',
-        },
-        profile: {
-          user: '.Resource.user',
-        },
-        formValues: {
-          firstName: 'Bob',
-          lastName: 'Gonzalez',
-        },
+        formData: { profile: '..profile' },
+        profile: { user: '.Resource.user' },
+        formValues: { firstName: 'Bob', lastName: 'Gonzalez' },
       }
 
       docRoot.set('Resource', Resource)
@@ -181,8 +235,6 @@ describe.only(`asserters`, () => {
         preload: ['BaseCSS'],
         page: ['SignIn', 'Dashboard', ''],
       })
-
-      const diagnostics = docDiagnostics.run({ asserters: assertRef })
     })
 
     it(`should generate a report if a root reference contains uppercase in the second level`, () => {
@@ -190,55 +242,63 @@ describe.only(`asserters`, () => {
       expect(
         docDiagnostics.codeExists(
           DiagnosticCode.ROOT_REFERENCE_SECOND_LEVEL_KEY_UPPERCASE,
-          docDiagnostics.run({ asserters: assertRef }),
+          runAsserter('assertRef'),
         ),
       ).to.be.true
     })
 
-    describe.only(`assertViewTag`, () => {
-      it(`should report if viewTag is invalid`, () => {
-        docRoot.set('A', { C: { viewTag: '.' } })
-        const results = docDiagnostics.run({ asserters: assertViewTag })
-        expect(
-          docDiagnostics.codeExists(DiagnosticCode.VIEW_TAG_INVALID, results),
-        ).to.be.true
-      })
+    // COMPONENT KEY BINDINGS
+    for (const type of ['assertViewTag', 'assertPopUpView'] as const) {
+      const key = type === 'assertPopUpView' ? 'popUpView' : 'viewTag'
+      const label = key === 'popUpView' ? 'POPUP_VIEW' : 'VIEW_TAG'
 
-      it(`should report if the viewTag does not have a pointer to a component`, () => {
-        docRoot.set('A', {
-          C: { apple: 'greenAppleTag' },
-          viewTag: '.A.C.apple',
-          components: [{ type: 'label', viewTag: 'greenAppleTag' }],
+      describe(type, () => {
+        it(`should report if ${key} is invalid`, () => {
+          docRoot.set('A', { C: { [key]: '.' } })
+          expect(
+            docDiagnostics.codeExists(
+              DiagnosticCode[`${label}_INVALID`],
+              runAsserter(type),
+            ),
+          ).to.be.true
         })
-        expect(
-          docDiagnostics.codeExists(
-            DiagnosticCode.VIEW_TAG_MISSING_COMPONENT_POINTER,
-            docDiagnostics.run({ asserters: assertViewTag }),
-          ),
-        ).to.be.false
-        docRoot.set('A', {
-          C: { apple: 'greenAppleTag' },
-          viewTag: '.A.C.apple',
-          components: [{ type: 'label', viewTag: 'green' }],
+
+        it(`should report if the ${key} does not have a pointer to a component`, () => {
+          docRoot.set('A', {
+            C: { apple: 'greenAppleTag' },
+            [key]: '.A.C.apple',
+            components: [{ type: 'label', [key]: 'greenAppleTag' }],
+          })
+          expect(
+            docDiagnostics.codeExists(
+              DiagnosticCode[`${label}_MISSING_COMPONENT_POINTER`],
+              runAsserter(type),
+            ),
+          ).to.be.false
+          docRoot.set('A', {
+            C: { apple: 'greenAppleTag' },
+            [key]: '.A.C.apple',
+            components: [{ type: 'label', [key]: 'green' }],
+          })
+          expect(
+            docDiagnostics.codeExists(
+              DiagnosticCode[`${label}_MISSING_COMPONENT_POINTER`],
+              runAsserter(type),
+            ),
+          ).to.be.true
+          docRoot.set('A', {
+            C: { apple: 'greenAppleTag' },
+            [key]: 'greenAppleTag',
+            components: [{ type: 'label', [key]: 'green' }],
+          })
+          expect(
+            docDiagnostics.codeExists(
+              DiagnosticCode[`${label}_MISSING_COMPONENT_POINTER`],
+              runAsserter(type),
+            ),
+          ).to.be.true
         })
-        expect(
-          docDiagnostics.codeExists(
-            DiagnosticCode.VIEW_TAG_MISSING_COMPONENT_POINTER,
-            docDiagnostics.run({ asserters: assertViewTag }),
-          ),
-        ).to.be.true
-        docRoot.set('A', {
-          C: { apple: 'greenAppleTag' },
-          viewTag: 'greenAppleTag',
-          components: [{ type: 'label', viewTag: 'green' }],
-        })
-        expect(
-          docDiagnostics.codeExists(
-            DiagnosticCode.VIEW_TAG_MISSING_COMPONENT_POINTER,
-            docDiagnostics.run({ asserters: assertViewTag }),
-          ),
-        ).to.be.true
       })
-    })
+    }
   })
 })

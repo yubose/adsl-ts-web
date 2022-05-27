@@ -1,7 +1,12 @@
-import type { ARoot, DiagnosticsHelpers, VisitFnArgs } from 'noodl-core'
+import type {
+  ARoot,
+  BuiltIns,
+  DiagnosticsHelpers,
+  VisitFnArgs,
+} from 'noodl-core'
 import type { ReferenceString } from 'noodl-types'
 import y from 'yaml'
-import type { createAssert, createAsyncAssert } from './assert'
+import type { createAssert, assertUtils } from './assert'
 import * as c from './constants'
 
 export type DataObject = ARoot | Map<any, any> | Set<any> | YAMLNode
@@ -9,21 +14,28 @@ export type DataObject = ARoot | Map<any, any> | Set<any> | YAMLNode
 export interface AssertFn<
   N = unknown,
   H extends Record<string, any> = Record<string, any>,
+  B extends BuiltIns = BuiltIns,
 > {
-  (args: AssertFnArgs<N, H>): ReturnType<y.visitorFn<N>>
+  (args: AssertFnArgs<N, H, B>, utils: typeof assertUtils): ReturnType<
+    y.visitorFn<N>
+  >
 }
 
 export interface AssertAsyncFn<
   N = unknown,
   H extends Record<string, any> = Record<string, any>,
+  B extends BuiltIns = BuiltIns,
 > {
-  (args: AssertFnArgs<N, H>): ReturnType<y.asyncVisitorFn<N>>
+  (args: AssertFnArgs<N, H, B>, utils: typeof assertUtils): ReturnType<
+    y.asyncVisitorFn<N>
+  >
 }
 
 export type AssertFnArgs<
   N = unknown,
   H extends Record<string, any> = Record<string, any>,
-> = VisitFnArgs<H, N>
+  B extends BuiltIns = BuiltIns,
+> = VisitFnArgs<H, N, B>
 
 export interface RunDiagnosticsOptions<N = unknown>
   extends Omit<VisitFnArgs<DiagnosticsHelpers>, 'name' | 'value'> {

@@ -1,6 +1,7 @@
 import * as u from '@jsmanifest/utils'
 import axios from 'axios'
 import * as nu from 'noodl-utils'
+import type { BuiltIns } from 'noodl-core'
 import y from 'yaml'
 import App from '../App'
 import { extendedSdkBuiltIns } from './builtIns'
@@ -137,6 +138,7 @@ export function getSdkHelpers(app: App) {
         }
 
         const {
+          assertBuiltIn,
           assertRef,
           assertGoto,
           assertPopUpView,
@@ -144,7 +146,7 @@ export function getSdkHelpers(app: App) {
           DocDiagnostics,
           DocRoot,
           DocVisitor,
-          is,
+          getYamlNodeKind,
           toDoc,
           unwrap,
         } = await import('noodl-yaml')
@@ -156,7 +158,7 @@ export function getSdkHelpers(app: App) {
         window['docDiagnostics'] = docDiagnostics
         window['docRoot'] = docRoot
 
-        docRoot.set('Config', docRoot.toDocument(rootConfigYml))
+        docRoot.set('Config', toDoc(rootConfigYml))
         docDiagnostics.mark('rootConfig', configKey)
         docDiagnostics.mark('appConfig', 'cadlEndpoint')
 
@@ -183,8 +185,8 @@ export function getSdkHelpers(app: App) {
           await Promise.all(
             arr.map(async (page: string) => {
               try {
-                docDiagnostics.mark(type, page)
                 page = unwrap(page)
+                docDiagnostics.mark(type, page)
                 const pathname = `/${page}_en.yml`
                 const yml = await fetchYml(pathname)
                 const doc = toDoc(yml) as y.Document<y.YAMLMap>
@@ -214,7 +216,41 @@ export function getSdkHelpers(app: App) {
 
         const diagnostics = docDiagnostics
           .run({
-            asserters: [assertRef, assertGoto, assertPopUpView, assertViewTag],
+            asserters: [
+              assertBuiltIn,
+              assertRef,
+              assertGoto,
+              assertPopUpView,
+              assertViewTag,
+            ],
+            // @ts-expect-error
+            builtIn: {
+              normalize: (dataIn, args) => {
+                if (
+                  y.isNode(dataIn) ||
+                  y.isPair(dataIn) ||
+                  y.isDocument(dataIn)
+                ) {
+                  y.visit(dataIn, (k, n) => {
+                    return [
+                      assertBuiltIn,
+                      assertRef,
+                      assertGoto,
+                      assertPopUpView,
+                      assertViewTag,
+                    ]
+                      .find((f) => f.cond(getYamlNodeKind(n), n))
+                      ?.fn?.({
+                        ...args,
+                        key: k,
+                        node: n,
+                      })
+                  })
+                }
+                return dataIn.toJSON()
+              },
+              ...app.noodl.root.builtIn,
+            } as BuiltIns,
           })
           .map((diagnostic) => diagnostic.toJSON())
 

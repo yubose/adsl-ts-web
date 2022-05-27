@@ -1,7 +1,9 @@
 import y from 'yaml'
-import { AVisitor, is as coreIs, fp } from 'noodl-core'
-import type { VisitorOptions, VisitFnArgs } from 'noodl-core'
+import { AVisitor, is as coreIs, fp, trimReference } from 'noodl-core'
+import type { BuiltIns, VisitorOptions, VisitFnArgs } from 'noodl-core'
 import getYamlNodeKind from './utils/getYamlNodeKind'
+import is from './utils/is'
+import unwrap from './utils/unwrap'
 import { isScalar, isPair, isMap, isSeq } from './utils/yaml'
 import { getScalarType, getMapKind } from './compiler/utils'
 import * as c from './constants'
@@ -52,7 +54,7 @@ function decorate() {
     return function wrappedVisit<N = unknown>(
       this: AVisitor,
       node: N,
-      args: Pick<VisitorOptions, 'asserters'> & VisitFnArgs,
+      args: Pick<VisitorOptions, 'asserters' | 'builtIn'> & VisitFnArgs,
       state?: {
         calledInit?: boolean
       },
@@ -79,6 +81,11 @@ function decorate() {
             fn(node, wrap(this.callback as any, isAsync, args)),
           )
         }
+        if ('has' in node) {
+          if (node.has('init')) {
+            visitFn(node.get('init'), wrap(this.callback as any, isAsync, args))
+          }
+        }
         return visitFn(node, wrap(this.callback as any, isAsync, args))
       }
     }
@@ -96,13 +103,16 @@ function decorate() {
   }
 }
 
-export type DocVisitorCallback<Fn extends t.AssertAsyncFn | t.AssertFn> = Fn
+export interface DocVisitorCallback<Fn extends t.AssertAsyncFn | t.AssertFn> {
+  (args: Parameters<Fn>[0]): ReturnType<Fn>
+}
 
 function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
   enter: DocVisitorCallback<Fn>,
   isAsync: boolean,
   {
     asserters,
+    builtIn,
     data,
     page,
     root,
@@ -114,6 +124,7 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
 ) {
   function onEnter<N = unknown>({
     asserters,
+    builtIn,
     clearState,
     getState,
     isAsync,
@@ -133,6 +144,9 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
 
     for (const asserter of fp.toArr(asserters)) {
       if (asserter?.cond(nodeKind, node)) {
+        // Second argument (assert utilities) is already provided by createAssert
+        // TODO - Find how to help TypeScript notice thisdeeee4ee
+        // @ts-expect-error
         const result = asserter.fn(arguments[0])
         if (!coreIs.und(result)) return result
       }
@@ -193,6 +207,7 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
       ...stateHelpers,
       ...helpers,
       asserters,
+      builtIn,
       data,
       key,
       node,
@@ -213,7 +228,11 @@ function wrap<Fn extends t.AssertAsyncFn | t.AssertFn>(
   return onVisit.bind(null, { clearState, getState, isAsync })
 }
 
-class DocVisitor extends AVisitor {
+class DocVisitor<H = any, B extends BuiltIns = BuiltIns> extends AVisitor<
+  any,
+  H,
+  B
+> {
   #callback: any
 
   get callback() {
