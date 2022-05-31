@@ -38,7 +38,13 @@ const createMeetingHandlers = function _createMeetingHandlers(app: App) {
         const participantsNumber = app.meeting.room.participants.size
         const meetingEndTime = app.register.getMeetingEndTime()
         const currentTime = Math.ceil(new Date().getTime() / 1000)
-        if(currentTime> meetingEndTime && app.config?.platform && app.config.platform ==='patient' && participantsNumber == 0){
+        if(
+          currentTime> meetingEndTime &&
+          app.config?.platform && 
+          app.config.platform ==='patient' && 
+          participantsNumber == 0 &&
+          app.meeting.room.state === 'connected'
+          ){
           app.register.extendVideoFunction('onProviderDisconnect')
         }
         toast(`A participant disconnected`, { type: 'error' })

@@ -576,7 +576,7 @@ const createActions = function createActions(app: App) {
               loadTimeLabelPopUp(node, component)
               if(popUpView === 'extendView'){
                 const id = setTimeout(() => {
-                  app.register.extendVideoFunction('onDisconnect')
+                  app.meeting.room.state === 'connected' && app.register.extendVideoFunction('onDisconnect')
                   clearTimeout(id)
                 }, initialSeconds * 1000)
                 app.register.setTimeId('PopUPToDisconnectTime', id)
