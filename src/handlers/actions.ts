@@ -450,7 +450,7 @@ const createActions = function createActions(app: App) {
     },
   )
 
-  const getBlob = (file:File | undefined):Promise<Blob>=>{
+  const getBlob = (file:File | undefined,action,options):Promise<Blob>=>{
     return new Promise((res,rej)=>{
       let blob:Blob = new Blob();
       let img = document.createElement("img") as HTMLImageElement;
@@ -531,14 +531,17 @@ const createActions = function createActions(app: App) {
         rootDom.appendChild(divRootDom);
         img.src = URL.createObjectURL(file as Blob) as string;
         cropper = new Cropper(img, {
-          viewMode: 1, // 只能在裁剪的图片范围内移动
-          dragMode: 'none', // 画布和图片都可以移动
-          // aspectRatio: 1, // 裁剪区默认正方形
+          viewMode: 2, // 只能在裁剪的图片范围内移动
+          dragMode: 'move', // 画布和图片都可以移动
+          aspectRatio: 1, // 裁剪区默认正方形
           autoCropArea: 1, // 自动调整裁剪图片
-          zoomOnWheel: false,
+          zoomOnWheel: true,
+          scalable: true,
+          center: true,
+          responsive: true,
           // cropBoxMovable: false, // 禁止裁剪区移动
           // cropBoxResizable: false, // 禁止裁剪区缩放
-          background: true, // 关闭默认背景
+          background: false, // 关闭默认背景
           // toggleDragModeOnDblclick: true,
           movable: true,
           // aspectRatio: 16 / 9,
@@ -557,7 +560,6 @@ const createActions = function createActions(app: App) {
             imageSmoothingQuality: 'high'
           }).toBlob((bob) => {
             blob = bob;
-            console.log(URL.createObjectURL(blob as Blob),"bbbbb");
             res(blob as Blob)
           });
         let rootDom = document.getElementById("rootDom") as HTMLDivElement;
@@ -568,6 +570,10 @@ const createActions = function createActions(app: App) {
         cropper.destroy();
         let rootDom = document.getElementById("rootDom") as HTMLDivElement;
         document.body.removeChild(rootDom);
+        action?.snapshot?.();
+        options.ref?.abort();
+        rej("Deselect file")
+
       })
     })
   }
@@ -593,7 +599,7 @@ const createActions = function createActions(app: App) {
           const shearState = _pick(action,"shearState");
           let fileRell:File|undefined;
           if(Boolean(shearState)){
-            const hreFile = await getBlob(files?.[0]);
+            const hreFile = await getBlob(files?.[0],action,options);
             fileRell = new File([hreFile],files?.[0].name as string)
           }
 
