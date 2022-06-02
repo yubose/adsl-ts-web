@@ -563,20 +563,21 @@ const createActions = function createActions(app: App) {
         const wait = _pick(action, 'wait')
 
         let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
+        let initialSeconds
         u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
           if (node) {
             const component = app.cache.component.get(node?.id)?.component
             const dataKey =
               component.get('data-key') || component.blueprint?.dataKey || ''
             const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
-            let initialSeconds = get(app.root, dataKey, 30) as number
+            initialSeconds = get(app.root, dataKey, 30) as number
             initialSeconds =
               initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
             if (action?.actionType === 'popUp') {
               loadTimeLabelPopUp(node, component)
               if(popUpView === 'extendView'){
                 const id = setTimeout(() => {
-                  app.register.extendVideoFunction('onDisconnect')
+                  app.meeting.room.state === 'connected' && app.register.extendVideoFunction('onDisconnect')
                   clearTimeout(id)
                 }, initialSeconds * 1000)
                 app.register.setTimeId('PopUPToDisconnectTime', id)
@@ -592,6 +593,12 @@ const createActions = function createActions(app: App) {
         })
         
         u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
+          if(popUpView === 'exitWarningView'){
+            setTimeout(() => {
+              hide(elem)
+              resolve()
+            }, initialSeconds*1000)
+          }
           if (dismissOnTouchOutside) {
             const onTouchOutside = function onTouchOutside(
               this: HTMLDivElement,

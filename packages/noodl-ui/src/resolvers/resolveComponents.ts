@@ -355,7 +355,7 @@ componentResolver.setResolver(async (component, options, next) => {
             component.toJSON(),
           )
         }
-        const dataObject = findListDataObject(component)
+        const dataObject = findListDataObject(component) || context?.dataObject
         const listAttribute = getListAttribute(component)
         textBoard.forEach((item) => {
           if (is.textBoardItem(item)) {
