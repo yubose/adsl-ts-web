@@ -1502,11 +1502,14 @@ const createExtendedDOMResolvers = function (app: App) {
               clickable?:boolean
             },
             navigation?:boolean,
+            childStyle?:{
+              width?: number|string,
+              height?: number|string
+            },
             loop?:boolean
           }
           const dataValue = component.get('data-value');
           const option:optionSetting  = component.get('data-option') as {[key in string]:any};
-          console.log(node,"bbb")
             node.setAttribute('class', 'swiper-container');
             let listDom: HTMLUListElement = document.createElement('ul');
             listDom.setAttribute('class', 'swiper-wrapper');
@@ -1526,9 +1529,9 @@ const createExtendedDOMResolvers = function (app: App) {
               else
               {
                   let img: HTMLImageElement = document.createElement('img')
-                  img.src = dataValue[index]
-                  // img.style.width = (+node.style.width/(option.slidesPerView as number))+"px";
-                  img.style.cursor = "pointer" ;
+                  img.src = dataValue[index];
+                  img.style.width = option.childStyle?.width + "";
+                  // img.style.cursor = "pointer" ;
                   liDom.appendChild(img);
                   listDom.appendChild(liDom);
                 }
@@ -1578,7 +1581,7 @@ const createExtendedDOMResolvers = function (app: App) {
             node.style.cssText = `
               width: ${node.style.width};
               height: ${node.style.height};
-              borderRadius: ${option.borderRadius||10}px;
+              borderRadius: ${option.borderRadius}px;
               display: flex;
               justify-content: center;
               align-items: center;
@@ -1624,14 +1627,17 @@ const createExtendedDOMResolvers = function (app: App) {
             // observer:true,//修改swiper自己或子元素时，自动初始化swiper
             // observeParents:true//修改swiper的父元素时，自动初始化swiper
               })
-              node.addEventListener("mouseenter",()=>{
-                prevBtn.style.opacity = "1";
-                nextBtn.style.opacity = "1";
-              })
-              node.addEventListener("mouseleave",()=>{
-                prevBtn.style.opacity = "0";
-                nextBtn.style.opacity = "0";
-              })
+              if(option.navigation){
+                node.addEventListener("mouseenter",()=>{
+                  prevBtn.style.opacity = "1";
+                  nextBtn.style.opacity = "1";
+                })
+                node.addEventListener("mouseleave",()=>{
+                  prevBtn.style.opacity = "0";
+                  nextBtn.style.opacity = "0";
+                })
+              }
+
         }
       },
     },
