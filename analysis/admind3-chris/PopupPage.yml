@@ -1,0 +1,576 @@
+PopupPage:
+  title: "PopupPage"
+  pageNumber:
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        # ------------------BUTTON UI--------------- #
+        - type: view
+          style:
+            top: "0"
+            left: "0"
+          children:
+            - type: label
+              text: Standard
+              style:
+                width: "0.2"
+                fontSize: .Nfont.nf6
+                fontFamily: "Roboto"
+                color: "0x333333"
+                textAlign:
+                  x: center
+            - type: label
+              text: "( Height: 44px, Font: 18px )"
+              style:
+                width: "0.2"
+                fontSize: .Nfont.nf3
+                fontFamily: "Roboto"
+                color: "0x666666"
+                textAlign:
+                  x: center
+            # ------------------Standard Blue--------------- #
+            - type: view
+              style:
+                top: "0.08"
+                width: "0.1"
+                display: flex
+                flexDirection: column
+                alignItems: center
+              children:
+                - .StandBtn: # btnText: 
+                - .StandBtnWithImg: # btnImg: 
+
+                  # btnText: 
+                  style:
+                    marginTop: "0.01"
+                - .StandBtnOutline:
+                  style:
+                    marginTop: "0.01"
+                - .StandBtnOutlineWithImg:
+                  style:
+                    marginTop: "0.01"
+                - .StandBtnOutlineWithImgSlim:
+                  style:
+                    marginTop: "0.01"
+                - .StandBtnUnderline:
+                  style:
+                    marginTop: "0.01"
+                - .StandBtnUnderlineSlim:
+                  style:
+                    marginTop: "0.01"
+            # ------------------Standard Grey--------------- #
+            - type: view
+              style:
+                top: "0.08"
+                width: "0.1"
+                left: "0.1"
+                display: flex
+                flexDirection: column
+                alignItems: center
+              children:
+                - .StandBtn:
+                  style:
+                    backgroundColor: "0xc1c1c1"
+                - .StandBtnWithImg:
+                  style:
+                    backgroundColor: "0xc1c1c1"
+                    marginTop: "0.01"
+                - .StandBtnOutline:
+                  style:
+                    backgroundColor: "0xffffff"
+                    borderColor: "0xc1c1c1"
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: __.btnText
+                      style:
+                        color: "0xc1c1c1"
+                        fontFamily: "Proxima Nova"
+                        fontWeight: "600"
+                - .StandBtnOutlineWithImg:
+                  btnImg: editPenGrey.svg
+                  style:
+                    backgroundColor: "0xffffff"
+                    borderColor: "0xc1c1c1"
+                    marginTop: "0.01"
+                  children:
+                    - type: image
+                      path: __.btnImg
+                      style:
+                        height: "0.0128"
+                        width: "0.0072"
+                    - type: label
+                      text: __.btnText
+                      style:
+                        marginTop: "0.001"
+                        marginLeft: "0.004"
+                        color: "0xc1c1c1"
+                        fontFamily: "Proxima Nova"
+                        fontWeight: "600"
+                - .StandBtnOutlineWithImgSlim:
+                  btnImg: editPenGrey.svg
+                  style:
+                    backgroundColor: "0xffffff"
+                    borderColor: "0xc1c1c1"
+                    marginTop: "0.01"
+                  children:
+                    - type: image
+                      path: __.btnImg
+                      style:
+                        height: "0.0128"
+                        width: "0.0072"
+                    - type: label
+                      text: __.btnText
+                      style:
+                        marginTop: "0.001"
+                        marginLeft: "0.004"
+                        color: "0xc1c1c1"
+                        fontFamily: "Proxima Nova"
+                        fontWeight: "400"
+        - type: view
+          style:
+            top: "0"
+            left: "0.2"
+          children:
+            - type: label
+              text: Medium
+              style:
+                width: "0.2"
+                fontSize: .Nfont.nf6
+                fontFamily: "Roboto"
+                color: "0x333333"
+                textAlign:
+                  x: center
+            - type: label
+              text: "( Height: 40px, Font: 16px )"
+              style:
+                width: "0.2"
+                fontSize: .Nfont.nf3
+                fontFamily: "Roboto"
+                color: "0x666666"
+                textAlign:
+                  x: center
+            - type: view
+              style:
+                top: "0.08"
+                width: "0.1"
+                display: flex
+                flexDirection: column
+                alignItems: center
+              children:
+                # ------------------Medium Blue---------------#
+                - .MedBtn:
+                - .MedBtnWithImg:
+                  style:
+                    marginTop: "0.01"
+                - .MedBtnOutline:
+                  style:
+                    marginTop: "0.01"
+                - .MedBtnOutlineWithImg:
+                  style:
+                    marginTop: "0.01"
+                - .MedBtnOutlineWithImgSlim:
+                  style:
+                    marginTop: "0.01"
+                - .MedBtnUnderline:
+                  style:
+                    marginTop: "0.01"
+                - .MedBtnUnderlineSlim:
+                  style:
+                    marginTop: "0.01"
+                # ------------------Medium Grey---------------#
+            - type: view
+              style:
+                top: "0.08"
+                width: "0.1"
+                left: "0.1"
+                display: flex
+                flexDirection: column
+                alignItems: center
+              children:
+                - .MedBtn:
+                  style:
+                    backgroundColor: "0xc1c1c1"
+                - .MedBtnWithImg:
+                  style:
+                    backgroundColor: "0xc1c1c1"
+                    marginTop: "0.01"
+                - .MedBtnOutline:
+                  style:
+                    backgroundColor: "0xffffff"
+                    borderColor: "0xc1c1c1"
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: __.btnText
+                      style:
+                        color: "0xc1c1c1"
+                        fontFamily: "Proxima Nova"
+                        fontWeight: "600"
+                - .MedBtnOutlineWithImg:
+                  btnImg: editPenGrey.svg
+                  style:
+                    backgroundColor: "0xffffff"
+                    borderColor: "0xc1c1c1"
+                    marginTop: "0.01"
+                  children:
+                    - type: image
+                      path: __.btnImg
+                      style:
+                        height: "0.0128"
+                        width: "0.0072"
+                    - type: label
+                      text: __.btnText
+                      style:
+                        marginTop: "0.002"
+                        marginLeft: "0.004"
+                        color: "0xc1c1c1"
+                        fontFamily: "Proxima Nova"
+                        fontWeight: "600"
+                - .MedBtnOutlineWithImgSlim:
+                  btnImg: editPenGrey.svg
+                  style:
+                    backgroundColor: "0xffffff"
+                    borderColor: "0xc1c1c1"
+                    marginTop: "0.01"
+                  children:
+                    - type: image
+                      path: __.btnImg
+                      style:
+                        height: "0.0128"
+                        width: "0.0072"
+                    - type: label
+                      text: __.btnText
+                      style:
+                        marginTop: "0.003"
+                        marginLeft: "0.004"
+                        color: "0xc1c1c1"
+                        fontFamily: "Proxima Nova"
+                        fontWeight: "400"
+        - type: view
+          style:
+            top: "0"
+            left: "0.4"
+          children:
+            - type: label
+              text: Small
+              style:
+                width: "0.2"
+                fontSize: .Nfont.nf6
+                fontFamily: "Roboto"
+                color: "0x333333"
+                textAlign:
+                  x: center
+            - type: label
+              text: "( Height: 28px, Font: 12px )"
+              style:
+                width: "0.2"
+                fontSize: .Nfont.nf3
+                fontFamily: "Roboto"
+                color: "0x666666"
+                textAlign:
+                  x: center
+            # ------------------Small Blue---------------#
+            - type: view
+              style:
+                top: "0.08"
+                width: "0.1"
+                display: flex
+                flexDirection: column
+                alignItems: center
+              children:
+                - .SmaBtn:
+                - .SmaBtnOutline:
+                  style:
+                    marginTop: "0.01"
+                - .SmaBtnOutlineSlim:
+                  style:
+                    marginTop: "0.01"
+                - .SmaBtnUnderline:
+                  style:
+                    marginTop: "0.01"
+                - .SmaBtnUnderlineSlim:
+                  style:
+                    marginTop: "0.01"
+            # ------------------Small Grey---------------# 
+            - type: view
+              style:
+                top: "0.08"
+                width: "0.1"
+                left: "0.1"
+                display: flex
+                flexDirection: column
+                alignItems: center
+              children:
+                - .SmaBtn:
+                - .SmaBtnOutline:
+                  style:
+                    backgroundColor: "0xffffff"
+                    borderColor: "0xc1c1c1"
+                    marginTop: "0.01"
+                  children:
+                    - type: label
+                      text: __.btnText
+                      style:
+                        color: "0xc1c1c1"
+                        fontFamily: "Proxima Nova"
+                        fontWeight: "600"
+                - .SmaBtnOutlineSlim:
+                  style:
+                    marginTop: "0.01"
+                    borderColor: "0xc1c1c1"
+                  children:
+                    - type: label
+                      text: __.btnText
+                      style:
+                        color: "0xc1c1c1"
+                        fontFamily: "Proxima Nova"
+                        fontWeight: "400"
+        # -----------------PopUp UI------------------- #     
+        #普通询问（yes/no或者cancel/confirm)弹窗
+        - .BaseJudgeView:
+
+            # 调用方式： 
+            # - .BaseJudgeView: 
+            #   children: 
+            #     - .BaseJudgeInnerView: 
+            #       children: 
+            #         - .BaseJudgeCancelImg: 
+            #         - .BaseJudgeTxt: 
+            #         - .BaseJudgeButtonView: 
+            #           children: 
+            #             - .BaseJudgeButtonNo:   # 可以重写
+            #             - .BaseJudgeButtonYes:  # 可以重写
+            # 为了让里面可以调用，把view里的拿出来包括
+
+            #成功提示弹窗
+        - .BaseSuccessfulView:
+            #调用方式
+            # - .BaseSuccessfulView: ""
+            #   msg: "successful!"
+            #   viewTag: success
+            #   style:
+            #     left: "0.075"
+
+
+            #Warning弹窗（无选择）
+        - .BaseWarningView:
+
+            #调用方式
+            # - .BaseWarningView:
+            #   msg1: Warning
+            #   msg2: Please complete the required items.
+            #   viewTag: warningView
+
+            #Warning弹窗（有选择）
+        - .DeleteWarningPopUp:
+
+            # # 调用方式
+            # - .DeleteWarningPopUp:
+            #   viewTag:
+            #   msg:
+            #     .BackgroundPopUp: 
+            #     children:
+            #       - .BackgroundWhite:
+            #         children: 
+            #           - .WarningRedLine:
+            #           - type: view
+            #             style:
+            #               marginTop: "0"
+            #               width: "0.28"
+            #               left: "0"
+            #               height: "0.267"
+            #             children: 
+            #               - .DeleteWarningImg:
+            #               - .WarningLabel:
+            #               - .DeleteWarningLabel:  
+            #           - .CancelButton: 
+            #           - .DeleteButton: 
+
+            #弹窗轻提示
+        - .PopupLightPromptRight:
+
+            #无弹窗轻提示
+        - .PopupLightPrompt:
+            # msg: The option has been selected
+
+            # picture check
+        - .PictureCheckPopup:
+
+            #调用方式：
+            # - .PictureCheckPopup:
+            #   .PictureCheckBackgroundPopup: 
+            #   children:
+            #     - .PictureCheckBigViewPopup: 
+            #       children:
+            #         - .PictureCheckViewPopup:
+            #           children:
+            #             - .PictureCheckClosePopup: 
+            #         - type: view
+            #           style:
+            #             width: "0.334"
+            #             marginTop: "0"
+            #             height: "0.365"
+            #             textAlign:
+            #               x: center
+            #           children:
+            #             - .PictureCheckImgPopup:
+            # test button to view popUp style and content
+        - .copySuccessPopUp:
+        - type: view
+          style:
+            top: "0.04"
+            width: "0.16"
+            left: "0.84"
+          children:
+            - type: button
+              text: BaseJudgeView
+              style:
+                marginTop: "0"
+                width: "0.16"
+                height: "0.0405"
+                backgroundColor: "0x005795"
+                border:
+                  style: "1"
+                color: "0xffffff"
+                fontSize: .Nfont.nf3
+                borderRadius: "3"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUp
+                  popUpView: judgeView
+            - type: button
+              text: BaseSuccessfulView
+              style:
+                marginTop: "0.02"
+                width: "0.16"
+                height: "0.0405"
+                backgroundColor: "0x005795"
+                border:
+                  style: "1"
+                color: "0xffffff"
+                fontSize: .Nfont.nf3
+                borderRadius: "3"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUp
+                  popUpView: successView
+            - type: button
+              text: BaseWarningView
+              style:
+                marginTop: "0.02"
+                width: "0.16"
+                height: "0.0405"
+                backgroundColor: "0x005795"
+                border:
+                  style: "1"
+                color: "0xffffff"
+                fontSize: .Nfont.nf3
+                borderRadius: "3"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUp
+                  popUpView: warningView
+            - type: button
+              text: DeleteWarningPopUp
+              style:
+                marginTop: "0.02"
+                width: "0.16"
+                height: "0.0405"
+                backgroundColor: "0x005795"
+                border:
+                  style: "1"
+                color: "0xffffff"
+                fontSize: .Nfont.nf3
+                borderRadius: "3"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUp
+                  popUpView: DeletePopupTag
+            - type: button
+              text: PopupLightPromptRight
+              style:
+                marginTop: "0.02"
+                width: "0.16"
+                height: "0.0405"
+                backgroundColor: "0x005795"
+                border:
+                  style: "1"
+                color: "0xffffff"
+                fontSize: .Nfont.nf3
+                borderRadius: "3"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUp
+                  popUpView: PopupLightPromptRightTag
+                  popUpDismiss: 2000
+            - type: button
+              text: PopupLightPrompt
+              style:
+                marginTop: "0.02"
+                width: "0.16"
+                height: "0.0405"
+                backgroundColor: "0x005795"
+                border:
+                  style: "1"
+                color: "0xffffff"
+                fontSize: .Nfont.nf3
+                borderRadius: "3"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUp
+                  popUpView: PopupLightPromptTag
+                  popUpDismiss: 2000
+            - type: button
+              text: PictureCheckPopup
+              style:
+                marginTop: "0.02"
+                width: "0.16"
+                height: "0.0405"
+                backgroundColor: "0x005795"
+                border:
+                  style: "1"
+                color: "0xffffff"
+                fontSize: .Nfont.nf3
+                borderRadius: "3"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUp
+                  popUpView: cvDetailView
+            - type: button
+              text: copySuccessPopup
+              style:
+                marginTop: "0.02"
+                width: "0.16"
+                height: "0.0405"
+                backgroundColor: "0x005795"
+                border:
+                  style: "1"
+                color: "0xffffff"
+                fontSize: .Nfont.nf3
+                borderRadius: "3"
+                textAlign:
+                  x: center
+                  y: center
+              onClick:
+                - actionType: popUp
+                  popUpView: copySucTag
+                  wait: 2000

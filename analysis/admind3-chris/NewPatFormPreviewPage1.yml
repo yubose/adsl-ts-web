@@ -1,0 +1,427 @@
+NewPatFormPreviewPage1:
+  #xd page number: 1080
+  pageNumber: "450"
+
+  title: "New Patient Form"
+
+  init:
+    #Page initialization
+    - .SignInCheck
+
+  formData:
+    #Input data here
+    gender: ""
+  formDataTemp:
+    # Input data temp here, datatemp should not mix with formData
+    isGender:
+      - key: gender
+        value: Male
+        width: "0.045"
+      - key: gender
+        value: Female
+        width: "0.05"
+      - key: gender
+        value: Other
+        width: "0.045"
+    isConsent:
+      - key: isConsent
+        value: "I consent above information is true and correct."
+      - key: isConsent
+        value: "I agree to share my information with said provider."
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBackPreview:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.815"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormRight:
+                  onClick:
+                    goto: NewPatFormPreviewPage2
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    # TYPE TITLE
+                    - .PatientFormTitle:
+                      img: patForm3_1.svg
+
+                    - type: scrollView
+                      style:
+                        marginTop: "0.01"
+                        width: "0.39"
+                        height: "0.705"
+                        overflow: scroll
+                      children:
+                        ## CONTENT TITLE
+                        - .ProFormsLabel:
+                          text: "Patient Info"
+                          style:
+                            textAlign:
+                              x: center
+                            fontSize: .Nfont.nf4
+                            marginTop: "0.01"
+                        - .ProFormsLabel:
+                          text: "About"
+                          style:
+                            fontWeight: "700"
+                            textAlign:
+                              x: left
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.02"
+                        # first name/ middle name / last name
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "First Name"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+
+
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Middle Name"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+
+
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Last Name"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField: # date of birth /gender
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                          children:
+                            - type: view
+                              style:
+                                display: "inline-block"
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Date of Birth"
+                                  style:
+                                    fontWeight: "500"
+                                - .ProFormsCalendarView:
+                                  style:
+                                    width: "0.12"
+                                  children:
+                                    - .ProFormsCalendarField:
+                                      placeholder: ""
+                                      isEditable: "false"
+                                      style:
+                                        width: "0.1"
+                                        backgroundColor: "0xffffff"
+                                    - .ProFormsCalendarImg:
+                            - type: view
+                              style:
+                                display: "inline-block"
+                                marginLeft: "0.016"
+                              children:
+                                # gender
+                                - .ProFormsLabel:
+                                  text: "Gender"
+                                  style:
+                                    fontWeight: "500"
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.isGender
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: "0.25"
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        display: inline-block
+                                        marginTop: '0.02'
+                                        width: itemObject.width
+                                      children:
+                                        - type: image
+                                          path: no.png
+                                          style:
+                                            marginTop: "0"
+                                            width: "0.008"
+                                            display: inline-block
+                                        - .ProFormsLabel:
+                                          dataKey: itemObject.value
+                                          style:
+                                            display: "inline-block"
+                                            marginLeft: "0.005"
+                                            fontWeight: "500"
+                        # address
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Address Line"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.1898"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Address Second Line"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.1898"
+                        # city/ county/ state / zipCode
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "City"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.08944"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "County"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.08944"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "State"
+                                  style:
+                                    fontWeight: "500"
+                                - .ProFormsCalendarView:
+                                  style:
+                                    width: "0.08944"
+                                  children:
+                                    - .ProFormsCalendarField:
+                                      isEditable: "false"
+                                      placeholder: ""
+                                      style:
+                                        width: "0.07"
+                                    - .ProFormsCalendarImg:
+                                      path: downArrowDeepGray.svg
+                                      style:
+                                        marginTop: "0.012"
+
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Zip Code"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+
+                                  isEditable: "false"
+                                  placeholder: ""
+                                  style:
+                                    width: "0.08944"
+                        # phone /alternate phone/ email
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Phone #"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.12272"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Alternate Phone #"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.12272"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Email"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.12272"
+                        - .ProFormsLabel:
+                          text: "Emergency Contact"
+                          style:
+                            fontWeight: "700"
+                            textAlign:
+                              x: left
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.03"
+                        # name/ relation / phone
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Name"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.12272"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Relation"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.12272"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Phone #"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.12272"
+                        - .ProFormsLabel:
+                          text: "Employment"
+                          style:
+                            fontWeight: "700"
+                            textAlign:
+                              x: left
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.03"
+                        # employer / occupation
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            display: "flex"
+                            justify-content: space-between
+                          children:
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Employer"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.1898"
+                            - type: view
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Occupation"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.1898"
+                        # select 
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            width: "0.39"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.isConsent
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.39"
+                                marginTop: "0.02"
+                              children:
+                                - type: listItem
+                                  viewTag: isConsentTag
+                                  itemObject:
+                                  style:
+                                    width: "0.39"
+                                    height: "0.035"
+                                  children:
+                                    - type: image
+                                      path: selectGray.svg
+                                      style:
+                                        width: "0.008"
+                                        display: inline-block
+                                    - .ProFormsLabel:
+                                      dataKey: itemObject.value
+                                      style:
+                                        marginLeft: "0.005"
+                                        display: inline-block
+                                        fontWeight: "500"
+            #         # - .FormsCloseButton:
+            # - .FormsBottomView: 
+            #   children:
+            #     - .FormsBottomButtons:
+            #       children:                    
+            #         - .FormsBottomMiddleButton:
+            #           text: Done
+            #           style: 
+            #             backgroundColor: "0xc1c1c1"

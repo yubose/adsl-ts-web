@@ -1,0 +1,1312 @@
+FacilityInfo1:
+  #xd page number: 62
+  pageNumber: "360"
+  viewPort: top
+  title: "FacilityInfo1"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+    - =.Global.jwt.edgeAPI.store: ""
+
+    # 1 get 所有的location v.type!=1不是admin  v.type!=20 不是facility
+    - =..facilityAll.vertexAPI.get: ""
+    # - .Global.formData.currentLocation@: =..facilityAll.vertexResp.vertex.0
+    - .Global.formData.firstLocation@: =..facilityAll.vertexResp.vertex.0
+    - =.builtIn.array.getObjectByArray:
+        dataIn:
+          array: =..facilityAll.vertexResp.vertex
+          key: "id"
+          value: =.Global.formData.locationId
+        dataOut: Global.formData.currentLocation
+    - if:
+        - =..facilityAll.vertexResp.vertex.0.id
+        - ..facilityAll.vertexResp.vertex.0.backgroundColor@: "0x005795"
+        - continue
+    - if:
+        - =..facilityAll.vertexResp.vertex.0.id
+        - ..facilityAll.vertexResp.vertex.0.fontColor@: "0xffffff"
+        - continue
+    - if:
+        - =..facilityAll.vertexResp.vertex.0.id
+        - ..facilityAll.vertexResp.vertex.0.fontWeight@: "600"
+        - continue
+
+    - ..businessLogo.docIn.id@: =.Global.formData.locationId
+    - ..dEA.docIn.id@: =.Global.formData.locationId
+    - ..medicalLicense.docIn.id@: =.Global.formData.locationId
+    - =..businessLogo.docAPI.get: ""
+    - =..dEA.docAPI.get: ""
+    - =..medicalLicense.docAPI.get: ""
+    - ..facility.documentReq.id@: =.Global.formData.locationId
+    - =..facility.docAPI.get: ""
+    - ..facility.document@: =..facility.response.doc.0
+
+    - =.builtIn.array.addColor:
+        dataIn:
+          messages: =..facilityAll.vertexResp.vertex
+          id: =.Global.formData.locationId
+          currentBackgroundColor: "0x005795"
+          backgroundColor: "0xf0f0f0"
+          fontColor: "0x005795"
+          currentFontColor: "0xffffff"
+
+    # - .Global.formData.locationId@: =.Global.locationAll.0.id  # initial account management id
+
+    - =.builtIn.string.concat:
+        dataIn:
+          - ""
+          - =..facility.document.name.data.basicInfo.businessType
+          - ""
+        dataOut: FacilityInfo1.formData.facNameAndBusType
+    - if:
+        - =.builtIn.string.equal:
+            dataIn:
+              string1: =..facility.document.name.data.basicInfo.largeType
+              string2: "M"
+        - actionType: evalObject
+          object:
+            - ..formData.controlMedical@: "block"
+            - ..formData.controlBusiness@: "none"
+            - ..formData.controlDea@: "block"
+        - actionType: evalObject
+          object:
+            - ..formData.controlMedical@: "none"
+            - ..formData.controlBusiness@: "block"
+            - ..formData.controlDea@: "none"
+
+  formData:
+    facNameAndBusType: ""
+    businessHours: []       
+    controlMedical: ""
+    controlBusiness: ""
+    controlDea: ""
+  middleList: []
+  # 查询location
+  facilityAll:
+    # 包括所有的facility和location
+    vertex:
+      ObjType: "4"
+      ids:
+        - .Global.currentFacility.id
+      xfname: "E.bvid"
+      sCondition: "E.type=1100 AND V.type!=1 AND V.type!=20"
+      maxcount: "100"
+      obfname: "ctime"
+      asc: true
+      _nonce: =.Global._nonce
+    vertexResp: ""
+    vertexAPI:
+      get:
+        api: rv
+        dataIn: FacilityInfo1.facilityAll.vertex
+        dataOut: FacilityInfo1.facilityAll.vertexResp
+  # 查询location边上挂的文档
+  facility:
+    response: ""
+    document: ""
+    documentReq:
+      ObjType: 8
+      id: ""
+      xfname: E.bvid
+      # type: .DocType.FacilityProfile
+      sCondition: E.type=10000 AND D.type=271361
+      _nonce: =.Global._nonce
+      obfname: mtime
+      maxcount: "1"
+    docAPI:
+      get:
+        api: rd
+        dataIn: FacilityInfo1.facility.documentReq
+        dataOut: FacilityInfo1.facility.response
+  # 查询location自己的边
+  # fac_RootNotebook:
+  #   edgeReq:
+  #     id: ""
+  #     xfname: bvid
+  #     type: .EdgeType.RootNotebook
+  #   edgeResp: ""
+  #   edgeAPI:
+  #     get:
+  #       api: re
+  #       dataIn: FacilityInfo1.fac_RootNotebook.edgeReq
+  #       dataOut: FacilityInfo1.fac_RootNotebook.edgeResp
+  flag: ""
+  flag1: ""
+  businessLogo:
+    url: BusinessLogo.svg
+    resp: ""
+    docIn:
+      ObjType: 8
+      id: ""
+      xfname: E.bvid
+      sCondition: E.type=10000 AND D.type=263680
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        dataIn: businessLogo.docIn
+        dataOut: FacilityInfo1.businessLogo.resp
+  dEA:
+    url: DEA.svg
+    resp: ""
+    docIn:
+      ObjType: 8
+      id: ""
+      xfname: E.bvid
+      sCondition: E.type=10000 AND D.type=258561
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        dataIn: dEA.docIn
+        dataOut: FacilityInfo1.dEA.resp
+  medicalLicense:
+    url: MedicalLicensePicture.svg
+    resp: ""
+    docIn:
+      ObjType: 8
+      id: ""
+      xfname: E.bvid
+      sCondition: E.type=10000 AND D.type=28901
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    docAPI:
+      get:
+        .DocAPI.get: ""
+        dataIn: medicalLicense.docIn
+        dataOut: FacilityInfo1.medicalLicense.resp
+
+  components:
+    - .TotalView:
+      children:
+        - .BaseCheckView: ""
+          message: "You don't have the authority to edit"
+          viewTag: mFIAuthEdit
+          style:
+            zIndex: "100000"
+        # Enlarge businessLogo
+        - type: popUp
+          viewTag: businessLogoView
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children:
+            - type: view
+              style:
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: close.svg
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children:
+                    - type: image
+                      path: null.png
+                      # dataKey: # for businessLogo id
+                      # path=func: .builtIn.utils.prepareDocToPath
+                      style:
+                        width: "0.28"
+                        height: "0.3"
+        # Enlarge DEA Picture
+        - type: popUp
+          viewTag: dEAPictureView
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children:
+            - type: view
+              style:
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: close.svg
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children:
+                    - type: image
+                      path: null.png
+                      # dataKey: # for DEA id
+                      # path=func: .builtIn.utils.prepareDocToPath
+                      style:
+                        width: "0.28"
+                        height: "0.3"
+        # Enlarge Business License Picture
+        - type: popUp
+          viewTag: businessLicenseView
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children:
+            - type: view
+              style:
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: close.svg
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children:
+                    - type: image
+                      path: null.png
+                      # dataKey: # for Business License id
+                      # path=func: .builtIn.utils.prepareDocToPath
+                      style:
+                        width: "0.28"
+                        height: "0.3"
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+          style:
+            left: "0.16"
+            marginTop: "0"
+            height: "0.063"
+            width: "0.84"
+        - type: view
+          style:
+            backgroundColor: "0xf4f8fa"
+            width: "0.84"
+            height: "0.937"
+            left: "0.16"
+            top: "0.063"
+          children:
+            - type: view
+              style:
+                left: "0.019"
+                top: "0.023"
+                width: "0.8"
+                height: "0.04413"
+              children:
+                - type: list
+                  contentType: listObject
+                  listObject: ..facilityAll.vertexResp.vertex
+                  iteratorVar: itemObject
+                  viewTag: facilityNameView
+                  style:
+                    margin: '0'
+                    display: inline-block
+                    # height: "0.04413"
+                    width: "auto"
+                    # overflowX: scroll
+                  children:
+                    - type: listItem
+                      itemObject: ""
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - emit:
+                            dataKey:
+                              var: itemObject
+                            actions:
+                              - ..facility.response.doc@: []
+                              - ..facility.documentReq.id@: ""
+                              - ..businessLogo.docIn.id@: ""
+                              - ..dEA.docIn.id@: ""
+                              - ..medicalLicense.docIn.id@: ""
+                              - ..businessLogo.resp.doc@: []
+                              - ..dEA.resp.doc@: []
+                              - ..medicalLicense.resp.doc@: []
+                              - .Global.formData.currentLocation@: $var
+                              - =.builtIn.object.setProperty:
+                                  dataIn:
+                                    obj: =..facilityAll.vertexResp.vertex
+                                    label: "id"
+                                    text: $var.id
+                                    arr: [ "fontColor", "backgroundColor", "fontWeight" ]
+                                    valueArr: [ "0xffffff", "0x005795", "600" ]
+                                    errorArr: [ "0x005795", "0xf0f0f0", "" ]
+                              - .Global.formData.locationId@: $var.id
+                              - ..facility.documentReq.id@: $var.id
+                              - ..businessLogo.docIn.id@: $var.id
+                              - ..dEA.docIn.id@: $var.id
+                              - ..medicalLicense.docIn.id@: $var.id
+                              - =..facility.docAPI.get: ""
+                              - =..businessLogo.docAPI.get: ""
+                              - =..dEA.docAPI.get: ""
+                              - =..medicalLicense.docAPI.get: ""
+                        - actionType: evalObject
+                          object:
+                            - ..facility.document@: =..facility.response.doc.0
+                            - =.builtIn.string.concat:
+                                dataIn:
+                                  - ""
+                                  - =..facility.document.name.data.basicInfo.businessType
+                                  - ""
+                                dataOut: FacilityInfo1.formData.facNameAndBusType
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: "M"
+                                      string2: =..facility.response.doc.0.name.data.basicInfo.largeType
+                                - actionType: evalObject
+                                  object:
+                                    - ..formData.controlMedical@: "block"
+                                    - ..formData.controlBusiness@: "none"
+                                    - ..formData.controlDea@: "block"
+                                - actionType: evalObject
+                                  object:
+                                    - ..formData.controlMedical@: "none"
+                                    - ..formData.controlBusiness@: "block"
+                                    - ..formData.controlDea@: "none"
+
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: facilityNameView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: facilityProfileView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: businessTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: medicalViewTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: businessViewTag
+                      style:
+                        width: "auto"
+                        height: '0.04413'
+                        marginLeft: "0.002"
+                        boxSizing: border-box
+                        border:
+                          style: "5"
+                        borderTopLeftRadius: "7px"
+                        borderTopRightRadius: "7px"
+                        display: inline-block
+                        float: left
+                        backgroundColor: itemObject.backgroundColor
+                      children:
+                        - type: label
+                          dataKey: itemObject.name.basicInfo.medicalFacilityName
+                          style:
+                            paddingLeft: "29px"
+                            paddingRight: "29px"
+                            width: "auto"
+                            height: "0.04413"
+                            fontWeight: itemObject.fontWeight
+                            fontSize: .Nfont.nf3
+                            color: itemObject.fontColor
+                            textDecoration: underline
+                            textAlign:
+                              x: center
+                              y: center
+                - type: view
+                  onClick:
+                    - goto: AddLocation
+                  style:
+                    width: "0.08112"
+                    marginLeft: "0.002"
+                    backgroundColor: "0xf0f0f0"
+                    boxSizing: border-box
+                    textAlign:
+                      x: center
+                      y: center
+                    border:
+                      style: "5"
+                    borderTopLeftRadius: "7px"
+                    borderTopRightRadius: "7px"
+                    height: "0.04413"
+                    display: inline-block
+                  children:
+                    - type: image
+                      path: addCircleDeepBlue.svg
+                      style:
+                        marginTop: "0.013"
+                        width: "0.0104"
+                        # height: "0.0184"
+                        display: inline-block
+                    - type: label
+                      text: Add Location
+                      style:
+                        marginTop: "0.013"
+                        fontWeight: "600"
+                        # fontFamily: "Roboto"
+                        fontSize: .Nfont.nf2
+                        display: inline-block
+                        marginLeft: "0.004"
+                        color: "0x005795"
+            - .ContentBar:
+              viewTag: facilityProfileView
+              style:
+                marginTop: "0.06256"
+                backgroundColor: "0xffffff"
+                width: "0.82"
+                height: "0.85594"
+                # marginLeft: "0.01"
+                borderRadius: "6"
+                border:
+                  style: "3"
+                borderColor: "0xffffff"
+                boxSizing: border-box
+                zIndex: "2"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.016"
+                    left: "0.056"
+                    width: "0.70252"
+                    height: "0.81512"
+                    border:
+                      style: "5"
+                    borderColor: "0x333333"
+                    # backgroundColor: "0x0000ff33"
+                  children:
+                    - .MedBtnWithImg:
+                      btnText: "Edit"
+                      onClick:
+                        - actionType: updateObject
+                          dataKey: Global.formData.currentLocationDoc
+                          dataObject: {}
+                        - actionType: evalObject
+                          object:
+                            - .Global.formData.currentLocationDoc@: =..facility.response.doc.0
+                        - goto: EditFacilityInfo
+                      style:
+                        left: "0.6344"
+                        top: "0"
+                        width: "0.06812"
+                    - type: label
+                      text: "Basic Info"
+                      style:
+                        top: "0.002"
+                        fontSize: .Nfont.nf5
+                        fontFamily: "Roboto"
+                        color: "0x333333"
+                        fontWeight: "600"
+                    - type: view
+                      style:
+                        top: "0.064"
+                        width: "0.70252"
+                        height: "0.0966"
+                      children:
+                        - type: image
+                          viewTag: businessTag
+                          path: squareDefaultPicture.svg
+                          path=func: =.builtIn.utils.prepareDocToPath
+                          # 传入签名文档的id
+                          dataKey: businessLogo.resp.doc.0.id
+                          onClick:
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: businessPhotoView
+                            - actionType: popUp
+                              popUpView: businessPhotoView
+                          contentType: file
+                          style:
+                            top: "0"
+                            width: "0.0546"
+                            height: "0.0966"
+                            border:
+                              style: "5"
+                            borderRadius: "6"
+                        - type: view
+                          style:
+                            marginLeft: "0.07"
+                            width: "0.57"
+                            height: "0.0966"
+                          children:
+                            - type: label
+                              dataKey: facility.document.name.data.basicInfo.medicalFacilityName
+                              style:
+                                fontSize: .Nfont.nf4
+                                # fontFamily: "Proxima Nova"
+                                fontWeight: "600"
+                                color: "0x005795"
+                                marginTop: "0.02"
+                            - type: label
+                              dataKey: formData.facNameAndBusType
+                              style:
+                                marginLeft: "0"
+                                fontSize: .Nfont.nf4
+                                # fontFamily: "Proxima Nova"
+                                fontWeight: "600"
+                                color: "0x333333"
+                    - type: view
+                      style:
+                        borderRadius: "4"
+                        # border: 
+                        #   style: "3"
+                        # borderColor: "0xeff0f2"
+                        borderBottom: "1px solid #eff0f2"
+                        boxSizing: border-box
+                        borderWidth: "1"
+                        width: "0.70252"
+                        height: "0.07314"
+                        top: "0.185"
+                        overflow: hidden
+                      children:
+                        - type: view
+                          style:
+                            width: "0.70252"
+                            height: "0.02944"
+                            marginTop: "0"
+                            left: "0"
+                            backgroundColor: "0xeff0f2"
+                          children:
+                            - .FacilityInfoTitle:
+                              text: Facility ID
+                            - .FacilityInfoTitle:
+                              text: "Main Phone #"
+                            - .FacilityInfoTitle:
+                              text: Email
+                            - .FacilityInfoTitle:
+                              text: Website
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.locationID
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.phoneNumber
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.email
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.website
+                          style:
+                            borderRight: "1px solid #eff0f2"
+                    - type: view
+                      style:
+                        borderRadius: "4"
+                        borderBottom: "1px solid #eff0f2"
+                        boxSizing: border-box
+                        borderWidth: "1"
+                        width: "0.70252"
+                        height: "0.07314"
+                        top: "0.28"
+                        overflow: hidden
+                      children:
+                        - type: view
+                          style:
+                            width: "0.70252"
+                            height: "0.02944"
+                            marginTop: "0"
+                            left: "0"
+                            backgroundColor: "0xeff0f2"
+                          children:
+                            - .FacilityInfoTitle:
+                              text: Address Line
+                              style:
+                                width: "0.148"
+                            - .FacilityInfoTitle:
+                              text: "Address Second Line"
+                              style:
+                                width: "0.148"
+                            - .FacilityInfoTitle:
+                              text: City
+                              style:
+                                width: "0.1016"
+                            - .FacilityInfoTitle:
+                              text: County
+                              style:
+                                width: "0.1016"
+                            - .FacilityInfoTitle:
+                              text: State
+                              style:
+                                width: "0.1016"
+                            - .FacilityInfoTitle:
+                              text: Zip Code
+                              style:
+                                width: "0.1016"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.addressFirstLine
+                          style:
+                            width: "0.148"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.addressSecondLine
+                          style:
+                            width: "0.148"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.city
+                          style:
+                            width: "0.1016"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.county
+                          style:
+                            width: "0.1016"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.state
+                          style:
+                            width: "0.1016"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.zipCode
+                          style:
+                            width: "0.1016"
+                            borderRight: "1px solid #eff0f2"
+                    - type: view
+                      style:
+                        borderRadius: "4"
+                        borderBottom: "1px solid #eff0f2"
+                        boxSizing: border-box
+                        borderWidth: "1"
+                        width: "0.70252"
+                        height: "0.07314"
+                        top: "0.375"
+                        overflow: hidden
+                      children:
+                        - type: view
+                          style:
+                            width: "0.70252"
+                            height: "0.02944"
+                            marginTop: "0"
+                            left: "0"
+                            backgroundColor: "0xeff0f2"
+                          children:
+                            - .FacilityInfoTitle:
+                              text: "Business License #"
+                            - .FacilityInfoTitle:
+                              text: City
+                            - .FacilityInfoTitle:
+                              text: "State"
+                            - .FacilityInfoTitle:
+                              text: "License Expiration Date"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.businessLicense
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.businessLicenseCity
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.businessLicenseState
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.licenseExpirationDate
+                          style:
+                            borderRight: "1px solid #eff0f2"
+                    - type: view
+                      viewTag: medicalViewTag
+                      style:
+                        borderRadius: "4"
+                        borderBottom: "1px solid #eff0f2"
+                        boxSizing: border-box
+                        borderWidth: "1"
+                        width: "0.70252"
+                        height: "0.07314"
+                        top: "0.47"
+                        overflow: hidden
+                        display: ..formData.controlMedical
+                      children:
+                        - type: view
+                          style:
+                            width: "0.70252"
+                            height: "0.02944"
+                            marginTop: "0"
+                            left: "0"
+                            backgroundColor: "0xeff0f2"
+                          children:
+                            - .FacilityInfoTitle:
+                              text: "NPI #"
+                              style:
+                                width: "0.14"
+                            - .FacilityInfoTitle:
+                              text: "DEA #"
+                              style:
+                                width: "0.14"
+                            - .FacilityInfoTitle:
+                              text: "TIN(EIN)"
+                              style:
+                                width: "0.14"
+                            - .FacilityInfoTitle:
+                              text: "Fax #"
+                              style:
+                                width: "0.14"
+                            - .FacilityInfoTitle:
+                              text: "Business Hours"
+                              style:
+                                width: "0.12"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.NPI
+                          style:
+                            width: "0.14"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.DEANumber
+                          style:
+                            width: "0.14"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.tin
+                          style:
+                            width: "0.14"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.fax
+                          style:
+                            width: "0.14"
+                        - type: view
+                          style:
+                            marginLeft: "0"
+                            width: "0.142"
+                            verticalAlign: middle
+                            lineHeight: "4.2vh"
+                            display: inline-block
+                            borderLeft: "1px solid #eff0f2"
+                            boxSizing: border-box
+                            borderRight: "1px solid #eff0f2"
+                          children:
+                            - type: label
+                              text: "View"
+                              style:
+                                marginLeft: "0.014"
+                                width: "0.016"
+                                fontWeight: "400"
+                                fontSize: .Nfont.nf2
+                                textDecoration: underline
+                                color: "0x005795"
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.array.splitArrString:
+                                        dataIn:
+                                          arr: =..facility.document.name.data.basicInfo.businessHours
+                                        dataOut: FacilityInfo1.formData.businessHours
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: DataTag
+                                - actionType: popUp
+                                  popUpView: businessHourTag
+
+                    - type: view
+                      viewTag: businessViewTag
+                      style:
+                        borderRadius: "4"
+                        borderBottom: "1px solid #eff0f2"
+                        boxSizing: border-box
+                        borderWidth: "1"
+                        width: "0.70252"
+                        height: "0.07314"
+                        top: "0.47"
+                        overflow: hidden
+                        display: ..formData.controlBusiness
+                      children:
+                        - type: view
+                          style:
+                            width: "0.70252"
+                            height: "0.02944"
+                            marginTop: "0"
+                            left: "0"
+                            backgroundColor: "0xeff0f2"
+                          children:
+                            - .FacilityInfoTitle:
+                              text: "TIN(EIN)"
+                              style:
+                                width: "0.234"
+                            - .FacilityInfoTitle:
+                              text: "Fax #"
+                              style:
+                                width: "0.234"
+                            - .FacilityInfoTitle:
+                              text: "Business Hours"
+                              style:
+                                width: "0.12"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.tin
+                          style:
+                            width: "0.234"
+                        - .FacilityInfoText:
+                          dataKey: facility.document.name.data.basicInfo.fax
+                          style:
+                            width: "0.234"
+                        - type: view
+                          style:
+                            marginLeft: "0"
+                            width: "0.14"
+                            verticalAlign: middle
+                            lineHeight: "4.2vh"
+                            display: inline-block
+                            borderLeft: "1px solid #eff0f2"
+                            boxSizing: border-box
+                            borderRight: "1px solid #eff0f2"
+                          children:
+                            - type: label
+                              text: "View"
+                              style:
+                                marginLeft: "0.014"
+                                width: "0.016"
+                                fontWeight: "400"
+                                fontSize: .Nfont.nf2
+                                textDecoration: underline
+                                color: "0x005795"
+                              onClick:
+                                - actionType: evalObject
+                                  object:
+                                    - =.builtIn.array.splitArrString:
+                                        dataIn:
+                                          arr: =..facility.document.name.data.basicInfo.businessHours
+                                        dataOut: FacilityInfo1.formData.businessHours
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: DataTag
+                                - actionType: popUp
+                                  popUpView: businessHourTag
+
+                    - type: view
+                      style:
+                        borderRadius: "4"
+                        borderBottom: "1px solid #eff0f2"
+                        boxSizing: border-box
+                        borderWidth: "1"
+                        width: "0.70252"
+                        height: "0.0966"
+                        top: "0.565"
+                        overflow: hidden
+                      children:
+                        - type: view
+                          style:
+                            width: "0.70252"
+                            height: "0.02944"
+                            marginTop: "0"
+                            left: "0"
+                            backgroundColor: "0xeff0f2"
+                          children:
+                            - .FacilityInfoTitle:
+                              text: Introduction
+                        - type: textView
+                          isEditable: false
+                          dataKey: facility.document.name.data.basicInfo.introduction
+                          style:
+                            width: "0.70252"
+                            top: "0.02944"
+                            height: "0.06762"
+                            borderRight: "1px solid #eff0f2"
+                            lineHeight: "2vh"
+                            fontFamily: "Roboto"
+                            marginLeft: "0"
+                            textIndent: "2em"
+                            verticalAlign: middle
+                            fontWeight: "400"
+                            fontSize: .Nfont.nf2
+                            backgroundColor: "0xffffff"
+                            color: "0x333333"
+                            display: inline-block
+                            borderLeft: "1px solid #eff0f2"
+                            boxSizing: border-box
+                            textAlign:
+                              y: top
+                    - type: view
+                      style:
+                        width: "0.091"
+                        height: "0.123"
+                        top: "0.691"
+                        display: flex
+                        flexDirection: column
+                        alignItems: center
+                        justifyContent: space-between
+                      children:
+                        - type: image
+                          path: defaultPicture.svg
+                          path=func: =.builtIn.utils.prepareDocToPath
+                          dataKey: medicalLicense.resp.doc.0.id
+                          style:
+                            width: "0.091"
+                            height: "0.1012"
+                            backgroundColor: "0xf0f2f4"
+                            border:
+                              style: "5"
+                            borderRadius: "6"
+                          onClick:
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: businessLicenseView
+                            - actionType: popUp
+                              popUpView: businessLicenseView
+                        - type: label
+                          text: "Business License"
+                          style:
+                            width: "0.091"
+                            fontSize: .Nfont.nf2
+                            color: "0x333333"
+                            fontWeight: "600"
+                            marginTop: "0.013"
+                            textAlign:
+                              x: center
+                    - type: view
+                      style:
+                        display: ..formData.controlDea
+                      children:
+                        - type: view
+                          style:
+                            width: "0.091"
+                            height: "0.123"
+                            top: "0.691"
+                            marginLeft: "0.12"
+                            display: flex
+                            flexDirection: column
+                            alignItems: center
+                            justifyContent: space-between
+                          children:
+                            - type: image
+                              path: defaultPicture.svg
+                              path=func: =.builtIn.utils.prepareDocToPath
+                              dataKey: dEA.resp.doc.0.id
+                              style:
+                                width: "0.091"
+                                height: "0.1012"
+                                backgroundColor: "0xf0f2f4"
+                                border:
+                                  style: "5"
+                                borderRadius: "6"
+                              onClick:
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: deaPhotoView
+                                - actionType: popUp
+                                  popUpView: deaPhotoView
+                            - type: label
+                              text: "DEA"
+                              style:
+                                width: "0.091"
+                                fontSize: .Nfont.nf2
+                                marginTop: "0.013"
+                                color: "0x333333"
+                                fontWeight: "600"
+                                textAlign:
+                                  x: center
+
+        # 查看图片的弹框 
+        - type: popUp
+          viewTag: businessPhotoView
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children:
+            - type: view
+              style:
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: close.svg
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children:
+                    - type: image
+                      path: null.png
+                      path=func: =.builtIn.utils.prepareDocToPath
+                      # 传入签名文档的id
+                      dataKey: businessLogo.resp.doc.0.id
+                      style:
+                        width: "0.28"
+                        height: "0.3"
+
+        - type: popUp
+          viewTag: deaPhotoView
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children:
+            - type: view
+              style:
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: close.svg
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children:
+                    - type: image
+                      path: null.png
+                      path=func: =.builtIn.utils.prepareDocToPath
+                      # 传入签名文档的id
+                      dataKey: dEA.resp.doc.0.id
+                      style:
+                        width: "0.28"
+                        height: "0.3"
+
+        - type: popUp
+          viewTag: businessLicenseView
+          style:
+            left: "0"
+            width: "1"
+            top: "0"
+            height: "1"
+            zIndex: "10"
+            backgroundColor: "0x00000033"
+          children:
+            - type: view
+              style:
+                left: "0.37"
+                width: "0.334"
+                height: "0.445"
+                top: "0.248"
+                borderRadius: "5px"
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    left: "0.264"
+                    height: "0.1"
+                    marginTop: "0"
+                    width: "0.07"
+                    display: flex
+                    justifyContent: space-around
+                    alignItems: center
+                  children:
+                    - type: image
+                      path: close.svg
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: _____.viewTag
+                      style:
+                        width: "0.012"
+                - type: view
+                  style:
+                    width: "0.334"
+                    marginTop: "0"
+                    height: "0.365"
+                    textAlign:
+                      x: center
+                  children:
+                    - type: image
+                      path: null.png
+                      path=func: =.builtIn.utils.prepareDocToPath
+                      # 传入签名文档的id
+                      dataKey: medicalLicense.resp.doc.0.id
+                      style:
+                        width: "0.28"
+                        height: "0.3"
+        # BusinessHour View
+        - .BasePopUp:
+          style:
+            top: "0"
+            left: "0"
+            height: "1"
+            width: "1"
+            zIndex: "1000"
+          viewTag: businessHourTag
+          children:
+            - .PopUphead:
+              style:
+                left: '0.6'
+              children:
+                - .CreateLabel:
+                  text: "Business Hours"
+                - .Closebutton:
+                  onClick:
+                    - .BaseDate.calendarDate.minidayLable@: []
+                    - actionType: popUpDismiss
+                      popUpView: businessHourTag
+            - type: view
+              style:
+                height: '0.92'
+                width: '0.4'
+                top: '0.08'
+                left: '0.6'
+                backgroundColor: '0xffffff'
+              viewTag: DataTag
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.026"
+                    width: "0.28"
+                    left: "0.075"
+                  children:
+                    - type: label
+                      text: "Day"
+                      style:
+                        width: "0.14"
+                        fontSize: .Nfont.nf2
+                        display: inline-block
+                        fontWeight: "600"
+                        color: "0x333333"
+                        textAlign:
+                          y: center
+                    - type: label
+                      text: "Hour"
+                      style:
+                        display: inline-block
+
+                        width: "0.14"
+                        fontSize: .Nfont.nf2
+                        fontWeight: "600"
+                        color: "0x333333"
+                        textAlign:
+                          y: center
+                - type: scrollView
+                  style:
+                    marginTop: "0.01"
+                    width: "0.28"
+                    left: "0.075"
+                    height: "0.85"
+                    # backgroundColor: "0xff0000"
+                  children:
+                    - type: list
+                      viewTag: busHoursTag
+                      contentType: listObject
+                      listObject: ..formData.businessHours
+                      iteratorVar: itemObject
+                      style:
+                        width: '0.28'
+                        margin: '0'
+                        height: auto
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            width: '0.28'
+                            left: '0'
+                            height: "0.03"
+                          children:
+                            - type: label
+                              dataKey: itemObject.dayConcat
+                              style:
+                                fontSize: .Nfont.nf1
+                                fontWeight: "400"
+                                color: "0x333333"
+                                display: inline-block
+                                width: "0.14"
+                            - type: label
+                              dataKey: itemObject.HourConcat
+                              style:
+                                fontSize: .Nfont.nf1
+                                fontWeight: "400"
+                                color: "0x333333"
+                                display: inline-block
+                                width: "0.14"

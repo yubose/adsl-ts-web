@@ -59,6 +59,41 @@ describe(`asserters`, () => {
   // })
 
   describe(`assertBuiltIn`, () => {
+    it(`should report if missing`, () => {
+      docRoot.set('Topo', {
+        '=.builtIn.string.equal': {
+          dataIn: { string1: 'abc.png', string2: 'abc.png' },
+          dataOut: 'Topo.isEqual',
+        },
+      })
+      expect(
+        docDiagnostics.codeExists(
+          consts.DiagnosticCode.BUILTIN_FUNCTION_MISSING,
+          runAsserter('assertBuiltIn'),
+        ),
+      ).to.be.true
+    })
+
+    it(`should report if not a function`, () => {
+      docRoot.set('Topo', {
+        '=.builtIn.string.equal': {
+          dataIn: { string1: 'abc.png', string2: 'abc.png' },
+          dataOut: 'Topo.isEqual',
+        },
+      })
+      expect(
+        docDiagnostics.codeExists(
+          consts.DiagnosticCode.BUILTIN_FUNCTION_NOT_A_FUNCTION,
+          docDiagnostics.run({
+            asserters: asserters.assertBuiltIn,
+            builtIn: {
+              string: { equal: 'hello' as any },
+            },
+          }),
+        ),
+      ).to.be.true
+    })
+
     it(`should call builtIn functions`, () => {
       docRoot.set('Topo', {
         '=.builtIn.string.equal': {

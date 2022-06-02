@@ -77,7 +77,7 @@ export interface BuiltInFn<B extends BuiltIns = BuiltIns, DataIn = any> {
       builtIns: B
       builtInKey: string
       builtInObject: any
-      builtInPath: string[]
+      builtInPath: string
       data: Record<string, any>
       dataOut: any
       node: any
@@ -88,7 +88,7 @@ export interface BuiltInFn<B extends BuiltIns = BuiltIns, DataIn = any> {
 }
 
 export interface BuiltIns {
-  [key: string]: BuiltInFn | Record<string, BuiltInFn | BuiltIns>
+  [key: string]: BuiltInFn | BuiltIns
 }
 
 export interface VisitorAsserter<
@@ -107,7 +107,7 @@ export interface VisitorOptions<
   B extends BuiltIns = BuiltIns,
 > {
   asserters: Asserters
-  builtIn?: B
+  builtIn: B
   data: Record<string, any>
   init?: (args: VisitorInitArgs<InitOptions>) => any
   helpers?: H

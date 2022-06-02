@@ -7,6 +7,7 @@ import type {
   VpValue,
 } from 'noodl-types'
 import {
+  arr,
   localKey,
   localReference,
   nil,
@@ -222,6 +223,49 @@ export const presets = {
 export function isValidViewTag(viewTag: unknown) {
   if (str(viewTag)) return !!(viewTag && regex.letters.test(viewTag))
   return false
+}
+
+/**
+ * @example
+ * "0x000000" --> "#000000"
+ * "shadow" --> "'5px 5px 10px 3px rgba(0, 0, 0, 0.015)'"
+ * "true" --> true
+ * "false" --> false
+ * ['axis', 'horizontal'] --> { display: 'flex', flexWrap: 'nowrap' }
+ * ['axis', 'vertical'] --> { display: 'flex', flexDirection: 'column' }
+ * ['align', 'centerX'] --> { display: 'flex', justifyContent: 'center' }
+ * ['align', 'centerY'] --> { display: 'flex', alignItems: 'center' }
+ * ['textAlign', 'centerX'] --> { textAlign: 'center' }
+ * ['textAlign', 'centery'] --> { display: 'flex', alignItems: 'center' }
+ * @returns The normalized value
+ */
+export function normalize(v: any) {
+  if (arr(v)) {
+    const [key, value] = v
+    if (key === 'axis') {
+      if (value === 'horizontal') return { display: 'flex', flexWrap: 'nowrap' }
+      if (value === 'vertical')
+        return { display: 'flex', flexDirection: 'column' }
+    }
+    if (key === 'align') {
+      if (value === 'centerX')
+        return { display: 'flex', justifyContent: 'center' }
+      if (value === 'centerY') return { display: 'flex', alignItems: 'center' }
+    }
+    if (key === 'textAlign') {
+      if (value === 'centerX') return { textAlign: 'center' }
+      else if (value === 'centerY')
+        return { display: 'flex', alignItems: 'center' }
+    }
+    return { [key]: value }
+  }
+  if (str(v)) {
+    if (v.startsWith('0x')) return `#${v.substring(2)}`
+    if (v === 'shadow') return '5px 5px 10px 3px rgba(0, 0, 0, 0.015)'
+    if (v === 'true') return true
+    if (v === 'false') return false
+  }
+  return v
 }
 
 export function parsePageComponentUrl(url: string) {

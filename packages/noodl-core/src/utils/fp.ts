@@ -3,11 +3,15 @@
  */
 import { hasLetter } from '..'
 import type { Path } from '../types'
-import { arr, nil, num, obj, str, und } from './is'
+import { arr, fnc, nil, num, obj, str, und } from './is'
 
 /** @internal */
 export function assign<O extends Record<string, any>>(v: O, ...rest: any[]) {
   return Object.assign(v, ...rest)
+}
+
+export function binary(fn: (...args: any[]) => any) {
+  return (...args: any[]) => fn(args[0], args[1])
 }
 
 /** @internal */
@@ -64,6 +68,14 @@ export function excludeStr(value: string, strToExclude: string) {
     return value.split(sep).join('').replace(strToExclude, '')
   }
   return value
+}
+
+/** @internal */
+export function each<A extends any[]>(
+  a: A,
+  fn: (v: A[number], i: number, collection: A) => void,
+) {
+  if (arr(a)) a.forEach((item, i, collection) => fn(item, i, collection))
 }
 
 /**
@@ -141,6 +153,18 @@ export function omit<O extends Record<string, any>, K extends keyof O>(
   return value as Omit<O, K>
 }
 
+export function or(cond: any, t: any, f: any) {
+  return (fnc(cond) ? cond() : cond) ? t : f
+}
+
+export function partial(fn: (...args: any[]) => any, ...args1: any[]) {
+  return (...args2: any[]) => fn(...args1, ...args2)
+}
+
+export function partialR(fn: (...args: any[]) => any, ...args1: any[]) {
+  return (...args2: any[]) => fn(...args2, ...args1)
+}
+
 /**
  * Syntactic sugar for toPath
  * @param args String or array of strings
@@ -210,6 +234,13 @@ export function some<T>(
     }
   }
   return false
+}
+
+/** @internal */
+export function spread(fn: (k: string, v: any) => any) {
+  return function onSpread([key, value]) {
+    return fn(key, value)
+  }
 }
 
 /**

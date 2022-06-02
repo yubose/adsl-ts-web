@@ -1,0 +1,530 @@
+DayScheduleManagement:
+  #xd page number: 75
+  pageNumber: "450"
+  init:
+    - .SignInCheck
+  viewPort: top
+  title: "DayScheduleManagement"
+  Gary:
+    - key: '9:00a'
+      path1: 'blue.png'
+      label1: 'Shyam Phelps'
+      color: '#E4F6FE'
+    - key: '10:00a'
+      path1: 'kong.png'
+    - key: '11:00a'
+      path1: 'kong.png'
+    - key: '12:00p'
+      path1: 'kong.png'
+    - key: '1:00p'
+      path1: 'kong.png'
+    - key: '2:00p'
+      path1: 'kong.png'
+    - key: '3:00p'
+      path1: 'kong.png'
+    - key: '4:00p'
+      path1: 'kong.png'
+    - key: '5:00p'
+      path1: 'kong.png'
+    - key: '6:00p'
+      path1: 'kong.png'
+    - key: '7:00p'
+      path1: 'kong.png'
+    - key: '8:00p'
+      path1: 'kong.png'
+  Eiliyah:
+    - key: '9:00a'
+      path1: 'kong.png'
+    - key: '10:00a'
+      path1: 'kong.png'
+    - key: '11:00a'
+      label1: 'Shyam Phelps'
+      color: '#E4F6FE'
+      path1: 'blue.png'
+    - key: '12:00p'
+      path1: 'kong.png'
+    - key: '1:00p'
+      path1: 'kong.png'
+    - key: '2:00p'
+      path1: 'kong.png'
+    - key: '3:00p'
+      path1: 'kong.png'
+    - key: '4:00p'
+      path1: 'kong.png'
+    - key: '5:00p'
+      path1: 'kong.png'
+    - key: '6:00p'
+      path1: 'kong.png'
+    - key: '7:00p'
+      path1: 'kong.png'
+    - key: '8:00p'
+      path1: 'kong.png'
+  Beau:
+    - key: '9:00a'
+      path1: 'kong.png'
+    - key: '10:00a'
+      path1: 'blue.png'
+      label1: 'Shyam Phelps'
+      color: '#E4F6FE'
+    - key: '11:00a'
+      path1: 'blue.png'
+      label1: 'Shyam Phelps'
+      color: '#E4F6FE'
+    - key: '12:00p'
+      path1: 'kong.png'
+    - key: '1:00p'
+      path1: 'kong.png'
+    - key: '2:00p'
+      path1: 'kong.png'
+    - key: '3:00p'
+      path1: 'kong.png'
+    - key: '4:00p'
+      path1: 'kong.png'
+    - key: '5:00p'
+      path1: 'kong.png'
+    - key: '6:00p'
+      path1: 'kong.png'
+    - key: '7:00p'
+      path1: 'kong.png'
+    - key: '8:00p'
+      path1: 'kong.png'
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar: null
+          children:
+            - .aitLogo: null
+            - .MenuBar: null
+        - .TopBar: null
+        - .BodyView: null
+          style:
+            width: '0.826'
+            left: '0.16'
+          children:
+            - .Label1: null
+              type: label
+              text: "Schedule Management"
+              style:
+                left: "0.03"
+                fontSize: "15"
+                top: "0.02"
+            - .Scselect1: null
+              options:
+                - Eiliyah Golden, MD
+                - Gary Chen, MD
+                - Beau McGee, MD
+            - .Scimage1: null
+            - .Addbutton: null
+              children:
+                - .Label1: null
+                  text: 'Add Appointment'
+                  style:
+                    fontSize: .Nfont.nf1
+                    top: '0.015'
+                    left: '0.032'
+                - type: image
+                  path: addWhite.svg
+                  style:
+                    top: '0.015'
+                    left: '0.01'
+        - .ContentView: null
+          style:
+            height: "0.85"
+            left: "0.19"
+            top: "0.145"
+            # width: '0.79'   
+          children:
+            - .Label1: null
+              text: January 07-13
+              style:
+                left: '0.09'
+                fontSize: '16'
+                top: '0.03'
+            - type: image
+              path: blueRight.svg
+              style:
+                top: '0.03'
+                left: '0.02'
+                width: '0.01'
+            - type: image
+              path: blackRight.svg
+              style:
+                top: '0.03'
+                left: '0.06'
+                width: '0.01'
+            - type: image
+              path: printer.png
+              style:
+                top: '0.03'
+                left: '0.73'
+                width: '0.025'
+            - type: image
+              path: schedule.svg
+              style:
+                top: '0.03'
+                left: '0.18'
+                width: '0.015'
+            - type: view
+              style:
+                width: '0.08'
+                height: '0.045'
+                top: '0.025'
+                left: '0.62'
+                border:
+                  style: '3'
+                borderWidth: "1"
+                borderLeft: "1px solid rgb(244, 248, 250)"
+                borderRight: "1px solid rgb(244, 248, 250)"
+                borderBottom: "1px solid rgb(202, 217, 227)"
+                borderTop: "1px solid rgb(202, 217, 227)"
+                borderRadius: "5"
+                # borderColor: '#B2C7D6'  
+              children:
+                - type: button
+                  onClick:
+                    - goto: 'ScheduleManagement'
+                  text: 'Weeks'
+                  style:
+                    width: '0.04'
+                    top: "0"
+                    height: '0.045'
+                    borderRadius: "5"
+                    left: '0.04'
+                    backgroundColor: '0xffffff'
+                - type: button
+                  onClick:
+                    - goto: 'DayScheduleManagement'
+                  text: 'Days'
+                  style:
+                    color: '0xffffff'
+                    width: '0.04'
+                    top: "0"
+                    height: '0.045'
+                    borderRadius: "5"
+                    left: '0'
+                    backgroundColor: '#005795'
+            - .BaseList: null
+              listObject: ..Gary
+              style:
+                width: '0.25'
+                left: '0'
+                top: '0.225'
+                height: '0.625'
+                display: flex
+                margin: "0"
+                backgroundColor: '#f8f8f8'
+                borderTop: '1px solid #eaeaea'
+                borderBottom: '1px solid #eaeaea'
+                overflow: scroll
+              children:
+                - .BaseListItem: null
+                  style:
+                    width: '0.25'
+                    height: '0.36'
+                    # backgroundColor: 'red'
+                    # display: inline-block
+                  children:
+                    - type: label
+                      dataKey: itemObject.key
+                      style:
+                        top: '0'
+                        width: '0.1'
+                        height: '0.03'
+                        # left: '0.005'
+                        fontSize: '12'
+                    - .TimeView: null
+                      emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - =$var.color
+                      dataKey: itemObject.label1
+                      style:
+                        backgroundColor: itemObject.color
+                    - .TimeView: null
+                      style:
+                        top: '0.03'
+                    - .TimeView: null
+                      style:
+                        top: '0.06'
+                    - .TimeView: null
+                      style:
+                        top: '0.09'
+                    - .TimeView: null
+                      style:
+                        top: '0.12'
+                    - .TimeView: null
+                      style:
+                        top: '0.15'
+                    - .TimeView: null
+                      style:
+                        top: '0.18'
+                    - .TimeView: null
+                      style:
+                        top: '0.21'
+                    - .TimeView: null
+                      style:
+                        top: '0.24'
+                    - .TimeView: null
+                      style:
+                        top: '0.27'
+                    - .TimeView: null
+                      style:
+                        top: '0.3'
+                    - .TimeView: null
+                      style:
+                        top: '0.33'
+                    - .Dalabel: null
+                      text: '5'
+                      style:
+                        top: '0.015'
+                    - .Dalabel: null
+                      text: '10'
+                      style:
+                        top: '0.045'
+                    - .Dalabel: null
+                      text: '15'
+                      style:
+                        top: '0.075'
+                    - .Dalabel: null
+                      text: '20'
+                      style:
+                        top: '0.105'
+                    - .Dalabel: null
+                      text: '25'
+                      style:
+                        top: '0.135'
+                    - .Dalabel: null
+                      text: '30'
+                      style:
+                        top: '0.165'
+                    - .Dalabel: null
+                      text: '35'
+                      style:
+                        top: '0.195'
+                    - .Dalabel: null
+                      text: '40'
+                      style:
+                        top: '0.225'
+                    - .Dalabel: null
+                      text: '45'
+                      style:
+                        top: '0.255'
+                    - .Dalabel: null
+                      text: '50'
+                      style:
+                        top: '0.285'
+                    - .Dalabel: null
+                      text: '55'
+                      style:
+                        top: '0.315'
+                    - .DaImage:
+
+                        null
+            - .BaseList: null
+              listObject: ..Eiliyah
+              style:
+                width: '0.25'
+                left: '0.265'
+                top: '0.225'
+                height: '0.625'
+                margin: "0"
+                display: flex
+                backgroundColor: '#f8f8f8'
+                borderTop: '1px solid #eaeaea'
+                borderBottom: '1px solid #eaeaea'
+                overflow: scroll
+              children:
+                - .BaseListItem: null
+                  style:
+                    width: '0.25'
+                    height: '0.12'
+                    # backgroundColor: 'red'
+                    # display: inline-block
+                  children:
+                    - type: label
+                      dataKey: itemObject.key
+                      style:
+                        top: '0'
+                        width: '0.1'
+                        height: '0.03'
+                        # left: '0.005'
+                        fontSize: '12'
+                    - .TimeView: null
+                      emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - =$var.color
+                      dataKey: itemObject.label1
+                      style:
+                        backgroundColor: itemObject.color
+                    - .TimeView: null
+                      style:
+                        top: '0.03'
+                    - .TimeView: null
+                      style:
+                        top: '0.06'
+                    - .TimeView: null
+                      style:
+                        top: '0.09'
+                    - .Dalabel: null
+                      text: '15'
+                      style:
+                        top: '0.015'
+                    - .Dalabel: null
+                      text: '30'
+                      style:
+                        top: '0.045'
+                    - .Dalabel: null
+                      text: '45'
+                      style:
+                        top: '0.075'
+                    - .DaImage: null
+            - .BaseList: null
+              listObject: ..Beau
+              style:
+                width: '0.25'
+                left: '0.53'
+                top: '0.225'
+                height: '0.625'
+                display: flex
+                margin: "0"
+                backgroundColor: '#f8f8f8'
+                borderTop: '1px solid #eaeaea'
+                borderBottom: '1px solid #eaeaea'
+                overflow: scroll
+              children:
+                - .BaseListItem: null
+                  style:
+                    width: '0.23'
+                    height: '0.12'
+                    # backgroundColor: 'red'
+                    # display: inline-block
+                  children:
+                    - type: label
+                      dataKey: itemObject.key
+                      style:
+                        top: '0'
+                        width: '0.1'
+                        height: '0.03'
+                        # left: '0.005'
+                        fontSize: '12'
+                    - .TimeView: null
+                      style: null
+                    - .TimeView: null
+                      emit:
+                        dataKey:
+                          var: itemObject
+                        actions:
+                          - =$var.color
+                      dataKey: itemObject.label1
+                      style:
+                        top: '0.03'
+                        backgroundColor: itemObject.color
+                    - .TimeView: null
+                      style:
+                        top: '0.06'
+                    - .TimeView: null
+                      style:
+                        top: '0.09'
+                    - .Dalabel: null
+                      text: '15'
+                      style:
+                        top: '0.015'
+                    - .Dalabel: null
+                      text: '30'
+                      style:
+                        top: '0.045'
+                    - .Dalabel: null
+                      text: '45'
+                      style:
+                        top: '0.075'
+                    - .DaImage: null
+                      style:
+                        top: '0.03'
+            - type: view
+              style:
+                width: '0.25'
+                height: '0.125'
+                top: '0.1'
+                left: '0'
+                backgroundColor: '#f8f8f8'
+              children:
+                - type: label
+                  text: GARY CHEN, MD
+                  style:
+                    width: '0.25'
+                    fontSize: '16'
+                    textAlign:
+                      x: center
+                    left: '0'
+                    top: '0.025'
+                - type: label
+                  text: Orthopedic
+                  style:
+                    width: '0.25'
+                    fontSize: .Nfont.nf1
+                    textAlign:
+                      x: center
+                    left: '0'
+                    color: '#8c8c92'
+                    top: '0.07'
+            - type: view
+              style:
+                width: '0.25'
+                height: '0.125'
+                top: '0.1'
+                left: '0.265'
+                backgroundColor: '#f8f8f8'
+              children:
+                - type: label
+                  text: EILIYAH GOLDEN, MD
+                  style:
+                    width: '0.25'
+                    fontSize: '16'
+                    textAlign:
+                      x: center
+                    left: '0'
+                    top: '0.025'
+                - type: label
+                  text: Family Doctor
+                  style:
+                    width: '0.25'
+                    fontSize: .Nfont.nf1
+                    textAlign:
+                      x: center
+                    left: '0'
+                    color: '#8c8c92'
+                    top: '0.07'
+            - type: view
+              style:
+                width: '0.25'
+                height: '0.125'
+                top: '0.1'
+                left: '0.53'
+                backgroundColor: '#f8f8f8'
+              children:
+                - type: label
+                  text: 'BEAU MCGEE, MD'
+                  style:
+                    width: '0.25'
+                    fontSize: '16'
+                    textAlign:
+                      x: center
+                    left: '0'
+                    top: '0.025'
+                - type: label
+                  text: Family Doctor
+                  style:
+                    width: '0.25'
+                    fontSize: .Nfont.nf1
+                    textAlign:
+                      x: center
+                    left: '0'
+                    color: '#8c8c92'
+                    top: '0.07'

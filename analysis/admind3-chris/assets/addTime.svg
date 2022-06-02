@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <g id="组_10050" data-name="组 10050" transform="translate(-932.697 -463.697)">
+    <g id="椭圆_712" data-name="椭圆 712" transform="translate(932.697 463.697)" fill="#fff" stroke="#005795" stroke-width="1">
+      <circle cx="8" cy="8" r="8" stroke="none"/>
+      <circle cx="8" cy="8" r="7.5" fill="none"/>
+    </g>
+    <line id="直线_1417" data-name="直线 1417" x2="8" transform="translate(936.697 471.697)" fill="none" stroke="#005795" stroke-linecap="round" stroke-width="1"/>
+    <line id="直线_1418" data-name="直线 1418" x2="7.697" transform="translate(940.697 467.849) rotate(90)" fill="none" stroke="#005795" stroke-linecap="round" stroke-width="1"/>
+  </g>
+</svg>

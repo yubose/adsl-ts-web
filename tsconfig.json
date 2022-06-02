@@ -21,7 +21,7 @@
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "keyofStringsOnly": true,
-    "lib": ["dom", "dom.iterable", "esnext",],
+    "lib": ["dom", "dom.iterable", "esnext", "WebWorker", "WebWorker.ImportScripts"],
     "module": "esnext",
     "moduleResolution": "node",
     "noEmitOnError": false,

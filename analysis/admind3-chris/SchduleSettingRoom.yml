@@ -1,0 +1,360 @@
+SchduleSettingRoom:
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - actionType: updateObject
+      dataKey: Global.currentSchedule
+      dataObject: []
+    - actionType: evalObject
+      object:
+        - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+        - =.Global.jwt.edgeAPI.store: ""
+    # - =.builtIn.array.selectOneToArr:
+    #     dataIn:
+    #       arr: =.Global.locationAll
+    #       key: "medicalFacilityName"
+    #     dataOut: SchduleSettingRoom.addressName
+    # - ..formDataVaccineAddress@: =..addressName.0
+    - =.builtIn.array.matchInArray:
+        dataIn:
+          arr: =.Global.locationAll
+          value: =.Global.locationId
+          key: "id"
+          key1: "medicalFacilityName"
+        dataOut: SchduleSettingRoom.formDataVaccineAddress
+    - .Global.formData.scheduleAddress@: =..formDataVaccineAddress
+    # 拼接serviceType
+    - =.builtIn.string.concat:
+        dataIn:
+          - "subtype="
+          - =.Global.formData.serviceType
+        dataOut: SchduleSettingRoom.getScheduleVaccine.edgeIn.sCondition
+    - =..getScheduleVaccine.get: ""
+    - ..formDataVaccine@: =..getScheduleVaccine.schedule.edge.0
+    # 给日期加上 info: weekDay
+    - actionType: evalObject
+      object:
+        - if:
+            - =.SchduleSettingRoom.getScheduleVaccine.schedule.edge.0.id
+            - =.builtIn.array.WeekSchedule:
+                dataIn:
+                  planObject: =.SchduleSettingRoom.getScheduleVaccine.schedule.edge.0.name.setting.day
+                dataOut: SchduleSettingRoom.dayVaccine
+            - continue
+
+  getScheduleVaccine:
+    schedule:
+      edge:
+        name:
+          setting:
+            day: []
+    edgeIn:
+      type: 40000
+      id:
+        - .Global.acceptInfo.bsig
+        - .Global.locationId
+      sCondition: "" # for covid19 test : vaccine
+      xfname: "evid,bvid"
+      maxcount: "1"
+      obfname: "ctime"
+      _nonce: =.Global._nonce
+    get:
+      .EdgeAPI.get: ""
+      api: re
+      dataIn: getScheduleVaccine.edgeIn
+      dataOut: SchduleSettingRoom.getScheduleVaccine.schedule
+  weekLabel:
+    - key: Sunday
+    - key: Monday
+    - key: Tuesday
+    - key: Wednesday
+    - key: Thursday
+    - key: Friday
+    - key: Saturday
+  formDataVaccine: ""
+  dayVaccine: ""
+  formDataVaccineAddress: ""
+  locationId: ""
+  components:
+    - .BaseCheckView: ""
+      message: "You don't have the authority to edit"
+      viewTag: pATAuthEdit
+      style:
+        zIndex: "100000"
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          children:
+            - type: view
+              style:
+                left: "0.03"
+                top: "0.015"
+                width: "0.8"
+                height: "0.06"
+              children:
+                - .BackLabel:
+            - .ContentView:
+              style:
+                top: "0.075"
+              children:
+                - type: view
+                  style:
+                    width: "0.78"
+                    height: "0.6"
+                    top: ""
+                    left: "0"
+                  children:
+                    - type: view
+                      style:
+                        left: "0"
+                        width: "0.39"
+                        top: "0.05"
+                        height: "0.6"
+                        # borderRight: "1px solid #dededf"
+                        # backgroundColor: "0xcdcdcd"
+                      children:
+                        - type: button
+                          text: Edit
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =.Global.formData.service
+                                          string2: "COVID-19 Testing"
+                                    - .Global.formData.scheduleType@: Covid19Test
+                                    - continue
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =.Global.formData.service
+                                          string2: "COVID-19 Vaccine"
+                                    - .Global.formData.scheduleType@: Covid19Vaccine
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =.Global.formData.service
+                                          string2: "Flu Shot"
+                                    - .Global.formData.scheduleType@: FluShot
+                                    - continue
+                                - .Global.formData.scheduleLocationId@: =.Global.locationId
+                                - ..Global.formData.scheduleAddress@: =..formDataVaccineAddress
+                                - .Global.currentSchedule@: =..getScheduleVaccine.schedule.edge.0
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =.Global.formData.service
+                                          string2: "COVID-19 Testing"
+                                    - .Global.setSchedule.scheduleTypeNumber@: "655363"
+                                    - continue
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =.Global.formData.service
+                                          string2: "COVID-19 Vaccine"
+                                    - .Global.setSchedule.scheduleTypeNumber@: "393219"
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =.Global.formData.service
+                                          string2: "Flu Shot"
+                                    - .Global.setSchedule.scheduleTypeNumber@: "786435"
+                                    - continue
+                            - goto: ScheduleSettingsDisplay
+                          style:
+                            top: "0.03"
+                            width: "0.04"
+                            left: "0.325"
+                            height: "0.03"
+                            color: "0xffffff"
+                            fontSize: "1.7vh"
+                            # textDecoration: underline
+                            border:
+                              style: "5"
+                            # borderWidth: "1"
+                            # borderColor: "0x005795"
+                            # borderRadius: "5"
+                            backgroundColor: "0x005795"
+                            borderRadius: '5'
+                            textAlign:
+                              x: center
+                              y: center
+                        - type: view
+                          style:
+                            left: "0"
+                            width: "0.48"
+                            top: "0.08"
+                            height: "0.5"
+                          children:
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                width: "0.48"
+                                left: "0"
+                                height: "0.08"
+                              children:
+                                - type: label
+                                  text: Start Date
+                                  style:
+                                    left: "0.022"
+                                    width: "0.1"
+                                    top: "0"
+                                    height: "0.03"
+                                    textAlign:
+                                      x: left
+                                    fontSize: .Nfont.nf2
+                                - type: label
+                                  dataKey: formDataVaccine.name.setting.startDate
+                                  style:
+                                    left: "0.02"
+                                    width: "0.115"
+                                    top: "0.035"
+                                    height: "0.04"
+                                    border:
+                                      style: "3"
+                                    borderWidth: "1"
+                                    borderColor: "0xdededf"
+                                    borderRadius: "2"
+                                    textAlign:
+                                      y: center
+                                    textIndent: "10px"
+                                - type: label
+                                  text: Repeat weeks
+                                  style:
+                                    left: "0.137"
+                                    width: "0.115"
+                                    top: "0"
+                                    height: "0.03"
+                                    textAlign:
+                                      x: left
+                                    fontSize: .Nfont.nf2
+                                - type: label
+                                  text: Address
+                                  style:
+                                    left: "0.25"
+                                    width: "0.1"
+                                    top: "0"
+                                    height: "0.03"
+                                    textAlign:
+                                      x: left
+                                    fontSize: .Nfont.nf2
+                                - type: label
+                                  dataKey: formDataVaccine.name.setting.forwardRepeatWeeks
+                                  style:
+                                    left: "0.135"
+                                    width: "0.115"
+                                    top: "0.035"
+                                    height: "0.04"
+                                    border:
+                                      style: "3"
+                                    borderWidth: "1"
+                                    borderColor: "0xdededf"
+                                    borderRadius: "2"
+                                    textAlign:
+                                      y: center
+                                    textIndent: "10px"
+                                - type: text
+                                  dataKey: formDataVaccineAddress
+                                  style:
+                                    left: "0.25"
+                                    width: "0.115"
+                                    top: "0.035"
+                                    height: "0.04"
+                                    border:
+                                      style: "3"
+                                    borderWidth: "1"
+                                    borderColor: "0xdededf"
+                                    borderRadius: "2"
+                                    boxSizing: content-box
+                                    textAlign:
+                                      y: center
+                                    textIndent: "10px"
+                            - type: view
+                              style:
+                                marginTop: "0.035"
+                                width: "0.35"
+                                left: "0.02"
+                                height: "0.045"
+                                backgroundColor: "0x005795"
+                              children:
+                                - type: label
+                                  dataKey: Global.formData.service
+                                  style:
+                                    left: "0.02"
+                                    width: "0.3"
+                                    top: "0"
+                                    height: "0.045"
+                                    textAlign:
+                                      y: center
+                                    fontSize: "1.7vh"
+                                    color: "0xffffff"
+                                    border:
+                                      style: "5"
+                                    borderRadius: "2"
+                            - type: view
+                              style:
+                                marginTop: "0"
+                                width: "0.35"
+                                left: "0.02"
+                                height: "0.33"
+                                # overflow: scroll
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..dayVaccine
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: '0.35'
+                                    left: "0"
+                                    margin: '0'
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        width: '0.349'
+                                        height: '0.045'
+                                        left: '0'
+                                        border:
+                                          style: "3"
+                                        borderWidth: "1"
+                                        borderColor: "#ccdae4"
+                                        borderRadius: "2"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.weekDay
+                                          style:
+                                            left: "0"
+                                            width: "0.1"
+                                            top: "0"
+                                            height: "0.045"
+                                            fontWeight: "500"
+                                            fontSize: .Nfont.nf2
+                                            backgroundColor: "0xf7f7f7"
+                                            textAlign:
+                                              x: center
+                                              y: center
+                                        - type: label
+                                          dataKey: itemObject.info
+                                          style:
+                                            left: "0.1"
+                                            width: "0.24"
+                                            top: "0"
+                                            height: "0.045"
+                                            fontSize: .Nfont.nf2
+                                            textAlign:
+                                              x: center
+                                              y: center

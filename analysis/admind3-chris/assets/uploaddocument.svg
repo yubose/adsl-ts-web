@@ -1,0 +1,14 @@
+<svg id="组件_98_4" data-name="组件 98 – 4" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="374.918" height="137.37" viewBox="0 0 374.918 137.37">
+  <defs>
+    <linearGradient id="linear-gradient" x1="0.5" x2="0.5" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0" stop-color="#008bec"/>
+      <stop offset="1" stop-color="#dceaf4"/>
+    </linearGradient>
+  </defs>
+  <g id="矩形_16952" data-name="矩形 16952" fill="#fff" stroke="#5b88a8" stroke-width="1" stroke-dasharray="7 7">
+    <rect width="374.918" height="137.37" stroke="none"/>
+    <rect x="0.5" y="0.5" width="373.918" height="136.37" fill="none"/>
+  </g>
+  <text id="Click_here_to_upload" data-name="Click here to upload" transform="translate(117 40)" fill="#3b3b3b" font-size="14" font-family="Poppins-Regular, Poppins" opacity="0.503"><tspan x="0" y="0">Click here to upload</tspan></text>
+  <path id="Icon_awesome-cloud-upload-alt" data-name="Icon awesome-cloud-upload-alt" d="M54.641,23.543a11.3,11.3,0,0,0,.65-3.786c0-5.8-4.37-10.5-9.757-10.5a9.227,9.227,0,0,0-5.417,1.773A16.085,16.085,0,0,0,26.02,2.25c-8.985,0-16.262,7.834-16.262,17.507,0,.3.01.591.02.886A15.734,15.734,0,0,0,0,35.513c0,8.7,6.556,15.756,14.636,15.756h37.4c7.186,0,13.01-6.27,13.01-14.006C65.049,30.491,60.577,24.834,54.641,23.543ZM39.985,30.261H33.338V42.516a1.7,1.7,0,0,1-1.626,1.751H26.833a1.7,1.7,0,0,1-1.626-1.751V30.261H18.559a1.767,1.767,0,0,1-1.149-2.987L28.124,15.741a1.551,1.551,0,0,1,2.3,0L41.134,27.274a1.77,1.77,0,0,1-1.149,2.987Z" transform="translate(155.1 61.48)" fill="url(#linear-gradient)"/>
+</svg>

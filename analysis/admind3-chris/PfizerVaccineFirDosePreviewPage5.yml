@@ -1,0 +1,584 @@
+PfizerVaccineFirDosePreviewPage5:
+  title: "Pfizer-BioNTech Vaccine - First Dose"
+  pageNumber:
+  init:
+    #Page initialization
+    - .SignInCheck
+
+  formData:
+    #Input data here
+    consent:
+      - key: consent
+        value1: "1"
+        value2: "Yes"
+      - key: consent
+        value1: "0"
+        value2: "No"
+    newPatFormText:
+      - key: membersID
+        value: Members ID
+      - key: companyName
+        value: Insurance Company Name
+      - key: insuredName
+        value: Insured Name
+      - key: relationship
+        value: Relationship to Patient
+    noTextField:
+      - key: securityNumber
+        value: Social Security Number
+
+  formDataTemp:
+    #Input data temp here, datatemp should not mix with formData
+    single:
+      - consent: ""
+
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBackPreview:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormLeft:
+                  onClick:
+                    goto: PfizerVaccineFirDosePreviewPage4
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - .PatientFormTitle:
+                      img: patForm5_5.svg
+                    ## CONTENT TITLE
+                    - .ProFormsLabel:
+                      text: "Billing Information"
+                      style:
+                        textAlign:
+                          x: center
+                        fontSize: .Nfont.nf4
+                        marginTop: "0.02"
+                    - .ProFormsLabel:
+                      text: Do you have medical insurance?
+                      style:
+                        marginTop: "0.01"
+                    - type: view
+                      style:
+                        width: "0.39"
+                      children:
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formData.consent
+                          viewTag: consentView
+                          iteratorVar: itemObject
+                          style:
+                            width: '0.39'
+                            display: flex
+                            axis: horizontal
+                            alignItems: center
+                          children:
+                            - type: listItem
+                              itemObject:
+                              style:
+                                width: '0.05'
+                                marginTop: "0.01"
+                                display: flex
+                                justifyContent: flex-start
+                                alignItems: center
+                              children:
+                                - type: image
+                                  style:
+                                    width: "0.008"
+                                    display: "inline-block"
+                                  path:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formDataTemp.single.0.consent
+                                                  string2: $var.value1
+                                            - yes.png
+                                            - no.png
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: =..formDataTemp.single.0.consent
+                                                    string2: $var.value1
+                                              - =.builtIn.object.set:
+                                                  dataIn:
+                                                    object: =..formDataTemp.single.0
+                                                    key: $var.key
+                                                    value: ""
+                                              - =.builtIn.object.set:
+                                                  dataIn:
+                                                    object: =..formDataTemp.single.0
+                                                    key: $var.key
+                                                    value: $var.value1
+
+                                    # 显示 yesPage
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formDataTemp.single.0.consent
+                                                  string2: "1"
+                                            - actionType: builtIn
+                                              funcName: show
+                                              viewTag: yesPage
+                                            - continue
+                                    # 隐藏 noPage   
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formDataTemp.single.0.consent
+                                                  string2: "1"
+                                            - actionType: builtIn
+                                              funcName: hide
+                                              viewTag: noPage
+                                            - continue
+                                    # 隐藏 yesPage
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formDataTemp.single.0.consent
+                                                  string2: ""
+                                            - actionType: evalObject
+                                              object:
+                                                - actionType: builtIn
+                                                  funcName: hide
+                                                  viewTag: yesPage
+                                            - continue
+                                    # 隐藏 noPage   
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formDataTemp.single.0.consent
+                                                  string2: ""
+                                            - actionType: evalObject
+                                              object:
+                                                - actionType: builtIn
+                                                  funcName: hide
+                                                  viewTag: noPage
+                                            - continue
+                                    # 显示noPage
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formDataTemp.single.0.consent
+                                                  string2: "0"
+                                            - actionType: evalObject
+                                              object:
+                                                - actionType: builtIn
+                                                  funcName: show
+                                                  viewTag: noPage
+                                            - continue
+                                    # 隐藏yesPage
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formDataTemp.single.0.consent
+                                                  string2: "0"
+                                            - actionType: evalObject
+                                              object:
+                                                - actionType: builtIn
+                                                  funcName: hide
+                                                  viewTag: yesPage
+                                            - continue
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: consentView
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formDataTemp.single.0.consent
+                                                  string2: ""
+                                            - ..formData.insuranceDisplay@: "block"
+                                            - ..formData.insuranceDisplay@: "none"
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: InsuranceTag
+
+                                - .ProFormsLabel:
+                                  dataKey: itemObject.value2
+                                  style:
+                                    display: "inline-block"
+                                    fontSize: .Nfont.nf0
+                                    fontWeight: "500"
+                                    marginLeft: "0.005"
+                    - type: view
+                      viewTag: InsuranceTag
+                      style:
+                        display: ..formData.insuranceDisplay
+                      children:
+                        - .ProFormsLabel:
+                          text: "Is there an out-of-pocket cost for patients with insurance?"
+                          style:
+                            marginTop: "0.03"
+                        - .ProFormsLabel:
+                          text: "Patients with insurance should not have any out-of-pocket costs for a
+                            covered COVID-19 test, but you should check with
+                            your health plan to confirm before scheduling a
+                            test. If you have health insurance, you must bring
+                            your card with you to the test site. For patients
+                            who test negative for COVID-19 through a rapid test
+                            and come into the clinic, the clinic visit should be
+                            considered part of your test by your health plan.
+                            You likely will not have any out-of-pocket costs for
+                            the in-clinic visit, or for testing to further
+                            evaluate COVID-like symptoms, but you should check
+                            with your health plan to confirm coverage. You will
+                            be responsible for any patient cost share as
+                            determined by your insurance. If active coverage
+                            cannot be located, your test will be submitted to
+                            the federal program for the uninsured for payment."
+                          style:
+                            marginTop: "0.01"
+                            fontWeight: "500"
+                            lineHeight: "1.5em"
+                        - .ProFormsLabel:
+                          text: "If you do not have insurance, we will ask you for your Social Security
+                            number (card not needed), driver’s license or state
+                            ID to submit the cost of your test to the federal
+                            program for the uninsured. If you do not have
+                            insurance and are using the federal program for the
+                            uninsured to cover your COVID-19 test, the in-clinic
+                            visit will be covered at no additional cost to you;
+                            however, any additional point of care lab testing
+                            will not be covered under the uninsured fund."
+                          style:
+                            marginTop: "0.02"
+                            fontWeight: "500"
+                            lineHeight: "1.5em"
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.542"
+                        overflow:
+                        marginTop: "0.01"
+                      children:
+                        # yes  
+                        - type: view
+                          viewTag: yesPage
+                          style:
+                            height: "auto"
+                            width: "0.39"
+                            isHidden: true
+                          children:
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Identification
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    marginTop: "0.02"
+                                - type: view
+                                  style:
+                                    width: "0.39"
+                                    marginTop: "0.02"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "ID Type"
+                                      style:
+                                        fontWeight: "500"
+                                    - .ProFormsCalendarView:
+                                      style:
+                                        width: "0.189"
+                                      children:
+                                        - .ProFormsCalendarField:
+                                          isEditable: "false"
+                                          placeholder: ""
+                                          style:
+                                            width: "0.17"
+                                        - .ProFormsCalendarImg:
+                                          path: downArrowDeepGray.svg
+                                          style:
+                                            marginTop: "0.012"
+                                - .FormsBlockText:
+                                  text: Please upload your Driver license (DL) or federal ID
+                                  style:
+                                    marginTop: "0.03"
+
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.091"
+                                  children:
+                                    # 显示上传的图片
+                                    - type: image
+                                      path: defaultPicture.png
+                                      # 指定刷新组件名称
+                                      viewTag: front_IDCardTag
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: BillingInfo.front_IDCard.docRes.doc.id
+                                      style:
+                                        width: "0.091"
+                                        height: "0.1012"
+                                    - .ProFormsLabel:
+                                      text: "Front of Identification Card"
+                                      style:
+                                        fontSize: .Nfont.nf0
+                                        fontWeight: "500"
+                                        marginTop: "0.005"
+                                        textAlign:
+                                          x: center
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Medical Coverage
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    width: "0.39"
+                                    display: "flex"
+                                    justify-content: space-between
+                                  children:
+                                    - type: view
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: "Insurance Company Name"
+                                          style:
+                                            fontWeight: "500"
+                                        - .PatientFormPreTextField:
+                                          style:
+                                            width: "0.1898"
+
+                                    - type: view
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: "Insurance Plan / Medical Group"
+                                          style:
+                                            fontWeight: "500"
+                                        - .PatientFormPreTextField:
+                                          style:
+                                            width: "0.1898"
+                                - type: view
+                                  style:
+                                    marginTop: "0.02"
+                                    width: "0.39"
+                                    display: "flex"
+                                    justify-content: space-between
+                                  children:
+                                    - type: view
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: "Insured Name"
+                                          style:
+                                            fontWeight: "500"
+                                        - .PatientFormPreTextField:
+                                          style:
+                                            width: "0.1898"
+
+                                    - type: view
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: "Insurance ID # / Medical Record #"
+                                          style:
+                                            fontWeight: "500"
+                                        - .PatientFormPreTextField:
+                                          style:
+                                            width: "0.1898"
+                                - .ProFormsLabel:
+                                  text: Please upload your medical insurance card
+                                  style:
+                                    marginTop: "0.03"
+                                - type: view
+                                  style:
+                                    width: "0.39"
+                                    marginTop: "0.01"
+                                  children:
+                                    - type: view
+                                      style:
+                                        width: "auto"
+                                        display: "inline-block"
+                                      children:
+                                        # 显示上传的图片
+                                        - type: image
+                                          path: defaultPicture.png
+                                          # 指定刷新组件名称
+                                          viewTag: front_InsuranceCardTag
+                                          path=func: .builtIn.utils.prepareDocToPath
+                                          dataKey: BillingInfo.front_InsuranceCard.docRes.doc.id
+                                          style:
+                                            width: "0.091"
+                                            height: "0.1012"
+                                        - .ProFormsLabel:
+                                          text: Front of Insurance Card
+                                          style:
+                                            fontSize: .Nfont.nf0
+                                            fontWeight: "500"
+                                            marginTop: "0.005"
+                                            textAlign:
+                                              x: center
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.03"
+                                      children:
+                                        # 显示上传的图片
+                                        - type: image
+                                          path: defaultPicture.png
+                                          # 指定刷新组件名称
+                                          viewTag: back_InsuranceCardTag
+                                          path=func: .builtIn.utils.prepareDocToPath
+                                          dataKey: BillingInfo.back_InsuranceCard.docRes.doc.id
+                                          style:
+                                            width: "0.091"
+                                            height: "0.1012"
+                                        - .ProFormsLabel:
+                                          text: Back of Insurance Card
+                                          style:
+                                            fontSize: .Nfont.nf0
+                                            fontWeight: "500"
+                                            marginTop: "0.005"
+                                            textAlign:
+                                              x: center
+
+                        # no
+                        - type: view
+                          viewTag: noPage
+                          style:
+                            top: "0"
+                            height: "auto"
+                            width: "0.39"
+                            isHidden: true
+                          children:
+                            - .ProFormsLabel:
+                              text: Identification
+                              style:
+                                marginTop: "0.03"
+                                fontSize: .Nfont.nf2
+                            - type: view
+                              style:
+                                width: "0.39"
+                                marginTop: "0.02"
+                              children:
+                                - .ProFormsLabel:
+                                  text: "ID Type"
+                                  style:
+                                    fontWeight: "500"
+                                - .ProFormsCalendarView:
+                                  style:
+                                    width: "0.189"
+                                  children:
+                                    - .ProFormsCalendarField:
+                                      isEditable: "false"
+                                      placeholder: ""
+                                      style:
+                                        width: "0.17"
+                                    - .ProFormsCalendarImg:
+                                      path: downArrowDeepGray.svg
+                                      style:
+                                        marginTop: "0.012"
+                            - .ProFormsLabel:
+                              text: "Please upload your ID image"
+                              style:
+                                marginTop: "0.03"
+                            - type: view
+                              style:
+                                width: "0.091"
+                                marginTop: "0.01"
+                              children:
+                                # 显示上传的图片
+                                - type: image
+                                  path: defaultPicture.png
+                                  # 指定刷新组件名称
+                                  viewTag: front_IDCardTag
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: BillingInfo.front_IDCard.docRes.doc.id
+                                  style:
+                                    width: "0.091"
+                                    height: "0.1012"
+                                - .ProFormsLabel:
+                                  text: Front of identification Card
+                                  style:
+                                    fontSize: .Nfont.nf0
+                                    fontWeight: "500"
+                                    marginTop: "0.005"
+                                    textAlign:
+                                      x: center
+                            - .ProFormsLabel:
+                              text: "Social Security"
+                              style:
+                                fontSize: .Nfont.nf2
+                                marginTop: "0.03"
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Social Security #"
+                                  style:
+                                    fontWeight: "500"
+                                - .PatientFormPreTextField:
+                                  style:
+                                    width: "0.1898"
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.Global.formData.previewFromProvider
+                                - goto: ProviderManagement
+                                - goto: RoomManagement

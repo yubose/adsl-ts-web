@@ -145,15 +145,21 @@ export function getSdkHelpers(app: App) {
           DocVisitor,
           getYamlNodeKind,
           toDoc,
+          toYml,
           unwrap,
         } = await import('noodl-yaml')
+        const { getInstance } = await import('../app/noodl')
 
         const docDiagnostics = new DocDiagnostics()
         const docRoot = new DocRoot()
         const docVisitor = new DocVisitor()
+        const sdk = getInstance({
+          configUrl,
+        })
 
         window['docDiagnostics'] = docDiagnostics
         window['docRoot'] = docRoot
+        window['sdk2'] = sdk
 
         docRoot.set('Config', toDoc(rootConfigYml))
         docDiagnostics.mark('rootConfig', configKey)
@@ -174,6 +180,44 @@ export function getSdkHelpers(app: App) {
         const baseUrl = replaceNoodlPlaceholders(rootDoc?.get?.('cadlBaseUrl'))
         const fetchYml = createFetcherWithBaseUrl(baseUrl)
         const appDoc = toDoc(await fetchYml(rootDoc?.get?.('cadlMain') as any))
+
+        const loadYmlsBySdk = async (type: 'page' | 'preload') => {
+          await sdk.init({ pageSuffix: '' })
+          let { preload = [], page: pages = [] } = sdk.cadlEndpoint || {}
+          let arr = type === 'page' ? pages : preload
+          await Promise.all(
+            arr.map(async (page: string) => {
+              try {
+                page = unwrap(page)
+                docDiagnostics.mark(type, page)
+                await sdk.initPage(page, [], {
+                  builtIn: {
+                    ...initPageBuiltIns,
+                    goto: () => {},
+                    videoChat: () => {},
+                  },
+                  pageSuffix: '',
+                })
+                const doc = new y.Document(
+                  sdk.root[page],
+                ) as y.Document<y.YAMLMap>
+                if (type === 'preload') {
+                  if (y.isMap(doc.contents)) {
+                    doc.contents?.items.forEach((pair) => {
+                      docRoot.set(pair.key as y.Scalar, pair.value)
+                    })
+                  }
+                } else {
+                  docRoot.set(page, doc)
+                }
+              } catch (error) {
+                console.error(
+                  error instanceof Error ? error : new Error(String(error)),
+                )
+              }
+            }),
+          )
+        }
 
         const loadYmls = async (type: 'page' | 'preload') => {
           const { preload = [], page: pages = [] } = appDoc?.toJSON?.() || {}
@@ -206,7 +250,8 @@ export function getSdkHelpers(app: App) {
           )
         }
 
-        await Promise.all([loadYmls('preload'), loadYmls('page')])
+        await Promise.all([loadYmlsBySdk('preload'), loadYmlsBySdk('page')])
+        // await Promise.all([loadYmls('preload'), loadYmls('page')])
 
         docDiagnostics.use(docRoot)
         docDiagnostics.use(docVisitor)

@@ -5,10 +5,21 @@ Dashboard:
         dataIn:
           config: ..config
         dataOut: Dashboard.diagnostics
-  config: testpage
+  config: admind3-chris
   diagnostics: null
   components:
     - .BaseHeader: null
+    - type: view
+      id: stream
+      style:
+        height: "0.2"
+        width: "0.99"
+        left: "0"
+        top: "0.1"
+        border:
+          style: 4
+          color: red
+          width: thick
     - type: divider
       style:
         height: "0.03"

@@ -1,17 +1,10 @@
 import { expect } from 'chai'
-import fs from 'fs-extra'
-import path from 'path'
 import sinon from 'sinon'
 import isEqual from 'lodash/isEqual'
 import y from 'yaml'
-import { consts } from 'noodl-core'
 import Root from '../DocRoot'
 import createNode from '../utils/createNode'
-import is from '../utils/is'
 import deref, { DerefResult } from '../utils/deref'
-import unwrap from '../utils/unwrap'
-import DocDiagnostics from '../DocDiagnostics'
-import DocVisitor from '../DocVisitor'
 
 let root: Root
 

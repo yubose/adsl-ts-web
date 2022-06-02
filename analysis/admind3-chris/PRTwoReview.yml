@@ -1,0 +1,1131 @@
+PRTwoReview:
+  title: PR-2
+  init:
+    - .SignInCheck
+    - ..apiRequest.pRTwo.docReq@: =.Global.formData.medicalRecords
+    - ..formData.workStatus@: =.Global.formData.medicalRecords.name.data.workStatus
+    - ..formData.diagnosis.treatmentPlan@: =.Global.formData.medicalRecords.name.data.diagnosis.treatmentPlan
+
+    # 判断选择Other
+    - actionType: evalObject
+      object:
+        - if:
+            - =.PRTwoReview.apiRequest.pRTwo.docReq.name.data.whetherOther
+            - actionType: evalObject
+              object:
+                - ..formData.selectData@: =..PRTwoReview.apiRequest.pRTwo.docReq.name.data.submitReport
+                - .PRTwoReview.apiRequest.pRTwo.docReq.name.data.submitReport@: "Other"
+
+                - ..formData.whetherOther@: =.PRTwoReview.apiRequest.pRTwo.docReq.name.data.whetherOther
+                - ..formData.rePortflag@: "block"
+                - actionType: builtIn
+                  funcName: redraw
+                  viewTag: rePortShowTag
+            - actionType: evalObject
+              object:
+                - ..formData.selectData@: =..PRTwoReview.apiRequest.pRTwo.docReq.name.data.submitReport
+
+    # 判断Diagnoses
+    - if:
+        - =..apiRequest.pRTwo.docReq.name.data.diagnosis.descriptiveList.0
+        - actionType: evalObject
+          object:
+            - ..formData.listDataFlag@: "block"
+            - ..formData.isNoContentDiag@: "none"
+        - continue
+
+  calendarDate:
+    year: ""
+    month: ""
+    day: ""
+    dayLable: []
+    todayDate: ""
+    monthName: ""
+
+  formDataTemp:
+    allListInfo: []
+    allListString: []
+    allCodes: []
+    allDescription: []
+    report:
+      - Select
+      - Periodic Report (Required 45 days after last report)
+      - Change in treatment plan
+      - Release Form Care
+      - Change in work status
+      - Need for referral consultation
+      - Response to request for information
+      - Change in patient’s condition
+      - Need for surgery or hospitalization
+      - Request for authorization
+      - Other
+    selectYesOrNo:
+      isInvolved:
+        - key: isInvolved
+          value: "Yes"
+        - key: isInvolved
+          value: "No"
+  formData:
+    listDataFlag: "none"
+    isNoContentDiag: "block"
+    rePortflag: "none"
+    whetherSign: ""
+    whetherOther: ""
+    selectData: ""
+    temporarySignature: ""
+    diagnosis:
+      treatmentPlan: ""
+      descriptiveList:
+        code: ""
+        description: ""
+    workStatus:
+      claimsAd:
+        isClaimsAd: false
+        ClaimsAdDate: ""
+      modifiedWork:
+        isModified: false
+        modifiedDate: ""
+      restrictions: ""
+      fullDuty:
+        isFullDuty: false
+        fullDutyDate: ""
+      examDate: ""
+
+  apiRequest:
+    # 签名文档
+    newSign:
+      docResp: ""
+      docReq:
+        #DOC
+        .Document: ""
+        type: .DocType.DocumentSignature
+        name:
+          title: ""
+          type: ..apiRequest.newSign.docReq.subtype.mediaType
+          data:
+            size: ""
+        eid: .Global.rootNotebookID
+        fid: ""
+        subtype:
+          mediaType: "" # mediaType : "image/jpeg"
+      docAPI:
+        # DOCAPI
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: PRTwoReview.apiRequest.newSign.docReq
+          dataOut: PRTwoReview.apiRequest.newSign.docResp
+
+    # pRTwo文档
+    pRTwo:
+      docResp: ""
+      docReq:
+        .Document: ""
+        eid: .Global.formData.appointment.id
+        type: .DocType.pRTwo
+        name:
+          title: "PR-2"
+          user: .Global.currentUser.vertex.name.userName
+          type: "text/plain"
+          subtype: "0" #0是未完成，1是完成
+          data:
+            classTag:
+              name: Admin
+              fontColor: "0x005795"
+              backgroundColor: "0xe9f2fc"
+              display: block
+            statusTag:
+              name: Private
+              fontColor: "0x4c5264"
+              backgroundColor: "0xececee"
+              display: block
+            other: {}
+            signatureCtime: ""
+            whetherSign: true
+            whetherOther: ""
+            authority: ""
+            submitReport: "Select"
+            patientInfo:
+              name: ""
+              address: ""
+              sex: ""
+              phone: ""
+              dob: ""
+              injuryDate: ""
+            providerInfo:
+              physicianName: ""
+              specialty: ""
+              license: ""
+              npi: ""
+              dea: ""
+              email: ""
+              fax: ""
+              phoneNumber: ""
+              address: ""
+            administratorInfo:
+              administrator: ""
+              claimsNumber: ""
+              line: ""
+              secondLine: ""
+              city: ""
+              county: ""
+              state: ""
+              zipCode: ""
+              employerFax: ""
+              employerName: ""
+              employerPhone: ""
+              subComplaints: ""
+              objFindings: ""
+            diagnosis:
+              treatmentPlan: ""
+              descriptiveList: []
+              isInvolved: ""
+            workStatus: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: PRTwoReview.apiRequest.pRTwo.docReq
+          dataOut: PRTwoReview.apiRequest.pRTwo.docResp
+          subtype:
+            mediaType: "text/plain"
+        get:
+          api: rd
+          dataKey: pRTwo.docResp
+          id: .Global.formData.medicalRecords.id
+          xfname: eid
+          type: .DocType.pRTwo
+          maxcount: "1"
+        delete:
+          api: dx
+          dataIn: PRTwoReview.apiRequest.pRTwo.docReq
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .DownLoadBtn:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.EcosObj.exportPDF:
+                        dataIn:
+                          ecosObj: =.Global.formData.medicalRecords
+                          viewTag: mainView
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    top: "0"
+                    left: "0.117"
+                    height: "0.74"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - .FormsTypeTitle:
+                        - type: scrollView
+                          style:
+                            marginTop: "0.01"
+                            height: "0.614"
+                            width: "0.39"
+                            overflow: scroll
+                          children:
+                            - type: view
+                              style:
+                                marginTop: "0.01"
+                                left: "0"
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                              children:
+                                - .ProFormsLabel:
+                                  text: State of California
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    width: "0.39"
+                                    textAlign:
+                                      x: center
+                            - type: view
+                              style:
+                                width: "0.39"
+                                height: "auto"
+                                textAlign:
+                                  x: center
+                              children:
+                                - .ProFormsLabel:
+                                  text: "PRIMARY TREATING PHYSICIAN'S PROGRESS REPORT (PR-2)"
+                                  style:
+                                    marginTop: "0.005"
+                                    lineHeight: "2vh"
+                                    fontSize: .Nfont.nf4
+                                    width: "0.16"
+                                    display: inline-block
+                            - .ProFormsLabel:
+                              text: Check the boxes which indicate why you are submitting a report at this
+                                time. If the patient is "Permanent
+                                and  Stationary"(i.e.,has reached maximum
+                                medical improvement),do not use this form. You
+                                may use DWC Forms PR-3 or PR-4.
+                              style:
+                                marginTop: "0.017"
+                                height: auto
+                                width: "0.39"
+                                lineHeight: "1.8vh"
+                                letterSpacing: "0.02em"
+                            - type: list
+                              viewTag: checkBoxItemTag
+                              contentType: listObject
+                              listObject: ..apiRequest.pRTwo.docReq.name.data.submitReport
+                              iteratorVar: itemObject
+                              style:
+                                width: "0.39"
+                                margin: "0"
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    width: "0.39"
+                                    height: "auto"
+                                    overflow: hidden
+                                  children:
+                                    - type: view
+                                      style:
+                                        marginTop: "0.012"
+                                        width: "0.39"
+                                        overflow: hidden
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.array.has:
+                                                        dataIn:
+                                                          object: =..apiRequest.pRTwo.docReq.name.data.submitReport
+                                                          value: $var
+                                                    - selectBlue.svg
+                                                    - selectGray.svg
+                                        - .ProFormsLabel:
+                                          dataKey: itemObject
+                                          style:
+                                            display: "inline-block"
+                                            marginLeft: "0.005"
+                            - .ProFormsGrayView:
+                              style:
+                                display: ..apiRequest.pRTwo.docReq.name.data.other.isShow
+                                marginTop: "0.0046"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  dataKey: apiRequest.pRTwo.docReq.name.data.other.value
+                                  style:
+                                    color: "0x333333"
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+                            - .ProFormsDivider:
+                            - type: view
+                              style:
+                                marginTop: "0.024"
+                                left: "0"
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                              children:
+                                - .ProFormsLabel:
+                                  text: Patient
+                                  style:
+                                    fontSize: .Nfont.nf4
+                                    color: "0x005795"
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    height: "auto"
+                                    width: "0.39"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Patient Name"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.name
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Phone #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.phone
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Date of Birth"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.dob
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Gender"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.sex
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Address"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.address
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: Date of injury
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.pRTwo.docReq.name.data.patientInfo.injuryDate
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                left: "0"
+                                height: "auto"
+                                width: "0.39"
+                                overflow: hidden
+                              children:
+                                - .ProFormsLabel:
+                                  text: Claims Administrator
+                                  style:
+                                    fontSize: .Nfont.nf4
+                                    color: "0x005795"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.01"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Claims Administrator
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.administrator
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Claims Number
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.claimsNumber
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Address Line
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.line
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Address Second Line
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.secondLine
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: City
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.city
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: County
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.county
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: State
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.state
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Zip Code
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.zipCode
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Employer Name
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.employerName
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Employer's Phone #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.employerPhone
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Employer's Fax #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.employerFax
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                wordBreak: break-all
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Subjective Complaints"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabel:
+                                  text: " (The information below must be provided. You may use this form or you
+                                    may substitute or append a narrative
+                                    report.)"
+                                  style:
+                                    display: inline
+                                    fontWeight: "500"
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.subComplaints
+                                      style:
+                                        color: "0x333333"
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                wordBreak: break-all
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Objective Findings"
+                                  style:
+                                    fontSize: .Nfont.nf2
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: "auto"
+                                width: "0.39"
+                                left: "0"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Vital Signs
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                  children:
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Blood Pressure
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.BP
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "mmHg"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Heart Rate
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.HR
+                                              text: "--"
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+                                            - .ProFormsUnitLabel:
+                                              text: "bpm"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Respiratory Rate
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.RR
+                                              text: "--"
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+                                            - .ProFormsUnitLabel:
+                                              text: "breaths/min"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Pulse Oximetry
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              text: "--"
+                                              dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.PO
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+                                            - .ProFormsUnitLabel:
+                                              text: "O₂ %"
+                                              style:
+                                                fontWeight: "600"
+
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                  children:
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Temperature
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.temperature
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "°F/°C"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Height
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.height
+                                              text: "--"
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+
+                                            - .ProFormsUnitLabel:
+                                              text: "ft/in"
+                                              style:
+                                                fontWeight: "600"
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Weight
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.weight
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "lb"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: BMI
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.vitalSigns.BMI
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "kg/m²"
+                                              style:
+                                                fontWeight: "600"
+                                - .ProFormsLabel:
+                                  text: Physical Examination
+                                  style:
+                                    marginTop: "0.02"
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.administratorInfo.objFindings
+                                      style:
+                                        color: "0x333333"
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Diagnoses
+                                - .ProFormsGrayView:
+                                  style:
+                                    display: ..formData.isNoContentDiag
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      style:
+                                        color: "0x333333"
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+
+                                # added dataList(list)
+                                - type: view
+                                  viewTag: listData
+                                  style:
+                                    width: "0.39"
+                                    left: "0"
+                                    height: "auto"
+                                    marginTop: "0.01"
+                                    display: ..formData.listDataFlag
+                                    backgroundColor: "0xf4f4f4"
+                                    borderRadius: "4"
+                                  children:
+                                    - type: view
+                                      style:
+                                        paddingTop: "0.004"
+                                        paddingBottom: "0.015"
+                                        paddingLeft: "0.00624"
+                                      children:
+                                        - type: list
+                                          viewTag: listData
+                                          contentType: listObject
+                                          listObject: ..apiRequest.pRTwo.docReq.name.data.diagnosis.descriptiveList
+                                          iteratorVar: itemObject
+                                          style:
+                                            width: "0.38"
+                                            height: "auto"
+                                            border:
+                                              style: "5"
+                                            boxSizing: border-box
+                                          children:
+                                            - type: listItem
+                                              itemObject: ""
+                                              style:
+                                                marginTop: "0.006"
+                                                width: "0.38"
+                                                height: "auto"
+                                                left: "0"
+                                                overflow: hidden
+                                              children:
+                                                - type: view
+                                                  style:
+                                                    width: "0.37752"
+                                                    height: "auto"
+                                                  children:
+                                                    - type: view
+                                                      style:
+                                                        # marginLeft: "0.012"
+                                                        wordBreak: break-all
+                                                        display: "inline-block"
+                                                        width: "0.355"
+                                                      children:
+                                                        - .ProFormsLabel:
+                                                          dataKey: itemObject.code
+                                                          style:
+                                                            display: "inline"
+                                                            verticalAlign: middle
+                                                            color: "0x333333"
+                                                            fontSize: .Nfont.nf1
+                                                        - .ProFormsLabel:
+                                                          text: "-"
+                                                          style:
+                                                            marginLeft: "0.002"
+                                                            verticalAlign: middle
+                                                            display: "inline"
+                                                            color: "0x333333"
+                                                            fontSize: .Nfont.nf1
+                                                        - .ProFormsLabel:
+                                                          dataKey: itemObject.description
+                                                          style:
+                                                            verticalAlign: middle
+                                                            marginLeft: "0.002"
+                                                            display: "inline"
+                                                            color: "0x333333"
+                                                            fontSize: .Nfont.nf1
+                                                - type: label
+                                                  dataKey: itemObject.comment
+                                                  style:
+                                                    marginTop: "0.003"
+                                                    width: "0.355"
+                                                    height: "auto"
+                                                    color: "0x666666"
+                                                    wordBreak: break-all
+                                                    fontSize: .Nfont.nf1
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                wordBreak: break-all
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Treatment Plan"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabel:
+                                  text: " (Include treatment rendered to date. List methods, frequency and
+                                    duration of planned treatment(s). Specify
+                                    consultation/ referral, surgery, and
+                                    hospitalization. Identify each physician and
+                                    non-physician provider. Specify type,
+                                    frequency and duration of physical medicine
+                                    services (e.g., physical therapy,
+                                    manipulation, acupuncture). Use of CPT codes
+                                    is encouraged. Have there been any changes
+                                    in treatment plan? If so, why?"
+                                  style:
+                                    display: inline
+                                    fontWeight: "400"
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: formData.diagnosis.treatmentPlan
+                                      style:
+                                        color: "0x333333"
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                wordBreak: break-all
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Work Status:"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabel:
+                                  text: " This patient has been instructed to"
+                                  style:
+                                    display: inline
+                                    fontWeight: "500"
+                                - .ProFormsBaseView:
+                                  style:
+                                    display: ..formData.workStatus.claimsAd.isClaimsAd
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Return off-work until"
+                                    - .ProFormsLabelRight:
+                                      dataKey: formData.workStatus.claimsAd.ClaimsAdDate
+                                - .ProFormsBaseView:
+                                  style:
+                                    display: ..formData.workStatus.modifiedWork.isModified
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Return to modified work on
+                                    - .ProFormsLabelRight:
+                                      dataKey: formData.workStatus.modifiedWork.modifiedDate
+                                - .ProFormsBaseView:
+                                  style:
+                                    display: ..formData.workStatus.modifiedWork.isModified
+                                    marginTop: "0.005"
+                                    wordBreak: break-all
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "with the following limitations or restrictions."
+                                      style:
+                                        display: inline
+                                    - .ProFormsLabel:
+                                      text: " (List all specific restrictions re: standing, sitting, bending, use of
+                                        hands, etc.):"
+                                      style:
+                                        display: inline
+                                        fontWeight: "500"
+                                    - .ProFormsGrayView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: formData.workStatus.restrictions
+                                          style:
+                                            color: "0x333333"
+                                            marginLeft: "0.0046"
+                                            paddingTop: "0.0046"
+                                            paddingBottom: "0.0046"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                    display: ..formData.workStatus.fullDuty.isFullDuty
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Return to full duty with no limitations or restrictions on
+                                    - .ProFormsLabelRight:
+                                      dataKey: formData.workStatus.fullDuty.fullDutyDate
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Primary Treating Physician:"
+                                - .ProFormsLabelLeft:
+                                  text: "Date of Exam"
+                                - .ProFormsLabelRight:
+                                  dataKey: formData.workStatus.examDate
+                            # - .ProFormsLabel:
+                            #   style:
+                            #     marginTop: "0.03"
+                            #     fontWeight: ""                            
+                            #   text: "Physician signature(original signature, do not stamp)"
+                            - .ProFormsLabel:
+                              text: "I declare under penalty of perjury that this report is true and correct
+                                to the best of my knowledge and that I have not
+                                violated Labor Code section 139.3."
+                              style:
+                                marginTop: "0.0346"
+                                fontWeight: ""
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                width: "0.275"
+                                display: flex
+                                justifyContent: space-between
+                              children:
+                                - .ProFormsLabel:
+                                  text: Signature
+                                  style:
+                                    display: inline-block
+                            - .SignAreaView:
+                              style:
+                                marginTop: "0.008"
+                              children:
+                                - type: label
+                                  text: X
+                                  style:
+                                    .SignLabelStyle: # 显示暂存的签名
+                                - type: image
+                                  viewTag: signatureShowTag
+                                  dataKey: apiRequest.pRTwo.docReq.name.data.signatureId
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  style:
+                                    boxSizing: border-box
+                            - .ProFormsBaseView:
+                              style:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text=func: .builtIn.string.formatUnixtime_en # 12/30/2021 07:25:00
+                                  dataKey: apiRequest.pRTwo.docReq.name.data.signatureCtime
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelLeft:
+                                  text: " Digitally Signed"
+                                  style:
+                                    display: inline
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Date"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelRight:
+                                  text=func: .builtIn.string.formatUnixtimeL_en # 12/30/2021
+                                  dataKey: apiRequest.pRTwo.docReq.ctime
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabel:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.physicianName
+                                      style:
+                                        fontSize: .Nfont.nf4
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.specialty
+                                      style:
+                                        lineHeight: "2vh"
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "LIC #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.license
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "NPI #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.npi
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "DEA #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.dea
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Fax #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.fax
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Main #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.phoneNumber
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Address"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pRTwo.docReq.name.data.providerInfo.address
+                            - .ProFormsLabelLeft:
+                              text: "PRIVACY NOTICE:"
+                              style:
+                                marginTop: "0.005"
+                            - .ProFormsLabelLeft:
+                              text: "A statement of current data collection and use policies and certain
+                                privacy rights of injured workers may be found
+                                at the following website:
+                                http://www.dir.ca.gov/od_pub/privacy.html."
+                              style:
+                                marginTop: "0.0046"
+                            - .ProFormsDivider:
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true

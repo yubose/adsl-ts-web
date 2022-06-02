@@ -1,0 +1,429 @@
+BlankNoteEdit:
+  title: Blank Note/Form
+  init:
+    - .SignInCheck
+    # macro 复现
+    - if:
+        - =.Global.formData.providerNotesForm.id
+        - ..newNote.document@: =.Global.formData.providerNotesForm
+        - actionType: evalObject
+          object:
+            #页面进入时就创建文档
+            - =.BlankNoteEdit.newNote.docAPI.store: ""
+            - ..newNote.document@: =..newNote.response.doc
+    # 判断是否签名
+    - if:
+        - =..newNote.document.name.data.whetherSign
+        - continue
+        - actionType: evalObject
+          object:
+            - ..formData.temporarySignature@: =..newNote.document.name.data.signatureId
+            - ..formData.signShow@: "block"
+            - ..formData.canvasShow@: "none"
+  newSign:
+    docRes: ""
+    document:
+      reid: ""
+      .Document: ""
+      type: .DocType.DocumentSignature
+      name:
+        title: ""
+        type: ..newSign.document.subtype.mediaType
+        data: ""
+      eid: .Global.formData.meetingDocEid
+      subtype:
+        mediaType: "" # mediaType : "image/jpeg"
+    docAPI:
+      # DOCAPI
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: BlankNoteEdit.newSign.document
+        dataOut: BlankNoteEdit.newSign.docRes
+
+  newNote:
+    deleteReq:
+      id: ""
+    response: ""
+    document:
+      .Document: ""
+      eid: .Global.formData.meetingDocEid
+      reid: ""
+      type: .DocType.MeetingNote
+      subtype:
+        mediaType: "" # mediaType : "image/jpeg"
+      name:
+        data:
+          signatureTime: ""
+          signatureId: ""
+          whetherSign: true
+          note: ""
+          classTag:
+            name: Admin
+            fontColor: "0x005795"
+            backgroundColor: "0xe9f2fc"
+            display: block
+          statusTag:
+            name: Private
+            fontColor: "0x4c5264"
+            backgroundColor: "0xececee"
+            display: block
+        type: "text/plain"
+        title: ""
+        user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: BlankNoteEdit.newNote.document
+        dataOut: BlankNoteEdit.newNote.response
+        subtype:
+          mediaType: "text/plain"
+      delete:
+        api: dx
+        dataIn: BlankNoteEdit.newNote.document
+
+  formData:
+    temporarySignature: ""
+    whetherSignature: ""
+    signShow: "none"
+    canvasShow: "block"
+  formDataTemp:
+    privateTag:
+      display: "block"
+      backgroundColor: "0xececee"
+      fontColor: "0x4c5264"
+      name: "Private"
+    publicTag:
+      display: "block"
+      backgroundColor: "0xdfedfc"
+      fontColor: "0x2988e6"
+      name: "Released"
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                  children:
+                    - .FormsTypeTitle:
+                    - type: scrollView
+                      style:
+                        marginTop: "0.01"
+                        width: "0.39"
+                        height: "0.614"
+                        overflow: scroll
+                      children:
+                        - type: view
+                          style:
+                            width: "0.39"
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Name Your Notes
+                            - .ProFormsTextField:
+                              placeholder: "Blank Note"
+                              dataKey: newNote.document.name.title
+                              style:
+                                width: "0.39"
+                            - .ProFormsLabel:
+                              text: Notes
+                              style:
+                                marginTop: "0.03"
+                            - .ProFormsTextView:
+                              placeholder: "Hello this meeting"
+                              dataKey: newNote.document.name.data.note
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                width: "0.275"
+                                display: flex
+                                justifyContent: space-between
+                              children:
+                                - .ProFormsLabel:
+                                  text: Signature
+                                  style:
+                                    display: inline-block
+                                - .ProFormsLabel:
+                                  text: "Clear"
+                                  style:
+                                    color: "0xe24445"
+                                    display: inline-block
+                                  onClick:
+                                    - actionType: removeSignature
+                                      dataObject: BLOB
+                                      dataKey: newSign.document.name.data
+                                      viewTag: signatureTag
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.temporarySignature@: ""
+                                        - ..formData.signShow@: "none"
+                                        - ..formData.canvasShow@: "block"
+                                        - ..newNote.document.name.data.signatureId@: ""
+                                        - ..newNote.document.name.data.signatureTime@: ""
+                                        - ..newNote.document.name.data.whetherSign@: true
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: signatureShowTag
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: signatureTag
+                            - .SignAreaView:
+                              style:
+                                marginTop: "0.008"
+                              children:
+                                - type: canvas
+                                  dataKey: newSign.document.name.data
+                                  viewTag: signatureTag
+                                  style:
+                                    display: ..formData.canvasShow
+                                    .SignCanvasStyle:
+                                - type: label
+                                  text: "X"
+                                  style:
+                                    .SignLabelStyle:
+                                - type: image
+                                  viewTag: signatureShowTag
+                                  path: null.png
+                                  dataKey: formData.temporarySignature
+                                  path=func: =.builtIn.utils.prepareDocToPath
+                                  style:
+                                    display: ..formData.signShow
+                                    .SignCanvasStyle:
+                        - .ProFormsBaseView:
+                          viewTag: signatureShowTag
+                          style:
+                            display: ..formData.signShow
+                          children:
+                            - .ProFormsLabelLeft:
+                              text=func: .builtIn.string.formatUnixtime_en
+                              dataKey: newNote.document.name.data.signatureTime
+                              style:
+                                display: inline
+                            - .ProFormsLabelLeft:
+                              text: " Digitally Signed"
+                              style:
+                                marginLeft: "0.0046"
+                                display: inline
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabelLeft:
+                              text: "Date"
+                              style:
+                                display: inline
+                            - .ProFormsLabelRight:
+                              text=func: .builtIn.string.formatUnixtimeL_en
+                              dataKey: newNote.document.ctime
+                              style:
+                                marginLeft: "0.0046"
+                                display: inline
+                        - .ProFormsDivider:
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomLeftButton:
+                      onClick:
+                        # 保存签名
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: newSign.document.name.data
+                          isEmpty: formData.whetherSignature
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =..formData.temporarySignature
+                                - continue
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =..formData.whetherSignature
+                                        - continue
+                                        - actionType: evalObject
+                                          object:
+                                            - ..newSign.document.reid@: =..newNote.document.id
+                                            - =..newSign.docAPI.store: ""
+                                            # 存放签名的id到blankNote
+                                            - ..newNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                                            - ..newNote.document.name.data.signatureTime@: =..newSign.docRes.doc.ctime
+                                            - ..newNote.document.name.data.whetherSign@: =..formData.whetherSignature
+                        #  指定  reid
+                        - actionType: evalObject
+                          object:
+                            - ..newNote.document.reid@: =.Global.formData.meetingDocReid
+                        #  修改type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..newNote.document.type
+                                  index: 1
+                                  hex: 0
+                                dataOut: BlankNoteEdit.newNote.document.type
+                        # title处理
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..newNote.document.name.title
+                                      string2: ""
+                                - ..newNote.document.name.title@: "Blank Note"
+                                - continue
+                        - actionType: evalObject
+                          object:
+                            - =..newNote.docAPI.store: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+                    # release button         
+                    - .FormsBottomRightButton:
+                      onClick:
+                        # 签名处理
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: newSign.document.name.data
+                          isEmpty: formData.whetherSignature
+                        # 签名处理
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =..formData.temporarySignature
+                                - continue
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =..formData.whetherSignature
+                                        - actionType: popUp
+                                          popUpView: signatureWarningTag
+                                          wait: true
+                                        - actionType: evalObject
+                                          object:
+                                            - ..newSign.document.reid@: =..newNote.document.id
+                                            - =..newSign.docAPI.store: ""
+                                            - ..newNote.document.reid@: =.Global.formData.meetingDocReid
+                                            - ..newNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                                            - ..newNote.document.name.data.signatureTime@: =..newSign.docRes.doc.ctime
+                                            - ..newNote.document.name.data.whetherSign@: =..formData.whetherSignature
+                            # title处理
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..newNote.document.name.title
+                                      string2: ""
+                                - ..newNote.document.name.title@: "Blank Note"
+                                - continue
+
+                            - ..newNote.document.name.data.statusTag@: =..formDataTemp.publicTag
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..newNote.document.type
+                                  index: 1
+                                  hex: 1
+                                dataOut: BlankNoteEdit.newNote.document.type
+                            - =..newNote.docAPI.store: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+            - .FormsRightButtonsView:
+              style:
+                top: "0.1"
+              children:
+                - .FormsRightButton:
+                  img: keyboard.svg
+                  msg: "Macro"
+                  style:
+                    marginTop: "0.002"
+                    backgroundColor: "0x1263a8"
+                  onClick:
+                    # 提前保存页面数据用于复现
+                    - actionType: saveSignature
+                      dataObject: BLOB
+                      dataKey: newSign.document.name.data
+                      isEmpty: formData.whetherSignature
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            # 是否是上次签名
+                            - =..formData.temporarySignature
+                            - continue # 旧签名
+                            - actionType: evalObject
+                              object:
+                                # 新签名
+                                - if:
+                                    # 是否签名
+                                    - =..formData.whetherSignature
+                                    - continue
+                                    - actionType: evalObject
+                                      object:
+                                        # 创建签名
+                                        - ..newSign.document.reid@: =..newNote.document.id
+                                        - =..newSign.docAPI.store: ""
+                                        # 更改文档中签名信息
+                                        - ..newNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                                        - ..newNote.document.name.data.signatureTime@: =..newSign.docRes.doc.ctime
+                                        - ..newNote.document.name.data.whetherSign@: =..formData.whetherSignature
+                    # 弹窗
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: macroTag
+                    - actionType: popUp
+                      popUpView: macroTag
+                    - actionType: updateObject
+                      dataKey: Global.formData.providerNotesForm
+                      dataObject: {}
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.providerNotesForm@: =..newNote.document
+                        - if:
+                            - =.Global.macro.resp.doc.0.id
+                            - actionType: evalObject
+                              object:
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: macroDataTag
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: noMacroDataTag
+                            - actionType: evalObject
+                              object:
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: macroDataTag
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: noMacroDataTag
+        - .MacroPopUp:
+        - .CopyMacroSucPromptRight:
+        - .BaseWarningView:
+          msg2: "You haven't signed the form."
+          viewTag: signatureWarningTag

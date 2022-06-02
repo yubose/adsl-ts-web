@@ -5,12 +5,13 @@ import type { ComponentObject, VpUnit } from 'noodl-types'
 import * as fp from './utils/fp'
 import {
   excludeIteratorVar,
-  formatColor,
+  normalize,
   getSize,
   getPositionProps,
   getViewportBound,
   getVpKey,
   hasLetter,
+  normalize,
   presets,
   trimReference,
 } from './utils/noodl'
@@ -18,6 +19,13 @@ import coreBuiltIns from './builtIn/core'
 import * as is from './utils/is'
 import * as c from './constants'
 import * as t from './types'
+
+const getBaseStyles = coreBuiltIns.getBaseStyles
+const isRef = is.reference
+const isLocalRRef = is.localReference
+const isRootRef = is.rootReference
+const noodlUnit = is.noodlUnit
+const { each, entries, get, has, or, set, toNum, toPx, toStr } = fp
 
 /**
  * Retrieves a value from ARoot or an object literal
@@ -27,7 +35,7 @@ import * as t from './types'
  */
 function getR(root: Record<string, any> | t.ARoot, key: string[] | string) {
   if (is.root(root)) return root.get(is.arr(key) ? key.join('.') : key)
-  return fp.get(root, key)
+  return get(root, key)
 }
 
 /**
@@ -85,20 +93,18 @@ function getByRef(
 
   let refValue: any
 
-  if (is.localReference(ref)) {
+  if (isLocalRRef(ref)) {
     if (rootKey) {
       refValue = refValue = getR(
         getR(root, rootKey),
         fp.path(trimReference(ref)),
       )
     }
-  } else if (is.rootReference(ref)) {
-    refValue = getR(root, trimReference(ref))
-  }
+  } else if (isRootRef(ref)) refValue = getR(root, trimReference(ref))
 
-  if (is.str(refValue) && is.reference(refValue)) {
+  if (is.str(refValue) && isRef(refValue)) {
     const path = fp.path(trimReference(refValue))
-    if (is.localReference(refValue)) {
+    if (isLocalRRef(refValue)) {
       const prevPath = fp.path(trimReference(ref))
       if (prevPath[0] !== rootKey) rootKey = prevPath[0]
     } else {
@@ -109,7 +115,7 @@ function getByRef(
   return is.und(refValue) ? ref : refValue
 }
 
-// const bf = fp.entries(objectBuiltIns).reduce((acc, [key, fn]) => {
+// const bf = entries(objectBuiltIns).reduce((acc, [key, fn]) => {
 //   acc[`=.builtIn.${key}`] = fn
 //   return acc
 // }, {} as Record<`=.builtIn.${keyof typeof builtInFns}.${keyof typeof builtInFns[keyof typeof builtInFns]}`, any>)
@@ -237,19 +243,18 @@ function transform<Props extends PropsObject>(
   if (props && !props.style) props.style = {}
 
   if (is.obj(blueprint?.style)) {
-    for (const [key, value] of fp.entries(
-      coreBuiltIns.getBaseStyles(blueprint, root),
-    )) {
-      props.style[key] = value
-    }
+    each(
+      entries(getBaseStyles(blueprint, root)),
+      fp.spread((k, v) => set(props, `style.${k}`, v)),
+    )
   }
 
   if (is.obj(blueprint)) {
-    fp.set(props, 'type', blueprint.type)
+    set(props, 'type', blueprint.type)
 
     let iteratorVar = context?.iteratorVar ?? ''
 
-    for (const [originalKey, originalValue] of fp.entries(blueprint)) {
+    for (const [originalKey, originalValue] of entries(blueprint)) {
       let value = props?.[originalKey]
 
       if (originalKey === 'dataKey') {
@@ -258,22 +263,19 @@ function transform<Props extends PropsObject>(
           let isLocalKey = is.localKey(datapath.join('.'))
           // Note: This is here for fallback reason
           // dataKey should never be a reference in the noodl
-          if (is.reference(originalValue)) {
-            isLocalKey = is.localReference(originalValue)
-          }
-          fp.set(
-            props,
-            'data-value',
-            getR(isLocalKey ? getR(root, pageName) : root, datapath),
+          if (isRef(originalValue)) isLocalKey = isLocalRRef(originalValue)
+          const dataValue = getR(
+            or(isLocalKey, getR(root, pageName), root),
+            datapath,
           )
+          set(props, 'data-value', dataValue)
           if (is.select(blueprint)) {
-            fp.set(
-              props,
-              'data-options',
-              is.str(blueprint.options)
-                ? getR(isLocalKey ? getR(root, pageName) : root, datapath)
-                : fp.toArr(blueprint.options),
+            const dataOptions = or(
+              is.str(blueprint.options),
+              getR(or(isLocalKey, getR(root, pageName), root), datapath),
+              fp.toArr(blueprint.options),
             )
+            set(props, 'data-options', dataOptions)
           }
           continue
         }
@@ -283,12 +285,12 @@ function transform<Props extends PropsObject>(
           const isUsingDataKey = is.str(dataKey) || is.str(originalValue)
           // Receiving their options by reference
           if (isUsingDataKey && !is.arr(originalValue)) {
-            let dataPath = is.str(dataKey) ? dataKey : fp.toStr(originalValue)
+            let dataPath = is.str(dataKey) ? dataKey : toStr(originalValue)
             let dataObject: any
             let isListPath =
-              !!iteratorVar && fp.toStr(dataPath).startsWith(iteratorVar)
+              !!iteratorVar && toStr(dataPath).startsWith(iteratorVar)
 
-            value = dataPath ? getR(dataObject, dataPath) : dataObject
+            value = or(dataPath, getR(dataObject, dataPath), dataObject)
 
             if (!is.arr(value)) {
               if (isListPath) {
@@ -297,7 +299,7 @@ function transform<Props extends PropsObject>(
               } else {
                 dataPath = trimReference(dataPath)
                 value = getR(
-                  is.localKey(dataPath) ? getR(root, pageName) : root,
+                  or(is.localKey(dataPath), getR(root, pageName), root),
                   dataPath,
                 )
               }
@@ -305,7 +307,7 @@ function transform<Props extends PropsObject>(
           }
 
           props['data-options'] = value ?? []
-          if (!props.options) props.options = props['data-options']
+          if (!props.options) set(props, 'options', get(props, 'data-options'))
         }
       } else if (originalKey === 'style') {
         // Style keys to be removed (for the DOM) after processing
@@ -332,22 +334,20 @@ function transform<Props extends PropsObject>(
           // AXIS
           if (is.str(axis) && /horizontal|vertical/.test(axis)) {
             markDelete('axis')
-            fp.set(value, 'display', 'flex')
             if (axis === 'horizontal') {
-              fp.set(value, 'flexWrap', 'nowrap')
+              fp.assign(value, normalize(['axis', 'horizontal']))
             } else if (axis === 'vertical') {
-              fp.set(value, 'flexDirection', 'column')
+              fp.assign(value, normalize(['axis', 'vertical']))
             }
           }
 
           // ALIGN
           if (is.str(align) && /center[xy]/.test(align)) {
             markDelete('align')
-            fp.set(value, 'display', 'flex')
             if (align === 'centerX') {
-              fp.set(value, 'justifyContent', 'center')
+              fp.assign(value, normalize(['align', 'centerX']))
             } else if (align === 'centerY') {
-              fp.set(value, 'alignItems', 'center')
+              fp.assign(value, normalize(['align', 'centerY']))
             }
           }
 
@@ -355,46 +355,42 @@ function transform<Props extends PropsObject>(
           if (textAlign) {
             // "centerX", "centerY", "left", "center", "right"
             if (is.str(textAlign)) {
-              if (textAlign === 'left') fp.set(value, 'textAlign', 'left')
-              else if (textAlign === 'center')
-                fp.set(value, 'textAlign', 'center')
-              else if (textAlign === 'right')
-                fp.set(value, 'textAlign', 'right')
+              if (textAlign === 'left') set(value, 'textAlign', 'left')
+              else if (textAlign === 'center') set(value, 'textAlign', 'center')
+              else if (textAlign === 'right') set(value, 'textAlign', 'right')
               else if (textAlign === 'centerX') {
-                fp.set(value, 'textAlign', 'center')
-                fp.set(restoreVals, 'textAlign', 'center')
+                fp.assign(value, normalize(['textAlign', 'centerX']))
+                fp.assign(restoreVals, normalize(['textAlign', 'centerX']))
               } else if (textAlign === 'centerY') {
-                fp.set(value, 'display', 'flex')
-                fp.set(value, 'alignItems', 'center')
+                fp.assign(value, normalize(['textAlign', 'centerY']))
                 markDelete('textAlign')
               }
             }
             // { x, y }
             else if (is.obj(textAlign)) {
               if (!is.nil(textAlign.x)) {
-                fp.set(
+                set(
                   value,
                   'textAlign',
-                  textAlign.x === 'centerX' ? 'center' : textAlign.x,
+                  or(textAlign.x === 'centerX', 'center', textAlign.x),
                 )
               }
-              if (textAlign.y != undefined) {
+              if (!is.nil(textAlign.y)) {
                 // The y value needs to be handled manually here since getTextAlign will
                 //    return { textAlign } which is meant for x
-                if (textAlign.y === 'center' ?? textAlign.y === 'centerY') {
+                if (textAlign.y === 'center' || textAlign.y === 'centerY') {
                   let convert = new Map([
                     ['left', 'flex-start'],
                     ['right', 'flex-end'],
                     ['center', 'center'],
                   ])
                   // convert (left ,center ,right) to (flex-start | flex-end | center)
-                  fp.set(value, 'display', 'flex')
-                  fp.set(value, 'alignItems', 'center')
-                  fp.set(
-                    value,
-                    'justifyContent',
-                    convert.get(textAlign.x ? textAlign.x : 'left'),
+                  const justifyContent = convert.get(
+                    textAlign.x ? textAlign.x : 'left',
                   )
+                  set(value, 'display', 'flex')
+                  set(value, 'alignItems', 'center')
+                  set(value, 'justifyContent', justifyContent)
                   if (!textAlign.x) markDelete('textAlign')
                 }
               }
@@ -402,13 +398,13 @@ function transform<Props extends PropsObject>(
           }
 
           // DISPLAY
-          if (display === 'inline') fp.set(value, 'display', 'inline')
+          if (display === 'inline') set(value, 'display', 'inline')
           else if (display === 'inline-block') {
-            fp.set(value, 'display', 'inline-block')
-            fp.set(value, 'verticalAlign', 'top')
+            set(value, 'display', 'inline-block')
+            set(value, 'verticalAlign', 'top')
           }
 
-          if (verticalAlign) fp.set(value, 'verticalAlign', verticalAlign)
+          if (verticalAlign) set(value, 'verticalAlign', verticalAlign)
 
           /* -------------------------------------------------------
             ---- BORDERS
@@ -431,7 +427,7 @@ function transform<Props extends PropsObject>(
             let line: any
 
             // if (border == '0') debugger
-            if (border == '0') fp.set(value, 'borderStyle', 'none')
+            if (border == '0') set(value, 'borderStyle', 'none')
 
             if (is.obj(border)) {
               borderStyle = border.style
@@ -440,9 +436,9 @@ function transform<Props extends PropsObject>(
               line = border.line
             }
 
-            if (color) fp.set(value, 'borderColor', color.replace('0x', '#'))
-            if (line) fp.set(value, 'borderStyle', line)
-            if (width) fp.set(value, 'borderWidth', width)
+            if (color) set(value, 'borderColor', color.replace('0x', '#'))
+            if (line) set(value, 'borderStyle', line)
+            if (width) set(value, 'borderWidth', width)
 
             // Analyizing border
             if (borderStyle == '1') {
@@ -451,10 +447,10 @@ function transform<Props extends PropsObject>(
               fp.assign(value, presets.border['2'])
             } else if (borderStyle == '3') {
               fp.assign(value, presets.border['3'])
-              if (!width) fp.set(value, 'borderWidth', 'thin')
+              if (!width) set(value, 'borderWidth', 'thin')
             } else if (borderStyle == '4') {
               fp.assign(value, presets.border['4'])
-              if (!width) fp.set(value, 'borderWidth', 'thin')
+              if (!width) set(value, 'borderWidth', 'thin')
             } else if (borderStyle == '5') {
               fp.assign(value, presets.border['5'])
             } else if (borderStyle == '6') {
@@ -464,18 +460,16 @@ function transform<Props extends PropsObject>(
             }
           }
 
-          if (borderWidth) fp.set(value, 'borderWidth', fp.toPx(borderWidth))
+          if (borderWidth) set(value, 'borderWidth', toPx(borderWidth))
 
           if (borderRadius) {
-            if (is.noodlUnit(borderRadius)) {
-              fp.set(
-                value,
-                'borderRadius',
-                fp.toPx(getSize(borderRadius, viewport?.height)),
-              )
+            if (noodlUnit(borderRadius)) {
+              const vpSize = getSize(borderRadius, toNum(viewport?.height))
+              const newBorderRadius = toPx(vpSize)
+              set(value, 'borderRadius', newBorderRadius)
             } else {
               if (is.str(borderRadius) || is.num(borderRadius)) {
-                fp.set(value, 'borderRadius', fp.toPx(borderRadius))
+                set(value, 'borderRadius', toPx(borderRadius))
               }
 
               // If a borderRadius effect is to be expected and there is no border
@@ -484,14 +478,14 @@ function transform<Props extends PropsObject>(
               const regex = /[a-zA-Z]+$/
               const radius = Number(`${borderRadius}`.replace(regex, ''))
               if (!Number.isNaN(radius)) {
-                fp.set(value, 'borderRadius', `${radius}px`)
+                set(value, 'borderRadius', `${radius}px`)
                 if (
                   !(is.str(value.border) && value.border) &&
                   is.nullishStyleValue(value.borderWidth)
                 ) {
                   // Make the border invisible
-                  fp.set(value, 'borderWidth', `1px`)
-                  fp.set(value, 'borderColor', 'rgba(0, 0, 0, 0)')
+                  set(value, 'borderWidth', `1px`)
+                  set(value, 'borderColor', 'rgba(0, 0, 0, 0)')
                 }
               }
             }
@@ -507,25 +501,21 @@ function transform<Props extends PropsObject>(
             // '10' --> '10px'
             if (is.str(fontSize)) {
               if (!hasLetter(fontSize)) {
-                if (is.noodlUnit(fontSize)) {
-                  fp.set(
-                    value,
-                    'fontSize',
-                    fp.toPx(getSize(fontSize, viewport?.height)),
-                  )
-                } else fp.set(value, 'fontSize', fp.toPx(fontSize))
+                if (noodlUnit(fontSize)) {
+                  const vpSize = toNum(viewport?.height)
+                  const newFontSize = getSize(fontSize, vpSize)
+                  set(value, 'fontSize', toPx(newFontSize))
+                } else set(value, 'fontSize', toPx(fontSize))
               }
             }
             // 10 --> '10px'
-            else if (is.num(fontSize))
-              fp.set(value, 'fontSize', fp.toPx(fontSize))
-
-            if (fontFamily) fp.set(value, 'fontFamily', fontFamily)
+            else if (is.num(fontSize)) set(value, 'fontSize', toPx(fontSize))
+            if (fontFamily) set(value, 'fontFamily', fontFamily)
           }
 
           // { fontStyle } --> { fontWeight }
           if (fontStyle === 'bold') {
-            fp.set(value, 'fontWeight', 'bold')
+            set(value, 'fontWeight', 'bold')
             markDelete('fontStyle')
           }
 
@@ -534,20 +524,17 @@ function transform<Props extends PropsObject>(
           -------------------------------------------------------- */
 
           {
-            c.posKeys.forEach((posKey) => {
+            each(c.posKeys as any, (posKey) => {
               if (!is.nil(originalValue?.[posKey])) {
-                const result = getPositionProps(
-                  originalValue,
-                  posKey,
-                  getViewportBound(viewport, posKey),
-                )
+                const vpSize = toNum(getViewportBound(viewport, posKey))
+                const result = getPositionProps(originalValue, posKey, vpSize)
                 if (is.obj(result)) {
-                  for (const [k, v] of fp.entries(result)) fp.set(value, k, v)
+                  each(entries(result), fp.spread(fp.partial(set, value)))
                 }
               }
             })
             // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
-            if (is.obj(value?.textAlign)) markDelete('textAlign')
+            if (is.obj(get(value, 'textAlign'))) markDelete('textAlign')
           }
 
           /* -------------------------------------------------------
@@ -557,17 +544,14 @@ function transform<Props extends PropsObject>(
           const { width, height, maxHeight, maxWidth, minHeight, minWidth } =
             (originalValue ?? {}) as any
 
-          // if (viewport) {
           for (const [key, val] of [
             ['width', width],
             ['height', height],
           ]) {
             if (!is.nil(val)) {
-              fp.set(
-                value,
-                key,
-                fp.toStr(getSize(val, getViewportBound(viewport, key))),
-              )
+              const vpSize = getViewportBound(viewport, key)
+              const newValue = getSize(val, toNum(vpSize))
+              set(value, key, toStr(newValue))
             }
           }
           for (const [key, vpKey, val] of [
@@ -577,116 +561,92 @@ function transform<Props extends PropsObject>(
             ['minWidth', 'width', minWidth],
           ]) {
             if (!is.nil(val)) {
-              fp.set(value, key, fp.toStr(getSize(val, viewport?.[vpKey])))
+              set(value, key, toStr(getSize(val, viewport?.[vpKey])))
             }
           }
-          // }
           // HANDLING ARTBITRARY STYLES
-          for (let [styleKey, styleValue] of fp.entries(originalValue)) {
+          for (let [styleKey, styleValue] of entries(originalValue)) {
             // Unwrap the reference for processing
-            if (is.str(styleValue) && is.reference(styleValue)) {
-              const isLocal = is.localReference(styleValue)
-              styleValue = getByRef(
-                styleValue,
-                getHelpers({ rootKey: isLocal ? pageName : undefined }),
-              )
+            if (is.str(styleValue) && isRef(styleValue)) {
+              const isLocal = isLocalRRef(styleValue)
+              const helpers = getHelpers({ rootKey: or(isLocal, pageName, '') })
+              styleValue = getByRef(styleValue, helpers)
             }
 
             if (is.keyRelatedToWidthOrHeight(styleValue)) {
-              fp.set(
-                value,
-                styleKey,
-                fp.toStr(
-                  getSize(
-                    styleValue,
-                    fp.toNum(getViewportBound(viewport, fp.toStr(styleKey))),
-                  ),
-                ),
-              )
+              const vpSize = getViewportBound(viewport, toStr(styleKey))
+              const value = toStr(getSize(styleValue, toNum(vpSize)))
+              set(value, styleKey, value)
             }
 
             if (is.str(styleValue)) {
-              while (is.reference(styleValue)) {
-                const isLocal = is.localReference(styleValue)
-                const newstyleValue = getByRef(
-                  styleValue,
-                  getHelpers({ rootKey: isLocal ? pageName : undefined }),
-                )
-                if (newstyleValue === styleValue) break
+              while (isRef(styleValue)) {
+                const isLocal = isLocalRRef(styleValue)
+                const helpers = getHelpers({ rootKey: isLocal ? pageName : '' })
+                const newStyleValue = getByRef(styleValue, helpers)
+                if (newStyleValue === styleValue) break
                 // It will do an infinite loop without this
                 if (is.traverseReference(styleValue)) break
-                styleValue = newstyleValue
+                styleValue = newStyleValue
               }
 
               // Resolve vw/vh units (Values directly relative to viewport)
               if (is.vwVh(styleValue)) {
                 if (keepVpUnit) {
-                  fp.set(value, styleKey, `calc(${styleValue})`)
+                  set(value, styleKey, `calc(${styleValue})`)
                 } else {
                   const vpKey = getVpKey(styleValue)
                   const vpVal = viewport?.[vpKey as VpUnit]
-                  const valueNum = fp.toNum(styleValue) / 100
-                  if (is.nil(vpVal)) fp.set(value, styleKey, styleValue)
-                  else
-                    fp.set(value, styleKey, fp.toPx(getSize(valueNum, vpVal)))
+                  const valueNum = toNum(styleValue) / 100
+                  if (is.nil(vpVal)) set(value, styleKey, styleValue)
+                  else set(value, styleKey, toPx(getSize(valueNum, vpVal)))
                 }
               }
 
-              // Cache this value to the variable so it doesn't fp.get mutated inside this func since there are moments when value is changing before this func ends
+              // Cache this value to the variable so it doesn't get mutated inside this func since there are moments when value is changing before this func ends
               // If the value is a path of a list item data object
               const isListPath =
-                !!iteratorVar && fp.toStr(styleValue).startsWith(iteratorVar)
+                iteratorVar && toStr(styleValue).startsWith(iteratorVar)
 
               // '2.8vh', '20px', etc
               const isSizeValue =
                 is.vwVh(styleValue) ||
                 is.keyRelatedToWidthOrHeight(styleKey) ||
                 ['fontSize', 'borderRadius', 'borderWidth'].includes(
-                  fp.toStr(styleKey),
+                  toStr(styleKey),
                 )
 
               if (isSizeValue) {
                 if (viewport) {
                   if (is.vwVh(styleValue)) {
-                    const valueNum = fp.toNum(styleValue) / 100
-                    fp.set(
+                    const valueNum = toNum(styleValue) / 100
+                    const vpSize = getViewportBound(viewport, styleValue)
+                    const vwVhValue = getSize(valueNum, toNum(vpSize))
+                    set(
                       value,
                       styleKey,
-                      keepVpUnit
-                        ? `calc(${styleValue})`
-                        : fp.toStr(
-                            getSize(
-                              valueNum,
-                              fp.toNum(getViewportBound(viewport, styleValue)),
-                            ),
-                          ),
+                      keepVpUnit ? `calc(${styleValue})` : toStr(vwVhValue),
                     )
                   } else if (is.keyRelatedToWidthOrHeight(styleKey)) {
-                    const computedValue = is.noodlUnit(styleValue)
-                      ? fp.toStr(
-                          getSize(
-                            styleValue,
-                            fp.toNum(
-                              getViewportBound(viewport, fp.toStr(styleKey)),
-                            ),
-                          ),
-                        )
-                      : undefined
-                    if (is.noodlUnit(styleValue)) {
-                      fp.set(value, styleKey, computedValue)
+                    const vpSize = getViewportBound(viewport, styleKey)
+                    const computedValue = noodlUnit(styleValue)
+                      ? toStr(getSize(styleValue, toNum(vpSize)))
+                      : ''
+                    if (noodlUnit(styleValue)) {
+                      set(value, styleKey, computedValue)
                     } else if (is.keyRelatedToHeight(styleKey)) {
                       if (styleKey == 'borderRadius' && is.str(styleValue)) {
                         if (styleValue.includes('px')) {
-                          fp.set(value, styleKey, styleValue)
+                          set(value, styleKey, styleValue)
                         } else {
-                          fp.set(value, styleKey, fp.toPx(styleValue))
+                          set(value, styleKey, toPx(styleValue))
                         }
                       }
                     }
                   }
                 }
               } else {
-                fp.set(value, styleKey, formatColor(styleValue))
+                set(value, styleKey, normalize(styleValue))
               }
 
               if (styleKey == 'pointerEvents' && styleValue != 'none') {
@@ -694,7 +654,7 @@ function transform<Props extends PropsObject>(
               }
 
               if (styleKey == 'isHidden' && is.boolTrue(styleValue)) {
-                fp.set(props, 'style.visibility', 'hidden')
+                set(props, 'style.visibility', 'hidden')
               }
 
               // TODO - Find out how to resolve the issue of "value" being undefined without this string check when we already checked above this
@@ -708,7 +668,7 @@ function transform<Props extends PropsObject>(
                     ---- COLORS - REMINDER: Convert color values like 0x00000000 to #00000000
                   -------------------------------------------------------- */
                 if (styleKey === 'textColor') {
-                  fp.set(value, 'color', formatColor(styleValue))
+                  set(value, 'color', normalize(styleValue))
                   markDelete('textColor')
                 } else {
                   // Some list item consumers have data keys referencing color data values
@@ -722,38 +682,26 @@ function transform<Props extends PropsObject>(
                         iteratorVar,
                       )
 
-                      const _styleValue = formatColor(getR(dataObject, dataKey))
+                      const _styleValue = normalize(getR(dataObject, dataKey))
 
                       if (is.keyRelatedToWidthOrHeight(styleKey)) {
-                        if (is.noodlUnit(_styleValue)) {
-                          fp.set(
-                            value,
-                            styleKey,
-                            fp.toStr(
-                              getSize(
-                                _styleValue,
-                                fp.toNum(
-                                  getViewportBound(
-                                    viewport,
-                                    fp.toStr(styleKey),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          )
+                        if (noodlUnit(_styleValue)) {
+                          const vpSize = getViewportBound(viewport, styleKey)
+                          const newValue = getSize(_styleValue, toNum(vpSize))
+                          set(value, styleKey, toStr(newValue))
                         }
                       } else if (styleKey === 'pointerEvents') {
-                        fp.set(value, 'pointer-events', _styleValue)
+                        set(value, 'pointer-events', _styleValue)
                       } else {
-                        fp.set(value, styleKey, _styleValue)
+                        set(value, styleKey, _styleValue)
                       }
                     } else {
-                      fp.set(value, styleKey, formatColor(fp.toStr(dataObject)))
+                      set(value, styleKey, normalize(toStr(dataObject)))
                     }
                   }
 
                   if (is.str(styleValue) && styleValue.startsWith('0x')) {
-                    fp.set(value, styleKey, formatColor(styleValue))
+                    set(value, styleKey, normalize(styleValue))
                   }
                 }
               }
@@ -762,26 +710,21 @@ function transform<Props extends PropsObject>(
         } else if (is.str(originalValue)) {
           // Unparsed style value (reference)
         }
-        delKeys.forEach((key) => delete value[key])
-        fp.entries(restoreVals).forEach(([k, v]) => fp.set(value, k, v))
+        each(delKeys, (key) => delete value[key])
+        each(entries(restoreVals), fp.spread(fp.partial(set, value)))
       } else if (originalKey === 'viewTag') {
-        fp.set(
-          props,
-          'data-view',
-          is.reference(value)
-            ? getByRef(
-                value,
-                getHelpers({
-                  rootKey: is.localReference(value) ? pageName : undefined,
-                }),
-              )
-            : value,
-        )
+        let dataView = value
+        if (isRef(value)) {
+          const rootKey = isLocalRRef(value) ? pageName : ''
+          const helpers = getHelpers({ rootKey })
+          dataView = getByRef(value, helpers)
+        }
+        set(props, 'data-view', dataView)
       } else {
         // Arbitrary references
-        if (is.str(originalValue) && is.reference(originalValue)) {
+        if (is.str(originalValue) && isRef(originalValue)) {
           value = getByRef(originalValue, getHelpers({ rootKey: pageName }))
-          fp.set(props, originalKey, value)
+          set(props, originalKey, value)
         }
       }
     }
@@ -791,41 +734,39 @@ function transform<Props extends PropsObject>(
     -------------------------------------------------------- */
 
     if (is.header(blueprint)) {
-      fp.set(props, 'style.zIndex', 100)
+      set(props, 'style.zIndex', 100)
     } else if (is.image(blueprint)) {
       // Remove the height to maintain the aspect ratio since images are
       // assumed to have an object-fit of 'contain'
-      if (!fp.has(blueprint.style, 'height')) delete props.style.height
+      if (!has(blueprint.style, 'height')) delete props.style.height
       // Remove the width to maintain the aspect ratio since images are
       // assumed to have an object-fit of 'contain'
-      if (!fp.has(blueprint.style, 'width')) delete props.style.width
-      if (!fp.has(blueprint.style, 'objectFit')) {
-        fp.set(props.style, 'objectFit', 'contain')
+      if (!has(blueprint.style, 'width')) delete props.style.width
+      if (!has(blueprint.style, 'objectFit')) {
+        set(props.style, 'objectFit', 'contain')
       }
     } else if (is.listLike(blueprint) && props.style.display !== 'none') {
-      const axis = blueprint.style?.axis
-      fp.set(
-        props,
-        'style.display',
-        axis === 'horizontal' ?? axis === 'vertical' ? 'flex' : 'block',
-      )
-      fp.set(props, 'style.listStyle', 'none')
-      fp.set(props, 'style.padding', '0px')
+      let axis = blueprint.style?.axis
+      let display = 'block'
+      if (axis === 'horizontal' ?? axis === 'vertical') display = 'flex'
+      set(props, 'style.display', display)
+      set(props, 'style.listStyle', 'none')
+      set(props, 'style.padding', '0px')
     } else if (is.listItem(blueprint)) {
       // Flipping the position to relative to make the list items stack on top of eachother.
       //    Since the container is a type: list and already has their entire height defined in absolute values,
       //    this shouldn't have any UI issues because they'll stay contained within
-      fp.set(props, 'style.listStyle', 'none')
+      set(props, 'style.listStyle', 'none')
       // props.style.padding = 0
     } else if (is.popUp(blueprint)) {
-      fp.set(props, 'style.visibility', 'hidden')
+      set(props, 'style.visibility', 'hidden')
     } else if (is.scrollView(blueprint) && props.style.display !== 'none') {
-      fp.set(props, 'style.display', 'block')
+      set(props, 'style.display', 'block')
     } else if (is.textView(blueprint)) {
-      fp.set(props, 'style.rows', 10)
-      fp.set(props, 'style.resize', 'none')
+      set(props, 'style.rows', 10)
+      set(props, 'style.resize', 'none')
     } else if (is.video(blueprint)) {
-      fp.set(props, 'style.objectFit', 'contain')
+      set(props, 'style.objectFit', 'contain')
     }
 
     /* -------------------------------------------------------
@@ -834,40 +775,32 @@ function transform<Props extends PropsObject>(
 
     // Shadow
     if (is.boolTrue(blueprint?.style?.shadow)) {
-      fp.set(props, 'style.boxShadow', '5px 5px 10px 3px rgba(0, 0, 0, 0.015)')
+      set(props, 'style.boxShadow', normalize('shadow'))
       delete props.style.shadow
     }
 
     // Visibility
     let isHiddenValue = blueprint?.style?.isHidden
-    if (is.reference(isHiddenValue)) {
-      const isLocal = is.localReference(isHiddenValue)
-      isHiddenValue = getByRef(
-        isHiddenValue,
-        getHelpers({ rootKey: isLocal ? pageName : undefined }),
-      )
+    if (isRef(isHiddenValue)) {
+      const isLocal = isLocalRRef(isHiddenValue)
+      const helpers = getHelpers({ rootKey: isLocal ? pageName : '' })
+      isHiddenValue = getByRef(isHiddenValue, helpers)
     }
 
-    is.boolTrue(isHiddenValue) && fp.set(props, 'style.visibility', 'hidden')
+    is.boolTrue(isHiddenValue) && set(props, 'style.visibility', 'hidden')
 
     if (is.bool(blueprint?.required)) {
-      fp.set(props, 'required', is.boolTrue(blueprint?.required))
+      set(props, 'required', is.boolTrue(blueprint?.required))
     }
   } else {
     /**
      * - Referenced components (ex: '.BaseHeader)
      * - Text
      */
-    if (is.str(blueprint) && is.reference(blueprint)) {
-      return transform(
-        props,
-        getByRef(
-          blueprint,
-          getHelpers({
-            rootKey: is.localReference(blueprint) ? pageName : undefined,
-          }),
-        ),
-      )
+    if (is.str(blueprint) && isRef(blueprint)) {
+      const rootKey = isLocalRRef(blueprint) ? pageName : ''
+      const helpers = getHelpers({ rootKey })
+      return transform(props, getByRef(blueprint, helpers))
     } else {
       console.log({ SEE_WHAT_THIS_IS: blueprint })
     }

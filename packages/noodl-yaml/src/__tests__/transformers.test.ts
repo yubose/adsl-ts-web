@@ -1,4 +1,3 @@
-/// <reference path="../../global.d.ts" />
 import { expect } from 'chai'
 import y from 'yaml'
 import Root from '../DocRoot'
@@ -8,7 +7,7 @@ import replace from '../transformers/replace'
 
 let root: Root
 
-describe.skip(`transformers`, () => {
+describe(`transformers`, () => {
   describe(`if`, () => {
     beforeEach(() => {
       root = new Root()
@@ -25,7 +24,7 @@ describe.skip(`transformers`, () => {
       )
     })
 
-    it(`should return the truthy value if cond is truthy`, () => {
+    xit(`should return the truthy value if cond is truthy`, () => {
       const doc = new y.Document({ if: [true, {}, []] })
       const ifNode = (doc.contents as y.YAMLMap).get('if') as If
       const expectedResult = ifNode.get(1) as y.YAMLSeq
@@ -33,7 +32,7 @@ describe.skip(`transformers`, () => {
       expect(result).to.eq(expectedResult.get(1))
     })
 
-    it(`should return the falsey value if cond is falsey`, () => {
+    xit(`should return the falsey value if cond is falsey`, () => {
       const doc = new y.Document({ if: [false, {}, []] })
       const ifNode = doc.contents as If
       const expectedResult = ifNode.get('if') as y.YAMLSeq
@@ -103,7 +102,7 @@ describe.skip(`transformers`, () => {
       expect(merge(null, '.SignIn', { root })).to.deep.eq(root.get('SignIn'))
     })
 
-    describe(`when merging map node references`, () => {
+    xdescribe(`when merging map node references`, () => {
       let contents: { fruits: y.Scalar; path: string }
       let doc: y.Document
       let node: y.YAMLMap
@@ -121,7 +120,7 @@ describe.skip(`transformers`, () => {
       ] as const) {
         it(`should merge ${type} reference ${ref}`, () => {
           const result = merge(node, ref, { root, ...options })
-          expect(result).to.have.key('username', 'hello123')
+          expect(result).to.have.property('username', 'hello123')
           expect(result).to.have.key('email')
           expect(result.items).to.have.lengthOf(4)
           expect(result.toJSON()).to.deep.eq({
@@ -153,12 +152,12 @@ describe.skip(`transformers`, () => {
 
     it(`should replace the value on a Scalar`, () => {
       const node = new y.Scalar('hello')
-      expect(replace(node, 'goodbye')).to.have.value('goodbye')
+      expect(replace(node, 'goodbye').value).to.eq('goodbye')
     })
 
     it(`should replace the value on a Pair`, () => {
       const node = new y.Pair('cereal', { fruits: {} })
-      expect(replace(node, 'hello')).to.have.value('hello')
+      expect(replace(node, 'hello').value).to.eq('hello')
     })
 
     it(`should replace the value on a YAMLMap`, () => {
@@ -185,7 +184,7 @@ describe.skip(`transformers`, () => {
       ])
     })
 
-    it(`should replace the value on a DocRoot`, () => {
+    xit(`should replace the value on a DocRoot`, () => {
       expect(replace(root, 'Apple', []).toJSON()).to.deep.eq({
         Apple: [],
         Topo: {
