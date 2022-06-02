@@ -1290,7 +1290,7 @@ export const extendedSdkBuiltIns = {
     this.register.setNumberofExtensions(numberofExtensions-1)
     this.register.setTimePerExtendSeconds(timePerExtendSeconds)
     this.register.setPopUpWaitSeconds(popUpWaitSeconds)
-    if (remainTime > 0 && numberofExtensions >= 0){
+    if (remainTime > 0 && numberofExtensions > 0){
       const id = setTimeout(
         ()=>{
           this.meeting.room.state === 'connected' && this.register.extendVideoFunction('showExtendView')
@@ -1298,6 +1298,13 @@ export const extendedSdkBuiltIns = {
         }
       ,remainTime*1000)
       this.register.setTimeId('extendVideoChatTime',id)
+    }else if(remainTime > 0 && numberofExtensions == 0){
+      const id = setTimeout(
+        ()=>{
+          this.meeting.room.state === 'connected' && this.register.extendVideoFunction('showExitWarningView')
+          clearTimeout(id)
+        }
+      ,remainTime*1000)
     }else{
       console.log('The meeting might had already ended. Please reschedule or cancel it.')
       this.meeting.leave()
