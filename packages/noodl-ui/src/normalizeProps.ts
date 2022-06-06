@@ -148,6 +148,7 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
 
       if (originalKey === 'dataKey') {
         if (u.isStr(originalValue)) {
+          //@ts-ignore
           let datapath = nu.toDataPath(nu.trimReference(originalValue))
           let isLocalKey = is.localKey(datapath.join('.'))
           // Note: This is here for fallback reasons.
@@ -605,7 +606,7 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
                       const _styleValue = com.formatColor(
                         get(dataObject, dataKey),
                       )
-                      
+
                       if (s.isKeyRelatedToWidthOrHeight(styleKey)) {
                         if (s.isNoodlUnit(_styleValue)) {
                           value[styleKey] = String(
@@ -647,7 +648,21 @@ function parse<Props extends Record<string, any> = Record<string, any>>(
               }),
             )
           : value
-      } else {
+      }else if (originalKey === 'dataOption') {
+          // @ts-ignore
+          let datapath = nu.toDataPath(nu.trimReference(originalValue))
+          let isLocalOption = is.localKey(datapath.join('.'))
+          // Note: This is here for fallback reasons.
+          // dataKey should never be a reference in the noodl
+          if (is.reference(originalValue)) {
+            isLocalOption = is.localReference(originalValue)
+          }
+          props['data-option'] = get(
+            isLocalOption ? root[pageName] : root,
+            datapath,
+          )
+      }
+      else {
         // Arbitrary references
         if (u.isStr(originalValue) && is.reference(originalValue)) {
           value = getByRef(originalValue, getHelpers({ rootKey: pageName }))
