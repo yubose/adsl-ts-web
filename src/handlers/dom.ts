@@ -9,6 +9,10 @@ import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
 import QRCode from 'qrcode'
+import { Calendar } from '@fullcalendar/core';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
 import { excludeIteratorVar } from 'noodl-utils'
 import {
   asHtmlElement,
@@ -359,7 +363,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   } else {
                     defaultData = []
                   }
-                  let calendar = new FullCalendar.Calendar(node, {
+                  let calendar = new Calendar(node, {
+                    plugins: [dayGridPlugin,timeGridPlugin,listPlugin],
                     dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
                     height: '77.9vh',
@@ -1486,49 +1491,66 @@ const createExtendedDOMResolvers = function (app: App) {
       cond: 'rotation',
       resolve({ node, component }) {
         if (node && component) {
-
+          type optionSetting = {
+            borderRadius?:number,
+            direction?: "vertical"|"horizontal",
+            spaceBetween?: number,
+            autoplay?: boolean|{
+              delay: number,
+              stopOnLastSlide?: boolean,
+              disableOnInteraction?: boolean,
+            },
+            slidesPerView?: number,
+            effect?: "slide"|"fade"|"cube"|"coverflow"|"flip",
+            pagination?:boolean|{
+              type?: 'bullets'|"fraction"|"progressbar"|"custom",
+              clickable?:boolean
+            },
+            navigation?:boolean,
+            childStyle?:{
+              width?: number|string,
+              height?: number|string
+            },
+            loop?:boolean
+          }
           const dataValue = component.get('data-value');
-          // const dataKey = component;
-          // console.log(dataKey,"sss")
+          const option:optionSetting  = component.get('data-option') as {[key in string]:any};
             node.setAttribute('class', 'swiper-container');
             let listDom: HTMLUListElement = document.createElement('ul');
             listDom.setAttribute('class', 'swiper-wrapper');
-            listDom.style.listStyleType = "none"
+            listDom.style.listStyleType = "none";
             for (let index = 0; index < dataValue.length; index++) {
                 let liDom: HTMLLIElement = document.createElement('li')
                 if((dataValue[index] as string).endsWith("mp4")){
                   let videoDom: HTMLVideoElement = document.createElement('video');
-                  // let videoSrcDom: HTMLSourceElement = document.createElement('source');
-                  // videoSrcDom.type = "video/mp4";
-                  // videoSrcDom.src = dataValue[index];
                   videoDom.src = dataValue[index];
                   videoDom.setAttribute("controls","controls");
                   videoDom.setAttribute("preload","auto");
-                  videoDom.setAttribute("width","500");
-                  videoDom.setAttribute("height","400");
-                  // videoDom.appendChild(videoSrcDom);
+                  videoDom.setAttribute("width",node.style.width);
+                  videoDom.setAttribute("height",node.style.height);
                   liDom.appendChild(videoDom);
                   listDom.appendChild(liDom);
-                console.log(index)
-
-
               }
               else
               {
                   let img: HTMLImageElement = document.createElement('img')
-                  img.src = dataValue[index]
+                  img.src = dataValue[index];
+                  img.style.width = option.childStyle?.width + "";
+                  // img.style.cursor = "pointer" ;
                   liDom.appendChild(img);
                   listDom.appendChild(liDom);
-                console.log(index)
-
                 }
-
             }
             for (let index = 0; index < listDom.childElementCount; index++) {
               (listDom.children[index] as HTMLLIElement).setAttribute(
                 'class',
                 'swiper-slide',
-              )
+              );
+              (listDom.children[index] as HTMLLIElement).style.cssText = `
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            `
             }
             node.appendChild(listDom);
             let prevBtn: HTMLDivElement = document.createElement('div');
@@ -1540,52 +1562,87 @@ const createExtendedDOMResolvers = function (app: App) {
             node.appendChild(prevBtn);
             node.appendChild(nextBtn);
             node.appendChild(pagination);
-            prevBtn.style.display = "none";
-            nextBtn.style.display = "none";
-            // prevBtn.addEventListener("click",()=>{
-            //   console.log("111")
-            // })
-            // divDom[0].setAttribute("class","swiper-wrapper");
-            // let dataDom = (divDom[0] as HTMLUListElement).getElementsByTagName("li");
-              let mySwiper: Swiper = new Swiper('.swiper-container', {
-                spaceBetween: 0,
-                // direction: 'horizontal', // 垂直切换选项
-                loop: true, // 循环模式选项
+            // const styleOuter = document.createElement("style") as HTMLStyleElement;
+            // const styleTemplete: string = `
+            // .swiper .hide{
+            //   opacity: 0;
+            // }
+            // .swiper-button-next,.swiper-button-prev{
+            //   transition: opacity 0.5s;
+            // }
+            // `;
+            // //@ts-ignore
+            // if (styleOuter?.styleSheet) {
+            //   //@ts-ignore
+            //   styleOuter.styleSheet.cssText = styleTemplete;
+            // } else {
+            //   styleOuter.innerHTML = styleTemplete;
+            // }
+            prevBtn.style.opacity = "0";
+            nextBtn.style.opacity = "0";
+            prevBtn.style.transition = "opacity 0.3s";
+            nextBtn.style.transition = "opacity 0.3s";
+            node.style
+            node.style.cssText = `
+              width: ${node.style.width};
+              height: ${node.style.height};
+              borderRadius: ${option.borderRadius}px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              margin: 0;
+              padding: 0;
+            `
+              let mySwiper: Swiper= new Swiper('.swiper-container', {
+                // 内部元素之间的空隙
+                spaceBetween: option.spaceBetween,
+                // 垂直或水平切换选项
+                // direction: 'horizontal',
+                // 循环模式选项
+                loop: option.loop,
+                // 自动切换选项
+                autoplay: (option.autoplay)&&{
+                  // delay: 2000,
+                  // 鼠标置于swiper时暂停自动切换，鼠标离开时恢复自动切换
+                  pauseOnMouseEnter: true,
+                  // 触发时，是否以后停止自动切换，默认true
+                  disableOnInteraction: false,
+                  ...option.autoplay as {},
+                },
                 // slide的切换效果，默认为"slide"（位移切换），可设置为'slide'（普通切换、默认）,"fade"（淡入）"cube"（方块）"coverflow"（3d流）"flip"（3d翻转）。
-                effect: 'slide',
-                slidesPerView: 1,// 设置slider容器能够同时显示的slides数量(carousel模式)
-                centeredSlides: true, // 设定为true时，active slide会居中，而不是默认状态下的居左。
+                effect: option.effect||"slide",
+                // 设置slider容器能够同时显示的slides数量(carousel模式)
+                slidesPerView: option.slidesPerView,
+                // 设定为true时，active slide会居中，而不是默认状态下的居左。
+                centeredSlides: true,
                 // coverflowEffect: {
                   //     rotate: 0,
                   //     stretch: 70, // 指的时后面一张图片被前一张图片遮挡的部分
                   //     depth: 160, // 图片缩小的部分
                   //     modifier: 2
                   // }
-              pagination: {
+              pagination: (option.pagination)&&{
                 el: '.swiper-pagination',
-                type : 'fraction',
-                          },
-              navigation: {
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
+                ...option.pagination as {}
               },
-            //     observer:true,//修改swiper自己或子元素时，自动初始化swiper
+              navigation: (option.navigation)&&{
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev'
+              },
+            // observer:true,//修改swiper自己或子元素时，自动初始化swiper
             // observeParents:true//修改swiper的父元素时，自动初始化swiper
               })
-              node.addEventListener("mouseover",()=>{
-                prevBtn.style.display = "block";
-              })
-              node.addEventListener("mouseout",()=>{
-                prevBtn.style.display = "none";
-              })
-              node.addEventListener("mouseover",()=>{
-                nextBtn.style.display = "block";
-              })
-              node.addEventListener("mouseout",()=>{
-                nextBtn.style.display = "none";
-              })
+              if(option.navigation){
+                node.addEventListener("mouseenter",()=>{
+                  prevBtn.style.opacity = "1";
+                  nextBtn.style.opacity = "1";
+                })
+                node.addEventListener("mouseleave",()=>{
+                  prevBtn.style.opacity = "0";
+                  nextBtn.style.opacity = "0";
+                })
+              }
 
-          // })
         }
       },
     },
