@@ -9,6 +9,10 @@ import get from 'lodash/get'
 import set from 'lodash/set'
 import has from 'lodash/has'
 import QRCode from 'qrcode'
+import { Calendar } from '@fullcalendar/core';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
 import { excludeIteratorVar } from 'noodl-utils'
 import {
   asHtmlElement,
@@ -359,7 +363,8 @@ const createExtendedDOMResolvers = function (app: App) {
                   } else {
                     defaultData = []
                   }
-                  let calendar = new FullCalendar.Calendar(node, {
+                  let calendar = new Calendar(node, {
+                    plugins: [dayGridPlugin,timeGridPlugin,listPlugin],
                     dayHeaderClassNames: 'fc.header',
                     headerToolbar: headerBar,
                     height: '77.9vh',
