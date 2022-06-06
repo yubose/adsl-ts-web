@@ -115,7 +115,7 @@ class createRegisters{
     }
     
     const handleRegister = async(componentObject: GlobalRegisterComponent)=>{
-      let actions = componentObject.actions
+      let actions = componentObject.props.actions
       try{
         const component = (await this.app.nui?.resolveComponents(
           componentObject,
@@ -372,31 +372,36 @@ class createRegisters{
   }
 
   extendVideoFunction(onEvent:string){
-    log.func('extendVideoFunction')
+    if(this.app.globalRegister){
+      log.func('extendVideoFunction')
+      const componentObject = this.app.ndom.global.register.get(onEvent)
+      if (componentObject) {
+        const onEvent = componentObject.props.onEvent as any
+        ;(this.registrees as any)[onEvent](componentObject)
+      } 
 
-    const pageName = this.app.mainPage?.getNuiPage().page
-    const components = this.app.root?.['VideoChat'].components
-    for (const componentObject of components) {
-      if (is.component.register(componentObject)) {
-        // Already attached a function
-        if (u.isFnc(componentObject.onEvent)) continue
-        if (!componentObject.onEvent) {
-          log.red(
-            `The "onEvent" identifier was not found in the register component!`,
-            componentObject,
-          )
-          continue
-        }
+    //   for (const componentObject of this.app.globalRegister) {
+    //     if (is.component.register(componentObject)) {
+    //       // Already attached a function
+    //       if (u.isFnc(componentObject.onEvent)) continue
+    //       if (!componentObject.onEvent) {
+    //         log.red(
+    //           `The "onEvent" identifier was not found in the register component!`,
+    //           componentObject,
+    //         )
+    //         continue
+    //       }
 
-        if (
-          componentObject.onEvent === onEvent &&
-          u.isStr(componentObject.onEvent) &&
-          u.isFnc(this.registrees[componentObject.onEvent])
-        ) {
-          const onEvent = componentObject.onEvent as any
-          ;(this.registrees as any)[onEvent](componentObject)
-        } 
-      }
+    //       if (
+    //         componentObject.onEvent === onEvent &&
+    //         u.isStr(componentObject.onEvent) &&
+    //         u.isFnc(this.registrees[componentObject.onEvent])
+    //       ) {
+    //         const onEvent = componentObject.onEvent as any
+    //         ;(this.registrees as any)[onEvent](componentObject)
+    //       } 
+    //     }
+    //   }
     }
   }
 

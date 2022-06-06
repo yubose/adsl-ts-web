@@ -316,6 +316,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     async function onDisconnectMeeting(action) {
       log.func('disconnectMeeting')
       log.grey('', action?.snapshot?.())
+      app.meeting.room.disconnect()
       app.meeting.leave()
     }
 
@@ -1305,18 +1306,19 @@ export const extendedSdkBuiltIns = {
           clearTimeout(id)
         }
       ,remainTime*1000)
-    }else{
-      console.log('The meeting might had already ended. Please reschedule or cancel it.')
-      this.meeting.leave()
-      this.register.extendVideoFunction('onDisconnect')
-      // const id = setTimeout(
-      //   ()=>{
-      //     this.register.extendVideoFunction('showExtendView')
-      //   }
-      // ,10*1000)
-      // this.register.setTimeId('extendVideoChatTime',id)
-      
     }
+    // else{
+    //   console.log('The meeting might had already ended. Please reschedule or cancel it.')
+    //   this.meeting.leave()
+    //   this.register.extendVideoFunction('onDisconnect')
+    //   // const id = setTimeout(
+    //   //   ()=>{
+    //   //     this.register.extendVideoFunction('showExtendView')
+    //   //   }
+    //   // ,10*1000)
+    //   // this.register.setTimeId('extendVideoChatTime',id)
+      
+    // }
 
   },
   async initAutoDC(
