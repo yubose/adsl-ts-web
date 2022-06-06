@@ -9,11 +9,6 @@ beforeEach(() => {
 })
 
 describe(`is`, () => {
-  it(`[diagnostic] should return true`, () => {
-    const diag = diagnostics.createDiagnostic({})
-    expect(is.diagnostic(diag)).to.be.true
-  })
-
   it(`[diagnostic] should return false`, () => {
     expect(is.diagnostic({})).to.be.false
   })

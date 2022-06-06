@@ -1,0 +1,459 @@
+AbsentNoteReview:
+  title: Absence / Excuse Note
+  # pageNumber: "184"
+  init:
+    - .SignInCheck
+    - if:
+        - =.Global.formData.medicalRecords.id
+        - ..absentNote.document@: =.Global.formData.medicalRecords
+        - continue
+    - if:
+        - =..absentNote.document.name.data.whetherSign
+        - ..formData.signShow@: "none"
+        - ..formData.signShow@: "block"
+  absentNote:
+    response: ""
+    document:
+      .Global.Note: ""
+      type: .DocType.AbsentNote
+      name:
+        data:
+          signatureId: ""
+          whetherSign: ""
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: absentNote.document
+        dataOut: AbsentNoteReview.absentNote.response
+        subtype:
+          mediaType: "text/plain"
+      delete:
+        api: dx
+        dataIn: AbsentNoteReview.absentNote.document
+  save:
+    - =.AbsentNoteReview.absentNote.docAPI.store: ""
+  delete:
+    - =.AbsentNoteReview.absentNote.docAPI.delete: ""
+  place:
+    - key: place
+      value: school
+    - key: place
+      value: work
+    - key: place
+      value: other
+  reason:
+    - key: reason
+      value: injury
+    - key: reason
+      value: illness
+    - key: reason
+      value: other
+  # 签名显示,默认为none
+  formData:
+    signShow: "none"
+    flag: "none"
+    temporarySignature: ""
+    whetherSign: ""
+    signIsHidden: true
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .DownLoadBtn:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.EcosObj.exportPDF:
+                        dataIn:
+                          ecosObj: =.Global.formData.medicalRecords
+                          viewTag: mainView
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    top: "0.01"
+                    left: "0.117"
+                    height: "0.74"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - .FormsTypeTitle:
+                        - type: scrollView
+                          style:
+                            width: "0.39"
+                            height: "0.614"
+                            marginTop: "0.01"
+                            overflow: scroll
+                          children:
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                height: "0.1"
+                              children:
+                                - .ProFormsBaseView:
+                                  style:
+                                    width: "0.135"
+                                    display: inline-block
+                                  children:
+                                    - type: image
+                                      path: "office-building.svg"
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: absentNote.document.name.data.facilityInfo.facilityAvatarID
+                                      style:
+                                        marginTop: "0.005"
+                                        width: "0.025"
+                                        height: "0.04416"
+                                        display: inline-block
+                                    - type: view
+                                      style:
+                                        marginTop: "0"
+                                        marginLeft: "0.01"
+                                        width: "0.1"
+                                        display: inline-block
+                                      children:
+                                        - .ProFormsLabel:
+                                          dataKey: absentNote.document.name.data.facilityInfo.facilityName
+                                          style:
+                                            marginTop: "0"
+                                            fontSize: .Nfont.nf4
+                                        - .ProFormsLabel:
+                                          dataKey: absentNote.document.name.data.facilityInfo.location
+                                          style:
+                                            marginTop: "0.01"
+                                            fontSize: .Nfont.nf1
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0.035"
+                                    width: "0.12"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: Email
+                                        - .ProFormsLabelRight:
+                                          dataKey: absentNote.document.name.data.facilityInfo.email
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Website"
+                                        - .ProFormsLabelRight:
+                                          dataKey: absentNote.document.name.data.facilityInfo.website
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0"
+                                    width: "0.1"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Main #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: absentNote.document.name.data.facilityInfo.phoneNumber
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Fax #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: absentNote.document.name.data.facilityInfo.fax
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Exam Date
+                                    - .ProFormsLabelRight:
+                                      text=func: .builtIn.string.formatUnixtime_en
+                                      dataKey: absentNote.document.name.data.patientInfo.examDate
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Patient Name
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.patientInfo.name
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Date of Birth
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.patientInfo.dob
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Phone #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.patientInfo.phoneNumber
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.patientInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Patient Address
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.patientInfo.address
+                                    # patient profile end
+                            - .ProFormsDivider: # leave of absence 
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Leave Of Absence
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                    fontWeight: "800"
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Please Excuse
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.name
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: As Of
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.date
+
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabelRight:
+                                      text: "From"
+                                      style:
+                                        marginLeft: "0"
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..place
+                                      iteratorVar: itemObject
+                                      style:
+                                        width: '0.39'
+                                        marginTop: "0.01"
+                                        left: "0"
+                                        height: auto
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject: ""
+                                          viewTag: placeTag
+                                          style:
+                                            height: '0.017'
+                                            left: '0'
+                                            marginTop: '0'
+                                          children:
+                                            - type: image
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =.Global.formData.medicalRecords.name.data.place
+                                                              string2: $var.value
+                                                        - yes.png
+                                                        - noAvail.png
+                                              style:
+                                                width: "0.008"
+                                                display: inline-block
+                                                marginTop: "0.002"
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: "0.004"
+                                                width: "0.036"
+                                                fontSize: .Nfont.nf0
+                                                display: inline-block
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabelRight:
+                                      text: Due To
+                                      style:
+                                        marginLeft: "0"
+                                    - type: list
+                                      contentType: listObject
+                                      listObject: ..reason
+                                      iteratorVar: itemObject
+                                      style:
+                                        width: '0.39'
+                                        marginTop: "0.01"
+                                        left: "0"
+                                        height: auto
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject: ""
+                                          viewTag: reasonTag
+                                          style:
+                                            height: '0.017'
+                                            left: '0'
+                                            marginTop: '0'
+                                          children:
+                                            - type: image
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =.Global.formData.medicalRecords.name.data.reason
+                                                              string2: $var.value
+                                                        - yes.png
+                                                        - noAvail.png
+                                              style:
+                                                width: "0.008"
+                                                display: inline-block
+                                                marginTop: "0.002"
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: "0.004"
+                                                width: "0.036"
+                                                fontSize: .Nfont.nf0
+                                                display: inline-block
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                    wordBreak: break-all
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "Confidentiality Notice:"
+                                      style:
+                                        display: inline
+                                    - .ProFormsLabel:
+                                      text: "The documents accompanying this facsimile Transmission contain
+                                        confidential information belonging to
+                                        the sender, which is privilege.The
+                                        information is intended only for the use
+                                        of the Individual or entity below.If you
+                                        are not the intended recipient, you are
+                                        Hereby notified that any
+                                        disclosure.copying distribution or the
+                                        taking of any action in reliance of the
+                                        contents of this telescoped information
+                                        is strictly prohibited. If you have
+                                        received this facsimile in error,please
+                                        Notify us immediately by telephone to
+                                        arrange for the return of said
+                                        documents."
+                                      style:
+                                        display: inline
+                                        fontWeight: "400"
+                                        fontSize: .Nfont.nf1
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "Notes"
+                                    - .ProFormsGrayView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: absentNote.document.name.data.note
+                                          style:
+                                            marginLeft: "0.0046"
+                                            paddingTop: "0.0046"
+                                            paddingBottom: "0.0046"
+                                            color: "0x333333"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                width: "0.275"
+                                display: flex
+                                justifyContent: space-between
+                              children:
+                                - .ProFormsLabel:
+                                  text: Signature
+                                  style:
+                                    display: inline-block
+                            - .SignAreaView:
+                              style:
+                                marginTop: "0.008"
+                              children:
+                                - type: image
+                                  viewTag: signatureShowTag
+                                  path=func: =.builtIn.utils.prepareDocToPath
+                                  dataKey: absentNote.document.name.data.signatureId
+                                  style:
+                                    left: "0"
+                                    width: "0.275"
+                                    top: "0"
+                                    height: "0.165"
+                                    display: ..formData.signShow
+                            - .ProFormsBaseView:
+                              style:
+                                display: ..formData.signShow
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text=func: .builtIn.string.formatUnixtime_en # 12/30/2021 07:25:00
+                                  dataKey: absentNote.document.name.data.signatureTime
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelLeft:
+                                  text: " Digitally Signed"
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Date"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelRight:
+                                  text=func: .builtIn.string.formatUnixtimeL_en # 12/30/2021
+                                  dataKey: absentNote.document.ctime
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+                            - .ProFormsDivider:
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true

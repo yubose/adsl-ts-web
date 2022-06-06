@@ -1,37 +1,121 @@
 /**
  * TODO - Not being used yet (copied from noodl-ui)
  */
-// @ts-nocheck
+import type { ComponentObject, VpUnit } from 'noodl-types'
 import * as fp from './utils/fp'
 import {
-  ensureCssUnit,
-  formatColor,
+  excludeIteratorVar,
+  normalize,
   getSize,
   getPositionProps,
   getViewportBound,
   getVpKey,
   hasLetter,
+  normalize,
   presets,
   trimReference,
 } from './utils/noodl'
-import deref from './deref'
 import coreBuiltIns from './builtIn/core'
-import objectBuiltIns from './builtIn/object'
 import * as is from './utils/is'
 import * as c from './constants'
 import * as t from './types'
 
-const bfobjs = { core: coreBuiltIns, object: objectBuiltIns }
-const bfnobjfns = { '=': { '.': { builtIn: bfobjs } } }
-const bfns = bfnobjfns['=']['.'].builtIn
-const bf = <P extends keyof typeof bfns>(
-  key: `=.builtIn.${P}${string}`,
-  ...args: any[]
-) => {
-  return fp.get(bfns, key.replace('=.builtIn.', ''))(...args)
+const getBaseStyles = coreBuiltIns.getBaseStyles
+const isRef = is.reference
+const isLocalRRef = is.localReference
+const isRootRef = is.rootReference
+const noodlUnit = is.noodlUnit
+const { each, entries, get, has, or, set, toNum, toPx, toStr } = fp
+
+/**
+ * Retrieves a value from ARoot or an object literal
+ * @param root ARoot or a regular object literal
+ * @param key Key
+ * @returns The retrieved value
+ */
+function getR(root: Record<string, any> | t.ARoot, key: string[] | string) {
+  if (is.root(root)) return root.get(is.arr(key) ? key.join('.') : key)
+  return get(root, key)
 }
 
-// const bf = fp.entries(objectBuiltIns).reduce((acc, [key, fn]) => {
+/**
+ * Deeply resolves reference strings
+ * @param ref Reference string
+ * @param options Options
+ * @returns The dereferenced value
+ */
+function getByRef(
+  ref = '',
+  {
+    blueprint,
+    context,
+    props,
+    root,
+    rootKey,
+    getParent,
+  }: {
+    blueprint: Partial<ComponentObject>
+    context:
+      | { dataObject?: any; iteratorVar?: string; listObject?: any }
+      | undefined
+    props: Record<string, any>
+    root: Record<string, any>
+    rootKey?: string
+    getParent?: any
+  },
+) {
+  // TODO - Resolving traversal references is not working expectedly
+  if (is.traverseReference(ref)) {
+    if (is.fnc(getParent)) {
+      // ['', '', '', '.colorChange']
+      let parts = ref.split('_')
+      let depth = parts.filter((s) => s === '').reduce((acc) => ++acc, 0)
+      let nextKey = parts.shift()
+
+      while (nextKey && !nextKey.startsWith('.')) {
+        if (nextKey === '') {
+          // continue
+        } else if (nextKey.startsWith('.')) {
+          const parent = getParent({
+            blueprint,
+            context: context ?? {},
+            props,
+            op: 'traverse',
+            opArgs: { depth, ref },
+          })
+          return getR(parent, nextKey[1].slice())
+        }
+
+        nextKey = parts.shift()
+      }
+    }
+  }
+
+  let refValue: any
+
+  if (isLocalRRef(ref)) {
+    if (rootKey) {
+      refValue = refValue = getR(
+        getR(root, rootKey),
+        fp.path(trimReference(ref)),
+      )
+    }
+  } else if (isRootRef(ref)) refValue = getR(root, trimReference(ref))
+
+  if (is.str(refValue) && isRef(refValue)) {
+    const path = fp.path(trimReference(refValue))
+    if (isLocalRRef(refValue)) {
+      const prevPath = fp.path(trimReference(ref))
+      if (prevPath[0] !== rootKey) rootKey = prevPath[0]
+    } else {
+      if (path[0] !== rootKey) rootKey = path.shift()
+    }
+    return getByRef(refValue, { ...arguments[1], rootKey })
+  }
+  return is.und(refValue) ? ref : refValue
+}
+
+// const bf = entries(objectBuiltIns).reduce((acc, [key, fn]) => {
 //   acc[`=.builtIn.${key}`] = fn
 //   return acc
 // }, {} as Record<`=.builtIn.${keyof typeof builtInFns}.${keyof typeof builtInFns[keyof typeof builtInFns]}`, any>)
@@ -115,61 +199,21 @@ function transform<Props extends PropsObject>(
 ) {
   if (is.und(parseOptions)) {
     parseOptions = blueprint as ParseOptions<Props>
-    blueprint = props as Props
+    blueprint = props as any
     props = {}
     return transform(props, blueprint, {
       ...parseOptions,
       getHelpers: (opts) => ({
         blueprint,
-        context: context || {},
+        context: context ?? {},
         getParent: parseOptions?.getParent,
         props,
-        root: parseOptions?.root || {},
-        rootKey: parseOptions?.pageName || '',
+        root: parseOptions?.root ?? {},
+        rootKey: parseOptions?.pageName ?? '',
         ...opts,
       }),
     })
   }
-
-  // if (Object.getPrototypeOf(props) !== Proxy) {
-  //   props = new Proxy(props, {
-  //     get(target, prop, receiver) {
-  //       console.log('get', { target, prop, receiver })
-  //       const originalValue = target[prop]
-
-  //       if (prop === 'dataKey') {
-  //         if (is.str(originalValue)) {
-  //           let datapath = fp.toPath(trimReference(originalValue))
-  //           let isLocalKey = is.localKey(datapath.join('.'))
-  //           // Note: This is here for fallback reasons.
-  //           // dataKey should never be a reference in the noodl
-  //           if (is.reference(originalValue)) {
-  //             isLocalKey = is.localReference(originalValue)
-  //           }
-  //           return fp.get(isLocalKey ? root[pageName] : root, datapath)
-  //         }
-  //       }
-  //       return originalValue
-  //     },
-  //     set(target, prop, value) {
-  //       if (prop === 'data-value') {
-  //         // console.log('set', { target, value })
-  //       }
-  //       target[prop] = value
-  //       return true
-  //     },
-  //   })
-  // }
-
-  // if (Object.getPrototypeOf(props.style) !== Proxy) {
-  //   props.style = new Proxy(props.style, {
-  //     set(target, prop, value) {
-  //       console.log('style', { target, prop, value })
-  //       target[prop] = value
-  //       return true
-  //     },
-  //   })
-  // }
 
   const {
     context,
@@ -199,70 +243,71 @@ function transform<Props extends PropsObject>(
   if (props && !props.style) props.style = {}
 
   if (is.obj(blueprint?.style)) {
-    for (const [key, value] of fp.entries(
-      bf('=.builtIn.core.getBaseStyles', blueprint, root),
-    )) {
-      props.style[key] = value
-    }
+    each(
+      entries(getBaseStyles(blueprint, root)),
+      fp.spread((k, v) => set(props, `style.${k}`, v)),
+    )
   }
 
   if (is.obj(blueprint)) {
-    props.type = blueprint.type
+    set(props, 'type', blueprint.type)
 
-    let iteratorVar = context?.iteratorVar || ''
-    // let iteratorVar = context?.iteratorVar || findIteratorVar(props) || ''
+    let iteratorVar = context?.iteratorVar ?? ''
 
-    for (const [originalKey, originalValue] of fp.entries(blueprint)) {
+    for (const [originalKey, originalValue] of entries(blueprint)) {
       let value = props?.[originalKey]
 
       if (originalKey === 'dataKey') {
         if (is.str(originalValue)) {
-          let datapath = fp.toPath(trimReference(originalValue))
+          let datapath = fp.path(trimReference(originalValue))
           let isLocalKey = is.localKey(datapath.join('.'))
-          // Note: This is here for fallback reasons.
+          // Note: This is here for fallback reason
           // dataKey should never be a reference in the noodl
-          if (is.reference(originalValue)) {
-            isLocalKey = is.localReference(originalValue)
-          }
-          props['data-value'] = fp.get(
-            isLocalKey ? root[pageName] : root,
+          if (isRef(originalValue)) isLocalKey = isLocalRRef(originalValue)
+          const dataValue = getR(
+            or(isLocalKey, getR(root, pageName), root),
             datapath,
           )
-          if (blueprint.type === 'select') {
-            props['data-options'] = is.str(blueprint.options)
-              ? fp.get(isLocalKey ? root[pageName] : root, datapath)
-              : fp.toArr(blueprint.options)
+          set(props, 'data-value', dataValue)
+          if (is.select(blueprint)) {
+            const dataOptions = or(
+              is.str(blueprint.options),
+              getR(or(isLocalKey, getR(root, pageName), root), datapath),
+              fp.toArr(blueprint.options),
+            )
+            set(props, 'data-options', dataOptions)
           }
           continue
         }
       } else if (originalKey === 'options') {
-        if (blueprint.type === 'select') {
+        if (is.select(blueprint)) {
           const dataKey = blueprint.dataKey
           const isUsingDataKey = is.str(dataKey) || is.str(originalValue)
           // Receiving their options by reference
           if (isUsingDataKey && !is.arr(originalValue)) {
-            let dataPath = is.str(dataKey) ? dataKey : String(originalValue)
+            let dataPath = is.str(dataKey) ? dataKey : toStr(originalValue)
             let dataObject: any
-            let isListPath = !!iteratorVar && dataPath.startsWith(iteratorVar)
+            let isListPath =
+              !!iteratorVar && toStr(dataPath).startsWith(iteratorVar)
 
-            value = dataPath ? fp.get(dataObject, dataPath) : dataObject
+            value = or(dataPath, getR(dataObject, dataPath), dataObject)
 
             if (!is.arr(value)) {
               if (isListPath) {
-                dataPath = fp.excludeStr(dataPath, iteratorVar) || ''
+                dataPath = excludeIteratorVar(dataPath, iteratorVar) ?? ''
                 dataObject = context?.dataObject
-                // dataObject = context?.dataObject || findListDataObject(props)
               } else {
                 dataPath = trimReference(dataPath)
-                value = fp.get(
-                  is.localKey(dataPath) ? root[pageName] : root,
+                value = getR(
+                  or(is.localKey(dataPath), getR(root, pageName), root),
                   dataPath,
                 )
               }
             }
           }
-          props['data-options'] = value || []
-          if (!props.options) props.options = props['data-options']
+
+          props['data-options'] = value ?? []
+          if (!props.options) set(props, 'options', get(props, 'data-options'))
         }
       } else if (originalKey === 'style') {
         // Style keys to be removed (for the DOM) after processing
@@ -289,22 +334,20 @@ function transform<Props extends PropsObject>(
           // AXIS
           if (is.str(axis) && /horizontal|vertical/.test(axis)) {
             markDelete('axis')
-            value.display = 'flex'
             if (axis === 'horizontal') {
-              value.flexWrap = 'nowrap'
+              fp.assign(value, normalize(['axis', 'horizontal']))
             } else if (axis === 'vertical') {
-              value.flexDirection = 'column'
+              fp.assign(value, normalize(['axis', 'vertical']))
             }
           }
 
           // ALIGN
           if (is.str(align) && /center[xy]/.test(align)) {
             markDelete('align')
-            value.display = 'flex'
             if (align === 'centerX') {
-              value.justifyContent = 'center'
+              fp.assign(value, normalize(['align', 'centerX']))
             } else if (align === 'centerY') {
-              value.alignItems = 'center'
+              fp.assign(value, normalize(['align', 'centerY']))
             }
           }
 
@@ -312,25 +355,27 @@ function transform<Props extends PropsObject>(
           if (textAlign) {
             // "centerX", "centerY", "left", "center", "right"
             if (is.str(textAlign)) {
-              if (textAlign === 'left') value.textAlign = 'left'
-              else if (textAlign === 'center') value.textAlign = 'center'
-              else if (textAlign === 'right') value.textAlign = 'right'
+              if (textAlign === 'left') set(value, 'textAlign', 'left')
+              else if (textAlign === 'center') set(value, 'textAlign', 'center')
+              else if (textAlign === 'right') set(value, 'textAlign', 'right')
               else if (textAlign === 'centerX') {
-                value.textAlign = 'center'
-                restoreVals.textAlign = 'center'
+                fp.assign(value, normalize(['textAlign', 'centerX']))
+                fp.assign(restoreVals, normalize(['textAlign', 'centerX']))
               } else if (textAlign === 'centerY') {
-                value.display = 'flex'
-                value.alignItems = 'center'
+                fp.assign(value, normalize(['textAlign', 'centerY']))
                 markDelete('textAlign')
               }
             }
             // { x, y }
             else if (is.obj(textAlign)) {
               if (!is.nil(textAlign.x)) {
-                value.textAlign =
-                  textAlign.x === 'centerX' ? 'center' : textAlign.x
+                set(
+                  value,
+                  'textAlign',
+                  or(textAlign.x === 'centerX', 'center', textAlign.x),
+                )
               }
-              if (textAlign.y != undefined) {
+              if (!is.nil(textAlign.y)) {
                 // The y value needs to be handled manually here since getTextAlign will
                 //    return { textAlign } which is meant for x
                 if (textAlign.y === 'center' || textAlign.y === 'centerY') {
@@ -340,11 +385,12 @@ function transform<Props extends PropsObject>(
                     ['center', 'center'],
                   ])
                   // convert (left ,center ,right) to (flex-start | flex-end | center)
-                  value.display = 'flex'
-                  value.alignItems = 'center'
-                  value.justifyContent = convert.get(
+                  const justifyContent = convert.get(
                     textAlign.x ? textAlign.x : 'left',
                   )
+                  set(value, 'display', 'flex')
+                  set(value, 'alignItems', 'center')
+                  set(value, 'justifyContent', justifyContent)
                   if (!textAlign.x) markDelete('textAlign')
                 }
               }
@@ -352,15 +398,13 @@ function transform<Props extends PropsObject>(
           }
 
           // DISPLAY
-          if (display === 'inline') value.display = 'inline'
+          if (display === 'inline') set(value, 'display', 'inline')
           else if (display === 'inline-block') {
-            value.display = 'inline-block'
-            value.verticalAlign = 'top'
+            set(value, 'display', 'inline-block')
+            set(value, 'verticalAlign', 'top')
           }
 
-          if (verticalAlign) {
-            value.verticalAlign = verticalAlign
-          }
+          if (verticalAlign) set(value, 'verticalAlign', verticalAlign)
 
           /* -------------------------------------------------------
             ---- BORDERS
@@ -383,7 +427,7 @@ function transform<Props extends PropsObject>(
             let line: any
 
             // if (border == '0') debugger
-            if (border == ('0' as any)) value.borderStyle = 'none'
+            if (border == '0') set(value, 'borderStyle', 'none')
 
             if (is.obj(border)) {
               borderStyle = border.style
@@ -392,52 +436,40 @@ function transform<Props extends PropsObject>(
               line = border.line
             }
 
-            if (color) value.borderColor = String(color).replace('0x', '#')
-            if (line) value.borderStyle = line
-            if (width) value.borderWidth = width
+            if (color) set(value, 'borderColor', color.replace('0x', '#'))
+            if (line) set(value, 'borderStyle', line)
+            if (width) set(value, 'borderWidth', width)
 
             // Analyizing border
             if (borderStyle == '1') {
-              Object.assign(value, presets.border['1'])
+              fp.assign(value, presets.border['1'])
             } else if (borderStyle == '2') {
-              Object.assign(value, presets.border['2'])
+              fp.assign(value, presets.border['2'])
             } else if (borderStyle == '3') {
-              Object.assign(value, presets.border['3'])
-              if (!width) value.borderWidth = 'thin'
+              fp.assign(value, presets.border['3'])
+              if (!width) set(value, 'borderWidth', 'thin')
             } else if (borderStyle == '4') {
-              Object.assign(value, presets.border['4'])
-              if (!width) value.borderWidth = 'thin'
+              fp.assign(value, presets.border['4'])
+              if (!width) set(value, 'borderWidth', 'thin')
             } else if (borderStyle == '5') {
-              Object.assign(value, presets.border['5'])
+              fp.assign(value, presets.border['5'])
             } else if (borderStyle == '6') {
-              Object.assign(value, presets.border['6'])
+              fp.assign(value, presets.border['6'])
             } else if (borderStyle == '7') {
-              Object.assign(value, presets.border['7'])
+              fp.assign(value, presets.border['7'])
             }
           }
 
-          if (borderWidth) {
-            if (is.str(borderWidth)) {
-              if (!hasLetter(borderWidth)) {
-                value.borderWidth = `${borderWidth}px`
-              }
-            } else if (is.num(borderWidth)) {
-              value.borderWidth = `${borderWidth}px`
-            }
-          }
+          if (borderWidth) set(value, 'borderWidth', toPx(borderWidth))
 
           if (borderRadius) {
-            if (is.noodlUnit(borderRadius)) {
-              value.borderRadius = String(
-                getSize(borderRadius, viewport?.height as number),
-              )
+            if (noodlUnit(borderRadius)) {
+              const vpSize = getSize(borderRadius, toNum(viewport?.height))
+              const newBorderRadius = toPx(vpSize)
+              set(value, 'borderRadius', newBorderRadius)
             } else {
-              if (is.str(borderRadius)) {
-                value.borderRadius = !hasLetter(borderRadius)
-                  ? `${borderRadius}px`
-                  : `${borderRadius}`
-              } else if (is.num(borderRadius)) {
-                value.borderRadius = `${borderRadius}px`
+              if (is.str(borderRadius) || is.num(borderRadius)) {
+                set(value, 'borderRadius', toPx(borderRadius))
               }
 
               // If a borderRadius effect is to be expected and there is no border
@@ -446,15 +478,14 @@ function transform<Props extends PropsObject>(
               const regex = /[a-zA-Z]+$/
               const radius = Number(`${borderRadius}`.replace(regex, ''))
               if (!Number.isNaN(radius)) {
-                value.borderRadius = `${radius}px`
+                set(value, 'borderRadius', `${radius}px`)
                 if (
-                  !value.borderWidth ||
-                  value.borderWidth === 'none' ||
-                  value.borderWidth === '0px'
+                  !(is.str(value.border) && value.border) &&
+                  is.nullishStyleValue(value.borderWidth)
                 ) {
                   // Make the border invisible
-                  value.borderWidth = '1px'
-                  value.borderColor = 'rgba(0, 0, 0, 0)'
+                  set(value, 'borderWidth', `1px`)
+                  set(value, 'borderColor', 'rgba(0, 0, 0, 0)')
                 }
               }
             }
@@ -470,21 +501,21 @@ function transform<Props extends PropsObject>(
             // '10' --> '10px'
             if (is.str(fontSize)) {
               if (!hasLetter(fontSize)) {
-                if (is.noodlUnit(fontSize)) {
-                  value.fontSize = String(
-                    getSize(fontSize, viewport?.height as number),
-                  )
-                } else value.fontSize = `${fontSize}px`
+                if (noodlUnit(fontSize)) {
+                  const vpSize = toNum(viewport?.height)
+                  const newFontSize = getSize(fontSize, vpSize)
+                  set(value, 'fontSize', toPx(newFontSize))
+                } else set(value, 'fontSize', toPx(fontSize))
               }
             }
             // 10 --> '10px'
-            else if (is.num(fontSize)) value.fontSize = `${fontSize}px`
-            is.str(fontFamily) && value.fontFamily
+            else if (is.num(fontSize)) set(value, 'fontSize', toPx(fontSize))
+            if (fontFamily) set(value, 'fontFamily', fontFamily)
           }
 
           // { fontStyle } --> { fontWeight }
           if (fontStyle === 'bold') {
-            value.fontWeight = 'bold'
+            set(value, 'fontWeight', 'bold')
             markDelete('fontStyle')
           }
 
@@ -493,20 +524,17 @@ function transform<Props extends PropsObject>(
           -------------------------------------------------------- */
 
           {
-            c.posKeys.forEach((posKey) => {
+            each(c.posKeys as any, (posKey) => {
               if (!is.nil(originalValue?.[posKey])) {
-                const result = getPositionProps(
-                  originalValue,
-                  posKey,
-                  getViewportBound(viewport, posKey) as number,
-                )
+                const vpSize = toNum(getViewportBound(viewport, posKey))
+                const result = getPositionProps(originalValue, posKey, vpSize)
                 if (is.obj(result)) {
-                  for (const [k, v] of fp.entries(result)) value[k] = v
+                  each(entries(result), fp.spread(fp.partial(set, value)))
                 }
               }
             })
             // Remove textAlign if it is an object (NOODL data type is not a valid DOM style attribute)
-            if (is.obj(value?.['textAlign'])) markDelete('textAlign')
+            if (is.obj(get(value, 'textAlign'))) markDelete('textAlign')
           }
 
           /* -------------------------------------------------------
@@ -514,20 +542,16 @@ function transform<Props extends PropsObject>(
           -------------------------------------------------------- */
 
           const { width, height, maxHeight, maxWidth, minHeight, minWidth } =
-            originalValue || {}
+            (originalValue ?? {}) as any
 
-          // if (viewport) {
           for (const [key, val] of [
             ['width', width],
             ['height', height],
           ]) {
             if (!is.nil(val)) {
-              value[key] = String(
-                getSize(val, getViewportBound(viewport, key) as number, {
-                  toFixed: 2,
-                  unit: 'px',
-                }),
-              )
+              const vpSize = getViewportBound(viewport, key)
+              const newValue = getSize(val, toNum(vpSize))
+              set(value, key, toStr(newValue))
             }
           }
           for (const [key, vpKey, val] of [
@@ -537,112 +561,92 @@ function transform<Props extends PropsObject>(
             ['minWidth', 'width', minWidth],
           ]) {
             if (!is.nil(val)) {
-              value[key] = String(getSize(val, viewport?.[vpKey]))
+              set(value, key, toStr(getSize(val, viewport?.[vpKey])))
             }
           }
-
-          // }
           // HANDLING ARTBITRARY STYLES
-          for (let [styleKey, styleValue] of fp.entries(originalValue)) {
+          for (let [styleKey, styleValue] of entries(originalValue)) {
             // Unwrap the reference for processing
-            if (is.str(styleValue) && is.reference(styleValue)) {
-              const isLocal = is.localReference(styleValue)
-              styleValue = deref({
-                ref: styleValue,
-                ...getHelpers({ rootKey: isLocal ? pageName : undefined }),
-              })
+            if (is.str(styleValue) && isRef(styleValue)) {
+              const isLocal = isLocalRRef(styleValue)
+              const helpers = getHelpers({ rootKey: or(isLocal, pageName, '') })
+              styleValue = getByRef(styleValue, helpers)
             }
 
             if (is.keyRelatedToWidthOrHeight(styleValue)) {
-              value[styleKey] = String(
-                getSize(
-                  styleValue,
-                  getViewportBound(viewport, styleKey) as number,
-                  { unit: 'px' },
-                ),
-              )
+              const vpSize = getViewportBound(viewport, toStr(styleKey))
+              const value = toStr(getSize(styleValue, toNum(vpSize)))
+              set(value, styleKey, value)
             }
 
             if (is.str(styleValue)) {
-              while (is.reference(styleValue)) {
-                const isLocal = is.localReference(styleValue)
-                const newstyleValue = deref({
-                  ref: styleValue,
-                  ...getHelpers({ rootKey: isLocal ? pageName : undefined }),
-                })
-                if (newstyleValue === styleValue) break
+              while (isRef(styleValue)) {
+                const isLocal = isLocalRRef(styleValue)
+                const helpers = getHelpers({ rootKey: isLocal ? pageName : '' })
+                const newStyleValue = getByRef(styleValue, helpers)
+                if (newStyleValue === styleValue) break
                 // It will do an infinite loop without this
                 if (is.traverseReference(styleValue)) break
-                styleValue = newstyleValue
+                styleValue = newStyleValue
               }
 
               // Resolve vw/vh units (Values directly relative to viewport)
               if (is.vwVh(styleValue)) {
                 if (keepVpUnit) {
-                  value[styleKey] = `calc(${styleValue})`
+                  set(value, styleKey, `calc(${styleValue})`)
                 } else {
                   const vpKey = getVpKey(styleValue)
-                  const vpVal = viewport?.[vpKey]
-                  const valueNum = fp.toNum(styleValue) / 100
-
-                  if (is.nil(vpVal)) {
-                    value[styleKey] = styleValue
-                  } else {
-                    value[styleKey] = String(getSize(valueNum, vpVal as number))
-                  }
+                  const vpVal = viewport?.[vpKey as VpUnit]
+                  const valueNum = toNum(styleValue) / 100
+                  if (is.nil(vpVal)) set(value, styleKey, styleValue)
+                  else set(value, styleKey, toPx(getSize(valueNum, vpVal)))
                 }
               }
 
               // Cache this value to the variable so it doesn't get mutated inside this func since there are moments when value is changing before this func ends
               // If the value is a path of a list item data object
               const isListPath =
-                !!iteratorVar && String(styleValue).startsWith(iteratorVar)
+                iteratorVar && toStr(styleValue).startsWith(iteratorVar)
 
               // '2.8vh', '20px', etc
               const isSizeValue =
                 is.vwVh(styleValue) ||
                 is.keyRelatedToWidthOrHeight(styleKey) ||
-                ['fontSize', 'borderRadius', 'borderWidth'].includes(styleKey)
+                ['fontSize', 'borderRadius', 'borderWidth'].includes(
+                  toStr(styleKey),
+                )
 
               if (isSizeValue) {
                 if (viewport) {
                   if (is.vwVh(styleValue)) {
-                    const valueNum = fp.toNum(styleValue) / 100
-                    value[styleKey] = keepVpUnit
-                      ? `calc(${styleValue})`
-                      : ensureCssUnit(
-                          getSize(
-                            valueNum,
-                            // TODO - Why is width hard coded?
-                            getViewportBound(viewport, styleValue) as number,
-                            { toFixed: 2 },
-                          ),
-                        )
+                    const valueNum = toNum(styleValue) / 100
+                    const vpSize = getViewportBound(viewport, styleValue)
+                    const vwVhValue = getSize(valueNum, toNum(vpSize))
+                    set(
+                      value,
+                      styleKey,
+                      keepVpUnit ? `calc(${styleValue})` : toStr(vwVhValue),
+                    )
                   } else if (is.keyRelatedToWidthOrHeight(styleKey)) {
-                    const computedValue = is.noodlUnit(styleValue)
-                      ? String(
-                          getSize(
-                            styleValue,
-                            getViewportBound(viewport, styleKey) as number,
-                            { unit: 'px' },
-                          ),
-                        )
-                      : undefined
-                    if (is.noodlUnit(styleValue)) {
-                      value[styleKey] = computedValue
+                    const vpSize = getViewportBound(viewport, styleKey)
+                    const computedValue = noodlUnit(styleValue)
+                      ? toStr(getSize(styleValue, toNum(vpSize)))
+                      : ''
+                    if (noodlUnit(styleValue)) {
+                      set(value, styleKey, computedValue)
                     } else if (is.keyRelatedToHeight(styleKey)) {
                       if (styleKey == 'borderRadius' && is.str(styleValue)) {
                         if (styleValue.includes('px')) {
-                          value[styleKey] = `${styleValue}`
+                          set(value, styleKey, styleValue)
                         } else {
-                          value[styleKey] = `${styleValue}px`
+                          set(value, styleKey, toPx(styleValue))
                         }
                       }
                     }
                   }
                 }
               } else {
-                value[styleKey] = formatColor(styleValue)
+                set(value, styleKey, normalize(styleValue))
               }
 
               if (styleKey == 'pointerEvents' && styleValue != 'none') {
@@ -650,7 +654,7 @@ function transform<Props extends PropsObject>(
               }
 
               if (styleKey == 'isHidden' && is.boolTrue(styleValue)) {
-                props.style.visibility = 'hidden'
+                set(props, 'style.visibility', 'hidden')
               }
 
               // TODO - Find out how to resolve the issue of "value" being undefined without this string check when we already checked above this
@@ -664,7 +668,7 @@ function transform<Props extends PropsObject>(
                     ---- COLORS - REMINDER: Convert color values like 0x00000000 to #00000000
                   -------------------------------------------------------- */
                 if (styleKey === 'textColor') {
-                  value.color = formatColor(styleValue)
+                  set(value, 'color', normalize(styleValue))
                   markDelete('textColor')
                 } else {
                   // Some list item consumers have data keys referencing color data values
@@ -672,37 +676,32 @@ function transform<Props extends PropsObject>(
 
                   if (isListPath) {
                     const dataObject = context?.dataObject
-                    // context?.dataObject || findListDataObject(props)
                     if (is.obj(dataObject)) {
-                      const dataKey = fp.excludeStr(
+                      const dataKey = excludeIteratorVar(
                         styleValue,
                         iteratorVar,
-                      ) as string
-
-                      const _styleValue = formatColor(
-                        fp.get(dataObject, dataKey),
                       )
 
+                      const _styleValue = normalize(getR(dataObject, dataKey))
+
                       if (is.keyRelatedToWidthOrHeight(styleKey)) {
-                        if (is.noodlUnit(_styleValue)) {
-                          value[styleKey] = String(
-                            getSize(
-                              _styleValue,
-                              getViewportBound(viewport, styleKey) as number,
-                              { unit: 'px' },
-                            ),
-                          )
+                        if (noodlUnit(_styleValue)) {
+                          const vpSize = getViewportBound(viewport, styleKey)
+                          const newValue = getSize(_styleValue, toNum(vpSize))
+                          set(value, styleKey, toStr(newValue))
                         }
+                      } else if (styleKey === 'pointerEvents') {
+                        set(value, 'pointer-events', _styleValue)
                       } else {
-                        value[styleKey] = _styleValue
+                        set(value, styleKey, _styleValue)
                       }
                     } else {
-                      value[styleKey] = formatColor(String(dataObject))
+                      set(value, styleKey, normalize(toStr(dataObject)))
                     }
                   }
 
                   if (is.str(styleValue) && styleValue.startsWith('0x')) {
-                    value[styleKey] = formatColor(styleValue)
+                    set(value, styleKey, normalize(styleValue))
                   }
                 }
               }
@@ -711,25 +710,21 @@ function transform<Props extends PropsObject>(
         } else if (is.str(originalValue)) {
           // Unparsed style value (reference)
         }
-        delKeys.forEach((key) => delete value[key])
-        fp.entries(restoreVals).forEach(([k, v]) => (value[k] = v))
+        each(delKeys, (key) => delete value[key])
+        each(entries(restoreVals), fp.spread(fp.partial(set, value)))
       } else if (originalKey === 'viewTag') {
-        props['data-viewtag'] = is.reference(value)
-          ? deref({
-              ref: value,
-              ...getHelpers({
-                rootKey: is.localReference(value) ? pageName : undefined,
-              }),
-            })
-          : value
+        let dataView = value
+        if (isRef(value)) {
+          const rootKey = isLocalRRef(value) ? pageName : ''
+          const helpers = getHelpers({ rootKey })
+          dataView = getByRef(value, helpers)
+        }
+        set(props, 'data-view', dataView)
       } else {
         // Arbitrary references
-        if (is.str(originalValue) && is.reference(originalValue)) {
-          value = deref({
-            ref: originalValue,
-            ...getHelpers({ rootKey: pageName }),
-          })
-          props[originalKey] = value
+        if (is.str(originalValue) && isRef(originalValue)) {
+          value = getByRef(originalValue, getHelpers({ rootKey: pageName }))
+          set(props, originalKey, value)
         }
       }
     }
@@ -738,49 +733,40 @@ function transform<Props extends PropsObject>(
       ---- COMPONENTS
     -------------------------------------------------------- */
 
-    if (blueprint.type === 'header') {
-      props.style.zIndex = 100
-    } else if (blueprint.type === 'image') {
+    if (is.header(blueprint)) {
+      set(props, 'style.zIndex', 100)
+    } else if (is.image(blueprint)) {
       // Remove the height to maintain the aspect ratio since images are
       // assumed to have an object-fit of 'contain'
-      if (!('height' in ((blueprint.style as any) || {}))) {
-        delete props.style.height
-      }
+      if (!has(blueprint.style, 'height')) delete props.style.height
       // Remove the width to maintain the aspect ratio since images are
       // assumed to have an object-fit of 'contain'
-      if (!('width' in ((blueprint.style as any) || {}))) {
-        delete props.style.width
+      if (!has(blueprint.style, 'width')) delete props.style.width
+      if (!has(blueprint.style, 'objectFit')) {
+        set(props.style, 'objectFit', 'contain')
       }
-      if (!('objectFit' in ((blueprint.style as any) || {}))) {
-        props.style.objectFit = 'contain'
-      }
-    } else if (
-      (blueprint.type === 'list' || blueprint.type === 'chatList') &&
-      props.style.display !== 'none'
-    ) {
-      const axis = blueprint.style?.axis
-      props.style.display =
-        axis === 'horizontal' || axis === 'vertical' ? 'flex' : 'block'
-      props.style.listStyle = 'none'
-      props.style.padding = '0px'
-    } else if (blueprint.type === 'listItem') {
+    } else if (is.listLike(blueprint) && props.style.display !== 'none') {
+      let axis = blueprint.style?.axis
+      let display = 'block'
+      if (axis === 'horizontal' ?? axis === 'vertical') display = 'flex'
+      set(props, 'style.display', display)
+      set(props, 'style.listStyle', 'none')
+      set(props, 'style.padding', '0px')
+    } else if (is.listItem(blueprint)) {
       // Flipping the position to relative to make the list items stack on top of eachother.
       //    Since the container is a type: list and already has their entire height defined in absolute values,
       //    this shouldn't have any UI issues because they'll stay contained within
-      props.style.listStyle = 'none'
+      set(props, 'style.listStyle', 'none')
       // props.style.padding = 0
-    } else if (blueprint.type === 'popUp') {
-      props.style.visibility = 'hidden'
-    } else if (
-      blueprint.type === 'scrollView' &&
-      props.style.display !== 'none'
-    ) {
-      props.style.display = 'block'
-    } else if (blueprint.type === 'textView') {
-      props.style.rows = 10
-      props.style.resize = 'none'
-    } else if (blueprint.type === 'video') {
-      props.style.objectFit = 'contain'
+    } else if (is.popUp(blueprint)) {
+      set(props, 'style.visibility', 'hidden')
+    } else if (is.scrollView(blueprint) && props.style.display !== 'none') {
+      set(props, 'style.display', 'block')
+    } else if (is.textView(blueprint)) {
+      set(props, 'style.rows', 10)
+      set(props, 'style.resize', 'none')
+    } else if (is.video(blueprint)) {
+      set(props, 'style.objectFit', 'contain')
     }
 
     /* -------------------------------------------------------
@@ -789,58 +775,38 @@ function transform<Props extends PropsObject>(
 
     // Shadow
     if (is.boolTrue(blueprint?.style?.shadow)) {
-      props.style.boxShadow = '5px 5px 10px 3px rgba(0, 0, 0, 0.015)'
+      set(props, 'style.boxShadow', normalize('shadow'))
       delete props.style.shadow
     }
 
     // Visibility
     let isHiddenValue = blueprint?.style?.isHidden
-    if (is.reference(isHiddenValue)) {
-      const isLocal = is.localReference(isHiddenValue)
-      isHiddenValue = deref({
-        ref: isHiddenValue,
-        ...getHelpers({ rootKey: isLocal ? pageName : undefined }),
-      })
+    if (isRef(isHiddenValue)) {
+      const isLocal = isLocalRRef(isHiddenValue)
+      const helpers = getHelpers({ rootKey: isLocal ? pageName : '' })
+      isHiddenValue = getByRef(isHiddenValue, helpers)
     }
-    is.boolTrue(isHiddenValue) && (props.style.visibility = 'hidden')
+
+    is.boolTrue(isHiddenValue) && set(props, 'style.visibility', 'hidden')
 
     if (is.bool(blueprint?.required)) {
-      props.required = is.boolTrue(blueprint?.required)
+      set(props, 'required', is.boolTrue(blueprint?.required))
     }
   } else {
     /**
      * - Referenced components (ex: '.BaseHeader)
      * - Text
      */
-    if (is.str(blueprint) && is.reference(blueprint)) {
-      return transform(
-        props,
-        deref({
-          ref: blueprint,
-          ...getHelpers({
-            rootKey: is.localReference(blueprint) ? pageName : undefined,
-          }),
-        }),
-      )
+    if (is.str(blueprint) && isRef(blueprint)) {
+      const rootKey = isLocalRRef(blueprint) ? pageName : ''
+      const helpers = getHelpers({ rootKey })
+      return transform(props, getByRef(blueprint, helpers))
     } else {
       console.log({ SEE_WHAT_THIS_IS: blueprint })
     }
   }
 
   return props
-}
-
-export function createTransformer() {
-  let transformers = []
-
-  function _use(value: unknown) {
-    if (is.arr(value)) {
-    }
-  }
-
-  return {
-    use: _use,
-  }
 }
 
 export default transform

@@ -1,0 +1,2352 @@
+MyPackage:
+  #xd page number 19
+  pageNumber: "120"
+  init:
+    - .SignInCheck
+  viewPort: top
+  title: "My&nbsp;Package"
+  warning: "Fill out required fields*"
+  money.text: "1"
+  color: "#23CB99"
+  providers:
+    - key: Dr. Eiliyah Golden
+    - key: Dr. Xie
+    - key: Dr. Lee
+    - key: Dr. Wang
+  Title2:
+    name1: "License ID"
+    name2: "Purchase Date"
+    name3: Expire Date
+    name4: Residual Video Call
+  LicensesInfo:
+    - key: "1"
+      LicenseID: "12345671"
+      Provider: "Dr.Chen"
+      Purchase_Date: "MM/DD/YYYY"
+      Expire_Date: "MM/DD/YYYY"
+      ResidualVideoCall: "100min"
+    - key: "2"
+      LicenseID: "12345672"
+      Provider: "Dr.Chris"
+      Purchase_Date: "MM/DD/YYYY"
+      Expire_Date: "MM/DD/YYYY"
+      ResidualVideoCall: "104min"
+    - key: "2"
+      LicenseID: "12345672"
+      Provider: "Add"
+      Purchase_Date: "MM/DD/YYYY"
+      Expire_Date: "MM/DD/YYYY"
+      ResidualVideoCall: "104min"
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            width: "0.83"
+            height: "0.93"
+            # top: "0.05"
+            left: "0.17"
+          # style:
+          #   width: "0.829"
+          #   height: "1.0"
+          children:
+            - type: view
+              style:
+                width: '0.81'
+                left: "0.01"
+                height: "1.3"
+                top: "0.03"
+                backgroundColor: '0xffffff'
+              children:
+                - type: view
+                  style:
+                    width: "0.47"
+                    height: "1.3"
+                    boxShadow: "1px 1px 1px 1px #0000001f"
+                  children:
+                    - .PageTitle:
+                      style:
+                        top: "0"
+                        left: "0.01"
+                    - type: view
+                      style:
+                        width: '0.46'
+                        left: "0.01"
+                        height: "0.3"
+                        top: "0.05"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.45"
+                            left: "0"
+                            height: "0.35"
+                            marginTop: "0.02"
+                            backgroundColor: "#0063A8"
+                            background: "linear-gradient(to left, #0063A8 , #003254)"
+                            boxShadow: "2px 2px 2px #003D68af"
+                          children:
+                            - type: image
+                              path: person.svg
+                              style:
+                                width: "0.03"
+                                left: "0.02"
+                                marginTop: "0.02"
+                                borderRadius: "50px"
+                                padding: "10px 10px"
+                                backgroundColor: "#BFBFBF"
+                            - type: label
+                              text: Admin Name
+                              dataKey: Global.currentUser.vertex.name.userName
+                              style:
+                                # fontFamily: Poppins
+                                fontSize: .Nfont.nf5
+                                color: "#FFFFFF"
+                                left: "0.08"
+                                top: "0.04"
+                                width: "0.07"
+                            - type: label
+                              text: "(Log in account: 1234567890)"
+                              style:
+                                # fontFamily: Poppins
+                                fontSize: .Nfont.nf5
+                                color: "#FFFFFF"
+                                fontWeight: "lighter"
+                                left: "0.18"
+                                top: "0.04"
+                            - type: label
+                              text: "Expire Date: 02/01/2021"
+                              style:
+                                # fontFamily: Poppins
+                                fontSize: .Nfont.nf4
+                                color: "#FFFFFF7F"
+                                lineHeight: "2.1vh"
+                                left: "0.08"
+                                top: "0.07"
+                            - type: view
+                              style:
+                                width: "0.4"
+                                height: "0.19"
+                                left: "0.025"
+                                marginTop: "0.02"
+                                backgroundColor: "0xffffff"
+                              children:
+                                - type: view
+                                  style:
+                                    top: "0.01"
+                                    width: "0.11"
+                                    height: "0.2"
+                                    left: "0"
+                                    lineHeight: "2.7vh"
+                                    # textAlign:
+                                    #   x: center    
+                                  children:
+                                    - type: label
+                                      text: License
+                                      style:
+                                        # fontFamily: Poppins
+                                        fontSize: .Nfont.h4
+                                        marginTop: "0.02"
+                                        height: "0.05"
+                                        lineHeight: "2.7vh"
+                                        left: "0.035"
+                                    - type: label
+                                      text: "5"
+                                      style:
+                                        # fontFamily: Poppins
+                                        fontSize: .Nfont.nf6
+                                        fontWeight: "700"
+                                        marginTop: "0"
+                                        lineHeight: "5.3vh"
+                                        color: "#0A5A99"
+                                        left: "0.05"
+                                    - type: label
+                                      text: End of 01/01/2021
+                                      style:
+                                        # fontFamily: Poppins
+                                        fontSize: .Nfont.nf4
+                                        marginTop: "0.03"
+                                        color: "#4A4A4A7F"
+                                        left: "0.01"
+                                - type: view
+                                  style:
+                                    top: "0.01"
+                                    width: "0.11"
+                                    height: "0.2"
+                                    left: "0.1101"
+                                    lineHeight: "2.7vh"
+                                    # textAlign:
+                                    #   x: center                            
+                                  children:
+                                    - type: label
+                                      text: Balance
+                                      style:
+                                        # fontFamily: Poppins
+                                        fontSize: .Nfont.h4
+                                        marginTop: "0.02"
+                                        left: "0.03"
+                                        height: "0.05"
+                                    - type: label
+                                      text: "$305"
+                                      style:
+                                        # fontFamily: Poppins
+                                        fontSize: .Nfont.nf6
+                                        fontWeight: "700"
+                                        marginTop: "0"
+                                        lineHeight: "5.3vh"
+                                        color: "#0A5A99"
+                                        left: "0.025"
+                                - type: view
+                                  style:
+                                    top: "0.01"
+                                    width: "0.1798"
+                                    height: "0.2"
+                                    left: "0.2202"
+                                    lineHeight: "2.7vh"
+                                    # textAlign:
+                                    #   x: center                            
+                                  children:
+                                    - type: label
+                                      text: "Residual&nbsp;Storage"
+                                      style:
+                                        # fontFamily: Poppins
+                                        fontSize: .Nfont.h4
+                                        marginTop: "0.02"
+                                        left: "0.025"
+                                        height: "0.05"
+                                    - type: label
+                                      text: "2.32GB"
+                                      style:
+                                        # fontFamily: Poppins
+                                        fontSize: .Nfont.nf6
+                                        fontWeight: "700"
+                                        marginTop: "0"
+                                        lineHeight: "5.3vh"
+                                        color: "#0A5A99"
+                                        left: "0.035"
+                        - type: scrollView
+                          style:
+                            overflow: scroll
+                            width: "0.45"
+                            left: "0"
+                            height: "0.2"
+                            top: "0.42"
+                            background: "linear-gradient(to left, #0063A8 , #003254)"
+                            boxShadow: "1px 1px 1px 1px #003D68af"
+                          children:
+                            - type: label
+                              text: "Total Cloud Storage:"
+                              style:
+                                # fontFamily: Poppins
+                                fontSize: .Nfont.nf6
+                                lineHeight: "3.5vh"
+                                color: "0xffffff"
+                                left: "0.025"
+                                top: "0.04"
+                            - type: label
+                              text: "5GB"
+                              style:
+                                # fontFamily: Poppins
+                                fontSize: .Nfont.nf6
+                                lineHeight: "3.5vh"
+                                color: "0xffffff"
+                                left: "0.24"
+                                top: "0.04"
+                                fontWeight: "Bold"
+                            - type: image
+                              path: progress_bar.png
+                              style:
+                                width: "0.4"
+                                left: "0.025"
+                                top: "0.1"
+                            - type: image
+                              path: progress_bar_on.png
+                              style:
+                                width: "0.21"
+                                left: "0.025"
+                                top: "0.1"
+                            - type: label
+                              text: "Used: 2.68GB / 5GB (53.6%)"
+                              style:
+                                # fontFamily: Poppins
+                                fontSize: .Nfont.nf5
+                                lineHeight: "2.1vh"
+                                color: "0xffffff"
+                                left: "0.025"
+                                top: "0.13"
+                                fontWeight: "lighter"
+                        - type: label
+                          text: "*Total Cloud Storage = Package + Extended Package"
+                          style:
+                            width: "0.45"
+                            left: "0"
+                            height: "0.2"
+                            top: "0.64"
+                            color: "#0000008F"
+                            fontSize: .Nfont.nf4
+                        - type: view
+                          style:
+                            width: "0.45"
+                            left: "0"
+                            height: "0.2"
+                            top: "0.72"
+                          children:
+                            - .ContentTitle:
+                              style:
+                                top: "0.02"
+                              children:
+                                - .ContentTitleText:
+                                - .ContentTitleImage:
+                            - type: button
+                              text: "Buy New License"
+                              onClick:
+                                - actionType: popUp
+                                  popUpView: BuyNewLicense
+                              style:
+                                width: "0.10"
+                                height: "0.05"
+                                left: "0.33"
+                                fontSize: .Nfont.nf4
+                                color: "#FFFFFF"
+                                backgroundColor: "#25A147"
+                                borderColor: "#25A147"
+                                borderRadius: "5px"
+                            - type: view
+                              style:
+                                top: "0.09"
+                                width: "0.45"
+                                height: "0.04"
+                                fontSize: .Nfont.nf4
+                              children:
+                                - .ListContent:
+                                  style:
+                                    width: "0.03"
+                                    left: "0.005"
+                                - .ListContent:
+                                  text: "License ID"
+                                  style:
+                                    left: "0.035"
+                                    width: "0.06"
+                                - .ListContent:
+                                  text: "Provider"
+                                  style:
+                                    left: "0.1"
+                                    width: "0.06"
+                                - .ListContent:
+                                  text: "Purchase Date"
+                                  style:
+                                    left: "0.16"
+                                    width: "0.1"
+                                - .ListContent:
+                                  text: "Expire Date"
+                                  style:
+                                    left: "0.26"
+                                    width: "0.1"
+                                - .ListContent:
+                                  text: "Leftover Minutes"
+                                  style:
+                                    left: "0.35"
+                                    width: "0.1"
+                                - type: divider
+                                  style:
+                                    width: "0.45"
+                                    height: "0.0001"
+                                    color: "#272D3B4F"
+                                    borderColor: "#272D3B4F"
+                                    top: "0.031"
+                            - type: list
+                              contentType: listObject
+                              listObject: ..LicensesInfo
+                              iteratorVar: itemObject
+                              style:
+                                top: "0.13"
+                                width: "0.45"
+                                height: "0.4"
+                                display: "flex"
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style:
+                                    left: "0"
+                                    display: "inline-block"
+                                    width: "0.45"
+                                    height: "0.07"
+                                  children:
+                                    - type: label
+                                      dataKey: itemObject.key
+                                      style:
+                                        width: "0.03"
+                                        height: "0.07"
+                                        top: "0.005"
+                                        left: "0.01"
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: "Montserrat"
+                                    - type: label
+                                      dataKey: itemObject.LicenseID
+                                      style:
+                                        width: "0.06"
+                                        height: "0.07"
+                                        top: "0.005"
+                                        left: "0.035"
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: "Montserrat"
+                                    - type: label
+                                      dataKey: itemObject.Provider
+                                      style:
+                                        width: "0.06"
+                                        height: "0.07"
+                                        top: "0.005"
+                                        left: "0.1"
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: "Montserrat"
+                                      onClick:
+                                        - actionType: popUp
+                                          popUpView: AddProvider
+                                    - type: label
+                                      dataKey: itemObject.Purchase_Date
+                                      style:
+                                        width: "0.1"
+                                        height: "0.07"
+                                        top: "0.005"
+                                        left: "0.16"
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: "Montserrat"
+                                    - type: label
+                                      dataKey: itemObject.Expire_Date
+                                      style:
+                                        width: "0.1"
+                                        height: "0.07"
+                                        top: "0.005"
+                                        left: "0.26"
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: "Montserrat"
+                                    - type: label
+                                      dataKey: itemObject.ResidualVideoCall
+                                      style:
+                                        width: "0.08"
+                                        height: "0.07"
+                                        top: "0.005"
+                                        left: "0.35"
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: "Montserrat"
+                                    - type: button
+                                      text: Renew
+                                      style:
+                                        left: "0.40"
+                                        top: "0.003"
+                                        fontSize: .Nfont.nf4
+                                        fontFamily: "Avenir"
+                                        backgroundColor: "#005795"
+                                        color: "#FFFFFF"
+                                        borderColor: "#005795"
+                                        borderRadius: "5"
+                                      onClick:
+                                        - actionType: popUp
+                                          popUpView: RenewLicense
+                                    - type: divider
+                                      style:
+                                        width: "0.45"
+                                        height: "0.0001"
+                                        color: "#272D3B4F"
+                                        borderColor: "#272D3B4F"
+                                        top: "0.042"
+                - type: view
+                  style:
+                    top: "0"
+                    width: "0.34"
+                    height: "1.3"
+                    left: "0.47"
+                    boxShadow: "2px 2px 1px  #88888870"
+                  children:
+                    - .PageTitle2:
+                      text: "Extend Package"
+                      style:
+                        fontSize: .Nfont.nf5
+                        height: "0.04"
+                        top: "0.025"
+                        marginTop: "0"
+                    - type: label
+                      text: "Extend your cloud storage & video call minutes NOW!"
+                      style:
+                        # fontFamily: Poppins
+                        fontSize: .Nfont.nf4
+                        marginTop: "0.06"
+                        left: "0.025"
+                        width: '0.31'
+                    - type: view
+                      style:
+                        width: '0.33'
+                        left: "0.01"
+                        height: "0.5"
+                        top: "0.10"
+                      children:
+                        - type: view
+                          children:
+                            - .ContentTitle:
+                              style:
+                                top: "0.02"
+                              children:
+                                - .ContentTitleText:
+                                  text: "Monthly Package"
+                                - .ContentTitleImage:
+                                  style:
+                                    borderRadius: "15"
+                            - .ExtendTitle:
+                              style:
+                                top: "0.07"
+                            - .ExtendContent:
+                              style:
+                                top: "0.1"
+                            - .ExtendSquare:
+                              style:
+                                top: "0.16"
+                                left: "0"
+                              children:
+                                - .ExtendWord1:
+                                  number: 10
+                                  unit: GB
+                                  style:
+                                    left: "-0.007"
+                                - .ExtendWord2:
+                                  dollar: $10
+                                  month: /month
+                                - .ExtendButton:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: ExtendPackageStorage
+                            - .ExtendSquare:
+                              style:
+                                left: "0.11"
+                                top: "0.16"
+                              children:
+                                - .ExtendWord1:
+                                  number: 50
+                                  unit: GB
+                                  style:
+                                    left: "-0.006"
+                                - .ExtendWord2:
+                                  dollar: $45
+                                  month: /month
+                                - .ExtendButton:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: ExtendPackageStorage
+                            - .ExtendSquare:
+                              style:
+                                left: "0.22"
+                                top: "0.16"
+                              children:
+                                - .ExtendWord1:
+                                  number: 100
+                                  unit: GB
+                                  style:
+                                    left: "0"
+                                - .ExtendWord2:
+                                  dollar: $80
+                                  month: /month
+                                - .ExtendButton:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: ExtendPackageStorage
+                            - .ExtendTitle:
+                              text: "For Video Call Minutes"
+                              style:
+                                top: "0.38"
+                            - .ExtendContent:
+                              text: "Purchase video call monthly package, it'll expend all the licenses you
+                                ready have, and take effective next month."
+                              style:
+                                top: "0.41"
+                            - .ExtendSquare:
+                              style:
+                                top: "0.47"
+                              children:
+                                - .ExtendWord1:
+                                  number: 500
+                                  unit: min
+                                  style:
+                                    left: "0"
+                                - .ExtendWord2:
+                                  dollar: $10
+                                  month: /month
+                                - .ExtendButton:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: ExtendPackageMinutes
+                            - .ExtendSquare:
+                              style:
+                                left: "0.11"
+                                top: "0.47"
+                              children:
+                                - .ExtendWord1:
+                                  number: 1000
+                                  unit: min
+                                  style:
+                                    left: "0.005"
+                                - .ExtendWord2:
+                                  dollar: $90
+                                  month: /month
+                                - .ExtendButton:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: ExtendPackageMinutes
+                            - .ExtendSquare:
+                              style:
+                                left: "0.22"
+                                top: "0.47"
+                              children:
+                                - .ExtendWord1:
+                                  number: 2000
+                                  unit: min
+                                  style:
+                                    left: "0.006"
+                                - .ExtendWord2:
+                                  dollar: $170
+                                  month: /month
+                                - .ExtendButton:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: ExtendPackageMinutes
+                            - type: divider
+                              style:
+                                width: " 0.31"
+                                height: "0.0001"
+                                top: "0.68"
+                                color: "#e3e3e3"
+                        - type: view
+                          style:
+                            top: "0.70"
+                          children:
+                            - .ContentTitle:
+                              style:
+                                top: "0.02"
+                              children:
+                                - .ContentTitleText:
+                                  text: "Supplement Package"
+                                - .ContentTitleImage:
+                            - .ExtendTitle:
+                              text: For Video Call Minutes
+                              style:
+                                top: "0.07"
+
+                            - .ExtendContent:
+                              text: To purchase a video call supplement package, choose a license first. It’ll
+                                add on to the license’s current residual video
+                                call minutes. It can be purchased unlimitedly,
+                                and effective immediately.
+
+                              style:
+                                top: "0.1"
+                            - .ExtendSquare:
+                              style:
+                                top: "0.2"
+                              children:
+                                - .ExtendWord1:
+                                  number: 500
+                                  unit: min
+                                  style:
+                                    left: "0"
+                                - .ExtendWord2:
+                                  dollar: $10
+                                  month: /month
+                                - .ExtendButton:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: SupplementPackage
+                            - .ExtendSquare:
+                              style:
+                                left: "0.11"
+                                top: "0.2"
+                              children:
+                                - .ExtendWord1:
+                                  number: 1000
+                                  unit: min
+                                  style:
+                                    left: "0.005"
+                                - .ExtendWord2:
+                                  dollar: $90
+                                  month: /month
+                                - .ExtendButton:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: SupplementPackage
+                            - .ExtendSquare:
+                              style:
+                                left: "0.22"
+                                top: "0.2"
+                              children:
+                                - .ExtendWord1:
+                                  number: 2000
+                                  unit: min
+                                  style:
+                                    left: "0.006"
+                                - .ExtendWord2:
+                                  dollar: $170
+                                  month: /month
+                                - .ExtendButton:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: SupplementPackage
+                            - type: button
+                              text: "Contact Customer Support for a customized package"
+                              style:
+                                fontFamily: Avenir
+                                fontSize: .Nfont.nf4
+                                width: "0.30"
+                                left: "0.0090"
+                                height: "0.045"
+                                color: "#FFFFFF"
+                                backgroundColor: "#005795"
+                                top: "0.42"
+                                border:
+                                  style: "1"
+                                borderRadius: "3"
+        - type: popUp
+          viewTag: "BuyNewLicense"
+          style:
+            width: "1"
+            height: "1"
+            position: "fixed"
+            backgroundColor: "#7070705f"
+          children:
+            - type: view
+              style:
+                left: "0.4"
+                width: "0.32"
+                top: "0.14"
+                height: "0.74"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.18"
+
+                  children:
+                    - .Close:
+                      style:
+                        left: "0.3"
+                        top: "0.02"
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: BuyNewLicense
+                    - .PopUpTitle:
+                    - .PopUpTitle2:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.5"
+                    top: "0.18"
+
+                  children:
+                    - type: view
+                      children:
+                        - type: label
+                          text: "Number:"
+                          style:
+                            top: "0.05"
+                            left: "0.08"
+                            # fontFamily: "Poppins"
+                            fontSize: "26"
+                        - type: textField
+                          contentType: text
+                          dataKey: money.text
+                          placeholder: "1"
+                          style:
+                            left: "0.17"
+                            top: "0.05"
+                            width: "0.08"
+                            height: "0.06"
+                            fontSize: "26"
+                            backgroundColor: "#E3E3E3"
+                            textAlign:
+                              x: center
+                              y: center
+                            borderWidth: "1"
+                            border:
+                              style: "2"
+                              color: "#E3E3E3"
+                        - .PopUpText:
+                          dataKey: "" #价格变化                            
+                        - .PopUpText:
+                          text: "/ month"
+                          style:
+                            fontSize: .Nfont.nf4
+                            top: "0.23"
+                            fontWeight: "10"
+                        - .PopUpText:
+                          text: "$36 per provider"
+                          style:
+                            fontSize: "26"
+                            top: "0.28"
+                            fontWeight: "300"
+                        - type: button
+                          text: "Buy Now"
+                          onClick:
+                            - actionType: popUp
+                              popUpView: ExtendPackage
+                            - actionType: popUpDismiss
+                              popUpView: BuyNewLicense
+                          style:
+                            fontFamily: Avenir
+                            fontSize: .Nfont.nf3
+                            width: "0.12"
+                            height: "0.06"
+                            top: "0.39"
+                            left: "0.1"
+                            color: "0xffffff"
+                            backgroundColor: "#0063A8"
+                            borderRadius: "5"
+                            border:
+                              style: "1"
+        - type: popUp
+          viewTag: "ExtendPackage"
+          style:
+            overflow: scroll
+            top: "0"
+            width: "1"
+            height: "0.01"
+            position: "fixed"
+            backgroundColor: "#7070705f"
+          children:
+            - type: view
+              style:
+                left: "0.34"
+                width: "0.44"
+                top: "0.005"
+                height: "0.01"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.01"
+                  children:
+                    - .Close:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackage
+                    - .PopUpTitle:
+                      text: Extend Package
+                    - .PopUpTitle2:
+                      text: Your subscription fee will be charged on February 4th, 2021
+                    - .PopUpTitle:
+                      text: $ 97
+                      style:
+                        left: "0.22"
+                - type: scrollView
+                  style:
+                    overflow: scroll
+                    width: "0.44"
+                    height: "0.01"
+                    top: "0.01"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.38"
+                        left: "0.03"
+                        height: "0.01"
+                      children:
+                        - .PopUpT:
+                          text: Cardholder name <font color="#FF0000">*</font>
+                        - .PopUpField:
+                          dataKey: FromD.name
+                        - .PopUpT:
+                          text: Billing Address    <font color="#FF0000">*</font>
+                          style:
+                            left: "0.2"
+                        - .PopUpField:
+                          dataKey: FromD.address
+                          style:
+                            left: "0.2"
+                        - .PopUpT:
+                          text: Card number <font color="#FF0000">*</font>
+                          style:
+                            top: "0.12"
+                        - .PopUpField:
+                          dataKey: FromD.card
+                          style:
+                            top: "0.15"
+                        - .PopUpT:
+                          text: City <font color="#FF0000">*</font>
+                          style:
+                            top: "0.12"
+                            left: "0.20"
+                        - .PopUpField:
+                          dataKey: FromD.city
+                          style:
+                            top: "0.15"
+                            left: "0.20"
+                        - .PopUpT:
+                          text: Card expiration <font color="#FF0000">*</font>
+                          style:
+                            top: "0.24"
+                            width: "0.09"
+                        - .PopUpField:
+                          dataKey: FromD.exp
+                          placeholder: MM/YY
+                          style:
+                            top: "0.27"
+                            width: "0.09"
+                        - .PopUpT:
+                          text: Security Code <font color="#FF0000">*</font>
+                          style:
+                            top: "0.24"
+                            width: "0.08"
+                            left: "0.1"
+                        - .PopUpField:
+                          dataKey: FromD.code
+                          placeholder: CVC
+                          style:
+                            top: "0.02"
+                            width: "0.08"
+                            left: "0.1"
+                        # - type: select
+                        #   contentType: text
+                        #   placeholder: ..State.code
+                        #   dataKey: State.code
+                        #   options:
+                        #     - "--"
+                        #     - "CA"
+                        #   required: "true"
+                        #   style:
+                        #     left: "0.2"
+                        #     top: "0.27"
+                        #     width: "0.05"
+                        #     height: "0.055"
+                        #     fontSize: "14"
+                        #     borderWidth: "1"
+                        #     textIndent: "0.6em"
+                        #     color: "#C4C4C4"
+                        #     # box-sizing: "border-box"
+                        #     borderColor: "#C4C4C4"
+                        #     fontFamily: Montserrat
+                        #     borderRadius: "5px"                     
+                        - .PopUpT: #下拉
+                          text: State <font color="#FF0000">*</font>
+                          style:
+                            overflow: scroll
+                            top: "0.24"
+                            width: "0.05"
+                            left: "0.2"
+                        - .PopUpField:
+                          placeholder: "--"
+                          dataKey: FromD.state
+                          style:
+                            fontSize: .Nfont.nf5
+                            top: "0.02"
+                            width: "0.05"
+                            left: "0.2"
+                        - type: image
+                          path: downArrow.svg
+                          style:
+                            width: "0.01"
+                            top: "0.295"
+                            left: "0.235"
+                        - .PopUpT:
+                          text: Zip code <font color="#FF0000">*</font>
+                          style:
+                            top: "0.24"
+                            width: "0.12"
+                            left: "0.26"
+                        - .PopUpField:
+                          placeholder: Enter Here
+                          dataKey: FromD.zip
+                          style:
+                            top: "0.27"
+                            width: "0.12"
+                            left: "0.26"
+                        - type: label
+                          viewTag: tt2
+                          dataKey: tt
+                          style:
+                            top: "-0.03"
+                            color: "#D53C42"
+                            width: "0.38"
+                            textAlign:
+                              x: center
+                        - type: image
+                          viewTag: select
+                          style:
+                            top: "0.34"
+                          onClick:
+                            - emit:
+                                actions:
+                                  - if:
+                                      - =.CreateNewAccount.formData.target
+                                      - .CreateNewAccount.formData.target@: false
+                                      - .CreateNewAccount.formData.target@: true
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: select
+                          path:
+                            emit:
+                              actions:
+                                - if:
+                                    - =.CreateNewAccount.formData.target
+                                    - checkOn.svg
+                                    - checkOff.svg
+                        - type: label
+                          text: Save Payment info
+                          style:
+                            top: "0.02"
+                            left: "0.02"
+                    - type: button
+                      text: Canel
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackage
+                        - actionType: popUp
+                          popUpView: BuyNewLicense
+                      style:
+                        width: "0.1"
+                        height: "0.06"
+                        fontFamily: Avenir
+                        fontSize: .Nfont.nf3
+                        top: "0.02"
+                        left: "0.11"
+                        color: "#0000007f"
+                        background: "#DDDDDD"
+                        borderRadius: "5px"
+                    - type: button
+                      text: Activate Now
+                      onClick:
+                        # - emit:
+                        #     actions:
+                        #       - if:
+                        #         - =..FromD
+                        #         - ..tt@: 
+                        #         - ..tt@: =..warning
+                        # - actionType: builtIn
+                        #   funcName: redraw
+                        #   viewTag: tt2
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackage
+                        - actionType: popUp
+                          popUpView: Success
+
+                      style:
+                        width: "0.1"
+                        height: "0.06"
+                        fontFamily: Avenir
+                        fontSize: .Nfont.nf3
+                        top: "0.02"
+                        left: "0.23"
+                        color: "#FFFFFF"
+                        background: "#25A147"
+                        borderRadius: "5px"
+                    - type: label
+                      text: Your payment will be processed by Stripe
+                      style:
+                        color: "#0000008f"
+                        # fontFamily: Poppins
+                        fontSize: "14"
+                        top: "0.4"
+                        width: "0.44"
+                        textAlign:
+                          x: center
+        - type: popUp
+          viewTag: Success
+          style:
+            overflow: scroll
+            top: "0"
+            width: "1"
+            height: "0.002"
+            position: "fixed"
+            backgroundColor: "#7070705f"
+          children:
+            - type: view
+              style:
+                left: "0.34"
+                width: "0.44"
+                top: "0.002"
+                height: "0.002"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xffffff"
+              children:
+                - .Close:
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: Success
+                - type: label
+                  text: Success!
+                  style:
+                    width: "0.44"
+                    textAlign:
+                      x: center
+                    # fontFamily: Poppins
+                    fontSize: "54"
+                    lineHeight: "8vh"
+                    top: "0.002"
+                - type: image
+                  path: popUpSuccess.svg
+                  style:
+                    width: "0.08"
+                    top: "0.002"
+                    left: "0.18"
+                - type: label
+                  text: Your payment has been processed by Stripe.
+                  style:
+                    # fontFamily: Poppins
+                    fontSize: .Nfont.nf4
+                    width: "0.44"
+                    top: "0.02"
+                    textAlign:
+                      x: center
+                    color: "#000000af"
+                - type: label
+                  text: An invoice will be sent to your Inbox shortly.
+                  style:
+                    fontFamily: Roboto
+                    fontSize: .Nfont.nf4
+                    width: "0.44"
+                    top: "0.02"
+                    textAlign:
+                      x: center
+                - type: button
+                  text: Continue
+                  style:
+                    backgroundColor: "#004779"
+                    color: "#FFFFFF"
+                    fontFamily: Avenir
+                    fontSize: .Nfont.nf3
+                    width: "0.09"
+                    height: "0.02"
+                    left: "0.175"
+                    top: " 0.02"
+                    borderColor: "0xffffff"
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: Success
+        - type: popUp
+          viewTag: "ExtendPackageend"
+          style:
+            overflow: scroll
+            width: "1"
+            height: "1"
+            top: "0"
+            position: "fixed"
+            backgroundColor: "#7070705f"
+          children:
+            - type: view
+              style:
+                left: "0.34"
+                width: "0.44"
+                top: "0.002"
+                height: "0.002"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.005"
+                  children:
+                    - .Close:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackageend
+                    - .PopUpTitle:
+                      text: Extend Package
+                    - .PopUpTitle2:
+                      text: Your subscription fee will be charged on February 4th, 2021
+                    - .PopUpTitle:
+                      text: $ 126
+                      style:
+                        left: "0.22"
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.05"
+                    top: "0.05"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.38"
+                        left: "0.03"
+                        height: "0.05"
+                      children:
+                        - .PopUpT:
+                          text: Cardholder name
+                          style:
+                            top: "0.05"
+                        - .PopUpField:
+                          style:
+                            top: "0.05"
+                        - .PopUpT:
+                          text: Card number
+                          style:
+                            top: "0.05"
+                            left: "0.2"
+                        - .PopUpField:
+                          style:
+                            top: "0.05"
+                            left: "0.2"
+                        - type: image
+                          path: mastercard.svg
+                          style:
+                            top: "0.05"
+                            left: "0.345"
+                        - .PopUpT:
+                          text: Card expiration
+                          style:
+                            top: "0.05"
+                            width: "0.09"
+
+                        - .PopUpField:
+                          placeholder: MM/YY
+                          style:
+                            top: "0.23"
+                            width: "0.09"
+                        - .PopUpT:
+                          text: Security Code
+                          style:
+                            top: "0.20"
+                            width: "0.08"
+                            left: "0.1"
+                        - .PopUpField:
+                          placeholder: CVC
+                          style:
+                            top: "0.23"
+                            width: "0.08"
+                            left: "0.1"
+                        - .PopUpT:
+                          text: Zip code
+                          style:
+                            top: "0.20"
+                            width: "0.12"
+                            left: "0.2"
+                        - .PopUpField:
+                          placeholder: Enter Here
+                          style:
+                            top: "0.23"
+                            width: "0.12"
+                            left: "0.2"
+                        - type: label
+                          text: Add new payment method
+                          style:
+                            top: "0.32"
+                            # fontFamily: Poppins
+                            left: "0"
+                            fontSize: "14"
+                            color: "#1492E6"
+                          onClick:
+                            - actionType: popUpDismiss
+                              popUpView: ExtendPackageend
+                            - actionType: popUp
+                              popUpView: ExtendPackage
+                    - type: button
+                      text: Canel
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackageend
+                      style:
+                        width: "0.1"
+                        height: "0.06"
+                        fontFamily: Avenir
+                        fontSize: .Nfont.nf3
+                        top: "0.39"
+                        left: "0.11"
+                        color: "#0000007f"
+                        background: "#DDDDDD"
+                        borderRadius: "5px"
+                    - type: button
+                      text: Activate Now
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackageend
+                        - actionType: popUp
+                          popUpView: Success
+                      style:
+                        width: "0.1"
+                        height: "0.06"
+                        fontFamily: Avenir
+                        fontSize: .Nfont.nf3
+                        top: "0.39"
+                        left: "0.23"
+                        color: "#FFFFFF"
+                        background: "#25A147"
+                        borderRadius: "5px"
+        - type: popUp
+          viewTag: "ExtendPackageStorage"
+          style:
+            overflow: scroll
+            top: "0"
+            width: "1"
+            height: "0.005"
+            position: "fixed"
+            backgroundColor: "#7070705f"
+          children:
+            - type: view
+              style:
+                overflow: scroll
+                left: "0.4"
+                width: "0.32"
+                top: "0.05"
+                height: "0.05"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.05"
+                  children:
+                    - .Close:
+                      style:
+                        left: "0.3"
+                        top: "0.02"
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackageStorage
+                    - .PopUpTitle:
+                    - .PopUpTitle:
+                      text: Monthly Package
+                      style:
+                        color: "#064474"
+                        fontSize: .Nfont.nf4
+                        top: "0.05"
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.05"
+                    top: "0.05"
+                  children:
+                    - type: label
+                      text: For Video Call Minutes
+                      style:
+                        color: "#064474"
+                        fontSize: .Nfont.nf4
+                        left: "0.02"
+                    - .PopUpTitle2:
+                      text: Purchase video call monthly package, it’ll expend all the licenses you
+                        ready have, and take effective next month.
+                      style:
+                        top: "0.06"
+                    - .ExtendSquare:
+                      style:
+                        top: "0.05 "
+                        height: "0.05"
+                        left: "0.115"
+                        width: "0.09"
+                      children:
+                        - .ExtendWord1:
+                          text: 10<small><small>GB</small></small>
+                          style:
+                            top: "0.025"
+                            width: "0.09"
+                        - .ExtendWord2:
+                          text: "$10/month"
+                          style:
+                            top: "0.05"
+                            width: "0.09"
+                    - .PopUpTitle:
+                      text: "Total Price:"
+                      style:
+                        fontSize: "28"
+                        top: "0.37"
+                    - type: view
+                      text: $10
+                      style:
+                        fontSize: "38"
+                        color: "#0063A8 "
+                        top: "0.36"
+                        width: "0.32"
+                        textAlign:
+                          x: center
+                    - type: button
+                      text: "Buy Now"
+                      onClick:
+                        - actionType: popUp
+                          popUpView: ExtendPackageend
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackageStorage
+                      style:
+                        fontFamily: Avenir
+                        fontSize: .Nfont.nf3
+                        width: "0.12"
+                        height: "0.06"
+                        top: "0.02"
+                        left: "0.1"
+                        color: "0xffffff"
+                        backgroundColor: "#0063A8"
+                        borderRadius: "5"
+                        border:
+                          style: "1"
+        - type: popUp
+          viewTag: "ExtendPackageMinutes"
+          style:
+            overflow: scroll
+            top: "0"
+            width: "1"
+            height: "0.002"
+            position: "fixed"
+            backgroundColor: "#7070705f"
+          children:
+            - type: view
+              style:
+                left: "0.4"
+                width: "0.32"
+                top: "0.05"
+                height: "0.05"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.05"
+                  children:
+                    - .Close:
+                      style:
+                        left: "0.3"
+                        top: "0.02"
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackageMinutes
+                    - .PopUpTitle:
+                    - .PopUpTitle:
+                      text: Monthly Package
+                      style:
+                        color: "#064474"
+                        fontSize: .Nfont.nf4
+                        top: "0.1"
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.01"
+                    top: "0.01"
+                  children:
+                    - type: label
+                      text: For Video Call Minutes
+                      style:
+                        color: "#064474"
+                        fontSize: .Nfont.nf4
+                        left: "0.02"
+                    - .PopUpTitle2:
+                      text: Purchase video call monthly package, it’ll expend all the licenses you
+                        ready have, and take effective next month.
+                      style:
+                        width: "0.28"
+                        top: "0.01"
+                    - .ExtendSquare:
+                      style:
+                        top: "0.05"
+                        height: "0.05"
+                        left: "0.115"
+                        width: "0.09"
+                      children:
+                        - .ExtendWord1:
+                          text: 500<small><small>min</small></small>
+                          style:
+                            top: "0.025"
+                            width: "0.09"
+                        - .ExtendWord2:
+                          text: "$10/month"
+                          style:
+                            top: "0.025"
+                            width: "0.09"
+                    - type: label
+                      text: "Number of provider:  5"
+                      style:
+                        fontSize: .Nfont.nf4
+                        left: "0.03"
+                        top: "0.025"
+                    - .PopUpTitle:
+                      text: "Total Price:"
+                      style:
+                        fontSize: "28"
+                        top: "0.025"
+                    - type: view
+                      text: $10
+                      style:
+                        fontSize: "38"
+                        color: "#0063A8 "
+                        top: "0.02"
+                        width: "0.32"
+                        textAlign:
+                          x: center
+                    - type: button
+                      text: "Buy Now"
+                      onClick:
+                        - actionType: popUp
+                          popUpView: ExtendPackageend
+                        - actionType: popUpDismiss
+                          popUpView: ExtendPackageMinutes
+                      style:
+                        fontFamily: Avenir
+                        fontSize: .Nfont.nf3
+                        width: "0.12"
+                        height: "0.05"
+                        top: "0.02"
+                        left: "0.05"
+                        color: "0xffffff"
+                        backgroundColor: "#0063A8"
+                        borderRadius: "5"
+                        border:
+                          style: "1"
+        - type: popUp
+          viewTag: "SupplementPackage"
+          style:
+            overflow: scroll
+            top: "0"
+            width: "1"
+            height: "0.025"
+            position: "fixed"
+            backgroundColor: "#7070705f"
+          children:
+            - type: view
+              style:
+                left: "0.4"
+                width: "0.32"
+                top: "0.005"
+                height: "0.002"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.002"
+                  children:
+                    - .Close:
+                      style:
+                        left: "0.3"
+                        top: "0.02"
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: SupplementPackage
+                    - .PopUpTitle:
+                    - .PopUpTitle:
+                      text: Supplement Package
+                      style:
+                        color: "#064474"
+                        fontSize: .Nfont.nf4
+                        top: "0.02"
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.02"
+                    top: "0.02"
+                  children:
+                    - type: label
+                      text: For Video Call Minutes
+                      style:
+                        color: "#064474"
+                        fontSize: .Nfont.nf4
+                        left: "0.02"
+                    - .PopUpTitle2:
+                      text: Purchase video call supplement package, you need to choose a license
+                        first, it’ll add on the license’s current residual video
+                        call minutes. It can be purchased limitless, and
+                        effective immediately.
+                      style:
+                        width: "0.28"
+                        top: "0.06"
+                    - .ExtendSquare:
+                      style:
+                        top: "0.02"
+                        height: "0.02"
+                        left: "0.115"
+                        width: "0.09"
+                      children:
+                        - .ExtendWord1:
+                          text: 500<small><small>min</small></small>
+                          style:
+                            top: "0.025"
+                            width: "0.09"
+                        - .ExtendWord2:
+                          text: "$10/month"
+                          style:
+                            top: "0.02"
+                            width: "0.09"
+                    - type: label
+                      text: "Choose License:"
+                      style:
+                        left: "0.02"
+                        top: "0.02"
+                        width: "0.12"
+                        height: "0.02"
+                        fontSize: .Nfont.nf4
+                    - type: textField
+                      contentType: text
+                      dataKey: s.k
+                      style:
+                        left: "0.105"
+                        top: "0.02"
+                        width: "0.12"
+                        height: "0.02"
+                        fontSize: .Nfont.nf4
+                        textIndent: "1em"
+                        backgroundColor: "#E3E3E3"
+                        borderWidth: "1"
+                        border:
+                          style: "2"
+                          color: "#E3E3E3"
+                    - type: button
+                      text: "select"
+                      style:
+                        left: "0.23"
+                        top: "0.02"
+                        width: "0.08"
+                        height: "0.04"
+                        fontSize: .Nfont.nf4
+                        backgroundColor: "#003D68"
+                        color: "#FFFFFF"
+                      onClick:
+                        - emit:
+                            dataKey:
+                              var: s.k
+                            actions:
+                              - if:
+                                  - =..s.k
+                                  - ..s.kk@: =..LicensesInfo.0
+                                    ..Opt@: =..Title2
+                                  - continue
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: select2
+                    - type: label
+                      text: "License info:"
+                      style:
+                        # fontFamily: Poppins
+                        fontSize: "24"
+                        left: "0.02"
+                        top: "0.02"
+                    - type: label
+                      viewTag: select2
+                      style:
+                        width: "0.32"
+                        top: "0.02"
+                      children:
+                        - type: view
+                          children:
+                            - type: label
+                              dataKey: Opt.name1
+                              style:
+                                width: "0.07"
+                                height: "0.07"
+                                top: "0.03"
+                                left: "0.02"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              dataKey: Opt.name2
+                              style:
+                                width: "0.07"
+                                height: "0.07"
+                                top: "0.03"
+                                left: "0.08"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              dataKey: Opt.name3
+                              style:
+                                width: "0.07"
+                                height: "0.07"
+                                top: "0.03"
+                                left: "0.16"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              dataKey: Opt.name4
+                              style:
+                                width: "0.07"
+                                height: "0.07"
+                                top: "0.03"
+                                left: "0.24"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                        - type: label
+                          dataKey: s.kk.LicenseID
+                          style:
+                            width: "0.03"
+                            height: "0.07"
+                            top: "0.08"
+                            left: "0.02"
+                            fontSize: "14"
+                            fontFamily: "Montserrat"
+                        - type: label
+                          dataKey: s.kk.Purchase_Date
+                          style:
+                            width: "0.06"
+                            height: "0.07"
+                            top: "0.08"
+                            left: "0.08"
+                            fontSize: "14"
+                            fontFamily: "Montserrat"
+                        - type: label
+                          dataKey: s.kk.Expire_Date
+                          style:
+                            width: "0.06"
+                            height: "0.07"
+                            top: "0.08"
+                            left: "0.16"
+                            fontSize: "14"
+                            fontFamily: "Montserrat"
+                        - type: label
+                          dataKey: s.kk.ResidualVideoCall
+                          style:
+                            width: "0.06"
+                            height: "0.07"
+                            top: "0.08"
+                            left: "0.24"
+                            fontSize: "14"
+                            fontFamily: "Montserrat"
+                    - .PopUpTitle:
+                      text: "Total Price:"
+                      style:
+                        fontSize: "24"
+                        top: "0.02"
+                    - type: view
+                      text: $10
+                      style:
+                        fontSize: "26"
+                        color: "#0063A8 "
+                        top: "0.02"
+                        width: "0.32"
+                        textAlign:
+                          x: center
+                    - type: button
+                      text: "Buy Now"
+                      onClick:
+                        - actionType: popUp
+                          popUpView: ExtendPackageend
+                        - actionType: popUpDismiss
+                          popUpView: SupplementPackage
+                      style:
+                        fontFamily: Avenir
+                        fontSize: .Nfont.nf3
+                        width: "0.12"
+                        height: "0.06"
+                        top: "0.02"
+                        left: "0.1"
+                        color: "0xffffff"
+                        backgroundColor: "#0063A8"
+                        borderRadius: "5"
+                        border:
+                          style: "1"
+        - type: popUp
+          viewTag: "RenewLicense"
+          style:
+            overflow: scroll
+            top: "0"
+            width: "1"
+            height: "0.01"
+            position: "fixed"
+            backgroundColor: "#7070705f"
+          children:
+            - type: view
+              style:
+                left: "0.34"
+                width: "0.44"
+                top: "0.02"
+                height: "0.02"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.02"
+                  children:
+                    - .Close:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: RenewLicense
+                    - .PopUpTitle:
+                      text: Renew License
+                      style:
+                        fontSize: "24"
+                    - .PopUpTitle2:
+                      text: You can renew the license or buy extend package for this license.
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.02"
+                    top: "0.02"
+                  children:
+                    - .PopUpTitle:
+                      text: License info
+                      style:
+                        fontSize: "24"
+                    - type: label
+                      style:
+                        width: "0.32"
+                        top: "0.02"
+                      children:
+                        - type: view
+                          children:
+                            - type: label
+                              text: License ID
+                              style:
+                                width: "0.07"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.02"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: Provider ID
+                              style:
+                                width: "0.07"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.08"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: Purchase Date
+                              style:
+                                width: "0.07"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.16"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: Expire Date
+                              style:
+                                width: "0.07"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.24"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: Residual Video Call
+                              style:
+                                width: "0.1"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.33"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: "12345678"
+                              style:
+                                width: "0.03"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.02"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: "100302756"
+                              style:
+                                width: "0.06"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.08"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: MM/DD/YYYY
+                              style:
+                                width: "0.06"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.16"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: MM/DD/YYYY
+                              style:
+                                width: "0.06"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.24"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: 100min
+                              style:
+                                width: "0.06"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.33"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.01"
+                    top: "0.01"
+                  children:
+                    - .PopUpTitle:
+                      style:
+                        fontSize: "24"
+                        top: "0"
+                      text: Choose renew plan
+                    - .ExtendSquare:
+                      text: ""
+                      style:
+                        top: "0.06"
+                        height: "0.15"
+                        left: "0.03"
+                        width: "0.11"
+                      onClick:
+                        - emit:
+                            actions:
+                              - =..color
+                      children:
+                        - .ExtendWord1:
+                          text: $36<font
+                            color="#000000"><small><small><small>/month</small></small></small></font>
+                          style:
+                            top: "0.01"
+                            width: "0.11"
+                            fontSize: "32"
+                        - .ExtendWord2:
+                          text: "Monthly Plan"
+                          style:
+                            top: "0.02"
+                            width: "0.11"
+                            fontSize: .Nfont.nf3
+                            color: "#000000af"
+                    - .ExtendSquare:
+                      style:
+                        top: "0.01"
+                        height: "0.1"
+                        left: "0.16"
+                        width: "0.11"
+                      children:
+                        - .ExtendWord1:
+                          text: $105<font
+                            color="#000000"><small><small><small>/Quarter</small></small></small></font>
+                          style:
+                            top: "0.01"
+                            width: "0.11"
+                            fontSize: "32"
+                        - .ExtendWord2:
+                          text: "Quarterly Plan"
+                          style:
+                            top: "0.01"
+                            width: "0.11"
+                            fontSize: .Nfont.nf3
+                            color: "#000000af"
+                    - .ExtendSquare:
+                      style:
+                        top: "0.01"
+                        height: "0.01"
+                        left: "0.29"
+                        width: "0.11"
+                      children:
+                        - .ExtendWord1:
+                          text: $400<font
+                            color="#000000"><small><small><small>/Year</small></small></small></font>
+                          style:
+                            top: "0.07"
+                            width: "0.11"
+                            fontSize: "32"
+                        - .ExtendWord2:
+                          text: "Yearly Plan"
+                          style:
+                            top: "0.02"
+                            width: "0.11"
+                            fontSize: .Nfont.nf3
+                            color: "#000000af"
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.02"
+                    top: "0.04"
+                  children:
+                    - .PopUpTitle:
+                      style:
+                        fontSize: "24"
+                        top: "0"
+                      text: Choose renew plan
+                    - .ExtendSquare:
+                      style:
+                        top: "0.06"
+                        height: "0.15"
+                        left: "0.03"
+                        width: "0.11"
+                      children:
+                        - .ExtendWord2:
+                          text: 500<small><small><small>min</small></small></small>
+                          style:
+                            top: "0.02"
+                            width: "0.11"
+                            fontSize: "32"
+                            color: "#0063A8"
+                        - .ExtendWord1:
+                          text: "$10"
+                          style:
+                            top: "0.09"
+                            width: "0.11"
+                            fontSize: .Nfont.nf3
+                            color: "#000000af"
+                    - .ExtendSquare:
+                      style:
+                        top: "0.02"
+                        height: "0.02"
+                        left: "0.16"
+                        width: "0.11"
+                      children:
+                        - .ExtendWord2:
+                          text: 1000<small><small><small>min</small></small></small>
+                          style:
+                            top: "0.02"
+                            width: "0.11"
+                            fontSize: "32"
+                            color: "#0063A8"
+                        - .ExtendWord1:
+                          text: "$90"
+                          style:
+                            top: "0.02"
+                            width: "0.11"
+                            fontSize: .Nfont.nf3
+                            color: "#000000af"
+                    - .ExtendSquare:
+                      style:
+                        top: "0.02"
+                        height: "0.02"
+                        left: "0.29"
+                        width: "0.11"
+                      children:
+                        - .ExtendWord1:
+                          text: 2000<small><small><small>min</small></small></small>
+                          style:
+                            top: "0.02"
+                            width: "0.11"
+                            fontSize: "32"
+                            color: "#0063A8"
+                        - .ExtendWord2:
+                          text: "$170"
+                          style:
+                            top: "0.02"
+                            width: "0.11"
+                            fontSize: .Nfont.nf3
+                            color: "#000000af"
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.02"
+                    top: "0.02"
+                  children:
+                    - type: label
+                      text: "Total Price:"
+                      style:
+                        fontSize: "24"
+                        # fontFamily: Poppins
+                        left: "0.02"
+                    - type: label
+                      text: "$0"
+                      style:
+                        fontSize: "24"
+                        # fontFamily: Poppins
+                        left: "0.12"
+                        color: "#0063A8"
+                    - type: button
+                      text: "Buy now"
+                      style:
+                        width: "0.08"
+                        height: " 0.02"
+                        left: "0.18"
+                        top: "0.02"
+                        fontSize: .Nfont.nf4
+                        backgroundColor: "#BEBEBE"
+                        fontFamily: Avenir
+                        borderRadius: "5"
+                        border:
+                          style: "1"
+                      onClick:
+                        - actionType: popUp
+                          popUpView: ExtendPackageend
+                        - actionType: popUpDismiss
+                          popUpView: RenewLicense
+        - type: popUp
+          viewTag: AddProvider
+          style:
+            overflow: scroll
+            top: '0'
+            width: "1"
+            height: "0.01"
+            position: "fixed"
+            backgroundColor: "#7070705f"
+          children:
+            - type: view
+              style:
+                left: "0.34"
+                width: "0.44"
+                top: "0.02"
+                height: "0.02"
+                backgroundColor: "0xffffff"
+                border:
+                  style: "3"
+                borderWidth: "1"
+                borderColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.02"
+                  children:
+                    - .Close:
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: AddProvider
+                    - .PopUpTitle:
+                      text: Add Provider
+                      style:
+                        fontSize: "24"
+                    - .PopUpTitle2:
+                      text: Which provider you want to authorize to use this license?
+                - type: view
+                  style:
+                    width: "0.44"
+                    height: "0.01"
+                    top: "0.01"
+                  children:
+                    - .PopUpTitle:
+                      text: License info
+                      style:
+                        fontSize: "24"
+                    - type: label
+                      style:
+                        width: "0.32"
+                        top: "0.02"
+                      children:
+                        - type: view
+                          children:
+                            - type: label
+                              text: License ID
+                              style:
+                                width: "0.07"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.02"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: Provider ID
+                              style:
+                                width: "0.07"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.08"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: Purchase Date
+                              style:
+                                width: "0.07"
+                                height: "0.01"
+                                top: "0.01"
+                                left: "0.16"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: Expire Date
+                              style:
+                                width: "0.07"
+                                height: "0.01"
+                                top: "0.01"
+                                left: "0.24"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: Residual Video Call
+                              style:
+                                width: "0.1"
+                                height: "0.01"
+                                top: "0.01"
+                                left: "0.33"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: "12345678"
+                              style:
+                                width: "0.03"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.02"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: "100302756"
+                              style:
+                                width: "0.06"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.07"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: MM/DD/YYYY
+                              style:
+                                width: "0.06"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.16"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: MM/DD/YYYY
+                              style:
+                                width: "0.06"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.24"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                            - type: label
+                              text: 100min
+                              style:
+                                width: "0.06"
+                                height: "0.02"
+                                top: "0.02"
+                                left: "0.33"
+                                fontSize: "14"
+                                fontFamily: "Montserrat"
+                - type: scrollView
+                  style:
+                    overflow: scroll
+                    width: "0.44"
+                    height: "0.01"
+                    top: "0.01"
+                  children:
+                    - type: label
+                      text: "Choose License:"
+                      style:
+                        left: "0.02"
+                        width: "0.12"
+                        height: "0.01"
+                        fontSize: .Nfont.nf4
+                    - type: textField
+                      contentType: text
+                      dataKey: s.k
+                      style:
+                        left: "0.11"
+                        width: "0.21"
+                        height: "0.01"
+                        fontSize: .Nfont.nf4
+                        textIndent: "1em"
+                        backgroundColor: "#E3E3E3"
+                        borderWidth: "1"
+                        border:
+                          style: "2"
+                          color: "#E3E3E3"
+                    - type: button
+                      text: "select"
+                      style:
+                        left: "0.33"
+                        width: "0.08"
+                        height: "0.01"
+                        fontSize: .Nfont.nf4
+                        backgroundColor: "#003D68"
+                        color: "#FFFFFF"
+                      onClick:
+                        - actionType: popUp
+                          popUpView: AddProviders
+                        # - actionType: builtIn
+                        #   funcName: redraw
+                        #   viewTag: select2
+
+                    - type: popUp
+                      viewTag: AddProviders
+                      style:
+                        overflow: scroll
+                        width: "0.23"
+                        height: "0.01"
+                        top: "0.01"
+                        left: "0.33"
+                        # backgroundColor: "0x000000"
+                      children:
+                        - type: image
+                          path: backgroundColorBlue.png
+                        - type: view
+                          style:
+                            width: "0.23"
+                            height: "0.01"
+                            top: "0.01"
+                            backgroundColor: "#003D68"
+                            zIndex: "110"
+                        - type: image
+                          path: topNavigationSearch.png
+                          style:
+                            top: "0.01"
+                            left: "0.01"
+                            zIndex: "150"
+                        - type: view
+                          style:
+                            width: "0.23"
+                            height: "0.01"
+                            top: "0.01"
+                            left: ""
+                            background: "0xffffff"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..providers
+                              iteratorVar: itemObject
+                              children:
+                                - type: listItem
+                                  style:
+                                    left: "0"
+                                    width: "0.23"
+                                    border: "none"
+                                    borderBottom: "1.5px solid #326182"
+                                    borderColor: "#326182"
+                                    height: "0.01"
+                                    display: "inline-block"
+                                    textIndent: "1em"
+                                  children:
+                                    - type: label
+                                      dataKey: "itemObject.key"
+                                      onClick:
+                                        - actionType: popUpDismiss
+                                          popUpView: AddProviders
+                - type: button
+                  text: "Save"
+                  style:
+                    overflow: scroll
+                    width: "0.1"
+                    top: "0.005"
+                    height: "0.005"
+                    left: "0.17"
+                    color: "0xffffff"
+                    backgroundColor: "#0063A8"
+                  onClick:
+                    - actionType: popUp
+                      popUpView: ExtendPackageend
+                    - actionType: popUpDismiss
+                      popUpView: AddProvider
+                    - actionType: popUpDismiss
+                      popUpView: AddProviders

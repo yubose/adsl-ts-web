@@ -1,0 +1,812 @@
+AbsentNotePrivate:
+  title: Absence / Excuse Note
+  # pageNumber: "184"
+  init:
+    - .SignInCheck
+    # macro 复现
+    - if:
+        - =.Global.formData.providerNotesForm.id
+        - ..absentNote.document@: =.Global.formData.providerNotesForm
+        - ..absentNote.document@: =.Global.formData.medicalRecords
+    # 判断是否签名
+    - if:
+        - =..absentNote.document.name.data.whetherSign
+        - continue
+        - actionType: evalObject
+          object:
+            - ..formData.temporarySignature@: =..absentNote.document.name.data.signatureId
+            - ..formData.signShow@: "block"
+            - ..formData.canvasShow@: "none"
+    - actionType: evalObject
+      object: .BaseDate.getDate
+    #生成年份
+    - =.builtIn.date.generateYear:
+        dataIn:
+          last: 40
+          next: 10
+        dataOut: BaseDate.year
+  newSign:
+    docRes: ""
+    document:
+      #DOC
+      .Document: ""
+      type: .DocType.DocumentSignature
+      name:
+        title: ""
+        type: ..newSign.document.subtype.mediaType
+        data: ""
+      eid: .Global.formData.meetingDocEid
+      subtype:
+        mediaType: "" # mediaType : "image/jpeg"        
+    docAPI:
+      # DOCAPI
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: AbsentNotePrivate.newSign.document
+        dataOut: AbsentNotePrivate.newSign.docRes
+  absentNote:
+    response: ""
+    document:
+      .Document: ""
+      eid: .Global.formData.meetingDocEid
+      type: .DocType.AbsentNote
+      reid: ""
+      name:
+        title: "Absence Note"
+        user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+        type: "text/plain"
+        data:
+          classTag:
+            name: Admin
+            fontColor: "0x005795"
+            backgroundColor: "0xe9f2fc"
+            display: block
+          statusTag:
+            name: Private
+            fontColor: "0x4c5264"
+            backgroundColor: "0xececee"
+            display: block
+          signatureId: ""
+          signatureTime: ""
+          whetherSign: true
+          name: ""
+          date: ""
+          place: ""
+          reason: ""
+          note: ""
+          uploadUserName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+          patientInfo:
+            examDate: .Global.formData.appointment.stime
+            name: .Global.formData.patientInfo.name.data.basicInfo.fullName
+            dob: .Global.formData.patientInfo.name.data.basicInfo.dateOfBirth
+            phoneNumber: .Global.formData.patientInfo.name.data.basicInfo.phone
+            email: .Global.formData.patientInfo.name.data.contactInfo.email
+            address: .Global.formData.patientInfo.name.data.contactInfo.address.fullAddress
+          facilityInfo:
+            facilityAvatarID: .Global.facilityAvatarID
+            facilityName: .Global.currentFacility.name.basicInfo.medicalFacilityName
+            location: .Global.currentFacility.name.basicInfo.location
+            email: .Global.currentFacility.name.basicInfo.email
+            website: .Global.currentFacility.name.basicInfo.website
+            fax: .Global.currentFacility.name.basicInfo.fax
+            phoneNumber: .Global.currentFacility.name.basicInfo.phoneNumber
+    docAPI:
+      .DocAPI: ""
+      store:
+        api: cd
+        dataIn: AbsentNotePrivate.absentNote.document
+        dataOut: AbsentNotePrivate.absentNote.response
+        subtype:
+          mediaType: "text/plain"
+      delete:
+        api: dx
+        dataIn: AbsentNotePrivate.absentNote.document
+  save:
+    - =.AbsentNotePrivate.absentNote.docAPI.store: ""
+  delete:
+    - =.AbsentNotePrivate.absentNote.docAPI.delete: ""
+  place:
+    - key: place
+      value: school
+    - key: place
+      value: work
+    - key: place
+      value: other
+  reason:
+    - key: reason
+      value: injury
+    - key: reason
+      value: illness
+    - key: reason
+      value: other
+  formData:
+    signShow: "none"
+    canvasShow: "block"
+    temporarySignature: ""
+    whetherSign: ""
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+              onClick:
+                - actionType: builtIn
+                  funcName: goBack
+                  reload: true
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                    # backgroundColor: "0xff000033"
+                  children:
+                    - .FormsTypeTitle:
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        marginTop: "0.01"
+                        height: "0.614"
+                        overflow: scroll
+                      children:
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                            height: "0.1"
+                          children:
+                            - .ProFormsBaseView:
+                              style:
+                                width: "0.135"
+                                display: inline-block
+                              children:
+                                - type: image
+                                  path: "office-building.svg"
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: absentNote.document.name.data.facilityInfo.facilityAvatarID
+                                  style:
+                                    marginTop: "0.005"
+                                    width: "0.025"
+                                    height: "0.04416"
+                                    display: inline-block
+                                - type: view
+                                  style:
+                                    marginTop: "0"
+                                    marginLeft: "0.01"
+                                    width: "0.1"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsLabel:
+                                      dataKey: absentNote.document.name.data.facilityInfo.facilityName
+                                      style:
+                                        marginTop: "0"
+                                        fontSize: .Nfont.nf4
+                                    - .ProFormsLabel:
+                                      dataKey: absentNote.document.name.data.facilityInfo.location
+                                      style:
+                                        marginTop: "0.01"
+                                        fontSize: .Nfont.nf1
+                            - .ProFormsBaseView:
+                              style:
+                                marginLeft: "0.035"
+                                width: "0.12"
+                                display: inline-block
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Email
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.facilityInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Website"
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.facilityInfo.website
+                            - .ProFormsBaseView:
+                              style:
+                                marginLeft: "0"
+                                width: "0.1"
+                                display: inline-block
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Main #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.facilityInfo.phoneNumber
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Fax #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: absentNote.document.name.data.facilityInfo.fax
+                        - .ProFormsBaseView:
+                          children:
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Exam Date
+                                - .ProFormsLabelRight:
+                                  text=func: .builtIn.string.formatUnixtime_en
+                                  dataKey: absentNote.document.name.data.patientInfo.examDate
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Patient Name
+                                - .ProFormsLabelRight:
+                                  dataKey: absentNote.document.name.data.patientInfo.name
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Date of Birth
+                                - .ProFormsLabelRight:
+                                  dataKey: absentNote.document.name.data.patientInfo.dob
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Phone #"
+                                - .ProFormsLabelRight:
+                                  dataKey: absentNote.document.name.data.patientInfo.phoneNumber
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Email"
+                                - .ProFormsLabelRight:
+                                  dataKey: absentNote.document.name.data.patientInfo.email
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Patient Address
+                                - .ProFormsLabelRight:
+                                  dataKey: absentNote.document.name.data.patientInfo.address
+                            - .ProFormsDivider: # leave of absence
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Leave Of Absence
+                              style:
+                                fontSize: .Nfont.nf2
+                                fontWeight: "800"
+                            - .ProFormsBaseView:
+                              style:
+                                width: "0.39"
+                              children:
+                                - .ProFormsLabelRight:
+                                  text: Please Excuse
+                                  style:
+                                    marginLeft: "0"
+                                - .ProFormsTextField:
+                                  dataKey: absentNote.document.name.data.name
+                                  style:
+                                    width: "0.39"
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.02"
+                              children:
+                                - .ProFormsLabelRight:
+                                  text: "As Of"
+                                  style:
+                                    marginLeft: "0"
+                                - .ProFormsCalendarView:
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: asOfDateTag
+                                  children:
+                                    - .ProFormsCalendarField:
+                                      viewTag: asOfViewTag
+                                      placeholder: "Select Date"
+                                      dataKey: absentNote.document.name.data.date
+                                    - .ProFormsCalendarImg:
+
+
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.02"
+                              children:
+                                - .ProFormsLabelRight:
+                                  text: "From"
+                                  style:
+                                    marginLeft: "0"
+                                - type: list
+                                  viewTag: placeTag
+                                  contentType: listObject
+                                  listObject: ..place
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: '0.39'
+                                    marginTop: "0.01"
+                                    left: "0"
+                                    height: auto
+                                    axis: horizontal
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        height: '0.017'
+                                        left: '0'
+                                        marginTop: '0'
+                                      children:
+                                        - type: image
+                                          style:
+                                            width: "0.008"
+                                            display: inline-block
+                                            marginTop: "0.002"
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..absentNote.document.name.data.place
+                                                          string2: $var.value
+                                                    - yes.png
+                                                    - no.png
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =..absentNote.document.name.data.place
+                                                            string2: $var.value
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..absentNote.document.name.data
+                                                            key: $var.key
+                                                            value: ""
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..absentNote.document.name.data
+                                                            key: $var.key
+                                                            value: $var.value
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: placeTag
+                                        - type: label
+                                          dataKey: itemObject.value
+                                          style:
+                                            marginLeft: "0.004"
+                                            width: "0.036"
+                                            fontSize: .Nfont.nf0
+                                            display: inline-block
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.02"
+                              children:
+                                - .ProFormsLabelRight:
+                                  text: Due To
+                                  style:
+                                    marginLeft: "0"
+                                - type: list
+                                  viewTag: reasonTag
+                                  contentType: listObject
+                                  listObject: ..reason
+                                  iteratorVar: itemObject
+                                  style:
+                                    width: '0.39'
+                                    marginTop: "0.01"
+                                    left: "0"
+                                    height: auto
+                                    axis: horizontal
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        height: '0.017'
+                                        left: '0'
+                                        marginTop: '0'
+                                      children:
+                                        - type: image
+                                          style:
+                                            width: "0.008"
+                                            display: inline-block
+                                            marginTop: "0.002"
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..absentNote.document.name.data.reason
+                                                          string2: $var.value
+                                                    - yes.png
+                                                    - no.png
+                                          onClick:
+                                            - emit:
+                                                dataKey:
+                                                  var: itemObject
+                                                actions:
+                                                  - if:
+                                                      - =.builtIn.string.equal:
+                                                          dataIn:
+                                                            string1: =..absentNote.document.name.data.reason
+                                                            string2: $var.value
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..absentNote.document.name.data
+                                                            key: $var.key
+                                                            value: ""
+                                                      - =.builtIn.object.set:
+                                                          dataIn:
+                                                            object: =..absentNote.document.name.data
+                                                            key: $var.key
+                                                            value: $var.value
+                                            - actionType: builtIn
+                                              funcName: redraw
+                                              viewTag: reasonTag
+                                        - type: label
+                                          dataKey: itemObject.value
+                                          style:
+                                            marginLeft: "0.004"
+                                            width: "0.036"
+                                            fontSize: .Nfont.nf0
+                                            display: inline-block
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                wordBreak: break-all
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Confidentiality Notice:"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabel:
+                                  text: "The documents accompanying this facsimile Transmission contain
+                                    confidential information belonging to the
+                                    sender, which is privilege.The information
+                                    is intended only for the use of the
+                                    Individual or entity below.If you are not
+                                    the intended recipient, you are Hereby
+                                    notified that any disclosure.copying
+                                    distribution or the taking of any action in
+                                    reliance of the contents of this telescoped
+                                    information is strictly prohibited. If you
+                                    have received this facsimile in error,please
+                                    Notify us immediately by telephone to
+                                    arrange for the return of said documents."
+                                  style:
+                                    display: inline
+                                    fontWeight: "400"
+                                    fontSize: .Nfont.nf1
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Notes"
+                                - .ProFormsTextView:
+                                  dataKey: absentNote.document.name.data.note
+
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                            width: "0.275"
+                            display: flex
+                            justifyContent: space-between
+                          children:
+                            - .ProFormsLabel:
+                              text: Signature
+                              style:
+                                display: inline-block
+                            - .ProFormsLabel:
+                              text: "Clear"
+                              style:
+                                fontWeight: ""
+                                color: "0xe24445"
+                                display: inline-block
+                              onClick:
+                                - actionType: removeSignature
+                                  dataObject: BLOB
+                                  dataKey: newSign.document.name.data
+                                  viewTag: signatureTag
+                                - actionType: evalObject
+                                  object:
+                                    - ..formData.temporarySignature@: ""
+                                    - ..formData.signShow@: "none"
+                                    - ..formData.canvasShow@: "block"
+                                    - ..absentNote.document.name.data.signatureId@: ""
+                                    - ..absentNote.document.name.data.signatureTime@: ""
+                                    - ..absentNote.document.name.data.whetherSign@: true
+                                # 显示签名区域隐藏
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: signatureShowTag
+                                - actionType: builtIn
+                                  funcName: redraw
+                                  viewTag: signatureTag
+
+                        - .SignAreaView:
+                          style:
+                            marginTop: "0.008"
+                          children:
+                            - type: image
+                              viewTag: signatureShowTag
+                              path: null.png
+                              dataKey: formData.temporarySignature
+                              path=func: =.builtIn.utils.prepareDocToPath
+                              style:
+                                display: ..formData.signShow
+                                .SignCanvasStyle:
+                            - type: canvas
+                              dataKey: newSign.document.name.data
+                              viewTag: signatureTag
+                              style:
+                                display: ..formData.canvasShow
+                                overflow: scroll
+                                .SignCanvasStyle:
+                            - type: label
+                              text: "X"
+                              style:
+                                .SignLabelStyle:
+                        - .ProFormsBaseView:
+                          viewTag: signatureShowTag
+                          style:
+                            display: ..formData.signShow
+                          children:
+                            - .ProFormsLabelLeft:
+                              text=func: .builtIn.string.formatUnixtime_en
+                              dataKey: absentNote.document.name.data.signatureTime
+                              style:
+                                display: inline
+                            - .ProFormsLabelLeft:
+                              text: " Digitally Signed"
+                              style:
+                                marginLeft: "0.0046"
+                                display: inline
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabelLeft:
+                              text: "Date"
+                            - .ProFormsLabelRight:
+                              text=func: .builtIn.string.formatUnixtimeL_en
+                              dataKey: absentNote.document.ctime
+                        - .ProFormsDivider:
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomLeftButton:
+                      onClick:
+                        # 签名处理
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: newSign.document.name.data
+                          isEmpty: formData.whetherSign
+                        # 签名处理
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =..formData.temporarySignature
+                                - continue
+                                - actionType: evalObject
+                                  object:
+                                    - if:
+                                        - =..formData.whetherSign
+                                        - continue
+                                        - actionType: evalObject
+                                          object:
+                                            # 签名reid指向absentNote doc 的id
+                                            - ..newSign.document.reid@: =..absentNote.document.id
+                                            - =..newSign.docAPI.store: ""
+                                            # 存放签名的id到absentNote
+                                            - ..absentNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                                            - ..absentNote.document.name.data.signatureTime@: =..newSign.docRes.doc.ctime
+                                            - ..absentNote.document.name.data.whetherSign@: =..formData.whetherSign
+                        #  指定 eid 和 reid
+                        - actionType: evalObject
+                          object:
+                            - ..absentNote.document.eid@: =.Global.formData.meetingDocEid
+                            - ..absentNote.document.reid@: =.Global.formData.meetingDocReid
+                        # 修改type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..absentNote.document.type
+                                  index: 1
+                                  hex: 0
+                                dataOut: AbsentNotePrivate.absentNote.document.type
+                        # 保存absentNote
+                        - actionType: evalObject
+                          object: ..save
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+                    - .FormsBottomRightButton:
+                      onClick:
+                        - actionType: saveSignature
+                          dataObject: BLOB
+                          dataKey: newSign.document.name.data
+                          isEmpty: formData.whetherSign
+                        - actionType: evalObject
+                          object:
+                            # 签名处理
+                            - if:
+                                - =..formData.temporarySignature
+                                - continue
+                                - actionType: evalObject
+                                  object:
+                                    # 签名弹窗
+                                    - if:
+                                        - =.AbsentNotePrivate.formData.whetherSign
+                                        - actionType: popUp
+                                          popUpView: warningView
+                                          wait: true
+                                        - continue
+                                    # 签名reid指向absentNote doc 的id
+                                    - ..newSign.document.reid@: =..absentNote.document.id
+                                    # 保存签名
+                                    - =..newSign.docAPI.store: ""
+                                    # 存放签名的id到absentNote
+                                    - ..absentNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                                    - ..absentNote.document.name.data.signatureTime@: =..newSign.docRes.doc.ctime
+                                    - ..absentNote.document.name.data.whetherSign@: =..formData.whetherSign
+                        #  指定 eid 和 reid
+                        - actionType: evalObject
+                          object:
+                            - ..absentNote.document.eid@: =.Global.formData.meetingDocEid
+                            - ..absentNote.document.reid@: =.Global.formData.meetingDocReid
+                        # 更新文档状态
+                        - actionType: evalObject
+                          object:
+                            - ..absentNote.document.name.data.statusTag.name@: "Released"
+                            - ..absentNote.document.name.data.statusTag.fontColor@: "0x2988e6"
+                            - ..absentNote.document.name.data.statusTag.backgroundColor@: "0xdfedfc"
+                        #  修改type
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..absentNote.document.type
+                                  index: 1
+                                  hex: 1
+                                dataOut: AbsentNotePrivate.absentNote.document.type
+                        # 保存absentNote
+                        - actionType: evalObject
+                          object: ..save
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true
+            - .FormsRightButtonsView:
+              style:
+                top: "0.1"
+              children:
+                - .FormsRightButton:
+                  img: keyboard.svg
+                  msg: "Macro"
+                  style:
+                    marginTop: "0.002"
+                    backgroundColor: "0x1263a8"
+                  onClick:
+                    # 提前保存页面数据用于复现
+                    - actionType: saveSignature
+                      dataObject: BLOB
+                      dataKey: newSign.document.name.data
+                      isEmpty: formData.whetherSign
+                    - actionType: evalObject
+                      object:
+                        - if:
+                            # 是否是上次签名
+                            - =..formData.temporarySignature
+                            - continue # 旧签名
+                            - actionType: evalObject
+                              object:
+                                # 新签名
+                                - if:
+                                    # 是否签名
+                                    - =..formData.whetherSign
+                                    - continue
+                                    - actionType: evalObject
+                                      object:
+                                        # 创建签名
+                                        - ..newSign.document.reid@: =..absentNote.document.id
+                                        - =..newSign.docAPI.store: ""
+                                        # 更改文档中签名信息
+                                        - ..absentNote.document.name.data.signatureId@: =..newSign.docRes.doc.id
+                                        - ..absentNote.document.name.data.signatureTime@: =..newSign.docRes.doc.ctime
+                                        - ..absentNote.document.name.data.whetherSign@: =..formData.whetherSign
+                    # 弹窗
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: macroTag
+                    - actionType: popUp
+                      popUpView: macroTag
+                    - actionType: updateObject
+                      dataKey: Global.formData.providerNotesForm
+                      dataObject: {}
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.providerNotesForm@: =..absentNote.document
+                        - if:
+                            - =.Global.macro.resp.doc.0.id
+                            - actionType: evalObject
+                              object:
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: macroDataTag
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: noMacroDataTag
+                            - actionType: evalObject
+                              object:
+                                - actionType: builtIn
+                                  funcName: hide
+                                  viewTag: macroDataTag
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: noMacroDataTag
+        - .MacroPopUp:
+        - .CopyMacroSucPromptRight:
+        - .BaseWarningView:
+          viewTag: warningView
+          msg2: "You haven't signed the form"
+        - type: popUp
+          viewTag: asOfDateTag
+          style:
+            left: "0"
+            top: "0"
+            width: "1"
+            height: "1"
+            backgroundColor: "0x00000033"
+            zIndex: "100"
+          children:
+            - .BaseDate.calendar:
+              children:
+                - .BaseDate.calendarTitle:
+                - .BaseDate.calendarCancel:
+                - .BaseDate.calendarHeader:
+                  children:
+                    - .BaseDate.newMonthView:
+                    - .BaseDate.newYearView:
+                - .BaseDate.weekView:
+                - .BaseDate.dayView:
+                - .BaseDate.addButton:
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - ..absentNote.document.name.data.date@: =.BaseDate.calendarDate.todayDate
+                    - actionType: builtIn
+                      funcName: redraw
+                      viewTag: asOfViewTag
+                    - actionType: popUpDismiss
+                      popUpView: asOfDateTag

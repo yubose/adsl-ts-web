@@ -1,0 +1,516 @@
+VisitQuestionnaire:
+  pageNumber: "160"
+  title: "Visit Questionnaire"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..formData@: =.Global.formData.medicalRecords
+  formDataTemp:
+    #Input data temp here, datatemp should not mix with formData
+    isPrescribed:
+      - key: isPrescribed
+        value: 'Yes'
+      - key: isPrescribed
+        value: 'Sometimes'
+      - key: isPrescribed
+        value: 'No'
+    isProblems:
+      - key: isProblems
+        value: "Yes"
+      - key: isProblems
+        value: "Sometimes"
+      - key: isProblems
+        value: "No"
+    isToEmergency:
+      - key: isToEmergency
+        value: "Yes"
+      - key: isToEmergency
+        value: "No"
+    isFamilyHistoryChanges:
+      - key: isFamilyHistoryChanges
+        value: "Yes"
+      - key: isFamilyHistoryChanges
+        value: "No"
+    isToAnotherDoctor:
+      - key: isToAnotherDoctor
+        value: "Yes"
+      - key: isToAnotherDoctor
+        value: "No"
+    isNewDrug:
+      - key: isNewDrug
+        value: "Yes"
+      - key: isNewDrug
+        value: "No"
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    top: "0"
+                    left: "0.117"
+                    height: "0.74"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - .FormsTypeTitle:
+                        - type: scrollView
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.614"
+                            overflow: scroll
+                          children:
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Today's Visit"
+                                  style:
+                                    fontSize: .Nfont.nf4
+                                    marginTop: "0.02"
+                                    color: "0x005795"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.02"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "1. What is the purpose of your visit?"
+                                    - .ProFormsGrayView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: formData.name.data.purpose
+                                          style:
+                                            marginLeft: "0.0046"
+                                            paddingTop: "0.0046"
+                                            paddingBottom: "0.0046"
+                                            color: "0x333333"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "2. Description of history of present illness."
+                                    - .ProFormsGrayView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: formData.name.data.descriptionOfIllness
+                                          style:
+                                            marginLeft: "0.0046"
+                                            paddingTop: "0.0046"
+                                            paddingBottom: "0.0046"
+                                            color: "0x333333"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "3. Taking medication as prescribed?"
+                                    - type: list
+                                      viewTag: isPrescribedTag
+                                      contentType: listObject
+                                      listObject: ..formDataTemp.isPrescribed
+                                      iteratorVar: itemObject
+                                      style:
+                                        width: '0.39'
+                                        marginTop: "0.015"
+                                        left: '0'
+                                        height: auto
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject:
+                                          style:
+                                            height: '0.017'
+                                            marginTop: '0'
+                                            width: "0.08"
+                                          children:
+                                            - type: image
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..formData.name.data.isPrescribed
+                                                              string2: $var.value
+                                                        - yes.png
+                                                        - noAvail.png
+                                              style:
+                                                width: "0.008"
+                                                display: inline-block
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: "0.004"
+                                                fontSize: .Nfont.nf0
+                                                display: inline-block
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "4. Any problems with your medications? "
+                                    - type: list
+                                      viewTag: isProblemsTag
+                                      contentType: listObject
+                                      listObject: ..formDataTemp.isProblems
+                                      iteratorVar: itemObject
+                                      style:
+                                        width: '0.39'
+                                        marginTop: "0.015"
+                                        left: '0'
+                                        height: auto
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject:
+                                          style:
+                                            height: '0.017'
+                                            marginTop: '0'
+                                            width: "0.08"
+                                          children:
+                                            - type: image
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..formData.name.data.problems.select
+                                                              string2: $var.value
+                                                        - yes.png
+                                                        - noAvail.png
+                                              style:
+                                                width: "0.008"
+                                                display: inline-block
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: "0.004"
+                                                fontSize: .Nfont.nf0
+                                                display: inline-block
+                                    - .ProFormsGrayView:
+                                      style:
+                                        display: ..formData.name.data.problems.isShow
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: formData.name.data.problems.content
+                                          style:
+                                            marginLeft: "0.0046"
+                                            paddingTop: "0.0046"
+                                            paddingBottom: "0.0046"
+                                            color: "0x333333"
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Update Information"
+                                  style:
+                                    marginTop: "0.03"
+                                    fontSize: .Nfont.nf4
+                                    color: "0x005795"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.02"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: 1. Have you been to the emergency room, hospital, or another doctor since
+                                        your last visit?
+                                    - type: list
+                                      viewTag: isToEmergencyTag
+                                      contentType: listObject
+                                      listObject: ..formDataTemp.isToEmergency
+                                      iteratorVar: itemObject
+                                      style:
+                                        width: '0.39'
+                                        marginTop: "0.015"
+                                        left: '0'
+                                        height: auto
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject:
+                                          style:
+                                            height: '0.017'
+                                            marginTop: '0'
+                                            width: "0.05"
+                                          children:
+                                            - type: image
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..formData.name.data.emergency.select
+                                                              string2: $var.value
+                                                        - yes.png
+                                                        - noAvail.png
+                                              style:
+                                                width: "0.008"
+                                                display: inline-block
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: "0.004"
+                                                fontSize: .Nfont.nf0
+                                                display: inline-block
+                                    - .ProFormsGrayView:
+                                      style:
+                                        display: ..formData.name.data.emergency.isShow
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: formData.name.data.emergency.content
+                                          style:
+                                            marginLeft: "0.0046"
+                                            paddingTop: "0.0046"
+                                            paddingBottom: "0.0046"
+                                            color: "0x333333"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "2. Any changes or new conditions in your family history?"
+                                    - type: list
+                                      viewTag: isNewConditionsTag
+                                      contentType: listObject
+                                      listObject: ..formDataTemp.isFamilyHistoryChanges
+                                      iteratorVar: itemObject
+                                      style:
+                                        width: '0.39'
+                                        marginTop: "0.015"
+                                        left: '0'
+                                        height: auto
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject:
+                                          style:
+                                            height: '0.017'
+                                            marginTop: '0'
+                                            width: "0.05"
+                                          children:
+                                            - type: image
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..formData.name.data.familyHistoryChanges.select
+                                                              string2: $var.value
+                                                        - yes.png
+                                                        - noAvail.png
+                                              style:
+                                                width: "0.008"
+                                                display: inline-block
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: "0.004"
+                                                fontSize: .Nfont.nf0
+                                                display: inline-block
+                                    - .ProFormsGrayView:
+                                      style:
+                                        display: ..formData.name.data.familyHistoryChanges.isShow
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: formData.name.data.familyHistoryChanges.content
+                                          style:
+                                            marginLeft: "0.0046"
+                                            paddingTop: "0.0046"
+                                            paddingBottom: "0.0046"
+                                            color: "0x333333"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "3. Any new drug or environmental allergies?"
+                                    - type: list
+                                      viewTag: isNewDrugTag
+                                      contentType: listObject
+                                      listObject: ..formDataTemp.isNewDrug
+                                      iteratorVar: itemObject
+                                      style:
+                                        width: '0.39'
+                                        marginTop: "0.015"
+                                        left: '0'
+                                        height: auto
+                                        axis: horizontal
+                                      children:
+                                        - type: listItem
+                                          itemObject:
+                                          style:
+                                            height: '0.017'
+                                            marginTop: '0'
+                                            width: "0.05"
+                                          children:
+                                            - type: image
+                                              path:
+                                                emit:
+                                                  dataKey:
+                                                    var: itemObject
+                                                  actions:
+                                                    - if:
+                                                        - =.builtIn.string.equal:
+                                                            dataIn:
+                                                              string1: =..formData.name.data.newDrug.select
+                                                              string2: $var.value
+                                                        - yes.png
+                                                        - noAvail.png
+                                              style:
+                                                width: "0.008"
+                                                display: inline-block
+                                            - type: label
+                                              dataKey: itemObject.value
+                                              style:
+                                                marginLeft: "0.004"
+                                                fontSize: .Nfont.nf0
+                                                display: inline-block
+
+                                    - .ProFormsBaseView:
+                                      viewTag: isNewDrugDetailsTag
+                                      style:
+                                        display: ..formData.name.data.newDrug.isShow
+                                      children:
+                                        - ProFormsBaseView:
+                                          style:
+                                            marginTop: "0.03"
+                                          children:
+                                            - .ProFormsLabel:
+                                              text: "1) Allergy/Irritant"
+                                            - .ProFormsGrayView:
+                                              children:
+                                                - .ProFormsLabelLeft:
+                                                  dataKey: formData.name.data.newDrug.allergy
+                                                  style:
+                                                    marginLeft: "0.0046"
+                                                    paddingTop: "0.0046"
+                                                    paddingBottom: "0.0046"
+                                                    color: "0x333333"
+                                        - ProFormsBaseView:
+                                          style:
+                                            marginTop: "0.03"
+                                          children:
+                                            - .ProFormsLabel:
+                                              text: "2) What happens?"
+                                            - .ProFormsGrayView:
+                                              children:
+                                                - .ProFormsLabelLeft:
+                                                  dataKey: formData.name.data.newDrug.happens
+                                                  style:
+                                                    marginLeft: "0.0046"
+                                                    paddingTop: "0.0046"
+                                                    paddingBottom: "0.0046"
+                                                    color: "0x333333"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: "4. Other notes?"
+                                    - .ProFormsGrayView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          dataKey: formData.name.data.notes
+                                          style:
+                                            marginLeft: "0.0046"
+                                            paddingTop: "0.0046"
+                                            paddingBottom: "0.0046"
+                                            color: "0x333333"
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Referring Provider"
+                                  style:
+                                    fontSize: .Nfont.nf4
+                                    marginTop: "0.03"
+                                    color: "0x005795"
+                                - .ProFormsLabel:
+                                  text: "Who referred you?"
+                                  style:
+                                    marginTop: "0.02"
+                                    fontSize: .Nfont.nf2
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.02"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Provider's Name"
+                                    - .ProFormsLabelRight:
+                                      dataKey: formData.name.data.referProvider.name
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Facility Main #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: formData.name.data.referProvider.facilityMain
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Facility Fax #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: formData.name.data.referProvider.facilityFax
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Facility Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: formData.name.data.referProvider.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Facility Address"
+                                    - .ProFormsLabelRight:
+                                      dataKey: formData.name.data.fullAddress
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true

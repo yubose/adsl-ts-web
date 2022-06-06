@@ -1,0 +1,55 @@
+<h1>Analysis</h1>
+<hr />
+
+<script type="text/javascript">
+  const ADD_DIR = 'ADD_DIR'
+  const ADD_FILE = 'ADD_FILE'
+  const DIR_REMOVED = 'DIR_REMOVED'
+  const FILE_CHANGED = 'FILE_CHANGED'
+  const FILE_REMOVED = 'FILE_REMOVED'
+  const WATCH_ERROR = 'WATCH_ERROR'
+
+  const DIAGNOSTICS = 'DIAGNOSTICS'
+
+
+  window.addEventListener('load', function onLoad(evt) {
+    const tag = `[diagnostics]`
+    const ws = new WebSocket(`ws://127.0.0.1:3020`)
+
+    ws.addEventListener('open', () => {
+      console.log(`%c${tag} Opened`, `color:#00b406;`)
+      ws.send(JSON.stringify({ type: 'CONNECTED', id: 'diagnostics' }))
+    })
+
+    ws.addEventListener('message', (msg) => {
+      let data
+
+      try {
+        data = typeof msg?.data === 'string' ? JSON.parse(msg.data) : msg.data
+      } catch (error) {
+        console.error(error instanceof Error ? error : new Error(String(error)))
+      }
+
+      console.log(`%c${tag} Message`, `color:#e50087;`, data || msg)
+
+      switch (data?.type) {
+        case DIAGNOSTICS: {
+          // console.log()
+          break
+        }
+        default:
+          break
+      }
+
+    })
+
+    ws.addEventListener('error', (evt) => {
+      console.log(`%c${tag} Error`, `color:#ec0000;`, evt)
+    })
+
+    ws.addEventListener('close', (evt) => {
+      console.log(`%c${tag} Closed`, `color:#FF5722;`, evt)
+    })
+
+  })
+</script>

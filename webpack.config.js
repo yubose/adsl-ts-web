@@ -93,6 +93,8 @@ function getWebpackConfig(env) {
     'noodl-utils': pkgJson['noodl-utils'].version,
   }
 
+  const analysisApp = env.APP || env.CONFIG || 'testpage'
+
   /**
    * @type { import('webpack').Configuration } webpackOptions
    */
@@ -124,16 +126,16 @@ function getWebpackConfig(env) {
             res.status(200).json({ ...devServer.app._router })
           })
 
-          const analysis = createAnalysisModule(paths.analysis.base, {
+          const { createAnalysisModule } = require('./analysis/server')
+
+          const analysis = createAnalysisModule(
+            paths.analysis.base,
             devServer,
-            env,
-            watchOptions: {
-              //
+            {
+              env,
+              webpackConfig: webpackOptions,
             },
-            wssOptions: {
-              //
-            },
-          })
+          )
 
           analysis.registerRoutes()
           analysis.watch()
@@ -151,11 +153,13 @@ function getWebpackConfig(env) {
           'Origin, X-Requested-With, Content-Type, Accept, Authorization',
       },
       port: 3000,
-      // proxy: {
-      //   '/analysis': 'http://127.0.0.1:3000/analysis/app',
-      //   '/analysis/app': 'http://127.0.0.1:3000/analysis/app',
-      //   '/analysis/testpage': 'http://127.0.0.1:3000/analysis/testpage',
-      // },
+      proxy: {
+        [`/${analysisApp}`]: `http://127.0.0.1:3000/analysis/${analysisApp}`,
+        '/analysis/console': `http://127.0.0.1:3000/index.html?analysis`,
+        //   '/analysis': 'http://127.0.0.1:3000/analysis/app',
+        //   '/analysis/app': 'http://127.0.0.1:3000/analysis/app',
+        //   '/analysis/testpage': 'http://127.0.0.1:3000/analysis/testpage',
+      },
       static: [paths.public, paths.analysis.base, paths.analysis.app],
     },
     devtool: false,
@@ -258,6 +262,7 @@ function getWebpackConfig(env) {
             }
           : undefined),
         LOCAL_CONFIG_URL: env.APP ? `${env.APP}/${env.APP}.yml` : '',
+        ANALYSIS_APP: analysisApp,
       }),
       new HtmlWebpackPlugin({
         alwaysWriteToDisk: true,
@@ -293,7 +298,7 @@ function getWebpackConfig(env) {
         ],
       }),
       new webpack.ProgressPlugin({
-        handler: webpackProgress,
+        // handler: webpackProgress,
       }),
       ...((settings.injectScripts && [
         new InjectScriptsPlugin({ path: settings.injectScripts }),
@@ -407,188 +412,3 @@ module.exports.settings = settings
 // }
 
 // return [webpackOptions, workerConfig]
-
-/**
- * @param { string } basedir
- * @param { object } opts
- * @param { import('webpack-dev-server/types/lib/Server') } opts.devServer
- * @param { ws.ServerOptions } opts.wssOptions
- * @param { import('chokidar').WatchOptions & { glob?: string } } opts.watchOptions
- */
-function createAnalysisModule(basedir = paths.analysis.base, opts = {}) {
-  const { devServer, env, watchOptions = {}, wssOptions = {} } = opts
-  const configKey = env.CONFIG || 'testpage'
-
-  const chokidar = require('chokidar')
-  const ws = require('ws')
-
-  const { glob: watchGlob = '*', ...watchOpts } = watchOptions
-
-  /** @type chokidar.FSWatcher */
-  let watcher
-
-  /** @type ws.Server */
-  let wss
-
-  const appDir = path.join(basedir, 'app')
-  const testDir = path.join(basedir, configKey)
-
-  {
-    const pathToAnalysisDashboardFile = path.join(
-      paths.analysis.app,
-      'Dashboard_en.yml',
-    )
-    if (fs.existsSync(pathToAnalysisDashboardFile)) {
-      const yml = fs.readFileSync(pathToAnalysisDashboardFile, 'utf8')
-      const json = toJson(yml)
-      const configBefore = json.config
-      set(json, 'Dashboard.config', configKey)
-      fs.writeFileSync(pathToAnalysisDashboardFile, toYml(json), 'utf8')
-      console.log(
-        `${u.green(
-          `Changed analysis Dashboard config from ${u.cyan(
-            configBefore,
-          )} to ${u.yellow(configKey)}`,
-        )}`,
-      )
-    }
-  }
-
-  function watch(opts) {
-    const tag = `[${u.blue('watch')}]`
-
-    function emit(message) {
-      wss.clients.forEach((client) => {
-        client.send(JSON.stringify(message, null, 2), function onSend(err) {
-          if (err) {
-            console.log(`${tag} Error`, serializeErr(err))
-          }
-        })
-      })
-    }
-
-    /**
-     * @param { (args:{ isFile: boolean; isFolder: boolean; name: string; path: string }) => void } fn
-     * @returns
-     */
-    function onWatchEvent(fn) {
-      async function onEvent(filepath) {
-        filepath = path.resolve(filepath)
-        const stats = await fs.stat(filepath)
-        const pathObject = path.parse(filepath)
-        return fn({
-          isFile: stats.isFile(),
-          isFolder: stats.isDirectory(),
-          name: pathObject.name,
-          path: filepath,
-        })
-      }
-      return onEvent
-    }
-
-    watcher = chokidar.watch(
-      [path.join(appDir, '**/*'), path.join(testDir, '**/*')],
-      { ignoreInitial: true, ...watchOpts },
-    )
-
-    watcher
-      .on('ready', () => {
-        const watchedFiles = watcher?.getWatched()
-        const watchCount = watchedFiles
-          ? u
-              .values(watchedFiles)
-              .reduce((count, files) => (count += files.length || 0), 0)
-          : 0
-        console.log(`${tag} Watching ${yellow(watchCount)} files`)
-      })
-      .on(
-        'add',
-        onWatchEvent((args) => {
-          emit({ type: 'ADD', ...args })
-        }),
-      )
-      .on(
-        'addDir',
-        onWatchEvent((args) => {
-          emit({ type: 'ADD_DIRECTORY', ...args })
-        }),
-      )
-      .on(
-        'change',
-        onWatchEvent((args) => {
-          emit({ type: 'CHANGE', ...args })
-        }),
-      )
-      .on('error', (err) => {
-        emit({ type: 'ERROR', ...serializeErr(err) })
-      })
-      .on('unlink', (filepath) => {
-        emit({ type: 'FILE_REMOVED', filepath })
-      })
-      .on('unlinkDir', (dir) => {
-        emit({ type: 'DIRECTORY_REMOVED', dir })
-      })
-  }
-
-  /**
-   * @param { ws.ServerOptions } opts
-   */
-  function listen(opts) {
-    const tag = `[${u.cyan('wss')}]`
-
-    wss = new ws.WebSocketServer({
-      port: 3020,
-      ...opts,
-    })
-
-    wss
-      .on('connection', (socket, req) => {
-        console.log(`${tag} Connected`)
-      })
-      .on('listening', () => {
-        console.log(`${tag} Listening`)
-      })
-      .on('close', () => {
-        console.log(`${tag} Closed`)
-      })
-      .on('error', (err) => {
-        console.error(`${tag} Error`, {
-          name: err.name,
-          message: err.message,
-          stack: err.stack,
-        })
-      })
-  }
-
-  /**
-   *
-   * @param { import('webpack-dev-server/types/lib/Server') } devServer
-   */
-  function registerRoutes(devServer) {
-    const findMatchingFileName = (fps, fn) => fps.find((fp) => fp.includes(fn))
-    devServer.app.get(`/analysis/:appname/:filename`, (req, res) => {
-      const loadAsYml = (p) => fs.readFileSync(p, 'utf8')
-      const { appname, filename } = req.params
-      const glob = path.join(paths.analysis.base, appname, '**/*.yml')
-      const filepaths = fg.sync(glob)
-      const filepath = findMatchingFileName(filepaths, filename)
-      const fileyml = loadAsYml(filepath)
-      res.status(200).json(fileyml)
-      // const filename = path.basename(filepath, '.yml')
-      // const name = filename.replace(/_en|\.yml$/gi, '')
-    })
-  }
-
-  return {
-    basedir,
-    watch,
-    /**
-     * @param { ws.ServerOptions } opts
-     */
-    listen: (opts) => listen({ ...wssOptions, ...opts }),
-    registerRoutes: () => registerRoutes(devServer),
-    get watcher() {
-      return watcher
-    },
-  }
-}

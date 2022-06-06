@@ -1,0 +1,485 @@
+PifzerVaccineFirDoseReviewPage1:
+  #xd page number: 1080
+  pageNumber: "450"
+
+  title: "Pifzer-BioNTech Vaccine - First Dose"
+
+  init:
+    #Page initialization
+    - .SignInCheck
+    - if:
+        - =.Global.formData.medicalRecords.name.data
+        - .Global.formData.pifzerVaccineFirDoseForm@: =.Global.formData.medicalRecords
+        - continue
+
+  formData:
+    #Input data here
+    PifzerVaccineFirDoseForm: ""
+
+  formDataTemp:
+    # Input data temp here, datatemp should not mix with formData
+    isConsent:
+      - key: isConsent
+        value: "I consent above information is true and correct."
+        value1: true
+      - key: isConsent
+        value: "I agree to share my information with said provider."
+        value1: false
+    single:
+      - isConsent: true
+
+  apiRequest: null
+    #Input data request here
+
+  style: null
+    #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - .SideMenuBar: null
+          children:
+            - .aitLogo: null
+            - .MenuBar: null
+        - .TopBar: null
+        - .BodyView: null
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby: null
+            - .GotoBack: null
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormRight: null
+                  onClick:
+                    - goto: PifzerVaccineFirDoseReviewPage2
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - type: image
+                      path: firDose5_1.svg
+                      style:
+                        marginTop: "0.025"
+                        width: "0.39"
+                    # TYPE TITLE
+                    - .FormsTypeTitle: null
+                    - type: scrollView
+                      style:
+                        marginTop: "0.02"
+                        width: "0.39"
+                        height: "0.6"
+                        overflow: scroll
+                        # backgroundColor: "0xffff0033"
+                      children:
+                        ## CONTENT TITLE
+                        - .FormsContentTitle: null
+                          text: "Patient Info"
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            height: "0.07"
+                          children:
+                            # First Name
+                            - type: view
+                              style:
+                                left: "0vw"
+                                width: "0.07"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "First Name"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.firstName
+                            # Middle Name
+                            - type: view
+                              style:
+                                marginLeft: "0.08"
+                                width: "0.07"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Middle Name"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.middleName
+                            # Last Name
+                            - type: view
+                              style:
+                                marginLeft: "0.16"
+                                width: "0.07"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Last Name"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.lastName
+                            # Date of Birth
+                            - type: view
+                              style:
+                                marginLeft: "0.24"
+                                width: "0.07"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Date of Birth"
+                                  style:
+                                    width: "0.07"
+                                - .FormsTextField: null # placeholder: Select here
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.dateOfBirth
+                                  style:
+                                    width: "0.07"
+                            # Gender
+                            - type: view
+                              style:
+                                left: "0.32"
+                                width: "0.07"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Gender"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.gender
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.07"
+                          children:
+                            # Address Line
+                            - type: view
+                              style:
+                                left: "0vw"
+                                width: "0.12"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Address Line"
+                                  style:
+                                    width: "0.09"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.line
+                                  style:
+                                    width: "0.09"
+                            # Address Second Line
+                            - type: view
+                              style:
+                                left: "0.1"
+                                width: "0.06"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Address Second Line"
+                                  style:
+                                    width: "0.09"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.secondLine
+                                  style:
+                                    width: "0.09"
+                            # City
+                            - type: view
+                              style:
+                                left: "0.2"
+                                width: "0.056"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "City"
+                                  style:
+                                    width: "0.056"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.city
+                                  style:
+                                    width: "0.056"
+                            # State
+                            - type: view
+                              style:
+                                left: "0.266"
+                                width: "0.056"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "State"
+                                  style:
+                                    width: "0.056"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.state
+                                  style:
+                                    width: "0.056"
+                            # Zip Code
+                            - type: view
+                              style:
+                                left: "0.332"
+                                width: "0.056"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Zip Code"
+                                  style:
+                                    width: "0.056"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.zipCode
+                                  style:
+                                    width: "0.056"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.07"
+                          children:
+                            # Patient county of residence
+                            - type: view
+                              style:
+                                left: "0vw"
+                                width: "0.39"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Patient county of residence"
+                                  style:
+                                    width: "0.39"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.residence
+                                  style:
+                                    width: "0.39"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.07"
+                          children:
+                            # Phone number (Main Contact)
+                            - type: view
+                              style:
+                                left: "0"
+                                width: "0.19"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Phone number (Main Contact)"
+                                  style:
+                                    width: "0.19"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.mainContact
+                                  style:
+                                    width: "0.19"
+                            # Alternative phone number
+                            - type: view
+                              style:
+                                left: "0.2"
+                                width: "0.19"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Alternative phone number"
+                                  style:
+                                    width: "0.19"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.alternativePhone
+                                  style:
+                                    width: "0.19"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.07"
+                          children:
+                            # Email
+                            - type: view
+                              style:
+                                left: "0vw"
+                                width: "0.39"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Email"
+                                  style:
+                                    width: "0.39"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.email
+                                  style:
+                                    width: "0.39"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.07"
+                          children:
+                            # Employer
+                            - type: view
+                              style:
+                                left: "0vw"
+                                width: "0.39"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Employer"
+                                  style:
+                                    width: "0.39"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.employer
+                                  style:
+                                    width: "0.39"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.07"
+                          children:
+                            # Occupation
+                            - type: view
+                              style:
+                                left: "0vw"
+                                width: "0.39"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Occupation"
+                                  style:
+                                    width: "0.39"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.occupation
+                                  style:
+                                    width: "0.39"
+                        ## CONTENT TITLE
+                        - .FormsContentTitle: null
+                          text: "Emergency Contact"
+                          style:
+                            marginTop: "0.02"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.07"
+                          children:
+                            # First Name
+                            - type: view
+                              style:
+                                left: "0vw"
+                                width: "0.19"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Name"
+                                  style:
+                                    width: "0.19"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.name
+                                  style:
+                                    width: "0.19"
+                            # Relation
+                            - type: view
+                              style:
+                                left: "0.2"
+                                width: "0.19"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Relation"
+                                  style:
+                                    width: "0.19"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.relation
+                                  style:
+                                    width: "0.19"
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.07"
+                          children:
+                            # Phone number
+                            - type: view
+                              style:
+                                left: "0"
+                                width: "0.39"
+                              children:
+                                - .FormsTextFieldLabel: null
+                                  text: "Phone number"
+                                  style:
+                                    width: "0.39"
+                                - .FormsTextField: null
+                                  dataKey: Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.phoneNumber
+                                  style:
+                                    width: "0.39"
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                            width: "0.39"
+                            height: "0.1"
+                          children:
+                            - type: view
+                              style:
+                                width: "0.39"
+                                height: "0.04"
+                                marginTop: "0.01"
+                              children:
+                                - type: image
+                                  path:
+                                    emit:
+                                      actions:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: true
+                                                  string2: =.Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.isKnownInfo
+                                            - selectBlue.svg
+                                            - selectGray.svg
+                                  style:
+                                    width: "0.013"
+                                    height: "0.023"
+                                    top: "0.01"
+                                - type: label
+                                  text: "I consent above information is true and correct."
+                                  style:
+                                    height: "0.04"
+                                    left: "0.02"
+                                    fontSize: .Nfont.nf4
+                                    color: "0x707070"
+                                    top: "0"
+                                    textAlign:
+                                      y: center
+                            - type: view
+                              style:
+                                width: "0.39"
+                                height: "0.04"
+                                marginTop: "0.01"
+                              children:
+                                - type: image
+                                  path:
+                                    emit:
+                                      actions:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: true
+                                                  string2: =.Global.formData.pifzerVaccineFirDoseForm.name.data.patientInfo.isKnownShare
+                                            - selectBlue.svg
+                                            - selectGray.svg
+                                  style:
+                                    width: "0.013"
+                                    height: "0.023"
+                                    top: "0.01"
+                                - type: label
+                                  text: "I agree to share my information with said provider."
+                                  style:
+                                    height: "0.04"
+                                    left: "0.02"
+                                    fontSize: .Nfont.nf4
+                                    color: "0x707070"
+                                    top: "0"
+                                    textAlign:
+                                      y: center
+                    # - .FormsCloseButton:                              
+            - .FormsBottomView: null
+              children:
+                - .FormsBottomButtons: null
+                  children:
+                    - .FormsBottomMiddleButton: null
+                      text: "Done"
+                      style:
+                        backgroundColor: "0xc1c1c1"
+            # - .FormsRightButtonsView: 
+            #   children:
+            #     - .FormsRightButton:
+            #     - .FormsRightButton:
+            #       img: keyboard.svg
+            #       msg: "Macro"
+            #       style:
+            #         marginTop: "0.002"                           
+            #         backgroundColor: "0x1263a8"

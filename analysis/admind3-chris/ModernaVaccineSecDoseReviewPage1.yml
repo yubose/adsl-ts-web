@@ -1,0 +1,226 @@
+ModernaVaccineSecDoseReviewPage1:
+  title: "Moderna Vaccine Form - Second Dose"
+  pageNumber: "450"
+
+  init:
+    # Page initialization
+    - .SignInCheck
+    - .Global.formData.modernaVaccineSecDoseForm@: =.Global.formData.medicalRecords
+    # - ..formData.screeningEligibility@: =.Global.formData.modernaVaccineSecDoseForm.name.data.screeningEligibility
+  formData: # Input data here
+
+  formDataTemp:
+    # Input data temp here, datatemp should not mix with formData
+    recevingDose:
+      - key: recevingDose
+        value1: "Yes"
+        value2: "Yes"
+      - key: recevingDose
+        value1: "No"
+        value2: "No"
+    ingredient:
+      - key: ingredient
+        value1: "Yes"
+        value2: "Yes"
+      - key: ingredient
+        value1: "No"
+        value2: "No"
+
+  apiRequest: # Input data request here
+
+  style: # Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.815"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormRight:
+                  onClick:
+                    goto: ModernaVaccineSecDoseReviewPage2
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - .PatientFormTitle:
+                      img: patForm2_1.svg
+                    - type: scrollView
+                      style:
+                        width: "0.39"
+                        height: "0.576"
+                        overflow: scroll
+                        marginTop: "0.01"
+                      children:
+                        - .ProFormsLabel:
+                          text: "Moderna COVID-19 Vaccine Consent Form"
+                          style:
+                            textAlign:
+                              x: center
+                            fontSize: .Nfont.nf4
+                            marginTop: "0.01"
+                        - .ProFormsLabel:
+                          text: "1.Screening for Vaccine Eligibility"
+                          style:
+                            textAlign:
+                              x: center
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.01"
+                            fontWeight: "700"
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.02"
+                          children:
+                            - .ProFormsLabelLeft:
+                              text: "Patient Name: "
+                            - .ProFormsLabelRight:
+                              dataKey: Global.formData.modernaVaccineSecDoseForm.name.data.patientInfo.fullName
+                        - .ProFormsBaseView:
+                          children:
+                            - .ProFormsLabelLeft:
+                              text: "Date: "
+                            - .ProFormsLabelRight:
+                              text=func: .builtIn.string.formatUnixtimeL_en
+                              dataKey: Global.formData.modernaVaccineSecDoseForm.ctime
+                        - .ProFormsLabel:
+                          text: "Components of the Moderna COVID-19 vaccine: nucleoside modified messenger
+                            RNA (modRNA) encoding the viral spike (S)
+                            glycoprotein of SARS-CoV-2, sodium chloride, lipids,
+                            polyethylene glycol, potassium chloride, monobasic
+                            potassium phosphate, dibasic sodium phosphate
+                            dihydrate, and sucrose."
+                          style:
+                            fontWeight: "500"
+                            marginTop: "0.02"
+                            lineHeight: "1.5em"
+                        - .ProFormsLabel:
+                          text: "Please answer the following questions:"
+                          dataKey:
+                          style:
+                            width: "0.39"
+                            fontSize: .Nfont.nf2
+                            marginTop: "0.03"
+                        - .ProFormsLabel:
+                          text: Have you had a severe allergic reaction after receiving a previous dose of
+                            COVID-19 vaccine?
+                          style:
+                            marginTop: "0.015"
+                            fontWeight: "500"
+                        - type: view
+                          style:
+                            width: "0.39"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.recevingDose
+                              viewTag: consentView
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.39'
+                                display: flex
+                                axis: horizontal
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    width: '0.05'
+                                    marginTop: "0.01"
+                                  children:
+                                    - type: image
+                                      style:
+                                        width: "0.008"
+                                        display: "inline-block"
+                                      path:
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =.Global.formData.modernaVaccineSecDoseForm.name.data.screeningEligibility.recevingDose
+                                                      string2: $var.value1
+                                                - yes.png
+                                                - noAvail.png
+
+                                    - .ProFormsLabel:
+                                      dataKey: itemObject.value2
+                                      style:
+                                        display: "inline-block"
+                                        fontSize: .Nfont.nf0
+                                        fontWeight: "500"
+                                        marginLeft: "0.005"
+
+                        - .ProFormsLabel:
+                          text: Have you had a severe allergic reaction to any ingredient in the Moderna
+                            COVID-19 vaccine?
+                          style:
+                            fontWeight: "500"
+                            marginTop: "0.03"
+                        - type: view
+                          style:
+                            width: "0.39"
+                          children:
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.ingredient
+                              viewTag: consentView
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.12'
+                                margin: '0'
+                                axis: horizontal
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    width: '0.05'
+                                    marginTop: "0.01"
+                                  children:
+                                    - type: image
+                                      style:
+                                        width: "0.008"
+                                        display: "inline-block"
+                                      path:
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =.Global.formData.modernaVaccineSecDoseForm.name.data.screeningEligibility.ingredient
+                                                      string2: $var.value1
+                                                - yes.png
+                                                - no.png
+
+                                    - .ProFormsLabel:
+                                      dataKey: itemObject.value2
+                                      style:
+                                        display: "inline-block"
+                                        fontSize: .Nfont.nf0
+                                        fontWeight: "500"
+                                        marginLeft: "0.005"

@@ -42,5 +42,5 @@
     "types:watch": "npm run types -- -w"
   },
   "typings": "./dist/index.d.ts",
-  "version": "0.1.14"
+  "version": "0.1.15"
 }

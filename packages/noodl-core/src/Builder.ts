@@ -1,4 +1,3 @@
-import { isValidViewTag } from './utils/noodl'
 import * as regex from './utils/regex'
 import * as t from './types'
 
@@ -44,7 +43,12 @@ class Builder {
         if (['.', '_', '-'].some((symb) => symb === page)) return false
         return true
       },
-      isValidViewTag,
+      isValidViewTag(viewTag: unknown) {
+        if (typeof viewTag === 'string') {
+          return !!(viewTag && regex.letters.test(viewTag))
+        }
+        return false
+      },
       ...helpers,
     }
     return h as H & typeof h

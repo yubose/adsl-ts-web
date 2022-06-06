@@ -14,7 +14,7 @@ beforeEach(() => {
 const parse = (comp: any, opts?: Parameters<typeof transform>[2]) =>
   transform({}, comp, { viewport: { width: 375, height: 667 }, ...opts })
 
-describe.skip('transform', () => {
+describe('transform', () => {
   describe(`dataKey`, () => {
     it(`[textField] should set value on data-value`, () => {
       const opts = {

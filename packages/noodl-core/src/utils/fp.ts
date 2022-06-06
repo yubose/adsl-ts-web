@@ -1,8 +1,18 @@
 /**
  * Functional programming utilities
  */
+import { hasLetter } from '..'
 import type { Path } from '../types'
-import { arr, nil, num, obj, str, und } from './is'
+import { arr, fnc, nil, num, obj, str, und } from './is'
+
+/** @internal */
+export function assign<O extends Record<string, any>>(v: O, ...rest: any[]) {
+  return Object.assign(v, ...rest)
+}
+
+export function binary(fn: (...args: any[]) => any) {
+  return (...args: any[]) => fn(args[0], args[1])
+}
 
 /** @internal */
 export function entries<O extends Record<string, any>>(v: O) {
@@ -60,6 +70,14 @@ export function excludeStr(value: string, strToExclude: string) {
   return value
 }
 
+/** @internal */
+export function each<A extends any[]>(
+  a: A,
+  fn: (v: A[number], i: number, collection: A) => void,
+) {
+  if (arr(a)) a.forEach((item, i, collection) => fn(item, i, collection))
+}
+
 /**
  * Retrieves a value in obj using path
  * @internal
@@ -80,6 +98,16 @@ export function get(value: any, path: Path | Path[number]): any {
   }
 
   return _index && _index == _len ? value : undefined
+}
+
+export function has(value: any, path: Path | Path[number]) {
+  if (obj(value) && path) {
+    const paths = arr(path) ? path : String(path).split('.')
+    if (paths.length === 1) return paths[0] in value
+    const nextKey = paths.shift()
+    if (nextKey) return has(value[nextKey as string], paths)
+  }
+  return false
 }
 
 /**
@@ -125,6 +153,18 @@ export function omit<O extends Record<string, any>, K extends keyof O>(
   return value as Omit<O, K>
 }
 
+export function or(cond: any, t: any, f: any) {
+  return (fnc(cond) ? cond() : cond) ? t : f
+}
+
+export function partial(fn: (...args: any[]) => any, ...args1: any[]) {
+  return (...args2: any[]) => fn(...args1, ...args2)
+}
+
+export function partialR(fn: (...args: any[]) => any, ...args1: any[]) {
+  return (...args2: any[]) => fn(...args2, ...args1)
+}
+
 /**
  * Syntactic sugar for toPath
  * @param args String or array of strings
@@ -156,6 +196,20 @@ export function pick<O extends Record<string, any>, K extends keyof O>(
   return result
 }
 
+export function set(o: any, key: Path | number | string | symbol, value?: any) {
+  if (arr(o) || obj(o)) {
+    const path = toPath(key as Path)
+    if (path.length === 1) {
+      o[path[0]] = value
+    } else {
+      const nextKey = path.shift()
+      if (nextKey) {
+        set(o[nextKey], path, value)
+      }
+    }
+  }
+}
+
 /**
  * Returns true if at least one value exists in an array
  * If a predicate function is provided it will return true if at least one call returns true
@@ -182,6 +236,13 @@ export function some<T>(
   return false
 }
 
+/** @internal */
+export function spread(fn: (k: string, v: any) => any) {
+  return function onSpread([key, value]) {
+    return fn(key, value)
+  }
+}
+
 /**
  * Wraps a value into an array if it isn't already enclosed in one
  * @internal
@@ -201,13 +262,13 @@ function toFixed(value: number, fixNum?: number) {
  * @param key
  * @returns The path
  */
-export function toPath(key = '' as (number | string)[] | number | string) {
+export function toPath(key = '' as Path | Path[number]) {
   return (
     arr(key)
       ? key
       : str(key)
       ? key.split('.')
-      : toArr(key).filter((fn) => !und(fn))
+      : toArr(key as any).filter((fn) => !und(fn))
   ) as string[]
 }
 
@@ -226,6 +287,14 @@ export function toNum(value: unknown, fixedNum?: number) {
 
 export function toStr(value: unknown): string {
   return str(value) ? value : String(value)
+}
+
+export function toPx(value: unknown) {
+  if (str(value)) {
+    if (!hasLetter(value)) return `${value}px`
+    return value
+  }
+  return `${value}px`
 }
 
 export function startsWith(value: string, str: string) {

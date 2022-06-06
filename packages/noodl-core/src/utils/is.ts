@@ -29,6 +29,31 @@ export function boolFalse(value: unknown): value is 'false' | false {
   return value === false || value === 'false'
 }
 
+export const component = {
+  any: (v: any) => obj(v) && ('type' in v || 'children' in v),
+  header: (v: any) => obj(v) && v.type === 'header',
+  image: (v: any) => obj(v) && v.type === 'image',
+  list: (v: any) => obj(v) && v.type === 'list',
+  listItem: (v: any) => obj(v) && v.type === 'listItem',
+  listLike: (v: any) => obj(v) && (v.type === 'list' || v.type === 'chatList'),
+  popUp: (v: any) => obj(v) && v.type === 'popUp',
+  scrollView: (v: any) => obj(v) && v.type === 'scrollView',
+  select: (v: any) => obj(v) && v.type === 'select',
+  textView: (v: any) => obj(v) && v.type === 'textView',
+  video: (v: any) => obj(v) && v.type === 'video',
+}
+
+export const header = component.header
+export const image = component.image
+export const list = component.list
+export const listItem = component.listItem
+export const listLike = component.listLike
+export const popUp = component.popUp
+export const scrollView = component.scrollView
+export const select = component.select
+export const textView = component.textView
+export const video = component.video
+
 export function diagnostic(value: unknown): value is Diagnostic {
   return obj(value) && value._id_ === c._symbol.diagnostic
 }
@@ -174,6 +199,10 @@ export function nil(v: any) {
   return v === null || und(v)
 }
 
+export function nullishStyleValue(v: unknown) {
+  return nil(v) || v === '0px' || v == '0' || v == 'auto' || v == 'none'
+}
+
 /** @internal */
 export function num(v: any): v is number {
   return typeof v === 'number'
@@ -223,16 +252,17 @@ export function vh(v: unknown): v is `${string}vh` {
   return str(v) && v.endsWith('vh')
 }
 
-export function keyRelatedToWidthOrHeight(key: string) {
+export function keyRelatedToWidthOrHeight(key: number | string | symbol) {
+  if (!str(key)) return false
   return [keyRelatedToHeight, keyRelatedToWidth].some((fn) => fn(key))
 }
 
-export function keyRelatedToHeight(key: string) {
-  return [...c.vpHeightKeys, 'center', 'centerY'].includes(key)
+export function keyRelatedToHeight(key: number | string | symbol) {
+  return [...c.vpHeightKeys, 'center', 'centerY'].includes(key as any)
 }
 
-export function keyRelatedToWidth(key: string) {
-  return [...c.vpWidthKeys, 'centerX', 'right'].includes(key)
+export function keyRelatedToWidth(key: number | string | symbol) {
+  return [...c.vpWidthKeys, 'centerX', 'right'].includes(key as any)
 }
 
 export function validViewport(value: unknown): value is IViewport {

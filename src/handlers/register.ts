@@ -377,7 +377,6 @@ class createRegisters{
     const pageName = this.app.mainPage?.getNuiPage().page
     const components = this.app.root?.['VideoChat'].components
     for (const componentObject of components) {
-      console.log(componentObject)
       if (is.component.register(componentObject)) {
         // Already attached a function
         if (u.isFnc(componentObject.onEvent)) continue

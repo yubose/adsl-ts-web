@@ -15,13 +15,7 @@ import * as fp from '../utils/fp'
 import * as is from '../utils/is'
 import * as t from '../types'
 
-class Diagnostics<
-    D extends DiagnosticObject = DiagnosticObject,
-    R = D[],
-    H extends Record<string, any> = Record<string, any>,
-    Asserters = any,
-    B extends t.BuiltIns = t.BuiltIns,
-  >
+class Diagnostics<Asserters = any, BuiltInFns extends t.BuiltIns = t.BuiltIns>
   extends Builder
   implements IDiagnostics
 {
@@ -80,7 +74,7 @@ class Diagnostics<
     return this
   }
 
-  run(args: RunOptions<D, R, H, Asserters, B> = {}) {
+  run(args: RunOptions<Asserters, BuiltInFns> = {}) {
     const asserters = fp.toArr(args?.asserters ?? []).filter(Boolean)
     const builtIn = args?.builtIn
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
@@ -115,7 +109,7 @@ class Diagnostics<
     )
   }
 
-  async runAsync(args: RunOptions<D, R, H, Asserters, B> = {}) {
+  async runAsync(args: RunOptions<Asserters, BuiltInFns> = {}) {
     const asserters = fp.toArr(args?.asserters ?? []).filter(Boolean)
     const builtIn = args?.builtIn
     const { diagnostics, options, originalVisitor } = this.#getRunnerProps(args)
@@ -144,7 +138,7 @@ class Diagnostics<
     }
   }
 
-  #getRunnerProps = <Asserters = any>(args: RunOptions<D, R, H, Asserters>) => {
+  #getRunnerProps = <Asserters = any>(args: RunOptions<Asserters>) => {
     const originalVisitor = this.visitor?.callback
 
     if (args.enter) {

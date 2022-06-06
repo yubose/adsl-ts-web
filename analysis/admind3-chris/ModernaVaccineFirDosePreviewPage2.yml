@@ -1,0 +1,204 @@
+ModernaVaccineFirDosePreviewPage2:
+  title: "Moderna Vaccine Form - First Dose"
+  pageNumber:
+  init:
+    #Page initialization
+    - .SignInCheck
+
+  formData: #Input data here
+
+  formDataTemp: #Input data temp here, datatemp should not mix with formData
+
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: "1"
+        height: "1"
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBackPreview:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.815"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormLeft:
+                  onClick:
+                    goto: ModernaVaccineFirDosePreviewPage1
+                - .SwitchFormRight:
+                  onClick:
+                    goto: ModernaVaccineFirDosePreviewPage3 # NewPatFormReviewPage4
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - .PatientFormTitle:
+                      img: patForm5_2.svg
+                    - type: scrollView
+                      style:
+                        marginTop: "0.01"
+                        width: "0.39"
+                        height: "0.705"
+                        overflow: scroll
+                      children:
+                        - .ProFormsLabel:
+                          text: "Patient Consent Form - HIPPA"
+                          style:
+                            textAlign:
+                              x: center
+                            fontSize: .Nfont.nf4
+                            marginTop: "0.01"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            marginTop: "0.02"
+                            color: "0x333333"
+                            height: "auto"
+                          children:
+                            - .ProFormsLabel:
+                              text: "Please carefully read the following informed consent:"
+                              style:
+                                fontSize: .Nfont.nf2
+                            - type: view
+                              style:
+                                width: "0.39"
+                                height: "0.015"
+                                marginTop: "0"
+                            - .FormsBlockText:
+                              text: The Department of Health and Human Services has established a "Privacy
+                                Rule" to help insure that personal health care
+                                information is protected for privacy. The
+                                Privacy Rule was also created in order to
+                                provide a standard for certain health care
+                                providers to obtain their patients' consent for
+                                uses and disclosures of health information about
+                                the patient to carry out treatment, payment or
+                                health care operations.
+                              style:
+                                marginTop: "0"
+                            - .FormsBlockText:
+                              text: As our patient we want you to know that we respect the privacy of your
+                                personal medical records and will do all we can
+                                to secure and protect that privacy. We strive to
+                                always take reasonable precautions to protect
+                                your privacy. When it is appropriate and
+                                necessary, we provide the minimum necessary
+                                information to only those we feel are in need of
+                                your healthcare information and information
+                                about treatment, payment or health care
+                                operations, in order to provide health care that
+                                is in your best interest.
+                              style:
+                            - .FormsBlockText:
+                              text: We also want you to know that we support your full access to your personal
+                                medical records. We may have indirect treatments
+                                relationships with you (such as laboratories
+                                that only interact with physicians and not
+                                patients), and may have to disclose personal
+                                health information for purposes of treatment,
+                                payment, or health operations, These entities
+                                are most often not required to obtain patient
+                                consent.
+                              style:
+                            - .FormsBlockText:
+                              text: You may refuse to consent to the use or disclosure of your personal health
+                                information but this must be in writing. Under
+                                this law, we have the right to refuse to treat
+                                you should you choose to refuse to disclose your
+                                Personal Health Information (PIH). If you choose
+                                to give consent in this document, at some future
+                                time you may request to refuse all or part of
+                                your PHI. You may not revoke actions that have
+                                already been taken which relied on this or a
+                                previously signed consent.
+                              style:
+                            - .FormsBlockText:
+                              text: If your have objections to this form, please ask to speak with out HIPPA
+                                Compliance Officer.
+                              style:
+                            - .FormsBlockText:
+                              text: You have the right to review our privacy notice to request restrictions
+                                and revoke consent in writing after you have
+                                reviewed our privacy notice.
+                              style:
+                            - .ProFormsLabel:
+                              text: "HIPPA Notice of Privacy Practices"
+                              style:
+                                fontSize: .Nfont.nf2
+                                marginTop: "0.025"
+                            - .FormsBlockText:
+                              text: "Signature below is only acknowledgement that you have received this
+                                Notice of our Privacy Practices:"
+                              style:
+                                marginTop: "0.01"
+                                fontSize: .Nfont.nf1
+                                color: "0x666666"
+                        - type: view
+                          style:
+                            marginTop: "0.02"
+                          children:
+                            - .ProFormsLabel:
+                              text: "Name of Recipient/Healthcare Proxy"
+                            - .PatientFormPreTextField:
+                              style:
+                                width: "0.1898"
+                            - .ProFormsLabel:
+                              text: "Signature"
+                              style:
+                                marginTop: "0.03"
+                            - .ProFormsLabel:
+                              text: "Click on the signature box below to finger sign"
+                              style:
+                                color: "0x707070"
+                                fontWeight: "500"
+                                marginTop: "0.01"
+                            - .SignAreaView:
+                              style:
+                                marginTop: "0.008"
+                              children:
+                                - type: label
+                                  text: "X"
+                                  style:
+                                    .SignLabelStyle:
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Patient Name"
+                                  style:
+                                    width: "0.35"
+                                - .ProFormsLabelLeft:
+                                  text: "Date"
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.35"
+            #         # - .FormsCloseButton:                          
+            # - .FormsBottomView: 
+            #   children:
+            #     - .FormsBottomButtons:
+            #       children:
+            #         - .FormsBottomMiddleButton:
+            #           text: Done
+            #           style: 
+            #             backgroundColor: "0xc1c1c1"

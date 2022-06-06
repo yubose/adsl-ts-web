@@ -1,5 +1,5 @@
 import type { LiteralUnion } from 'type-fest'
-import type { AVisitor, BuiltIns, VisitFnArgs, VisitorInitArgs } from '../types'
+import type { BuiltIns, VisitFnArgs, VisitorInitArgs } from '../types'
 import type Diagnostic from './Diagnostic'
 import type { DiagnosticCode } from '../constants'
 
@@ -73,9 +73,6 @@ export type Markers<O extends Record<string, any> = Record<string, any>> = O & {
 } & { rootConfig: string; appConfig: string }
 
 export interface RunOptions<
-  D extends DiagnosticObject = DiagnosticObject,
-  R = D[],
-  H extends Record<string, any> = Record<string, any>,
   Asserters = any,
   BuiltInFns extends BuiltIns = BuiltIns,
 > {
@@ -87,5 +84,5 @@ export interface RunOptions<
     builtInObject?: any
     dataOut?: any
   }): any
-  enter?: AVisitor<R, DiagnosticsHelpers & H>['callback']
+  enter?(args: VisitFnArgs<DiagnosticsHelpers, any, BuiltInFns>): any
 }

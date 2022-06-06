@@ -1011,7 +1011,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           app.register.removeTime('PopUPToDisconnectTime')
           const id = setTimeout(
             ()=>{
-              app.register.extendVideoFunction('showExtendView')
+              app.meeting.room.state === 'connected' && app.register.extendVideoFunction('showExtendView')
+              clearTimeout(id)
             }
           ,remainTime*1000)
           app.register.setTimeId('extendVideoChatTime',id)
@@ -1289,13 +1290,21 @@ export const extendedSdkBuiltIns = {
     this.register.setNumberofExtensions(numberofExtensions-1)
     this.register.setTimePerExtendSeconds(timePerExtendSeconds)
     this.register.setPopUpWaitSeconds(popUpWaitSeconds)
-    if (remainTime > 0 && numberofExtensions >= 0){
+    if (remainTime > 0 && numberofExtensions > 0){
       const id = setTimeout(
         ()=>{
-          this.register.extendVideoFunction('showExtendView')
+          this.meeting.room.state === 'connected' && this.register.extendVideoFunction('showExtendView')
+          clearTimeout(id)
         }
       ,remainTime*1000)
       this.register.setTimeId('extendVideoChatTime',id)
+    }else if(remainTime > 0 && numberofExtensions == 0){
+      const id = setTimeout(
+        ()=>{
+          this.meeting.room.state === 'connected' && this.register.extendVideoFunction('showExitWarningView')
+          clearTimeout(id)
+        }
+      ,remainTime*1000)
     }else{
       console.log('The meeting might had already ended. Please reschedule or cancel it.')
       this.meeting.leave()
@@ -1322,31 +1331,32 @@ export const extendedSdkBuiltIns = {
     const currentTime = Math.ceil(new Date().getTime() / 1000)
     const meetingEndTime = action?.meetingEndTime
     const remainTime = meetingEndTime-currentTime-popUpWaitSeconds
-    const remainTime2 = meetingEndTime-currentTime 
+    // const remainTime2 = meetingEndTime-currentTime 
     this.register.setPopUpWaitSeconds(popUpWaitSeconds)
     this.register.setMeetingEndTime(meetingEndTime)
     if (remainTime > 0){
       const initAutoDcTime = setTimeout(
         ()=>{
-            this.register.extendVideoFunction('showExitWarningView')
+            if(this.meeting.room.state === 'connected'){
+              this.register.extendVideoFunction('showExitWarningView')
+            }
             clearTimeout(initAutoDcTime)
         },
         remainTime*1000
       )
       this.register.setTimeId('extendVideoChatTime',initAutoDcTime)
       
-      const endMeetingId = setTimeout(
-        ()=>{
-          const participantsNumber = this.meeting.room.participants.size
-          console.log('test123',participantsNumber,typeof(participantsNumber),participantsNumber === 0)
-          if(this.meeting.room?.participants && this.meeting.room.participants.size === 0){
-            console.log('test569',participantsNumber,typeof(participantsNumber),participantsNumber === 0)
-            this.register.extendVideoFunction('onDisconnect')
-          }
-          clearTimeout(endMeetingId)
-        },
-        remainTime2*1000
-      )
+      // const endMeetingId = setTimeout(
+      //   ()=>{
+      //     const participantsNumber = this.meeting.room.participants.size
+      //     if(this.meeting.room?.participants && this.meeting.room.state === 'connected' && this.meeting.room.participants.size === 0){
+      //       this.register.extendVideoFunction('onDisconnect')
+      //     }
+      //     clearTimeout(endMeetingId)
+      //   },
+      //   remainTime2*1000
+      // )
+
       
     }
   }

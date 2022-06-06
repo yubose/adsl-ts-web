@@ -1,18 +1,10 @@
-import type { NOODL, NOODLComponent, ProxiedComponent } from 'noodl-ui'
-import type {
-  Room,
-  Participant,
-  LocalParticipant,
-  RemoteParticipant,
-} from 'twilio-video'
-import type HTML2Canvas, { Options } from 'html2canvas'
+import type { NUI as nui, NuiComponent, NDOM } from 'noodl-ui'
+import type HTML2Canvas from 'html2canvas'
 import type * as jsPDF from 'jspdf'
-import type NOODLDOM from 'noodl-ui-dom'
 import type echarts from '@types/echarts'
 import type { Calendar } from '@fullcalendar/core'
-import type Modal from 'components/NOODLModal'
 import type Meeting from '../../meeting'
-import type { App } from '../../app'
+import type App from '../../app'
 import type { TwilioVideo } from './twilio'
 
 declare global {
@@ -34,32 +26,23 @@ declare global {
 
   interface Window {
     ac: any
-    account: any
-    addRemoteParticipant: any
     app: any
     build: any
     local: any
-    cache: any
+    cache: App['cache']
     chrome: any
     get: () => any
     noodl: any
     env: string | undefined
     FCMOnTokenReceive: any
     getDataValues: any
-    components: NOODLComponent[]
+    components: NuiComponent.Instance[]
     pageObject: any
-    pcomponents: ProxiedComponent[]
-    meeting: Meeting
-    modal: Modal
-    nui: NOODL
-    ndom: NOODLDOM
-    redraw: any
-    room: Room | null
-    spamToasts: any
+    pcomponents: NuiComponent.Instance[]
+    meeting: typeof Meeting
+    nui: typeof nui
+    ndom: NDOM
     streams: any
     cp: Function
-    // noodl-ui
-    // twilio-video
-    twilio: any
   }
 }

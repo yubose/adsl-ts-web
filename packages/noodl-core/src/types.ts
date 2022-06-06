@@ -28,9 +28,9 @@ export abstract class AFileSystem {
   abstract writeFileSync(...args: Parameters<typeof fs['writeFileSync']>): any
 }
 
-export abstract class ARoot<R = any> {
+export abstract class ARoot<V = any> {
   abstract init(): this
-  abstract value: R
+  abstract value: V
   abstract get(key: string): any
   abstract has(key: any): boolean
   abstract set(key: string, value: any): this
@@ -77,7 +77,7 @@ export interface BuiltInFn<B extends BuiltIns = BuiltIns, DataIn = any> {
       builtIns: B
       builtInKey: string
       builtInObject: any
-      builtInPath: string[]
+      builtInPath: string
       data: Record<string, any>
       dataOut: any
       node: any
@@ -88,7 +88,7 @@ export interface BuiltInFn<B extends BuiltIns = BuiltIns, DataIn = any> {
 }
 
 export interface BuiltIns {
-  [key: string]: BuiltInFn | Record<string, BuiltInFn | BuiltIns>
+  [key: string]: BuiltInFn | BuiltIns
 }
 
 export interface VisitorAsserter<
@@ -107,7 +107,7 @@ export interface VisitorOptions<
   B extends BuiltIns = BuiltIns,
 > {
   asserters: Asserters
-  builtIn?: B
+  builtIn: B
   data: Record<string, any>
   init?: (args: VisitorInitArgs<InitOptions>) => any
   helpers?: H
@@ -124,13 +124,14 @@ export type VisitFnArgs<
   H extends Record<string, any> = Record<string, any>,
   N = unknown,
   B extends BuiltIns = BuiltIns,
-> = VisitorHelpers<H, B> & {
-  data: Record<string, any>
-  page?: string
-  key?: number | string | null
-  node: N
-  root: ARoot
-}
+> = H &
+  VisitorHelpers<H, B> & {
+    data: Record<string, any>
+    page?: string
+    key?: number | string | null
+    node: N
+    root: ARoot
+  }
 
 export type VisitorHelpers<
   H extends Record<string, any> = Record<string, any>,
@@ -147,7 +148,7 @@ export type NormalizePropsContext = Record<string, any> & {
   listObject?: any[] | string
 }
 
-export type Path = (number | string)[]
+export type Path = (number | string | symbol)[]
 
 export interface IViewport {
   width: number
