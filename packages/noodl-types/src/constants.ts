@@ -44,6 +44,7 @@ export const component = {
   TEXTVIEW: 'textView',
   VIDEO: 'video',
   VIEW: 'view',
+  ROTATION: "rotation"
 } as const
 
 export const componentKeys = [

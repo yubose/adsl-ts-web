@@ -15,6 +15,7 @@ export const lib = {
     'path',
     'placeholder',
     'postMessage',
+    'dataOption',
     'register',
   ],
   dataAttributes: [
@@ -26,6 +27,7 @@ export const lib = {
     'data-placeholder',
     'data-src',
     'data-value',
+    'data-option',
     'data-viewtag',
     'data-ux',
   ],
@@ -110,6 +112,7 @@ export const trigger = {
   ON_HOVER: 'onHover',
   ON_MOUSEENTER: 'onMouseEnter',
   ON_MOUSELEAVE: 'onMouseLeave',
+  DATA_OPTION: 'dataOption',
   ON_MOUSEOUT: 'onMouseOut',
   ON_MOUSEOVER: 'onMouseOver',
   ON_LAZYLOADING: 'onLazyLoading',
@@ -159,6 +162,7 @@ export const DATA_SRC = 'data-src'
 export const DATA_GLOBALID = 'data-globalid'
 export const DATA_LISTID = 'data-listid'
 export const DATA_OPTIONS = 'data-options'
+export const DATA_OPTION = 'data-option'
 export const DATA_PLACEHOLDER = 'data-placeholder'
 export const DATA_VIEWTAG = 'data-viewtag'
 export const DATA_UX = 'data-ux'
