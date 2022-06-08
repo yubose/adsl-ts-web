@@ -122,7 +122,7 @@ dataAttribsResolver.setResolver(async (component, options, next) => {
       }
 
       //path=func
-      if (Identify.component.image(component)) {
+      if (Identify.component.image(component)||Identify.component.video(component)) {
         if (component.blueprint?.['path=func']) {
           result = component.get('path=func')?.(result)
         }

@@ -934,7 +934,6 @@ const componentsResolver: t.Resolve.Config = {
           videoEl.controls = Identify.isBooleanTrue(controls)
 
           const attrs = ['poster', ['src', 'path']]
-
           attrs.forEach((attr) => {
             if (u.isArr(attr)) {
               const [attrib, key] = attr
@@ -957,7 +956,18 @@ const componentsResolver: t.Resolve.Config = {
               const value = args.component.props[attr]
               !u.isNil(value) && setAttr(attr, value)
             }
+
           })
+          if(args.component.blueprint?.['path=func']){
+            console.log("pppp",args.component
+            ?.get?.(c.DATA_VALUE))
+              args.component
+              ?.get?.(c.DATA_VALUE)
+              ?.then?.((path: any) => {
+                console.log("fff",path)
+                setAttr('src', path?.url)
+              })
+            }
 
           videoEl.style.objectFit = 'contain'
         }
