@@ -368,7 +368,7 @@ class App {
               if (parts.includes(_page.requesting)) {
                 let pageToDestroy = parts.pop()
 
-                while (pageToDestroy && pageToDestroy !== _page.requesting) {
+                while (pageToDestroy && pageToDestroy !== _page.requesting && pageToDestroy!=='VideoChat') {
                   if (pageToDestroy in this.noodl.root) {
                     delete this.noodl.root[pageToDestroy]
                     console.log(
@@ -493,6 +493,7 @@ class App {
       // TODO - Create composer for createElementBinding
       this.ndom.use({ createElementBinding: meetingfns.createElementBinding })
       this.root.actions = actions
+      this.root.getConsumerOptions = this.nui.getConsumerOptions
       this.root.extendedBuiltIn = builtIns
       u.forEach((obj) => this.ndom.use({ resolver: obj }), doms)
       // u.forEach(

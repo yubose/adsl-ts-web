@@ -153,8 +153,8 @@ const createActions = function createActions(app: App) {
           while (results.length) {
             let result = results.shift()
 
-            if (u.isArr(result)) {
-              results.push(...result)
+            while(u.isArr(result)) {
+              results.unshift(...result)
               result = results.shift()
             }
 
