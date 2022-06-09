@@ -74,12 +74,8 @@
     "vercel-toast": "^1.5.3"
   },
   "devDependencies": {
-<<<<<<< HEAD
-    "@aitmed/ecos-lvl2-sdk": "^1.4.190",
-=======
     "@aitmed/cadl": "^1.0.643",
     "@aitmed/ecos-lvl2-sdk": "^1.4.195",
->>>>>>> dev2
     "@aws-sdk/client-s3": "^3.51.0",
     "@babel/core": "^7.17.9",
     "@babel/plugin-transform-runtime": "^7.17.0",
