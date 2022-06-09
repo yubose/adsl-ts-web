@@ -1,0 +1,1372 @@
+PROneReview:
+  title: PR-1
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - if:
+        - =.Global.formData.medicalRecords.id
+        - actionType: evalObject
+          object:
+            - ..apiRequest.pROne.docReq@: =.Global.formData.medicalRecords
+        - continue # 判断Diagnoses
+    - if:
+        - =..apiRequest.pROne.docReq.name.data.diagnosis.descriptiveList.0
+        - actionType: evalObject
+          object:
+            - ..formData.listDataFlag@: "block"
+            - ..formData.isNoContentDiag@: "none"
+        - continue
+  formDataTemp:
+    treatmentTemp:
+      - key: isTreatment
+        value: "Yes"
+      - key: isTreatment
+        value: "No"
+    involvedTemp:
+      - key: isInvolved
+        value: "Yes"
+      - key: isInvolved
+        value: "No"
+    illnessTemp:
+      - key: isIllness
+        value: "Yes"
+      - key: isIllness
+        value: "No"
+    recoveryTemp:
+      - key: isRecovery
+        value: "Yes"
+      - key: isRecovery
+        value: "No"
+    workTemp:
+      - key: isWork
+        value: "Yes"
+      - key: isWork
+        value: "No"
+    timeSpan: []
+  formData:
+    listDataFlag: "none"
+    isNoContentDiag: "block"
+  apiRequest:
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  style:
+                    width: "0.39"
+                    margin: "auto"
+                  children:
+                    - .FormsTypeTitle:
+                    - type: scrollView
+                      style:
+                        marginTop: "0.01"
+                        width: "0.39"
+                        height: "0.614"
+                        overflow: scroll
+                      children:
+                        # header
+                        - type: view
+                          style:
+                            marginTop: "0.01"
+                            height: "auto"
+                            width: "0.39"
+                            overflow: hidden
+                          children:
+                            - .ProFormsLabel:
+                              text: State of California
+                              style:
+                                fontSize: .Nfont.nf2
+                                width: "0.39"
+                                textAlign:
+                                  x: center
+                            - type: view
+                              style:
+                                width: "0.39"
+                                height: "auto"
+                                textAlign:
+                                  x: center
+                              children:
+                                - .ProFormsLabel:
+                                  text: "DOCTOR'S FIRST REPORT OF OCCU-PATIONAL INJURY OR ILLNESS"
+                                  style:
+                                    marginTop: "0.008"
+                                    lineHeight: "2vh"
+                                    fontSize: .Nfont.nf4
+                                    width: "0.18"
+                                    display: inline-block
+                            - .ProFormsLabel:
+                              text: "Within 5 days of your initial examination, for every occupational injury
+                                or illness, send two copies of this report to
+                                the employer’s workers’ compensation insurance
+                                carrier or the insured employer. Failure to file
+                                a timely doctor’s report may result in
+                                assessment of a civil penalty. In the case of
+                                diagnosed or suspected pesticide poisoning, send
+                                a copy of the report to Department of Industrial
+                                Relations, P.O. Box 420603, San Francisco, CA
+                                94142-0603, and notify your local health officer
+                                by telephone within 24 hours."
+                              style:
+                                marginTop: "0.017"
+                                width: "0.39"
+                                lineHeight: "1.8vh"
+                                wordBreak: keep-all
+                            - .ProFormsDivider:
+                              style:
+                                marginTop: "0.025"
+                        # Employer
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: auto
+                            width: "0.39"
+                            overflow: hidden
+                          children:
+                            - .ProFormsLabel:
+                              text: "Employer"
+                              style:
+                                color: "0x666666"
+                                fontSize: .Nfont.nf4
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.01"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Insurer Name / ID
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.insurerName
+
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Employer Name
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.employerName
+
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Address Line"
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.line
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Address Second Line"
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.secondLine
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: City
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.city
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: County
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.county
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: State
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.state
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Zip Code
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.zipCode
+
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Nature of business
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.business
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Occupation (Specific Job Title)
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.prOneInfo.occupation
+
+                        # Patient
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: "auto"
+                            width: "0.39"
+                            overflow: hidden
+                          children:
+                            - .ProFormsLabel:
+                              text: Patient
+                              style:
+                                color: "0x666666"
+                                fontSize: .Nfont.nf4
+                            # patient Info
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0"
+                              children:
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.01"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Patient Name
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.patientInfo.name
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Phone #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.patientInfo.phone
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Date of Birth
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.patientInfo.dob
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Gender
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.patientInfo.sex
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Address
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.patientInfo.address
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Social Security Number (Optional)
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.patientInfo.secNumber
+
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Address No.& Street Where Inj. Occurred
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.addressOcc
+
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: City Where Injury Occ.
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.cityInjuryOcc
+                                      style:
+                                        boxSizing: border-box
+                                        width: "0.1898"
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: County Where Injury Occ.
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.countyInjuryOcc
+
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Date of injury or onset of illness
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.injuryTime.date
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Hour of injury or onset of illness
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.injuryTime.hour
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Date last worked
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.workDate
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Date of 1st exam or treatment
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.examTme.date
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.005"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Hour of 1st exam or treatment
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.examTme.hour
+
+                            # Have you or your office previously rendered treatment        
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Have you or your office previously rendered treatment ?
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.treatmentTemp
+                                  iteratorVar: itemObject
+                                  viewTag: isTreatmentTag
+                                  style:
+                                    width: '0.39'
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        marginTop: '0.01'
+                                        width: "0.05"
+                                        display: inline-block
+                                      children:
+                                        - type: image
+                                          style:
+                                            marginTop: "0"
+                                            width: "0.008"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..apiRequest.pROne.docReq.name.data.selectStatus.treatment.isTreatment
+                                                          string2: $var.value
+                                                    - yes.png
+                                                    - no.png
+
+                                        - .ProFormsSelectLabel:
+                                          dataKey: itemObject.value
+                                          style:
+                                            width: "auto"
+                            - .ProFormsLabel:
+                              textBoard:
+                                - text: "Patient please complete this portion, if able to do so.&nbsp;"
+                                - text: "Otherwise, doctor please complete immediately, inability or failure of a
+                                    patient to complete this portion shall not
+                                    affect his/her rights to
+                                    workers’compensation under the California
+                                    Labor Code."
+                                  fontWeight: "500"
+                              style:
+                                lineHeight: "1.5em"
+                                marginTop: "0.025"
+                                wordBreak: keep-all
+
+                            - .ProFormsLabel:
+                              textBoard:
+                                - text: "Describe how the accident or exposure happened. "
+                                - text: "(Give specific object, machinery or chemical.)"
+                                  fontWeight: "500"
+                              style:
+                                marginTop: "0.025"
+                            - .ProFormsGrayView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  dataKey: apiRequest.pROne.docReq.name.data.accidentDesc
+                                  style:
+                                    color: "0x333333"
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+                            - .ProFormsLabel:
+                              text: SUBJECTIVE COMPLAINTS
+                              style:
+                                marginTop: "0.03"
+                            - .ProFormsGrayView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  dataKey: apiRequest.pROne.docReq.name.data.subComplaint
+                                  style:
+                                    color: "0x333333"
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+                        # Objective Findings
+                        - type: view
+                          style:
+                            height: auto
+                            width: "0.39"
+                          children:
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Objective Findings
+                                  style:
+                                    fontSize: .Nfont.nf2
+                            # Vital Signs 
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                height: "auto"
+                                width: "0.39"
+                                left: "0"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Vital Signs
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                  children:
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Blood Pressure
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pROne.docReq.name.data.vitalSigns.BP
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "mmHg"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Heart Rate
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pROne.docReq.name.data.vitalSigns.HR
+                                              text: "--"
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+                                            - .ProFormsUnitLabel:
+                                              text: "bpm"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Respiratory Rate
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pROne.docReq.name.data.vitalSigns.RR
+                                              text: "--"
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+                                            - .ProFormsUnitLabel:
+                                              text: "breaths/min"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Pulse Oximetry
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              text: "--"
+                                              dataKey: apiRequest.pROne.docReq.name.data.vitalSigns.PO
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+                                            - .ProFormsUnitLabel:
+                                              text: "O₂ %"
+                                              style:
+                                                fontWeight: "600"
+
+                                - type: view
+                                  style:
+                                    marginTop: "0.01"
+                                    width: "0.39"
+                                  children:
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Temperature
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pROne.docReq.name.data.vitalSigns.temperature
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "°F/°C"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Height
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pROne.docReq.name.data.vitalSigns.height
+                                              text: "--"
+                                              style:
+                                                display: "inline-block"
+                                                fontWeight: "500"
+
+                                            - .ProFormsUnitLabel:
+                                              text: "ft/in"
+                                              style:
+                                                fontWeight: "600"
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: Weight
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pROne.docReq.name.data.vitalSigns.weight
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "lb"
+                                              style:
+                                                fontWeight: "600"
+
+                                    - type: view
+                                      style:
+                                        display: "inline-block"
+                                        marginLeft: "0.01"
+                                        width: "0.08944"
+                                      children:
+                                        - .ProFormsLabel:
+                                          text: BMI
+                                          style:
+                                            fontWeight: ""
+                                        - .InitEvalReportView:
+                                          style:
+                                            border:
+                                              style: "1"
+                                            paddingLeft: "0"
+                                            marginTop: "0"
+                                          children:
+                                            - .ProFormsLabel:
+                                              dataKey: apiRequest.pROne.docReq.name.data.vitalSigns.BMI
+                                              text: "--"
+                                              style:
+                                                fontWeight: "500"
+                                                display: "inline-block"
+                                            - .ProFormsUnitLabel:
+                                              text: "kg/m²"
+                                              style:
+                                                fontWeight: "600"
+                                - .ProFormsLabel:
+                                  text: Physical Examination
+                                  style:
+                                    marginTop: "0.02"
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.pROne.docReq.name.data.objFindings
+                                      style:
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                        color: "0x333333"
+                            # Labs 
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Labs
+                                  style:
+                                    fontSize: .Nfont.nf2
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.01"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Blood Glucose
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.bloodGlucose
+                            # Imaging Studies 
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Imaging Studies
+                                - .ProFormsGrayView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.pROne.docReq.name.data.imagingStudies
+                                      style:
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                        color: "0x333333"
+                        # Diagnoses
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: Diagnoses
+                            - .ProFormsGrayView:
+                              style:
+                                display: ..formData.isNoContentDiag
+                              children:
+                                - .ProFormsLabelLeft:
+                                  style:
+                                    color: "0x333333"
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+
+                            - type: view
+                              viewTag: listData
+                              style:
+                                width: "0.39"
+                                left: "0"
+                                height: "auto"
+                                marginTop: "0.01"
+                                display: ..formData.listDataflag
+                                backgroundColor: "0xf4f4f4"
+                                borderRadius: "4"
+                              children:
+                                - type: view
+                                  style:
+                                    paddingTop: "0.004"
+                                    paddingBottom: "0.015"
+                                    paddingLeft: "0.00624"
+                                  children:
+                                    - type: list
+                                      viewTag: listData
+                                      contentType: listObject
+                                      listObject: ..apiRequest.pROne.docReq.name.data.diagnosis.descriptiveList
+                                      iteratorVar: itemObject
+                                      style:
+                                        width: "0.38"
+                                        height: "auto"
+                                        border:
+                                          style: "5"
+                                        boxSizing: border-box
+                                      children:
+                                        - type: listItem
+                                          itemObject: ""
+                                          style:
+                                            marginTop: "0.006"
+                                            width: "0.38"
+                                            height: "auto"
+                                            left: "0"
+                                            overflow: hidden
+                                          children:
+                                            - type: view
+                                              style:
+                                                width: "0.37752"
+                                                height: "auto"
+                                              children:
+                                                - type: view
+                                                  style:
+                                                    wordBreak: break-all
+                                                    display: "inline-block"
+                                                    width: "0.355"
+                                                  children:
+                                                    - .ProFormsLabel:
+                                                      dataKey: itemObject.code
+                                                      style:
+                                                        display: "inline"
+                                                        verticalAlign: middle
+                                                        color: "0x333333"
+                                                        fontSize: .Nfont.nf1
+                                                    - .ProFormsLabel:
+                                                      text: "-"
+                                                      style:
+                                                        marginLeft: "0.002"
+                                                        verticalAlign: middle
+                                                        display: "inline"
+                                                        color: "0x333333"
+                                                        fontSize: .Nfont.nf1
+                                                    - .ProFormsLabel:
+                                                      dataKey: itemObject.description
+                                                      style:
+                                                        verticalAlign: middle
+                                                        marginLeft: "0.002"
+                                                        display: "inline"
+                                                        color: "0x333333"
+                                                        fontSize: .Nfont.nf1
+                                            - type: label
+                                              dataKey: itemObject.comment
+                                              style:
+                                                marginTop: "0.003"
+                                                marginLeft: "0.002"
+                                                width: "0.355"
+                                                height: "auto"
+                                                color: "0x666666"
+                                                wordBreak: break-all
+                                                fontSize: .Nfont.nf1
+                        # Are your findings and diagnosis
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - .ProFormsLabel:
+                              text: Are your findings and diagnosis consistent with patient's account of
+                                injury or onset of illness?
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.illnessTemp
+                              iteratorVar: itemObject
+                              viewTag: isIllnessTag
+                              style:
+                                width: '0.39'
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style:
+                                    marginTop: '0.01'
+                                    width: "0.05"
+                                    display: inline-block
+                                  children:
+                                    - type: image
+                                      style:
+                                        marginTop: "0"
+                                        width: "0.008"
+                                        display: inline-block
+                                      path:
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =..apiRequest.pROne.docReq.name.data.selectStatus.illness.isIllness
+                                                      string2: $var.value
+                                                - yes.png
+                                                - no.png
+
+                                    - .ProFormsSelectLabel:
+                                      dataKey: itemObject.value
+                                      style:
+                                        width: "auto"
+                            - .ProFormsGrayView:
+                              style:
+                                display: ..apiRequest.pROne.docReq.name.data.selectStatus.illness.isShow
+                                marginTop: "0.01"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  dataKey: apiRequest.pROne.docReq.name.data.diagnosis.noExplain
+                                  style:
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+                                    color: "0x333333"
+                        # Is there any other current     
+                        - type: view
+                          style:
+                            marginTop: "0.03"
+                            height: "auto"
+                            width: "0.39"
+                          children:
+                            - .ProFormsLabel:
+                              text: Is there any other current condition that will impede or delay patient's
+                                recovery?
+                            - type: list
+                              contentType: listObject
+                              listObject: ..formDataTemp.recoveryTemp
+                              iteratorVar: itemObject
+                              viewTag: isRecoveryTag
+                              style:
+                                width: '0.39'
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject: ""
+                                  style:
+                                    marginTop: '0.01'
+                                    width: "0.05"
+                                    display: inline-block
+                                  children:
+                                    - type: image
+                                      style:
+                                        marginTop: "0"
+                                        width: "0.008"
+                                        display: inline-block
+                                      path:
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =..apiRequest.pROne.docReq.name.data.selectStatus.recovery.isRecovery
+                                                      string2: $var.value
+                                                - yes.png
+                                                - no.png
+                                    - .ProFormsSelectLabel:
+                                      dataKey: itemObject.value
+                                      style:
+                                        width: "auto"
+                            - .ProFormsGrayView:
+                              style:
+                                display: ..apiRequest.pROne.docReq.name.data.selectStatus.recovery.isShow
+                                marginTop: "0.01"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  dataKey: apiRequest.pROne.docReq.name.data.diagnosis.yesExplain
+                                  style:
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+                                    color: "0x333333"
+                        # TREATMENT RENDERED  
+                        - type: view
+                          style:
+                            width: "0.39"
+                            height: "auto"
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: "TREATMENT RENDERED"
+                            - .ProFormsGrayView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  dataKey: apiRequest.pROne.docReq.name.data.diagnosis.useReverse
+                                  style:
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+                                    color: "0x333333"
+
+                            - .ProFormsLabel:
+                              text: "If further treatment required, specify treatment plan/estimated duration"
+                              style:
+                                marginTop: "0.03"
+                            - .ProFormsGrayView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  dataKey: apiRequest.pROne.docReq.name.data.diagnosis.duration
+                                  style:
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+                                    color: "0x333333"
+
+                            - .ProFormsLabel:
+                              text: If hospitalized as inpatient, give hospital name and location
+                              style:
+                                marginTop: "0.03"
+                            - .ProFormsGrayView:
+                              children:
+                                - .ProFormsLabelLeft:
+                                  dataKey: apiRequest.pROne.docReq.name.data.diagnosis.location
+                                  style:
+                                    marginLeft: "0.0046"
+                                    paddingTop: "0.0046"
+                                    paddingBottom: "0.0046"
+                                    color: "0x333333"
+
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Date admitted
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.diagnosis.dateAdmit
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.005"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: Estimated length of stay
+                                - .ProFormsLabelRight:
+                                  dataKey: apiRequest.pROne.docReq.name.data.diagnosis.estStay
+
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - .ProFormsLabel:
+                                  text: WORK STATUS - Is patient able to perform usual work?
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.workTemp
+                                  iteratorVar: itemObject
+                                  viewTag: isWorkTag
+                                  style:
+                                    width: '0.39'
+                                    height: auto
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        marginTop: '0.01'
+                                        width: "0.05"
+                                        display: inline-block
+                                      children:
+                                        - type: image
+                                          style:
+                                            marginTop: "0"
+                                            width: "0.008"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..apiRequest.pROne.docReq.name.data.selectStatus.work.isWork
+                                                          string2: $var.value
+                                                    - yes.png
+                                                    - no.png
+                                        - .ProFormsSelectLabel:
+                                          dataKey: itemObject.value
+                                          style:
+                                            width: "auto"
+                                - .ProFormsBaseView:
+                                  style:
+                                    display: ..apiRequest.pROne.docReq.name.data.selectStatus.work.isShow
+                                  children:
+                                    - .ProFormsLabel:
+                                      text: If "no", date when patient can return to
+                                      style:
+                                        fontWeight: "500"
+                                        marginTop: "0.01"
+                                    - .ProFormsBaseView:
+                                      style:
+                                        marginTop: "0.01"
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: Regular work
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.pROne.docReq.name.data.diagnosis.regularWork
+                                    - .ProFormsBaseView:
+                                      style:
+                                        marginTop: "0.005"
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: Modified work
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.pROne.docReq.name.data.diagnosis.modifiedWork
+
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.03"
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: Specify Restrictions
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.diagnosis.restrictions
+
+                            - .ProFormsDivider:
+                              style:
+                                marginTop: "0.025"
+                        # signature 
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsLabel:
+                              text: "Physician signature(original signature, do not stamp)"
+                              style:
+                                fontWeight: "500"
+                            - .ProFormsLabel:
+                              text: "I declare under penalty of perjury that this report is true and correct
+                                to the best of my knowledge and that I have not
+                                violated Labor Code section 139.3."
+                              style:
+                                fontWeight: "500"
+                                marginTop: "0.015"
+                                lineHeight: "1.5em"
+                                wordBreak: keep-all
+
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                width: "0.275"
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Physician signature"
+                            - .SignAreaView:
+                              style:
+                                marginTop: "0.008"
+                              children:
+                                - type: canvas
+                                  viewTag: signatureTag
+                                  dataKey: apiRequest.newSign.docReq.name.data
+                                  style:
+                                    .SignCanvasStyle:
+                                    display: ..formData.canvasShow
+                                - type: image
+                                  path: null.png
+                                  viewTag: signatureShowTag
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: apiRequest.pROne.docReq.name.data.signatureId
+                                  style:
+                                    display: ..formData.signShow
+                                    .SignCanvasStyle:
+                                - type: label
+                                  text: "X"
+                                  style:
+                                    .SignLabelStyle:
+                            - .ProFormsBaseView:
+                              viewTag: signatureShowTag
+                              style:
+                                display: ..formData.signShow
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text=func: .builtIn.string.formatUnixtime_en
+                                  dataKey: apiRequest.pROne.docReq.name.data.signatureCtime
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelLeft:
+                                  text: " Digitally Signed"
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.01"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Date"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelRight:
+                                  text=func: .builtIn.string.formatUnixtimeL_en
+                                  dataKey: apiRequest.pROne.docReq.ctime
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+                        # facility info       
+                        - .ProFormsBaseView:
+                          style:
+                            marginTop: "0.03"
+                          children:
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsLabel:
+                                  dataKey: apiRequest.pROne.docReq.name.data.providerInfo.physicianName
+                                  style:
+                                    fontSize: .Nfont.nf4
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.pROne.docReq.name.data.providerInfo.specialty
+                                      style:
+                                        lineHeight: "2vh"
+
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "LIC #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.providerInfo.license
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "NPI #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.providerInfo.npi
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "DEA #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.providerInfo.dea
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.providerInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Fax #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.providerInfo.fax
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Main #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.providerInfo.phoneNumber
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Address"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.pROne.docReq.name.data.providerInfo.address
+                            - .ProFormsLabel:
+                              text: "Any person who makes or causes to be made any knowingly fraudulent
+                                material statement or mater-ial representation
+                                for the purpose of obtaining or denying workers'
+                                compensation benefits or pay-ments is guilty of
+                                a felony."
+                              style:
+                                marginTop: "0.03"
+                                fontWeight: "500"
+                                wordBreak: keep-all
+
+                            - type: view
+                              style:
+                                marginTop: "0.02"
+                                width: "0.39"
+                                wordBreak: break-all
+                                lineHeight: "1.2em"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "PRIVACY NOTICE: "
+                                - .ProFormsLabelLeft:
+                                  text: "The Administrative Director is authorized to maintain the records of the
+                                    Division of Workers' Compensation
+                                    (DWC).(Cal. Lab. Code § 126.) The
+                                    Information Practices Act of 1977 and the
+                                    Federal Privacy Act require the
+                                    Administrative Director to provide this
+                                    notice to individuals who submit information
+                                    to the DWC pertaining to a
+                                    workers'compensation claim.(Cal.Civ. Code §
+                                    1798.17; Public Law 93-579.)"
+                                  style:
+                                    marginTop: "0.005"
+                                    wordBreak: keep-all
+                                - .ProFormsLabelLeft:
+                                  text: "The principal purpose for requesting information from injured workers,
+                                    dependents, lien claimants, physician,
+                                    employers or their representatives is to
+                                    administer the California workers’
+                                    compensation system. Each form shows which
+                                    fields are required to be completed for DWC
+                                    to process the form. If a required field in
+                                    a form is incomplete or unreadable, the DWC
+                                    may return the form to the individual for
+                                    correction or may reject the form. Providing
+                                    a social security number is required on this
+                                    form pursuant to Labor Code § 6409. If you
+                                    do not provide your security number, the DWC
+                                    may return the form to you for correction or
+                                    reject the form. If you do not have a social
+                                    security number, indicate this in the space
+                                    provided for the injured worker’s social
+                                    security number. As permitted by law, social
+                                    security numbers are used to help properly
+                                    identify injured workers and to conduct
+                                    statistical research as allowed under the
+                                    Labor Code."
+                                  style:
+                                    marginTop: "0.01"
+                                    wordBreak: keep-all
+                                - .ProFormsLabelLeft:
+                                  text: "As authorized by law, information furnished on this form may be given to:
+                                    you, upon request; the public, pursuant to
+                                    the Public Records Act; a governmental
+                                    entity, when required by state or federal
+                                    law; to any person, pursuant to a subpoena
+                                    or court order pursuant to any other
+                                    exception in Civil Code § 1798.24."
+                                  style:
+                                    marginTop: "0.01"
+                                    wordBreak: keep-all
+                                - .ProFormsLabelLeft:
+                                  text: "An individual has a right of access to records containing his/her
+                                    personal information that are maintained by
+                                    the Administrative Director. An individual
+                                    may also amend, correct, or dispute
+                                    information in such personal records. (Cal.
+                                    Civ. Code §§ 1798.34-1798.3.) You may
+                                    request a copy of the DWC’s policies and
+                                    procedures for inspection of records at the
+                                    address below. Copies of the procedures and
+                                    all records are ten cents ($0.10) per page,
+                                    payable in advance. (Cal. Civ. Code §
+                                    1798.33.) Requests should be sent to:
+                                    Division of Workers’ Compensation- Medical
+                                    Unit, P.O. Box 71010, Oakland, CA 94612.
+                                    Tel: (510) 286-3700 or (800) 794.6900. Fax:
+                                    (510) 622-3467."
+                                  style:
+                                    marginTop: "0.01"
+                                    wordBreak: keep-all
+                        - .ProFormsDivider:
+
+
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true

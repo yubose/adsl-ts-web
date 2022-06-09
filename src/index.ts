@@ -15,7 +15,6 @@ import './styles.css'
 
 let app: App
 let log = Logger.create('App.ts')
-let ws: WebSocket
 
 async function initializeApp(
   args: {
@@ -23,6 +22,7 @@ async function initializeApp(
     Account?: typeof CADLAccount
   } = {},
 ) {
+  require('./handlers/wssDiagnostics').default()
   let { noodl, Account: accountProp } = args
   let notification = new (await import('./app/Notifications')).default()
   !noodl && (noodl = (await import('./app/noodl')).default)
@@ -67,7 +67,7 @@ async function initializeApp(
               )
             })
 
-            const listenForWaitingServiceWorker = (
+            const listenForWaitingServiceWorker = async (
               reg: ServiceWorkerRegistration,
               promptUserToRefresh: (reg: ServiceWorkerRegistration) => void,
             ) => {
@@ -85,7 +85,7 @@ async function initializeApp(
               }
               if (!reg) return
               if (reg.waiting) return promptUserToRefresh(reg)
-              if (reg.installing) awaitStateChange()
+              if (reg.installing) await awaitStateChange()
               reg.addEventListener('updatefound', awaitStateChange)
             }
 
@@ -110,17 +110,17 @@ async function initializeApp(
               }
             })
 
-            listenForWaitingServiceWorker(
+            await listenForWaitingServiceWorker(
               app.serviceWorkerRegistration,
-              (reg: ServiceWorkerRegistration) => {
-                reg.showNotification(
+              async (reg: ServiceWorkerRegistration) => {
+                await reg.showNotification(
                   `There is an update available. Would you like to apply the update?`,
                   { data: { type: 'update-click' } },
                 )
                 // onClick -->   reg.waiting?.postMessage('skipWaiting')
               },
             )
-            notification?.init()
+            await notification?.init()
           }
         }
 
@@ -143,17 +143,6 @@ async function initializeApp(
   return app
 }
 
-async function initializeNoodlPluginRefresher() {
-  ws = new WebSocket(`ws://127.0.0.1:3002`)
-  ws.addEventListener('message', (msg) => {
-    try {
-      JSON.parse(msg.data)?.type === 'FILE_CHANGED' && app.reset(true)
-    } catch (error) {}
-  })
-
-  return ws
-}
-
 window.addEventListener('load', async (e) => {
   if (isChrome()) {
     console.log(`%c[Chrome] You are using chrome browser`, `color:#e50087;`)
@@ -162,6 +151,7 @@ window.addEventListener('load', async (e) => {
   }
 
   try {
+    window.appName = process.env.APP
     window.build = process.env.BUILD
     window.local = process.env.LOCAL_INFO
     window.ac = []
@@ -171,16 +161,21 @@ window.addEventListener('load', async (e) => {
     const { default: noodl } = await import('./app/noodl')
     const { createOnPopState } = await import('./handlers/history')
 
-    if (/(127.0.0.1|localhost)/i.test(location.hostname)) {
-      await initializeNoodlPluginRefresher()
-    }
-
     log.grey('Initializing [App] instance')
 
     app = await initializeApp({ noodl, Account })
 
     log.func('onload')
     log.grey('Initialized [App] instance')
+
+    if (/(127.0.0.1|localhost)/i.test(location.hostname)) {
+      const { default: createWssDiagnosticsClient } = await import(
+        './handlers/wssDiagnostics'
+      )
+      const wssDiagnostics = createWssDiagnosticsClient(app)
+      window['wssd'] = wssDiagnostics
+      wssDiagnostics.start()
+    }
 
     document.body.addEventListener('keydown', async function onKeyDown(e) {
       if ((e.key == '1' || e.key == '2') && e.metaKey) {

@@ -1,0 +1,949 @@
+WorkStatusFormReview:
+  title: Work Status Form
+  init:
+    #Page initialization
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - ..apiRequest.workStatusForm.docReq@: =.Global.formData.medicalRecords
+    - ..formData.workStatus@: =..apiRequest.workStatusForm.docReq.name.data.workStatus
+    # 判断Diagnoses
+    - if:
+        - =..apiRequest.workStatusForm.docReq.name.data.diagnosis.descriptiveList.0
+        - actionType: evalObject
+          object:
+            - ..formData.listDataFlag@: "block"
+            - ..formData.isNoContentDiag@: "none"
+        - continue
+    # 判断WorkStatus  
+    - if:
+        - .builtIn.object.isEmpty:
+          dataIn:
+            object: =..formData.workStatus.status
+        - continue
+        - ..formData.workStatusTemp@: =..formData.workStatus.status
+    # 判断provider private是否签名，没签则不显示
+    - if:
+        - =..apiRequest.workStatusForm.docReq.name.data.whetherSign
+        - ..formData.signShow@: "none"
+        - ..formData.signShow@: "block"
+
+  apiRequest:
+    workStatusForm:
+      deleteReq:
+        id: ""
+      docResp: ""
+      docReq:
+        .Document: ""
+        eid: .Global.formData.meetingDocEid
+        type: .DocType.workStatusForm
+        reid: ""
+        name:
+          title: "Work Status Form"
+          user: .Global.currentFacility.name.basicInfo.medicalFacilityName
+          type: "text/plain"
+          data:
+            classTag:
+              name: Admin
+              fontColor: "0x005795"
+              backgroundColor: "0xe9f2fc"
+              display: block
+            statusTag:
+              name: Private
+              fontColor: "0x4c5264"
+              backgroundColor: "0xececee"
+              display: block
+            signatureId: ""
+            signatureTime: ""
+            whetherSign: "true"
+            authority: ""
+            diagnosis:
+              descriptiveList: []
+            providerInfo:
+              physicianName: ""
+              specialty: ""
+              license: ""
+              npi: ""
+              dea: ""
+              email: ""
+              fax: ""
+              phoneNumber: ""
+              address: ""
+            patientInfo:
+              examData: ""
+              patientName: ""
+              dob: ""
+              phone: ""
+              email: ""
+              address: ""
+            facilityInfo:
+              facilityName: ""
+              facilityAvatarID: ""
+              location: ""
+              email: ""
+              website: ""
+              main: ""
+              fax: ""
+            workStatus: ""
+            returnAppointDate: ""
+      docAPI:
+        .DocAPI: ""
+        store:
+          api: cd
+          dataIn: WorkStatusFormReview.apiRequest.workStatusForm.docReq
+          dataOut: WorkStatusFormReview.apiRequest.workStatusForm.docResp
+          subtype:
+            mediaType: "text/plain"
+        get:
+          api: rd
+          dataKey: workStatusForm.docResp
+          id: .Global.formData.medicalRecords.id
+          xfname: eid
+          type: .DocType.workStatusForm
+          maxcount: "1"
+        delete:
+          api: dx
+          dataIn: WorkStatusFormReview.apiRequest.workStatusForm.deleteReq
+  formData:
+    # Input data here
+    signShow: "none"
+    dataTagFlag: ""
+    flag: "none"
+    temporarySignature: ""
+    signatureTime: ""
+    whetherSign: ""
+    workStatus:
+      status: {}
+      statusDisplay:
+        temporary: none
+        fullDuty: none
+        modifiedDuty: none
+        noForceful: none
+        noPushing: none
+        noPhysical: none
+        other: none
+      temporaryTotal:
+        startDate: ""
+        endDate: ""
+      fullDutyDate: ""
+      modifyDutyDate: ""
+      location: ""
+      weight: ""
+      timeLength: ""
+      other: ""
+    workStatusTemp:
+      temporaryStatus:
+        isSelected: false
+        isFilled: false
+      fullDutyStatus:
+        isSelected: false
+        isFilled: false
+      modifiedDutyStatus:
+        isSelected: false
+        isFilled: false
+      lightUseStatus:
+        isSelected: false
+        isFilled: true
+      noForcefulStatus:
+        isSelected: false
+        isFilled: false
+      noPushingStatus:
+        isSelected: false
+        isFilled: false
+      noStandingStatus:
+        isSelected: false
+        isFilled: true
+      keepDressingStatus:
+        isSelected: false
+        isFilled: true
+      noPhysicalStatus:
+        isSelected: false
+        isFilled: false
+      otherStatus:
+        isSelected: false
+        isFilled: false
+
+    temporaryHasStartData: false
+    temporaryHasEndData: false
+
+    diagnosis:
+      descriptiveList:
+        code: ""
+        description: ""
+        comment: ""
+    selectedDiagnosis: ""
+    listDataLength: ""
+    listDataFlag: "none"
+    isNoContentDiag: block
+  formDataTemp:
+    allListInfo: []
+    allListString: []
+    allCodes: []
+    allDescription: []
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .DownLoadBtn:
+              onClick:
+                - actionType: evalObject
+                  object:
+                    - =.builtIn.EcosObj.exportPDF:
+                        dataIn:
+                          ecosObj: =.Global.formData.medicalRecords
+                          viewTag: mainView
+            - .GotoBack:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.74"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - type: view
+                  viewTag: mainView
+                  style:
+                    width: "0.59"
+                    top: "0"
+                    left: "0.117"
+                    height: "0.74"
+                  children:
+                    - type: view
+                      style:
+                        width: "0.39"
+                        margin: "auto"
+                      children:
+                        - .FormsTypeTitle:
+                        - type: scrollView
+                          style:
+                            marginTop: "0.01"
+                            width: "0.39"
+                            height: "0.614"
+                            overflow: scroll
+                          children:
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                height: "0.1"
+                              children:
+                                - .ProFormsBaseView:
+                                  style:
+                                    width: "0.135"
+                                    display: inline-block
+                                  children:
+                                    - type: image
+                                      path: office-building.svg
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.facilityAvatarID
+                                      style:
+                                        marginTop: "0.005"
+                                        width: "0.025"
+                                        height: "0.04416"
+                                        display: inline-block
+                                    - type: view
+                                      style:
+                                        marginTop: "0"
+                                        marginLeft: "0.01"
+                                        width: "0.1"
+                                        display: inline-block
+                                      children:
+                                        - .ProFormsLabel:
+                                          dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.facilityName
+                                          style:
+                                            marginTop: "0"
+                                            fontSize: .Nfont.nf4
+                                        - .ProFormsLabel:
+                                          dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.location
+                                          style:
+                                            marginTop: "0.01"
+                                            fontSize: .Nfont.nf1
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0.035"
+                                    width: "0.12"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Email"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.email
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Website"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.website
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginLeft: "0"
+                                    width: "0.1"
+                                    display: inline-block
+                                  children:
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Main #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.main
+                                    - .ProFormsBaseView:
+                                      children:
+                                        - .ProFormsLabelLeft:
+                                          text: "Fax #"
+                                        - .ProFormsLabelRight:
+                                          dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.fax
+                            - .ProFormsBaseView:
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Exam Date"
+                                    - .ProFormsLabelRight:
+                                      text=func: .builtIn.string.formatUnixtime_en
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.patientInfo.examData
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Patient Name"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.patientInfo.patientName
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Date of Birth"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.patientInfo.dob
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Phone #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.patientInfo.phone
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.patientInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Patient Address"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.patientInfo.address
+                            - .ProFormsDivider: # Diagnoses
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: Diagnoses
+                                - .ProFormsGrayView:
+                                  style:
+                                    display: ..formData.isNoContentDiag
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      style:
+                                        color: "0x333333"
+                                        marginLeft: "0.0046"
+                                        paddingTop: "0.0046"
+                                        paddingBottom: "0.0046"
+                                # added dataList(list)
+                                - type: view
+                                  viewTag: listData
+                                  style:
+                                    width: "0.39"
+                                    left: "0"
+                                    height: "auto"
+                                    marginTop: "0.01"
+                                    display: ..formData.listDataFlag
+                                    backgroundColor: "0xf4f4f4"
+                                    borderRadius: "4"
+                                  children:
+                                    - type: view
+                                      style:
+                                        paddingTop: "0.004"
+                                        paddingBottom: "0.015"
+                                        paddingLeft: "0.00624"
+                                      children:
+                                        - type: list
+                                          viewTag: listData
+                                          contentType: listObject
+                                          listObject: ..apiRequest.workStatusForm.docReq.name.data.diagnosis.descriptiveList # to dataObject to enumerate the list
+                                          iteratorVar: itemObject
+                                          style:
+                                            width: "0.38"
+                                            height: "auto"
+                                            border:
+                                              style: "5"
+                                            boxSizing: border-box
+                                          children:
+                                            - type: listItem
+                                              itemObject: ""
+                                              style:
+                                                marginTop: "0.006"
+                                                width: "0.38"
+                                                height: "auto"
+                                                left: "0"
+                                                overflow: hidden
+                                              children:
+                                                - type: view
+                                                  style:
+                                                    width: "0.37752"
+                                                    height: "auto"
+                                                  children:
+                                                    - type: view
+                                                      style:
+                                                        # marginLeft: "0.012"
+                                                        wordBreak: break-all
+                                                        display: "inline-block"
+                                                        width: "0.355"
+                                                      children:
+                                                        - .ProFormsLabel:
+                                                          dataKey: itemObject.code
+                                                          style:
+                                                            display: "inline"
+                                                            verticalAlign: middle
+                                                            color: "0x333333"
+                                                            fontSize: .Nfont.nf1
+                                                        - .ProFormsLabel:
+                                                          text: "-"
+                                                          style:
+                                                            marginLeft: "0.002"
+                                                            verticalAlign: middle
+                                                            display: "inline"
+                                                            color: "0x333333"
+                                                            fontSize: .Nfont.nf1
+                                                        - .ProFormsLabel:
+                                                          dataKey: itemObject.description
+                                                          style:
+                                                            verticalAlign: middle
+                                                            marginLeft: "0.002"
+                                                            display: "inline"
+                                                            color: "0x333333"
+                                                            fontSize: .Nfont.nf1
+                                                - type: label
+                                                  dataKey: itemObject.comment
+                                                  style:
+                                                    marginTop: "0.003"
+                                                    # marginLeft: "0.012"
+                                                    width: "0.355"
+                                                    height: "auto"
+                                                    color: "0x666666"
+                                                    wordBreak: break-all
+                                                    fontSize: .Nfont.nf1
+                            # Work Status
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabel:
+                                  text: "Work Status"
+                                # Temporary total disability effective from:
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: temporaryTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.temporaryStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "Temporary total disability effective from"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+                                        - type: view
+                                          style:
+                                            display: inline-block
+                                          children:
+                                            - type: view
+                                              style:
+                                                display: ..formData.workStatus.statusDisplay.temporary
+                                              children:
+                                                - .ProFormsLabel:
+                                                  dataKey: formData.workStatus.temporaryTotal.startDate
+                                                  style:
+                                                    display: inline-block
+                                                    fontWeight: "500"
+                                                    marginLeft: "0.0046"
+                                                - .ProFormsLabel:
+                                                  text: "To"
+                                                  style:
+                                                    marginLeft: "0.0046"
+                                                    display: inline-block
+                                                    fontWeight: "500"
+                                                - .ProFormsLabel:
+                                                  dataKey: formData.workStatus.temporaryTotal.endDate
+                                                  style:
+                                                    marginLeft: "0.0046"
+                                                    display: inline-block
+                                                    fontWeight: "500"
+                                # Full duty effective on
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: fullDutyTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.fullDutyStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "Full duty effective on"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+                                        - .ProFormsLabel:
+                                          dataKey: formData.workStatus.fullDutyDate
+                                          style:
+                                            marginLeft: "0.0046"
+                                            display: inline-block
+                                            fontWeight: "500"
+                                # Modified duty effective on
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: modifiedDutyTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.modifiedDutyStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "Modified duty effective on"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+                                        - .ProFormsLabel:
+                                          dataKey: formData.workStatus.modifyDutyDate
+                                          style:
+                                            marginLeft: "0.0046"
+                                            display: inline-block
+                                            fontWeight: "500"
+                                # Light use
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: lightUseTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.lightUseStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "Light use"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+                                # No forceful gripping/grasping with: 
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: noForcefulTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.noForcefulStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "No forceful gripping/grasping with"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+
+                                        - .ProFormsLabel:
+                                          dataKey: formData.workStatus.location
+                                          style:
+                                            display: inline-block
+                                            fontWeight: "500"
+                                            marginLeft: "0.0046"
+                                            wordBreak: break-all
+                                # No pushing/pulling/lifting over  
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: noPushingTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.noPushingStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "No pushing/pulling/lifting over"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+                                        - type: view
+                                          style:
+                                            display: inline-block
+                                          children:
+                                            - type: view
+                                              style:
+                                                display: ..formData.workStatus.statusDisplay.noPushing
+                                              children:
+                                                - .ProFormsLabel:
+                                                  dataKey: formData.workStatus.weight
+                                                  style:
+                                                    marginLeft: "0.0046"
+                                                    display: inline-block
+                                                    fontWeight: "500"
+                                                - .ProFormsLabel:
+                                                  text: "LBs"
+                                                  style:
+                                                    marginLeft: "0.0046"
+                                                    display: inline-block
+                                                    fontWeight: "500"
+                                # No standing/climbing/prolonged walking
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: noStandingTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.noStandingStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "No standing/climbing/prolonged walking"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+                                # Keep dressing clean and dry               
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: keepDressingTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.keepDressingStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "Keep dressing clean and dry"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+                                # No physical education for 
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: noPhysicalTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.noPhysicalStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "No physical education for"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+                                        - .ProFormsLabel:
+                                          dataKey: formData.workStatus.timeLength
+                                          style:
+                                            marginLeft: "0.0046"
+                                            display: inline-block
+                                            fontWeight: "500"
+                                # Other
+                                - .ProFormsBaseView:
+                                  style:
+                                    marginTop: "0.018"
+                                  children:
+                                    - .ProFormsBaseView:
+                                      viewTag: otherTag
+                                      children:
+                                        - type: image
+                                          style:
+                                            height: "0.01472"
+                                            width: "0.00832"
+                                            display: inline-block
+                                          path:
+                                            emit:
+                                              actions:
+                                                - if:
+                                                    - =..formData.workStatusTemp.otherStatus.isSelected
+                                                    - selectBlue.png
+                                                    - noSelectGray.png
+                                        - .ProFormsLabel:
+                                          text: "Other"
+                                          style:
+                                            display: inline-block
+                                            marginLeft: "0.0046"
+                                        - .ProFormsLabel:
+                                          dataKey: formData.workStatus.other
+                                          style:
+                                            marginLeft: "0.0046"
+                                            display: inline-block
+                                            fontWeight: "500"
+                            # Return Appointment
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Return Appointment"
+                                  style:
+                                    marginLeft: "0"
+                                - .ProFormsLabelRight:
+                                  text: "- -"
+                                  dataKey: apiRequest.workStatusForm.docReq.name.data.returnAppointDate
+                            # Signature      
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                                width: "0.275"
+                                display: flex
+                                justifyContent: space-between
+                              children:
+                                - .ProFormsLabel:
+                                  text: Signature
+                                  style:
+                                    display: inline-block
+                                # - .ProFormsLabel:
+                                #   text: "Clear"
+                                #   style:
+                                #     fontWeight: ""
+                                #     # marginLeft: "0.23"
+                                #     color: "0xe24445"
+                                #     display: inline-block
+                                #   onClick: 
+                                #     # 移除签名
+                                #     - actionType: removeSignature
+                                #       dataObject: BLOB
+                                #       dataKey: apiRequest.newSign.docReq.name.data
+                                #       viewTag: signatureTag   
+                                #     - actionType: builtIn
+                                #       funcName: redraw
+                                #       viewTag: signatureTag
+                            - .SignAreaView:
+                              style:
+                                marginTop: "0.008"
+                              children:
+                                # - type: canvas
+                                #   viewTag: signatureTag  
+                                #   dataKey: apiRequest.newSign.docReq.name.data
+                                #   style:
+                                #     .SignCanvasStyle:
+                                - type: label
+                                  text: "X"
+                                  style:
+                                    .SignLabelStyle:
+                                - type: image
+                                  viewTag: signatureShowTag
+                                  path=func: .builtIn.utils.prepareDocToPath
+                                  dataKey: apiRequest.workStatusForm.docReq.name.data.signatureId
+                                  style:
+                                    left: "0"
+                                    width: "0.275"
+                                    top: "0"
+                                    height: "0.165"
+                                    zIndex: "11"
+                                    display: ..formData.signShow
+                            - .ProFormsBaseView:
+                              style:
+                                display: ..formData.signShow
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text=func: .builtIn.string.formatUnixtime_en # 12/30/2021 07:25:00
+                                  dataKey: apiRequest.workStatusForm.docReq.name.data.signatureTime
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelLeft:
+                                  text: " Digitally Signed"
+                                  style:
+                                    display: inline
+                            - .ProFormsBaseView:
+                              style:
+                                marginTop: "0.03"
+                              children:
+                                - .ProFormsLabelLeft:
+                                  text: "Date"
+                                  style:
+                                    display: inline
+                                - .ProFormsLabelRight:
+                                  text=func: .builtIn.string.formatUnixtimeL_en # 12/30/2021
+                                  dataKey: apiRequest.workStatusForm.docReq.ctime
+                                  style:
+                                    marginLeft: "0.0046"
+                                    display: inline
+                            - type: view
+                              style:
+                                marginTop: "0.03"
+                                height: "auto"
+                                width: "0.39"
+                              children:
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabel:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.providerInfo.physicianName
+                                      style:
+                                        fontSize: .Nfont.nf4
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.providerInfo.specialty
+                                      style:
+                                        lineHeight: "2vh"
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "LIC #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.providerInfo.license
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "NPI #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.providerInfo.npi
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "DEA #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.providerInfo.dea
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Email"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.providerInfo.email
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Fax #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.fax
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Main #"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.main
+                                - .ProFormsBaseView:
+                                  children:
+                                    - .ProFormsLabelLeft:
+                                      text: "Address"
+                                    - .ProFormsLabelRight:
+                                      dataKey: apiRequest.workStatusForm.docReq.name.data.facilityInfo.location
+                            - .ProFormsDivider:
+            - .FormsBottomView:
+              children:
+                - .FormsBottomButtons:
+                  children:
+                    - .FormsBottomMiddleButton:
+                      text: Done
+                      onClick:
+                        - actionType: builtIn
+                          funcName: goBack
+                          reload: true

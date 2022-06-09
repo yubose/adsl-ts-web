@@ -316,6 +316,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     async function onDisconnectMeeting(action) {
       log.func('disconnectMeeting')
       log.grey('', action?.snapshot?.())
+      app.meeting.room.disconnect()
       app.meeting.leave()
     }
 
@@ -899,6 +900,76 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     }
     log.red(`COMPONENT CACHE SIZE: ${app.cache.component.length}`)
   }
+
+  const redrawCurrent: Store.BuiltInObject['fn'] = async function onRedrawCurrent(
+    action,
+    options,
+  ) {
+    log.func('redrawCurrent')
+    const component = options?.component as NuiComponent.Instance
+    const metadata = getActionMetadata(action, {
+      component,
+      pickKeys: 'viewTag',
+    })
+    const { viewTag } = metadata
+    try{
+      let _component
+      if (component?.get?.('data-viewtag') === viewTag.fromAction){
+        _component = component as NuiComponent.Instance
+      }else{
+        let newComponent = component
+        while(newComponent && !_component){
+          newComponent = newComponent?.parent as NuiComponent.Instance
+          if(newComponent?.blueprint?.viewTag && newComponent?.get?.('data-viewtag') === viewTag.fromAction){
+            _component = newComponent as NuiComponent.Instance
+          }
+        }
+      }
+
+      if(_component){
+        log.red(`Redrawing current component`, {
+          _component
+        })
+        const _node = findFirstBySelector(`#${_component?.id}`)
+        if (!_node) {
+          log.func('redraw')
+          log.red(
+            `Tried to redraw a ${_component.type} component node from the DOM but the DOM node did not exist`,
+            { component: _component, node: _node },
+          )
+        } else {
+          const ctx = {} as any
+          if (isListConsumer(_component)) {
+            const dataObject = findListDataObject(_component)
+            dataObject && (ctx.dataObject = dataObject)
+            if (is.component.list(_component)) {
+              ctx.listObject =
+                _component.get?.('listObject') ||
+                _component.blueprint?.listObject ||
+                _component?.['listObject']
+              ctx.index = 0
+              ctx.dataObject = ctx.listObject?.[0]
+              ctx.iteratorVar = _component.blueprint?.iteratorVar
+            }
+          }
+          const ndomPage = pickNDOMPageFromOptions(options)
+          await app.ndom.redraw(_node, _component, ndomPage, {
+            context: ctx,
+          })
+        }
+      }else{
+        log.red(`Could not find any components to redraw`, action?.snapshot?.())
+      }
+    }catch (error) {
+        console.error(error)
+        error instanceof Error && toast(error.message, { type: 'error' })
+    }
+  }
+    
+  
+
+   
+  
   const dismissOnTouchOutside: Store.BuiltInObject['fn'] =
     async function onDismissOnTouchOutside(action, options) {
       log.func('dismissOnTouchOutside')
@@ -941,7 +1012,8 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
           app.register.removeTime('PopUPToDisconnectTime')
           const id = setTimeout(
             ()=>{
-              app.register.extendVideoFunction('showExtendView')
+              app.meeting.room.state === 'connected' && app.register.extendVideoFunction('showExtendView')
+              clearTimeout(id)
             }
           ,remainTime*1000)
           app.register.setTimeId('extendVideoChatTime',id)
@@ -971,6 +1043,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     logout,
     goto,
     redraw,
+    redrawCurrent,
     copy,
     dismissOnTouchOutside,
     extendMeeting,
@@ -1218,27 +1291,77 @@ export const extendedSdkBuiltIns = {
     this.register.setNumberofExtensions(numberofExtensions-1)
     this.register.setTimePerExtendSeconds(timePerExtendSeconds)
     this.register.setPopUpWaitSeconds(popUpWaitSeconds)
-    if (remainTime > 0 && numberofExtensions >= 0){
+    if (remainTime > 0 && numberofExtensions > 0){
       const id = setTimeout(
         ()=>{
-          this.register.extendVideoFunction('showExtendView')
+          this.meeting.room.state === 'connected' && this.register.extendVideoFunction('showExtendView')
+          clearTimeout(id)
         }
       ,remainTime*1000)
       this.register.setTimeId('extendVideoChatTime',id)
-    }else{
-      console.log('The meeting might had already ended. Please reschedule or cancel it.')
-      this.meeting.leave()
-      this.register.extendVideoFunction('onDisconnect')
-      // const id = setTimeout(
-      //   ()=>{
-      //     this.register.extendVideoFunction('showExtendView')
-      //   }
-      // ,10*1000)
-      // this.register.setTimeId('extendVideoChatTime',id)
-      
+    }else if(remainTime > 0 && numberofExtensions == 0){
+      const id = setTimeout(
+        ()=>{
+          this.meeting.room.state === 'connected' && this.register.extendVideoFunction('showExitWarningView')
+          clearTimeout(id)
+        }
+      ,remainTime*1000)
     }
+    // else{
+    //   console.log('The meeting might had already ended. Please reschedule or cancel it.')
+    //   this.meeting.leave()
+    //   this.register.extendVideoFunction('onDisconnect')
+    //   // const id = setTimeout(
+    //   //   ()=>{
+    //   //     this.register.extendVideoFunction('showExtendView')
+    //   //   }
+    //   // ,10*1000)
+    //   // this.register.setTimeId('extendVideoChatTime',id)
+      
+    // }
 
   },
+  async initAutoDC(
+    this: App,
+    action: BuiltInActionObject & {
+      popUpWaitSeconds: number
+      meetingEndTime: number
+    },
+  ) {
+    log.func('initAutoDC')
+    const popUpWaitSeconds = action?.popUpWaitSeconds
+    const currentTime = Math.ceil(new Date().getTime() / 1000)
+    const meetingEndTime = action?.meetingEndTime
+    const remainTime = meetingEndTime-currentTime-popUpWaitSeconds
+    // const remainTime2 = meetingEndTime-currentTime 
+    this.register.setPopUpWaitSeconds(popUpWaitSeconds)
+    this.register.setMeetingEndTime(meetingEndTime)
+    if (remainTime > 0){
+      const initAutoDcTime = setTimeout(
+        ()=>{
+            if(this.meeting.room.state === 'connected'){
+              this.register.extendVideoFunction('showExitWarningView')
+            }
+            clearTimeout(initAutoDcTime)
+        },
+        remainTime*1000
+      )
+      this.register.setTimeId('extendVideoChatTime',initAutoDcTime)
+      
+      // const endMeetingId = setTimeout(
+      //   ()=>{
+      //     const participantsNumber = this.meeting.room.participants.size
+      //     if(this.meeting.room?.participants && this.meeting.room.state === 'connected' && this.meeting.room.participants.size === 0){
+      //       this.register.extendVideoFunction('onDisconnect')
+      //     }
+      //     clearTimeout(endMeetingId)
+      //   },
+      //   remainTime2*1000
+      // )
+
+      
+    }
+  }
 
 }
 

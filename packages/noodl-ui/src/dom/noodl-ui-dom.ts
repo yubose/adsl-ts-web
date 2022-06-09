@@ -571,6 +571,11 @@ class NDOM extends NDOMInternal {
         if (component.has?.('global')) {
           handleDrawGlobalComponent.call(this, node, component, page)
         }
+
+        if(component.type === 'register'){
+          const onEvent = component.get('onEvent')
+          this.global.register.set(onEvent, component)
+        }
       }
 
       if (node) {

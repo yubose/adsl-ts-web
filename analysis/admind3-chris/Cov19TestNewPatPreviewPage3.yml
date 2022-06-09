@@ -1,0 +1,413 @@
+Cov19TestNewPatPreviewPage3:
+  title: "COVID-19 Testing Consent - New Patient"
+  pageNumber:
+  init:
+    #Page initialization
+    - .SignInCheck
+  formData:
+    # Input data here
+    symptomProfile:
+      experience: []
+  formDataTemp:
+    # Input data temp here
+    experienceSelect:
+      - key: fever
+        value: Fever
+        width: "0.13"
+      - key: muscieAches
+        value: Muscie aches
+        width: "0.13"
+      - key: nausea
+        value: Nausea and vomiting
+        width: "0.13"
+      - key: cough
+        value: Cough
+        width: "0.13"
+      - key: diarrhea
+        value: Diarrhea
+        width: "0.13"
+      - key: shortBreath
+        value: Shortness of breath
+        width: "0.13"
+      - key: soreThroat
+        value: Sore throat
+        width: "0.13"
+      - key: headache
+        value: Headache
+        width: "0.13"
+      - key: tiredness
+        value: Tiredness,Fatigue
+        width: "0.13"
+      - key: none
+        value: None
+        width: "0.35"
+      - key: other
+        value: "Other:"
+        width: "0.13"
+
+    selectYesOrNo:
+      problem1:
+        - key: problem1
+          value: "Yes"
+        - key: problem1
+          value: "No"
+      problem2:
+        - key: problem2
+          value: "Yes"
+        - key: problem2
+          value: "No"
+      problem3:
+        - key: problem3
+          value: "Yes"
+        - key: problem3
+          value: "No"
+      problem4:
+        - key: problem4
+          value: "Yes"
+        - key: problem4
+          value: "No"
+      problem5:
+        - key: problem5
+          value: "Yes"
+        - key: problem5
+          value: "No"
+  apiRequest: #Input data request here
+
+  style: #Input style fragment here
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            - .AppointmentLobby:
+            - .GotoBackPreview:
+            - type: view
+              style:
+                left: "0.008"
+                width: "0.824"
+                height: "0.815"
+                top: "0.1"
+                overflow: hidden
+                backgroundColor: "0xffffff"
+              children:
+                - .SwitchFormLeft:
+                  onClick:
+                    goto: Cov19TestNewPatPreviewPage2
+                - .SwitchFormRight:
+                  onClick:
+                    goto: Cov19TestNewPatPreviewPage4
+                - type: view
+                  style:
+                    width: "0.39"
+                    height: "1"
+                    margin: "auto"
+                  children:
+                    - .PatientFormTitle:
+                      img: patForm6_3.svg
+                    - type: scrollView
+                      style:
+                        marginTop: "0.01"
+                        width: "0.39"
+                        height: "0.705"
+                        overflow: scroll
+                      children:
+                        - .ProFormsLabel:
+                          text: "Symptom Profile"
+                          style:
+                            textAlign:
+                              x: center
+                            fontSize: .Nfont.nf4
+                            marginTop: "0.01"
+                        - .ProFormsLabel:
+                          text: "COVID-19 screening and/or diagnostic testing, authorized by the Food and
+                            Drug Administration under an Emergency Use
+                            Authorization (EUA), will be used today. This test
+                            is meant for use in individuals with signs and/or
+                            symptoms compatible with COVID-19."
+                          style:
+                            fontWeight: "500"
+                            lineHeight: "1.5em"
+                            marginTop: "0.01"
+                        - .ProFormsLabel:
+                          text: "Please mark the symptoms you are currently experiencing (if any):"
+                          style:
+                            marginTop: "0.02"
+                            fontSize: .Nfont.nf2
+                        - type: view
+                          style:
+                            width: '0.39'
+                            marginTop: "0.01"
+                          children:
+                            - type: list
+                              viewTag: experienceSelectTag
+                              contentType: listObject
+                              listObject: ..formDataTemp.experienceSelect
+                              iteratorVar: itemObject
+                              style:
+                                width: '0.39'
+                                margin: '0'
+                                left: '0'
+                                height: auto
+                              children:
+                                - type: listItem
+                                  itemObject:
+                                  style:
+                                    width: itemObject.width
+                                    marginTop: "0.01"
+                                    display: "inline-block"
+                                  children:
+                                    - type: image
+                                      path:
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                                - =.builtIn.array.has:
+                                                    dataIn:
+                                                      object: =..formData.symptomProfile.experience
+                                                      value: $var.key
+                                                - selectBlue.svg
+                                                - selectGray.svg
+                                      style:
+                                        marginTop: "0"
+                                        width: "0.008"
+                                        display: inline-block
+                                    - .ProFormsSelectLabel:
+                                      dataKey: itemObject.value
+
+                            - type: textView
+                              isEditable: "false"
+                              style:
+                                width: "0.39"
+                                marginTop: "0.005"
+                                height: "0.06992"
+                                box-sizing: content-box
+                                borderColor: "0xDEDEDF"
+                                border:
+                                  style: "3"
+                                borderRadius: "3"
+                                boxSizing: border-box
+                                backgroundColor: "0xffffff"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            marginTop: '0.02'
+                          children:
+                            - .ProFormsLabel:
+                              text: Do you live in a group home, assisted living center or other facility with
+                                more than 3 other people older than 60 years
+                                old?
+
+                            - type: view
+                              style:
+                                width: "0.39"
+                                marginTop: "0.015"
+                                left: "0"
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.selectYesOrNo.problem1
+                                  iteratorVar: itemObject
+                                  viewTag: problem1Tag
+                                  style:
+                                    width: "0.39"
+                                    axis: horizontal
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        marginTop: "0"
+                                        width: "0.05"
+                                      children:
+                                        - type: image
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.symptomProfile.problem1
+                                                          string2: $var.value
+                                                    - yes.png
+                                                    - no.png
+                                          style:
+                                            marginTop: "0"
+                                            width: "0.008"
+                                            display: inline-block
+                                        - .ProFormsSelectLabel:
+                                          dataKey: itemObject.value
+                                          style:
+                                            width: "auto"
+
+                        - type: view
+                          style:
+                            width: "0.39"
+                            marginTop: '0.02'
+                          children:
+                            - .ProFormsLabel:
+                              text: Do you work in a hospital, long-term care facility or assisted living
+                                facility?
+
+                            - type: view
+                              style:
+                                width: "0.39"
+                                marginTop: "0.015"
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.selectYesOrNo.problem2
+                                  iteratorVar: itemObject
+                                  viewTag: problem2Tag
+                                  style:
+                                    width: "0.39"
+                                    axis: horizontal
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        marginTop: "0"
+                                        width: "0.05"
+                                      children:
+                                        - type: image
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.symptomProfile.problem2
+                                                          string2: $var.value
+                                                    - yes.png
+                                                    - no.png
+                                          style:
+                                            marginTop: "0"
+                                            width: "0.008"
+                                            display: inline-block
+                                        - .ProFormsSelectLabel:
+                                          dataKey: itemObject.value
+                                          style:
+                                            width: "auto"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            marginTop: '0.02'
+                          children:
+                            - .ProFormsLabel:
+                              text: Have you traveled anywhere outside of California in the past 1 month?
+
+                            - type: view
+                              style:
+                                width: "0.39"
+                                marginTop: "0.015"
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.selectYesOrNo.problem3
+                                  iteratorVar: itemObject
+                                  viewTag: problem3Tag
+                                  style:
+                                    width: "0.39"
+                                    axis: horizontal
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        marginTop: "0"
+                                        width: "0.05"
+                                      children:
+                                        - type: image
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.symptomProfile.problem3
+                                                          string2: $var.value
+                                                    - yes.png
+                                                    - no.png
+                                          style:
+                                            marginTop: "0"
+                                            width: "0.008"
+                                            display: inline-block
+                                        - .ProFormsSelectLabel:
+                                          dataKey: itemObject.value
+                                          style:
+                                            width: "auto"
+                        - type: view
+                          style:
+                            width: "0.39"
+                            marginTop: '0.02'
+                          children:
+                            - .ProFormsLabel:
+                              text: Have you been in KNOWN close contact (i.e. within 6 feet) with someone
+                                confirmed to have COVID-19?
+
+                            - type: view
+                              style:
+                                width: "0.39"
+                                marginTop: "0.015"
+                              children:
+                                - type: list
+                                  contentType: listObject
+                                  listObject: ..formDataTemp.selectYesOrNo.problem4
+                                  iteratorVar: itemObject
+                                  viewTag: problem4Tag
+                                  style:
+                                    width: "0.39"
+                                    axis: horizontal
+                                  children:
+                                    - type: listItem
+                                      itemObject: ""
+                                      style:
+                                        marginTop: "0"
+                                        width: "0.05"
+                                      children:
+                                        - type: image
+                                          path:
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - =.builtIn.string.equal:
+                                                        dataIn:
+                                                          string1: =..formData.symptomProfile.problem4
+                                                          string2: $var.value
+                                                    - yes.png
+                                                    - no.png
+                                          style:
+                                            marginTop: "0"
+                                            width: "0.008"
+                                            display: inline-block
+                                        - .ProFormsSelectLabel:
+                                          dataKey: itemObject.value
+                                          style:
+                                            width: "auto"
+            # - .FormsBottomView: 
+            #   children:
+            #     - .FormsBottomButtons:
+            #       children:                    
+            #         - .FormsBottomMiddleButton:
+            #           text: Done
+            #           style: 
+            #             backgroundColor: "0xc1c1c1"

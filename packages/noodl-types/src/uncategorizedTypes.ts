@@ -17,9 +17,9 @@ export interface EmitObject {
 
 export type EmitObjectFold<
   O extends Record<string, any> = Record<string, any>,
-> = {
+> = O & {
   emit: EmitObject
-} & O
+}
 
 export type GotoUrl = string
 
@@ -39,11 +39,11 @@ export type Path<V = any> = V extends string
   ? EmitObjectFold
   : V extends IfObject
   ? IfObject
-  : string | EmitObjectFold | IfObject
+  : EmitObjectFold | IfObject | string
 
 export type TextBoardObject = (
+  | { br?: '' | null }
   | { color?: string; text?: string }
-  | { br?: null | '' }
 )[]
 
 export interface ToastObject {
@@ -52,11 +52,11 @@ export interface ToastObject {
 }
 
 export type Value =
-  | ''
   | any[]
-  | boolean
-  | number
-  | null
   | Record<string, any>
   | ReferenceString
+  | boolean
+  | number
   | string
+  | ''
+  | null

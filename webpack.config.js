@@ -1,4 +1,6 @@
+const set = require('lodash/set')
 const u = require('@jsmanifest/utils')
+const { toJson, toYml } = require('noodl-yaml')
 const y = require('yaml')
 const path = require('path')
 const del = require('del')
@@ -10,18 +12,26 @@ const CircularDependencyPlugin = require('circular-dependency-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const HtmlWebpackHarddiskPlugin = require('html-webpack-harddisk-plugin')
-// const TerserPlugin = require('terser-webpack-plugin')
 const WorkboxPlugin = require('workbox-webpack-plugin')
 const InjectBodyPlugin = require('inject-body-webpack-plugin').default
 const InjectScriptsPlugin = require('./scripts/InjectScriptsPlugin')
 
+const serializeErr = (err) => ({
+  name: err.name,
+  message: err.message,
+  stack: err.stack,
+})
 const getFilePath = (...s) => path.join(__dirname, ...s)
 const log = console.log
 const filename = 'index.html'
 const readFile = (s) => fs.readFileSync(s, 'utf8')
-const { bold, cyan, magenta, newline, yellow, white } = u
+const { cyan, magenta, yellow, white } = u
 
 const paths = {
+  analysis: {
+    base: getFilePath('./analysis'),
+    app: getFilePath('./analysis/app'),
+  },
   build: getFilePath('build'),
   public: getFilePath('public'),
   pkg: {
@@ -43,18 +53,11 @@ function getWebpackConfig(env) {
   let nodeEnv = env.NODE_ENV || process.env.NODE_ENV
   let mode = nodeEnv !== 'production' ? 'development' : 'production'
 
-  // Analysis is not run in production
-  let staticPaths = [paths.public]
-  staticPaths.push('analysis', 'analysis/app')
-
   if (!ecosEnv) {
-    log(
-      yellow(
-        `You did not provide the ecos environment. Defaulting to ` +
-          `${cyan(`stable`)}`,
-      ),
-    )
-    ecosEnv = 'stable'
+    let msg =
+      `You did not provide the ecos environment.  ` +
+      `Defaulting to ${cyan((ecosEnv = 'stable'))}`
+    log(yellow(msg))
   }
 
   const pkgJson = {
@@ -71,13 +74,11 @@ function getWebpackConfig(env) {
 
   if (fs.existsSync(paths.build)) del.sync(path.join(paths.build, '**/*'))
 
+  outputFileName =
+    mode === 'production' ? `[name].[contenthash].js` : '[name].js'
+
   if (!Number.isNaN(pkgVersionRev)) {
     buildVersion = [...pkgVersionPaths, ++pkgVersionRev].join('.')
-    outputFileName =
-      mode === 'production' ? `[name].[contenthash].js` : '[name].js'
-  } else {
-    outputFileName =
-      mode === 'production' ? `[name].[contenthash].js` : '[name].js'
   }
 
   const version = {
@@ -91,6 +92,8 @@ function getWebpackConfig(env) {
     'noodl-ui': pkgJson['noodl-ui'].version,
     'noodl-utils': pkgJson['noodl-utils'].version,
   }
+
+  const analysisApp = env.APP || env.CONFIG || 'testpage'
 
   /**
    * @type { import('webpack').Configuration } webpackOptions
@@ -111,92 +114,38 @@ function getWebpackConfig(env) {
         'localhost',
         '127.0.0.1',
         '127.0.0.1:3000',
-        '127.0.0.1:4000',
-        'https://127.0.0.1',
-        'https://127.0.0.1:3000',
-        'https://127.0.0.1:4000',
         'aitmed.com',
         'aitmed.io',
       ],
+      /**
+       * @param { import('webpack-dev-server/types/lib/Server') } devServer
+       */
       onAfterSetupMiddleware: function (devServer) {
         if (devServer) {
-          const n = require('@noodl/core')
-          const ny = require('@noodl/yaml')
+          devServer.app.get('/routes', (req, res) => {
+            res.status(200).json({ ...devServer.app._router })
+          })
 
-          /** @type { import('./dev/analysis').runDiagnostics } */
-          let runDiagnostics
+          const { createAnalysisModule } = require('./analysis/server')
 
-          // const diagnostics = new n.Diagnostics()
-          // const docRoot = new ny.DocRoot()
-          // const docVisitor = new ny.DocVisitor()
-          // const nfs = ny.createFileSystem({
-          //   existsSync: fs.existsSync,
-          //   parseFilePath: path.parse,
-          //   readFile: fs.readFileSync,
-          //   writeFile: fs.writeFileSync,
-          //   readJson: fs.readJsonSync,
-          //   writeJson: fs.writeJsonSync,
-          //   readdir: fs.readdirSync,
-          // })
+          const analysis = createAnalysisModule(
+            paths.analysis.base,
+            devServer,
+            {
+              env,
+              webpackConfig: webpackOptions,
+            },
+          )
 
-          // diagnostics.use(docRoot)
-          // diagnostics.use(docVisitor)
-          // docRoot.use(nfs)
-
-          for (const method of ['get', 'post']) {
-            devServer.app[method](
-              `/diagnostics/:config`,
-              async function (req, res) {
-                for (const key of u.keys(require.cache)) {
-                  if (u.isStr(key) && key.includes('analysis.js')) {
-                    console.log(`[${u.yellow(key)}]`)
-                    delete require.cache[key]
-                    break
-                  }
-                }
-
-                runDiagnostics = require('./dev/analysis').runDiagnostics
-
-                console.log(
-                  `[${method}] ${u.yellow(`/diagnosis/${req.params.config}`)}`,
-                )
-
-                const configKey = req.params.config
-                const pathToAppDir = path.join(paths.generated, configKey)
-                const pathToRootConfigFile = path.join(
-                  pathToAppDir,
-                  `${configKey}.yml`,
-                )
-                const pathToAppConfigFile = path.join(
-                  pathToAppDir,
-                  `cadlEndpoint.yml`,
-                )
-                const pathToAssetsDir = path.join(pathToAppDir, 'assets')
-                const diagnostics = await runDiagnostics({
-                  baseUrl: req.query.baseUrl || 'http://127.0.0.1:3000',
-                  config: configKey,
-                })
-
-                console.log(`[get]`, {
-                  pathToAppDir,
-                  pathToRootConfigFile,
-                  pathToAppConfigFile,
-                  pathToAssetsDir,
-                })
-
-                res.status(200).json(diagnostics)
-              },
-            )
-          }
+          analysis.registerRoutes()
+          analysis.watch()
+          analysis.listen()
         }
       },
       compress: false,
-      devMiddleware: {
-        writeToDisk: true,
-      },
+      devMiddleware: { writeToDisk: true },
       host: '127.0.0.1',
       hot: 'only',
-      // liveReload: true,
       headers: {
         'Access-Control-Allow-Credentials': true,
         'Access-Control-Allow-Origin': '*',
@@ -204,7 +153,14 @@ function getWebpackConfig(env) {
           'Origin, X-Requested-With, Content-Type, Accept, Authorization',
       },
       port: 3000,
-      static: staticPaths,
+      proxy: {
+        [`/${analysisApp}`]: `http://127.0.0.1:3000/analysis/${analysisApp}`,
+        '/analysis/console': `http://127.0.0.1:3000/index.html?analysis`,
+        //   '/analysis': 'http://127.0.0.1:3000/analysis/app',
+        //   '/analysis/app': 'http://127.0.0.1:3000/analysis/app',
+        //   '/analysis/testpage': 'http://127.0.0.1:3000/analysis/testpage',
+      },
+      static: [paths.public, paths.analysis.base, paths.analysis.app],
     },
     devtool: false,
     externals: [],
@@ -229,9 +185,7 @@ function getWebpackConfig(env) {
       ],
     },
     resolve: {
-      alias: {
-        fs: getFilePath('./node_modules/fs-extra'),
-      },
+      alias: { fs: getFilePath('./node_modules/fs-extra') },
       cache: true,
       extensions: ['.ts', '.js'],
       modules: ['node_modules'],
@@ -308,6 +262,7 @@ function getWebpackConfig(env) {
             }
           : undefined),
         LOCAL_CONFIG_URL: env.APP ? `${env.APP}/${env.APP}.yml` : '',
+        ANALYSIS_APP: analysisApp,
       }),
       new HtmlWebpackPlugin({
         alwaysWriteToDisk: true,
@@ -343,7 +298,7 @@ function getWebpackConfig(env) {
         ],
       }),
       new webpack.ProgressPlugin({
-        handler: webpackProgress,
+        // handler: webpackProgress,
       }),
       ...((settings.injectScripts && [
         new InjectScriptsPlugin({ path: settings.injectScripts }),
@@ -356,18 +311,6 @@ function getWebpackConfig(env) {
             concatenateModules: true,
             mergeDuplicateChunks: true,
             minimize: true,
-            // minimizer: [
-            //   new TerserPlugin({
-            //     minify: TerserPlugin.esbuildMinify,
-            //     parallel: true,
-            //     terserOptions: {
-            //       minify: false,
-            //       minifyWhitespace: true,
-            //       minifyIdentifiers: false,
-            //       minifySyntax: true,
-            //     },
-            //   }),
-            // ],
             nodeEnv: 'production',
             removeEmptyChunks: true,
             splitChunks: {
@@ -427,44 +370,45 @@ function getWebpackConfig(env) {
   }\n\n`)
   }
 
-  /** @type { webpack.Configuration } */
-  const workerConfig = {
-    entry: {
-      piBackgroundWorker: getFilePath('src/piBackgroundWorker.ts'),
-    },
-    output: {
-      filename: '[name].js',
-      path: paths.build,
-    },
-    devtool: mode === 'production' ? false : 'source-map',
-    mode: mode,
-    module: {
-      rules: [
-        {
-          test: /\.(js|ts)?$/,
-          exclude: /node_modules/,
-          include: path.join(__dirname),
-          use: [
-            {
-              loader: 'esbuild-loader',
-              options: {
-                loader: 'ts',
-                target: 'es2017',
-                sourcemap: mode === 'production' ? undefined : 'inline',
-              },
-            },
-          ],
-        },
-      ],
-    },
-    resolve: {
-      extensions: ['.js', '.ts'],
-    },
-  }
-
-  // return [webpackOptions, workerConfig]
   return [webpackOptions]
 }
 
 module.exports = getWebpackConfig
 module.exports.settings = settings
+
+/** @type { webpack.Configuration } */
+// const workerConfig = {
+//   entry: {
+//     piBackgroundWorker: getFilePath('src/piBackgroundWorker.ts'),
+//   },
+//   output: {
+//     filename: '[name].js',
+//     path: paths.build,
+//   },
+//   devtool: mode === 'production' ? false : 'source-map',
+//   mode: mode,
+//   module: {
+//     rules: [
+//       {
+//         test: /\.(js|ts)?$/,
+//         exclude: /node_modules/,
+//         include: path.join(__dirname),
+//         use: [
+//           {
+//             loader: 'esbuild-loader',
+//             options: {
+//               loader: 'ts',
+//               target: 'es2017',
+//               sourcemap: mode === 'production' ? undefined : 'inline',
+//             },
+//           },
+//         ],
+//       },
+//     ],
+//   },
+//   resolve: {
+//     extensions: ['.js', '.ts'],
+//   },
+// }
+
+// return [webpackOptions, workerConfig]

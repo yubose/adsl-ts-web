@@ -1,0 +1,2893 @@
+Inboxes:
+  title: "Inboxes"
+  viewPort: top
+  pageNumber: "61"
+  init:
+    - .SignInCheck
+    - actionType: evalObject
+      object:
+        .Global._nonce@:
+          =.builtIn.math.random: ""
+    - =..apiRequest.folder.docAPI.get: ""
+    - ..formData.folderList@: =..apiRequest.folder.docGetResp.doc
+
+    # - =.builtIn.array.SortBy:
+    #     dataIn:
+    #       object: =..formData.folderList 
+    #       iterate: "title"
+    #       orders: "asc"
+    #     dataOut: Inboxes.formData.folderList  
+
+    - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+    - =.Global.jwt.edgeAPI.store: ""
+    - =..apiRequest.email.docAPI.get: ""
+    # 给inboxList中的每一项设置一个属性 isSelected
+    - if:
+        - =..apiRequest.email.docQueryRes.doc
+        - =.builtIn.object.setObjectKey:
+            dataIn:
+              objectArr: =..apiRequest.email.docQueryRes.doc
+              key: isSelected
+              value: false
+            dataOut: Inboxes.formData.inboxList
+        - =.builtIn.checkField:
+            dataIn:
+              contentType: messageHidden
+              wait: 100
+    # - ..formData.inboxList@: =..apiRequest.email.docQueryRes.doc
+    - if:
+        - =..formData.inboxList
+        - ..formDataTemp.noInbox@: "block"
+        - ..formDataTemp.noInbox@: "none"
+  formData:
+    soloAttach: "" # 选出的单个附件，用于展示
+    moveFolderId: "" # 将邮件移入该id的文件夹
+    folderList: []       
+    inboxList: []       
+    inboxListLength: "" # 邮箱列表总长度
+    inboxListLength1: "0" # 邮箱列表总长度
+    selectedInbox: []       
+    selectedInboxLength: "" # 选中的邮件的长度
+    selectedInboxLength1: "0" # 选中的邮件的长度
+    inboxNow: "" # 当前点击的邮件
+    replayContent: "" # 回复内容
+    isAllSelected: false # 是否全选
+    selectOne: []
+    isAllOrUnRead: true # 控制邮件列表是 全部 还是 未读
+    inboxNowId: ""
+    attachment: []       
+    # arr: []
+    isShowDownArrowGray: block
+    isShowUpArrowGray: none
+    isShowContent: none
+    lastEmail: ""
+  formDataTemp:
+    inboxList:
+      - name: Mellissa West
+        emailSubject: Appointment Request
+        emailContent: Congratulations, You have an appoint…
+      - name: Mary Brown
+        emailSubject: Re:Patient Census for June
+        emailContent: OK,I get it.If you have time, just call me.
+      - name: Mellissa West
+        emailSubject: Re:Appointment Request
+        emailContent: Good evening Dr. Grenz, I have an good ap…
+    preAndLoadList:
+      - copyImg: copyPhoto.svg
+        formatText: "Record by Dr Green.zip（44kb）"
+        viewImg: viewGray.svg
+        viewText: View
+        downLoadImg: downLoadBlue.svg
+        downLoadText: Download
+      - copyImg: copyPhoto.svg
+        formatText: "Medical treatment.ppt（44kb）"
+        viewImg: view.svg
+        viewText: View
+        downLoadImg: downLoadBlue.svg
+        downLoadText: Download
+      - copyImg: copyPhoto.svg
+        formatText: "X-ray document.jpg（37kb）"
+        viewImg: view.svg
+        viewText: View
+        downLoadImg: downLoadBlue.svg
+        downLoadText: Download
+    isHiddenMain: none
+    noInbox: block
+    sendTitle: ""
+    tempDeletedType: ""
+    allOrUnReadList:
+      - title: All
+        left: "1.3vw"
+        width: "1vw"
+        backgroundColor: "0x005795" # 所有邮件
+        fontColor: "0xffffff"
+      - title: Unread
+        left: "2vw"
+        width: "2vw"
+        backgroundColor: "0xf4f8fa" # 所有邮件
+        fontColor: "0x005795"
+    tempTitle: ""
+    tempSelectedInboxLength: ""
+  apiRequest:
+    email:
+      docQueryRes: ""
+      docQueryReq:
+        ObjType: 544
+        #邮件类型，默认1281
+        type: 1281
+        id: .Global.currentFacility.id
+        # 查询条件
+        sCondition: E.type=10002 AND (D2.type & 0xFF18 =0xE00 OR D2.reid is NULL OR
+          D2.Type = 66561)
+        # 发送者id  接收者id  邮件的发送者id
+        xfname: (E.bvid|E.evid)&!D.ovid
+        obfname: ctime
+        _nonce: =.Global._nonce
+        maxcount: "100"
+      docQueryRegetResp: ""
+      # 这里用原先的get会让列表数据消失，换一个
+      docQueryReGet:
+        # 使得当emailTag变化时，email type就会变化
+        ObjType: 544
+        #邮件类型，默认1281
+        type: 1281
+        id: .Global.currentFacility.id
+        # 查询条件
+        sCondition: E.type=10002 AND (D2.type & 0xFF18 =0xE00 OR D2.reid is NULL OR
+          D2.Type = 66561)
+        # 发送者id  接收者id  邮件的发送者id
+        xfname: (E.bvid|E.evid)&!D.ovid
+        obfname: ctime
+        _nonce: =.Global._nonce
+        maxcount: "100"
+      docStoreRes: ""
+      docStoreReq:
+        #邮件类型，默认1281
+        type: .DocType.InboxMessage
+        #邮件所挂载的edge(是10002) 默认挂在 rootNotebookID 10000，当点击send的时候再修改为 10002
+        eid: .Global.rootNotebookID
+        name:
+          data:
+            #邮件内容
+            content: ""
+            #收件人姓名 
+            receiverName: ""
+            #发送人姓名 
+            senderName: ""
+            #发件人头像的id
+            senderAvatarId: ""
+            #是否携带附件
+            haveAttachment: false
+          #邮件标题
+          title: ""
+          #收件人头像的id 
+          user: ""
+      docAPI:
+        reget:
+          api: rd
+          dataIn: Inboxes.apiRequest.email.docQueryReGet
+          dataOut: Inboxes.apiRequest.email.docQueryRegetResp
+        get:
+          api: rd
+          dataIn: Inboxes.apiRequest.email.docQueryReq
+          dataOut: Inboxes.apiRequest.email.docQueryRes
+        store:
+          api: cd
+          dataIn: Inboxes.apiRequest.email.docStoreReq
+          dataOut: Inboxes.apiRequest.email.docStoreRes
+    emailTag:
+      docQueryRes: ""
+      docQueryReq:
+        # 获得所有满足这个式子的emailTag, emailTag的大类型是E
+        sCondition: type & 0xFF00 = 0xE00
+        # 收件者的id 10000
+        ids: []
+        # 收件者id 作为 eid
+        xfname: eid,reid
+        _nonce: =.Global._nonce
+      docStoreRes: ""
+      docStoreReq:
+        type: .DocType.MailTag
+        eid: ""
+        name:
+          data: ""
+        reid: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: Inboxes.apiRequest.emailTag.docQueryReq
+          dataOut: Inboxes.apiRequest.emailTag.docQueryRes
+        store:
+          api: cd
+          dataIn: Inboxes.apiRequest.emailTag.docStoreReq
+          dataOut: Inboxes.apiRequest.emailTag.docStoreRes
+    unReadEmail:
+      docQueryRes: ""
+      docQueryReq:
+        ObjType: 544
+        type: 1281
+        sCondition: E.type=10002 AND (D2.type & 0xFF1A =0xE00 OR D2.reid is NULL OR
+          D2.Type = 66561)
+        id: .Global.currentFacility.id
+        xfname: (E.bvid|E.evid)&!D.ovid
+        obfname: ctime
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: Inboxes.apiRequest.unReadEmail.docQueryReq
+          dataOut: Inboxes.apiRequest.unReadEmail.docQueryRes
+    folder:
+      docCreateReq:
+        type: .DocType.MailFolder
+        eid: .Global.fac_rootNotebook
+        name:
+          data: ""
+          title: ""
+      docGetReq:
+        type: .DocType.MailFolder
+        id: .Global.fac_rootNotebook
+        sCondition: type & 0xFF08 = 0xD00
+        xfname: eid
+        obfname: ctime
+        _nonce: =.Global._nonce
+      docAPI:
+        store:
+          api: cd
+          dataIn: Inboxes.apiRequest.folder.docCreateReq
+        get:
+          api: rd
+          dataIn: Inboxes.apiRequest.folder.docGetReq
+          dataOut: Inboxes.apiRequest.folder.docGetResp
+        delete:
+          api: dx
+          dataIn: Inboxes.apiRequest.folder.docDeleteReq
+    attachment:
+      docQueryReq:
+        type: .DocType.Attachment
+        id: ""
+        xfname: reid
+        obfname: ctime
+        _nonce: =.Global._nonce
+      docQueryRes: ""
+      docAPI:
+        get:
+          api: rd
+          dataIn: Inboxes.apiRequest.attachment.docQueryReq
+          dataOut: Inboxes.apiRequest.attachment.docQueryRes
+    lastEmail:
+      docRes: ""
+      docReq:
+        ObjType: 8
+        sCondition: "E.type=10002"
+        id: .Global.currentFacility.id
+        xfname: E.bvid
+        # maxcount: "1"
+        obfname: "ctime"
+        _nonce: .Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: Inboxes.apiRequest.lastEmail.docReq
+          dataOut: Inboxes.apiRequest.lastEmail.docRes
+
+  style:
+
+  components:
+    - type: view
+      style:
+        width: '1'
+        height: '1'
+        margin: auto
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+        - .BodyView:
+          style:
+            height: "0.93"
+          children:
+            # 搜索框
+            - type: view
+              viewTag: searchView
+              style:
+                backgroundColor: "0xffffff"
+                left: "0.008"
+                width: "0.255"
+                height: "0.07"
+                marginTop: "0.015"
+                borderRadius: "5px"
+              children:
+                - type: view
+                  style:
+                    left: "0.007"
+                    top: "0.017"
+                    height: "0.036"
+                    width: "0.18"
+                    border:
+                      style: "3"
+                    borderColor: "0xcecece"
+                    borderRadius: "3px"
+                  children:
+                    - type: image
+                      path: search.svg
+                      style:
+                        top: "0.008"
+                        left: "0.005"
+                        width: "0.012"
+                        height: "0.02"
+                    - type: textField
+                      placeholder: Search
+                      dataKey:
+                      style:
+                        boxSizing: content-box
+                        width: "0.155"
+                        left: "0.022"
+                        top: "0"
+                        height: "0.034"
+                        border: none
+                        borderRadius: "3px"
+                        fontSize: .Nfont.nf2
+                - type: view
+                  onClick:
+                    - actionType: evalObject
+                      object:
+                        - .Global.formData.reply.name.data.receiverName@: ""
+                        - .Global.formData.reply.name.data.receiverAvatarId@: ""
+                        - .Global.formData.reply.name.title@: ""
+                        - .Global.formData.reply.eid@: =.Global.fac_rootNotebook
+                    - goto: NewMessage
+                  style:
+                    top: "0.017"
+                    width: "0.05"
+                    height: "0.038"
+                    left: "0.197"
+                    backgroundColor: "0x005795"
+                    borderRadius: "3px"
+                    textAlign:
+                      x: center
+                      y: center
+                  children:
+                    - type: image
+                      path: editPen.svg
+                      style:
+                        width: "0.012"
+                        height: "0.02"
+
+            - type: view
+              viewTag: messageView
+              style:
+                left: "0.008"
+                width: "0.255"
+                height: "0.83"
+                marginTop: "0"
+              children:
+                - type: view
+                  style:
+                    left: "0"
+                    width: "0.255"
+                    height: "0.07"
+                    marginTop: "0"
+                  children:
+                    - type: view
+                      style:
+                        top: "0.018"
+                        width: "0.02"
+                        height: "0.034"
+                        left: "0.003"
+                        borderRadius: "5px"
+                        textAlign:
+                          x: center
+                          y: center
+                      children:
+                        - type: image
+                          viewTag: selectAllInboxImg
+                          path:
+                            #selectGray.svg
+                            emit:
+                              actions:
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: true
+                                          string2: =..formData.isAllSelected
+                                    - selectBlue.svg
+                                    - selectGray.svg
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =..formData.inboxList
+                                    dataOut: Inboxes.formData.inboxListLength
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.selectedInboxLength
+                                          string2: =..formData.inboxListLength
+                                    - ..formData.isAllSelected@: true
+                                    - ..formData.isAllSelected@: false
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: true
+                                          string2: =..formData.isAllSelected
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.isAllSelected@: false
+                                        - =.builtIn.object.setObjectKey:
+                                            dataIn:
+                                              objectArr: =..formData.inboxList
+                                              key: isSelected
+                                              value: false
+                                            dataOut: Inboxes.formData.inboxList
+                                        - ..formData.selectedInbox@: []
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.isAllSelected@: true
+                                        - =.builtIn.object.setObjectKey:
+                                            dataIn:
+                                              objectArr: =..formData.inboxList
+                                              key: isSelected
+                                              value: true
+                                            dataOut: Inboxes.formData.inboxList
+                                        - ..formData.selectedInbox@: =..formData.inboxList
+                                        - =.builtIn.array.getListLength:
+                                            dataIn:
+                                              object: =..formData.selectedInbox
+                                            dataOut: Inboxes.formData.selectedInboxLength
+                                        - ..formData.inboxListLength1@: =..formData.inboxListLength
+                                        - ..formData.selectedInboxLength1@: =..formData.selectedInboxLength
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: selectAllInboxImg
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: inboxList
+                          style:
+                            width: "0.015"
+                            height: "0.02"
+                    - type: label
+                      text: "Mark as read"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - =.builtIn.array.getListLength:
+                                dataIn:
+                                  object: =..formData.selectedInbox
+                                dataOut: Inboxes.formData.selectedInboxLength1
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.selectedInboxLength1
+                                      string2: "0"
+                                - actionType: popUp
+                                  popUpView: noMessageTag
+                                  wait: true
+                                - continue
+                        - actionType: popUp
+                          popUpView: uploadingTag
+                        - actionType: evalObject
+                          object:
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =.builtIn.ecos.updateReidDocListType:
+                                dataIn:
+                                  sourceDocList: =..formData.selectedInbox
+                                  targetBit: 2
+                                  targetValue: 1
+                                  sCondition: type & 0xFF00 = 0xE00
+                                  eid: =.Global.fac_rootNotebook
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =..apiRequest.email.docAPI.reget: ""
+                            # 重新get一下email，再赋值给邮件列表
+                            - ..formData.inboxList@: =..apiRequest.email.docQueryRegetResp.doc
+                            - ..formData.selectedInbox@: []
+                            # 重置列表的选择框
+                            - =.builtIn.object.setObjectKey:
+                                dataIn:
+                                  objectArr: =..apiRequest.email.docQueryRes.doc
+                                  key: isSelected
+                                  value: false
+                                dataOut: Inboxes.formData.inboxList
+                            # - if:
+                            #   - =..apiRequest.email.docQueryRegetResp.doc
+                            #   - =.builtIn.object.setObjectKey:
+                            #       dataIn:
+                            #         objectArr: =..apiRequest.email.docQueryRegetResp.doc
+                            #         key: isSelected
+                            #         value: false
+                            #       dataOut: Inboxes.formData.inboxList
+                            # - =.builtIn.array.ComparisonSettingProperties:
+                            #     dataIn:
+                            #       objArrOne: =..formData.selectedInbox
+                            #       strOnePath: "id"
+                            #       objArrTwo: =..formData.inboxList
+                            #       strTwoPath: "id"
+                            #       strValue: "isSelected"
+                            #       newValue: true
+                            #     dataOut: Inboxes.formData.inboxList
+
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: selectAllInboxImg
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: selectImg
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: mainView
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: noInbox
+                        # end                                      
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: inboxList
+                        - actionType: popUpDismiss
+                          popUpView: uploadingTag
+                      style:
+                        top: "0.018"
+                        width: "0.062"
+                        height: "0.034"
+                        left: "0.026"
+                        fontSize: .Nfont.nf0
+                        letterSpacing: "0.8px"
+                        color: "0x005795"
+                        backgroundColor: "0xffffff"
+                        borderRadius: "5px"
+                        textAlign:
+                          x: center
+                          y: center
+                    - type: view
+                      style:
+                        top: "0.018"
+                        width: "0.02"
+                        height: "0.034"
+                        left: "0.095"
+                        backgroundColor: "0xffffff"
+                        borderRadius: "5px"
+                        textAlign:
+                          x: center
+                          y: center
+                      children:
+                        - type: image
+                          path: redTrash.svg
+                          style:
+                            width: "0.01"
+                            height: "0.016"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            # 选中的邮件的长度
+                            - =.builtIn.array.getListLength:
+                                dataIn:
+                                  object: =..formData.selectedInbox
+                                dataOut: Inboxes.formData.selectedInboxLength
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.selectedInboxLength
+                                      string2: "0"
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: noMessageTag
+                                - actionType: builtIn
+                                  funcName: show
+                                  viewTag: isSelectedAllDeleteInbox
+                        # - actionType: builtIn
+                        #   funcName: hide
+                        #   viewTag: mainView
+                        # - actionType: builtIn
+                        #   funcName: show
+                        #   viewTag: noInbox                                
+                    - type: view
+                      style:
+                        top: "0.018"
+                        width: "0.02"
+                        height: "0.034"
+                        left: "0.122"
+                        backgroundColor: "0xffffff"
+                        borderRadius: "5px"
+                        textAlign:
+                          x: center
+                          y: center
+                      children:
+                        - type: image
+                          path: fileTrans.svg
+                          style:
+                            width: "0.01"
+                            height: "0.016"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            # 选中的邮件的长度
+                            - =.builtIn.array.getListLength:
+                                dataIn:
+                                  object: =..formData.selectedInbox
+                                dataOut: Inboxes.formData.selectedInboxLength
+                            - =.builtIn.object.setProperty:
+                                dataIn:
+                                  obj: =..formData.folderList
+                                  label: "id"
+                                  text: =..formData.moveFolderId
+                                  arr: [ "backgroundColor" ]
+                                  valueArr: [ "0xffffff" ]
+                                  errorArr: [ "0xffffff" ]
+                                dataOut: Inboxes.formData.folderList
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.selectedInboxLength
+                                      string2: "0"
+                                - actionType: popUp
+                                  popUpView: noMessageTag
+                                  wait: true
+                                - actionType: popUp
+                                  popUpView: moveView
+
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: folderListView
+                    - type: view
+                      style:
+                        top: "0.018"
+                        width: "0.02"
+                        height: "0.034"
+                        left: "0.149"
+                        backgroundColor: "0xffffff"
+                        borderRadius: "5px"
+                        textAlign:
+                          x: center
+                          y: center
+                      children:
+                        - type: image
+                          path: star.svg
+                          style:
+                            width: "0.01"
+                            height: "0.02"
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - =.builtIn.array.getListLength:
+                                    dataIn:
+                                      object: =..formData.selectedInbox
+                                    dataOut: Inboxes.formData.selectedInboxLength1
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..formData.selectedInboxLength1
+                                          string2: "0"
+                                    - actionType: popUp
+                                      popUpView: noMessageTag
+                                      wait: true
+                                    - continue
+                            - actionType: popUp
+                              popUpView: uploadingTag
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - actionType: evalObject
+                              object:
+                                - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                - =.Global.jwt.edgeAPI.store: ""
+                                - =.builtIn.ecos.updateReidDocListType:
+                                    dataIn:
+                                      sourceDocList: =..formData.selectedInbox
+                                      targetBit: 3
+                                      targetValue: 1
+                                      sCondition: type & 0xFF00 = 0xE00
+                                      eid: =.Global.fac_rootNotebook
+
+                            - actionType: evalObject
+                              object:
+                                - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                - =.Global.jwt.edgeAPI.store: ""
+                                - =..apiRequest.email.docAPI.reget: ""
+                                # - if:
+                                #   - =..apiRequest.email.docQueryRegetResp.doc
+                                #   - =.builtIn.object.setObjectKey:
+                                #       dataIn:
+                                #         objectArr: =..apiRequest.email.docQueryRegetResp.doc
+                                #         key: isSelected
+                                #         value: false
+                                #       dataOut: Inboxes.formData.inboxList
+                                # - =.builtIn.array.ComparisonSettingProperties:
+                                #     dataIn:
+                                #       objArrOne: =..formData.selectedInbox
+                                #       strOnePath: "id"
+                                #       objArrTwo: =..formData.inboxList
+                                #       strTwoPath: "id"
+                                #       strValue: "isSelected"
+                                #       newValue: true
+                                #     dataOut: Inboxes.formData.inboxList
+
+                            - actionType: evalObject
+                              object:
+                                - ..formData.isAllSelected@: false
+                                - =.builtIn.object.setObjectKey:
+                                    dataIn:
+                                      objectArr: =..formData.inboxList
+                                      key: isSelected
+                                      value: false
+                                    dataOut: Inboxes.formData.inboxList
+                                - ..formData.selectedInbox@: []
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: selectAllInboxImg
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: selectImg
+                            - actionType: popUp
+                              popUpView: starSuccessView
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: inboxList
+                            - actionType: builtIn
+                              funcName: hide
+                              viewTag: mainView
+                            - actionType: builtIn
+                              funcName: show
+                              viewTag: noInbox
+                            - actionType: popUpDismiss
+                              popUpView: uploadingTag
+                    - type: view
+                      viewTag: filterView
+                      style:
+                        top: "0.018"
+                        width: "0.072"
+                        height: "0.034"
+                        left: "0.176"
+                        border:
+                          style: "3"
+                        borderColor: "0xcecece"
+                        borderRadius: "5px"
+                        textAlign:
+                          y: center
+                      children:
+                        - type: image
+                          path: filter.svg
+                          style:
+                            left: "0.006"
+                            width: "0.007"
+                            height: "0.014"
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formDataTemp.allOrUnReadList
+                          iteratorVar: itemObject
+                          style:
+                            width: calc(6vw)
+                            margin: '0'
+                            height: auto
+                            axis: horizontal
+                          children:
+                            - type: listItem
+                              itemObject:
+                              style:
+                                width: itemObject.width
+                                left: itemObject.left
+                              children:
+                                - type: label
+                                  # viewTag: allLabelTag
+                                  dataKey: itemObject.title
+                                  style:
+                                    width: itemObject.width
+                                    height: "0.022"
+                                    color: itemObject.fontColor
+                                    backgroundColor: itemObject.backgroundColor
+                                    borderRadius: "3px"
+                                    fontSize: .Nfont.nf0
+                                    textAlign:
+                                      x: center
+                                      y: center
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - =.builtIn.object.setProperty:
+                                              dataIn:
+                                                obj: =..formDataTemp.allOrUnReadList
+                                                label: "title"
+                                                text: $var.title
+                                                arr: [ "fontColor", "backgroundColor" ]
+                                                valueArr: [ "0xffffff", "0x005795" ]
+                                                errorArr: [ "0x005795", "0xf4f8fa" ]
+
+                                          - ..formDataTemp.tempTitle@: $var.title
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formDataTemp.tempTitle
+                                                  string2: "All"
+                                            - actionType: evalObject
+                                              object:
+                                                - ..formData.isAllOrUnRead@: true
+                                                - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                                - =.Global.jwt.edgeAPI.store: ""
+                                                - =..apiRequest.email.docAPI.get: ""
+                                                - if:
+                                                    - =..apiRequest.email.docQueryRes.doc
+                                                    - =.builtIn.object.setObjectKey:
+                                                        dataIn:
+                                                          objectArr: =..apiRequest.email.docQueryRes.doc
+                                                          key: isSelected
+                                                          value: false
+                                                        dataOut: Inboxes.formData.inboxList
+                                                    - continue
+                                                - ..formData.selectedInbox@: []
+                                                - ..formData.isAllSelected@: false
+                                                # - =.builtIn.array.ComparisonSettingProperties:
+                                                #     dataIn:
+                                                #       objArrOne: =..formData.selectedInbox
+                                                #       strOnePath: "id"
+                                                #       objArrTwo: =..formData.inboxList
+                                                #       strTwoPath: "id"
+                                                #       strValue: "isSelected"
+                                                #       newValue: true
+                                                #     dataOut: Inboxes.formData.inboxList
+                                                - =.builtIn.array.getListLength:
+                                                    dataIn:
+                                                      object: =..formData.selectedInbox
+                                                    dataOut: Inboxes.formData.selectedInboxLength
+                                                - =.builtIn.array.getListLength:
+                                                    dataIn:
+                                                      object: =..formData.inboxList
+                                                    dataOut: Inboxes.formData.inboxListLength
+                                                - ..formData.inboxListLength1@: =..formData.inboxListLength
+                                                - ..formData.selectedInboxLength1@: =..formData.selectedInboxLength
+
+                                            - actionType: evalObject
+                                              object:
+                                                - ..formData.isAllOrUnRead@: false
+                                                - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                                - =.Global.jwt.edgeAPI.store: ""
+                                                - =..apiRequest.unReadEmail.docAPI.get: ""
+                                                - if:
+                                                    - =..apiRequest.unReadEmail.docQueryRes.doc
+                                                    - =.builtIn.object.setObjectKey:
+                                                        dataIn:
+                                                          objectArr: =..apiRequest.unReadEmail.docQueryRes.doc
+                                                          key: isSelected
+                                                          value: false
+                                                        dataOut: Inboxes.formData.inboxList
+                                                    - continue
+                                                - =.builtIn.array.getListLength:
+                                                    dataIn:
+                                                      object: =..formData.selectedInbox
+                                                    dataOut: Inboxes.formData.selectedInboxLength
+                                                - =.builtIn.array.getListLength:
+                                                    dataIn:
+                                                      object: =..formData.inboxList
+                                                    dataOut: Inboxes.formData.inboxListLength
+                                                - ..formData.selectedInbox@: []
+                                                - ..formData.isAllSelected@: false
+                                                # - =.builtIn.array.ComparisonSettingProperties:
+                                                #     dataIn:
+                                                #       objArrOne: =..formData.selectedInbox
+                                                #       strOnePath: "id"
+                                                #       objArrTwo: =..formData.inboxList
+                                                #       strTwoPath: "id"
+                                                #       strValue: "isSelected"
+                                                #       newValue: true
+                                                #     dataOut: Inboxes.formData.inboxList
+                                                - ..formData.inboxListLength1@: =..formData.inboxListLength
+                                                - ..formData.selectedInboxLength1@: =..formData.selectedInboxLength
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: filterView
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: inboxList
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: messageView
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: noInbox
+                                    - actionType: builtIn
+                                      funcName: hide
+                                      viewTag: mainView
+                - type: view
+                  contentType: messageHidden
+                  style:
+                    left: "0"
+                    width: "0.255"
+                    height: "0.76"
+                    top: "0.07"
+                    borderRadius: "5px"
+                    isHidden: "true"
+                    zIndex: "5"
+                    backgroundColor: "0xffffff"
+                  children:
+                    - type: label
+                      text: No message here!
+                      dataKey:
+                      style:
+                        width: "0.255"
+                        height: "0.7"
+                        color: "0x999999"
+                        fontSize: .Nfont.nf5
+                        textAlign:
+                          x: center
+                          y: center
+                # 邮件列表
+                - type: scrollView
+                  style:
+                    left: "0"
+                    width: "0.255"
+                    height: "0.76"
+                    marginTop: "0"
+                    borderRadius: "5px"
+                    backgroundColor: "0xffffff"
+                  children:
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formData.inboxList
+                      iteratorVar: itemObject
+                      viewTag: inboxList
+                      style:
+                        width: "0.255"
+                        margin: "0"
+                        left: "0"
+                        height: auto
+                      children:
+                        - type: listItem
+                          itemObject:
+                          style:
+                            width: "0.255"
+                            height: "0.1"
+                            left: "0"
+                            marginTop: "0"
+                            backgroundColor: itemObject.backgroundColor
+                          children:
+                            - type: view
+                              style:
+                                left: "0"
+                                width: "0.255"
+                                height: "0.1"
+                                marginTop: "0"
+                                boxSizing: border-box
+                                borderLeft: itemObject.borderLeft
+                              children:
+                                - type: image
+                                  viewTag: selectImg
+                                  path:
+                                    # selectGray.svg # selectBlue.svg
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: true
+                                                  string2: $var.isSelected
+                                            - selectBlue.svg
+                                            - selectGray.svg
+                                  onClick:
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: $var.isSelected
+                                                    string2: true
+                                              - =.builtIn.object.set:
+                                                  dataIn:
+                                                    object: $var
+                                                    key: isSelected
+                                                    value: false
+                                              - =.builtIn.object.set:
+                                                  dataIn:
+                                                    object: $var
+                                                    key: isSelected
+                                                    value: true
+                                          - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: $var.isSelected
+                                                    string2: false
+                                              - =.builtIn.array.removeById:
+                                                  dataIn:
+                                                    object: =..formData.selectedInbox
+                                                    id: $var.id
+                                              - =.builtIn.array.add:
+                                                  dataIn:
+                                                    object: =..formData.selectedInbox
+                                                    value: $var
+                                    - actionType: evalObject
+                                      object:
+                                        # 选中的邮件的长度
+                                        - =.builtIn.array.getListLength:
+                                            dataIn:
+                                              object: =..formData.selectedInbox
+                                            dataOut: Inboxes.formData.selectedInboxLength
+                                        # 邮箱列表总长度
+                                        - =.builtIn.array.getListLength:
+                                            dataIn:
+                                              object: =..formData.inboxList
+                                            dataOut: Inboxes.formData.inboxListLength
+                                        - if:
+                                            - =.builtIn.string.equal:
+                                                dataIn:
+                                                  string1: =..formData.inboxListLength
+                                                  string2: =..formData.selectedInboxLength
+                                            - ..formData.isAllSelected@: true
+                                            - ..formData.isAllSelected@: false
+                                        - ..formData.selectedInboxLength1@: =..formData.selectedInboxLength
+                                        - ..formData.inboxListLength1@: =..formData.inboxListLength
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: selectImg
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: selectAllInboxImg
+                                  style:
+                                    top: "0.04"
+                                    left: "0.002"
+                                    width: "0.015"
+                                    height: "0.02"
+                                - type: view
+                                  style:
+                                    width: "0.22"
+                                    height: "0.1"
+                                    left: "0.021"
+                                    marginTop: "0"
+                                    borderBottom: "1px solid #afc6d6"
+                                    boxSizing: border-box
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: uploadingTag
+                                    - actionType: evalObject
+                                      object:
+                                        .Global._nonce@:
+                                          =.builtIn.math.random: ""
+                                    # 获得facility上一次发的邮件
+                                    # - actionType: evalObject
+                                    #   object: 
+                                    #     - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                    #     - =.Global.jwt.edgeAPI.store: ""
+                                    #     - =..apiRequest.lastEmail.docAPI.get: ""
+                                    #     - ..formData.lastEmail@: =..apiRequest.lastEmail.docRes.doc.0
+                                    # 这里用emit会数据错误
+                                    - actionType: updateObject
+                                      dataKey: Inboxes.formData.inboxNow
+                                      dataObject: itemObject
+                                    # 拼接接收方的名称
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.string.concat:
+                                            dataIn:
+                                              - "Reply To "
+                                              - =..formData.inboxNow.name.title
+                                            dataOut: Inboxes.formDataTemp.sendTitle
+                                    # 邮件的信息 和 我要发的信息 是相反的
+                                    - actionType: evalObject
+                                      object:
+                                        - ..apiRequest.email.docStoreReq.name.data.receiverName@: =..formData.inboxNow.name.data.senderName
+                                        - ..apiRequest.email.docStoreReq.name.data.senderName@: =..formData.inboxNow.name.data.receiverName
+                                        - ..apiRequest.email.docStoreReq.name.data.senderAvatarId@: =..formData.inboxNow.name.data.receiverAvatarId
+                                        - ..apiRequest.email.docStoreReq.name.user@: =.Global.facilityAvatarID
+                                        - ..apiRequest.email.docStoreReq.name.title@: =..formDataTemp.sendTitle
+                                        - ..apiRequest.email.docStoreReq.name.user@: =..formData.inboxNow.name.data.receiverAvatarId
+                                        - ..apiRequest.email.docStoreReq.name.data.haveAttachment@: false
+                                    # fac_rootNotebook的id作为eid email的id 将其赋值给emailTag 的 reid
+                                    - actionType: evalObject
+                                      object:
+                                        - ..apiRequest.emailTag.docQueryReq.ids.0@: =.Global.fac_rootNotebook
+                                        - ..apiRequest.emailTag.docQueryReq.ids.1@: =..formData.inboxNow.id
+                                    # 点击这项邮件 设置emailTag
+                                    - actionType: evalObject
+                                      object:
+                                        - actionType: evalObject
+                                          object:
+                                            .Global._nonce@:
+                                              =.builtIn.math.random: ""
+                                        # 获取emailTag
+                                        - =..apiRequest.emailTag.docAPI.get: ""
+                                        - if:
+                                            - =..apiRequest.emailTag.docQueryRes.doc.0
+                                            - ..apiRequest.emailTag.docStoreReq@: =..apiRequest.emailTag.docQueryRes.doc.0
+                                            # *** 这里很重要, 如果emailTag.docQueryRes.doc.0 是空的话，上一句不会执行，id还是老的id
+                                            # 也就是说一个emailTag指向不同的email, 必须将前一次的id制空，当store时就是create不是update
+                                            - ..apiRequest.emailTag.docStoreReq.id@: ""
+                                        # 挂边
+                                        - ..apiRequest.emailTag.docStoreReq.eid@: =.Global.fac_rootNotebook
+                                        - ..apiRequest.emailTag.docStoreReq.esig@: ""
+                                        - ..apiRequest.emailTag.docStoreReq.reid@: =..formData.inboxNow.id
+                                        - ..apiRequest.emailTag.docStoreReq.type@: 3584
+                                        # 标记为已读
+                                        - =.builtIn.number.inhx:
+                                            dataIn:
+                                              intHex: =..apiRequest.emailTag.docStoreReq.type
+                                              index: 2
+                                              hex: 1
+                                            dataOut: Inboxes.apiRequest.emailTag.docStoreReq.type
+                                        # 切jwt 切到facility环境下
+                                        - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                        - =.Global.jwt.edgeAPI.store: ""
+                                        # 设置emailTag
+                                        - =..apiRequest.emailTag.docAPI.store: ""
+                                        - if:
+                                            - =..formData.isAllOrUnRead
+                                            # 重新get一下email，再赋值给邮件列表
+                                            - actionType: evalObject
+                                              object:
+                                                # 重新get一下email
+                                                - =..apiRequest.email.docAPI.reget: ""
+                                                # - ..formData.inboxList@: =..apiRequest.email.docQueryRegetResp.doc
+                                                - if:
+                                                    - =..apiRequest.email.docQueryRegetResp.doc
+                                                    - =.builtIn.object.setObjectKey:
+                                                        dataIn:
+                                                          objectArr: =..apiRequest.email.docQueryRegetResp.doc
+                                                          key: isSelected
+                                                          value: false
+                                                        dataOut: Inboxes.formData.inboxList
+                                                - =.builtIn.array.ComparisonSettingProperties:
+                                                    dataIn:
+                                                      objArrOne: =..formData.selectedInbox
+                                                      strOnePath: "id"
+                                                      objArrTwo: =..formData.inboxList
+                                                      strTwoPath: "id"
+                                                      strValue: "isSelected"
+                                                      newValue: true
+                                                    dataOut: Inboxes.formData.inboxList
+                                            - actionType: evalObject
+                                              object:
+                                                - =..apiRequest.unReadEmail.docAPI.get: ""
+                                                # - ..formData.inboxList@: =..apiRequest.unReadEmail.docQueryRes.doc
+                                                - if:
+                                                    - =..apiRequest.unReadEmail.docQueryRes.doc
+                                                    - =.builtIn.object.setObjectKey:
+                                                        dataIn:
+                                                          objectArr: =..apiRequest.unReadEmail.docQueryRes.doc
+                                                          key: isSelected
+                                                          value: false
+                                                        dataOut: Inboxes.formData.inboxList
+                                                - =.builtIn.array.ComparisonSettingProperties:
+                                                    dataIn:
+                                                      objArrOne: =..formData.selectedInbox
+                                                      strOnePath: "id"
+                                                      objArrTwo: =..formData.inboxList
+                                                      strTwoPath: "id"
+                                                      strValue: "isSelected"
+                                                      newValue: true
+                                                    dataOut: Inboxes.formData.inboxList
+
+                                    #　可以直接向inboxList的每一项添加 borderLeft backgroundColor
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - =.builtIn.object.setProperty:
+                                              dataIn:
+                                                obj: =..formData.inboxList
+                                                label: "id"
+                                                text: $var.id
+                                                arr: [ "borderLeft", "backgroundColor" ]
+                                                valueArr: [ "5px solid #005795", "0xe2edf5" ]
+                                                errorArr: [ "none", "0xffffff" ]
+                                          - ..apiRequest.attachment.docQueryReq.id@: $var.id
+                                          - =..apiRequest.attachment.docAPI.get: ""
+                                          - ..formData.attachment@: =..apiRequest.attachment.docQueryRes.doc
+                                          - ..formData.inboxNowId@: $var.id
+                                    - actionType: builtIn
+                                      funcName: show
+                                      viewTag: mainView
+                                    - actionType: builtIn
+                                      funcName: hide
+                                      viewTag: noInbox
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: mainView
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: inboxList
+                                    - actionType: popUpDismiss
+                                      popUpView: uploadingTag
+                                  children:
+                                    - type: image
+                                      path:
+                                        #redDot.svg
+                                        emit:
+                                          dataKey:
+                                            var: itemObject
+                                          actions:
+                                            - if:
+                                                - =.builtIn.number.typeIsValid:
+                                                    dataIn:
+                                                      docType: $var.type
+                                                      localArr: [ 1, 2, 6 ]
+                                                      binaryArr: [ 1, 1, 0 ]
+                                                - null.png
+                                                - dot.svg
+                                      style:
+                                        top: "0.028"
+                                        left: "0.023"
+                                        width: "0.008"
+                                        height: "0.012"
+                                        zIndex: "10"
+                                    - type: image
+                                      path: avatarMan.svg
+                                      path=func: .builtIn.utils.prepareDocToPath
+                                      dataKey: itemObject.name.user
+                                      style:
+                                        top: "0.025"
+                                        left: "0"
+                                        width: "0.03"
+                                        height: "0.048"
+                                    - type: view
+                                      style:
+                                        width: "0.16"
+                                        top: "0.015"
+                                        height: "0.07"
+                                        left: "0.041"
+                                      children:
+                                        - type: label
+                                          dataKey: itemObject.name.data.senderName
+                                          style:
+                                            top: "0"
+                                            left: "0"
+                                            height: "0.02"
+                                            width: "0.07"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x000000"
+                                            textAlign:
+                                              y: center
+                                        - type: image
+                                          path:
+                                            # appendix.svg
+                                            emit:
+                                              dataKey:
+                                                var: itemObject
+                                              actions:
+                                                - if:
+                                                    - $var.name.data.haveAttachment
+                                                    - appendix.svg
+                                                    - null.png
+                                          style:
+                                            top: "0"
+                                            left: "0.08"
+                                            width: "0.014"
+                                            height: "0.022"
+                                        - type: label
+                                          # text: "Patient Census for June"
+                                          dataKey: itemObject.name.title
+                                          style:
+                                            top: "0.026"
+                                            left: "0"
+                                            height: "0.02"
+                                            width: "0.16"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x000000"
+                                            textAlign:
+                                              y: center
+                                        - type: label
+                                          # text: "I attached the patient census for June..."
+                                          dataKey: itemObject.name.data.content
+                                          style:
+                                            top: "0.048"
+                                            left: "0"
+                                            height: "0.02"
+                                            width: "0.16"
+                                            fontSize: .Nfont.nf2
+                                            color: "0x333333"
+                                            overflow: hidden
+                                            textOverflow: ellipsis
+                                            whiteSpace: nowrap
+                                            textAlign:
+                                              y: center
+                                    - type: label
+                                      dataKey: itemObject.ctime
+                                      text=func: .builtIn.string.formatUnixtime_en
+                                      style:
+                                        top: "0.015"
+                                        left: "0.14"
+                                        width: "calc(7vw)"
+                                        height: "0.02"
+                                        fontSize: .Nfont.nf0
+                                        color: "0x333333"
+                                        textAlign:
+                                          x: right
+                                - type: image
+                                  path:
+                                    emit:
+                                      dataKey:
+                                        var: itemObject
+                                      actions:
+                                        - if:
+                                            - =.builtIn.number.typeIsValid:
+                                                dataIn:
+                                                  docType: $var.type
+                                                  localArr: [ 1, 3, 6 ]
+                                                  binaryArr: [ 1, 1, 0 ]
+                                            - star.svg
+                                            - emptyStar2.svg #star.svg
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        .Global._nonce@:
+                                          =.builtIn.math.random: ""
+                                    - emit:
+                                        dataKey:
+                                          var: itemObject
+                                        actions:
+                                          - if:
+                                              - =.builtIn.string.equal:
+                                                  dataIn:
+                                                    string1: =..formData.inboxNowId
+                                                    string2: $var.id
+                                              - ..formData.inboxNowId@: $var.id
+                                              - continue
+                                          - =.builtIn.array.add:
+                                              dataIn:
+                                                object: =..formData.selectOne
+                                                value: $var
+                                          - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                          - =.Global.jwt.edgeAPI.store: ""
+                                          - if:
+                                              - =.builtIn.number.typeIsValid:
+                                                  dataIn:
+                                                    docType: $var.type
+                                                    localArr: [ 1, 3, 6 ]
+                                                    binaryArr: [ 1, 1, 0 ]
+                                              - =.builtIn.ecos.updateReidDocListType:
+                                                  dataIn:
+                                                    sourceDocList: =..formData.selectOne
+                                                    targetBit: 3
+                                                    targetValue: 0
+                                                    sCondition: type & 0xFF00 = 0xE00
+                                                    eid: =.Global.fac_rootNotebook
+                                              - =.builtIn.ecos.updateReidDocListType:
+                                                  dataIn:
+                                                    sourceDocList: =..formData.selectOne
+                                                    targetBit: 3
+                                                    targetValue: 1
+                                                    sCondition: type & 0xFF00 = 0xE00
+                                                    eid: =.Global.fac_rootNotebook
+                                          - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                          - =.Global.jwt.edgeAPI.store: ""
+                                          - =..apiRequest.email.docAPI.reget: ""
+                                          - ..formData.selectOne@: []
+                                          # 给inboxList中的每一项设置一个属性 isSelected
+                                          - if:
+                                              - =..apiRequest.email.docQueryRegetResp.doc
+                                              - =.builtIn.object.setObjectKey:
+                                                  dataIn:
+                                                    objectArr: =..apiRequest.email.docQueryRegetResp.doc
+                                                    key: isSelected
+                                                    value: false
+                                                  dataOut: Inboxes.formData.inboxList
+                                              - continue
+                                          - =.builtIn.array.ComparisonSettingProperties:
+                                              dataIn:
+                                                objArrOne: =..formData.selectedInbox
+                                                strOnePath: "id"
+                                                objArrTwo: =..formData.inboxList
+                                                strTwoPath: "id"
+                                                strValue: "isSelected"
+                                                newValue: true
+                                              # dataOut: Inboxes.formData.inboxList
+                                          - =.builtIn.array.getObjectByArray:
+                                              dataIn:
+                                                array: =..formData.inboxList
+                                                key: "id"
+                                                value: =..formData.inboxNowId
+                                              dataOut: Inboxes.formData.inboxNow
+                                    - actionType: popUp
+                                      popUpView: starSuccessView
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: inboxList
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: starItemImg
+                                    # - actionType: builtIn
+                                    #   funcName: show
+                                    #   viewTag: mainView
+                                    # - actionType: builtIn
+                                    #   funcName: hide
+                                    #   viewTag: noInbox                               
+                                  style:
+                                    top: "0.04"
+                                    left: "0.226"
+                                    width: "0.012"
+                                    height: "0.02"
+            # 右边主体
+            - .ContentView:
+              viewTag: mainView
+              style:
+                left: "0.27"
+                width: "0.562"
+                height: "0.9"
+                top: "0.015"
+                borderRadius: "5px"
+                # display: ..formDataTemp.isHiddenMain
+              children:
+                - type: view
+                  style:
+                    width: "0.5"
+                    height: "0.87"
+                    margin: auto
+                  children:
+                    # 1 图标
+                    - type: view
+                      style:
+                        width: "0.5"
+                        height: "0.05"
+                      children:
+                        - type: view
+                          style:
+                            width: "0.17"
+                            height: "0.05"
+                            left: "0.33"
+                            top: "0.015"
+                            display: flex
+                            justifyContent: flex-end
+                            alignItems: center
+                            margin: "0"
+                          children:
+                            - type: view
+                              style:
+                                width: "0.123"
+                                height: "0.05"
+                                display: flex
+                                justifyContent: space-between
+                                alignItems: center
+                              children:
+                                - type: image
+                                  path: goBackInbox.svg
+                                  style:
+                                    width: "0.011"
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.formData.reply.name.data.receiverName@: =..formData.inboxNow.name.data.senderName
+                                        - .Global.formData.reply.name.data.receiverAvatarId@: =..formData.inboxNow.name.data.receiverAvatarId
+                                        - =.builtIn.string.concat:
+                                            dataIn:
+                                              - "Reply to "
+                                              - " "
+                                              - =..formData.inboxNow.name.title
+                                            dataOut: Global.formData.reply.name.title
+                                        - .Global.formData.reply.eid@: =..formData.inboxNow.eid
+                                    - goto: NewMessage
+                                - type: image
+                                  path: strightLine.svg
+                                  style:
+                                    height: "0.03"
+                                - type: image
+                                  path: cash.svg
+                                  style:
+                                    width: "0.011"
+                                  onClick:
+                                    - =.builtIn.array.add:
+                                        dataIn:
+                                          object: =..formData.selectOne
+                                          value: =..formData.inboxNow
+                                    - ..formData.selectedInbox@: =..formData.selectOne
+                                    - ..formData.selectOne@: []
+                                    - actionType: builtIn
+                                      funcName: show
+                                      viewTag: isDeleteInbox
+                                      wait: true
+                                - type: image
+                                  path: strightLine.svg
+                                  style:
+                                    height: "0.03"
+                                - type: image
+                                  path: document.svg
+                                  style:
+                                    width: "0.011"
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - =.builtIn.array.add:
+                                            dataIn:
+                                              object: =..formData.selectOne
+                                              value: =..formData.inboxNow
+                                        - ..formData.selectedInbox@: =..formData.selectOne
+                                        - ..formData.selectOne@: []
+                                    - actionType: popUp
+                                      popUpView: moveView
+                                      wait: true
+                                - type: image
+                                  path: strightLine.svg
+                                  style:
+                                    height: "0.03"
+                                - type: image
+                                  viewTag: starItemImg
+                                  path:
+                                    # star.svg
+                                    emit:
+                                      actions:
+                                        - if:
+                                            - =.builtIn.number.typeIsValid:
+                                                dataIn:
+                                                  docType: =..formData.inboxNow.type
+                                                  localArr: [ 1, 3, 6 ]
+                                                  binaryArr: [ 1, 1, 0 ]
+                                            - star.svg
+                                            - emptyStar2.svg #star.svg
+                                  onClick:
+                                    - actionType: popUp
+                                      popUpView: uploadingTag
+                                    - actionType: evalObject
+                                      object:
+                                        .Global._nonce@:
+                                          =.builtIn.math.random: ""
+                                    - actionType: evalObject
+                                      object:
+                                        - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                        - =.Global.jwt.edgeAPI.store: ""
+                                        - if:
+                                            - =.builtIn.number.typeIsValid:
+                                                dataIn:
+                                                  docType: =..formData.inboxNow.type
+                                                  localArr: [ 1, 3, 6 ]
+                                                  binaryArr: [ 1, 1, 0 ]
+                                            - =.builtIn.number.inhx:
+                                                dataIn:
+                                                  intHex: =..apiRequest.emailTag.docStoreReq.type
+                                                  index: 3
+                                                  hex: 0
+                                                dataOut: Inboxes.apiRequest.emailTag.docStoreReq.type
+                                            - =.builtIn.number.inhx:
+                                                dataIn:
+                                                  intHex: =..apiRequest.emailTag.docStoreReq.type
+                                                  index: 3
+                                                  hex: 1
+                                                dataOut: Inboxes.apiRequest.emailTag.docStoreReq.type
+                                        - =..apiRequest.emailTag.docAPI.store: ""
+                                        # 重新get一下email
+                                        - =..apiRequest.email.docAPI.reget: ""
+
+                                        - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                                        - =.Global.jwt.edgeAPI.store: ""
+                                        - =..apiRequest.email.docAPI.get: ""
+                                        - if:
+                                            - =..apiRequest.email.docQueryRes.doc
+                                            - =.builtIn.object.setObjectKey:
+                                                dataIn:
+                                                  objectArr: =..apiRequest.email.docQueryRes.doc
+                                                  key: isSelected
+                                                  value: false
+                                                dataOut: Inboxes.formData.inboxList
+                                            - continue
+                                        - =.builtIn.array.ComparisonSettingProperties:
+                                            dataIn:
+                                              objArrOne: =..formData.selectedInbox
+                                              strOnePath: "id"
+                                              objArrTwo: =..formData.inboxList
+                                              strTwoPath: "id"
+                                              strValue: "isSelected"
+                                              newValue: true
+                                            dataOut: Inboxes.formData.inboxList
+                                        - =.builtIn.array.getObjectByArray:
+                                            dataIn:
+                                              array: =..formData.inboxList
+                                              key: "id"
+                                              value: =..formData.inboxNowId
+                                            dataOut: Inboxes.formData.inboxNow
+                                    - actionType: popUpDismiss
+                                      popUpView: uploadingTag
+                                    - actionType: evalObject
+                                      object:
+                                        - if:
+                                            - =.builtIn.number.typeIsValid:
+                                                dataIn:
+                                                  docType: =..formData.inboxNow.type
+                                                  localArr: [ 1, 3, 6 ]
+                                                  binaryArr: [ 1, 1, 0 ]
+                                            - actionType: popUp
+                                              popUpView: starSuccessView
+                                            - actionType: popUp
+                                              popUpView: unmarkedSuccessView
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: inboxList
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: starItemImg
+                                    # - actionType: builtIn
+                                    #   funcName: show
+                                    #   viewTag: mainView
+                                    # - actionType: builtIn
+                                    #   funcName: hide
+                                    #   viewTag: noInbox  
+                                  style:
+                                    width: "0.011"
+                    # 2 infomation and date
+                    - type: view
+                      style:
+                        width: "0.5"
+                        height: "0.1"
+                        border:
+                          style: "2"
+                        borderColor: "0xd1d1d1"
+                        borderWidth: "1"
+                      children:
+                        - type: image
+                          path=func: .builtIn.utils.prepareDocToPath
+                          dataKey: formData.inboxNow.name.user
+                          style:
+                            top: "0.01"
+                            width: "0.04"
+                            height: "0.07"
+                        - type: label
+                          dataKey: formData.inboxNow.name.data.senderName
+                          style:
+                            width: "0.25"
+                            fontSize: .Nfont.nf5
+                            top: "0.015"
+                            left: "0.05"
+                        - type: label
+                          text: "Sent to me"
+                          dataKey:
+                          style:
+                            width: "0.1"
+                            left: "0.05"
+                            top: "0.045"
+                            color: "0x0b4a7e"
+                        # - type: label
+                        #   dataKey: formData.inboxNow.name.data.receiverName
+                        #   style:
+                        #     left: "0.085"
+                        #     top: "0.045"
+                        - type: label
+                          text=func: .builtIn.string.formatUnixtime_en
+                          dataKey: formData.inboxNow.ctime
+                          style:
+                            width: "0.1"
+                            left: "0.405"
+                            top: "0.045"
+                            color: "0x797979"
+                            fontSize: .Nfont.nf3
+                    # 3 main
+                    - type: view
+                      style:
+                        width: "0.5"
+                        height: "auto"
+                      children:
+                        - type: label
+                          dataKey: formData.inboxNow.name.title
+                          style:
+                            width: "0.5"
+                            height: "0.05"
+                            fontSize: .Nfont.n5
+                            marginTop: "0.01"
+                        - type: view
+                          style:
+                            width: "0.5"
+                            height: "auto"
+                          children:
+                            - .LetterLabel: ""
+                              text: "Congratulations!"
+                              dataKey: formData.inboxNow.name.data.content
+                              style:
+                                fontSize: .Nfont.nf4
+                                lineHeight: "2"
+                            #   text: "There is an appointment request for your response. Please click the link below to view appointment request in your schedule to review."
+
+                            # - .LetterLabel: ""
+                            #   text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum porttitor iaculis velit, sit amet interdum risus lacinia at. Praesent porta ac lorem gravida commodo. "
+                            # - .LetterLabel: ""
+                            #   text: "Aliquam dictum volutpat justo, sit amet interdum Leo elementum eu. Aenean varius dolor at pellentesque sagittis. Cras consectetur leo nec libero ultricies malesuada. Suspendisse sem nisi, sagittis a placerat sit amet, imperdiet id tellus. Praesent fermentum volutpat neque. Nulla elit arcu, tincidunt pellentesque varius ut, vehicula ut augue. Fusce dignissim libero felis, ac scelerisque metus pellentesque eu. Suspendisse aliquet orci non mauris interdum vulputate."
+                            # - .LetterLabel: ""
+                            #   text: "Ut feugiat massa eget nisl rutrum, et euismod massa condimentum. Pellentesque sed risus neque. Aenean velit metus, auctor ac metus eget, dignissim ornare ante. Duis neque purus, faucibus vitae tristique id, consequat ut sem. In convallis tincidunt diam, accumsan dignissim mi. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum lacinia scelerisque enim non accumsan. Fusce nec ligula ultricies, rutrum felis non, rutrum lectus. Morbi molestie tortor mi. Aenean blandit, ipsum non sagittis lacinia, libero elit imperdiet nisi, nec consectetur quam sapien bibendum ex. Duis vitae condimentum risus. Suspendisse eu enim sed metus feugiat suscipit."
+
+                            # 附件  
+                        - type: list
+                          contentType: listObject
+                          listObject: ..formData.attachment
+                          iteratorVar: itemObject
+                          style:
+                            width: "0.4"
+                            margin: '0'
+                            height: auto
+                            marginTop: "0.01"
+                          children:
+                            - type: listItem
+                              itemObject: ""
+                              style:
+                                width: "0.4"
+                                height: "0.04"
+                                left: '0'
+                                marginTop: ''
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.4"
+                                    height: "0.04"
+                                    backgroundColor: "0xF4F5F7"
+                                    marginTop: "0.015"
+                                    borderRadius: "10"
+                                  children:
+                                    - type: view
+                                      style:
+                                        width: "0.24"
+                                        height: "0.04"
+                                        display: flex
+                                        alignItems: center
+                                      children:
+                                        - type: image
+                                          path: copyPhoto.svg
+                                          style:
+                                            width: "0.01"
+                                            marginLeft: "10px"
+                                        - type: label
+                                          dataKey: itemObject.name.title
+                                          style:
+                                            # width: "0.12"
+                                            color: "0x666666"
+                                            fontSize: .Nfont.nf2
+                                            marginLeft: "10px"
+                                        - type: label
+                                          text: (
+                                          dataKey:
+                                          style:
+                                            marginLeft: "10px"
+                                            color: "0x666666"
+                                        - type: label
+                                          text=func: .builtIn.string.bitFormatting
+                                          dataKey: itemObject.size
+                                          style:
+                                            color: "0x666666"
+                                            fontSize: .Nfont.nf2
+                                            # marginLeft: "10px"
+                                        - type: label
+                                          text: )
+                                          dataKey:
+                                          style:
+                                            color: "0x666666"
+                                    - type: view
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - ..formData.soloAttach@: $var
+                                        - actionType: builtIn
+                                          funcName: redraw
+                                          viewTag: attachView
+                                        - actionType: evalObject
+                                          object:
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =..formData.soloAttach.name.type
+                                                      string2: "application/pdf"
+                                                - actionType: builtIn
+                                                  funcName: hide
+                                                  viewTag: imgView
+                                                - actionType: builtIn
+                                                  funcName: show
+                                                  viewTag: pdfView
+                                            - if:
+                                                - =.builtIn.string.equal:
+                                                    dataIn:
+                                                      string1: =..formData.soloAttach.name.type
+                                                      string2: "application/pdf"
+                                                - actionType: builtIn
+                                                  funcName: hide
+                                                  viewTag: pdfView
+                                                - actionType: builtIn
+                                                  funcName: show
+                                                  viewTag: imgView
+                                        - actionType: popUp
+                                          popUpView: attachView
+                                      style:
+                                        width: "0.05"
+                                        height: "0.04"
+                                        top: "0"
+                                        left: "0.25"
+                                        display: flex
+                                        justifyContent: space-evenly
+                                        alignItems: center
+                                      children:
+                                        - type: image
+                                          path: view.svg
+                                          style:
+                                        - type: label
+                                          text: View
+                                          style:
+                                            fontSize: .Nfont.nf2
+                                            color: "0x0b4a7e"
+                                    - type: view
+                                      onClick:
+                                        - emit:
+                                            dataKey:
+                                              var: itemObject
+                                            actions:
+                                              - =.builtIn.EcosObj.download:
+                                                  dataIn:
+                                                    ecosObj: $var
+                                      style:
+                                        width: "0.07"
+                                        height: "0.04"
+                                        top: "0"
+                                        left: "0.32"
+                                        display: flex
+                                        justifyContent: space-evenly
+                                        alignItems: center
+                                      children:
+                                        - type: image
+                                          path: downLoadBlue.svg
+                                          style:
+                                        - type: label
+                                          text: Download
+                                          style:
+                                            fontSize: .Nfont.nf2
+                                            color: "0x0b4a7e"
+                        - type: view
+                          viewTag: originalTag
+                          style:
+                            width: "0.5"
+                            height: auto
+                            marginTop: "0.05"
+                          children:
+                            - type: label
+                              text: --------------------  Original  --------------------
+                              dataKey:
+                              style:
+                                color: "#b8b8b8"
+                            - type: view
+                              style:
+                                width: '0.5'
+                                height: "auto"
+                                backgroundColor: "0xf4f5f7"
+                                borderRadius: "8"
+                                marginTop: "0.02"
+                              children:
+                                - type: view
+                                  style:
+                                    width: "0.5"
+                                    height: "0.035"
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                    left: "0.01"
+                                  children:
+                                    - type: label
+                                      text: "From:"
+                                      dataKey:
+                                      style:
+                                        width: "0.05"
+                                    - type: label
+                                      text: Mellissa West
+                                      dataKey: formData.inboxNow.name.data.senderName
+                                      style:
+                                        width: "0.25"
+                                - type: view
+                                  style:
+                                    width: "0.5"
+                                    height: "0.035"
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                    left: "0.01"
+                                  children:
+                                    - type: label
+                                      text: "To:"
+                                      dataKey:
+                                      style:
+                                        width: "0.05"
+                                    - type: label
+                                      text: Kim West
+                                      dataKey: formData.inboxNow.name.data.receiverName
+                                      style:
+                                        width: "0.25"
+                                - type: view
+                                  style:
+                                    width: "0.5"
+                                    height: "0.035"
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                    left: "0.01"
+                                  children:
+                                    - type: label
+                                      text: "Date:"
+                                      dataKey:
+                                      style:
+                                        width: "0.05"
+                                    - type: label
+                                      text: Kim West
+                                      text=func: .builtIn.string.formatUnixtime_en
+                                      dataKey: formData.inboxNow.ctime
+                                      style:
+                                        width: "0.25"
+                                - type: view
+                                  style:
+                                    width: "0.5"
+                                    height: "0.035"
+                                    display: flex
+                                    justifyContent: flex-start
+                                    alignItems: center
+                                    left: "0.01"
+                                  children:
+                                    - type: label
+                                      text: "Subject:"
+                                      dataKey:
+                                      style:
+                                        width: "0.05"
+                                    - type: label
+                                      text: Kim West
+                                      dataKey: formData.inboxNow.name.title
+                                      style:
+                                        width: "0.25"
+                                - type: image
+                                  path: downArrowGray.svg
+                                    # emit:
+                                    #   actions:
+                                    #     - if:
+                                    #       - =.builtIn.string.equal:
+                                    #           dataIn:
+                                    #             string1: true
+                                    #             string2: =.Global.formData.cov19TestNewPatForm.name.data.patientInfo.isKnownShare
+                                    #       - downArrowGray.svg
+                                    #       - selectGray.svg
+                                  style:
+                                    left: "0.22"
+                                    width: "0.015"
+                                    display: ..formData.isShowDownArrowGray
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.isShowDownArrowGray@: none
+                                        - ..formData.isShowUpArrowGray@: block
+                                        - ..formData.isShowContent@: block
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: originalTag
+                                - type: view
+                                  text: "Fusce consequat risus sit amet erat pretium, id sollicitudin est
+                                    accumsan. Duis neque augue, mattis eget
+                                    ipsum nec, gravida sagittis arcu. Etiam
+                                    viverra tincidunt sollicitudin. Sed nec
+                                    ultricies justo. Aenean euismod mi quis quam
+                                    rhoncus, eu pulvinar metus scelerisque.
+                                    Suspendisse non eros non quam tincidunt
+                                    varius. Duis id fringilla ante, non
+                                    tristique dolor.Ut feugiat massa eget nisl
+                                    rutrum, et euismod massa condimentum.
+                                    Pellentesque sed risus neque. Aenean velit
+                                    metus, auctor ac metus eget, dignissim
+                                    ornare ante. Duis neque purus, faucibus
+                                    vitae tristique id, consequat ut sem. In
+                                    convallis tincidunt diam, accumsan dignissim
+                                    mi. Interdum et malesuada fames ac ante
+                                    ipsum primis in faucibus. Vestibulum lacinia
+                                    scelerisque enim non accumsan. Fusce nec
+                                    ligula ultricies, rutrum felis non, rutrum
+                                    lectus. Morbi molestie tortor mi. Aenean
+                                    blandit, ipsum non sagittis lacinia, libero
+                                    elit imperdiet nisi, nec consectetur quam
+                                    sapien bibendum ex. Duis vitae condimentum
+                                    risus. Suspendisse eu enim sed metus feugiat
+                                    suscipit."
+                                  dataKey: formData.inboxNow.name.data.content
+                                  style:
+                                    width: '0.4'
+                                    height: "auto"
+                                    left: "0.06"
+                                    fontSize: .Nfont.nf4
+                                    lineHeight: "2"
+                                    marginTop: "0.015"
+                                    display: ..formData.isShowContent
+                                - type: image
+                                  path: upArrowGray.svg
+                                  style:
+                                    left: "0.22"
+                                    width: "0.015"
+                                    display: ..formData.isShowUpArrowGray
+                                    marginTop: "0.01"
+                                  onClick:
+                                    - actionType: evalObject
+                                      object:
+                                        - ..formData.isShowDownArrowGray@: block
+                                        - ..formData.isShowUpArrowGray@: none
+                                        - ..formData.isShowContent@: none
+                                    - actionType: builtIn
+                                      funcName: redraw
+                                      viewTag: originalTag
+                                - type: view
+                                  style:
+                                    width: "0.1"
+                                    height: "0.02"
+                        # 回复内容
+                        - type: textView
+                          placeholder: Reply...
+                          dataKey: apiRequest.email.docStoreReq.name.data.content
+                          style:
+                            width: "0.5"
+                            textIndent: "1em"
+                            fontFamily: Poppins
+                            height: "0.14"
+                            border:
+                              style: "3"
+                            borderWidth: "2"
+                            borderColor: "0xf1f1f1"
+                            fontSize: .Nfont.nf2
+                            borderRadius: "5"
+                            marginTop: "0.02"
+                        # Send
+                        - type: button
+                          text: "Send"
+                          style:
+                            width: "0.08"
+                            height: "0.05"
+                            left: "0.425"
+                            marginTop: "0.015"
+                            backgroundColor: "0x005795"
+                            borderRadius: "5"
+                            color: "0xffffff"
+                            fontSize: .Nfont.nf2
+                            border:
+                              style: "1"
+                            textAlign:
+                              x: center
+                              y: center
+                          onClick:
+                            - actionType: evalObject
+                              object:
+                                - ..apiRequest.email.docStoreReq.eid@: =..formData.inboxNow.eid
+                                # - ..apiRequest.email.docReq.name.data.receiverName@: =..formData.inboxNow.name.data.senderName
+                                # - ..apiRequest.email.docReq.name.data.receiverAvatarId@: =..formData.inboxNow.name.user
+                                # 判断邮件内容是否空
+                                - if:
+                                    - =.builtIn.string.equal:
+                                        dataIn:
+                                          string1: =..apiRequest.email.docStoreReq.name.data.content
+                                          string2: ""
+                                    - actionType: popUp
+                                      popUpView: sendNoMessageTag
+                                      wait: true
+                                    - actionType: evalObject
+                                      object:
+                                        - =..apiRequest.email.docAPI.store: ""
+                                        - ..apiRequest.email.docStoreReq.name.data.content@: ""
+                            - actionType: builtIn
+                              funcName: show
+                              viewTag: successTag
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: mainView
+
+            - .ContentView:
+              viewTag: noInbox
+              style:
+                left: "0.27"
+                width: "0.562"
+                height: "0.9"
+                top: "0.015"
+                borderRadius: "5px"
+                display: ..formDataTemp.noInbox
+              children:
+                - type: image
+                  path: noInbox.svg
+                  style:
+                    width: "0.25"
+                    left: "0.15"
+                    top: "0.12"
+                - type: label
+                  text: "Welcome to check your inbox!"
+                  dataKey:
+                  style:
+                    fontSize: .Nfont.nf6
+                    fontWeight: "700"
+                    left: "0.15"
+                    top: "0.6"
+
+        # 发送成功 Sent Successfully !
+        - .SuccessDeletedPopUpView: ""
+          msg: "Sent Successfully !"
+          viewTag: successTag
+        # 没有写回复信息 No content, still send the Message？
+        - type: popUp
+          viewTag: sendNoMessageTag
+          style:
+            width: "1"
+            height: "1"
+            top: "0"
+            left: "0"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                width: "0.36"
+                height: "0.28"
+                backgroundColor: "0xffffff"
+                zIndex: "10"
+                left: "0.4"
+                top: "0.27"
+              children:
+                - type: view
+                  style:
+                    marginTop: "0.03"
+                    width: "0.36"
+                    height: "0.12"
+                    display: flex
+                    justifyContent: center
+                    alignItems: center
+                  children:
+                    - .InboxDeletedTagLabel: ""
+                      text: "No content, still send the Message?"
+                      style:
+                        width: "0.12"
+                        textAlign:
+                          x: center
+                - type: view
+                  style:
+                    width: "0.36"
+                    height: "0.12"
+                    display: flex
+                    justifyContent: space-evenly
+                    alignItems: center
+                  children:
+                    - .InboxDeletedTagNoButton: ""
+                      onClick:
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: sendNoMessageTag
+                    - .InboxDeletedTagYesButton: ""
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.email.docStoreReq.eid@: =..formData.inboxNow.eid
+                            # - ..apiRequest.email.docReq.name.data.receiverName@: =..formData.inboxNow.name.data.senderName
+                            # - ..apiRequest.email.docReq.name.data.receiverAvatarId@: =..formData.inboxNow.name.user
+                            - =..apiRequest.email.docAPI.store: ""
+                            - ..apiRequest.email.docStoreReq.name.data.content@: ""
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: sendNoMessageTag
+        # 单独删除弹窗 Delete the message?
+        - type: popUp
+          viewTag: isDeleteInbox
+          style:
+            width: "1"
+            height: "1"
+            top: "0"
+            left: "0"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                width: "0.32"
+                height: "0.34"
+                backgroundColor: "0xffffff"
+                zIndex: "10"
+                left: "0.4"
+                top: "0.27"
+              children:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.13"
+                    display: flex
+                    justifyContent: center
+                    alignItems: flex-end
+                  children:
+                    - .InboxDeletedTagLabel: ""
+                      text: "Delete the message?"
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.15"
+                    display: flex
+                    justifyContent: space-evenly
+                    alignItems: flex-end
+                  children:
+                    - .InboxDeletedTagNoButton: ""
+                      onClick:
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: isDeleteInbox
+                    - .InboxDeletedTagYesButton: ""
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: isDeleteInbox
+                        - actionType: popUp
+                          popUpView: uploadingTag
+                        - actionType: evalObject
+                          object:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            # 赋值emailTag的ids
+                            - ..apiRequest.emailTag.docQueryReq.ids.0@: =.Global.fac_rootNotebook
+                            - ..apiRequest.emailTag.docQueryReq.ids.1@: =..formData.inboxNow.id
+                            # 重新get emailTag
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =..apiRequest.emailTag.docAPI.get: ""
+                            # 把当前项获取的emailTag赋值给 store的请求中
+                            - ..apiRequest.emailTag.docStoreReq@: =..apiRequest.emailTag.docQueryRes.doc.0
+                            # 删除的时候将邮件变为已读状态
+                            # - =.builtIn.number.inhx:
+                            #     dataIn:
+                            #       intHex: =..apiRequest.emailTag.docStoreReq.type
+                            #       index: 2
+                            #       hex: 1
+                            - =.builtIn.number.inhx:
+                                dataIn:
+                                  intHex: =..apiRequest.emailTag.docStoreReq.type
+                                  index: 4
+                                  hex: 1
+                                dataOut: Inboxes.formDataTemp.tempDeletedType
+                            # 这里改变类型失败 要dataOut输出后再赋值回去
+                            - ..apiRequest.emailTag.docStoreReq.type@: =..formDataTemp.tempDeletedType
+                            - =..apiRequest.emailTag.docAPI.store: ""
+                            # 重新get一下email
+                            - =..apiRequest.email.docAPI.reget: ""
+                        # 重新get一下email，再赋值给邮件列表
+                        - actionType: evalObject
+                          object:
+                            - ..formData.inboxList@: =..apiRequest.email.docQueryRegetResp.doc
+                            - if:
+                                - =..apiRequest.email.docQueryRegetResp.doc
+                                - =.builtIn.object.setObjectKey:
+                                    dataIn:
+                                      objectArr: =..apiRequest.email.docQueryRegetResp.doc
+                                      key: isSelected
+                                      value: false
+                                    dataOut: Inboxes.formData.inboxList
+                                - continue
+                            - =.builtIn.array.ComparisonSettingProperties:
+                                dataIn:
+                                  objArrOne: =..formData.selectedInbox
+                                  strOnePath: "id"
+                                  objArrTwo: =..formData.inboxList
+                                  strTwoPath: "id"
+                                  strValue: "isSelected"
+                                  newValue: true
+                                dataOut: Inboxes.formData.inboxList
+                            # 当前这项删除后，selectedInbox中的这一项也要删除
+                            - =.builtIn.array.removeById:
+                                dataIn:
+                                  object: =..formData.selectedInbox
+                                  id: =..formData.inboxNow.id
+                            - =.builtIn.array.getListLength:
+                                dataIn:
+                                  object: =..formData.selectedInbox
+                                dataOut: Inboxes.formData.selectedInboxLength
+                            - =.builtIn.array.getListLength:
+                                dataIn:
+                                  object: =..formData.inboxList
+                                dataOut: Inboxes.formData.inboxListLength
+                            - ..formData.inboxListLength1@: =..formData.inboxListLength
+                            - ..formData.selectedInboxLength1@: =..formData.selectedInboxLength
+                            - if:
+                                - =.builtIn.string.equal:
+                                    dataIn:
+                                      string1: =..formData.selectedInboxLength1
+                                      string2: =..formData.inboxListLength1
+                                - ..formData.isAllSelected@: true
+                                - ..formData.isAllSelected@: false
+
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: isDeleteInbox
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: deleteSuccessTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: inboxList
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: mainView
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: noInbox
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: selectAllInboxImg
+                        - actionType: popUpDismiss
+                          popUpView: uploadingTag
+
+        # 多选删除弹窗 
+        - type: popUp
+          viewTag: isSelectedAllDeleteInbox
+          style:
+            width: "1"
+            height: "1"
+            top: "0"
+            left: "0"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                width: "0.32"
+                height: "0.34"
+                backgroundColor: "0xffffff"
+                zIndex: "10"
+                left: "0.4"
+                top: "0.27"
+              children:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.13"
+                    display: flex
+                    justifyContent: center
+                    alignItems: flex-end
+                  children:
+                    - .InboxDeletedTagLabel: ""
+                      text: "Delete these selected messages?"
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.18"
+                    display: flex
+                    justifyContent: space-evenly
+                    alignItems: center
+                  children:
+                    - .InboxDeletedTagNoButton: ""
+                      onClick:
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: isSelectedAllDeleteInbox
+                    - .InboxDeletedTagYesButton: ""
+                      onClick:
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: isSelectedAllDeleteInbox
+                        - actionType: popUp
+                          popUpView: uploadingTag
+                        - actionType: evalObject
+                          object:
+                            - actionType: evalObject
+                              object:
+                                .Global._nonce@:
+                                  =.builtIn.math.random: ""
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =.builtIn.ecos.updateReidDocListType:
+                                dataIn:
+                                  sourceDocList: =..formData.selectedInbox
+                                  targetBit: 2
+                                  targetValue: 1
+                                  sCondition: type & 0xFF00 = 0xE00
+                                  eid: =.Global.fac_rootNotebook
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =.builtIn.ecos.updateReidDocListType:
+                                dataIn:
+                                  sourceDocList: =..formData.selectedInbox
+                                  targetBit: 4
+                                  targetValue: 1
+                                  sCondition: type & 0xFF00 = 0xE00
+                                  eid: =.Global.fac_rootNotebook
+                            - ..formData.selectedInbox@: []
+                            # 重新get一下email
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =..apiRequest.email.docAPI.get: ""
+                            # 获取selectedInbox inboxList长度，并统一长度
+                            - =.builtIn.array.getListLength:
+                                dataIn:
+                                  object: =..formData.selectedInbox
+                                dataOut: Inboxes.formData.selectedInboxLength
+                            - =.builtIn.array.getListLength:
+                                dataIn:
+                                  object: =..formData.inboxList
+                                dataOut: Inboxes.formData.inboxListLength
+                            - ..formData.inboxListLength1@: =..formData.inboxListLength
+                            - ..formData.selectedInboxLength1@: =..formData.selectedInboxLength
+                            # 重置列表的选择框
+                            - =.builtIn.object.setObjectKey:
+                                dataIn:
+                                  objectArr: =..apiRequest.email.docQueryRes.doc
+                                  key: isSelected
+                                  value: false
+                                dataOut: Inboxes.formData.inboxList
+                            # 重新get一下email，再赋值给邮件列表
+                            - actionType: evalObject
+                              object:
+                                - ..formData.inboxList@: =..apiRequest.email.docQueryRegetResp.doc
+                            # - if:
+                            #   - =..apiRequest.email.docQueryRes.doc
+                            #   - =.builtIn.object.setObjectKey:
+                            #       dataIn:
+                            #         objectArr: =..apiRequest.email.docQueryRes.doc
+                            #         key: isSelected
+                            #         value: false
+                            #       dataOut: Inboxes.formData.inboxList
+                            # - =.builtIn.array.ComparisonSettingProperties:
+                            #     dataIn:
+                            #       objArrOne: =..formData.selectedInbox
+                            #       strOnePath: "id"
+                            #       objArrTwo: =..formData.inboxList
+                            #       strTwoPath: "id"
+                            #       strValue: "isSelected"
+                            #       newValue: true
+                            #     dataOut: Inboxes.formData.inboxList
+                            - ..formData.isAllSelected@: false
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: deleteSuccessTag
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: inboxList
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: mainView
+                        - actionType: builtIn
+                          funcName: show
+                          viewTag: noInbox
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: selectAllInboxImg
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: selectImg
+                        - actionType: popUpDismiss
+                          popUpView: uploadingTag
+        # 提示没有选中邮件弹窗 
+        - type: popUp
+          viewTag: noInboxSelectedTag
+          style:
+            width: "1"
+            height: "1"
+            top: "0"
+            left: "0"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                width: "0.32"
+                height: "0.34"
+                backgroundColor: "0xffffff"
+                zIndex: "10"
+                left: "0.4"
+                top: "0.27"
+              children:
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.13"
+                    display: flex
+                    justifyContent: center
+                    alignItems: flex-end
+                  children:
+                    - .InboxDeletedTagLabel: ""
+                      text: "Please select the message you want to delete."
+                - type: view
+                  style:
+                    width: "0.32"
+                    height: "0.18"
+                    display: flex
+                    justifyContent: space-evenly
+                    alignItems: center
+                  children:
+                    # - .InboxDeletedTagNoButton: ""
+                    #   text: "OK"
+                    #   onClick:
+                    #     - actionType: builtIn
+                    #       funcName: hide
+                    #       viewTag: noInboxSelectedTag
+                    - .InboxDeletedTagYesButton: ""
+                      text: "OK"
+                      onClick:
+                        - actionType: builtIn
+                          funcName: hide
+                          viewTag: noInboxSelectedTag
+
+        # 删除成功 Sent Successfully !
+        - .SuccessDeletedPopUpView: ""
+          msg: "Deleted Successfully！"
+          viewTag: deleteSuccessTag
+        # 移入文件夹
+        - type: popUp
+          viewTag: moveView
+          style:
+            left: "0"
+            width: "1"
+            height: "1"
+            top: "0"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                left: "0.455"
+                width: "0.25"
+                top: "0.27"
+                height: "0.48"
+                backgroundColor: "0xffffff"
+                borderRadius: "5"
+              children:
+                - type: image
+                  path: close.svg
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: moveView
+                  style:
+                    left: "0.225"
+                    width: "0.01"
+                    marginTop: "0.02"
+                - type: label
+                  text: Add to
+                  dataKey:
+                  style:
+                    left: "0.03"
+                    width: "0.15"
+                    marginTop: "0"
+                    fontSize: .Nfont.nf6
+                    fontFamily: Poppins
+                - type: scrollView
+                  style:
+                    width: "0.19"
+                    left: "0.03"
+                    marginTop: '0.01'
+                    height: "0.26"
+                    overflow: scroll
+                  children:
+                    # folderList            
+                    - type: list
+                      contentType: listObject
+                      listObject: ..formData.folderList
+                      iteratorVar: itemObject
+                      viewTag: folderListView
+                      style:
+                        width: '0.19'
+                        left: "0"
+                        margin: '0'
+                        height: auto
+                      children:
+                        - type: listItem
+                          onClick:
+                            - emit:
+                                dataKey:
+                                  var: itemObject
+                                actions:
+                                  - =.builtIn.object.setProperty:
+                                      dataIn:
+                                        obj: =..formData.folderList
+                                        label: "id"
+                                        text: $var.id
+                                        arr: [ "backgroundColor" ]
+                                        valueArr: [ "0xe2edf5" ]
+                                        errorArr: [ "0xffffff" ]
+                                  - ..formData.moveFolderId@: $var.id
+                            - actionType: builtIn
+                              funcName: redraw
+                              viewTag: folderListView
+                          itemObject:
+                          style:
+                            width: '0.19'
+                            height: '0.04'
+                            left: '0'
+                            marginTop: '0.01'
+                            borderRadius: "5"
+                            display: flex
+                            # flexDirection: nowrap
+                            justifyContent: space-between
+                            alignItems: center
+                            backgroundColor: itemObject.backgroundColor
+                          children:
+                            - type: image
+                              path: folderYellow.svg
+                              style:
+                                # left: "0.02"
+                                width: "0.019"
+                            - type: label
+                              dataKey: itemObject.name.title
+                              style:
+                                # left: "0.06"
+                                width: "0.14"
+                                fontFamily: Poppins
+                                fontSize: .Nfont.nf3
+                # Add new            
+                - type: view
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: moveView
+                    - actionType: popUp
+                      popUpView: addFolderView
+                  style:
+                    width: "0.19"
+                    left: "0.03"
+                    marginTop: "0.01"
+                    height: "0.04"
+                    border:
+                      style: "3"
+                    borderWidth: "1"
+                    borderColor: "0x0b4a7e"
+                    borderRadius: "3"
+                    boxSizing: border-box
+                    display: flex
+                    alignItems: center
+                    justifyContent: center
+                  children:
+                    - type: view
+                      style:
+                        width: "0.065"
+                        height: "0.04"
+                        display: flex
+                        justifyContent: space-around
+                        alignItems: center
+                      children:
+                        - type: image
+                          path: addBlueInbox.svg
+                          style:
+                            width: "0.01"
+                        - type: label
+                          text: Add new
+                          dataKey:
+                          style:
+                            width: "0.04"
+                            fontSize: .Nfont.nf3
+                            fontFamily: Poppins
+                            color: "0x0b4a7e"
+                - type: view
+                  style:
+                    width: "0.19"
+                    left: "0.03"
+                    height: "0.082"
+                    # backgroundColor: "0x30b35433"
+                    display: flex
+                    alignItems: center
+                    justifyContent: space-between
+                  children:
+                    - type: button
+                      text: "Cancel"
+                      style:
+                        width: "0.065"
+                        height: "0.04"
+                        backgroundColor: "0xbebebe"
+                        textAlign:
+                          x: center
+                          y: center
+                        color: "0xffffff"
+                        border:
+                          style: "1"
+                        borderRadius: "5"
+                        fontSize: .Nfont.nf2
+                      onClick:
+                        - actionType: popUpDismiss
+                          popUpView: moveView
+                    - type: button
+                      text: "Confirm"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - .Global.jwt.edge.bvid@: =.Global.currentFacility.id
+                            - =.Global.jwt.edgeAPI.store: ""
+                            - =.builtIn.ecos.createFolderTag:
+                                dataIn:
+                                  sourceDocList: =..formData.selectedInbox
+                                  folder: =..formData.moveFolderId
+                                  eid: =.Global.fac_rootNotebook
+                            - if:
+                                - =..formData.inboxList
+                                - =.builtIn.object.setObjectKey:
+                                    dataIn:
+                                      objectArr: =..formData.inboxList
+                                      key: isSelected
+                                      value: false
+                                    # dataOut: Inboxes.formData.inboxList  
+                                - continue
+                        - actionType: popUpDismiss
+                          popUpView: moveView
+                        - actionType: evalObject
+                          object:
+                            - ..formData.isAllSelected@: false
+                            - ..formData.selectedInbox@: []
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: selectAllInboxImg
+                        - actionType: popUp
+                          popUpView: moveSuccessView
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: inboxList
+
+                      style:
+                        width: "0.065"
+                        height: "0.04"
+                        backgroundColor: "0x005795"
+                        textAlign:
+                          x: center
+                          y: center
+                        color: "0xffffff"
+                        border:
+                          style: "1"
+                        borderRadius: "5"
+                        fontSize: .Nfont.nf2
+        # 添加新文件夹
+        - type: popUp
+          viewTag: addFolderView
+          style:
+            width: "1"
+            height: "1"
+            top: "0"
+            left: "0"
+            backgroundColor: "0x00000033"
+            zIndex: "10"
+          children:
+            - type: view
+              style:
+                width: "0.4"
+                height: "0.34"
+                backgroundColor: "0xffffff"
+                zIndex: "10"
+                left: "0.38"
+                top: "0.27"
+              children:
+                - type: image
+                  path: close.svg
+                  onClick:
+                    - actionType: popUpDismiss
+                      popUpView: addFolderView
+                    - actionType: popUp
+                      popUpView: moveView
+                  style:
+                    left: "0.38"
+                    width: "0.01"
+                    marginTop: "0.015"
+                - type: label
+                  text: Add Folder
+                  dataKey:
+                  style:
+                    left: "0.05"
+                    width: "0.15"
+                    marginTop: "0.01"
+                    fontSize: .Nfont.nf6
+                    fontFamily: Poppins
+                - type: view
+                  style:
+                    left: "0.05"
+                    width: "0.3"
+                    marginTop: "0.06"
+                    height: "0.04"
+                    display: flex
+                    flexDirection: column
+                    flexWrap: wrap
+                    justifyContent: space-evenly
+                    alignItems: center
+                    alignContent: space-between
+                  children:
+                    - type: label
+                      text: "Folder Name:"
+                      dataKey:
+                      style:
+                        fontSize: .Nfont.nf4
+                        fontFamily: Poppins
+                    - type: textField
+                      placeholder: Enter name here
+                      dataKey: apiRequest.folder.docCreateReq.name.title
+                      style:
+                        width: "0.2"
+                        height: "0.035"
+                        backgroundColor: "0xe3e3e3"
+                        textIndent: 2em
+                        fontSize: .Nfont.nf4
+                        border:
+                          style: "1"
+                        borderWidth: "1"
+                        borderColor: "0xe3e3e3"
+                        borderRadius: "5"
+                        boxSizing: border-box
+                - type: view
+                  style:
+                    left: "0.05"
+                    width: "0.3"
+                    marginTop: "0.06"
+                    height: "0.04"
+                    display: flex
+                    flexDirection: column
+                    flexWrap: wrap
+                    justifyContent: space-evenly
+                    alignItems: center
+                    alignContent: space-around
+                  children:
+                    - type: button
+                      text: "No"
+                      style:
+                        width: "0.065"
+                        height: "0.045"
+                        backgroundColor: "0xbebebe"
+                        textAlign:
+                          x: center
+                          y: center
+                        color: "0xffffff"
+                        border:
+                          style: "1"
+                        borderRadius: "5"
+                        fontSize: .Nfont.nf2
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            - ..apiRequest.folder.docCreateReq.name.title@: ""
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: addFolderView
+                        - actionType: popUpDismiss
+                          popUpView: addFolderView
+                    - type: button
+                      text: "Yes"
+                      onClick:
+                        - actionType: evalObject
+                          object:
+                            .Global._nonce@:
+                              =.builtIn.math.random: ""
+                        - actionType: evalObject
+                          object:
+                            - if:
+                                - =.builtIn.array.checkElememtExist:
+                                    dataIn:
+                                      objArr: =..apiRequest.folder.docGetResp.doc
+                                      values: =..apiRequest.folder.docCreateReq.name.title
+                                - actionType: evalObject
+                                  object:
+                                    - ..apiRequest.folder.docCreateReq.name.title@: ""
+                                    - actionType: popUp
+                                      popUpView: repeatView
+                                - actionType: evalObject
+                                  object:
+                                    - =..apiRequest.folder.docAPI.store: ""
+                                    - ..apiRequest.folder.docCreateReq.name.title@: ""
+                                    - =..apiRequest.folder.docAPI.get: ""
+                                    - ..formData.folderList@: =..apiRequest.folder.docGetResp.doc
+                        - actionType: builtIn
+                          funcName: redraw
+                          viewTag: moveView
+                        - actionType: popUp
+                          popUpView: moveView
+                        - actionType: popUpDismiss
+                          popUpView: addFolderView
+                      style:
+                        width: "0.065"
+                        height: "0.045"
+                        backgroundColor: "0x005795"
+                        textAlign:
+                          x: center
+                          y: center
+                        color: "0xffffff"
+                        border:
+                          style: "1"
+                        borderRadius: "5"
+                        fontSize: .Nfont.nf2
+        # 移入文件夹成功
+        - .SuccessDeletedPopUpView: ""
+          viewTag: moveSuccessView
+          msg: "Added Successfully！"
+        # 看附件的文件
+        - .AttachmentView: # 星标成功
+        - .SuccessDeletedPopUpView: ""
+          viewTag: starSuccessView
+          msg: "Starred Successfully！"
+        # 取消星标成功
+        - .SuccessDeletedPopUpView: ""
+          viewTag: unmarkedSuccessView
+          msg: "Unmarked Successfully！"
+        # 正在加载
+        - .LoadingPopUpView: ""
+        # 没有选中的轻提示
+        - .LittlePopUpView: ""

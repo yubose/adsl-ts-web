@@ -28,6 +28,7 @@ class createRegisters{
   numberofExtensions: number = 0
   timePerExtendSeconds: number = 0
   popUpWaitSeconds: number = 30
+  meetingEndTime:number = 0
   public timeId: Record<string, any>[] = []
   constructor(app: App){
     this.app = app
@@ -114,7 +115,7 @@ class createRegisters{
     }
     
     const handleRegister = async(componentObject: GlobalRegisterComponent)=>{
-      let actions = componentObject.actions
+      let actions = componentObject.props.actions
       try{
         const component = (await this.app.nui?.resolveComponents(
           componentObject,
@@ -280,7 +281,19 @@ class createRegisters{
         componentObject.eventId = 'showExtendView'
         await handleRegister(componentObject)
         
-      }
+      },
+      async onProviderDisconnect(componentObject: GlobalRegisterComponent){
+        log.func('onProviderDisconnect')
+        componentObject.eventId = 'onProviderDisconnect'
+        await handleRegister(componentObject)
+        
+      },
+      async showExitWarningView(componentObject: GlobalRegisterComponent){
+        log.func('showExitWarningView')
+        componentObject.eventId = 'showExitWarningView'
+        await handleRegister(componentObject)
+        
+      },
     }
 
   }
@@ -359,31 +372,36 @@ class createRegisters{
   }
 
   extendVideoFunction(onEvent:string){
-    log.func('extendVideoFunction')
+    if(this.app.globalRegister){
+      log.func('extendVideoFunction')
+      const componentObject = this.app.ndom.global.register.get(onEvent)
+      if (componentObject) {
+        const onEvent = componentObject.props.onEvent as any
+        ;(this.registrees as any)[onEvent](componentObject)
+      } 
 
-    const pageName = this.app.mainPage?.getNuiPage().page
-    const components = this.app.root?.['VideoChat'].components
-    for (const componentObject of components) {
-      if (is.component.register(componentObject)) {
-        // Already attached a function
-        if (u.isFnc(componentObject.onEvent)) continue
-        if (!componentObject.onEvent) {
-          log.red(
-            `The "onEvent" identifier was not found in the register component!`,
-            componentObject,
-          )
-          continue
-        }
+    //   for (const componentObject of this.app.globalRegister) {
+    //     if (is.component.register(componentObject)) {
+    //       // Already attached a function
+    //       if (u.isFnc(componentObject.onEvent)) continue
+    //       if (!componentObject.onEvent) {
+    //         log.red(
+    //           `The "onEvent" identifier was not found in the register component!`,
+    //           componentObject,
+    //         )
+    //         continue
+    //       }
 
-        if (
-          componentObject.onEvent === onEvent &&
-          u.isStr(componentObject.onEvent) &&
-          u.isFnc(this.registrees[componentObject.onEvent])
-        ) {
-          const onEvent = componentObject.onEvent as any
-          ;(this.registrees as any)[onEvent](componentObject)
-        } 
-      }
+    //       if (
+    //         componentObject.onEvent === onEvent &&
+    //         u.isStr(componentObject.onEvent) &&
+    //         u.isFnc(this.registrees[componentObject.onEvent])
+    //       ) {
+    //         const onEvent = componentObject.onEvent as any
+    //         ;(this.registrees as any)[onEvent](componentObject)
+    //       } 
+    //     }
+    //   }
     }
   }
 
@@ -406,6 +424,12 @@ class createRegisters{
   }
   getPopUpWaitSeconds(){
     return this.popUpWaitSeconds
+  }
+  setMeetingEndTime(meetingEndTime){
+    this.meetingEndTime = meetingEndTime
+  }
+  getMeetingEndTime(){
+    return this.meetingEndTime
   }
 
   setTimeId(key:string,id:unknown){
