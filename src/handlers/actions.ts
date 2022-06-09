@@ -154,7 +154,7 @@ const createActions = function createActions(app: App) {
             let result = results.shift()
 
             while(u.isArr(result)) {
-              results.unshift(...result)
+              results.push(...result)
               result = results.shift()
             }
 
@@ -222,7 +222,7 @@ const createActions = function createActions(app: App) {
                       }
                     }
                   }
-
+                  
                   log.grey(
                     `An evalObject action is injecting a new object to the chain`,
                     {
