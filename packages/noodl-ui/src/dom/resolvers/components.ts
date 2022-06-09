@@ -231,11 +231,13 @@ const componentsResolver: t.Resolve.Config = {
           children,
           controls,
           dataKey,
+          autoplay,
           onClick,
           options: selectOptions,
           poster,
           text,
           videoType,
+
         } = original
 
         // BUTTON
@@ -907,11 +909,15 @@ const componentsResolver: t.Resolve.Config = {
         // textField
         else if (Identify.component.textField(args.component)) {
           if (args.component.has('isEditable')) {
-            const isEditable = args.component.get('isEditable')
+            const isEditable = args.component.get('isEditable');
+            // console.log(maxLen,"nnnnn")
             const isDisabled = Identify.isBooleanFalse(isEditable)
             if (isDisabled) {
               setAttr('disabled', isDisabled)
             }
+            // if (maxLen) {
+            //   setAttr('maxLength', maxLen)
+            // }
           }
           if (args.component.blueprint?.autocomplete) {
             const autocomplete = args.component.get('autocomplete')
@@ -931,7 +937,8 @@ const componentsResolver: t.Resolve.Config = {
           const videoEl = args.node as HTMLVideoElement
           let sourceEl: HTMLSourceElement
           let notSupportedEl: HTMLParagraphElement
-          videoEl.controls = Identify.isBooleanTrue(controls)
+          videoEl.controls = Identify.isBooleanTrue(controls);
+          videoEl.autoplay = Identify.isBooleanTrue(autoplay);
 
           const attrs = ['poster', ['src', 'path']]
           attrs.forEach((attr) => {
