@@ -959,12 +959,12 @@ const componentsResolver: t.Resolve.Config = {
 
           })
           if(args.component.blueprint?.['path=func']){
-            console.log("pppp",args.component
-            ?.get?.(c.DATA_VALUE))
+            // console.log("pppp",args.component
+            // ?.get?.(c.DATA_VALUE))
               args.component
               ?.get?.(c.DATA_VALUE)
               ?.then?.((path: any) => {
-                console.log("fff",path)
+                // console.log("fff",path)
                 setAttr('src', path?.url)
               })
             }
