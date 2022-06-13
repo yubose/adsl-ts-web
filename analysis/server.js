@@ -298,10 +298,10 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
   }
 
   /**
-   *
-   * @param { import('webpack-dev-server/types/lib/Server') } devServer
+   * @param { import('webpack-dev-server') } devServer
+   * @param { { APP: string; local?: boolean } } env
    */
-  function registerRoutes() {
+  function registerRoutes(devServer, env) {
     const findMatchingFileName = (filepaths, n) =>
       filepaths.find((fp) => fp.includes(n))
 
@@ -321,9 +321,12 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
 
     devServer?.app?.get(`/analysis/:appname/:filename`, (req, res) => {
       let { appname = configKey, filename } = req.params
-      log(`Requesting file: ${aqua(filename)}`)
+      log(`Requesting file: ${aqua(filename)} in ${yellow(appname)} app`)
       if (filename.includes('_en')) filename = filename.replace('_en', '')
+      if (filename.endsWith('.yml')) filename = filename.replace('.yml', '')
+      log(`Formatted filename: ${yellow(filename)}`)
       const glob = path.join(basedir, appname, '**/*.yml')
+      log(`Glob: ${yellow(glob)}`)
       const filepaths = fg.sync(glob)
       const filepath = findMatchingFileName(filepaths, filename)
       const fileyml = loadAsYml(filepath)
@@ -379,6 +382,66 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
         },
       })
     })
+
+    if (env.local && devServer) {
+      const dir = path.join(basedir, configKey)
+      const glob = path.join(dir, '**/*')
+      const getRouteFilePath = (r, ext = '') =>
+        path.join(dir, r + (ext ? `.${ext}` : ''))
+
+      if (!fs.existsSync(dir)) {
+        throw new Error(`The directory ${yellow(dir)} does not exist`)
+      }
+
+      const routeFilePaths = [
+        {
+          name: configKey,
+          path: getRouteFilePath(configKey, 'yml'),
+          ext: '.yml',
+        },
+        {
+          name: 'cadlEndpoint',
+          path: getRouteFilePath('cadlEndpoint', 'yml'),
+          ext: '.yml',
+        },
+      ]
+
+      const filepaths = fg.sync(glob, { onlyFiles: true })
+
+      filepaths.forEach((filepath) => {
+        const routeObject = {
+          name: path
+            .basename(filepath, path.extname(filepath))
+            .replace(/_en/, ''),
+          path: filepath,
+          ext: path.extname(filepath),
+        }
+        routeFilePaths.push(routeObject)
+        if (!fs.existsSync(filepath)) {
+          log(
+            `${red(`The file at`)} ${yellow(filepath)} ${red(
+              `does not exist`,
+            )}`,
+          )
+        }
+      })
+
+      log(`Registering ${yellow(routeFilePaths.length)} routes`)
+
+      routeFilePaths.forEach((obj) => {
+        const trimmedName = obj.name.replace(/_en/, '')
+        const route = obj.ext
+          ? new RegExp(`(${trimmedName})(${obj.ext})$`)
+          : new RegExp(trimmedName)
+        log(`Registering route ${yellow(trimmedName)}`)
+
+        devServer.app.get(route, (req, res) => {
+          res.status(200).sendFile(obj.path)
+        })
+      })
+
+      devServer.app.get('/local')
+    }
   }
 
   // const compiler = webpack({
@@ -417,7 +480,7 @@ function createAnalysisModule(basedir, devServer, opts = {}) {
      * @param { ws.ServerOptions } opts
      */
     listen: (opts) => listen({ ...wssOptions, ...opts }),
-    registerRoutes: () => registerRoutes(devServer),
+    registerRoutes: () => registerRoutes(devServer, env),
     get watcher() {
       return watcher
     },

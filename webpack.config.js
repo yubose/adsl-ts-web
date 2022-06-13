@@ -154,8 +154,8 @@ function getWebpackConfig(env) {
       },
       port: 3000,
       proxy: {
-        [`/${analysisApp}`]: `http://127.0.0.1:3000/analysis/${analysisApp}`,
-        '/analysis/console': `http://127.0.0.1:3000/index.html?analysis`,
+        // [`/${analysisApp}`]: `http://127.0.0.1:3000/analysis/${analysisApp}`,
+        // '/analysis/console': `http://127.0.0.1:3000/index.html?analysis`,
         //   '/analysis': 'http://127.0.0.1:3000/analysis/app',
         //   '/analysis/app': 'http://127.0.0.1:3000/analysis/app',
         //   '/analysis/testpage': 'http://127.0.0.1:3000/analysis/testpage',

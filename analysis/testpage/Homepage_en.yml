@@ -10,7 +10,7 @@ Homepage:
         dataOut: Homepage.concatResults
   components:
     - type: label
-      text: ..g
+      text: ..b
     - type: image
       path: abc.png
       onClick:
