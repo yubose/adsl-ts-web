@@ -316,7 +316,7 @@ const createBuiltInActions = function createBuiltInActions(app: App) {
     async function onDisconnectMeeting(action) {
       log.func('disconnectMeeting')
       log.grey('', action?.snapshot?.())
-      app.meeting.room.disconnect()
+      app.meeting.room.disconnect
       app.meeting.leave()
     }
 

@@ -44,7 +44,7 @@ class createRegisters{
           onNewEcosDocRegisterComponent?.onEvent?.(data.did)
         } else {
           console.log({ message })
-          debugger
+          // debugger
         }
       }
     })
@@ -110,7 +110,7 @@ class createRegisters{
       async twilioOnPeopleShowRoom(obj: Register.Object, arg) {
         log.func('twilioOnPeopleShowRoom')
         log.hotpink('', { obj, arg })
-        debugger
+        // debugger
       },
     }
     
