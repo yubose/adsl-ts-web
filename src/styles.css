@@ -54,7 +54,7 @@ textarea::-webkit-input-placeholder { /* WebKit browsers */
   }
   textarea::-moz-placeholder { /* Mozilla Firefox 19+ */
   color: #A9AAAA;
-  
+
   }
 
   input::-webkit-input-placeholder { /* WebKit browsers */
@@ -62,13 +62,15 @@ textarea::-webkit-input-placeholder { /* WebKit browsers */
   }
   input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
   color: #A9AAAA;
-  
+
   }
   input::-moz-placeholder { /* Mozilla Firefox 19+ */
   color: #A9AAAA;
-  
-  }
 
+  }
+  input,textarea{
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Segoe UI', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  }
 .actions button,
 input,
 select {
