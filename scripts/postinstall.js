@@ -14,7 +14,7 @@ const exec = (cmd, o) => spawnSync(cmd, { shell: true, stdio: 'inherit', ...o })
     for (const libs of [
       ['noodl-types'],
       ['noodl-action-chain', 'noodl-utils', 'noodl-builder'],
-      ['noodl-ui-test-utils'],
+      ['noodl-ui-test-utils', 'noodl-core', 'noodl-yaml'],
       ['noodl-ui'],
     ]) {
       console.log(`${u.cyan('Building')}: ${u.magenta(libs.join(', '))}`)

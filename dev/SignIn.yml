@@ -7,4 +7,9 @@ SignIn:
         name: Bob
         age: 30
         gender: .Topo.selectedGender
-
+  components:
+    - type: button
+      onClick:
+        - actionType: evalObject
+          object:
+            -

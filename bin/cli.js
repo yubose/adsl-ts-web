@@ -2,6 +2,7 @@
 'use strict'
 // const partialRight = require('lodash/partialRight')
 const u = require('@jsmanifest/utils')
+const partialRight = require('lodash/partialRight')
 const meow = require('meow')
 const { spawnSync } = require('child_process')
 const winston = require('winston')
@@ -9,6 +10,21 @@ const del = require('del')
 const path = require('path')
 const fs = require('fs-extra')
 const fg = require('fast-glob')
+
+const libs = [
+  'action-chain',
+  'core',
+  'loader',
+  'file',
+  'yaml',
+  'types',
+  'ui',
+  'utils',
+]
+
+const regex = {
+  libs: new RegExp(`${libs.join('|')}`, 'i'),
+}
 
 /**
  * @typedef ScriptUtils
@@ -23,22 +39,17 @@ const fg = require('fast-glob')
  * @property { typeof u } ScriptUtils.u
  */
 
-// prettier-ignore
-const partialRight = (fn, ...args) => (...rest) => fn(...rest, ...args)
 const exec = partialRight(spawnSync, { shell: true, stdio: 'inherit' })
+const { newline } = u
 
 const log = winston.createLogger({
   format: winston.format.combine(
     winston.format.colorize({
-      colors: {
-        info: 'cyan',
-        error: 'red',
-        warn: 'yellow',
-      },
+      colors: { info: 'cyan', error: 'red', warn: 'yellow' },
     }),
-    winston.format.cli(),
+    winston.format.cli({ message: true }),
   ),
-  transports: [new winston.transports.Console({ level: 'info' })],
+  transports: [new winston.transports.Console({ level: 'debug' })],
 })
 
 function getHelp() {
@@ -53,10 +64,7 @@ function getHelp() {
     `${prefix} ${cmd('start')} ${val('homepage')} ${cmd('config', 'c')} ` +
       `${val('www')} ${cmd('clean')}`,
   )
-  lines.push(
-    `${prefix} ${cmd('bundle')} ${val('webApp')} ${cmd('stats')} ` +
-      `${cmd('types')}`,
-  )
+  lines.push(`${prefix} ${cmd('server', 'admind3')} ${cmd('g')} ${val('app')}`)
   return lines.join('\n')
 }
 
@@ -65,51 +73,88 @@ const cli = meow(getHelp(), {
   flags: {
     config: { alias: 'c', type: 'string' },
     clean: { type: 'boolean' },
-    serve: { type: 'string' },
+    deploy: { type: 'string' },
+    dev: { type: 'string' },
     start: { type: 'string' },
     build: { type: 'string' },
     bundle: { type: 'string' },
-    stats: { type: 'boolean' },
+    publish: { alias: 'p', type: 'string' },
     test: { type: 'string' },
-    types: { alias: 't', type: 'boolean' },
+    server: { type: 'string' },
+    generate: { alias: 'g', type: 'boolean' },
   },
 })
 
-const { flags } = cli
+const { flags, input } = cli
 
-const [cmd, ...args] = cli.input
 /** @type { ScriptUtils } */
 const scriptUtils = { del, exec, fg, fs, flags, log, path, u }
 
+newline()
+
+console.log({ flags, input })
+
+newline()
+
+//
 ;(async () => {
   try {
-    if (flags.start || flags.build || flags.test) {
-      const pkg = flags.start || flags.build || flags.test
-      const isBuild = flags.build && !flags.start
-      const isTest = flags.test && !(flags.start && flags.build)
+    const isStart = input[0] === 'start' || flags.start
+    const isBuild = flags.build && !isStart
+    const isTest = flags.test && !(isStart && isBuild)
+    const isPublish = flags.publish && !(isStart && isBuild && isTest)
+    const pkg =
+      input[0] === 'start'
+        ? input[1]
+        : flags.start ||
+          flags.build ||
+          flags.test ||
+          flags.deploy ||
+          flags.publish
 
+    let cmd = ''
+
+    if (flags.dev) {
+      const pkg = flags.dev
+      if (/core|yaml/i.test(pkg)) {
+        cmd = `lerna exec --scope noodl-${pkg} `
+        cmd += `\"npm run dev\"`
+      }
+      exec(cmd)
+    } else if (isStart || isBuild || isTest) {
+      // Static web app
       if (/static|homepage/i.test(pkg)) {
-        const command = isBuild ? 'build' : isTest ? 'test:watch' : 'start'
-        let cmd = `lerna exec --scope homepage \"`
+        let command = isBuild ? 'build' : isTest ? 'test:watch' : 'start'
+        cmd = `lerna exec --scope homepage \"`
         if (!isTest) {
           if (flags.config) cmd += `npx cross-env CONFIG=${flags.config} `
           if (flags.clean) cmd += `gatsby clean && `
         }
         cmd += `npm run ${command}`
         cmd += `\"`
-        exec(cmd)
-      } else if (/builder/i.test(pkg)) {
-        const command = isBuild ? 'build' : isTest ? 'test' : 'start'
-        let cmd = `lerna exec --scope noodl-builder \"`
+      }
+      // noodl-core documentation
+      else if (/docs/i.test(pkg)) {
+        let command = isBuild ? 'build' : 'start'
+        cmd = `lerna exec --scope noodl-core-docs \"`
         cmd += `npm run ${command}`
         cmd += `\"`
-        exec(cmd)
+      } else if (regex.libs.test(pkg)) {
+        let command = isBuild ? 'build' : isTest ? 'test' : 'start'
+        cmd = `lerna exec --scope `
+        cmd += `noodl-${pkg} `
+        cmd += `\"npm run ${command}\"`
       } else {
         throw new Error(
-          `"${pkg}" is not supported yet. Supported options: "static", "homepage"`,
+          `"${pkg}" is not supported yet. Supported options: static, homepage, ${libs.join(
+            ', ',
+          )}`,
         )
       }
-    } else if (flags.bundle) {
+      exec(cmd)
+    }
+    // Prep web app bundle for noodl-app (electron)
+    else if (flags.bundle) {
       log.info(`Bundling ${bundle}`)
 
       if (flags.bundle === 'webApp') {
@@ -119,6 +164,35 @@ const scriptUtils = { del, exec, fg, fs, flags, log, path, u }
       } else {
         throw new Error(`Invalid value for bundling. Choose one of: "webApp"`)
       }
+    }
+    // Publish
+    else if (isPublish) {
+      if (regex.libs.test(pkg)) {
+        const folder = `noodl-${pkg}`
+        cmd = `cd packages/${folder} `
+        cmd += `&& npm run build`
+        cmd += `&& npm version patch -f && npm publish -f --access public`
+        cmd += `&& cd ../..`
+        exec(cmd)
+      } else {
+        throw new Error(
+          `Invalid value for publishing. Choose one of: ${libs.join(', ')}`,
+        )
+      }
+    }
+    // Start local server using noodl-cli
+    else if (flags.server) {
+      cmd = `noodl --server -c ${flags.server}`
+      if (flags.generate) cmd += ` -g app`
+    } else if (flags.deploy) {
+      if (/docs/i.test(pkg)) {
+        cmd = `cd packages/core-docs && git add . && git commit -m \"update\" && git push && cd ../..`
+      } else {
+        throw new Error(
+          `"${pkg}" is not supported yet for deploy script. Supported options: "docs"`,
+        )
+      }
+      exec(cmd)
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))

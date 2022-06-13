@@ -17,16 +17,17 @@ import { Client as SearchClient } from 'elasticsearch-browser'
 
 export const lvl3Options = {
   baseConfigUrl: 'https://public.aitmed.com/config',
-  app: 'prod2',
+  app: process.env.ANALYSIS_APP ?? 'patient',
   get url() {
     // ONLY used if passed in as cli args via --env APP=<config name>
     // See webpack.config.js for details in the "_getLocalAppHelpers" function
     // (ex: npm run start:test -- --env APP=admind3)
     // if (process.env.LOCAL_CONFIG_URL) return process.env.LOCAL_CONFIG_URL
     // This will be returned (normal use) if NOT using -- env APP=<config name>
+    const port = 3000
     return isDeploying
       ? safeDeployUrl
-      : `http://127.0.0.1:3001/${lvl3Options.app}.yml`
+      : `http://127.0.0.1:${port}/${lvl3Options.app}.yml`
     // return `./analysis.yml`
   },
 }
@@ -60,21 +61,29 @@ export let noodl: NOODL | undefined
 
 resetInstance()
 
-/**
- * @deprecated
- * This will be removed in the future to use createInstance instead
- */
-export function resetInstance() {
-  noodl = new NOODL({
-    aspectRatio:
-      typeof window !== 'undefined'
-        ? VP.getAspectRatio(window.innerWidth, window.innerHeight)
-        : 1,
+export function getInstance(
+  opts?: Partial<ConstructorParameters<typeof NOODL>[0]>,
+) {
+  return new NOODL({
     cadlVersion: isStable() ? 'stable' : 'test',
     configUrl: lvl3Options.url,
     // configUrl: `${BASE}/${CONFIG_KEY}.yml`,
     dbConfig: undefined,
     SearchClient,
+    ...opts,
+  })
+}
+
+/**
+ * @deprecated
+ * This will be removed in the future to use createInstance instead
+ */
+export function resetInstance() {
+  noodl = getInstance({
+    aspectRatio:
+      typeof window !== 'undefined'
+        ? VP.getAspectRatio(window.innerWidth, window.innerHeight)
+        : 1,
   })
   return noodl
 }

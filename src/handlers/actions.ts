@@ -153,7 +153,7 @@ const createActions = function createActions(app: App) {
           while (results.length) {
             let result = results.shift()
 
-            if (u.isArr(result)) {
+            while(u.isArr(result)) {
               results.push(...result)
               result = results.shift()
             }
@@ -222,7 +222,7 @@ const createActions = function createActions(app: App) {
                       }
                     }
                   }
-
+                  
                   log.grey(
                     `An evalObject action is injecting a new object to the chain`,
                     {
@@ -702,8 +702,9 @@ const createActions = function createActions(app: App) {
     const textFunc = component.get('text=func') || ((x: any) => x)
     const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
     let initialSeconds = get(app.root, dataKey, popUpWaitSeconds) as number
+    initialSeconds = initialSeconds?initialSeconds:30
     initialSeconds = initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
-    node.textContent = textFunc(initialSeconds * 1000, 'mm:ss')
+    node.textContent = textFunc(initialSeconds*1000, 'mm:ss')
 
     const interval =  setInterval(()=>{
       initialSeconds = initialSeconds - 1
@@ -728,30 +729,42 @@ const createActions = function createActions(app: App) {
         const wait = _pick(action, 'wait')
 
         let isWaiting = is.isBooleanTrue(wait) || u.isNum(wait)
-        if(popUpView === 'extendView'){
-          u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
-            if (node) {
-              const component = app.cache.component.get(node?.id)?.component
-              const dataKey =
-                component.get('data-key') || component.blueprint?.dataKey || ''
-              const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
-              let initialSeconds = get(app.root, dataKey, 30) as number
-              initialSeconds =
-                initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
-              if (action?.actionType === 'popUp') {
-                loadTimeLabelPopUp(node, component)
+        let initialSeconds
+        u.array(asHtmlElement(findByUX('timerLabelPopUp'))).forEach((node) => {
+          if (node) {
+            const component = app.cache.component.get(node?.id)?.component
+            const dataKey =
+              component.get('data-key') || component.blueprint?.dataKey || ''
+            const popUpWaitSeconds = app.register.getPopUpWaitSeconds()
+            initialSeconds = get(app.root, dataKey, 30) as number
+            initialSeconds =
+              initialSeconds <= 0 ? popUpWaitSeconds : initialSeconds
+            if (action?.actionType === 'popUp') {
+              loadTimeLabelPopUp(node, component)
+              if(popUpView === 'extendView'){
                 const id = setTimeout(() => {
-                  app.register.extendVideoFunction('onDisconnect')
+                  app.meeting.room.state === 'connected' && app.register.extendVideoFunction('onDisconnect')
+                  clearTimeout(id)
                 }, initialSeconds * 1000)
                 app.register.setTimeId('PopUPToDisconnectTime', id)
-              } else if (action?.actionType === 'popUpDismiss') {
-                app.register.removeTime('PopUPTimeInterval')
-                app.register.removeTime('PopUPToDisconnectTime')
               }
+            } else if (action?.actionType === 'popUpDismiss') {
+              app.register.removeTime('PopUPTimeInterval')
+              app.register.removeTime('PopUPToDisconnectTime')
+              // if(popUpView === 'providerLeftWarningView' || popUpView === 'exitWarningView'){
+              //   app.register.extendVideoFunction('onDisconnect')
+              // }
             }
-          })
-        }
+          }
+        })
+        
         u.array(asHtmlElement(findByUX(popUpView))).forEach((elem) => {
+          if(popUpView === 'exitWarningView'){
+            setTimeout(() => {
+              hide(elem)
+              resolve()
+            }, initialSeconds*1000)
+          }
           if (dismissOnTouchOutside) {
             const onTouchOutside = function onTouchOutside(
               this: HTMLDivElement,

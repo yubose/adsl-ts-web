@@ -1,7 +1,8 @@
+import type { LiteralUnion } from 'type-fest'
 import type { EmitObjectFold, IfObject } from './uncategorizedTypes'
 import type { OrArray } from './_internal/types'
 
-export type RootConfig = {
+export type RootConfig = Record<DeviceType, RootConfigDeviceVersionObject> & {
   /**
    * @example
    * ```json
@@ -34,7 +35,7 @@ export type RootConfig = {
    */
   cadlBaseUrl: string
   myBaseUrl: string
-  connectiontimeout: string | number
+  connectiontimeout: number | string
   loadingLevel: number // Defaulted to 1
   /**
    * The file name/path will be the pathname used to grab the "app" config
@@ -61,6 +62,8 @@ export type RootConfig = {
   bodyTailPplugin?: string
   /** If this is specified the app should transform this to a plugin component */
   headPlugin?: string
+  platform?: string
+  syncHost?: string
   /**
    * The timestamp the config was last created or modified.
    * This is used to invalidate the config cache.
@@ -69,7 +72,7 @@ export type RootConfig = {
    * { "timestamp": "092142419232" }
    * ```
    */
-  timestamp: number
+  timestamp: string
   /**
    * @example
    * ```json
@@ -97,7 +100,7 @@ export type RootConfig = {
     min: number
     max: number
   }
-} & Record<DeviceType, RootConfigDeviceVersionObject> & { [key: string]: any }
+} & { [key: string]: any }
 
 export interface AppConfig {
   /**
@@ -127,7 +130,7 @@ export interface AppConfig {
    * const fileSuffix = '.yml'
    * ```
    */
-  fileSuffix: string
+  fileSuffix: LiteralUnion<'.yml', string>
   /**
    * The default page for user sessions where they haven't visited any pages
    * Also the default page for unauthorized users
@@ -158,8 +161,8 @@ export interface AppConfig {
 
 export interface RootConfigDeviceVersionObject {
   cadlVersion: {
-    stable: string
-    test: string
+    stable: number
+    test: number
   }
 }
 
@@ -202,14 +205,14 @@ export type BuiltInEvalReference<S extends string> = ReferenceString<
 >
 
 export type DataIn = OrArray<
-  string | IfObject | EmitObjectFold | PolymorphicObject
+  EmitObjectFold | IfObject | PolymorphicObject | string
 >
 
 export type DataOut = OrArray<
-  string | IfObject | EmitObjectFold | PolymorphicObject
+  EmitObjectFold | IfObject | PolymorphicObject | string
 >
 
-export type DeviceType = 'web' | 'ios' | 'android'
+export type DeviceType = 'android' | 'ios' | 'web'
 
 export type Env = 'stable' | 'test'
 
@@ -248,25 +251,25 @@ export interface NameField<Type extends MimeType.Options = MimeType.Options> {
 export namespace MimeType {
   export type Options = Audio | Image | Json | Pdf | Text | Video
   // prettier-ignore
-  export type Audio = `audio/${'3gp' | 'flac' | 'm4a' | 'mp3' | 'ogg' | 'wav' | 'wma' | 'webm'}`
+  export type Audio = `audio/${'3gp' | 'flac' | 'm4a' | 'mp3' | 'ogg' | 'wav' | 'webm' | 'wma'}`
   // prettier-ignore
-  export type Image = `image/${'ai' | 'bmp' | 'eps' | 'gif' | 'jpg' | 'jpeg' | 'png' | 'psd' | 'svg' | 'tiff' | 'webp'}`
+  export type Image = `image/${'ai' | 'bmp' | 'eps' | 'gif' | 'jpeg' | 'jpg' | 'png' | 'psd' | 'svg' | 'tiff' | 'webp'}`
   export type Json = 'application/json'
   export type Pdf = 'application/pdf'
   export type Text = `text/${'css' | 'html' | 'javascript' | 'plain'}`
   // prettier-ignore
-  export type Video = `video/${'avi' | 'flv' | 'mkv' | 'mov' | 'mpg' | 'mp4' | 'ogg' | 'webm' | 'wmv'}`
+  export type Video = `video/${'avi' | 'flv' | 'mkv' | 'mov' | 'mp4' | 'mpg' | 'ogg' | 'webm' | 'wmv'}`
 }
 
 export interface SubtypeObject<MT extends MediaType = MediaType> {
-  isOnServer?: null | boolean
-  isZipped?: null | boolean
-  isBinary?: null | boolean
-  isEncrypted?: null | boolean
-  isEditable?: null | boolean
-  applicationDataType?: null | number
-  mediaType?: null | MT
-  size?: null | number
+  isOnServer?: boolean | null
+  isZipped?: boolean | null
+  isBinary?: boolean | null
+  isEncrypted?: boolean | null
+  isEditable?: boolean | null
+  applicationDataType?: number | null
+  mediaType?: MT | null
+  size?: number | null
   [key: string]: any
 }
 
@@ -316,7 +319,7 @@ export type ReferenceSymbol = '.' | '..' | '=' | '~/' | '@'
  */
 export type ReferenceString<
   K extends string = string,
-  S extends ReferenceSymbol | '=.' | '=..' = ReferenceSymbol | '=.' | '=..',
+  S extends ReferenceSymbol | '=..' | '=.' = ReferenceSymbol | '=..' | '=.',
 > = S extends '.'
   ? `.${K}`
   : S extends '..'
@@ -326,14 +329,14 @@ export type ReferenceString<
   : S extends '=..'
   ? `=${Extract<ReferenceSymbol, '..'> | never}${K}`
   : S extends '='
-  ? `=${Extract<ReferenceSymbol, '.' | '..'> | never}${K}`
+  ? `=${Extract<ReferenceSymbol, '..' | '.'> | never}${K}`
   : S extends '~/'
   ? `~/${K}`
   : S extends '@'
   ? `${K}@`
   :
-      | `=.${K}`
       | `=..${K}`
+      | `=.${K}`
       | `${Exclude<ReferenceSymbol, '@'>}${K}`
       | `${K}${Extract<ReferenceSymbol, '@'>}`
 

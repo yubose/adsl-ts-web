@@ -1,5 +1,5 @@
-const n = require('@noodl/core')
-const ny = require('@noodl/yaml')
+const n = require('noodl-core')
+const ny = require('noodl-yaml')
 
 /**
  * @typedef FactoryOptions
@@ -8,7 +8,7 @@ const ny = require('@noodl/yaml')
 
 /**
  * @typedef AssertOptions
- * @type { import('@noodl/yaml').RunDiagnosticsOptions }
+ * @type { import('noodl-yaml').RunDiagnosticsOptions }
  */
 
 /**
@@ -35,7 +35,7 @@ function createAsserter(run) {
 
 /**
  * @param { FactoryOptions } options
- * @returns {(fn: AssertFn) => import('@noodl/yaml').DocDiagnostics['run'] }
+ * @returns {(fn: AssertFn) => import('noodl-yaml').DocDiagnostics['run'] }
  */
 function factory(options) {
   return (enter) => {

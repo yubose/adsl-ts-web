@@ -541,6 +541,11 @@ const createExtendedDOMResolvers = function (app: App) {
         const iteratorVar = findIteratorVar(component)
         const dataKey =
           component.get('data-key') || component.blueprint?.dataKey || ''
+          const maxLen =
+          component.get('maxLength') || ''
+        if(maxLen){
+          node?.setAttribute("maxlength",maxLen)
+        }
         if (dataKey) {
           if (
             component?.type == 'textField' &&

@@ -1,5 +1,5 @@
 const u = require('@jsmanifest/utils')
-const { AVisitor } = require('@noodl/core')
+const { AVisitor } = require('noodl-core')
 
 /**
  * Untested / Not confirmed to be stable
@@ -39,7 +39,7 @@ class ObjVisitor extends AVisitor {
 
   /**
    * @param { [name: string, object: any]} args
-   * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
+   * @param { Parameters<import('noodl-core').AVisitor['callback']>[0] } options
    * @returns Visitor data
    */
   visit(args, options) {
@@ -68,7 +68,7 @@ class ObjVisitor extends AVisitor {
 
   /**
    * @param { [name: string, object: any]} args
-   * @param { Parameters<import('@noodl/core').AVisitor['callback']>[0] } options
+   * @param { Parameters<import('noodl-core').AVisitor['callback']>[0] } options
    * @returns Visitor data
    */
   async visitAsync(args, options) {

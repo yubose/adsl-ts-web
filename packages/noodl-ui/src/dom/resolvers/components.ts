@@ -231,11 +231,13 @@ const componentsResolver: t.Resolve.Config = {
           children,
           controls,
           dataKey,
+          autoplay,
           onClick,
           options: selectOptions,
           poster,
           text,
           videoType,
+
         } = original
 
         // BUTTON
@@ -907,11 +909,15 @@ const componentsResolver: t.Resolve.Config = {
         // textField
         else if (Identify.component.textField(args.component)) {
           if (args.component.has('isEditable')) {
-            const isEditable = args.component.get('isEditable')
+            const isEditable = args.component.get('isEditable');
+            // console.log(maxLen,"nnnnn")
             const isDisabled = Identify.isBooleanFalse(isEditable)
             if (isDisabled) {
               setAttr('disabled', isDisabled)
             }
+            // if (maxLen) {
+            //   setAttr('maxLength', maxLen)
+            // }
           }
           if (args.component.blueprint?.autocomplete) {
             const autocomplete = args.component.get('autocomplete')
@@ -931,10 +937,10 @@ const componentsResolver: t.Resolve.Config = {
           const videoEl = args.node as HTMLVideoElement
           let sourceEl: HTMLSourceElement
           let notSupportedEl: HTMLParagraphElement
-          videoEl.controls = Identify.isBooleanTrue(controls)
+          videoEl.controls = Identify.isBooleanTrue(controls);
+          videoEl.autoplay = Identify.isBooleanTrue(autoplay);
 
           const attrs = ['poster', ['src', 'path']]
-
           attrs.forEach((attr) => {
             if (u.isArr(attr)) {
               const [attrib, key] = attr
@@ -957,7 +963,18 @@ const componentsResolver: t.Resolve.Config = {
               const value = args.component.props[attr]
               !u.isNil(value) && setAttr(attr, value)
             }
+
           })
+          if(args.component.blueprint?.['path=func']){
+            // console.log("pppp",args.component
+            // ?.get?.(c.DATA_VALUE))
+              args.component
+              ?.get?.(c.DATA_VALUE)
+              ?.then?.((path: any) => {
+                // console.log("fff",path)
+                setAttr('src', path?.url)
+              })
+            }
 
           videoEl.style.objectFit = 'contain'
         }

@@ -1,1 +1,2 @@
-Style: null
+Style:
+  shadow: 'true'

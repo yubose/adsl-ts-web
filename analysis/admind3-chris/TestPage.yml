@@ -1,0 +1,94 @@
+TestPage:
+  pageNumber: "0"
+
+  title: "Test Page"
+
+  init:
+    - .SignInCheck
+    - ..apiRequest.fac_RootNotebook.edgeReq.id@: "P7a0cKFrT6g9I3gDxYGmcQ=="
+    - =..apiRequest.fac_RootNotebook.edgeAPI.get: ""
+    - ..apiRequest.facility.documentReq.id@: =..apiRequest.fac_RootNotebook.edge.edge.0.id
+
+  apiRequest:
+    facility:
+      response: ""
+      documentReq:
+        id: ""
+        xfname: eid
+        type: .DocType.FacilityProfile
+        _nonce: =.Global._nonce
+      docAPI:
+        get:
+          api: rd
+          dataIn: TestPage.apiRequest.facility.documentReq
+          dataOut: TestPage.apiRequest.facility.response
+    fac_RootNotebook:
+      edgeReq:
+        id: ""
+        xfname: bvid
+        type: .EdgeType.RootNotebook
+      edge: ""
+      edgeAPI:
+        get:
+          api: re
+          dataIn: TestPage.apiRequest.fac_RootNotebook.edgeReq
+          dataOut: TestPage.apiRequest.fac_RootNotebook.edge
+
+  components:
+    - .TotalView:
+      children:
+        - .SideMenuBar:
+          children:
+            - .aitLogo:
+            - .MenuBar:
+        - .TopBar:
+          style:
+            left: "0.16"
+            marginTop: "0"
+            height: "0.063"
+            width: "0.84"
+        # - .InnerBodyView:
+        - type: view
+          style:
+            backgroundColor: "0xf4f8fa"
+            width: "0.84"
+            height: "0.937"
+            left: "0.16"
+            top: "0.063"
+          children:
+            # - .PageTitleLabel: 
+            - type: label
+              text: ..title
+              style:
+                fontSize: .Nfont.nf6
+                fontFamily: "Roboto"
+                fontWeight: "600"
+                left: "0.03328"
+                height: "0.06256"
+                textAlign:
+                  y: center
+            - .ContentBar:
+              style:
+                marginTop: "0"
+                backgroundColor: "0xffffff"
+                width: "0.82"
+                height: "0.85594"
+                # marginLeft: "0.01"
+                borderRadius: "6"
+                border:
+                  style: "3"
+                borderColor: "0xffffff"
+                boxSizing: border-box
+              children:
+                - type: view
+                  style:
+                    height: "0.12236"
+                    width: "0.77424"
+                    marginTop: "0"
+                    left: "0.02288"
+                    display: flex
+                    align-items: center
+                    justify-content: space-evenly
+                  children:
+
+
