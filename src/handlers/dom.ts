@@ -1542,6 +1542,7 @@ const createExtendedDOMResolvers = function (app: App) {
                   let img: HTMLImageElement = document.createElement('img')
                   img.src = dataValue[index];
                   img.style.width = option.childStyle?.width + "";
+                  img.style.height = option.childStyle?.height + "";
                   // img.style.cursor = "pointer" ;
                   liDom.appendChild(img);
                   listDom.appendChild(liDom);
