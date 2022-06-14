@@ -14,10 +14,10 @@ import is from '../utils/is'
 import {
   findIteratorVar,
   findListDataObject,
-  getByRef,
   getListAttribute,
   isListConsumer,
   isListLike,
+  getByRef,
   resolveAssetUrl,
 } from '../utils/noodl'
 import log from '../utils/log'
@@ -45,7 +45,7 @@ componentResolver.setResolver(async (component, options, next) => {
     page,
     resolveComponents,
   } = options
-
+  
   callback?.(component)
 
   const mergingProps = on?.createComponent?.(component, {
@@ -110,9 +110,13 @@ componentResolver.setResolver(async (component, options, next) => {
           pageName = page.page
         }
         const _ref = opts.component?.props?._ref_
+        let dataObject
+        if (u.isStr(_ref) && is.reference(_ref)) {
+          dataObject = getByRef(opts.getRoot(),_ref,pageName )
+        }
         let listObject =
-          // component.blueprint.listObject || component.get('listObject')
-          getByRef(opts.getRoot(), _ref, pageName) ||
+          // component.blueprint.listObject || component.get('listObject')  
+          dataObject ||
           component.blueprint.listObject ||
           component.get('listObject')
         if (is.reference(listObject)) {
